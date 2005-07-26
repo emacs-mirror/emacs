@@ -1,5 +1,7 @@
 2005-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* smerge-mode.el (smerge-ediff): Use insert-buffer-substring.
+
 	* descr-text.el (describe-char): Handle the case where the list of
 	chars is displayed in a separate frame.
 	Be a bit more discriminating when looking for the char.
@@ -79,8 +81,8 @@
 
 2005-07-22  Kim F. Storm  <storm@cua.dk>
 
-	* image-file.el (insert-image-file, image-file-yank-handler): Fix
-	last change to maintain a (unique) yank-handler on yanked images.
+	* image-file.el (insert-image-file, image-file-yank-handler):
+	Fix last change to maintain a (unique) yank-handler on yanked images.
 
 2005-07-22  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
 
@@ -305,20 +307,20 @@
 
 	* textmodes/org.el (org-table-column-names)
 	(org-table-column-name-regexp)
-        (org-table-named-field-locations): New variables.
-        (org-archive-subtree): Protect `this-command' when calling
+	(org-table-named-field-locations): New variables.
+	(org-archive-subtree): Protect `this-command' when calling
 	`org-copy-subtree' and `org-cut-subtree', to avoid appending to
 	the kill buffer.
-        (org-complete): Remove fixed-formula completion.
-        (org-edit-formulas-map): New variable.
-        (org-table-edit-formulas): New command.
-        (org-finish-edit-formulas, org-abort-edit-formulas)
+	(org-complete): Remove fixed-formula completion.
+	(org-edit-formulas-map): New variable.
+	(org-table-edit-formulas): New command.
+	(org-finish-edit-formulas, org-abort-edit-formulas)
 	(org-show-variable, org-table-get-vertical-vector): New functions.
-        (org-table-maybe-eval-formula): Handle `:=' fields.
-        (org-table-get-stored-formulas, org-table-store-formulas)
-        (org-table-get-formula, org-table-modify-formulas)
-        (org-table-replace-in-formulas): Handle named field formulas.
-        (org-table-get-specials): Store locations of named fields.
+	(org-table-maybe-eval-formula): Handle `:=' fields.
+	(org-table-get-stored-formulas, org-table-store-formulas)
+	(org-table-get-formula, org-table-modify-formulas)
+	(org-table-replace-in-formulas): Handle named field formulas.
+	(org-table-get-specials): Store locations of named fields.
 
 2005-07-19  Juri Linkov  <juri@jurta.org>
 
@@ -380,8 +382,8 @@
 	more than 88 colors.  Use green for light backgrounds with
 	8 colors, and yellow for dark backgrounds with 8 colors.
 
-	* font-lock.el (font-lock-regexp-grouping-backslash): Don't
-	inherit from escape-glyph (use bold for all cases).
+	* font-lock.el (font-lock-regexp-grouping-backslash):
+	Don't inherit from escape-glyph (use bold for all cases).
 
 	* info.el (info-xref-visited): Use light foreground color `violet'
 	for dark backgrounds instead of dark color `magenta3'.
@@ -478,8 +480,8 @@
 	`insert-buffer'.
 
 	* calendar/icalendar.el (icalendar--get-unfolded-buffer):
-	* progmodes/ada-mode.el (ada-make-body): Use
-	`insert-buffer-substring' and `goto-char', not `insert-buffer'.
+	* progmodes/ada-mode.el (ada-make-body):
+	Use `insert-buffer-substring' and `goto-char', not `insert-buffer'.
 
 	* dired.el (dired-log):
 	* tar-mode.el (tar-subfile-save-buffer):
@@ -573,8 +575,8 @@
 
 	* emulation/viper-init.el (viper-activate-input-method): Avoid warning.
 
-	* emacs-lisp/re-builder.el (reb-cook-regexp): Avoid
-	warning calling lre-compile-string.
+	* emacs-lisp/re-builder.el (reb-cook-regexp):
+	Avoid warning calling lre-compile-string.
 	(reb-color-display-p): Avoid warning.
 
 	* calculator.el (calculator-last-input): Guard uses
@@ -591,8 +593,8 @@
 	(checkdoc-overlay-start, checkdoc-overlay-end)
 	(checkdoc-mode-line-update, checkdoc-char=):
 	Define such that compiler knows they are defined.
-	(checkdoc-call-eval-buffer): Deleted.  Use eval-buffer directly.
-	(checkdoc-read-event): Deleted.  Use read-event directly.
+	(checkdoc-call-eval-buffer): Delete.  Use eval-buffer directly.
+	(checkdoc-read-event): Delete.  Use read-event directly.
 
 	* whitespace.el (whitespace-make-overlay)
 	(whitespace-overlay-put, whitespace-delete-overlay)
