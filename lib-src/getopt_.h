@@ -225,3 +225,6 @@ extern int getopt_long_only (int ___argc, char *__getopt_argv_const *___argv,
 #undef __need_getopt
 
 #endif /* getopt.h */
+
+/* arch-tag: e36f5607-3ac6-4cdc-9aa7-c26c6525fe9b
+   (do not change this comment) */
