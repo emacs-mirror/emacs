@@ -1472,7 +1472,7 @@ When Hungry mode is enabled, the control delete key
 gobbles all preceding whitespace except the last.
 See the command \\[hungry-electric-delete]."
  ;; The initial value.
- :initial-value nil
+ :init-value nil
  ;; The indicator for the mode line.
  :lighter " Hungry"
  ;; The minor mode bindings.
