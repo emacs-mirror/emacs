@@ -5197,13 +5197,17 @@ specifies."
 			 1 0)))))))
 
 (defun gnus-article-next-page-1 (lines)
-  (let ((scroll-in-place nil))
+  (unless (and (not (featurep 'xemacs))
+	       (> (symbol-value 'scroll-margin) 0)
+	       (<= (count-lines (window-start) (point-max))
+		   (symbol-value 'scroll-margin)))
     (condition-case ()
-	(scroll-up lines)
+	(let ((scroll-in-place nil))
+	  (scroll-up lines))
       (end-of-buffer
        ;; Long lines may cause an end-of-buffer error.
-       (goto-char (point-max)))))
-  (gnus-article-beginning-of-window))
+       (goto-char (point-max))))
+    (gnus-article-beginning-of-window)))
 
 (defun gnus-article-prev-page (&optional lines)
   "Show previous page of current article.
@@ -5217,13 +5221,13 @@ Argument LINES specifies lines to be scrolled down."
 	(gnus-narrow-to-page -1)	;Go to previous page.
 	(goto-char (point-max))
 	(recenter -1))
-    (let ((scroll-in-place nil))
-      (prog1
-	  (condition-case ()
-	      (scroll-down lines)
-	    (beginning-of-buffer
-	     (goto-char (point-min))))
-	(gnus-article-beginning-of-window)))))
+    (prog1
+	(condition-case ()
+	    (let ((scroll-in-place nil))
+	      (scroll-down lines))
+	  (beginning-of-buffer
+	   (goto-char (point-min))))
+      (gnus-article-beginning-of-window))))
 
 (defun gnus-article-only-boring-p ()
   "Decide whether there is only boring text remaining in the article.

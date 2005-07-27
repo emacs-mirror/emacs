@@ -1,3 +1,9 @@
+2005-07-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page-1): Don't scroll if there're
+	fewer lines than that of scroll-margin.
+	(gnus-article-prev-page): Narrow the range to bind scroll-in-place.
+
 2005-07-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-next-page): Revert.
