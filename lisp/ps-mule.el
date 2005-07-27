@@ -1039,9 +1039,12 @@ the sequence."
 	    /BOTTOM LLY def
 	    currentfont /RelativeCompose known {
 		/relative currentfont /RelativeCompose get def
+		relative false eq {
+		    %% Disable relative composition by setting sufficiently low
+		    %% and high positions.
+		    /relative [ -100000 100000 ] def
+		} if
 	    } {
-		%% Disable relative composition by setting sufficiently low
-		%% and high positions.
 		/relative [ -100000 100000 ] def
 	    } ifelse
 	    [ elt 0 0 ]
