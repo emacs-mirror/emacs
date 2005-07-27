@@ -5,6 +5,8 @@
 
 	* ps-mule.el (ps-mule-bitmap-prologue): Fix arguments to
 	setcharwidth.
+	(ps-mule-composition-prologue): Fix for the case that
+	RelativeCompose is false.
 
 2005-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
