@@ -1,3 +1,11 @@
+2005-07-27  Kenichi Handa  <handa@m17n.org>
+
+	* ps-bdf.el (bdf-read-font-info): Ignore glyphs whose ENCODING is
+	negative.
+
+	* ps-mule.el (ps-mule-bitmap-prologue): Fix arguments to
+	setcharwidth.
+
 2005-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-ediff): Use insert-buffer-substring.
