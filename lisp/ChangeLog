@@ -1,3 +1,35 @@
+2005-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/apollo.el (terminal-init-apollo): New function containing
+	all former top level forms in the file.
+	* term/bobcat.el (terminal-init-bobcat):
+	* term/cygwin.el (terminal-init-cygwin):
+	* term/iris-ansi.el (terminal-init-iris-ansi):
+	* term/linux.el (terminal-init-linux):
+	* term/news.el (terminal-init-news):
+	* term/rxvt.el (terminal-init-rxvt):
+	* term/sun.el (terminal-init-sun):
+	* term/tvi970.el (terminal-init-tvi970):
+	* term/vt100.el (terminal-init-vt100):
+	* term/vt102.el (terminal-init-vt102):
+	* term/vt125.el (terminal-init-vt125):
+	* term/vt200.el (terminal-init-vt200):
+	* term/vt201.el (terminal-init-vt201):
+	* term/vt220.el (terminal-init-vt220):
+	* term/vt240.el (terminal-init-vt240):
+	* term/vt300.el (terminal-init-vt300):
+	* term/vt320.el (terminal-init-vt320):
+	* term/vt400.el (terminal-init-vt400):
+	* term/vt420.el (terminal-init-vt420):
+	* term/wyse50.el (terminal-init-wyse50):
+	* term/xterm.el (terminal-init-xterm): Likewise.
+
+	* term/README: Describe the terminal-init-* functionality.
+
+	* startup.el (command-line): After loading the terminal
+	initialization file call the corresponding terminal initialization
+	function.
+
 2005-07-27  Kenichi Handa  <handa@m17n.org>
 
 	* ps-bdf.el (bdf-read-font-info): Ignore glyphs whose ENCODING is

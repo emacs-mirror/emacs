@@ -984,7 +984,13 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
         (setq term
               (if (setq hyphend (string-match "[-_][^-_]+$" term))
                   (substring term 0 hyphend)
-                nil)))))
+                nil)))
+      (when term
+	;; The terminal file has been loaded, now call the terminal
+	;; specific initialization function.
+	(let ((term-init-func (intern (concat "terminal-init-" term))))
+	  (when (fboundp term-init-func)
+	    (funcall term-init-func))))))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.
