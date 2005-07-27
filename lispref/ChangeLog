@@ -1,3 +1,8 @@
+2005-07-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Defining Minor Modes): The keyword for the initial
+	value is :init-value, not :initial-value.
+
 2005-07-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* loading.texi (Autoload): Make the `doctor' example be consistent
