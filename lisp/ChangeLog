@@ -1,3 +1,11 @@
+2005-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-gateway-fatal-msgs)
+	(ange-ftp-pending-error-line): New vars.
+	(ange-ftp-process-handle-line, ange-ftp-process-filter): Use them
+	to handle the non-fatal no-route-to-host messages.
+	(internal-ange-ftp-mode): Make the no-match regexp more efficient.
+
 2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* isearch.el (isearch-mode-map, isearch-other-meta-char)
