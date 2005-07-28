@@ -1,3 +1,26 @@
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* isearch.el (isearch-mode-map, isearch-other-meta-char)
+	(isearch-quote-char, isearch-printing-char)
+	(isearch-text-char-description): "?\ " -> "?\s".
+	(isearch-lazy-highlight-cleanup)
+	(isearch-lazy-highlight-initial-delay)
+	(isearch-lazy-highlight-interval)
+	(isearch-lazy-highlight-max-at-a-time)
+	(isearch-lazy-highlight-face, isearch-lazy-highlight-cleanup):
+	Declare with define-obsolete-*-alias macros.
+	(isearch-forward): Fix typo in docstring.
+	(search-invisible, search-ring-yank-pointer)
+	(regexp-search-ring-yank-pointer): Doc fixes.
+
+	* recentf.el (recentf-menu-append-commands-p): Declare with
+	`define-obsolete-variable-alias'.
+	(recentf-max-saved-items, recentf-menu-filter)
+	(recentf-arrange-by-rule-subfilter): Doc fixes.
+	(recentf-menu-append-commands-flag)
+	(recentf-initialize-file-name-history, recentf-expand-file-name)
+	(recentf-clear-data): Fix typos in docstrings.
+
 2005-07-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el: Smarten comments.
