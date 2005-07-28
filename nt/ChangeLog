@@ -1,3 +1,7 @@
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `makefile' and `config.log'.
+
 2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge gnulib getopt implementation into Emacs.

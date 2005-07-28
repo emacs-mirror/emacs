@@ -1,3 +1,11 @@
+2005-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Don't ignore fns-* and fns.el, which are no longer
+	generated.  Ignore also ctags.c and getopt.h.
+
+	* makefile.w32-in (clean): Delete getopt.h.
+	(getopt.h): New rule.
+
 2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge gnulib getopt implementation into Emacs.
