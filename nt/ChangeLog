@@ -1,3 +1,7 @@
+2005-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Don't create lisp/Makefile.unix.
+
 2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Add `makefile' and `config.log'.
