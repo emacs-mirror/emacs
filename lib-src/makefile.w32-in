@@ -286,6 +286,7 @@ install:	$(INSTALL_FILES)
 clean:
 		- $(DEL) *~ DOC* $(COMPILER_TEMP_FILES)
 		- $(DEL) ctags.c
+		- $(DEL) getopt.h
 		- $(DEL_TREE) $(OBJDIR)
 
 cleanall:	clean
@@ -300,6 +301,8 @@ cleanall:	clean
 ../src/config.h:	../nt/$(CONFIG_H)
 			$(CP) $(ALL_DEPS) $@
 ../src/paths.h:		../nt/paths.h
+			$(CP) $(ALL_DEPS) $@
+getopt.h:		getopt_.h
 			$(CP) $(ALL_DEPS) $@
 
 ### DEPENDENCIES ###
