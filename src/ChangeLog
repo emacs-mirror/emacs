@@ -1,3 +1,11 @@
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (my_set_window_pos, my_show_window): Don't declare.
+	(my_create_window, my_create_tip_window): Make static.
+
+	* w32term.c (my_show_window, my_set_window_pos, my_set_focus)
+	(my_set_foreground_window, my_destroy_window): Make static.
+
 2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
 
 	Merge gnulib getopt implementation into Emacs.
