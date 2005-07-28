@@ -1,3 +1,8 @@
+2005-07-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Smarten comments.
+	(gdb-info-breakpoints-custom): Use nowarn when finding file.
+
 2005-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/apollo.el (terminal-init-apollo): New function containing
