@@ -1,7 +1,7 @@
 DOC
 Makefile.c
 b2m
-ctags
+ctags*
 cvtmail
 digest-doc
 ebrowse
@@ -9,8 +9,7 @@ emacsclient
 emacsserver
 etags
 fakemail
-fns-*
-fns.el
+getopt.h
 hexl
 make-docfile
 movemail
