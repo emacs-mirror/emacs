@@ -807,18 +807,6 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   register Lisp_Object sym, tem, tail;
 
   sym = Fcar (args);
-  if (SYMBOL_CONSTANT_P (sym))
-    {
-      /* For updward compatibility, allow (defvar :foo (quote :foo)).  */
-      tem = Fcar (Fcdr (args));
-      if (! (CONSP (tem)
-	     && EQ (XCAR (tem), Qquote)
-	     && CONSP (XCDR (tem))
-	     && EQ (XCAR (XCDR (tem)), sym)))
-	error ("Constant symbol `%s' specified in defvar",
-	       SDATA (SYMBOL_NAME (sym)));
-    }
-
   tail = Fcdr (args);
   if (!NILP (Fcdr (Fcdr (tail))))
     error ("Too many arguments");
@@ -826,6 +814,18 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   tem = Fdefault_boundp (sym);
   if (!NILP (tail))
     {
+      if (SYMBOL_CONSTANT_P (sym))
+	{
+	  /* For upward compatibility, allow (defvar :foo (quote :foo)).  */
+	  Lisp_Object tem = Fcar (tail);
+	  if (! (CONSP (tem)
+		 && EQ (XCAR (tem), Qquote)
+		 && CONSP (XCDR (tem))
+		 && EQ (XCAR (XCDR (tem)), sym)))
+	    error ("Constant symbol `%s' specified in defvar",
+		   SDATA (SYMBOL_NAME (sym)));
+	}
+
       if (NILP (tem))
 	Fset_default (sym, Feval (Fcar (tail)));
       else
@@ -2094,7 +2094,8 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
     return form;
 
   QUIT;
-  if (consing_since_gc > gc_cons_combined_threshold)
+  if (consing_since_gc > gc_cons_threshold
+      && consing_since_gc > gc_relative_threshold)
     {
       GCPRO1 (form);
       Fgarbage_collect ();
@@ -2794,7 +2795,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   register int i;
 
   QUIT;
-  if (consing_since_gc > gc_cons_combined_threshold)
+  if (consing_since_gc > gc_cons_threshold
+      && consing_since_gc > gc_relative_threshold)
     Fgarbage_collect ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)

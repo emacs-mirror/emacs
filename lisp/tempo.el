@@ -303,7 +303,7 @@ mode, ON-REGION is ignored and assumed true if the region is active."
 		     transient-mark-mode
 		     mark-active)
 		(if (featurep 'xemacs)
-		     zmacs-regions (mark)))
+		    (and zmacs-regions (mark))))
 	    (setq on-region t))
 	(and on-region
 	     (set-marker tempo-region-start (min (mark) (point)))

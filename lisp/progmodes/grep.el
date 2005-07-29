@@ -277,7 +277,8 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 (defvar grep-hit-face	compilation-info-face
   "Face name to use for grep hits.")
 
-(defvar grep-error-face	compilation-error-face
+;; compilation-error-face is wrong for this; it's designed to look like a link.
+(defvar grep-error-face	font-lock-keyword-face
   "Face name to use for grep error messages.")
 
 (defvar grep-match-face	'match
@@ -291,12 +292,12 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
      ;; remove match from grep-regexp-alist before fontifying
      ("^Grep finished \\(?:(\\(matches found\\))\\|with \\(no matches found\\)\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 grep-hit-face nil t)
-      (2 grep-error-face nil t))
+      (1 font-lock-keyword-face nil t)
+      (2 font-lock-keyword-face nil t))
      ("^Grep \\(exited abnormally\\) with code \\([0-9]+\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 compilation-warning-face)
-      (2 compilation-line-face))
+      (1 grep-error-face)
+      (2 grep-error-face))
      ;; Highlight grep matches and delete markers
      ("\\(\033\\[01;31m\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
       ;; Refontification does not work after the markers have been

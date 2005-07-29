@@ -2418,8 +2418,11 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
       struct frame *f = x_window_to_frame (&one_w32_display_info, owner);
       Lisp_Object frame, help;
 
-      /* No help echo on owner-draw menu items.  */
-      if (flags & MF_OWNERDRAW || flags & MF_POPUP)
+      /* No help echo on owner-draw menu items, or when the keyboard is used
+	 to navigate the menus, since tooltips are distracting if they pop
+	 up elsewhere.  */
+      if (flags & MF_OWNERDRAW || flags & MF_POPUP
+	  || !(flags & MF_MOUSESELECT))
 	help = Qnil;
       else
 	{

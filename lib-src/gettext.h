@@ -1,20 +1,19 @@
 /* Convenience header for conditional use of GNU <libintl.h>.
-   Copyright (C) 1995-1998, 2000-2002 Free Software Foundation, Inc.
+   Copyright (C) 1995-1998, 2000-2002, 2004 Free Software Foundation, Inc.
 
-   This program is free software; you can redistribute it and/or modify it
-   under the terms of the GNU Library General Public License as published
-   by the Free Software Foundation; either version 2, or (at your option)
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 2, or (at your option)
    any later version.
 
    This program is distributed in the hope that it will be useful,
    but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Library General Public License for more details.
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
 
-   You should have received a copy of the GNU Library General Public
-   License along with this program; if not, write to the Free Software
-   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301,
-   USA.  */
+   You should have received a copy of the GNU General Public License along
+   with this program; if not, write to the Free Software Foundation,
+   Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.  */
 
 #ifndef _LIBGETTEXT_H
 #define _LIBGETTEXT_H 1
@@ -35,6 +34,16 @@
    is OK.  */
 #if defined(__sun)
 # include <locale.h>
+#endif
+
+/* Many header files from the libstdc++ coming with g++ 3.3 or newer include
+   <libintl.h>, which chokes if dcgettext is defined as a macro.  So include
+   it now, to make later inclusions of <libintl.h> a NOP.  */
+#if defined(__cplusplus) && defined(__GNUG__) && (__GNUC__ >= 3)
+# include <cstdlib>
+# if (__GLIBC__ >= 2) || _GLIBCXX_HAVE_LIBINTL_H
+#  include <libintl.h>
+# endif
 #endif
 
 /* Disabled NLS.
@@ -68,5 +77,5 @@
 
 #endif /* _LIBGETTEXT_H */
 
-/* arch-tag: 07b35a70-3531-4cda-9674-2968467143ec
+/* arch-tag: 3d01bb8e-82e3-4674-9812-de4c4224f7d1
    (do not change this comment) */

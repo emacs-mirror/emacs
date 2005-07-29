@@ -1,3 +1,85 @@
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (my_set_window_pos, my_show_window): Don't declare.
+	(my_create_window, my_create_tip_window): Make static.
+
+	* w32term.c (my_show_window, my_set_window_pos, my_set_focus)
+	(my_set_foreground_window, my_destroy_window): Make static.
+
+2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge gnulib getopt implementation into Emacs.
+
+	* s/cygwin.h (C_SWITCH_SYSTEM): Remove, since gettext.h is
+	now part of lib-src.
+
+2005-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefvar): Allow (defvar enable-multibyte-characters).
+
+2005-07-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (w32_menu_display_help): Suppress tooltip when
+	navigating menus with the keyboard.
+
+2005-07-23  Richard M. Stallman  <rms@gnu.org>
+
+	* insdel.c (syms_of_insdel): staticpro combine_after_change_buffer.
+
+	* bytecode.c (MAYBE_GC): Test gc_cons_threshold and
+	gc_relative_threshold, one by one.
+
+	* keyboard.c (read_char): Test gc_cons_threshold.
+	(syms_of_keyboard): staticpro Qecho_area_clear_hook.
+
+	* eval.c (Feval, Ffuncall): Test gc_cons_threshold and
+	gc_relative_threshold, one by one.
+
+	* alloc.c (gc_cons_threshold): Not static.
+	(gc_cons_combined_threshold): Var deleted.
+	(gc_relative_threshold): New variable.
+	(Fgarbage_collect, init_alloc_once): Compute gc_relative_threshold
+	instead of gc_cons_combined_threshold.
+
+	* lisp.h (gc_cons_threshold, gc_relative_threshold): Declare.
+	(gc_cons_combined_threshold): Declaration deleted.
+
+2005-07-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Don't include stdlib.h or string.h.
+	(Fdo_applescript, Fmac_file_name_to_posix)
+	(Fmac_file_name_to_posix): Doc fixes.
+	[TARGET_API_MAC_CARBON] (Fmac_get_preference)
+	(Fmac_code_convert_string): Likewise.
+	[MAC_OSX] (init_mac_osx_environment): Fall back on terminal mode
+	if the executable is not contained in a bundle.
+
+	* macfns.c: Don't include stdlib.h or string.h.  Include atimer.h.
+	(gray_width, gray_height): Remove defines.
+	(gray_bits, gray_bitmap_width, gray_bitmap_height)
+	(gray_bitmap_bits): Remove variables.
+	(lispy_function_keys): Remove extern.
+	(free_frame_menubar): Add extern.
+	(x_window_to_frame): Remove function.
+	(unwind_create_tip_frame): Add declaration.
+	(x_set_name_internal): New function.
+	(x_set_name, x_set_title): Use it.
+	(Fx_create_frame, Fx_display_grayscale_p, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_screens)
+	(Fx_display_mm_height, Fx_display_mm_width)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(Fx_display_save_under, Fx_synchronize, Fx_show_tip): Doc fixes.
+
+	* macmenu.c (Fx_popup_menu, Fx_popup_dialog): Doc fixes.
+
+	* macselect.c (Fx_own_selection_internal): Follow error
+	conventions.
+	(Fx_get_selection_internal, Fx_selection_owner_p)
+	(Fx_selection_exists_p): Doc fixes.
+	(syms_of_macselect) <selection-converter-alist>: Likewise.
+
 2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <cursor-type>: Doc fix.

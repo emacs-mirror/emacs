@@ -159,7 +159,7 @@ This might return nil if the event did not occur over a buffer."
 With ARG, turn tooltip mode on if and only if ARG is positive."
   :global t
   :init-value (not (or noninteractive
-		       emacs-quick-startup
+		       emacs-basic-display
 		       (not (display-graphic-p))
 		       (not (fboundp 'x-show-tip))))
   :initialize 'custom-initialize-safe-default

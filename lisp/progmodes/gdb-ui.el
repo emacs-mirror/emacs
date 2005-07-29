@@ -524,9 +524,9 @@ Also display the main routine in the disassembly buffer if present."
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-    ;; dummy command to update speedbar at right time
+    ;; Dummy command to update speedbar at right time.
     (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
-    ;; keep gdb-pending-triggers non-nil till end
+    ;; Keep gdb-pending-triggers non-nil till end.
     (push 'gdb-speedbar-timer gdb-pending-triggers)))
 
 (defun gdb-speedbar-timer-fn ()
@@ -1023,7 +1023,7 @@ happens to be appropriate."
     (gdb-invalidate-threads)
     (unless (eq system-type 'darwin) ;Breaks on Darwin's GDB-5.3.
       ;; FIXME: with GDB-6 on Darwin, this might very well work.
-      ;; only needed/used with speedbar/watch expressions
+      ;; Only needed/used with speedbar/watch expressions.
       (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
 	(setq gdb-var-changed t)    ; force update
 	(dolist (var gdb-var-list)
@@ -1043,9 +1043,9 @@ happens to be appropriate."
   (if gdb-flush-pending-output
       nil
     (if gdb-enable-debug-log (push (cons 'recv string) gdb-debug-log))
-    ;; Recall the left over gud-marker-acc from last time
+    ;; Recall the left over gud-marker-acc from last time.
     (setq gud-marker-acc (concat gud-marker-acc string))
-    ;; Start accumulating output for the GUD buffer
+    ;; Start accumulating output for the GUD buffer.
     (let ((output ""))
       ;;
       ;; Process all the complete markers in this chunk.
@@ -1295,7 +1295,7 @@ static char *magick[] = {
      :weight bold))
   "Face for enabled breakpoint icon in fringe."
   :group 'gud)
-;; compatibility alias for old name
+;; Compatibility alias for old name.
 (put 'breakpoint-enabled-bitmap-face 'face-alias 'breakpoint-enabled)
 
 (defface breakpoint-disabled
@@ -1306,13 +1306,13 @@ static char *magick[] = {
     (((background light)) :foreground "grey40"))
   "Face for disabled breakpoint icon in fringe."
   :group 'gud)
-;; compatibility alias for old name
+;; Compatibility alias for old name.
 (put 'breakpoint-disabled-bitmap-face 'face-alias 'breakpoint-disabled)
 
-;;-put breakpoint icons in relevant margins (even those set in the GUD buffer)
+;; Put breakpoint icons in relevant margins (even those set in the GUD buffer).
 (defun gdb-info-breakpoints-custom ()
   (let ((flag) (bptno))
-    ;; remove all breakpoint-icons in source buffers but not assembler buffer
+    ;; Remove all breakpoint-icons in source buffers but not assembler buffer.
     (dolist (buffer (buffer-list))
       (with-current-buffer buffer
 	(if (and (eq gud-minor-mode 'gdba)
@@ -1342,13 +1342,14 @@ static char *magick[] = {
 			   (setq file (cdr (assoc bptno gdb-location-alist))))
 			(if (and file
 				 (not (string-equal file "File not found")))
-			    (with-current-buffer (find-file-noselect file)
+			    (with-current-buffer
+				(find-file-noselect file 'nowarn)
 			      (set (make-local-variable 'gud-minor-mode)
 				   'gdba)
 			      (set (make-local-variable 'tool-bar-map)
 				   gud-tool-bar-map)
-			      ;; only want one breakpoint icon at each
-			      ;; location
+			      ;; Only want one breakpoint icon at each
+			      ;; location.
 			      (save-excursion
 				(goto-line (string-to-number line))
 				(gdb-put-breakpoint-icon (eq flag ?y) bptno)))
@@ -1388,11 +1389,7 @@ static char *magick[] = {
 	(with-selected-window (posn-window posn)
 	  (save-excursion
 	    (goto-char (posn-point posn))
-	    (if
-;		(or
-		 (posn-object posn)
-;		 (eq (car (fringe-bitmaps-at-pos (posn-point posn)))
-;		     'breakpoint))
+	    (if	(posn-object posn)
 		(gdb-enqueue-input
 		 (list
 		  (let ((bptno (get-text-property
@@ -1980,7 +1977,7 @@ corresponding to the mode line clicked."
 	     'mouse-1
 	     #'(lambda () (interactive)
 		 (let ((gdb-memory-address
-			;; let GDB do the arithmetic
+			;; Let GDB do the arithmetic.
 			(concat
 			 gdb-memory-address " - "
 			 (number-to-string

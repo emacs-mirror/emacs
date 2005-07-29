@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MS Windows 95/98/Me and NT/2000/XP
-rem   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 
+rem   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
 rem      Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
@@ -499,7 +499,6 @@ copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\man\makefile.w32-in ..\man\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lispref\makefile.w32-in ..\lispref\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lispintro\makefile.w32-in ..\lispintro\makefile
-if not exist ..\lisp\Makefile.unix rename ..\lisp\Makefile.in Makefile.unix
 if exist ..\lisp\makefile rm -f ../lisp/[Mm]akefile
 copy /b config.settings+%MAKECMD%.defs+..\lisp\makefile.w32-in ..\lisp\makefile
 rem   Use the default (no-op) Makefile.in if the nt version is not present.

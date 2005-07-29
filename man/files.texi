@@ -3256,6 +3256,7 @@ File Names}).
 @section Quoted File Names
 
 @cindex quoting file names
+@cindex file names, quote special characters
   You can @dfn{quote} an absolute file name to prevent special
 characters and syntax in it from having their special effects.
 The way to do this is to add @samp{/:} at the beginning.

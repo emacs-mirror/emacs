@@ -1,3 +1,36 @@
+2005-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-parse-string): Take care that not only a
+	segmented parameter but also other parameters might be there.
+
+2005-07-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page-1): Don't scroll if there're
+	fewer lines than that of scroll-margin.
+	(gnus-article-prev-page): Narrow the range to bind scroll-in-place.
+
+2005-07-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page): Revert.
+	(gnus-article-beginning-of-window): New macro.
+	(gnus-article-next-page-1): Use it.
+	(gnus-article-prev-page): Ditto.
+	(gnus-mime-save-part-and-strip): Use insert-buffer-substring
+	instead of insert-buffer.
+	(gnus-mime-delete-part): Ditto.
+	(gnus-article-edit-exit): Ditto.
+
+	* gnus-util.el (gnus-beginning-of-window): Remove.
+	(gnus-end-of-window): Remove.
+
+	* lpath.el: Don't bind scroll-margin.
+
+2005-07-25  Simon Josefsson  <jas@extundo.com>
+
+	* pgg.el (pgg-insert-url-with-w3): Don't load w3, it is possible
+	to have the url package without w3.  Reported by Daiki Ueno
+	<ueno@unixuser.org> and Luigi Panzeri <matley@muppetslab.org>.
+
 2005-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mml.el (mml-minibuffer-read-disposition): Don't use inline by default

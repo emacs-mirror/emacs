@@ -1,3 +1,173 @@
+2005-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-gateway-fatal-msgs)
+	(ange-ftp-pending-error-line): New vars.
+	(ange-ftp-process-handle-line, ange-ftp-process-filter): Use them
+	to handle the non-fatal no-route-to-host messages.
+	(internal-ange-ftp-mode): Make the no-match regexp more efficient.
+
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* isearch.el (isearch-mode-map, isearch-other-meta-char)
+	(isearch-quote-char, isearch-printing-char)
+	(isearch-text-char-description): "?\ " -> "?\s".
+	(isearch-lazy-highlight-cleanup)
+	(isearch-lazy-highlight-initial-delay)
+	(isearch-lazy-highlight-interval)
+	(isearch-lazy-highlight-max-at-a-time)
+	(isearch-lazy-highlight-face, isearch-lazy-highlight-cleanup):
+	Declare with define-obsolete-*-alias macros.
+	(isearch-forward): Fix typo in docstring.
+	(search-invisible, search-ring-yank-pointer)
+	(regexp-search-ring-yank-pointer): Doc fixes.
+
+	* recentf.el (recentf-menu-append-commands-p): Declare with
+	`define-obsolete-variable-alias'.
+	(recentf-max-saved-items, recentf-menu-filter)
+	(recentf-arrange-by-rule-subfilter): Doc fixes.
+	(recentf-menu-append-commands-flag)
+	(recentf-initialize-file-name-history, recentf-expand-file-name)
+	(recentf-clear-data): Fix typos in docstrings.
+
+2005-07-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Smarten comments.
+	(gdb-info-breakpoints-custom): Use nowarn when finding file.
+
+2005-07-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/apollo.el (terminal-init-apollo): New function containing
+	all former top level forms in the file.
+	* term/bobcat.el (terminal-init-bobcat):
+	* term/cygwin.el (terminal-init-cygwin):
+	* term/iris-ansi.el (terminal-init-iris-ansi):
+	* term/linux.el (terminal-init-linux):
+	* term/news.el (terminal-init-news):
+	* term/rxvt.el (terminal-init-rxvt):
+	* term/sun.el (terminal-init-sun):
+	* term/tvi970.el (terminal-init-tvi970):
+	* term/vt100.el (terminal-init-vt100):
+	* term/vt102.el (terminal-init-vt102):
+	* term/vt125.el (terminal-init-vt125):
+	* term/vt200.el (terminal-init-vt200):
+	* term/vt201.el (terminal-init-vt201):
+	* term/vt220.el (terminal-init-vt220):
+	* term/vt240.el (terminal-init-vt240):
+	* term/vt300.el (terminal-init-vt300):
+	* term/vt320.el (terminal-init-vt320):
+	* term/vt400.el (terminal-init-vt400):
+	* term/vt420.el (terminal-init-vt420):
+	* term/wyse50.el (terminal-init-wyse50):
+	* term/xterm.el (terminal-init-xterm): Likewise.
+
+	* term/README: Describe the terminal-init-* functionality.
+
+	* startup.el (command-line): After loading the terminal
+	initialization file call the corresponding terminal initialization
+	function.
+
+2005-07-27  Kenichi Handa  <handa@m17n.org>
+
+	* ps-bdf.el (bdf-read-font-info): Ignore glyphs whose ENCODING is
+	negative.
+
+	* ps-mule.el (ps-mule-bitmap-prologue): Fix arguments to
+	setcharwidth.
+	(ps-mule-composition-prologue): Fix for the case that
+	RelativeCompose is false.
+
+2005-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-ediff): Use insert-buffer-substring.
+
+	* descr-text.el (describe-char): Handle the case where the list of
+	chars is displayed in a separate frame.
+	Be a bit more discriminating when looking for the char.
+
+2005-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bookmark.el (bookmark-automatically-show-annotations)
+	(bookmark-read-annotation-text-func): Doc fixes.
+	(bookmark-save): Improve argument/docstring consistency.
+	(bookmark-get-bookmark, bookmark-get-bookmark-record)
+	(bookmark-alist-from-buffer)
+	(bookmark-upgrade-file-format-from-0)
+	(bookmark-grok-file-format-version)
+	(bookmark-maybe-upgrade-file-format, bookmark-kill-line)
+	(bookmark-read-annotation-mode)
+	(bookmark-insert-current-bookmark, bookmark-jump)
+	(bookmark-exit-hook): Fix typos in docstrings.
+	(bookmark-exit-hooks): Define as obsolete alias.
+	(bookmark-exit-hook-internal): Run `bookmark-exit-hook',
+	not `bookmark-exit-hooks'.  Fix docstring.
+	(bookmark-bmenu-select): "?\ " -> "?\s".
+
+2005-07-25  Ari Roponen <arjuropo@cc.jyu.fi>  (tiny change)
+
+	* startup.el (command-line): Fix typo.
+
+2005-07-24  Richard M. Stallman  <rms@gnu.org>
+
+	* tooltip.el (tooltip-mode): Test emacs-basic-display,
+	not emacs-quick-startup.
+
+2005-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/re-builder.el (reb-with-current-window): Delete.
+	(reb-next-match, reb-show-subexp): Use `with-selected-window'
+	instead of `reb-with-current-window'.
+	(reb-prev-match): Likewise.  Also, don't move left if the search
+	was unsuccessful.
+	(reb-initialize-buffer): New function.
+	(re-builder, reb-change-syntax): Use it.
+
+	* man.el (Man-goto-page): Make second argument NOERROR optional.
+
+2005-07-23  Richard M. Stallman  <rms@gnu.org>
+
+	* man.el (Man-bgproc-sentinel): Check here for failure to find
+	any man page in the output, and report the error here.
+	(Man-arguments): Make it permanent local.
+	(Man-goto-page): New arg NOERROR.  Never kill the current buffer.
+	(Man-mode): Pass t for NOERROR.
+
+	* progmodes/grep.el (grep-error-face): Use font-lock-keyword-face.
+	(grep-mode-font-lock-keywords):
+	Don't use compilation-...-face for messages that are not file names.
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Don't use compilation-...-face for messages that are not file names.
+
+2005-07-22  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (line-move-1): Fix comments.
+
+	* startup.el (normal-splash-screen): Update menu name.
+
+	* tempo.el (tempo-insert-template): Fix 2005-07-16 change.
+
+2005-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el: Load term/rxvt if the terminal is actually an
+	rxvt terminal.
+	(xterm-rxvt-set-background-mode): Remove, not used anymore.
+
+	* term/rxvt.el (function-key-map): Use substitute-key-definition
+	to bind {C,S,C-S}-{f1-f10}. Add a few missing key bindings.
+
+	* term/cygwin.el: New file.
+
+2005-07-22  Kim F. Storm  <storm@cua.dk>
+
+	* image-file.el (insert-image-file, image-file-yank-handler):
+	Fix last change to maintain a (unique) yank-handler on yanked images.
+
+2005-07-22  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
+
+	* dired.el (dired-move-to-filename-regexp): Recognize the B suffix
+	of the file size (as in "177B" for 177 bytes).  This happens with
+	"ls -lh" on FreeBSD.
+
 2005-07-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hilit-chg.el (highlight-changes-global-initial-state)
@@ -215,20 +385,20 @@
 
 	* textmodes/org.el (org-table-column-names)
 	(org-table-column-name-regexp)
-        (org-table-named-field-locations): New variables.
-        (org-archive-subtree): Protect `this-command' when calling
+	(org-table-named-field-locations): New variables.
+	(org-archive-subtree): Protect `this-command' when calling
 	`org-copy-subtree' and `org-cut-subtree', to avoid appending to
 	the kill buffer.
-        (org-complete): Remove fixed-formula completion.
-        (org-edit-formulas-map): New variable.
-        (org-table-edit-formulas): New command.
-        (org-finish-edit-formulas, org-abort-edit-formulas)
+	(org-complete): Remove fixed-formula completion.
+	(org-edit-formulas-map): New variable.
+	(org-table-edit-formulas): New command.
+	(org-finish-edit-formulas, org-abort-edit-formulas)
 	(org-show-variable, org-table-get-vertical-vector): New functions.
-        (org-table-maybe-eval-formula): Handle `:=' fields.
-        (org-table-get-stored-formulas, org-table-store-formulas)
-        (org-table-get-formula, org-table-modify-formulas)
-        (org-table-replace-in-formulas): Handle named field formulas.
-        (org-table-get-specials): Store locations of named fields.
+	(org-table-maybe-eval-formula): Handle `:=' fields.
+	(org-table-get-stored-formulas, org-table-store-formulas)
+	(org-table-get-formula, org-table-modify-formulas)
+	(org-table-replace-in-formulas): Handle named field formulas.
+	(org-table-get-specials): Store locations of named fields.
 
 2005-07-19  Juri Linkov  <juri@jurta.org>
 
@@ -290,8 +460,8 @@
 	more than 88 colors.  Use green for light backgrounds with
 	8 colors, and yellow for dark backgrounds with 8 colors.
 
-	* font-lock.el (font-lock-regexp-grouping-backslash): Don't
-	inherit from escape-glyph (use bold for all cases).
+	* font-lock.el (font-lock-regexp-grouping-backslash):
+	Don't inherit from escape-glyph (use bold for all cases).
 
 	* info.el (info-xref-visited): Use light foreground color `violet'
 	for dark backgrounds instead of dark color `magenta3'.
@@ -388,8 +558,8 @@
 	`insert-buffer'.
 
 	* calendar/icalendar.el (icalendar--get-unfolded-buffer):
-	* progmodes/ada-mode.el (ada-make-body): Use
-	`insert-buffer-substring' and `goto-char', not `insert-buffer'.
+	* progmodes/ada-mode.el (ada-make-body):
+	Use `insert-buffer-substring' and `goto-char', not `insert-buffer'.
 
 	* dired.el (dired-log):
 	* tar-mode.el (tar-subfile-save-buffer):
@@ -483,8 +653,8 @@
 
 	* emulation/viper-init.el (viper-activate-input-method): Avoid warning.
 
-	* emacs-lisp/re-builder.el (reb-cook-regexp): Avoid
-	warning calling lre-compile-string.
+	* emacs-lisp/re-builder.el (reb-cook-regexp):
+	Avoid warning calling lre-compile-string.
 	(reb-color-display-p): Avoid warning.
 
 	* calculator.el (calculator-last-input): Guard uses
@@ -501,8 +671,8 @@
 	(checkdoc-overlay-start, checkdoc-overlay-end)
 	(checkdoc-mode-line-update, checkdoc-char=):
 	Define such that compiler knows they are defined.
-	(checkdoc-call-eval-buffer): Deleted.  Use eval-buffer directly.
-	(checkdoc-read-event): Deleted.  Use read-event directly.
+	(checkdoc-call-eval-buffer): Delete.  Use eval-buffer directly.
+	(checkdoc-read-event): Delete.  Use read-event directly.
 
 	* whitespace.el (whitespace-make-overlay)
 	(whitespace-overlay-put, whitespace-delete-overlay)
