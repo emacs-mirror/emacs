@@ -50,7 +50,8 @@
 		nil]
   :flags '(ascii-at-eol ascii-at-cntl 7-bit
 			designation locking-shift single-shift init-at-bol)
-  :mime-charset 'iso-2022-cn)
+  :mime-charset 'iso-2022-cn
+  :suitable-for-keyboard t)
 
 (define-coding-system-alias 'chinese-iso-7bit 'iso-2022-cn)
 
@@ -69,7 +70,8 @@
 		      chinese-cns11643-6 chinese-cns11643-7)]
   :flags '(ascii-at-eol ascii-at-cntl 7-bit
 			designation locking-shift single-shift init-at-bol)
-  :mime-charset 'iso-2022-cn-ext)
+  :mime-charset 'iso-2022-cn-ext
+  :suitable-for-keyboard t)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
