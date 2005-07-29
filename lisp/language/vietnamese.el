@@ -39,7 +39,8 @@
   :coding-type 'charset
   :mnemonic ?V
   :charset-list '(viscii)
-  :mime-charset 'viscii)
+  :mime-charset 'viscii
+  :suitable-for-file-name t)
 
 (define-coding-system-alias 'viscii 'vietnamese-viscii)
 
@@ -47,7 +48,8 @@
   "8-bit encoding for Vietnamese VSCII-1."
   :coding-type 'charset
   :mnemonic ?v
-  :charset-list '(vscii))
+  :charset-list '(vscii)
+  :suitable-for-file-name t)
 
 (define-coding-system-alias 'vscii 'vietnamese-vscii)
 
@@ -101,7 +103,8 @@ Telex, VIQR is the default setting.")))
   "8-bit encoding for Vietnamese TCVN-5712"
   :coding-type 'charset
   :mnemonic ?t
-  :charset-list '(tcvn-5712))
+  :charset-list '(tcvn-5712)
+  :suitable-for-file-name t)
 (define-coding-system-alias 'tcvn 'vietnamese-tcvn)
 
 (provide 'vietnamese)
