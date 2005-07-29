@@ -293,7 +293,7 @@ one replaces the old one."
 
   (let ((iname (intern name))
 	(new (list name ""))		; "" as a fake output
-	input output)
+	input output pairs)
     (dolist (r rules)
       (setq input (car r)
 	    output (cadr r))
@@ -301,17 +301,23 @@ one replaces the old one."
       (cond
        ((not (stringp input))
 	(error "Bad input sequence %S" r))
-       ((char-valid-p output)
-	(put-char-code-property output iname input))
+       ((characterp output)
+	(setq pairs
+	      (cons (cons input output)
+		    pairs)))
        ((not (stringp output))
 	(error "Bad output pattern %S" r))))
     (setcar (cdr new) docstring)	; replace "" above with real docstring
     `(let ((slot (assoc ,name robin-package-alist))
-	   (newdef ',new))
+	   (newdef ',new)
+	   (prop ',iname)
+	   (lst ',pairs))
        (if slot
 	   (setcdr slot (cdr newdef))
 	 (setq robin-package-alist
-	       (cons newdef robin-package-alist))))))
+	       (cons newdef robin-package-alist)))
+       (dolist (l lst)
+	 (put-char-code-property (cdr l) prop (car l))))))
 
 ;;;###autoload
 (defun robin-modify-package (name input output)
