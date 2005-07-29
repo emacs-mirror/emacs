@@ -314,6 +314,7 @@ Lisp_Object Qvalid_codes;
 Lisp_Object QCcategory, QCmnemonic, QCdefalut_char;
 Lisp_Object QCdecode_translation_table, QCencode_translation_table;
 Lisp_Object QCpost_read_conversion, QCpre_write_conversion;
+Lisp_Object QCascii_compatible_p;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
 Lisp_Object Qcall_process, Qcall_process_region;
@@ -706,7 +707,8 @@ static struct coding_system coding_categories[coding_category_max];
 	  c = ((c & 1) << 6) | *src++;			\
 	else						\
 	  {						\
-	    c = - string_char (--src, &src, NULL);	\
+	    src--;					\
+	    c = - string_char (src, &src, NULL);	\
 	    record_conversion_result			\
 	      (coding, CODING_RESULT_INVALID_SRC);	\
 	  }						\
@@ -724,7 +726,8 @@ static struct coding_system coding_categories[coding_category_max];
 	  c = ((c & 1) << 6) | *src++;			\
 	else						\
 	  {						\
-	    c = - string_char (--src, &src, NULL);	\
+	    src--;					\
+	    c = - string_char (src, &src, NULL);	\
 	    record_conversion_result			\
 	      (coding, CODING_RESULT_INVALID_SRC);	\
 	  }						\
@@ -918,6 +921,8 @@ record_conversion_result (struct coding_system *coding,
     case CODING_RESULT_INSUFFICIENT_MEM:
       Vlast_code_conversion_error = Qinsufficient_memory;
       break;
+    default:
+      Vlast_code_conversion_error = intern ("Unknown error");
     }
 }
 
@@ -5091,7 +5096,7 @@ Lisp_Object
 coding_charset_list (coding)
      struct coding_system *coding;
 {
-  Lisp_Object attrs, charset_list, coding_type;
+  Lisp_Object attrs, charset_list;
 
   CODING_GET_INFO (coding, attrs, charset_list);
   if (EQ (CODING_ATTR_TYPE (attrs), Qiso_2022))
@@ -8871,6 +8876,10 @@ usage: (define-coding-system-internal ...)  */)
   CODING_ATTR_PLIST (attrs)
     = Fcons (QCcategory, Fcons (AREF (Vcoding_category_table, category),
 				CODING_ATTR_PLIST (attrs)));
+  CODING_ATTR_PLIST (attrs)
+    = Fcons (QCascii_compatible_p, 
+	     Fcons (CODING_ATTR_ASCII_COMPAT (attrs),
+		    CODING_ATTR_PLIST (attrs)));
 
   eol_type = args[coding_arg_eol_type];
   if (! NILP (eol_type)
@@ -8971,6 +8980,10 @@ DEFUN ("coding-system-put", Fcoding_system_put, Scoding_system_put,
     {
       CHECK_SYMBOL (val);
       CODING_ATTR_PRE_WRITE (attrs) = val;
+    }
+  else if (EQ (prop, QCascii_compatible_p))
+    {
+      CODING_ATTR_ASCII_COMPAT (attrs) = val;
     }
 
   CODING_ATTR_PLIST (attrs)
@@ -9247,6 +9260,7 @@ syms_of_coding ()
   DEFSYM (QCencode_translation_table, ":encode-translation-table");
   DEFSYM (QCpost_read_conversion, ":post-read-conversion");
   DEFSYM (QCpre_write_conversion, ":pre-write-conversion");
+  DEFSYM (QCascii_compatible_p, ":ascii-compatible-p");
 
   Vcoding_category_table
     = Fmake_vector (make_number (coding_category_max), Qnil);
@@ -9635,7 +9649,7 @@ character.");
     plist[3] = args[coding_arg_mnemonic] = make_number ('-');
     plist[5] = args[coding_arg_coding_type] = Qundecided;
     /* This is already set.
-    /*plist[7] = args[coding_arg_ascii_compatible_p] = Qt;*/
+       plist[7] = args[coding_arg_ascii_compatible_p] = Qt; */
     plist[8] = intern (":charset-list");
     plist[9] = args[coding_arg_charset_list] = Fcons (Qascii, Qnil);
     plist[11] = args[coding_arg_for_unibyte] = Qnil;
