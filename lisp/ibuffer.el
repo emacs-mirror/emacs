@@ -1,6 +1,7 @@
 ;;; ibuffer.el --- operate on buffers like dired
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -193,11 +194,12 @@ view of the buffers."
 (defvar ibuffer-sorting-reversep nil)
 
 (defcustom ibuffer-elide-long-columns nil
-  "If non-nil, then elide column entries which exceed their max length.
-This variable is deprecated; use the :elide argument of
-`ibuffer-formats' to elide just certain columns."
+  "If non-nil, then elide column entries which exceed their max length."
   :type 'boolean
   :group 'ibuffer)
+(make-obsolete-variable 'ibuffer-elide-long-columns
+                        "use the :elide argument of `ibuffer-formats'."
+                        "22.1")
 
 (defcustom ibuffer-eliding-string "..."
   "The string to use for eliding long columns."
@@ -307,13 +309,15 @@ directory, like `default-directory'."
   "Hook run when `ibuffer' is called."
   :type 'hook
   :group 'ibuffer)
-(defvaralias 'ibuffer-hooks 'ibuffer-hook)
+(define-obsolete-variable-alias 'ibuffer-hooks
+                                'ibuffer-hook "22.1")
 
 (defcustom ibuffer-mode-hook nil
   "Hook run upon entry into `ibuffer-mode'."
   :type 'hook
   :group 'ibuffer)
-(defvaralias 'ibuffer-mode-hooks 'ibuffer-mode-hook)
+(define-obsolete-variable-alias 'ibuffer-mode-hooks
+                                'ibuffer-mode-hook "22.1")
 
 (defcustom ibuffer-load-hook nil
   "Hook run when Ibuffer is loaded."
@@ -838,7 +842,7 @@ width and the longest string in LIST."
       (while list
 	(dotimes (i (1- columns))
 	  (insert (concat (car list) (make-string (- max (length (car list)))
-						  ? )))
+						  ?\s)))
 	  (setq list (cdr list)))
 	(when (not (null list))
 	  (insert (pop list)))
@@ -861,7 +865,7 @@ width and the longest string in LIST."
 	  (let ((mark (ibuffer-current-mark)))
 	    (setq buffer-read-only nil)
 	    (if (eq mark ibuffer-marked-char)
-		(ibuffer-set-mark ? )
+		(ibuffer-set-mark ?\s)
 	      (ibuffer-set-mark ibuffer-marked-char)))))
     (setq buffer-read-only t)))
 
@@ -1153,7 +1157,7 @@ a new window in the current frame, splitting vertically."
   (if all
       (ibuffer-map-lines-nomodify
        #'(lambda (buf mark)
-	   (not (char-equal mark ? ))))
+	   (not (char-equal mark ?\s))))
     (ibuffer-map-lines-nomodify
      #'(lambda (buf mark)
 	 (char-equal mark ibuffer-marked-char)))))
@@ -1227,18 +1231,18 @@ a new window in the current frame, splitting vertically."
      ((char-equal mark ibuffer-marked-char)
       (ibuffer-map-marked-lines
        #'(lambda (buf mark)
-	   (ibuffer-set-mark-1 ? )
+	   (ibuffer-set-mark-1 ?\s)
 	   t)))
      ((char-equal mark ibuffer-deletion-char)
       (ibuffer-map-deletion-lines
        #'(lambda (buf mark)
-	   (ibuffer-set-mark-1 ? )
+	   (ibuffer-set-mark-1 ?\s)
 	   t)))
      (t
       (ibuffer-map-lines
        #'(lambda (buf mark)
-	   (when (not (char-equal mark ? ))
-	     (ibuffer-set-mark-1 ? ))
+	   (when (not (char-equal mark ?\s))
+	     (ibuffer-set-mark-1 ?\s))
 	   t)))))
   (ibuffer-redisplay t))
 
@@ -1255,9 +1259,9 @@ group."
 	 (ibuffer-map-lines
 	  #'(lambda (buf mark)
 	      (cond ((eq mark ibuffer-marked-char)
-		     (ibuffer-set-mark-1 ? )
+		     (ibuffer-set-mark-1 ?\s)
 		     nil)
-		    ((eq mark ? )
+		    ((eq mark ?\s)
 		     (ibuffer-set-mark-1 ibuffer-marked-char)
 		     t)
 		    (t
@@ -1276,13 +1280,13 @@ If point is on a group name, this function operates on that group."
   "Unmark the buffer on this line, and move forward ARG lines.
 If point is on a group name, this function operates on that group."
   (interactive "P")
-  (ibuffer-mark-interactive arg ?  1))
+  (ibuffer-mark-interactive arg ?\s 1))
 
 (defun ibuffer-unmark-backward (arg)
   "Unmark the buffer on this line, and move backward ARG lines.
 If point is on a group name, this function operates on that group."
   (interactive "P")
-  (ibuffer-mark-interactive arg ?  -1))
+  (ibuffer-mark-interactive arg ?\s -1))
 
 (defun ibuffer-mark-interactive (arg mark movement)
   (assert (eq major-mode 'ibuffer-mode))
@@ -1409,8 +1413,8 @@ If point is on a group name, this function operates on that group."
     `(substring ,strvar 0 ,maxvar)))
 
 (defun ibuffer-compile-make-format-form (strvar widthform alignment)
-  (let* ((left `(make-string tmp2 ? ))
-	 (right `(make-string (- tmp1 tmp2) ? )))
+  (let* ((left `(make-string tmp2 ?\s))
+	 (right `(make-string (- tmp1 tmp2) ?\s)))
     `(progn
        (setq tmp1 ,widthform
 	     tmp2 (/ tmp1 2))
@@ -1690,7 +1694,7 @@ If point is on a group name, this function operates on that group."
 	 (and (boundp 'dired-directory)
 	      (if (stringp dired-directory)
 		  dired-directory
-		(car dired-directory)))	
+		(car dired-directory)))
 	 ""))))
 
 (define-ibuffer-column filename-and-process
@@ -1724,8 +1728,8 @@ If point is on a group name, this function operates on that group."
       filename)))
 
 (defun ibuffer-format-column (str width alignment)
-  (let ((left (make-string (/ width 2) ? ))
-	(right (make-string (- width (/ width 2)) ? )))
+  (let ((left (make-string (/ width 2) ?\s))
+	(right (make-string (- width (/ width 2)) ?\s)))
     (case alignment
       (:right (concat left right str))
       (:center (concat left str right))
@@ -1881,7 +1885,7 @@ the value of point at the beginning of the line for that buffer."
     (mapcar #'(lambda (buf) (let ((e (assq buf bufs)))
 			      (if e
 				  e
-				(cons buf ? ))))
+				(cons buf ?\s))))
 	    curbufs)))
 
 (defun ibuffer-buf-matches-predicates (buf predicates)
@@ -1989,10 +1993,10 @@ the value of point at the beginning of the line for that buffer."
 		      (buffer-substring (point) (line-end-position)))))
 	   (apply #'insert (mapcar
 			    #'(lambda (c)
-				(if (not (or (char-equal c ? )
+				(if (not (or (char-equal c ?\s)
 					     (char-equal c ?\n)))
 				    ?-
-				  ? ))
+				  ?\s))
 			    str)))
 	 (insert "\n"))
        (point))
@@ -2011,7 +2015,7 @@ the value of point at the beginning of the line for that buffer."
 	   (dolist (element format)
 	     (insert
 	      (if (stringp element)
-		  (make-string (length element) ? )
+		  (make-string (length element) ?\s)
 		(let ((sym (car element)))
 		  (let ((min (cadr element))
 			;; (max (caddr element))
@@ -2023,7 +2027,7 @@ the value of point at the beginning of the line for that buffer."
 					(funcall (get sym 'ibuffer-column-summarizer)
 						 (get sym 'ibuffer-column-summary))
 				      (make-string (length (get sym 'ibuffer-column-name))
-						   ? )))
+						   ?\s)))
 			   (len (length summary)))
 		      (if (< len min)
 			  (ibuffer-format-column summary
@@ -2241,22 +2245,22 @@ buffers which are visiting a file."
 ;;;###autoload
 (defun ibuffer (&optional other-window-p name qualifiers noselect
 			  shrink filter-groups formats)
-  "Begin using `ibuffer' to edit a list of buffers.
+  "Begin using Ibuffer to edit a list of buffers.
 Type 'h' after entering ibuffer for more information.
 
-Optional argument OTHER-WINDOW-P says to use another window.
-Optional argument NAME specifies the name of the buffer; it defaults
-to \"*Ibuffer*\".
-Optional argument QUALIFIERS is an initial set of filtering qualifiers
-to use; see `ibuffer-filtering-qualifiers'.
-Optional argument NOSELECT means don't select the Ibuffer buffer.
-Optional argument SHRINK means shrink the buffer to minimal size.  The
-special value `onewindow' means always use another window.
-Optional argument FILTER-GROUPS is an initial set of filtering
-groups to use; see `ibuffer-filter-groups'.
-Optional argument FORMATS is the value to use for `ibuffer-formats'.
-If specified, then the variable `ibuffer-formats' will have that value
-locally in this buffer."
+All arguments are optional.
+OTHER-WINDOW-P says to use another window.
+NAME specifies the name of the buffer (defaults to \"*Ibuffer*\").
+QUALIFIERS is an initial set of filtering qualifiers to use;
+  see `ibuffer-filtering-qualifiers'.
+NOSELECT means don't select the Ibuffer buffer.
+SHRINK means shrink the buffer to minimal size.  The special
+  value `onewindow' means always use another window.
+FILTER-GROUPS is an initial set of filtering groups to use;
+  see `ibuffer-filter-groups'.
+FORMATS is the value to use for `ibuffer-formats'.
+  If specified, then the variable `ibuffer-formats' will have
+  that value locally in this buffer."
   (interactive "P")
   (when ibuffer-use-other-window
     (setq other-window-p t))
@@ -2297,7 +2301,7 @@ locally in this buffer."
 (put 'ibuffer-mode 'mode-class 'special)
 (defun ibuffer-mode ()
   "A major mode for viewing a list of buffers.
-In ibuffer, you can conveniently perform many operations on the
+In Ibuffer, you can conveniently perform many operations on the
 currently open buffers, in addition to filtering your view to a
 particular subset of them, and sorting by various criteria.
 
