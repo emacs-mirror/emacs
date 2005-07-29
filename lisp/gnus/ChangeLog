@@ -1,3 +1,8 @@
+2005-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-parse-string): Take care that not only a
+	segmented parameter but also other parameters might be there.
+
 2005-07-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-next-page-1): Don't scroll if there're
