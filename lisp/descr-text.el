@@ -409,12 +409,30 @@ as well as widgets, buttons, overlays, and text properties."
 			    (text-properties-at pos))
 		     char char char))
 	    ("preferred charset"
-	     ,(symbol-name charset)
+	     ,`(widget-create 'link
+			      :notify (lambda (&rest ignore)
+					(describe-character-set ',charset))
+			      ,(symbol-name charset))
 	     ,(format "(%s)" (charset-description charset)))
 	    ("code point"
-	     ,(if (integerp code)
-		  (format (if (< code 256) "0x%02X" "0x%04X") code)
-		(format "0x%04X%04X" (car code) (cdr code))))
+	     ,(let ((str (if (integerp code)
+			     (format (if (< code 256) "0x%02X" "0x%04X") code)
+			   (format "0x%04X%04X" (car code) (cdr code)))))
+		(if (<= (charset-dimension charset) 2)
+		    `(widget-create
+		      'link
+		      :notify (lambda (&rest ignore)
+				(list-charset-chars ',charset)
+				(with-selected-window
+				    (get-buffer-window "*Character List*" 0)
+				  (goto-char (point-min))
+				  (forward-line 2) ;Skip the header.
+				  (let ((case-fold-search nil))
+				    (if (search-forward ,(char-to-string char)
+							nil t)
+					(goto-char (match-beginning 0))))))
+		      ,str)
+		  str)))
 	    ("syntax"
 	     ,(let ((syntax (syntax-after pos)))
 		(with-temp-buffer
@@ -496,10 +514,30 @@ as well as widgets, buttons, overlays, and text properties."
 		    (if display
 			(format "terminal code %s" display)
 		      "not encodable for terminal"))))))
+	    ,@(let ((face
+		     (if (not (or disp-vector composition))
+			 (cond
+			  ((and show-trailing-whitespace
+				(save-excursion (goto-char pos)
+						(looking-at "[ \t]+$")))
+			   'trailing-whitespace)
+			  ((and nobreak-char-display char (eq char '#xa0))
+			   'nobreak-space)
+			  ((and nobreak-char-display char (eq char '#xad))
+			   'escape-glyph)
+			  ((and (< char 32) (not (memq char '(9 10))))
+			   'escape-glyph)))))
+		(if face (list (list "hardcoded face"
+				     `(widget-create
+				       'link
+				       :notify (lambda (&rest ignore)
+						 (describe-face ',face))
+				       ,(format "%s" face))))))
 	    ,@(let ((unicodedata (describe-char-unicode-data char)))
 		(if unicodedata
 		    (cons (list "Unicode data" " ") unicodedata)))))
-    (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
+    (setq max-width (apply #'max (mapcar #'(lambda (x) 
+					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
     (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
