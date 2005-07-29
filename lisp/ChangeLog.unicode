@@ -1,3 +1,21 @@
+2005-07-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (coding-system-get): Check
+	`ascii-incompatible' for backward compatiblity.
+	(set-file-name-coding-system): Signal an error for a coding system
+	not suitable for file name.
+	(set-keyboard-coding-system): Signal an error for a coding system
+	not suitable for keyboard.
+
+	* language/chinese.el (iso-2022-cn, iso-2022-cn-ext): Set
+	:suitable-for-keyboard property to 1.
+
+	* language/japanese.el (iso-2022-jp, iso-2022-jp-2)
+	(iso-2022-jp-2004): Set :suitable-for-keyboard property to 1.
+
+	* language/vietnamese.el (vietnamese-viscii, vietnamese-vscii)
+	(vietnamese-tcvn): Set :suitable-for-file-name property to t.
+
 2005-07-26  Naoto Takahashi  <ntakahas@m17n.org>
 
 	* international/robin.el (robin-define-package): Delete redundant
