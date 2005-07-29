@@ -53,7 +53,8 @@
   :flags '(ascii-at-eol ascii-at-cntl 7-bit designation locking-shift
 			designation-bol)
   :charset-list '(ascii korean-ksc5601)
-  :mime-charset 'iso-2022-kr)
+  :mime-charset 'iso-2022-kr
+  :suitable-for-keyboard t)
 
 (define-coding-system-alias 'korean-iso-7bit-lock 'iso-2022-kr)
 
