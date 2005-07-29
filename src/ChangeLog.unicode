@@ -1,3 +1,15 @@
+2005-07-29  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (QCascii_compatible_p): New variable. 
+	(syms_of_coding): Initialize it.
+	(ONE_MORE_BYTE): Decrement `src' before calling string_char.
+	(ONE_MORE_BYTE_NO_CHECK): Likewise.
+	(record_conversion_result): Add `default:' case.
+	(coding_charset_list): Delete unused variable `coding_type'.
+	(Fdefine_coding_system_internal): Add `ascii-compatible-p'
+	property in the plist of the coding system.
+	(Fcoding_system_put): Check QCascii_compatible_p.
+
 2005-06-09  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Sync with the change in
