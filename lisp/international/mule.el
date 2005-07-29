@@ -842,8 +842,12 @@ For compatibility with Emacs 20/21, this accepts old-style symbols
 like `mime-charset' as well as the current style like `:mime-charset'."
   (or (plist-get (coding-system-plist coding-system) prop)
       (if (not (keywordp prop))
-	  (plist-get (coding-system-plist coding-system)
-		     (intern (concat ":" (symbol-name prop)))))))
+	  ;; For backward compatiblity.
+	  (if (eq prop 'ascii-incompatible)
+	      (not (plist-get (coding-system-plist coding-system)
+			      :ascii-compatible-p))
+	    (plist-get (coding-system-plist coding-system)
+		       (intern (concat ":" (symbol-name prop))))))))
 
 (defun coding-system-eol-type-mnemonic (coding-system)
   "Return the string indicating end-of-line format of CODING-SYSTEM."
@@ -1173,6 +1177,10 @@ It actually just set the variable `file-name-coding-system' (which
 see) to CODING-SYSTEM."
   (interactive "zCoding system for file names (default, nil): ")
   (check-coding-system coding-system)
+  (if (and coding-system
+	   (not (coding-system-get coding-system :ascii-compatible-p))
+	   (not (coding-system-get coding-system :suitable-for-file-name)))
+      (error "%s is not suitable for file names" coding-system))
   (setq file-name-coding-system coding-system))
 
 (defvar default-terminal-coding-system nil
@@ -1229,6 +1237,10 @@ or by the previous use of this command."
       (setq coding-system default-keyboard-coding-system))
   (if coding-system
       (setq default-keyboard-coding-system coding-system))
+  (if (and coding-system
+	   (not (coding-system-get coding-system :ascii-compatible-p))
+	   (not (coding-system-get coding-system :suitable-for-keyboard)))
+      (error "%s is not suitable for keyboard" coding-system))
   (set-keyboard-coding-system-internal coding-system)
   (setq keyboard-coding-system coding-system)
   (encoded-kbd-mode (if coding-system 1 0)))
