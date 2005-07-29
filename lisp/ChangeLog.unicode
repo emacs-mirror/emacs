@@ -1,5 +1,11 @@
 2005-07-29  Kenichi Handa  <handa@m17n.org>
 
+	* language/korean.el (iso-2022-kr): Set :suitable-for-keyboard
+	property to 1.
+
+	* international/mule-conf.el (cp1125): Set :ascii-compatible-p
+	property to t.
+
 	* descr-text.el (describe-char): Sync with the main trunk.
 
 	* international/mule.el (coding-system-get): Check
