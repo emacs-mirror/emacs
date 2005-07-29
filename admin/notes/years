@@ -1,11 +1,23 @@
-
-
-  THIS DOCUMENT IS UNDER REVIEW.
-
-  DO NOT FOLLOW THESE INSTRUCTIONS -- THEY ARE NOT CORRECT.
-
-
 How to Maintain Copyright Years for GNU Emacs
+
+
+"Our lawyer says it is ok if we add, to each file that has been in Emacs
+ since Emacs 21 came out in 2001, all the subsequent years.  We don't
+ need to check whether *that file* was changed in those years.
+ It's sufficient that *Emacs* was changed in those years (and it was!).
+
+ For those files that have been added since then, we should add
+ the year it was added to Emacs, and all subsequent years."
+
+ --RMS, 2005-07-13
+
+
+------------------------------------------------------------------------------
+
+
+Following is the policy that we tried to write down one time (mid 2005).
+Although it is incorrect, we keep it around to remind us how complicated
+things used to be (and may become in the future).
 
 
 Principle: Individual files need to have the year of the release
