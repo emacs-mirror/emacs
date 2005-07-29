@@ -108,6 +108,7 @@ lisp/play		working		Thien-Thi Nguyen
 lisp/term		working		Thien-Thi Nguyen
 lisp/toolbar		working		Thien-Thi Nguyen
 lisp/url		working		Thien-Thi Nguyen
+lisp/progmodes		working		Nick Roberts
 
 ** Check the Emacs manual.
 
