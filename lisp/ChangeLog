@@ -1,3 +1,9 @@
+2005-07-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-message-coding-system): Be
+	sure to use LF for end-of-line.  If no coding system is decided,
+	return iso-8859-1-unix.
+
 2005-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/ange-ftp.el (ange-ftp-gateway-fatal-msgs)

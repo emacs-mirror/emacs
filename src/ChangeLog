@@ -130,6 +130,11 @@
 	* w32fns.c (Vx_hand_shape): Variable removed.
 	(syms_of_w32fns): Intern and staticpro Qw32_charset_default.
 
+2005-07-19  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fstring_as_multibyte): Escape backslashes in the
+	docstring.
+
 2005-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buffer.h (Fgenerate_new_buffer_name): Declare (for use in coding.c).
