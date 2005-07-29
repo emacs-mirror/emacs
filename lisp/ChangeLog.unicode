@@ -1,3 +1,8 @@
+2005-07-26  Naoto Takahashi  <ntakahas@m17n.org>
+
+	* international/robin.el (robin-define-package): Be sure to call
+	put-char-code-property.
+
 2005-07-29  Kenichi Handa  <handa@m17n.org>
 
 	* language/korean.el (iso-2022-kr): Set :suitable-for-keyboard
