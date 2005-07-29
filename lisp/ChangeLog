@@ -1,5 +1,8 @@
 2005-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
+	* bs.el (bs-attributes-list): Doc fix.
+	(bs): Update url-link.
+
 	* desktop.el (desktop-save-buffer): Fix typos in docstring.
 	(desktop-load-default): Simplify.
 
