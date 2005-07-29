@@ -1027,10 +1027,19 @@ it asks the user to select a proper coding system."
 	;; We should never use no-conversion for outgoing mail.
 	(setq coding nil))
     (if (fboundp select-safe-coding-system-function)
-	(funcall select-safe-coding-system-function
-		 (point-min) (point-max) coding
-		 (function (lambda (x) (coding-system-get x 'mime-charset))))
-      coding)))
+	(setq coding
+	      (funcall select-safe-coding-system-function
+		       (point-min) (point-max) coding
+		       (function (lambda (x)
+				   (coding-system-get x 'mime-charset))))))
+    (if coding
+	;; Be sure to use LF for end-of-line.
+	(setq coding (coding-system-change-eol-conversion coding 'unix))
+      ;; No coding system is decided.  Usually this is the case that
+      ;; the current buffer contains only ASCII.  So, we hope
+      ;; iso-8859-1 works.
+      (setq coding 'iso-8859-1-unix))
+    coding))
 
 ;;; Language support stuff.
 
