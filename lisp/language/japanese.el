@@ -48,7 +48,8 @@
   :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation)
   :charset-list '(ascii japanese-jisx0208
 			japanese-jisx0208-1978 latin-jisx0201)
-  :mime-charset 'iso-2022-jp)
+  :mime-charset 'iso-2022-jp
+  :suitable-for-keyboard t)
 
 (define-coding-system-alias 'junet 'iso-2022-jp)
 
@@ -68,7 +69,8 @@
 			latin-jisx0201 japanese-jisx0208-1978
 			chinese-gb2312 korean-ksc5601
 			latin-iso8859-1 greek-iso8859-7)
-  :mime-charset 'iso-2022-jp-2)
+  :mime-charset 'iso-2022-jp-2
+  :suitable-for-keyboard t)
 
 (let ((map			; JIS		vs	CP932
        '((#x301C . #xFF5E)	; WAVE DASH		FULLWIDTH TILDE
@@ -162,7 +164,8 @@ eucJP-ms is defined in <http://www.opengroup.or.jp/jvc/cde/appendix.html>."
 		 ;; init-at-bol)
   :charset-list '(ascii japanese-jisx0208 japanese-jisx0213.2004-1
 			japanese-jisx0213-1 japanese-jisx0213-2)
-  :mime-charset 'iso-2022-jp-2004)
+  :mime-charset 'iso-2022-jp-2004
+  :suitable-for-keyboard t)
 
 (define-coding-system-alias 'iso-2022-jp-3 'iso-2022-jp-2004)
 
