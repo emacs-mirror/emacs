@@ -674,6 +674,7 @@
   "CP1125"
   :short-name "CP1125"
   :code-space [0 255]
+  :ascii-compatible-p t
   :map "CP1125")
 (define-charset-alias 'ruscii 'cp1125)
 ;; Original name for cp1125, says Serhii Hlodin <hlodin@lutsk.bank.gov.ua>
