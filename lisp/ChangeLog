@@ -1,3 +1,10 @@
+2005-07-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-make-variable-buffer-local)
+	(byte-compile-form-make-variable-buffer-local): New functions to warn
+	about misuses of make-variable-buffer-local where make-local-variable
+	was meant.
+
 2005-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bs.el (bs-attributes-list): Doc fix.
@@ -21,8 +28,8 @@
 
 2005-07-29  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (select-message-coding-system): Be
-	sure to use LF for end-of-line.  If no coding system is decided,
+	* international/mule-cmds.el (select-message-coding-system):
+	Be sure to use LF for end-of-line.  If no coding system is decided,
 	return iso-8859-1-unix.
 
 2005-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -89,17 +96,15 @@
 
 	* term/README: Describe the terminal-init-* functionality.
 
-	* startup.el (command-line): After loading the terminal
-	initialization file call the corresponding terminal initialization
-	function.
+	* startup.el (command-line): After loading the terminal initialization
+	file call the corresponding terminal initialization function.
 
 2005-07-27  Kenichi Handa  <handa@m17n.org>
 
 	* ps-bdf.el (bdf-read-font-info): Ignore glyphs whose ENCODING is
 	negative.
 
-	* ps-mule.el (ps-mule-bitmap-prologue): Fix arguments to
-	setcharwidth.
+	* ps-mule.el (ps-mule-bitmap-prologue): Fix arguments to setcharwidth.
 	(ps-mule-composition-prologue): Fix for the case that
 	RelativeCompose is false.
 
