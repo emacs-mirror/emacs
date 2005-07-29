@@ -34,6 +34,8 @@
   "String to insert to distinguish commands entered by user.")
 
 (defvar subprocess-running nil)
+(defvar subprocess-buf nil)
+
 (defvar command-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-m" 'command-send-input)
@@ -44,12 +46,9 @@
   "Handles input from a subprocess.  Called by Emacs."
   (if display-subprocess-window
       (display-buffer subprocess-buf))
-  (let ((old-buffer (current-buffer)))
-    (set-buffer subprocess-buf)
+  (with-current-buffer subprocess-buf
     (goto-char (point-max))
-    (insert str)
-    (insert ?\n)
-    (set-buffer old-buffer)))
+    (insert str ?\n)))
 
 (defun subprocess-exit (name)
   "Called by Emacs upon subprocess exit."
