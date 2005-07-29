@@ -6,6 +6,19 @@
 	* desktop.el (desktop-save-buffer): Fix typos in docstring.
 	(desktop-load-default): Simplify.
 
+	* ibuffer.el (ibuffer-columnize-and-insert-list)
+	(ibuffer-mouse-toggle-mark, ibuffer-count-marked-lines)
+	(ibuffer-unmark-all, ibuffer-toggle-marks)
+	(ibuffer-unmark-forward, ibuffer-unmark-backward)
+	(ibuffer-compile-make-format-form, ibuffer-format-column)
+	(ibuffer-current-buffers-with-marks)
+	(ibuffer-update-title-and-summary): "?\ " -> "?\s".
+	(ibuffer): Doc fix.
+	(ibuffer-mode): Fix typo in docstring.
+	(ibuffer-hooks, ibuffer-mode-hooks): Make obsolete and declare
+	with `define-obsolete-variable-alias'.
+	(ibuffer-elide-long-columns): Mark as obsolete.  Doc fix.
+
 2005-07-29  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (select-message-coding-system): Be
