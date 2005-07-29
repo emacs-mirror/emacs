@@ -1,5 +1,7 @@
 2005-07-29  Kenichi Handa  <handa@m17n.org>
 
+	* descr-text.el (describe-char): Sync with the main trunk.
+
 	* international/mule.el (coding-system-get): Check
 	`ascii-incompatible' for backward compatiblity.
 	(set-file-name-coding-system): Signal an error for a coding system
