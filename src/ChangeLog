@@ -1,3 +1,8 @@
+2005-07-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <redisplay-end-trigger-functions>:
+	Defvar it.
+
 2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (my_set_window_pos, my_show_window): Don't declare.
