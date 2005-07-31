@@ -1,3 +1,7 @@
+2005-08-01  Kim F. Storm  <storm@cua.dk>
+
+	* textmodes/table.el (table-yank-handler): Change defcustom to defvar.
+
 2005-07-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/bytecomp.el (byte-compile-make-variable-buffer-local)
