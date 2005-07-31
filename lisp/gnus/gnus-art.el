@@ -5197,17 +5197,23 @@ specifies."
 			 1 0)))))))
 
 (defun gnus-article-next-page-1 (lines)
-  (unless (and (not (featurep 'xemacs))
-	       (> (symbol-value 'scroll-margin) 0)
-	       (<= (count-lines (window-start) (point-max))
-		   (symbol-value 'scroll-margin)))
-    (condition-case ()
-	(let ((scroll-in-place nil))
-	  (scroll-up lines))
-      (end-of-buffer
-       ;; Long lines may cause an end-of-buffer error.
-       (goto-char (point-max))))
-    (gnus-article-beginning-of-window)))
+  (when (and (not (featurep 'xemacs))
+	     (numberp lines)
+	     (> lines 0)
+	     (numberp (symbol-value 'scroll-margin))
+	     (> (symbol-value 'scroll-margin) 0))
+    ;; Protect against the bug that Emacs 21.x hangs up when scrolling up for
+    ;; too many number of lines if `scroll-margin' is set as two or greater.
+    (setq lines (min lines
+		     (max 0 (- (count-lines (window-start) (point-max))
+			       (symbol-value 'scroll-margin))))))
+  (condition-case ()
+      (let ((scroll-in-place nil))
+	(scroll-up lines))
+    (end-of-buffer
+     ;; Long lines may cause an end-of-buffer error.
+     (goto-char (point-max))))
+  (gnus-article-beginning-of-window))
 
 (defun gnus-article-prev-page (&optional lines)
   "Show previous page of current article.

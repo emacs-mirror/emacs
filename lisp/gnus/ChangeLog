@@ -1,7 +1,29 @@
+2005-07-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page-1): Reduce the number of
+	lines to scroll rather than to stop it.
+
+	* mml.el (mml-generate-default-type): Add doc string.
+	(mml-generate-mime-1): Use mm-default-file-encoding or make it
+	default to application/octet-stream when determining the content
+	type if it is not specified for the part or the mml contents; add
+	a comment about mml-generate-default-type.
+
+2005-07-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-generate-mime-1): Use mm-default-file-encoding or
+	make it default to application/octet-stream when determining the
+	content type if it is not specified for the external contents.
+
 2005-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2231.el (rfc2231-parse-string): Take care that not only a
 	segmented parameter but also other parameters might be there.
+
+2005-07-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Delete temp file, directory
+	and buffer immediately if the external process is exited.
 
 2005-07-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 
