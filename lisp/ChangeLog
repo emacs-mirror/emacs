@@ -1,3 +1,9 @@
+2005-08-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Put `indicate-empty-lines' in fringe group
+	instead of display group.  Make `indicate-buffer-boundaries'
+	customizable through Custom.
+
 2005-08-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/gdb-ui.el (gdb-frame-address, gdb-var-changed)
