@@ -1,3 +1,10 @@
+2005-08-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-enable-debug-log): Add autoload cookie.
+
+	* progmodes/gud.el (gud-tooltip-mode): Add autoload cookie.
+	(gud-tooltip-mode): Don't barf if the GUD buffer has been killed.
+
 2005-08-01  Kim F. Storm  <storm@cua.dk>
 
 	* textmodes/table.el (table-yank-handler): Change defcustom to defvar.
