@@ -65,7 +65,41 @@ since it could result in memory overflow and make Emacs crash."
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
 	     (selective-display-ellipses display boolean)
-	     (indicate-empty-lines display boolean "21.1")
+	     (indicate-empty-lines fringe boolean "21.1")
+	     (indicate-buffer-boundaries
+	      fringe
+	      (choice
+	       (const :tag "No indicators" nil)
+	       (const :tag "On left, with arrows" left)
+	       (const :tag "On right, with arrows" right)
+	       (const :tag "On left, no arrows" t)
+	       (set :tag "Other"
+		    (choice :tag "Default"
+			    :value (t . left)
+			    (const :tag "Do not show" (t . nil))
+			    (const :tag "On the left" (t . left))
+			    (const :tag "On the right" (t . right)))
+		    (choice :tag "Top"
+			    :value (top . left)
+			    (const :tag "Do not show" (top . nil))
+			    (const :tag "On the left" (top . left))
+			    (const :tag "On the right" (top . right)))
+		    (choice :tag "Bottom"
+			    :value (bottom . left)
+			    (const :tag "Do not show" (bottom . nil))
+			    (const :tag "On the left" (bottom . left))
+			    (const :tag "On the right" (bottom . right)))
+		    (choice :tag "Up arrow"
+			    :value (up . left)
+			    (const :tag "Do not show" (up . nil))
+			    (const :tag "On the left" (up . left))
+			    (const :tag "On the right" (up . right)))
+		    (choice :tag "Down arrow"
+			    :value (down . left)
+			    (const :tag "Do not show" (down . nil))
+			    (const :tag "On the left" (down . left))
+			    (const :tag "On the right" (down . right)))))
+	      "22.1")
 	     (scroll-up-aggressively windows
 				     (choice (const :tag "off" nil) number)
 				     "21.1")
