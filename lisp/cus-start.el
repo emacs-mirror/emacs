@@ -72,8 +72,7 @@ since it could result in memory overflow and make Emacs crash."
 	       (const :tag "No indicators" nil)
 	       (const :tag "On left, with arrows" left)
 	       (const :tag "On right, with arrows" right)
-	       (const :tag "On left, no arrows" t)
-	       (set :tag "Other"
+	       (set :tag "Pick your own design"
 		    (choice :tag "Default"
 			    :value (t . left)
 			    (const :tag "Do not show" (t . nil))
@@ -98,7 +97,8 @@ since it could result in memory overflow and make Emacs crash."
 			    :value (down . left)
 			    (const :tag "Do not show" (down . nil))
 			    (const :tag "On the left" (down . left))
-			    (const :tag "On the right" (down . right)))))
+			    (const :tag "On the right" (down . right))))
+	       (other :tag "On left, no arrows" t))
 	      "22.1")
 	     (scroll-up-aggressively windows
 				     (choice (const :tag "off" nil) number)
