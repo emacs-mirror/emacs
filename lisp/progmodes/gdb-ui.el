@@ -201,6 +201,7 @@ detailed description of this mode.
 
 (defvar gdb-debug-log nil)
 
+;;;###autoload
 (defcustom gdb-enable-debug-log nil
   "Non-nil means record the process input and output in `gdb-debug-log'."
   :type 'boolean
