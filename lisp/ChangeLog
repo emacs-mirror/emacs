@@ -1,3 +1,8 @@
+2005-08-02  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--highlight-rectangle): Only show
+	rectangle overlay in selected window.
+
 2005-08-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-start.el (all): Put `indicate-empty-lines' in fringe group
