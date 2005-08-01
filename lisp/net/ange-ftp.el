@@ -1,7 +1,7 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989,90,91,92,93,94,95,96,98, 2000, 2001, 2005
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,
+;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
 ;; Maintainer: FSF
@@ -745,7 +745,7 @@ These mean that the FTP process should (or already has) been killed."
 
 (defcustom ange-ftp-potential-error-msgs
   ;; On Mac OS X we sometimes get things like:
-  ;; 
+  ;;
   ;;     ftp> open ftp.nluug.nl
   ;;     Trying 2001:610:1:80aa:192:87:102:36...
   ;;     ftp: connect to address 2001:610:1:80aa:192:87:102:36: No route to host

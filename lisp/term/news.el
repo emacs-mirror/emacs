@@ -1,6 +1,7 @@
 ;;; news.el --- keypad and function key bindings for the Sony NEWS keyboard -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1989, 1993, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -29,7 +30,7 @@
 ;;; Code:
 
 (defun terminal-init-news ()
-  "Terminal initialization function for news."  
+  "Terminal initialization function for news."
   (if (boundp 'news-fkey-prefix)
       nil
     ;; The terminal initialization should already have set up some keys

@@ -1,6 +1,6 @@
 ;;; xterm.el --- define function key sequences and standard colors for xterm
 
-;; Copyright (C) 1995, 2002, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals
@@ -33,7 +33,7 @@
   ;; better in that case to use rxvt's initializion function.
   (if (and (getenv "COLORTERM")
 	   (string-match "\\`rxvt" (getenv "COLORTERM")))
-      (progn 
+      (progn
 	(load "term/rxvt")
 	(terminal-init-rxvt))
 
@@ -45,7 +45,7 @@
     ;; function-key-map. This substitution is needed because if a key
     ;; definition if found in function-key-map, there are no further
     ;; lookups in other keymaps.
-    (substitute-key-definition [f13] [S-f1] function-key-map) 
+    (substitute-key-definition [f13] [S-f1] function-key-map)
     (substitute-key-definition [f14] [S-f2] function-key-map)
     (substitute-key-definition [f15] [S-f3] function-key-map)
     (substitute-key-definition [f16] [S-f4] function-key-map)
@@ -58,7 +58,7 @@
     (substitute-key-definition [f23] [S-f11] function-key-map)
     (substitute-key-definition [f24] [S-f12] function-key-map)
 
-    (substitute-key-definition [f25] [C-f1] function-key-map) 
+    (substitute-key-definition [f25] [C-f1] function-key-map)
     (substitute-key-definition [f26] [C-f2] function-key-map)
     (substitute-key-definition [f27] [C-f3] function-key-map)
     (substitute-key-definition [f28] [C-f4] function-key-map)
@@ -71,7 +71,7 @@
     (substitute-key-definition [f35] [C-f11] function-key-map)
     (substitute-key-definition [f36] [C-f12] function-key-map)
 
-    (substitute-key-definition [f37] [C-S-f1] function-key-map) 
+    (substitute-key-definition [f37] [C-S-f1] function-key-map)
     (substitute-key-definition [f38] [C-S-f2] function-key-map)
     (substitute-key-definition [f39] [C-S-f3] function-key-map)
     (substitute-key-definition [f40] [C-S-f4] function-key-map)
@@ -84,7 +84,7 @@
     (substitute-key-definition [f47] [C-S-f11] function-key-map)
     (substitute-key-definition [f48] [C-S-f12] function-key-map)
 
-    (substitute-key-definition [f49] [A-f1] function-key-map) 
+    (substitute-key-definition [f49] [A-f1] function-key-map)
     (substitute-key-definition [f50] [A-f2] function-key-map)
     (substitute-key-definition [f51] [A-f3] function-key-map)
     (substitute-key-definition [f52] [A-f4] function-key-map)

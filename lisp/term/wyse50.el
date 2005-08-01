@@ -1,6 +1,7 @@
 ;;; wyse50.el --- terminal support code for Wyse 50 -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1989, 1993, 1994, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>,
 ;;	Jim Blandy <jimb@occs.cs.oberlin.edu>

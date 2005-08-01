@@ -1,6 +1,7 @@
 ;;; gamegrid.el --- library for implementing grid-based games on Emacs
 
-;; Copyright (C) 1997, 1998, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 1.02

@@ -2,7 +2,8 @@
 ;;;		     (or MAC GUI or MS-windoze (bah)) look-and-feel
 ;;;		     including key bindings.
 
-;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Staats <michael@thp.Uni-Duisburg.DE>
 ;; Keywords: convenience emulation

@@ -1,6 +1,6 @@
 ;;; morse.el --- convert text to morse code and back             -*- coding: utf-8 -*-
 
-;; Copyright (C) 1995, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Rick Farnbach <rick_farnbach@MENTORG.COM>
 ;; Keywords: games
