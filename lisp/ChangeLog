@@ -1,3 +1,10 @@
+2005-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/gdb-ui.el (gdb-frame-address, gdb-var-changed)
+	(gdb-output-sink, gdba, gdb-cpp-define-alist-program)
+	(gdb-set-gud-minor-mode, gdb-exited, gdb-setup-windows)
+	(gdb-put-string): Fix typos in docstrings.
+
 2005-08-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	Update copyright notices of files in progmodes directory for
