@@ -72,34 +72,38 @@ since it could result in memory overflow and make Emacs crash."
 	       (const :tag "No indicators" nil)
 	       (const :tag "On left, with arrows" left)
 	       (const :tag "On right, with arrows" right)
-	       (list :tag "Pick your own design"
-		     :value ((t . nil))
-		     (choice :tag "Default"
-			     (const :tag "Do not show" (t . nil))
-			     (const :tag "On the left" (t . left))
-			     (const :tag "On the right" (t . right)))
-		     (set :inline t
-			  :tag "Override default for"
-			  (choice :tag "Top"
-				  :value (top . left)
-				  (const :tag "Do not show" (top . nil))
-				  (const :tag "On the left" (top . left))
-				  (const :tag "On the right" (top . right)))
-			  (choice :tag "Bottom"
-				  :value (bottom . left)
-				  (const :tag "Do not show" (bottom . nil))
-				  (const :tag "On the left" (bottom . left))
-				  (const :tag "On the right" (bottom . right)))
-			  (choice :tag "Up arrow"
-				  :value (up . left)
-				  (const :tag "Do not show" (up . nil))
-				  (const :tag "On the left" (up . left))
-				  (const :tag "On the right" (up . right)))
-			  (choice :tag "Down arrow"
-				  :value (down . left)
-				  (const :tag "Do not show" (down . nil))
-				  (const :tag "On the left" (down . left))
-				  (const :tag "On the right" (down . right)))))
+	       (set :tag "Pick your own design"
+		    :value ((t . nil))
+		    :format "%{%t%}:\n%v\n%d"
+		    :doc "You can specify a default and then override it \
+for individual indicators.
+Leaving \"Default\" unchecked is equivalent with specifying a default of
+\"Do not show\"."
+		    (choice :tag "Default"
+			    :value (t . nil)
+			    (const :tag "Do not show" (t . nil))
+			    (const :tag "On the left" (t . left))
+			    (const :tag "On the right" (t . right)))
+		    (choice :tag "Top"
+			    :value (top . left)
+			    (const :tag "Do not show" (top . nil))
+			    (const :tag "On the left" (top . left))
+			    (const :tag "On the right" (top . right)))
+		    (choice :tag "Bottom"
+			    :value (bottom . left)
+			    (const :tag "Do not show" (bottom . nil))
+			    (const :tag "On the left" (bottom . left))
+			    (const :tag "On the right" (bottom . right)))
+		    (choice :tag "Up arrow"
+			    :value (up . left)
+			    (const :tag "Do not show" (up . nil))
+			    (const :tag "On the left" (up . left))
+			    (const :tag "On the right" (up . right)))
+		    (choice :tag "Down arrow"
+			    :value (down . left)
+			    (const :tag "Do not show" (down . nil))
+			    (const :tag "On the left" (down . left))
+			    (const :tag "On the right" (down . right))))
 	       (other :tag "On left, no arrows" t))
 	      "22.1")
 	     (scroll-up-aggressively windows
