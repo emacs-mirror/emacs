@@ -1280,7 +1280,7 @@ If you use ada-xref.el:
       (progn
 	(add-to-list 'align-dq-string-modes 'ada-mode)
 	(add-to-list 'align-open-comment-modes 'ada-mode)
-	(set (make-variable-buffer-local 'align-region-separate)
+	(set (make-local-variable 'align-region-separate)
 	     ada-align-region-separate)
 
 	;; Exclude comments alone on line from alignment.
