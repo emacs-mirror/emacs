@@ -1,3 +1,7 @@
+2005-08-02  Richard M. Stallman  <rms@gnu.org>
+
+	* frame.c (Fframe_char_width): Doc fix.
+
 2005-07-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xdisp.c (syms_of_xdisp) <redisplay-end-trigger-functions>:
