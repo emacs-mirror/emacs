@@ -14,5 +14,6 @@ configure
 data
 emacs*.tar.gz
 leim*.tar.gz
+lock
 site-lisp
 update.log
