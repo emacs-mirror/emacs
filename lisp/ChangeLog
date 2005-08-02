@@ -1,3 +1,21 @@
+2005-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* play/doctor.el (doctor-type-symbol): "?\ " -> "?\s".
+	(**mad**, *debug*, *print-space*, *print-upcase*, abuselst)
+	(abusewords, account, afraidof, arerelated, areyou, bak, beclst)
+	(bother, bye, canyou, chatlst, continue, deathlst, describe)
+	(drnk, drugs, eliza-flag, elizalst, famlst, feared, fears)
+	(feelings-about, foullst, found, hello, history, howareyoulst)
+	(howdyflag, huhlst, ibelieve, improve, inter, isee, isrelated)
+	(lincount, longhuhlst, lover, machlst, mathlst, maybe, moods)
+	(neglst, obj, object, owner, please, problems, qlist)
+	(random-adjective, relation, remlst, repetitive-shortness)
+	(replist, rms-flag, schoollst, sent, sexlst, shortbeclst)
+	(shortlst, something, sportslst, stallmanlst, states, subj)
+	(suicide-flag, sure, things, thlst, toklst, typos, verb, want)
+	(whatwhen, whereoutp, whysay, whywant, zippy-flag, zippylst):
+	Defvar at compile time.
+
 2005-08-02  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--highlight-rectangle): Only show
