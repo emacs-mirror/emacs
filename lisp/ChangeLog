@@ -1,5 +1,14 @@
 2005-08-02  Juanma Barranquero  <lekktu@gmail.com>
 
+	* thumbs.el (thumbs-find-image): Don't make variables
+	automatically buffer local.
+	(thumbs-current-tmp-filename, thumbs-current-image-filename)
+	(thumbs-image-num): Make automatically buffer local.
+	(thumbs-show-thumbs-list): Use `make-local-variable', not
+	`make-variable-buffer-local'.
+	(thumbs-insert-image): Make `thumbs-current-image-size'
+	buffer-local.
+
 	* play/doctor.el (doctor-type-symbol): "?\ " -> "?\s".
 	(**mad**, *debug*, *print-space*, *print-upcase*, abuselst)
 	(abusewords, account, afraidof, arerelated, areyou, bak, beclst)
@@ -15,6 +24,9 @@
 	(suicide-flag, sure, things, thlst, toklst, typos, verb, want)
 	(whatwhen, whereoutp, whysay, whywant, zippy-flag, zippylst):
 	Defvar at compile time.
+
+	* progmodes/ada-mode.el (ada-mode): Use `make-local-variable',
+	not `make-variable-buffer-local'.
 
 2005-08-02  Kim F. Storm  <storm@cua.dk>
 
