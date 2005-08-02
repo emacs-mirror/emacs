@@ -409,8 +409,10 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	(let* ((raw (cdr (assq 'raw cont)))
 	       (filename (cdr (assq 'filename cont)))
 	       (type (or (cdr (assq 'type cont))
-			 (and filename (mm-default-file-encoding filename))
-			 "application/octet-stream"))
+			 (if filename
+			     (or (mm-default-file-encoding filename)
+				 "application/octet-stream")
+			   "text/plain")))
 	       coded encoding charset flowed)
 	  (if (and (not raw)
 		   (member (car (split-string type "/")) '("text" "message")))
@@ -533,8 +535,10 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	  (insert "\n\n")
 	  (insert "Content-Type: "
 		  (or (cdr (assq 'type cont))
-		      (and name (mm-default-file-encoding name))
-		      "application/octet-stream")
+		      (if name
+			  (or (mm-default-file-encoding name)
+			      "application/octet-stream")
+			"text/plain"))
 		  "\n")
 	  (insert "Content-ID: " (message-make-message-id) "\n")
 	  (insert "Content-Transfer-Encoding: "

@@ -1,3 +1,16 @@
+2005-08-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-generate-mime-1): Make the content type default to
+	text/plain if the filename is not specified.
+
+2005-08-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-uu.el (gnus-uu-save-article): Use insert-buffer-substring
+	instead of insert-buffer.
+
+	* message.el (message-yank-original): Ditto; set the mark at the
+	end of the yanked message.
+
 2005-07-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (gnus-article-next-page-1): Reduce the number of

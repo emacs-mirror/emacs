@@ -3206,7 +3206,9 @@ prefix, and don't delete any headers."
     (when (and message-reply-buffer
 	       message-cite-function)
       (delete-windows-on message-reply-buffer t)
-      (insert-buffer message-reply-buffer)
+      (push-mark (save-excursion
+		   (insert-buffer-substring message-reply-buffer)
+		   (point)))
       (unless arg
 	(funcall message-cite-function))
       (message-exchange-point-and-mark)
