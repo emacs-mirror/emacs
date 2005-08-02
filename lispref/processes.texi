@@ -1575,7 +1575,7 @@ subprocess.  @xref{Process Information}.
 process, being stopped means not accepting new connections.  (Up to 5
 connection requests will be queued for when you resume the server; you
 can increase this limit, unless it is imposed by the operating
-systems.)  For a network stream connection, being stopped means not
+system.)  For a network stream connection, being stopped means not
 processing input (any arriving input waits until you resume the
 connection).  For a datagram connection, some number of packets may be
 queued but input may be lost.  You can use the function
