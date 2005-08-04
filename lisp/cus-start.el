@@ -40,20 +40,6 @@
 	     ;; alloc.c
 	     (gc-cons-threshold alloc integer)
 	     (garbage-collection-messages alloc boolean)
-	     ;; undo.c
-	     (undo-limit undo integer)
-	     (undo-strong-limit undo integer)
-	     (undo-outer-limit undo
-			       (choice integer
-				       (const :tag "No limit"
-					      :format "%t\n%d"
-					      :doc
-					      "With this choice, \
-the undo info for the current command never gets discarded.
-This should only be chosen under exceptional circumstances,
-since it could result in memory overflow and make Emacs crash."
-					      nil))
-			       "22.1")
 	     ;; buffer.c
 	     (mode-line-format modeline sexp) ;Hard to do right.
 	     (default-major-mode internal function)
@@ -257,6 +243,20 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (words-include-escapes editing-basics boolean)
 	     (open-paren-in-column-0-is-defun-start editing-basics boolean
 						    "21.1")
+	     ;; undo.c
+	     (undo-limit undo integer)
+	     (undo-strong-limit undo integer)
+	     (undo-outer-limit undo
+			       (choice integer
+				       (const :tag "No limit"
+					      :format "%t\n%d"
+					      :doc
+					      "With this choice, \
+the undo info for the current command never gets discarded.
+This should only be chosen under exceptional circumstances,
+since it could result in memory overflow and make Emacs crash."
+					      nil))
+			       "22.1")
 	     ;; window.c
 	     (temp-buffer-show-function windows (choice (const nil) function))
 	     (display-buffer-function windows (choice (const nil) function))
