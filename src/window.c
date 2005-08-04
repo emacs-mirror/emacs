@@ -5468,7 +5468,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
       int ht = window_internal_height (w);
 
       if (center_p)
-	iarg = make_number (ht / 2);
+	iarg = ht / 2;
       else if (iarg < 0)
 	iarg += ht;
 
