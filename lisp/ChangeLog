@@ -1,3 +1,13 @@
+2005-08-04  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-regexp-alist): Replace complex regexp
+	matching line numbers, column numbers and their ranges with regexp
+	matching only line numbers.
+	(grep-context-face): New face variable.
+	(grep-mode-font-lock-keywords): Use it.
+
+	* faces.el (read-face-name): Delete duplicate faces.
+
 2005-08-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* thumbs.el (thumbs-find-image): Don't make variables
@@ -233,8 +243,6 @@
 	Don't use compilation-...-face for messages that are not file names.
 
 2005-07-22  Juri Linkov  <juri@jurta.org>
-
-	* simple.el (line-move-1): Fix comments.
 
 	* startup.el (normal-splash-screen): Update menu name.
 
