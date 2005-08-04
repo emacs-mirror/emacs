@@ -1,5 +1,10 @@
 2005-08-04  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/compile.el (compilation-mode-map):
+	* progmodes/grep.el (grep-mode-map):
+	Bind TAB to `compilation-next-error' and [backtab] to
+	`compilation-previous-error'.
+
 	* progmodes/grep.el (grep-regexp-alist): Replace complex regexp
 	matching line numbers, column numbers and their ranges with regexp
 	matching only line numbers.
