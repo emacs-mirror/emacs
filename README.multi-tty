@@ -501,6 +501,33 @@ THINGS TO DO
    by changing the modelines or some other frame-local display element
    on the locked out displays.
 
+** The session management module is prone to crashes when the X
+   connection is closed and then later I try to connect to a new X
+   session:
+
+	#0  0xb7ebc806 in SmcGetIceConnection () from /usr/X11R6/lib/libSM.so.6
+	#1  0x080e6641 in x_session_check_input (bufp=0xbf86c9c0) at xsmfns.c:144
+	#2  0x080d3bbc in XTread_socket (device=0xa722ff8, expected=1, hold_quit=0xbf86ca90) at xterm.c:7037
+	#3  0x080fa404 in read_avail_input (expected=1) at keyboard.c:6696
+	#4  0x080fa4ca in handle_async_input () at keyboard.c:6900
+	#5  0x080d51fa in x_term_init (display_name=162628899, xrm_option=0x0, resource_name=0x857068c "emacs") at xterm.c:10622
+	#6  0x080d920e in x_display_info_for_name (name=162628899) at xfns.c:3975
+	#7  0x080d92f9 in check_x_display_info (object=1) at xfns.c:274
+	#8  0x080d97b8 in Fx_create_frame (parms=151221485) at xfns.c:3016
+	#9  0x0815bf72 in Ffuncall (nargs=2, args=0xbf86ceec) at eval.c:2851
+
+   I installed a workaround to prevent this.  The X session manager is
+   only contacted when the very first display in the Emacs session is
+   an X display.  Also, x_delete_display() on this display aborts
+   session management, and XTread_socket only calls
+   x_session_check_input when it is called for the display that the
+   session was opened on.  While this does not really fix the bug, it
+   makes it much less frequent, because session manager support will
+   not normally be enabled when Emacs can survive the shutdown of the
+   X server.
+
+   See if xsmfns.c should be updated.
+
 ** normal-erase-is-backspace-mode in simple.el needs to be updated for
    multi-tty (rep. by Dan Waber).
 

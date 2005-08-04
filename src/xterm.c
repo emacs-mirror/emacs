@@ -7029,18 +7029,20 @@ XTread_socket (device, expected, hold_quit)
 	}
 
 #ifdef HAVE_X_SM
-      {
-	struct input_event inev;
-	BLOCK_INPUT;
-	/* We don't need to EVENT_INIT (inev) here, as
-	   x_session_check_input copies an entire input_event.  */
-	if (x_session_check_input (&inev))
-	  {
-	    kbd_buffer_store_event_hold (&inev, hold_quit);
-	    count++;
-	  }
-	UNBLOCK_INPUT;
-      }
+      /* Only check session manager input for the primary display. */
+      if (device->id == 1 && x_session_have_connection ())
+        {
+          struct input_event inev;
+          BLOCK_INPUT;
+          /* We don't need to EVENT_INIT (inev) here, as
+             x_session_check_input copies an entire input_event.  */
+          if (x_session_check_input (&inev))
+            {
+              kbd_buffer_store_event_hold (&inev, hold_quit);
+              count++;
+            }
+          UNBLOCK_INPUT;
+        }
 #endif
 
 #ifndef USE_GTK
@@ -10614,8 +10616,10 @@ x_term_init (display_name, xrm_option, resource_name)
   }
 
 #ifdef HAVE_X_SM
-  /* Only do this for the first display.  */
-  if (x_initialized == 1)
+  /* Only do this for the very first display in the Emacs session.
+     Ignore X session management when Emacs was first started on a
+     tty.  */
+  if (device->id == 1)
     x_session_initialize (dpyinfo);
 #endif
 
@@ -10638,10 +10642,14 @@ x_delete_display (dpyinfo)
   for (d = device_list; d; d = d->next_device)
     if (d->type == output_x_window && d->display_info.x == dpyinfo)
       {
+        /* Close X session management when we close its display. */
+        if (d->id == 1 && x_session_have_connection ())
+          x_session_close();
+
         delete_device (d);
         break;
       }
-    
+
   delete_keyboard_wait_descriptor (dpyinfo->connection);
 
   /* Discard this display from x_display_name_list and x_display_list.

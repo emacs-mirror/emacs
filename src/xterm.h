@@ -1089,6 +1089,7 @@ extern void widget_store_internal_border P_ ((Widget));
 extern void x_session_initialize P_ ((struct x_display_info *dpyinfo));
 extern int x_session_check_input P_ ((struct input_event *bufp));
 extern int x_session_have_connection P_ ((void));
+extern void x_session_close P_ ((void));
 #endif
 
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0

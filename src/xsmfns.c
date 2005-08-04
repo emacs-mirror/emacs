@@ -516,6 +516,14 @@ x_session_initialize (dpyinfo)
     }
 }
 
+/* Ensure that the session manager is not contacted again. */
+
+void
+x_session_close ()
+{
+  ice_fd = -1;
+}
+
 
 DEFUN ("handle-save-session", Fhandle_save_session,
        Shandle_save_session, 1, 1, "e",
