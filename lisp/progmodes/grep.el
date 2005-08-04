@@ -187,17 +187,13 @@ See `compilation-error-screen-columns'"
     (define-key map "\^?" 'scroll-down)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
-    ;; This is intolerable -- rms
-;;;    (define-key map [remap next-line] 'compilation-next-error)
-;;;    (define-key map [remap previous-line] 'compilation-previous-error)
-
     (define-key map "\r" 'compile-goto-error)  ;; ?
     (define-key map "n" 'next-error-no-select)
     (define-key map "p" 'previous-error-no-select)
     (define-key map "{" 'compilation-previous-file)
     (define-key map "}" 'compilation-next-file)
-    (define-key map [backtab] 'compilation-previous-file)
-    (define-key map "\t" 'compilation-next-file)
+    (define-key map "\t" 'compilation-next-error)
+    (define-key map [backtab] 'compilation-previous-error)
 
     ;; Set up the menu-bar
     (define-key map [menu-bar grep]
