@@ -248,13 +248,12 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 
 ;;;###autoload
 (defvar grep-regexp-alist
-  ;; rms: I removed the code to match parens around the line number
-  ;; because it causes confusion and so we will find out if anyone needs it.
-  ;; It causes confusion with a file name that contains a number in parens.
-  '(("^\\(.+?\\)\\([: \t]\\)+\
-\\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
-\\(?:-\\(?:\\([0-9]+\\)\\4\\)?\\.?\\([0-9]+\\)?\\)?\\2"
-     1 (3 . 6) (5 . 7))
+  '(("^\\([^:\n]+\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
+     1 3)
+    ;; Rule to match column numbers is commented out since no known grep
+    ;; produces them
+    ;; ("^\\([^:\n]+\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2\\(?:\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?\\2\\)?"
+    ;;  1 3 (4 . 5))
     ("^\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
 \\(\033\\[01;31m\\(?:\033\\[K\\)?\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
      2 3
@@ -284,6 +283,9 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 (defvar grep-match-face	'match
   "Face name to use for grep matches.")
 
+(defvar grep-context-face 'shadow
+  "Face name to use for grep context lines.")
+
 (defvar grep-mode-font-lock-keywords
    '(;; Command output lines.
      ("^\\([A-Za-z_0-9/\.+-]+\\)[ \t]*:" 1 font-lock-function-name-face)
@@ -298,6 +300,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 grep-error-face)
       (2 grep-error-face))
+     ("^[^\n-]+-[0-9]+-.*" (0 grep-context-face))
      ;; Highlight grep matches and delete markers
      ("\\(\033\\[01;31m\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
       ;; Refontification does not work after the markers have been
