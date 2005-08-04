@@ -1158,6 +1158,8 @@ exited abnormally with code %d\n"
     (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
+    (define-key map "\t" 'compilation-next-error)
+    (define-key map [backtab] 'compilation-previous-error)
 
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
