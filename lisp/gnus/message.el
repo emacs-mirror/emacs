@@ -3418,8 +3418,15 @@ Instead, just auto-save the buffer and then bury it."
 			  (file-exists-p auto-save-file-name))
 		     (and file-name
 			  (file-exists-p file-name)))
-	       (yes-or-no-p (format "Remove the backup file%s? "
-				    (if modified " too" ""))))
+		 (progn
+		   ;; If the message buffer has lived in a dedicated window,
+		   ;; `kill-buffer' has killed the frame.  Thus the
+		   ;; `yes-or-no-p' may show up in a lowered frame.  Make sure
+		   ;; that the user can see the question by raising the
+		   ;; current frame:
+		   (raise-frame)
+		   (yes-or-no-p (format "Remove the backup file%s? "
+					(if modified " too" "")))))
 	(ignore-errors
 	  (delete-file auto-save-file-name))
 	(let ((message-draft-article draft-article))
@@ -3430,8 +3437,7 @@ Instead, just auto-save the buffer and then bury it."
   "Bury this mail BUFFER."
   (let ((newbuf (other-buffer buffer)))
     (bury-buffer buffer)
-    (if (and (fboundp 'frame-parameters)
-	     (cdr (assq 'dedicated (frame-parameters)))
+    (if (and (window-dedicated-p (selected-window))
 	     (not (null (delq (selected-frame) (visible-frame-list)))))
 	(delete-frame (selected-frame))
       (switch-to-buffer newbuf))))

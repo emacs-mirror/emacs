@@ -1,4 +1,27 @@
+2005-08-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-unsplit-urls): Don't anchor urls to the
+	start of the lines.
+	(gnus-picon-databases): Add /usr/share/picons.
+
+2005-08-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-valid-localpart-regexp): New variable
+	taken from `gnus-button-mid-or-mail-regexp'.
+	(gnus-button-mid-or-mail-regexp, gnus-button-alist): Use it.
+	(gnus-button-alist): Improve regexp for domain part of the MIDs
+	for news:localpart@domain buttons.
+	(gnus-button-ctan-directory-regexp): Update.
+
+	* message.el (message-kill-buffer): Raise the current frame.
+	(message-bury): Use `window-dedicated-p'.
+
 2005-08-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* sieve-manage.el (sieve-manage-interactive-login): Use
+	make-local-variable rather than make-variable-buffer-local.
+	(sieve-manage-open): Ditto.
+	(sieve-manage-authenticate): Ditto.
 
 	* mml.el (mml-generate-mime-1): Make the content type default to
 	text/plain if the filename is not specified.
