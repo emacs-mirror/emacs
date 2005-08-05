@@ -1,3 +1,8 @@
+2005-08-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el: Add autoload cookies for all coding
+	systems.
+
 2005-08-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-start.el (all): Put undo.c where it alphabetically belongs.

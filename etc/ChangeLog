@@ -1,3 +1,7 @@
+2005-08-05  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Fix the entry describing code-pages.
+
 2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Add `icons' (for in-place installs).
