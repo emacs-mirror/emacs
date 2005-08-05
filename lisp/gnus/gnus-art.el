@@ -842,7 +842,8 @@ be controlled by `gnus-treat-body-boundary'."
   :type '(choice (item :tag "None" :value nil)
 		 string))
 
-(defcustom gnus-picon-databases '("/usr/lib/picon" "/usr/local/faces")
+(defcustom gnus-picon-databases '("/usr/lib/picon" "/usr/local/faces"
+				  "/usr/share/picons")
   "Defines the location of the faces database.
 For information on obtaining this database of pretty pictures, please
 see http://www.cs.indiana.edu/picons/ftp/index.html"
@@ -2428,7 +2429,7 @@ If READ-CHARSET, ask for a coding system."
     (let ((inhibit-read-only t))
       (goto-char (point-min))
       (while (re-search-forward
-	      "^\\(\\(https?\\|ftp\\)://\\S-+\\) *\n\\(\\S-+\\)" nil t)
+	      "\\(\\(https?\\|ftp\\)://\\S-+\\) *\n\\(\\S-+\\)" nil t)
 	(replace-match "\\1\\3" t)))
     (when (interactive-p)
       (gnus-treat-article nil))))
@@ -5197,17 +5198,23 @@ specifies."
 			 1 0)))))))
 
 (defun gnus-article-next-page-1 (lines)
-  (unless (and (not (featurep 'xemacs))
-	       (> (symbol-value 'scroll-margin) 0)
-	       (<= (count-lines (window-start) (point-max))
-		   (symbol-value 'scroll-margin)))
-    (condition-case ()
-	(let ((scroll-in-place nil))
-	  (scroll-up lines))
-      (end-of-buffer
-       ;; Long lines may cause an end-of-buffer error.
-       (goto-char (point-max))))
-    (gnus-article-beginning-of-window)))
+  (when (and (not (featurep 'xemacs))
+	     (numberp lines)
+	     (> lines 0)
+	     (numberp (symbol-value 'scroll-margin))
+	     (> (symbol-value 'scroll-margin) 0))
+    ;; Protect against the bug that Emacs 21.x hangs up when scrolling up for
+    ;; too many number of lines if `scroll-margin' is set as two or greater.
+    (setq lines (min lines
+		     (max 0 (- (count-lines (window-start) (point-max))
+			       (symbol-value 'scroll-margin))))))
+  (condition-case ()
+      (let ((scroll-in-place nil))
+	(scroll-up lines))
+    (end-of-buffer
+     ;; Long lines may cause an end-of-buffer error.
+     (goto-char (point-max))))
+  (gnus-article-beginning-of-window))
 
 (defun gnus-article-prev-page (&optional lines)
   "Show previous page of current article.
@@ -5880,6 +5887,14 @@ groups."
   :group 'gnus-article-buttons
   :type 'regexp)
 
+;; Regexp suggested by Felix Wiemann in <87oeuomcz9.fsf@news2.ososo.de>
+(defcustom gnus-button-valid-localpart-regexp
+  "[a-z0-9$%(*-=?[_][^<>\")!;:,{}\n\t ]*"
+  "Regular expression that matches a localpart of mail addresses or MIDs."
+  :version "22.1"
+  :group 'gnus-article-buttons
+  :type 'regexp)
+
 (defcustom gnus-button-man-handler 'manual-entry
   "Function to use for displaying man pages.
 The function must take at least one argument with a string naming the
@@ -5919,12 +5934,11 @@ The function must take one argument, the string naming the URL."
 		 (regexp :tag "Other")))
 
 (defcustom gnus-button-ctan-directory-regexp
-  (concat
-   "\\("; Cannot use `\(?: ... \)' (compatibility with Emacs 20).
-   "biblio\\|digests\\|dviware\\|fonts\\|graphics\\|help\\|"
-   "indexing\\|info\\|language\\|macros\\|support\\|systems\\|"
-   "tds\\|tools\\|usergrps\\|web\\|nonfree\\|obsolete"
-   "\\)")
+  (regexp-opt
+   (list "archive-tools" "biblio" "bibliography" "digests" "documentation"
+	 "dviware" "fonts" "graphics" "help" "indexing" "info" "language"
+	 "languages" "macros" "nonfree" "obsolete" "support" "systems"
+	 "tds" "tools" "usergrps" "web") t)
   "Regular expression for ctan directories.
 It should match all directories in the top level of `gnus-ctan-url'."
   :version "22.1"
@@ -5932,8 +5946,7 @@ It should match all directories in the top level of `gnus-ctan-url'."
   :type 'regexp)
 
 (defcustom gnus-button-mid-or-mail-regexp
-  (concat "\\b\\(<?[a-z0-9$%(*-=?[_][^<>\")!;:,{}\n\t ]*@"
-	  ;; Felix Wiemann in <87oeuomcz9.fsf@news2.ososo.de>
+  (concat "\\b\\(<?" gnus-button-valid-localpart-regexp "@"
 	  gnus-button-valid-fqdn-regexp
 	  ">?\\)\\b")
   "Regular expression that matches a message ID or a mail address."
@@ -6248,8 +6261,9 @@ positives are possible."
 (defcustom gnus-button-alist
   '(("<\\(url:[>\n\t ]*?\\)?\\(nntp\\|news\\):[>\n\t ]*\\([^>\n\t ]*@[^>\n\t ]*\\)>"
      0 (>= gnus-button-message-level 0) gnus-button-handle-news 3)
-    ("\\b\\(nntp\\|news\\):\\([^>\n\t ]*@[^>)!;:,\n\t ]*\\)" 0 t
-     gnus-button-handle-news 2)
+    ((concat "\\b\\(nntp\\|news\\):\\("
+	     gnus-button-valid-localpart-regexp "@[a-z0-9.-]+[a-z]\\)")
+     0 t gnus-button-handle-news 2)
     ("\\(\\b<\\(url:[>\n\t ]*\\)?\\(nntp\\|news\\):[>\n\t ]*\\(//\\)?\\([^>\n\t ]*\\)>\\)"
      1 (>= gnus-button-message-level 0) gnus-button-fetch-group 5)
     ("\\b\\(nntp\\|news\\):\\(//\\)?\\([^'\">\n\t ]+\\)"

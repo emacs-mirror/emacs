@@ -1,6 +1,7 @@
 ;;; dcl-mode.el --- major mode for editing DCL command files
 
-;; Copyright (c) 1997 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Odd Gripenstam <gripenstamol@decus.se>
 ;; Maintainer: Odd Gripenstam <gripenstamol@decus.se>

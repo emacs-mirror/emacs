@@ -313,7 +313,7 @@ location."
   (if (not next-error-follow-minor-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
     (add-hook 'post-command-hook 'next-error-follow-mode-post-command-hook nil t)
-    (make-variable-buffer-local 'next-error-follow-last-line)))
+    (make-local-variable 'next-error-follow-last-line)))
 
 ;;; Used as a `post-command-hook' by `next-error-follow-mode'
 ;;; for the *Compilation* *grep* and *Occur* buffers.

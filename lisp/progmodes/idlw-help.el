@@ -1,7 +1,7 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE
 ;; Copyright (c) 2000 Carsten Dominik
 ;; Copyright (c) 2001, 2002 J.D. Smith
-;; Copyright (c) 2003,2004,2005 Free Software Foundation
+;; Copyright (c) 2003, 2004, 2005, Free Software Foundation
 ;;
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@science.uva.nl>

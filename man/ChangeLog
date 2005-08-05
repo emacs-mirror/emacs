@@ -1,3 +1,9 @@
+2005-07-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (info): Don't run multi-install-info.bat.
+	($(infodir)/dir): New target, produced by running
+	multi-install-info.bat.
+
 2005-07-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.texi (Startup Files): Fix name of gnus-site-init-file.

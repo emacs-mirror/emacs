@@ -1,6 +1,7 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1993, 1994, 2001, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
@@ -2243,7 +2244,7 @@ order until succeed.")
     (if text
 	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
     text))
-      
+
 ;;; Return the value of the current X selection.
 ;;; Consult the selection, and the cut buffer.  Treat empty strings
 ;;; as if they were unset.

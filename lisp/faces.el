@@ -882,6 +882,7 @@ Otherwise, return a single face."
 	      (push f faces)))
       (if (symbolp faceprop)
 	  (push faceprop faces)))
+    (delete-dups faces)
 
     ;; Build up the completion tables.
     (mapatoms (lambda (s)

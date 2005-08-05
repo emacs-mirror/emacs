@@ -3,7 +3,7 @@
 ;; Author: Jim Blandy <jimb@occs.cs.oberlin.edu>, January 1992
 ;; Keywords: terminals
 
-;; Copyright (C) 1992, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

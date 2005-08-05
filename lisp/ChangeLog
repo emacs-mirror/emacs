@@ -1,3 +1,123 @@
+2005-08-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el: Add autoload cookies for all coding
+	systems.
+
+2005-08-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Put undo.c where it alphabetically belongs.
+
+2005-08-04  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-mode-map):
+	* progmodes/grep.el (grep-mode-map):
+	Bind TAB to `compilation-next-error' and [backtab] to
+	`compilation-previous-error'.
+
+	* progmodes/grep.el (grep-regexp-alist): Replace complex regexp
+	matching line numbers, column numbers and their ranges with regexp
+	matching only line numbers.
+	(grep-context-face): New face variable.
+	(grep-mode-font-lock-keywords): Use it.
+
+	* faces.el (read-face-name): Delete duplicate faces.
+
+2005-08-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* thumbs.el (thumbs-find-image): Don't make variables
+	automatically buffer local.
+	(thumbs-current-tmp-filename, thumbs-current-image-filename)
+	(thumbs-image-num): Make automatically buffer local.
+	(thumbs-show-thumbs-list): Use `make-local-variable', not
+	`make-variable-buffer-local'.
+	(thumbs-insert-image): Make `thumbs-current-image-size'
+	buffer-local.
+
+	* play/doctor.el (doctor-type-symbol): "?\ " -> "?\s".
+	(**mad**, *debug*, *print-space*, *print-upcase*, abuselst)
+	(abusewords, account, afraidof, arerelated, areyou, bak, beclst)
+	(bother, bye, canyou, chatlst, continue, deathlst, describe)
+	(drnk, drugs, eliza-flag, elizalst, famlst, feared, fears)
+	(feelings-about, foullst, found, hello, history, howareyoulst)
+	(howdyflag, huhlst, ibelieve, improve, inter, isee, isrelated)
+	(lincount, longhuhlst, lover, machlst, mathlst, maybe, moods)
+	(neglst, obj, object, owner, please, problems, qlist)
+	(random-adjective, relation, remlst, repetitive-shortness)
+	(replist, rms-flag, schoollst, sent, sexlst, shortbeclst)
+	(shortlst, something, sportslst, stallmanlst, states, subj)
+	(suicide-flag, sure, things, thlst, toklst, typos, verb, want)
+	(whatwhen, whereoutp, whysay, whywant, zippy-flag, zippylst):
+	Defvar at compile time.
+
+	* progmodes/ada-mode.el (ada-mode): Use `make-local-variable',
+	not `make-variable-buffer-local'.
+
+2005-08-02  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--highlight-rectangle): Only show
+	rectangle overlay in selected window.
+
+2005-08-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Put `indicate-empty-lines' in fringe group
+	instead of display group.  Make `indicate-buffer-boundaries'
+	customizable through Custom.
+
+2005-08-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/gdb-ui.el (gdb-frame-address, gdb-var-changed)
+	(gdb-output-sink, gdba, gdb-cpp-define-alist-program)
+	(gdb-set-gud-minor-mode, gdb-exited, gdb-setup-windows)
+	(gdb-put-string): Fix typos in docstrings.
+
+2005-08-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	Update copyright notices of files in progmodes directory for
+ 	release of Emacs 22.1.
+
+	* progmodes/gdb-ui.el (gdb-enable-debug-log): Add autoload cookie.
+
+	* progmodes/gud.el (gud-tooltip-mode): Add autoload cookie.  Don't
+	barf if the GUD buffer has been killed.
+
+2005-08-01  Kim F. Storm  <storm@cua.dk>
+
+	* textmodes/table.el (table-yank-handler): Change defcustom to defvar.
+
+2005-07-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/bytecomp.el (byte-compile-make-variable-buffer-local)
+	(byte-compile-form-make-variable-buffer-local): New functions to warn
+	about misuses of make-variable-buffer-local where make-local-variable
+	was meant.
+
+2005-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bs.el (bs-attributes-list): Doc fix.
+	(bs): Update url-link.
+
+	* desktop.el (desktop-save-buffer): Fix typos in docstring.
+	(desktop-load-default): Simplify.
+
+	* ibuffer.el (ibuffer-columnize-and-insert-list)
+	(ibuffer-mouse-toggle-mark, ibuffer-count-marked-lines)
+	(ibuffer-unmark-all, ibuffer-toggle-marks)
+	(ibuffer-unmark-forward, ibuffer-unmark-backward)
+	(ibuffer-compile-make-format-form, ibuffer-format-column)
+	(ibuffer-current-buffers-with-marks)
+	(ibuffer-update-title-and-summary): "?\ " -> "?\s".
+	(ibuffer): Doc fix.
+	(ibuffer-mode): Fix typo in docstring.
+	(ibuffer-hooks, ibuffer-mode-hooks): Make obsolete and declare
+	with `define-obsolete-variable-alias'.
+	(ibuffer-elide-long-columns): Mark as obsolete.  Doc fix.
+
+2005-07-29  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-message-coding-system):
+	Be sure to use LF for end-of-line.  If no coding system is decided,
+	return iso-8859-1-unix.
+
 2005-07-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/ange-ftp.el (ange-ftp-gateway-fatal-msgs)
@@ -62,17 +182,15 @@
 
 	* term/README: Describe the terminal-init-* functionality.
 
-	* startup.el (command-line): After loading the terminal
-	initialization file call the corresponding terminal initialization
-	function.
+	* startup.el (command-line): After loading the terminal initialization
+	file call the corresponding terminal initialization function.
 
 2005-07-27  Kenichi Handa  <handa@m17n.org>
 
 	* ps-bdf.el (bdf-read-font-info): Ignore glyphs whose ENCODING is
 	negative.
 
-	* ps-mule.el (ps-mule-bitmap-prologue): Fix arguments to
-	setcharwidth.
+	* ps-mule.el (ps-mule-bitmap-prologue): Fix arguments to setcharwidth.
 	(ps-mule-composition-prologue): Fix for the case that
 	RelativeCompose is false.
 
@@ -139,8 +257,6 @@
 	Don't use compilation-...-face for messages that are not file names.
 
 2005-07-22  Juri Linkov  <juri@jurta.org>
-
-	* simple.el (line-move-1): Fix comments.
 
 	* startup.el (normal-splash-screen): Update menu name.
 

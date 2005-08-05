@@ -99,7 +99,10 @@ srcs = \
 .PHONY: clean
 
 # The info file is named `elisp'.
+
 info: $(infodir)/elisp
+
+$(infodir)/dir:
 	$(INSTALL_INFO) --info-dir=$(infodir) $(infodir)/elisp
 
 $(infodir)/elisp: $(srcs)

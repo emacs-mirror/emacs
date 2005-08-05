@@ -1,6 +1,7 @@
 ;;; viper-cmd.el --- Vi command support for Viper
 
-;; Copyright (C) 1997, 98, 99, 2000, 01, 02, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 

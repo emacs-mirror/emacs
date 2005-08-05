@@ -1,7 +1,73 @@
+2005-08-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-bodies.el (mm-encode-body): Use coding system rather than
+	charset to encode text.
+
+	* mm-util.el (mm-find-mime-charset-region): Attempt to reduce the
+	number of charsets if utf-8 is available (XEmacs).
+
+2005-08-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-unsplit-urls): Don't anchor urls to the
+	start of the lines.
+	(gnus-picon-databases): Add /usr/share/picons.
+
+2005-08-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-valid-localpart-regexp): New variable
+	taken from `gnus-button-mid-or-mail-regexp'.
+	(gnus-button-mid-or-mail-regexp, gnus-button-alist): Use it.
+	(gnus-button-alist): Improve regexp for domain part of the MIDs
+	for news:localpart@domain buttons.
+	(gnus-button-ctan-directory-regexp): Update.
+
+	* message.el (message-kill-buffer): Raise the current frame.
+	(message-bury): Use `window-dedicated-p'.
+
+2005-08-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* sieve-manage.el (sieve-manage-interactive-login): Use
+	make-local-variable rather than make-variable-buffer-local.
+	(sieve-manage-open): Ditto.
+	(sieve-manage-authenticate): Ditto.
+
+	* mml.el (mml-generate-mime-1): Make the content type default to
+	text/plain if the filename is not specified.
+
+2005-08-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-uu.el (gnus-uu-save-article): Use insert-buffer-substring
+	instead of insert-buffer.
+
+	* message.el (message-yank-original): Ditto; set the mark at the
+	end of the yanked message.
+
+2005-07-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page-1): Reduce the number of
+	lines to scroll rather than to stop it.
+
+	* mml.el (mml-generate-default-type): Add doc string.
+	(mml-generate-mime-1): Use mm-default-file-encoding or make it
+	default to application/octet-stream when determining the content
+	type if it is not specified for the part or the mml contents; add
+	a comment about mml-generate-default-type.
+
+2005-07-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-generate-mime-1): Use mm-default-file-encoding or
+	make it default to application/octet-stream when determining the
+	content type if it is not specified for the external contents.
+
 2005-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* rfc2231.el (rfc2231-parse-string): Take care that not only a
 	segmented parameter but also other parameters might be there.
+
+2005-07-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Delete temp file, directory
+	and buffer immediately if the external process is exited.
 
 2005-07-26  Katsumi Yamaoka  <yamaoka@jpl.org>
 

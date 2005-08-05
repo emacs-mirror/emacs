@@ -1,6 +1,7 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
-;; Copyright (C) 1993, 1994, 2003, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -108,8 +109,8 @@ Switch to a buffer editing the last file dropped."
 	   (y (cdr coords)))
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
-      (mapcar (lambda (file-name) 
-		(dnd-handle-one-url window 'private 
+      (mapcar (lambda (file-name)
+		(dnd-handle-one-url window 'private
 				    (concat "file:" file-name)))
 		(car (cdr (cdr event)))))
   (raise-frame)))

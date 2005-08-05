@@ -1,7 +1,7 @@
 ;;; grep.el --- run Grep as inferior of Emacs, parse match messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2002, 2004, 2005  Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -187,17 +187,13 @@ See `compilation-error-screen-columns'"
     (define-key map "\^?" 'scroll-down)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
-    ;; This is intolerable -- rms
-;;;    (define-key map [remap next-line] 'compilation-next-error)
-;;;    (define-key map [remap previous-line] 'compilation-previous-error)
-
     (define-key map "\r" 'compile-goto-error)  ;; ?
     (define-key map "n" 'next-error-no-select)
     (define-key map "p" 'previous-error-no-select)
     (define-key map "{" 'compilation-previous-file)
     (define-key map "}" 'compilation-next-file)
-    (define-key map [backtab] 'compilation-previous-file)
-    (define-key map "\t" 'compilation-next-file)
+    (define-key map "\t" 'compilation-next-error)
+    (define-key map [backtab] 'compilation-previous-error)
 
     ;; Set up the menu-bar
     (define-key map [menu-bar grep]
@@ -248,13 +244,12 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 
 ;;;###autoload
 (defvar grep-regexp-alist
-  ;; rms: I removed the code to match parens around the line number
-  ;; because it causes confusion and so we will find out if anyone needs it.
-  ;; It causes confusion with a file name that contains a number in parens.
-  '(("^\\(.+?\\)\\([: \t]\\)+\
-\\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
-\\(?:-\\(?:\\([0-9]+\\)\\4\\)?\\.?\\([0-9]+\\)?\\)?\\2"
-     1 (3 . 6) (5 . 7))
+  '(("^\\([^:\n]+\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
+     1 3)
+    ;; Rule to match column numbers is commented out since no known grep
+    ;; produces them
+    ;; ("^\\([^:\n]+\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2\\(?:\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?\\2\\)?"
+    ;;  1 3 (4 . 5))
     ("^\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
 \\(\033\\[01;31m\\(?:\033\\[K\\)?\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
      2 3
@@ -284,6 +279,9 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 (defvar grep-match-face	'match
   "Face name to use for grep matches.")
 
+(defvar grep-context-face 'shadow
+  "Face name to use for grep context lines.")
+
 (defvar grep-mode-font-lock-keywords
    '(;; Command output lines.
      ("^\\([A-Za-z_0-9/\.+-]+\\)[ \t]*:" 1 font-lock-function-name-face)
@@ -298,6 +296,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 grep-error-face)
       (2 grep-error-face))
+     ("^[^\n-]+-[0-9]+-.*" (0 grep-context-face))
      ;; Highlight grep matches and delete markers
      ("\\(\033\\[01;31m\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
       ;; Refontification does not work after the markers have been

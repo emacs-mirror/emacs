@@ -1201,12 +1201,11 @@ in CNS encoding; it accepts both Big 5 and CNS as input; on saving,
 Big 5 is then converted to CNS.
 
 ---
-*** Many new coding systems are available by loading the `code-pages'
-library.  These include complete versions of most of those in
-codepage.el, based on Unicode mappings.  `codepage-setup' is now
-obsolete and is used only in the MS-DOS port of Emacs.  windows-1252
-and windows-1251 are preloaded since the former is so common and the
-latter is used by GNU locales.
+*** Many new coding systems are available in the `code-pages' library.
+These include complete versions of most of those in codepage.el, based
+on Unicode mappings.  `codepage-setup' is now obsolete and is used
+only in the MS-DOS port of Emacs.  All coding systems defined in
+`code-pages' are auto-loaded.
 
 ---
 *** New variable `utf-translate-cjk-unicode-range' controls which

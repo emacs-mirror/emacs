@@ -1,6 +1,7 @@
 ;;; doctor.el --- psychological help for frustrated users
 
-;; Copyright (C) 1985, 1987, 1994, 1996, 2000, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1994, 1996, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: games
@@ -44,6 +45,36 @@
 ;; political implications of the issue.
 
 ;;; Code:
+
+(eval-when-compile
+  (defvar **mad**)        (defvar *debug*)      (defvar *print-space*)
+  (defvar *print-upcase*) (defvar abuselst)     (defvar abusewords)
+  (defvar account)        (defvar afraidof)     (defvar arerelated)
+  (defvar areyou)         (defvar bak)          (defvar beclst)
+  (defvar bother)         (defvar bye)          (defvar canyou)
+  (defvar chatlst)        (defvar continue)     (defvar deathlst)
+  (defvar describe)       (defvar drnk)         (defvar drugs)
+  (defvar eliza-flag)     (defvar elizalst)     (defvar famlst)
+  (defvar feared)         (defvar fears)        (defvar feelings-about)
+  (defvar foullst)        (defvar found)        (defvar hello)
+  (defvar history)        (defvar howareyoulst) (defvar howdyflag)
+  (defvar huhlst)         (defvar ibelieve)     (defvar improve)
+  (defvar inter)          (defvar isee)         (defvar isrelated)
+  (defvar lincount)       (defvar longhuhlst)   (defvar lover)
+  (defvar machlst)        (defvar mathlst)      (defvar maybe)
+  (defvar moods)          (defvar neglst)       (defvar obj)
+  (defvar object)         (defvar owner)        (defvar please)
+  (defvar problems)       (defvar qlist)        (defvar random-adjective)
+  (defvar relation)       (defvar remlst)       (defvar repetitive-shortness)
+  (defvar replist)        (defvar rms-flag)     (defvar schoollst)
+  (defvar sent)           (defvar sexlst)       (defvar shortbeclst)
+  (defvar shortlst)       (defvar something)    (defvar sportslst)
+  (defvar stallmanlst)    (defvar states)       (defvar subj)
+  (defvar suicide-flag)   (defvar sure)         (defvar things)
+  (defvar thlst)          (defvar toklst)       (defvar typos)
+  (defvar verb)           (defvar want)         (defvar whatwhen)
+  (defvar whereoutp)      (defvar whysay)       (defvar whywant)
+  (defvar zippy-flag)     (defvar zippylst))
 
 (defun doc// (x) x)
 
@@ -1369,7 +1400,7 @@ Hack on previous word, setting global variable OWNER to correct result."
   (cond ((or (string-match "^[.,;:?! ]" word)
 	     (not *print-space*))
 	 (insert word))
-	(t (insert ?\  word)))
+	(t (insert ?\s word)))
   (and auto-fill-function
        (> (current-column) fill-column)
        (apply auto-fill-function nil))
