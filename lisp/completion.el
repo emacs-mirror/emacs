@@ -1,6 +1,7 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1995, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience

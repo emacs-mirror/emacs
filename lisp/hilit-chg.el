@@ -1,6 +1,7 @@
 ;;; hilit-chg.el --- minor mode displaying buffer changes with special face
 
-;; Copyright (C) 1998, 2000, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Richard Sharman <rsharman@pobox.com>
 ;; Keywords: faces

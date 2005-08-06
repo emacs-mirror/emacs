@@ -1,7 +1,8 @@
 ;;; info-look.el --- major-mode-sensitive Info index lookup facility
 ;; An older version of this was known as libc.el.
 
-;; Copyright (C) 1995,96,97,98,99,2001,03,04,05  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;;         (did not show signs of life (Nov 2001)  -stef)

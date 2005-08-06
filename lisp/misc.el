@@ -1,6 +1,6 @@
 ;;; misc.el --- some nonstandard basic editing commands for Emacs
 
-;; Copyright (C) 1989, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience

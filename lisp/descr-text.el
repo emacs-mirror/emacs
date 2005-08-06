@@ -1,7 +1,7 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (c) 1994, 1995, 1996, 2001, 2002, 2003, 2004, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces, i18n, Unicode, multilingual

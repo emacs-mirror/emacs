@@ -1,6 +1,7 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: FSF

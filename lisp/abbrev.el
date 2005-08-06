@@ -1,6 +1,7 @@
 ;;; abbrev.el --- abbrev mode commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience

@@ -1,6 +1,7 @@
 ;;; userlock.el --- handle file access contention between multiple users
 
-;; Copyright (C) 1985, 1986 Free Software Foundation, inc.
+;; Copyright (C) 1985, 1986, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal

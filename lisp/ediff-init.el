@@ -1,7 +1,7 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;;     2004, 2005 Free Software Foundation, Inc.
+;;     2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 

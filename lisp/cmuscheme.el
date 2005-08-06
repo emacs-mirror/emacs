@@ -1,6 +1,7 @@
 ;;; cmuscheme.el --- Scheme process in a buffer. Adapted from tea.el
 
-;; Copyright (C) 1988, 1994, 1997, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <olin.shivers@cs.cmu.edu>
 ;; Maintainer: FSF

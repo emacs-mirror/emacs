@@ -1,6 +1,7 @@
 ;;; pcomplete.el --- programmable completion
 
-;; Copyright (C) 1999, 2000,01,02,03,04 Free Sofware Foundation
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004
+;;   2005 Free Sofware Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: processes abbrev

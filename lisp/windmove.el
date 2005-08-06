@@ -1,6 +1,7 @@
 ;;; windmove.el --- directional window-selection routines
 ;;
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Hovav Shacham (hovav@cs.stanford.edu)
 ;; Created: 17 October 1998

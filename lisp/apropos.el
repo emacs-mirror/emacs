@@ -1,6 +1,7 @@
 ;;; apropos.el --- apropos commands for users and programmers
 
-;; Copyright (C) 1989,94,1995,2001,02,03,04,2005  Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1995, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Joe Wells <jbw@bigbird.bu.edu>
 ;; Rewritten: Daniel Pfeiffer <occitan@esperanto.org>

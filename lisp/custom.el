@@ -1,7 +1,7 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2001, 2002, 2004, 2005
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF

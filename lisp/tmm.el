@@ -1,7 +1,7 @@
 ;;; tmm.el --- text mode access to menu-bar
 
-;; Copyright (C) 1994, 1995, 1996, 2000, 2001, 2002
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Ilya Zakharevich <ilya@math.mps.ohio-state.edu>
 ;; Maintainer: FSF

@@ -1,6 +1,7 @@
 ;;; autorevert.el --- revert buffers when files on disk change
 
-;; Copyright (C) 1997, 1998, 1999, 2001, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: convenience

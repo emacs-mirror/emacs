@@ -1,6 +1,6 @@
 ;;; mouse-copy.el --- one-click text copy and move
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@ISI.EDU>
 ;; Keywords: mouse

@@ -1,6 +1,7 @@
 ;;; xml.el --- XML parser
 
-;; Copyright (C) 2000, 01, 03, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>

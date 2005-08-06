@@ -1,6 +1,7 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-;; Copyright (C) 1985, 1986, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
 ;; Maintainer: FSF

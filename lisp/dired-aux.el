@@ -1,7 +1,7 @@
 ;;; dired-aux.el --- less commonly used parts of dired  -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: FSF

@@ -1,6 +1,7 @@
 ;;; timezone.el --- time zone package for GNU Emacs
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1996, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 1996, 1999, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu Umeda
 ;; Maintainer: umerin@mse.kyutech.ac.jp
