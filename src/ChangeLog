@@ -1,3 +1,8 @@
+2005-08-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* floatfns.c (Fexpt): Use floats for negative
+	exponent (computing a root).  Reported by D Goel.
+
 2005-08-02  Richard M. Stallman  <rms@gnu.org>
 
 	* frame.c (Fframe_char_width): Doc fix.
