@@ -649,8 +649,8 @@ by \"Save Options\" in Custom buffers.")
 		   debug-on-quit debug-on-error
 		   tooltip-mode menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style fringe-mode
-		   fringe-indicators case-fold-search
-		   display-time-mode auto-compression-mode
+		   indicate-empty-lines indicate-buffer-boundaries
+		   case-fold-search display-time-mode auto-compression-mode
 		   current-language-environment default-input-method
 		   ;; Saving `text-mode-hook' is somewhat questionable,
 		   ;; as we might get more than we bargain for, if
@@ -717,88 +717,92 @@ by \"Save Options\" in Custom buffers.")
 			      (frame-visible-p
 			       (symbol-value 'speedbar-frame))))))
 
+(defvar menu-bar-showhide-fringe-menu (make-sparse-keymap "Fringe"))
 
-(defvar menu-bar-showhide-fringe-ind-menu (make-sparse-keymap "Indicators"))
+(defvar menu-bar-showhide-fringe-ind-menu
+  (make-sparse-keymap "Buffer boundaries"))
 
-;; The real definition is in fringe.el.
-;; This is to prevent errors in the :radio conditions below.
-(setq fringe-indicators nil)
-
-(defun menu-bar-showhide-fringe-ind-empty ()
-  "Display empty line indicators in the left or right fringe."
+(defun menu-bar-showhide-fringe-ind-customize ()
+  "Show customization buffer for `indicate-buffer-boundaries'."
   (interactive)
-  (require 'fringe)
-  (customize-set-variable 'fringe-indicators 'empty))
+  (customize-variable 'indicate-buffer-boundaries))
 
-(define-key menu-bar-showhide-fringe-ind-menu [empty]
-  '(menu-item "Empty lines only" menu-bar-showhide-fringe-ind-empty
-	      :help "Show empty line indicators in fringe"
-	      :visible (display-graphic-p)
-	      :button (:radio . (eq fringe-indicators 'empty))))
+(define-key menu-bar-showhide-fringe-ind-menu [customize]
+  '(menu-item "Other (customize)"
+	      menu-bar-showhide-fringe-ind-customize
+	      :help "Additional choices available through Custom buffer"
+	      :visible (display-graphic-p)))
 
 (defun menu-bar-showhide-fringe-ind-mixed ()
-  "Display top and bottom indicators in opposite fringes, arrow in right."
+  "Display top and bottom indicators in opposite fringes, arrows in right."
   (interactive)
-  (require 'fringe)
-  (customize-set-variable 'fringe-indicators 'mixed))
+  (customize-set-variable 'indicate-buffer-boundaries
+			  '((t . right) (top . left))))
 
 (define-key menu-bar-showhide-fringe-ind-menu [mixed]
   '(menu-item "Opposite, arrows right" menu-bar-showhide-fringe-ind-mixed
-	      :help "Show top/bottom indicators in opposite fringes, arrows in right"
+	      :help
+	      "Show top/bottom indicators in opposite fringes, arrows in right"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq fringe-indicators 'mixed))))
+	      :button (:radio . (eq indicate-buffer-boundaries
+				    '((t . right) (top . left))))))
 
 (defun menu-bar-showhide-fringe-ind-box ()
   "Display top and bottom indicators in opposite fringes."
   (interactive)
-  (require 'fringe)
-  (customize-set-variable 'fringe-indicators 'box))
+  (customize-set-variable 'indicate-buffer-boundaries
+			  '((top . left) (bottom . right))))
 
 (define-key menu-bar-showhide-fringe-ind-menu [box]
   '(menu-item "Opposite, no arrows" menu-bar-showhide-fringe-ind-box
 	      :help "Show top/bottom indicators in opposite fringes, no arrows"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq fringe-indicators 'box))))
+	      :button (:radio . (eq indicate-buffer-boundaries
+				    '((top . left) (bottom . right))))))
 
 (defun menu-bar-showhide-fringe-ind-right ()
-  "Display fringe indicators in the right fringe."
+  "Display buffer boundaries and arrows in the right fringe."
   (interactive)
-  (require 'fringe)
-  (customize-set-variable 'fringe-indicators 'right))
+  (customize-set-variable 'indicate-buffer-boundaries 'right))
 
 (define-key menu-bar-showhide-fringe-ind-menu [right]
   '(menu-item "In right fringe" menu-bar-showhide-fringe-ind-right
-	      :help "Show indicators in right fringe"
+	      :help "Show buffer boundaries and arrows in right fringe"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq fringe-indicators 'right))))
+	      :button (:radio . (eq indicate-buffer-boundaries 'right))))
 
 (defun menu-bar-showhide-fringe-ind-left ()
-  "Display fringe indicators in the left fringe."
+  "Display buffer boundaries and arrows in the left fringe."
   (interactive)
-  (require 'fringe)
-  (customize-set-variable 'fringe-indicators 'left))
+  (customize-set-variable 'indicate-buffer-boundaries 'left))
 
 (define-key menu-bar-showhide-fringe-ind-menu [left]
   '(menu-item "In left fringe" menu-bar-showhide-fringe-ind-left
-	      :help "Show indicators in left fringe"
+	      :help "Show buffer boundaries and arrows in left fringe"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq fringe-indicators 'left))))
+	      :button (:radio . (eq indicate-buffer-boundaries 'left))))
 
 (defun menu-bar-showhide-fringe-ind-none ()
-  "Do not display any fringe indicators."
+  "Do not display any buffer boundary indicators."
   (interactive)
-  (require 'fringe)
-  (customize-set-variable 'fringe-indicators nil))
+  (customize-set-variable 'indicate-buffer-boundaries nil))
 
 (define-key menu-bar-showhide-fringe-ind-menu [none]
   '(menu-item "No indicators" menu-bar-showhide-fringe-ind-none
-	      :help "Hide all fringe indicators"
+	      :help "Hide all buffer boundary indicators and arrows"
 	      :visible (display-graphic-p)
-	      :button (:radio . (eq fringe-indicators nil))))
+	      :button (:radio . (eq indicate-buffer-boundaries nil))))
 
+(define-key menu-bar-showhide-fringe-menu [showhide-fringe-ind]
+  (list 'menu-item "Buffer boundaries" menu-bar-showhide-fringe-ind-menu
+	:visible `(display-graphic-p)
+	:help "Indicate buffer boundaries in fringe"))
 
-
-(defvar menu-bar-showhide-fringe-menu (make-sparse-keymap "Fringe"))
+(define-key menu-bar-showhide-fringe-menu [indicate-empty-lines]
+  (menu-bar-make-toggle toggle-indicate-empty-lines indicate-empty-lines
+			"Empty line indicators"
+			"Indicating of empty lines %s"
+			"Indicate trailing empty lines in fringe"))
 
 (defun menu-bar-showhide-fringe-menu-customize ()
   "Show customization buffer for `fringe-mode'."
@@ -806,7 +810,7 @@ by \"Save Options\" in Custom buffers.")
   (customize-variable 'fringe-mode))
 
 (define-key menu-bar-showhide-fringe-menu [customize]
-  '(menu-item "Customize" menu-bar-showhide-fringe-menu-customize
+  '(menu-item "Customize fringe" menu-bar-showhide-fringe-menu-customize
 	      :help "Detailed customization of fringe"
 	      :visible (display-graphic-p)))
 
@@ -814,15 +818,6 @@ by \"Save Options\" in Custom buffers.")
   "Reset the fringe mode: display fringes on both sides of a window."
   (interactive)
   (customize-set-variable 'fringe-mode nil))
-
-(define-key menu-bar-showhide-fringe-menu [showhide-fringe-ind]
-  (list 'menu-item "Indicators" menu-bar-showhide-fringe-ind-menu
-	:visible `(display-graphic-p)
-	:help "Select fringe mode"))
-
-;; The real definition is in fringe.el.
-;; This is to prevent errors in the :radio conditions below.
-(setq fringe-mode nil)
 
 (define-key menu-bar-showhide-fringe-menu [default]
   '(menu-item "Default" menu-bar-showhide-fringe-menu-customize-reset
