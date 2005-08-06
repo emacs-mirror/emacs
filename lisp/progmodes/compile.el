@@ -377,13 +377,13 @@ you may also want to change `compilation-page-delimiter'.")
    '(;; configure output lines.
      ("^[Cc]hecking \\(?:[Ff]or \\|[Ii]f \\|[Ww]hether \\(?:to \\)?\\)?\\(.+\\)\\.\\.\\. *\\(?:(cached) *\\)?\\(\\(yes\\(?: .+\\)?\\)\\|no\\|\\(.*\\)\\)$"
       (1 font-lock-variable-name-face)
-      (2 font-lock-keyword-face))
+      (2 (compilation-text-face '(4 . 3))))
      ;; Command output lines.  Recognize `make[n]:' lines too.
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
      (" --?o\\(?:utfile\\|utput\\)?[= ]?\\(\\S +\\)" . 1)
-     ("^Compilation finished" . font-lock-keyword-face)
-     ("^Compilation exited abnormally" . font-lock-keyword-face))
+     ("^Compilation finished" . compilation-info-text-face)
+     ("^Compilation exited abnormally" . compilation-error-text-face))
    "Additional things to highlight in Compilation mode.
 This gets tacked on the end of the generated expressions.")
 
@@ -468,6 +468,12 @@ starting the compilation process.")
 ;; History of compile commands.
 (defvar compile-history nil)
 
+(defface compilation-error
+  '((t :inherit font-lock-warning-face))
+  "Face used to highlight compiler errors."
+  :group 'font-lock-highlighting-faces
+  :version "22.1")
+
 (defface compilation-warning
   '((((class color) (min-colors 16)) (:foreground "Orange" :weight bold))
     (((class color)) (:foreground "cyan" :weight bold))
@@ -487,44 +493,44 @@ starting the compilation process.")
      (:foreground "Green" :weight bold))
     (((class color)) (:foreground "green" :weight bold))
     (t (:weight bold)))
-  "Face used to highlight compiler warnings."
+  "Face used to highlight compiler information."
   :group 'font-lock-highlighting-faces
   :version "22.1")
 ;; backward-compatibility alias
 (put 'compilation-info-face 'face-alias 'compilation-info)
 
 (defface compilation-error-file-name
-  '((default :inherit font-lock-warning-face)
+  '((default :inherit compilation-error)
     (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
+  "Face for displaying file names in error messages."
   :group 'font-lock-highlighting-faces
   :version "22.1")
 
 (defface compilation-warning-file-name
-  '((default :inherit font-lock-warning-face)
+  '((default :inherit compilation-warning)
     (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
+  "Face for displaying file names in warning messages."
   :group 'font-lock-highlighting-faces
   :version "22.1")
 
 (defface compilation-info-file-name
   '((default :inherit compilation-info)
     (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
+  "Face for displaying file names in informational messages."
   :group 'font-lock-highlighting-faces
   :version "22.1")
 
 (defface compilation-line-number
   '((default :inherit font-lock-variable-name-face)
     (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
+  "Face for displaying line numbers in compiler messages."
   :group 'font-lock-highlighting-faces
   :version "22.1")
 
 (defface compilation-column-number
   '((default :inherit font-lock-type-face)
     (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
+  "Face for displaying column numbers in compiler messages."
   :group 'font-lock-highlighting-faces
   :version "22.1")
 
@@ -537,24 +543,33 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-error-face 'compilation-error-file-name
   "Face name to use for file name in error messages.")
 
+(defvar compilation-error-text-face 'compilation-error
+  "Face name to use for text of error messages.")
+
 (defvar compilation-warning-face 'compilation-warning-file-name
   "Face name to use for file name in warning messages.")
+
+(defvar compilation-warning-text-face 'compilation-warning
+  "Face name to use for text of warning messages.")
 
 (defvar compilation-info-face 'compilation-info-file-name
   "Face name to use for file name in informational messages.")
 
+(defvar compilation-info-text-face 'compilation-info
+  "Face name to use for text of informational messages.")
+
 (defvar compilation-line-face 'compilation-line-number
-  "Face name to use for line number in message.")
+  "Face name to use for line numbers in compiler message.")
 
 (defvar compilation-column-face 'compilation-column-number
-  "Face name to use for column number in message.")
+  "Face name to use for column numbers in compiler messages.")
 
 ;; same faces as dired uses
 (defvar compilation-enter-directory-face 'font-lock-function-name-face
-  "Face name to use for column number in message.")
+  "Face name to use for entering directory messages.")
 
 (defvar compilation-leave-directory-face 'font-lock-type-face
-  "Face name to use for column number in message.")
+  "Face name to use for leaving directory messages.")
 
 
 
@@ -569,6 +584,11 @@ Faces `compilation-error-face', `compilation-warning-face',
   (or (and (car type) (match-end (car type)) compilation-warning-face)
       (and (cdr type) (match-end (cdr type)) compilation-info-face)
       compilation-error-face))
+
+(defun compilation-text-face (type)
+  (or (and (car type) (match-end (car type)) compilation-warning-text-face)
+      (and (cdr type) (match-end (cdr type)) compilation-info-text-face)
+      compilation-error-text-face))
 
 ;; Internal function for calculating the text properties of a directory
 ;; change message.  The directory property is important, because it is
