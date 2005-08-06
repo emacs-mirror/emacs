@@ -1751,6 +1751,22 @@ This was actually done in Emacs-21.1, and was not documented.
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
 ---
+** Changes to cmuscheme
+
+*** Emacs now offers to start Scheme if the user tries to
+evaluate a Scheme expression but no Scheme subprocess is running.
+
+*** If a file `.emacs_NAME' (where NAME is the name of the Scheme interpreter)
+exists in the user's home directory or in `user-emacs-directory', its
+contents are sent to the Scheme subprocess upon startup.
+
+*** There are new commands to instruct the Scheme interpreter to trace
+procedure calls (`scheme-trace-procedure') and to expand syntactic forms
+(`scheme-expand-current-form').  The commands actually sent to the Scheme
+subprocess are controlled by the user options `scheme-trace-command',
+`scheme-untrace-command' and `scheme-expand-current-form'.
+
+---
 ** Makefile mode has submodes for automake, gmake, makepp and BSD make.
 
 The former two couldn't be differentiated before, and the latter two
