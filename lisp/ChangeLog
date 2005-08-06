@@ -1,3 +1,17 @@
+2005-08-06  Emilio C. Lopes  <eclig@gmx.net>
+
+	* cmuscheme.el (scheme-trace-command, scheme-untrace-command)
+	(scheme-macro-expand-command): New user options.
+	(scheme-trace-procedure, scheme-expand-current-form): New commands.
+	(scheme-form-at-point, scheme-start-file)
+	(scheme-interactively-start-process): New functions.
+	(scheme-get-process): New function, extracted from `scheme-proc'.
+	(run-scheme): Call `scheme-start-file' to get start file, and pass
+	it to `make-comint'.
+	(switch-to-scheme, scheme-proc): Call
+	`scheme-interactively-start-process' if no Scheme buffer/process
+	is available.
+
 2005-08-06  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords):
