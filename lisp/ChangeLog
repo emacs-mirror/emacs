@@ -1,5 +1,10 @@
 2005-08-06  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
+	* viper.el (viper-emacs-state-mode-list): add recentf-dialog-mode.
+	Change the date of last update.
+	
+2005-08-06  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
 	* viper-cmd.el (viper-harness-minor-mode,viper-exec-delete,
 	viper-exec-yank,viper-put-back): don't display modification msg if in
 	the minibuffer.
