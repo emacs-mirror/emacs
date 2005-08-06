@@ -127,6 +127,8 @@
 (define-key scheme-mode-map "\C-c\M-r" 'scheme-send-region-and-go)
 (define-key scheme-mode-map "\C-c\M-c" 'scheme-compile-definition)
 (define-key scheme-mode-map "\C-c\C-c" 'scheme-compile-definition-and-go)
+(define-key scheme-mode-map "\C-c\C-t" 'scheme-trace-procedure)
+(define-key scheme-mode-map "\C-c\C-x" 'scheme-expand-current-form)
 (define-key scheme-mode-map "\C-c\C-z" 'switch-to-scheme)
 (define-key scheme-mode-map "\C-c\C-l" 'scheme-load-file)
 (define-key scheme-mode-map "\C-c\C-k" 'scheme-compile-file) ;k for "kompile"
@@ -143,6 +145,10 @@
     '("Compile Definition & Go" . scheme-compile-definition-and-go))
   (define-key map [com-def]
     '("Compile Definition" . scheme-compile-definition))
+  (define-key map [exp-form]
+    '("Expand current form" . scheme-expand-current-form))
+  (define-key map [trace-proc]
+    '("Trace procedure" . scheme-trace-procedure))
   (define-key map [send-def-go]
     '("Evaluate Last Definition & Go" . scheme-send-definition-and-go))
   (define-key map [send-def]
@@ -153,7 +159,7 @@
     '("Evaluate Region" . scheme-send-region))
   (define-key map [send-sexp]
     '("Evaluate Last S-expression" . scheme-send-last-sexp))
-)
+  )
 
 (defvar scheme-buffer)
 
@@ -233,11 +239,15 @@ Defaults to a regexp ignoring all inputs of 0, 1, or 2 letters."
 
 ;;;###autoload
 (defun run-scheme (cmd)
-  "Run an inferior Scheme process, input and output via buffer *scheme*.
+  "Run an inferior Scheme process, input and output via buffer `*scheme*'.
 If there is a process already running in `*scheme*', switch to that buffer.
 With argument, allows you to edit the command line (default is value
-of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
-\(after the `comint-mode-hook' is run).
+of `scheme-program-name').
+If a file `~/.emacs_SCHEMENAME' exists, it is given as initial input.
+Note that this may lose due to a timing error if the Scheme processor
+discards input when it starts up.
+Runs the hook `inferior-scheme-mode-hook' \(after the `comint-mode-hook'
+is run).
 \(Type \\[describe-mode] in the process buffer for a list of commands.)"
 
   (interactive (list (if current-prefix-arg
@@ -246,12 +256,23 @@ of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
   (if (not (comint-check-proc "*scheme*"))
       (let ((cmdlist (scheme-args-to-list cmd)))
 	(set-buffer (apply 'make-comint "scheme" (car cmdlist)
-			   nil (cdr cmdlist)))
+			   (scheme-start-file (car cmdlist)) (cdr cmdlist)))
 	(inferior-scheme-mode)))
   (setq scheme-program-name cmd)
   (setq scheme-buffer "*scheme*")
   (pop-to-buffer "*scheme*"))
 ;;;###autoload (add-hook 'same-window-buffer-names "*scheme*")
+
+(defun scheme-start-file (prog)
+  "Return the name of the start file corresponding to PROG.
+Search in the directories \"~\" and \"~/.emacs.d\", in this
+order.  Return nil if no start file found."
+  (let* ((name (concat ".emacs_" (file-name-nondirectory prog)))
+         (start-file (concat "~/" name)))
+    (if (file-exists-p start-file)
+        start-file
+      (let ((start-file (concat user-emacs-directory name)))
+        (and (file-exists-p start-file) start-file)))))
 
 (defun scheme-send-region (start end)
   "Send the current region to the inferior Scheme process."
@@ -296,16 +317,80 @@ of `scheme-program-name').  Runs the hooks `inferior-scheme-mode-hook'
      (beginning-of-defun)
      (scheme-compile-region (point) end))))
 
+(defcustom scheme-trace-command "(trace %s)"
+  "*Template for issuing commands to trace a Scheme procedure.
+Some Scheme implementations might require more elaborate commands here.
+For PLT-Scheme, e.g., one should use
+
+   (setq scheme-trace-command \"(begin (require (lib \\\"trace.ss\\\")) (trace %s))\")
+
+For Scheme 48 and Scsh use \",trace %s\"."
+  :type 'string
+  :group 'cmuscheme)
+
+(defcustom scheme-untrace-command "(untrace %s)"
+  "*Template for switching off tracing of a Scheme procedure.
+Scheme 48 and Scsh users should set this variable to \",untrace %s\"."
+
+  :type 'string
+  :group 'cmuscheme)
+
+(defun scheme-trace-procedure (proc &optional untrace)
+  "Trace procedure PROC in the inferior Scheme process.
+With a prefix argument switch off tracing of procedure PROC."
+  (interactive
+   (list (let ((current (symbol-at-point))
+               (action (if current-prefix-arg "Untrace" "Trace")))
+           (if current
+               (read-string (format "%s procedure [%s]: " action current) nil nil (symbol-name current))
+             (read-string (format "%s procedure: " action))))
+         current-prefix-arg))
+  (when (= (length proc) 0)
+    (error "Invalid procedure name"))
+  (comint-send-string (scheme-proc)
+                      (format 
+                       (if untrace scheme-untrace-command scheme-trace-command)
+                       proc))
+  (comint-send-string (scheme-proc) "\n"))
+
+(defcustom scheme-macro-expand-command "(expand %s)"
+  "*Template for macro-expanding a Scheme form.
+For Scheme 48 and Scsh use \",expand %s\"."
+  :type 'string
+  :group 'cmuscheme)
+
+(defun scheme-expand-current-form ()
+  "Macro-expand the form at point in the inferior Scheme process."
+  (interactive)
+  (let ((current-form (scheme-form-at-point)))
+    (if current-form
+        (progn
+          (comint-send-string (scheme-proc)
+                              (format 
+                               scheme-macro-expand-command
+                               current-form))
+          (comint-send-string (scheme-proc) "\n"))      
+      (error "Not at a form"))))
+
+(defun scheme-form-at-point ()
+  (let ((next-sexp (thing-at-point 'sexp)))
+    (if (and next-sexp (string-equal (substring next-sexp 0 1) "("))
+        next-sexp
+      (save-excursion
+        (backward-up-list)
+        (scheme-form-at-point)))))
+
 (defun switch-to-scheme (eob-p)
   "Switch to the scheme process buffer.
 With argument, position cursor at end of buffer."
   (interactive "P")
-  (if (get-buffer scheme-buffer)
+  (if (or (and scheme-buffer (get-buffer scheme-buffer))
+          (scheme-interactively-start-process))
       (pop-to-buffer scheme-buffer)
-      (error "No current process buffer.  See variable `scheme-buffer'"))
-  (cond (eob-p
-	 (push-mark)
-	 (goto-char (point-max)))))
+    (error "No current process buffer.  See variable `scheme-buffer'"))
+  (when eob-p
+    (push-mark)
+    (goto-char (point-max))))
 
 (defun scheme-send-region-and-go (start end)
   "Send the current region to the inferior Scheme process.
@@ -417,13 +502,27 @@ for running inferior Lisp and Scheme processes.  The approach taken here is
 for a minimal, simple implementation.  Feel free to extend it.")
 
 (defun scheme-proc ()
-  "Return the current scheme process.  See variable `scheme-buffer'."
-  (let ((proc (get-buffer-process (if (eq major-mode 'inferior-scheme-mode)
-				      (current-buffer)
-				      scheme-buffer))))
-    (or proc
-	(error "No current process.  See variable `scheme-buffer'"))))
+  "Return the current Scheme process, starting one if necessary.
+See variable `scheme-buffer'."
+  (unless (and scheme-buffer
+               (get-buffer scheme-buffer) 
+               (comint-check-proc scheme-buffer))
+    (scheme-interactively-start-process))
+  (or (scheme-get-process)
+      (error "No current process.  See variable `scheme-buffer'")))
 
+(defun scheme-get-process ()
+  "Return the current Scheme process or nil if none is running."
+  (get-buffer-process (if (eq major-mode 'inferior-scheme-mode)
+                          (current-buffer)
+                        scheme-buffer)))
+
+(defun scheme-interactively-start-process (&optional cmd)
+  "Start an inferior Scheme process.  Return the process started.
+Since this command is run implicitly, always ask the user for the
+command to run."
+  (save-window-excursion
+    (run-scheme (read-string "Run Scheme: " scheme-program-name))))
 
 ;;; Do the user's customisation...
 
