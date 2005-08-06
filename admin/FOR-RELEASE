@@ -98,17 +98,22 @@ DIRECTORY		STATUS		IN CHARGE
 leim			working		Kenichi Handa
 lisp/calc		done		Thien-Thi Nguyen
 lisp/calendar		working		Glenn Morris
+lisp/emacs-lisp		working		Thien-Thi Nguyen
 lisp/emulation		done		Thien-Thi Nguyen
 lisp/eshell		done		Thien-Thi Nguyen
+lisp/gnus		working		Thien-Thi Nguyen
 lisp/international	done		Kenichi Handa
-lisp/languages		done		Kenichi Handa
+lisp/language		done		Kenichi Handa
+lisp/mail		working		Thien-Thi Nguyen
 lisp/mh-e		working		Bill Wohler
 lisp/net		done		Thien-Thi Nguyen
+lisp/obsolete		working		Thien-Thi Nguyen
 lisp/play		done		Thien-Thi Nguyen
 lisp/progmodes		done		Nick Roberts
 lisp/term		done		Thien-Thi Nguyen
+lisp/textmodes		working		Thien-Thi Nguyen
 lisp/toolbar		done		Thien-Thi Nguyen
-lisp/url		working		Thien-Thi Nguyen
+lisp/url		done		Thien-Thi Nguyen
 
 ** Check the Emacs manual.
 
