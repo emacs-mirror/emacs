@@ -360,7 +360,7 @@
 	(setq lis2 (delq elt lis2)))
       (setq temp (cdr temp)))
 
-    (nconc lis1 lis2)))
+    (append lis1 lis2)))
 
 
 

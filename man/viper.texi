@@ -507,9 +507,8 @@ modes designed for editing files, such as cc-mode or latex-mode, use key
 sequences that begin with @kbd{C-x} and @kbd{C-c}.
 
 There is also a key that lets you temporarily escape to Vi command state
-from Emacs or Insert states: typing @kbd{C-c \} will let you execute a
-single Vi command while staying in Viper's Emacs or Insert state.
-In Insert state, the same can also be achieved by typing @kbd{C-z}.
+from the Insert state: typing @kbd{C-z} will let you execute a
+single Vi command while staying in Viper's Insert state.
 
 
 @node Vi State, Insert State, Emacs State, States in Viper
