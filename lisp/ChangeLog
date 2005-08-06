@@ -1894,6 +1894,13 @@
 	* progmodes/compile.el (compilation-next-error-function):
 	Don't switch buffers; operate on the current buffer.
 
+	* progmodes/compile.el (compilation-error-file-name)
+	(compilation-warning-file-name, compilation-info-file-name)
+	(compilation-line-number, compilation-column-number): New faces.
+	(compilation-error-face, compilation-warning-face)
+	(compilation-info-face, compilation-line-face)
+	(compilation-column-face): Use them.
+
 	* facemenu.el (facemenu-add-face): Warn when font-lock is active.
 
 	* comint.el (comint-password-prompt-regexp): Accept ", try again".
