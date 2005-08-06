@@ -1,3 +1,8 @@
+2005-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* msdog.texi (MS-DOS and MULE): Clarify that this section is for
+	the MS-DOS port only.
+
 2005-07-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (info): Don't run multi-install-info.bat.
