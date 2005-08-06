@@ -583,6 +583,12 @@ However, due to incompatibilities between MS-DOS/MS-Windows and other systems,
 there are several DOS-specific aspects of this support that you should
 be aware of.  This section describes these aspects.
 
+  The description below is largely specific to the MS-DOS port of
+Emacs, especially where it talks about practical implications for
+Emacs users.  For other operating systems, see the @file{code-pages.el}
+package, which implements support for MS-DOS- and MS-Windows-specific
+encodings for all platforms other than MS-DOS.
+
 @table @kbd
 @item M-x dos-codepage-setup
 Set up Emacs display and coding systems as appropriate for the current
@@ -721,7 +727,8 @@ DOS codepages for the same locale.  For example, DOS codepage 850
 supports the same character set as Windows codepage 1252; DOS codepage
 855 supports the same character set as Windows codepage 1251, etc.
 The MS-Windows version of Emacs uses the current codepage for display
-when invoked with the @samp{-nw} option.
+when invoked with the @samp{-nw} option.  Support for codepages in the
+Windows port of Emacs is part of the @file{code-pages.el} package.
 
 @node MS-DOS Processes
 @section Subprocesses on MS-DOS
