@@ -1,3 +1,31 @@
+2005-08-06  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Use `compilation-text-face', `compilation-info-text-face' and
+	`compilation-error-text-face' instead of `font-lock-keyword-face'.
+	(compilation-error): New face.
+	(compilation-error-file-name): Inherit from
+	`compilation-error' instead of `font-lock-warning-face'.
+	(compilation-warning-file-name): Inherit from
+	`compilation-warning' instead of `font-lock-warning-face'.
+	(compilation-info, compilation-error-file-name)
+	(compilation-warning-file-name, compilation-info-file-name)
+	(compilation-line-number, compilation-column-number): Doc fix.
+	(compilation-error-text-face, compilation-warning-text-face)
+	(compilation-info-text-face): New face variables.
+	(compilation-line-face, compilation-column-face)
+	(compilation-enter-directory-face)
+	(compilation-leave-directory-face): Doc fix.
+	(compilation-text-face): New function.
+
+	* progmodes/grep.el (grep-regexp-alist): Set 5th arg `TYPE' to
+	0 instead of 1 to display binary file names as info file links.
+	(grep-error-face): Use `compilation-error-face' instead of
+	`font-lock-keyword-face'.
+	(grep-mode-font-lock-keywords): Use `compilation-info-text-face'
+	and `compilation-warning-text-face' instead of `font-lock-keyword-face'.
+	Use `compilation-error-text-face' instead of `grep-error-face'.
+
 2005-08-05  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el: Add autoload cookies for all coding
