@@ -592,12 +592,15 @@ coding systems @code{no-conversion}, @code{raw-text} and
 @cindex international files from DOS/Windows systems
   A special class of coding systems, collectively known as
 @dfn{codepages}, is designed to support text encoded by MS-Windows and
-MS-DOS software.  To use any of these systems, you need to create it
-with @kbd{M-x codepage-setup}.  @xref{MS-DOS and MULE}.  After
-creating the coding system for the codepage, you can use it as any
-other coding system.  For example, to visit a file encoded in codepage
-850, type @kbd{C-x @key{RET} c cp850 @key{RET} C-x C-f @var{filename}
-@key{RET}}.
+MS-DOS software.  The names of these coding systems are
+@code{cp@var{nnnn}}, where @var{nnnn} is a 3- or 4-digit number of the
+codepage.  You can use these encodings just like any other coding
+system; for example, to visit a file encoded in codepage 850, type
+@kbd{C-x @key{RET} c cp850 @key{RET} C-x C-f @var{filename}
+@key{RET}}@footnote{
+In the MS-DOS port of Emacs, you need to create a @code{cp@var{nnn}}
+coding system with @kbd{M-x codepage-setup}, before you can use it.
+@xref{MS-DOS and MULE}.}.
 
   In addition to converting various representations of non-@acronym{ASCII}
 characters, a coding system can perform end-of-line conversion.  Emacs
