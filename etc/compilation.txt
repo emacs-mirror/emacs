@@ -394,3 +394,7 @@ checking FONTCONFIG_CFLAGS...
 g++ -o foo.o foo.cc
 tool1 -output=foo foo.x
 tool2 --outfile foo foo.y
+
+Compilation exited abnormally with code 1 at Wed Jul 20 12:21:12
+
+Compilation finished at Thu Jul 21 15:02:15
