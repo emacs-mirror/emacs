@@ -1,6 +1,6 @@
 ;;; vc-dav.el --- vc.el support for WebDAV
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Maintainer: Bill Perry <wmperry@gnu.org>
@@ -57,7 +57,7 @@ For a list of possible values, see `vc-state'."
 	  ;; _WE_ have a lock
 	  'edited
 	(cdr (car locks)))))))
-	
+
 (defun vc-dav-checkout-model (url)
   "Indicate whether URL needs to be \"checked out\" before it can be edited.
 See `vc-checkout-model' for a list of possible values."

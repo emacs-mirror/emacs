@@ -1,6 +1,7 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (c) 1996 - 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -39,7 +40,7 @@
        (if (file-exists-p file)
            (not (file-directory-p file))
          (file-directory-p (file-name-directory file)))))
-                
+
 (defun url-cache-prepare (file)
   "Makes it possible to cache data in FILE.
 Creates any necessary parent directories, deleting any non-directory files
@@ -70,7 +71,7 @@ FILE can be created or overwritten."
 	(if (url-cache-prepare fname)
 	    (let ((coding-system-for-write 'binary))
 	      (write-region (point-min) (point-max) fname nil 5)))))))
-	
+
 ;;;###autoload
 (defun url-is-cached (url)
   "Return non-nil if the URL is cached."

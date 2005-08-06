@@ -1,6 +1,7 @@
 ;;; url-parse.el --- Uniform Resource Locator parser
 
-;; Copyright (c) 1996,1997,1998,1999,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -84,7 +85,7 @@
 
 (defmacro url-set-full (urlobj val)
   `(aset ,urlobj 8 ,val))
-  
+
 ;;;###autoload
 (defun url-recreate-url (urlobj)
   "Recreate a URL string from the parsed URLOBJ."
