@@ -1,5 +1,6 @@
 ;;; yenc.el --- elisp native yenc decoder
-;; Copyright (c) 2002 Free Software Foundation, Inc.
+
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jesper Harder <harder@ifa.au.dk>
 ;; Keywords: yenc news

@@ -1,6 +1,7 @@
 ;;; gnus-cache.el --- cache interface for Gnus
+
 ;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;; 2004, 2005 Free Software Foundation, Inc.
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -357,7 +358,7 @@ Returns the list of articles removed."
           (let ((alist (gnus-agent-load-alist gnus-newsgroup-name)))
             (unless (cdr (assoc article alist))
               (setq gnus-newsgroup-undownloaded
-                    (gnus-add-to-sorted-list 
+                    (gnus-add-to-sorted-list
                      gnus-newsgroup-undownloaded article)))))
 	(push article out))
       (gnus-summary-update-download-mark article)

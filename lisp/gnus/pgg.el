@@ -1,6 +1,7 @@
 ;;; pgg.el --- glue for the various PGP implementations.
 
-;; Copyright (C) 1999, 2000, 2003, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28

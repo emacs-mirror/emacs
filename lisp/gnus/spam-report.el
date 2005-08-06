@@ -1,4 +1,5 @@
 ;;; spam-report.el --- Reporting spam
+
 ;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
@@ -95,7 +96,7 @@ undo that change.")
 		   (string-match spam-report-gmane-regex gnus-newsgroup-name)))
       (gnus-message 6 "Reporting spam article %d to spam.gmane.org..." article)
       (if spam-report-gmane-use-article-number
-	  (spam-report-url-ping 
+	  (spam-report-url-ping
 	   "spam.gmane.org"
 	   (format "/%s:%d"
 		   (gnus-group-real-name gnus-newsgroup-name)

@@ -1,7 +1,7 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000,01,2004,2005
-;;		Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -108,7 +108,7 @@ Please use `rmail-remote-password' instead."
   :group 'rmail-obsolete)
 
 (defcustom rmail-pop-password-required nil
-  "*Non-nil if a password is required when reading mail from a POP server. 
+  "*Non-nil if a password is required when reading mail from a POP server.
 Please use rmail-remote-password-required instead."
   :type 'boolean
   :group 'rmail-obsolete)
@@ -1634,7 +1634,7 @@ is non-nil if the user has supplied the password interactively.
 	    (pass  (match-string 5 file))
 	    (host  (substring file (or (match-end 2)
 				       (+ 3 (match-end 1))))))
-	
+
 	(if (not pass)
 	    (when rmail-remote-password-required
 	      (setq got-password (not (rmail-have-password)))
@@ -1652,19 +1652,19 @@ is non-nil if the user has supplied the password interactively.
 		(or (string-equal proto "pop") (string-equal proto "imap"))
 		supplied-password
 		got-password))))
-   
+
    ((string-match "^po:\\([^:]+\\)\\(:\\(.*\\)\\)?" file)
     (let (got-password supplied-password
           (proto "pop")
 	  (user  (match-string 1 file))
 	  (host  (match-string 3 file)))
-      
+
       (when rmail-remote-password-required
 	(setq got-password (not (rmail-have-password)))
 	(setq supplied-password (rmail-get-remote-password nil)))
 
       (list file "pop" supplied-password got-password)))
-   
+
    (t
     (list file nil nil nil))))
 
@@ -2614,7 +2614,7 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
      (let ((mail-followup-to (mail-fetch-field "mail-followup-to" nil t)))
        (when mail-followup-to
 	 (let ((addresses
-		(split-string 
+		(split-string
 		 (mail-strip-quoted-names mail-followup-to)
 		 ",[[:space:]]+" t)))
 	   (dolist (addr addresses)
