@@ -1,3 +1,24 @@
+2005-08-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fringe.el (set-fringe-indicators-1, fringe-indicators): Delete.
+
+	* menu-bar.el (menu-bar-options-save): Replace `fringe-indicators'
+	with `indicate-empty-lines' and `indicate-buffer-boundaries'.
+	(menu-bar-showhide-fringe-menu): Add new item "Empty line indicators"
+	running new function `toggle-indicate-empty-lines'.
+	Rename "Customize" item to "Customize fringe".
+	Rename "Indicators" item to "Buffer boundaries" and change help echo.
+	(menu-bar-showhide-fringe-ind-menu): Change several help echos.
+	Add `menu-bar-showhide-fringe-ind-customize' as "Other (customize)".
+	Delete "Empty lines only" item.
+	(menu-bar-showhide-fringe-ind-customize): New function.
+	(menu-bar-showhide-fringe-ind-mixed)
+	(menu-bar-showhide-fringe-ind-box)
+	(menu-bar-showhide-fringe-ind-right)
+	(menu-bar-showhide-fringe-ind-left)
+	(menu-bar-showhide-fringe-ind-none): Use `indicate-buffer-boundaries'
+	instead of `fringe-indicators'.
+
 2005-08-06  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper.el (viper-emacs-state-mode-list): Add recentf-dialog-mode.
