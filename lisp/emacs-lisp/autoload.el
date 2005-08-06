@@ -1,7 +1,7 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
-;;   2004, 2005  Free Software Foundation, Inc.
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint

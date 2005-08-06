@@ -1,6 +1,6 @@
 ;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files
 
-;; Copyright (C) 2004 by Daniel Pfeiffer <occitan@esperanto.org>
+;; Copyright (C) 2004, 2005 by Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: conf ini windows java
 
 ;; This file is part of GNU Emacs.

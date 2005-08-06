@@ -1,7 +1,7 @@
 ;;; debug.el --- debuggers and related commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1994, 2001, 2003, 2005
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools, maint
@@ -709,7 +709,7 @@ Redefining FUNCTION also cancels it."
    (let ((fn (function-called-at-point)) val)
      (when (debugger-special-form-p fn)
        (setq fn nil))
-     (setq val (completing-read 
+     (setq val (completing-read
 		(if fn
 		    (format "Debug on entry to function (default %s): " fn)
 		  "Debug on entry to function: ")

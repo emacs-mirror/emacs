@@ -1,7 +1,7 @@
 ;;; paragraphs.el --- paragraph and sentence parsing
 
-;; Copyright (C) 1985, 86, 87, 91, 94, 95, 96, 1997, 1999, 2000, 2001, 2004
-;;    Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1991, 1994, 1995, 1996, 1997, 1999, 2000,
+;;   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -358,7 +358,7 @@ If ARG is negative, point is put at end of this paragraph, mark is put
 at beginning of this or a previous paragraph.
 
 Interactively, if this command is repeated
-or (in Transient Mark mode) if the mark is active, 
+or (in Transient Mark mode) if the mark is active,
 it marks the next ARG paragraphs after the ones already marked."
   (interactive "p\np")
   (unless arg (setq arg 1))

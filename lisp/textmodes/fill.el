@@ -1,7 +1,7 @@
 ;;; fill.el --- fill commands for Emacs		-*- coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
-;;   2003, 2004, 2005  Free Software Foundation, Inc.
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp

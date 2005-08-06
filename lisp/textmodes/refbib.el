@@ -1,6 +1,6 @@
 ;;; refbib.el --- convert refer-style references to ones usable by Latex bib
 
-;; Copyright (C) 1989, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz <kautz@research.att.com>
 ;; Keywords: bib, tex
