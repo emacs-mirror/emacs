@@ -1,6 +1,7 @@
 /* Header for fontset handler.
    Copyright (C) 1995, 1997, 2000 Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
+   Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

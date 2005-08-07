@@ -1,7 +1,7 @@
 /* Coding system handler (conversion, detection, and etc).
    Copyright (C) 1995,97,1998,2002,2003  Electrotechnical Laboratory, JAPAN.
    Licensed to the Free Software Foundation.
-   Copyright (C) 2001,2002,2003  Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

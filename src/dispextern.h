@@ -1,6 +1,6 @@
 /* Interface definitions for display code.
-   Copyright (C) 1985,93,94,97,98,99, 2000,01,02,03, 2004, 2005
-     Free Software Foundation, Inc.
+   Copyright (C) 1985, 1993, 1994, 1997, 1998, 1999, 2000, 2001, 2002,
+                 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
