@@ -1,3 +1,13 @@
+2005-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.50.
+
+	* tramp.texi: Use @option{} consequently for method names.
+	(Inline methods, External transfer methods): Remove references to
+	Cygwin.
+	(Issues with Cygwin ssh): Explain trouble with Cygwin's ssh
+	implementation.
+
 2005-08-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* mule.texi (Coding Systems): Rephrase the paragraph about

@@ -1,3 +1,57 @@
+2005-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.50.
+
+	* tramp.el: Remove defvar of `last-coding-system-used' in the
+	XEmacs case; not necessary anymore.
+	(tramp-user-regexp): Allow "@" as part of user name.
+	(tramp-handle-set-visited-file-modtime)
+	(tramp-handle-insert-file-contents)
+	(tramp-handle-write-region): No special handling for
+	`last-coding-system-used, because this is done in
+	`tramp-accept-process-output' now.
+	(tramp-accept-process-output): New defun.
+	(tramp-process-one-action, tramp-process-one-multi-action)
+	(tramp-wait-for-regexp, tramp-wait-for-output)
+	(tramp-discard-garbage-erase-buffer): Call it.  Reported by David
+	Howells <dhowells@redhat.com>.
+	(clear-visited-file-modtime): Defadvice removed.  The check for
+	unset buffer's modtime does not need to be based on
+	`tramp-buffer-file-attributes'.  Suggested by RMS.
+	(tramp-message): Insert "\n" if not being at beginning of line.
+	(tramp-find-shell): Use `tramp-barf-if-no-shell-prompt' for code
+	sequence with same logic.
+	(tramp-completion-handle-expand-file-name): Discard call of
+	`tramp-drop-volume-letter'.  It is not necessary, and there have
+	been problems with (expand-file-name "~/.netrc" "/") in ange-ftp.
+	Reported by Richard G. Bielawski
+	<Richard.G.Bielawski@wellsfargo.com>.
+	(tramp-do-copy-or-rename-file-out-of-band): Transfer message
+	should always be visible.
+	(tramp-handle-insert-directory, tramp-setup-complete)
+	(tramp-set-process-query-on-exit-flag)
+	(tramp-append-tramp-buffers): Pacify byte-compiler.
+	(tramp-bug): Delete non-existing variables from list.  Apply
+	`tramp-load-report-modules' as pre-hook.  Mask
+	`tramp-password-prompt-regexp', `tramp-shell-prompt-pattern' and
+	`shell-prompt-pattern' because of non-7bit characters.  Reported
+	by Sebastian Luque <sluque@mun.ca>.
+	(tramp-reporter-dump-variable, tramp-load-report-modules): New
+	defuns.
+	(tramp-match-string-list): Remove function.
+	(tramp-wait-for-regexp): Remove call of that function.  Suggested
+	by Kim F. Storm <storm@cua.dk>.
+	(tramp-set-auto-save-file-modes): Use octal integer code #o600
+	instead of octal character code ?\600.  The latter resulted in a
+	syntax error with XEmacs.
+
+	* tramp-smb.el: Remove defvar of `last-coding-system-used' in the
+	XEmacs case; not necessary anymore.
+	(tramp-smb-handle-write-region): No special handling for
+	`last-coding-system-used, because this is done in
+	`tramp-accept-process-output' now.
+	(tramp-smb-wait-for-output): Call `tramp-accept-process-output'.
+
 2005-08-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* wid-edit.el (widget-choice-value-create): Unconditionally

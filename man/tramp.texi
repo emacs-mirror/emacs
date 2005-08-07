@@ -218,10 +218,10 @@ How file names, directories and localnames are mangled and managed
 @chapter An overview of @value{tramp}
 @cindex overview
 
-After the installation of @value{tramp} into your @value{emacsname}, you
-will be able to access files on remote machines as though they were
-local.  Access to the remote file system for editing files, version
-control, and @command{dired} are transparently enabled.
+After the installation of @value{tramp} into your @value{emacsname},
+you will be able to access files on remote machines as though they
+were local.  Access to the remote file system for editing files,
+version control, and @code{dired} are transparently enabled.
 
 Your access to the remote machine can be with the @command{rsh},
 @command{rlogin}, @command{telnet} programs or with any similar
@@ -289,9 +289,9 @@ Communication with this process happens through an
 goes into a buffer.
 
 @item
-The remote host may prompt for a login name (for @command{telnet}).  The
-login name is given in the file name, so @value{tramp} sends the login name and
-a newline.
+The remote host may prompt for a login name (for @command{telnet}).
+The login name is given in the file name, so @value{tramp} sends the
+login name and a newline.
 
 @item
 The remote host may prompt for a password or pass phrase (for
@@ -365,7 +365,6 @@ you are finished, you type @kbd{C-x C-s} to save the buffer.
 Again, @value{tramp} transfers the file contents to the remote host either
 inline or out-of-band.  This is the reverse of what happens when reading
 the file.
-
 @end itemize
 
 I hope this has provided you with a basic overview of what happens
@@ -653,7 +652,6 @@ easy to implement, so I haven't got around to it, yet.
 @item @option{sshx}
 @cindex method sshx
 @cindex sshx method
-@cindex Cygwin (with sshx method)
 
 As you would expect, this is similar to @option{ssh}, only a little
 different.  Whereas @option{ssh} opens a normal interactive shell on
@@ -674,9 +672,9 @@ in without such questions.
 This is also useful for Windows users where @command{ssh}, when
 invoked from an @value{emacsname} buffer, tells them that it is not
 allocating a pseudo tty.  When this happens, the login shell is wont
-to not print any shell prompt, which confuses @value{tramp} mightily.  For
-reasons unknown, some Windows ports for @command{ssh} (maybe the
-Cygwin one) require the doubled @samp{-t} option.
+to not print any shell prompt, which confuses @value{tramp} mightily.
+For reasons unknown, some Windows ports for @command{ssh} require the
+doubled @samp{-t} option.
 
 This supports the @samp{-p} kludge.
 
@@ -817,7 +815,6 @@ This method supports the @samp{-p} hack.
 @cindex scpx method
 @cindex scp (with scpx method)
 @cindex ssh (with scpx method)
-@cindex Cygwin (with scpx method)
 
 As you would expect, this is similar to @option{scp}, only a little
 different.  Whereas @option{scp} opens a normal interactive shell on
@@ -832,7 +829,6 @@ This is also useful for Windows users where @command{ssh}, when
 invoked from an @value{emacsname} buffer, tells them that it is not
 allocating a pseudo tty.  When this happens, the login shell is wont
 to not print any shell prompt, which confuses @value{tramp} mightily.
-Maybe this applies to the Cygwin port of SSH.
 
 This method supports the @samp{-p} hack.
 
@@ -1025,7 +1021,7 @@ For example:
  '("sshf" tramp-multi-connect-rlogin "ssh %h -l %u -p 4400%n"))
 @end lisp
 
-Now you can use an @code{sshf} hop which connects to port 4400 instead of
+Now you can use an @option{sshf} hop which connects to port 4400 instead of
 the standard port.
 
 
@@ -1074,16 +1070,16 @@ Another consideration with the selection of transfer methods is the
 environment you will use them in and, especially when used over the
 Internet, the security implications of your preferred method.
 
-The @command{rsh} and @command{telnet} methods send your password as
-plain text as you log in to the remote machine, as well as transferring
-the files in such a way that the content can easily be read from other
-machines.
+The @option{rsh} and @option{telnet} methods send your password as
+plain text as you log in to the remote machine, as well as
+transferring the files in such a way that the content can easily be
+read from other machines.
 
 If you need to connect to remote systems that are accessible from the
-Internet, you should give serious thought to using @command{ssh} based
+Internet, you should give serious thought to using @option{ssh} based
 methods to connect. These provide a much higher level of security,
-making it a non-trivial exercise for someone to obtain your password or
-read the content of the files you are editing.
+making it a non-trivial exercise for someone to obtain your password
+or read the content of the files you are editing.
 
 
 @subsection Which method is the right one for me?
@@ -1101,28 +1097,29 @@ methods might be more efficient, but I guess that most people will want
 to edit mostly small files.
 
 I guess that these days, most people can access a remote machine by
-using @code{ssh}.  So I suggest that you use the @code{ssh} method.
-So, type @kbd{C-x C-f
+using @command{ssh}.  So I suggest that you use the @option{ssh}
+method.  So, type @kbd{C-x C-f
 @value{prefix}ssh@value{postfixsinglehop}root@@otherhost@value{postfix}/etc/motd
 @key{RET}} to edit the @file{/etc/motd} file on the other host.
 
-If you can't use @code{ssh} to log in to the remote host, then select a
-method that uses a program that works.  For instance, Windows users
-might like the @code{plink} method which uses the PuTTY implementation
-of @code{ssh}.  Or you use Kerberos and thus like @code{krlogin}.
+If you can't use @option{ssh} to log in to the remote host, then
+select a method that uses a program that works.  For instance, Windows
+users might like the @option{plink} method which uses the PuTTY
+implementation of @command{ssh}.  Or you use Kerberos and thus like
+@option{krlogin}.
 
 For the special case of editing files on the local host as another
-user, see the @code{su} or @code{sudo} method.  It offers shortened
-syntax for the @samp{root} account, like
+user, see the @option{su} or @option{sudo} methods.  They offer
+shortened syntax for the @samp{root} account, like
 @file{@value{prefix}su@value{postfixsinglehop}@value{postfix}/etc/motd}.
 
-People who edit large files may want to consider @code{scp} instead of
-@code{ssh}, or @code{pscp} instead of @code{plink}.  These out-of-band
-methods are faster than inline methods for large files.  Note, however,
-that out-of-band methods suffer from some limitations.  Please try
-first whether you really get a noticeable speed advantage from using an
-out-of-band method!  Maybe even for large files, inline methods are
-fast enough.
+People who edit large files may want to consider @option{scp} instead
+of @option{ssh}, or @option{pscp} instead of @option{plink}.  These
+out-of-band methods are faster than inline methods for large files.
+Note, however, that out-of-band methods suffer from some limitations.
+Please try first whether you really get a noticeable speed advantage
+from using an out-of-band method!  Maybe even for large files, inline
+methods are fast enough.
 
 
 @node Customizing Methods
@@ -1365,16 +1362,16 @@ the remote host such that it behaves like @value{tramp} expects.  This might
 be inconvenient because you have to invest a lot of effort into shell
 setup before you can begin to use @value{tramp}.
 
-The package, therefore, pursues a combined approach.  It tries to figure
-out some of the more common setups, and only requires you to avoid
-really exotic stuff.  For example, it looks through a list of
+The package, therefore, pursues a combined approach.  It tries to
+figure out some of the more common setups, and only requires you to
+avoid really exotic stuff.  For example, it looks through a list of
 directories to find some programs on the remote host.  And also, it
 knows that it is not obvious how to check whether a file exists, and
-therefore it tries different possibilities.  (On some hosts and shells,
-the command @code{test -e} does the trick, on some hosts the shell
-builtin doesn't work but the program @code{/usr/bin/test -e} or
-@code{/bin/test -e} works.  And on still other hosts, @code{ls -d} is
-the right way to do this.)
+therefore it tries different possibilities.  (On some hosts and
+shells, the command @command{test -e} does the trick, on some hosts
+the shell builtin doesn't work but the program @command{/usr/bin/test
+-e} or @command{/bin/test -e} works.  And on still other hosts,
+@command{ls -d} is the right way to do this.)
 
 Below you find a discussion of a few things that @value{tramp} does not deal
 with, and that you therefore have to set up correctly.
@@ -1409,11 +1406,11 @@ different user.  The default value of
 @code{shell-prompt-pattern}, which is reported to work well in many
 circumstances.
 
-@item @code{tset} and other questions
+@item @command{tset} and other questions
 @cindex Unix command tset
 @cindex tset Unix command
 
-Some people invoke the @code{tset} program from their shell startup
+Some people invoke the @command{tset} program from their shell startup
 scripts which asks the user about the terminal type of the shell.
 Maybe some shells ask other questions when they are started.  @value{tramp}
 does not know how to answer these questions.  There are two approaches
@@ -1443,20 +1440,21 @@ This weird effect was actually reported by a @value{tramp} user!
 @item Non-Bourne commands in @file{.profile}
 
 After logging in to the remote host, @value{tramp} issues the command
-@code{exec /bin/sh}.  (Actually, the command is slightly different.)
-When @code{/bin/sh} is executed, it reads some init files, such as
-@file{~/.shrc} or @file{~/.profile}.
+@command{exec /bin/sh}.  (Actually, the command is slightly
+different.)  When @command{/bin/sh} is executed, it reads some init
+files, such as @file{~/.shrc} or @file{~/.profile}.
 
 Now, some people have a login shell which is not @code{/bin/sh} but a
 Bourne-ish shell such as bash or ksh.  Some of these people might put
-their shell setup into the files @code{~/.shrc} or @code{~/.profile}.
+their shell setup into the files @file{~/.shrc} or @file{~/.profile}.
 This way, it is possible for non-Bourne constructs to end up in those
-files.  Then, @code{exec /bin/sh} might cause the Bourne shell to barf
-on those constructs.
+files.  Then, @command{exec /bin/sh} might cause the Bourne shell to
+barf on those constructs.
 
-As an example, imagine somebody putting @code{export FOO=bar} into the
-file @file{~/.profile}.  The standard Bourne shell does not understand
-this syntax and will emit a syntax error when it reaches this line.
+As an example, imagine somebody putting @command{export FOO=bar} into
+the file @file{~/.profile}.  The standard Bourne shell does not
+understand this syntax and will emit a syntax error when it reaches
+this line.
 
 Another example is the tilde (@code{~}) character, say when adding
 @file{~/bin} to @code{$PATH}.  Many Bourne shells will not expand this
@@ -1467,8 +1465,8 @@ What can you do about this?
 
 Well, one possibility is to make sure that everything in @file{~/.shrc}
 and @file{~/.profile} on all remote hosts is Bourne-compatible.  In the
-above example, instead of @code{export FOO=bar}, you might use
-@code{FOO=bar; export FOO} instead.
+above example, instead of @command{export FOO=bar}, you might use
+@command{FOO=bar; export FOO} instead.
 
 The other possibility is to put your non-Bourne shell setup into some
 other files.  For example, bash reads the file @file{~/.bash_profile}
@@ -1476,14 +1474,15 @@ instead of @file{~/.profile}, if the former exists.  So bash
 aficionados just rename their @file{~/.profile} to
 @file{~/.bash_profile} on all remote hosts, and Bob's your uncle.
 
-The @value{tramp} developers would like to circumvent this problem, so if you
-have an idea about it, please tell us.  However, we are afraid it is not
-that simple: before saying @code{exec /bin/sh}, @value{tramp} does not know
-which kind of shell it might be talking to.  It could be a Bourne-ish
-shell like ksh or bash, or it could be a csh derivative like tcsh, or
-it could be zsh, or even rc.  If the shell is Bourne-ish already, then
-it might be prudent to omit the @code{exec /bin/sh} step.  But how to
-find out if the shell is Bourne-ish?
+The @value{tramp} developers would like to circumvent this problem, so
+if you have an idea about it, please tell us.  However, we are afraid
+it is not that simple: before saying @command{exec /bin/sh},
+@value{tramp} does not know which kind of shell it might be talking
+to.  It could be a Bourne-ish shell like ksh or bash, or it could be a
+csh derivative like tcsh, or it could be zsh, or even rc.  If the
+shell is Bourne-ish already, then it might be prudent to omit the
+@command{exec /bin/sh} step.  But how to find out if the shell is
+Bourne-ish?
 
 @end table
 
@@ -1630,38 +1629,44 @@ This section needs a lot of work!  Please help.
 
 @cindex method sshx with Cygwin
 @cindex sshx method with Cygwin
-If you use the Cygwin installation of ssh (you have to explicitly select
-it in the installer), then it should work out of the box to just select
-@code{sshx} as the connection method.  You can find information about
-setting up Cygwin in their FAQ at @uref{http://cygwin.com/faq/}.
+The recent Cygwin installation of @command{ssh} works only with a
+Cygwinized @value{emacsname}.  You can check it by typing @kbd{M-x
+eshell}, and starting @kbd{ssh test.machine}.  The problem is evident
+if you see a message like this:
+
+@example
+Pseudo-terminal will not be allocated because stdin is not a terminal.
+@end example
+
+Older @command{ssh} versions of Cygwin are told to cooperate with
+@value{tramp} selecting @option{sshx} as the connection method.  You
+can find information about setting up Cygwin in their FAQ at
+@uref{http://cygwin.com/faq/}.
 
 @cindex method scpx with Cygwin
 @cindex scpx method with Cygwin
-If you wish to use the @code{scpx} connection method, then you might
-have the problem that @value{emacsname} calls @code{scp} with a
+If you wish to use the @option{scpx} connection method, then you might
+have the problem that @value{emacsname} calls @command{scp} with a
 Windows filename such as @code{c:/foo}.  The Cygwin version of
-@code{scp} does not know about Windows filenames and interprets this
+@command{scp} does not know about Windows filenames and interprets this
 as a remote filename on the host @code{c}.
 
-One possible workaround is to write a wrapper script for @code{scp}
+One possible workaround is to write a wrapper script for @option{scp}
 which converts the Windows filename to a Cygwinized filename.
-
-I guess that another workaround is to run @value{emacsname} under
-Cygwin, or to run a Cygwinized @value{emacsname}.
 
 @cindex Cygwin and ssh-agent
 @cindex SSH_AUTH_SOCK and @value{emacsname} on Windows
-If you want to use either @code{ssh} based method on Windows, then you
-might encounter problems with @code{ssh-agent}.  Using this program,
-you can avoid typing the pass-phrase every time you log in.  However,
-if you start @value{emacsname} from a desktop shortcut, then the
-environment variable @code{SSH_AUTH_SOCK} is not set and so
-@value{emacsname} and thus @value{tramp} and thus @code{ssh} and
-@code{scp} started from @value{tramp} cannot communicate with
-@code{ssh-agent}.  It works better to start @value{emacsname} from
+If you want to use either @option{ssh} based method on Windows, then
+you might encounter problems with @command{ssh-agent}.  Using this
+program, you can avoid typing the pass-phrase every time you log in.
+However, if you start @value{emacsname} from a desktop shortcut, then
+the environment variable @code{SSH_AUTH_SOCK} is not set and so
+@value{emacsname} and thus @value{tramp} and thus @command{ssh} and
+@command{scp} started from @value{tramp} cannot communicate with
+@command{ssh-agent}.  It works better to start @value{emacsname} from
 the shell.
 
-If anyone knows how to start @code{ssh-agent} under Windows in such a
+If anyone knows how to start @command{ssh-agent} under Windows in such a
 way that desktop shortcuts can profit, please holler.  I don't really
 know anything at all about Windows@dots{}
 
@@ -2108,10 +2113,10 @@ remote host.
 There's this @file{~/.sh_history} file on the remote host which keeps
 growing and growing.  What's that?
 
-Sometimes, @value{tramp} starts @code{ksh} on the remote host for tilde
-expansion.  Maybe @code{ksh} saves the history by default.  @value{tramp}
-tries to turn off saving the history, but maybe you have to help.  For
-example, you could put this in your @file{.kshrc}:
+Sometimes, @value{tramp} starts @command{ksh} on the remote host for
+tilde expansion.  Maybe @command{ksh} saves the history by default.
+@value{tramp} tries to turn off saving the history, but maybe you have
+to help.  For example, you could put this in your @file{.kshrc}:
 
 @example
 if [ -f $HOME/.sh_history ] ; then
@@ -2316,18 +2321,18 @@ effect while preserving the @value{tramp} file name information.
 @itemize @bullet
 @item The uuencode method does not always work.
 
-Due to the design of @value{tramp}, the encoding and decoding programs need to
-read from stdin and write to stdout.  On some systems, @code{uudecode -o
--} will read stdin and write the decoded file to stdout, on other
-systems @code{uudecode -p} does the same thing.  But some systems have
-uudecode implementations which cannot do this at all---it is not
-possible to call these uudecode implementations with suitable parameters
-so that they write to stdout.
+Due to the design of @value{tramp}, the encoding and decoding programs
+need to read from stdin and write to stdout.  On some systems,
+@command{uudecode -o -} will read stdin and write the decoded file to
+stdout, on other systems @command{uudecode -p} does the same thing.
+But some systems have uudecode implementations which cannot do this at
+all---it is not possible to call these uudecode implementations with
+suitable parameters so that they write to stdout.
 
 Of course, this could be circumvented: the @code{begin foo 644} line
 could be rewritten to put in some temporary file name, then
-@code{uudecode} could be called, then the temp file could be printed and
-deleted.
+@command{uudecode} could be called, then the temp file could be
+printed and deleted.
 
 But I have decided that this is too fragile to reliably work, so on some
 systems you'll have to do without the uuencode methods.
@@ -2368,13 +2373,12 @@ to the files @file{.../xemacs-packages/lisp/tramp/auto-autoloads.el*}.
 
 In case of unified filenames, all @value{emacsname} download sites
 are added to @code{tramp-default-method-alist} with default method
-@code{ftp} @xref{Default Method}.  These settings shouldn't be touched
+@option{ftp} @xref{Default Method}.  These settings shouldn't be touched
 for proper working of the @value{emacsname} package system.
 
 The syntax for unified filenames is described in the @value{tramp} manual
 for @value{emacsothername}.
 @end ifset
-
 @end itemize
 
 @node Concept Index
