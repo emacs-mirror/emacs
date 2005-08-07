@@ -1,5 +1,6 @@
 /* sendmail-like interface to /bin/mail for system V,
-   Copyright (C) 1985, 1994, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

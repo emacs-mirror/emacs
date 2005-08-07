@@ -1,5 +1,6 @@
 /* Definitions file for GNU Emacs running on Silicon Graphics Irix system 3.3.
-   Copyright (C) 1987, 1990, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1987, 1990, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

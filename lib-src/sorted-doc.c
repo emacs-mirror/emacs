@@ -1,8 +1,8 @@
 /* Give this program DOC-mm.nn.oo as standard input and it outputs to
    standard output a file of texinfo input containing the doc strings.
 
-   Copyright (C) 1989, 1992, 1994, 1996, 1999, 2000, 2001
-      Free Software Foundation Inc.
+   Copyright (C) 1989, 1992, 1994, 1996, 1999, 2000, 2001, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
    This file is part of GNU Emacs.
 

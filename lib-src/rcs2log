@@ -55,7 +55,7 @@ Report bugs to <bug-gnu-emacs@gnu.org>.'
 Id='$Id$'
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003,
-# 2004 Free Software Foundation, Inc.
+#               2004, 2005 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ Id='$Id$'
 # Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 # Boston, MA 02110-1301, USA.
 
-Copyright='Copyright (C) 2004 Free Software Foundation, Inc.
+Copyright='Copyright (C) 2005 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute copies of this program
 under the terms of the GNU General Public License.
