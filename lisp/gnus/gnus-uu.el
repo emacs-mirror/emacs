@@ -837,7 +837,7 @@ When called interactively, prompt for REGEXP."
 	      (erase-buffer)
 	      (insert (format
 		       "Date: %s\nFrom: %s\nSubject: %s Digest\n\n"
-		       (current-time-string) name name))
+		       (message-make-date) name name))
 	      (when (and message-forward-as-mime gnus-uu-digest-buffer)
 		(insert "<#part type=message/rfc822>\nSubject: Topics\n\n"))
 	      (insert "Topics:\n")))

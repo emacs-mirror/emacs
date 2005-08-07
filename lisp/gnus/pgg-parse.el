@@ -58,7 +58,8 @@
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
 (defcustom pgg-parse-hash-algorithm-alist
-  '((1 . MD5) (2 . SHA1) (3 . RIPEMD160) (5 . MD2))
+  '((1 . MD5) (2 . SHA1) (3 . RIPEMD160) (5 . MD2) (8 . SHA256) (9 . SHA384)
+    (10 . SHA512))
   "Alist of the assigned number to the cryptographic hash algorithm."
   :group 'pgg-parse
   :type '(repeat
