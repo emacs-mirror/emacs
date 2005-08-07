@@ -96,7 +96,8 @@ you're going to handle.
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 leim			working		Kenichi Handa
-lisp			working		Thien-Thi Nguyen
+lib-src			working		Thien-Thi Nguyen
+lisp			done		Thien-Thi Nguyen
 lisp/calc		done		Thien-Thi Nguyen
 lisp/calendar		working		Glenn Morris
 lisp/emacs-lisp		done		Thien-Thi Nguyen
@@ -115,9 +116,10 @@ lisp/term		done		Thien-Thi Nguyen
 lisp/textmodes		done		Thien-Thi Nguyen
 lisp/toolbar		done		Thien-Thi Nguyen
 lisp/url		done		Thien-Thi Nguyen
+lwlib			working		Thien-Thi Nguyen
 src			working		Thien-Thi Nguyen
-src/m			working		Thien-Thi Nguyen
-src/s			working		Thien-Thi Nguyen
+src/m			done		Thien-Thi Nguyen
+src/s			done		Thien-Thi Nguyen
 
 ** Check the Emacs manual.
 
