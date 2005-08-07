@@ -1,3 +1,16 @@
+2005-08-07  Richard M. Stallman  <rms@gnu.org>
+
+	* dispnew.c (Fframe_or_buffer_changed_p): Take an arg
+	so it can be used with various state vectors.
+
+	* emacs.c (endif): Convert -script into -scriptload.
+	(standard_args): Add -scriptload.  Allow -basic-display with one dash.
+
+	* fns.c (syms_of_fns): Add `emacs' to features.
+
+	* term.c (set_terminal_modes): If no TS_termcap_modes string,
+	output newlines to scroll the old screen contents off the screen.
+
 2005-08-06  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* floatfns.c (Fexpt): Use floats for negative exponent.
