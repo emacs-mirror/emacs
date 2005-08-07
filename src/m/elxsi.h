@@ -1,5 +1,6 @@
 /* machine description file for Elxsi machine (running enix).
-   Copyright (C) 1986, 1992, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    Adapted by John Salmon
 
 This file is part of GNU Emacs.

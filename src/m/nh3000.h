@@ -1,7 +1,7 @@
 /* machine description for Harris Night Hawk Series 1200 and Series 3000
    MC68030-based systems (FPP on these is custom).  These systems are
    also known as "ecx" and "gcx".
-   Copyright (C) 1994, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

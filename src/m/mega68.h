@@ -1,5 +1,5 @@
 /* machine description file for Megatest 68000's.
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

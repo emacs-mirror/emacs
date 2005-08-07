@@ -1,7 +1,8 @@
 /* xps100.h for the Honeywell XPS100 running UNIX System V.2
    Mark J. Hewitt (mjh@uk.co.kernel)
 
-   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
