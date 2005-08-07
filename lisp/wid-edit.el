@@ -1956,13 +1956,14 @@ the earlier input."
 	(args (widget-get widget :args))
 	(explicit (widget-get widget :explicit-choice))
 	current)
-    (if (and explicit (equal value (widget-get widget :explicit-choice-value)))
+    (if explicit
 	(progn
 	  ;; If the user specified the choice for this value,
-	  ;; respect that choice as long as the value is the same.
+	  ;; respect that choice.
 	  (widget-put widget :children (list (widget-create-child-value
 					      widget explicit value)))
-	  (widget-put widget :choice explicit))
+	  (widget-put widget :choice explicit)
+	  (widget-put widget :explicit-choice nil))
       (while args
 	(setq current (car args)
 	      args (cdr args))
@@ -2048,13 +2049,10 @@ when he invoked the menu."
 		 (setq this-explicit t)
 		 (widget-choose tag (reverse choices) event))))
     (when current
-      ;; If this was an explicit user choice,
-      ;; record the choice, and the record the value it was made for.
-      ;; widget-choice-value-create will respect this choice,
-      ;; as long as the value is the same.
+      ;; If this was an explicit user choice, record the choice,
+      ;; so that widget-choice-value-create will respect it.
       (when this-explicit
-	(widget-put widget :explicit-choice current)
-	(widget-put widget :explicit-choice-value (widget-get widget :value)))
+	(widget-put widget :explicit-choice current))
       (widget-value-set widget (widget-default-get current))
       (widget-setup)
       (widget-apply widget :notify widget event)))
