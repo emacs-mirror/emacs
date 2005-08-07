@@ -449,7 +449,17 @@ set_terminal_modes ()
 {
   if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
     {
-      OUTPUT_IF (TS_termcap_modes);
+      if (TS_termcap_modes)
+	OUTPUT (TS_termcap_modes);
+      else
+	{
+	  /* Output enough newlines to scroll all the old screen contents
+	     off the screen, so it won't be overwritten and lost.  */
+	  int i;
+	  for (i = 0; i < FRAME_LINES (XFRAME (selected_frame)); i++)
+	    putchar ('\n');
+	}
+
       OUTPUT_IF (TS_cursor_visible);
       OUTPUT_IF (TS_keypad_mode);
       losecursor ();
