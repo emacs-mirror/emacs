@@ -6463,68 +6463,106 @@ usage: (sit-for SECONDS &optional NODISP OLD-NODISP) */)
 
 /* A vector of size >= 2 * NFRAMES + 3 * NBUFFERS + 1, containing the
    session's frames, frame names, buffers, buffer-read-only flags, and
-   buffer-modified-flags, and a trailing sentinel (so we don't need to
-   add length checks).  */
+   buffer-modified-flags.  */
 
 static Lisp_Object frame_and_buffer_state;
 
 
 DEFUN ("frame-or-buffer-changed-p", Fframe_or_buffer_changed_p,
-       Sframe_or_buffer_changed_p, 0, 0, 0,
+       Sframe_or_buffer_changed_p, 0, 1, 0,
        doc: /* Return non-nil if the frame and buffer state appears to have changed.
-The state variable is an internal vector containing all frames and buffers,
+VARIABLE is a variable name whose value is either nil or a state vector
+that will be updated to contain all frames and buffers,
 aside from buffers whose names start with space,
-along with the buffers' read-only and modified flags, which allows a fast
-check to see whether the menu bars might need to be recomputed.
+along with the buffers' read-only and modified flags.  This allows a fast
+check to see whether buffer menus might need to be recomputed.
 If this function returns non-nil, it updates the internal vector to reflect
-the current state.  */)
-     ()
+the current state.
+
+If VARIABLE is nil, an internal variable is used.  Users should not
+pass nil for VARIABLE.  */)
+     (variable)
+     Lisp_Object variable;
 {
-  Lisp_Object tail, frame, buf;
-  Lisp_Object *vecp;
+  Lisp_Object state, tail, frame, buf;
+  Lisp_Object *vecp, *end;
   int n;
 
-  vecp = XVECTOR (frame_and_buffer_state)->contents;
+  if (! NILP (variable))
+    {
+      CHECK_SYMBOL (variable);
+      state = Fsymbol_value (variable);
+      if (! VECTORP (state))
+	goto changed;
+    }
+  else
+    state = frame_and_buffer_state;
+
+  vecp = XVECTOR (state)->contents;
+  end = vecp + XVECTOR (state)->size;
+
   FOR_EACH_FRAME (tail, frame)
     {
+      if (vecp == end)
+	goto changed;
       if (!EQ (*vecp++, frame))
+	goto changed;
+      if (vecp == end)
 	goto changed;
       if (!EQ (*vecp++, XFRAME (frame)->name))
 	goto changed;
     }
-  /* Check that the buffer info matches.
-     No need to test for the end of the vector
-     because the last element of the vector is lambda
-     and that will always cause a mismatch.  */
+  /* Check that the buffer info matches.  */
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     {
       buf = XCDR (XCAR (tail));
       /* Ignore buffers that aren't included in buffer lists.  */
       if (SREF (XBUFFER (buf)->name, 0) == ' ')
 	continue;
+      if (vecp == end)
+	goto changed;
       if (!EQ (*vecp++, buf))
 	goto changed;
+      if (vecp == end)
+	goto changed;
       if (!EQ (*vecp++, XBUFFER (buf)->read_only))
+	goto changed;
+      if (vecp == end)
 	goto changed;
       if (!EQ (*vecp++, Fbuffer_modified_p (buf)))
 	goto changed;
     }
+  if (vecp == end)
+    goto changed;
   /* Detect deletion of a buffer at the end of the list.  */
   if (EQ (*vecp, Qlambda))
     return Qnil;
+
+  /* Come here if we decide the data has changed.  */
  changed:
-  /* Start with 1 so there is room for at least one lambda at the end.  */
+  /* Count the size we will need.
+     Start with 1 so there is room for at least one lambda at the end.  */
   n = 1;
   FOR_EACH_FRAME (tail, frame)
     n += 2;
   for (tail = Vbuffer_alist; CONSP (tail); tail = XCDR (tail))
     n += 3;
-  /* Reallocate the vector if it's grown, or if it's shrunk a lot.  */
-  if (n > XVECTOR (frame_and_buffer_state)->size
-      || n + 20 < XVECTOR (frame_and_buffer_state)->size / 2)
+  /* Reallocate the vector if data has grown to need it,
+     or if it has shrunk a lot.  */
+  if (! VECTORP (state)
+      || n > XVECTOR (state)->size
+      || n + 20 < XVECTOR (state)->size / 2)
     /* Add 20 extra so we grow it less often.  */
-    frame_and_buffer_state = Fmake_vector (make_number (n + 20), Qlambda);
-  vecp = XVECTOR (frame_and_buffer_state)->contents;
+    {
+      state = Fmake_vector (make_number (n + 20), Qlambda);
+      if (! NILP (variable))
+	Fset (variable, state);
+      else
+	frame_and_buffer_state = state;
+    }
+
+  /* Record the new data in the (possibly reallocated) vector.  */
+  vecp = XVECTOR (state)->contents;
   FOR_EACH_FRAME (tail, frame)
     {
       *vecp++ = frame;
@@ -6542,12 +6580,12 @@ the current state.  */)
     }
   /* Fill up the vector with lambdas (always at least one).  */
   *vecp++ = Qlambda;
-  while  (vecp - XVECTOR (frame_and_buffer_state)->contents
-	  < XVECTOR (frame_and_buffer_state)->size)
+  while (vecp - XVECTOR (state)->contents
+	 < XVECTOR (state)->size)
     *vecp++ = Qlambda;
   /* Make sure we didn't overflow the vector.  */
-  if (vecp - XVECTOR (frame_and_buffer_state)->contents
-      > XVECTOR (frame_and_buffer_state)->size)
+  if (vecp - XVECTOR (state)->contents
+      > XVECTOR (state)->size)
     abort ();
   return Qt;
 }
