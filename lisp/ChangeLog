@@ -1,5 +1,11 @@
 2005-08-06  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* wid-edit.el (widget-choice-value-create): Unconditionally
+	respect user choice.  Set :explicit-choice back to nil when no
+	longer needed.
+	(widget-choice-action): Unconditionally respect user choice.
+	Eliminate :explicit-choice-value.
+
 	* fringe.el (set-fringe-indicators-1, fringe-indicators): Delete.
 
 	* menu-bar.el (menu-bar-options-save): Replace `fringe-indicators'
