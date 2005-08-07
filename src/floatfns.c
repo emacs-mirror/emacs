@@ -461,7 +461,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   CHECK_NUMBER_OR_FLOAT (arg2);
   if (INTEGERP (arg1)     /* common lisp spec */
       && INTEGERP (arg2)   /* don't promote, if both are ints, and */
-      && 0 <= XINT (arg2)) /* we are not computing the -ARG2 root */
+      && 0 <= XINT (arg2)) /* we are sure the result is not fractional */
     {				/* this can be improved by pre-calculating */
       EMACS_INT acc, x, y;	/* some binary powers of x then accumulating */
       Lisp_Object val;
