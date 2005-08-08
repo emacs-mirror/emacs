@@ -1,3 +1,9 @@
+2005-08-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* info.el (Info-dir-remove-duplicates): Avoid case folding
+	in loop; instead, keep downcased strings for comparison.
+	Suggested by Helmut Eller.
+
 2005-08-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.50.
