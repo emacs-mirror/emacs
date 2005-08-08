@@ -1,3 +1,13 @@
+2005-08-08  Juanma Barranquero  <lekktu@gmail.com>
+
+	* cmuscheme.el (inferior-scheme-mode-hook, inferior-scheme-mode)
+	(scheme-prev-l/c-dir/file): Fix typos in docstrings.
+
+2005-08-08  Emilio C. Lopes  <eclig@gmx.net>
+
+	* cmuscheme.el (scheme-start-file): Replace reference to
+	`user-emacs-directory' by "~/.emacs.d/".
+
 2005-08-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* info.el (Info-dir-remove-duplicates): Avoid case folding
