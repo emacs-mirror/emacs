@@ -272,7 +272,7 @@ order.  Return nil if no start file found."
          (start-file (concat "~/" name)))
     (if (file-exists-p start-file)
         start-file
-      (let ((start-file (concat user-emacs-directory name)))
+      (let ((start-file (concat "~/.emacs.d/" name)))
         (and (file-exists-p start-file) start-file)))))
 
 (defun scheme-send-region (start end)
@@ -349,7 +349,7 @@ With a prefix argument switch off tracing of procedure PROC."
   (when (= (length proc) 0)
     (error "Invalid procedure name"))
   (comint-send-string (scheme-proc)
-                      (format 
+                      (format
                        (if untrace scheme-untrace-command scheme-trace-command)
                        proc))
   (comint-send-string (scheme-proc) "\n"))
@@ -367,10 +367,10 @@ For Scheme 48 and Scsh use \",expand %s\"."
     (if current-form
         (progn
           (comint-send-string (scheme-proc)
-                              (format 
+                              (format
                                scheme-macro-expand-command
                                current-form))
-          (comint-send-string (scheme-proc) "\n"))      
+          (comint-send-string (scheme-proc) "\n"))
       (error "Not at a form"))))
 
 (defun scheme-form-at-point ()
@@ -506,7 +506,7 @@ for a minimal, simple implementation.  Feel free to extend it.")
   "Return the current Scheme process, starting one if necessary.
 See variable `scheme-buffer'."
   (unless (and scheme-buffer
-               (get-buffer scheme-buffer) 
+               (get-buffer scheme-buffer)
                (comint-check-proc scheme-buffer))
     (scheme-interactively-start-process))
   (or (scheme-get-process)
