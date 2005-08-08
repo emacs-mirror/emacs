@@ -2606,7 +2606,7 @@ xg_modify_menubar_widgets (menubar, f, val, deep_p,
   xg_update_menubar (menubar, f, &list, list, 0, val->contents,
                      select_cb, highlight_cb, cl_data);
 
-  if (deep_p);
+  if (deep_p)
     {
       widget_value *cur;
 
