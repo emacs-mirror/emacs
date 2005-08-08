@@ -1157,8 +1157,9 @@ a case-insensitive match is tried."
 	    (goto-char start)
 	    (while (re-search-forward "^* \\([^:\n]+:\\(:\\|[^.\n]+\\).\\)"
 				      limit 'move)
-	      (let ((x (match-string 1)))
-	  	(if (member-ignore-case x seen)
+	      ;; Fold case straight away; `member-ignore-case' here wasteful.
+	      (let ((x (downcase (match-string 1))))
+	  	(if (member x seen)
 	  	    (delete-region (match-beginning 0)
 	  			   (progn (re-search-forward "^[^ \t]" nil t)
 	  				  (match-beginning 0)))
