@@ -26,7 +26,7 @@
 
 ;;; Commentary:
 
-;;    This is a customisation of comint-mode (see comint.el)
+;;    This is a customization of comint-mode (see comint.el)
 ;;
 ;; Written by Olin Shivers (olin.shivers@cs.cmu.edu). With bits and pieces
 ;; lifted from scheme.el, shell.el, clisp.el, newclisp.el, cobol.el, et al..
@@ -106,7 +106,7 @@
 ;;;============================================================================
 
 (defcustom inferior-scheme-mode-hook nil
-  "*Hook for customising inferior-scheme mode."
+  "*Hook for customizing inferior-scheme mode."
   :type 'hook
   :group 'cmuscheme)
 
@@ -172,7 +172,7 @@ The following commands are available:
 
 A Scheme process can be fired up with M-x run-scheme.
 
-Customisation: Entry to this mode runs the hooks on comint-mode-hook and
+Customization: Entry to this mode runs the hooks on comint-mode-hook and
 inferior-scheme-mode-hook (in that order).
 
 You can send text to the inferior Scheme process from other buffers containing
@@ -201,7 +201,7 @@ C-M-q does Tab on each line starting within following expression.
 Paragraphs are separated only by blank lines.  Semicolons start comments.
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
-  ;; Customise in inferior-scheme-mode-hook
+  ;; Customize in inferior-scheme-mode-hook
   (setq comint-prompt-regexp "^[^>\n]*>+ *") ; OK for cscheme, oaklisp, T,...
   (scheme-mode-variables)
   (setq mode-line-process '(":%s"))
@@ -432,8 +432,8 @@ Used by these commands to determine defaults."
 (defvar scheme-prev-l/c-dir/file nil
   "Caches the last (directory . file) pair.
 Caches the last pair used in the last `scheme-load-file' or
-`scheme-compile-file' command. Used for determining the default in the
-next one.")
+`scheme-compile-file' command.  Used for determining the default
+in the next one.")
 
 (defun scheme-load-file (file-name)
   "Load a Scheme file FILE-NAME into the inferior Scheme process."
@@ -525,7 +525,7 @@ command to run."
   (save-window-excursion
     (run-scheme (read-string "Run Scheme: " scheme-program-name))))
 
-;;; Do the user's customisation...
+;;; Do the user's customization...
 
 (defcustom cmuscheme-load-hook nil
   "This hook is run when cmuscheme is loaded in.
