@@ -1,3 +1,7 @@
+2005-08-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (all): Add `overflow-newline-into-fringe'.
+
 2005-08-08  Juanma Barranquero  <lekktu@gmail.com>
 
 	* cmuscheme.el (inferior-scheme-mode-hook, inferior-scheme-mode)
