@@ -1757,7 +1757,7 @@ This was actually done in Emacs-21.1, and was not documented.
 evaluate a Scheme expression but no Scheme subprocess is running.
 
 *** If a file `.emacs_NAME' (where NAME is the name of the Scheme interpreter)
-exists in the user's home directory or in `user-emacs-directory', its
+exists in the user's home directory or in ~/.emacs.d, its
 contents are sent to the Scheme subprocess upon startup.
 
 *** There are new commands to instruct the Scheme interpreter to trace
