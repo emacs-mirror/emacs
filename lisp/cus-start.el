@@ -172,6 +172,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (mouse-highlight mouse (choice (const :tag "disabled" nil)
 					    (const :tag "always shown" t)
 					    (other :tag "hidden by keypress" 1)))
+	     ;; fringe.c
+	     (overflow-newline-into-fringe fringe boolean "22.1")
 	     ;; indent.c
 	     (indent-tabs-mode fill boolean)
 	     ;; keyboard.c
