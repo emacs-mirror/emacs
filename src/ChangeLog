@@ -1,3 +1,8 @@
+2005-08-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_modify_menubar_widgets): Remove semicolon that
+	should not be there, causing menu display errors with GTK 2.6.9.
+
 2005-08-07  Richard M. Stallman  <rms@gnu.org>
 
 	* floatfns.c (Fexpt): Undo previous change.
