@@ -2918,15 +2918,19 @@ recent backup.  If you specify the name of a backup file,
 of.
 
 @findex compare-windows
-  The command @kbd{M-x compare-windows} compares the text in the current
-window with that in the next window.  Comparison starts at point in each
-window, and each starting position is pushed on the mark ring in its
-respective buffer.  Then point moves forward in each window, a character
-at a time, until a mismatch between the two windows is reached.  Then
-the command is finished.  Another invocation of this command with
-points on mismatching positions tries to skip non-matching text and
-move points forward, until a match between the two windows is reached.
-For more information about windows in Emacs, @ref{Windows}.
+  The command @kbd{M-x compare-windows} compares the text in the
+current window with that in the next window.  (For more information
+about windows in Emacs, @ref{Windows}.)  Comparison starts at point in
+each window, after pushing each initial point value on the mark ring
+in its respective buffer.  Then it moves point forward in each window,
+one character at a time, until it reaches characters that don't match.
+Then the command exits.
+
+  If point in the two windows is followed by non-matching text when
+the command starts, it tries heuristically to advance up to matching
+text in the two windows, and then exits.  So if you use @kbd{M-x
+compare-windows} repeatedly, each time it either skips one matching
+range or finds the start of another.
 
 @vindex compare-ignore-case
 @vindex compare-ignore-whitespace
