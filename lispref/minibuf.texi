@@ -84,7 +84,7 @@ recursive minibuffers, the innermost (or most recently entered) is the
 active minibuffer.  We usually call this ``the'' minibuffer.  You can
 permit or forbid recursive minibuffers by setting the variable
 @code{enable-recursive-minibuffers} or by putting properties of that
-name on command symbols (@pxref{Minibuffer Misc}).
+name on command symbols (@pxref{Recursive Mini}).
 
   Like other buffers, a minibuffer may use any of several local keymaps
 (@pxref{Keymaps}); these contain various exit commands and in some cases
