@@ -736,10 +736,11 @@ Used by `sql-rename-buffer'.")
 
 (defvar sql-interactive-mode-map
   (let ((map (make-sparse-keymap)))
-    (if (functionp 'set-keymap-parent)
+    (if (fboundp 'set-keymap-parent)
 	(set-keymap-parent map comint-mode-map); Emacs
-      (set-keymap-parents map (list comint-mode-map))); XEmacs
-    (if (functionp 'set-keymap-name)
+      (if (fboundp 'set-keymap-parents)
+	  (set-keymap-parents map (list comint-mode-map)))); XEmacs
+    (if (fboundp 'set-keymap-name)
 	(set-keymap-name map 'sql-interactive-mode-map)); XEmacs
     (define-key map (kbd "C-j") 'sql-accumulate-and-indent)
     (define-key map (kbd "C-c C-w") 'sql-copy-column)
@@ -1901,16 +1902,8 @@ appended to the SQLi buffer without disturbing your SQL buffer."
   (describe-function 'sql-help))
 
 (defun sql-read-passwd (prompt &optional default)
-  "Read a password using PROMPT.
-Optional DEFAULT is password to start with.  This function calls
-`read-passwd' if it is available.  If not, function
-`ange-ftp-read-passwd' is called.  This should always be available,
-even in old versions of Emacs."
-  (if (fboundp 'read-passwd)
-      (read-passwd prompt nil default)
-    (unless (fboundp 'ange-ftp-read-passwd)
-      (autoload 'ange-ftp-read-passwd "ange-ftp"))
-    (ange-ftp-read-passwd prompt default)))
+  "Read a password using PROMPT.  Optional DEFAULT is password to start with."
+  (read-passwd prompt nil default))
 
 (defun sql-get-login (&rest what)
   "Get username, password and database from the user.
