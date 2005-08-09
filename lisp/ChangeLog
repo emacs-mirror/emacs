@@ -1,3 +1,16 @@
+2005-08-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/refbib.el (r2b-convert-record, r2b-convert-buffer):
+	Improve argument/docstring consistency.  Doc fixes.
+	(r2b-variables, r2bv-address, r2bv-annote, r2bv-author)
+	(r2bv-booktitle, r2bv-date, r2bv-decade, r2bv-editor)
+	(r2bv-entry-kind, r2bv-institution, r2bv-journal, r2bv-keywords)
+	(r2bv-kn, r2bv-month, r2bv-note, r2bv-number, r2bv-ordering)
+	(r2bv-organization, r2bv-pages, r2bv-primary-author)
+	(r2bv-publisher, r2bv-school, r2bv-title, r2bv-title-first-word)
+	(r2bv-tr, r2bv-type, r2bv-volume, r2bv-where, r2bv-year):
+	Defvar at compile time.
+
 2005-08-09  Juri Linkov  <juri@jurta.org>
 
 	* info.el: Replace `info' with upper-case `Info'
