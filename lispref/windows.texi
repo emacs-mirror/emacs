@@ -267,7 +267,7 @@ Now the screen looks like this:
 @end smallexample
 
 Normally, Emacs indicates the border between two side-by-side windows
-with a scroll bar (@pxref{Window Frame Parameters,Scroll Bars}) or @samp{|}
+with a scroll bar (@pxref{Layout Parameters,Scroll Bars}) or @samp{|}
 characters.  The display table can specify alternative border
 characters; see @ref{Display Tables}.
 @end deffn
