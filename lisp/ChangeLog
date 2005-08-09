@@ -1,3 +1,9 @@
+2005-08-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* menu-bar.el (menu-bar-options-save): Move `display-time-mode' to
+	correct group: it is set with `menu-bar-make-mm-toggle' (pointed
+	out by Juri Linkov).  Add `display-battery-mode'.
+
 2005-08-09  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords):
