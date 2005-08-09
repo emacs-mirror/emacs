@@ -235,9 +235,9 @@ the months on it.  Scrolling the calendar means moving the strip
 horizontally, so that new months become visible in the window.
 
 @table @kbd
-@item C-x <
+@item <
 Scroll calendar one month forward (@code{scroll-calendar-left}).
-@item C-x >
+@item >
 Scroll calendar one month backward (@code{scroll-calendar-right}).
 @item C-v
 @itemx @key{NEXT}
@@ -249,15 +249,15 @@ Scroll calendar three months backward
 (@code{scroll-calendar-right-three-months}).
 @end table
 
-@kindex C-x < @r{(Calendar mode)}
+@kindex < @r{(Calendar mode)}
 @findex scroll-calendar-left
-@kindex C-x > @r{(Calendar mode)}
+@kindex > @r{(Calendar mode)}
 @findex scroll-calendar-right
   The most basic calendar scroll commands scroll by one month at a
 time.  This means that there are two months of overlap between the
-display before the command and the display after.  @kbd{C-x <} scrolls
+display before the command and the display after.  @kbd{<} scrolls
 the calendar contents one month to the left; that is, it moves the
-display forward in time.  @kbd{C-x >} scrolls the contents to the
+display forward in time.  @kbd{>} scrolls the contents to the
 right, which moves backwards in time.
 
 @kindex C-v @r{(Calendar mode)}
