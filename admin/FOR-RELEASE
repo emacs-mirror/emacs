@@ -45,6 +45,16 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 ** Investigate reported crashes related to using an
 invalid pointer from string_free_list.
 
+** Emacs on Windows crashes reading JPEG images from files.
+
+The problem is caused by the Emacs executable and the image library
+having multiple, incompatible copies of the run-time code, which can
+happen when mixing a MSVC build of Emacs with a MinGW build of the
+jpeg library (or the other way around).  The fix is straightforward
+and has already been posted on the developers' list, but it is on the
+back burner waiting for a legal comment or an alternate implementation
+(around 30 lines of code).
+
 * BUGS
 
 ** Fix those modes that still use compile-internal, to not use it.
@@ -67,6 +77,13 @@ non-nil.  If so, it is not overwritten.
 
 To enable the fix, the user must set comint-process-echoes to t.
 
+** Server processes do not work on Windows.
+
+TCP/IP server processes created with `make-network-process' consume
+excesive CPU on some Windows environments.  Usages of 50% and 100%
+CPU time have been observed on different Window XP configurations.
+
+When calling `delete-process' on an UDP server process, Emacs hangs.
 
 ** Bug in ebrowse
 
