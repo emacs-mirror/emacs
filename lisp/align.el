@@ -384,9 +384,6 @@ The possible settings for `align-region-separate' are:
 			   regexp function)))))))
   "The `type' form for any `align-rules-list' variable.")
 
-(unless (functionp 'c-guess-basic-syntax)
-  (autoload 'c-guess-basic-syntax "cc-engine"))
-
 (defcustom align-rules-list
   `((lisp-second-arg
      (regexp   . "\\(^\\s-+[^( \t\n]\\|(\\(\\S-+\\)\\s-+\\)\\S-+\\(\\s-+\\)")
