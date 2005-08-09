@@ -1,3 +1,15 @@
+2005-08-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/fill.el (canonically-space-region)
+	(fill-context-prefix, fill-french-nobreak-p)
+	(fill-delete-newlines, fill-comment-paragraph)
+	(justify-current-line): "?\ " -> "?\s".
+
+2005-08-09  Ben North  <ben@redfrontdoor.org>  (tiny change)
+
+	* textmodes/fill.el (fill-nonuniform-paragraphs):
+	Improve argument/docstring consistency.
+
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (find-file-noselect): Don't call set-buffer-major-mode.
@@ -8,7 +20,7 @@
 
 2005-08-09  Magnus Henoch  <mange@freemail.hu>
 
-	* textmodes/ispell.el (aspell-have-dictionaries): New variable.  
+	* textmodes/ispell.el (aspell-have-dictionaries): New variable.
 	(aspell-find-dictionaries): New command.
 	(aspell-data-dir): New variable.
 	(aspell-find-data-dir): New function.
