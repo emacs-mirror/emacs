@@ -771,7 +771,7 @@ buffer list displayed for the user also follows this order.
 own version of the buffer list, in which the buffers that have been
 selected in that frame come first, starting with the buffers most
 recently selected @emph{in that frame}.  (This order is recorded in
-@var{frame}'s @code{buffer-list} frame parameter; see @ref{Window Frame
+@var{frame}'s @code{buffer-list} frame parameter; see @ref{Buffer
 Parameters}.)  The buffers that were never selected in @var{frame} come
 afterward, ordered according to the fundamental Emacs buffer list.
 
@@ -838,7 +838,7 @@ buffer list that is not now visible in any window in a visible frame.
 If @var{frame} has a non-@code{nil} @code{buffer-predicate} parameter,
 then @code{other-buffer} uses that predicate to decide which buffers to
 consider.  It calls the predicate once for each buffer, and if the value
-is @code{nil}, that buffer is ignored.  @xref{Window Frame Parameters}.
+is @code{nil}, that buffer is ignored.  @xref{Buffer Parameters}.
 
 @c Emacs 19 feature
 If @var{visible-ok} is @code{nil}, @code{other-buffer} avoids returning
