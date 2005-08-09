@@ -222,37 +222,49 @@ This is in addition to the `r2b-capitalize-title-stop-words'.")
 
 (defvar r2b-error-found nil)
 
+(eval-when-compile
+  (defvar r2b-variables) (defvar r2bv-address)    (defvar r2bv-annote)
+  (defvar r2bv-author)   (defvar r2bv-booktitle)  (defvar r2bv-date)
+  (defvar r2bv-decade)   (defvar r2bv-editor)     (defvar r2bv-entry-kind)
+  (defvar r2bv-institution) (defvar r2bv-journal) (defvar r2bv-keywords)
+  (defvar r2bv-kn)       (defvar r2bv-month)      (defvar r2bv-note)
+  (defvar r2bv-number)   (defvar r2bv-ordering)   (defvar r2bv-organization)
+  (defvar r2bv-pages)    (defvar r2bv-primary-author) (defvar r2bv-publisher)
+  (defvar r2bv-school)   (defvar r2bv-title)      (defvar r2bv-title-first-word)
+  (defvar r2bv-tr)       (defvar r2bv-type)       (defvar r2bv-volume)
+  (defvar r2bv-where)    (defvar r2bv-year))
+
 (setq r2b-variables '(
-			r2b-error-found
-			  r2bv-author
-			  r2bv-primary-author
-			  r2bv-date
-			  r2bv-year
-			  r2bv-decade
-			  r2bv-month
-			  r2bv-title
-			  r2bv-title-first-word
-			  r2bv-editor
-			  r2bv-annote
-			  r2bv-tr
-			  r2bv-address
-			  r2bv-institution
-			  r2bv-keywords
-			  r2bv-booktitle
-			  r2bv-journal
-			  r2bv-volume
-			  r2bv-number
-			  r2bv-pages
-			  r2bv-booktitle
-			  r2bv-kn
-			  r2bv-publisher
-			  r2bv-organization
-			  r2bv-school
-			  r2bv-type
-			  r2bv-where
-			  r2bv-note
-			  r2bv-ordering
-			  ))
+                      r2b-error-found
+                      r2bv-author
+                      r2bv-primary-author
+                      r2bv-date
+                      r2bv-year
+                      r2bv-decade
+                      r2bv-month
+                      r2bv-title
+                      r2bv-title-first-word
+                      r2bv-editor
+                      r2bv-annote
+                      r2bv-tr
+                      r2bv-address
+                      r2bv-institution
+                      r2bv-keywords
+                      r2bv-booktitle
+                      r2bv-journal
+                      r2bv-volume
+                      r2bv-number
+                      r2bv-pages
+                      r2bv-booktitle
+                      r2bv-kn
+                      r2bv-publisher
+                      r2bv-organization
+                      r2bv-school
+                      r2bv-type
+                      r2bv-where
+                      r2bv-note
+                      r2bv-ordering
+                      ))
 
 (defun r2b-clear-variables ()
    "Set all global vars used by r2b to nil."
@@ -633,14 +645,14 @@ but not a publisher."
    )
 
 
-(defun r2b-convert-record (output-name)
-   "Transform current bib entry and append to buffer OUTPUT;
-do \"M-x r2b-help\" for more info."
+(defun r2b-convert-record (output)
+   "Transform current bib entry and append to buffer OUTPUT.
+Do `\\[r2b-help]' for more info."
    (interactive
       (list (read-string "Output to buffer: " r2b-out-buf-name)))
    (let (rec-end rec-begin not-done)
-      (setq r2b-out-buf-name output-name)
-      (setq r2b-out-buf (get-buffer-create output-name))
+      (setq r2b-out-buf-name output)
+      (setq r2b-out-buf (get-buffer-create output))
       (setq r2b-in-buf (current-buffer))
       (set-buffer r2b-out-buf)
       (goto-char (point-max))
@@ -670,9 +682,9 @@ do \"M-x r2b-help\" for more info."
       ))
 
 
-(defun r2b-convert-buffer (output-name)
+(defun r2b-convert-buffer (output)
    "Transform current buffer and append to buffer OUTPUT.
-Do `M-x r2b-help' for more info."
+Do `\\[r2b-help]' for more info."
    (interactive
       (list (read-string "Output to buffer: " r2b-out-buf-name)))
    (save-excursion
@@ -683,7 +695,7 @@ Do `M-x r2b-help' for more info."
    (goto-char (point-min))
    (message "Working, please be patient...")
    (sit-for 0)
-   (while (r2b-convert-record output-name) t)
+   (while (r2b-convert-record output) t)
    (message "Done, results in %s, errors in %s"
       r2b-out-buf-name r2b-log-name)
    )
