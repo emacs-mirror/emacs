@@ -944,6 +944,9 @@ and the name of the file passed in."
 
 ;; bind with (setq ff-pre-load-hook 'ff-which-function-are-we-in)
 ;;
+(defvar ada-procedure-start-regexp)
+(defvar ada-package-start-regexp)
+
 (defun ff-which-function-are-we-in ()
   "Return the name of the function whose definition/declaration point is in.
 Also remember that name in `ff-function-name'."
