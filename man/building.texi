@@ -52,7 +52,7 @@ Invoke a compiler with the same command as in the last invocation of
 Run @code{grep} asynchronously under Emacs, with matching lines
 listed in the buffer named @samp{*grep*}.
 @item M-x grep-find
-@item M-x find-grep
+@itemx M-x find-grep
 Run @code{grep} via @code{find}, with user-specified arguments, and
 collect output in the buffer named @samp{*grep*}.
 @item M-x kill-compilation
@@ -325,7 +325,7 @@ Emacs.  @xref{MS-DOS}.
 
 @findex grep
   Just as you can run a compiler from Emacs and then visit the lines
-where there were compilation errors, you can also run @code{grep} and
+with compilation errors, you can also run @code{grep} and
 then visit the lines on which matches were found.  This works by
 treating the matches reported by @code{grep} as if they were ``errors.''
 
