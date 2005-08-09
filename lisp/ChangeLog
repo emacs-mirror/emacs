@@ -12,6 +12,8 @@
 
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
+	* textmodes/ispell.el (ispell-word): More fboundp checks.
+
 	* files.el (find-file-noselect): Don't call set-buffer-major-mode.
 	(find-file-noselect-1): Call it here, only if RAWFILE.
 	(normal-mode): Always set some major mode.
@@ -20,15 +22,16 @@
 
 2005-08-09  Magnus Henoch  <mange@freemail.hu>
 
-	* textmodes/ispell.el (aspell-have-dictionaries): New variable.
-	(aspell-find-dictionaries): New command.
-	(aspell-data-dir): New variable.
-	(aspell-find-data-dir): New function.
-	(aspell-find-dictionary): New function.
-	(ispell-valid-dictionary-list): Call aspell-find-dictionaries if
-	appropriate.  Don't look for ispell dictionaries if we use
-	aspell.
-
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries): New command.
+	(ispell-have-aspell-dictionaries): New variable.  
+	(ispell-aspell-data-dir, ispell-aspell-dict-dir): New variables.
+	(ispell-get-aspell-config-value): New function.
+	(ispell-aspell-find-dictionary): New function.
+	(ispell-aspell-add-aliases): New function.
+	(ispell-valid-dictionary-list): Call ispell-find-aspell-dictionaries if
+	appropriate.  Don't look for ispell dictionaries if we use aspell.
+	(ispell-menu-map): Don't build a submenu of dictionaries.
+	
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/sql.el (sql-interactive-mode-map): Use fboundp.
