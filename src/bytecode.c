@@ -389,7 +389,7 @@ unmark_byte_stack ()
 	Vquit_flag = Qnil;				\
         BEFORE_POTENTIAL_GC ();				\
 	if (EQ (Vthrow_on_input, flag))			\
-	  Fthrow (Vthrow_on_input, Qnil);		\
+	  Fthrow (Vthrow_on_input, Qt);			\
 	Fsignal (Qquit, Qnil);				\
 	AFTER_POTENTIAL_GC ();				\
       }							\
