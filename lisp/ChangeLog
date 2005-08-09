@@ -1,5 +1,24 @@
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (find-file-noselect): Don't call set-buffer-major-mode.
+	(find-file-noselect-1): Call it here, only if RAWFILE.
+	(normal-mode): Always set some major mode.
+	(save-some-buffers-action-alist): Change some explanation strings.
+	(file-name-non-special): In the `quote' method, use unwind-protect.
+
+2005-08-09  Magnus Henoch  <mange@freemail.hu>
+
+	* textmodes/ispell.el (aspell-have-dictionaries): New variable.  
+	(aspell-find-dictionaries): New command.
+	(aspell-data-dir): New variable.
+	(aspell-find-data-dir): New function.
+	(aspell-find-dictionary): New function.
+	(ispell-valid-dictionary-list): Call aspell-find-dictionaries if
+	appropriate.  Don't look for ispell dictionaries if we use
+	aspell.
+
+2005-08-09  Richard M. Stallman  <rms@gnu.org>
+
 	* progmodes/sql.el (sql-interactive-mode-map): Use fboundp.
 	(sql-read-passwd): Use read-passwd.
 
