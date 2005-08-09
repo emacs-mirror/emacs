@@ -3614,6 +3614,25 @@ binding of VARIABLE (a symbol) in buffer BUFFER.  If VARIABLE does not
 have a buffer-local binding in buffer BUFFER, it returns the default
 value of VARIABLE instead.
 
+*** The function `frame-or-buffer-changed-p' now lets you maintain
+various status records in parallel.
+
+It take a variable (a symbol) as argument.  If the variable is non-nil,
+then its value should be a vector installed previously by
+`frame-or-buffer-changed-p'.  If the frame names, buffer names, buffer
+order, or their read-only or modified flags have changed, since the
+time the vector's contents were recorded by a previous call to
+`frame-or-buffer-changed-p', then the function returns t.  Otherwise
+it returns nil.
+
+On the first call to `frame-or-buffer-changed-p', the variable's
+value should be nil.  `frame-or-buffer-changed-p' stores a suitable
+vector into the variable and returns t.
+
+If the variable is itself nil, then `frame-or-buffer-changed-p' uses,
+for compatibility, an internal variable which exists only for this
+purpose.
+
 ** Local variables lists:
 
 +++
@@ -3881,7 +3900,8 @@ using the text properties (esp. the face) of the prompt string.
 *** (while-no-input BODY...) runs BODY, but only so long as no input
 arrives.  If the user types or clicks anything, BODY stops as if a
 quit had occurred.  `while-no-input' returns the value of BODY, if BODY
-finishes.  It returns nil if BODY was aborted.
+finishes.  It returns nil if BODY was aborted by a quit, and t if
+BODY was aborted by arrival of input.
 
 ** Minibuffer changes:
 
