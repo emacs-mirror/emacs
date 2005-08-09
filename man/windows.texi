@@ -94,7 +94,8 @@ numeric argument specifies how many lines to give to the top window.
   @kbd{C-x 3} (@code{split-window-horizontally}) breaks the selected
 window into two side-by-side windows.  A numeric argument specifies how
 many columns to give the one on the left.  If you are not using
-scrollbars, a line of vertical bars separates the two windows.
+scrollbars, a vertical line separates the two windows.
+You can customize its color with the face @code{vertical-border}.
 Windows that are not the full width of the screen have mode lines, but
 they are truncated.  On terminals where Emacs does not support
 highlighting, truncated mode lines sometimes do not appear in inverse
