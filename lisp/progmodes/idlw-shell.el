@@ -2761,13 +2761,14 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
   t)
 
 (defun idlwave-xemacs-hack-mouse-track (event)
-  (let ((oldfunc (symbol-function 'default-mouse-track-event-is-with-button)))
-    (unwind-protect
-	(progn
-	  (fset 'default-mouse-track-event-is-with-button 
-		'idlwave-default-mouse-track-event-is-with-button)
-	  (mouse-track event))
-      (fset 'default-mouse-track-event-is-with-button oldfunc))))
+  (if (featurep 'xemacs) 
+      (let ((oldfunc (symbol-function 'default-mouse-track-event-is-with-button)))
+	(unwind-protect
+	    (progn
+	      (fset 'default-mouse-track-event-is-with-button 
+		    'idlwave-default-mouse-track-event-is-with-button)
+	      (mouse-track event))
+	  (fset 'default-mouse-track-event-is-with-button oldfunc)))))
 ;;; End terrible hack section
 
 (defun idlwave-shell-mouse-print (event)
