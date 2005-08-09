@@ -1635,6 +1635,13 @@ normal otherwise."
                      (setq file file-ex))
                    (load file nil t)))
 
+                ((member argi '("-scriptload"))
+                 (let* ((file (command-line-normalize-file-name
+                               (or argval (pop command-line-args-left))))
+                        ;; Take file from default dir.
+                        (file-ex (expand-file-name file)))
+                   (load file-ex nil t t)))
+
                 ((equal argi "-insert")
                  (setq tem (or argval (pop command-line-args-left)))
                  (or (stringp tem)
