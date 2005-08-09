@@ -99,13 +99,13 @@ A large number or nil slows down menu responsiveness."
 	      :help "Open a new frame"))
 
 (define-key menu-bar-file-menu [one-window]
-  '(menu-item "Unsplit Windows" delete-other-windows
+  '(menu-item "Remove Splits" delete-other-windows
 	      :enable (not (one-window-p t nil))
-	      :help "Make selected window fill its frame"))
+	      :help "Selected window grows to fill the whole frame"))
 
 (define-key menu-bar-file-menu [split-window]
   '(menu-item "Split Window" split-window-vertically
-	      :help "Split selected window in two"))
+	      :help "Split selected window in two windows"))
 
 (define-key menu-bar-file-menu [separator-window]
   '(menu-item "--"))
@@ -159,12 +159,12 @@ A large number or nil slows down menu responsiveness."
 					 (current-buffer))))))
 	      :help "Re-read current buffer from its file"))
 (define-key menu-bar-file-menu [write-file]
-  '(menu-item "Save Buffer As..." write-file
+  '(menu-item "Save As..." write-file
 	      :enable (not (window-minibuffer-p
 			    (frame-selected-window menu-updating-frame)))
 	      :help "Write current buffer to another file"))
 (define-key menu-bar-file-menu [save-buffer]
-  '(menu-item "Save (current buffer)" save-buffer
+  '(menu-item "Save" save-buffer
 	      :enable (and (buffer-modified-p)
 			   (buffer-file-name)
 			   (not (window-minibuffer-p
@@ -175,9 +175,9 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "--"))
 
 (define-key menu-bar-file-menu [kill-buffer]
-  '(menu-item "Close (current buffer)" kill-this-buffer
+  '(menu-item "Close" kill-this-buffer
 	      :enable (kill-this-buffer-enabled-p)
-	      :help "Discard current buffer"))
+	      :help "Discard (kill) current buffer"))
 (define-key menu-bar-file-menu [insert-file]
   '(menu-item "Insert File..." insert-file
 	      :enable (not (window-minibuffer-p
@@ -194,7 +194,7 @@ A large number or nil slows down menu responsiveness."
 			    (frame-selected-window menu-updating-frame)))
 	      :help "Read an existing file into an Emacs buffer"))
 (define-key menu-bar-file-menu [new-file]
-  '(menu-item "New File..." find-file
+  '(menu-item "Visit New File..." find-file
 	      :enable (not (window-minibuffer-p
 			    (frame-selected-window menu-updating-frame)))
 	      :help "Read or create a file and edit it"))
