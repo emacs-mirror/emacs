@@ -264,7 +264,7 @@ dumped."
 	       varlist)
 	      (lisp-indent-line)
 	      (insert ")\n"))
-	    (insert-buffer elbuf))
+	    (insert-buffer-substring elbuf))
 	(error
 	 (insert "State could not be dumped due to the following error:\n\n"
 		 (format "%s" fault)
