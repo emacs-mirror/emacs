@@ -1712,6 +1712,9 @@ Only intended for interactive use."
   (local-set-key "\M-l" 'ffap-gnus-next)
   (local-set-key "\M-m" 'ffap-gnus-menu))
 
+(defvar gnus-summary-buffer)
+(defvar gnus-article-buffer)
+
 (defun ffap-gnus-wrapper (form)		; used by both commands below
   (and (eq (current-buffer) (get-buffer gnus-summary-buffer))
        (gnus-summary-select-article))	; get article of current line
