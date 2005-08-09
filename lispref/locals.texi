@@ -82,7 +82,7 @@ use, but we don't try to list them all here.
 @xref{Usual Display}.
 
 @item cursor-type
-@xref{Window Frame Parameters}.
+@xref{Cursor Parameters}.
 
 @item comment-column
 @xref{Comments,,, emacs, The GNU Emacs Manual}.
