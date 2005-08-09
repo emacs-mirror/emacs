@@ -1635,6 +1635,8 @@ normal otherwise."
                      (setq file file-ex))
                    (load file nil t)))
 
+		;; This is used to handle -script.  It's not clear
+		;; we need to document it.
                 ((member argi '("-scriptload"))
                  (let* ((file (command-line-normalize-file-name
                                (or argval (pop command-line-args-left))))
