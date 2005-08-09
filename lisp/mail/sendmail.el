@@ -1432,7 +1432,9 @@ and don't delete any header fields."
 	  ;; delete that window to save screen space.
 	  ;; t means don't alter other frames.
 	  (delete-windows-on original t)
-	  (insert-buffer original)
+	  (with-no-warnings
+	    ;; We really want this to set mark.
+	    (insert-buffer original))
 	  (set-text-properties (point) (mark t) nil))
 	(if (consp arg)
 	    nil
