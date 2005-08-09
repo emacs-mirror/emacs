@@ -486,7 +486,7 @@ For XEmacs, we create a temporary face and return it."
 OBJECT defaults to the current buffer.  XEmacs uses `make-extent', Emacs
 uses `make-overlay'.  XEmacs can use a buffer or a string for OBJECT,
 Emacs requires OBJECT to be a buffer."
-  (if (functionp 'make-extent)
+  (if (fboundp 'make-extent)
       (make-extent from to object)
     ;; In Emacs, the overlay might end at the process-mark in comint
     ;; buffers.  In that case, new text will be inserted before the
@@ -511,7 +511,7 @@ property."
 (defun ansi-color-set-extent-face (extent face)
   "Set the `face' property of EXTENT to FACE.
 XEmacs uses `set-extent-face', Emacs  uses `overlay-put'."
-  (if (functionp 'set-extent-face)
+  (if (fboundp 'set-extent-face)
       (set-extent-face extent face)
     (overlay-put extent 'face face)))
 
