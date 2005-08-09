@@ -3,6 +3,7 @@
 ;; Copyright (C) 1989, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Henry Kautz <kautz@research.att.com>
+;; Maintainer: FSF
 ;; Keywords: bib, tex
 
 ;; This file is part of GNU Emacs.
