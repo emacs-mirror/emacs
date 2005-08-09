@@ -700,6 +700,11 @@ by \"Save Options\" in Custom buffers.")
 (define-key menu-bar-showhide-menu [linecolumn-separator]
   '("--"))
 
+(define-key menu-bar-showhide-menu [showhide-battery]
+  (menu-bar-make-mm-toggle display-battery-mode
+			   "Battery status"
+			   "Display battery status information in mode line"))
+
 (define-key menu-bar-showhide-menu [showhide-date-time]
   (menu-bar-make-mm-toggle display-time-mode
 			   "Date, Time and Mail"
