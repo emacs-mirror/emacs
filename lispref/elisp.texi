@@ -543,6 +543,10 @@ Minibuffers
 * Yes-or-No Queries::       Asking a question with a simple answer.
 * Multiple Queries::	    Asking a series of similar questions.
 * Reading a Password::	    Reading a password from the terminal.
+* Minibuffer Commands::     Commands used as key bindings in minibuffers.
+* Minibuffer Contents::     How such commands access the minibuffer text.
+* Minibuffer Windows::      Operating on the special minibuffer windows.
+* Recursive Mini::          Whether recursive entry to minibuffer is allowed.
 * Minibuffer Misc::         Various customization hooks and variables.
 
 Completion
