@@ -2208,7 +2208,10 @@ Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
   (interactive
-   "sQuery replace in marked files (regexp): \nsQuery replace %s by: \nP")
+   (let ((common
+	  (query-replace-read-args
+	   "Query replace regexp in marked files" t t)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common))))
   (dolist (file (dired-get-marked-files nil nil 'dired-nondirectory-p))
     (let ((buffer (get-file-buffer file)))
       (if (and buffer (with-current-buffer buffer
