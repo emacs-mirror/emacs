@@ -813,6 +813,9 @@ black or white default foreground color.  This generic shadow face
 allows customization of the appearance of shadowed text in one place,
 so package-specific faces can inherit from it.
 
++++
+*** `vertical-border' face is used for the vertical divider between windows.
+
 ** Font-Lock changes:
 
 +++
@@ -882,8 +885,7 @@ This menu allows you to turn various display features on and off (such
 as the fringes, the tool bar, the speedbar, and the menu bar itself).
 You can also move the vertical scroll bar to either side here or turn
 it off completely.  There is also a menu-item to toggle displaying of
-current date and time, current line and column number in the
-mode-line.
+current date and time, current line and column number in the mode-line.
 
 ---
 *** Speedbar has moved from the "Tools" top level menu to "Show/Hide".
@@ -1828,7 +1830,7 @@ when Emacs visits them.
 *** A numeric prefix argument of `info' selects an Info buffer
 with the number appended to the `*info*' buffer name (e.g. "*info*<2>").
 
----
++++
 *** isearch in Info uses Info-search and searches through multiple nodes.
 
 Before leaving the initial Info node isearch fails once with the error
@@ -1839,31 +1841,38 @@ aroung the whole manual to the top/final node.  The user option
 or the default isearch search function that wraps around the current
 Info node.
 
+---
 *** New search commands: `Info-search-case-sensitively' (bound to S),
 `Info-search-backward', and `Info-search-next' which repeats the last
 search without prompting for a new search string.
 
++++
 *** New command `Info-history-forward' (bound to r and new toolbar icon)
 moves forward in history to the node you returned from after using
 `Info-history-back' (renamed from `Info-last').
 
+---
 *** New command `Info-history' (bound to L) displays a menu of visited nodes.
 
+---
 *** New command `Info-toc' (bound to T) creates a node with table of contents
 from the tree structure of menus of the current Info file.
 
++++
 *** New command `info-apropos' searches the indices of the known
 Info files on your system for a string, and builds a menu of the
 possible matches.
 
+---
 *** New command `Info-copy-current-node-name' (bound to w) copies
 the current Info node name into the kill ring.  With a zero prefix
 arg, puts the node name inside the `info' function call.
 
----
++++
 *** New face `info-xref-visited' distinguishes visited nodes from unvisited
 and a new option `Info-fontify-visited-nodes' to control this.
 
+---
 *** http and ftp links in Info are now operational: they look like cross
 references and following them calls `browse-url'.
 
