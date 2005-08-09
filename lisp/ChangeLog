@@ -1,3 +1,10 @@
+2005-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
+
+	* net/ange-ftp.el (ange-ftp-send-cmd): Make it work properly with
+	uploading files.
+	(ange-ftp-canonize-filename): Handle file names beginning with ~
+	correctly.
+
 2005-08-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/fill.el (canonically-space-region)
@@ -23,7 +30,7 @@
 2005-08-09  Magnus Henoch  <mange@freemail.hu>
 
 	* textmodes/ispell.el (ispell-find-aspell-dictionaries): New command.
-	(ispell-have-aspell-dictionaries): New variable.  
+	(ispell-have-aspell-dictionaries): New variable.
 	(ispell-aspell-data-dir, ispell-aspell-dict-dir): New variables.
 	(ispell-get-aspell-config-value): New function.
 	(ispell-aspell-find-dictionary): New function.
@@ -31,7 +38,7 @@
 	(ispell-valid-dictionary-list): Call ispell-find-aspell-dictionaries if
 	appropriate.  Don't look for ispell dictionaries if we use aspell.
 	(ispell-menu-map): Don't build a submenu of dictionaries.
-	
+
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/sql.el (sql-interactive-mode-map): Use fboundp.

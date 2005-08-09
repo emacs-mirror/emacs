@@ -2328,8 +2328,13 @@ and NOWAIT."
 	;; We cd and then use `ls' with no directory argument.
 	;; This works around a misfeature of some versions of netbsd ftpd.
 	(unless (equal cmd1 ".")
-	  (setq result (ange-ftp-cd host user (nth 1 cmd) 'noerror)))
-	(setq cmd1 cmd3)))
+	  (setq result (ange-ftp-cd host user
+				    ;; Make sure the target to which
+				    ;; `cd' is performed is a directory.
+				    (file-name-directory (nth 1 cmd))
+				    'noerror)))
+	;; Concatenate the switches and the target to be used with `ls'.
+	(setq cmd1 (concat "\"" cmd3 " " cmd1 "\""))))
 
      ;; First argument is the remote name
      ((progn
@@ -3122,8 +3127,12 @@ logged in as user USER and cd'd to directory DIR."
 			(rest (substring name (match-end 0)))
 			(dir (ange-ftp-expand-dir host user tilda)))
 		   (if dir
-		       (setq name (if (string-equal dir "/")
-				      rest (concat dir rest)))
+		       (setq name (cond ((string-equal rest "")
+					 dir)
+					((string-equal dir "/")
+					 rest)
+					(t
+					 (concat dir rest))))
 		     (error "User \"%s\" is not known"
 			    (substring tilda 1)))))
 
