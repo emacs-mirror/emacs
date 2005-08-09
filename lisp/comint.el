@@ -1935,15 +1935,21 @@ The string is sent using `comint-input-sender'.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]; `clear-this-command-keys' can fix that."
   (interactive "P")			; Defeat snooping via C-x ESC ESC
-  (let ((proc (get-buffer-process (current-buffer))))
+  (let ((proc (get-buffer-process (current-buffer)))
+	(prefix
+	 (if (eq (window-buffer (selected-window)) (current-buffer))
+	     ""
+	   (format "(In buffer %s) "
+		   (current-buffer)))))
     (if proc
-	(let ((str (read-passwd (or prompt "Non-echoed text: "))))
+	(let ((str (read-passwd (concat prefix
+					(or prompt "Non-echoed text: ")))))
 	  (if (stringp str)
 	      (progn
 		(comint-snapshot-last-prompt)
 		(funcall comint-input-sender proc str))
 	    (message "Warning: text will be echoed")))
-      (error "Current buffer has no process"))))
+      (error "Buffer %s has no process" (current-buffer)))))
 
 (defun comint-watch-for-password-prompt (string)
   "Prompt in the minibuffer for password and send without echoing.
