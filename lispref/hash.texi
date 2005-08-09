@@ -281,8 +281,8 @@ compared case-insensitively.
 (defun case-fold-string-hash (a)
   (sxhash (upcase a)))
 
-(define-hash-table-test 'case-fold 'case-fold-string=
-                        'case-fold-string-hash))
+(define-hash-table-test 'case-fold
+  'case-fold-string= 'case-fold-string-hash)
 
 (make-hash-table :test 'case-fold)
 @end example
