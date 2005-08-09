@@ -1,3 +1,23 @@
+2005-08-09  Juri Linkov  <juri@jurta.org>
+
+	* info.el: Replace `info' with upper-case `Info'
+	where appropriate.
+	(info-title-1, info-title-2, info-title-3, info-title-4)
+	(info-menu-header): Move up face definitions.
+	(info-menu-star): Rename from `info-menu-5'.
+	(Info-fontify-node): Replace `info-menu-5' with `info-menu-star'.
+	(Info-fontify-visited-nodes): Fix docstring.
+	(Info-hide-note-references): Fix docstring.
+	(Info-up, Info-next-reference, Info-prev-reference): Put cursor on
+	menu items in the same way as on cross-references.
+	(info-apropos): Fix sorting order and formatting to be like in the
+	stand-alone Info browser.  Display error messages for 1 sec.
+	(Info-mode-map): Move down `c' key binding.  Bind `^' to `Info-up'.
+	(Info-mode-menu): Remove item for `Info-search-case-sensitively'
+	from the menu bar.
+	(Info-insert-dir): Restore point after calling
+	`insert-buffer-substring'.
+
 2005-08-08  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lmenu.el (lucid-menubar-map, lucid-failing-menubar)

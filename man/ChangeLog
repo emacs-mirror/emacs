@@ -1,3 +1,20 @@
+2005-08-09  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Help-P): Replace `Prev' with `Previous'.
+	(Help-M, Help-Xref): Add S-TAB.
+	(Help-FOO): Update `u' command.
+	(Help-Xref): Move info about Mouse-2 from `Help-Int'.
+	Update info about visibility of xref parts.
+	(Help-Int): Fix `m' command.  Rename `Info-last' to
+	`Info-history-back'.  Add `Info-history-forward'.
+	(Advanced): Fix `g*' and `M-n' commands.
+	(Info Search): Add `index-apropos' in stand-alone browser.
+	Add isearch commands.
+	(Emacs Info Variables): Remove `Info-fontify'.
+	Add `Info-mode-hook'.  Update face names.
+	Add `Info-fontify-maximum-menu-size',
+	`Info-fontify-visited-nodes', `Info-isearch-search'.
+
 2005-08-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.50.
@@ -132,7 +149,6 @@
 	* mh-e.texi (Copying):
 	* trouble.texi (Checklist): Update FSF's address.
 
->>>>>>> 1.631
 2005-07-03  Richard M. Stallman  <rms@gnu.org>
 
 	* flymake.texi (Example -- Configuring a tool called directly):
