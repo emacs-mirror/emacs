@@ -515,7 +515,7 @@ it treats larger values as 1.)
 
 @item line-spacing
 Additional space to leave below each text line, in pixels (a positive
-integer)
+integer).  @cref{Line Height}, for more information.
 @end table
 
 @node Buffer Parameters
