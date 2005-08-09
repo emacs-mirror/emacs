@@ -103,15 +103,18 @@ Returns the number of actions taken."
 	(let ((object (if help (capitalize (nth 0 help))))
 	      (objects (if help (capitalize (nth 1 help))))
 	      (action (if help (capitalize (nth 2 help)))))
-	  (setq map `(("Yes" . act) ("No" . skip) ("Quit" . exit)
-		      (,(if help (concat action " " object " And Quit")
-			  "Do it and Quit") . act-and-exit)
+	  (setq map `(("Yes" . act) ("No" . skip)
+		      ,@(mapcar (lambda (elt)
+				  (cons (with-syntax-table
+					    text-mode-syntax-table
+					  (capitalize (nth 2 elt)))
+					(vector (nth 1 elt))))
+				action-alist)
+		      (,(if help (concat action " This But No More")
+			  "Do This But No More") . act-and-exit)
 		      (,(if help (concat action " All " objects)
 			  "Do All") . automatic)
-		      ,@(mapcar (lambda (elt)
-				  (cons (capitalize (nth 2 elt))
-					(vector (nth 1 elt))))
-				action-alist))
+		      ("No For All" . exit))
 		use-menus t
 		mouse-event last-nonmenu-event))
       (setq user-keys (if action-alist
