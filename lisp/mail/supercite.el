@@ -643,8 +643,8 @@ the list should be unique."
 	    (prog1 quit-flag (setq quit-flag nil)))
 	  (progn
 	    (message "%s%s" p (single-key-description event))
-	    (and (fboundp 'deallocate-event)
-		 (deallocate-event event))
+	    (if (fboundp 'deallocate-event)
+		(deallocate-event event))
 	    (setq quit-flag nil)
 	    (signal 'quit '())))
       (let ((char
@@ -659,8 +659,8 @@ the list should be unique."
 	 ((setq elt (rassq char alist))
 	  (message "%s%s" p (car elt))
 	  (setq p (cdr elt)))
-	 ((and (fboundp 'button-release-event-p)
-	       (button-release-event-p event)) ; ignore them
+	 ((if (fboundp 'button-release-event-p)
+	      (button-release-event-p event)) ; ignore them
 	  nil)
 	 (t
 	  (message "%s%s" p (single-key-description event))
@@ -670,8 +670,8 @@ the list should be unique."
 	  (discard-input)
 	  (if (eq p prompt)
 	      (setq p (concat "Try again.  " prompt)))))))
-    (and (fboundp 'deallocate-event)
-	 (deallocate-event event))
+    (if (fboundp 'deallocate-event)
+	(deallocate-event event))
     p))
 
 (defun sc-scan-info-alist (alist)
@@ -1517,7 +1517,8 @@ non-nil."
 	       (progn (forward-line -1)
 		      (or (= (point) (mail-header-end))
 			  (and (eq major-mode 'mh-letter-mode)
-			       (mh-in-header-p)))))
+			       (with-no-warnings
+				 (mh-in-header-p))))))
 	  (progn (forward-line)
 		 (let ((kill-lines-magic t))
 		   (kill-line))))))
