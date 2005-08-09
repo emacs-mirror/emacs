@@ -1464,7 +1464,6 @@ the various files."
 	      buf)
 	  ;; Create a new buffer.
 	  (setq buf (create-file-buffer filename))
-	  (set-buffer-major-mode buf)
 	  ;; find-file-noselect-1 may use a different buffer.
 	  (find-file-noselect-1 buf filename nowarn
 				rawfile truename number))))))
@@ -1538,6 +1537,7 @@ the various files."
 	  (progn
 	    (set-buffer-multibyte nil)
 	    (setq buffer-file-coding-system 'no-conversion)
+	    (set-buffer-major-mode buf)
 	    (make-local-variable 'find-file-literally)
 	    (setq find-file-literally t))
 	(after-find-file error (not nowarn)))
@@ -1727,7 +1727,7 @@ not set local variables (though we do notice a mode specified with -*-.)
 or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
-  (or find-file (funcall (or default-major-mode 'fundamental-mode)))
+  (funcall (or default-major-mode 'fundamental-mode))
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     (report-errors "File mode specification error: %s"
       (set-auto-mode))
@@ -3450,9 +3450,9 @@ This requires the external program `diff' to be in your `exec-path'."
        (recursive-edit)
        ;; Return nil to ask about BUF again.
        nil)
-     "display the current buffer")
+     "view this file")
     (?d diff-buffer-with-file
-	"show difference to last saved version"))
+	"view changes in file"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 (put 'save-some-buffers-action-alist 'risky-local-variable t)
 
@@ -4844,7 +4844,8 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	  ((eq method 'add)
 	   (concat "/:" (apply operation arguments)))
 	  ((eq method 'quote)
-	   (prog1 (apply operation arguments)
+	   (unwind-protect
+	       (apply operation arguments)
 	     (setq buffer-file-name (concat "/:" buffer-file-name))))
 	  ((eq method 'unquote-then-quote)
 	   (let (res)
