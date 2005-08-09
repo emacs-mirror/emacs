@@ -88,7 +88,7 @@ is highlighted lazily using isearch lazy highlighting (see
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
 
-(defun query-replace-read-from (string regexp-flag)
+(defun query-replace-read-from (prompt regexp-flag)
   "Query and return the `from' argument of a query-replace operation.
 The return value can also be a pair (FROM . TO) indicating that the user
 wants to replace FROM with TO."
@@ -107,10 +107,10 @@ wants to replace FROM with TO."
 				      query-replace-from-history-variable))))
 	      (read-from-minibuffer
 	       (if (and lastto lastfrom)
-		   (format "%s (default %s -> %s): " string
+		   (format "%s (default %s -> %s): " prompt
 			   (query-replace-descr lastfrom)
 			   (query-replace-descr lastto))
-		 (format "%s: " string))
+		 (format "%s: " prompt))
 	       nil nil nil
 	       query-replace-from-history-variable
 	       nil t t))))
@@ -173,22 +173,22 @@ the original string if not."
     to))
 
 
-(defun query-replace-read-to (from string regexp-flag)
+(defun query-replace-read-to (from prompt regexp-flag)
   "Query and return the `to' argument of a query-replace operation."
   (query-replace-compile-replacement
    (save-excursion
      (read-from-minibuffer
-      (format "%s %s with: " string (query-replace-descr from))
+      (format "%s %s with: " prompt (query-replace-descr from))
       nil nil nil
       query-replace-to-history-variable from t t))
    regexp-flag))
 
-(defun query-replace-read-args (string regexp-flag &optional noerror)
+(defun query-replace-read-args (prompt regexp-flag &optional noerror)
   (unless noerror
     (barf-if-buffer-read-only))
-  (let* ((from (query-replace-read-from string regexp-flag))
+  (let* ((from (query-replace-read-from prompt regexp-flag))
 	 (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
-	       (query-replace-read-to from string regexp-flag))))
+	       (query-replace-read-to from prompt regexp-flag))))
     (list from to current-prefix-arg)))
 
 (defun query-replace (from-string to-string &optional delimited start end)
