@@ -1833,14 +1833,14 @@ is allowed once again."
 (defmacro while-no-input (&rest body)
   "Execute BODY only as long as there's no pending input.
 If input arrives, that ends the execution of BODY,
-and `while-no-input' returns nil.  If BODY finishes,
-`while-no-input' returns whatever value BODY produced."
+and `while-no-input' returns t.  Quitting makes it return nil.
+If BODY finishes, `while-no-input' returns whatever value BODY produced."
   (declare (debug t) (indent 0))
   (let ((catch-sym (make-symbol "input")))
     `(with-local-quit
        (catch ',catch-sym
 	 (let ((throw-on-input ',catch-sym))
-	   (when (sit-for 0 0 t)
+	   (or (not (sit-for 0 0 t))
 	     ,@body))))))
 
 (defmacro combine-after-change-calls (&rest body)
