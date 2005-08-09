@@ -4,7 +4,7 @@
 ;;   2005 Free Software Foundation, Inc.
 
 ;; Author: code extracted from Emacs-20's simple.el
-;; Maintainer: Stefan Monnier <monnier@cs.yale.edu>
+;; Maintainer: Stefan Monnier <monnier@iro.umontreal.ca>
 ;; Keywords: comment uncomment
 
 ;; This file is part of GNU Emacs.
