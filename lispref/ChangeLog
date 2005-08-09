@@ -1,5 +1,8 @@
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
+	* frames.texi (Geometry): New node, split from Size and Position.
+	(Frame Parameters): Refer to Geometry.
+
 	* buffers.texi (The Buffer List): Fix xrefs.
 	
 	* windows.texi (Splitting Windows): Fix xref.
