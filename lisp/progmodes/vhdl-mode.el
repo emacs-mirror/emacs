@@ -4,9 +4,8 @@
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
-;; Maintainer:  Reto Zimmermann <reto@gnu.org>
+;; Maintainer:  FSF
 ;; Keywords:    languages vhdl
-;; WWW:         http://opensource.ethz.ch/emacs/vhdl-mode.html
 
 (defconst vhdl-version "3.32.12"
   "VHDL Mode version number.")
