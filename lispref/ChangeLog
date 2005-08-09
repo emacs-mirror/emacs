@@ -1,3 +1,11 @@
+2005-08-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* positions.texi (Screen Lines): Update xref for previous change
+	in minibuf.texi.
+
+	* minibuf.texi (Intro to Minibuffers): Update pxref for previous
+	change in minibuf.texi.
+
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
 	* tips.texi (Coding Conventions): Minor cleanup.
