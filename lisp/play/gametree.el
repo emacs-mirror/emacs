@@ -574,9 +574,9 @@ Useful to postal and email chess (and, it is hoped, also checkers, go,
 shogi, etc.) players, it is a slightly modified version of Outline mode.
 
 \\{gametree-mode-map}"
-(auto-fill-mode 0)
-(make-variable-buffer-local 'write-contents-hooks)
-(add-hook 'write-contents-hooks 'gametree-save-and-hack-layout))
+  (auto-fill-mode 0)
+  (make-local-variable 'write-contents-hooks)
+  (add-hook 'write-contents-hooks 'gametree-save-and-hack-layout))
 
 ;;;; Key bindings
 
