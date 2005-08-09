@@ -32,8 +32,10 @@
 ;; Arrange to use current-menubar to set up part of the menu bar.
 
 (defvar current-menubar)
+(defvar lucid-menubar-map)
+(defvar lucid-failing-menubar)
 
-(setq recompute-lucid-menubar 'recompute-lucid-menubar)
+(defvar recompute-lucid-menubar 'recompute-lucid-menubar)
 (defun recompute-lucid-menubar ()
   (define-key lucid-menubar-map [menu-bar]
     (condition-case nil
