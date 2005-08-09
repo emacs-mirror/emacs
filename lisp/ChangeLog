@@ -1,3 +1,49 @@
+2005-08-09  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sql.el (sql-interactive-mode-map): Use fboundp.
+	(sql-read-passwd): Use read-passwd.
+
+	* progmodes/idlw-toolbar.el (idlwave-toolbar)
+	(idlwave-toolbar-is-possible): Add defvars.
+
+	* progmodes/idlw-shell.el (idlwave-xemacs-hack-mouse-track):
+	Avoid warnings.
+
+	* progmodes/idlw-rinfo.el (idlwave-system-variables-alist)
+	(idlwave-system-class-info, idlwave-executive-commands-alist):
+	Use defvar.
+
+	* progmodes/cc-engine.el (c-guess-basic-syntax): Add autoload.
+
+	* mail/supercite.el (sc-ask, sc-no-blank-line-or-header):
+	Avoid warnings.
+
+	* mail/rmail.el (rmail-ignored-headers): Don't hide mime-version:
+	and content-type: headers.
+
+	* eshell/eshell.el (eshell): Avoid warnings about eshell-mode.
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Reorder the options
+	and rename some of them to be more self-explanatory.
+
+	* calendar/calendar.el (calendar-mode-map): Bind < and > usefully.
+
+	* startup.el (command-line-1): Implement -scriptload.
+
+	* replace.el (occur-engine): Initial *Occur* output not undoable.
+
+	* menu-bar.el (menu-bar-file-menu): Rename some menu items
+	and improve help strings.
+
+	* isearch.el (isearch-repeat): When changing direction,
+	mark search successful.
+
+	* ediff-init.el: Use (featurep 'xemacs).
+
+	* comint.el (send-invisible): Identify buffer, if not selected.
+
+	* align.el: Delete autoload for c-guess-basic-syntax.
+
 2005-08-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* textmodes/refbib.el (r2b-convert-record, r2b-convert-buffer):

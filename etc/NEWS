@@ -2799,6 +2799,10 @@ version 5.0.2; see MH-E-NEWS for details.
 ** Calendar changes:
 
 +++
+*** You can now use < and >, instead of C-x < and C-x >, to scroll
+the calendar left or right.  (The old key bindings still work too.)
+
++++
 *** There is a new calendar package, icalendar.el, that can be used to
 convert Emacs diary entries to/from the iCalendar format.
 

@@ -1,3 +1,27 @@
+2005-08-09  Richard M. Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Minor cleanup.
+
+	* modes.texi (Defining Minor Modes): Explain when init-value
+	can be non-nil.
+
+	* elisp.texi (Top): Update submenu for Minibuffer.
+
+	* minibuf.texi (Minibuffer Misc): Node split up.
+	(Minibuffer Commands, Minibuffer Windows, Minibuffer Contents)
+	(Recursive Mini): New nodes split out from Minibuffer Misc.
+	(Minibuffer Misc): Document max-mini-window-height.
+
+	* hash.texi (Defining Hash): Delete stray paren in example.
+
+	* display.texi (Echo Area Customization): Don't define
+	max-mini-window-height here; xref instead.
+
+	* commands.texi (Event Input Misc): Update while-no-input.
+
+	* advice.texi (Advising Functions): Explain when to use advice
+	and when to use a hook.
+
 2005-07-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (info): Don't run install-info.

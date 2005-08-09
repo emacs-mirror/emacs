@@ -4,7 +4,7 @@
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
-;; Maintainer:  FSF
+;; Maintainer:  FSF  (Because Reto Zimmermann seems to have disappeared)
 ;; Keywords:    languages vhdl
 
 (defconst vhdl-version "3.32.12"
