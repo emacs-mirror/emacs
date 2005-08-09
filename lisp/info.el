@@ -1028,7 +1028,7 @@ a case-insensitive match is tried."
       ;; Insert the entire original dir file as a start; note that we've
       ;; already saved its default directory to use as the default
       ;; directory for the whole concatenation.
-      (insert-buffer buffer)
+      (insert-buffer-substring buffer)
 
       ;; Look at each of the other buffers one by one.
       (dolist (other others)
