@@ -993,6 +993,8 @@ In Info, return the current node."
     (insert string)))
 
 
+(defvar Info-current-file)
+
 (defun bookmark-buffer-file-name ()
   "Return the current buffer's file in a way useful for bookmarks.
 For example, if this is a Info buffer, return the Info file's name."
@@ -1102,7 +1104,8 @@ be retrieved from a VC backend, else return nil."
                 ;; Info nodes must be visited with care.
                 (progn
                   (require 'info)
-                  (Info-find-node file info-node))
+		  (with-no-warnings
+		    (Info-find-node file info-node)))
               ;; Else no Info.  Can do an ordinary find-file:
               (set-buffer (find-file-noselect file))
               (goto-char place))
