@@ -126,6 +126,8 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
 	     (recenter -1))))
   (electric-buffer-update-highlight))
 
+(defvar Helper-return-blurb)
+
 (put 'Electric-buffer-menu-mode 'mode-class 'special)
 (defun Electric-buffer-menu-mode ()
   "Major mode for editing a list of buffers.
