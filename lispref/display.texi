@@ -1641,7 +1641,7 @@ parts of Emacs text.
 
 @vindex default-line-spacing
   You can specify the line spacing for all lines in a frame with the
-@code{line-spacing} frame parameter, @xref{Window Frame Parameters}.
+@code{line-spacing} frame parameter (@pxref{Layout Parameters}).
 However, if the variable @code{default-line-spacing} is
 non-@code{nil}, it overrides the frame's @code{line-spacing}
 parameter.  An integer value specifies the number of pixels put below
@@ -3077,7 +3077,7 @@ Normally the frame parameter @code{vertical-scroll-bars} controls
 whether the windows in the frame have vertical scroll bars, and
 whether they are on the left or right.  The frame parameter
 @code{scroll-bar-width} specifies how wide they are (@code{nil}
-meaning the default).  @xref{Window Frame Parameters}.
+meaning the default).  @xref{Layout Parameters}.
 
 @defun frame-current-scroll-bars &optional frame
 This function reports the scroll bar type settings for frame
