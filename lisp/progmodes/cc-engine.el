@@ -5599,6 +5599,7 @@ brace."
 			 containing-sexp paren-state))
      )))
 
+;;;###autoload
 (defun c-guess-basic-syntax ()
   "Return the syntactic context of the current line.
 This function does not do any hidden buffer changes."
