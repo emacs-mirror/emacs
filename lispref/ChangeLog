@@ -1,3 +1,24 @@
+2005-08-09  Richard M. Stallman  <rms@gnu.org>
+
+	* buffers.texi (The Buffer List): Fix xrefs.
+	
+	* windows.texi (Splitting Windows): Fix xref.
+
+	* frames.texi (Layout Parameters): Add xref.
+
+	* display.texi (Line Height, Scroll Bars): Fix xrefs.
+
+	* keymaps.texi (Menu Bar): Fix xref.
+
+	* locals.texi (Standard Buffer-Local Variables): Fix xref.
+
+	* modes.texi (%-Constructs): Fix xref.
+
+	* frames.texi (Window Frame Parameters): Node split up.
+	(Basic Parameters, Position Parameters, Size Parameters)
+	(Layout Parameters, Buffer Parameters, Management Parameters)
+	(Cursor Parameters, Color Parameters): New subnodes.
+
 2005-08-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* positions.texi (Screen Lines): Update xref for previous change
