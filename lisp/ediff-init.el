@@ -559,24 +559,24 @@ See the documentation string of `ediff-focus-on-regexp-matches' for details.")
 
 
 ;; Highlighting
-(defcustom ediff-before-flag-bol (if ediff-xemacs-p (make-glyph "->>") "->>")
+(defcustom ediff-before-flag-bol (if (featurep 'xemacs) (make-glyph "->>") "->>")
   "*Flag placed before a highlighted block of differences, if block starts at beginning of a line."
   :type 'string
   :tag  "Region before-flag at beginning of line"
   :group 'ediff)
 
-(defcustom ediff-after-flag-eol  (if ediff-xemacs-p (make-glyph "<<-") "<<-")
+(defcustom ediff-after-flag-eol  (if (featurep 'xemacs) (make-glyph "<<-") "<<-")
   "*Flag placed after a highlighted block of differences, if block ends at end of a line."
   :type 'string
   :tag  "Region after-flag at end of line"
   :group 'ediff)
 
-(defcustom ediff-before-flag-mol (if ediff-xemacs-p (make-glyph "->>") "->>")
+(defcustom ediff-before-flag-mol (if (featurep 'xemacs) (make-glyph "->>") "->>")
   "*Flag placed before a highlighted block of differences, if block starts in mid-line."
   :type 'string
   :tag  "Region before-flag in the middle of line"
   :group 'ediff)
-(defcustom ediff-after-flag-mol  (if ediff-xemacs-p (make-glyph "<<-") "<<-")
+(defcustom ediff-after-flag-mol  (if (featurep 'xemacs) (make-glyph "<<-") "<<-")
   "*Flag placed after a highlighted block of differences, if block ends in mid-line."
   :type 'string
   :tag  "Region after-flag in the middle of line"
@@ -1464,7 +1464,7 @@ This default should work without changes."
   :group 'ediff)
 
 ;; needed to simulate frame-char-width in XEmacs.
-(defvar ediff-H-glyph (if ediff-xemacs-p (make-glyph "H")))
+(defvar ediff-H-glyph (if (featurep 'xemacs) (make-glyph "H")))
 
 
 ;; Temporary file used for refining difference regions in buffer A.
