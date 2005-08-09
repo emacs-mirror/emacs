@@ -1,3 +1,46 @@
+2005-08-08  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lmenu.el (lucid-menubar-map, lucid-failing-menubar)
+	(recompute-lucid-menubar): Add defvars.
+
+	* mail/sendmail.el (mail-yank-original): Use with-no-warnings.
+
+	* mail/reporter.el (reporter-dump-state): Use insert-buffer-substring.
+
+	* net/net-utils.el (run-dig): Renamed from `dig'.
+
+	* play/gametree.el (gametree-mode): Use make-local-variable,
+	not make-variable-buffer-local.
+
+	* progmodes/ada-prj.el (ada-prj-display-page): Use with-no-warnings.
+
+	* ansi-color.el (ansi-color-make-extent)
+	(ansi-color-set-extent-face): Use fboundp, not functionp.
+
+	* autorevert.el (auto-revert-tail-mode): Use make-local-variable,
+	not make-variable-buffer-local.
+
+	* bookmark.el (Info-current-file): Add defvar.
+	(bookmark-jump-noselect): Use with-no-warnings.
+
+	* completion.el (c-mode-map, fortran-mode-map): Add defvars.
+
+	* ebuff-menu.el (Helper-return-blurb): Add defvar.
+
+	* ffap.el (gnus-summary-buffer, gnus-article-buffer): Add defvars.
+
+	* find-file.el (ada-procedure-start-regexp)
+	(ada-package-start-regexp): Add defvars.
+
+	* info.el (Info-insert-dir): Use insert-buffer-substring.
+
+	* xml.el (xml-att-def-re): Add defvar.
+
+	* icomplete.el (icomplete-exhibit): Adapt to new while-no-input
+	calling convention.
+
+	* subr.el (while-no-input): Return t if there is input.
+
 2005-08-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-start.el (all): Add `overflow-newline-into-fringe'.
