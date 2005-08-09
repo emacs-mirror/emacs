@@ -1929,7 +1929,7 @@ function.  @xref{Buffer File Name}.
 
 @item %F
 The title (only on a window system) or the name of the selected frame.
-@xref{Window Frame Parameters}.
+@xref{Basic Parameters}.
 
 @item %i
 The size of the accessible part of the current buffer; basically
