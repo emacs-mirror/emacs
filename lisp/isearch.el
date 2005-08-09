@@ -1147,7 +1147,8 @@ Use `isearch-exit' to quit without signaling."
 		  (funcall isearch-wrap-function)
 	        (goto-char (if isearch-forward (point-min) (point-max)))))))
     ;; C-s in reverse or C-r in forward, change direction.
-    (setq isearch-forward (not isearch-forward)))
+    (setq isearch-forward (not isearch-forward)
+	  isearch-success t))
 
   (setq isearch-barrier (point)) ; For subsequent \| if regexp.
 
