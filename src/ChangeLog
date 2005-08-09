@@ -1,3 +1,7 @@
+2005-08-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* floatfns.c (Fexpt): Use floats for negative exponent.
+
 2005-08-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_modify_menubar_widgets): Remove semicolon that
