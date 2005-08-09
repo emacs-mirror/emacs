@@ -1,3 +1,14 @@
+2005-08-09  Juri Linkov  <juri@jurta.org>
+
+	* building.texi (Compilation): Use `itemx' instead of `item'.
+	(Grep Searching): Simplify phrase.
+
+	* display.texi (Standard Faces): Describe vertical-border on
+	window systems.
+
+	* windows.texi (Split Window): Simplify phrase and mention
+	vertical-border face.
+
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Comparing Files): Clarify compare-windows.

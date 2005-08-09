@@ -1,3 +1,36 @@
+2005-08-09  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Remove `-text' from face variable names.
+	(compilation-error-file-name, compilation-warning-file-name)
+	(compilation-info-file-name): Delete faces.
+	(compilation-line-number, compilation-column-number):
+	Remove face underlining.
+	(compilation-message-face): Set to `underline' value by default.
+	(compilation-error-face, compilation-warning-face)
+	(compilation-info-face): Remove `-file-name' from face names.
+	(compilation-error-text-face, compilation-warning-text-face)
+	(compilation-info-text-face): Delete face variables.
+	(compilation-text-face): Delete function.
+
+	* progmodes/grep.el (grep-regexp-alist): Use `.+?' instead of
+	`[^:\n]+'.
+	(grep-mode-font-lock-keywords): Use `.+?' instead of `[^\n-]+'.
+	(grep-error-face): Set to `compilation-error' instead of
+	`compilation-error-face' (which is redefined to `grep-hit-face' in
+	grep buffers).
+	(grep-mode-font-lock-keywords): Remove `-text' from face
+	variable names.  Use `grep-error-face' instead of
+	`compilation-error-text-face'.
+
+	* dired-aux.el (dired-do-query-replace-regexp):
+	Use `query-replace-read-args'.
+
+	* replace.el (query-replace-read-from, query-replace-read-to)
+	(query-replace-read-args): Rename arg `string' to `prompt'.
+
+	* menu-bar.el (menu-bar-showhide-menu): Add `showhide-battery'.
+
 2005-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>  (tiny change)
 
 	* net/ange-ftp.el (ange-ftp-send-cmd): Make it work properly with
