@@ -205,6 +205,7 @@ parameters @code{foreground-color}, @code{background-color},
 * Initial Parameters::	   Specifying frame parameters when you make a frame.
 * Window Frame Parameters:: List of frame parameters for window systems.
 * Size and Position::      Changing the size and position of a frame.
+* Geometry::               Parsing geometry specifications.
 @end menu
 
 @node Parameter Access
@@ -515,7 +516,7 @@ it treats larger values as 1.)
 
 @item line-spacing
 Additional space to leave below each text line, in pixels (a positive
-integer).  @cref{Line Height}, for more information.
+integer).  @xref{Line Height}, for more information.
 @end table
 
 @node Buffer Parameters
@@ -824,6 +825,12 @@ The argument @var{pretend} has the same meaning as in
 @code{set-screen-width} were used to specify the height and width of the
 screen, in Emacs versions that did not support multiple frames.  They
 are semi-obsolete, but still work; they apply to the selected frame.
+
+@node Geometry
+@subsection Geometry
+
+  Here's how to examine the data in an X-style window geometry
+specification:
 
 @defun x-parse-geometry geom
 @cindex geometry specification
