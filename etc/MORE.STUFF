@@ -16,7 +16,7 @@ Please submit a bug report if you find that any of the addresses
 listed here fail.
 
 * The `Emacs Lisp List' at
-  <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/ell.html> has pointers
+  <URL:http://www.damtp.cam.ac.uk/user/eglen/emacs/ell.html> has pointers
   to sources of a large number of packages.
 
 * gnu.emacs.sources
@@ -72,8 +72,6 @@ You might find bug-fixes or enhancements in these places.
  * Hideshow: <URL:http://www.glug.org/people/ttn/software/hideshow/>
 
  * Ispell: <URL:http://www.kdstevens.com/%7Estevens/ispell-page.html>
-
- * Iswitchb: <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/iswitchb.el>
 
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 
@@ -159,7 +157,7 @@ Several are for Debian GNU/Linux in particular.
  * EMacro: <URL:http://emacro.sourceforge.net/>
    EMacro is a portable configuration file that configures itself.
 
- * Emacs statistical system (ESS): statistical programming within Emacs
+ * Emacs speaks statistics (ESS): statistical programming within Emacs
    <URL:http://ess.r-project.org>
 
  * Emacspeak -- A Speech Output Subsystem For Emacs:
