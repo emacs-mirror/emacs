@@ -636,7 +636,7 @@ the end of the accessible portion of the buffer, and pass @var{line} and
 
 When you use @code{compute-motion} for the minibuffer, you need to use
 @code{minibuffer-prompt-width} to get the horizontal position of the
-beginning of the first screen line.  @xref{Minibuffer Misc}.
+beginning of the first screen line.  @xref{Minibuffer Contents}.
 @end defun
 
 @node List Motion
