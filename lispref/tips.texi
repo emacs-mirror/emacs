@@ -294,7 +294,7 @@ accessed in random order (not searched front to back), provided there is
 no need to insert or delete elements (only lists allow that).
 
 @item
-The recommended way to print a message in the echo area is with
+The recommended way to show a message in the echo area is with
 the @code{message} function, not @code{princ}.  @xref{The Echo Area}.
 
 @item
