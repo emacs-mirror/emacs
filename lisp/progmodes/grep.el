@@ -244,11 +244,11 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 
 ;;;###autoload
 (defvar grep-regexp-alist
-  '(("^\\([^:\n]+\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
+  '(("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
      1 3)
     ;; Rule to match column numbers is commented out since no known grep
     ;; produces them
-    ;; ("^\\([^:\n]+\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2\\(?:\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?\\2\\)?"
+    ;; ("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2\\(?:\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?\\2\\)?"
     ;;  1 3 (4 . 5))
     ("^\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
 \\(\033\\[01;31m\\(?:\033\\[K\\)?\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
@@ -272,7 +272,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 (defvar grep-hit-face	compilation-info-face
   "Face name to use for grep hits.")
 
-(defvar grep-error-face	compilation-error-face
+(defvar grep-error-face	'compilation-error
   "Face name to use for grep error messages.")
 
 (defvar grep-match-face	'match
@@ -289,13 +289,13 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
      ;; remove match from grep-regexp-alist before fontifying
      ("^Grep finished \\(?:(\\(matches found\\))\\|with \\(no matches found\\)\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 compilation-info-text-face nil t)
-      (2 compilation-warning-text-face nil t))
+      (1 compilation-info-face nil t)
+      (2 compilation-warning-face nil t))
      ("^Grep \\(exited abnormally\\) with code \\([0-9]+\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 compilation-error-text-face)
-      (2 compilation-error-text-face))
-     ("^[^\n-]+-[0-9]+-.*" (0 grep-context-face))
+      (1 grep-error-face)
+      (2 grep-error-face))
+     ("^.+?-[0-9]+-.*\n" (0 grep-context-face))
      ;; Highlight grep matches and delete markers
      ("\\(\033\\[01;31m\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
       ;; Refontification does not work after the markers have been
