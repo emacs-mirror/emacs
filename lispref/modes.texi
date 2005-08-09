@@ -1373,7 +1373,8 @@ symbol).  It defines a command named @var{mode} to toggle the minor
 mode, with @var{doc} as its documentation string.  It also defines a
 variable named @var{mode}, which is set to @code{t} or @code{nil} by
 enabling or disabling the mode.  The variable is initialized to
-@var{init-value}.
+@var{init-value}.  Except in unusual circumstances (see below), this
+value must be @code{nil}.
 
 The string @var{lighter} says what to display in the mode line
 when the mode is enabled; if it is @code{nil}, the mode is not displayed
@@ -1423,6 +1424,14 @@ as setting the variable named @var{mode} and then executes the
 @var{body} forms, if any.  It finishes by running the mode hook
 variable @code{@var{mode}-hook}.
 @end defmac
+
+  The initial value must be @code{nil} except in cases where (1) the
+mode is preloaded in Emacs, or (2) it is painless to for loading to
+enable the mode even though the user did not request it.  For
+instance, if the mode has no effect unless something else is enabled,
+and will always be loaded by that time, enabling it by default is
+harmless.  But these are unusual circumstances.  Normally, the
+initial value must be @code{nil}.
 
 @findex easy-mmode-define-minor-mode
   The name @code{easy-mmode-define-minor-mode} is an alias
