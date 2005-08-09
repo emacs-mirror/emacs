@@ -495,18 +495,17 @@ sequence are echoed immediately.)
 If the value is zero, then command input is not echoed.
 @end defvar
 
-@defopt max-mini-window-height
-This variable specifies the maximum height for resizing minibuffer
-windows.  If a float, it specifies a fraction of the height of the
-frame.  If an integer, it specifies a number of lines.
-@end defopt
-
 @defvar message-truncate-lines
 Normally, displaying a long message resizes the echo area to display
 the entire message.  But if the variable @code{message-truncate-lines}
 is non-@code{nil}, the echo area does not resize, and the message is
 truncated to fit it, as in Emacs 20 and before.
 @end defvar
+
+  The variable @code{max-mini-window-height}, which specifies the
+maximum height for resizing minibuffer windows, also applies to the
+echo area (which is really a special use of the minibuffer window.
+@xref{Minibuffer Misc}.
 
 @node Warnings
 @section Reporting Warnings
