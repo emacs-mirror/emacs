@@ -8,7 +8,7 @@
 @cindex advising functions
 
   The @dfn{advice} feature lets you add to the existing definition of
-a function, by @dfn{advising the function}.  This is a clean method
+a function, by @dfn{advising the function}.  This is a cleaner method
 for a library to customize functions defined within Emacs---cleaner
 than redefining the whole function.
 
@@ -23,8 +23,20 @@ are not the same thing.
 
   @strong{Usage Note:} Advice is useful for altering the behavior of
 existing calls to an existing function.  If you want the new behavior
-for new calls, or for key bindings, it is cleaner to define a new
-function (or a new command) which uses the existing function.
+for new calls, or for key bindings, you should define a new function
+(or a new command) which uses the existing function.
+
+  @strong{Usage note:} Advising a function can cause confusion in
+debugging, since people who debug calls to the original function may
+not notice that it has been modified with advice.  Therefore, if you
+have the possibility to change the code of that function (or ask
+someone to do so) to run a hook, please solve the problem that way.
+Advice should be reserved for the cases where you cannot get the
+function changed.
+
+  In particular, this means that a file in Emacs should not put advice
+on a function in Emacs.  There are currently a few exceptions to this
+convention, but we aim to correct them.
 
 @menu
 * Simple Advice::           A simple example to explain the basics of advice.
