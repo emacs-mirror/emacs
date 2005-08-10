@@ -131,6 +131,7 @@ you're going to handle.
 
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
+etc			working		Thien-Thi Nguyen
 leim			working		Kenichi Handa
 lib-src			done		Thien-Thi Nguyen
 lisp			done		Thien-Thi Nguyen
@@ -152,10 +153,16 @@ lisp/term		done		Thien-Thi Nguyen
 lisp/textmodes		done		Thien-Thi Nguyen
 lisp/toolbar		done		Thien-Thi Nguyen
 lisp/url		done		Thien-Thi Nguyen
+lispintro		working		Thien-Thi Nguyen
+lispref			working		Thien-Thi Nguyen
 lwlib			done		Thien-Thi Nguyen
-src			done		Thien-Thi Nguyen
-src/m			done		Thien-Thi Nguyen
-src/s			done		Thien-Thi Nguyen
+m4			done		Thien-Thi Nguyen
+mac/* (+ subdirs)	working		Thien-Thi Nguyen
+man			working		Thien-Thi Nguyen
+msdos			working		Thien-Thi Nguyen
+nt/* (+ subdirs)	working		Thien-Thi Nguyen
+oldXMenu		working		Thien-Thi Nguyen
+src/* (+ subdirs)	done		Thien-Thi Nguyen
 vms			done		Thien-Thi Nguyen
 
 ** Check the Emacs manual.
