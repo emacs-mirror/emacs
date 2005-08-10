@@ -153,16 +153,16 @@ lisp/term		done		Thien-Thi Nguyen
 lisp/textmodes		done		Thien-Thi Nguyen
 lisp/toolbar		done		Thien-Thi Nguyen
 lisp/url		done		Thien-Thi Nguyen
-lispintro		working		Thien-Thi Nguyen
+lispintro		done		Thien-Thi Nguyen
 lispref			working		Thien-Thi Nguyen
 lwlib			done		Thien-Thi Nguyen
 m4			done		Thien-Thi Nguyen
-mac/* (+ subdirs)	working		Thien-Thi Nguyen
-man			working		Thien-Thi Nguyen
-msdos			working		Thien-Thi Nguyen
-nt/* (+ subdirs)	working		Thien-Thi Nguyen
+mac (and subdirs)	done		Thien-Thi Nguyen
+man			done		Thien-Thi Nguyen
+msdos			done		Thien-Thi Nguyen
+nt (and subdirs)	done		Thien-Thi Nguyen
 oldXMenu		working		Thien-Thi Nguyen
-src/* (+ subdirs)	done		Thien-Thi Nguyen
+src (and subdirs)	done		Thien-Thi Nguyen
 vms			done		Thien-Thi Nguyen
 
 ** Check the Emacs manual.
