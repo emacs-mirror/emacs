@@ -1,3 +1,8 @@
+2005-08-10  Lars Hansen  <larsh@soem.dk>
+	* mh-e/mh-e.el: Add handler to desktop-buffer-mode-handlers.
+	(mh-restore-desktop-buffer): Remove autoload cookie.
+	(mh-folder-mode): Add autoload cookie.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.
