@@ -641,7 +641,8 @@ by \"Save Options\" in Custom buffers.")
     ;; put on a customized-value property.
     (dolist (elt '(line-number-mode column-number-mode size-indication-mode
 		   cua-mode show-paren-mode transient-mark-mode
-		   global-font-lock-mode blink-cursor-mode))
+		   global-font-lock-mode blink-cursor-mode
+		   display-time-mode display-battery-mode))
       (and (customize-mark-to-save elt)
 	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.
@@ -650,7 +651,7 @@ by \"Save Options\" in Custom buffers.")
 		   tooltip-mode menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style fringe-mode
 		   indicate-empty-lines indicate-buffer-boundaries
-		   case-fold-search display-time-mode auto-compression-mode
+		   case-fold-search auto-compression-mode
 		   current-language-environment default-input-method
 		   ;; Saving `text-mode-hook' is somewhat questionable,
 		   ;; as we might get more than we bargain for, if
