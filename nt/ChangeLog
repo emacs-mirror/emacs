@@ -1,3 +1,7 @@
+2005-08-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `obj' and `oo' for in-place installations.
+
 2005-07-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt: (HAVE_GETOPT_H, HAVE_GETOPT_LONG_ONLY): Undefine.
