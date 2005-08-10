@@ -1469,6 +1469,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
 
+;; Autoload cookie needed by desktop.el
+;;;###autoload
 (defun dired-mode (&optional dirname switches)
   "\
 Mode for \"editing\" directory listings.
@@ -3270,7 +3272,6 @@ Ask means pop up a menu for the user to select one of copy, move or link."
          (function (lambda (f) (desktop-file-name (car f) desktop-dirname)))
          dired-subdir-alist)))))
 
-;;;###autoload
 (defun dired-restore-desktop-buffer (desktop-buffer-file-name
                                      desktop-buffer-name
                                      desktop-buffer-misc)
@@ -3290,6 +3291,9 @@ Ask means pop up a menu for the user to select one of copy, move or link."
       (message "Desktop: Directory %s no longer exists." dir)
       (when desktop-missing-file-warning (sit-for 1))
       nil)))
+
+(add-to-list 'desktop-buffer-mode-handlers
+             '(dired-mode . dired-restore-desktop-buffer))
 
 
 (if (eq system-type 'vax-vms)
