@@ -4058,7 +4058,6 @@ encoded string (and the same mask) will decode the string."
 
 ;;;;  Desktop support
 
-;;;###autoload
 (defun rmail-restore-desktop-buffer (desktop-buffer-file-name
                                      desktop-buffer-name
                                      desktop-buffer-misc)
@@ -4072,6 +4071,9 @@ encoded string (and the same mask) will decode the string."
     (file-locked
       (kill-buffer (current-buffer))
       nil)))
+
+(add-to-list 'desktop-buffer-mode-handlers
+             '(rmail-mode . rmail-restore-desktop-buffer))
 
 (provide 'rmail)
 
