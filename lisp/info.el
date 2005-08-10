@@ -3255,6 +3255,8 @@ With a zero prefix arg, put the name inside a function call to `info'."
 
 (defvar tool-bar-map)
 
+;; Autoload cookie needed by desktop.el
+;;;###autoload
 (defun Info-mode ()
   "Info mode provides commands for browsing through the Info documentation tree.
 Documentation in Info is divided into \"nodes\", each of which discusses
@@ -4179,7 +4181,6 @@ BUFFER is the buffer speedbar is requesting buttons for."
   (if (not (member Info-current-file '("apropos" "history" "toc")))
       (list Info-current-file Info-current-node)))
 
-;;;###autoload
 (defun Info-restore-desktop-buffer (desktop-buffer-file-name
                                     desktop-buffer-name
                                     desktop-buffer-misc)
@@ -4192,6 +4193,9 @@ BUFFER is the buffer speedbar is requesting buttons for."
       (Info-mode))
     (Info-find-node first second)
     (current-buffer))))
+
+(add-to-list 'desktop-buffer-mode-handlers
+             '(Info-mode . Info-restore-desktop-buffer))
 
 (provide 'info)
 
