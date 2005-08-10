@@ -10,7 +10,7 @@
 @set VER 21.3
 
 @copying
-Copyright 2001, 2002, 2003 Free Software Foundation, Inc.
+Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 Copyright 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
 Copyright 1992,1993 Steven Byrnes@*
 Copyright 1990,1991,1992 Joseph Brian Wells@*

@@ -28,7 +28,8 @@
 This documents the ``extra'' features for Dired Mode for GNU Emacs found in
 the file @file{dired-x.el}.
 
-Copyright @copyright{} 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 1994, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to make and distribute verbatim copies of this
