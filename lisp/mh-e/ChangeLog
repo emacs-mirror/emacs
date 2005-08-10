@@ -1,5 +1,5 @@
 2005-08-10  Lars Hansen  <larsh@soem.dk>
-	* mh-e/mh-e.el: Add handler to desktop-buffer-mode-handlers.
+	* mh-e.el: Add handler to desktop-buffer-mode-handlers.
 	(mh-restore-desktop-buffer): Remove autoload cookie.
 	(mh-folder-mode): Add autoload cookie.
 

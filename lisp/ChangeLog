@@ -1,3 +1,47 @@
+2005-08-10  Lars Hansen  <larsh@soem.dk>
+	* desktop.el (desktop-buffer-mode-handlers): Make
+	non-customizable. Add autoload cookie.  Change initial value to
+	nil; add elements in respective modules instead. Fix doc string.
+	(desktop-load-file): New function.
+	(desktop-minor-mode-handlers): New autoloaded variable.
+	(desktop-create-buffer): Call minor mode handlers. Use
+	desktop-load-file to load major and minor mode modules prior to
+	checking for a handler.
+	(desktop-save): Don't add nil to desktop-minor-modes for minor
+	modes with nil function in desktop-minor-mode-table. Don't delete
+	desktop file before rewriting it.
+	(desktop-locals-to-save): Add autoload cookie. Don't make
+	automatically buffer-local.  Add variables column-number-mode,
+	size-indication-mode, indent-tabs-mode,
+	indicate-buffer-boundaries, indicate-empty-lines and
+	show-trailing-whitespace.
+	(desktop-clear): Allow desktop-clear-preserve-buffers to contain
+	regexps. Don't use desktop-clear-preserve-buffers-regexp.
+	(desktop-clear-preserve-buffers-regexp): Delete.
+	(desktop-clear-preserve-buffers): Update initial value and
+	docstring.
+	(desktop-save-buffer): Fix doc string.
+
+	* hilit-chg.el: Add handler to desktop-minor-mode-handlers.
+	(hilit-chg-desktop-restore): New function.
+	(highlight-changes-mode): Add highlight-changes-mode to
+	desktop-locals-to-save.
+
+	* dired.el: Add handler to desktop-buffer-mode-handlers.
+	(dired-restore-desktop-buffer): Remove autoload cookie.
+	(dired-mode): Add autoload cookie.
+
+	* info.el: Add handler to desktop-buffer-mode-handlers.
+	(Info-restore-desktop-buffer): Remove autoload cookie.
+	(Info-mode): Add autoload cookie.
+
+	* mh-e/mh-e.el: Add handler to desktop-buffer-mode-handlers.
+	(mh-restore-desktop-buffer): Remove autoload cookie.
+	(mh-folder-mode): Add autoload cookie.
+
+	* mail/rmail.el: Add handler to desktop-buffer-mode-handlers.
+	(rmail-restore-desktop-buffer): Remove autoload cookie.
+	
 2005-08-11  Masatake YAMATO  <jet@gyve.org>
 
 	* hexl.el (hexl-address-region): 
