@@ -85,12 +85,12 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
   :options '(hexl-follow-line hexl-activate-ruler turn-on-eldoc-mode)
   :group 'hexl)
 
-(defface hexl-address-area
+(defface hexl-address-region
   '((t (:inherit header-line)))
   "Face used in address are of hexl-mode buffer."
   :group 'hexl)
 
-(defface hexl-ascii-area
+(defface hexl-ascii-region
   '((t (:inherit header-line)))
   "Face used in ascii are of hexl-mode buffer."
   :group 'hexl)
@@ -121,8 +121,8 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hexl-font-lock-keywords
   '(("^\\([0-9a-f]+:\\).\\{40\\}  \\(.+$\\)"
      ;; "^\\([0-9a-f]+:\\).+  \\(.+$\\)"
-     (1 'hexl-address-area t t)
-     (2 'hexl-ascii-area t t)))
+     (1 'hexl-address-region t t)
+     (2 'hexl-ascii-region t t)))
   "Font lock keywords used in `hexl-mode'.")
 
 ;; routines
@@ -935,7 +935,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   (hl-line-mode 1))
 
 (defun hexl-highlight-line-range ()
-  "Return the range of address area for the point.
+  "Return the range of address region for the point.
 This function is assumed to be used as call back function for `hl-line-mode'."
   (cons
    (line-beginning-position)
