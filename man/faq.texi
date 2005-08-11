@@ -2206,7 +2206,7 @@ otherwise.  @inforef{Frame Commands, Frame Commands, emacs}.
 @cindex Unix regeps, differences from Emacs
 @cindex Text strings, putting regexps in
 
-@inforef{Regexps, Regexps, emacs}.
+@inforef{Regexp Backslash, Regexp Backslash, emacs}.
 
 The @code{or} operator is @samp{\|}, not @samp{|}, and the grouping operators
 are @samp{\(} and @samp{\)}.  Also, the string syntax for a backslash is
