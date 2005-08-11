@@ -1,3 +1,16 @@
+2005-08-11  Richard M. Stallman  <rms@gnu.org>
+
+	* tips.texi (Key Binding Conventions, Programming Tips, Warning Tips):
+	New nodes split out of Coding Conventions.
+
+	* searching.texi (Regular Expressions): Document re-builder.
+
+	* os.texi (Time Parsing): New node split out of Time Conversion.
+
+	* processes.texi (Misc Network, Network Feature Testing)
+	(Network Options, Make Network): New nodes split out of
+	Low-Level Network.
+
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
 	* frames.texi (Geometry): New node, split from Size and Position.
