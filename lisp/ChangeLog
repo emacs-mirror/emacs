@@ -1,3 +1,13 @@
+2005-08-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ldefs-boot.el: Update.
+
+	* menu-bar.el (menu-bar-showhide-menu): Rename "Date, Time and Mail"
+	item to "Time, Load and Mail".  Change help echo text.
+
+	* time.el (display-time-use-mail-icon, display-time-format)
+	(display-time-string-forms): Shorten first line of docstrings.
+
 2005-08-10  Lars Hansen  <larsh@soem.dk>
 	* desktop.el (desktop-buffer-mode-handlers): Make
 	non-customizable. Add autoload cookie.  Change initial value to
