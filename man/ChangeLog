@@ -1,3 +1,11 @@
+2005-08-11  Richard M. Stallman  <rms@gnu.org>
+
+	* programs.texi (Options for Comments): Fix xref.
+
+	* search.texi (Regexp Backslash, Regexp Example): New nodes split out of Regexps.
+
+	* faq.texi (Using regular expressions): Fix xref.
+
 2005-08-09  Juri Linkov  <juri@jurta.org>
 
 	* building.texi (Compilation): Use `itemx' instead of `item'.

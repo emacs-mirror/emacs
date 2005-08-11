@@ -1,5 +1,9 @@
 2005-08-11  Richard M. Stallman  <rms@gnu.org>
 
+	* elisp.texi (Top): Update subnode lists.
+
+	* display.texi (Inverse Video): Node deleted.
+
 	* tips.texi (Key Binding Conventions, Programming Tips, Warning Tips):
 	New nodes split out of Coding Conventions.
 
