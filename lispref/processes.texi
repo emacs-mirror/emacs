@@ -52,6 +52,7 @@ This function returns @code{t} if @var{object} is a process,
 * Datagrams::                UDP network connections.
 * Low-Level Network::        Lower-level but more general function
                                to create connections and servers.
+* Misc Network::             Additional relevant functions for network connections.
 * Byte Packing::             Using bindat to pack and unpack binary data.
 @end menu
 
@@ -1716,6 +1717,20 @@ sets its remote peer address to @var{address}.
 @node Low-Level Network
 @section Low-Level Network Access
 
+  You can also create network connections by operating at a lower
+level that that of @code{open-network-stream}, using
+@code{make-network-process}.
+
+@menu
+* Make Network::             Using @code{make-network-process}.
+* Network Options::          Further control over network connections.
+* Network Feature Testing::  Determining which network features work on
+                               the machine you are using.
+@end menu
+
+@node Make Network
+@subsection @code{make-network-process}
+
    The basic function for creating network connections and network
 servers is @code{make-network-process}.  It can do either of those
 jobs, depending on the arguments you give it.
@@ -1852,14 +1867,21 @@ happened.
 Initialize the process plist to @var{plist}.
 @end table
 
-The following network options can be specified for the network
-process.  Except for @code{:reuseaddr}, you can set or modify these
-options later using @code{set-network-process-option}.
+The original argument list, modified with the actual connection
+information, is available via the @code{process-contact} function.
+@end defun
 
-For a server process, the options specified with
+@node Network Options
+@subsection Network Options
+
+  The following network options can be specified when you create a
+network process.  Except for @code{:reuseaddr}, you can also set or
+modify these options later, using @code{set-network-process-option}.
+
+  For a server process, the options specified with
 @code{make-network-process} are not inherited by the client
 connections, so you will need to set the necessary options for each
-child connection as they are created.
+child connection as it is created.
 
 @table @asis
 @item :bindtodevice @var{device-name}
@@ -1914,12 +1936,7 @@ listening on that port.  If @var{reuseaddr-flag} is @code{nil}, there
 may be a period of time after the last use of that port (by any
 process on the host), where it is not possible to make a new server on
 that port.
-
 @end table
-
-The original argument list, modified with the actual connection
-information, is available via the @code{process-contact} function.
-@end defun
 
 @defun set-network-process-option process option value
 This function sets or modifies a network option for network process
@@ -1929,6 +1946,64 @@ This function sets or modifies a network option for network process
 The current setting of an option is available via the
 @code{process-contact} function.
 @end defun
+
+@node Network Feature Testing
+@subsection Testing Availability of Network Features
+
+  To test for the availability of a given network feature, use
+@code{featurep} like this:
+
+@example
+(featurep 'make-network-process '(@var{keyword} @var{value}))
+@end example
+
+@noindent
+The result of the first form is @code{t} if it works to specify
+@var{keyword} with value @var{value} in @code{make-network-process}.
+The result of the second form is @code{t} if @var{keyword} is
+supported by @code{make-network-process}.  Here are some of the
+@var{keyword}---@var{value} pairs you can test in
+this way.
+
+@table @code
+@item (:nowait t)
+Non-@code{nil} if non-blocking connect is supported.
+@item (:type datagram)
+Non-@code{nil} if datagrams are supported.
+@item (:family local)
+Non-@code{nil} if local (aka ``UNIX domain'') sockets are supported.
+@item (:service t)
+Non-@code{nil} if the system can select the port for a server.
+@end table
+
+  To test for the availability of a given network option, use
+@code{featurep} like this:
+
+@example
+(featurep 'make-network-process '@var{keyword})
+@end example
+
+@noindent
+Here are some of the options you can test in this way.
+
+@table @code
+@item :bindtodevice
+@itemx :broadcast
+@itemx :dontroute
+@itemx :keepalive
+@itemx :linger
+@itemx :oobinline
+@itemx :priority
+@itemx :reuseaddr
+That particular network option is supported by
+@code{make-network-process} and @code{set-network-process-option}.
+@end table
+
+@node Misc Network
+@section Misc Network Facilities
+
+  These additional functions are useful for creating and operating
+on network connections.
 
 @defun network-interface-list
 This function returns a list describing the network interfaces
@@ -1968,55 +2043,6 @@ a string.  For example, a five-element vector @code{[@var{a} @var{b}
 If @var{omit-port} is non-@code{nil}, the value does not include
 the port number.
 @end defun
-
-  To test for the availability of a given network feature, use
-@code{featurep} like this:
-
-@example
-(featurep 'make-network-process '(@var{keyword} @var{value}))
-@end example
-
-@noindent
-The result of the first form is @code{t} if it works to specify
-@var{keyword} with value @var{value} in @code{make-network-process}.
-The result of the second form is @code{t} if @var{keyword} is
-supported by @code{make-network-process}.  Here are some of the
-@var{keyword}---@var{value} pairs you can test in
-this way.
-
-@table @code
-@item (:nowait t)
-Non-@code{nil} if non-blocking connect is supported.
-@item (:type datagram)
-Non-@code{nil} if datagrams are supported.
-@item (:family local)
-Non-@code{nil} if local (aka ``UNIX domain'') sockets are supported.
-@item (:service t)
-Non-@code{nil} if the system can select the port for a server.
-@end table
-
-  To test for the availability of a given network option, use
-@code{featurep} like this:
-
-@example
-(featurep 'make-network-process '@var{keyword})
-@end example
-
-Here are some of the option @var{keyword}s you can test in
-this way.
-
-@table @code
-@item :bindtodevice
-@itemx :broadcast
-@itemx :dontroute
-@itemx :keepalive
-@itemx :linger
-@itemx :oobinline
-@itemx :priority
-@itemx :reuseaddr
-That particular network option is supported by
-@code{make-network-process} and @code{set-network-process-option}.
-@end table
 
 @node Byte Packing
 @section Packing and Unpacking Byte Arrays
