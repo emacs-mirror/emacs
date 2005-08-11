@@ -1,5 +1,7 @@
 2005-08-11  Richard M. Stallman  <rms@gnu.org>
 
+	* simple.el (pop-global-mark): Reverse test of widen-automatically.
+
 	* battery.el (battery-status-function): Don't use ignore-errors.
 
 2005-08-11  Lute Kamstra  <lute@gnu.org>

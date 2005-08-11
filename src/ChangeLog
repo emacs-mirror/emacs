@@ -1,3 +1,8 @@
+2005-08-11  Richard M. Stallman  <rms@gnu.org>
+
+	* image.c (syms_of_image): Init image_types here, and call define_image_type.
+	(init_image): Not here.
+
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
 
 	* bytecode.c (BYTE_CODE_QUIT): Throw t to Vthrow_on_input.
