@@ -51,11 +51,11 @@
 
 	* mail/rmail.el: Add handler to desktop-buffer-mode-handlers.
 	(rmail-restore-desktop-buffer): Remove autoload cookie.
-	
+
 2005-08-11  Masatake YAMATO  <jet@gyve.org>
 
-	* hexl.el (hexl-address-region): 
-	(hexl-ascii-region, hexl-font-lock-keywords): 
+	* hexl.el (hexl-address-region):
+	(hexl-ascii-region, hexl-font-lock-keywords):
 	(hexl-highlight-line-range): Use the term "region"
 	instead of "area" for consistency with the other symbols
 	defined in hexl.el.
