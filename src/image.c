@@ -8025,6 +8025,11 @@ syms_of_image ()
 {
   extern Lisp_Object Qrisky_local_variable;   /* Syms_of_xdisp has already run.  */
 
+  /* Initialize this only once, since that's what we do with Vimage_types
+     and they are supposed to be in sync.  Initializing here gives correct
+     operation on GNU/Linux of calling dump-emacs after loading some images.  */
+  image_types = NULL;
+
   /* Must be defined now becase we're going to update it below, while
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", &Vimage_types,
@@ -8032,6 +8037,9 @@ syms_of_image ()
 Each element of the list is a symbol for a image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
+
+  define_image_type (&xbm_type, 1);
+  define_image_type (&pbm_type, 1);
 
   DEFVAR_LISP ("image-library-alist", &Vimage_library_alist,
     doc: /* Alist of image types vs external libraries needed to display them.
@@ -8163,11 +8171,6 @@ meaning don't clear the cache.  */);
 void
 init_image ()
 {
-  image_types = NULL;
-
-  define_image_type (&xbm_type, 1);
-  define_image_type (&pbm_type, 1);
-
 #ifdef MAC_OS
   /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */
   EnterMovies ();
