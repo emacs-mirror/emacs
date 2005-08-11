@@ -708,8 +708,9 @@ by \"Save Options\" in Custom buffers.")
 
 (define-key menu-bar-showhide-menu [showhide-date-time]
   (menu-bar-make-mm-toggle display-time-mode
-			   "Date, Time and Mail"
-			   "Display date, time, mail status in mode line"))
+			   "Time, Load and Mail"
+			   "Display time, system load averages and \
+mail status in mode line"))
 
 (define-key menu-bar-showhide-menu [datetime-separator]
   '("--"))
