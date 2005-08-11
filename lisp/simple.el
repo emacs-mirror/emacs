@@ -3240,8 +3240,8 @@ as a fallback, and won't change the buffer bounds.")
     (or (and (>= position (point-min))
 	     (<= position (point-max)))
 	(if widen-automatically
-	    (error "Global mark position is outside accessible part of buffer")
-	  (widen)))
+	    (widen)
+	  (error "Global mark position is outside accessible part of buffer")))
     (goto-char position)
     (switch-to-buffer buffer)))
 
