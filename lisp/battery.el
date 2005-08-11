@@ -49,10 +49,11 @@
 	      (file-directory-p "/proc/acpi/battery"))
 	 'battery-linux-proc-acpi)
 	((and (eq system-type 'darwin)
-	      (ignore-errors 
-		(with-temp-buffer 
-		  (and (eq (call-process "pmset" nil t nil "-g" "ps") 0)
-		       (> (buffer-size) 0)))))
+	      (condition-case nil  
+		  (with-temp-buffer 
+		    (and (eq (call-process "pmset" nil t nil "-g" "ps") 0)
+			 (> (buffer-size) 0)))
+		(error nil)))
 	 'battery-pmset))
   "*Function for getting battery status information.
 The function has to return an alist of conversion definitions.
