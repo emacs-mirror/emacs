@@ -1016,7 +1016,7 @@ for example, in C mode the value of the variable is
 after the @samp{/*} itself, and accepts C++ style comments also.
 (Note that @samp{\\} is needed in Lisp syntax to include a @samp{\} in
 the string, which is needed to deny the first star its special meaning
-in regexp syntax.  @xref{Regexps}.)
+in regexp syntax.  @xref{Regexp Backslash}.)
 
 @vindex comment-start
 @vindex comment-end
