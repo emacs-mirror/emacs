@@ -102,8 +102,7 @@
 (defvar generic-font-lock-keywords nil
   "Keywords for `font-lock-defaults' in a generic mode.")
 (make-variable-buffer-local 'generic-font-lock-keywords)
-(defvaralias 'generic-font-lock-defaults 'generic-font-lock-keywords)
-(make-obsolete-variable 'generic-font-lock-defaults 'generic-font-lock-keywords "22.1")
+(define-obsolete-variable-alias 'generic-font-lock-defaults 'generic-font-lock-keywords "22.1")
 
 ;;;###autoload
 (defvar generic-mode-list nil
