@@ -31,7 +31,6 @@ that Emacs presents to the user.
 * Images::              Displaying images in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
 * Blinking::            How Emacs shows the matching open parenthesis.
-* Inverse Video::       Specifying how the screen looks.
 * Usual Display::       The usual conventions for displaying nonprinting chars.
 * Display Tables::      How to specify other conventions.
 * Beeping::             Audible signal to the user.
@@ -4590,17 +4589,6 @@ Here is an example of calling this function explicitly.
 @end group
 @end smallexample
 @end deffn
-
-@node Inverse Video
-@section Inverse Video
-@cindex Inverse Video
-
-@defopt inverse-video
-@cindex highlighting
-This variable controls whether Emacs uses inverse video for all text
-on the screen.  Non-@code{nil} means yes, @code{nil} means no.  The
-default is @code{nil}.
-@end defopt
 
 @node Usual Display
 @section Usual Display Conventions
