@@ -1,3 +1,9 @@
+2005-08-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el: Use \\` and \\' instead of ^ and $ in regexps.
+	(ange-ftp-send-cmd): Revert last change, and expand
+	the comment explaining the problem.
+
 2005-08-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* ldefs-boot.el: Update.
@@ -9,13 +15,14 @@
 	(display-time-string-forms): Shorten first line of docstrings.
 
 2005-08-10  Lars Hansen  <larsh@soem.dk>
-	* desktop.el (desktop-buffer-mode-handlers): Make
-	non-customizable. Add autoload cookie.  Change initial value to
+
+	* desktop.el (desktop-buffer-mode-handlers):
+	Make non-customizable. Add autoload cookie.  Change initial value to
 	nil; add elements in respective modules instead. Fix doc string.
 	(desktop-load-file): New function.
 	(desktop-minor-mode-handlers): New autoloaded variable.
-	(desktop-create-buffer): Call minor mode handlers. Use
-	desktop-load-file to load major and minor mode modules prior to
+	(desktop-create-buffer): Call minor mode handlers.
+	Use desktop-load-file to load major and minor mode modules prior to
 	checking for a handler.
 	(desktop-save): Don't add nil to desktop-minor-modes for minor
 	modes with nil function in desktop-minor-mode-table. Don't delete
@@ -28,8 +35,7 @@
 	(desktop-clear): Allow desktop-clear-preserve-buffers to contain
 	regexps. Don't use desktop-clear-preserve-buffers-regexp.
 	(desktop-clear-preserve-buffers-regexp): Delete.
-	(desktop-clear-preserve-buffers): Update initial value and
-	docstring.
+	(desktop-clear-preserve-buffers): Update initial value and docstring.
 	(desktop-save-buffer): Fix doc string.
 
 	* hilit-chg.el: Add handler to desktop-minor-mode-handlers.
@@ -81,8 +87,7 @@
 	(compilation-info-text-face): Delete face variables.
 	(compilation-text-face): Delete function.
 
-	* progmodes/grep.el (grep-regexp-alist): Use `.+?' instead of
-	`[^:\n]+'.
+	* progmodes/grep.el (grep-regexp-alist): Use `.+?' instead of `[^:\n]+'.
 	(grep-mode-font-lock-keywords): Use `.+?' instead of `[^\n-]+'.
 	(grep-error-face): Set to `compilation-error' instead of
 	`compilation-error-face' (which is redefined to `grep-hit-face' in
@@ -228,7 +233,7 @@
 
 	* mail/reporter.el (reporter-dump-state): Use insert-buffer-substring.
 
-	* net/net-utils.el (run-dig): Renamed from `dig'.
+	* net/net-utils.el (run-dig): Rename from `dig'.
 
 	* play/gametree.el (gametree-mode): Use make-local-variable,
 	not make-variable-buffer-local.
@@ -308,23 +313,21 @@
 	(tramp-completion-handle-expand-file-name): Discard call of
 	`tramp-drop-volume-letter'.  It is not necessary, and there have
 	been problems with (expand-file-name "~/.netrc" "/") in ange-ftp.
-	Reported by Richard G. Bielawski
-	<Richard.G.Bielawski@wellsfargo.com>.
+	Reported by Richard G. Bielawski <Richard.G.Bielawski@wellsfargo.com>.
 	(tramp-do-copy-or-rename-file-out-of-band): Transfer message
 	should always be visible.
 	(tramp-handle-insert-directory, tramp-setup-complete)
 	(tramp-set-process-query-on-exit-flag)
 	(tramp-append-tramp-buffers): Pacify byte-compiler.
-	(tramp-bug): Delete non-existing variables from list.  Apply
-	`tramp-load-report-modules' as pre-hook.  Mask
-	`tramp-password-prompt-regexp', `tramp-shell-prompt-pattern' and
-	`shell-prompt-pattern' because of non-7bit characters.  Reported
-	by Sebastian Luque <sluque@mun.ca>.
-	(tramp-reporter-dump-variable, tramp-load-report-modules): New
-	defuns.
+	(tramp-bug): Delete non-existing variables from list.
+	Apply `tramp-load-report-modules' as pre-hook.
+	Mask `tramp-password-prompt-regexp', `tramp-shell-prompt-pattern' and
+	`shell-prompt-pattern' because of non-7bit characters.
+	Reported by Sebastian Luque <sluque@mun.ca>.
+	(tramp-reporter-dump-variable, tramp-load-report-modules): New defuns.
 	(tramp-match-string-list): Remove function.
-	(tramp-wait-for-regexp): Remove call of that function.  Suggested
-	by Kim F. Storm <storm@cua.dk>.
+	(tramp-wait-for-regexp): Remove call of that function.
+	Suggested by Kim F. Storm <storm@cua.dk>.
 	(tramp-set-auto-save-file-modes): Use octal integer code #o600
 	instead of octal character code ?\600.  The latter resulted in a
 	syntax error with XEmacs.
@@ -399,8 +402,8 @@
 	(scheme-get-process): New function, extracted from `scheme-proc'.
 	(run-scheme): Call `scheme-start-file' to get start file, and pass
 	it to `make-comint'.
-	(switch-to-scheme, scheme-proc): Call
-	`scheme-interactively-start-process' if no Scheme buffer/process
+	(switch-to-scheme, scheme-proc):
+	Call `scheme-interactively-start-process' if no Scheme buffer/process
 	is available.
 
 2005-08-06  Juri Linkov  <juri@jurta.org>
@@ -463,8 +466,7 @@
 	(thumbs-image-num): Make automatically buffer local.
 	(thumbs-show-thumbs-list): Use `make-local-variable', not
 	`make-variable-buffer-local'.
-	(thumbs-insert-image): Make `thumbs-current-image-size'
-	buffer-local.
+	(thumbs-insert-image): Make `thumbs-current-image-size' buffer-local.
 
 	* play/doctor.el (doctor-type-symbol): "?\ " -> "?\s".
 	(**mad**, *debug*, *print-space*, *print-upcase*, abuselst)
@@ -506,12 +508,12 @@
 2005-08-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	Update copyright notices of files in progmodes directory for
- 	release of Emacs 22.1.
+	release of Emacs 22.1.
 
 	* progmodes/gdb-ui.el (gdb-enable-debug-log): Add autoload cookie.
 
-	* progmodes/gud.el (gud-tooltip-mode): Add autoload cookie.  Don't
-	barf if the GUD buffer has been killed.
+	* progmodes/gud.el (gud-tooltip-mode): Add autoload cookie.
+	Don't barf if the GUD buffer has been killed.
 
 2005-08-01  Kim F. Storm  <storm@cua.dk>
 
