@@ -1,3 +1,8 @@
+2005-08-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* menu-bar.el (menu-bar-options-menu): Standardize capitalization
+	of menu items.
+
 2005-08-11  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (pop-global-mark): Reverse test of widen-automatically.
