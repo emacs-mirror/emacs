@@ -1,3 +1,12 @@
+2005-08-11  Richard M. Stallman  <rms@gnu.org>
+
+	* battery.el (battery-status-function): Don't use ignore-errors.
+
+2005-08-11  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/generic.el (generic-font-lock-defaults): Declare with
+	define-obsolete-variable-alias.
+
 2005-08-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/ange-ftp.el: Use \\` and \\' instead of ^ and $ in regexps.
