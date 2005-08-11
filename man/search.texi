@@ -24,6 +24,8 @@ asks interactively which occurrences to replace.
 * Word Search::			Search for sequence of words.
 * Regexp Search::		Search for match for a regexp.
 * Regexps::			Syntax of regular expressions.
+* Regexp Backslash::            Regular expression constructs starting with `\'.
+* Regexp Example::              A complex regular expression explained.
 * Search Case::			To ignore case while searching, or not.
 * Replace::			Search, and replace some or all matches.
 * Other Repeating Search::	Operating on all matches for some regexp.
@@ -669,20 +671,26 @@ has two functions: it quotes the special characters (including
 Because @samp{\} quotes special characters, @samp{\$} is a regular
 expression that matches only @samp{$}, and @samp{\[} is a regular
 expression that matches only @samp{[}, and so on.
+
+See the following section for the special constructs that begin
+with @samp{\}.
 @end table
 
-Note: for historical compatibility, special characters are treated as
+  Note: for historical compatibility, special characters are treated as
 ordinary ones if they are in contexts where their special meanings make no
 sense.  For example, @samp{*foo} treats @samp{*} as ordinary since there is
 no preceding expression on which the @samp{*} can act.  It is poor practice
 to depend on this behavior; it is better to quote the special character anyway,
-regardless of where it appears.@refill
+regardless of where it appears.
 
-For the most part, @samp{\} followed by any character matches only that
-character.  However, there are several exceptions: two-character
-sequences starting with @samp{\} that have special meanings.  The second
-character in the sequence is always an ordinary character when used on
-its own.  Here is a table of @samp{\} constructs.
+@node Regexp Backslash
+@section Backslash in Regular Expressions
+
+  For the most part, @samp{\} followed by any character matches only
+that character.  However, there are several exceptions: two-character
+sequences starting with @samp{\} that have special meanings.  The
+second character in the sequence is always an ordinary character when
+used on its own.  Here is a table of @samp{\} constructs.
 
 @table @kbd
 @item \|
@@ -836,8 +844,11 @@ matches any character that does @emph{not} belong to category
   The constructs that pertain to words and syntax are controlled by the
 setting of the syntax table (@pxref{Syntax}).
 
-  Here is a complicated regexp.  It is a simplified version of the
-regexp that Emacs uses, by default, to recognize the end of a sentence
+@node Regexp Example
+@section Regular Expression Example
+
+  Here is a complicated regexp---a simplified version of the regexp
+that Emacs uses, by default, to recognize the end of a sentence
 together with any whitespace that follows.  We show its Lisp syntax to
 distinguish the spaces from the tab characters.  In Lisp syntax, the
 string constant begins and ends with a double-quote.  @samp{\"} stands
@@ -863,27 +874,6 @@ also type single backslashes as themselves, instead of doubling them
 for Lisp syntax.  In commands that use ordinary minibuffer input to
 read a regexp, you would quote the @kbd{C-j} by preceding it with a
 @kbd{C-q} to prevent @kbd{C-j} from exiting the minibuffer.
-
-@ignore
-@c I commented this out because it is missing vital information
-@c and therefore useless.  For instance, what do you do to *use* the
-@c regular expression when it is finished?  What jobs is this good for?
-@c  -- rms
-
-@findex re-builder
-@cindex authoring regular expressions
-  For convenient interactive development of regular expressions, you
-can use the @kbd{M-x re-builder} command.  It provides a convenient
-interface for creating regular expressions, by giving immediate visual
-feedback.  The buffer from which @code{re-builder} was invoked becomes
-the target for the regexp editor, which pops in a separate window.  At
-all times, all the matches in the target buffer for the current
-regular expression are highlighted.  Each parenthesized sub-expression
-of the regexp is shown in a distinct face, which makes it easier to
-verify even very complex regexps.  (On displays that don't support
-colors, Emacs blinks the cursor around the matched text, as it does
-for matching parens.)
-@end ignore
 
 @node Search Case
 @section Searching and Case
