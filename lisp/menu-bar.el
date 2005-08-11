@@ -703,7 +703,7 @@ by \"Save Options\" in Custom buffers.")
 
 (define-key menu-bar-showhide-menu [showhide-battery]
   (menu-bar-make-mm-toggle display-battery-mode
-			   "Battery status"
+			   "Battery Status"
 			   "Display battery status information in mode line"))
 
 (define-key menu-bar-showhide-menu [showhide-date-time]
@@ -735,7 +735,7 @@ mail status in mode line"))
   (customize-variable 'indicate-buffer-boundaries))
 
 (define-key menu-bar-showhide-fringe-ind-menu [customize]
-  '(menu-item "Other (customize)"
+  '(menu-item "Other (Customize)"
 	      menu-bar-showhide-fringe-ind-customize
 	      :help "Additional choices available through Custom buffer"
 	      :visible (display-graphic-p)))
@@ -747,7 +747,7 @@ mail status in mode line"))
 			  '((t . right) (top . left))))
 
 (define-key menu-bar-showhide-fringe-ind-menu [mixed]
-  '(menu-item "Opposite, arrows right" menu-bar-showhide-fringe-ind-mixed
+  '(menu-item "Opposite, Arrows Right" menu-bar-showhide-fringe-ind-mixed
 	      :help
 	      "Show top/bottom indicators in opposite fringes, arrows in right"
 	      :visible (display-graphic-p)
@@ -761,7 +761,7 @@ mail status in mode line"))
 			  '((top . left) (bottom . right))))
 
 (define-key menu-bar-showhide-fringe-ind-menu [box]
-  '(menu-item "Opposite, no arrows" menu-bar-showhide-fringe-ind-box
+  '(menu-item "Opposite, No Arrows" menu-bar-showhide-fringe-ind-box
 	      :help "Show top/bottom indicators in opposite fringes, no arrows"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq indicate-buffer-boundaries
@@ -773,7 +773,7 @@ mail status in mode line"))
   (customize-set-variable 'indicate-buffer-boundaries 'right))
 
 (define-key menu-bar-showhide-fringe-ind-menu [right]
-  '(menu-item "In right fringe" menu-bar-showhide-fringe-ind-right
+  '(menu-item "In Right Fringe" menu-bar-showhide-fringe-ind-right
 	      :help "Show buffer boundaries and arrows in right fringe"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq indicate-buffer-boundaries 'right))))
@@ -784,7 +784,7 @@ mail status in mode line"))
   (customize-set-variable 'indicate-buffer-boundaries 'left))
 
 (define-key menu-bar-showhide-fringe-ind-menu [left]
-  '(menu-item "In left fringe" menu-bar-showhide-fringe-ind-left
+  '(menu-item "In Left Fringe" menu-bar-showhide-fringe-ind-left
 	      :help "Show buffer boundaries and arrows in left fringe"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq indicate-buffer-boundaries 'left))))
@@ -795,19 +795,19 @@ mail status in mode line"))
   (customize-set-variable 'indicate-buffer-boundaries nil))
 
 (define-key menu-bar-showhide-fringe-ind-menu [none]
-  '(menu-item "No indicators" menu-bar-showhide-fringe-ind-none
+  '(menu-item "No Indicators" menu-bar-showhide-fringe-ind-none
 	      :help "Hide all buffer boundary indicators and arrows"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq indicate-buffer-boundaries nil))))
 
 (define-key menu-bar-showhide-fringe-menu [showhide-fringe-ind]
-  (list 'menu-item "Buffer boundaries" menu-bar-showhide-fringe-ind-menu
+  (list 'menu-item "Buffer Boundaries" menu-bar-showhide-fringe-ind-menu
 	:visible `(display-graphic-p)
 	:help "Indicate buffer boundaries in fringe"))
 
 (define-key menu-bar-showhide-fringe-menu [indicate-empty-lines]
   (menu-bar-make-toggle toggle-indicate-empty-lines indicate-empty-lines
-			"Empty line indicators"
+			"Empty Line Indicators"
 			"Indicating of empty lines %s"
 			"Indicate trailing empty lines in fringe"))
 
@@ -817,7 +817,7 @@ mail status in mode line"))
   (customize-variable 'fringe-mode))
 
 (define-key menu-bar-showhide-fringe-menu [customize]
-  '(menu-item "Customize fringe" menu-bar-showhide-fringe-menu-customize
+  '(menu-item "Customize Fringe" menu-bar-showhide-fringe-menu-customize
 	      :help "Detailed customization of fringe"
 	      :visible (display-graphic-p)))
 
@@ -1009,7 +1009,7 @@ mail status in mode line"))
   '("--"))
 (define-key menu-bar-options-menu [cua-mode]
   (menu-bar-make-mm-toggle cua-mode
-			   "C-x/C-c/C-v cut and paste (CUA)"
+			   "C-x/C-c/C-v Cut and Paste (CUA)"
 			   "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"))
 
 (define-key menu-bar-options-menu [case-fold-search]
