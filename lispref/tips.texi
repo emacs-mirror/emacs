@@ -23,7 +23,10 @@ all.
 
 @menu
 * Coding Conventions::        Conventions for clean and robust programs.
+* Key Binding Conventions::   Which keys should be bound by which programs.
+* Programming Tips::          Making Emacs code fit smoothly in Emacs.
 * Compilation Tips::          Making compiled code run fast.
+* Warning Tips::              Turning off compiler warnings.
 * Documentation Tips::        Writing readable documentation strings.
 * Comment Tips::	      Conventions for writing comments.
 * Library Headers::           Standard headers for library packages.
@@ -68,7 +71,7 @@ in your program.  Call it @code{mylib-twiddle-files} in your program,
 and send mail to @samp{bug-gnu-emacs@@gnu.org} suggesting we add
 it to Emacs.  If and when we do, we can change the name easily enough.
 
-If one prefix is insufficient, your package may use two or three
+If one prefix is insufficient, your package can use two or three
 alternative common prefixes, so long as they make sense.
 
 Separate the prefix from the rest of the symbol name with a hyphen,
@@ -76,12 +79,10 @@ Separate the prefix from the rest of the symbol name with a hyphen,
 Lisp programs.
 
 @item
-It is often useful to put a call to @code{provide} in each separate
-library program, at least if there is more than one entry point to the
-program.
+Put a call to @code{provide} at the end of each separate Lisp file.
 
 @item
-If a file requires certain other library programs to be loaded
+If a file requires certain other Lisp programs to be loaded
 beforehand, then the comments at the beginning of the file should say
 so.  Also, use @code{require} to make sure they are loaded.
 
@@ -136,6 +137,118 @@ If the purpose of a variable is to store a single function, give it a
 name that ends in @samp{-function}.  If the purpose of a variable is
 to store a list of functions (i.e., the variable is a hook), please
 follow the naming conventions for hooks.  @xref{Hooks}.
+
+@item
+@cindex unloading packages
+If loading the file adds functions to hooks, define a function
+@code{@var{feature}-unload-hook}, where @var{feature} is the name of
+the feature the package provides, and make it undo any such changes.
+Using @code{unload-feature} to unload the file will run this function.
+@xref{Unloading}.
+
+@item
+It is a bad idea to define aliases for the Emacs primitives.  Normally
+you should use the standard names instead.  The case where an alias
+may be useful is where it facilitates backwards compatibility or
+portability.
+
+@item
+If a package needs to define an alias or a new function for
+compatibility with some other version of Emacs, name it with the package
+prefix, not with the raw name with which it occurs in the other version.
+Here is an example from Gnus, which provides many examples of such
+compatibility issues.
+
+@example
+(defalias 'gnus-point-at-bol
+  (if (fboundp 'point-at-bol)
+      'point-at-bol
+    'line-beginning-position))
+@end example
+
+@item
+Redefining (or advising) an Emacs primitive is discouraged.  It may do
+the right thing for a particular program, but there is no telling what
+other programs might break as a result.
+
+@item
+If a file does replace any of the functions or library programs of
+standard Emacs, prominent comments at the beginning of the file should
+say which functions are replaced, and how the behavior of the
+replacements differs from that of the originals.
+
+@item
+Avoid using macros that define functions and variables with names that
+are constructed.  It is best for maintenance when the name of the
+function or variable being defined is given explicitly in the source
+code, as the second element of the list---as it is when you use
+@code{defun}, @code{defalias}, @code{defvar} and @code{defcustom}.
+
+@item
+Please keep the names of your Emacs Lisp source files to 13 characters
+or less.  This way, if the files are compiled, the compiled files' names
+will be 14 characters or less, which is short enough to fit on all kinds
+of Unix systems.
+
+@item
+In some other systems there is a convention of choosing variable names
+that begin and end with @samp{*}.  We don't use that convention in Emacs
+Lisp, so please don't use it in your programs.  (Emacs uses such names
+only for special-purpose buffers.)  The users will find Emacs more
+coherent if all libraries use the same conventions.
+
+@item
+Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the
+default indentation parameters.
+
+@item
+Don't make a habit of putting close-parentheses on lines by themselves;
+Lisp programmers find this disconcerting.  Once in a while, when there
+is a sequence of many consecutive close-parentheses, it may make sense
+to split the sequence in one or two significant places.
+
+@item
+Please put a copyright notice and copying permission notice on the
+file if you distribute copies.  Use a notice like this one:
+
+@smallexample
+;; Copyright (C) @var{year} @var{name}
+
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 2 of
+;; the License, or (at your option) any later version.
+
+;; This program is distributed in the hope that it will be
+;; useful, but WITHOUT ANY WARRANTY; without even the implied
+;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
+;; PURPOSE.  See the GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public
+;; License along with this program; if not, write to the Free
+;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
+;; MA 02110-1301 USA
+@end smallexample
+
+If you have signed papers to assign the copyright to the Foundation,
+then use @samp{Free Software Foundation, Inc.} as @var{name}.
+Otherwise, use your name.  See also @xref{Library Headers}.
+@end itemize
+
+@node Key Binding Conventions
+@section Key Binding Conventions
+
+@itemize @bullet
+@item
+@cindex mouse-2
+@cindex references, following
+Special major modes used for read-only text should usually redefine
+@kbd{mouse-2} and @key{RET} to trace some sort of reference in the text.
+Modes such as Dired, Info, Compilation, and Occur redefine it in this
+way.
+
+In addition, they should mark the text as a kind of ``link'' so that
+@kbd{mouse-1} will follow it also.  @xref{Links and Mouse-1}.
 
 @item
 @cindex reserved keys
@@ -199,67 +312,15 @@ is potentially meaningful, then you must not define @kbd{@key{ESC}
 after @key{ESC}.  In these states, you should define @kbd{@key{ESC}
 @key{ESC} @key{ESC}} as the way to escape.  Otherwise, define
 @kbd{@key{ESC} @key{ESC}} instead.
+@end itemize
 
-@item
-@cindex mouse-2
-@cindex references, following
-Special major modes used for read-only text should usually redefine
-@kbd{mouse-2} and @key{RET} to trace some sort of reference in the text.
-Modes such as Dired, Info, Compilation, and Occur redefine it in this
-way.
+@node Programming Tips
+@section Emacs Programming Tips
 
-In addition, they should mark the text as a kind of ``link'' so that
-@kbd{mouse-1} will follow it also.  @xref{Links and Mouse-1}.
+  Following these conventions will make your program fit better
+into Emacs when it runs.
 
-@cindex unloading packages
-If loading the file adds functions to hooks, define a function
-@code{@var{feature}-unload-hook}, where @var{feature} is the name of
-the feature the package provides, and make it undo any such changes.
-Using @code{unload-feature} to unload the file will run this function.
-@xref{Unloading}.
-
-@item
-It is a bad idea to define aliases for the Emacs primitives.  Use the
-standard names instead.
-
-@item
-If a package needs to define an alias or a new function for
-compatibility with some other version of Emacs, name it with the package
-prefix, not with the raw name with which it occurs in the other version.
-Here is an example from Gnus, which provides many examples of such
-compatibility issues.
-
-@example
-(defalias 'gnus-point-at-bol
-  (if (fboundp 'point-at-bol)
-      'point-at-bol
-    'line-beginning-position))
-@end example
-
-@item
-Redefining (or advising) an Emacs primitive is discouraged.  It may do
-the right thing for a particular program, but there is no telling what
-other programs might break as a result.
-
-@item
-If a file does replace any of the functions or library programs of
-standard Emacs, prominent comments at the beginning of the file should
-say which functions are replaced, and how the behavior of the
-replacements differs from that of the originals.
-
-@item
-Avoid using macros that define functions and variables with names that
-are constructed.  It is best for maintenance when the name of the
-function or variable being defined is given explicitly in the source
-code, as the second element of the list---as it is when you use
-@code{defun}, @code{defalias}, @code{defvar} and @code{defcustom}.
-
-@item
-Please keep the names of your Emacs Lisp source files to 13 characters
-or less.  This way, if the files are compiled, the compiled files' names
-will be 14 characters or less, which is short enough to fit on all kinds
-of Unix systems.
-
+@itemize @bullet
 @item
 Don't use @code{next-line} or @code{previous-line} in programs; nearly
 always, @code{forward-line} is more convenient as well as more
@@ -278,11 +339,14 @@ In particular, don't use any of these functions:
 @code{beginning-of-buffer}, @code{end-of-buffer}
 @item
 @code{replace-string}, @code{replace-regexp}
+@item
+@code{insert-file}, @code{insert-buffer}
 @end itemize
 
-If you just want to move point, or replace a certain string, without any
-of the other features intended for interactive users, you can replace
-these functions with one or two lines of simple Lisp code.
+If you just want to move point, or replace a certain string, or insert
+a file or buffer's contents, without any of the other features
+intended for interactive users, you can replace these functions with
+one or two lines of simple Lisp code.
 
 @item
 Use lists rather than vectors, except when there is a particular reason
@@ -358,80 +422,6 @@ command does: use a new local keymap that contains one command defined
 to switch back to the old local keymap.  Or do what the
 @code{edit-options} command does: switch to another buffer and let the
 user switch back at will.  @xref{Recursive Editing}.
-
-@item
-In some other systems there is a convention of choosing variable names
-that begin and end with @samp{*}.  We don't use that convention in Emacs
-Lisp, so please don't use it in your programs.  (Emacs uses such names
-only for special-purpose buffers.)  The users will find Emacs more
-coherent if all libraries use the same conventions.
-
-@item
-Try to avoid compiler warnings about undefined free variables, by adding
-dummy @code{defvar} definitions for these variables, like this:
-
-@example
-(defvar foo)
-@end example
-
-Such a definition has no effect except to tell the compiler
-not to warn about uses of the variable @code{foo} in this file.
-
-@item
-If you use many functions and variables from a certain file, you can
-add a @code{require} for that package to avoid compilation warnings
-for them.  For instance,
-
-@example
-(eval-when-compile
-  (require 'foo))
-@end example
-
-@item
-If you bind a variable in one function, and use it or set it in
-another function, the compiler warns about the latter function unless
-the variable has a definition.  But adding a definition would be
-unclean if the variable has a short name, since Lisp packages should
-not define short variable names.  The right thing to do is to rename
-this variable to start with the name prefix used for the other
-functions and variables in your package.
-
-@item
-Indent each function with @kbd{C-M-q} (@code{indent-sexp}) using the
-default indentation parameters.
-
-@item
-Don't make a habit of putting close-parentheses on lines by themselves;
-Lisp programmers find this disconcerting.  Once in a while, when there
-is a sequence of many consecutive close-parentheses, it may make sense
-to split the sequence in one or two significant places.
-
-@item
-Please put a copyright notice on the file if you give copies to anyone.
-Use a message like this one:
-
-@smallexample
-;; Copyright (C) @var{year} @var{name}
-
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 2 of
-;; the License, or (at your option) any later version.
-
-;; This program is distributed in the hope that it will be
-;; useful, but WITHOUT ANY WARRANTY; without even the implied
-;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
-;; PURPOSE.  See the GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public
-;; License along with this program; if not, write to the Free
-;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
-;; MA 02110-1301 USA
-@end smallexample
-
-If you have signed papers to assign the copyright to the Foundation,
-then use @samp{Free Software Foundation, Inc.} as @var{name}.
-Otherwise, use your name.  See also @xref{Library Headers}.
 @end itemize
 
 @node Compilation Tips
@@ -493,6 +483,46 @@ the function call overhead.  Since making a function inline reduces
 the flexibility of changing the program, don't do it unless it gives
 a noticeable speedup in something slow enough that users care about
 the speed.  @xref{Inline Functions}.
+@end itemize
+
+@node Warning Tips
+@section Tips for Avoiding Compiler Warnings
+
+@itemize @bullet
+@item
+Try to avoid compiler warnings about undefined free variables, by adding
+dummy @code{defvar} definitions for these variables, like this:
+
+@example
+(defvar foo)
+@end example
+
+Such a definition has no effect except to tell the compiler
+not to warn about uses of the variable @code{foo} in this file.
+
+@item
+If you use many functions and variables from a certain file, you can
+add a @code{require} for that package to avoid compilation warnings
+for them.  For instance,
+
+@example
+(eval-when-compile
+  (require 'foo))
+@end example
+
+@item
+If you bind a variable in one function, and use it or set it in
+another function, the compiler warns about the latter function unless
+the variable has a definition.  But adding a definition would be
+unclean if the variable has a short name, since Lisp packages should
+not define short variable names.  The right thing to do is to rename
+this variable to start with the name prefix used for the other
+functions and variables in your package.
+
+@item
+The last resort for avoiding a warning, when you want to do something
+that usually is a mistake but it's not a mistake in this one case,
+is to put a call to @code{with-no-warnings} around it.
 @end itemize
 
 @node Documentation Tips
