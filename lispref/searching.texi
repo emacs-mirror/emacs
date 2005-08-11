@@ -167,6 +167,16 @@ denotes a (possibly infinite) set of strings.  Searching for matches for
 a regexp is a very powerful operation.  This section explains how to write
 regexps; the following section says how to search for them.
 
+@findex re-builder
+@cindex authoring regular expressions
+  For convenient interactive development of regular expressions, you
+can use the @kbd{M-x re-builder} command.  It provides a convenient
+interface for creating regular expressions, by giving immediate visual
+feedback in a separate buffer.  As you edit the regexp, all its
+matches in the target buffer are highlighted.  Each parenthesized
+sub-expression of the regexp is shown in a distinct face, which makes
+it easier to verify even very complex regexps.
+
 @menu
 * Syntax of Regexps::       Rules for writing regular expressions.
 * Regexp Example::          Illustrates regular expression syntax.
