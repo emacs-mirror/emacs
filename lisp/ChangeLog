@@ -1,5 +1,18 @@
 2005-08-12  Ehud Karni  <ehud@unix.mvs.co.il>
 
+	* mail/rmailsum.el (rmail-summary-end-of-message): New command
+	to go to the bottom of the mail message.  Added to
+	`rmail-summary-mode-map' with key "/".
+	(rmail-summary-show-message): New (internal) function for use by
+	both `rmail-summary-beginning/end-of-message'.
+	(rmail-summary-beginning-of-message): Changed to use
+	rmail-summary-show-message.
+
+	* mail/rmail.el (rmail-end-of-message): New command to go to the
+	end of the current message.  Added to `rmail-mode-map' with key "/".
+	(rmail-beginning-of-message): Fixed to work as documented.
+	(rmail-mode): Change documentation.
+
 	* progmodes/compile.el (compilation-start): Add the line
 	"Compilation started" with compilation start time.
         (compilation-mode-font-lock-keywords): Add `started' to keywords.
