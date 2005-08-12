@@ -1,3 +1,8 @@
+2005-08-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-edit.el (custom-save-all, custom-save-delete): Bind
+	recentf-exclude to exclude custom-file.
+
 2005-08-12  Ehud Karni  <ehud@unix.mvs.co.il>
 
 	* mail/rmailsum.el (rmail-summary-end-of-message): New command
