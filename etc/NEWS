@@ -2777,6 +2777,10 @@ See the documentation of the user option
 ---
 *** Rmail now displays 5-digit message ids in its summary buffer.
 
+*** The new commands rmail-end-of-message and rmail-summary end-of-message,
+by default bound to `/', go to the end of the current mail message in
+Rmail and Rmail summary buffers.
+
 +++
 *** Support for `movemail' from GNU mailutils was added to Rmail.
 

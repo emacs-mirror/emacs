@@ -1,3 +1,9 @@
+2005-08-12  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* emacs-lisp/eldoc.el: Add move-beginning-of-line,
+	move-end-of-line, end-of-line, and beginning-of-line to the list
+	of commands after which the echo area is updated.
+
 2005-08-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-edit.el (custom-save-all, custom-save-delete): Bind
