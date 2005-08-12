@@ -1,3 +1,9 @@
+2005-08-12  Ehud Karni  <ehud@unix.mvs.co.il>
+
+	* progmodes/compile.el (compilation-start): Add the line
+	"Compilation started" with compilation start time.
+        (compilation-mode-font-lock-keywords): Add `started' to keywords.
+
 2005-08-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* menu-bar.el (menu-bar-options-menu): Standardize capitalization
