@@ -952,6 +952,7 @@ Note:    it means the file has no messages in it.\n\^_")))
   (define-key rmail-mode-map "w"      'rmail-output-body-to-file)
   (define-key rmail-mode-map "x"      'rmail-expunge)
   (define-key rmail-mode-map "."      'rmail-beginning-of-message)
+  (define-key rmail-mode-map "/"      'rmail-end-of-message)
   (define-key rmail-mode-map "<"      'rmail-first-message)
   (define-key rmail-mode-map ">"      'rmail-last-message)
   (define-key rmail-mode-map " "      'scroll-up)
@@ -1096,7 +1097,8 @@ Note:    it means the file has no messages in it.\n\^_")))
 All normal editing commands are turned off.
 Instead, these commands are available:
 
-\\[rmail-beginning-of-message]	Move point to front of this message (same as \\[beginning-of-buffer]).
+\\[rmail-beginning-of-message]	Move point to front of this message.
+\\[rmail-end-of-message]	Move point to bottom of this message.
 \\[scroll-up]	Scroll to next screen of this message.
 \\[scroll-down]	Scroll to previous screen of this message.
 \\[rmail-next-undeleted-message]	Move to Next non-deleted message.
@@ -2604,7 +2606,19 @@ change the invisible header text."
 (defun rmail-beginning-of-message ()
   "Show current message starting from the beginning."
   (interactive)
-  (rmail-show-message rmail-current-message))
+  (let ((rmail-show-message-hook
+	 (list (function (lambda ()
+			   (goto-char (point-min)))))))
+    (rmail-show-message rmail-current-message)))
+
+(defun rmail-end-of-message ()
+  "Show bottom of current message."
+  (interactive)
+  (let ((rmail-show-message-hook
+	 (list (function (lambda ()
+			   (goto-char (point-max))
+			   (recenter (1- (window-height))))))))
+    (rmail-show-message rmail-current-message)))
 
 (defun rmail-unknown-mail-followup-to ()
   "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
