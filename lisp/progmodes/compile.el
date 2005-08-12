@@ -382,7 +382,7 @@ you may also want to change `compilation-page-delimiter'.")
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
      (" --?o\\(?:utfile\\|utput\\)?[= ]?\\(\\S +\\)" . 1)
-     ("^Compilation finished" . compilation-info-face)
+     ("^Compilation \\(finish\\|start\\)ed" . compilation-info-face)
      ("^Compilation exited abnormally" . compilation-error-face))
    "Additional things to highlight in Compilation mode.
 This gets tacked on the end of the generated expressions.")
@@ -970,7 +970,11 @@ Returns the compilation buffer created."
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
 		"; default-directory: " (prin1-to-string default-directory)
-		" -*-\n" command "\n")
+		" -*-\n"
+		(format "%s started at %s\n"
+			(capitalize name-of-mode)
+			(format-time-string "%a %b %d %H:%M:%S"))
+		command "\n")
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; If we're already in the compilation buffer, go to the end
