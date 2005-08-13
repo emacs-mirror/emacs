@@ -212,7 +212,7 @@ of bindings, look at the documentation of @code{isearch-mode} with
 @cindex searching for non-@acronym{ASCII} characters
 @cindex input method, during incremental search
 
-  To enter non-@acronym{ASCII} characters in an incrementral search,
+  To enter non-@acronym{ASCII} characters in an incremental search,
 you must use an input method (@pxref{Input Methods}).  If an input
 method is enabled in the current buffer when you start the search, you
 can use it while you type the search string also.  Emacs indicates
