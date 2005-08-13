@@ -917,7 +917,7 @@ searches also, including those performed by the replace commands
   Global search-and-replace operations are not needed often in Emacs,
 but they are available.  In addition to the simple @kbd{M-x
 replace-string} command which replaces all occurrences,
-there is a @kbd{M-x query-replace} command which finds each occurrence
+there is @kbd{M-%} (@code{query-replace}), which presents each occurrence
 of the pattern and asks you whether to replace it.
 
   The replace commands normally operate on the text from point to the
