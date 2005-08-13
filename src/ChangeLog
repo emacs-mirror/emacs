@@ -1,3 +1,15 @@
+2005-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_pixbuf_from_pix_and_mask): New function.
+	(xg_get_image_for_pixmap): Move some code to
+	xg_get_pixbuf_from_pix_and_mask, and call it.
+
+	* gtkutil.h (xg_get_pixbuf_from_pix_and_mask): Declare.
+
+	* xterm.c (x_wm_set_icon_pixmap): Call xg_get_pixbuf_from_pix_and_mask
+	to get an GTK icon and set it with GTK functions to avoid having GTK
+	override an icon set with just X functions.
+
 2005-08-11  Richard M. Stallman  <rms@gnu.org>
 
 	* image.c (syms_of_image): Init image_types here, and call define_image_type.
