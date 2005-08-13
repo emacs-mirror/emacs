@@ -9250,7 +9250,19 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 #endif
     }
 
-#ifdef USE_X_TOOLKIT /* same as in x_wm_set_window_state.  */
+
+#ifdef USE_GTK
+  {
+    GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
+    GdkPixmap *gpix = gdk_pixmap_foreign_new_for_display (gdpy, icon_pixmap);
+    GdkPixmap *gmask = gdk_pixmap_foreign_new_for_display (gdpy, icon_mask);
+    GdkPixbuf *gp = xg_get_pixbuf_from_pix_and_mask (gpix, gmask, NULL);
+
+    gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), gp);
+    return;
+  }
+
+#elif defined (USE_X_TOOLKIT) /* same as in x_wm_set_window_state.  */
 
   {
     Arg al[1];
@@ -9260,12 +9272,12 @@ x_wm_set_icon_pixmap (f, pixmap_id)
     XtSetValues (f->output_data.x->widget, al, 1);
   }
 
-#else /* not USE_X_TOOLKIT */
+#else /* not USE_X_TOOLKIT && not USE_GTK */
 
   f->output_data.x->wm_hints.flags |= (IconPixmapHint | IconMaskHint);
   XSetWMHints (FRAME_X_DISPLAY (f), window, &f->output_data.x->wm_hints);
 
-#endif /* not USE_X_TOOLKIT */
+#endif /* not USE_X_TOOLKIT && not USE_GTK */
 }
 
 void
