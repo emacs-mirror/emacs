@@ -199,6 +199,10 @@ extern void x_wm_set_size_hint P_ ((FRAME_PTR f,
                                     int user_position));
 extern void xg_set_background_color P_ ((FRAME_PTR f, unsigned long bg));
 
+extern GdkPixbuf * xg_get_pixbuf_from_pix_and_mask P_ ((GdkPixmap *gpix,
+                                                        GdkPixmap *gmask,
+                                                        GdkColormap *cmap));
+
 /* Mark all callback data that are Lisp_object:s during GC.  */
 extern void xg_mark_data P_ ((void));
 
