@@ -239,6 +239,64 @@ xg_create_default_cursor (dpy)
   return gdk_cursor_new_for_display (gdpy, GDK_LEFT_PTR);
 }
 
+/* Apply GMASK to GPIX and return a GdkPixbuf with an alpha channel.  */
+
+GdkPixbuf *
+xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap)
+     GdkPixmap *gpix;
+     GdkPixmap *gmask;
+     GdkColormap *cmap;
+{
+  int x, y, width, height, rowstride, mask_rowstride;
+  GdkPixbuf *icon_buf, *tmp_buf;
+  guchar *pixels;
+  guchar *mask_pixels;
+
+  gdk_drawable_get_size (gpix, &width, &height);
+  tmp_buf = gdk_pixbuf_get_from_drawable (NULL, gpix, cmap,
+                                          0, 0, 0, 0, width, height);
+  icon_buf = gdk_pixbuf_add_alpha (tmp_buf, FALSE, 0, 0, 0);
+  g_object_unref (G_OBJECT (tmp_buf));
+
+  if (gmask)
+    {
+      GdkPixbuf *mask_buf = gdk_pixbuf_get_from_drawable (NULL,
+                                                          gmask,
+                                                          NULL,
+                                                          0, 0, 0, 0,
+                                                          width, height);
+      guchar *pixels = gdk_pixbuf_get_pixels (icon_buf);
+      guchar *mask_pixels = gdk_pixbuf_get_pixels (mask_buf);
+      int rowstride = gdk_pixbuf_get_rowstride (icon_buf);
+      int mask_rowstride = gdk_pixbuf_get_rowstride (mask_buf);
+      int y;
+
+      for (y = 0; y < height; ++y)
+        {
+          guchar *iconptr, *maskptr;
+          int x;
+
+          iconptr = pixels + y * rowstride;
+          maskptr = mask_pixels + y * mask_rowstride;
+
+          for (x = 0; x < width; ++x)
+            {
+              /* In a bitmap, RGB is either 255/255/255 or 0/0/0.  Checking
+                 just R is sufficient.  */
+              if (maskptr[0] == 0)
+                iconptr[3] = 0; /* 0, 1, 2 is R, G, B.  3 is alpha.  */
+
+              iconptr += rowstride/width;
+              maskptr += mask_rowstride/width;
+            }
+        }
+
+      g_object_unref (G_OBJECT (mask_buf));
+    }
+
+  return icon_buf;
+}
+
 /* For the image defined in IMG, make and return a GtkImage.  For displays with
    8 planes or less we must make a GdkPixbuf and apply the mask manually.
    Otherwise the highlightning and dimming the tool bar code in GTK does
@@ -311,60 +369,15 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
     }
   else
     {
+
       /* This is a workaround to make icons look good on pseudo color
          displays.  Apparently GTK expects the images to have an alpha
          channel.  If they don't, insensitive and activated icons will
          look bad.  This workaround does not work on monochrome displays,
          and is not needed on true color/static color displays (i.e.
          16 bits and higher).  */
-      int x, y, width, height, rowstride, mask_rowstride;
-      GdkPixbuf *icon_buf, *tmp_buf;
-      guchar *pixels;
-      guchar *mask_pixels;
-
-      gdk_drawable_get_size (gpix, &width, &height);
-      tmp_buf = gdk_pixbuf_get_from_drawable (NULL,
-                                              gpix,
-				              gtk_widget_get_colormap (widget),
-                                              0, 0, 0, 0, width, height);
-      icon_buf = gdk_pixbuf_add_alpha (tmp_buf, FALSE, 0, 0, 0);
-      g_object_unref (G_OBJECT (tmp_buf));
-
-      if (gmask)
-        {
-          GdkPixbuf *mask_buf = gdk_pixbuf_get_from_drawable (NULL,
-                                                              gmask,
-                                                              NULL,
-                                                              0, 0, 0, 0,
-                                                              width, height);
-          guchar *pixels = gdk_pixbuf_get_pixels (icon_buf);
-          guchar *mask_pixels = gdk_pixbuf_get_pixels (mask_buf);
-          int rowstride = gdk_pixbuf_get_rowstride (icon_buf);
-          int mask_rowstride = gdk_pixbuf_get_rowstride (mask_buf);
-          int y;
-
-          for (y = 0; y < height; ++y)
-            {
-              guchar *iconptr, *maskptr;
-              int x;
-
-              iconptr = pixels + y * rowstride;
-              maskptr = mask_pixels + y * mask_rowstride;
-
-              for (x = 0; x < width; ++x)
-                {
-                  /* In a bitmap, RGB is either 255/255/255 or 0/0/0.  Checking
-                     just R is sufficient.  */
-                  if (maskptr[0] == 0)
-                    iconptr[3] = 0; /* 0, 1, 2 is R, G, B.  3 is alpha.  */
-
-                  iconptr += rowstride/width;
-                  maskptr += mask_rowstride/width;
-                }
-            }
-
-          g_object_unref (G_OBJECT (mask_buf));
-        }
+      GdkColormap *cmap = gtk_widget_get_colormap (widget);
+      GdkPixbuf *icon_buf = xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap);
 
       if (! old_widget)
         old_widget = GTK_IMAGE (gtk_image_new_from_pixbuf (icon_buf));
