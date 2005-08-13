@@ -1,6 +1,7 @@
 2005-08-13  Alan Mackenzie  <acm@muc.de>
 
 	* search.texi (Non-ASCII Isearch): Correct a typo.
+	(Replacement Commands): Mention query-replace key binding.
 
 2005-08-11  Richard M. Stallman  <rms@gnu.org>
 
