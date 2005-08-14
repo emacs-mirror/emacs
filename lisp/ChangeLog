@@ -1,3 +1,22 @@
+2005-08-14  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Remove highlighting of "Compilation started".  Highlight only
+	the word "finished" in "Compilation finished".  Add highlighting
+	of "interrupt", "killed", "terminated" and the exit code.
+	(compilation-start): Add newline after header.  Use exactly the
+	same time stamp format as the finishing message.
+	(compilation-mode-map): Add ellipsis to "Search Files (grep)".
+
+	* progmodes/grep.el (grep-mode-map): Add ellipsis to "Another grep".
+	(grep-mode-font-lock-keywords): Don't highlight "Grep started".
+	Add highlighting of "interrupt", "killed", "terminated".
+
+	* delsel.el (delete-selection-pre-hook): If overwrite-mode is
+	enabled and the current command is self-insert-command, call it
+	explicitly with overwrite-mode bound to nil, to not allow it
+	to delete the character after the selected region.
+
 2005-08-12  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* emacs-lisp/eldoc.el: Add move-beginning-of-line,
@@ -252,8 +271,7 @@
 
 2005-08-09  Juri Linkov  <juri@jurta.org>
 
-	* info.el: Replace `info' with upper-case `Info'
-	where appropriate.
+	* info.el: Replace `info' with upper-case `Info' where appropriate.
 	(info-title-1, info-title-2, info-title-3, info-title-4)
 	(info-menu-header): Move up face definitions.
 	(info-menu-star): Rename from `info-menu-5'.
