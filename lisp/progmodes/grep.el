@@ -206,7 +206,7 @@ See `compilation-error-screen-columns'"
     (define-key map [menu-bar grep compilation-compile]
       '("Compile..." . compile))
     (define-key map [menu-bar grep compilation-grep]
-      '("Another grep" . grep))
+      '("Another grep..." . grep))
     (define-key map [menu-bar grep compilation-recompile]
       '("Repeat grep" . recompile))
     (define-key map [menu-bar grep compilation-separator2]
@@ -287,14 +287,15 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
      (": \\(.+\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
       1 grep-error-face)
      ;; remove match from grep-regexp-alist before fontifying
+     ("^Grep started.*" (0 '(face nil message nil help-echo nil mouse-face nil) t))
      ("^Grep finished \\(?:(\\(matches found\\))\\|with \\(no matches found\\)\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face nil t)
       (2 compilation-warning-face nil t))
-     ("^Grep \\(exited abnormally\\) with code \\([0-9]+\\).*"
+     ("^Grep \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 grep-error-face)
-      (2 grep-error-face))
+      (2 grep-error-face nil t))
      ("^.+?-[0-9]+-.*\n" (0 grep-context-face))
      ;; Highlight grep matches and delete markers
      ("\\(\033\\[01;31m\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
