@@ -49,16 +49,8 @@ the @samp{*compilation*} buffer.
 @item M-x recompile
 Invoke a compiler with the same command as in the last invocation of
 @kbd{M-x compile}.
-@item M-x grep
-Run @code{grep} asynchronously under Emacs, with matching lines
-listed in the buffer named @samp{*grep*}.
-@item M-x grep-find
-@itemx M-x find-grep
-Run @code{grep} via @code{find}, with user-specified arguments, and
-collect output in the buffer named @samp{*grep*}.
 @item M-x kill-compilation
-@itemx M-x kill-grep
-Kill the running compilation or @code{grep} subprocess.
+Kill the running compilation subprocess.
 @end table
 
 @findex compile
@@ -324,13 +316,25 @@ Emacs.  @xref{MS-DOS}.
 @node Grep Searching
 @section Searching with Grep under Emacs
 
-@findex grep
   Just as you can run a compiler from Emacs and then visit the lines
 with compilation errors, you can also run @code{grep} and
 then visit the lines on which matches were found.  This works by
 treating the matches reported by @code{grep} as if they were ``errors.''
 
-  To do this, type @kbd{M-x grep}, then enter a command line that
+@table @kbd
+@item M-x grep
+Run @code{grep} asynchronously under Emacs, with matching lines
+listed in the buffer named @samp{*grep*}.
+@item M-x grep-find
+@itemx M-x find-grep
+Run @code{grep} via @code{find}, with user-specified arguments, and
+collect output in the buffer named @samp{*grep*}.
+@item M-x kill-grep
+Kill the running @code{grep} subprocess.
+@end table
+
+@findex grep
+  To run @code{grep}, type @kbd{M-x grep}, then enter a command line that
 specifies how to run @code{grep}.  Use the same arguments you would give
 @code{grep} when running it normally: a @code{grep}-style regexp
 (usually in single-quotes to quote the shell's special characters)
