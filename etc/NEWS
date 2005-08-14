@@ -3209,6 +3209,10 @@ the command `undefined'.  (In earlier Emacs versions, it used
 
 ** General Lisp changes:
 
+*** The function `expt' handles negative exponents differently.
+The value for `(expt A B)', if both A and B are integers and B is
+negative, is now a float.  For example: (expt 2 -2) => 0.25.
+
 +++
 *** The function `eql' is now available without requiring the CL package.
 
