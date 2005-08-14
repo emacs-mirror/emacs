@@ -101,7 +101,11 @@ any selection."
 		   (unless empty-region
 		     (setq this-command 'ignore))))
 		(type
-		 (delete-active-region)))
+		 (delete-active-region)
+		 (if (and overwrite-mode (eq this-command 'self-insert-command))
+		   (let ((overwrite-mode nil))
+		     (self-insert-command (prefix-numeric-value current-prefix-arg))
+		     (setq this-command 'ignore)))))
 	(file-supersession
 	 ;; If ask-user-about-supersession-threat signals an error,
 	 ;; stop safe_run_hooks from clearing out pre-command-hook.
