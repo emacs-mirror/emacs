@@ -382,8 +382,11 @@ you may also want to change `compilation-page-delimiter'.")
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
      (" --?o\\(?:utfile\\|utput\\)?[= ]?\\(\\S +\\)" . 1)
-     ("^Compilation \\(finish\\|start\\)ed" . compilation-info-face)
-     ("^Compilation exited abnormally" . compilation-error-face))
+     ("^Compilation \\(finished\\)"
+      (1 compilation-info-face))
+     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?"
+      (1 compilation-error-face)
+      (2 compilation-error-face nil t)))
    "Additional things to highlight in Compilation mode.
 This gets tacked on the end of the generated expressions.")
 
@@ -971,9 +974,9 @@ Returns the compilation buffer created."
 	(insert "-*- mode: " name-of-mode
 		"; default-directory: " (prin1-to-string default-directory)
 		" -*-\n"
-		(format "%s started at %s\n"
-			(capitalize name-of-mode)
-			(format-time-string "%a %b %d %H:%M:%S"))
+		(format "%s started at %s\n\n"
+			mode-name
+			(substring (current-time-string) 0 19))
 		command "\n")
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
@@ -1160,7 +1163,7 @@ exited abnormally with code %d\n"
     (define-key map [menu-bar compilation compilation-separator2]
       '("----" . nil))
     (define-key map [menu-bar compilation compilation-grep]
-      '("Search Files (grep)" . grep))
+      '("Search Files (grep)..." . grep))
     (define-key map [menu-bar compilation compilation-recompile]
       '("Recompile" . recompile))
     (define-key map [menu-bar compilation compilation-compile]
