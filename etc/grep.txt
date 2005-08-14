@@ -19,10 +19,18 @@ grep -nH -e "INFO tree" ../info/*
 grep -nH --color=always -e "INFO tree" ../info/*
 ../info/dir:6:File: dir	Node: Top	This is the top of the [01;31mINFO tree[00m
 
-* GNU grep 2.5.1-cvs with specified minimal colors
+* GNU grep 2.5.1-cvs with the specified matching color
 
 GREP_COLORS='mt=01;31:fn=:ln=:bn=:se=:ml=:cx=:ne' grep -nH --color=always -e "INFO tree" ../info/*
 ../info/dir:6:File: dir	Node: Top	This is the top of the [01;31mINFO tree[m
+
+* GNU grep 2.5.1-cvs with colors for the file name, line number and match
+
+GREP_COLORS='mt=01;31:fn=35:ln=32:bn=:se=:ml=36:cx=37:ne' grep -nH --color=always -e "INFO tree" ../info/*
+[35m../info/dir[m:[32m6[m:[36mFile: dir	Node: Top	This is the top of the [01;31mINFO tree[m
+[35m1[m:[32m2[m:[36m3:4:[01;31mtext[m
+[35m1:2[m:[32m3[m:[36m4:[01;31mtext[m
+[35m1:2:3[m:[32m4[m:[36m[01;31mtext[m
 
 * GNU grep 2.5.1-cvs with default colors
 
@@ -50,10 +58,14 @@ Binary file 2005-06 matches
 
 * GNU grep 2.5.1: other messages
 
+Grep started at Tue Jul 19 15:41:30
 grep: ../info/dirinfo: No such file or directory
-Grep exited abnormally with code 2 at Tue Jul 19 15:42:32
+Grep interrupt at Tue Jul 19 15:42:31
+Grep killed at Tue Jul 19 15:42:31
+Grep terminated at Tue Jul 19 15:42:31
+Grep exited abnormally with code 2 at Tue Jul 19 15:42:31
 Grep finished with no matches found at Tue Jul 19 15:43:12
-Grep finished (matches found) at Tue Jul 19 15:45:15
+Grep finished (matches found) at Thu Jul 21 15:02:15
 
 * agrep
 
