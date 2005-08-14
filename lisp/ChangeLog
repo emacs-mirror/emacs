@@ -1,3 +1,7 @@
+2005-08-15  Andreas Schwab  <schwab@suse.de>
+
+	* dired.el, info.el, mail/rmail.el: Revert last change.
+
 2005-08-14  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* dired.el: Fix dependency bug: Wrap `desktop-buffer-mode-handlers'
