@@ -3292,9 +3292,8 @@ Ask means pop up a menu for the user to select one of copy, move or link."
       (when desktop-missing-file-warning (sit-for 1))
       nil)))
 
-(eval-after-load 'desktop
-  '(add-to-list 'desktop-buffer-mode-handlers
-                '(dired-mode . dired-restore-desktop-buffer)))
+(add-to-list 'desktop-buffer-mode-handlers
+	     '(dired-mode . dired-restore-desktop-buffer))
 
 
 (if (eq system-type 'vax-vms)

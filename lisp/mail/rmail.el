@@ -4086,9 +4086,8 @@ encoded string (and the same mask) will decode the string."
       (kill-buffer (current-buffer))
       nil)))
 
-(eval-after-load 'desktop
-  '(add-to-list 'desktop-buffer-mode-handlers
-                '(rmail-mode . rmail-restore-desktop-buffer)))
+(add-to-list 'desktop-buffer-mode-handlers
+	     '(rmail-mode . rmail-restore-desktop-buffer))
 
 (provide 'rmail)
 
