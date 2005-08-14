@@ -1,3 +1,8 @@
+2005-08-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* dired.el: Fix dependency bug: Wrap `desktop-buffer-mode-handlers'
+	modification in `eval-after-load' form.
+
 2005-08-14  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords):
