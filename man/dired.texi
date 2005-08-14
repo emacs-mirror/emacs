@@ -1075,7 +1075,7 @@ use @kbd{M-x find-grep-dired}.  This command reads two minibuffer
 arguments, @var{directory} and @var{regexp}; it chooses all the files in
 @var{directory} or its subdirectories that contain a match for
 @var{regexp}.  It works by running the programs @code{find} and
-@code{grep}.  See also @kbd{M-x grep-find}, in @ref{Compilation}.
+@code{grep}.  See also @kbd{M-x grep-find}, in @ref{Grep Searching}.
 Remember to write the regular expression for @code{grep}, not for Emacs.
 (An alternative method of showing files whose contents match a given
 regexp is the @kbd{% g @var{regexp}} command, see @ref{Marks vs Flags}.)
