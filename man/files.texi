@@ -2907,7 +2907,7 @@ string; the default is @code{"-c"} to specify a context diff.
 @findex diff-goto-source
   After running @kbd{M-x diff}, you can use @kbd{C-x `} to visit
 successive changed locations in the two source files, as in
-Compilation mode (@pxref{Compilation}.)  In the @samp{*diff*} buffer,
+Compilation mode (@pxref{Compilation Mode}.)  In the @samp{*diff*} buffer,
 you can move to a particular hunk of changes and type @kbd{C-c C-c}
 (@code{diff-goto-source}) to visit the corresponding source location.
 
