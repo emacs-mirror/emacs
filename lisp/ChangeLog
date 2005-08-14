@@ -1,5 +1,8 @@
 2005-08-15  Andreas Schwab  <schwab@suse.de>
 
+	* desktop.el: Put autoload cookie at risky-local-variable
+	declarations.
+
 	* dired.el, info.el, mail/rmail.el: Revert last change.
 
 2005-08-14  Thien-Thi Nguyen  <ttn@gnu.org>
