@@ -4194,8 +4194,9 @@ BUFFER is the buffer speedbar is requesting buttons for."
     (Info-find-node first second)
     (current-buffer))))
 
-(add-to-list 'desktop-buffer-mode-handlers
-             '(Info-mode . Info-restore-desktop-buffer))
+(eval-after-load 'desktop
+  '(add-to-list 'desktop-buffer-mode-handlers
+                '(Info-mode . Info-restore-desktop-buffer)))
 
 (provide 'info)
 
