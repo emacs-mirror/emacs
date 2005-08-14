@@ -849,7 +849,7 @@ continue to exist.
 Emacs and have Emacs show you the matching lines one by one.  This works
 much like running a compilation; finding the source locations of the
 @code{grep} matches works like finding the compilation errors.
-@xref{Compilation}.
+@xref{Grep Searching}.
 
 @node List Tags
 @subsection Tags Table Inquiries
