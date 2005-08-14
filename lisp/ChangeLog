@@ -2,6 +2,7 @@
 
 	* dired.el: Fix dependency bug: Wrap `desktop-buffer-mode-handlers'
 	modification in `eval-after-load' form.
+	* info.el: Likewise.
 
 2005-08-14  Juri Linkov  <juri@jurta.org>
 
