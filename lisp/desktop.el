@@ -403,6 +403,7 @@ code like
 
 Furthermore the major mode function must be autoloaded.")
 
+;;;###autoload
 (put 'desktop-buffer-mode-handlers 'risky-local-variable t)
 (make-obsolete-variable 'desktop-buffer-handlers
                         'desktop-buffer-mode-handlers "22.1")
@@ -465,6 +466,7 @@ Furthermore the minor mode function must be autoloaded.
 
 See also `desktop-minor-mode-table'.")
 
+;;;###autoload
 (put 'desktop-minor-mode-handlers 'risky-local-variable t)
 
 ;; ----------------------------------------------------------------------------
