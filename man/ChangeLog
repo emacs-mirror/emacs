@@ -1,3 +1,15 @@
+2005-08-14  Juri Linkov  <juri@jurta.org>
+
+	* building.texi (Compilation, Grep Searching): Move grep command
+	headings from `Compilation' to `Grep Searching'.
+
+	* dired.texi (Dired and Find):
+	* maintaining.texi (Tags Search): Replace grep xref to
+	`Compilation' node with `Grep Searching'.
+
+	* files.texi (Comparing Files): Replace xref to `Compilation' with
+	`Compilation Mode'.
+
 2005-08-13  Alan Mackenzie  <acm@muc.de>
 
 	* search.texi (Non-ASCII Isearch): Correct a typo.
