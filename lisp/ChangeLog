@@ -1,3 +1,8 @@
+2005-08-15  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/vhdl-mode.el (vhdl-emacs-21):
+	Set t for Emacs 21, 22, and so on.
+
 2005-08-15  David Ponce  <david@dponce.com>
 
 	* tree-widget.el Update Commentary header.
