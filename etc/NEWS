@@ -923,12 +923,10 @@ the new dialog.
 ** Mouse changes:
 
 +++
-*** New display feature: focus follows the mouse from one Emacs window
-to another, even within a frame.  If you set the variable
-mouse-autoselect-window to non-nil value, moving the mouse to a
-different Emacs window will select that window (minibuffer window can
-be selected only when it is active).  The default is nil, so that this
-feature is not enabled.
+*** If you set the new variable `mouse-autoselect-window' to a non-nil
+value, windows are automatically selected as you move the mouse from
+one Emacs window to another, even within a frame.  A minibuffer window
+can be selected only when it is active.
 
 +++
 *** On X, when the window manager requires that you click on a frame to
@@ -996,7 +994,7 @@ mouse-wheel-inhibit-click-time variables.
 +++
 *** Under X, mouse-wheel-mode is turned on by default.
 
-** Mule changes:
+** Multilingual Environment (Mule) changes:
 
 ---
 *** Language environment and various default coding systems are setup
@@ -1632,7 +1630,7 @@ before calling it, if used while defining a macro.
 
 In addition, when ending or calling a macro with C-x e, the macro can
 be repeated immediately by typing just the `e'.  You can customize
-this behavior via the variable kmacro-call-repeat-key and
+this behavior via the variables kmacro-call-repeat-key and
 kmacro-call-repeat-with-arg.
 
 Keyboard macros can now be debugged and edited interactively.
