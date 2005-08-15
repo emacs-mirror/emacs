@@ -1,3 +1,8 @@
+2005-08-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* simple.el (next-error-follow-minor-mode): Fix init value and
+	ligher.
+
 2005-08-15  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-delete-region): Return t if

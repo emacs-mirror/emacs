@@ -308,7 +308,7 @@ select the source buffer."
 When turned on, cursor motion in the compilation, grep, occur or diff
 buffer causes automatic display of the corresponding source code
 location."
-  :group 'next-error :init-value " Fol"
+  :group 'next-error :init-value nil :lighter " Fol"
   (if (not next-error-follow-minor-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
     (add-hook 'post-command-hook 'next-error-follow-mode-post-command-hook nil t)
