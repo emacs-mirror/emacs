@@ -2150,9 +2150,13 @@ Optional second argument contains the dictionary to use; the default is
 	    (while (search-backward "*" nil t) (insert "."))
 	    (setq word (buffer-string))
 	    (erase-buffer))
-	  (setq status (if lookup-dict
-			   (call-process prog nil t nil args word lookup-dict)
-			 (call-process prog nil t nil args word)))
+	  (setq status (apply 'call-process prog nil t nil
+			      (nconc (if (and args (> (length args) 0))
+					 (list args)
+				       (if look-p nil
+					 (list "-e")))
+				     (list word)
+				     (if lookup-dict (list lookup-dict)))))
 	  ;; grep returns status 1 and no output when word not found, which
 	  ;; is a perfectly normal thing.
 	  (if (stringp status)
