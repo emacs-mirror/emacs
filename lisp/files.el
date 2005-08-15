@@ -1947,9 +1947,8 @@ and `magic-mode-alist', which determines modes based on file contents.")
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (INTERPRETER . MODE).
-The car of each element, a regular expression, is compared with
-the name of the interpreter specified in the first line.
-If it matches, mode MODE is selected.
+If INTERPRETER matches the name of the interpreter specified in the first line
+of a script, mode MODE is enabled.
 
 See also `auto-mode-alist'.")
 
