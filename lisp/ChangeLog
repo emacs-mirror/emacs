@@ -56,20 +56,26 @@
 	(rmail-clear-headers): Use it.
 	(rmail-reply): Better handling of mail-followup-to header.
 
-	* progmodes/sh-script.el (sh-font-lock-keywords-var):
-	Variable renamed from sh-font-lock-keywords.
-	In the `shell' entry, don't try to refer to executable-font-lock-keywords.
-	(sh-font-lock-keywords-var-1): Renamed from sh-font-lock-keywords-1.
-	(sh-font-lock-keywords-var-2): Renamed from sh-font-lock-keywords-2.
-	(sh-font-lock-keywords): Append executable-font-lock-keywords here.
-	(sh-mode): Set comment-start-skip, local-abbrev-table, imenu-case-fold-search.
+	* progmodes/sh-script.el (sh-font-lock-keywords-var): Variable
+	renamed from sh-font-lock-keywords.  In the `shell' entry, don't
+	try to refer to executable-font-lock-keywords.
+	(sh-font-lock-keywords-var-1): Renamed from
+	sh-font-lock-keywords-1.
+	(sh-font-lock-keywords-var-2): Renamed from
+	sh-font-lock-keywords-2.
+	(sh-font-lock-keywords): Append executable-font-lock-keywords
+	here.
+	(sh-mode): Set comment-start-skip, local-abbrev-table,
+	imenu-case-fold-search.
 	(sh-set-shell): Don't set them here.
 	(sh-feature): Simplify.  Get rid of the eval-a-variable feature.
-	Don't cache the results in the original alist; don't ever modify that alist.
+	Don't cache the results in the original alist; don't ever modify
+	that alist.
 
 	* textmodes/flyspell.el (flyspell-mode): Autoload a defvar.
 
-	* textmodes/ispell.el (lookup-words): Cope with case where ARGS is empty.
+	* textmodes/ispell.el (lookup-words): Cope with case where ARGS is
+	empty.
 
 2005-08-15  Andreas Schwab  <schwab@suse.de>
 
@@ -239,13 +245,14 @@
 	(compilation-info-text-face): Delete face variables.
 	(compilation-text-face): Delete function.
 
-	* progmodes/grep.el (grep-regexp-alist): Use `.+?' instead of `[^:\n]+'.
+	* progmodes/grep.el (grep-regexp-alist): Use `.+?' instead of
+	`[^:\n]+'.
 	(grep-mode-font-lock-keywords): Use `.+?' instead of `[^\n-]+'.
 	(grep-error-face): Set to `compilation-error' instead of
 	`compilation-error-face' (which is redefined to `grep-hit-face' in
 	grep buffers).
-	(grep-mode-font-lock-keywords): Remove `-text' from face
-	variable names.  Use `grep-error-face' instead of
+	(grep-mode-font-lock-keywords): Remove `-text' from face variable
+	names.  Use `grep-error-face' instead of
 	`compilation-error-text-face'.
 
 	* dired-aux.el (dired-do-query-replace-regexp):
@@ -577,13 +584,14 @@
 	(compilation-leave-directory-face): Doc fix.
 	(compilation-text-face): New function.
 
-	* progmodes/grep.el (grep-regexp-alist): Set 5th arg `TYPE' to
-	0 instead of 1 to display binary file names as info file links.
+	* progmodes/grep.el (grep-regexp-alist): Set 5th arg `TYPE' to 0
+	instead of 1 to display binary file names as info file links.
 	(grep-error-face): Use `compilation-error-face' instead of
 	`font-lock-keyword-face'.
 	(grep-mode-font-lock-keywords): Use `compilation-info-text-face'
-	and `compilation-warning-text-face' instead of `font-lock-keyword-face'.
-	Use `compilation-error-text-face' instead of `grep-error-face'.
+	and `compilation-warning-text-face' instead of
+	`font-lock-keyword-face'.  Use `compilation-error-text-face'
+	instead of `grep-error-face'.
 
 2005-08-05  Kenichi Handa  <handa@m17n.org>
 
@@ -1245,9 +1253,9 @@
 	(isearch-fallback): Refill docstring.
 
 	* international/isearch-x.el
-	(isearch-process-search-multibyte-characters): Remove unneeded `concat'.
-	Add intermediate values to `junk-hist' instead of `minibuffer-history'.
-	Test the length of `str'.
+	(isearch-process-search-multibyte-characters): Remove unneeded
+	`concat'.  Add intermediate values to `junk-hist' instead of
+	`minibuffer-history'.  Test the length of `str'.
 
 2005-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -2842,9 +2850,10 @@
 	New backward-compatibility aliases for renamed faces.
 	(eshell-run-test): Use renamed eshell-test faces.
 
-	* eshell/em-prompt.el (eshell-prompt):
-	Remove "-face" suffix from face name.
-	(eshell-prompt-face): New backward-compatibility alias for renamed face.
+	* eshell/em-prompt.el (eshell-prompt): Remove "-face" suffix from
+	face name.
+	(eshell-prompt-face): New backward-compatibility alias for renamed
+	face.
 	(eshell-emit-prompt): Use renamed eshell-prompt face.
 
 	* eshell/em-ls.el (eshell-ls-directory, eshell-ls-symlink)
@@ -3111,20 +3120,22 @@
 	(ebrowse-draw-member-buffer-class-line, ebrowse-draw-member-long-fn)
 	(ebrowse-draw-member-short-fn): Use renamed ebrowse faces.
 
-	* progmodes/antlr-mode.el (antlr-default, antlr-keyword, antlr-syntax)
+	* progmodes/antlr-mode.el (antlr-default, antlr-keyword,
+	antlr-syntax)
 	(antlr-ruledef, antlr-tokendef, antlr-ruleref, antlr-tokenref)
-	(antlr-literal): Remove "-face" suffix and "font-lock-" from face names.
+	(antlr-literal): Remove "-face" suffix and "font-lock-" from face
+	names.
 	(antlr-font-lock-default-face, antlr-font-lock-keyword-face)
 	(antlr-font-lock-syntax-face, antlr-font-lock-ruledef-face)
 	(antlr-font-lock-tokendef-face, antlr-font-lock-ruleref-face)
-	(antlr-font-lock-tokenref-face, antlr-font-lock-literal-face):
-	New backward-compatibility aliases for renamed faces.
+	(antlr-font-lock-tokenref-face, antlr-font-lock-literal-face): New
+	backward-compatibility aliases for renamed faces.
 	(antlr-default-face, antlr-keyword-face, antlr-syntax-face)
 	(antlr-ruledef-face, antlr-tokendef-face, antlr-ruleref-face)
-	(antlr-tokenref-face, antlr-literal-face): Variables renamed to remove
-	"font-lock-".  Use renamed antlr-mode faces.
-	(antlr-font-lock-additional-keywords): Use renamed faces.
-	Replace literal face-names with face variable references.
+	(antlr-tokenref-face, antlr-literal-face): Variables renamed to
+	remove "font-lock-".  Use renamed antlr-mode faces.
+	(antlr-font-lock-additional-keywords): Use renamed faces.  Replace
+	literal face-names with face variable references.
 
 	* buff-menu.el (Buffer-menu-buffer): Remove "-face" suffix from
 	face name.
@@ -3468,7 +3479,8 @@
 	(pc-selection-mode):
 	* emulation/vip.el (vip-find-char-forward):
 	* emulation/viper-cmd.el (viper-find-char-forward):
-	* international/mule-cmds.el (select-safe-coding-system-accept-default-p)
+	* international/mule-cmds.el
+	(select-safe-coding-system-accept-default-p)
 	(input-method-exit-on-invalid-key):
 	* international/mule-diag.el (describe-coding-system):
 	* international/ucs-tables.el (unify-8859-on-encoding-mode):
@@ -3642,11 +3654,12 @@
 	(smerge-mine-face, smerge-other-face, smerge-base-face)
 	(smerge-markers-face): Use renamed smerge faces.
 
-	* log-view.el (log-view-file, log-view-message):
-	Remove "-face" suffix from face names.
-	(log-view-file-face, log-view-message-face):
-	New backward-compatibility aliases for renamed faces.
-	(log-view-file-face, log-view-message-face): Use renamed log-view faces.
+	* log-view.el (log-view-file, log-view-message): Remove "-face"
+	suffix from face names.
+	(log-view-file-face, log-view-message-face): New
+	backward-compatibility aliases for renamed faces.
+	(log-view-file-face, log-view-message-face): Use renamed log-view
+	faces.
 
 	* paren.el (show-paren-match, show-paren-mismatch):
 	Remove "-face" suffix from face names.
@@ -3658,19 +3671,20 @@
 	(ruler-mode-margins, ruler-mode-fringes)
 	(ruler-mode-column-number, ruler-mode-fill-column)
 	(ruler-mode-comment-column, ruler-mode-goal-column)
-	(ruler-mode-tab-stop, ruler-mode-current-column):
-	Remove "-face" suffix from face names.
+	(ruler-mode-tab-stop, ruler-mode-current-column): Remove "-face"
+	suffix from face names.
 	(ruler-mode-default-face, ruler-mode-pad-face)
 	(ruler-mode-margins-face, ruler-mode-fringes-face)
 	(ruler-mode-column-number-face, ruler-mode-fill-column-face)
 	(ruler-mode-comment-column-face, ruler-mode-goal-column-face)
-	(ruler-mode-tab-stop-face, ruler-mode-current-column-face):
-	New backward-compatibility aliases for renamed faces.
+	(ruler-mode-tab-stop-face, ruler-mode-current-column-face): New
+	backward-compatibility aliases for renamed faces.
 	(ruler-mode-pad, ruler-mode-margins, ruler-mode-fringes)
 	(ruler-mode-column-number, ruler-mode-fill-column)
 	(ruler-mode-comment-column, ruler-mode-goal-column)
 	(ruler-mode-tab-stop, ruler-mode-current-column)
-	(ruler-mode-mouse-grab-any-column, ruler-mode-ruler): Use renamed faces.
+	(ruler-mode-mouse-grab-any-column, ruler-mode-ruler): Use renamed
+	faces.
 
 	* whitespace.el (whitespace-highlight): Remove "-face" suffix from
 	face name.
@@ -3905,10 +3919,12 @@
 	XEmacs code.
 	(flyspell-word): Minor simplification.
 	(flyspell-math-tex-command-p): Quieten the byte-compiler.
-	(flyspell-external-point-words): Remove unused vars `size' and `start'.
-	(flyspell-do-correct): Rename from flyspell-xemacs-correct.
-	Merge the corresponding Emacs code.
-	(flyspell-correct-word, flyspell-xemacs-popup): Use flyspell-do-correct.
+	(flyspell-external-point-words): Remove unused vars `size' and
+	`start'.
+	(flyspell-do-correct): Rename from flyspell-xemacs-correct.  Merge
+	the corresponding Emacs code.
+	(flyspell-correct-word, flyspell-xemacs-popup): Use
+	flyspell-do-correct.
 
 	* emacs-lisp/debug.el (debug): Don't bury the buffer unless it's in
 	a dedicated window.
@@ -4577,7 +4593,8 @@
 
 2005-05-26  Mark A. Hershberger  <mah@everybody.org>
 
-	* xml.el (xml-substitute-special): Don't die for undefined xml entities.
+	* xml.el (xml-substitute-special): Don't die for undefined xml
+	entities.
 
 2005-05-26  Jay Belanger  <belanger@truman.edu>
 
@@ -5012,8 +5029,9 @@
 
 	* emacs-lisp/byte-run.el (eval-when-compile): Doc fix.
 
-	* emacs-lisp/bytecomp.el (byte-compile-file-form-custom-declare-variable):
-	Call byte-compile-nogroup-warn if appropriate.
+	* emacs-lisp/bytecomp.el
+	(byte-compile-file-form-custom-declare-variable): Call
+	byte-compile-nogroup-warn if appropriate.
 
 	* progmodes/compile.el (compilation-finish-function): Mark obsolete.
 	(compilation-set-window): Don't call left-fringe-p; do it directly.
@@ -5100,8 +5118,8 @@
 	(reftex-access-search-path): Use `reftex-uniquify' instead of
 	`reftex-uniq'
 
-	* textmodes/reftex-sel.el (reftex-select-unmark):
-	Overlay `before-string' property modification enables for Emacs as well.
+	* textmodes/reftex-sel.el (reftex-select-unmark): Overlay
+	`before-string' property modification enables for Emacs as well.
 	(reftex-select-item): Use `reftex-delete-overlay'.
 	(reftex-select-mark): Use `reftex-make-overlay' and
 	`reftex-overlay-put'.
@@ -5588,7 +5606,8 @@
 
 2005-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* files.el (executable-find): Move from executable.el.  Use locate-file.
+	* files.el (executable-find): Move from executable.el.  Use
+	locate-file.
 	* progmodes/executable.el (executable-find): Move to files.el.
 
 	* font-lock.el (font-lock-fontify-keywords-region): Use a marker
@@ -5817,8 +5836,9 @@
 
 	* term/mac-win.el: Don't define or bind scroll bar functions if
 	x-toolkit-scroll-bars is t.
-	(x-select-text, x-get-selection-value):
-	Clear x-last-selected-text-clipboard if x-select-enable-clipboard is nil.
+	(x-select-text, x-get-selection-value): Clear
+	x-last-selected-text-clipboard if x-select-enable-clipboard is
+	nil.
 	(PRIMARY): Put mac-scrap-name property.
 	(mac-select-convert-to-file-url): New function.
 	(public.file-url): New selection target type.  Add to
@@ -7698,7 +7718,8 @@
 	minibuffer-with-setup-hook (which breaks turning on/off
 	file-name-shadow-mode while in the prompt).
 
-	* complete.el (PC-read-include-file-name-internal): Use test-completion.
+	* complete.el (PC-read-include-file-name-internal): Use
+	test-completion.
 
 2005-03-28  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -7883,7 +7904,8 @@
 	* midnight.el, vc-cvs.el: Replace `illegal' with `invalid'.
 	* emacs-lisp/cl-macs.el: Replace `illegal' with `invalid'.
 	* emulation/vip.el: Replace `illegal' with `invalid'.
-	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with `invalid'.
+	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with
+	`invalid'.
 	* mail/supercite.el: Replace `illegal' with `invalid'.
 	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el
 	* progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el
@@ -8105,7 +8127,8 @@
 
 2005-03-21  Lute Kamstra  <lute@gnu.org>
 
-	* generic.el: Fix commentary section.  Don't require cl for compilation.
+	* generic.el: Fix commentary section.  Don't require cl for
+	compilation.
 	(generic-mode-list): Add autoload cookie.
 	(generic-use-find-file-hook, generic-lines-to-scan)
 	(generic-find-file-regexp, generic-ignore-files-regexp)
@@ -8744,10 +8767,11 @@
 
 	* simple.el (normal-erase-is-backspace): Define default value.
 
-	* custom.el (custom-theme-set-variables): Remove unused var `immediate'.
-	(custom-reevaluate-setting): Simple function to handle
-	variables that are defined before their default value can really
-	be computed.
+	* custom.el (custom-theme-set-variables): Remove unused var
+	`immediate'.
+	(custom-reevaluate-setting): Simple function to handle variables
+	that are defined before their default value can really be
+	computed.
 
 	* startup.el (command-line): Use it for temporary-file-directory,
 	small-emporary-file-directory, auto-save-file-name-transforms,
@@ -10660,7 +10684,8 @@
 	* progmodes/fortran.el (fortran-mode): Use mode-require-final-newline.
 	* progmodes/f90.el (f90-mode): Use mode-require-final-newline.
 	* progmodes/cperl-mode.el (cperl-mode): Use mode-require-final-newline.
-	* progmodes/cfengine.el (cfengine-mode): Use mode-require-final-newline.
+	* progmodes/cfengine.el (cfengine-mode): Use
+	mode-require-final-newline.
 	* progmodes/ada-mode.el (ada-mode): Use mode-require-final-newline.
 	* textmodes/text-mode.el (text-mode): Use mode-require-final-newline.
 	* textmodes/texinfo.el (texinfo-mode): Use mode-require-final-newline.
@@ -11028,8 +11053,8 @@
 
 2004-12-19  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-aent.el (calcAlg-blank-matching-open):
-	Temporarily adjust the syntax of both delimiters of half-open intervals.
+	* calc/calc-aent.el (calcAlg-blank-matching-open): Temporarily
+	adjust the syntax of both delimiters of half-open intervals.
 
 2004-12-19  Kim F. Storm  <storm@cua.dk>
 
@@ -11294,7 +11319,8 @@
 	Reported by Ville Skytt,Ad(B <scop@xemacs.org>.
 	(vc-svn-annotate-current-time, vc-svn-annotate-time-of-rev)
 	(vc-svn-annotate-time, vc-svn-annotate-extract-revision-at-line)
-	(vc-svn-annotate-command, vc-svn-annotate-re): Support for svn annotate.
+	(vc-svn-annotate-command, vc-svn-annotate-re): Support for svn
+	annotate.
 
 2004-12-12  Juri Linkov  <juri@jurta.org>
 
@@ -11385,7 +11411,8 @@
 2004-12-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/checkdoc.el (checkdoc-continue, checkdoc-comments)
-	(checkdoc-message-text, checkdoc-defun): Fix format messages for `error'.
+	(checkdoc-message-text, checkdoc-defun): Fix format messages for
+	`error'.
 
 	* textmodes/tex-mode.el (latex-backward-sexp-1): Handle the special
 	case of \end{verbatim}.
@@ -11683,12 +11710,13 @@
 	* calc/calc-store.el, calc/calc-stuff.el, calc/calc-trail.el
 	* calc/calc-undo.el, calc/calc-units.el, calc/calc-vec.el
 	* calc/calc-yank.el, calc/calcalg2.el, calc/calcalg3.el
-	* calc/calccomp.el, calc/calcsel2.el: Replace dummy autoloaded functions
-	with provide statements.
+	* calc/calccomp.el, calc/calcsel2.el: Replace dummy autoloaded
+	functions with provide statements.
 
 	* calc/calc-alg.el (math-defsimplify): Move from calc-ext.el.
 
-	* calc/calc-embed.el (calc-do-embedded-activate): Remove from autoloads.
+	* calc/calc-embed.el (calc-do-embedded-activate): Remove from
+	autoloads.
 
 	* calc/calc-ext.el: Remove dummy autoloading functions from autoloads.
 	(calc-load-everything, math-defsimplify): Replace dummy autoloading
@@ -11753,11 +11781,12 @@
 	Replace calls to calc-extensions by appropriate require, replace
 	calc-extensions-loaded by appropriate featurep.
 
-	* calc/calc-ext.el: Move require to end of file.
-	Remove redundant loading of calc.el.
+	* calc/calc-ext.el: Move require to end of file.  Remove redundant
+	loading of calc.el.
 	(calc-extensions-loaded): Remove unnecessary variable.
 	(calc-extensions): Remove unnecessary function.
-	(calc-load-everything): Replace calc-need-macros by appropriate require.
+	(calc-load-everything): Replace calc-need-macros by appropriate
+	require.
 
 	* calc/calc-macs.el: Move provide to end of file.
 	(calc-need-macros): Remove unnecessary function.
@@ -11861,7 +11890,8 @@
 
 	* calc/calc-aent.el (calc-eval-error): Declare and initialize the
 	variable.
-	(calc-eval-error): Don't check if the variable calc-eval-error is bound.
+	(calc-eval-error): Don't check if the variable calc-eval-error is
+	bound.
 	(calc-buffer, calc-digit-value, math-expr-data): Declare them.
 	(math-alg-inequalities): Move declaration to earlier in the file.
 
@@ -11937,7 +11967,8 @@
 	Replace variable pos by declared variable.
 
 	* calc/calc-mtx.el (calc-det-lu): New variable.
-	(math-det-raw, math-det-step): Replace variable lu by declared variable.
+	(math-det-raw, math-det-step): Replace variable lu by declared
+	variable.
 
 	* calc/calc-map.el (math-ms-temp, math-ms-args): New variables.
 	(math-multi-subst, math-multi-subst-rec): Replace variables temp
@@ -11969,7 +12000,8 @@
 	(calc-embedded-update, calc-embedded-find-vars): Replace variable
 	vars-used by declared variable.
 
-	* calc/calc-bin.el (math-format-radix-float): Make pos a local variable.
+	* calc/calc-bin.el (math-format-radix-float): Make pos a local
+	variable.
 	(math-format-radix-float): Remove unnecessary setq.
 	(math-radix-float-cache): Declare it.
 
@@ -13637,7 +13669,8 @@
 	* play/fortune.el (fortune-to-signature): Don't use interactive-p.
 	(fortune-in-buffer): Doc fix.
 
-	* play/5x5.el (5x5-new-game): Set up the buffer even if not interactive.
+	* play/5x5.el (5x5-new-game): Set up the buffer even if not
+	interactive.
 
 	* net/eudc.el (eudc-display-records): Use with-output-to-temp-buffer;
 	don't select the temporary buffer.
@@ -14215,7 +14248,8 @@
 
 2004-10-17  Kim F. Storm  <storm@cua.dk>
 
-	* language/indian.el (indian-script-language-alist): Swap value and doc.
+	* language/indian.el (indian-script-language-alist): Swap value
+	and doc.
 	(indian-font-char-index-table): Doc fix.
 
 2004-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -15879,7 +15913,8 @@
 
 2004-08-08  Lars Hansen  <larsh@math.ku.dk>
 
-	* wid-edit.el (widget-sexp-validate): Allow whitespace after expression.
+	* wid-edit.el (widget-sexp-validate): Allow whitespace after
+	expression.
 
 2004-08-08  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -16735,9 +16770,10 @@
 2004-06-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dired.el (dired-revert): If buffer is marked unmodified before
-	reverting, keep it marked unmodified.
-	Adapt to new conventions for commenting out code.
-	(dired-make-relative): Adapt to new conventions for commenting out code.
+	reverting, keep it marked unmodified.  Adapt to new conventions
+	for commenting out code.
+	(dired-make-relative): Adapt to new conventions for commenting out
+	code.
 
 2004-06-10  Miles Bader  <miles@gnu.ai.mit.edu>
 
@@ -16832,8 +16868,8 @@
 
 2004-06-08  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* progmodes/compile.el (compilation-set-window-height):
-	Rearrange the save-* functions because a buffer can have several current
+	* progmodes/compile.el (compilation-set-window-height): Rearrange
+	the save-* functions because a buffer can have several current
 	point in different windows.
 	(compilation-error-regexp-alist-alist): Recognize {standard input}
 	GNU messages (for gcc --pipe) and more kinds of Oracle messages.
@@ -17295,7 +17331,8 @@
 
 2004-05-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* subr.el (with-selected-window): Only save/restore the selected window.
+	* subr.el (with-selected-window): Only save/restore the selected
+	window.
 
 	* progmodes/compile.el (compilation-error-regexp-alist):
 	Use expand-file-name and data-directory.
@@ -17639,7 +17676,8 @@
 
 	* eshell/esh-io.el (eshell-get-target): Whitespace changes.
 	(eshell-output-object-to-target): Improve output speed 20% by not
-	calling `eshell-stringify' if something is already known to be a string.
+	calling `eshell-stringify' if something is already known to be a
+	string.
 
 2004-05-15  Alex Ott  <ott@jet.msk.su>
 
@@ -18993,10 +19031,11 @@
 
 2004-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* progmodes/compile.el (compilation-error-properties):
-	Split into two.
+	* progmodes/compile.el (compilation-error-properties): Split into
+	two.
 	(compilation-internal-error-properties): New one.
-	(compilation-compat-error-properties): Use it.  Fix the non-marker case.
+	(compilation-compat-error-properties): Use it.  Fix the non-marker
+	case.
 
 2004-04-20  Richard M. Stallman  <rms@gnu.org>
 
@@ -19153,7 +19192,8 @@
 
 2004-04-16  Dave Love  <fx@gnu.org>
 
-	* progmodes/python.el (python-compilation-line-number): Fix braindamage.
+	* progmodes/python.el (python-compilation-line-number): Fix
+	braindamage.
 	(python-load-file): Fix python-orig-start setting.
 
 	* progmodes/compile.el: Doc fixes.
@@ -19187,10 +19227,10 @@
 
 2004-04-16  Masatake YAMATO  <jet@gyve.org>
 
-	* simple.el (completion-setup-function): Set an initial value
-	to `element-common-end' before entering loop.  Set a value
-	to `element-common-end' at the end of loop.
-	The bug is reported by Juri Linkov <juri@jurta.org> in emacs-devel list.
+	* simple.el (completion-setup-function): Set an initial value to
+	`element-common-end' before entering loop.  Set a value to
+	`element-common-end' at the end of loop.  The bug is reported by
+	Juri Linkov <juri@jurta.org> in emacs-devel list.
 	(completions-common-part): Rename from completion-de-emphasis.
 	(completions-first-difference): Rename from completion-emphasis.
 	Suggested by RMS.
@@ -19257,7 +19297,8 @@
 	parsing of both attribute and element names.
 	(xml-ns-parse-ns-attrs, xml-ns-expand-el, xml-ns-expand-attr)
 	(xml-intern-attrlist): Remove in favor of xml-maybe-do-ns.
-	(xml-parse-tag): Update assumed namespaces.  Clean up namespace parsing.
+	(xml-parse-tag): Update assumed namespaces.  Clean up namespace
+	parsing.
 	(xml-parse-attlist): Make it do its own namespace parsing.
 
 2004-04-14  Dave Love  <fx@gnu.org>
@@ -19301,11 +19342,12 @@
 2004-04-14  Kim F. Storm  <storm@cua.dk>
 
 	* startup.el (emacs-quick-startup): New defvar (set by -Q).
-	(command-line): New option -Q.  Like -q --no-site-file, but
-	in addition it also disables menu-bar, tool-bar, scroll-bars,
+	(command-line): New option -Q.  Like -q --no-site-file, but in
+	addition it also disables menu-bar, tool-bar, scroll-bars,
 	tool-tips, and the blinking cursor.
 	(command-line-1): Skip startup screen if -Q.
-	(fancy-splash-head): Use ":align-to center" prop to center splash image.
+	(fancy-splash-head): Use ":align-to center" prop to center splash
+	image.
 
 	* emulation/cua-base.el (cua-read-only-cursor-color)
 	(cua-overwrite-cursor-color, cua-global-mark-cursor-color): Doc fix.
@@ -20100,7 +20142,8 @@
 
 2004-03-22  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* autorevert.el (global-auto-revert-non-file-buffers): Expand docstring.
+	* autorevert.el (global-auto-revert-non-file-buffers): Expand
+	docstring.
 	(buffer-stale-function): New variable.
 	(auto-revert-list-diff, auto-revert-dired-file-list)
 	(auto-revert-dired-changed-p, auto-revert-buffer-p): Delete.
@@ -21321,7 +21364,8 @@
 
 	* net/webjump.el (webjump-builtin): Add missing format string argument.
 
-	* midnight.el (midnight-delay-set): Remove extra format string argument.
+	* midnight.el (midnight-delay-set): Remove extra format string
+	argument.
 
 	* mail/rmail.el (rmail-get-new-mail): Remove useless use of format.
 
@@ -22382,7 +22426,8 @@
 	* subr.el (noreturn, 1value): New macros for test coverage.
 	See `testcover.el'.
 
-	* emacs-lisp/edebug.el: Add def-edebug-spec for `noreturn' and `1value'.
+	* emacs-lisp/edebug.el: Add def-edebug-spec for `noreturn' and
+	`1value'.
 
 	* emacs-lisp/testcover.el (testcover-reinstrument): Special case
 	for macro `1value'.
