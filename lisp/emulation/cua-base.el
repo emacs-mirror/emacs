@@ -575,6 +575,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 
 ;; Current region was started using cua-set-mark.
 (defvar cua--explicit-region-start nil)
+(make-variable-buffer-local 'cua--explicit-region-start)
 
 ;; Latest region was started using shifted movement command.
 (defvar cua--last-region-shifted nil)
@@ -585,6 +586,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 
 ;; status string for mode line indications
 (defvar cua--status-string nil)
+(make-variable-buffer-local 'cua--status-string)
 
 (defvar cua--debug nil)
 
@@ -759,14 +761,19 @@ Save a copy in register 0 if `cua-delete-copy-to-register-0' is non-nil."
 	  (cons (current-buffer)
 		(and (consp buffer-undo-list)
 		     (car buffer-undo-list))))
-    (cua--deactivate)))
+    (cua--deactivate)
+    (/= start end)))
 
 (defun cua-replace-region ()
   "Replace the active region with the character you type."
   (interactive)
-  (cua-delete-region)
-  (unless (eq this-original-command this-command)
-    (cua--fallback)))
+  (let ((not-empty (cua-delete-region)))
+    (unless (eq this-original-command this-command)
+      (let ((overwrite-mode
+	     (and overwrite-mode
+		  not-empty
+		  (not (eq this-original-command 'self-insert-command)))))
+	(cua--fallback)))))
 
 (defun cua-copy-region (arg)
   "Copy the region to the kill ring.
@@ -1359,8 +1366,6 @@ the prefix fallback behavior."
   :link '(emacs-commentary-link "cua-base.el")
   (setq mark-even-if-inactive t)
   (setq highlight-nonselected-windows nil)
-  (make-variable-buffer-local 'cua--explicit-region-start)
-  (make-variable-buffer-local 'cua--status-string)
 
   (unless cua--keymaps-initalized
     (cua--init-keymaps)
