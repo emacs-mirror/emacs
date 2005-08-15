@@ -8038,9 +8038,6 @@ Each element of the list is a symbol for a image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
 
-  define_image_type (&xbm_type, 1);
-  define_image_type (&pbm_type, 1);
-
   DEFVAR_LISP ("image-library-alist", &Vimage_library_alist,
     doc: /* Alist of image types vs external libraries needed to display them.
 
@@ -8057,6 +8054,17 @@ listed; they're always supported.  */);
 
   Vimage_type_cache = Qnil;
   staticpro (&Vimage_type_cache);
+
+  Qpbm = intern ("pbm");
+  staticpro (&Qpbm);
+  ADD_IMAGE_TYPE(Qpbm);
+
+  Qxbm = intern ("xbm");
+  staticpro (&Qxbm);
+  ADD_IMAGE_TYPE(Qxbm);
+
+  define_image_type (&xbm_type, 1);
+  define_image_type (&pbm_type, 1);
 
   QCascent = intern (":ascent");
   staticpro (&QCascent);
@@ -8101,14 +8109,6 @@ listed; they're always supported.  */);
   QCpt_height = intern (":pt-height");
   staticpro (&QCpt_height);
 #endif /* HAVE_GHOSTSCRIPT */
-
-  Qpbm = intern ("pbm");
-  staticpro (&Qpbm);
-  ADD_IMAGE_TYPE(Qpbm);
-
-  Qxbm = intern ("xbm");
-  staticpro (&Qxbm);
-  ADD_IMAGE_TYPE(Qxbm);
 
 #if defined (HAVE_XPM) || defined (MAC_OS)
   Qxpm = intern ("xpm");
