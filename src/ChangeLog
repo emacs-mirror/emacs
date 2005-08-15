@@ -1,3 +1,18 @@
+2005-08-15  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (deactivate_process, status_notify, read_process_output)
+	(update_status, status_convert, decode_status, allocate_pty)
+	(make_process, remove_process, list_processes_1)
+	(create_process_1, unwind_request_sigio, read_process_output)
+	(send_process, keyboard_bit_set): Declare static.
+	(Fdelete_process): Simplify.  Pass process to status_notify, so we
+	don't try to read output from it.
+	(status_notify): New arg deleting_process--don't try to read
+	output from that process.
+
+	* lisp.h (deactivate_process, status_notify, read_process_output):
+	Remove prototypes.
+
 2005-08-14  Richard M. Stallman  <rms@gnu.org>
 
 	* image.c (syms_of_image): Init Qxbm, Qpbm before calling define_image_type.
