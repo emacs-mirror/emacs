@@ -1813,7 +1813,7 @@ extern int interrupt_input_pending;
         Lisp_Object flag = Vquit_flag;			\
 	Vquit_flag = Qnil;				\
 	if (EQ (Vthrow_on_input, flag))			\
-	  Fthrow (Vthrow_on_input, Qnil);		\
+	  Fthrow (Vthrow_on_input, Qt);			\
 	Fsignal (Qquit, Qnil);				\
       }							\
   } while (0)
