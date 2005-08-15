@@ -869,9 +869,7 @@ command interpreter in a @samp{#!} line.  Its value is an alist with
 elements of the form @code{(@var{interpreter} . @var{mode})}; for
 example, @code{("perl" . perl-mode)} is one element present by
 default.  The element says to use mode @var{mode} if the file
-specifies an interpreter which matches @var{interpreter}.  The value
-of @var{interpreter} is actually a regular expression. @xref{Regular
-Expressions}.
+specifies an interpreter which matches @var{interpreter}.
 @end defvar
 
 @defvar magic-mode-alist
