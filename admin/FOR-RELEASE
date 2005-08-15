@@ -77,13 +77,11 @@ non-nil.  If so, it is not overwritten.
 
 To enable the fix, the user must set comint-process-echoes to t.
 
-** Server processes do not work on Windows.
+** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
 excesive CPU on some Windows environments.  Usages of 50% and 100%
 CPU time have been observed on different Window XP configurations.
-
-When calling `delete-process' on an UDP server process, Emacs hangs.
 
 ** Bug in ebrowse
 
