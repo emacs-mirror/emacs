@@ -1,5 +1,24 @@
 2005-08-14  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (interpreter-mode-alist): Doc fix.
+
+	* mail/rmail.el (rmail-nonignored-headers): New variable.
+	(rmail-clear-headers): Use it.
+	(rmail-reply): Better handling of mail-followup-to header.
+
+	* progmodes/sh-script.el (sh-font-lock-keywords-var):
+	Variable renamed from sh-font-lock-keywords.
+	In the `shell' entry, don't try to refer to executable-font-lock-keywords.
+	(sh-font-lock-keywords-var-1): Renamed from sh-font-lock-keywords-1.
+	(sh-font-lock-keywords-var-2): Renamed from sh-font-lock-keywords-2.
+	(sh-font-lock-keywords): Append executable-font-lock-keywords here.
+	(sh-mode): Set comment-start-skip, local-abbrev-table, imenu-case-fold-search.
+	(sh-set-shell): Don't set them here.
+	(sh-feature): Simplify.  Get rid of the eval-a-variable feature.
+	Don't cache the results in the original alist; don't ever modify that alist.
+
+	* textmodes/flyspell.el (flyspell-mode): Autoload a defvar.
+
 	* textmodes/ispell.el (lookup-words): Cope with case where ARGS is empty.
 
 2005-08-15  Andreas Schwab  <schwab@suse.de>

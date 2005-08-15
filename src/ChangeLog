@@ -1,3 +1,7 @@
+2005-08-14  Richard M. Stallman  <rms@gnu.org>
+
+	* image.c (syms_of_image): Init Qxbm, Qpbm before calling define_image_type.
+
 2005-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_pixbuf_from_pix_and_mask): New function.

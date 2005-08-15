@@ -1,3 +1,7 @@
+2005-08-14  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Auto Major Mode): interpreter-mode-alist key xis not a regexp.
+
 2005-08-11  Richard M. Stallman  <rms@gnu.org>
 
 	* elisp.texi (Top): Update subnode lists.
