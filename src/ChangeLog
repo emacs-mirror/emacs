@@ -1,5 +1,7 @@
 2005-08-15  Kim F. Storm  <storm@cua.dk>
 
+	* lisp.h (QUIT) [!SYNC_INPUT]: Throw t to Vthrow_on_input.
+
 	* process.c (deactivate_process, status_notify, read_process_output)
 	(update_status, status_convert, decode_status, allocate_pty)
 	(make_process, remove_process, list_processes_1)

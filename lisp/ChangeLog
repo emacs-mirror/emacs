@@ -1,3 +1,8 @@
+2005-08-15  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-buffer-internal): Use with-no-warnings.
+	(ido-make-merged-file-list): Use while-no-input.
+
 2005-08-14  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (interpreter-mode-alist): Doc fix.
