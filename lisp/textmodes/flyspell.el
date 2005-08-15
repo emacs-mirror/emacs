@@ -77,7 +77,9 @@ Non-nil means use highlight, nil means use minibuffer messages."
   :type 'boolean)
 
 (defcustom flyspell-mark-duplications-flag t
-  "*Non-nil means Flyspell reports a repeated word as an error."
+  "*Non-nil means Flyspell reports a repeated word as an error.
+Detection of repeated words is not implemented in
+\"large\" regions; see `flyspell-large-region'."
   :group 'flyspell
   :type 'boolean)
 
@@ -238,10 +240,13 @@ If the region is smaller than this number of characters,
 flyspell methods.  Else, if the region is large, a new Ispell process is
 spawned for speed.
 
+Doubled words are not detected in a large region, because Ispell
+does not check for them.
+
 If `flyspell-large-region' is nil, all regions are treated as small."
   :group 'flyspell
   :version "21.1"
-  :type '(choice number boolean))
+  :type '(choice number (const :tag "All small" nil)))
 
 (defcustom flyspell-insert-function (function insert)
   "*Function for inserting word by flyspell upon correction."
