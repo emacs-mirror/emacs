@@ -1,3 +1,7 @@
+2005-08-14  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (lookup-words): Cope with case where ARGS is empty.
+
 2005-08-15  Andreas Schwab  <schwab@suse.de>
 
 	* desktop.el: Put autoload cookie at risky-local-variable
