@@ -533,9 +533,7 @@ lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
     '((((class color)) (:foreground "Black" :background "Pink"))
       (t (:underline t)))
     "Face for highlighting lines with breakpoints."
-    :group 'idlwave-shell-highlighting-and-faces)
-  ;; backward-compatibility alias
-  (put 'idlwave-shell-bp-face 'face-alias 'idlwave-shell-bp))
+    :group 'idlwave-shell-highlighting-and-faces))
 
 (defcustom idlwave-shell-disabled-breakpoint-face 
   'idlwave-shell-disabled-bp
@@ -553,10 +551,7 @@ lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
     '((((class color)) (:foreground "Black" :background "gray"))
       (t (:underline t)))
     "Face for highlighting lines with breakpoints."
-    :group 'idlwave-shell-highlighting-and-faces)
-  ;; backward-compatibility alias
-  (put 'idlwave-shell-disabled-bp-face 'face-alias 'idlwave-shell-disabled-bp))
-
+    :group 'idlwave-shell-highlighting-and-faces))
 
 (defcustom idlwave-shell-expression-face 'secondary-selection
   "*The face for `idlwave-shell-expression-overlay'.

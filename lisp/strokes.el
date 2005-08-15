@@ -1424,8 +1424,6 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
   "Face for strokes characters."
   :version "21.1"
   :group 'strokes)
-;; backward-compatibility alias
-(put 'strokes-char-face 'face-alias 'strokes-char)
 
 (put 'strokes 'char-table-extra-slots 0)
 (defconst strokes-char-table (make-char-table 'strokes) ;

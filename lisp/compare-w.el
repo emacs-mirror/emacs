@@ -127,8 +127,6 @@ and the value `((4) (4))' for horizontally split windows."
   "Face for highlighting of compare-windows difference regions."
   :group 'compare-w
   :version "22.1")
-;; backward-compatibility alias
-(put 'compare-windows-face 'face-alias 'compare-windows)
 
 (defvar compare-windows-overlay1 nil)
 (defvar compare-windows-overlay2 nil)

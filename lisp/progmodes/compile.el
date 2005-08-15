@@ -484,8 +484,6 @@ starting the compilation process.")
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
   :version "22.1")
-;; backward-compatibility alias
-(put 'compilation-warning-face 'face-alias 'compilation-warning)
 
 (defface compilation-info
   '((((class color) (min-colors 16) (background light))
@@ -499,8 +497,6 @@ starting the compilation process.")
   "Face used to highlight compiler information."
   :group 'font-lock-highlighting-faces
   :version "22.1")
-;; backward-compatibility alias
-(put 'compilation-info-face 'face-alias 'compilation-info)
 
 (defface compilation-line-number
   '((t :inherit font-lock-variable-name-face))

@@ -1,3 +1,8 @@
+2005-08-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mh-customize.el: Do not use face-alias compatibility for
+	faces that did not appear in the previous Emacs release.
+
 2005-08-10  Lars Hansen  <larsh@soem.dk>
 	* mh-e.el: Add handler to desktop-buffer-mode-handlers.
 	(mh-restore-desktop-buffer): Remove autoload cookie.

@@ -252,8 +252,6 @@ Any terminating `>' or `/' is not matched.")
   '((t (:inherit font-lock-builtin-face)))
   "`sgml-mode' face used to highlight the namespace part of identifiers."
   :group 'sgml)
-;; backward-compatibility alias
-(put 'sgml-namespace-face 'face-alias 'sgml-namespace)
 (defvar sgml-namespace-face 'sgml-namespace)
 
 ;; internal

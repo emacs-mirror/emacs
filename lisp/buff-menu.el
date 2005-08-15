@@ -79,8 +79,6 @@
   "Face used to highlight buffer name."
   :group 'Buffer-menu
   :group 'font-lock-highlighting-faces)
-;; backward-compatibility alias
-(put 'Buffer-menu-buffer-face 'face-alias 'Buffer-menu-buffer)
 
 (defcustom Buffer-menu-buffer+size-width 26
   "*How wide to jointly make the buffer name and size columns."

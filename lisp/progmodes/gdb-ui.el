@@ -1307,8 +1307,6 @@ static char *magick[] = {
     (((background light)) :foreground "grey40"))
   "Face for disabled breakpoint icon in fringe."
   :group 'gud)
-;; Compatibility alias for old name.
-(put 'breakpoint-disabled-bitmap-face 'face-alias 'breakpoint-disabled)
 
 ;; Put breakpoint icons in relevant margins (even those set in the GUD buffer).
 (defun gdb-info-breakpoints-custom ()

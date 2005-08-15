@@ -1,5 +1,23 @@
 2005-08-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* buff-menu.el: 
+	* compare-w.el: 
+	* emacs-lisp/testcover.el: 
+	* play/gomoku.el: 
+	* play/mpuz.el: 
+	* progmodes/flymake.el: 
+	* progmodes/gdb-ui.el: 
+	* progmodes/idlw-help.el: 
+	* progmodes/idlw-shell.el: 
+	* progmodes/ld-script.el: 
+	* progmodes/which-func.el: 
+	* ruler-mode.el: 
+	* strokes.el: 
+	* textmodes/sgml-mode.el: 
+	* textmodes/table.el: Do not use face-alias for backward
+	compatibility for faces that did not appear in the previous Emacs
+	release.
+
 	* simple.el (next-error-follow-minor-mode): Fix init value and
 	ligher.
 

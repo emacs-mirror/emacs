@@ -858,16 +858,12 @@ Return t if it has at least one flymake overlay, nil if no overlay."
     (t (:bold t)))
   "Face used for marking error lines."
   :group 'flymake)
-;; backward-compatibility alias
-(put 'flymake-errline-face 'face-alias 'flymake-errline)
 
 (defface flymake-warnline
   '((((class color)) (:background "LightBlue2"))
     (t (:bold t)))
   "Face used for marking warning lines."
   :group 'flymake)
-;; backward-compatibility alias
-(put 'flymake-warnline-face 'face-alias 'flymake-warnline)
 
 (defun flymake-highlight-line (line-no line-err-info-list)
   "Highlight line LINE-NO in current buffer.

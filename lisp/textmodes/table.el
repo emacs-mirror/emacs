@@ -691,8 +691,6 @@ height."
   "*Face used for table cell contents."
   :tag "Cell Face"
   :group 'table)
-;; backward-compatibility alias
-(put 'table-cell-face 'face-alias 'table-cell)
 
 (defcustom table-cell-horizontal-chars "-="
   "*Characters that may be used for table cell's horizontal border line."
