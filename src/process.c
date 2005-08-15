@@ -294,7 +294,10 @@ static Lisp_Object Vprocess_adaptive_read_buffering;
 
 #include "sysselect.h"
 
-extern int keyboard_bit_set P_ ((SELECT_TYPE *));
+static int keyboard_bit_set P_ ((SELECT_TYPE *));
+static void deactivate_process P_ ((Lisp_Object));
+static void status_notify P_ ((struct Lisp_Process *));
+static int read_process_output P_ ((Lisp_Object, int));
 
 /* If we support a window system, turn on the code to poll periodically
    to detect C-g.  It isn't actually used when doing interrupt input.  */
@@ -391,9 +394,9 @@ static char pty_name[24];
 /* Compute the Lisp form of the process status, p->status, from
    the numeric status that was returned by `wait'.  */
 
-Lisp_Object status_convert ();
+static Lisp_Object status_convert ();
 
-void
+static void
 update_status (p)
      struct Lisp_Process *p;
 {
@@ -407,7 +410,7 @@ update_status (p)
 /*  Convert a process status word in Unix format to
     the list that we use internally.  */
 
-Lisp_Object
+static Lisp_Object
 status_convert (w)
      WAITTYPE w;
 {
@@ -426,7 +429,7 @@ status_convert (w)
 /* Given a status-list, extract the three pieces of information
    and store them individually through the three pointers.  */
 
-void
+static void
 decode_status (l, symbol, code, coredump)
      Lisp_Object l;
      Lisp_Object *symbol;
@@ -505,7 +508,7 @@ status_message (p)
    The file name of the terminal corresponding to the pty
    is left in the variable pty_name.  */
 
-int
+static int
 allocate_pty ()
 {
   register int c, i;
@@ -590,7 +593,7 @@ allocate_pty ()
 }
 #endif /* HAVE_PTYS */
 
-Lisp_Object
+static Lisp_Object
 make_process (name)
      Lisp_Object name;
 {
@@ -634,7 +637,7 @@ make_process (name)
   return val;
 }
 
-void
+static void
 remove_process (proc)
      register Lisp_Object proc;
 {
@@ -768,23 +771,27 @@ nil, indicating the current buffer's process.  */)
      (process)
      register Lisp_Object process;
 {
+  register struct Lisp_Process *p;
+
   process = get_process (process);
-  XPROCESS (process)->raw_status_low = Qnil;
-  XPROCESS (process)->raw_status_high = Qnil;
-  if (NETCONN_P (process))
+  p = XPROCESS (process);
+
+  p->raw_status_low = Qnil;
+  p->raw_status_high = Qnil;
+  if (NETCONN1_P (p))
     {
-      XPROCESS (process)->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
-      XSETINT (XPROCESS (process)->tick, ++process_tick);
-      status_notify ();
+      p->status = Fcons (Qexit, Fcons (make_number (0), Qnil));
+      XSETINT (p->tick, ++process_tick);
+      status_notify (p);
     }
-  else if (XINT (XPROCESS (process)->infd) >= 0)
+  else if (XINT (p->infd) >= 0)
     {
       Fkill_process (process, Qnil);
       /* Do this now, since remove_process will make sigchld_handler do nothing.  */
-      XPROCESS (process)->status
+      p->status
 	= Fcons (Qsignal, Fcons (make_number (SIGKILL), Qnil));
-      XSETINT (XPROCESS (process)->tick, ++process_tick);
-      status_notify ();
+      XSETINT (p->tick, ++process_tick);
+      status_notify (p);
     }
   remove_process (process);
   return Qnil;
@@ -1238,7 +1245,7 @@ IP address.  Returns nil if format of ADDRESS is invalid.  */)
 }
 #endif
 
-Lisp_Object
+static Lisp_Object
 list_processes_1 (query_only)
      Lisp_Object query_only;
 {
@@ -1708,7 +1715,7 @@ start_process_unwind (proc)
   return Qnil;
 }
 
-void
+static void
 create_process_1 (timer)
      struct atimer *timer;
 {
@@ -2531,7 +2538,7 @@ OPTION is not a supported option, return nil instead; otherwise return t.  */)
 
 /* A version of request_sigio suitable for a record_unwind_protect.  */
 
-Lisp_Object
+static Lisp_Object
 unwind_request_sigio (dummy)
      Lisp_Object dummy;
 {
@@ -4222,7 +4229,7 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 	      /* It's okay for us to do this and then continue with
 		 the loop, since timeout has already been zeroed out.  */
 	      clear_waiting_for_input ();
-	      status_notify ();
+	      status_notify (NULL);
 	    }
 	}
 
@@ -4740,7 +4747,7 @@ read_process_output_error_handler (error)
    The characters read are decoded according to PROC's coding-system
    for decoding.  */
 
-int
+static int
 read_process_output (proc, channel)
      Lisp_Object proc;
      register int channel;
@@ -5131,7 +5138,7 @@ send_process_trap ()
 
    This function can evaluate Lisp code and can garbage collect.  */
 
-void
+static void
 send_process (proc, buf, len, object)
      volatile Lisp_Object proc;
      unsigned char *volatile buf;
@@ -5725,7 +5732,7 @@ process_send_signal (process, signo, current_group, nomsg)
       p->status = Qrun;
       XSETINT (p->tick, ++process_tick);
       if (!nomsg)
-	status_notify ();
+	status_notify (NULL);
       break;
 #endif /* ! defined (SIGCONT) */
     case SIGINT:
@@ -6393,8 +6400,9 @@ exec_sentinel (proc, reason)
    This is usually done while Emacs is waiting for keyboard input
    but can be done at other times.  */
 
-void
-status_notify ()
+static void
+status_notify (deleting_process)
+     struct Lisp_Process *deleting_process;
 {
   register Lisp_Object proc, buffer;
   Lisp_Object tail, msg;
@@ -6430,6 +6438,7 @@ status_notify ()
 		 && ! EQ (p->status, Qlisten)
 		 && ! EQ (p->command, Qt)  /* Network process not stopped.  */
 		 && XINT (p->infd) >= 0
+		 && p != deleting_process
 		 && read_process_output (proc, XINT (p->infd)) > 0);
 
 	  buffer = p->buffer;
@@ -6633,7 +6642,7 @@ delete_keyboard_wait_descriptor (desc)
 /* Return nonzero if *MASK has a bit set
    that corresponds to one of the keyboard input descriptors.  */
 
-int
+static int
 keyboard_bit_set (mask)
      SELECT_TYPE *mask;
 {
