@@ -1,3 +1,28 @@
+2005-08-15  David Ponce  <david@dponce.com>
+
+	* tree-widget.el Update Commentary header.
+	(tree-widget-theme): Doc fix.
+	(tree-widget-space-width): New option.
+	(tree-widget-image-properties): Look up in the default theme too.
+	(tree-widget--cursors): Only for images with arrow pointer shape.
+	(tree-widget-lookup-image): Pointer shape is hand by default.
+	(tree-widget-icon): Generic icon widget renamed from
+	`tree-widget-control'.
+	(tree-widget-*-icon): Rename from `tree-widget-*-control' and
+	derive from `tree-widget-icon'.
+	(tree-widget-handle): Improve default look and feel of the text
+	representation.
+	(tree-widget): Rename :*-control properties to :*-icon properties.
+	Add :action and :help-echo properties.
+	(tree-widget-after-toggle-functions): Move.
+	(tree-widget-close-node, tree-widget-open-node): Remove.
+	(tree-widget-before-create-icon-functions): New hook.
+	(tree-widget-value-create): Update to allow customization of icons
+	and nodes at run-time via that new hook.
+	(tree-widget-icon-create, tree-widget-leaf-node-icon-p)
+	(tree-widget-icon-action, tree-widget-icon-help-echo)
+	(tree-widget-action, tree-widget-help-echo): New functions.
+
 2005-08-15  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-buffer-internal): Use with-no-warnings.
