@@ -451,6 +451,7 @@ See also `flyspell-duplicate-distance'."
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-mode ...                                                */
 ;*---------------------------------------------------------------------*/
+;;;###autoload(defvar flyspell-mode nil)
 ;;;###autoload
 (define-minor-mode flyspell-mode
   "Minor mode performing on-the-fly spelling checking.
