@@ -1959,7 +1959,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(if (eq method 'insert)
 	    (progn
 	      (ido-record-command 'insert-buffer buf)
-	      (insert-buffer buf))
+	      (with-no-warnings
+		;; we really want to run insert-buffer here
+		(insert-buffer buf)))
 	  (ido-visit-buffer buf method t)))
 
        ;; buffer doesn't exist
@@ -3012,11 +3014,10 @@ for first matching file."
   (let (res)
     (message "Searching for `%s'...." text)
     (condition-case nil
-	(unless (catch 'input-pending-p
-		  (let ((throw-on-input 'input-pending-p))
-		    (setq res (ido-make-merged-file-list-1 text auto wide))
-		    t))
-	  (setq res 'input-pending-p))
+	(if (eq t (setq res
+			(while-no-input
+			  (ido-make-merged-file-list-1 text auto wide))))
+	    (setq res 'input-pending-p))
       (quit
        (setq res t
 	     ido-try-merged-list nil
