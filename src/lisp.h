@@ -3026,12 +3026,9 @@ extern int wait_reading_process_output P_ ((int, int, int, int,
 					    Lisp_Object,
 					    struct Lisp_Process *,
 					    int));
-extern void deactivate_process P_ ((Lisp_Object));
 extern void add_keyboard_wait_descriptor P_ ((int));
 extern void delete_keyboard_wait_descriptor P_ ((int));
 extern void close_process_descs P_ ((void));
-extern void status_notify P_ ((void));
-extern int read_process_output P_ ((Lisp_Object, int));
 extern void init_process P_ ((void));
 extern void syms_of_process P_ ((void));
 extern void setup_process_coding_systems P_ ((Lisp_Object));
