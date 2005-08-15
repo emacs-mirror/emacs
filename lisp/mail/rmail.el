@@ -254,18 +254,30 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^x-mailer:\\|^delivered-to:\\|^lines:"
 	  "\\|^content-transfer-encoding:\\|^x-coding-system:"
 	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
-	  "\\|^x-sign:\\|^x-beenthere:\\|^x-mailman-version:\\|^x-mailman-copy:"
 	  "\\|^precedence:\\|^list-help:\\|^list-post:\\|^list-subscribe:"
 	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
-	  "\\|^content-length:"
-	  "\\|^x-attribution:\\|^x-disclaimer:\\|^x-trace:"
-	  "\\|^x-complaints-to:\\|^nntp-posting-date:\\|^user-agent"
-	  "\\|^importance:\\|^envelope-to:\\|^delivery-date"
-	  "\\|^x.*-priority:\\|^x-mimeole:\\|^x-archive:"
-	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization\\|^resent-openpgp"
-	  "\\|^openpgp:\\|^x-request-pgp:\\|^x-original.*:"
-	  "\\|^x-virus-scanned:\\|^x-spam-[^s].*:")
+	  "\\|^content-length:\\|^nntp-posting-date:\\|^user-agent"
+	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
+	  "\\|^mbox-line:\\|^cancel-lock:"
+	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization:\\|^resent-openpgp:"
+
+	  "\\|^x-.*:")
   "*Regexp to match header fields that Rmail should normally hide.
+\(See also `rmail-nonignored-headers', which overrides this regexp.)
+This variable is used for reformatting the message header,
+which normally happens once for each message,
+when you view the message for the first time in Rmail.
+To make a change in this variable take effect
+for a message that you have already viewed,
+go to that message and type \\[rmail-toggle-header] twice."
+  :type 'regexp
+  :group 'rmail-headers)
+
+(defcustom rmail-nonignored-headers "^x-spam-status:"
+  "*Regexp to match X header fields that Rmail should show.
+This regexp overrides `rmail-ignored-headers'; if both this regexp
+and that one match a certain header field, Rmail shows the field.
+
 This variable is used for reformatting the message header,
 which normally happens once for each message,
 when you view the message for the first time in Rmail.
@@ -2183,7 +2195,8 @@ If the optional argument IGNORED-HEADERS is non-nil,
 delete all header fields whose names match that regexp.
 Otherwise, if `rmail-displayed-headers' is non-nil,
 delete all header fields *except* those whose names match that regexp.
-Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
+Otherwise, delete all header fields whose names match `rmail-ignored-headers'
+unless they also match `rmail-nonignored-headers'."
   (when (search-forward "\n\n" nil t)
     (forward-char -1)
     (let ((case-fold-search t)
@@ -2207,15 +2220,17 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
 	(or ignored-headers (setq ignored-headers rmail-ignored-headers))
 	(save-restriction
 	  (narrow-to-region (point-min) (point))
+	  (goto-char (point-min))
 	  (while (and ignored-headers
-		      (progn
-			(goto-char (point-min))
-			(re-search-forward ignored-headers nil t)))
+		      (re-search-forward ignored-headers nil t))
 	    (beginning-of-line)
-	    (delete-region (point)
-			   (if (re-search-forward "\n[^ \t]" nil t)
-			       (1- (point))
-			     (point-max)))))))))
+	    (if (looking-at rmail-nonignored-headers)
+		(forward-line 1)
+	      (delete-region (point)
+			     (save-excursion
+			       (if (re-search-forward "\n[^ \t]" nil t)
+				   (1- (point))
+				 (point-max)))))))))))
 
 (defun rmail-msg-is-pruned ()
   (rmail-maybe-set-message-counters)
@@ -3412,18 +3427,11 @@ use \\[mail-yank-original] to yank the original message into it."
 			      (progn (search-forward "\n*** EOOH ***\n")
 				     (beginning-of-line) (point)))))
 	(setq from (mail-fetch-field "from")
-	      reply-to (or (if just-sender
-			       (mail-fetch-field "mail-reply-to" nil t)
-			     (mail-fetch-field "mail-followup-to" nil t))
+	      reply-to (or (mail-fetch-field "mail-reply-to" nil t)
 			   (mail-fetch-field "reply-to" nil t)
 			   from)
-	      cc (and (not just-sender)
-		      ;; mail-followup-to, if given, overrides cc.
-		      (not (mail-fetch-field "mail-followup-to" nil t))
-		      (mail-fetch-field "cc" nil t))
 	      subject (mail-fetch-field "subject")
 	      date (mail-fetch-field "date")
-	      to (or (mail-fetch-field "to" nil t) "")
 	      message-id (mail-fetch-field "message-id")
 	      references (mail-fetch-field "references" nil nil t)
 	      resent-reply-to (mail-fetch-field "resent-reply-to" nil t)
@@ -3433,7 +3441,16 @@ use \\[mail-yank-original] to yank the original message into it."
 ;;;	      resent-subject (mail-fetch-field "resent-subject")
 ;;;	      resent-date (mail-fetch-field "resent-date")
 ;;;	      resent-message-id (mail-fetch-field "resent-message-id")
-	      )))
+	      )
+	(unless just-sender
+	  (if (mail-fetch-field "mail-followup-to" nil t)
+	      ;; If this header field is present, use it instead of the To and CC fields.
+	      (setq to (mail-fetch-field "mail-followup-to" nil t))
+	    (setq cc (or (mail-fetch-field "cc" nil t) "")
+		  to (or (mail-fetch-field "to" nil t) ""))))
+
+	))
+
     ;; Merge the resent-to and resent-cc into the to and cc.
     (if (and resent-to (not (equal resent-to "")))
 	(if (not (equal to ""))
