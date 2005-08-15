@@ -228,7 +228,7 @@ normally similar to the following regexp:
 @end example
 
 @noindent
-This example is explained in the section on regexps.  @xref{Regexps}.
+This example is explained in the section on regexps.  @xref{Regexp Example}.
 
   If you want to use just one space between sentences, you should
 set @code{sentence-end} to this value:
