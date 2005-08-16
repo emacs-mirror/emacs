@@ -58,7 +58,7 @@
 ;; using a macro:
 ;;
 ;;           #ifdef UNBUFFERED
-;;	     setvbuf(stdout,(char *)NULL, _IONBF,0);
+;;	     setvbuf (stdout, (char *) NULL, _IONBF, 0);
 ;;	     #endif
 ;;
 ;; and compiling with -DUNBUFFERED while debugging.
@@ -2190,6 +2190,7 @@ corresponding to the mode line clicked."
   (define-key gud-menu-map [ui]
     `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb-use-inferior-io]
+    ;; See defadvice below.
     (menu-bar-make-toggle toggle-gdb-use-inferior-io-buffer
 			  gdb-use-inferior-io-buffer
      "Separate inferior IO" "Use separate IO %s"
@@ -2202,6 +2203,7 @@ corresponding to the mode line clicked."
   '(menu-item "Restore Window Layout" gdb-restore-windows
 	      :help "Restore standard layout for debug session.")))
 
+;; This function is defined above through a macro.
 (defadvice toggle-gdb-use-inferior-io-buffer (after gdb-kill-io-buffer activate)
   (unless gdb-use-inferior-io-buffer
     (kill-buffer (gdb-inferior-io-name))))
