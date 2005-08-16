@@ -1,3 +1,12 @@
+2005-08-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_wm_set_icon_pixmap): Move GTK specific code to
+	xg_set_frame_icon and call it.
+
+	* gtkutil.c (xg_set_frame_icon): New function.
+
+	* gtkutil.h (xg_set_frame_icon): Declare it. 
+
 2005-08-16  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (increment_row_positions): Skip non-enabled rows.
