@@ -1185,6 +1185,9 @@ increment_row_positions (row, delta, delta_bytes)
   MATRIX_ROW_END_CHARPOS (row) += delta;
   MATRIX_ROW_END_BYTEPOS (row) += delta_bytes;
 
+  if (!row->enabled_p)
+    return;
+
   /* Increment positions in glyphs.  */
   for (area = 0; area < LAST_AREA; ++area)
     for (i = 0; i < row->used[area]; ++i)
