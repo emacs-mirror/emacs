@@ -241,7 +241,7 @@ xg_create_default_cursor (dpy)
 
 /* Apply GMASK to GPIX and return a GdkPixbuf with an alpha channel.  */
 
-GdkPixbuf *
+static GdkPixbuf *
 xg_get_pixbuf_from_pix_and_mask (gpix, gmask, cmap)
      GdkPixmap *gpix;
      GdkPixmap *gmask;
@@ -949,6 +949,24 @@ xg_set_background_color (f, bg)
       gtk_widget_modify_bg (FRAME_GTK_WIDGET (f), GTK_STATE_NORMAL, &gdk_bg);
       UNBLOCK_INPUT;
     }
+}
+
+
+/* Set the frame icon to ICON_PIXMAP/MASK.  This must be done with GTK
+   functions so GTK does not overwrite the icon.  */
+
+void
+xg_set_frame_icon (f, icon_pixmap, icon_mask)
+     FRAME_PTR f;
+     Pixmap icon_pixmap;
+     Pixmap icon_mask;
+{
+    GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
+    GdkPixmap *gpix = gdk_pixmap_foreign_new_for_display (gdpy, icon_pixmap);
+    GdkPixmap *gmask = gdk_pixmap_foreign_new_for_display (gdpy, icon_mask);
+    GdkPixbuf *gp = xg_get_pixbuf_from_pix_and_mask (gpix, gmask, NULL);
+
+    gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), gp);
 }
 
 
