@@ -9253,12 +9253,7 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 
 #ifdef USE_GTK
   {
-    GdkDisplay *gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
-    GdkPixmap *gpix = gdk_pixmap_foreign_new_for_display (gdpy, icon_pixmap);
-    GdkPixmap *gmask = gdk_pixmap_foreign_new_for_display (gdpy, icon_mask);
-    GdkPixbuf *gp = xg_get_pixbuf_from_pix_and_mask (gpix, gmask, NULL);
-
-    gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), gp);
+    xg_set_frame_icon (f, icon_pixmap, icon_mask);
     return;
   }
 
