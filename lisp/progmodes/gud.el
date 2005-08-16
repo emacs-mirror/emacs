@@ -586,7 +586,9 @@ and source-file directory for your debugger."
   (gud-def gud-nexti  "nexti %p"      nil   "Step one instruction (skip functions).")
   (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
   (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
-  (gud-def gud-jump   "tbreak %f:%l\njump %f:%l" "\C-j" "Relocate execution address to line at point in source buffer.")
+  (gud-def gud-jump
+	   (progn (gud-call "tbreak %f:%l") (gud-call "jump %f:%l"))
+	   "\C-j" "Set execution address to current line.")
 
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
