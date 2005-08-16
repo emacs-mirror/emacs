@@ -129,39 +129,39 @@ you're going to handle.
 
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
-etc			working		Thien-Thi Nguyen
+etc			working		Thien-Thi Nguyen (ttn(@gnu.org))
 leim			working		Kenichi Handa
-lib-src			done		Thien-Thi Nguyen
-lisp			done		Thien-Thi Nguyen
-lisp/calc		done		Thien-Thi Nguyen
+lib-src			done		ttn
+lisp			done		ttn
+lisp/calc		done		ttn
 lisp/calendar		working		Glenn Morris
-lisp/emacs-lisp		done		Thien-Thi Nguyen
-lisp/emulation		done		Thien-Thi Nguyen
-lisp/eshell		done		Thien-Thi Nguyen
-lisp/gnus		done		Thien-Thi Nguyen
+lisp/emacs-lisp		done		ttn
+lisp/emulation		done		ttn
+lisp/eshell		done		ttn
+lisp/gnus		done		ttn
 lisp/international	done		Kenichi Handa
 lisp/language		done		Kenichi Handa
-lisp/mail		done		Thien-Thi Nguyen
+lisp/mail		done		ttn
 lisp/mh-e		working		Bill Wohler
-lisp/net		done		Thien-Thi Nguyen
-lisp/obsolete		done		Thien-Thi Nguyen
-lisp/play		done		Thien-Thi Nguyen
+lisp/net		done		ttn
+lisp/obsolete		done		ttn
+lisp/play		done		ttn
 lisp/progmodes		done		Nick Roberts
-lisp/term		done		Thien-Thi Nguyen
-lisp/textmodes		done		Thien-Thi Nguyen
-lisp/toolbar		done		Thien-Thi Nguyen
-lisp/url		done		Thien-Thi Nguyen
-lispintro		done		Thien-Thi Nguyen
-lispref			working		Thien-Thi Nguyen
-lwlib			done		Thien-Thi Nguyen
-m4			done		Thien-Thi Nguyen
-mac (and subdirs)	done		Thien-Thi Nguyen
-man			done		Thien-Thi Nguyen
-msdos			done		Thien-Thi Nguyen
-nt (and subdirs)	done		Thien-Thi Nguyen
-oldXMenu		working		Thien-Thi Nguyen
-src (and subdirs)	done		Thien-Thi Nguyen
-vms			done		Thien-Thi Nguyen
+lisp/term		done		ttn
+lisp/textmodes		done		ttn
+lisp/toolbar		done		ttn
+lisp/url		done		ttn
+lispintro		done		ttn
+lispref			done		ttn
+lwlib			done		ttn
+m4			done		ttn
+mac (and subdirs)	done		ttn
+man			done		ttn
+msdos			done		ttn
+nt (and subdirs)	done		ttn
+oldXMenu		done		ttn
+src (and subdirs)	done		ttn
+vms			done		ttn
 
 ** Check the Emacs manual.
 
@@ -261,7 +261,7 @@ lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
 lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/processes.texi   Chong Yidong	   Thien-Thi Nguyen
+lispref/processes.texi   Chong Yidong	   ttn
 lispref/searching.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
@@ -291,8 +291,8 @@ etc/TUTORIAL.cn
 etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.es          Marcelo Toledo
-etc/TUTORIAL.fr          Thien-Thi Nguyen
-etc/TUTORIAL.it          Thien-Thi Nguyen
+etc/TUTORIAL.fr          ttn
+etc/TUTORIAL.it          ttn
 etc/TUTORIAL.ja		 Kenichi Handa <handa@m17n.org>
 etc/TUTORIAL.ko
 etc/TUTORIAL.nl		 Lute Kamstra
