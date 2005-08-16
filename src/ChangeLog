@@ -1,3 +1,10 @@
+2005-08-16  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (increment_row_positions): Skip non-enabled rows.
+
+	* window.c (SAVED_WINDOW_VECTOR_SIZE): Remove dangerous define.
+	(Fcurrent_window_configuration): Use VECSIZE macro instead.
+
 2005-08-15  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (message3_nolog): Clear echo_message_buffer.
