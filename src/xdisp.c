@@ -7097,6 +7097,9 @@ message3_nolog (m, nbytes, multibyte)
 	  set_message (NULL, m, nbytes, multibyte);
 	  if (minibuffer_auto_raise)
 	    Fraise_frame (frame);
+	  /* Assume we are not echoing.
+	     (If we are, echo_now will override this.)  */
+	  echo_message_buffer = Qnil;
 	}
       else
 	clear_message (1, 1);
