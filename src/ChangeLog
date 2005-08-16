@@ -1,3 +1,7 @@
+2005-08-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (message3_nolog): Clear echo_message_buffer.
+
 2005-08-15  Kim F. Storm  <storm@cua.dk>
 
 	* lisp.h (QUIT) [!SYNC_INPUT]: Throw t to Vthrow_on_input.
