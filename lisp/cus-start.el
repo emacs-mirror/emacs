@@ -219,7 +219,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				 :format "%t%n%h"
 				 :inline t
 				 (read-only t))
-			  (const :tag "Inviolable"
+			  (const :tag "Don't Enterx"
 				 :doc "Prevent point from ever entering prompt"
 				 :format "%t%n%h"
 				 :inline t
