@@ -207,11 +207,8 @@ placement bugs in old versions of Emacs."
 ;; rest.
 ;;
 ;; This work is done by `windmove-reference-loc'.  It can figure out
-;; the locations of the corners by calling `window-edges', but to
-;; calculate the frame-based location of point, it calls the workhorse
-;; function `windmove-coordinates-of-position', which itself calls the
-;; incredibly hairy builtin `compute-motion'.  There is a good deal of
-;; black magic in getting all the arguments to this function just right.
+;; the locations of the corners by calling `window-edges' combined
+;; with the result of `posn-at-point'.
 ;;
 ;; The second step is more messy.  Conceptually, it is fairly simple:
 ;; if we know the reference location, and the coordinates of the
@@ -405,58 +402,6 @@ Returns the wrapped coordinate."
        (windmove-constrain-around-range (cdr coord) min-y max-y)))))
 
 
-
-;; `windmove-coordinates-of-position' is stolen and modified from the
-;; Emacs 20 Lisp Reference Manual, section 27.2.5.  It seems to work
-;; okay, although I am bothered by the fact that tab-offset (the cdr
-;; of the next-to- last argument) is set to 0.  On the other hand, I
-;; can't find a single usage of `compute-motion' anywhere that doesn't
-;; set this component to zero, and I'm too lazy to grovel through the
-;; C source to figure out what's happening in the background.  there
-;; also seems to be a good deal of fun in calculating the correct
-;; width of lines for telling `compute-motion' about; in particular,
-;; it seems we need to subtract 1 (for the continuation column) from
-;; the number that `window-width' gives, or continuation lines aren't
-;; counted correctly.  I haven't seen anyone doing this before,
-;; though.
-;;
-;; Now updated for Emacs 21, based on the Emacs 21 Lisp Reference
-;; Manual, section 30.2.5.  It is no longer necessary to subtract
-;; 1 for the usable width of the window.
-;; TODO: also handle minibuffer case, w/ `minibuffer-prompt-width'.
-(defun windmove-coordinates-of-position (pos)
-  "Return the coordinates of position POS in the current window.
-Return the window-based coodinates in a cons pair: (HPOS . VPOS),
-where HPOS and VPOS are the zero-based x and y components of the
-screen location of POS.
-As an example, if point is in the top left corner of a window, then
-the return value from `windmove-coordinates-of-position' is (0 . 0)
-regardless of the where point is in the buffer and where the window
-is placed in the frame."
-  (let ((big-hairy-result (compute-motion
-                           (window-start)
-                           '(0 . 0)
-                           pos
-                           nil ; (window-width window-height)
-                           nil ; window-width
-                           (cons (window-hscroll)
-                                 0)  ; why zero?
-                           (selected-window))))
-  (cons (nth 1 big-hairy-result)        ; hpos, not vpos as documented
-        (nth 2 big-hairy-result))))     ; vpos, not hpos as documented
-
-(defun windmove-coordinates-of-window-position (pos &optional window)
-  "Return the coordinates of position POS in WINDOW.
-Return the window-based coodinates in a cons pair: (HPOS . VPOS),
-where HPOS and VPOS are the zero-based x and y components of the
-screen location of POS.  If WINDOW is nil, return the coordinates in
-the currently selected window."
-  (if (null window)
-      (windmove-coordinates-of-position pos)
-    (save-selected-window
-      (select-window window)
-      (windmove-coordinates-of-position pos))))
-
 ;; This calculates the reference location in the current window: the
 ;; frame-based (x . y) of either point, the top-left, or the
 ;; bottom-right of the window, depending on ARG.
@@ -483,9 +428,11 @@ supplied, if ARG is greater or smaller than zero, respectively."
        ((= effective-arg 0)
           (windmove-coord-add
              top-left
-             (windmove-coordinates-of-window-position
-              (window-point window)
-              window)))))))
+	     (let ((col-row
+		    (posn-col-row
+		     (posn-at-point (window-point window) window))))
+	       (cons (- (car col-row) (window-hscroll window))
+		     (cdr col-row)))))))))
 
 ;; This uses the reference location in the current window (calculated
 ;; by `windmove-reference-loc' above) to find a reference location
