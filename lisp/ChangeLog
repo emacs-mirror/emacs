@@ -1,5 +1,7 @@
 2005-08-17  Kim F. Storm  <storm@cua.dk>
 
+	* subr.el (insert-for-yank-1): Doc fix.
+
 	* ido.el (ido-enter-matching-directory): Rename from
 	ido-enter-single-matching-directory.  Change 'slash choice to
 	'only. 	Add 'first choice.
