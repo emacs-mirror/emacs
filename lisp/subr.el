@@ -1597,7 +1597,7 @@ Strip text properties from the inserted text according to
 
 If STRING has a non-nil `yank-handler' property on the first character,
 the normal insert behavior is modified in various ways.  The value of
-the yank-handler property must be a list with one to five elements
+the yank-handler property must be a list with one to four elements
 with the following format:  (FUNCTION PARAM NOEXCLUDE UNDO).
 When FUNCTION is present and non-nil, it is called instead of `insert'
  to insert the string.  FUNCTION takes one argument--the object to insert.
