@@ -1,3 +1,8 @@
+2005-08-17  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-start.el (minibuffer-prompt-properties): Use "Don't Enter"
+	as tag instead of "Inviolable".
+
 2005-08-17  Kim F. Storm  <storm@cua.dk>
 
 	* windmove.el (windmove-coordinates-of-position): Remove.
@@ -80,6 +85,11 @@
 
 	* ido.el (ido-buffer-internal): Use with-no-warnings.
 	(ido-make-merged-file-list): Use while-no-input.
+
+2005-08-15  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-large-region): Fix doc and custom type.
+	(flyspell-mark-duplications-flag): Doc fix.
 
 2005-08-14  Richard M. Stallman  <rms@gnu.org>
 
