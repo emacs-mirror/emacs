@@ -1,3 +1,10 @@
+2005-08-17  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-enter-matching-directory): Rename from
+	ido-enter-single-matching-directory.  Change 'slash choice to
+	'only. 	Add 'first choice.
+	(ido-exhibit): Adapt to above changes.
+
 2005-08-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* Makefile.in: Expand comment about building loaddefs.el.
