@@ -688,12 +688,17 @@ not provide the normal completion.  To show the completions, use C-a."
   :type 'boolean
   :group 'ido)
 
-(defcustom ido-enter-single-matching-directory 'slash
-  "*Automatically enter sub-directory if it is the only matching item, if non-nil.
-If value is 'slash, only enter if typing final slash, else do it always."
+(defcustom ido-enter-matching-directory 'only
+  "*Additional methods to enter sub-directory of first/only matching item.
+If value is 'first, enter first matching sub-directory when typing a slash.
+If value is 'only, typing a slash only enters the sub-directory if it is
+the only matching item.
+If value is t, automatically enter a sub-directory when it is the only
+matching item, even without typing a slash."
   :type '(choice (const :tag "Never" nil)
-		 (const :tag "When typing /" slash)
-		 (other :tag "Always" t))
+		 (const :tag "Slash enters first directory" first)
+		 (const :tag "Slash enters first and only directory" only)
+		 (other :tag "Always enter unique directory" t))
   :group 'ido)
 
 (defcustom ido-create-new-buffer 'prompt
@@ -3992,12 +3997,13 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	(ido-set-matches)
 	(ido-trace "new    " ido-matches)
 
-	(when (and ido-enter-single-matching-directory
+	(when (and ido-enter-matching-directory
 		   ido-matches
-		   (null (cdr ido-matches))
+		   (or (eq ido-enter-matching-directory 'first)
+		       (null (cdr ido-matches)))
 		   (ido-final-slash (car ido-matches))
 		   (or try-single-dir-match
-		       (eq ido-enter-single-matching-directory t)))
+		       (eq ido-enter-matching-directory t)))
 	  (ido-trace "single match" (car ido-matches))
 	  (ido-set-current-directory
 	   (concat ido-current-directory (car ido-matches)))
