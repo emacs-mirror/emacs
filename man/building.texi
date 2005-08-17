@@ -773,16 +773,16 @@ session.  If you have customized @code{gud-gdb-command-name} in that
 way, then you can use @kbd{M-x gdba} to invoke GDB in graphical mode.
 
 @menu
-* Layout::               Control the number of displayed buffers.
-* Breakpoints Buffer::   A breakpoint control panel.
-* Stack Buffer::         Select a frame from the call stack.
-* Watch Expressions::    Monitor variable values in the speedbar.
-* Other Buffers::        Input/output, locals, registers, assembler, threads
-                         and memory buffers.
+* GDB User Interface Layout::   Control the number of displayed buffers.
+* Breakpoints Buffer::          A breakpoint control panel.
+* Stack Buffer::                Select a frame from the call stack.
+* Watch Expressions::           Monitor variable values in the speedbar.
+* Other GDB User Interface Buffers:: Input/output, locals, registers, assembler,
+                               threads and memory buffers.
 @end menu
 
-@node Layout
-@subsubsection Layout
+@node GDB User Interface Layout
+@subsubsection GDB User Interface Layout
 @cindex GDB User Interface layout
 
 @findex gdb-many-windows
@@ -917,7 +917,7 @@ FUNCTION::VARIABLE format to display variables in the speedbar.
 Since this does not work for variables defined in compound statements,
 the default value is @code{nil}.
 
-@node Other Buffers
+@node Other GDB User Interface Buffers
 @subsubsection Other Buffers
 
 @table @asis
