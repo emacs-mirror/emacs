@@ -1,6 +1,10 @@
+2005-08-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in: Expand comment about building loaddefs.el.
+
 2005-08-16  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (toggle-gdb-use-inferior-io-buffer): 
+	* progmodes/gdb-ui.el (toggle-gdb-use-inferior-io-buffer):
 	Comment use of defadvice.
 
 	* progmodes/gud.el (gud-jump): Rework for gdb-ui.
