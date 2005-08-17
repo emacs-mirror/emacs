@@ -1,3 +1,7 @@
+2005-08-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Use better node names.
+
 2005-08-14  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Sentences): Fix xref.
