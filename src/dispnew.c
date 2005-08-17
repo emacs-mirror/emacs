@@ -5801,8 +5801,9 @@ buffer_posn_from_coords (w, x, y, pos, object, dx, dy, width, height)
     }
 #endif
 
-  row = MATRIX_ROW (w->current_matrix, it.vpos);
-  if (row->enabled_p)
+  if (it.vpos < w->current_matrix->nrows
+      && (row = MATRIX_ROW (w->current_matrix, it.vpos),
+	  row->enabled_p))
     {
       if (it.hpos < row->used[TEXT_AREA])
 	{
