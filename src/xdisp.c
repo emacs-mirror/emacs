@@ -1347,6 +1347,9 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 
   current_header_line_height = current_mode_line_height = -1;
 
+  if (visible_p && w->hscroll > 0)
+    *x -= w->hscroll;
+
   return visible_p;
 }
 
