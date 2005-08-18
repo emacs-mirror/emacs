@@ -1,3 +1,18 @@
+2005-08-18  Richard M. Stallman  <rms@gnu.org>
+
+	* trouble.texi (Unasked-for Search): Delete xref to Keyboard Translations.
+
+	* glossary.texi (Glossary): Delete xref.
+
+	* faq.texi (Swapping keys): Xref for normal-erase-is-backspace-mode,
+	not keyboard-translate.
+
+	* custom.texi (Minor Modes): Say that the list here is not complete.
+	(Keyboard Translations): Node deleted.
+	(Disabling): Delete xref to it.
+	(Customization Groups): Fix Custom buffer example.
+	(Hooks): Mention remove-hooks.
+
 2005-08-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* building.texi (GDB Graphical Interface): Improve filling of menu

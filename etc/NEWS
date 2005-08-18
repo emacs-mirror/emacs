@@ -1747,6 +1747,12 @@ recognized.
 ---
 ** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.
+
+** The new package scroll-lock.el provides the Scroll Lock minor mode
+for pager-like scrolling.  Keys which normally move point by line or
+paragraph will scroll the buffer by the respective amount of lines
+instead and point will be kept vertically fixed relative to window
+boundaries during scrolling.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 

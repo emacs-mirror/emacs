@@ -1,3 +1,7 @@
+2005-08-18  Richard M. Stallman  <rms@gnu.org>
+
+	* scroll-lock.el: New file.
+
 2005-08-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* dired.el (dired-move-to-end-of-filename):
