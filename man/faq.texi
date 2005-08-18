@@ -4637,9 +4637,9 @@ Good question!
 @cindex Keys, swapping
 @cindex @code{keyboard-translate}
 
-In Emacs 19, you can swap two keys (or key sequences) by using the
-@code{keyboard-translate} function.  For example, to turn @kbd{C-h} into
-@key{DEL} and @key{DEL} to @kbd{C-h}, use
+You can swap two keys (or key sequences) by using the
+@code{keyboard-translate} function.  For example, to turn @kbd{C-h}
+into @key{DEL} and @key{DEL} to @kbd{C-h}, use
 
 @lisp
 (keyboard-translate ?\C-h ?\C-?)  ; translate `C-h' to DEL
@@ -4651,6 +4651,11 @@ The first key sequence of the pair after the function identifies what is
 produced by the keyboard; the second, what is matched for in the
 keymaps.
 
+However, in the specific case of @kbd{C-h} and @key{DEL}, you should
+toggle @code{normal-erase-is-backspace-mode} instead of calling
+@code{keyboard-translate}.  @inforef{DEL Does Not Delete, DEL Does Not Delete, 
+emacs}.
+
 Keyboard translations are not the same as key bindings in keymaps.
 Emacs contains numerous keymaps that apply in different situations, but
 there is only one set of keyboard translations, and it applies to every
@@ -4658,8 +4663,6 @@ character that Emacs reads from the terminal.  Keyboard translations
 take place at the lowest level of input processing; the keys that are
 looked up in keymaps contain the characters that result from keyboard
 translation.
-
-@inforef{Keyboard Translations, Keyboard Translations, emacs}.
 
 @node Producing C-XXX with the keyboard, No Meta key, Swapping keys, Key bindings
 @section How do I produce C-XXX with my keyboard?
