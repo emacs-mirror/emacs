@@ -33,9 +33,6 @@ replay sequences of keys.
 			  you can control their functioning.
 * Key Bindings::	The keymaps say what command each key runs.
 			  By changing them, you can "redefine keys".
-* Keyboard Translations:: If your keyboard passes an undesired code
-			  for a key, you can tell Emacs to
-			  substitute another code.
 * Syntax::		The syntax table controls how words and
 			  expressions are parsed.
 * Init File::		How to write common customizations in the
@@ -78,16 +75,16 @@ directly turns Outline minor mode on and off.  To check whether a
 given minor mode works this way, use @kbd{C-h v} to ask for
 documentation on the variable name.
 
-  These minor-mode variables provide a good way for Lisp programs to turn
-minor modes on and off; they are also useful in a file's local variables
-list.  But please think twice before setting minor modes with a local
-variables list, because most minor modes are a matter of user
-preference---other users editing the same file might not want the same
-minor modes you prefer.
+  These minor-mode variables provide a good way for Lisp programs to
+turn minor modes on and off; they are also useful in a file's local
+variables list (@pxref{File Variables}).  But please think twice
+before setting minor modes with a local variables list, because most
+minor modes are a matter of user preference---other users editing the
+same file might not want the same minor modes you prefer.
 
-  The buffer-local minor modes include Abbrev mode, Auto Fill mode,
-Auto Save mode, Font-Lock mode, Glasses mode, ISO Accents mode,
-Outline minor mode, Overwrite mode, and Binary Overwrite mode.
+  The most useful buffer-local minor modes include Abbrev mode, Auto
+Fill mode, Auto Save mode, Font-Lock mode, Glasses mode, ISO Accents
+mode, Outline minor mode, Overwrite mode, and Binary Overwrite mode.
 
   Abbrev mode allows you to define abbreviations that automatically expand
 as you type them.  For example, @samp{amd} might expand to @samp{abbrev
@@ -146,11 +143,11 @@ they overwrite other characters and can be overwritten by them.
 In Binary Overwrite mode, digits after @kbd{C-q} specify an
 octal character code, as usual.
 
-  The following minor modes normally apply to all buffers at once.
-Since each is enabled or disabled by the value of a variable, you
-@emph{can} set them differently for particular buffers, by explicitly
-making the corresponding variables local in those buffers.
-@xref{Locals}.
+  Here are some useful minor modes that normally apply to all buffers
+at once.  Since each is enabled or disabled by the value of a
+variable, you @emph{can} set them differently for particular buffers,
+by explicitly making the corresponding variables local in those
+buffers.  @xref{Locals}.
 
   Icomplete mode displays an indication of available completions when
 you are in the minibuffer and completion is active.  @xref{Completion
@@ -221,10 +218,6 @@ under it.  It looks like this, in part:
       [State]: visible group members are all at standard settings.
    Customization of the One True Editor.
    See also [Manual].
-
-Confirm Kill Emacs: [Hide] [Value Menu] Don't confirm
-   [State]: this option is unchanged from its standard setting.
-How to ask for confirmation when leaving Emacs. [More]
 
 Editing group: [Go to Group]
 Basic text editing facilities.
@@ -854,8 +847,9 @@ recently added hook functions are executed first.
 
   If you play with adding various different versions of a hook
 function by calling @code{add-hook} over and over, remember that all
-the versions you added will remain in the hook variable together.
-To clear them out, you can do @code{(setq @var{hook-variable} nil)}.
+the versions you added will remain in the hook variable together.  You
+can clear out individual functions with @code{remove-hook}, or do
+@code{(setq @var{hook-variable} nil)} to remove everything.
 
 @node Locals
 @subsection Local Variables
@@ -1638,14 +1632,14 @@ word:
   Many keyboards have a ``numeric keypad'' on the right hand side.
 The numeric keys in the keypad double up as cursor motion keys,
 toggled by a key labelled @samp{Num Lock}.  By default, Emacs
-translates these keys to the corresponding keys in the main keyboard
-(@pxref{Keyboard Translations}).  For example, when @samp{Num Lock} is
-on, the key labelled @samp{8} on the numeric keypad produces
-@code{kp-8}, which is translated to @kbd{8}; when @samp{Num Lock} is
-off, the same key produces @code{kp-up}, which is translated to
-@key{UP}.  If you rebind a key such as @kbd{8} or @key{UP}, it affects
-the equivalent keypad key too.  However, if you rebind a @samp{kp-}
-key directly, that won't affect its non-keypad equivalent.
+translates these keys to the corresponding keys in the main keyboard.
+For example, when @samp{Num Lock} is on, the key labelled @samp{8} on
+the numeric keypad produces @code{kp-8}, which is translated to
+@kbd{8}; when @samp{Num Lock} is off, the same key produces
+@code{kp-up}, which is translated to @key{UP}.  If you rebind a key
+such as @kbd{8} or @key{UP}, it affects the equivalent keypad key too.
+However, if you rebind a @samp{kp-} key directly, that won't affect
+its non-keypad equivalent.
 
   Emacs provides a convenient method for binding the numeric keypad
 keys, using the variables @code{keypad-setup},
@@ -1892,52 +1886,6 @@ file which enable and disable commands.
 invoke it; disabling also applies if the command is invoked using
 @kbd{M-x}.  Disabling a command has no effect on calling it as a
 function from Lisp programs.
-
-@node Keyboard Translations
-@section Keyboard Translations
-
-  Some keyboards do not make it convenient to send all the special
-characters that Emacs uses.  The most common problem case is the
-@key{DEL} character.  Some keyboards provide no convenient way to type
-this very important character---usually because they were designed to
-expect the character @kbd{C-h} to be used for deletion.  On these
-keyboards, if you press the key normally used for deletion, Emacs handles
-the @kbd{C-h} as a prefix character and offers you a list of help
-options, which is not what you want.
-
-@cindex keyboard translations
-@findex keyboard-translate
-  You can work around this problem within Emacs by setting up keyboard
-translations to turn @kbd{C-h} into @key{DEL} and @key{DEL} into
-@kbd{C-h}, as follows:
-
-@example
-;; @r{Translate @kbd{C-h} to @key{DEL}.}
-(keyboard-translate ?\C-h ?\C-?)
-
-;; @r{Translate @key{DEL} to @kbd{C-h}.}
-(keyboard-translate ?\C-? ?\C-h)
-@end example
-
-  Keyboard translations are not the same as key bindings in keymaps
-(@pxref{Keymaps}).  Emacs contains numerous keymaps that apply in
-different situations, but there is only one set of keyboard
-translations, and it applies to every character that Emacs reads from
-the terminal.  Keyboard translations take place at the lowest level of
-input processing; the keys that are looked up in keymaps contain the
-characters that result from keyboard translation.
-
-  On a window system, the keyboard key named @key{DELETE} is a function
-key and is distinct from the @acronym{ASCII} character named @key{DEL}.
-@xref{Named ASCII Chars}.  Keyboard translations affect only @acronym{ASCII}
-character input, not function keys; thus, the above example used on a
-window system does not affect the @key{DELETE} key.  However, the
-translation above isn't necessary on window systems, because Emacs can
-also distinguish between the @key{BACKSPACE} key and @kbd{C-h}; and it
-normally treats @key{BACKSPACE} as @key{DEL}.
-
-  For full information about how to use keyboard translations, see
-@ref{Translating Input,,,elisp, The Emacs Lisp Reference Manual}.
 
 @node Syntax
 @section The Syntax Table
