@@ -367,7 +367,7 @@ use either \\[customize] or the function `ido-mode'."
 Setting this variable directly does not work.  Use `customize' or
 call the function `ido-everywhere'."
   :set #'(lambda (symbol value)
-	   (ido-everywhere value))
+	   (ido-everywhere (if value 1 -1)))
   :initialize 'custom-initialize-default
   :type 'boolean
   :group 'ido)
@@ -1367,7 +1367,8 @@ This function also adds a hook to the minibuffer."
 	(define-key map [remap display-buffer] 'ido-display-buffer)))))
 
 (defun ido-everywhere (arg)
-  "Enable ido everywhere file and directory names are read."
+  "Toggle using ido speed-ups everywhere file and directory names are read.
+With ARG, turn ido speed-up on if arg is positive, off otherwise."
   (interactive "P")
   (setq ido-everywhere (if arg
 			   (> (prefix-numeric-value arg) 0)
