@@ -17622,6 +17622,15 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
 	  if (pixels > 0)
 	    {
 	      double ppi;
+#ifdef HAVE_WINDOW_SYSTEM
+	      if (FRAME_WINDOW_P (it->f)
+		  && (ppi = (width_p
+			     ? FRAME_X_DISPLAY_INFO (it->f)->resx
+			     : FRAME_X_DISPLAY_INFO (it->f)->resy),
+		      ppi > 0))
+		return OK_PIXELS (ppi / pixels);
+#endif
+
 	      if ((ppi = NUMVAL (Vdisplay_pixels_per_inch), ppi > 0)
 		  || (CONSP (Vdisplay_pixels_per_inch)
 		      && (ppi = (width_p
@@ -23056,7 +23065,7 @@ of the top or bottom of the window.  */);
   scroll_margin = 0;
 
   DEFVAR_LISP ("display-pixels-per-inch",  &Vdisplay_pixels_per_inch,
-    doc: /* Pixels per inch on current display.
+    doc: /* Pixels per inch value for non-window system displays.
 Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
   Vdisplay_pixels_per_inch = make_float (72.0);
 
