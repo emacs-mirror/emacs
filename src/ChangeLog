@@ -1,3 +1,8 @@
+2005-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (calc_pixel_width_or_height): Use actual display
+	resolution when available instead of Vdisplay_pixels_per_inch.
+
 2005-08-17  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (pos_visible_p): Adjust X value if window is hscrolled.
