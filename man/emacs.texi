@@ -787,9 +787,6 @@ Customization
 			  you can control their functioning.
 * Key Bindings::	The keymaps say what command each key runs.
 			  By changing them, you can "redefine keys".
-* Keyboard Translations:: If your keyboard passes an undesired code
-			  for a key, you can tell Emacs to
-			  substitute another code.
 * Syntax::		The syntax table controls how words and
 			  expressions are parsed.
 * Init File::		How to write common customizations in the
