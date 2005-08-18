@@ -777,8 +777,8 @@ way, then you can use @kbd{M-x gdba} to invoke GDB in graphical mode.
 * Breakpoints Buffer::          A breakpoint control panel.
 * Stack Buffer::                Select a frame from the call stack.
 * Watch Expressions::           Monitor variable values in the speedbar.
-* Other GDB User Interface Buffers:: Input/output, locals, registers, assembler,
-                               threads and memory buffers.
+* Other GDB User Interface Buffers:: Input/output, locals, registers,
+                                assembler, threads and memory buffers.
 @end menu
 
 @node GDB User Interface Layout
