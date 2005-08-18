@@ -682,7 +682,7 @@ keymap binds the character @kbd{C-n} to the command function
 @item Keyboard Translation Table
 The keyboard translation table is an array that translates the character
 codes that come from the terminal into the character codes that make up
-key sequences.  @xref{Keyboard Translations}.
+key sequences.
 
 @item Kill Ring
 The kill ring is where all text you have killed recently is saved.
