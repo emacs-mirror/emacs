@@ -36,10 +36,8 @@
   (let ((map (make-sparse-keymap)))
     (define-key map [remap next-line] 'scroll-lock-next-line)
     (define-key map [remap previous-line] 'scroll-lock-previous-line)
-    (define-key map [remap forward-paragraph] 'scroll-lock-forward-paragrap=
-h)
-    (define-key map [remap backward-paragraph] 'scroll-lock-backward-paragr=
-aph)
+    (define-key map [remap forward-paragraph] 'scroll-lock-forward-paragraph)
+    (define-key map [remap backward-paragraph] 'scroll-lock-backward-paragraph)
     map)
   "Keymap for Scroll Lock mode.")
 
