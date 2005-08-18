@@ -304,8 +304,7 @@ the following in your @file{.emacs} file:
 
   When flow control is enabled, you must type @kbd{C-\} to get the
 effect of a @kbd{C-s}, and type @kbd{C-^} to get the effect of a
-@kbd{C-q}.  (These aliases work by means of keyboard translations; see
-@ref{Keyboard Translations}.)
+@kbd{C-q}.
 
 @node Memory Full
 @subsection Running out of Memory
