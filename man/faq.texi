@@ -1005,21 +1005,9 @@ administrator, because the most recent FAQ should not expire for a
 while.
 
 @item
-Via HTTP or FTP.  You can always fetch the latest FAQ from
-
-@uref{http://www.lerner.co.il/emacs/} and
-
-@uref{ftp://ftp.lerner.co.il/pub/emacs/}
-
-@item
 In the Emacs distribution.  Since Emacs 18.56, the FAQ at the time
 of release has been part of the Emacs distribution as either
 @file{etc/FAQ} or @file{man/faq.texi} (@pxref{File-name conventions}).
-
-@item
-Via the World Wide Web.  A hypertext version is available at
-
-@uref{http://www.lerner.co.il/emacs/}
 
 @item
 Via anonymous ftp and e-mail from @file{rtfm.mit.edu} (and its mirror in
@@ -1046,13 +1034,6 @@ send usenet/news.answers/GNU-Emacs-FAQ/part5
 
 For more information, send email to @email{mail-server@@rtfm.mit.edu}
 with @samp{help} and @samp{index} in the body on separate lines.
-
-@item
-As the very last resort, you can e-mail a request to
-@email{emacs-faq@@lerner.co.il}.  Don't do this unless you have made a
-good-faith effort to obtain the FAQ list via one of the methods listed
-above.
-
 @end itemize
 
 @c ------------------------------------------------------------
