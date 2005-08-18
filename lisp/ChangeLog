@@ -53,8 +53,7 @@
 	for backward compatibility for faces that did not appear in the
 	previous Emacs release.
 
-	* simple.el (next-error-follow-minor-mode): Fix init value and
-	ligher.
+	* simple.el (next-error-follow-minor-mode): Fix init value and lighter.
 
 2005-08-15  Kim F. Storm  <storm@cua.dk>
 
@@ -117,12 +116,9 @@
 	* progmodes/sh-script.el (sh-font-lock-keywords-var): Variable
 	renamed from sh-font-lock-keywords.  In the `shell' entry, don't
 	try to refer to executable-font-lock-keywords.
-	(sh-font-lock-keywords-var-1): Renamed from
-	sh-font-lock-keywords-1.
-	(sh-font-lock-keywords-var-2): Renamed from
-	sh-font-lock-keywords-2.
-	(sh-font-lock-keywords): Append executable-font-lock-keywords
-	here.
+	(sh-font-lock-keywords-var-1): Renamed from sh-font-lock-keywords-1.
+	(sh-font-lock-keywords-var-2): Renamed from sh-font-lock-keywords-2.
+	(sh-font-lock-keywords): Append executable-font-lock-keywords here.
 	(sh-mode): Set comment-start-skip, local-abbrev-table,
 	imenu-case-fold-search.
 	(sh-set-shell): Don't set them here.
