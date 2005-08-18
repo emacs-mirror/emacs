@@ -1953,11 +1953,11 @@ Return the position of the beginning of the filename, or nil if none found."
 		       (eq (preceding-char) ?@)	;; did ls really mark the link?
 		       (forward-char -1))))
 	  (goto-char eol) ;; else not a symbolic link
-	  ;; ls -lF marks dirs, sockets and executables with exactly one
-	  ;; trailing character. (Executable bits on symlinks ain't mean
+	  ;; ls -lF marks dirs, sockets, fifos and executables with exactly
+	  ;; one trailing character. (Executable bits on symlinks ain't mean
 	  ;; a thing, even to ls, but we know it's not a symlink.)
 	  (and used-F
-	       (or (memq file-type '(?d ?s))
+	       (or (memq file-type '(?d ?s ?p))
 		   executable)
 	       (forward-char -1))))
       (or no-error
