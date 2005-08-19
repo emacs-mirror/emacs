@@ -1,3 +1,7 @@
+2005-08-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-start.el (minibuffer-prompt-properties): Correct typo.
+
 2005-08-18  Kim F. Storm  <storm@cua.dk>
 
 	* scroll-lock.el: Fix errors due to incorrect line wrapping.
