@@ -1,3 +1,8 @@
+2005-08-19  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/gud.el (gud-kill-buffer-hook): Don't kill unrelated
+	process.
+
 2005-08-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-start.el (minibuffer-prompt-properties): Correct typo.
