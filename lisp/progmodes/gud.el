@@ -2598,7 +2598,7 @@ It is saved for when this flag is not set.")
 (defun gud-kill-buffer-hook ()
   (setq gud-minor-mode-type gud-minor-mode)
   (condition-case nil
-      (kill-process (get-buffer-process gud-comint-buffer))
+      (kill-process (get-buffer-process (current-buffer)))
     (error nil)))
 
 (defun gud-reset ()
