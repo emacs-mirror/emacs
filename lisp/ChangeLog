@@ -1,3 +1,11 @@
+2005-08-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/tex-mode.el (tex-bibtex-file, tex-send-tex-command):
+	Run the argument of tex-shell-cd-command through
+	convert-standard-filename, to get the correct style of slashes on
+	Windows, and enclose the result in quotes, in case the file name
+	includes whitespace or other special characters.
+
 2005-08-19  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/gud.el (gud-kill-buffer-hook): Don't kill unrelated
