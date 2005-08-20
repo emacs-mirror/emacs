@@ -2167,9 +2167,10 @@ arguments with the same names of function `replace-match'.  If START
 is non-nil, start replacements at that index in STRING.
 
 REP is either a string used as the NEWTEXT arg of `replace-match' or a
-function.  If it is a function it is applied to each match to generate
-the replacement passed to `replace-match'; the match-data at this
-point are such that match 0 is the function's argument.
+function.  If it is a function, it is called with the actual text of each
+match, and its value is used as the replacement text.  When REP is called,
+the match-data are the result of matching REGEXP against a substring
+of STRING.
 
 To replace only the first match (if any), make REGEXP match up to \\'
 and replace a sub-expression, e.g.
