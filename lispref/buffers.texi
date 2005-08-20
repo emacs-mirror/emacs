@@ -757,16 +757,19 @@ signal an error if the current buffer is read-only.
 @section The Buffer List
 @cindex buffer list
 
-  The @dfn{buffer list} is a list of all live buffers.  Creating a
-buffer adds it to this list, and killing a buffer removes it.  The
-order of the buffers in the list is based primarily on how recently
-each buffer has been displayed in the selected window.  Buffers move
-to the front of the list when they are selected (selecting a window
-that already displays the buffer counts as selecting the buffer), and
-to the end when they are buried (see @code{bury-buffer}, below).
-Several functions, notably @code{other-buffer}, use this ordering.  A
-buffer list displayed for the user also follows this order.
+  The @dfn{buffer list} is a list of all live buffers.  The order of
+the buffers in the list is based primarily on how recently each buffer
+has been displayed in a window.  Several functions, notably
+@code{other-buffer}, use this ordering.  A buffer list displayed for
+the user also follows this order.
 
+  Creating a buffer adds it to the end of the buffer list, and killing
+a buffer removes it.  Buffers move to the front of the list when they
+are selected for display in a window (@pxref{Displaying Buffers}), and
+to the end when they are buried (see @code{bury-buffer}, below).
+There are no functions available to the Lisp programmer which directly
+manipulate the buffer list.
+  
   In addition to the fundamental Emacs buffer list, each frame has its
 own version of the buffer list, in which the buffers that have been
 selected in that frame come first, starting with the buffers most
