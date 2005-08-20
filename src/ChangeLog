@@ -1,3 +1,9 @@
+2005-08-20  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (display_echo_area_1): Get display start pos from w->start.
+	(resize_mini_window): Set w->start, and PT, so as to display the tail
+	end of the buffer, if it doesn't all fit.
+
 2005-08-18  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (calc_pixel_width_or_height): Use actual display
