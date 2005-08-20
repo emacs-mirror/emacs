@@ -1724,11 +1724,7 @@ normal otherwise."
   ;; Maybe display a startup screen.
   (unless (or inhibit-startup-message
 	      noninteractive
-	      emacs-quick-startup
-	     ;; Don't display startup screen if init file
-	     ;; has started some sort of server.
-	     (and (fboundp 'process-list)
-		  (process-list)))
+	      emacs-quick-startup)
     ;; Display a startup screen, after some preparations.
 
     ;; If there are no switches to process, we might as well
