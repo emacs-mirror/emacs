@@ -1299,6 +1299,10 @@ compilation processes without affecting the environment that all
 subprocesses inherit.
 
 +++
+*** New user option `compilation-disable-input'.
+If this is non-nil, send end-of-file as compilation process input.
+
++++
 *** New options `next-error-highlight' and `next-error-highlight-no-select'
 specify the method of highlighting of the corresponding source line
 in new face `next-error'.
