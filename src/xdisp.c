@@ -7631,13 +7631,16 @@ display_echo_area_1 (a1, a2, a3, a4)
   int window_height_changed_p = 0;
 
   /* Do this before displaying, so that we have a large enough glyph
-     matrix for the display.  */
+     matrix for the display.  If we can't get enough space for the
+     whole text, display the last N lines.  That works by setting w->start.  */
   window_height_changed_p = resize_mini_window (w, 0);
+
+  /* Use the starting position chosen by resize_mini_window.  */
+  SET_TEXT_POS_FROM_MARKER (start, w->start);
 
   /* Display.  */
   clear_glyph_matrix (w->desired_matrix);
   XSETWINDOW (window, w);
-  SET_TEXT_POS (start, BEG, BEG_BYTE);
   try_window (window, start, 0);
 
   return window_height_changed_p;
@@ -7693,8 +7696,14 @@ resize_mini_window_1 (a1, exactly, a3, a4)
 
 /* Resize mini-window W to fit the size of its contents.  EXACT:P
    means size the window exactly to the size needed.  Otherwise, it's
-   only enlarged until W's buffer is empty.  Value is non-zero if
-   the window height has been changed.  */
+   only enlarged until W's buffer is empty.
+   
+   Set W->start to the right place to begin display.  If the whole
+   contents fit, start at the beginning.  Otherwise, start so as
+   to make the end of the contents appear.  This is particularly
+   important for y-or-n-p, but seems desirable generally.
+
+   Value is non-zero if the window height has been changed.  */
 
 int
 resize_mini_window (w, exact_p)
@@ -7705,6 +7714,11 @@ resize_mini_window (w, exact_p)
   int window_height_changed_p = 0;
 
   xassert (MINI_WINDOW_P (w));
+
+  /* By default, start display at the beginning.  */
+  set_marker_both (w->start, w->buffer,
+		   BUF_BEGV (XBUFFER (w->buffer)),
+		   BUF_BEGV_BYTE (XBUFFER (w->buffer)));
 
   /* Don't resize windows while redisplaying a window; it would
      confuse redisplay functions when the size of the window they are
@@ -7769,9 +7783,10 @@ resize_mini_window (w, exact_p)
       if (height > max_height)
 	{
 	  height = max_height;
-	  init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
+	  init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
 	  move_it_vertically_backward (&it, (height - 1) * unit);
 	  start = it.current.pos;
+	  SET_PT_BOTH (CHARPOS (start), BYTEPOS (start));
 	}
       else
 	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
