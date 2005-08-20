@@ -1,3 +1,8 @@
+2005-08-20  Alan Mackenzie  <acm@muc.de>
+
+	* buffers.texi (The Buffer List): Clarify the manipulation of the
+	buffer list.
+
 2005-08-14  Richard M. Stallman  <rms@gnu.org>
 
 	* modes.texi (Auto Major Mode): interpreter-mode-alist key is not

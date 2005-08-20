@@ -1,3 +1,9 @@
+2005-08-20  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
+
+	* progmodes/compile.el (compilation-disable-input): New defcustom.
+	(compilation-start): If compilation-disable-input is non-nil, send
+	EOF to the compilation process.
+
 2005-08-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* textmodes/tex-mode.el (tex-bibtex-file, tex-send-tex-command):
