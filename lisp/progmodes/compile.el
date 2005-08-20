@@ -446,7 +446,7 @@ You might also use mode hooks to specify it in certain modes, like this:
   :type 'string
   :group 'compilation)
 
-(defcustom compilation-disable-input t
+(defcustom compilation-disable-input nil
   "*If non-nil, send end-of-file as compilation process input.
 This only affects platforms that support asynchronous processes (see
 start-process); synchronous compilation processes never accept input."
