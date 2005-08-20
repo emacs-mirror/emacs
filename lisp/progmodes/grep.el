@@ -517,7 +517,8 @@ temporarily highlight in visited source lines."
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
-  (let ((compilation-process-setup-function 'grep-process-setup))
+  (let ((compilation-process-setup-function 'grep-process-setup)
+	(compilation-disable-input t))
     (compilation-start (if (and grep-use-null-device null-device)
 			   (concat command-args " " null-device)
 			 command-args)
