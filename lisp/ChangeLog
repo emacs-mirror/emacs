@@ -1,3 +1,16 @@
+2005-08-20  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (normal-mode): If font lock is on, turn it off and on.
+
+	* subr.el (replace-regexp-in-string): Doc fix.
+
+	* startup.el (command-line-1): Don't suppress startup screen
+	due to existing processes.
+
+	* progmodes/grep.el (grep): Bind compilation-disable-input to t.
+
+	* progmodes/compile.el (compilation-disable-input): Default to nil.
+
 2005-08-20  Kevin Rodgers  <ihs_4664@yahoo.com>  (tiny change)
 
 	* progmodes/compile.el (compilation-disable-input): New defcustom.
