@@ -446,6 +446,14 @@ You might also use mode hooks to specify it in certain modes, like this:
   :type 'string
   :group 'compilation)
 
+(defcustom compilation-disable-input t
+  "*If non-nil, send end-of-file as compilation process input.
+This only affects platforms that support asynchronous processes (see
+start-process); synchronous compilation processes never accept input."
+  :type 'boolean
+  :group 'compilation
+  :version "22.1")
+
 ;; A weak per-compilation-buffer hash indexed by (FILENAME . DIRECTORY).  Each
 ;; value is a FILE-STRUCTURE as described above, with the car eq to the hash
 ;; key.	 This holds the tree seen from root, for storing new nodes.
@@ -1022,6 +1030,8 @@ Returns the compilation buffer created."
 						       outbuf command))))
 	      ;; Make the buffer's mode line show process state.
 	      (setq mode-line-process '(":%s"))
+	      (when compilation-disable-input
+		(process-send-eof proc))
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (set-process-filter proc 'compilation-filter)
 	      (set-marker (process-mark proc) (point) outbuf)
