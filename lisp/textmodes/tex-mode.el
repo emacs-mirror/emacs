@@ -1942,7 +1942,8 @@ FILE is typically the output DVI or PDF file."
                                       default-directory))))
 	      (not dir))
     (let (shell-dirtrack-verbose)
-      (tex-send-command tex-shell-cd-command dir)))
+      (tex-send-command tex-shell-cd-command
+			(concat "\"" (convert-standard-filename dir) "\""))))
   (with-current-buffer (process-buffer (tex-send-command cmd))
     (setq compilation-last-buffer (current-buffer))
     (compilation-forget-errors)
@@ -2307,7 +2308,8 @@ Runs the shell command defined by `tex-show-queue-command'."
 	(tex-out-file
          (tex-append (file-name-nondirectory (buffer-file-name)) ""))
 	(file-dir (file-name-directory (buffer-file-name))))
-    (tex-send-command tex-shell-cd-command file-dir)
+    (tex-send-command tex-shell-cd-command
+		      (concat "\"" (convert-standard-filename file-dir) "\""))
     (tex-send-command tex-bibtex-command tex-out-file))
   (tex-display-shell))
 
