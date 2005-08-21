@@ -850,7 +850,8 @@ update_window_fringes (w, keep_current_p)
 	    {
 	      if (!done_top)
 		{
-		  if (MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->buffer)))
+		  if (MATRIX_ROW_START_CHARPOS (row) <= BUF_BEGV (XBUFFER (w->buffer))
+		      && !MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P (w, row))
 		    row->indicate_bob_p = !NILP (boundary_top);
 		  else
 		    row->indicate_top_line_p = !NILP (arrow_top);
@@ -859,7 +860,8 @@ update_window_fringes (w, keep_current_p)
 
 	      if (!done_bot)
 		{
-		  if (MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer)))
+		  if (MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer))
+		      && !MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P (w, row))
 		    row->indicate_eob_p = !NILP (boundary_bot), done_bot = 1;
 		  else if (y + row->height >= yb)
 		    row->indicate_bottom_line_p = !NILP (arrow_bot), done_bot = 1;
