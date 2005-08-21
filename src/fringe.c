@@ -777,13 +777,14 @@ draw_window_fringes (w, no_fringe)
 
 
 /* Recalculate the bitmaps to show in the fringes of window W.
-   If FORCE_P is 0, only mark rows with modified bitmaps for update in
-   redraw_fringe_bitmaps_p; else mark all rows for update.  */
+   Only mark rows with modified bitmaps for update in redraw_fringe_bitmaps_p.
+
+   If KEEP_CURRENT_P is 0, update current_matrix too.  */
 
 int
-update_window_fringes (w, force_p)
+update_window_fringes (w, keep_current_p)
      struct window *w;
-     int force_p;
+     int keep_current_p;
 {
   struct glyph_row *row, *cur = 0;
   int yb = window_text_bottom_y (w);
@@ -943,8 +944,7 @@ update_window_fringes (w, force_p)
       else
 	right = NO_FRINGE_BITMAP;
 
-      if (force_p
-	  || row->y != cur->y
+      if (row->y != cur->y
 	  || row->visible_height != cur->visible_height
 	  || row->ends_at_zv_p != cur->ends_at_zv_p
 	  || left != cur->left_fringe_bitmap
@@ -953,11 +953,15 @@ update_window_fringes (w, force_p)
 	  || right_face_id != cur->right_fringe_face_id
 	  || cur->redraw_fringe_bitmaps_p)
 	{
-	  redraw_p = row->redraw_fringe_bitmaps_p = cur->redraw_fringe_bitmaps_p = 1;
-	  cur->left_fringe_bitmap = left;
-	  cur->right_fringe_bitmap = right;
-	  cur->left_fringe_face_id = left_face_id;
-	  cur->right_fringe_face_id = right_face_id;
+	  redraw_p = row->redraw_fringe_bitmaps_p = 1;
+	  if (!keep_current_p)
+	    {
+	      cur->redraw_fringe_bitmaps_p = 1;
+	      cur->left_fringe_bitmap = left;
+	      cur->right_fringe_bitmap = right;
+	      cur->left_fringe_face_id = left_face_id;
+	      cur->right_fringe_face_id = right_face_id;
+	    }
 	}
 
       if (row->overlay_arrow_bitmap != cur->overlay_arrow_bitmap)
@@ -975,7 +979,7 @@ update_window_fringes (w, force_p)
 	row[-1].redraw_fringe_bitmaps_p = cur[-1].redraw_fringe_bitmaps_p = 1;
     }
 
-  return redraw_p;
+  return redraw_p && !keep_current_p;
 }
 
 
