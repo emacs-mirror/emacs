@@ -12730,10 +12730,9 @@ redisplay_window (window, just_this_one_p)
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f)
-      && update_window_fringes (w, 0)
-      && !just_this_one_p
-      && (used_current_matrix_p || overlay_arrow_seen)
-      && !w->pseudo_window_p)
+      && update_window_fringes (w, (just_this_one_p
+				    || (!used_current_matrix_p && !overlay_arrow_seen)
+				    || w->pseudo_window_p)))
     {
       update_begin (f);
       BLOCK_INPUT;
