@@ -1,5 +1,8 @@
 2005-08-21  Kim F. Storm  <storm@cua.dk>
 
+	* fringe.c (update_window_fringes): Only put TOP and BOTTOM
+	bitmaps on fully visible rows.
+
 	* fringe.c (update_window_fringes): Replace FORCE_P arg with
 	KEEP_CURRENT_P arg; if non-zero, don't update current row fringes,
 	and return 0.
