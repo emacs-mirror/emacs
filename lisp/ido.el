@@ -3366,38 +3366,37 @@ for first matching file."
   (or (member name ido-ignore-item-temp-list)
       (and
        ido-process-ignore-lists re-list
-       (let ((data       (match-data))
-	     (ext-list   (and ignore-ext ido-ignore-extensions
+       (save-match-data
+	 (let ((ext-list (and ignore-ext ido-ignore-extensions
 			      completion-ignored-extensions))
-	     ignorep nextstr
-	     (flen (length name)) slen)
-	 (while ext-list
-	   (setq nextstr (car ext-list))
-	   (if (cond
-		((stringp nextstr)
-		 (and (>= flen (setq slen (length nextstr)))
-		      (string-equal (substring name (- flen slen)) nextstr)))
-		((fboundp nextstr) (funcall nextstr name))
-		(t nil))
-	       (setq ignorep t
-		     ext-list nil
-		     re-list nil)
-	     (setq ext-list (cdr ext-list))))
-	 (while re-list
-	   (setq nextstr (car re-list))
-	   (if (cond
-		((stringp nextstr) (string-match nextstr name))
-		((fboundp nextstr) (funcall nextstr name))
-		(t nil))
-	       (setq ignorep t
-		     re-list nil)
-	     (setq re-list (cdr re-list))))
-	 ;; return the result
-	 (if ignorep
-	     (setq ido-ignored-list (cons name ido-ignored-list)))
-	 (set-match-data data)
-	 ignorep))))
-
+	       (case-fold-search ido-case-fold)
+	       ignorep nextstr
+	       (flen (length name)) slen)
+	   (while ext-list
+	     (setq nextstr (car ext-list))
+	     (if (cond
+		  ((stringp nextstr)
+		   (and (>= flen (setq slen (length nextstr)))
+			(string-equal (substring name (- flen slen)) nextstr)))
+		  ((fboundp nextstr) (funcall nextstr name))
+		  (t nil))
+		 (setq ignorep t
+		       ext-list nil
+		       re-list nil)
+	       (setq ext-list (cdr ext-list))))
+	   (while re-list
+	     (setq nextstr (car re-list))
+	     (if (cond
+		  ((stringp nextstr) (string-match nextstr name))
+		  ((fboundp nextstr) (funcall nextstr name))
+		  (t nil))
+		 (setq ignorep t
+		       re-list nil)
+	       (setq re-list (cdr re-list))))
+	   ;; return the result
+	   (if ignorep
+	       (setq ido-ignored-list (cons name ido-ignored-list)))
+	   ignorep)))))
 
 ;; Private variable used by `ido-word-matching-substring'.
 (defvar ido-change-word-sub)
