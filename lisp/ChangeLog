@@ -1,3 +1,21 @@
+2005-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-basic-map): Bind smerge-combine-with-next.
+	(smerge-auto-leave): Make undo re-enable the mode.
+	(debug-ignored-errors): Add the user-error of impossible resolution.
+	(smerge-resolve): Move things around a bit, in preparation for later.
+	(smerge-diff): Don't fail if the buffer has no associated file.
+	(ediff-ancestor-buffer, ediff-quit-hook): Quieten byte-compiler.
+	(smerge-conflict-overlay): New function.
+	(smerge-match-conflict): Don't add text properties here.
+	(smerge-find-conflict): Instead, add an overlay here.
+	Also check for the case where we're inside a conflict already, so as to
+	obviate the need for font-lock-multiline, which is unbearably slow with
+	large conflicts and ciomplex font-lock patterns.
+	(smerge-remove-props): Remove overlay rather than text-properties.
+	(smerge-mode): Don't set font-lock-multiline.
+	Remove overlays when turned off.
+
 2005-08-21  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-ignore-item-p): Use save-match-data.
@@ -123,7 +141,7 @@
 	(tree-widget-image-properties): Look up in the default theme too.
 	(tree-widget--cursors): Only for images with arrow pointer shape.
 	(tree-widget-lookup-image): Pointer shape is hand by default.
-	(tree-widget-icon): Generic icon widget renamed from
+	(tree-widget-icon): Rename generic icon widget from
 	`tree-widget-control'.
 	(tree-widget-*-icon): Rename from `tree-widget-*-control' and
 	derive from `tree-widget-icon'.
@@ -147,8 +165,8 @@
 
 2005-08-15  Richard M. Stallman  <rms@gnu.org>
 
-	* textmodes/flyspell.el (flyspell-large-region): Fix doc and custom type.
-	(flyspell-mark-duplications-flag): Doc fix.
+	* textmodes/flyspell.el (flyspell-mark-duplications-flag): Doc fix.
+	(flyspell-large-region): Fix doc and custom type.
 
 2005-08-14  Richard M. Stallman  <rms@gnu.org>
 
@@ -158,11 +176,11 @@
 	(rmail-clear-headers): Use it.
 	(rmail-reply): Better handling of mail-followup-to header.
 
-	* progmodes/sh-script.el (sh-font-lock-keywords-var): Variable
-	renamed from sh-font-lock-keywords.  In the `shell' entry, don't
-	try to refer to executable-font-lock-keywords.
-	(sh-font-lock-keywords-var-1): Renamed from sh-font-lock-keywords-1.
-	(sh-font-lock-keywords-var-2): Renamed from sh-font-lock-keywords-2.
+	* progmodes/sh-script.el (sh-font-lock-keywords-var):
+	Rename variable from sh-font-lock-keywords.  In the `shell' entry,
+	don't try to refer to executable-font-lock-keywords.
+	(sh-font-lock-keywords-var-1): Rename from sh-font-lock-keywords-1.
+	(sh-font-lock-keywords-var-2): Rename from sh-font-lock-keywords-2.
 	(sh-font-lock-keywords): Append executable-font-lock-keywords here.
 	(sh-mode): Set comment-start-skip, local-abbrev-table,
 	imenu-case-fold-search.
@@ -178,8 +196,7 @@
 
 2005-08-15  Andreas Schwab  <schwab@suse.de>
 
-	* desktop.el: Put autoload cookie at risky-local-variable
-	declarations.
+	* desktop.el: Put autoload cookie at risky-local-variable declarations.
 
 	* dired.el, info.el, mail/rmail.el: Revert last change.
 
@@ -217,8 +234,8 @@
 
 2005-08-12  Eli Zaretskii  <eliz@gnu.org>
 
-	* cus-edit.el (custom-save-all, custom-save-delete): Bind
-	recentf-exclude to exclude custom-file.
+	* cus-edit.el (custom-save-all, custom-save-delete):
+	Bind recentf-exclude to exclude custom-file.
 
 2005-08-12  Ehud Karni  <ehud@unix.mvs.co.il>
 
@@ -227,17 +244,17 @@
 	`rmail-summary-mode-map' with key "/".
 	(rmail-summary-show-message): New (internal) function for use by
 	both `rmail-summary-beginning/end-of-message'.
-	(rmail-summary-beginning-of-message): Changed to use
+	(rmail-summary-beginning-of-message): Change to use
 	rmail-summary-show-message.
 
 	* mail/rmail.el (rmail-end-of-message): New command to go to the
 	end of the current message.  Added to `rmail-mode-map' with key "/".
-	(rmail-beginning-of-message): Fixed to work as documented.
+	(rmail-beginning-of-message): Fix to work as documented.
 	(rmail-mode): Change documentation.
 
 	* progmodes/compile.el (compilation-start): Add the line
 	"Compilation started" with compilation start time.
-        (compilation-mode-font-lock-keywords): Add `started' to keywords.
+	(compilation-mode-font-lock-keywords): Add `started' to keywords.
 
 2005-08-11  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -275,16 +292,16 @@
 
 	* desktop.el (desktop-buffer-mode-handlers):
 	Make non-customizable. Add autoload cookie.  Change initial value to
-	nil; add elements in respective modules instead. Fix doc string.
+	nil; add elements in respective modules instead.  Fix doc string.
 	(desktop-load-file): New function.
 	(desktop-minor-mode-handlers): New autoloaded variable.
 	(desktop-create-buffer): Call minor mode handlers.
 	Use desktop-load-file to load major and minor mode modules prior to
 	checking for a handler.
 	(desktop-save): Don't add nil to desktop-minor-modes for minor
-	modes with nil function in desktop-minor-mode-table. Don't delete
+	modes with nil function in desktop-minor-mode-table.  Don't delete
 	desktop file before rewriting it.
-	(desktop-locals-to-save): Add autoload cookie. Don't make
+	(desktop-locals-to-save): Add autoload cookie.  Don't make
 	automatically buffer-local.  Add variables column-number-mode,
 	size-indication-mode, indent-tabs-mode,
 	indicate-buffer-boundaries, indicate-empty-lines and
@@ -344,15 +361,13 @@
 	(compilation-info-text-face): Delete face variables.
 	(compilation-text-face): Delete function.
 
-	* progmodes/grep.el (grep-regexp-alist): Use `.+?' instead of
-	`[^:\n]+'.
+	* progmodes/grep.el (grep-regexp-alist): Use `.+?' instead of `[^:\n]+'.
 	(grep-mode-font-lock-keywords): Use `.+?' instead of `[^\n-]+'.
 	(grep-error-face): Set to `compilation-error' instead of
 	`compilation-error-face' (which is redefined to `grep-hit-face' in
 	grep buffers).
 	(grep-mode-font-lock-keywords): Remove `-text' from face variable
-	names.  Use `grep-error-face' instead of
-	`compilation-error-text-face'.
+	names.  Use `grep-error-face' instead of `compilation-error-text-face'.
 
 	* dired-aux.el (dired-do-query-replace-regexp):
 	Use `query-replace-read-args'.
@@ -598,9 +613,9 @@
 
 2005-08-06  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* wid-edit.el (widget-choice-value-create): Unconditionally
-	respect user choice.  Set :explicit-choice back to nil when no
-	longer needed.
+	* wid-edit.el (widget-choice-value-create):
+	Unconditionally respect user choice.  Set :explicit-choice back to nil
+	when no longer needed.
 	(widget-choice-action): Unconditionally respect user choice.
 	Eliminate :explicit-choice-value.
 
@@ -778,6 +793,11 @@
 	* textmodes/table.el (table-yank-handler): Change defcustom to defvar.
 
 2005-07-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (next-error-follow-minor-mode):
+	make-variable-buffer-local -> make-local-variable.
+
+	* emacs-lisp/cl-extra.el: Require CL also when compiling.
 
 	* emacs-lisp/bytecomp.el (byte-compile-make-variable-buffer-local)
 	(byte-compile-form-make-variable-buffer-local): New functions to warn
