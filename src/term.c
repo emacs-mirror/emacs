@@ -2011,24 +2011,20 @@ turn_on_face (f, face_id)
 
   if (TN_max_colors > 0)
     {
-      char *p;
+      char *ts, *p;
 
-      if (fg >= 0 && TS_set_foreground)
+      ts = standout_mode ? TS_set_background : TS_set_foreground;
+      if (fg >= 0 && ts)
 	{
-	  if (standout_mode)
-	    p = tparam (TS_set_background, NULL, 0, (int) fg);
-	  else
-	    p = tparam (TS_set_foreground, NULL, 0, (int) fg);
+	  p = tparam (ts, NULL, 0, (int) fg);
 	  OUTPUT (p);
 	  xfree (p);
 	}
 
-      if (bg >= 0 && TS_set_background)
+      ts = standout_mode ? TS_set_foreground : TS_set_background;
+      if (bg >= 0 && ts)
 	{
-	  if (standout_mode)
-	    p = tparam (TS_set_foreground, NULL, 0, (int) bg);
-	  else
-	    p = tparam (TS_set_background, NULL, 0, (int) bg);
+	  p = tparam (ts, NULL, 0, (int) bg);
 	  OUTPUT (p);
 	  xfree (p);
 	}
