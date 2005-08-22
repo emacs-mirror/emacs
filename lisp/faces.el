@@ -770,7 +770,7 @@ and DATA is a string, containing the raw bits of the bitmap."
   (set-face-attribute face frame :stipple (or stipple 'unspecified)))
 
 
-(defun set-face-underline (face underline &optional frame)
+(defun set-face-underline-p (face underline-p &optional frame)
   "Specify whether face FACE is underlined.
 UNDERLINE nil means FACE explicitly doesn't underline.
 UNDERLINE non-nil means FACE explicitly does underlining
@@ -781,19 +781,10 @@ Use `set-face-attribute' to ``unspecify'' underlining."
   (interactive
    (let ((list (read-face-and-attribute :underline)))
      (list (car list) (eq (car (cdr list)) t))))
-  (set-face-attribute face frame :underline underline))
-
-
-(defun set-face-underline-p (face underline-p &optional frame)
-  "Specify whether face FACE is underlined.
-UNDERLINE-P nil means FACE explicitly doesn't underline.
-UNDERLINE-P non-nil means FACE explicitly does underlining.
-FRAME nil or not specified means change face on all frames.
-Use `set-face-attribute' to ``unspecify'' underlining."
-  (interactive
-   (let ((list (read-face-and-attribute :underline)))
-     (list (car list) (eq (car (cdr list)) t))))
   (set-face-attribute face frame :underline underline-p))
+
+(define-obsolete-function-alias 'set-face-underline
+                                'set-face-underline-p "22.1")
 
 
 (defun set-face-inverse-video-p (face inverse-video-p &optional frame)
@@ -1318,7 +1309,14 @@ If FRAME is omitted or nil, use the selected frame."
 	      (dolist (a attrs)
 		(let ((attr (face-attribute f (car a) frame)))
 		  (insert (make-string (- max-width (length (cdr a))) ?\s)
-			  (cdr a) ": " (format "%s" attr) "\n")))))
+			  (cdr a) ": " (format "%s" attr))
+		  (if (and (eq (car a) :inherit)
+			   (not (eq attr 'unspecified)))
+		      ;; Make a hyperlink to the parent face.
+		      (save-excursion
+			(re-search-backward ": \\([^:]+\\)" nil t)
+			(help-xref-button 1 'help-face attr)))
+		  (insert "\n")))))
 	  (terpri)))
       (print-help-return-message))))
 
