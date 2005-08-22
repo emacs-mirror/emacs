@@ -1673,7 +1673,9 @@ height.
   A @dfn{face} is a named collection of graphical attributes: font
 family, foreground color, background color, optional underlining, and
 many others.  Faces are used in Emacs to control the style of display of
-particular parts of the text or the frame.
+particular parts of the text or the frame.  @xref{Standard Faces,,,
+emacs, The GNU Emacs Manual}, for the list of faces Emacs normally
+comes with.
 
 @cindex face id
 Each face has its own @dfn{face number}, which distinguishes faces at
@@ -1691,7 +1693,6 @@ same meaning in all frames.  But you can arrange to give a particular
 face name a special meaning in one frame if you wish.
 
 @menu
-* Standard Faces::      The faces Emacs normally comes with.
 * Defining Faces::      How to define a face with @code{defface}.
 * Face Attributes::     What is in a face?
 * Attribute Functions::  Functions to examine and set face attributes.
@@ -1704,139 +1705,6 @@ face name a special meaning in one frame if you wish.
 * Fontsets::            A fontset is a collection of fonts
                           that handle a range of character sets.
 @end menu
-
-@node Standard Faces
-@subsection Standard Faces
-
-  This table lists all the standard faces and their uses.  Most of them
-are used for displaying certain parts of the frames or certain kinds of
-text; you can control how those places look by customizing these faces.
-
-@table @code
-@item default
-@kindex default @r{(face name)}
-This face is used for ordinary text.
-
-@item mode-line
-@kindex mode-line @r{(face name)}
-This face is used for the mode line of the selected window, and for
-menu bars when toolkit menus are not used.
-
-@item modeline
-@kindex modeline @r{(face name)}
-This is an alias for the @code{mode-line} face, for compatibility with
-old Emacs versions.
-
-@item mode-line-inactive
-@kindex mode-line-inactive @r{(face name)}
-This face is used for mode lines of non-selected windows.
-This face inherits from @code{mode-line}, so changes
-in that face affect all windows.
-
-@item header-line
-@kindex header-line @r{(face name)}
-This face is used for the header lines of windows that have them.
-
-@item menu
-This face controls the display of menus, both their colors and their
-font.  (This works only on certain systems.)
-
-@item fringe
-@kindex fringe @r{(face name)}
-This face controls the default colors of window fringes, the thin
-areas on either side that are used to display continuation and
-truncation glyphs.  Other faces used to display bitmaps in the fringe
-are implicitly merged with this face.
-
-@item minibuffer-prompt
-@kindex minibuffer-prompt @r{(face name)}
-@vindex minibuffer-prompt-properties
-This face is used for the text of minibuffer prompts.  By default,
-Emacs automatically adds this face to the value of
-@code{minibuffer-prompt-properties}, which is a list of text
-properties used to display the prompt text.
-
-@item scroll-bar
-@kindex scroll-bar @r{(face name)}
-This face controls the colors for display of scroll bars.
-
-@item tool-bar
-@kindex tool-bar @r{(face name)}
-This face is used for display of the tool bar, if any.
-
-@item region
-@kindex region @r{(face name)}
-This face is used for highlighting the region in Transient Mark mode.
-
-@item secondary-selection
-@kindex secondary-selection @r{(face name)}
-This face is used to show any secondary selection you have made.
-
-@item highlight
-@kindex highlight @r{(face name)}
-This face is meant to be used for highlighting for various purposes.
-
-@item mode-line-highlight
-@kindex mode-line-highlight @r{(face name)}
-This face is used for highlighting something on @code{mode-line} or
-@code{header-line} for various purposes.
-
-@item trailing-whitespace
-@kindex trailing-whitespace @r{(face name)}
-This face is used to display excess whitespace at the end of a line,
-if @code{show-trailing-whitespace} is non-@code{nil}.
-
-@item escape-glyph
-@kindex escape-glyph @r{(face name)}
-This face is used to display control characters and escape glyphs.
-@end table
-
-  In contrast, these faces are provided to change the appearance of text
-in specific ways.  You can use them on specific text, when you want
-the effects they produce.
-
-@table @code
-@item bold
-@kindex bold @r{(face name)}
-This face uses a bold font, if possible.  It uses the bold variant of
-the frame's font, if it has one.  It's up to you to choose a default
-font that has a bold variant, if you want to use one.
-
-@item italic
-@kindex italic @r{(face name)}
-This face uses the italic variant of the frame's font, if it has one.
-
-@item bold-italic
-@kindex bold-italic @r{(face name)}
-This face uses the bold italic variant of the frame's font, if it has
-one.
-
-@item underline
-@kindex underline @r{(face name)}
-This face underlines text.
-
-@item fixed-pitch
-@kindex fixed-pitch @r{(face name)}
-This face forces use of a particular fixed-width font.
-
-@item variable-pitch
-@kindex variable-pitch @r{(face name)}
-This face forces use of a particular variable-width font.  It's
-reasonable to customize this to use a different variable-width font, if
-you like, but you should not make it a fixed-width font.
-
-@item shadow
-@kindex shadow @r{(face name)}
-This face is used for making the text less noticeable than the
-surrounding ordinary text.
-@end table
-
-@defvar show-trailing-whitespace
-@tindex show-trailing-whitespace
-If this variable is non-@code{nil}, Emacs uses the
-@code{trailing-whitespace} face to display any spaces and tabs at the
-end of a line.
-@end defvar
 
 @node Defining Faces
 @subsection Defining Faces
@@ -2382,7 +2250,8 @@ properties too; they apply to all the text covered by the overlay.
 
 @item
 With a region that is active.  In Transient Mark mode, the region is
-highlighted with the face @code{region} (@pxref{Standard Faces}).
+highlighted with the face @code{region} (@pxref{Standard Faces,,,
+emacs, The GNU Emacs Manual}).
 
 @item
 With special glyphs.  Each glyph can specify a particular face
