@@ -1076,7 +1076,7 @@ a case-insensitive match is tried."
       ;; Insert the entire original dir file as a start; note that we've
       ;; already saved its default directory to use as the default
       ;; directory for the whole concatenation.
-      (goto-char (prog1 (point) (insert-buffer-substring buffer)))
+      (save-excursion (insert-buffer-substring buffer))
 
       ;; Look at each of the other buffers one by one.
       (dolist (other others)
@@ -1770,9 +1770,11 @@ If DIRECTION is `backward', search in the reverse direction."
       (lambda (string &optional bound noerror count)
 	(if isearch-word
 	    (Info-search (concat "\\b" (replace-regexp-in-string
-					"\\W+" "\\\\W+"
+					"\\W+" "\\W+"
 					(replace-regexp-in-string
-					 "^\\W+\\|\\W+$" "" string)) "\\b")
+					 "^\\W+\\|\\W+$" "" string)
+					nil t)
+				 "\\b")
 			 bound noerror count
 			 (unless isearch-forward 'backward))
 	  (Info-search (if isearch-regexp string (regexp-quote string))
@@ -3585,27 +3587,6 @@ the variable `Info-file-list-for-emacs'."
 	  (t
 	   (Info-goto-emacs-command-node command)))))
 
-(defun Info-escape-percent (string)
-  "Double all occurrences of `%' in STRING.
-
-Return a new string with all `%' characters replaced by `%%'.
-Preserve text properties."
-  (let ((start 0)
-	(end (length string))
-	mb me m matches)
-    (save-match-data
-      (while (and (< start end) (string-match "%" string start))
-	(setq mb (match-beginning 0)
-	      me (1+ mb)
-	      m (substring string mb me)
-	      matches (cons m
-			    (cons m
-				  (cons (substring string start mb)
-					matches)))
-	      start me))
-      (push (substring string start end) matches)
-      (apply #'concat (nreverse matches)))))
-
 (defvar Info-next-link-keymap
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap [header-line mouse-1] 'Info-next)
@@ -3697,7 +3678,11 @@ Preserve text properties."
                                 (buffer-substring (point) header-end)))
                 (setq header (buffer-substring (point) header-end))))
             (put-text-property (point-min) (1+ (point-min))
-                               'header-line (Info-escape-percent header))
+                               'header-line
+			       (replace-regexp-in-string
+				"%"
+				;; Preserve text properties on duplicated `%'.
+				(lambda (s) (concat s s)) header))
             ;; Hide the part of the first line
             ;; that is in the header, if it is just part.
             (unless (bobp)
