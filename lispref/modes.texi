@@ -1614,7 +1614,7 @@ value is a list, each element may be a list, a symbol, or a string.
   The mode line can display various faces, if the strings that control
 it have the @code{face} property.  @xref{Properties in Mode}.  In
 addition, the face @code{mode-line} is used as a default for the whole
-mode line (@pxref{Standard Faces}).
+mode line (@pxref{Standard Faces,,, emacs, The GNU Emacs Manual}).
 
 @table @code
 @cindex percent symbol in mode line
