@@ -1,3 +1,24 @@
+2005-08-22  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (set-face-underline): Delete this duplicate function
+	and make an obsolete alias to set-face-underline-p.
+	(set-face-underline-p): Use docstring of set-face-underline.
+	(describe-face): Create hyperlink to parent face.
+
+	* info.el (Info-insert-dir): Use save-excursion around
+	insert-buffer-substring.
+	(Info-isearch-search): Use LITERAL arg of replace-regexp-in-string.
+	(Info-escape-percent): Delete function.
+	(Info-fontify-node): Replace Info-escape-percent by
+	replace-regexp-in-string with REP arg set to lambda that
+	duplicates `%' and preserves text properties.
+
+	* progmodes/compile.el (compilation-disable-input): Doc fix.
+	(define-compilation-mode): Doc fix and refill.
+	(kill-compilation): Use `mode-name' in the error message.
+	(compilation-find-file): Use `compilation-error' in the
+	read-file-name's prompt.
+
 2005-08-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-basic-map): Bind smerge-combine-with-next.
