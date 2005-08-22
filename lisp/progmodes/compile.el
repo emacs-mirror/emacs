@@ -449,7 +449,7 @@ You might also use mode hooks to specify it in certain modes, like this:
 (defcustom compilation-disable-input nil
   "*If non-nil, send end-of-file as compilation process input.
 This only affects platforms that support asynchronous processes (see
-start-process); synchronous compilation processes never accept input."
+`start-process'); synchronous compilation processes never accept input."
   :type 'boolean
   :group 'compilation
   :version "22.1")
@@ -1228,9 +1228,9 @@ Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
 (defmacro define-compilation-mode (mode name doc &rest body)
   "This is like `define-derived-mode' without the PARENT argument.
 The parent is always `compilation-mode' and the customizable `compilation-...'
-variables are also set from the name of the mode you have chosen, by replacing
-the fist word, e.g `compilation-scroll-output' from `grep-scroll-output' if that
-variable exists."
+variables are also set from the name of the mode you have chosen,
+by replacing the first word, e.g `compilation-scroll-output' from
+`grep-scroll-output' if that variable exists."
   (let ((mode-name (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
     `(define-derived-mode ,mode compilation-mode ,name
        ,doc
@@ -1509,7 +1509,7 @@ Prefix arg N says how many files to move backwards (or forwards, if negative)."
   (let ((buffer (compilation-find-buffer)))
     (if (get-buffer-process buffer)
 	(interrupt-process (get-buffer-process buffer))
-      (error "The compilation process is not running"))))
+      (error "The %s process is not running" (downcase mode-name)))))
 
 (defalias 'compile-mouse-goto-error 'compile-goto-error)
 
@@ -1754,8 +1754,8 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 				    marker)
 	    (let ((name (expand-file-name
 			 (read-file-name
-			  (format "Find this error in: (default %s) "
-				  filename)
+			  (format "Find this %s in: (default %s) "
+				  compilation-error filename)
 			  dir filename t))))
 	      (if (file-directory-p name)
 		  (setq name (expand-file-name filename name)))
