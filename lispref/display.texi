@@ -2288,10 +2288,14 @@ This function sets the underline attribute of face @var{face}.
 Non-@code{nil} means do underline; @code{nil} means don't.
 @end defun
 
+@defun set-face-inverse-video-p face inverse-video-p &optional frame
+This function sets the @code{:inverse-video} attribute of face
+@var{face}.
+@end defun
+
 @defun invert-face face &optional frame
-This function inverts the @code{:inverse-video} attribute of face
-@var{face}.  If the attribute is @code{nil}, this function sets it to
-@code{t}, and vice versa.
+This function swaps the foreground and background colors of face
+@var{face}.
 @end defun
 
   These functions examine the attributes of a face.  If you don't
@@ -2300,7 +2304,7 @@ They return the symbol @code{unspecified} if the face doesn't define any
 value for that attribute.
 
 @defun face-foreground face &optional frame inherit
-@defunx face-background face &optional frame
+@defunx face-background face &optional frame inherit
 These functions return the foreground color (or background color,
 respectively) of face @var{face}, as a string.
 
