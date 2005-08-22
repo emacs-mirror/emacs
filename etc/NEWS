@@ -4726,6 +4726,13 @@ so that :inherit face lists operate identically to face lists in text
 `face' properties.
 
 ---
+*** On terminals, faces with the :inverse-video attribute are displayed
+with swapped foreground and background colors even when one of them is
+not specified.  In previous releases of Emacs, if either foreground
+or background color was unspecified, colors were not swapped.  This
+was inconsistent with the face behavior under X.
+
+---
 *** `set-fontset-font', `fontset-info', `fontset-font' now operate on
 the default fontset if the argument NAME is nil..
 
