@@ -1951,13 +1951,16 @@ created."
   :group 'basic-faces)
 
 
-(defface minibuffer-prompt '((((background dark)) :foreground "cyan")
-			     ;; Don't use blue because many users of
-			     ;; the MS-DOS port customize their
-			     ;; foreground color to be blue.
-			     (((type pc)) :foreground "magenta")
-			     (t :foreground "dark blue"))
-  "Face for minibuffer prompts."
+(defface minibuffer-prompt
+  '((((background dark)) :foreground "cyan")
+    ;; Don't use blue because many users of the MS-DOS port customize
+    ;; their foreground color to be blue.
+    (((type pc)) :foreground "magenta")
+    (t :foreground "dark blue"))
+  "Face for minibuffer prompts.
+By default, Emacs automatically adds this face to the value of
+`minibuffer-prompt-properties', which is a list of text properties
+used to display the prompt text."
   :version "22.1"
   :group 'basic-faces)
 
