@@ -1,3 +1,7 @@
+2005-08-23  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (minibuffer-prompt): Doc fix.
+
 2005-08-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/xscheme.el: Trivial changes to silence warnings.
