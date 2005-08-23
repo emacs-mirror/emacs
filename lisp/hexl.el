@@ -426,7 +426,7 @@ Ask the user for confirmation."
 
 (defun hexl-print-current-point-info ()
   "Return current hexl-address in string.
-This function is indented to be used as eldoc callback."
+This function is intended to be used as eldoc callback."
   (let ((addr (hexl-current-address)))
     (format "Current address is %d/0x%08x" addr addr)))
 

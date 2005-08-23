@@ -1,3 +1,8 @@
+2005-08-23  Ed Swarthout <ed.swarthout@gmail.com>  (tiny change)
+
+	* hexl.el (hexl-print-current-point-info): Fix simple spelling
+	error.
+
 2005-08-22  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (set-face-underline): Delete this duplicate function
