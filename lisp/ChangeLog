@@ -1,4 +1,28 @@
-2005-08-23  Ed Swarthout <ed.swarthout@gmail.com>  (tiny change)
+2005-08-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/xscheme.el: Trivial changes to silence warnings.
+	(xscheme-previous-mode, xscheme-previous-process-state):
+	Add defvars.
+	(xscheme-last-input-end, xscheme-process-command-line)
+	(xscheme-process-name, xscheme-buffer-name)
+	(xscheme-expressions-ring-max, xscheme-expressions-ring)
+	(xscheme-expressions-ring-yank-pointer, xscheme-running-p)
+	(xscheme-control-g-synchronization-p)
+	(xscheme-control-g-disabled-p, xscheme-string-receiver)
+	(default-xscheme-runlight, xscheme-runlight)
+	(xscheme-runlight-string, xscheme-process-filter-state)
+	(xscheme-allow-output-p, xscheme-prompt, xscheme-mode-string):
+	Move to beginning of file.
+	(scheme-interaction-mode-commands-alist)
+	(scheme-interaction-mode-map, scheme-debugger-mode-map): Declare
+	them before use.  Note: the initialization code for the variables
+	has not been moved because it uses functions that reference the
+	variables.
+	(xscheme-control-g-message-string, xscheme-process-filter-alist)
+	(xscheme-prompt-for-expression-map): Declare them before use.
+	(scheme-debugger-mode-commands): "?\ " -> "?\s".
+
+2005-08-23  Ed Swarthout  <ed.swarthout@gmail.com>  (tiny change)
 
 	* hexl.el (hexl-print-current-point-info): Fix simple spelling
 	error.
