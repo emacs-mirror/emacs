@@ -30,7 +30,10 @@
 (require 'nntp)
 (autoload 'url-warn "url")
 (autoload 'gnus-group-read-ephemeral-group "gnus-group")
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (defvar nntp-open-tls-stream)
+  (defvar nntp-open-ssl-stream))
 
 (defgroup url-news nil
   "News related options."
