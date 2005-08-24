@@ -1,3 +1,8 @@
+2005-08-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* bookmark.el (bookmark-after-jump-hook): New hook.
+	(bookmark-jump): Run `bookmark-after-jump-hook'.
+
 2005-08-23  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (minibuffer-prompt): Doc fix.
