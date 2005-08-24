@@ -321,15 +321,15 @@
   "Mocklisp compatibility variable; 1 means pass -f when calling csh.")
 
 (defun filter-region (command)
-  (let ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
-	(csh (equal (file-name-nondirectory shell) "csh")))
+  (let* ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
+         (csh (equal (file-name-nondirectory shell) "csh")))
     (call-process-region (point) (mark) shell t t nil
 			 (if (and csh use-csh-option-f) "-cf" "-c")
 			 (concat "exec " command))))
 
 (defun execute-monitor-command (command)
-  (let ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
-	(csh (equal (file-name-nondirectory shell) "csh")))
+  (let* ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
+         (csh (equal (file-name-nondirectory shell) "csh")))
     (call-process shell nil t t
 		  (if (and csh use-csh-option-f) "-cf" "-c")
 		  (concat "exec " command))))
