@@ -1,5 +1,9 @@
 2005-08-24  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emerge.el (merge-begin, merge-end, template, A-begin, A-end)
+	(B-begin, B-end, diff, diff-vector, valid-diff): Defvar at compile
+	time to silence the byte-compiler.
+
 	* ibuffer.el (ibuffer-compile-make-eliding-form)
 	(ibuffer-check-formats): Use `with-no-warnings' to hide references
 	to `ibuffer-elide-long-columns' (which is defined on ibuffer.el,
@@ -15,9 +19,25 @@
 	(ibuffer-cached-formats, ibuffer-cached-elide-long-columns):
 	Declare them before use.
 
-	* emerge.el (merge-begin, merge-end, template, A-begin, A-end)
-	(B-begin, B-end, diff, diff-vector, valid-diff): Defvar at compile
-	time to silence the byte-compiler.
+	* info-xref.el (info-xref-xfile-alist, info-xref-filename-heading)
+	(info-xref-good, info-xref-bad): Defvar at compile time.
+
+	* obsolete/mlsupport.el (filter-region, execute-monitor-command):
+	Use `let*' instead of `let'.
+
+	* obsolete/sun-curs.el (icon-edit, *mouse-window*, *mouse-x*)
+	(*mouse-y*, menu, char): Defvar at compile time.
+	(sc::menu): Declare it before use.
+	(sc::pack-one-line): Use `let', not `let*'.
+
+	* obsolete/swedish.el (news-inews-hook, news-group-hook-alist)
+	(mail-send-hook): Defvar at compile time.
+
+	* term/bg-mouse.el (bg-mouse-x, bg-mouse-y, bg-cursor-window):
+	Defvar at compile time.
+
+	* term/sun-mouse.el (current-global-mousemap)
+	(current-local-mousemap): Declare them before use.
 
 2005-08-24  Carsten Dominik  <dominik@science.uva.nl>
 
