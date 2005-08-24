@@ -1,3 +1,24 @@
+2005-08-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ibuffer.el (ibuffer-compile-make-eliding-form)
+	(ibuffer-check-formats): Use `with-no-warnings' to hide references
+	to `ibuffer-elide-long-columns' (which is defined on ibuffer.el,
+	so it's silly to get warnings for it).
+	(ibuffer-auto-mode, ibuffer-cached-filter-formats)
+	(ibuffer-compiled-filter-formats, ibuffer-filter-format-alist)
+	(ibuffer-filter-group-kill-ring, ibuffer-filter-groups)
+	(ibuffer-filtering-qualifiers, ibuffer-hidden-filter-groups)
+	(ibuffer-inline-columns, ibuffer-show-empty-filter-groups)
+	(ibuffer-tmp-hide-regexps, ibuffer-tmp-show-regexps):
+	Defvar at compile time.
+	(ibuffer-compiled-formats, ibuffer-cached-eliding-string)
+	(ibuffer-cached-formats, ibuffer-cached-elide-long-columns):
+	Declare them before use.
+
+	* emerge.el (merge-begin, merge-end, template, A-begin, A-end)
+	(B-begin, B-end, diff, diff-vector, valid-diff): Defvar at compile
+	time to silence the byte-compiler.
+
 2005-08-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* bookmark.el (bookmark-after-jump-hook): New hook.
