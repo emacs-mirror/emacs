@@ -1,5 +1,4 @@
 Tútorial k Emacsu. Podmienky pozri na konci.
-Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation.
 Do èe¹tiny prelo¾il Milan Zamazal <pdm@zamazal.org>, do slovenèiny Miroslav
 Va¹ko <zemiak@zoznam.sk>.
 
@@ -1082,7 +1081,8 @@ tútorialom napísaným Stuartom Cracraftom pre pôvodný Emacs.
 Táto verzia tútorialu je, podobne ako GNU Emacs, chránená copyrightom
 a je ¹írená s povolením distribuova» kópie za istých podmienok:
 
-Copyright (c) 1985, 1996 Free Software Foundation
+Copyright (C) 1985, 1996, 1998, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Ka¾dému je zaruèené právo vytvára» a distribuova» presné kópie tohto
    dokumentu tak, ako ho dostal, na akomkoµvek médiu, s tým, ¾e bude

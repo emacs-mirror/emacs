@@ -1,5 +1,4 @@
 Krótki samouczek Emacsa.  Warunki kopiowania znajduj± sie na koñcu pliku.
-Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation.
 
 Polecenia Emacsa wymagaj± na ogó³ wci¶niêcia klawisza CONTROL (oznaczanego
 czasami Ctrl lub CTL) lub klawisza META (oznaczanego czasami EDIT
@@ -1218,7 +1217,8 @@ z pomoc± Ryszarda Kubiaka i Janusza S. Bienia <jsbien@mail.uw.edu.pl>.
 Ta wersja samouczka, podobnie jak GNU Emacs, jest chroniona prawem
 autorskim, ale wolno j± kopiowaæ pod nastêpuj±cymi warunkami:
 
-Copyright (c) 1985, 1994, 2001 Free Software Foundation
+Copyright (C) 1985, 1994, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
 Zezwala siê na wykonywanie lub rozpowszechnianie
 wiernych kopii tego dokumentu w otrzymanej formie, na dowolnym

@@ -1,5 +1,4 @@
 Emacs 快速指南.
-Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation.
 
 Emacs 指令通常包含有 CONTROL 键（有时候以 CTRL 或 CTL 来标示）或是 
 META 键（有时候以 EDIT 或 ALT 来标示）。为了避免每一次都要写出其全名，
@@ -1050,7 +1049,8 @@ issue here>」。
 这个版本的快速指南和 GNU Emacs 一样都是版权化的，并且允许在某些条件下
 散布其拷贝：
 
-Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation
+Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 Chinese Translation by Chao-Hong Liu (2002, 2003)
 
    Permission is granted to anyone to make or distribute verbatim copies

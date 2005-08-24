@@ -1,5 +1,4 @@
 Tutorial do Emacs. Veja no fim as condições para cópia.
-Copyright (c) 2004, 2005 Free Software Foundation.
 
 Os comandos do Emacs geralmente envolvem a tecla CONTROL (algumas vezes
 nomeada CTRL ou CTL) ou a tecla META (algumas vezes nomeada EDIT ou
@@ -1064,7 +1063,7 @@ Essa versão do tutorial foi originalmente traduzida por Marcelo Toledo
 <marcelo@gnu.org> e como o GNU Emacs, tem um copyright, e vem
 com uma permissão de distribuição de cópias nas seguintes condições:
 
-Copyright (c) 1985, 1996 Free Software Foundation
+Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
    Permissão é garantida a qualquer um para fazer ou distribuir copias
    integrais deste documento como recebido, em qualquer meio, deixando

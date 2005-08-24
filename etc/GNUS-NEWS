@@ -1,5 +1,6 @@
 GNUS NEWS -- history of user-visible changes.
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 See the end for copying conditions.
 
 Please send Gnus bug reports to bugs@gnus.org.
@@ -62,7 +63,7 @@ picons, install the picons database from
 
 and point `gnus-picon-databases' to that location.
 
-** If the new option `gnus-treat-body-boundary' is `head', a boundary 
+** If the new option `gnus-treat-body-boundary' is `head', a boundary
 line is drawn at the end of the headers.
 
 ** Retrieval of charters and control messages
@@ -77,7 +78,7 @@ for sending yourself reminders.  Setup with (gnus-delay-initialize).
 ** If `auto-compression-mode' is enabled, attachments are automatically
 decompressed when activated.
 
-** If the new option `nnml-use-compressed-files' is non-nil, 
+** If the new option `nnml-use-compressed-files' is non-nil,
 the nnml back end allows compressed message files.
 
 ** Signed article headers (X-PGP-Sig) can be verified with `W p'.
@@ -91,24 +92,24 @@ Do you often find yourself replying to news by email by mistake?  Then
 the new option `gnus-confirm-mail-reply-to-news' is just the thing for
 you.
 
-** If the new option `gnus-summary-display-while-building' is non-nil, 
+** If the new option `gnus-summary-display-while-building' is non-nil,
 the summary buffer is shown and updated as it's being built.
 
 ** The new `recent' mark "." indicates newly arrived messages (as
 opposed to old but unread messages).
 
-** The new option `gnus-gcc-mark-as-read' automatically marks 
+** The new option `gnus-gcc-mark-as-read' automatically marks
 Gcc articles as read.
 
 ** The nndoc back end now supports mailman digests and exim bounces.
 
-** Gnus supports RFC 2369 mailing list headers, and adds a number of 
+** Gnus supports RFC 2369 mailing list headers, and adds a number of
 related commands in mailing list groups.
 
 ** The Date header can be displayed in a format that can be read aloud
 in English, see `gnus-treat-date-english'.
 
-** The envelope sender address can be customized when using Sendmail, see 
+** The envelope sender address can be customized when using Sendmail, see
 `message-sendmail-envelope-from'.
 
 ** diffs are automatically highlighted in groups matching
@@ -488,7 +489,7 @@ If you used procmail like in
 (setq nnmail-procmail-directory "~/mail/incoming/")
 (setq nnmail-procmail-suffix "\\.in")
 
-this now has changed to 
+this now has changed to
 
 (setq mail-sources
       '((directory :path "~/mail/incoming/"
@@ -527,7 +528,8 @@ ever-changing layouts.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
