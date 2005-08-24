@@ -1037,6 +1037,10 @@ For example, if this is a Info buffer, return the Info file's name."
                    (lambda (x y) (string-lessp (car x) (car y))))))))
 
 
+(defvar bookmark-after-jump-hook nil
+  "Hook run after `bookmark-jump' jumps to a bookmark.
+Useful for example to unhide text in `outline-mode'.")
+
 ;;;###autoload
 (defun bookmark-jump (bookmark)
   "Jump to bookmark BOOKMARK (a point in some file).
@@ -1059,6 +1063,7 @@ of the old one in the permanent bookmark record."
     (and cell
          (switch-to-buffer (car cell))
          (goto-char (cdr cell))
+	 (progn (run-hooks 'bookmark-jump-hook) t)
 	 (if bookmark-automatically-show-annotations
              ;; if there is an annotation for this bookmark,
              ;; show it in a buffer.
