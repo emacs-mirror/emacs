@@ -50,6 +50,9 @@
 ;;; semicolon screws up indenting, so use this instead
 (defconst semicolon ?\;)
 
+(eval-when-compile
+  (defvar bg-mouse-x) (defvar bg-mouse-y) (defvar bg-cursor-window))
+
 ;;;  Defuns:
 
 (defun bg-mouse-report (prefix-arg)
