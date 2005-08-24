@@ -138,19 +138,27 @@ should open up the purported top file and see what subfiles it says."
 ;; Some dynamic variables are used to share information with sub-functions
 ;; below.
 ;;
-;; info-xref-filename - current top-level filename, eg. /usr/info/foo.info.gz
-;;
-;; info-xref-filename-header - a heading message for the current top-level
-;;     filename, or "" when it's been printed.
-;;
-;; info-xref-good - count of good cross references.
-;;
-;; info-xref-bad - count of bad cross references.
-;;
-;; info-xref-xfile-alist - indexed by "(foo)" with value nil or t according
-;;     to whether "(foo)" exists or not.  This is used to suppress duplicate
-;;     messages about foo not being available.  (Duplicates within one
-;;     top-level file that is.)
+(eval-when-compile
+  ;;
+  ;; info-xref-filename-header - a heading message for the current top-level
+  ;;     filename, or "" when it's been printed.
+  ;;
+  (defvar info-xref-xfile-alist)
+  ;;
+  ;; info-xref-good - count of good cross references.
+  ;;
+  (defvar info-xref-good)
+  ;;
+  ;; info-xref-bad - count of bad cross references.
+  ;;
+  (defvar info-xref-bad)
+  ;;
+  ;; info-xref-xfile-alist - indexed by "(foo)" with value nil or t according
+  ;;     to whether "(foo)" exists or not.  This is used to suppress duplicate
+  ;;     messages about foo not being available.  (Duplicates within one
+  ;;     top-level file that is.)
+  ;;
+  (defvar info-xref-filename-heading))
 
 (defun info-xref-check-list (filename-list)
   "Check external references in info documents in FILENAME-LIST."
