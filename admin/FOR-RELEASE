@@ -129,7 +129,7 @@ you're going to handle.
 
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
-etc			working		Thien-Thi Nguyen (ttn(@gnu.org))
+etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
 leim			working		Kenichi Handa
 lib-src			done		ttn
 lisp			done		ttn
