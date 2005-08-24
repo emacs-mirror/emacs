@@ -40,6 +40,16 @@
 
 (require 'font-core)
 
+(eval-when-compile
+  ;; These come from ibuf-ext.el, which can not be require'd at compile time
+  ;; because it has a recursive dependency on ibuffer.el
+  (defvar ibuffer-auto-mode)               (defvar ibuffer-cached-filter-formats)
+  (defvar ibuffer-compiled-filter-formats) (defvar ibuffer-filter-format-alist)
+  (defvar ibuffer-filter-group-kill-ring)  (defvar ibuffer-filter-groups)
+  (defvar ibuffer-filtering-qualifiers)    (defvar ibuffer-hidden-filter-groups)
+  (defvar ibuffer-inline-columns)          (defvar ibuffer-show-empty-filter-groups)
+  (defvar ibuffer-tmp-hide-regexps)        (defvar ibuffer-tmp-show-regexps))
+
 (defgroup ibuffer nil
   "An advanced replacement for `buffer-menu'.
 
@@ -814,6 +824,11 @@ directory, like `default-directory'."
 
 (defvar ibuffer-did-modification nil)
 
+(defvar ibuffer-compiled-formats nil)
+(defvar ibuffer-cached-formats nil)
+(defvar ibuffer-cached-eliding-string nil)
+(defvar ibuffer-cached-elide-long-columns 0)
+
 (defvar ibuffer-sorting-functions-alist nil
   "An alist of functions which describe how to sort buffers.
 
@@ -1394,7 +1409,7 @@ If point is on a group name, this function operates on that group."
 
 (defun ibuffer-compile-make-eliding-form (strvar elide from-end-p)
   (let ((ellipsis (propertize ibuffer-eliding-string 'font-lock-face 'bold)))
-    (if (or elide ibuffer-elide-long-columns)
+    (if (or elide (with-no-warnings ibuffer-elide-long-columns))
 	`(if (> strlen 5)
 	     ,(if from-end-p
 		  `(concat ,ellipsis
@@ -1567,11 +1582,6 @@ If point is on a group name, this function operates on that group."
 					    '(tmp2)))
 			      ,@(nreverse result))))))))
 
-(defvar ibuffer-compiled-formats nil)
-(defvar ibuffer-cached-formats nil)
-(defvar ibuffer-cached-eliding-string nil)
-(defvar ibuffer-cached-elide-long-columns 0)
-
 (defun ibuffer-recompile-formats ()
   "Recompile `ibuffer-formats'."
   (interactive)
@@ -1603,7 +1613,7 @@ If point is on a group name, this function operates on that group."
 	      (not (equal ibuffer-cached-eliding-string ibuffer-eliding-string))
 	      (eql 0 ibuffer-cached-elide-long-columns)
 	      (not (eql ibuffer-cached-elide-long-columns
-			ibuffer-elide-long-columns))
+			(with-no-warnings ibuffer-elide-long-columns)))
 	      (and ext-loaded
 		   (not (eq ibuffer-cached-filter-formats
 			    ibuffer-filter-format-alist))
@@ -1613,7 +1623,7 @@ If point is on a group name, this function operates on that group."
       (ibuffer-recompile-formats)
       (setq ibuffer-cached-formats ibuffer-formats
 	    ibuffer-cached-eliding-string ibuffer-eliding-string
-	    ibuffer-cached-elide-long-columns ibuffer-elide-long-columns)
+	    ibuffer-cached-elide-long-columns (with-no-warnings ibuffer-elide-long-columns))
       (when ext-loaded
 	(setq ibuffer-cached-filter-formats ibuffer-filter-format-alist))
       (message "Formats have changed, recompiling...done"))))
