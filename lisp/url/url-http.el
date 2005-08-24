@@ -28,7 +28,8 @@
 
 (eval-when-compile
   (require 'cl)
-  (defvar url-http-extra-headers))
+  (defvar url-http-extra-headers)
+  (defvar url-http-cookies-sources))
 (require 'url-gw)
 (require 'url-util)
 (require 'url-parse)
