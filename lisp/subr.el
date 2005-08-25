@@ -2657,9 +2657,9 @@ don't change the volume setting of the sound device.
 
   :device DEVICE - play sound on DEVICE.  If not specified,
 a system-dependent default device name is used."
-  (unless (fboundp 'play-sound-internal)
-    (error "This Emacs binary lacks sound support"))
-  (play-sound-internal sound))
+  (if (fboundp 'play-sound-internal)
+      (play-sound-internal sound)
+    (error "This Emacs binary lacks sound support")))
 
 (defun define-mail-user-agent (symbol composefunc sendfunc
 				      &optional abortfunc hookvar)
