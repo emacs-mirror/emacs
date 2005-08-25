@@ -1501,18 +1501,24 @@ end of an overlay, before @var{pos}.  If there is none, it returns
 @code{(point-min)}.
 @end defun
 
-  Here's an easy way to use @code{next-overlay-change} to search for the
-next character which gets a non-@code{nil} @code{happy} property from
+  Here's a function which uses @code{next-overlay-change} to search
+for the next character which gets a given property @code{prop} from
 either its overlays or its text properties (@pxref{Property Search}):
 
 @smallexample
 (defun find-overlay-prop (prop)
   (save-excursion
     (while (and (not (eobp))
-                (not (get-char-property (point) 'happy)))
+                (not (get-char-property (point) prop)))
       (goto-char (min (next-overlay-change (point))
-                      (next-single-property-change (point) 'happy))))
+                      (next-single-property-change (point) prop))))
     (point)))
+@end smallexample
+
+  Now you can search for a @code{happy} property like this:
+
+@smallexample
+(find-overlay-prop 'happy)
 @end smallexample
 
 @node Width
