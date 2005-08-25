@@ -1063,7 +1063,7 @@ of the old one in the permanent bookmark record."
     (and cell
          (switch-to-buffer (car cell))
          (goto-char (cdr cell))
-	 (progn (run-hooks 'bookmark-jump-hook) t)
+	 (progn (run-hooks 'bookmark-after-jump-hook) t)
 	 (if bookmark-automatically-show-annotations
              ;; if there is an annotation for this bookmark,
              ;; show it in a buffer.
