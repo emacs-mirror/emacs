@@ -2851,6 +2851,207 @@ convenience wrapper around `make-progress-reporter' and friends.
 				   (setq ,(car spec) (1+ ,(car spec)))))
        (progress-reporter-done ,temp2)
        nil ,@(cdr (cdr spec)))))
+
+;;;; Integer list & Version funs.
+
+(defvar version-separator "."
+  "*Specify the string used to separate the version elements.
+
+Usually the separator is \".\", but it can be any other string.")
+
+
+(defvar version-regexp-alist
+  '(("^a\\(lpha\\)?$"   . -3)
+    ("^b\\(eta\\)?$"    . -2)
+    ("^\\(pre\\|rc\\)$" . -1))
+  "*Specify association between non-numeric version part and a priority.
+
+This association is used to handle version string like \"1.0pre2\",
+\"0.9alpha1\", etc.  It's used by `version-to-list' (which see) to convert the
+non-numeric part to an integer.  For example:
+
+   String Version    Integer List Version
+   \"1.0pre2\"         (1  0 -1 2)
+   \"1.0PRE2\"         (1  0 -1 2)
+   \"22.8beta3\"       (22 8 -2 3)
+   \"22.8Beta3\"       (22 8 -2 3)
+   \"0.9alpha1\"       (0  9 -3 1)
+   \"0.9AlphA1\"       (0  9 -3 1)
+   \"0.9alpha\"        (0  9 -3)
+
+Each element has the following form:
+
+   (REGEXP . PRIORITY)
+
+Where:
+
+REGEXP		regexp used to match non-numeric part of a version string.
+
+PRIORITY	negative integer which indicate the non-numeric priority.")
+
+
+(defun version-to-list (ver)
+  "Convert version string VER into an integer list.
+
+The version syntax is given by the following EBNF:
+
+   VERSION ::= NUMBER ( SEPARATOR NUMBER )*.
+
+   NUMBER ::= (0|1|2|3|4|5|6|7|8|9)+.
+
+   SEPARATOR ::= `version-separator' (which see)
+	       | `version-regexp-alist' (which see).
+
+As an example of valid version syntax:
+
+   1.0pre2   1.0.7.5   22.8beta3   0.9alpha1
+
+As an example of invalid version syntax:
+
+   1.0prepre2   1.0..7.5   22.8X3   alpha3.2   .5
+
+As an example of version convertion:
+
+   String Version    Integer List Version
+   \"1.0.7.5\"         (1  0  7 5)
+   \"1.0pre2\"         (1  0 -1 2)
+   \"1.0PRE2\"         (1  0 -1 2)
+   \"22.8beta3\"       (22 8 -2 3)
+   \"22.8Beta3\"       (22 8 -2 3)
+   \"0.9alpha1\"       (0  9 -3 1)
+   \"0.9AlphA1\"       (0  9 -3 1)
+   \"0.9alpha\"        (0  9 -3)
+
+See documentation for `version-separator' and `version-regexp-alist'."
+  (or (and (stringp ver) (not (string= ver "")))
+      (error "Invalid version string: '%s'" ver))
+  (save-match-data
+    (let ((i 0)
+	  case-fold-search		; ignore case in matching
+	  lst s al)
+      (while (and (setq s (string-match "[0-9]+" ver i))
+		  (= s i))
+	;; handle numeric part
+	(setq lst (cons (string-to-number (substring ver i (match-end 0)))
+			lst)
+	      i   (match-end 0))
+	;; handle non-numeric part
+	(when (and (setq s (string-match "[^0-9]+" ver i))
+		   (= s i))
+	  (setq s (substring ver i (match-end 0))
+		i (match-end 0))
+	  ;; handle alpha, beta, pre, etc. separator
+	  (unless (string= s version-separator)
+	    (setq al version-regexp-alist)
+	    (while (and al (not (string-match (caar al) s)))
+	      (setq al (cdr al)))
+	    (or al (error "Invalid version syntax: '%s'" ver))
+	    (setq lst (cons (cdar al) lst)))))
+      (if (null lst)
+	  (error "Invalid version syntax: '%s'" ver)
+	(nreverse lst)))))
+
+
+(defun integer-list-< (l1 l2)
+  "Return t if integer list L1 is lesser than L2.
+
+Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
+etc.  That is, the trailing zeroes are irrelevant.  Also, integer
+list (1) is greater than (1 -1) which is greater than (1 -2)
+which is greater than (1 -3)."
+  (while (and l1 l2 (= (car l1) (car l2)))
+    (setq l1 (cdr l1)
+	  l2 (cdr l2)))
+  (cond
+   ;; l1 not null and l2 not null
+   ((and l1 l2) (< (car l1) (car l2)))
+   ;; l1 null and l2 null         ==> l1 length = l2 length
+   ((and (null l1) (null l2)) nil)
+   ;; l1 not null and l2 null     ==> l1 length > l2 length
+   (l1 (< (integer-list-not-zero l1) 0))
+   ;; l1 null and l2 not null     ==> l2 length > l1 length
+   (t  (< 0 (integer-list-not-zero l2)))))
+
+
+(defun integer-list-= (l1 l2)
+  "Return t if integer list L1 is equal to L2.
+
+Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
+etc.  That is, the trailing zeroes are irrelevant.  Also, integer
+list (1) is greater than (1 -1) which is greater than (1 -2)
+which is greater than (1 -3)."
+  (while (and l1 l2 (= (car l1) (car l2)))
+    (setq l1 (cdr l1)
+	  l2 (cdr l2)))
+  (cond
+   ;; l1 not null and l2 not null
+   ((and l1 l2) nil)
+   ;; l1 null and l2 null     ==> l1 length = l2 length
+   ((and (null l1) (null l2)))
+   ;; l1 not null and l2 null ==> l1 length > l2 length
+   (l1 (zerop (integer-list-not-zero l1)))
+   ;; l1 null and l2 not null ==> l2 length > l1 length
+   (t  (zerop (integer-list-not-zero l2)))))
+
+
+(defun integer-list-<= (l1 l2)
+  "Return t if integer list L1 is lesser than or equal to L2.
+
+Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
+etc.  That is, the trailing zeroes are irrelevant.  Also, integer
+list (1) is greater than (1 -1) which is greater than (1 -2)
+which is greater than (1 -3)."
+  (while (and l1 l2 (= (car l1) (car l2)))
+    (setq l1 (cdr l1)
+	  l2 (cdr l2)))
+  (cond
+   ;; l1 not null and l2 not null
+   ((and l1 l2) (< (car l1) (car l2)))
+   ;; l1 null and l2 null     ==> l1 length = l2 length
+   ((and (null l1) (null l2)))
+   ;; l1 not null and l2 null ==> l1 length > l2 length
+   (l1 (<= (integer-list-not-zero l1) 0))
+   ;; l1 null and l2 not null ==> l2 length > l1 length
+   (t  (<= 0 (integer-list-not-zero l2)))))
+
+
+(defalias 'version= 'string-equal
+  "Return t if version V1 is equal to V2.
+
+Compare version string using `string-equal'.")
+
+
+(defun version< (v1 v2)
+  "Return t if version V1 is lesser than V2.
+
+Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
+etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
+is greater than \"1pre\" which is greater than \"1beta\" which is greater than
+\"1alpha\"."
+  (integer-list-< (version-to-list v1) (version-to-list v2)))
+
+
+(defun version<= (v1 v2)
+  "Return t if version V1 is lesser than or equal to V2.
+
+Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
+etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
+is greater than \"1pre\" which is greater than \"1beta\" which is greater than
+\"1alpha\"."
+  (integer-list-<= (version-to-list v1) (version-to-list v2)))
+
+
+(defun integer-list-not-zero (lst)
+  "Return the first non-zero element of integer list LST.
+
+If all LST elements are zeroes or LST is nil, return zero."
+  (while (zerop (car lst))
+    (setq lst (cdr lst)))
+  (if lst
+      (car lst)
+    ;; there is no element different of zero
+    0))
+
 
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here
