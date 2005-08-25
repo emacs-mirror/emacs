@@ -1,3 +1,24 @@
+2005-08-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (kbd_buffer_get_event) [MAC_OS]: Make events for
+	ICONIFY/DEICONIFY_EVENT.
+
+	* macterm.c (mac_copy_area, mac_copy_area_with_mask): Restore
+	background color.
+	(mac_handle_visibility_change): New function.
+	(x_make_frame_invisible, x_iconify_frame)
+	(XTread_socket) [!USE_CARBON_EVENTS]: Use it.
+	[USE_CARBON_EVENTS] (mac_handle_window_event)
+	(install_window_handler): Handle visibilty change events.
+	(x_make_frame_visible): Don't reposition window if it is iconified
+	or asked for visible before.  Select and uncollapse window when it
+	is made visible.
+	(x_make_frame_invisible): Don't reset x_highlight_frame.
+	(x_iconify_frame): Likewise.  Make invisible frame visible before
+	it is iconified.
+	(read_socket_inev): Move variable outside #if USE_CARBON_EVENTS.
+	(do_window_update): Don't change visibility of invisible frame.
+
 2005-08-22  Juri Linkov  <juri@jurta.org>
 
 	* term.c (turn_on_face): Check for TS_set_foreground and
