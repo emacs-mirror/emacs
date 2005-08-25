@@ -1,3 +1,20 @@
+2005-08-25  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-describe-menu): Delete "What's New".
+	Rename "Describe Key" to "Describe Key or Mouse Operation".
+
+	* mail/mailalias.el (build-mail-aliases): Delete comments
+	from the contents before processing them.
+
+	* isearch.el (isearch-edit-string): Erase the Search prompt
+	if user enters an empty string and there is no default.
+
+	* comint.el (comint-file-name-prefix): Add autoload.
+
+2005-08-25  Joe Corneli  <jcorneli@math.utexas.edu>
+
+	* subr.el (play-sound): Rearrange to avoid warning.
+
 2005-08-25  Carsten Dominik  <dominik@science.uva.nl>
 
 	* calendar/diary-lib.el (diary-modify-entry-list-string-function):
