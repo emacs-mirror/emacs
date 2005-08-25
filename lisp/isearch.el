@@ -1072,7 +1072,11 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	(if isearch-nonincremental
 	    (progn
 	      ;; (sit-for 1) ;; needed if isearch-done does: (message "")
-	      (isearch-done))))
+	      (isearch-done)
+	      ;; The search done message is confusing when the string
+	      ;; is empty, so erase it.
+	      (if (equal isearch-string "")
+		  (message "")))))
 
     (quit  ; handle abort-recursive-edit
      (isearch-abort)  ;; outside of let to restore outside global values
