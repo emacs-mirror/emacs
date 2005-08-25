@@ -1147,6 +1147,25 @@ A positive number means to include that many lines both before and after.
 @section Search and Replace
 @cindex replacement
 
+@defun replace-regexp-in-string regexp rep string &optional fixedcase literal subexp start
+This function copies @var{string} and searches it for matches for
+@var{regexp}, and replaces them with @var{rep}.  It returns the
+modified copy.  If @var{start} is non-@code{nil}, the search for
+matches starts at that index in @var{string}, so matches starting
+before that index are not changed.
+
+This function uses @code{replace-match} to do the replacement, and it
+passes the optional arguments @var{fixedcase}, @var{literal} and
+@var{subexp} along to @code{replace-match}.
+
+Instead of a string, @var{rep} can be a function.  In that case,
+@code{replace-regexp-in-string} calls @var{rep} for each match,
+passing the text of the match as its sole argument.  It collects the
+value @var{rep} returns and passes that to @code{replace-match} as the
+replacement string.  The match-data at this point are the result
+of matching @var{regexp} against a substring of @var{string}.
+@end defun
+
 @defun perform-replace from-string replacements query-flag regexp-flag delimited-flag &optional repeat-count map start end
 This function is the guts of @code{query-replace} and related
 commands.  It searches for occurrences of @var{from-string} in the
