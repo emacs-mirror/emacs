@@ -651,7 +651,7 @@ by \"Save Options\" in Custom buffers.")
 		   tooltip-mode menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style fringe-mode
 		   indicate-empty-lines indicate-buffer-boundaries
-		   case-fold-search auto-compression-mode
+		   case-fold-search
 		   current-language-environment default-input-method
 		   ;; Saving `text-mode-hook' is somewhat questionable,
 		   ;; as we might get more than we bargain for, if
@@ -976,13 +976,6 @@ mail status in mode line"))
 			   "Whether the cursor blinks (Blink Cursor mode)"))
 (define-key menu-bar-options-menu [cursor-separator]
   '("--"))
-
-(define-key menu-bar-options-menu [toggle-auto-compression]
-  '(menu-item "Automatic File De/compression"
-	      auto-compression-mode
-	      :help "Transparently decompress compressed files"
-	      :button (:toggle . (rassq 'jka-compr-handler
-					file-name-handler-alist))))
 
 (define-key menu-bar-options-menu [save-place]
   (menu-bar-make-toggle toggle-save-place-globally save-place
