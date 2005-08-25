@@ -1,3 +1,8 @@
+2005-08-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* obsolete/bg-mouse.el: Move to obsolete/ from term/.
+	Silence warning about non-existent variable.
+
 2005-08-25  Richard M. Stallman  <rms@gnu.org>
 
 	* menu-bar.el (menu-bar-describe-menu): Delete "What's New".
