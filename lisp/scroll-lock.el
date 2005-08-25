@@ -125,4 +125,5 @@ during scrolling."
 
 (provide 'scroll-lock)
 
+;; arch-tag: 148fc8e8-67e0-4638-bb34-3291595ab7e1
 ;;; scroll-lock.el ends here
