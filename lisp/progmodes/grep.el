@@ -287,7 +287,8 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
      (": \\(.+\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
       1 grep-error-face)
      ;; remove match from grep-regexp-alist before fontifying
-     ("^Grep started.*" (0 '(face nil message nil help-echo nil mouse-face nil) t))
+     ("^Grep started.*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t))
      ("^Grep finished \\(?:(\\(matches found\\))\\|with \\(no matches found\\)\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
       (1 compilation-info-face nil t)
@@ -517,12 +518,10 @@ temporarily highlight in visited source lines."
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
-  (let ((compilation-process-setup-function 'grep-process-setup)
-	(compilation-disable-input t))
-    (compilation-start (if (and grep-use-null-device null-device)
-			   (concat command-args " " null-device)
-			 command-args)
-		       'grep-mode nil highlight-regexp)))
+  (compilation-start (if (and grep-use-null-device null-device)
+			 (concat command-args " " null-device)
+		       command-args)
+		     'grep-mode nil highlight-regexp))
 
 ;;;###autoload
 (define-compilation-mode grep-mode "Grep"
@@ -532,6 +531,9 @@ temporarily highlight in visited source lines."
        grep-hit-face)
   (set (make-local-variable 'compilation-error-regexp-alist)
        grep-regexp-alist)
+  (set (make-local-variable 'compilation-process-setup-function)
+       'grep-process-setup)
+  (set (make-local-variable 'compilation-disable-input) t)
   ;; Set `font-lock-lines-before' to 0 to not refontify the previous
   ;; line where grep markers may be already removed.
   (set (make-local-variable 'font-lock-lines-before) 0))
