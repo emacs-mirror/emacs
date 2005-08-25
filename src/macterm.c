@@ -796,6 +796,8 @@ mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
 	    &src_r, &dest_r, srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (src));
+
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (dest)));
 }
 
 
@@ -834,6 +836,8 @@ mac_copy_area_with_mask (display, src, mask, dest, gc, src_x, src_y,
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (mask));
   UnlockPixels (GetGWorldPixMap (src));
+
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (dest)));
 }
 
 
@@ -5646,6 +5650,53 @@ XTframe_raise_lower (f, raise_flag)
 
 /* Change of visibility.  */
 
+static void
+mac_handle_visibility_change (f)
+     struct frame *f;
+{
+  WindowPtr wp = FRAME_MAC_WINDOW (f);
+  int visible = 0, iconified = 0;
+  struct input_event buf;
+
+  if (IsWindowVisible (wp))
+    if (IsWindowCollapsed (wp))
+      iconified = 1;
+    else
+      visible = 1;
+
+  if (!f->async_visible && visible)
+    {
+      if (f->iconified)
+	{
+	  /* wait_reading_process_output will notice this and update
+	     the frame's display structures.  If we were made
+	     invisible, we should not set garbaged, because that stops
+	     redrawing on Update events.  */
+	  SET_FRAME_GARBAGED (f);
+
+	  EVENT_INIT (buf);
+	  buf.kind = DEICONIFY_EVENT;
+	  XSETFRAME (buf.frame_or_window, f);
+	  kbd_buffer_store_event (&buf);
+	}
+      else if (! NILP (Vframe_list) && ! NILP (XCDR (Vframe_list)))
+	/* Force a redisplay sooner or later to update the
+	   frame titles in case this is the second frame.  */
+	record_asynch_buffer_change ();
+    }
+  else if (f->async_visible && !visible)
+    if (iconified)
+      {
+	EVENT_INIT (buf);
+	buf.kind = ICONIFY_EVENT;
+	XSETFRAME (buf.frame_or_window, f);
+	kbd_buffer_store_event (&buf);
+      }
+
+  f->async_visible = visible;
+  f->async_iconified = iconified;
+}
+
 /* This tries to wait until the frame is really visible.
    However, if the window manager asks the user where to position
    the frame, this will return before the user finishes doing that.
@@ -5670,29 +5721,32 @@ x_make_frame_visible (f)
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
 	  && ! f->output_data.mac->asked_for_visible)
-	x_set_offset (f, f->left_pos, f->top_pos, 0);
+#if TARGET_API_MAC_CARBON
+	if (!(FRAME_SIZE_HINTS (f)->flags & (USPosition | PPosition)))
+	  {
+	    struct frame *sf = SELECTED_FRAME ();
+	    if (!FRAME_MAC_P (sf))
+	      RepositionWindow (FRAME_MAC_WINDOW (f), NULL,
+				kWindowCenterOnMainScreen);
+	    else
+	      RepositionWindow (FRAME_MAC_WINDOW (f),
+				FRAME_MAC_WINDOW (sf),
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+				kWindowCascadeStartAtParentWindowScreen
+#else
+				kWindowCascadeOnParentWindowScreen
+#endif
+				);
+	    x_real_positions (f, &f->left_pos, &f->top_pos);
+	  }
+	else
+#endif
+	  x_set_offset (f, f->left_pos, f->top_pos, 0);
 
       f->output_data.mac->asked_for_visible = 1;
 
-#if TARGET_API_MAC_CARBON
-      if (!(FRAME_SIZE_HINTS (f)->flags & (USPosition | PPosition)))
-	{
-	  struct frame *sf = SELECTED_FRAME ();
-	  if (!FRAME_MAC_P (sf))
-	    RepositionWindow (FRAME_MAC_WINDOW (f), NULL,
-			      kWindowCenterOnMainScreen);
-	  else
-	    RepositionWindow (FRAME_MAC_WINDOW (f),
-			      FRAME_MAC_WINDOW (sf),
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-			      kWindowCascadeStartAtParentWindowScreen
-#else
-			      kWindowCascadeOnParentWindowScreen
-#endif
-			      );
-	  x_real_positions (f, &f->left_pos, &f->top_pos);
-	}
-#endif
+      SelectWindow (FRAME_MAC_WINDOW (f));
+      CollapseWindow (FRAME_MAC_WINDOW (f), false);
       ShowWindow (FRAME_MAC_WINDOW (f));
     }
 
@@ -5751,9 +5805,14 @@ void
 x_make_frame_invisible (f)
      struct frame *f;
 {
+  /* A deactivate event does not occur when the last visible frame is
+     made invisible.  So if we clear the highlight here, it will not
+     be rehighlighted when it is made visible.  */
+#if 0
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame = 0;
+#endif
 
   BLOCK_INPUT;
 
@@ -5766,17 +5825,11 @@ x_make_frame_invisible (f)
 
   HideWindow (FRAME_MAC_WINDOW (f));
 
-  /* We can't distinguish this from iconification
-     just by the event that we get from the server.
-     So we can't win using the usual strategy of letting
-     FRAME_SAMPLE_VISIBILITY set this.  So do it by hand,
-     and synchronize with the server to make sure we agree.  */
-  f->visible = 0;
-  FRAME_ICONIFIED_P (f) = 0;
-  f->async_visible = 0;
-  f->async_iconified = 0;
-
   UNBLOCK_INPUT;
+
+#if !USE_CARBON_EVENTS
+  mac_handle_visibility_change (f);
+#endif
 }
 
 /* Change window state from mapped to iconified.  */
@@ -5785,21 +5838,37 @@ void
 x_iconify_frame (f)
      struct frame *f;
 {
+  OSErr err;
+
+  /* A deactivate event does not occur when the last visible frame is
+     iconified.  So if we clear the highlight here, it will not be
+     rehighlighted when it is deiconified.  */
+#if 0
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame = 0;
+#endif
 
-#if 0
-  /* Review:  Since window is still visible in dock, still allow updates? */
   if (f->async_iconified)
     return;
-#endif
 
   BLOCK_INPUT;
 
-  CollapseWindow (FRAME_MAC_WINDOW (f), true);
+  FRAME_SAMPLE_VISIBILITY (f);
+
+  if (! FRAME_VISIBLE_P (f))
+    ShowWindow (FRAME_MAC_WINDOW (f));
+
+  err = CollapseWindow (FRAME_MAC_WINDOW (f), true);
 
   UNBLOCK_INPUT;
+
+  if (err != noErr)
+    error ("Can't notify window manager of iconification");
+
+#if !USE_CARBON_EVENTS
+  mac_handle_visibility_change (f);
+#endif
 }
 
 
@@ -7188,7 +7257,7 @@ x_load_font (f, fontname, size)
 
     /* Set global flag fonts_changed_p to non-zero if the font loaded
        has a character with a smaller width than any other character
-       before, or if the font loaded has a smalle>r height than any
+       before, or if the font loaded has a smaller height than any
        other font loaded before.  If this happens, it will make a
        glyph matrix reallocation necessary.  */
     fonts_changed_p |= x_compute_min_glyph_bounds (f);
@@ -7319,12 +7388,12 @@ Lisp_Object Vmac_pass_command_to_system;
 /* If Non-nil, the Mac "Control" key is passed on to the Mac Toolbox
    for processing before Emacs sees it.  */
 Lisp_Object Vmac_pass_control_to_system;
+#endif
 
 /* Points to the variable `inev' in the function XTread_socket.  It is
    used for passing an input event to the function back from
    Carbon/Apple event handlers.  */
 static struct input_event *read_socket_inev = NULL;
-#endif
 
 /* Set in term/mac-win.el to indicate that event loop can now generate
    drag and drop events.  */
@@ -7609,37 +7678,30 @@ do_window_update (WindowPtr win)
     {
       if (f->async_visible == 0)
         {
+	  /* Update events may occur when a frame gets iconified.  */
+#if 0
           f->async_visible = 1;
           f->async_iconified = 0;
           SET_FRAME_GARBAGED (f);
-
-          /* An update event is equivalent to MapNotify on X, so report
-             visibility changes properly.  */
-          if (! NILP(Vframe_list) && ! NILP (XCDR (Vframe_list)))
-            /* Force a redisplay sooner or later to update the
-               frame titles in case this is the second frame.  */
-            record_asynch_buffer_change ();
+#endif
         }
       else
-        {
+	{
 	  Rect r;
-
 #if TARGET_API_MAC_CARBON
-	  {
-	    RgnHandle region = NewRgn ();
+	  RgnHandle region = NewRgn ();
 
-	    GetPortVisibleRegion (GetWindowPort (win), region);
-	    GetRegionBounds (region, &r);
-	    expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
-	    UpdateControls (win, region);
-	    DisposeRgn (region);
-	  }
+	  GetPortVisibleRegion (GetWindowPort (win), region);
+	  GetRegionBounds (region, &r);
+	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
+	  UpdateControls (win, region);
+	  DisposeRgn (region);
 #else
 	  r = (*win->visRgn)->rgnBBox;
 	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
 	  UpdateControls (win, win->visRgn);
 #endif
-        }
+	}
     }
 
   EndUpdate (win);
@@ -8171,6 +8233,17 @@ mac_handle_window_event (next_handler, event, data)
 	  return noErr;
 	}
       break;
+
+    case kEventWindowShown:
+    case kEventWindowHidden:
+    case kEventWindowExpanded:
+    case kEventWindowCollapsed:
+      result = CallNextEventHandler (next_handler, event);
+
+      mac_handle_visibility_change (mac_window_to_frame (wp));
+      return noErr;
+
+      break;
     }
 
   return eventNotHandledErr;
@@ -8246,7 +8319,11 @@ install_window_handler (window)
 #if USE_CARBON_EVENTS
   EventTypeSpec specs_window[] =
     {{kEventClassWindow, kEventWindowUpdate},
-     {kEventClassWindow, kEventWindowBoundsChanging}};
+     {kEventClassWindow, kEventWindowBoundsChanging},
+     {kEventClassWindow, kEventWindowShown},
+     {kEventClassWindow, kEventWindowHidden},
+     {kEventClassWindow, kEventWindowExpanded},
+     {kEventClassWindow, kEventWindowCollapsed}};
   EventTypeSpec specs_mouse[] = {{kEventClassMouse, kEventMouseWheelMoved}};
   static EventHandlerUPP handle_window_eventUPP = NULL;
   static EventHandlerUPP handle_mouse_eventUPP = NULL;
@@ -9454,6 +9531,29 @@ XTread_socket (sd, expected, hold_quit)
       x_raise_frame (pending_autoraise_frame);
       pending_autoraise_frame = 0;
     }
+
+#if !USE_CARBON_EVENTS
+  /* Check which frames are still visible.  We do this here because
+     there doesn't seem to be any direct notification from the Window
+     Manager that the visibility of a window has changed (at least,
+     not in all cases).  */
+  {
+    Lisp_Object tail, frame;
+
+    FOR_EACH_FRAME (tail, frame)
+      {
+	struct frame *f = XFRAME (frame);
+
+	/* The tooltip has been drawn already.  Avoid the
+	   SET_FRAME_GARBAGED in mac_handle_visibility_change.  */
+	if (EQ (frame, tip_frame))
+	  continue;
+
+	if (FRAME_MAC_P (f))
+	  mac_handle_visibility_change (f);
+      }
+  }
+#endif
 
   UNBLOCK_INPUT;
   return count;
