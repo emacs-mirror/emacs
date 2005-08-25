@@ -1652,8 +1652,9 @@ marked on the calendar."
 
 (defvar diary-modify-entry-list-string-function nil
   "Function applied to entry string before putting it into the entries list.
-This is so that program that use the emacs diary for other purposes (e.g.
-planner.el and org.el) can modify the string or add properties to it.")
+Can be used by programs integrating a diary list into other buffers (e.g.
+org.el and planner.el) to modify the string or add properties to it.
+The function takes a string argument and must return a string.")
 
 (defun add-to-diary-list (date string specifier &optional marker globcolor)
   "Add the entry (DATE STRING SPECIFIER MARKER GLOBCOLOR) to `diary-entries-list'.
