@@ -129,6 +129,10 @@ Used in `smerge-diff-base-mine' and related functions."
 (put 'smerge-markers-face 'face-alias 'smerge-markers)
 (defvar smerge-markers-face 'smerge-markers)
 
+(defface smerge-refined-change
+  '((t :background "yellow"))
+  "Face used for char-based changes shown by `smerge-refine'.")
+
 (easy-mmode-defmap smerge-basic-map
   `(("n" . smerge-next)
     ("p" . smerge-prev)
@@ -139,6 +143,7 @@ Used in `smerge-diff-base-mine' and related functions."
     ("m" . smerge-keep-mine)
     ("E" . smerge-ediff)
     ("C" . smerge-combine-with-next)
+    ("R" . smerge-refine)
     ("\C-m" . smerge-keep-current)
     ("=" . ,(make-sparse-keymap "Diff"))
     ("=<" "base-mine" . smerge-diff-base-mine)
@@ -277,6 +282,7 @@ Can be nil if the style is undecided, or else:
     (smerge-auto-leave)))
 
 (defun smerge-keep-n (n)
+  (smerge-remove-props (match-beginning 0) (match-end 0))
   ;; We used to use replace-match, but that did not preserve markers so well.
   (delete-region (match-end n) (match-end 0))
   (delete-region (match-beginning 0) (match-beginning n)))
@@ -326,7 +332,8 @@ according to `smerge-match-conflict'.")
     ;; mouse-face highlight
     keymap (keymap (down-mouse-3 . smerge-popup-context-menu))))
 
-(defun smerge-remove-props (&optional beg end)
+(defun smerge-remove-props (beg end)
+  (remove-overlays beg end 'smerge 'refine)
   (remove-overlays beg end 'smerge 'conflict))
 
 (defun smerge-popup-context-menu (event)
@@ -397,7 +404,6 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
   (smerge-ensure-match 2)
-  (smerge-remove-props)
   (smerge-keep-n 2)
   (smerge-auto-leave))
 
@@ -406,7 +412,6 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
   ;;(smerge-ensure-match 3)
-  (smerge-remove-props)
   (smerge-keep-n 3)
   (smerge-auto-leave))
 
@@ -415,7 +420,6 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
   ;;(smerge-ensure-match 1)
-  (smerge-remove-props)
   (smerge-keep-n 1)
   (smerge-auto-leave))
 
@@ -433,7 +437,6 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (smerge-match-conflict)
   (let ((i (smerge-get-current)))
     (if (<= i 0) (error "Not inside a version")
-      (smerge-remove-props)
       (smerge-keep-n i)
       (smerge-auto-leave))))
 
@@ -443,7 +446,6 @@ some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (smerge-match-conflict)
   (let ((i (smerge-get-current)))
     (if (<= i 0) (error "Not inside a version")
-      (smerge-remove-props)
       (let ((left nil))
 	(dolist (n '(3 2 1))
 	  (if (and (match-end n) (/= (match-end n) (match-end i)))
@@ -599,6 +601,84 @@ Point is moved to the end of the conflict."
             (setq found t))
         (error nil)))
     found))
+
+(defun smerge-refine-chopup-region (beg end file)
+  "Chopup the region into small elements, one per line."
+  ;; ediff chops up into words, where the definition of a word is
+  ;; customizable.  Instead we here keep only one char per line.
+  ;; The advantages are that there's nothing to configure, that we get very
+  ;; fine results, and that it's trivial to map the line numbers in the
+  ;; output of diff back into buffer positions.  The disadvantage is that it
+  ;; can take more time to compute the diff and that the result is sometimes
+  ;; too fine.  I'm not too concerned about the slowdown because conflicts
+  ;; are usually significantly smaller than the whole file.  As for the
+  ;; problem of too-fine-refinement, I have found it to be unimportant
+  ;; especially when you consider the cases where the fine-grain is just
+  ;; what you want.
+  (let ((buf (current-buffer)))
+    (with-temp-buffer
+      (insert-buffer-substring buf beg end)
+      (goto-char (point-min))
+      (while (not (eobp))
+        (forward-char 1)
+        (unless (eq (char-before) ?\n) (insert ?\n)))
+      (let ((coding-system-for-write 'emacs-mule))
+        (write-region (point-min) (point-max) file nil 'nomessage)))))
+
+(defun smerge-refine-highlight-change (buf beg match-num1 match-num2)
+  (let* ((startline (string-to-number (match-string match-num1)))
+         (ol (make-overlay
+              (+ beg startline -1)
+              (+ beg (if (match-end match-num2)
+                         (string-to-number (match-string match-num2))
+                       startline))
+              buf
+              'front-advance nil)))
+    (overlay-put ol 'smerge 'refine)
+    (overlay-put ol 'evaporate t)
+    (overlay-put ol 'face 'smerge-refined-change)))
+
+
+(defun smerge-refine ()
+  "Highlight the parts of the conflict that are different."
+  (interactive)
+  ;; FIXME: make it work with 3-way conflicts.
+  (smerge-match-conflict)
+  (remove-overlays (match-beginning 0) (match-end 0) 'smerge 'refine)
+  (smerge-ensure-match 1)
+  (smerge-ensure-match 3)
+  (let ((buf (current-buffer))
+        ;; Read them before the match-data gets clobbered.
+	(beg1 (match-beginning 1)) (end1 (match-end 1))
+	(beg2 (match-beginning 3)) (end2 (match-end 3))
+	(file1 (make-temp-file "smerge1"))
+	(file2 (make-temp-file "smerge2")))
+
+    ;; Chop up regions into smaller elements and save into files.
+    (smerge-refine-chopup-region beg1 end1 file1)
+    (smerge-refine-chopup-region beg2 end2 file2)
+
+    ;; Call diff on those files.
+    (unwind-protect
+        (with-temp-buffer
+          (let ((coding-system-for-read 'emacs-mule))
+            (call-process diff-command nil t nil file1 file2))
+          ;; Process diff's output.
+          (goto-char (point-min))
+          (while (not (eobp))
+            (if (not (looking-at "\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?\\([acd]\\)\\([0-9]+\\)\\(?:,\\([0-9]+\\)\\)?$"))
+                (error "Unexpected patch hunk header: %s"
+                       (buffer-substring (point) (line-end-position)))
+              (let ((op (char-after (match-beginning 3))))
+                (when (memq op '(?d ?c))
+                  (smerge-refine-highlight-change buf beg1 1 2))
+                (when (memq op '(?a ?c))
+                  (smerge-refine-highlight-change buf beg2 4 5)))
+              (forward-line 1)                            ;Skip hunk header.
+              (and (re-search-forward "^[0-9]" nil 'move) ;Skip hunk body.
+                   (goto-char (match-beginning 0))))))
+      (delete-file file1)
+      (delete-file file2))))
 
 (defun smerge-diff (n1 n2)
   (smerge-match-conflict)

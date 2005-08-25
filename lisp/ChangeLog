@@ -1,3 +1,15 @@
+2005-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-remove-props): Make the args non-optional.
+	(smerge-keep-n): Remove props.
+	(smerge-keep-base, smerge-keep-other, smerge-keep-mine)
+	(smerge-keep-current, smerge-kill-current): Don't remove props anymore
+	now that it's done in smerge-keep-n.
+	(smerge-refined-change): New face.
+	(smerge-refine-chopup-region, smerge-refine-highlight-change)
+	(smerge-refine): New funs.
+	(smerge-basic-map): Bind smerge-refine.
+
 2005-08-25  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (grep, grep-mode): Make buffer-local variables
