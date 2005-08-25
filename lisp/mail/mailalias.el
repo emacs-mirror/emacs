@@ -262,6 +262,12 @@ By default, this is the file specified by `mail-personal-alias-file'."
 		  ((file-exists-p (setq file (concat "~/" file)))
 		   (insert-file-contents file))
 		  (t (setq file nil)))
+	    (goto-char (point-min))
+	    ;; Delete comments from the contents.
+	    (while (search-forward "# " nil t)
+	      (let ((p (- (point) 2)))
+		(end-of-line)
+		(delete-region p (point))))
 	    ;; Don't lose if no final newline.
 	    (goto-char (point-max))
 	    (or (eq (preceding-char) ?\n) (newline))
