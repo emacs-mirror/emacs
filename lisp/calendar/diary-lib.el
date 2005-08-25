@@ -1650,6 +1650,11 @@ marked on the calendar."
       (or (diary-remind sexp (car days) marking)
           (diary-remind sexp (cdr days) marking))))))
 
+(defvar diary-modify-entry-list-string-function nil
+  "Function applied to entry string before putting it into the entries list.
+This is so that program that use the emacs diary for other purposes (e.g.
+planner.el and org.el) can modify the string or add properties to it.")
+
 (defun add-to-diary-list (date string specifier &optional marker globcolor)
   "Add the entry (DATE STRING SPECIFIER MARKER GLOBCOLOR) to `diary-entries-list'.
 Do nothing if DATE or STRING is nil."
@@ -1659,6 +1664,9 @@ Do nothing if DATE or STRING is nil."
                                (buffer-file-name))))
           (or (string= prefix "")
               (setq string (format "[%s] %s" prefix string)))))
+    (and diary-modify-entry-list-string-function
+	 (setq string (funcall diary-modify-entry-list-string-function
+			       string)))
     (setq diary-entries-list
           (append diary-entries-list
                   (list (list date string specifier marker globcolor))))))
