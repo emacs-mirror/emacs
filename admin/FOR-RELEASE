@@ -38,6 +38,8 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 
 ** Debug custom themes.
 
+** Get rid of the defadvice calls in org.el.
+
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
@@ -56,6 +58,9 @@ back burner waiting for a legal comment or an alternate implementation
 (around 30 lines of code).
 
 * BUGS
+
+** The header-line buttons in the buffer list buffer
+should respond to Mouse-1.
 
 ** Fix those modes that still use compile-internal, to not use it.
 

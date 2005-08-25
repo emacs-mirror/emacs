@@ -1,3 +1,12 @@
+2005-08-25  Richard M. Stallman  <rms@gnu.org>
+
+	* searching.texi (Search and Replace): Add replace-regexp-in-string.
+
+2005-08-25  Emilio C. Lopes  <eclig@gmx.net>
+
+	* display.texi (Finding Overlays): Fix `find-overlay-prop' in
+	`next-overlay-change' example.
+  
 2005-08-22  Juri Linkov  <juri@jurta.org>
 
 	* display.texi (Attribute Functions): Add set-face-inverse-video-p.

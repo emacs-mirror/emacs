@@ -10,8 +10,11 @@
 
 2005-08-18  Richard M. Stallman  <rms@gnu.org>
 
-	* trouble.texi (Unasked-for Search): Delete xref to
-	Keyboard Translations.
+	* faq.texi (Obtaining the FAQ): Delete refs to Lerner's email
+	and web site.
+
+	* trouble.texi (Unasked-for Search):
+	Delete xref to Keyboard Translations.
 
 	* glossary.texi (Glossary): Delete xref.
 
