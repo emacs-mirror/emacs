@@ -1,3 +1,12 @@
+2005-08-25  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep, grep-mode): Make buffer-local variables
+	compilation-process-setup-function and compilation-disable-input
+	in grep-mode instead of let-bindings in grep.
+
+	* menu-bar.el (menu-bar-options-menu, menu-bar-options-save):
+	Delete "Automatic File De/compression" (auto-compression-mode).
+
 2005-08-25  Juanma Barranquero  <lekktu@gmail.com>
 
 	* obsolete/bg-mouse.el: Move to obsolete/ from term/.
