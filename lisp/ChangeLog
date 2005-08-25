@@ -1,3 +1,9 @@
+2005-08-25  Carsten Dominik  <dominik@science.uva.nl>
+
+	* calendar/diary-lib.el (diary-modify-entry-list-string-function):
+	New hook.
+	(add-to-diary-list): Call `diary-modify-entry-list-string-function'
+
 2005-08-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* subr.el (version-separator, version-regexp-alist): New vars used by
