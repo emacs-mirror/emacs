@@ -1255,15 +1255,10 @@ mail status in mode line"))
   '(menu-item "Describe Function..." describe-function
 	      :help "Display documentation of function/command"))
 (define-key menu-bar-describe-menu [describe-key-1]
-  '(menu-item "Describe Key..." describe-key
+  '(menu-item "Describe Key or Mouse Operation..." describe-key
 	      ;; Users typically don't identify keys and menu items...
 	      :help "Display documentation of command bound to a \
-key (or menu-item)"))
-(define-key menu-bar-describe-menu [describe-key]
-  '(menu-item "What's This? " describe-key
-	      ;; Users typically don't identify keys and menu items...
-	      :help "Display documentation of command bound to a \
-key (or menu-item)"))
+key, a click, or a menu-item"))
 (define-key menu-bar-describe-menu [describe-mode]
   '(menu-item "Describe Buffer Modes" describe-mode
 	      :help "Describe this buffer's major and minor mode"))
