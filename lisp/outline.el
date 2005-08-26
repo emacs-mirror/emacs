@@ -471,13 +471,28 @@ in the region."
 			(save-excursion (outline-get-next-sibling) (point))))
    (t
     (outline-back-to-heading t)
-    (let* ((head (match-string 0))
+    (let* ((head (match-string-no-properties 0))
 	   (level (save-match-data (funcall outline-level)))
 	   (up-head (or (outline-head-from-level (1- level) head)
+			;; Use the parent heading, if it is really
+			;; one level less.
 			(save-excursion
 			  (save-match-data
 			    (outline-up-heading 1 t)
-			    (match-string 0))))))
+			    (and (= (1- level) (funcall outline-level))
+				 (match-string-no-properties 0))))
+			;; Bummer!! There is no lower level heading.
+			;; Let's try to invent one by deleting the last char.
+			(save-match-data
+			  (let ((new-head (substring head 0 -1)))
+			    (if (string-match (concat "\\`\\(?:" outline-regexp "\\)")
+					      new-head)
+				;; Why bother checking that it is indeed lower level ?
+				new-head
+			      ;; Didn't work, so ask what to do.
+			      (read-string (format "Parent heading for `%s': "
+						   head)
+					   head nil nil t)))))))
 
       (unless (rassoc level outline-heading-alist)
 	(push (cons head level) outline-heading-alist))
@@ -501,7 +516,7 @@ in the region."
 			(point)
 			(save-excursion (outline-get-next-sibling) (point))))
    (t
-    (let* ((head (match-string 0))
+    (let* ((head (match-string-no-properties 0))
 	   (level (save-match-data (funcall outline-level)))
 	   (down-head
 	    (or (outline-head-from-level (1+ level) head)
@@ -516,21 +531,23 @@ in the region."
 				  (<= (funcall outline-level) level))))
 		    (unless (eobp)
 		      (looking-at outline-regexp)
-		      (match-string 0))))
+		      (match-string-no-properties 0))))
 		(save-match-data
-		  ;; Bummer!! There is no lower heading in the buffer.
-		  ;; Let's try to invent one by repeating the first char.
-		  (let ((new-head (concat (substring head 0 1) head)))
+		  ;; Bummer!! There is no higher-level heading in the buffer.
+		  ;; Let's try to invent one by repeating the last char.
+		  (let ((new-head (concat head (substring head -1))))
 		    (if (string-match (concat "\\`\\(?:" outline-regexp "\\)")
 				      new-head)
-			;; Why bother checking that it is indeed lower level ?
+			;; Why bother checking that it is indeed higher level ?
 			new-head
-		      ;; Didn't work: keep it as is so it's still a heading.
-		      head))))))
+		      ;; Didn't work, so ask what to do.
+		      (read-string (format "Demoted heading for `%s': "
+					   head)
+				   head nil nil t)))))))
 
-    (unless (rassoc level outline-heading-alist)
-      (push (cons head level) outline-heading-alist))
-    (replace-match down-head nil t)))))
+      (unless (rassoc level outline-heading-alist)
+	(push (cons head level) outline-heading-alist))
+      (replace-match down-head nil t)))))
 
 (defun outline-head-from-level (level head &optional alist)
   "Get new heading with level LEVEL from ALIST.
