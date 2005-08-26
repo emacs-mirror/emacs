@@ -1,3 +1,10 @@
+2005-08-26  David Reitter  <david.reitter@gmail.com>
+
+	* menu-bar.el (truncate-lines, write-file, print-buffer)
+	(ps-print-buffer-faces, ps-print-buffer, split-window): Disable
+	menu items when the frame they refer to is invisible, or when they
+	refer to a buffer and the minibuffer is selected.
+
 2005-08-26  Pavel Kobiakov  <pk_at_work@yahoo.com>
 
 	* progmodes/flymake.el (flymake-highlight-err-lines): Use
