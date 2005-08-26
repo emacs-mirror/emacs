@@ -131,7 +131,8 @@ Used in `smerge-diff-base-mine' and related functions."
 
 (defface smerge-refined-change
   '((t :background "yellow"))
-  "Face used for char-based changes shown by `smerge-refine'.")
+  "Face used for char-based changes shown by `smerge-refine'."
+  :group 'smerge)
 
 (easy-mmode-defmap smerge-basic-map
   `(("n" . smerge-next)
