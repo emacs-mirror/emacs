@@ -5,6 +5,21 @@
 
 2005-08-26  Juanma Barranquero  <lekktu@gmail.com>
 
+	* calendar/cal-bahai.el (date, displayed-month, displayed-year)
+	(number, original-date):
+	* calendar/cal-china.el (date):
+	* calendar/cal-coptic.el (date):
+	* calendar/cal-french.el (date):
+	* calendar/cal-hebrew.el (date, entry, number, original-date):
+	* calendar/cal-islam.el (date, number, original-date):
+	* calendar/cal-iso.el (date):
+	* calendar/cal-julian.el (date):
+	* calendar/cal-mayan.el (date):
+	* calendar/cal-menu.el (date, event):
+	* calendar/cal-persia.el (date):
+	* calendar/lunar.el (date):
+	* calendar/solar.el (date): Add defvars.
+
 	* emerge.el:
 	* ibuffer.el:
 	* info-xref.el:
