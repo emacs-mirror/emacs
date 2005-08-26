@@ -1,3 +1,7 @@
+2005-08-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* smerge-mode.el (smerge-refined-change): Add :group.
+
 2005-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-remove-props): Make the args non-optional.
