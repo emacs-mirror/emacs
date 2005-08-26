@@ -24,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (defconst ebnf-version "4.2"
   "ebnf2ps.el, v 4.2 <2004/04/04 vinicius>
@@ -1135,14 +1135,14 @@ Elements of ALIST that are not conses are ignored."
 ;;; Interface to the command system
 
 (defgroup postscript nil
-  "PostScript Group"
+  "PostScript Group."
   :tag "PostScript"
   :version "20"
   :group 'emacs)
 
 
 (defgroup ebnf2ps nil
-  "Translate an EBNF to a syntactic chart on PostScript"
+  "Translate an EBNF to a syntactic chart on PostScript."
   :prefix "ebnf-"
   :version "20"
   :group 'wp
@@ -1150,7 +1150,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-special nil
-  "Special customization"
+  "Special customization."
   :prefix "ebnf-"
   :tag "Special"
   :version "20"
@@ -1158,7 +1158,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-except nil
-  "Except customization"
+  "Except customization."
   :prefix "ebnf-"
   :tag "Except"
   :version "20"
@@ -1166,7 +1166,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-repeat nil
-  "Repeat customization"
+  "Repeat customization."
   :prefix "ebnf-"
   :tag "Repeat"
   :version "20"
@@ -1174,7 +1174,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-terminal nil
-  "Terminal customization"
+  "Terminal customization."
   :prefix "ebnf-"
   :tag "Terminal"
   :version "20"
@@ -1182,7 +1182,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-non-terminal nil
-  "Non-Terminal customization"
+  "Non-Terminal customization."
   :prefix "ebnf-"
   :tag "Non-Terminal"
   :version "20"
@@ -1190,7 +1190,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-production nil
-  "Production customization"
+  "Production customization."
   :prefix "ebnf-"
   :tag "Production"
   :version "20"
@@ -1198,7 +1198,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-shape nil
-  "Shapes customization"
+  "Shapes customization."
   :prefix "ebnf-"
   :tag "Shape"
   :version "20"
@@ -1206,7 +1206,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-displacement nil
-  "Displacement customization"
+  "Displacement customization."
   :prefix "ebnf-"
   :tag "Displacement"
   :version "20"
@@ -1214,7 +1214,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-syntactic nil
-  "Syntactic customization"
+  "Syntactic customization."
   :prefix "ebnf-"
   :tag "Syntactic"
   :version "20"
@@ -1222,7 +1222,7 @@ Elements of ALIST that are not conses are ignored."
 
 
 (defgroup ebnf-optimization nil
-  "Optimization customization"
+  "Optimization customization."
   :prefix "ebnf-"
   :tag "Optimization"
   :version "20"
@@ -4623,7 +4623,7 @@ killed after process termination."
 (defun ebnf-eps-filename (str)
   (let* ((len  (length str))
 	 (stri 0)
-	 (new  (make-string len ?\ )))
+	 (new  (make-string len ?\s)))
     (while (< stri len)
       (aset new stri (aref ebnf-map-name (aref str stri)))
       (setq stri (1+ stri)))
@@ -5523,7 +5523,7 @@ killed after process termination."
 (defun ebnf-trim-right (str)
   (let* ((len   (1- (length str)))
 	 (index len))
-    (while (and (> index 0) (= (aref str index) ?\ ))
+    (while (and (> index 0) (= (aref str index) ?\s))
       (setq index (1- index)))
     (if (= index len)
 	str

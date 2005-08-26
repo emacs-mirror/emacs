@@ -3152,6 +3152,10 @@ particular modification hook function appears on several characters
 being modified by a single primitive, you can't predict how many times
 the function will be called.
 
+If these functions modify the buffer, they should bind
+@code{inhibit-modification-hooks} to @code{t} around doing so, to
+avoid confusing the internal mechanism that calls these hooks.
+
 @item insert-in-front-hooks
 @itemx insert-behind-hooks
 @kindex insert-in-front-hooks @r{(text property)}

@@ -18,8 +18,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
 
@@ -32,7 +32,7 @@
 (eval-when-compile (require 'cl))
 
 (defgroup url-news nil
-  "News related options"
+  "News related options."
   :group 'url)
 
 (defun url-news-open-host (host port user pass)
@@ -105,7 +105,7 @@
 					 nntp-open-connection-function)
 				   nil
 				   (cons (current-buffer) 'browse)))
-  
+
 ;;;###autoload
 (defun url-news (url)
   ;; Find a news reference

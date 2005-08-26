@@ -18,8 +18,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
 
@@ -29,28 +29,28 @@
   "Version number of URL package.")
 
 (defgroup url nil
-  "Uniform Resource Locator tool"
+  "Uniform Resource Locator tool."
   :version "22.1"
   :group 'hypermedia)
 
 (defgroup url-file nil
-  "URL storage"
+  "URL storage."
   :prefix "url-"
   :group 'url)
 
 (defgroup url-cache nil
-  "URL cache"
+  "URL cache."
   :prefix "url-"
   :prefix "url-cache-"
   :group 'url)
 
 (defgroup url-mime nil
-  "MIME options of URL"
+  "MIME options of URL."
   :prefix "url-"
   :group 'url)
 
 (defgroup url-hairy nil
-  "Hairy options of URL"
+  "Hairy options of URL."
   :prefix "url-"
   :group 'url)
 

@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* New redisplay, TTY faces by Gerd Moellmann <gerd@gnu.org>.  */
 
@@ -2005,14 +2005,20 @@ turn_on_face (f, face_id)
 
       if (fg >= 0 && TS_set_foreground)
 	{
-	  p = tparam (TS_set_foreground, NULL, 0, (int) fg);
+	  if (standout_mode)
+	    p = tparam (TS_set_background, NULL, 0, (int) fg);
+	  else
+	    p = tparam (TS_set_foreground, NULL, 0, (int) fg);
 	  OUTPUT (p);
 	  xfree (p);
 	}
 
       if (bg >= 0 && TS_set_background)
 	{
-	  p = tparam (TS_set_background, NULL, 0, (int) bg);
+	  if (standout_mode)
+	    p = tparam (TS_set_foreground, NULL, 0, (int) bg);
+	  else
+	    p = tparam (TS_set_background, NULL, 0, (int) bg);
 	  OUTPUT (p);
 	  xfree (p);
 	}

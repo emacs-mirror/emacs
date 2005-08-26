@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -869,7 +869,10 @@ Otherwise, return a single face."
         (aliasfaces nil)
         (nonaliasfaces nil)
 	faces)
-    ;; Make a list of the named faces that the `face' property uses.
+    ;; Try to get a face name from the buffer.
+    (if (memq (intern-soft (thing-at-point 'symbol)) (face-list))
+	(setq faces (list (intern-soft (thing-at-point 'symbol)))))
+    ;; Add the named faces that the `face' property uses.
     (if (and (listp faceprop)
 	     ;; Don't treat an attribute spec as a list of faces.
 	     (not (keywordp (car faceprop)))
@@ -879,10 +882,6 @@ Otherwise, return a single face."
 	      (push f faces)))
       (if (symbolp faceprop)
 	  (push faceprop faces)))
-    ;; If there are none, try to get a face name from the buffer.
-    (if (and (null faces)
-	     (memq (intern-soft (thing-at-point 'symbol)) (face-list)))
-	(setq faces (list (intern-soft (thing-at-point 'symbol)))))
 
     ;; Build up the completion tables.
     (mapatoms (lambda (s)
@@ -896,22 +895,27 @@ Otherwise, return a single face."
     (unless multiple
       (if faces
 	  (setq faces (list (car faces)))))
+    (require 'crm)
     (let* ((input
 	    ;; Read the input.
-	    (completing-read
+	    (completing-read-multiple
 	     (if (or faces string-describing-default)
 		 (format "%s (default %s): " prompt
-			 (if faces (mapconcat 'symbol-name faces ", ")
+			 (if faces (mapconcat 'symbol-name faces ",")
 			   string-describing-default))
 	       (format "%s: " prompt))
-	     (complete-in-turn nonaliasfaces aliasfaces) nil t))
+	     (complete-in-turn nonaliasfaces aliasfaces)
+	     nil t nil nil
+	     (if faces (mapconcat 'symbol-name faces ","))))
 	   ;; Canonicalize the output.
 	   (output
-	    (if (equal input "")
-		faces
-	      (if (stringp input)
-		  (list (intern input))
-		input))))
+	    (cond ((or (equal input "") (equal input '("")))
+		   faces)
+		  ((stringp input)
+		   (mapcar 'intern (split-string input ", *" t)))
+		  ((listp input)
+		   (mapcar 'intern input))
+		  (input))))
       ;; Return either a list of faces or just one face.
       (if multiple
 	  output
@@ -1890,7 +1894,7 @@ created."
   :group 'basic-faces)
 
 (defface vertical-border
-  '((default :inherit mode-line-inactive))
+  '((((type tty)) :inherit mode-line-inactive))
   "Face used for vertical window dividers on ttys."
   :version "22.1"
   :group 'modeline

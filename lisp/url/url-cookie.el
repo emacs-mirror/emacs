@@ -18,8 +18,8 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -79,7 +79,7 @@ A cookie vector object is a vector of 7 slots:
   (and (vectorp obj) (= (length obj) 7) (eq (aref obj 0) 'cookie)))
 
 (defgroup url-cookie nil
-  "URL cookies"
+  "URL cookies."
   :prefix "url-"
   :prefix "url-cookie-"
   :group 'url)

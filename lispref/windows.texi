@@ -1523,9 +1523,12 @@ does not work with @code{scroll-margin}.  The default value is zero.
 @end defopt
 
 @defopt scroll-preserve-screen-position
-If this option is non-@code{nil}, the scroll functions move point so
-that the vertical position of the cursor is unchanged, when that is
-possible.
+If this option is @code{t}, scrolling which would move the current
+point position out of the window chooses the new position of point
+so that the vertical position of the cursor is unchanged, if possible.
+
+If it is non-@code{nil} and not @code{t}, then the scrolling functions
+always preserve the vertical position of point, if possible.
 @end defopt
 
 @defopt next-screen-context-lines

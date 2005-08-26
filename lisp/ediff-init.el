@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -393,17 +393,17 @@ It needs to be killed when we quit the session.")
 	     this-command)))
 
 (defgroup ediff-highlighting nil
-  "Hilighting of difference regions in Ediff"
+  "Hilighting of difference regions in Ediff."
   :prefix "ediff-"
   :group 'ediff)
 
 (defgroup ediff-merge nil
-  "Merging utilities"
+  "Merging utilities."
   :prefix "ediff-"
   :group 'ediff)
 
 (defgroup ediff-hook nil
-  "Hooks run by Ediff"
+  "Hooks run by Ediff."
   :prefix "ediff-"
   :group 'ediff)
 
@@ -1840,7 +1840,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 	 "Merge dir versions via ancestors")
 	(t
 	 (capitalize
-	  (subst-char-in-string ?- ?\  (substring (symbol-name jobname) 6))))
+	  (subst-char-in-string ?- ?\s (substring (symbol-name jobname) 6))))
 	))
 
 

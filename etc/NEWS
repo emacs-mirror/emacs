@@ -3014,8 +3014,13 @@ inverse-video.
 default, all trivial operations involving whole lines are performed
 automatically.  The game uses faces for better visual feedback.
 
+** battery.el changes:
+
 ---
-** display-battery-mode replaces display-battery.
+*** display-battery-mode replaces display-battery.
+
+---
+*** battery.el now works on recent versions of OS X.
 
 ---
 ** calculator.el now has radix grouping mode.
@@ -3107,6 +3112,20 @@ multilingual text with other applications. On other versions of
 MS Windows, Emacs now uses the appropriate locale coding-system, so
 the clipboard should work correctly for your local language without
 any customizations.
+
+---
+** Running in a console window in Windows now uses the console size.
+
+Previous versions of Emacs erred on the side of having a usable Emacs
+through telnet, even though that was inconvenient if you use Emacs in
+a local console window with a scrollback buffer. The default value of
+w32-use-full-screen-buffer is now nil, which favours local console
+windows. Recent versions of Windows telnet also work well with this
+setting. If you are using an older telnet server then Emacs detects
+that the console window dimensions that are reported are not sane, and
+defaults to 80x25. If you use such a telnet server regularly at a size
+other than 80x25, you can still manually set
+w32-use-full-screen-buffer to t.
 
 ---
 ** On Mac OS, `keyboard-coding-system' changes based on the keyboard script.

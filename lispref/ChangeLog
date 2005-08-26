@@ -1,3 +1,47 @@
+2005-07-06  Richard M. Stallman  <rms@gnu.org>
+
+	* searching.texi (Regexp Search): Clarify what re-search-forward
+	does when the search fails.
+
+2005-07-05  Lute Kamstra  <lute@gnu.org>
+
+	* Update FSF's address in GPL notices.
+
+	* doclicense.texi (GNU Free Documentation License):
+	* gpl.texi (GPL):
+	* tips.texi (Coding Conventions, Library Headers):
+	* vol1.texi:
+	* vol2.texi: Update FSF's address.
+
+2005-07-04  Richard M. Stallman  <rms@gnu.org>
+
+	* hooks.texi (Standard Hooks): Add occur-hook.
+
+2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (The Echo Area): Correct menu.
+
+2005-07-03  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode menu for Display.
+
+	* display.texi (Displaying Messages): New node, with most
+	of what was in The Echo Area.
+	(Progress): Moved under The Echo Area.
+	(Logging Messages): New node with new text.
+	(Echo Area Customization): New node, the rest of what was
+	in The Echo Area.  Document message-truncate-lines with @defvar.
+	(Display): Update menu.
+
+	* windows.texi (Textual Scrolling): Doc 3 values for
+	scroll-preserve-screen-position.
+
+	* text.texi (Special Properties): Change hook functions
+	should bind inhibit-modification-hooks around altering buffer text.
+
+	* keymaps.texi (Key Binding Commands): Call binding BINDING
+	rather than DEFINITION.
+
 2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* variables.texi (Defining Variables): `user-variable-p' returns t

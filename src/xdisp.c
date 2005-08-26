@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* New redisplay written by Gerd Moellmann <gerd@gnu.org>.
 
@@ -12740,11 +12740,11 @@ try_window (window, pos, check_margins)
 
       if ((w->cursor.y < this_scroll_margin
 	   && CHARPOS (pos) > BEGV)
-	  /* Old redisplay didn't take scroll margin into account at the bottom,
-	     but then global-hl-line-mode doesn't scroll.  KFS 2004-06-14 */
-	  || (w->cursor.y + (make_cursor_line_fully_visible_p
-			     ? cursor_height + this_scroll_margin
-			     : 1)) > it.last_visible_y)
+	  /* rms: considering make_cursor_line_fully_visible_p here
+	     seems to give wrong results.  We don't want to recenter
+	     when the last line is partly visible, we want to allow
+	     that case to be handled in the usual way.  */
+	  || (w->cursor.y + 1) > it.last_visible_y)
 	{
 	  w->cursor.vpos = -1;
 	  clear_glyph_matrix (w->desired_matrix);
@@ -22400,6 +22400,9 @@ x_draw_vertical_border (w)
       window_box_edges (w, -1, &x0, &y0, &x1, &y1);
       y1 -= 1;
 
+      if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
+	x1 -= 1;
+
       rif->draw_vertical_window_border (w, x1, y0, y1);
     }
   else if (!WINDOW_LEFTMOST_P (w)
@@ -22409,6 +22412,9 @@ x_draw_vertical_border (w)
 
       window_box_edges (w, -1, &x0, &y0, &x1, &y1);
       y1 -= 1;
+
+      if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
+	x0 -= 1;
 
       rif->draw_vertical_window_border (w, x0, y0, y1);
     }

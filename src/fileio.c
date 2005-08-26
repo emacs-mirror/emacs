@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 
@@ -2521,7 +2521,7 @@ uid and gid of FILE to NEWNAME.  */)
      copyable by us. */
   input_file_statable_p = (fstat (ifd, &st) >= 0);
 
-#if !defined (DOS_NT) || __DJGPP__ > 1
+#if !defined (MSDOS) || __DJGPP__ > 1
   if (out_st.st_mode != 0
       && st.st_dev == out_st.st_dev && st.st_ino == out_st.st_ino)
     {
@@ -2574,25 +2574,16 @@ uid and gid of FILE to NEWNAME.  */)
       report_file_error ("I/O error", Fcons (newname, Qnil));
   immediate_quit = 0;
 
-  /* Preserve the owner and group, if requested.  */
-  if (input_file_statable_p && ! NILP (preserve_uid_gid))
-    fchown (ofd, st.st_uid, st.st_gid);
-
+#ifndef MSDOS
+  /* Preserve the original file modes, and if requested, also its
+     owner and group.  */
   if (input_file_statable_p)
     {
-#ifndef MSDOS
+      if (! NILP (preserve_uid_gid))
+	fchown (ofd, st.st_uid, st.st_gid);
       fchmod (ofd, st.st_mode & 07777);
-#else /* MSDOS */
-#if defined (__DJGPP__) && __DJGPP__ > 1
-      /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
-         and if it can't, it tells so.  Otherwise, under MSDOS we usually
-         get only the READ bit, which will make the copied file read-only,
-         so it's better not to chmod at all.  */
-      if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
-	chmod (SDATA (encoded_newname), st.st_mode & 07777);
-#endif /* DJGPP version 2 or newer */
-#endif /* MSDOS */
     }
+#endif	/* not MSDOS */
 
   /* Closing the output clobbers the file times on some systems.  */
   if (emacs_close (ofd) < 0)
@@ -2614,7 +2605,19 @@ uid and gid of FILE to NEWNAME.  */)
     }
 
   emacs_close (ifd);
-#endif /* WINDOWSNT */
+
+#if defined (__DJGPP__) && __DJGPP__ > 1
+  if (input_file_statable_p)
+    {
+      /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
+         and if it can't, it tells so.  Otherwise, under MSDOS we usually
+         get only the READ bit, which will make the copied file read-only,
+         so it's better not to chmod at all.  */
+      if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
+	chmod (SDATA (encoded_newname), st.st_mode & 07777);
+    }
+#endif /* DJGPP version 2 or newer */
+#endif /* not WINDOWSNT */
 
   /* Discard the unwind protects.  */
   specpdl_ptr = specpdl + count;

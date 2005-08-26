@@ -18,8 +18,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 (provide 'esh-var)
 
@@ -28,7 +28,7 @@
 (defgroup eshell-var nil
   "Variable interpolation is introduced whenever the '$' character
 appears unquoted in any argument (except when that argument is
-surrounded by single quotes) .  It may be used to interpolate a
+surrounded by single quotes).  It may be used to interpolate a
 variable value, a subcommand, or even the result of a Lisp form."
   :tag "Variable handling"
   :group 'eshell)

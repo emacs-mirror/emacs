@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -121,7 +121,7 @@ compatibility, DEFAULT is also stored in SYMBOL's property
 `standard-value'.  At the same time, SYMBOL's property `force-value' is
 set to nil, as the value is no longer rogue."
   ;; Remember the standard setting.  The value should be in the standard
-  ;; theme, not in this property.  However, his would require changeing
+  ;; theme, not in this property.  However, this would require changing
   ;; the C source of defvar and others as well...
   (put symbol 'standard-value (list default))
   ;; Maybe this option was rogue in an earlier version.  It no longer is.
@@ -486,8 +486,10 @@ both appear in constructs like `custom-set-variables'."
 (defun custom-add-option (symbol option)
   "To the variable SYMBOL add OPTION.
 
-If SYMBOL is a hook variable, OPTION should be a hook member.
-For other types variables, the effect is undefined."
+If SYMBOL's custom type is a hook, OPTION should be a hook member.
+If SYMBOL's custom type is an alist, OPTION specifies a symbol
+to offer to the user as a possible key in the alist.
+For other custom types, this has no effect."
   (let ((options (get symbol 'custom-options)))
     (unless (member option options)
       (put symbol 'custom-options (cons option options)))))
@@ -560,7 +562,7 @@ LOAD should be either a library file name, or a feature name."
 	      (t (condition-case nil (load load) (error nil))))))))
 
 (defvar custom-known-themes '(user standard)
-   "Themes that have been define with `deftheme'.
+   "Themes that have been defined with `deftheme'.
 The default value is the list (user standard).  The theme `standard'
 contains the Emacs standard settings from the original Lisp files.  The
 theme `user' contains all the the settings the user customized and saved.
@@ -926,6 +928,19 @@ Return non-nil iff the `customized-value' property actually changed."
 (defvar custom-loaded-themes nil
   "Themes in the order they are loaded.")
 
+(defcustom custom-theme-directory
+  (if (eq system-type 'ms-dos)
+	 ;; MS-DOS cannot have initial dot.
+	 "~/_emacs.d/"
+      "~/.emacs.d/")
+  "Directory in which Custom theme files should be written.
+`require-theme' searches this directory in addition to load-path.
+The command `customize-create-theme' writes the files it produces
+into this directory."
+  :type 'string
+  :group 'customize
+  :version "22.1")
+
 (defun custom-theme-loaded-p (theme)
   "Return non-nil when THEME has been loaded."
   (memq theme custom-loaded-themes))
@@ -949,8 +964,11 @@ Usually the `theme-feature' property contains a symbol created
 by `custom-make-theme-feature'."
   ;; Note we do no check for validity of the theme here.
   ;; This allows to pull in themes by a file-name convention
-  (require (or (get theme 'theme-feature)
-	       (custom-make-theme-feature theme))))
+  (let ((load-path (if (file-directory-p custom-theme-directory)
+		       (cons custom-theme-directory load-path)
+		     load-path)))
+    (require (or (get theme 'theme-feature)
+		 (custom-make-theme-feature theme)))))
 
 (defun custom-remove-theme (spec-alist theme)
   "Delete all elements from SPEC-ALIST whose car is THEME."

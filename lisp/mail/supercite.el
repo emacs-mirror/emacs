@@ -24,8 +24,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;; LCD Archive Entry
 ;; supercite|Barry A. Warsaw|supercite-help@python.org
@@ -44,28 +44,28 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 (defgroup supercite nil
-  "Supercite package"
+  "Supercite package."
   :prefix "sc-"
   :group 'mail
   :group 'news)
 
 (defgroup supercite-frames nil
-  "Supercite (regi) frames"
+  "Supercite (regi) frames."
   :prefix "sc-"
   :group 'supercite)
 
 (defgroup supercite-attr nil
-  "Supercite attributions"
+  "Supercite attributions."
   :prefix "sc-"
   :group 'supercite)
 
 (defgroup supercite-cite nil
-  "Supercite citings"
+  "Supercite citings."
   :prefix "sc-"
   :group 'supercite)
 
 (defgroup supercite-hooks nil
-  "Hooking into supercite"
+  "Hooking into supercite."
   :prefix "sc-"
   :group 'supercite)
 
@@ -1316,6 +1316,8 @@ use it instead of `sc-citation-root-regexp'."
 	  attribution
 	  sc-citation-delimiter
 	  sc-citation-separator))
+
+(defvar filladapt-prefix-table)
 
 (defun sc-setup-filladapt ()
   "Setup `filladapt-prefix-table' to handle Supercited paragraphs."

@@ -1,3 +1,7 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
 2005-06-08  Steven Tamm  <steventamm@mac.com>
 
 	* INSTALL: Explain that a universal binary cannot be created and
@@ -109,13 +113,13 @@
 	* inc/m-mac.h (HAVE_ALLOCA) [__MRC__]: Define.
 	(C_ALLOCA) [__MRC__]: Don't define.
 	* inc/s-mac.h (X_OK): New define.
-	(DECL_ALIGN) [USE_LSB_TAG && __MRC__]: New macro. 
+	(DECL_ALIGN) [USE_LSB_TAG && __MRC__]: New macro.
 	(GC_MARK_STACK): Define to GC_MAKE_GCPROS_NOOPS.
 
 2004-05-29  Steven Tamm  <steventamm@mac.com>
 
 	* INSTALL: Fixing typos
-	* README: Updating list of TODOs to remove image support and 
+	* README: Updating list of TODOs to remove image support and
 	environment variable problem.
 
 2004-01-14  Stefan Monnier  <monnier@iro.umontreal.ca>

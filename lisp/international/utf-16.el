@@ -22,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -504,6 +504,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    '(ccl-decode-mule-utf-16le . ccl-encode-mule-utf-16le)
    `(,@props
      (post-read-conversion . utf-8-post-read-conversion)
+     (ascii-incompatible . t)
      (mime-charset . utf-16le)))
 
   (make-coding-system
@@ -515,6 +516,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    '(ccl-decode-mule-utf-16be . ccl-encode-mule-utf-16be)
    `(,@props
      (post-read-conversion . utf-8-post-read-conversion)
+     (ascii-incompatible . t)
      (mime-charset . utf-16be)))
 
   (make-coding-system
@@ -528,6 +530,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    `(,@props
      (post-read-conversion . utf-8-post-read-conversion)
      (coding-category . coding-category-utf-16-le)
+     (ascii-incompatible . t)
      (mime-charset . utf-16)))
 
   (make-coding-system
@@ -541,6 +544,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    `(,@props
      (post-read-conversion . utf-8-post-read-conversion)
      (coding-category . coding-category-utf-16-be)
+     (ascii-incompatible . t)
      (mime-charset . utf-16)))
 
   (make-coding-system
@@ -553,6 +557,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    `(,@props
      (post-read-conversion . mule-utf-16-post-read-conversion)
      (coding-category . coding-category-utf-16-be)
+     (ascii-incompatible . t)
      (mime-charset . utf-16)))
 )
 

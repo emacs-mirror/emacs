@@ -192,8 +192,8 @@ Published by the:@*
 GNU Press,                      @hfill  @uref{http://www.gnupress.org}@*
 a division of the               @hfill General: @email{press@@gnu.org}@*
 Free Software Foundation, Inc.  @hfill Orders:@w{ }  @email{sales@@gnu.org}@*
-59 Temple Place, Suite 330      @hfill Tel: +1 (617) 542-5942@*
-Boston, MA 02111-1307 USA       @hfill Fax: +1 (617) 542-2652@*
+51 Franklin Street, Fifth Floor @hfill Tel: +1 (617) 542-5942@*
+Boston, MA 02110-1301 USA       @hfill Fax: +1 (617) 542-2652@*
 @end iftex
 
 @ifnottex
@@ -203,8 +203,8 @@ Published by the:
 GNU Press,                          Website: http://www.gnupress.org
 a division of the                   General: press@@gnu.org
 Free Software Foundation, Inc.      Orders:  sales@@gnu.org
-59 Temple Place, Suite 330          Tel: +1 (617) 542-5942
-Boston, MA 02111-1307 USA           Fax: +1 (617) 542-2652
+51 Franklin Street, Fifth Floor     Tel: +1 (617) 542-5942
+Boston, MA 02110-1301 USA           Fax: +1 (617) 542-2652
 @end example
 @end ifnottex
 
@@ -21333,7 +21333,7 @@ that lists free books available from other publishers:@*
 
 @display
 Copyright @copyright{} 2000,2001,2002 Free Software Foundation, Inc.
-59 Temple Place, Suite 330, Boston, MA  02111-1307, USA
+51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.

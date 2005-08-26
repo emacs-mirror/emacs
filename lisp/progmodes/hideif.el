@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -960,7 +960,9 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
   "Set `hide-ifdef-env' to the define list specified by NAME."
   (interactive
    (list (completing-read "Use define list: "
-			  hide-ifdef-define-alist nil t)))
+			  (mapcar (lambda (x) (symbol-name (car x)))
+                                  hide-ifdef-define-alist)
+                          nil t)))
   (if (stringp name) (setq name (intern name)))
   (let ((define-list (assoc name hide-ifdef-define-alist)))
     (if define-list
@@ -972,5 +974,5 @@ Return as (TOP . BOTTOM) the extent of ifdef block."
 
 (provide 'hideif)
 
-;;; arch-tag: c6381d17-a59a-483a-b945-658f22277981
+;; arch-tag: c6381d17-a59a-483a-b945-658f22277981
 ;;; hideif.el ends here

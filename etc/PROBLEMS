@@ -2376,10 +2376,12 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 *** Linux: Segfault during `make bootstrap' under certain recent versions of the Linux kernel.
 
 With certain recent Linux kernels (like the one of Redhat Fedora Core
-1 and 2), the new "Exec-shield" functionality is enabled by default, which
-creates a different memory layout that breaks the emacs dumper. 
-The work-around explained here is not enough on Fedora Core 4. Read the
-next item.
+1 and newer), the new "Exec-shield" functionality is enabled by default, which
+creates a different memory layout that breaks the emacs dumper.  Emacs tries
+to handle this at build time, but if the workaround used fails, these
+instructions can be useful.
+The work-around explained here is not enough on Fedora Core 4 (and possible
+newer). Read the next item.
 
 Configure can overcome the problem of exec-shield if the architecture is
 x86 and the program setarch is present.  On other architectures no
@@ -2406,20 +2408,21 @@ command when running temacs like this:
 
     setarch i386 ./temacs --batch --load loadup [dump|bootstrap]
 
+ 
 *** Fedora Core 4 GNU/Linux: Segfault during dumping.
 
 In addition to exec-shield explained above "Linux: Segfault during
 `make bootstrap' under certain recent versions of the Linux kernel"
 item, Linux kernel shipped with Fedora Core 4 randomizes the virtual
-address space of a process. As the result dumping is failed even if
-you turn off the exec-shield. In such case use -R option of setarch
+address space of a process. As the result dumping may fail even if
+you turn off exec-shield. In this case, use the -R option to the setarch
 command:
 
    setarch -R i386 ./temacs --batch --load loadup [dump|bootstrap]
 
 or
 
-   setarch -R i386 make bootstrap	
+   setarch -R i386 make bootstrap      
 
 *** Fatal signal in the command  temacs -l loadup inc dump.
 

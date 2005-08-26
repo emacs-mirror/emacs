@@ -22,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -321,9 +321,11 @@ This sets the following coding systems:
   o coding system of a newly created buffer
   o default coding system for subprocess I/O
 This also sets the following values:
-  o default value used as `file-name-coding-system' for converting file names.
+  o default value used as `file-name-coding-system' for converting file names
+      if CODING-SYSTEM is ASCII-compatible.
   o default value for the command `set-terminal-coding-system' (not on MSDOS)
-  o default value for the command `set-keyboard-coding-system'."
+  o default value for the command `set-keyboard-coding-system'
+      if CODING-SYSTEM is ASCII-compatible.."
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
   (if (fboundp 'ucs-set-table-for-input)
@@ -331,14 +333,18 @@ This also sets the following values:
 	(or (local-variable-p 'buffer-file-coding-system buffer)
 	    (ucs-set-table-for-input buffer))))
 
-  (if (and default-enable-multibyte-characters (not (eq system-type 'darwin)))
+  (if (and default-enable-multibyte-characters (not (eq system-type 'darwin))
+	   (or (not coding-system)
+	       (not (coding-system-get coding-system 'ascii-incompatible))))
       ;; The file-name coding system on Darwin systems is always utf-8.
       (setq default-file-name-coding-system coding-system))
   ;; If coding-system is nil, honor that on MS-DOS as well, so
   ;; that they could reset the terminal coding system.
   (unless (and (eq window-system 'pc) coding-system)
     (setq default-terminal-coding-system coding-system))
-  (setq default-keyboard-coding-system coding-system)
+  (if (or (not coding-system)
+	  (not (coding-system-get coding-system 'ascii-incompatible)))
+      (setq default-keyboard-coding-system coding-system))
   ;; Preserve eol-type from existing default-process-coding-systems.
   ;; On non-unix-like systems in particular, these may have been set
   ;; carefully by the user, or by the startup code, to deal with the

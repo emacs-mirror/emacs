@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -231,7 +231,9 @@ first will be printed into the backtrace buffer."
                     ;; would need to be de-iconified anyway immediately
                     ;; after when we re-enter the debugger, so iconifying it
                     ;; here would cause flashing.
-                    (bury-buffer))))
+                    ;; Use quit-window rather than bury-buffer to quieten
+                    ;; Drew Adams.  --Stef
+                    (quit-window))))
 	    (kill-buffer debugger-buffer))
 	  (set-match-data debugger-outer-match-data)))
       ;; Put into effect the modified values of these variables

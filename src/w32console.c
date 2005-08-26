@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.
 
    Tim Fleehart (apollo@online.com)		1-17-92
    Geoff Voelker (voelker@cs.washington.edu)	9-12-93
@@ -635,7 +635,24 @@ initialize_w32_display (void)
   meta_key = 1;
   char_attr_normal = info.wAttributes;
 
-  if (w32_use_full_screen_buffer)
+  /* Determine if the info returned by GetConsoleScreenBufferInfo
+     is realistic.  Old MS Telnet servers used to only fill out
+     the dwSize portion, even modern one fill the whole struct with
+     garbage when using non-MS telnet clients.  */
+  if ((w32_use_full_screen_buffer
+       && (info.dwSize.Y < 20 || info.dwSize.Y > 100
+	   || info.dwSize.X < 40 || info.dwSize.X > 200))
+      || (!w32_use_full_screen_buffer
+	  && (info.srWindow.Bottom - info.srWindow.Top < 20
+	      || info.srWindow.Bottom - info.srWindow.Top > 100
+	      || info.srWindow.Right - info.srWindow.Left < 40
+	      || info.srWindow.Right - info.srWindow.Left > 100)))
+    {
+      FRAME_LINES (SELECTED_FRAME ()) = 25;
+      SET_FRAME_COLS (SELECTED_FRAME (), 80);
+    }
+
+  else if (w32_use_full_screen_buffer)
     {
       FRAME_LINES (SELECTED_FRAME ()) = info.dwSize.Y;	/* lines per page */
       SET_FRAME_COLS (SELECTED_FRAME (), info.dwSize.X);  /* characters per line */
@@ -691,7 +708,7 @@ This is desirable when running Emacs over telnet, and is the default.
 A value of nil means use the current console window dimensions; this
 may be preferrable when working directly at the console with a large
 scroll-back buffer.  */);
-  w32_use_full_screen_buffer = 1;
+  w32_use_full_screen_buffer = 0;
 
   defsubr (&Sset_screen_color);
   defsubr (&Sset_cursor_size);

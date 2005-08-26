@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -70,7 +70,7 @@
 (autoload 'compilation-start "compile")
 
 (defgroup python nil
-  "Silly walks in the Python language"
+  "Silly walks in the Python language."
   :group 'languages
   :version "22.1"
   :link '(emacs-commentary-link "python"))
@@ -1067,7 +1067,7 @@ For running multiple processes in multiple buffers, see `python-buffer'.
   ;; Still required by `comint-redirect-send-command', for instance
   ;; (and we need to match things like `>>> ... >>> '):
   (set (make-local-variable 'comint-prompt-regexp)
-       (rx (and line-start (1+ (and (repeat 3 (any ">.")) ?\ )))))
+       (rx (and line-start (1+ (and (repeat 3 (any ">.")) ?\s)))))
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-compilation-regexp-alist)
   (compilation-shell-minor-mode 1))

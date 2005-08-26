@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 
 ;;; Commentary:
@@ -350,7 +350,7 @@ Must be set prior to enabling CUA."
 
 (defcustom cua-check-pending-input t
   "*If non-nil, don't override prefix key if input pending.
-It is rumoured that input-pending-p is unreliable under some window
+It is rumoured that `input-pending-p' is unreliable under some window
 managers, so try setting this to nil, if prefix override doesn't work."
   :type 'boolean
   :group 'cua)
@@ -370,7 +370,7 @@ buffer is NOT modified, until you execute a command that actually modifies it.
   "*If non-nil, automatically tabify after rectangle commands.
 This basically means that `tabify' is applied to all lines that
 are modified by inserting or deleting a rectangle.  If value is
-an integer, cua will look for existing tabs in a region around
+an integer, CUA will look for existing tabs in a region around
 the rectangle, and only do the conversion if any tabs are already
 present.  The number specifies then number of characters before
 and after the region marked by the rectangle to search."
@@ -568,7 +568,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 ;;; Low-level Interface
 
 (defvar cua-inhibit-cua-keys nil
-  "Buffer-local variable that may disable the cua keymappings.")
+  "Buffer-local variable that may disable the CUA keymappings.")
 (make-variable-buffer-local 'cua-inhibit-cua-keys)
 
 ;;; Aux. variables
@@ -902,8 +902,8 @@ Activates the mark if a prefix argument is given."
 
 (defun cua-repeat-replace-region (arg)
   "Repeat replacing text of highlighted region with typed text.
-Searches for the next streach of text identical to the region last
-replaced by typing text over it and replaces it with the same streach
+Searches for the next stretch of text identical to the region last
+replaced by typing text over it and replaces it with the same stretch
 of text."
   (interactive "P")
   (when cua--last-deleted-region-pos
@@ -1331,7 +1331,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 When enabled, using shifted movement keys will activate the region (and
 highlight the region using `transient-mark-mode'), and typed text replaces
 the active selection.  C-z, C-x, C-c, and C-v will undo, cut, copy, and
-paste (in addition to the normal emacs bindings)."
+paste (in addition to the normal Emacs bindings)."
   :global t
   :group 'cua
   :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
@@ -1394,7 +1394,7 @@ paste (in addition to the normal emacs bindings)."
     (setq cua--saved-state nil))))
 
 (defun cua-debug ()
-  "Toggle cua debugging."
+  "Toggle CUA debugging."
   (interactive)
   (setq cua--debug (not cua--debug)))
 

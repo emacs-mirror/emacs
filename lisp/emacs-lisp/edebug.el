@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -61,7 +61,7 @@
 ;;; Options
 
 (defgroup edebug nil
-  "A source-level debugger for Emacs Lisp"
+  "A source-level debugger for Emacs Lisp."
   :group 'lisp)
 
 
@@ -519,7 +519,7 @@ the minibuffer."
 				(put ',(nth 1 form) 'saved-face
 				     ',(get (nth 1 form) 'saved-face))
 				(put ',(nth 1 form) 'customized-face
-				     ',(nth 2 form)))
+				     ,(nth 2 form)))
 			(put (nth 1 form) 'saved-face nil)))))
     (setq edebug-result (eval form))
     (if (not edebugging)
@@ -4224,7 +4224,7 @@ reinstrument it."
 		       (- (current-column)
 			  (if (= ?\( (following-char)) 0 1)))))
 	    (insert (make-string
-		     (max 0 (- col (- (point) start-of-count-line))) ?\ )
+		     (max 0 (- col (- (point) start-of-count-line))) ?\s)
 		    (if (and (< 0 count)
 			     (not (memq coverage
 					'(unknown ok-coverage))))

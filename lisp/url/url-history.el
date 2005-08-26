@@ -18,8 +18,8 @@
 ;;
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -32,14 +32,14 @@
 (autoload 'url-do-setup "url")
 
 (defgroup url-history nil
-  "History variables in the URL package"
+  "History variables in the URL package."
   :prefix "url-history"
   :group 'url)
 
 (defcustom url-history-track nil
   "*Controls whether to keep a list of all the URLS being visited.
 If non-nil, url will keep track of all the URLS visited.
-If eq to `t', then the list is saved to disk at the end of each emacs
+If set to t, then the list is saved to disk at the end of each Emacs
 session."
   :type 'boolean
   :group 'url-history)

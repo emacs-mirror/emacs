@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -96,7 +96,7 @@ When the global marker is set, CUA cut and copy commands will automatically
 insert the deleted or copied text before the global marker, even when the
 global marker is in another buffer.
 If the global marker isn't set, set the global marker at point in the current
-buffer. Otherwise jump to the global marker position and cancel it.
+buffer.  Otherwise jump to the global marker position and cancel it.
 With prefix argument, don't jump to global mark when cancelling it."
   (interactive "P")
   (unless cua--global-mark-initialized
@@ -105,7 +105,7 @@ With prefix argument, don't jump to global mark when cancelling it."
       (if (not buffer-read-only)
 	  (cua--activate-global-mark t)
 	(ding)
-	(message "Cannot set global mark in read-only buffer."))
+	(message "Cannot set global mark in read-only buffer"))
     (when (not stay)
       (pop-to-buffer (marker-buffer cua--global-mark-marker))
       (goto-char cua--global-mark-marker))
@@ -165,7 +165,7 @@ With prefix argument, don't jump to global mark when cancelling it."
 	  (if (equal (marker-buffer cua--global-mark-marker) src-buf)
 	      (if (and (< start (marker-position cua--global-mark-marker))
 		       (< (marker-position cua--global-mark-marker) end))
-		  (message "Can't move region into itself.")
+		  (message "Can't move region into itself")
 		(let ((text (buffer-substring-no-properties start end))
 		      (p1 (copy-marker start))
 		      (p2 (copy-marker end)))
@@ -222,7 +222,7 @@ With prefix argument, don't jump to global mark when cancelling it."
 		      (setq in-rect t olist nil)
 		    (setq olist (cdr olist))))
 		(if in-rect
-		    (message "Can't move rectangle into itself.")
+		    (message "Can't move rectangle into itself")
 		  (let ((text (cua--extract-rectangle)))
 		    (cua--delete-rectangle)
 		    (goto-char (marker-position cua--global-mark-marker))

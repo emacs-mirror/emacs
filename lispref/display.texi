@@ -14,9 +14,8 @@ that Emacs presents to the user.
 * Refresh Screen::      Clearing the screen and redrawing everything on it.
 * Forcing Redisplay::   Forcing redisplay.
 * Truncation::          Folding or wrapping long text lines.
-* The Echo Area::       Where messages are displayed.
+* The Echo Area::       Displaying messages at the bottom of the screen.
 * Warnings::            Displaying warning messages for the user.
-* Progress::            Informing user about progress of a long operation.
 * Invisible Text::      Hiding part of the buffer text.
 * Selective Display::   Hiding part of the buffer text (the old way).
 * Temporary Displays::  Displays that go away automatically.
@@ -184,7 +183,7 @@ This variable is automatically buffer-local in every buffer.
 @cindex error display
 @cindex echo area
 
-The @dfn{echo area} is used for displaying error messages
+  The @dfn{echo area} is used for displaying error messages
 (@pxref{Errors}), for messages made with the @code{message} primitive,
 and for echoing keystrokes.  It is not the same as the minibuffer,
 despite the fact that the minibuffer appears (when active) in the same
@@ -193,9 +192,22 @@ specifies the rules for resolving conflicts between the echo area and
 the minibuffer for use of that screen space (@pxref{Minibuffer,, The
 Minibuffer, emacs, The GNU Emacs Manual}).
 
-You can write output in the echo area by using the Lisp printing
-functions with @code{t} as the stream (@pxref{Output Functions}), or as
-follows:
+  You can write output in the echo area by using the Lisp printing
+functions with @code{t} as the stream (@pxref{Output Functions}), or
+explicitly.
+
+@menu
+* Displaying Messages:: Explicitly displaying text in the echo area.
+* Progress::            Informing user about progress of a long operation.
+* Logging Messages::    Echo area messages are logged for the user.
+* Echo Area Customization:: Controlling the echo area.
+@end menu
+
+@node Displaying Messages
+@subsection Displaying Messages in the Echo Area
+
+  This section describes the functions for explicitly producing echo
+area messages.  Many other Emacs features display messages there, too.
 
 @defun message string &rest arguments
 This function displays a message in the echo area.  The
@@ -216,12 +228,6 @@ the echo area has been expanded automatically, this brings it back to
 its normal size.  If the minibuffer is active, this brings the
 minibuffer contents back onto the screen immediately.
 
-@vindex message-truncate-lines
-Normally, displaying a long message resizes the echo area to display
-the entire message.  But if the variable @code{message-truncate-lines}
-is non-@code{nil}, the echo area does not resize, and the message is
-truncated to fit it, as in Emacs 20 and before.
-
 @example
 @group
 (message "Minibuffer depth is %d."
@@ -240,12 +246,6 @@ Minibuffer depth is 0.
 To automatically display a message in the echo area or in a pop-buffer,
 depending on its size, use @code{display-message-or-buffer} (see below).
 @end defun
-
-@defopt max-mini-window-height
-This variable specifies the maximum height for resizing minibuffer
-windows.  If a float, it specifies a fraction of the height of the
-frame.  If an integer, it specifies a number of lines.
-@end defopt
 
 @tindex with-temp-message
 @defmac with-temp-message message &rest body
@@ -303,6 +303,170 @@ This function returns the message currently being displayed in the
 echo area, or @code{nil} if there is none.
 @end defun
 
+@node Progress
+@subsection Reporting Operation Progress
+@cindex progress reporting
+
+  When an operation can take a while to finish, you should inform the
+user about the progress it makes.  This way the user can estimate
+remaining time and clearly see that Emacs is busy working, not hung.
+
+  Functions listed in this section provide simple and efficient way of
+reporting operation progress.  Here is a working example that does
+nothing useful:
+
+@smallexample
+(let ((progress-reporter
+       (make-progress-reporter "Collecting mana for Emacs..."
+                               0  500)))
+  (dotimes (k 500)
+    (sit-for 0.01)
+    (progress-reporter-update progress-reporter k))
+  (progress-reporter-done progress-reporter))
+@end smallexample
+
+@defun make-progress-reporter message min-value max-value &optional current-value min-change min-time
+This function creates and returns a @dfn{progress reporter}---an
+object you will use as an argument for all other functions listed
+here.  The idea is to precompute as much data as possible to make
+progress reporting very fast.
+
+When this progress reporter is subsequently used, it will display
+@var{message} in the echo area, followed by progress percentage.
+@var{message} is treated as a simple string.  If you need it to depend
+on a filename, for instance, use @code{format} before calling this
+function.
+
+@var{min-value} and @var{max-value} arguments stand for starting and
+final states of your operation.  For instance, if you scan a buffer,
+they should be the results of @code{point-min} and @code{point-max}
+correspondingly.  It is required that @var{max-value} is greater than
+@var{min-value}.  If you create progress reporter when some part of
+the operation has already been completed, then specify
+@var{current-value} argument.  But normally you should omit it or set
+it to @code{nil}---it will default to @var{min-value} then.
+
+Remaining arguments control the rate of echo area updates.  Progress
+reporter will wait for at least @var{min-change} more percents of the
+operation to be completed before printing next message.
+@var{min-time} specifies the minimum time in seconds to pass between
+successive prints.  It can be fractional.  Depending on Emacs and
+system capabilities, progress reporter may or may not respect this
+last argument or do it with varying precision.  Default value for
+@var{min-change} is 1 (one percent), for @var{min-time}---0.2
+(seconds.)
+
+This function calls @code{progress-reporter-update}, so the first
+message is printed immediately.
+@end defun
+
+@defun progress-reporter-update reporter value
+This function does the main work of reporting progress of your
+operation.  It displays the message of @var{reporter}, followed by
+progress percentage determined by @var{value}.  If percentage is zero,
+or close enough according to the @var{min-change} and @var{min-time}
+arguments, then it is omitted from the output.
+
+@var{reporter} must be the result of a call to
+@code{make-progress-reporter}.  @var{value} specifies the current
+state of your operation and must be between @var{min-value} and
+@var{max-value} (inclusive) as passed to
+@code{make-progress-reporter}.  For instance, if you scan a buffer,
+then @var{value} should be the result of a call to @code{point}.
+
+This function respects @var{min-change} and @var{min-time} as passed
+to @code{make-progress-reporter} and so does not output new messages
+on every invocation.  It is thus very fast and normally you should not
+try to reduce the number of calls to it: resulting overhead will most
+likely negate your effort.
+@end defun
+
+@defun progress-reporter-force-update reporter value &optional new-message
+This function is similar to @code{progress-reporter-update} except
+that it prints a message in the echo area unconditionally.
+
+The first two arguments have the same meaning as for
+@code{progress-reporter-update}.  Optional @var{new-message} allows
+you to change the message of the @var{reporter}.  Since this functions
+always updates the echo area, such a change will be immediately
+presented to the user.
+@end defun
+
+@defun progress-reporter-done reporter
+This function should be called when the operation is finished.  It
+prints the message of @var{reporter} followed by word ``done'' in the
+echo area.
+
+You should always call this function and not hope for
+@code{progress-reporter-update} to print ``100%.''  Firstly, it may
+never print it, there are many good reasons for this not to happen.
+Secondly, ``done'' is more explicit.
+@end defun
+
+@defmac dotimes-with-progress-reporter (var count [result]) message body...
+This is a convenience macro that works the same way as @code{dotimes}
+does, but also reports loop progress using the functions described
+above.  It allows you to save some typing.
+
+You can rewrite the example in the beginning of this node using
+this macro this way:
+
+@example
+(dotimes-with-progress-reporter
+    (k 500)
+    "Collecting some mana for Emacs..."
+  (sit-for 0.01))
+@end example
+@end defmac
+
+@node Logging Messages
+@subsection Logging Messages in @samp{*Messages*}
+@cindex logging echo-area messages
+
+  Almost all the messages displayed in the echo area are also recorded
+in the @samp{*Messages*} buffer so that the user can refer back to
+them.  This includes all the messages that are output with
+@code{message}.
+
+@defopt message-log-max
+This variable specifies how many lines to keep in the @samp{*Messages*}
+buffer.  The value @code{t} means there is no limit on how many lines to
+keep.  The value @code{nil} disables message logging entirely.  Here's
+how to display a message and prevent it from being logged:
+
+@example
+(let (message-log-max)
+  (message @dots{}))
+@end example
+@end defopt
+
+  To make @samp{*Messages*} more convenient for the user, the logging
+facility combines successive identical messages.  It also combines
+successive related messages for the sake of two cases: question
+followed by answer, and a series of progress messages.
+
+  A ``question followed by an answer'' means two messages like the
+ones produced by @code{y-or-n-p}: the first is @samp{@var{question}},
+and the second is @samp{@var{question}...@var{answer}}.  The first
+message conveys no additional information beyond what's in the second,
+so logging the second message discards the first from the log.
+
+  A ``series of progress messages'' means successive messages like
+those produced by @code{make-progress-reporter}.  They have the form
+@samp{@var{base}...@var{how-far}}, where @var{base} is the same each
+time, while @var{how-far} varies.  Logging each message in the series
+discards the previous one, provided they are consecutive.
+
+  The functions @code{make-progress-reporter} and @code{y-or-n-p}
+don't have to do anything special to activate the message log
+combination feature.  It operates whenever two consecutive messages
+are logged that share a common prefix ending in @samp{...}.
+
+@node Echo Area Customization
+@subsection Echo Area Customization
+
+  These variables control details of how the echo area works.
+
 @defvar cursor-in-echo-area
 This variable controls where the cursor appears when a message is
 displayed in the echo area.  If it is non-@code{nil}, then the cursor
@@ -318,21 +482,6 @@ This normal hook is run whenever the echo area is cleared---either by
 @code{(message nil)} or for any other reason.
 @end defvar
 
-Almost all the messages displayed in the echo area are also recorded
-in the @samp{*Messages*} buffer.
-
-@defopt message-log-max
-This variable specifies how many lines to keep in the @samp{*Messages*}
-buffer.  The value @code{t} means there is no limit on how many lines to
-keep.  The value @code{nil} disables message logging entirely.  Here's
-how to display a message and prevent it from being logged:
-
-@example
-(let (message-log-max)
-  (message @dots{}))
-@end example
-@end defopt
-
 @defvar echo-keystrokes
 This variable determines how much time should elapse before command
 characters echo.  Its value must be an integer or floating point number,
@@ -344,6 +493,19 @@ begins in a key sequence, all subsequent characters in the same key
 sequence are echoed immediately.)
 
 If the value is zero, then command input is not echoed.
+@end defvar
+
+@defopt max-mini-window-height
+This variable specifies the maximum height for resizing minibuffer
+windows.  If a float, it specifies a fraction of the height of the
+frame.  If an integer, it specifies a number of lines.
+@end defopt
+
+@defvar message-truncate-lines
+Normally, displaying a long message resizes the echo area to display
+the entire message.  But if the variable @code{message-truncate-lines}
+is non-@code{nil}, the echo area does not resize, and the message is
+truncated to fit it, as in Emacs 20 and before.
 @end defvar
 
 @node Warnings
@@ -534,122 +696,6 @@ warnings buffer.  Each element of the list should be a list of
 symbols.  If it matches the first few elements in a warning type, then
 that warning is not logged.
 @end defopt
-
-@node Progress
-@section Reporting Operation Progress
-@cindex progress reporting
-
-  When an operation can take a while to finish, you should inform the
-user about the progress it makes.  This way the user can estimate
-remaining time and clearly see that Emacs is busy working, not hung.
-
-  Functions listed in this section provide simple and efficient way of
-reporting operation progress.  Here is a working example that does
-nothing useful:
-
-@smallexample
-(let ((progress-reporter
-       (make-progress-reporter "Collecting mana for Emacs..."
-                               0  500)))
-  (dotimes (k 500)
-    (sit-for 0.01)
-    (progress-reporter-update progress-reporter k))
-  (progress-reporter-done progress-reporter))
-@end smallexample
-
-@defun make-progress-reporter message min-value max-value &optional current-value min-change min-time
-This function creates and returns a @dfn{progress reporter}---an
-object you will use as an argument for all other functions listed
-here.  The idea is to precompute as much data as possible to make
-progress reporting very fast.
-
-When this progress reporter is subsequently used, it will display
-@var{message} in the echo area, followed by progress percentage.
-@var{message} is treated as a simple string.  If you need it to depend
-on a filename, for instance, use @code{format} before calling this
-function.
-
-@var{min-value} and @var{max-value} arguments stand for starting and
-final states of your operation.  For instance, if you scan a buffer,
-they should be the results of @code{point-min} and @code{point-max}
-correspondingly.  It is required that @var{max-value} is greater than
-@var{min-value}.  If you create progress reporter when some part of
-the operation has already been completed, then specify
-@var{current-value} argument.  But normally you should omit it or set
-it to @code{nil}---it will default to @var{min-value} then.
-
-Remaining arguments control the rate of echo area updates.  Progress
-reporter will wait for at least @var{min-change} more percents of the
-operation to be completed before printing next message.
-@var{min-time} specifies the minimum time in seconds to pass between
-successive prints.  It can be fractional.  Depending on Emacs and
-system capabilities, progress reporter may or may not respect this
-last argument or do it with varying precision.  Default value for
-@var{min-change} is 1 (one percent), for @var{min-time}---0.2
-(seconds.)
-
-This function calls @code{progress-reporter-update}, so the first
-message is printed immediately.
-@end defun
-
-@defun progress-reporter-update reporter value
-This function does the main work of reporting progress of your
-operation.  It displays the message of @var{reporter}, followed by
-progress percentage determined by @var{value}.  If percentage is zero,
-or close enough according to the @var{min-change} and @var{min-time}
-arguments, then it is omitted from the output.
-
-@var{reporter} must be the result of a call to
-@code{make-progress-reporter}.  @var{value} specifies the current
-state of your operation and must be between @var{min-value} and
-@var{max-value} (inclusive) as passed to
-@code{make-progress-reporter}.  For instance, if you scan a buffer,
-then @var{value} should be the result of a call to @code{point}.
-
-This function respects @var{min-change} and @var{min-time} as passed
-to @code{make-progress-reporter} and so does not output new messages
-on every invocation.  It is thus very fast and normally you should not
-try to reduce the number of calls to it: resulting overhead will most
-likely negate your effort.
-@end defun
-
-@defun progress-reporter-force-update reporter value &optional new-message
-This function is similar to @code{progress-reporter-update} except
-that it prints a message in the echo area unconditionally.
-
-The first two arguments have the same meaning as for
-@code{progress-reporter-update}.  Optional @var{new-message} allows
-you to change the message of the @var{reporter}.  Since this functions
-always updates the echo area, such a change will be immediately
-presented to the user.
-@end defun
-
-@defun progress-reporter-done reporter
-This function should be called when the operation is finished.  It
-prints the message of @var{reporter} followed by word ``done'' in the
-echo area.
-
-You should always call this function and not hope for
-@code{progress-reporter-update} to print ``100%.''  Firstly, it may
-never print it, there are many good reasons for this not to happen.
-Secondly, ``done'' is more explicit.
-@end defun
-
-@defmac dotimes-with-progress-reporter (var count [result]) message body...
-This is a convenience macro that works the same way as @code{dotimes}
-does, but also reports loop progress using the functions described
-above.  It allows you to save some typing.
-
-You can rewrite the example in the beginning of this node using
-this macro this way:
-
-@example
-(dotimes-with-progress-reporter
-    (k 500)
-    "Collecting some mana for Emacs..."
-  (sit-for 0.01))
-@end example
-@end defmac
 
 @node Invisible Text
 @section Invisible Text

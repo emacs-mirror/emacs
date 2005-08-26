@@ -26,8 +26,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -48,12 +48,12 @@
 ;; User Options:
 
 (defgroup bibtex nil
-  "BibTeX mode"
+  "BibTeX mode."
   :group 'tex
   :prefix "bibtex-")
 
 (defgroup bibtex-autokey nil
-  "Generate automatically a key from the author/editor and the title field"
+  "Generate automatically a key from the author/editor and the title field."
   :group 'bibtex
   :prefix "bibtex-autokey-")
 
@@ -2800,7 +2800,7 @@ if that value is non-nil.
   (set (make-local-variable 'fill-paragraph-function) 'bibtex-fill-field)
   (set (make-local-variable 'fill-prefix) (make-string (+ bibtex-entry-offset
                                                           bibtex-contline-indentation)
-                                                       ? ))
+                                                       ?\s))
   (set (make-local-variable 'font-lock-defaults)
        '(bibtex-font-lock-keywords
          nil t ((?$ . "\"")

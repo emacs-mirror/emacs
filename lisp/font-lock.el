@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -1825,15 +1825,15 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   "Font Lock mode face used to highlight preprocessor directives."
   :group 'font-lock-highlighting-faces)
 
-(defface font-lock-regexp-backslash
+(defface font-lock-regexp-grouping-backslash
   '((((class color) (min-colors 16)) :inherit escape-glyph)
     (t :inherit bold))
-  "Font Lock mode face used to highlight a backslash in Lisp regexps."
+  "Font Lock mode face for backslashes in Lisp regexp grouping constructs."
   :group 'font-lock-highlighting-faces)
 
-(defface font-lock-regexp-backslash-construct
+(defface font-lock-regexp-grouping-construct
   '((t :inherit bold))
-  "Font Lock mode face used to highlight `\' constructs in Lisp regexps."
+  "Font Lock mode face used to highlight grouping constructs in Lisp regexps."
   :group 'font-lock-highlighting-faces)
 
 ;;; End of Colour etc. support.
@@ -2082,22 +2082,22 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
        ("\\<:\\sw+\\>" 0 font-lock-builtin-face)
        ;; ELisp and CLisp `&' keywords as types.
        ("\\&\\sw+\\>" . font-lock-type-face)
-       ;; Make regexp grouping constructs bold, so they stand out, but only
-       ;; in strings.
+       ;; ELisp regexp grouping constructs
        ((lambda (bound)
-	  (if (re-search-forward "\\(\\\\\\\\\\)\\((\\(?:?:\\)?\\|[|)]\\)" bound t)
-	       (let ((face (get-text-property (1- (point)) 'face)))
-		 (if (listp face)
-		     (memq 'font-lock-string-face face)
-		   (eq 'font-lock-string-face face)))))
-	(1 'font-lock-regexp-backslash prepend)
-	(2 'font-lock-regexp-backslash-construct prepend))
-
-       ;; Underline innermost grouping, so that you can more easily see what
-       ;; belongs together.  2005-05-12: Font-lock can go into an
-       ;; unbreakable endless loop on this -- something's broken.
-       ;;("[\\][\\][(]\\(?:\\?:\\)?\\(\\(?:[^\\\"]+\\|[\\]\\(?:[^\\]\\|[\\][^(]\\)\\)+?\\)[\\][\\][)]"
-	 ;;1 'underline prepend)
+          (catch 'found
+            ;; The following loop is needed to continue searching after matches
+            ;; that do not occur in strings.  The associated regexp matches one
+            ;; of `\\\\' `\\(' `\\(?:' `\\|' `\\)'.  `\\\\' has been included to
+            ;; avoid highlighting, for example, `\\(' in `\\\\('.
+            (while (re-search-forward "\\(\\\\\\\\\\)\\(?:\\(\\\\\\\\\\)\\|\\((\\(?:\\?:\\)?\\|[|)]\\)\\)" bound t)
+              (unless (match-beginning 2)
+                (let ((face (get-text-property (1- (point)) 'face)))
+                  (when (or (and (listp face)
+                                 (memq 'font-lock-string-face face))
+                            (eq 'font-lock-string-face face))
+                    (throw 'found t)))))))
+        (1 'font-lock-regexp-grouping-backslash prepend)
+        (3 'font-lock-regexp-grouping-construct prepend))
 ;;;  This is too general -- rms.
 ;;;  A user complained that he has functions whose names start with `do'
 ;;;  and that they get the wrong color.

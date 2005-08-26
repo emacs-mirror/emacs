@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -57,7 +57,7 @@
 
 
 (defgroup diff-mode ()
-  "Major mode for viewing/editing diffs"
+  "Major mode for viewing/editing diffs."
   :version "21.1"
   :group 'tools
   :group 'diff)
@@ -640,7 +640,7 @@ else cover the whole bufer."
 		      (while (progn (setq last-pt (point))
 				    (= (forward-line -1) 0))
 			(case (char-after)
-			  (?  (insert " ") (setq modif nil) (backward-char 1))
+			  (?\s (insert " ") (setq modif nil) (backward-char 1))
 			  (?+ (delete-region (point) last-pt) (setq modif t))
 			  (?- (if (not modif)
 				  (progn (forward-char 1)
@@ -665,7 +665,7 @@ else cover the whole bufer."
 		    (let ((modif nil) (delete nil))
 		      (while (not (eobp))
 			(case (char-after)
-			  (?  (insert " ") (setq modif nil) (backward-char 1))
+			  (?\s (insert " ") (setq modif nil) (backward-char 1))
 			  (?- (setq delete t) (setq modif t))
 			  (?+ (if (not modif)
 				  (progn (forward-char 1)
@@ -723,7 +723,7 @@ else cover the whole bufer."
 		(while (< (point) pt2)
 		  (case (char-after)
 		    ((?! ?-) (delete-char 2) (insert "-") (forward-line 1))
-		    (?\ 		;merge with the other half of the chunk
+		    (?\s		;merge with the other half of the chunk
 		     (let* ((endline2
 			     (save-excursion
 			       (goto-char pt2) (forward-line 1) (point)))
@@ -733,7 +733,7 @@ else cover the whole bufer."
 			  (insert "+"
 				  (prog1 (buffer-substring (+ pt2 2) endline2)
 				    (delete-region pt2 endline2))))
-			 (?\ 		;FIXME: check consistency
+			 (?\s		;FIXME: check consistency
 			  (delete-region pt2 endline2)
 			  (delete-char 1)
 			  (forward-line 1))
@@ -814,7 +814,7 @@ else cover the whole bufer."
 		       (t (when (and first last (< first last))
 			    (insert (delete-and-extract-region first last)))
 			  (setq first nil last nil)
-			  (equal ?\  c)))
+			  (equal ?\s c)))
 		(forward-line 1))))))))))
 
 (defun diff-fixup-modifs (start end)

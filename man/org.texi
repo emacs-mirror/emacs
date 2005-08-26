@@ -4,8 +4,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.12
-@set DATE June 2005
+@set VERSION 3.13
+@set DATE July 2005
 
 @dircategory Emacs
 @direntry
@@ -900,6 +900,7 @@ rows activated for semi-automatic computations.
 |---+---------+--------+--------+--------+-------+------|
 | ! |         |     P1 |     P2 |     P3 |   Tot |      |
 | # | Maximum |     10 |     15 |     25 |    50 | 10.0 |
+| ^ |         |     m1 |     m2 |     m3 |    mt |      |
 |---+---------+--------+--------+--------+-------+------|
 | # | Peter   |     10 |      8 |     23 |    41 |  8.2 |
 | # | Sara    |      7 |     14 |     19 |    40 |  8.0 |
@@ -911,7 +912,7 @@ rows activated for semi-automatic computations.
 @end group
 @end example
 @noindent
-The example also demonstrates a number of convenience features:
+The example also demonstrates a number of features:
 @enumerate
 @item
 If the first field of a row contains only @samp{!}, this row defines
@@ -926,6 +927,11 @@ refer to the value 50 using @samp{$max}.  Parameters work exactly like
 constants, only that they can be defined on a per-table basis.
 Changing a parameter and then recalculating the table can be useful
 and fun.
+@item
+It the first field contains only @samp{^}, fields in this row define
+names for the fields in the row above, for example @samp{$m1} for
+@samp{10}.  Similarly, if the marking character is @samp{_}, the names
+are valie for the fields in the row below.
 @item
 A column range @samp{$P1..$P3} is expanded to a vector, so that calc's
 vector functions (in this case @samp{vsum}, but there are many more)
@@ -1456,7 +1462,7 @@ If a time stamp is preceded by the word @samp{SCHEDULED:}, it means
 you are planning to start working on that task on the given date.  The
 headline will be listed under the given date.  In addition, a reminder
 that the scheduled date has passed will be present in the compilation
-for the @emph{today}, until the entry is marked DONE.  I.e., the
+for @emph{today}, until the entry is marked DONE.  I.e., the
 task will automatically be forwarded.
 @end table
 
@@ -1704,7 +1710,7 @@ longer than 10 characters.
 
 @subsection Time-of-Day Specifications
 
-Org-mode checks each agenda item for a timeof-day specification.  The
+Org-mode checks each agenda item for a time-of-day specification.  The
 time can be part of the time stamp that triggered inclusion into the
 agenda, for example as in @w{@samp{<2005-05-10 Tue 19:00>}}.  Time
 ranges can be specified with two time stamps, like
@@ -2270,7 +2276,7 @@ Group} from the @code{Org->Customization} menu.
 @section Frequently asked questions
 
 @enumerate
-@item @b{Org-mode seems to be auseful default mode for the various
+@item @b{Org-mode seems to be a useful default mode for the various
 @file{README} files I have scattered through my directories.  How do I
 turn it on for all @file{README} files?}
 @example
@@ -2435,7 +2441,7 @@ When the application called by @kbd{C-c C-o} to open a file link fails
 the file), it does so silently.  No error message is displayed.
 @item
 Recalculating a table line applies the formulas from left to right.
-If a formula calculated fields further doen the row, multiple
+If a formula calculated fields further down the row, multiple
 recalculation may be needed to get all fields consistent.
 @item
 Under XEmacs, if Org-mode entries are included into the diary, it is
@@ -2483,7 +2489,6 @@ beta testing and contributed a number of very useful ideas.
 @item
 Christian Schlauer proposed angular brackets around links, among other
 things.
-other useful stuff.
 @item
 David Wainberg suggested to implement an archiving mechanism.
 @item
@@ -2521,7 +2526,6 @@ conflict with other packages.
 @printindex ky
 
 @bye
-
 
 @ignore
    arch-tag: 7893d1fe-cc57-4d13-b5e5-f494a1bcc7ac

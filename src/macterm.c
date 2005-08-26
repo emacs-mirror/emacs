@@ -15,8 +15,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
@@ -1334,6 +1334,12 @@ mac_draw_vertical_window_border (w, x, y0, y1)
      int x, y0, y1;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct face *face;
+
+  face = FACE_FROM_ID (f, VERTICAL_BORDER_FACE_ID);
+  if (face)
+    XSetForeground (FRAME_MAC_DISPLAY (f), f->output_data.mac->normal_gc,
+		    face->foreground);
 
   XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
 	     f->output_data.mac->normal_gc, x, y0, x, y1);
@@ -1721,10 +1727,12 @@ mac_encode_char (c, char2b, font_info, two_byte_p)
       /* It's a program.  */
       struct ccl_program *ccl = font_info->font_encoder;
 
+      check_ccl_update (ccl);
       if (CHARSET_DIMENSION (charset) == 1)
 	{
 	  ccl->reg[0] = charset;
 	  ccl->reg[1] = char2b->byte2;
+	  ccl->reg[2] = -1;
 	}
       else
 	{
@@ -6249,10 +6257,11 @@ mac_to_x_fontname (name, size, style, charset)
      Style style;
      char *charset;
 {
-  char foundry[32], family[32], cs[32];
+  Str31 foundry, cs;
+  Str255 family;
   char xf[256], *result, *p;
 
-  if (sscanf (name, "%31[^-]-%31[^-]-%31s", foundry, family, cs) == 3)
+  if (sscanf (name, "%31[^-]-%255[^-]-%31s", foundry, family, cs) == 3)
     charset = cs;
   else
     {
@@ -6260,13 +6269,12 @@ mac_to_x_fontname (name, size, style, charset)
       strcpy(family, name);
     }
 
-  sprintf(xf, "-%s-%s-%s-%c-normal--%d-%d-%d-%d-m-%d-%s",
-          foundry, family, style & bold ? "bold" : "medium",
-	  style & italic ? 'i' : 'r', size, size * 10,
-	  size ? 75 : 0, size ? 75 : 0, size * 10, charset);
+  sprintf (xf, "%s-%c-normal--%d-%d-%d-%d-m-%d-%s",
+	   style & bold ? "bold" : "medium", style & italic ? 'i' : 'r',
+	   size, size * 10, size ? 75 : 0, size ? 75 : 0, size * 10, charset);
 
-  result = (char *) xmalloc (strlen (xf) + 1);
-  strcpy (result, xf);
+  result = xmalloc (strlen (foundry) + strlen (family) + strlen (xf) + 3 + 1);
+  sprintf (result, "-%s-%s-%s", foundry, family, xf);
   for (p = result; *p; p++)
     *p = tolower(*p);
   return result;
@@ -6286,15 +6294,17 @@ x_font_name_to_mac_font_name (xf, mf, mf_decoded, style, cs)
      Style *style;
      char *cs;
 {
-  char foundry[32], family[32], weight[20], slant[2], *p;
+  Str31 foundry;
+  Str255 family;
+  char weight[20], slant[2], *p;
   Lisp_Object charset_info, coding_system = Qnil;
   struct coding_system coding;
 
   strcpy (mf, "");
 
-  if (sscanf (xf, "-%31[^-]-%31[^-]-%19[^-]-%1[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
+  if (sscanf (xf, "-%31[^-]-%255[^-]-%19[^-]-%1[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
               foundry, family, weight, slant, cs) != 5 &&
-      sscanf (xf, "-%31[^-]-%31[^-]-%19[^-]-%1[^-]-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
+      sscanf (xf, "-%31[^-]-%255[^-]-%19[^-]-%1[^-]-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
               foundry, family, weight, slant, cs) != 5)
     return;
 
@@ -6327,7 +6337,7 @@ x_font_name_to_mac_font_name (xf, mf, mf_decoded, style, cs)
       coding.dst_multibyte = 1;
       coding.mode |= CODING_MODE_LAST_BLOCK;
       encode_coding (&coding, mf_decoded, mf,
-		     strlen (mf_decoded), sizeof (Str32) - 1);
+		     strlen (mf_decoded), sizeof (Str255) - 1);
       mf[coding.produced] = '\0';
     }
 }
@@ -6459,7 +6469,7 @@ init_font_name_table ()
   Handle font_handle, font_handle_2;
   short id, scriptcode;
   ResType type;
-  Str32 name;
+  Str255 name;
   struct FontAssoc *fat;
   struct AsscEntry *assc_entry;
   Lisp_Object text_encoding_info_alist, text_encoding_info;
@@ -6598,8 +6608,7 @@ mac_do_list_fonts (pattern, maxnames)
   int i, n_fonts = 0;
   Lisp_Object font_list = Qnil, pattern_regex, fontname;
   char *regex = (char *) alloca (strlen (pattern) * 2 + 3);
-  char scaled[256];
-  char *ptr;
+  char *scaled, *ptr;
   int scl_val[XLFD_SCL_LAST], *field, *val;
   char *longest_start, *cur_start, *nonspecial;
   int longest_len, exact;
@@ -6723,6 +6732,7 @@ mac_do_list_fonts (pattern, maxnames)
 	{
 	  int former_len = ptr - font_name_table[i];
 
+	  scaled = xmalloc (strlen (font_name_table[i]) + 20 + 1);
 	  memcpy (scaled, font_name_table[i], former_len);
 	  sprintf (scaled + former_len,
 		   "-%d-%d-75-75-m-%d-%s",
@@ -6732,6 +6742,7 @@ mac_do_list_fonts (pattern, maxnames)
 		   ptr + sizeof ("-0-0-0-0-m-0-") - 1);
 	  fontname = mac_c_string_match (pattern_regex, scaled,
 					 nonspecial, exact);
+	  xfree (scaled);
 	  if (!NILP (fontname))
 	    {
 	      font_list = Fcons (fontname, font_list);
@@ -6852,7 +6863,7 @@ x_font_min_bounds (font, w, h)
    the values computed.  Value is non-zero if smallest_font_height or
    smallest_char_width become smaller than they were before.  */
 
-int
+static int
 x_compute_min_glyph_bounds (f)
      struct frame *f;
 {
@@ -6937,7 +6948,8 @@ XLoadQueryFont (Display *dpy, char *fontname)
   GrafPtr port;
   SInt16 old_fontnum, old_fontsize;
   Style old_fontface;
-  Str32 mfontname, mfontname_decoded, charset;
+  Str255 mfontname, mfontname_decoded;
+  Str31 charset;
   SInt16 fontnum;
   Style fontface;
 #if TARGET_API_MAC_CARBON
@@ -7329,7 +7341,7 @@ x_load_font (f, fontname, size)
        before, or if the font loaded has a smalle>r height than any
        other font loaded before.  If this happens, it will make a
        glyph matrix reallocation necessary.  */
-    fonts_changed_p = x_compute_min_glyph_bounds (f);
+    fonts_changed_p |= x_compute_min_glyph_bounds (f);
     UNBLOCK_INPUT;
     return fontp;
   }

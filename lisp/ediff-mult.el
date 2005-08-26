@@ -18,8 +18,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -106,7 +106,7 @@
 (provide 'ediff-mult)
 
 (defgroup ediff-mult nil
-  "Multi-file and multi-buffer processing in Ediff"
+  "Multi-file and multi-buffer processing in Ediff."
   :prefix "ediff-"
   :group 'ediff)
 
@@ -857,7 +857,7 @@ behavior."
 	 (session-info (ediff-overlay-get overl 'ediff-meta-info))
 	 (activity-marker (ediff-get-session-activity-marker session-info))
 	 buffer-read-only)
-    (or new-marker activity-marker (setq new-marker ?\ ))
+    (or new-marker activity-marker (setq new-marker ?\s))
     (goto-char (ediff-overlay-start overl))
     (if (eq (char-after (point)) new-marker)
 	() ; if marker shown in buffer is the same as new-marker, do nothing
@@ -872,7 +872,7 @@ behavior."
 	 (session-info (ediff-overlay-get overl 'ediff-meta-info))
 	 (status (ediff-get-session-status session-info))
 	 buffer-read-only)
-    (setq new-status (or new-status status ?\ ))
+    (setq new-status (or new-status status ?\s))
     (goto-char (ediff-overlay-start overl))
     (forward-char 1) ; status is the second char in session record
     (if (eq (char-after (point)) new-status)

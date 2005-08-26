@@ -985,11 +985,10 @@ Emacs Display
 * Refresh Screen::          Clearing the screen and redrawing everything on it.
 * Forcing Redisplay::       Forcing redisplay.
 * Truncation::              Folding or wrapping long text lines.
-* The Echo Area::           Where messages are displayed.
+* The Echo Area::           Displaying messages at the bottom of the screen.
 * Warnings::                Displaying warning messages for the user.
-* Progress::                Informing user about progress of a long operation.
 * Invisible Text::          Hiding part of the buffer text.
-* Selective Display::       Hiding part of the buffer text.
+* Selective Display::       Hiding part of the buffer text (the old way).
 * Temporary Displays::      Displays that go away automatically.
 * Overlays::		    Use overlays to highlight parts of the buffer.
 * Width::                   How wide a character or string is on the screen.

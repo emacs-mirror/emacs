@@ -1,3 +1,7 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
 2005-06-17  Lute Kamstra  <lute@gnu.org>
 
 	* mh-customize.el (mh-folder-body-face, mh-folder-cur-msg-face)

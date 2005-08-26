@@ -1,3 +1,18 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-history.el (url-history-track): Doc fix.
+	(url-history): Finish `defgroup' description with period.
+
+	* url-cookie.el (url-cookie):
+	* url-gw.el (url-gateway):
+	* url-news.el (url-news):
+	* url-vars.el (url, url-file, url-cache, url-mime, url-hairy):
+	Finish `defgroup' description with period.
+
 2005-06-28  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
 
 	* url-http.el (url-http-create-request): Call url-recreate-url

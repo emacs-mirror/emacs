@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 
 #include <config.h>
@@ -918,7 +918,13 @@ main (argc, argv
         {
           /* Set this so we only do this once.  */
           putenv("EMACS_HEAP_EXEC=true");
-          personality (PER_LINUX32);
+
+	  /* A flag to turn off address randomization which is introduced
+	   in linux kernel shipped with fedora core 4 */
+#define ADD_NO_RANDOMIZE 0x0040000
+	  personality (PER_LINUX32 | ADD_NO_RANDOMIZE);
+#undef  ADD_NO_RANDOMIZE
+
           execvp (argv[0], argv);
 
           /* If the exec fails, try to dump anyway.  */

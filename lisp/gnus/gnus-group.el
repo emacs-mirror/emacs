@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -382,7 +382,7 @@ ticked: The number of ticked articles."
   :type 'character)
 
 (defgroup gnus-group-icons nil
-  "Add Icons to your group buffer.  "
+  "Add Icons to your group buffer."
   :group 'gnus-group-visual)
 
 (defcustom gnus-group-icon-list

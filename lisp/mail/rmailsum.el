@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -53,6 +53,14 @@
     ("^.....[^D-] \\(......\\)" 1 font-lock-keyword-face)	; Date.
     ("{ \\([^\n}]+\\) }" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Rmail Summary mode.")
+
+(defvar rmail-summary-redo
+  "(FUNCTION . ARGS) to regenerate this Rmail summary buffer.")
+
+(defvar rmail-summary-overlay nil)
+(put 'rmail-summary-overlay 'permanent-local t)
+
+(defvar rmail-summary-mode-map nil)
 
 ;; Entry points for making a summary buffer.
 
@@ -165,6 +173,8 @@ SENDERS is a string of names separated by commas."
 
 (defvar rmail-summary-symbol-number 0)
 
+(defvar rmail-new-summary-line-count)
+
 (defun rmail-new-summary (description redo-form function &rest args)
   "Create a summary of selected messages.
 DESCRIPTION makes part of the mode line of the summary buffer.
@@ -187,7 +197,7 @@ nil for FUNCTION means all messages."
       (setq mesg rmail-current-message)
       ;; Filter the messages; make or get their summary lines.
       (let ((summary-msgs ())
-	    (new-summary-line-count 0))
+	    (rmail-new-summary-line-count 0))
 	(let ((msgnum 1)
 	      (buffer-read-only nil)
 	      (old-min (point-min-marker))
@@ -263,11 +273,11 @@ nil for FUNCTION means all messages."
 (defun rmail-make-summary-line (msg)
   (let ((line (or (aref rmail-summary-vector (1- msg))
 		  (progn
-		    (setq new-summary-line-count
-			  (1+ new-summary-line-count))
-		    (if (zerop (% new-summary-line-count 10))
+		    (setq rmail-new-summary-line-count
+			  (1+ rmail-new-summary-line-count))
+		    (if (zerop (% rmail-new-summary-line-count 10))
 			(message "Computing summary lines...%d"
-				 new-summary-line-count))
+				 rmail-new-summary-line-count))
 		    (rmail-make-summary-line-1 msg)))))
     ;; Fix up the part of the summary that says "deleted" or "unseen".
     (aset line 5
@@ -842,8 +852,6 @@ Search, the `unseen' attribute is restored.")
 		      (rmail-show-message msg-num t))))))
 	(rmail-summary-update-highlight nil)))))
 
-(defvar rmail-summary-mode-map nil)
-
 (if rmail-summary-mode-map
     nil
   (setq rmail-summary-mode-map (make-keymap))
@@ -1037,9 +1045,6 @@ Search, the `unseen' attribute is restored.")
 (define-key rmail-summary-mode-map [menu-bar move next]
   '("Next" . rmail-summary-next-all))
 
-(defvar rmail-summary-overlay nil)
-(put 'rmail-summary-overlay 'permanent-local t)
-
 (defun rmail-summary-mouse-goto-message (event)
   "Select the message whose summary line you click on."
   (interactive "@e")
@@ -1191,7 +1196,8 @@ move to the previous message."
 	(or (eq buffer (window-buffer (next-window (frame-first-window))))
 	    (delete-other-windows)))
     (pop-to-buffer rmail-view-buffer))
-  (beginning-of-buffer)
+  (with-no-warnings
+    (beginning-of-buffer))
   (pop-to-buffer rmail-summary-buffer))
 
 (defun rmail-summary-bury ()
@@ -1275,12 +1281,14 @@ argument says to read a file name and use that file as the inbox."
 (defun rmail-summary-first-message ()
   "Show first message in Rmail file from summary buffer."
   (interactive)
-  (beginning-of-buffer))
+  (with-no-warnings
+    (beginning-of-buffer)))
 
 (defun rmail-summary-last-message ()
   "Show last message in Rmail file from summary buffer."
   (interactive)
-  (end-of-buffer)
+  (with-no-warnings
+    (end-of-buffer))
   (forward-line -1))
 
 (defvar rmail-summary-edit-map nil)

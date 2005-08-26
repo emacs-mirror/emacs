@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -437,6 +437,8 @@ Subexpression 2 must end right before the \\n or \\r.")
 	     nil (0 dired-ignored-face))))
 )
   "Additional expressions to highlight in Dired mode.")
+
+(defvar dnd-protocol-alist)
 
 ;;; Macros must be defined before they are used, for the byte compiler.
 

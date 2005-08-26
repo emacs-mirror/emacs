@@ -207,7 +207,7 @@
 (require 'calc-macs)
 
 (defgroup calc nil
-  "GNU Calc"
+  "GNU Calc."
   :prefix "calc-"
   :tag    "Calc"
   :group  'applications)
@@ -3026,10 +3026,10 @@ See calc-keypad for details."
     (setq w (cdr off)
 	  off (car off))
     (when (> off 0)
-      (setq c (math-comp-concat (make-string off ? ) c)))
+      (setq c (math-comp-concat (make-string off ?\s) c)))
     (or (equal calc-left-label "")
 	(setq c (math-comp-concat (if (eq a 'top-of-stack)
-				      (make-string (length calc-left-label) ? )
+				      (make-string (length calc-left-label) ?\s)
 				    calc-left-label)
 				  c)))
     (when calc-line-numbering
@@ -3044,7 +3044,7 @@ See calc-keypad for details."
       (require 'calc-ext)
       (setq c (list 'horiz c
 		    (make-string (max (- w (math-comp-width c)
-					 (length calc-right-label)) 0) ? )
+					 (length calc-right-label)) 0) ?\s)
 		    '(break -1)
 		    calc-right-label)))
     (setq s (if (stringp c)

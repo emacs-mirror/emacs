@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -62,46 +62,46 @@
 (put 'user-full-name 'custom-type 'string)
 
 (defgroup message-various nil
-  "Various Message Variables"
+  "Various Message Variables."
   :link '(custom-manual "(message)Various Message Variables")
   :group 'message)
 
 (defgroup message-buffers nil
-  "Message Buffers"
+  "Message Buffers."
   :link '(custom-manual "(message)Message Buffers")
   :group 'message)
 
 (defgroup message-sending nil
-  "Message Sending"
+  "Message Sending."
   :link '(custom-manual "(message)Sending Variables")
   :group 'message)
 
 (defgroup message-interface nil
-  "Message Interface"
+  "Message Interface."
   :link '(custom-manual "(message)Interface")
   :group 'message)
 
 (defgroup message-forwarding nil
-  "Message Forwarding"
+  "Message Forwarding."
   :link '(custom-manual "(message)Forwarding")
   :group 'message-interface)
 
 (defgroup message-insertion nil
-  "Message Insertion"
+  "Message Insertion."
   :link '(custom-manual "(message)Insertion")
   :group 'message)
 
 (defgroup message-headers nil
-  "Message Headers"
+  "Message Headers."
   :link '(custom-manual "(message)Message Headers")
   :group 'message)
 
 (defgroup message-news nil
-  "Composing News Messages"
+  "Composing News Messages."
   :group 'message)
 
 (defgroup message-mail nil
-  "Composing Mail Messages"
+  "Composing Mail Messages."
   :group 'message)
 
 (defgroup message-faces nil

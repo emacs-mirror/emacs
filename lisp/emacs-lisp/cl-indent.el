@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -49,13 +49,13 @@
 ;;; Code:
 
 (defgroup lisp-indent nil
-  "Indentation in Lisp"
+  "Indentation in Lisp."
   :group 'lisp)
 
 
 (defcustom lisp-indent-maximum-backtracking 3
   "*Maximum depth to backtrack out from a sublist for structured indentation.
-If this variable is  0, no backtracking will occur and forms such as flet
+If this variable is 0, no backtracking will occur and forms such as `flet'
 may not be correctly indented."
   :type 'integer
   :group 'lisp-indent)

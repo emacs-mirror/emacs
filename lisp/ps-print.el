@@ -38,7 +38,7 @@ Please send all bug fixes and enhancements to
 
 ;; You should have received a copy of the GNU General Public License along with
 ;; GNU Emacs; see the file COPYING.  If not, write to the Free Software
-;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -1562,13 +1562,13 @@ Please send all bug fixes and enhancements to
 ;;; Interface to the command system
 
 (defgroup postscript nil
-  "PostScript Group"
+  "PostScript Group."
   :tag "PostScript"
   :version "20"
   :group 'emacs)
 
 (defgroup ps-print nil
-  "PostScript generator for Emacs"
+  "PostScript generator for Emacs."
   :link '(emacs-library-link :tag "Source Lisp File" "ps-print.el")
   :prefix "ps-"
   :version "20"
@@ -1576,42 +1576,42 @@ Please send all bug fixes and enhancements to
   :group 'postscript)
 
 (defgroup ps-print-horizontal nil
-  "Horizontal page layout"
+  "Horizontal page layout."
   :prefix "ps-"
   :tag "Horizontal"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-vertical nil
-  "Vertical page layout"
+  "Vertical page layout."
   :prefix "ps-"
   :tag "Vertical"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-headers nil
-  "Headers & footers layout"
+  "Headers & footers layout."
   :prefix "ps-"
   :tag "Header & Footer"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-font nil
-  "Fonts customization"
+  "Fonts customization."
   :prefix "ps-"
   :tag "Font"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-color nil
-  "Color customization"
+  "Color customization."
   :prefix "ps-"
   :tag "Color"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-face nil
-  "Faces customization"
+  "Faces customization."
   :prefix "ps-"
   :tag "PS Faces"
   :version "20"
@@ -1619,42 +1619,42 @@ Please send all bug fixes and enhancements to
   :group 'faces)
 
 (defgroup ps-print-n-up nil
-  "N-up customization"
+  "N-up customization."
   :prefix "ps-"
   :tag "N-Up"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-zebra nil
-  "Zebra customization"
+  "Zebra customization."
   :prefix "ps-"
   :tag "Zebra"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-background nil
-  "Background customization"
+  "Background customization."
   :prefix "ps-"
   :tag "Background"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-printer '((lpr custom-group))
-  "Printer customization"
+  "Printer customization."
   :prefix "ps-"
   :tag "Printer"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-page nil
-  "Page customization"
+  "Page customization."
   :prefix "ps-"
   :tag "Page"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-miscellany nil
-  "Miscellany customization"
+  "Miscellany customization."
   :prefix "ps-"
   :tag "Miscellany"
   :version "20"
@@ -3760,7 +3760,7 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
 		"(setq ")
 	      key
 	      (if (> col len)
-		  (make-string (- col len) ?\ )
+		  (make-string (- col len) ?\s)
 		" ")
 	      (ps-value-string val))))
    (t "")

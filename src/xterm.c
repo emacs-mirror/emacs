@@ -16,8 +16,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 /* New display code by Gerd Moellmann <gerd@gnu.org>.  */
 /* Xt features made by Fred Pierresteguy.  */
@@ -535,6 +535,12 @@ x_draw_vertical_window_border (w, x, y0, y1)
      int x, y0, y1;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct face *face;
+
+  face = FACE_FROM_ID (f, VERTICAL_BORDER_FACE_ID);
+  if (face)
+    XSetForeground (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
+		    face->foreground);
 
   XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 	     f->output_data.x->normal_gc, x, y0, x, y1);
@@ -6281,6 +6287,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           if (compose_status.chars_matched > 0 && nbytes == 0)
             break;
 
+          bzero (&compose_status, sizeof (compose_status));
           orig_keysym = keysym;
 
 	  /* Common for all keysym input events.  */

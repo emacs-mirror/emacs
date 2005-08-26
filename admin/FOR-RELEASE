@@ -17,6 +17,10 @@ make sure all the pages really look ok in the manual as formatted.
 ** Update facemenu-unlisted-faces, adding whatever other
 face name prefixes should be in it for good results.
 
+** Update AUTHORS.
+
+** Regenerate the postscript files of the reference cards in etc.
+
 * NEW FEATURES
 
 ** Make VC-over-Tramp work where possible, or at least fail
@@ -28,19 +32,18 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 ** Update vhdl-mode.el based on changes in
    http://opensource.ethz.ch/emacs/vhdl-mode.html.
 
+** Debug custom themes.
 
 * FATAL ERRORS
-
-** Make unexec handle memory mapping policy of the latest versions of Linux.
-This includes exec_shield and a memory-layout randomization feature.
 
 ** Investigate reported crashes in compact_small_strings.
 
 ** Investigate reported crashes related to using an
 invalid pointer from string_free_list.
 
-
 * BUGS
+
+** Fix those modes that still use compile-internal, to not use it.
 
 ** Bug in ebrowse
 
@@ -98,6 +101,7 @@ further.
 I think in the near future we will see more of this problem, so it might be
 time to make anfe-ftp more intelligent.
 
+** lisp/elide-head.el should recognize the FSF's new address as well.
 
 * DOCUMENTATION
 
@@ -131,15 +135,12 @@ lisp/term		working		Thien-Thi Nguyen
 lisp/toolbar		working		Thien-Thi Nguyen
 lisp/url		working		Thien-Thi Nguyen
 
-** Update AUTHORS.
-
 ** Check the Emacs manual.
 
 Each manual section should be checked for factual correctness
 regarding recent changes by at least two people.  After each file
 name, on the same line or the following line, come the names of the
 people who have checked it.
-
 
 SECTION             READERS
 -----------------------------
@@ -254,7 +255,6 @@ in the respective language.
 After each file name, on the same line or the following line, come the
 names of the people who have checked it.
 
-
 SECTION                  READERS
 ----------------------------------
 etc/TUTORIAL             rms
@@ -277,8 +277,6 @@ etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
 etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>
 etc/TUTORIAL.zh
-
-
 
 
 Local variables:

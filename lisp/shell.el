@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -108,16 +108,16 @@
 ;;; Customization and Buffer Variables
 
 (defgroup shell nil
-  "Running shell from within Emacs buffers"
+  "Running shell from within Emacs buffers."
   :group 'processes
   :group 'unix)
 
 (defgroup shell-directories nil
-  "Directory support in shell mode"
+  "Directory support in shell mode."
   :group 'shell)
 
 (defgroup shell-faces nil
-  "Faces in shell buffers"
+  "Faces in shell buffers."
   :group 'shell)
 
 ;;;###autoload
@@ -178,7 +178,7 @@ This is a fine thing to set in your `.emacs' file.")
 (defvar shell-file-name-quote-list
   (if (memq system-type '(ms-dos windows-nt))
       nil
-    (append shell-delimiter-argument-list '(?\  ?\* ?\! ?\" ?\' ?\` ?\# ?\\)))
+    (append shell-delimiter-argument-list '(?\s ?\* ?\! ?\" ?\' ?\` ?\# ?\\)))
   "List of characters to quote when in a file name.
 This variable is used to initialize `comint-file-name-quote-list' in the
 shell buffer.  The value may depend on the operating system or shell.

@@ -1438,15 +1438,15 @@ input.  One way to do this is by using an appropriate input method
 construct the key sequence string using @code{multibyte-char-to-unibyte}
 or @code{string-make-unibyte} (@pxref{Converting Representations}).
 
-@deffn Command global-set-key key definition
+@deffn Command global-set-key key binding
 This function sets the binding of @var{key} in the current global map
-to @var{definition}.
+to @var{binding}.
 
 @smallexample
 @group
-(global-set-key @var{key} @var{definition})
+(global-set-key @var{key} @var{binding})
 @equiv{}
-(define-key (current-global-map) @var{key} @var{definition})
+(define-key (current-global-map) @var{key} @var{binding})
 @end group
 @end smallexample
 @end deffn
@@ -1482,15 +1482,15 @@ This function is implemented simply using @code{define-key}:
 @end smallexample
 @end deffn
 
-@deffn Command local-set-key key definition
+@deffn Command local-set-key key binding
 This function sets the binding of @var{key} in the current local
-keymap to @var{definition}.
+keymap to @var{binding}.
 
 @smallexample
 @group
-(local-set-key @var{key} @var{definition})
+(local-set-key @var{key} @var{binding})
 @equiv{}
-(define-key (current-local-map) @var{key} @var{definition})
+(define-key (current-local-map) @var{key} @var{binding})
 @end group
 @end smallexample
 @end deffn

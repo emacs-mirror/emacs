@@ -134,8 +134,8 @@ Manual.  It corresponds to Emacs Version 19.29.
 @c than the foobar edition").  --mew 13sep93
 
 Published by the Free Software Foundation
-59 Temple Place, Suite 330
-Boston, MA  02111-1307 USA
+51 Franklin Street, Fifth Floor
+Boston, MA  02110-1301 USA
 @end ifinfo
 
 @setchapternewpage odd
@@ -173,8 +173,8 @@ ISBN 1-882114-71-X
 
 @sp 2
 Published by the Free Software Foundation @*
-59 Temple Place, Suite 330 @*
-Boston, MA  02111-1307 USA
+51 Franklin Street, Fifth Floor @*
+Boston, MA  02110-1301 USA
 
 @sp 1
 Permission is granted to make and distribute verbatim copies of this

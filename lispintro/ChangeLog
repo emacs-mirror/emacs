@@ -1,3 +1,9 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+	* emacs-lisp-intro.texi: Update FSF's address.
+
 2004-04-23  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Add "-*- makefile -*-" mode tag.

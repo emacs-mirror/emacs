@@ -1,3 +1,38 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus.el (gnus-exit):
+	* gnus-group.el (gnus-group-icons):
+	* nnmail.el (nnmail-prepare): Fix typos in docstrings.
+
+	* gnus-nocem.el (gnus-nocem):
+	* message.el (message-various, message-buffers, message-sending)
+	(message-interface, message-forwarding, message-insertion)
+	(message-headers, message-news, message-mail):
+	* pgg-gpg.el (pgg-gpg):
+	* pgg-parse.el (pgg-parse):
+	* pgg-pgp.el (pgg-pgp):
+	* pgg-pgp5.el (pgg-pgp5):
+	* pop3.el (pop3): Finish `defgroup' description with period.
+
+2005-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-display-face): Improve the efficiency.
+	(article-display-x-face): Ditto; remove grey x-face stuff.
+
+2005-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-display-face): Correct the position in
+	which Faces are inserted; use dolist.
+
+2005-06-29  Didier Verna  <didier@xemacs.org>
+
+	* gnus-art.el (article-display-face): Display faces in correct
+	order.
+
 2005-06-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-nocem.el (gnus-nocem-verifyer): Default to pgg-verify.

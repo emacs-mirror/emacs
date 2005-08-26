@@ -17,8 +17,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with GNU Emacs; see the file COPYING.  If not, write to
-the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-Boston, MA 02111-1307, USA.  */
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 #include "lisp.h"
@@ -4783,7 +4783,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
       /* We moved the window start towards ZV, so PT may be now
 	 in the scroll margin at the top.  */
       move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
-      if (IT_CHARPOS (it) == PT && it.current_y >= this_scroll_margin)
+      if (IT_CHARPOS (it) == PT && it.current_y >= this_scroll_margin
+          && (NILP (Vscroll_preserve_screen_position)
+	      || EQ (Vscroll_preserve_screen_position, Qt)))
 	/* We found PT at a legitimate height.  Leave it alone.  */
 	;
       else if (preserve_y >= 0)
@@ -4820,7 +4822,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
       /* We moved the window start towards BEGV, so PT may be now
 	 in the scroll margin at the bottom.  */
       move_it_to (&it, PT, -1,
-		  it.last_visible_y - this_scroll_margin - 1, -1,
+		  (it.last_visible_y - CURRENT_HEADER_LINE_HEIGHT (w)
+		   - this_scroll_margin - 1),
+		  -1,
 		  MOVE_TO_POS | MOVE_TO_Y);
 
       /* Save our position, in case it's correct.  */
@@ -4836,7 +4840,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	  partial_p = it.current_y > it.last_visible_y;
 	}
 
-      if (charpos == PT && !partial_p)
+      if (charpos == PT && !partial_p
+          && (NILP (Vscroll_preserve_screen_position)
+	      || EQ (Vscroll_preserve_screen_position, Qt)))
 	/* We found PT before we found the display margin, so PT is ok.  */
 	;
       else if (preserve_y >= 0)
@@ -4951,7 +4957,8 @@ window_scroll_line_based (window, n, whole, noerror)
 	 the window-scroll-functions.  */
       w->force_start = Qt;
 
-      if (whole && !NILP (Vscroll_preserve_screen_position))
+      if (!NILP (Vscroll_preserve_screen_position)
+	  && (whole || !EQ (Vscroll_preserve_screen_position, Qt)))
 	{
 	  SET_PT_BOTH (pos, pos_byte);
 	  Fvertical_motion (make_number (original_vpos), window);
@@ -5326,6 +5333,8 @@ and redisplay normally--don't erase and redraw the frame.  */)
   struct buffer *obuf = current_buffer;
   int center_p = 0;
   int charpos, bytepos;
+  int iarg;
+  int this_scroll_margin;
 
   /* If redisplay is suppressed due to an error, try again.  */
   obuf->display_error_modiff = 0;
@@ -5352,6 +5361,12 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
   set_buffer_internal (buf);
 
+  /* Do this after making BUF current
+     in case scroll_margin is buffer-local.  */
+  this_scroll_margin = max (0, scroll_margin);
+  this_scroll_margin = min (this_scroll_margin,
+			    XFASTINT (w->total_lines) / 4);
+
   /* Handle centering on a graphical frame specially.  Such frames can
      have variable-height lines and centering point on the basis of
      line counts would lead to strange effects.  */
@@ -5368,13 +5383,16 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
 	}
-      else if (XINT (arg) < 0)
+      else if (iarg < 0)
 	{
 	  struct it it;
 	  struct text_pos pt;
-	  int nlines = - XINT (arg);
+	  int nlines = -iarg;
 	  int extra_line_spacing;
 	  int h = window_box_height (w);
+
+	  iarg = XINT (arg);
+	  iarg = - max (-iarg, this_scroll_margin);
 
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
 	  start_display (&it, w, pt);
@@ -5434,7 +5452,11 @@ and redisplay normally--don't erase and redraw the frame.  */)
       else
 	{
 	  struct position pos;
-	  pos = *vmotion (PT, - XINT (arg), w);
+
+	  iarg = XINT (arg);
+	  iarg = max (iarg, this_scroll_margin);
+
+	  pos = *vmotion (PT, -iarg, w);
 	  charpos = pos.bufpos;
 	  bytepos = pos.bytepos;
 	}
@@ -5445,11 +5467,17 @@ and redisplay normally--don't erase and redraw the frame.  */)
       int ht = window_internal_height (w);
 
       if (center_p)
-	arg = make_number (ht / 2);
+	iarg = make_number (ht / 2);
       else if (XINT (arg) < 0)
-	arg = make_number (XINT (arg) + ht);
+	iarg = XINT (arg) + ht;
+      else
+	iarg = XINT (arg);
 
-      pos = *vmotion (PT, - XINT (arg), w);
+      /* Don't let it get into the margin at either top or bottom.  */
+      iarg = max (iarg, this_scroll_margin);
+      iarg = min (iarg, ht - this_scroll_margin - 1);
+
+      pos = *vmotion (PT, - iarg, w);
       charpos = pos.bufpos;
       bytepos = pos.bytepos;
     }
@@ -5498,6 +5526,9 @@ zero means top of window, negative means relative to bottom of window.  */)
   struct window *w = XWINDOW (selected_window);
   int lines, start;
   Lisp_Object window;
+#if 0
+  int this_scroll_margin;
+#endif
 
   window = selected_window;
   start = marker_position (w->start);
@@ -5513,13 +5544,33 @@ zero means top of window, negative means relative to bottom of window.  */)
     Fgoto_char (w->start);
 
   lines = displayed_window_lines (w);
+
+#if 0
+  this_scroll_margin = max (0, scroll_margin);
+  this_scroll_margin = min (this_scroll_margin, lines / 4);
+#endif
+
   if (NILP (arg))
     XSETFASTINT (arg, lines / 2);
   else
     {
-      arg = Fprefix_numeric_value (arg);
-      if (XINT (arg) < 0)
-	XSETINT (arg, XINT (arg) + lines);
+      int iarg = XINT (Fprefix_numeric_value (arg));
+
+      if (iarg < 0)
+	iarg = iarg + lines;
+
+#if 0  /* This code would prevent move-to-window-line from moving point
+	  to a place inside the scroll margins (which would cause the
+	  next redisplay to scroll).  I wrote this code, but then concluded
+	  it is probably better not to install it.  However, it is here
+	  inside #if 0 so as not to lose it.  -- rms.  */
+
+      /* Don't let it get into the margin at either top or bottom.  */
+      iarg = max (iarg, this_scroll_margin);
+      iarg = min (iarg, lines - this_scroll_margin - 1);
+#endif
+
+      arg = make_number (iarg);
     }
 
   /* Skip past a partially visible first line.  */
@@ -6914,9 +6965,13 @@ If there is only one window, it is split regardless of this value.  */);
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
 	       &Vscroll_preserve_screen_position,
-	       doc: /* *Non-nil means scroll commands move point to keep its screen line unchanged.
-This is only when it is impossible to keep point fixed and still
-scroll as specified.  */);
+	       doc: /* *Controls if scroll commands move point to keep its screen line unchanged.
+A value of nil means point does not keep its screen position except
+at the scroll margin or window boundary respectively.
+A value of t means point keeps its screen position if the scroll
+command moved it vertically out of the window, e.g. when scrolling
+by full screens.
+Any other value means point always keeps its screen position.  */);
   Vscroll_preserve_screen_position = Qnil;
 
   DEFVAR_LISP ("window-configuration-change-hook",

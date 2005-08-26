@@ -314,7 +314,7 @@ command extensions.")
 (put 'mark-defun 'point-moving-unit 'region)
 (put 'mark-whole-buffer 'point-moving-unit 'region)
 (put 'mark-end-of-sentence 'point-moving-unit 'region)
-(put 'mark-c-function 'point-moving-unit 'region)
+(put 'c-mark-function 'point-moving-unit 'region)
 ;;;
 
 (defvar vi-mark-alist nil
@@ -637,7 +637,8 @@ insert state."
    "Go to ARGth line."
    (interactive "P")
    (if (null (vi-raw-numeric-prefix arg))
-       (end-of-buffer)
+       (with-no-warnings
+	 (end-of-buffer))
      (goto-line (vi-prefix-numeric-value arg))))
 
 (defun vi-beginning-of-buffer ()
@@ -1384,7 +1385,7 @@ l(ines)."
 	((char-equal region ?b) (mark-whole-buffer))
 	((char-equal region ?p) (mark-paragraph))
 	((char-equal region ?P) (mark-page arg))
-	((char-equal region ?f) (mark-c-function))
+	((char-equal region ?f) (c-mark-function))
 	((char-equal region ?w) (mark-word arg))
 	((char-equal region ?e) (mark-end-of-sentence arg))
 	((char-equal region ?l) (vi-mark-lines arg))

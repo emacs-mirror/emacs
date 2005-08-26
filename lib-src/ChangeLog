@@ -1,3 +1,7 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
 2005-06-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(DOC)): Fix last change.

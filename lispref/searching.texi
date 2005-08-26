@@ -850,17 +850,20 @@ extending after that position is accepted.
 
 If @var{repeat} is supplied, it must be a positive number; the search
 is repeated that many times; each repetition starts at the end of the
-previous match.  If all these successive searches succeed, the
-function succeeds, moving point and returning its new value.
-Otherwise the function fails.
+previous match.  If all these successive searches succeed, the search
+succeeds, moving point and returning its new value.  Otherwise the
+search fails.  What @code{re-search-forward} does when the search
+fails depends on the value of @var{noerror}:
 
-What happens when the function fails depends on the value of
-@var{noerror}.  If @var{noerror} is @code{nil}, a @code{search-failed}
-error is signaled.  If @var{noerror} is @code{t},
-@code{re-search-forward} does nothing and returns @code{nil}.  If
-@var{noerror} is neither @code{nil} nor @code{t}, then
-@code{re-search-forward} moves point to @var{limit} (or the end of the
-accessible portion of the buffer) and returns @code{nil}.
+@table @asis
+@item @code{nil}
+Signal a @code{search-failed} error.
+@item @code{t}
+Do nothing and return @code{nil}.
+@item anything else
+Move point to @var{limit} (or the end of the accessible portion of the
+buffer) and return @code{nil}.
+@end table
 
 In the following example, point is initially before the @samp{T}.
 Evaluating the search call moves point to the end of that line (between
