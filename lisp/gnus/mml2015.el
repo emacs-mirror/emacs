@@ -1,6 +1,7 @@
 ;;; mml2015.el --- MIME Security with Pretty Good Privacy (PGP)
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: PGP MIME MML
@@ -641,7 +642,8 @@
   (autoload 'pgg-decrypt-region "pgg")
   (autoload 'pgg-verify-region "pgg")
   (autoload 'pgg-sign-region "pgg")
-  (autoload 'pgg-encrypt-region "pgg"))
+  (autoload 'pgg-encrypt-region "pgg")
+  (autoload 'pgg-parse-armor "pgg-parse"))
 
 (defun mml2015-pgg-decrypt (handle ctl)
   (catch 'error
@@ -809,15 +811,23 @@
   (let ((pgg-errors-buffer mml2015-result-buffer)
 	(boundary (mml-compute-boundary cont))
 	(pgg-default-user-id (or (message-options-get 'mml-sender)
-				 pgg-default-user-id)))
+				 pgg-default-user-id))
+	entry)
     (unless (pgg-sign-region (point-min) (point-max))
       (pop-to-buffer mml2015-result-buffer)
       (error "Sign error"))
     (goto-char (point-min))
     (insert (format "Content-Type: multipart/signed; boundary=\"%s\";\n"
 		    boundary))
-      ;;; FIXME: what is the micalg?
-    (insert "\tmicalg=pgp-sha1; protocol=\"application/pgp-signature\"\n")
+    (if (setq entry (assq 2 (pgg-parse-armor
+			     (with-current-buffer pgg-output-buffer
+			       (buffer-string)))))
+	(setq entry (assq 'hash-algorithm (cdr entry))))
+    (insert (format "\tmicalg=%s; "
+		    (if (cdr entry)
+			(downcase (format "pgp-%s" (cdr entry)))
+		      "pgp-sha1")))
+    (insert "protocol=\"application/pgp-signature\"\n")
     (insert (format "\n--%s\n" boundary))
     (goto-char (point-max))
     (insert (format "\n--%s\n" boundary))

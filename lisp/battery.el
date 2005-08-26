@@ -1,7 +1,7 @@
 ;;; battery.el --- display battery status information
 
-;; Copyright (C) 1997, 1998, 2000, 2001, 2003, 2004, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Ralph Schleicher <rs@nunatak.allgaeu.org>
 ;; Keywords: hardware
@@ -49,10 +49,11 @@
 	      (file-directory-p "/proc/acpi/battery"))
 	 'battery-linux-proc-acpi)
 	((and (eq system-type 'darwin)
-	      (ignore-errors 
-		(with-temp-buffer 
-		  (and (eq (call-process "pmset" nil t nil "-g" "ps") 0)
-		       (> (buffer-size) 0)))))
+	      (condition-case nil  
+		  (with-temp-buffer 
+		    (and (eq (call-process "pmset" nil t nil "-g" "ps") 0)
+			 (> (buffer-size) 0)))
+		(error nil)))
 	 'battery-pmset))
   "*Function for getting battery status information.
 The function has to return an alist of conversion definitions.

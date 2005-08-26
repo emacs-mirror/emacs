@@ -1,5 +1,4 @@
 Esercitazione di Emacs.  Condizioni d'uso alla fine del file.
-Copyright (c) 2003 Free Software Foundation, Inc.
 
 I comandi di Emacs comportano generalmente l'uso del tasto CONTROL (a
 volte indicato con CTRL o CTL) o del tasto META (a volte indicato con EDIT
@@ -1094,7 +1093,7 @@ distribuito con il permesso di farne copie a determinate condizioni:
    indicativo, restando comunque inteso il fatto che è quella originale a
    fare fede.
 
-   Copyright (c) 2003 Free Software Foundation
+Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
    È permesso a chiunque copiare e distribuire attraverso ogni mezzo copie
    fedeli di questo documento così come viene ricevuto, a condizione che

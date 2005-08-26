@@ -1,3 +1,152 @@
+2005-08-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (kbd_buffer_get_event) [MAC_OS]: Make events for
+	ICONIFY/DEICONIFY_EVENT.
+
+	* macterm.c (mac_copy_area, mac_copy_area_with_mask): Restore
+	background color.
+	(mac_handle_visibility_change): New function.
+	(x_make_frame_invisible, x_iconify_frame)
+	(XTread_socket) [!USE_CARBON_EVENTS]: Use it.
+	[USE_CARBON_EVENTS] (mac_handle_window_event)
+	(install_window_handler): Handle visibilty change events.
+	(x_make_frame_visible): Don't reposition window if it is iconified
+	or asked for visible before.  Select and uncollapse window when it
+	is made visible.
+	(x_make_frame_invisible): Don't reset x_highlight_frame.
+	(x_iconify_frame): Likewise.  Make invisible frame visible before
+	it is iconified.
+	(read_socket_inev): Move variable outside #if USE_CARBON_EVENTS.
+	(do_window_update): Don't change visibility of invisible frame.
+
+2005-08-22  Juri Linkov  <juri@jurta.org>
+
+	* term.c (turn_on_face): Check for TS_set_foreground and
+	TS_set_background depending on standout_mode.  Simplify.
+
+2005-08-21  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (update_window_fringes): Only put TOP and BOTTOM
+	bitmaps on fully visible rows.
+
+	* fringe.c (update_window_fringes): Replace FORCE_P arg with
+	KEEP_CURRENT_P arg; if non-zero, don't update current row fringes,
+	and return 0.
+
+	* xdisp.c (redisplay_window): Call update_window_fringes with
+	KEEP_CURRENT_P non-0 if we are going to refresh fringes later.
+
+2005-08-20  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (display_echo_area_1): Get display start pos from w->start.
+	(resize_mini_window): Set w->start, and PT, so as to display the tail
+	end of the buffer, if it doesn't all fit.
+
+2005-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (calc_pixel_width_or_height): Use actual display
+	resolution when available instead of Vdisplay_pixels_per_inch.
+
+2005-08-17  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): Adjust X value if window is hscrolled.
+
+	* dispnew.c (buffer_posn_from_coords): Check that target row is
+	within matrix.
+
+2005-08-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_wm_set_icon_pixmap): Move GTK specific code to
+	xg_set_frame_icon and call it.
+
+	* gtkutil.c (xg_set_frame_icon): New function.
+
+	* gtkutil.h (xg_set_frame_icon): Declare it.
+
+2005-08-16  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (increment_row_positions): Skip non-enabled rows.
+
+	* window.c (SAVED_WINDOW_VECTOR_SIZE): Remove dangerous define.
+	(Fcurrent_window_configuration): Use VECSIZE macro instead.
+
+2005-08-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (message3_nolog): Clear echo_message_buffer.
+
+2005-08-15  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (QUIT) [!SYNC_INPUT]: Throw t to Vthrow_on_input.
+
+	* process.c (deactivate_process, status_notify, read_process_output)
+	(update_status, status_convert, decode_status, allocate_pty)
+	(make_process, remove_process, list_processes_1)
+	(create_process_1, unwind_request_sigio, read_process_output)
+	(send_process, keyboard_bit_set): Declare static.
+	(Fdelete_process): Simplify.  Pass process to status_notify, so we
+	don't try to read output from it.
+	(status_notify): New arg deleting_process--don't try to read
+	output from that process.
+
+	* lisp.h (deactivate_process, status_notify, read_process_output):
+	Remove prototypes.
+
+2005-08-14  Richard M. Stallman  <rms@gnu.org>
+
+	* image.c (syms_of_image): Init Qxbm, Qpbm before calling define_image_type.
+
+2005-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_pixbuf_from_pix_and_mask): New function.
+	(xg_get_image_for_pixmap): Move some code to
+	xg_get_pixbuf_from_pix_and_mask, and call it.
+
+	* gtkutil.h (xg_get_pixbuf_from_pix_and_mask): Declare.
+
+	* xterm.c (x_wm_set_icon_pixmap): Call xg_get_pixbuf_from_pix_and_mask
+	to get an GTK icon and set it with GTK functions to avoid having GTK
+	override an icon set with just X functions.
+
+2005-08-11  Richard M. Stallman  <rms@gnu.org>
+
+	* image.c (syms_of_image): Init image_types here, and call define_image_type.
+	(init_image): Not here.
+
+2005-08-09  Richard M. Stallman  <rms@gnu.org>
+
+	* bytecode.c (BYTE_CODE_QUIT): Throw t to Vthrow_on_input.
+
+	* lisp.h (QUIT): Throw t to Vthrow_on_input.
+
+2005-08-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* floatfns.c (Fexpt): Use floats for negative exponent.
+
+2005-08-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_modify_menubar_widgets): Remove semicolon that
+	should not be there, causing menu display errors with GTK 2.6.9.
+
+2005-08-07  Richard M. Stallman  <rms@gnu.org>
+
+	* floatfns.c (Fexpt): Undo previous change.
+
+	* dispnew.c (Fframe_or_buffer_changed_p): Take an arg
+	so it can be used with various state vectors.
+
+	* emacs.c (endif): Convert -script into -scriptload.
+	(standard_args): Add -scriptload.  Allow -basic-display with one dash.
+
+	* fns.c (syms_of_fns): Add `emacs' to features.
+
+	* term.c (set_terminal_modes): If no TS_termcap_modes string,
+	output newlines to scroll the old screen contents off the screen.
+
+2005-08-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* floatfns.c (Fexpt): Use floats for negative exponent.
+	Reported by D Goel.
+
 2005-08-02  Richard M. Stallman  <rms@gnu.org>
 
 	* frame.c (Fframe_char_width): Doc fix.

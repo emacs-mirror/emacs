@@ -1,6 +1,7 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995, 1997, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1995, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev convenience
@@ -2347,6 +2348,9 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
 	       'use-completion-under-or-before-point)))
 
 ;; C mode diffs.
+
+(defvar c-mode-map)
+
 (defun completion-c-mode-hook ()
   (def-completion-wrapper electric-c-semi :separator)
   (define-key c-mode-map "+" 'completion-separator-self-insert-command)
@@ -2358,6 +2362,9 @@ TYPE is the type of the wrapper to be added.  Can be :before or :under."
   (add-hook 'c-mode-hook 'completion-c-mode-hook))
 
 ;; FORTRAN mode diffs. (these are defined when fortran is called)
+
+(defvar fortran-mode-map)
+
 (defun completion-setup-fortran-mode ()
   (define-key fortran-mode-map "+" 'completion-separator-self-insert-command)
   (define-key fortran-mode-map "-" 'completion-separator-self-insert-command)

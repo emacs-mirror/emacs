@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1999, 2003 Free Software Foundation, Inc.
+@c Copyright (C) 1999, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/hash
 @node Hash Tables, Symbols, Sequences Arrays Vectors, Top
@@ -281,8 +281,8 @@ compared case-insensitively.
 (defun case-fold-string-hash (a)
   (sxhash (upcase a)))
 
-(define-hash-table-test 'case-fold 'case-fold-string=
-                        'case-fold-string-hash))
+(define-hash-table-test 'case-fold
+  'case-fold-string= 'case-fold-string-hash)
 
 (make-hash-table :test 'case-fold)
 @end example

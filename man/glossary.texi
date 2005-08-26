@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
+@c   2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Glossary, Key Index, Intro, Top
 @unnumbered Glossary
@@ -681,7 +682,7 @@ keymap binds the character @kbd{C-n} to the command function
 @item Keyboard Translation Table
 The keyboard translation table is an array that translates the character
 codes that come from the terminal into the character codes that make up
-key sequences.  @xref{Keyboard Translations}.
+key sequences.
 
 @item Kill Ring
 The kill ring is where all text you have killed recently is saved.

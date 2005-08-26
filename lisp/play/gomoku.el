@@ -165,15 +165,11 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
     '((((class color)) (:foreground "red" :weight bold)))
   "Face to use for Emacs' O."
   :group 'gomoku)
-;; backward-compatibility alias
-(put 'gomoku-font-lock-O-face 'face-alias 'gomoku-O)
 
 (defface gomoku-X
     '((((class color)) (:foreground "green" :weight bold)))
   "Face to use for your X."
   :group 'gomoku)
-;; backward-compatibility alias
-(put 'gomoku-font-lock-X-face 'face-alias 'gomoku-X)
 
 (defvar gomoku-font-lock-keywords
   '(("O" . 'gomoku-O)

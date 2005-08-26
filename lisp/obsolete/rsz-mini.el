@@ -1,6 +1,7 @@
 ;;; rsz-mini.el --- dynamically resize minibuffer to display entire contents
 
-;; Copyright (C) 1990, 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1994, 1995, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;;         Roland McGrath <roland@gnu.org>

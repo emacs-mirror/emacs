@@ -58,6 +58,11 @@ Setting to nil limits the scrollbar to the edge or vertical dividing bar.")
   "Returns a new mousemap."
   (cons 'mousemap nil))
 
+;;; initialize mouse maps
+(defvar current-global-mousemap (make-mousemap))
+(defvar current-local-mousemap nil)
+(make-variable-buffer-local 'current-local-mousemap)
+
 (defun copy-mousemap (mousemap)
   "Return a copy of mousemap."
   (copy-alist mousemap))
@@ -668,13 +673,6 @@ just close the window, and wait for reopening."
   (if stuffstring (send-string-to-terminal stuffstring))
   (send-string-to-terminal "\033[2t")	; To close EmacsTool window.
   (run-hooks 'suspend-resume-hook))
-;;;
-;;; initialize mouse maps
-;;;
-
-(make-variable-buffer-local 'current-local-mousemap)
-(setq-default current-local-mousemap nil)
-(defvar current-global-mousemap (make-mousemap))
 
 (provide 'sun-mouse)
 (provide 'term/sun-mouse)		; have to (require 'term/sun-mouse)

@@ -1,6 +1,6 @@
 /* Fundamental definitions for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
-   2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1823,7 +1823,7 @@ extern int interrupt_input_pending;
         Lisp_Object flag = Vquit_flag;			\
 	Vquit_flag = Qnil;				\
 	if (EQ (Vthrow_on_input, flag))			\
-	  Fthrow (Vthrow_on_input, Qnil);		\
+	  Fthrow (Vthrow_on_input, Qt);			\
 	Fsignal (Qquit, Qnil);				\
       }							\
     else if (interrupt_input_pending)			\
@@ -1839,7 +1839,7 @@ extern int interrupt_input_pending;
         Lisp_Object flag = Vquit_flag;			\
 	Vquit_flag = Qnil;				\
 	if (EQ (Vthrow_on_input, flag))			\
-	  Fthrow (Vthrow_on_input, Qnil);		\
+	  Fthrow (Vthrow_on_input, Qt);			\
 	Fsignal (Qquit, Qnil);				\
       }							\
   } while (0)
@@ -3054,12 +3054,9 @@ extern int wait_reading_process_output P_ ((int, int, int, int,
 					    Lisp_Object,
 					    struct Lisp_Process *,
 					    int));
-extern void deactivate_process P_ ((Lisp_Object));
 extern void add_keyboard_wait_descriptor P_ ((int));
 extern void delete_keyboard_wait_descriptor P_ ((int));
 extern void close_process_descs P_ ((void));
-extern void status_notify P_ ((void));
-extern int read_process_output P_ ((Lisp_Object, int));
 extern void init_process P_ ((void));
 extern void syms_of_process P_ ((void));
 extern void setup_process_coding_systems P_ ((Lisp_Object));

@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Building, Maintaining, Programs, Top
 @chapter Compiling and Testing Programs
@@ -48,16 +49,8 @@ the @samp{*compilation*} buffer.
 @item M-x recompile
 Invoke a compiler with the same command as in the last invocation of
 @kbd{M-x compile}.
-@item M-x grep
-Run @code{grep} asynchronously under Emacs, with matching lines
-listed in the buffer named @samp{*grep*}.
-@item M-x grep-find
-@item M-x find-grep
-Run @code{grep} via @code{find}, with user-specified arguments, and
-collect output in the buffer named @samp{*grep*}.
 @item M-x kill-compilation
-@itemx M-x kill-grep
-Kill the running compilation or @code{grep} subprocess.
+Kill the running compilation subprocess.
 @end table
 
 @findex compile
@@ -323,13 +316,25 @@ Emacs.  @xref{MS-DOS}.
 @node Grep Searching
 @section Searching with Grep under Emacs
 
-@findex grep
   Just as you can run a compiler from Emacs and then visit the lines
-where there were compilation errors, you can also run @code{grep} and
+with compilation errors, you can also run @code{grep} and
 then visit the lines on which matches were found.  This works by
 treating the matches reported by @code{grep} as if they were ``errors.''
 
-  To do this, type @kbd{M-x grep}, then enter a command line that
+@table @kbd
+@item M-x grep
+Run @code{grep} asynchronously under Emacs, with matching lines
+listed in the buffer named @samp{*grep*}.
+@item M-x grep-find
+@itemx M-x find-grep
+Run @code{grep} via @code{find}, with user-specified arguments, and
+collect output in the buffer named @samp{*grep*}.
+@item M-x kill-grep
+Kill the running @code{grep} subprocess.
+@end table
+
+@findex grep
+  To run @code{grep}, type @kbd{M-x grep}, then enter a command line that
 specifies how to run @code{grep}.  Use the same arguments you would give
 @code{grep} when running it normally: a @code{grep}-style regexp
 (usually in single-quotes to quote the shell's special characters)
@@ -768,16 +773,16 @@ session.  If you have customized @code{gud-gdb-command-name} in that
 way, then you can use @kbd{M-x gdba} to invoke GDB in graphical mode.
 
 @menu
-* Layout::               Control the number of displayed buffers.
-* Breakpoints Buffer::   A breakpoint control panel.
-* Stack Buffer::         Select a frame from the call stack.
-* Watch Expressions::    Monitor variable values in the speedbar.
-* Other Buffers::        Input/output, locals, registers, assembler, threads
-                         and memory buffers.
+* GDB User Interface Layout::   Control the number of displayed buffers.
+* Breakpoints Buffer::          A breakpoint control panel.
+* Stack Buffer::                Select a frame from the call stack.
+* Watch Expressions::           Monitor variable values in the speedbar.
+* Other GDB User Interface Buffers:: Input/output, locals, registers,
+                                assembler, threads and memory buffers.
 @end menu
 
-@node Layout
-@subsubsection Layout
+@node GDB User Interface Layout
+@subsubsection GDB User Interface Layout
 @cindex GDB User Interface layout
 
 @findex gdb-many-windows
@@ -912,7 +917,7 @@ FUNCTION::VARIABLE format to display variables in the speedbar.
 Since this does not work for variables defined in compound statements,
 the default value is @code{nil}.
 
-@node Other Buffers
+@node Other GDB User Interface Buffers
 @subsubsection Other Buffers
 
 @table @asis

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2000,2001
-@c  Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node MS-DOS, Manifesto, Mac OS, Top
 @appendix Emacs and MS-DOS
@@ -583,6 +583,12 @@ However, due to incompatibilities between MS-DOS/MS-Windows and other systems,
 there are several DOS-specific aspects of this support that you should
 be aware of.  This section describes these aspects.
 
+  The description below is largely specific to the MS-DOS port of
+Emacs, especially where it talks about practical implications for
+Emacs users.  For other operating systems, see the @file{code-pages.el}
+package, which implements support for MS-DOS- and MS-Windows-specific
+encodings for all platforms other than MS-DOS.
+
 @table @kbd
 @item M-x dos-codepage-setup
 Set up Emacs display and coding systems as appropriate for the current
@@ -721,7 +727,8 @@ DOS codepages for the same locale.  For example, DOS codepage 850
 supports the same character set as Windows codepage 1252; DOS codepage
 855 supports the same character set as Windows codepage 1251, etc.
 The MS-Windows version of Emacs uses the current codepage for display
-when invoked with the @samp{-nw} option.
+when invoked with the @samp{-nw} option.  Support for codepages in the
+Windows port of Emacs is part of the @file{code-pages.el} package.
 
 @node MS-DOS Processes
 @section Subprocesses on MS-DOS

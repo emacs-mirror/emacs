@@ -1,6 +1,7 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2003 Free Software Foundation
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -992,6 +993,8 @@ In Info, return the current node."
     (insert string)))
 
 
+(defvar Info-current-file)
+
 (defun bookmark-buffer-file-name ()
   "Return the current buffer's file in a way useful for bookmarks.
 For example, if this is a Info buffer, return the Info file's name."
@@ -1034,6 +1037,10 @@ For example, if this is a Info buffer, return the Info file's name."
                    (lambda (x y) (string-lessp (car x) (car y))))))))
 
 
+(defvar bookmark-after-jump-hook nil
+  "Hook run after `bookmark-jump' jumps to a bookmark.
+Useful for example to unhide text in `outline-mode'.")
+
 ;;;###autoload
 (defun bookmark-jump (bookmark)
   "Jump to bookmark BOOKMARK (a point in some file).
@@ -1056,6 +1063,7 @@ of the old one in the permanent bookmark record."
     (and cell
          (switch-to-buffer (car cell))
          (goto-char (cdr cell))
+	 (progn (run-hooks 'bookmark-after-jump-hook) t)
 	 (if bookmark-automatically-show-annotations
              ;; if there is an annotation for this bookmark,
              ;; show it in a buffer.
@@ -1101,7 +1109,8 @@ be retrieved from a VC backend, else return nil."
                 ;; Info nodes must be visited with care.
                 (progn
                   (require 'info)
-                  (Info-find-node file info-node))
+		  (with-no-warnings
+		    (Info-find-node file info-node)))
               ;; Else no Info.  Can do an ordinary find-file:
               (set-buffer (find-file-noselect file))
               (goto-char place))

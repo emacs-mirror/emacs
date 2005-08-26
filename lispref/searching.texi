@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/searching
 @node Searching and Matching, Syntax Tables, Non-ASCII Characters, Top
@@ -166,6 +166,16 @@ beginning of the match.
 denotes a (possibly infinite) set of strings.  Searching for matches for
 a regexp is a very powerful operation.  This section explains how to write
 regexps; the following section says how to search for them.
+
+@findex re-builder
+@cindex authoring regular expressions
+  For convenient interactive development of regular expressions, you
+can use the @kbd{M-x re-builder} command.  It provides a convenient
+interface for creating regular expressions, by giving immediate visual
+feedback in a separate buffer.  As you edit the regexp, all its
+matches in the target buffer are highlighted.  Each parenthesized
+sub-expression of the regexp is shown in a distinct face, which makes
+it easier to verify even very complex regexps.
 
 @menu
 * Syntax of Regexps::       Rules for writing regular expressions.
@@ -1136,6 +1146,25 @@ A positive number means to include that many lines both before and after.
 @node Search and Replace
 @section Search and Replace
 @cindex replacement
+
+@defun replace-regexp-in-string regexp rep string &optional fixedcase literal subexp start
+This function copies @var{string} and searches it for matches for
+@var{regexp}, and replaces them with @var{rep}.  It returns the
+modified copy.  If @var{start} is non-@code{nil}, the search for
+matches starts at that index in @var{string}, so matches starting
+before that index are not changed.
+
+This function uses @code{replace-match} to do the replacement, and it
+passes the optional arguments @var{fixedcase}, @var{literal} and
+@var{subexp} along to @code{replace-match}.
+
+Instead of a string, @var{rep} can be a function.  In that case,
+@code{replace-regexp-in-string} calls @var{rep} for each match,
+passing the text of the match as its sole argument.  It collects the
+value @var{rep} returns and passes that to @code{replace-match} as the
+replacement string.  The match-data at this point are the result
+of matching @var{regexp} against a substring of @var{string}.
+@end defun
 
 @defun perform-replace from-string replacements query-flag regexp-flag delimited-flag &optional repeat-count map start end
 This function is the guts of @code{query-replace} and related

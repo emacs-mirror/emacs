@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1999 Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1999, 2002, 2003, 2004,
+@c   2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/locals
 @node Standard Buffer-Local Variables, Standard Keymaps, Standard Errors, Top
@@ -82,7 +83,7 @@ use, but we don't try to list them all here.
 @xref{Usual Display}.
 
 @item cursor-type
-@xref{Window Frame Parameters}.
+@xref{Cursor Parameters}.
 
 @item comment-column
 @xref{Comments,,, emacs, The GNU Emacs Manual}.

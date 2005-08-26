@@ -1,3 +1,7 @@
+2005-08-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `obj' and `oo' for in-place installations.
+
 2005-07-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* config.nt: (HAVE_GETOPT_H, HAVE_GETOPT_LONG_ONLY): Undefine.
@@ -1175,8 +1179,8 @@
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001
-	Free Software Foundation, Inc.
+    Copyright (C) 1995, 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
+       2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

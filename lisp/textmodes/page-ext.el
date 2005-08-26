@@ -1,6 +1,7 @@
 ;;; page-ext.el --- extended page handling commands
 
-;; Copyright (C) 1990, 1991, 1993, 1994 Free Software Foundation
+;; Copyright (C) 1990, 1991, 1993, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: Robert J. Chassell <bob@gnu.org>
 ;; Keywords: wp data

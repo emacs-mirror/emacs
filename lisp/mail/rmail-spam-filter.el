@@ -1,7 +1,6 @@
 ;;; rmail-spam-filter.el  --- spam filter for rmail, the emacs mail reader.
 
-;; Copyright (C) 2002 
-;;		Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 ;; Keywords: email, spam, filter, rmail
 ;; Author: Eli Tziperman <eli AT deas.harvard.edu>
 
@@ -183,7 +182,7 @@ may be either 'this is spam' or 'another spam', use the regexp: 'this
 is spam\\|another spam' (without the single quotes).  To specify that
 if the contents contain both this and that the message is spam,
 specify 'this\\&that' in the appropriate spam definition field."
-  :type '(repeat 
+  :type '(repeat
           (list :format "%v"
 	   (cons :format "%v" :value (from . "")
 		 (const :format ""  from)
@@ -202,7 +201,7 @@ specify 'this\\&that' in the appropriate spam definition field."
 		 (string :tag "Contents"  ""))
 	   (cons :format "%v" :value (action . output-and-delete)
 		 (const :format "" action)
-		 (choice :tag "Action selection" 
+		 (choice :tag "Action selection"
 		  (const :tag "output to spam folder and delete" output-and-delete)
 		  (const :tag "delete spam" delete-spam)
 		  ))
@@ -218,7 +217,7 @@ for interaction with `rsf-bbdb-auto-delete-spam-entries'")
 (defun check-field (field-symbol message-data definition result)
   "Check if field-symbol is in `rsf-definitions-alist'.
 Capture maybe-spam and this-is-a-spam-email in a cons in result,
-where maybe-spam is in first and this-is-a-spam-email is in rest. 
+where maybe-spam is in first and this-is-a-spam-email is in rest.
 The values are returned by destructively changing result.
 If FIELD-SYMBOL field does not exist AND is not specified,
 this may still be spam due to another element...
@@ -259,7 +258,7 @@ it from rmail file.  Called for each new message retrieved by
 	(save-current-msg)
 	(rsf-saved-bbdb/mail_auto_create_p nil)
 	)
-    
+
     ;; make sure bbdb does not create entries for messages while spam
     ;; filter is scanning the rmail file:
     (setq rsf-saved-bbdb/mail_auto_create_p 'bbdb/mail_auto_create_p)
@@ -291,7 +290,7 @@ it from rmail file.  Called for each new message retrieved by
 
 	;;; do we want to ignore case in spam definitions:
 	  (setq case-fold-search rsf-ignore-case)
-	
+
 	;; Check for blind CC condition.  Set vars such that while
 	;; loop will be bypassed and spam condition will trigger
 	(if (and rsf-no-blind-cc
@@ -339,7 +338,7 @@ it from rmail file.  Called for each new message retrieved by
 
 	    ;; start scanning incoming message:
 	    ;;---------------------------------
-	    
+
             ;; Maybe the different fields should also be done in a
             ;; loop to make the whole thing more flexible
  	    ;; if sender field is not specified in message being
@@ -352,16 +351,16 @@ it from rmail file.  Called for each new message retrieved by
  	    ;; next, if spam was not ruled out already, check subject:
             (check-field 'subject message-subject definition maybe-spam)
  	    ;; next, if spam was not ruled out already, check content-type:
-            (check-field 'content-type message-content-type 
+            (check-field 'content-type message-content-type
                          definition maybe-spam)
 	    ;; next, if spam was not ruled out already, check
 	    ;; contents: if contents field is not specified, this may
 	    ;; still be spam due to another element...
-            (check-field 'contents 
+            (check-field 'contents
                          (buffer-substring
                           (rmail-msgbeg msg) (rmail-msgend msg))
                          definition maybe-spam)
-            
+
 	    ;; if the search in rsf-definitions-alist found
 	    ;; that this email is spam, output the email to the spam
 	    ;; rmail file, mark the email for deletion, leave the
@@ -378,7 +377,7 @@ it from rmail file.  Called for each new message retrieved by
 	      (setq num-element (+ num-element 1)))
 	    )
           )
-        
+
         ;; (BK) re-set originally used variables
         (setq this-is-a-spam-email (rest maybe-spam)
               maybe-spam (first maybe-spam))
@@ -610,9 +609,9 @@ automatically, no user input is required."
         (while definitions
           (setq current (car definitions))
           (setq definitions (cdr definitions))
-          (setq result 
+          (setq result
                 (append result
-                        (list 
+                        (list
                          (list (assoc 'from current)
                                (assoc 'to current)
                                (assoc 'subject current)

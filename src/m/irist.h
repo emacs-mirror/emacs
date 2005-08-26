@@ -1,6 +1,7 @@
 /* machine description file for Silicon Graphics Iris 2500 Turbos;
    also possibly for non-turbo Irises with system release 2.5.
-   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,7 +1,7 @@
 ;;; lazy-lock.el --- lazy demand-driven fontification for fast Font Lock mode
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2001
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF

@@ -1,7 +1,7 @@
 ;;; nnoo.el --- OO Gnus Backends
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001
-;;	Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -254,7 +254,7 @@
 	(setcdr bstate (delq defs (cdr bstate)))
 	(pop defs)
 	(while defs
-	  (set (car (pop defs)) nil))))) 
+	  (set (car (pop defs)) nil)))))
   t)
 
 (defun nnoo-close (backend)

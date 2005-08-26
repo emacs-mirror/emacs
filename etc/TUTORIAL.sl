@@ -1,5 +1,4 @@
 Prvo berilo za Emacs. Pogoji uporabe in raz¹irjanja so navedeni na koncu.
-Copyright (c) 1985, 1996, 1997, 2001, 2002 Free Software Foundation, Inc.
 
 Ukazi v Emacsu v splo¹nem vkljuèujejo tipki CONTROL (vèasih oznaèeni
 CTRL ali CTL) in META (vèasih oznaèena EDIT ali ALT). Namesto, da bi ju
@@ -1115,7 +1114,8 @@ Emacs. V sloven¹èino ga je prevedel Primo¾ Peterlin.
 To besedilo, kot sam GNU Emacs, je avtorsko delo, in njegovo
 razmno¾evanje in raz¹irjanje je dovoljeno pod naslednjimi pogoji:
 
-Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation
+Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Dovoljeno je izdelovati in raz¹irjati neokrnjene kopije tega spisa
    v kakr¹nikoli obliki pod pogojem, da je ohranjena navedba o

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c   2001, 2004, 2005 Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Files, Buffers, Keyboard Macros, Top
 @chapter File Handling
@@ -2907,7 +2907,7 @@ string; the default is @code{"-c"} to specify a context diff.
 @findex diff-goto-source
   After running @kbd{M-x diff}, you can use @kbd{C-x `} to visit
 successive changed locations in the two source files, as in
-Compilation mode (@pxref{Compilation}.)  In the @samp{*diff*} buffer,
+Compilation mode (@pxref{Compilation Mode}.)  In the @samp{*diff*} buffer,
 you can move to a particular hunk of changes and type @kbd{C-c C-c}
 (@code{diff-goto-source}) to visit the corresponding source location.
 
@@ -2918,15 +2918,19 @@ recent backup.  If you specify the name of a backup file,
 of.
 
 @findex compare-windows
-  The command @kbd{M-x compare-windows} compares the text in the current
-window with that in the next window.  Comparison starts at point in each
-window, and each starting position is pushed on the mark ring in its
-respective buffer.  Then point moves forward in each window, a character
-at a time, until a mismatch between the two windows is reached.  Then
-the command is finished.  Another invocation of this command with
-points on mismatching positions tries to skip non-matching text and
-move points forward, until a match between the two windows is reached.
-For more information about windows in Emacs, @ref{Windows}.
+  The command @kbd{M-x compare-windows} compares the text in the
+current window with that in the next window.  (For more information
+about windows in Emacs, @ref{Windows}.)  Comparison starts at point in
+each window, after pushing each initial point value on the mark ring
+in its respective buffer.  Then it moves point forward in each window,
+one character at a time, until it reaches characters that don't match.
+Then the command exits.
+
+  If point in the two windows is followed by non-matching text when
+the command starts, it tries heuristically to advance up to matching
+text in the two windows, and then exits.  So if you use @kbd{M-x
+compare-windows} repeatedly, each time it either skips one matching
+range or finds the start of another.
 
 @vindex compare-ignore-case
 @vindex compare-ignore-whitespace

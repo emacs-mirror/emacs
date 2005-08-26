@@ -1,6 +1,7 @@
 ;;; disass.el --- disassembler for compiled Emacs Lisp code
 
-;; Copyright (C) 1986, 1991, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1991, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Doug Cutting <doug@csli.stanford.edu>
 ;;	Jamie Zawinski <jwz@lucid.com>

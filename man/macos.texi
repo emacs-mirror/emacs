@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 2000,2001,2002 Free Software Foundation, Inc.
+@c Copyright (C) 2000, 2001, 2002, 2003, 2004,
+@c   2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Mac OS, MS-DOS, Antinews, Top
 @appendix Emacs and the Mac OS

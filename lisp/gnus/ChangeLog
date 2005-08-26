@@ -1,3 +1,33 @@
+2005-08-22  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
+
+	* gnus-art.el (gnus-treatment-function-alist): Move date-lapsed to
+	the end of the date treatments.
+
+2005-08-15  Simon Josefsson  <jas@extundo.com>
+
+	* pgg.el (url-insert-file-contents): Don't autoload it, Emacs has
+	it in url-handlers.el and XEmacs in url.el.  Reported by Luca
+	Capello and Romain Francoise.
+	(pgg-fetch-key-function): Removed, not used?
+	(pgg-insert-url-with-w3): Require url, to get
+	url-insert-file-contents regardless of where it is defined.
+
+2005-08-08  Simon Josefsson  <jas@extundo.com>
+
+	* pgg.el: Autoload url-insert-file-contents instead of loading
+	w3/url.
+	(pgg-insert-url-with-w3): Don't load url here.
+
+2005-08-05  Daiki Ueno <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-pgg-sign): Make sure micalg is correct.
+
+	* pgg-parse.el (pgg-parse-hash-algorithm-alist): Add SHA-2.
+
+2005-08-06  Romain Francoise  <romain@orebokech.com>
+
+	* message.el: Fix typo in docstring.
+
 2005-08-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-bodies.el (mm-encode-body): Use coding system rather than
@@ -103,6 +133,12 @@
 	for text/rtf.  Display default in prompt.  Pass default for M-n.
 
 	* mm-uu.el (mm-uu-copy-to-buffer): Use with-current-buffer.
+
+2005-07-16  Romain Francoise  <romain@orebokech.com>
+
+	* gnus-uu.el (gnus-uu-save-article): Use `message-make-date'
+	instead of `current-time-string' as the latter creates a time
+	string that is not RFC 2822 compliant (it lacks the zone).
 
 2005-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
 

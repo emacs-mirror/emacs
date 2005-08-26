@@ -1,6 +1,7 @@
 ;;; url-methods.el --- Load URL schemes as needed
 
-;; Copyright (c) 1996,1997,1998,1999,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 

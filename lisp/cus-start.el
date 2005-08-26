@@ -1,6 +1,7 @@
 ;;; cus-start.el --- define customization properties of builtins
 ;;
-;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -171,6 +172,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (mouse-highlight mouse (choice (const :tag "disabled" nil)
 					    (const :tag "always shown" t)
 					    (other :tag "hidden by keypress" 1)))
+	     ;; fringe.c
+	     (overflow-newline-into-fringe fringe boolean "22.1")
 	     ;; indent.c
 	     (indent-tabs-mode fill boolean)
 	     ;; keyboard.c
@@ -216,7 +219,7 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 				 :format "%t%n%h"
 				 :inline t
 				 (read-only t))
-			  (const :tag "Inviolable"
+			  (const :tag "Don't Enter"
 				 :doc "Prevent point from ever entering prompt"
 				 :format "%t%n%h"
 				 :inline t

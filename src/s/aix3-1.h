@@ -1,5 +1,6 @@
 /* Definitions file for GNU Emacs running on IBM AIX version 3.1
-   Copyright (C) 1985, 1986, 1990, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1990, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

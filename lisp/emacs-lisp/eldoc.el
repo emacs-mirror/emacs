@@ -1,7 +1,7 @@
 ;;; eldoc.el --- show function arglist or variable docstring in echo area
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2003, 2005
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman <friedman@splode.com>
 ;; Maintainer: friedman@splode.com
@@ -454,10 +454,11 @@ Emacs Lisp mode) that support Eldoc.")
 ;; Prime the command list.
 (eldoc-add-command-completions
  "backward-" "beginning-of-" "delete-other-windows" "delete-window"
- "end-of-" "forward-" "indent-for-tab-command" "goto-" "mouse-set-point"
- "next-" "other-window" "previous-" "recenter" "scroll-"
- "self-insert-command" "split-window-"
- "up-list" "down-list")
+ "end-of-" "exchange-point-and-mark" "forward-"
+ "indent-for-tab-command" "goto-" "mark-page" "mark-paragraph"
+ "mouse-set-point" "move-" "pop-global-mark" "next-" "other-window"
+ "previous-" "recenter" "scroll-" "self-insert-command"
+ "split-window-" "up-list" "down-list")
 
 (provide 'eldoc)
 

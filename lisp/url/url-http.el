@@ -1,6 +1,6 @@
 ;;; url-http.el --- HTTP retrieval routines
 
-;; Copyright (c) 1999, 2001, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -28,7 +28,8 @@
 
 (eval-when-compile
   (require 'cl)
-  (defvar url-http-extra-headers))
+  (defvar url-http-extra-headers)
+  (defvar url-http-cookies-sources))
 (require 'url-gw)
 (require 'url-util)
 (require 'url-parse)

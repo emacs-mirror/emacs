@@ -1,6 +1,7 @@
 ;;; mailalias.el --- expand and complete mailing address aliases
 
-;; Copyright (C) 1985, 1987, 1995, 1996, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1987, 1995, 1996, 1997, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -261,6 +262,12 @@ By default, this is the file specified by `mail-personal-alias-file'."
 		  ((file-exists-p (setq file (concat "~/" file)))
 		   (insert-file-contents file))
 		  (t (setq file nil)))
+	    (goto-char (point-min))
+	    ;; Delete comments from the contents.
+	    (while (search-forward "# " nil t)
+	      (let ((p (- (point) 2)))
+		(end-of-line)
+		(delete-region p (point))))
 	    ;; Don't lose if no final newline.
 	    (goto-char (point-max))
 	    (or (eq (preceding-char) ?\n) (newline))

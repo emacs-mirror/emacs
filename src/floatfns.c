@@ -1,5 +1,6 @@
 /* Primitive operations on floating point for GNU Emacs Lisp interpreter.
-   Copyright (C) 1988, 1993, 1994, 1999, 2003, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -460,7 +461,8 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
   CHECK_NUMBER_OR_FLOAT (arg1);
   CHECK_NUMBER_OR_FLOAT (arg2);
   if (INTEGERP (arg1)     /* common lisp spec */
-      && INTEGERP (arg2)) /* don't promote, if both are ints */
+      && INTEGERP (arg2)   /* don't promote, if both are ints, and */
+      && 0 <= XINT (arg2)) /* we are sure the result is not fractional */
     {				/* this can be improved by pre-calculating */
       EMACS_INT acc, x, y;	/* some binary powers of x then accumulating */
       Lisp_Object val;

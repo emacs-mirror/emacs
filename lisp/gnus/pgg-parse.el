@@ -1,6 +1,6 @@
 ;;; pgg-parse.el --- OpenPGP packet parsing
 
-;; Copyright (C) 1999, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
@@ -58,7 +58,8 @@
 	  (cons (sexp :tag "Number") (sexp :tag "Type"))))
 
 (defcustom pgg-parse-hash-algorithm-alist
-  '((1 . MD5) (2 . SHA1) (3 . RIPEMD160) (5 . MD2))
+  '((1 . MD5) (2 . SHA1) (3 . RIPEMD160) (5 . MD2) (8 . SHA256) (9 . SHA384)
+    (10 . SHA512))
   "Alist of the assigned number to the cryptographic hash algorithm."
   :group 'pgg-parse
   :type '(repeat

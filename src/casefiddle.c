@@ -1,6 +1,6 @@
 /* GNU Emacs case conversion functions.
-   Copyright (C) 1985,94,97,98,99, 2001, 2002, 2004, 2005
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1994, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

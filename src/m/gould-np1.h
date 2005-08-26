@@ -1,5 +1,5 @@
 /* machine description file for Gould NP1 with UTX/32 3.0 (first release for NP1)
-   Copyright (C) 1986 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

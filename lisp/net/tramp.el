@@ -4,7 +4,8 @@
 ;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
 ;;   2005 Free Software Foundation, Inc.
 
-;; Author: kai.grossjohann@gmx.net
+;; Author: Kai Gro,A_(Bjohann <kai.grossjohann@gmx.net>
+;;         Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
 
 ;; This file is part of GNU Emacs.
@@ -146,11 +147,6 @@ Nil means to use a separate filename syntax for Tramp.")
 (eval-when-compile
   (when (boundp 'byte-compile-not-obsolete-var)
     (setq byte-compile-not-obsolete-var 'directory-sep-char)))
-
-;; XEmacs byte-compiler raises warning abouts `last-coding-system-used'.
-(eval-when-compile
-  (unless (boundp 'last-coding-system-used)
-    (defvar last-coding-system-used nil)))
 
 ;;; User Customizable Internal Variables:
 
@@ -1031,7 +1027,7 @@ Derived from `tramp-postfix-multi-hop-format'."
   :type 'regexp)
 
 (defcustom tramp-user-regexp
-  "[^:@/ \t]*"
+  "[^:/ \t]*"
   "*Regexp matching user names."
   :group 'tramp
   :type 'regexp)
@@ -1914,7 +1910,9 @@ This function expects to be called from the tramp buffer only!"
 	  tramp-current-multi-method tramp-current-method
 	  tramp-current-user tramp-current-host))
         (goto-char (point-max))
-        (tramp-insert-with-face
+	(unless (bolp)
+	  (insert "\n"))
+	(tramp-insert-with-face
          'italic
          (concat "# " (apply #'format fmt-string args) "\n"))))))
 
@@ -2370,16 +2368,13 @@ target of the symlink differ."
 	   (buffer-name)))
   (if time-list
       (tramp-run-real-handler 'set-visited-file-modtime (list time-list))
-    (let ((f (buffer-file-name))
-	  (coding-system-used nil))
+    (let ((f (buffer-file-name)))
       (with-parsed-tramp-file-name f nil
 	(let* ((attr (file-attributes f))
 	       ;; '(-1 65535) means file doesn't exists yet.
 	       (modtime (or (nth 5 attr) '(-1 65535))))
 	  ;; We use '(0 0) as a don't-know value.  See also
 	  ;; `tramp-handle-file-attributes-with-ls'.
-	  (when (boundp 'last-coding-system-used)
-	    (setq coding-system-used last-coding-system-used))
 	  (if (not (equal modtime '(0 0)))
 	      (tramp-run-real-handler 'set-visited-file-modtime (list modtime))
 	    (save-excursion
@@ -2392,9 +2387,7 @@ target of the symlink differ."
 	      (setq attr (buffer-substring (point)
 					   (progn (end-of-line) (point)))))
 	    (setq tramp-buffer-file-attributes attr))
-	  (when (boundp 'last-coding-system-used)
-	    (setq last-coding-system-used coding-system-used))
-	nil)))))
+	  nil)))))
 
 ;; CCC continue here
 
@@ -2412,7 +2405,7 @@ of."
     ;; recorded last modification time.
     (if (or (not (buffer-file-name))
 	    (eq (visited-file-modtime) 0))
-      t
+	t
       (let ((f (buffer-file-name)))
 	(with-parsed-tramp-file-name f nil
 	  (let* ((attr (file-attributes f))
@@ -2446,12 +2439,6 @@ of."
 	     ;; If file does not exist, say it is not modified
 	     ;; if and only if that agrees with the buffer's record.
 	     (t (equal mt '(-1 65535))))))))))
-
-(defadvice clear-visited-file-modtime (after tramp activate)
-  "Set `tramp-buffer-file-attributes' back to nil.
-Tramp uses this variable as an emulation for the actual modtime of the file,
-if the remote host can't provide the modtime."
-  (setq tramp-buffer-file-attributes nil))
 
 (defun tramp-handle-set-file-modes (filename mode)
   "Like `set-file-modes' for tramp files."
@@ -3137,8 +3124,7 @@ be a local filename.  The method used must be an out-of-band method."
 	    tramp-current-method method
 	    tramp-current-user user
 	    tramp-current-host host)
-      (tramp-message
-       5 "Transferring %s to file %s..." filename newname)
+      (message "Transferring %s to %s..." filename newname)
 
       ;; Use rcp-like program for file transfer.
       (let ((p (apply 'start-process (buffer-name trampbuf) trampbuf
@@ -3147,8 +3133,7 @@ be a local filename.  The method used must be an out-of-band method."
 	(tramp-process-actions p multi-method method user host
 			       tramp-actions-copy-out-of-band))
       (kill-buffer trampbuf)
-      (tramp-message
-       5 "Transferring %s to file %s...done" filename newname)
+      (message "Transferring %s to %s...done" filename newname)
 
       ;; Set the mode.
       (unless keep-date
@@ -3319,7 +3304,7 @@ This is like `dired-recursive-delete-directory' for tramp files."
   (filename switches &optional wildcard full-directory-p)
   "Like `insert-directory' for tramp files."
   (if (and (boundp 'ls-lisp-use-insert-directory-program)
-           (not ls-lisp-use-insert-directory-program))
+           (not (symbol-value 'ls-lisp-use-insert-directory-program)))
       (tramp-run-real-handler 'insert-directory
                               (list filename switches wildcard full-directory-p))
     ;; For the moment, we assume that the remote "ls" program does not
@@ -3505,7 +3490,7 @@ the result will be a local, non-Tramp, filename."
 ;; Remote commands.
 
 (defvar tramp-async-proc nil
-  "Global variable keeping asyncronous process object.
+  "Global variable keeping asynchronous process object.
 Used in `tramp-handle-shell-command'")
 
 (defun tramp-handle-shell-command (command &optional output-buffer error-buffer)
@@ -3762,7 +3747,6 @@ This will break if COMMAND prints a newline, followed by the value of
 			      'insert-file-contents)
 		      'file-local-copy)))
 	       (file-local-copy filename)))
-	    (coding-system-used nil)
 	    (result nil))
 	(when visit
 	  (setq buffer-file-name filename)
@@ -3772,15 +3756,10 @@ This will break if COMMAND prints a newline, followed by the value of
 	 multi-method method user host
 	 9 "Inserting local temp file `%s'..." local-copy)
 	(setq result (insert-file-contents local-copy nil beg end replace))
-	;; Now `last-coding-system-used' has right value.  Remember it.
-	(when (boundp 'last-coding-system-used)
-	  (setq coding-system-used last-coding-system-used))
 	(tramp-message-for-buffer
 	 multi-method method user host
 	 9 "Inserting local temp file `%s'...done" local-copy)
 	(delete-file local-copy)
-	(when (boundp 'last-coding-system-used)
-	  (setq last-coding-system-used coding-system-used))
 	(list (expand-file-name filename)
 	      (second result))))))
 
@@ -3845,7 +3824,7 @@ This will break if COMMAND prints a newline, followed by the value of
   ;;              (string= lockname filename))
   ;;    (error
   ;;     "tramp-handle-write-region: LOCKNAME must be nil or equal FILENAME"))
-  ;; XEmacs takes a coding system as the sevent argument, not `confirm'
+  ;; XEmacs takes a coding system as the seventh argument, not `confirm'
   (when (and (not (featurep 'xemacs))
 	     confirm (file-exists-p filename))
     (unless (y-or-n-p (format "File %s exists; overwrite anyway? "
@@ -3859,13 +3838,6 @@ This will break if COMMAND prints a newline, followed by the value of
 	  (loc-dec (tramp-get-local-decoding multi-method method user host))
 	  (trampbuf (get-buffer-create "*tramp output*"))
 	  (modes (file-modes filename))
-	  ;; We use this to save the value of `last-coding-system-used'
-	  ;; after writing the tmp file.  At the end of the function,
-	  ;; we set `last-coding-system-used' to this saved value.
-	  ;; This way, any intermediary coding systems used while
-	  ;; talking to the remote shell or suchlike won't hose this
-	  ;; variable.  This approach was snarfed from ange-ftp.el.
-	  coding-system-used
 	  tmpfil)
       ;; Write region into a tmp file.  This isn't really needed if we
       ;; use an encoding function, but currently we use it always
@@ -3887,9 +3859,6 @@ This will break if COMMAND prints a newline, followed by the value of
       ;; the backup file.  This case `save-buffer' handles
       ;; permissions.
       (when modes (set-file-modes tmpfil modes))
-      ;; Now, `last-coding-system-used' has the right value.  Remember it.
-      (when (boundp 'last-coding-system-used)
-	(setq coding-system-used last-coding-system-used))
       ;; This is a bit lengthy due to the different methods possible for
       ;; file transfer.  First, we check whether the method uses an rcp
       ;; program.  If so, we call it.  Otherwise, both encoding and
@@ -3991,9 +3960,6 @@ This will break if COMMAND prints a newline, followed by the value of
 	 ;; We must pass modtime explicitely, because filename can be different
 	 ;; from (buffer-file-name), f.e. if `file-precious-flag' is set.
 	 (nth 5 (file-attributes filename))))
-      ;; Make `last-coding-system-used' have the right value.
-      (when (boundp 'last-coding-system-used)
-	(setq last-coding-system-used coding-system-used))
       (when (or (eq visit t)
 		(eq visit nil)
 		(stringp visit))
@@ -4301,7 +4267,7 @@ necessary anymore."
         (symbol-function 'PC-expand-many-files))
   (defun PC-expand-many-files (name)
     (if (tramp-tramp-file-p name)
-        (expand-many-files name)
+        (funcall (symbol-function 'expand-many-files) name)
       (tramp-save-PC-expand-many-files name))))
 
 ;; Why isn't eval-after-load sufficient?
@@ -4825,12 +4791,11 @@ User may be nil."
 (defun tramp-completion-handle-expand-file-name (name &optional dir)
   "Like `expand-file-name' for tramp files."
   (let ((fullname (concat (or dir default-directory) name)))
-    (tramp-drop-volume-letter
-     (if (tramp-completion-mode fullname)
-	 (tramp-run-real-handler
-	  'expand-file-name (list name dir))
-       (tramp-completion-run-real-handler
-	'expand-file-name (list name dir))))))
+    (if (tramp-completion-mode fullname)
+	(tramp-run-real-handler
+	 'expand-file-name (list name dir))
+      (tramp-completion-run-real-handler
+       'expand-file-name (list name dir)))))
 
 ;;; Internal Functions:
 
@@ -5127,12 +5092,9 @@ file exists and nonzero exit status otherwise."
       (tramp-send-command
        multi-method method user host
        (concat "PS1='$ ' exec " shell)) ;
-      (unless (tramp-wait-for-regexp
-               (get-buffer-process (current-buffer))
-               60 (format "\\(\\(%s\\)\\|\\(%s\\)\\)\\'"
-			  tramp-shell-prompt-pattern shell-prompt-pattern))
-        (pop-to-buffer (buffer-name))
-        (error "Couldn't find remote `%s' prompt" shell))
+      (tramp-barf-if-no-shell-prompt
+       (get-buffer-process (current-buffer))
+       60 "Couldn't find remote `%s' prompt" shell)
       (tramp-message
        9 "Setting remote shell prompt...")
       ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we
@@ -5331,7 +5293,7 @@ The terminal type can be configured with `tramp-terminal-type'."
     (tramp-message 9 "Waiting 60s for prompt from remote shell")
     (with-timeout (60 (throw 'tramp-action 'timeout))
       (while (not found)
-	(accept-process-output p 1)
+	(tramp-accept-process-output p 1)
 	(goto-char (point-min))
 	(setq todo actions)
 	(while todo
@@ -5368,7 +5330,7 @@ The terminal type can be configured with `tramp-terminal-type'."
     (tramp-message 9 "Waiting 60s for prompt from remote shell")
     (with-timeout (60 (throw 'tramp-action 'timeout))
       (while (not found)
-	(accept-process-output p 1)
+	(tramp-accept-process-output p 1)
 	(setq todo actions)
 	(goto-char (point-min))
 	(while todo
@@ -5757,6 +5719,14 @@ character."
 
 ;; Utility functions.
 
+(defun tramp-accept-process-output
+  (&optional process timeout timeout-msecs)
+  "Like `accept-process-output' for Tramp processes.
+This is needed in order to hide `last-coding-system-used', which is set
+for process communication also."
+  (let (last-coding-system-used)
+    (accept-process-output process timeout timeout-msecs)))
+
 (defun tramp-wait-for-regexp (proc timeout regexp)
   "Wait for a REGEXP to appear from process PROC within TIMEOUT seconds.
 Expects the output of PROC to be sent to the current buffer.  Returns
@@ -5773,20 +5743,18 @@ nil."
                           timeout))
              (with-timeout (timeout)
                (while (not found)
-                 (accept-process-output proc 1)
+                 (tramp-accept-process-output proc 1)
 		 (unless (memq (process-status proc) '(run open))
 		   (error "Process has died"))
                  (goto-char (point-min))
-                 (setq found (when (re-search-forward regexp nil t)
-                               (tramp-match-string-list)))))))
+                 (setq found (re-search-forward regexp nil t))))))
           (t
            (while (not found)
-             (accept-process-output proc 1)
+             (tramp-accept-process-output proc 1)
 	     (unless (memq (process-status proc) '(run open))
 	       (error "Process has died"))
              (goto-char (point-min))
-             (setq found (when (re-search-forward regexp nil t)
-                           (tramp-match-string-list))))))
+             (setq found (re-search-forward regexp nil t)))))
     (when tramp-debug-buffer
       (append-to-buffer
        (tramp-get-debug-buffer tramp-current-multi-method tramp-current-method
@@ -6399,7 +6367,7 @@ Sends COMMAND, then waits 30 seconds for shell prompt."
                             timeout))
                (with-timeout (timeout)
                  (while (not found)
-                   (accept-process-output proc 1)
+                   (tramp-accept-process-output proc 1)
 		   (unless (memq (process-status proc) '(run open))
 		     (error "Process has died"))
                    (goto-char (point-max))
@@ -6407,7 +6375,7 @@ Sends COMMAND, then waits 30 seconds for shell prompt."
                    (setq found (looking-at end-of-output))))))
             (t
              (while (not found)
-               (accept-process-output proc 1)
+               (tramp-accept-process-output proc 1)
 	       (unless (memq (process-status proc) '(run open))
 		 (error "Process has died"))
                (goto-char (point-max))
@@ -6443,18 +6411,6 @@ Sends COMMAND, then waits 30 seconds for shell prompt."
     (goto-char (point-min))
     ;; Return value is whether end-of-output sentinel was found.
     found))
-
-(defun tramp-match-string-list (&optional string)
-  "Returns list of all match strings.
-That is, (list (match-string 0) (match-string 1) ...), according to the
-number of matches."
-  (let* ((nmatches (/ (length (match-data)) 2))
-         (i (- nmatches 1))
-         (res nil))
-    (while (>= i 0)
-      (setq res (cons (match-string i string) res))
-      (setq i (- i 1)))
-    res))
 
 (defun tramp-send-command-and-check (multi-method method user host command
                                                   &optional subshell)
@@ -6556,7 +6512,7 @@ MULTI-METHOD, METHOD, USER, and HOST specify the connection."
 If `tramp-discard-garbage' is nil, just erase buffer."
   (if (not tramp-discard-garbage)
       (erase-buffer)
-    (while (prog1 (erase-buffer) (accept-process-output p 0.25))
+    (while (prog1 (erase-buffer) (tramp-accept-process-output p 0.25))
       (when tramp-debug-buffer
         (save-excursion
           (set-buffer (tramp-get-debug-buffer multi-method method user host))
@@ -6993,7 +6949,7 @@ as default."
       ;; auto-saved file belonging to another original file.  This could
       ;; be a security threat.
       (set-file-modes buffer-auto-save-file-name
-		      (or (file-modes bfn) ?\600)))))
+		      (or (file-modes bfn) #o600)))))
 
 (unless (or (> emacs-major-version 21)
 	    (and (featurep 'xemacs)
@@ -7130,10 +7086,11 @@ it does the right thing."
   "Specify if query is needed for process when Emacs is exited.
 If the second argument flag is non-nil, Emacs will query the user before
 exiting if process is running."
+ (funcall
   (if (fboundp 'set-process-query-on-exit-flag)
-      (set-process-query-on-exit-flag process flag)
-    (funcall (symbol-function 'process-kill-without-query)
-	     process flag)))
+      (symbol-function 'set-process-query-on-exit-flag)
+    (symbol-function 'process-kill-without-query))
+  process flag))
 
 
 ;; ------------------------------------------------------------
@@ -7213,20 +7170,19 @@ Only works for Bourne-like shells."
 ;; CCC: This check is now also really awful; we should search all
 ;; of the filename format, not just the prefix.
 (when (string-match "\\[" tramp-prefix-format)
-(defadvice file-expand-wildcards (around tramp-fix activate)
-  (let ((name (ad-get-arg 0)))
-    (if (tramp-tramp-file-p name)
-	;; If it's a Tramp file, dissect it and look if wildcards
-	;; need to be expanded at all.
-	(let ((v (tramp-dissect-file-name name)))
-	  (if (string-match "[[*?]" (tramp-file-name-localname v))
-	      (let ((res ad-do-it))
-		(setq ad-return-value (or res (list name))))
-	    (setq ad-return-value (list name))))
-      ;; If it is not a Tramp file, just run the original function.
-      (let ((res ad-do-it))
-	(setq ad-return-value (or res (list name)))))))
-)
+  (defadvice file-expand-wildcards (around tramp-fix activate)
+    (let ((name (ad-get-arg 0)))
+      (if (tramp-tramp-file-p name)
+	  ;; If it's a Tramp file, dissect it and look if wildcards
+	  ;; need to be expanded at all.
+	  (let ((v (tramp-dissect-file-name name)))
+	    (if (string-match "[[*?]" (tramp-file-name-localname v))
+		(let ((res ad-do-it))
+		  (setq ad-return-value (or res (list name))))
+	      (setq ad-return-value (list name))))
+	;; If it is not a Tramp file, just run the original function.
+	(let ((res ad-do-it))
+	  (setq ad-return-value (or res (list name))))))))
 
 ;; Tramp version is useful in a number of situations.
 
@@ -7246,69 +7202,74 @@ Only works for Bourne-like shells."
   (interactive)
   (require 'reporter)
   (catch 'dont-send
-    (let ((reporter-prompt-for-summary-p	t))
+    (let ((reporter-prompt-for-summary-p t))
       (reporter-submit-bug-report
        tramp-bug-report-address		; to-address
        (format "tramp (%s)" tramp-version) ; package name and version
-       `(;; Current state
-	 tramp-ls-command
-	 tramp-test-groks-nt
-	 tramp-file-exists-command
-	 tramp-current-multi-method
-	 tramp-current-method
-	 tramp-current-user
-	 tramp-current-host
+       (delq nil
+	     `(;; Current state
+	       tramp-ls-command
+	       tramp-test-groks-nt
+	       tramp-file-exists-command
+	       tramp-current-multi-method
+	       tramp-current-method
+	       tramp-current-user
+	       tramp-current-host
 
-	 ;; System defaults
-	 tramp-auto-save-directory        ; vars to dump
-	 tramp-default-method
-	 tramp-rsh-end-of-line
-	 tramp-default-password-end-of-line
-	 tramp-remote-path
-	 tramp-login-prompt-regexp
-	 tramp-password-prompt-regexp
-	 tramp-wrong-passwd-regexp
-	 tramp-yesno-prompt-regexp
-	 tramp-yn-prompt-regexp
-	 tramp-terminal-prompt-regexp
-	 tramp-temp-name-prefix
-	 tramp-file-name-structure
-	 tramp-file-name-regexp
-	 tramp-multi-file-name-structure
-	 tramp-multi-file-name-hop-structure
-	 tramp-multi-methods
-	 tramp-multi-connection-function-alist
-	 tramp-methods
-	 tramp-end-of-output
-	 tramp-coding-commands
-	 tramp-actions-before-shell
-	 tramp-actions-copy-out-of-band
-	 tramp-multi-actions
-	 tramp-terminal-type
-	 tramp-shell-prompt-pattern
-	 tramp-chunksize
-	 ,(when (boundp 'tramp-backup-directory-alist)
-	    'tramp-backup-directory-alist)
-	 ,(when (boundp 'tramp-bkup-backup-directory-info)
-	    'tramp-bkup-backup-directory-info)
+	       ;; System defaults
+	       tramp-auto-save-directory        ; vars to dump
+	       tramp-default-method
+	       tramp-rsh-end-of-line
+	       tramp-default-password-end-of-line
+	       tramp-remote-path
+	       tramp-login-prompt-regexp
+	       ;; Mask non-7bit characters
+	       (tramp-password-prompt-regexp . tramp-reporter-dump-variable)
+	       tramp-wrong-passwd-regexp
+	       tramp-yesno-prompt-regexp
+	       tramp-yn-prompt-regexp
+	       tramp-terminal-prompt-regexp
+	       tramp-temp-name-prefix
+	       tramp-file-name-structure
+	       tramp-file-name-regexp
+	       tramp-multi-file-name-structure
+	       tramp-multi-file-name-hop-structure
+	       tramp-multi-methods
+	       tramp-multi-connection-function-alist
+	       tramp-methods
+	       tramp-end-of-output
+	       tramp-coding-commands
+	       tramp-actions-before-shell
+	       tramp-actions-copy-out-of-band
+	       tramp-multi-actions
+	       tramp-terminal-type
+	       ;; Mask non-7bit characters
+	       (tramp-shell-prompt-pattern . tramp-reporter-dump-variable)
+	       tramp-chunksize
+	       ,(when (boundp 'tramp-backup-directory-alist)
+		  'tramp-backup-directory-alist)
+	       ,(when (boundp 'tramp-bkup-backup-directory-info)
+		  'tramp-bkup-backup-directory-info)
 
-	 ;; Non-tramp variables of interest
-	 shell-prompt-pattern
-	 backup-by-copying
-	 backup-by-copying-when-linked
-	 backup-by-copying-when-mismatch
-	 ,(when (boundp 'backup-by-copying-when-privileged-mismatch)
-	    'backup-by-copying-when-privileged-mismatch)
-	 ,(when (boundp 'password-cache)
-	    'password-cache)
-	 ,(when (boundp 'password-cache-expiry)
-	    'password-cache-expiry)
-	 ,(when (boundp 'backup-directory-alist)
-	    'backup-directory-alist)
-	 ,(when (boundp 'bkup-backup-directory-info)
-	    'bkup-backup-directory-info)
-	 file-name-handler-alist)
-       nil				; pre-hook
+	       ;; Non-tramp variables of interest
+	       ;; Mask non-7bit characters
+	       (shell-prompt-pattern . tramp-reporter-dump-variable)
+	       backup-by-copying
+	       backup-by-copying-when-linked
+	       backup-by-copying-when-mismatch
+	       ,(when (boundp 'backup-by-copying-when-privileged-mismatch)
+		  'backup-by-copying-when-privileged-mismatch)
+	       ,(when (boundp 'password-cache)
+		  'password-cache)
+	       ,(when (boundp 'password-cache-expiry)
+		  'password-cache-expiry)
+	       ,(when (boundp 'backup-directory-alist)
+		  'backup-directory-alist)
+	       ,(when (boundp 'bkup-backup-directory-info)
+		  'bkup-backup-directory-info)
+	       file-name-handler-alist))
+
+       'tramp-load-report-modules	; pre-hook
        'tramp-append-tramp-buffers	; post-hook
        "\
 Enter your bug report in this message, including as much detail as you
@@ -7327,8 +7288,43 @@ report.
 --bug report follows this line--
 "))))
 
-(defun tramp-append-tramp-buffers ()
-  "Append Tramp buffers into the bug report."
+(defun tramp-reporter-dump-variable (varsym mailbuf)
+  "Pretty-print the value of the variable in symbol VARSYM.
+Used for non-7bit chars in strings."
+  (let* ((reporter-eval-buffer (symbol-value 'reporter-eval-buffer))
+	 (val (with-current-buffer reporter-eval-buffer
+		(symbol-value varsym))))
+
+    ;; There are characters to be masked.
+    (when (and (boundp 'mm-7bit-chars)
+	       (string-match
+		(concat "[^" (symbol-value 'mm-7bit-chars) "]") val))
+      (with-current-buffer reporter-eval-buffer
+	(set varsym (concat "(base64-decode-string \""
+			    (base64-encode-string val)
+			    "\")"))))
+
+    ;; Dump variable.
+    (funcall (symbol-function 'reporter-dump-variable) varsym mailbuf)
+
+    ;; Remove string quotation.
+    (forward-line -1)
+    (when (looking-at
+	   (concat "\\(^.*\\)" "\""                       ;; \1 "
+		   "\\((base64-decode-string \\)" "\\\\"  ;; \2 \
+		   "\\(\".*\\)" "\\\\"                    ;; \3 \
+		   "\\(\")\\)" "\"$"))                    ;; \4 "
+      (replace-match "\\1\\2\\3\\4")
+      (beginning-of-line)
+      (insert " ;; variable encoded due to non-printable characters\n"))
+    (forward-line 1)
+
+    ;; Reset VARSYM to old value.
+    (with-current-buffer reporter-eval-buffer
+      (set varsym val))))
+
+(defun tramp-load-report-modules ()
+  "Load needed modules for reporting."
 
   ;; We load message.el and mml.el from Gnus.
   (if (featurep 'xemacs)
@@ -7338,9 +7334,12 @@ report.
     (require 'message nil 'noerror)
     (require 'mml nil 'noerror))
   (when (functionp 'message-mode)
-    (funcall 'message-mode))
+    (funcall (symbol-function 'message-mode)))
   (when (functionp 'mml-mode)
-    (funcall 'mml-mode t))
+    (funcall (symbol-function 'mml-mode) t)))
+
+(defun tramp-append-tramp-buffers ()
+  "Append Tramp buffers into the bug report."
 
   (when (and
 	 (eq major-mode 'message-mode)
@@ -7394,10 +7393,10 @@ Therefore, the contents of files might be included in the debug buffer(s).")
 	      (goto-char (point-max))
 	      (insert "\n\n")
 	      (dolist (buffer buffer-list)
-		(mml-insert-empty-tag
-		 'part 'type "text/plain" 'encoding "base64"
-		 'disposition "attachment" 'buffer (buffer-name buffer)
-		 'description (buffer-name buffer)))
+		(funcall (symbol-function 'mml-insert-empty-tag)
+			 'part 'type "text/plain" 'encoding "base64"
+			 'disposition "attachment" 'buffer (buffer-name buffer)
+			 'description (buffer-name buffer)))
 	      (set-buffer-modified-p nil))
 
 	  ;; Don't send.  Delete the message buffer.

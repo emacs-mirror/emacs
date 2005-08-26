@@ -1,6 +1,7 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998, 99, 2000, 01, 04 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: multimedia

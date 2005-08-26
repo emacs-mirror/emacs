@@ -1,6 +1,7 @@
 ;;; reporter.el --- customizable bug reporting of lisp programs
 
-;; Copyright (C) 1993,1994,1995,1996,1997,1998 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author:          1993-1998 Barry A. Warsaw
 ;; Maintainer:      FSF
@@ -263,7 +264,7 @@ dumped."
 	       varlist)
 	      (lisp-indent-line)
 	      (insert ")\n"))
-	    (insert-buffer elbuf))
+	    (insert-buffer-substring elbuf))
 	(error
 	 (insert "State could not be dumped due to the following error:\n\n"
 		 (format "%s" fault)

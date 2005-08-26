@@ -1,6 +1,7 @@
 ;;; mml1991.el --- Old PGP message format (RFC 1991) support for MML
-;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2005
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Sascha Lüdecke <sascha@meta-x.de>,
 ;;	Simon Josefsson <simon@josefsson.org> (Mailcrypt interface, Gnus glue)

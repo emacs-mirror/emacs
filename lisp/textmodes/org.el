@@ -1,6 +1,7 @@
 ;; org.el --- Outline-based notes management and organizer
 ;; Carstens outline-mode for keeping track of everything.
-;; Copyright (c) 2004, 2005 Free Software Foundation
+
+;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar

@@ -1,6 +1,7 @@
 ;;; backquote.el --- implement the ` Lisp construct
 
-;; Copyright (C) 1990, 92, 1994, 2001, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1992, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Rick Sladkey <jrs@world.std.com>
 ;; Maintainer: FSF

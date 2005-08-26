@@ -44,6 +44,9 @@
     (list 'image :type 'xpm :data image)))
 
 (defvar default-toolbar)
+(defvar idlwave-toolbar)
+(defvar idlwave-toolbar-is-possible)
+
 (if (not (or (and (featurep 'xemacs)                ; This is XEmacs
 		  (featurep 'xpm)                   ; need xpm
 		  (featurep 'toolbar))              ; ... and the toolbar

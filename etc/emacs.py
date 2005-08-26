@@ -1,6 +1,6 @@
 """Definitions used by commands sent to inferior Python in python.el."""
 
-# Copyright (C) 2004  Free Software Foundation, Inc.
+# Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 # Author: Dave Love <d.love@dl.ac.uk>
 
 # This file is part of GNU Emacs.

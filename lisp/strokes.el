@@ -1,6 +1,7 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: FSF
@@ -1423,8 +1424,6 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
   "Face for strokes characters."
   :version "21.1"
   :group 'strokes)
-;; backward-compatibility alias
-(put 'strokes-char-face 'face-alias 'strokes-char)
 
 (put 'strokes 'char-table-extra-slots 0)
 (defconst strokes-char-table (make-char-table 'strokes) ;

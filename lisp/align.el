@@ -1,6 +1,7 @@
 ;;; align.el --- align text to a specific column, by regexp
 
-;; Copyright (C) 1999, 2000, 2002 Free Sofware Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Keywords: convenience languages lisp
@@ -382,9 +383,6 @@ The possible settings for `align-region-separate' are:
 ;                          (const largest)
 			   regexp function)))))))
   "The `type' form for any `align-rules-list' variable.")
-
-(unless (functionp 'c-guess-basic-syntax)
-  (autoload 'c-guess-basic-syntax "cc-engine"))
 
 (defcustom align-rules-list
   `((lisp-second-arg

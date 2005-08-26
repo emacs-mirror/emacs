@@ -1,6 +1,7 @@
 ;;; ebuff-menu.el --- electric-buffer-list mode
 
-;; Copyright (C) 1985, 1986, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@ai.mit.edu>
 ;; Maintainer: FSF
@@ -124,6 +125,8 @@ Run hooks in `electric-buffer-menu-mode-hook' on entry.
 	 (if (pos-visible-in-window-p (point-max))
 	     (recenter -1))))
   (electric-buffer-update-highlight))
+
+(defvar Helper-return-blurb)
 
 (put 'Electric-buffer-menu-mode 'mode-class 'special)
 (defun Electric-buffer-menu-mode ()

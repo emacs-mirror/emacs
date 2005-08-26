@@ -1,6 +1,6 @@
 ;;;; testcover.el -- Visual code-coverage tool
 
-;; Copyright (C) 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@member.fsf.org>
 ;; Maintainer: Jonathan Yavner <jyavner@member.fsf.org>
@@ -154,15 +154,11 @@ call to one of the `testcover-1value-functions'."
   '((t (:background "DeepPink2")))
   "Face for forms that had no hits during coverage test"
   :group 'testcover)
-;; backward-compatibility alias
-(put 'testcover-nohits-face 'face-alias 'testcover-nohits)
 
 (defface testcover-1value
   '((t (:background "Wheat2")))
   "Face for forms that always produced the same value during coverage test"
   :group 'testcover)
-;; backward-compatibility alias
-(put 'testcover-1value-face 'face-alias 'testcover-1value)
 
 
 ;;;=========================================================================

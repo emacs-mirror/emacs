@@ -1,7 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2004, 2005  Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1635,6 +1635,15 @@ normal otherwise."
                      (setq file file-ex))
                    (load file nil t)))
 
+		;; This is used to handle -script.  It's not clear
+		;; we need to document it.
+                ((member argi '("-scriptload"))
+                 (let* ((file (command-line-normalize-file-name
+                               (or argval (pop command-line-args-left))))
+                        ;; Take file from default dir.
+                        (file-ex (expand-file-name file)))
+                   (load file-ex nil t t)))
+
                 ((equal argi "-insert")
                  (setq tem (or argval (pop command-line-args-left)))
                  (or (stringp tem)
@@ -1715,11 +1724,7 @@ normal otherwise."
   ;; Maybe display a startup screen.
   (unless (or inhibit-startup-message
 	      noninteractive
-	      emacs-quick-startup
-	     ;; Don't display startup screen if init file
-	     ;; has started some sort of server.
-	     (and (fboundp 'process-list)
-		  (process-list)))
+	      emacs-quick-startup)
     ;; Display a startup screen, after some preparations.
 
     ;; If there are no switches to process, we might as well

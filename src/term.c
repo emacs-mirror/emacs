@@ -1,6 +1,6 @@
 /* Terminal control module for terminals described by TERMCAP
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 98, 2000, 2001, 2002, 2005
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1998, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -449,7 +449,17 @@ set_terminal_modes ()
 {
   if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
     {
-      OUTPUT_IF (TS_termcap_modes);
+      if (TS_termcap_modes)
+	OUTPUT (TS_termcap_modes);
+      else
+	{
+	  /* Output enough newlines to scroll all the old screen contents
+	     off the screen, so it won't be overwritten and lost.  */
+	  int i;
+	  for (i = 0; i < FRAME_LINES (XFRAME (selected_frame)); i++)
+	    putchar ('\n');
+	}
+
       OUTPUT_IF (TS_cursor_visible);
       OUTPUT_IF (TS_keypad_mode);
       losecursor ();
@@ -2001,24 +2011,20 @@ turn_on_face (f, face_id)
 
   if (TN_max_colors > 0)
     {
-      char *p;
+      char *ts, *p;
 
-      if (fg >= 0 && TS_set_foreground)
+      ts = standout_mode ? TS_set_background : TS_set_foreground;
+      if (fg >= 0 && ts)
 	{
-	  if (standout_mode)
-	    p = tparam (TS_set_background, NULL, 0, (int) fg);
-	  else
-	    p = tparam (TS_set_foreground, NULL, 0, (int) fg);
+	  p = tparam (ts, NULL, 0, (int) fg);
 	  OUTPUT (p);
 	  xfree (p);
 	}
 
-      if (bg >= 0 && TS_set_background)
+      ts = standout_mode ? TS_set_foreground : TS_set_background;
+      if (bg >= 0 && ts)
 	{
-	  if (standout_mode)
-	    p = tparam (TS_set_foreground, NULL, 0, (int) bg);
-	  else
-	    p = tparam (TS_set_background, NULL, 0, (int) bg);
+	  p = tparam (ts, NULL, 0, (int) bg);
 	  OUTPUT (p);
 	  xfree (p);
 	}

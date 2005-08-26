@@ -1,7 +1,7 @@
 ;;; files.el --- file input and output commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1993, 1994, 1995, 1996, 1997, 1998,
-;;   1999, 2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+;;   1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -1464,7 +1464,6 @@ the various files."
 	      buf)
 	  ;; Create a new buffer.
 	  (setq buf (create-file-buffer filename))
-	  (set-buffer-major-mode buf)
 	  ;; find-file-noselect-1 may use a different buffer.
 	  (find-file-noselect-1 buf filename nowarn
 				rawfile truename number))))))
@@ -1538,6 +1537,7 @@ the various files."
 	  (progn
 	    (set-buffer-multibyte nil)
 	    (setq buffer-file-coding-system 'no-conversion)
+	    (set-buffer-major-mode buf)
 	    (make-local-variable 'find-file-literally)
 	    (setq find-file-literally t))
 	(after-find-file error (not nowarn)))
@@ -1727,12 +1727,18 @@ not set local variables (though we do notice a mode specified with -*-.)
 or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
-  (or find-file (funcall (or default-major-mode 'fundamental-mode)))
+  (funcall (or default-major-mode 'fundamental-mode))
   (let ((enable-local-variables (or (not find-file) enable-local-variables)))
     (report-errors "File mode specification error: %s"
       (set-auto-mode))
     (report-errors "File local-variables error: %s"
       (hack-local-variables)))
+  ;; Turn font lock off and on, to make sure it takes account of
+  ;; whatever file local variables are relevant to it.
+  (when (and font-lock-mode (eq (car font-lock-keywords) t))
+    (setq font-lock-keywords (cadr font-lock-keywords))
+    (font-lock-mode 1))
+
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
 
@@ -1947,9 +1953,8 @@ and `magic-mode-alist', which determines modes based on file contents.")
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (INTERPRETER . MODE).
-The car of each element, a regular expression, is compared with
-the name of the interpreter specified in the first line.
-If it matches, mode MODE is selected.
+If INTERPRETER matches the name of the interpreter specified in the first line
+of a script, mode MODE is enabled.
 
 See also `auto-mode-alist'.")
 
@@ -3450,9 +3455,9 @@ This requires the external program `diff' to be in your `exec-path'."
        (recursive-edit)
        ;; Return nil to ask about BUF again.
        nil)
-     "display the current buffer")
+     "view this file")
     (?d diff-buffer-with-file
-	"show difference to last saved version"))
+	"view changes in file"))
   "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
 (put 'save-some-buffers-action-alist 'risky-local-variable t)
 
@@ -4844,7 +4849,8 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	  ((eq method 'add)
 	   (concat "/:" (apply operation arguments)))
 	  ((eq method 'quote)
-	   (prog1 (apply operation arguments)
+	   (unwind-protect
+	       (apply operation arguments)
 	     (setq buffer-file-name (concat "/:" buffer-file-name))))
 	  ((eq method 'unquote-then-quote)
 	   (let (res)

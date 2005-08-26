@@ -1,6 +1,7 @@
 ;;; ido.el --- interactively do things with buffers and files.
 
-;; Copyright (C) 1996-2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -366,7 +367,7 @@ use either \\[customize] or the function `ido-mode'."
 Setting this variable directly does not work.  Use `customize' or
 call the function `ido-everywhere'."
   :set #'(lambda (symbol value)
-	   (ido-everywhere value))
+	   (ido-everywhere (if value 1 -1)))
   :initialize 'custom-initialize-default
   :type 'boolean
   :group 'ido)
@@ -687,12 +688,17 @@ not provide the normal completion.  To show the completions, use C-a."
   :type 'boolean
   :group 'ido)
 
-(defcustom ido-enter-single-matching-directory 'slash
-  "*Automatically enter sub-directory if it is the only matching item, if non-nil.
-If value is 'slash, only enter if typing final slash, else do it always."
+(defcustom ido-enter-matching-directory 'only
+  "*Additional methods to enter sub-directory of first/only matching item.
+If value is 'first, enter first matching sub-directory when typing a slash.
+If value is 'only, typing a slash only enters the sub-directory if it is
+the only matching item.
+If value is t, automatically enter a sub-directory when it is the only
+matching item, even without typing a slash."
   :type '(choice (const :tag "Never" nil)
-		 (const :tag "When typing /" slash)
-		 (other :tag "Always" t))
+		 (const :tag "Slash enters first directory" first)
+		 (const :tag "Slash enters first and only directory" only)
+		 (other :tag "Always enter unique directory" t))
   :group 'ido)
 
 (defcustom ido-create-new-buffer 'prompt
@@ -1361,7 +1367,8 @@ This function also adds a hook to the minibuffer."
 	(define-key map [remap display-buffer] 'ido-display-buffer)))))
 
 (defun ido-everywhere (arg)
-  "Enable ido everywhere file and directory names are read."
+  "Toggle using ido speed-ups everywhere file and directory names are read.
+With ARG, turn ido speed-up on if arg is positive, off otherwise."
   (interactive "P")
   (setq ido-everywhere (if arg
 			   (> (prefix-numeric-value arg) 0)
@@ -1958,7 +1965,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(if (eq method 'insert)
 	    (progn
 	      (ido-record-command 'insert-buffer buf)
-	      (insert-buffer buf))
+	      (with-no-warnings
+		;; we really want to run insert-buffer here
+		(insert-buffer buf)))
 	  (ido-visit-buffer buf method t)))
 
        ;; buffer doesn't exist
@@ -3011,11 +3020,10 @@ for first matching file."
   (let (res)
     (message "Searching for `%s'...." text)
     (condition-case nil
-	(unless (catch 'input-pending-p
-		  (let ((throw-on-input 'input-pending-p))
-		    (setq res (ido-make-merged-file-list-1 text auto wide))
-		    t))
-	  (setq res 'input-pending-p))
+	(if (eq t (setq res
+			(while-no-input
+			  (ido-make-merged-file-list-1 text auto wide))))
+	    (setq res 'input-pending-p))
       (quit
        (setq res t
 	     ido-try-merged-list nil
@@ -3358,38 +3366,37 @@ for first matching file."
   (or (member name ido-ignore-item-temp-list)
       (and
        ido-process-ignore-lists re-list
-       (let ((data       (match-data))
-	     (ext-list   (and ignore-ext ido-ignore-extensions
+       (save-match-data
+	 (let ((ext-list (and ignore-ext ido-ignore-extensions
 			      completion-ignored-extensions))
-	     ignorep nextstr
-	     (flen (length name)) slen)
-	 (while ext-list
-	   (setq nextstr (car ext-list))
-	   (if (cond
-		((stringp nextstr)
-		 (and (>= flen (setq slen (length nextstr)))
-		      (string-equal (substring name (- flen slen)) nextstr)))
-		((fboundp nextstr) (funcall nextstr name))
-		(t nil))
-	       (setq ignorep t
-		     ext-list nil
-		     re-list nil)
-	     (setq ext-list (cdr ext-list))))
-	 (while re-list
-	   (setq nextstr (car re-list))
-	   (if (cond
-		((stringp nextstr) (string-match nextstr name))
-		((fboundp nextstr) (funcall nextstr name))
-		(t nil))
-	       (setq ignorep t
-		     re-list nil)
-	     (setq re-list (cdr re-list))))
-	 ;; return the result
-	 (if ignorep
-	     (setq ido-ignored-list (cons name ido-ignored-list)))
-	 (set-match-data data)
-	 ignorep))))
-
+	       (case-fold-search ido-case-fold)
+	       ignorep nextstr
+	       (flen (length name)) slen)
+	   (while ext-list
+	     (setq nextstr (car ext-list))
+	     (if (cond
+		  ((stringp nextstr)
+		   (and (>= flen (setq slen (length nextstr)))
+			(string-equal (substring name (- flen slen)) nextstr)))
+		  ((fboundp nextstr) (funcall nextstr name))
+		  (t nil))
+		 (setq ignorep t
+		       ext-list nil
+		       re-list nil)
+	       (setq ext-list (cdr ext-list))))
+	   (while re-list
+	     (setq nextstr (car re-list))
+	     (if (cond
+		  ((stringp nextstr) (string-match nextstr name))
+		  ((fboundp nextstr) (funcall nextstr name))
+		  (t nil))
+		 (setq ignorep t
+		       re-list nil)
+	       (setq re-list (cdr re-list))))
+	   ;; return the result
+	   (if ignorep
+	       (setq ido-ignored-list (cons name ido-ignored-list)))
+	   ignorep)))))
 
 ;; Private variable used by `ido-word-matching-substring'.
 (defvar ido-change-word-sub)
@@ -3990,12 +3997,13 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	(ido-set-matches)
 	(ido-trace "new    " ido-matches)
 
-	(when (and ido-enter-single-matching-directory
+	(when (and ido-enter-matching-directory
 		   ido-matches
-		   (null (cdr ido-matches))
+		   (or (eq ido-enter-matching-directory 'first)
+		       (null (cdr ido-matches)))
 		   (ido-final-slash (car ido-matches))
 		   (or try-single-dir-match
-		       (eq ido-enter-single-matching-directory t)))
+		       (eq ido-enter-matching-directory t)))
 	  (ido-trace "single match" (car ido-matches))
 	  (ido-set-current-directory
 	   (concat ido-current-directory (car ido-matches)))

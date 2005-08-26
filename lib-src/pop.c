@@ -1,5 +1,6 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
-   Copyright (c) 1991, 1993, 1996, 1997, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 1996, 1997, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    Written by Jonathan Kamens, jik@security.ov.com.
 
 This file is part of GNU Emacs.

@@ -1,7 +1,7 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-     2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -5624,8 +5624,6 @@ struct saved_window
   Lisp_Object scroll_bar_width, vertical_scroll_bar_type;
 };
 
-#define SAVED_WINDOW_VECTOR_SIZE 24 /* Arg to Fmake_vector */
-
 #define SAVED_WINDOW_N(swv,n) \
   ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))
 
@@ -6205,7 +6203,7 @@ redirection (see `redirect-frame-focus').  */)
   data->saved_windows = tem;
   for (i = 0; i < n_windows; i++)
     XVECTOR (tem)->contents[i]
-      = Fmake_vector (make_number (SAVED_WINDOW_VECTOR_SIZE), Qnil);
+      = Fmake_vector (make_number (VECSIZE (struct saved_window)), Qnil);
   save_window_save (FRAME_ROOT_WINDOW (f), XVECTOR (tem), 0);
   XSETWINDOW_CONFIGURATION (tem, data);
   return (tem);

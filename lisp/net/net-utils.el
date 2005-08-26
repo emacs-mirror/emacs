@@ -461,7 +461,7 @@ If your system's ping continues until interrupted, you can try setting
      )))
 
 ;;;###autoload
-(defun dig (host)
+(defun run-dig (host)
   "Run dig program."
   (interactive
    (list

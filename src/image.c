@@ -1,6 +1,6 @@
 /* Functions for image support on window system.
-   Copyright (C) 1989, 92, 93, 94, 95, 96, 97, 98, 99, 2000,01,02,03,04
-     Free Software Foundation.
+   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -8025,6 +8025,11 @@ syms_of_image ()
 {
   extern Lisp_Object Qrisky_local_variable;   /* Syms_of_xdisp has already run.  */
 
+  /* Initialize this only once, since that's what we do with Vimage_types
+     and they are supposed to be in sync.  Initializing here gives correct
+     operation on GNU/Linux of calling dump-emacs after loading some images.  */
+  image_types = NULL;
+
   /* Must be defined now becase we're going to update it below, while
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", &Vimage_types,
@@ -8049,6 +8054,17 @@ listed; they're always supported.  */);
 
   Vimage_type_cache = Qnil;
   staticpro (&Vimage_type_cache);
+
+  Qpbm = intern ("pbm");
+  staticpro (&Qpbm);
+  ADD_IMAGE_TYPE(Qpbm);
+
+  Qxbm = intern ("xbm");
+  staticpro (&Qxbm);
+  ADD_IMAGE_TYPE(Qxbm);
+
+  define_image_type (&xbm_type, 1);
+  define_image_type (&pbm_type, 1);
 
   QCascent = intern (":ascent");
   staticpro (&QCascent);
@@ -8093,14 +8109,6 @@ listed; they're always supported.  */);
   QCpt_height = intern (":pt-height");
   staticpro (&QCpt_height);
 #endif /* HAVE_GHOSTSCRIPT */
-
-  Qpbm = intern ("pbm");
-  staticpro (&Qpbm);
-  ADD_IMAGE_TYPE(Qpbm);
-
-  Qxbm = intern ("xbm");
-  staticpro (&Qxbm);
-  ADD_IMAGE_TYPE(Qxbm);
 
 #if defined (HAVE_XPM) || defined (MAC_OS)
   Qxpm = intern ("xpm");
@@ -8163,11 +8171,6 @@ meaning don't clear the cache.  */);
 void
 init_image ()
 {
-  image_types = NULL;
-
-  define_image_type (&xbm_type, 1);
-  define_image_type (&pbm_type, 1);
-
 #ifdef MAC_OS
   /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */
   EnterMovies ();

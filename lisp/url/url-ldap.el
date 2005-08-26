@@ -1,5 +1,6 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
-;; Copyright (c) 1998, 1999, 2004, 2005 Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -189,7 +190,7 @@ URL can be a URL string, or a URL vector of the type returned by
 
 	(setq binddn (cdr-safe (or (assoc "bindname" extensions)
 				   (assoc "!bindname" extensions))))
-    
+
 	;; Now, let's actually do something with it.
 	(setq results (cdr (ldap-search-internal
 		       (list 'host (concat host ":" (number-to-string port))

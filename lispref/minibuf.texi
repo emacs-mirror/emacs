@@ -1,8 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
-@c 2001, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001, 2002,
+@c   2003, 2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/minibuf
 @node Minibuffers, Command Loop, Read and Print, Top
@@ -11,12 +10,13 @@
 @cindex complex arguments
 @cindex minibuffer
 
-  A @dfn{minibuffer} is a special buffer that Emacs commands use to read
-arguments more complicated than the single numeric prefix argument.
-These arguments include file names, buffer names, and command names (as
-in @kbd{M-x}).  The minibuffer is displayed on the bottom line of the
-frame, in the same place as the echo area, but only while it is in use
-for reading an argument.
+  A @dfn{minibuffer} is a special buffer that Emacs commands use to
+read arguments more complicated than the single numeric prefix
+argument.  These arguments include file names, buffer names, and
+command names (as in @kbd{M-x}).  The minibuffer is displayed on the
+bottom line of the frame, in the same place as the echo area
+(@pxref{The Echo Area}), but only while it is in use for reading an
+argument.
 
 @menu
 * Intro to Minibuffers::      Basic information about minibuffers.
@@ -29,6 +29,10 @@ for reading an argument.
 * Yes-or-No Queries::         Asking a question with a simple answer.
 * Multiple Queries::	      Asking a series of similar questions.
 * Reading a Password::	      Reading a password from the terminal.
+* Minibuffer Commands::       Commands used as key bindings in minibuffers.
+* Minibuffer Contents::       How such commands access the minibuffer text.
+* Minibuffer Windows::        Operating on the special minibuffer windows.
+* Recursive Mini::            Whether recursive entry to minibuffer is allowed.
 * Minibuffer Misc::           Various customization hooks and variables.
 @end menu
 
@@ -79,7 +83,7 @@ recursive minibuffers, the innermost (or most recently entered) is the
 active minibuffer.  We usually call this ``the'' minibuffer.  You can
 permit or forbid recursive minibuffers by setting the variable
 @code{enable-recursive-minibuffers} or by putting properties of that
-name on command symbols (@pxref{Minibuffer Misc}).
+name on command symbols (@pxref{Recursive Mini}).
 
   Like other buffers, a minibuffer may use any of several local keymaps
 (@pxref{Keymaps}); these contain various exit commands and in some cases
@@ -1694,11 +1698,11 @@ return if the user enters empty input.  If @var{default} is @code{nil},
 then @code{read-passwd} returns the null string in that case.
 @end defun
 
-@node Minibuffer Misc
-@section Minibuffer Miscellany
+@node Minibuffer Commands
+@section Minibuffer Commands
 
-  This section describes some basic functions and variables related to
-minibuffers.
+  This section describes some commands meant for use in the
+minibuffer.
 
 @deffn Command exit-minibuffer
 This command exits the active minibuffer.  It is normally bound to
@@ -1733,65 +1737,11 @@ This command replaces the minibuffer contents with the value of the
 regular expression).
 @end deffn
 
-@defun minibuffer-prompt
-This function returns the prompt string of the currently active
-minibuffer.  If no minibuffer is active, it returns @code{nil}.
-@end defun
+@node Minibuffer Windows
+@section Minibuffer Windows
 
-@defun minibuffer-prompt-end
-@tindex minibuffer-prompt-end
-This function returns the current
-position of the end of the minibuffer prompt, if a minibuffer is
-current.  Otherwise, it returns the minimum valid buffer position.
-@end defun
-
-@defun minibuffer-contents
-@tindex minibuffer-contents
-This function returns the editable
-contents of the minibuffer (that is, everything except the prompt) as
-a string, if a minibuffer is current.  Otherwise, it returns the
-entire contents of the current buffer.
-@end defun
-
-@defun minibuffer-contents-no-properties
-@tindex minibuffer-contents-no-properties
-This is like @code{minibuffer-contents}, except that it does not copy text
-properties, just the characters themselves.  @xref{Text Properties}.
-@end defun
-
-@defun delete-minibuffer-contents
-@tindex delete-minibuffer-contents
-This function erases the editable
-contents of the minibuffer (that is, everything except the prompt), if
-a minibuffer is current.  Otherwise, it erases the entire buffer.
-@end defun
-
-@defun minibuffer-prompt-width
-This function returns the current display-width of the minibuffer
-prompt, if a minibuffer is current.  Otherwise, it returns zero.
-@end defun
-
-@defvar minibuffer-setup-hook
-This is a normal hook that is run whenever the minibuffer is entered.
-@xref{Hooks}.
-@end defvar
-
-@defvar minibuffer-exit-hook
-This is a normal hook that is run whenever the minibuffer is exited.
-@xref{Hooks}.
-@end defvar
-
-@defvar minibuffer-help-form
-@anchor{Definition of minibuffer-help-form}
-The current value of this variable is used to rebind @code{help-form}
-locally inside the minibuffer (@pxref{Help Functions}).
-@end defvar
-
-@defun minibufferp &optional buffer-or-name
-This function returns non-@code{nil} if @var{buffer-or-name} is a
-minibuffer.  If @var{buffer-or-name} is omitted, it tests the current
-buffer.
-@end defun
+  These functions access and select minibuffer windows
+and test whether they are active.
 
 @defun active-minibuffer-window
 This function returns the currently active minibuffer window, or
@@ -1832,20 +1782,53 @@ This function returns non-@code{nil} if @var{window}, assumed to be
 a minibuffer window, is currently active.
 @end defun
 
-@defvar minibuffer-scroll-window
-@anchor{Definition of minibuffer-scroll-window}
-If the value of this variable is non-@code{nil}, it should be a window
-object.  When the function @code{scroll-other-window} is called in the
-minibuffer, it scrolls this window.
-@end defvar
+@node Minibuffer Contents
+@section Minibuffer Contents
 
-@defun minibuffer-selected-window
-This function returns the window which was selected when the
-minibuffer was entered.  If selected window is not a minibuffer
-window, it returns @code{nil}.
+  These functions access the minibuffer prompt and contents.
+
+@defun minibuffer-prompt
+This function returns the prompt string of the currently active
+minibuffer.  If no minibuffer is active, it returns @code{nil}.
 @end defun
 
-Finally, some functions and variables deal with recursive minibuffers
+@defun minibuffer-prompt-end
+@tindex minibuffer-prompt-end
+This function returns the current
+position of the end of the minibuffer prompt, if a minibuffer is
+current.  Otherwise, it returns the minimum valid buffer position.
+@end defun
+
+@defun minibuffer-prompt-width
+This function returns the current display-width of the minibuffer
+prompt, if a minibuffer is current.  Otherwise, it returns zero.
+@end defun
+
+@defun minibuffer-contents
+@tindex minibuffer-contents
+This function returns the editable
+contents of the minibuffer (that is, everything except the prompt) as
+a string, if a minibuffer is current.  Otherwise, it returns the
+entire contents of the current buffer.
+@end defun
+
+@defun minibuffer-contents-no-properties
+@tindex minibuffer-contents-no-properties
+This is like @code{minibuffer-contents}, except that it does not copy text
+properties, just the characters themselves.  @xref{Text Properties}.
+@end defun
+
+@defun delete-minibuffer-contents
+@tindex delete-minibuffer-contents
+This function erases the editable contents of the minibuffer (that is,
+everything except the prompt), if a minibuffer is current.  Otherwise,
+it erases the entire current buffer.
+@end defun
+
+@node Recursive Mini
+@section Recursive Minibuffers
+
+  These functions and variables deal with recursive minibuffers
 (@pxref{Recursive Editing}):
 
 @defun minibuffer-depth
@@ -1874,6 +1857,50 @@ also achieve this by binding @code{enable-recursive-minibuffers}
 to @code{t} in the interactive declaration (@pxref{Using Interactive}).
 The minibuffer command @code{next-matching-history-element} (normally
 @kbd{M-s} in the minibuffer) does the latter.
+
+@node Minibuffer Misc
+@section Minibuffer Miscellany
+
+@defun minibufferp &optional buffer-or-name
+This function returns non-@code{nil} if @var{buffer-or-name} is a
+minibuffer.  If @var{buffer-or-name} is omitted, it tests the current
+buffer.
+@end defun
+
+@defvar minibuffer-setup-hook
+This is a normal hook that is run whenever the minibuffer is entered.
+@xref{Hooks}.
+@end defvar
+
+@defvar minibuffer-exit-hook
+This is a normal hook that is run whenever the minibuffer is exited.
+@xref{Hooks}.
+@end defvar
+
+@defvar minibuffer-help-form
+@anchor{Definition of minibuffer-help-form}
+The current value of this variable is used to rebind @code{help-form}
+locally inside the minibuffer (@pxref{Help Functions}).
+@end defvar
+
+@defvar minibuffer-scroll-window
+@anchor{Definition of minibuffer-scroll-window}
+If the value of this variable is non-@code{nil}, it should be a window
+object.  When the function @code{scroll-other-window} is called in the
+minibuffer, it scrolls this window.
+@end defvar
+
+@defun minibuffer-selected-window
+This function returns the window which was selected when the
+minibuffer was entered.  If selected window is not a minibuffer
+window, it returns @code{nil}.
+@end defun
+
+@defopt max-mini-window-height
+This variable specifies the maximum height for resizing minibuffer
+windows.  If a float, it specifies a fraction of the height of the
+frame.  If an integer, it specifies a number of lines.
+@end defopt
 
 @defun minibuffer-message string
 This function displays @var{string} temporarily at the end of the

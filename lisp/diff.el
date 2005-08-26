@@ -1,6 +1,7 @@
 ;;; diff.el --- run `diff' in compilation-mode
 
-;; Copyright (C) 1992, 1994, 1996, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: unix, tools

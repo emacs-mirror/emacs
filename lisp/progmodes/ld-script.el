@@ -39,8 +39,6 @@
   '((t (:weight bold :inherit font-lock-builtin-face)))
   "Face for location counter in GNU ld script."
   :group 'ld-script)
-;; backward-compatibility alias
-(put 'ld-script-location-counter-face 'face-alias 'ld-script-location-counter)
 
 ;; Syntax rules
 (defvar ld-script-mode-syntax-table

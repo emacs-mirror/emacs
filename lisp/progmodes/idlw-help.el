@@ -193,8 +193,6 @@ support."
     (t (:weight bold)))
   "Face for highlighting links into IDLWAVE online help."
   :group 'idlwave-online-help)
-;; backward-compatibility alias
-(put 'idlwave-help-link-face 'face-alias 'idlwave-help-link)
 
 (defvar idlwave-help-activate-links-aggressively nil
   "Obsolete variable.")

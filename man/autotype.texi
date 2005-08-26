@@ -1,6 +1,7 @@
 \input texinfo
 @c This is an annex of the Emacs manual.
-@c Copyright (C) 1994, 1995, 2002 Free Software Foundation, Inc.
+@c Copyright (C) 1994, 1995, 2002, 2003, 2004,
+@c   2005 Free Software Foundation, Inc.
 @c Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
 @setfilename ../info/autotype
 @c @node Autotypist, Picture, Abbrevs, Top
@@ -11,7 +12,8 @@
 @c  @cindex autotypist
 
 @copying
-Copyright @copyright{} 1994, 1995, 1999 Free Software Foundation, Inc.
+Copyright @copyright{} 1994, 1995, 1999, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

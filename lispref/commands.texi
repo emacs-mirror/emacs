@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/commands
 @node Command Loop, Keymaps, Minibuffers, Top
@@ -2435,15 +2435,26 @@ Emacs version 18.
 @end defvar
 
 @defmac while-no-input body...
-This construct runs the @var{body} forms and returns the value
-of the last one---but only if no input arrives.  If any input
-arrives during the execution of the @var{body} forms, it aborts
-them (working much like a quit), and the @code{while-no-input}
-form returns @code{nil}.
+This construct runs the @var{body} forms and returns the value of the
+last one---but only if no input arrives.  If any input arrives during
+the execution of the @var{body} forms, it aborts them (working much
+like a quit).  The @code{while-no-input} form returns @code{nil} if
+aborted by a real quit, and returns @code{t} if aborted by arrival of
+other input.
 
 If a part of @var{body} binds @code{inhibit-quit} to non-@code{nil},
 arrival of input during those parts won't cause an abort until
 the end of that part.
+
+If you want to be able to distingish all possible values computed
+by @var{body} from both kinds of abort conditions, write the code
+like this:
+
+@example
+(while-no-input
+  (list
+    (progn . @var{body})))
+@end example
 @end defmac
 
 @defun discard-input

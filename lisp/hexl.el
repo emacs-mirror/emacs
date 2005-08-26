@@ -1,6 +1,7 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter
 
-;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1998, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -84,12 +85,12 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
   :options '(hexl-follow-line hexl-activate-ruler turn-on-eldoc-mode)
   :group 'hexl)
 
-(defface hexl-address-area
+(defface hexl-address-region
   '((t (:inherit header-line)))
   "Face used in address are of hexl-mode buffer."
   :group 'hexl)
 
-(defface hexl-ascii-area
+(defface hexl-ascii-region
   '((t (:inherit header-line)))
   "Face used in ascii are of hexl-mode buffer."
   :group 'hexl)
@@ -120,8 +121,8 @@ Quoting cannot be used, so the arguments cannot themselves contain spaces."
 (defvar hexl-font-lock-keywords
   '(("^\\([0-9a-f]+:\\).\\{40\\}  \\(.+$\\)"
      ;; "^\\([0-9a-f]+:\\).+  \\(.+$\\)"
-     (1 'hexl-address-area t t)
-     (2 'hexl-ascii-area t t)))
+     (1 'hexl-address-region t t)
+     (2 'hexl-ascii-region t t)))
   "Font lock keywords used in `hexl-mode'.")
 
 ;; routines
@@ -425,7 +426,7 @@ Ask the user for confirmation."
 
 (defun hexl-print-current-point-info ()
   "Return current hexl-address in string.
-This function is indented to be used as eldoc callback."
+This function is intended to be used as eldoc callback."
   (let ((addr (hexl-current-address)))
     (format "Current address is %d/0x%08x" addr addr)))
 
@@ -934,7 +935,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   (hl-line-mode 1))
 
 (defun hexl-highlight-line-range ()
-  "Return the range of address area for the point.
+  "Return the range of address region for the point.
 This function is assumed to be used as call back function for `hl-line-mode'."
   (cons
    (line-beginning-position)

@@ -1,6 +1,6 @@
 ;;; macroexp.el --- Additional macro-expansion support
 ;;
-;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
 ;; Keywords: lisp, compiler, macros
@@ -91,7 +91,7 @@ FORMS."
 CLAUSES is a list of lists of forms; any clause that's not a list is ignored.
 If SKIP is non-nil, then don't expand that many elements at the start of
 each clause."
-  (macroexp-accumulate (clause clauses) 
+  (macroexp-accumulate (clause clauses)
     (if (listp clause)
 	(macroexpand-all-forms clause skip)
       clause)))

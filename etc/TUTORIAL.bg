@@ -1,5 +1,4 @@
 Въведение в Emacs. Условията за копиране са в края на текста.
-Copyright (c) 1985,1996,1998,2001,2002,2003,2005 Free Software Foundation.
 
 Командите на Emacs най-често включват клавишите CONTROL (понякога
 отбелязван с CTRL или CTL) и META (понякога отбелязван с EDIT или
@@ -1170,7 +1169,8 @@ Dired ви позволява да гледате списъка от файлове в директория (и като
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation
+Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

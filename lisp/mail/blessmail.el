@@ -1,6 +1,6 @@
 ;;; blessmail.el --- decide whether movemail needs special privileges -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal

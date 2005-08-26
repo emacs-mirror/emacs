@@ -7,7 +7,8 @@
 ;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
 
-;; Copyright (C) 1993, 1994, 1997, 2001, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1997, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 

@@ -1,5 +1,4 @@
 Einführung in Emacs.  Siehe Dateiende für Vervielfältigungsbedingungen.
-(c) 2002, 2003, 2005 Free Software Foundation, Inc.
 
 Emacs-Befehle beinhalten im allgemeinen die CONTROL-Taste (manchmal
 auch als CTRL, CTL oder STRG beschriftet) sowie die META-Taste (auch
@@ -1461,7 +1460,8 @@ geschrieben.  Übersetzer ins Deutsche ist Werner Lemberg (wl@gnu.org).
 Beachten Sie bitte, daß im Zweifelsfalle das englische Original dieser
 Urheberrechtsnotiz gültig ist (zu finden in der Datei TUTORIAL).
 
-Copyright (c) 1985, 1996, 1997 Free Software Foundation
+Copyright (C) 1985, 1996, 1997, 2002, 2003, 2004,
+   2005 Free Software Foundation
 
    Hiermit wird für jedermann die Erlaubnis erteilt, wörtliche,
    unveränderte Kopien dieses Dokumentes für jegliches Medium zu

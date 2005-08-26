@@ -14,8 +14,8 @@
 This file describes how to use Info, the on-line, menu-driven GNU
 documentation system.
 
-Copyright (C) 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
-Free Software Foundation, Inc.
+Copyright (C) 1989, 1992, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+   2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -238,7 +238,7 @@ line says that this is node @samp{Help} in the file @file{info}.
 (look at it now) says that the @samp{Next} node after this one is the
 node called @samp{Help-P}.  An advanced Info command lets you go to
 any node whose name you know.  In the stand-alone Info reader program,
-the header line shows the names of this node and the info file as
+the header line shows the names of this node and the Info file as
 well.  In Emacs, the header line is duplicated in a special typeface,
 and the duplicate remains at the top of the window all the time even
 if you scroll through the node.
@@ -284,7 +284,7 @@ node, @samp{Help-^L}.
   If you read this in Emacs, you will see an @samp{Info} item in the
 menu bar, close to its right edge.  Clicking the mouse on the
 @samp{Info} menu-bar item opens a menu of commands which include
-@samp{Next} and @samp{Prev} (and also some others which you didn't yet
+@samp{Next} and @samp{Previous} (and also some others which you didn't yet
 learn about).
 
   This all probably seems insultingly simple so far, but @emph{please
@@ -671,10 +671,12 @@ mistake.
 
   Another way to move to the menu subtopic lines and between them is
 to type @key{TAB}.  Each time you type a @key{TAB}, you move to the
-next subtopic line.  To move to a previous subtopic line, type
-@kbd{M-@key{TAB}}---that is, press and hold the @key{META} key and then
-press @key{TAB}.  (On some keyboards, the @key{META} key might be labeled
-@samp{Alt}.)
+next subtopic line.  To move to a previous subtopic line in the
+stand-alone reader, type @kbd{M-@key{TAB}}---that is, press and hold
+the @key{META} key and then press @key{TAB}.  (On some keyboards, the
+@key{META} key might be labeled @samp{Alt}.)  In Emacs Info, type
+@kbd{S-@key{TAB}} to move to a previous subtopic line (press and hold
+the @key{Shift} key and then press @key{TAB}).
 
   Once you move cursor to a subtopic line, press @key{RET} to go to
 that subtopic's node.
@@ -727,7 +729,8 @@ usually used to ``stay on the same level but go backwards''.
 @code{Info-up}).  That puts you at the @emph{front} of the node---to
 get back to where you were reading you have to type some @key{SPC}s.
 (Some Info readers, such as the one built into Emacs, put you at the
-same place where you were reading in @samp{Help-M}.)
+menu subtopic line which points to the subnode that the @kbd{u} command
+brought you from.)
 
   Another way to go Up is to click @kbd{Mouse-2} on the @samp{Up}
 pointer shown in the header line (provided that you have a mouse).
@@ -785,8 +788,14 @@ to cancel the @kbd{f}.
    type a @kbd{Control-g} and see how the @samp{f} gives up.
 @end format
 
-  The @key{TAB} and @kbd{M-@key{TAB}} key, which move between menu
-items in a menu, also move between cross references outside of menus.
+  The @key{TAB}, @kbd{M-@key{TAB}} and @kbd{S-@key{TAB}} keys,
+which move between menu items in a menu, also move between cross
+references outside of menus.
+
+  Clicking @kbd{Mouse-2} on or near a cross reference also follows the
+reference.  You can see that the cross reference is mouse-sensitive by
+moving the mouse pointer to the reference and watching how the
+underlying text and the mouse pointer change in response.
 
   Sometimes a cross reference (or a node) can lead to another file (in
 other words another ``manual''), or, on occasion, even a file on a
@@ -795,36 +804,22 @@ stand-alone Info avoid using remote links).  Such a cross reference
 looks like this: @xref{Top,, Overview of Texinfo, texinfo, Texinfo:
 The GNU Documentation Format}.  (After following this link, type
 @kbd{l} to get back to this node.)  Here the name @samp{texinfo}
-between parentheses (shown in the stand-alone version) refers to the
-file name.  This file name appears in cross references and node names
-if it differs from the current file.  In Emacs, the file name is
-hidden (along with other text).  (Use @kbd{M-x visible-mode} to show
-or hide it.)
+between parentheses refers to the file name.  This file name appears
+in cross references and node names if it differs from the current
+file, so you can always know that you are going to be switching to
+another manual and which one.
 
-  The remainder of this node applies only to the Emacs version.  If
-you use the stand-alone version, you can type @kbd{n} immediately.
-
-  To some users, switching manuals is a much bigger switch than
-switching sections.  These users like to know that they are going to
-be switching to another manual (and which one) before actually doing
-so, especially given that, if one does not notice, Info commands like
-@kbd{t} (see the next node) can have confusing results.
-
-  If you put your mouse over the cross reference and if the cross
-reference leads to a different manual, then the information appearing
-in a separate box (tool tip) or in the echo area, will mention the
-file the cross reference will carry you to (between parentheses).
-This is also true for menu subtopic names.  If you have a mouse, just
-leave it over the @samp{Overview} cross reference above and watch what
-happens.
-
-  If you always like to have that information available without having
-to move your mouse over the cross reference, set
-@code{Info-hide-note-references} to a value other than @code{t}
-(@pxref{Emacs Info Variables}).  You might also want to do that if you
-have a lot of cross references to files on remote machines and have
-non-permanent or slow access, since otherwise you might not be able to
-distinguish between local and remote links.
+However, Emacs normally hides some other text in cross-references.
+If you put your mouse over the cross reference, then the information
+appearing in a separate box (tool tip) or in the echo area will show
+the full cross-reference including the file name and the node name of
+the cross reference.  If you have a mouse, just leave it over the
+cross reference @xref{Top,, Overview of Texinfo, texinfo, Texinfo:
+The GNU Documentation Format}, and watch what happens.  If you
+always like to have that information visible without having to move
+your mouse over the cross reference, use @kbd{M-x visible-mode}, or
+set @code{Info-hide-note-references} to a value other than @code{t}
+(@pxref{Emacs Info Variables}).
 
 @format
 >> Now type @kbd{n} to learn more commands.
@@ -845,8 +840,9 @@ This allows Info readers to go to the exact line of an entry, not just
 the start of the containing node.)
 
   You can get to the index from the main menu of the file with the
-@kbd{m} command; then you can use the @kbd{m} command again in the
-index node to go to the node that describes the topic you want.
+@kbd{m} command and the name of the index node; then you can use the
+@kbd{m} command again in the index node to go to the node that
+describes the topic you want.
 
   There is also a short-cut Info command, @kbd{i}, which does all of
 that for you.  It searches the index for a given topic (a string) and
@@ -854,8 +850,8 @@ goes to the node which is listed in the index for that topic.
 @xref{Info Search}, for a full explanation.
 
 @kindex l @r{(Info mode)}
-@findex Info-last
-@cindex going back in Info mode
+@findex Info-history-back
+@cindex going back in Info history
   If you have been moving around to different nodes and wish to
 retrace your steps, the @kbd{l} command (@kbd{l} for @dfn{last}) will
 do that, one node-step at a time.  As you move from node to node, Info
@@ -863,7 +859,7 @@ records the nodes where you have been in a special history list.  The
 @kbd{l} command revisits nodes in the history list; each successive
 @kbd{l} command moves one step back through the history.
 
-  In Emacs, @kbd{l} runs the command @code{Info-last}.
+  In Emacs, @kbd{l} runs the command @code{Info-history-back}.
 
 @format
 >> Try typing @kbd{p p n} and then three @kbd{l}'s, pausing in between
@@ -874,6 +870,13 @@ to see what each @kbd{l} does.  You should wind up right back here.
 where @emph{you} last were, whereas @kbd{p} always moves to the node
 which the header says is the @samp{Previous} node (from this node, the
 @samp{Prev} link leads to @samp{Help-Xref}).
+
+@kindex r @r{(Info mode)}
+@findex Info-history-forward
+@cindex going forward in Info history
+  You can use the @kbd{r} command (@code{Info-history-forward} in Emacs)
+to revisit nodes in the history list in the forward direction, so that
+@kbd{r} will return you to the node you came from by typing @kbd{l}.
 
 @kindex d @r{(Info mode)}
 @findex Info-directory
@@ -897,11 +900,6 @@ are, or could be, installed on your system.
 This is useful if you want to browse the manual's main menu, or select
 some specific top-level menu item.  The Emacs command run by @kbd{t}
 is @code{Info-top-node}.
-
-  Clicking @kbd{Mouse-2} on or near a cross reference also follows the
-reference.  You can see that the cross reference is mouse-sensitive by
-moving the mouse pointer to the reference and watching how the
-underlying text and the mouse pointer change in response.
 
 @format
 >> Now type @kbd{n} to see the last node of the course.
@@ -935,7 +933,7 @@ Documentation Format}.
 * Menus::                How to add to or create menus in Info nodes.
 * Cross-refs::           How to add cross-references to Info nodes.
 * Tags::                 How to make tags tables for Info files.
-* Checking::             Checking an Info File
+* Checking::             Checking an Info File.
 * Emacs Info Variables:: Variables modifying the behavior of Emacs Info.
 @end menu
 
@@ -969,7 +967,7 @@ the node @samp{Top} in the Info file @file{dir}.  Likewise,
 
   The node name @samp{*} specifies the whole file.  So you can look at
 all of the current file by typing @kbd{g*@key{RET}} or all of any
-other file with @kbd{g(@var{filename})@key{RET}}.
+other file with @kbd{g(@var{filename})*@key{RET}}.
 
 @subheading @kbd{1}--@kbd{9} choose a menu subtopic by its number
 
@@ -1017,7 +1015,7 @@ current node.
 @findex clone-buffer
 @cindex multiple Info buffers
   If you are reading Info in Emacs, you can select a new independent
-Info buffer in another window by typing @kbd{M-n}.  The new buffer
+Info buffer in the same window by typing @kbd{M-n}.  The new buffer
 starts out as an exact copy of the old one, but you will be able to
 move independently between nodes in the two buffers.  (In Info mode,
 @kbd{M-n} runs the Emacs command @code{clone-buffer}.)
@@ -1027,6 +1025,11 @@ numeric prefix argument to the @kbd{m} and @kbd{g} commands.  @kbd{C-u
 m} and @kbd{C-u g} go to a new node in exactly the same way that
 @kbd{m} and @kbd{g} do, but they do so in a new Info buffer which they
 select in another window.
+
+  Another way to produce new Info buffers in Emacs is to use a numeric
+prefix argument for the @kbd{C-h i} command (@code{info}) which
+switches to the Info buffer with that number.  Thus, @kbd{C-u 2 C-h i}
+switches to the buffer @samp{*info*<2>}, creating it if necessary.
 
 @node Info Search, Add, Advanced, Expert Info
 @comment  node-name,  next,  previous,  up
@@ -1083,10 +1086,12 @@ you type inside Emacs to run the command bound to @kbd{C-f}.
   In Emacs, @kbd{i} runs the command @code{Info-index}.
 
 @findex info-apropos
+@findex index-apropos
 If you don't know what manual documents something, try the @kbd{M-x
-info-apropos} command.  It prompts for a string and then looks up that
-string in all the indices of all the Info documents installed on your
-system.
+info-apropos} command in Emacs, or the @kbd{M-x index-apropos} command
+in the stand-alone reader.  It prompts for a string and then looks up
+that string in all the indices of all the Info documents installed on
+your system.
 
 @kindex s @r{(Info mode)}
 @findex Info-search
@@ -1095,10 +1100,10 @@ It switches to the next node if and when that is necessary.  You
 type @kbd{s} followed by the string to search for, terminated by
 @key{RET}.  To search for the same string again, just @kbd{s} followed
 by @key{RET} will do.  The file's nodes are scanned in the order
-they are in in the file, which has no necessary relationship to the
+they are in the file, which has no necessary relationship to the
 order that they may be in the tree structure of menus and @samp{next}
 pointers.  But normally the two orders are not very different.  In any
-case, you can always do a @kbd{b} to find out what node you have
+case, you can always look at the echo area to find out what node you have
 reached, if the header is not visible (this can happen, because @kbd{s}
 puts your cursor at the occurrence of the string, not at the beginning
 of the node).
@@ -1109,6 +1114,15 @@ compatibility with other GNU packages that use @kbd{M-s} for a similar
 kind of search command.  Both @kbd{s} and @kbd{M-s} run in Emacs the
 command @code{Info-search}.
 
+@kindex C-s @r{(Info mode)}
+@kindex C-r @r{(Info mode)}
+@findex isearch
+  Instead of using @kbd{s} in Emacs Info and in the stand-alone Info,
+you can use an incremental search started with @kbd{C-s} or @kbd{C-r}.
+It can search through multiple Info nodes.  @xref{Incremental Search,,,
+emacs, The GNU Emacs Manual}.  In Emacs, this behavior is enabled only
+if the variable @code{Info-isearch-search} is non-@code{nil}
+(@pxref{Emacs Info Variables}).
 
 @node Add, Menus, Info Search, Expert Info
 @comment  node-name,  next,  previous,  up
@@ -1245,9 +1259,9 @@ the nodes in a file to form a connected structure.  In fact, this file
 has two connected components.  You are in one of them, which is under
 the node @samp{Top}; the other contains the node @samp{Help} which the
 @kbd{h} command goes to.  In fact, since there is no garbage
-collector, nothing terrible happens if a substructure is not pointed
-to, but such a substructure is rather useless since nobody can
-ever find out that it exists.
+collector on the node graph, nothing terrible happens if a substructure
+is not pointed to, but such a substructure is rather useless since nobody
+can ever find out that it exists.
 
 @node Cross-refs, Tags, Menus, Expert Info
 @comment  node-name,  next,  previous,  up
@@ -1328,7 +1342,7 @@ manner.
 @comment  node-name,  next,  previous,  up
 @section Tags Tables for Info Files
 
-@cindex tags tables in info files
+@cindex tags tables in Info files
   You can speed up the access to nodes of a large Info file by giving
 it a tags table.  Unlike the tags table for a program, the tags table for
 an Info file lives inside the file itself and is used
@@ -1408,22 +1422,30 @@ initialize it, or @code{Info-default-directory-list} if there is no
 @env{INFOPATH} variable in the environment.
 
 If you wish to customize the Info directory search list for both Emacs
-info and stand-alone Info, it is best to set the @env{INFOPATH}
+Info and stand-alone Info, it is best to set the @env{INFOPATH}
 environment variable, since that applies to both programs.
 
 @item Info-additional-directory-list
 A list of additional directories to search for Info documentation files.
 These directories are not searched for merging the @file{dir} file.
 
-@item Info-fontify
-When set to a non-@code{nil} value, enables highlighting of Info
-files.  The default is @code{t}.  You can change how the highlighting
-looks by customizing the faces @code{info-node}, @code{info-xref},
-@code{info-header-xref}, @code{info-header-node}, @code{info-menu-5},
-@code{info-menu-header}, and @code{info-title-@var{n}-face} (where
-@var{n} is the level of the section, a number between 1 and 4).  To
-customize a face, type @kbd{M-x customize-face @key{RET} @var{face}
-@key{RET}}, where @var{face} is one of the face names listed here.
+@item Info-mode-hook
+Hooks run when @code{Info-mode} is called.  By default, it contains
+the hook @code{turn-on-font-lock} which enables highlighting of Info
+files.  You can change how the highlighting looks by customizing the
+faces @code{info-node}, @code{info-xref}, @code{info-xref-visited},
+@code{info-header-xref}, @code{info-header-node}, @code{info-menu-header},
+@code{info-menu-star}, and @code{info-title-@var{n}} (where @var{n}
+is the level of the section, a number between 1 and 4).  To customize
+a face, type @kbd{M-x customize-face @key{RET} @var{face} @key{RET}},
+where @var{face} is one of the face names listed here.
+
+@item Info-fontify-maximum-menu-size
+Maximum size of menu to fontify if @code{font-lock-mode} is non-@code{nil}.
+
+@item Info-fontify-visited-nodes
+If non-@code{nil}, menu items and cross-references pointing to visited
+nodes are displayed in the @code{info-xref-visited} face.
 
 @item Info-use-header-line
 If non-@code{nil}, Emacs puts in the Info buffer a header line showing
@@ -1448,6 +1470,9 @@ subnode indicated by the following menu item.  Setting this option to
 @code{nil} results in behavior similar to the stand-alone Info reader
 program, which visits the first subnode from the menu only when you
 hit the end of the current node.  The default is @code{nil}.
+
+@item Info-isearch-search
+If non-@code{nil}, isearch in Info searches through multiple nodes.
 
 @item Info-enable-active-nodes
 When set to a non-@code{nil} value, allows Info to execute Lisp code

@@ -4,9 +4,8 @@
 
 ;; Authors:     Reto Zimmermann <reto@gnu.org>
 ;;              Rodney J. Whitby <software.vhdl-mode@rwhitby.net>
-;; Maintainer:  Reto Zimmermann <reto@gnu.org>
+;; Maintainer:  FSF  (Because Reto Zimmermann seems to have disappeared)
 ;; Keywords:    languages vhdl
-;; WWW:         http://opensource.ethz.ch/emacs/vhdl-mode.html
 
 (defconst vhdl-version "3.32.12"
   "VHDL Mode version number.")
@@ -67,13 +66,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs Versions
 
-;; supported: GNU Emacs 20.X/21.X, XEmacs 20.X/21.X
+;; supported: GNU Emacs 20.X/21.X/22.X, XEmacs 20.X/21.X
 ;; tested on: GNU Emacs 20.4, XEmacs 21.1 (marginally)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Installation
 
-;; Prerequisites:  GNU Emacs 20.X/21.X, XEmacs 20.X/21.X.
+;; Prerequisites:  GNU Emacs 20.X/21.X/22.X, XEmacs 20.X/21.X.
 
 ;; Put `vhdl-mode.el' into the `site-lisp' directory of your Emacs installation
 ;; or into an arbitrary directory that is added to the load path by the
@@ -125,9 +124,9 @@
 ;; XEmacs handling
 (defconst vhdl-xemacs (string-match "XEmacs" emacs-version)
   "Non-nil if XEmacs is used.")
-;; Emacs 21 handling
-(defconst vhdl-emacs-21 (and (= emacs-major-version 21) (not vhdl-xemacs))
-  "Non-nil if Emacs 21 is used.")
+;; Emacs 21+ handling
+(defconst vhdl-emacs-21 (and (<= 21 emacs-major-version) (not vhdl-xemacs))
+  "Non-nil if Emacs 21, 22, ... is used.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
