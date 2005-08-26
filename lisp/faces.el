@@ -204,7 +204,10 @@ If NAME is already a face, it is simply returned."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun facep (face)
-  "Return non-nil if FACE is a face name."
+  "Return non-nil if FACE is a face name or internal face object.
+Return nil otherwise.  A face name can be a string or a symbol.
+An internal face object is a vector of the kind used internally
+to record face data."
   (internal-lisp-face-p face))
 
 
@@ -1572,6 +1575,13 @@ this won't have the expected effect."
 		 (choice-item light)
 		 (choice-item :tag "default" nil)))
 
+(defvar default-frame-background-mode nil
+  "Internal variable for the default brightness of the background.
+Emacs sets it automatically depending on the terminal type.
+The value `nil' means `dark'.  If Emacs runs in non-windowed
+mode from `xterm' or a similar terminal emulator, the value is
+`light'.  On rxvt terminals, the value depends on the environment
+variable COLORFGBG.")
 
 (defun frame-set-background-mode (frame)
   "Set up display-dependent faces on FRAME.
@@ -1587,13 +1597,13 @@ according to the `background-mode' and `display-type' frame parameters."
 		 (intern (downcase bg-resource)))
 		((and (null window-system) (null bg-color))
 		 ;; No way to determine this automatically (?).
-		 'dark)
+		 (or default-frame-background-mode 'dark))
 		;; Unspecified frame background color can only happen
 		;; on tty's.
 		((member bg-color '(unspecified "unspecified-bg"))
-		 'dark)
+		 (or default-frame-background-mode 'dark))
 		((equal bg-color "unspecified-fg") ; inverted colors
-		 'light)
+		 (if (eq default-frame-background-mode 'light) 'dark 'light))
 		((>= (apply '+ (x-color-values bg-color frame))
 		    ;; Just looking at the screen, colors whose
 		    ;; values add up to .6 of the white total

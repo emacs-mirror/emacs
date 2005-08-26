@@ -359,7 +359,7 @@ With positive argument insert that many lines."
 			 (point))))
     (replace-match newtext fixedcase literal)
     (if (< change 0)
-	(insert-char ?\ (- change)))))
+	(insert-char ?\s (- change)))))
 
 ;; Picture Tabs
 

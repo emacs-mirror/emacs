@@ -3442,18 +3442,14 @@ Outline mode sets this."
 		  (when (and (not done)
 			     (not (integerp selective-display))
 			     (not (line-move-invisible-p (point))))
-		    ;; We avoid vertical-motion when possible
-		    ;; because that has to fontify.
-		    (forward-line 1)
-		    ;; If there are overlays in and around
-		    ;; the text we moved over, we need to be
-		    ;; sophisticated.
 		    (unless (overlays-in (max (1- pos-before) (point-min))
 					 (min (1+ (point)) (point-max)))
+		      ;; We avoid vertical-motion when possible
+		      ;; because that has to fontify.
+		      (forward-line 1)
 		      (setq line-done t)))
-		  ;; Otherwise move a more sophisticated way.
-		  ;; (What's the logic behind this code?)
 		  (and (not done) (not line-done)
+		       ;; Otherwise move a more sophisticated way.
 		       (zerop (vertical-motion 1))
 		       (if (not noerror)
 			   (signal 'end-of-buffer nil)
@@ -3473,9 +3469,9 @@ Outline mode sets this."
 		  (when (and (not done)
 			     (not (integerp selective-display))
 			     (not (line-move-invisible-p (1- (point)))))
-		    (forward-line -1)
 		    (unless (overlays-in (max (1- (point)) (point-min))
 					 (min (1+ pos-before) (point-max)))
+		      (forward-line -1)
 		      (setq line-done t)))
 		  (and (not done) (not line-done)
 		       (zerop (vertical-motion -1))

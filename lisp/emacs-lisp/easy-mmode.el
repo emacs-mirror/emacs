@@ -201,10 +201,7 @@ See the command `%s' for a description of this minor-mode."))
 	       :type 'boolean
 	       ,@(cond
 		  ((not (and curfile require)) nil)
-		  ((not (eq require t)) `(:require ,require))
-		  (t `(:require
-		       ',(intern (file-name-nondirectory
-				  (file-name-sans-extension curfile))))))
+		  ((not (eq require t)) `(:require ,require)))
 	       ,@(nreverse extra-keywords))))
 
        ;; The actual function.

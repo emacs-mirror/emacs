@@ -1,3 +1,23 @@
+2005-06-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NoCeM): gnus-nocem-verifyer defaults to pgg-verify.
+
+2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.12
+
+2005-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Text Display): Change index entries.
+
+2005-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Use --force.
+	(INFO_TARGETS, DVI_TARGETS): Make identical to the lists in
+	Makefile.in.
+	(gnus.dvi): Use "..." to quote Sed args, so that it works with
+	more shells.
+
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
 	* anti.texi (Antinews): Renamed show-nonbreak-escape to

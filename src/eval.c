@@ -239,6 +239,18 @@ init_eval ()
   when_entered_debugger = -1;
 }
 
+/* unwind-protect function used by call_debugger.  */
+
+static Lisp_Object
+restore_stack_limits (data)
+     Lisp_Object data;
+{
+  max_specpdl_size = XINT (XCAR (data));
+  max_lisp_eval_depth = XINT (XCDR (data));
+}
+
+/* Call the Lisp debugger, giving it argument ARG.  */
+
 Lisp_Object
 call_debugger (arg)
      Lisp_Object arg;
@@ -246,12 +258,22 @@ call_debugger (arg)
   int debug_while_redisplaying;
   int count = SPECPDL_INDEX ();
   Lisp_Object val;
+  int old_max = max_specpdl_size;
 
-  if (lisp_eval_depth + 20 > max_lisp_eval_depth)
-    max_lisp_eval_depth = lisp_eval_depth + 20;
+  /* Temporarily bump up the stack limits,
+     so the debugger won't run out of stack.  */
 
-  if (specpdl_size + 40 > max_specpdl_size)
-    max_specpdl_size = specpdl_size + 40;
+  max_specpdl_size += 1;
+  record_unwind_protect (restore_stack_limits,
+			 Fcons (make_number (old_max),
+				make_number (max_lisp_eval_depth)));
+  max_specpdl_size = old_max;
+
+  if (lisp_eval_depth + 40 > max_lisp_eval_depth)
+    max_lisp_eval_depth = lisp_eval_depth + 40;
+
+  if (SPECPDL_INDEX () + 100 > max_specpdl_size)
+    max_specpdl_size = SPECPDL_INDEX () + 100;
 
 #ifdef HAVE_X_WINDOWS
   if (display_hourglass_p)
@@ -268,6 +290,7 @@ call_debugger (arg)
   specbind (intern ("debugger-may-continue"),
 	    debug_while_redisplaying ? Qnil : Qt);
   specbind (Qinhibit_redisplay, Qnil);
+  specbind (Qdebug_on_error, Qnil);
 
 #if 0 /* Binding this prevents execution of Lisp code during
 	 redisplay, which necessarily leads to display problems.  */
@@ -820,6 +843,10 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   register Lisp_Object sym, tem, tail;
 
   sym = Fcar (args);
+  if (SYMBOL_CONSTANT_P (sym))
+    error ("Constant symbol `%s' specified in defvar",
+           SDATA (SYMBOL_NAME (sym)));
+
   tail = Fcdr (args);
   if (!NILP (Fcdr (Fcdr (tail))))
     error ("Too many arguments");
@@ -903,12 +930,24 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
   return sym;
 }
 
+/* Error handler used in Fuser_variable_p.  */
+static Lisp_Object
+user_variable_p_eh (ignore)
+     Lisp_Object ignore;
+{
+  return Qnil;
+}
+
 DEFUN ("user-variable-p", Fuser_variable_p, Suser_variable_p, 1, 1, 0,
-       doc: /* Returns t if VARIABLE is intended to be set and modified by users.
+       doc: /* Return t if VARIABLE is intended to be set and modified by users.
 \(The alternative is a variable used internally in a Lisp program.)
-Determined by whether the first character of the documentation
-for the variable is `*' or if the variable is customizable (has a non-nil
-value of `standard-value' or of `custom-autoload' on its property list).  */)
+A variable is a user variable if
+\(1) the first character of its documentation is `*', or
+\(2) it is customizable (its property list contains a non-nil value
+    of `standard-value' or `custom-autoload'), or
+\(3) it is an alias for another user variable.
+Return nil if VARIABLE is an alias and there is a loop in the
+chain of symbols.  */)
      (variable)
      Lisp_Object variable;
 {
@@ -917,23 +956,37 @@ value of `standard-value' or of `custom-autoload' on its property list).  */)
   if (!SYMBOLP (variable))
       return Qnil;
 
-  documentation = Fget (variable, Qvariable_documentation);
-  if (INTEGERP (documentation) && XINT (documentation) < 0)
-    return Qt;
-  if (STRINGP (documentation)
-      && ((unsigned char) SREF (documentation, 0) == '*'))
-    return Qt;
-  /* If it is (STRING . INTEGER), a negative integer means a user variable.  */
-  if (CONSP (documentation)
-      && STRINGP (XCAR (documentation))
-      && INTEGERP (XCDR (documentation))
-      && XINT (XCDR (documentation)) < 0)
-    return Qt;
-  /* Customizable?  See `custom-variable-p'. */
-  if ((!NILP (Fget (variable, intern ("standard-value"))))
-      || (!NILP (Fget (variable, intern ("custom-autoload")))))
-    return Qt;
-  return Qnil;
+  /* If indirect and there's an alias loop, don't check anything else.  */
+  if (XSYMBOL (variable)->indirect_variable
+      && NILP (internal_condition_case_1 (indirect_variable, variable,
+                                          Qt, user_variable_p_eh)))
+    return Qnil;
+
+  while (1)
+    {
+      documentation = Fget (variable, Qvariable_documentation);
+      if (INTEGERP (documentation) && XINT (documentation) < 0)
+        return Qt;
+      if (STRINGP (documentation)
+          && ((unsigned char) SREF (documentation, 0) == '*'))
+        return Qt;
+      /* If it is (STRING . INTEGER), a negative integer means a user variable.  */
+      if (CONSP (documentation)
+          && STRINGP (XCAR (documentation))
+          && INTEGERP (XCDR (documentation))
+          && XINT (XCDR (documentation)) < 0)
+        return Qt;
+      /* Customizable?  See `custom-variable-p'.  */
+      if ((!NILP (Fget (variable, intern ("standard-value"))))
+          || (!NILP (Fget (variable, intern ("custom-autoload")))))
+        return Qt;
+
+      if (!XSYMBOL (variable)->indirect_variable)
+        return Qnil;
+
+      /* An indirect variable?  Let's follow the chain.  */
+      variable = XSYMBOL (variable)->value;
+    }
 }
 
 DEFUN ("let*", FletX, SletX, 1, UNEVALLED, 0,
@@ -1607,7 +1660,16 @@ See also the function `condition-case'.  */)
   /* This hook is used by edebug.  */
   if (! NILP (Vsignal_hook_function)
       && ! NILP (error_symbol))
-    call2 (Vsignal_hook_function, error_symbol, data);
+    {
+      /* Edebug takes care of restoring these variables when it exits.  */
+      if (lisp_eval_depth + 20 > max_lisp_eval_depth)
+	max_lisp_eval_depth = lisp_eval_depth + 20;
+
+      if (SPECPDL_INDEX () + 40 > max_specpdl_size)
+	max_specpdl_size = SPECPDL_INDEX () + 40;
+
+      call2 (Vsignal_hook_function, error_symbol, data);
+    }
 
   conditions = Fget (real_error_symbol, Qerror_conditions);
 
@@ -1628,12 +1690,6 @@ See also the function `condition-case'.  */)
   for (; handlerlist; handlerlist = handlerlist->next)
     {
       register Lisp_Object clause;
-
-      if (lisp_eval_depth + 20 > max_lisp_eval_depth)
-	max_lisp_eval_depth = lisp_eval_depth + 20;
-
-      if (specpdl_size + 40 > max_specpdl_size)
-	max_specpdl_size = specpdl_size + 40;
 
       clause = find_handler_clause (handlerlist->handler, conditions,
 				    error_symbol, data, &debugger_value);
@@ -1747,7 +1803,11 @@ skip_debugger (conditions, data)
     = SIG is nil, and DATA is (SYMBOL . REST-OF-DATA).
        This is for memory-full errors only.
 
-   Store value returned from debugger into *DEBUGGER_VALUE_PTR.  */
+   Store value returned from debugger into *DEBUGGER_VALUE_PTR.
+
+   We need to increase max_specpdl_size temporarily around
+   anything we do that can push on the specpdl, so as not to get
+   a second error here in case we're handling specpdl overflow.  */
 
 static Lisp_Object
 find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
@@ -1765,7 +1825,6 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
       || !NILP (Vdebug_on_signal)) /* This says call debugger even if
 				      there is a handler.  */
     {
-      int count = SPECPDL_INDEX ();
       int debugger_called = 0;
       Lisp_Object sig_symbol, combined_data;
       /* This is set to 1 if we are handling a memory-full error,
@@ -1787,6 +1846,7 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 
       if (wants_debugger (Vstack_trace_on_error, conditions))
 	{
+	  max_specpdl_size++;
 #ifdef PROTOTYPES
 	  internal_with_output_to_temp_buffer ("*Backtrace*",
 					       (Lisp_Object (*) (Lisp_Object)) Fbacktrace,
@@ -1795,6 +1855,7 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 	  internal_with_output_to_temp_buffer ("*Backtrace*",
 					       Fbacktrace, Qnil);
 #endif
+	  max_specpdl_size--;
 	}
       if (! no_debugger
 	  && (EQ (sig_symbol, Qquit)
@@ -1803,7 +1864,6 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
 	  && ! skip_debugger (conditions, combined_data)
 	  && when_entered_debugger < num_nonmacro_input_events)
 	{
-	  specbind (Qdebug_on_error, Qnil);
 	  *debugger_value_ptr
 	    = call_debugger (Fcons (Qerror,
 				    Fcons (combined_data, Qnil)));
@@ -1813,7 +1873,7 @@ find_handler_clause (handlers, conditions, sig, data, debugger_value_ptr)
       if (EQ (handlers, Qerror))
 	{
 	  if (debugger_called)
-	    return unbind_to (count, Qlambda);
+	    return Qlambda;
 	  return Qt;
 	}
     }
@@ -3265,13 +3325,8 @@ grow_specpdl ()
       if (max_specpdl_size < 400)
 	max_specpdl_size = 400;
       if (specpdl_size >= max_specpdl_size)
-	{
-	  if (!NILP (Vdebug_on_error))
-	    /* Leave room for some specpdl in the debugger.  */
-	    max_specpdl_size = specpdl_size + 100;
-	  Fsignal (Qerror,
-		   Fcons (build_string ("Variable binding depth exceeds max-specpdl-size"), Qnil));
-	}
+	Fsignal (Qerror,
+		 Fcons (build_string ("Variable binding depth exceeds max-specpdl-size"), Qnil));
     }
   specpdl_size *= 2;
   if (specpdl_size > max_specpdl_size)
@@ -3614,7 +3669,7 @@ syms_of_eval ()
 {
   DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,
 	      doc: /* *Limit on number of Lisp variable bindings & unwind-protects.
-If Lisp code tries to make more than this many at once,
+If Lisp code tries to increase the total number past this amount,
 an error is signaled.
 You can safely use a value considerably larger than the default value,
 if that proves inconveniently small.  However, if you increase it too far,

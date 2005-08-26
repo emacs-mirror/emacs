@@ -14,15 +14,14 @@ has to be set to nil: when t, it can leak memory and cause other problems.
 ** Check for widow and orphan lines in manuals;
 make sure all the pages really look ok in the manual as formatted.
 
+** Update facemenu-unlisted-faces, adding whatever other
+face name prefixes should be in it for good results.
 
 * NEW FEATURES
 
 ** Make VC-over-Tramp work where possible, or at least fail
 gracefully if something isn't supported over Tramp.
 To be done by Andre Spiegel <spiegel@gnu.org>.
-
-** define-minor-mode should not put :require into defcustom.
-See msg from rms to emacs-devel on 21 Dec.
 
 ** Update Speedbar.
 
@@ -42,6 +41,36 @@ invalid pointer from string_free_list.
 
 
 * BUGS
+
+** Bug in ebrowse
+
+Date: Fri, 27 May 2005 17:35:48 +0200
+From: Markus Gritsch <gritsch@iue.tuwien.ac.at>
+
+the C++ header file which led to the problematic BROWSE file reads
+
+namespace test {
+     class Base
+     {
+     };
+
+     class B : public Base
+     {
+     };
+}
+
+class A : public test::Base
+{
+};
+
+The *Tree* is then displayed as
+
+   *Globals*
+   test
+   test::Base
+     test::B
+
+The class A seems to be missing.
 
 ** Ange-ftp should ignore irrelevant IPv6 errors:
 

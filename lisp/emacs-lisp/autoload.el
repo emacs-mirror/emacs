@@ -1,7 +1,7 @@
 ;; autoload.el --- maintain autoloads in loaddefs.el
 
-;; Copyright (C) 1991,92,93,94,95,96,97, 2001,02,03,04
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 2001, 2002, 2003,
+;;   2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Keywords: maint
@@ -123,7 +123,17 @@ or macro definition or a defcustom)."
 	    )
 	`(progn
 	   (defvar ,varname ,init ,doc)
-	   (custom-autoload ',varname ,file))))
+	   (custom-autoload ',varname ,file)
+           ;; The use of :require in a defcustom can be annoying, especially
+           ;; when defcustoms are moved from one file to another between
+           ;; releases because the :require arg gets placed in the user's
+           ;; .emacs.  In order for autoloaded minor modes not to need the
+           ;; use of :require, we arrange to store their :setter.
+           ,(let ((setter (condition-case nil
+                              (cadr (memq :set form))
+                            (error nil))))
+              (if (equal setter ''custom-set-minor-mode)
+                  `(put ',varname 'custom-set 'custom-set-minor-mode))))))
 
      ;; nil here indicates that this is not a special autoload form.
      (t nil))))
@@ -566,5 +576,5 @@ Calls `update-directory-autoloads' on the command line arguments."
 
 (provide 'autoload)
 
-;;; arch-tag: 00244766-98f4-4767-bf42-8a22103441c6
+;; arch-tag: 00244766-98f4-4767-bf42-8a22103441c6
 ;;; autoload.el ends here

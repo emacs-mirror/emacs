@@ -1628,12 +1628,12 @@ particular parts of the text or the frame.
 @cindex face id
 Each face has its own @dfn{face number}, which distinguishes faces at
 low levels within Emacs.  However, for most purposes, you refer to
-faces in Lisp programs by their names.
+faces in Lisp programs by the symbols that name them.
 
 @defun facep object
-This function returns @code{t} if @var{object} is a face name symbol (or
-if it is a vector of the kind used internally to record face data).  It
-returns @code{nil} otherwise.
+This function returns @code{t} if @var{object} is a face name string
+or symbol (or if it is a vector of the kind used internally to record
+face data).  It returns @code{nil} otherwise.
 @end defun
 
 Each face name is meaningful for all frames, and by default it has the
@@ -1795,7 +1795,7 @@ end of a line.
   The way to define a new face is with @code{defface}.  This creates a
 kind of customization item (@pxref{Customization}) which the user can
 customize using the Customization buffer (@pxref{Easy Customization,,,
-emacs, The GNU Emacs Manual}).  
+emacs, The GNU Emacs Manual}).
 
 @defmac defface face spec doc [keyword value]...
 This declares @var{face} as a customizable face that defaults
@@ -2527,7 +2527,7 @@ differently from the default face.
 A @dfn{face alias} provides an equivalent name for a face.  You can
 define a face alias by giving the alias symbol the @code{face-alias}
 property, with a value of the target face name.  The following example
-makes @var{modeline} an alias for the @var{mode-line} face.
+makes @code{modeline} an alias for the @code{mode-line} face.
 
 @example
 (put 'modeline 'face-alias 'mode-line)
@@ -2873,9 +2873,9 @@ default @code{fringe} face.  @var{face} is automatically merged with
 the @code{fringe} face, so normally @var{face} need only specify the
 foreground color for the bitmap.
 
-  These are the symbols identify the standard fringe bitmaps.
-Evaluate @code{(require 'fringe)} to define them.  Fringe bitmap
-symbols have their own name space.
+  These symbols identify the standard fringe bitmaps.  Evaluate
+@code{(require 'fringe)} to define them.  Fringe bitmap symbols have
+their own name space.
 
 @table @asis
 @item Truncation and continuation line bitmaps:

@@ -21750,27 +21750,18 @@ The specs are applied left-to-right.
 
 @item gnus-nocem-verifyer
 @vindex gnus-nocem-verifyer
-@findex mc-verify
+@findex pgg-verify
 This should be a function for verifying that the NoCeM issuer is who she
-says she is.  The default is @code{mc-verify}, which is a Mailcrypt
-function.  If this is too slow and you don't care for verification
-(which may be dangerous), you can set this variable to @code{nil}.
+says she is.  The default is @code{pgg-verify}, which returns
+non-@code{nil} if the verification is successful, otherwise (including
+the case the NoCeM message was not signed) returns @code{nil}.  If this
+is too slow and you don't care for verification (which may be dangerous),
+you can set this variable to @code{nil}.
 
-If you want signed NoCeM messages to be verified and unsigned messages
-not to be verified (but used anyway), you could do something like:
-
-@lisp
-(setq gnus-nocem-verifyer 'my-gnus-mc-verify)
-
-(defun my-gnus-mc-verify ()
-  (not (eq 'forged
-           (ignore-errors
-             (if (mc-verify)
-                 t
-               'forged)))))
-@end lisp
-
-This might be dangerous, though.
+Formerly the default was @code{mc-verify}, which is a Mailcrypt
+function.  While you can still use it, you can change it into
+@code{pgg-verify} running with GnuPG if you are willing to add the
+@acronym{PGP} public keys to GnuPG's keyring.
 
 @item gnus-nocem-directory
 @vindex gnus-nocem-directory

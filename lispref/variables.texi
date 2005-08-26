@@ -569,7 +569,7 @@ though being declared using @code{defcustom}@footnote{They may also be
 declared equivalently in @file{cus-start.el}.} or by the first character
 of their @code{variable-documentation} property.  If the property exists
 and is a string, and its first character is @samp{*}, then the variable
-is a user option.
+is a user option.  Aliases of user options are also user options.
 @end defun
 
 @kindex variable-interactive
@@ -909,18 +909,25 @@ This function sets the variable @var{symbol} by inserting
 position specified by @var{order}.  If @var{element} is already a
 member of the list, its position in the list is adjusted according
 to @var{order}.  Membership is tested using @code{eq}.
-The valued returned is the resulting list, whether updated or not.
+This function returns the resulting list, whether updated or not.
 
-The @var{order} is a number, and the elements on list are sorted in
-increasing numerical order.  Elements without a numeric list order are
-placed at the end of @var{symbol}.
+The @var{order} is typically a number (integer or float), and the
+elements of the list are sorted in non-decreasing numerical order.
+
+@var{order} may also be omitted or @code{nil}.  Then the numeric order
+of @var{element} stays unchanged if it already has one; otherwise,
+@var{element} has no numeric order.  Elements without a numeric list
+order are placed at the end of the list, in no particular order.
+
+Any other value for @var{order} removes the numeric order of @var{element}
+if it already has one; otherwise, it is equivalent to @code{nil}.
 
 The argument @var{symbol} is not implicitly quoted;
 @code{add-to-ordered-list} is an ordinary function, like @code{set}
 and unlike @code{setq}.  Quote the argument yourself if that is what
 you want.
 
-The ordering information is stored in an alist on @var{symbol}'s
+The ordering information is stored in a hash table on @var{symbol}'s
 @code{list-order} property.
 @end defun
 
@@ -945,11 +952,11 @@ Here's a scenario showing how to use @code{add-to-ordered-list}:
 (add-to-ordered-list 'foo 'd)       ;; @r{Append @code{d}.}
      @result{} (a c b d)
 
-(add-to-ordered-list 'foo 'b 2)     ;; @r{Move @code{b}.}
-     @result{} (a b c d)
+(add-to-ordered-list 'foo 'e)       ;; @r{Add @code{e}}.
+     @result{} (a c b e d)
 
 foo                       ;; @r{@code{foo} was changed.}
-     @result{} (a b c d)
+     @result{} (a c b e d)
 @end example
 
 @node Variable Scoping

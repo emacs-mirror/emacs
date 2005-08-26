@@ -7592,7 +7592,7 @@ display_echo_area_1 (a1, a2, a3, a4)
   clear_glyph_matrix (w->desired_matrix);
   XSETWINDOW (window, w);
   SET_TEXT_POS (start, BEG, BEG_BYTE);
-  try_window (window, start);
+  try_window (window, start, 0);
 
   return window_height_changed_p;
 }
@@ -11570,7 +11570,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 
   /* Display the window.  Give up if new fonts are loaded, or if point
      doesn't appear.  */
-  if (!try_window (window, startp))
+  if (!try_window (window, startp, 0))
     rc = SCROLLING_NEED_LARGER_MATRICES;
   else if (w->cursor.vpos < 0)
     {
@@ -12173,6 +12173,7 @@ redisplay_window (window, just_this_one_p)
     {
       /* We set this later on if we have to adjust point.  */
       int new_vpos = -1;
+      int val;
 
       w->force_start = Qnil;
       w->vscroll = 0;
@@ -12206,12 +12207,16 @@ redisplay_window (window, just_this_one_p)
 
       /* Redisplay, then check if cursor has been set during the
 	 redisplay.  Give up if new fonts were loaded.  */
-      if (!try_window (window, startp))
+      val = try_window (window, startp, 1);
+      if (!val)
 	{
 	  w->force_start = Qt;
 	  clear_glyph_matrix (w->desired_matrix);
 	  goto need_larger_matrices;
 	}
+      /* Point was outside the scroll margins.  */
+      if (val < 0)
+	new_vpos = window_box_height (w) / 2;
 
       if (w->cursor.vpos < 0 && !w->frozen_window_start_p)
 	{
@@ -12254,7 +12259,7 @@ redisplay_window (window, just_this_one_p)
 	      && !NILP (current_buffer->mark_active))
 	    {
 	      clear_glyph_matrix (w->desired_matrix);
-	      if (!try_window (window, startp))
+	      if (!try_window (window, startp, 0))
 		goto need_larger_matrices;
 	    }
 	}
@@ -12344,7 +12349,11 @@ redisplay_window (window, just_this_one_p)
 	       = try_window_reusing_current_matrix (w)))
 	{
 	  IF_DEBUG (debug_method_add (w, "1"));
-	  try_window (window, startp);
+	  if (try_window (window, startp, 1) < 0)
+	    /* -1 means we need to scroll.
+	       0 means we need new matrices, but fonts_changed_p
+	       is set in that case, so we will detect it below.  */
+	    goto try_to_scroll;
 	}
 
       if (fonts_changed_p)
@@ -12474,7 +12483,7 @@ redisplay_window (window, just_this_one_p)
       || MINI_WINDOW_P (w)
       || !(used_current_matrix_p
 	   = try_window_reusing_current_matrix (w)))
-    try_window (window, startp);
+    try_window (window, startp, 0);
 
   /* If new fonts have been loaded (due to fontsets), give up.  We
      have to start a new redisplay since we need to re-adjust glyph
@@ -12494,13 +12503,13 @@ redisplay_window (window, just_this_one_p)
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  move_it_by_lines (&it, 1, 0);
-	  try_window (window, it.current.pos);
+	  try_window (window, it.current.pos, 0);
 	}
       else if (PT < IT_CHARPOS (it))
 	{
 	  clear_glyph_matrix (w->desired_matrix);
 	  move_it_by_lines (&it, -1, 0);
-	  try_window (window, it.current.pos);
+	  try_window (window, it.current.pos, 0);
 	}
       else
 	{
@@ -12683,14 +12692,18 @@ redisplay_window (window, just_this_one_p)
 
 
 /* Build the complete desired matrix of WINDOW with a window start
-   buffer position POS.  Value is non-zero if successful.  It is zero
-   if fonts were loaded during redisplay which makes re-adjusting
-   glyph matrices necessary.  */
+   buffer position POS.
+
+   Value is 1 if successful.  It is zero if fonts were loaded during
+   redisplay which makes re-adjusting glyph matrices necessary, and -1
+   if point would appear in the scroll margins.
+   (We check that only if CHECK_MARGINS is nonzero.  */
 
 int
-try_window (window, pos)
+try_window (window, pos, check_margins)
      Lisp_Object window;
      struct text_pos pos;
+     int check_margins;
 {
   struct window *w = XWINDOW (window);
   struct it it;
@@ -12713,6 +12726,30 @@ try_window (window, pos)
 	last_text_row = it.glyph_row - 1;
       if (fonts_changed_p)
 	return 0;
+    }
+
+  /* Don't let the cursor end in the scroll margins.  */
+  if (check_margins)
+    {
+      int this_scroll_margin, cursor_height;
+
+      this_scroll_margin = max (0, scroll_margin);
+      this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
+      this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
+      cursor_height = MATRIX_ROW (w->desired_matrix, w->cursor.vpos)->height;
+
+      if ((w->cursor.y < this_scroll_margin
+	   && CHARPOS (pos) > BEGV)
+	  /* Old redisplay didn't take scroll margin into account at the bottom,
+	     but then global-hl-line-mode doesn't scroll.  KFS 2004-06-14 */
+	  || (w->cursor.y + (make_cursor_line_fully_visible_p
+			     ? cursor_height + this_scroll_margin
+			     : 1)) > it.last_visible_y)
+	{
+	  w->cursor.vpos = -1;
+	  clear_glyph_matrix (w->desired_matrix);
+	  return -1;
+	}
     }
 
   /* If bottom moved off end of frame, change mode line percentage.  */
@@ -21660,7 +21697,7 @@ note_mouse_highlight (f, x, y)
   /* If we were displaying active text in another window, clear that.
      Also clear if we move out of text area in same window.  */
   if (! EQ (window, dpyinfo->mouse_face_window)
-      || (part != ON_TEXT && part != ON_MODE_LINE && part != ON_HEADER_LINE 
+      || (part != ON_TEXT && part != ON_MODE_LINE && part != ON_HEADER_LINE
 	  && !NILP (dpyinfo->mouse_face_window)))
     clear_mouse_face (dpyinfo);
 
@@ -22885,17 +22922,17 @@ The face used for trailing whitespace is `trailing-whitespace'.  */);
 
   DEFVAR_LISP ("nobreak-char-display", &Vnobreak_char_display,
     doc: /* *Control highlighting of nobreak space and soft hyphen.
-t means highlight the character itself (for nobreak space,
-use face `nobreak-space'.
-nil means no highlighting.
-other values mean display the escape glyph followed by an ordinary
+A value of t means highlight the character itself (for nobreak space,
+use face `nobreak-space').
+A value of nil means no highlighting.
+Other values mean display the escape glyph followed by an ordinary
 space or ordinary hyphen.  */);
   Vnobreak_char_display = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.
-Nil means to show the text pointer.  Other options are `arrow', `text',
-`hand', `vdrag', `hdrag', `modeline', and `hourglass'.  */);
+A value of nil means to show the text pointer.  Other options are `arrow',
+`text', `hand', `vdrag', `hdrag', `modeline', and `hourglass'.  */);
   Vvoid_text_area_pointer = Qarrow;
 
   DEFVAR_LISP ("inhibit-redisplay", &Vinhibit_redisplay,

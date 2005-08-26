@@ -949,6 +949,7 @@ See `python-check-command' for the default."
 				    (if name
 					(file-name-nondirectory name))))))))
   (setq python-saved-check-command command)
+  (require 'compile)                    ;To define compilation-* variables.
   (save-some-buffers (not compilation-ask-about-save) nil)
   (let ((compilation-error-regexp-alist
 	 (cons '("(\\([^,]+\\), line \\([0-9]+\\))" 1 2)

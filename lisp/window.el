@@ -40,11 +40,18 @@ unless you explicitly change the size, or Emacs has no other choice.")
 
 (defmacro save-selected-window (&rest body)
   "Execute BODY, then select the window that was selected before BODY.
-Also restore the selected window of each frame as it was at the start
-of this construct.
-However, if a window has become dead, don't get an error,
-just refrain from reselecting it.
-Return the value of the last form in BODY."
+The value returned is the value of the last form in BODY.
+
+This macro saves and restores the current buffer, since otherwise
+its normal operation could potentially make a different
+buffer current.  It does not alter the buffer list ordering.
+
+This macro saves and restores the selected window, as well as
+the selected window in each frame.  If the previously selected
+window of some frame is no longer live at the end of BODY, that
+frame's selected window is left alone.  If the selected window is
+no longer live, then whatever window is selected at the end of
+BODY remains selected."
   `(let ((save-selected-window-window (selected-window))
 	 ;; It is necessary to save all of these, because calling
 	 ;; select-window changes frame-selected-window for whatever
@@ -52,14 +59,15 @@ Return the value of the last form in BODY."
 	 (save-selected-window-alist
 	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
 		  (frame-list))))
-     (unwind-protect
-	 (progn ,@body)
-       (dolist (elt save-selected-window-alist)
-	 (and (frame-live-p (car elt))
-	      (window-live-p (cadr elt))
-	      (set-frame-selected-window (car elt) (cadr elt))))
-       (if (window-live-p save-selected-window-window)
-	   (select-window save-selected-window-window)))))
+     (save-current-buffer
+       (unwind-protect
+	   (progn ,@body)
+	 (dolist (elt save-selected-window-alist)
+	   (and (frame-live-p (car elt))
+		(window-live-p (cadr elt))
+		(set-frame-selected-window (car elt) (cadr elt))))
+	 (if (window-live-p save-selected-window-window)
+	     (select-window save-selected-window-window))))))
 
 (defun window-body-height (&optional window)
   "Return number of lines in window WINDOW for actual buffer text.

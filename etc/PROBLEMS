@@ -961,6 +961,20 @@ xmodmap command to the xdm setup script for that display.
 
 Use the shell command `xset bc' to make the old X Menu package work.
 
+*** C-SPC fails to work on Fedora GNU/Linux.
+
+Fedora Core 4 steals the C-SPC key by default for the `iiimx' program
+which is the input method for some languages.  It blocks Emacs users
+from using the C-SPC key for `set-mark-command'.
+
+One solutions is to remove the `<Ctrl>space' from the `Iiimx' file
+which can be found in the `/usr/lib/X11/app-defaults' directory.
+However, that requires root access.
+
+Another is to specify `Emacs*useXIM: false' in your X resources.
+
+Another is to build Emacs with the `--without-xim' configure option.
+
 *** M-SPC seems to be ignored as input.
 
 See if your X server is set up to use this as a command
@@ -2363,7 +2377,9 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 
 With certain recent Linux kernels (like the one of Redhat Fedora Core
 1 and 2), the new "Exec-shield" functionality is enabled by default, which
-creates a different memory layout that breaks the emacs dumper.
+creates a different memory layout that breaks the emacs dumper. 
+The work-around explained here is not enough on Fedora Core 4. Read the
+next item.
 
 Configure can overcome the problem of exec-shield if the architecture is
 x86 and the program setarch is present.  On other architectures no
@@ -2390,6 +2406,20 @@ command when running temacs like this:
 
     setarch i386 ./temacs --batch --load loadup [dump|bootstrap]
 
+*** Fedora Core 4 GNU/Linux: Segfault during dumping.
+
+In addition to exec-shield explained above "Linux: Segfault during
+`make bootstrap' under certain recent versions of the Linux kernel"
+item, Linux kernel shipped with Fedora Core 4 randomizes the virtual
+address space of a process. As the result dumping is failed even if
+you turn off the exec-shield. In such case use -R option of setarch
+command:
+
+   setarch -R i386 ./temacs --batch --load loadup [dump|bootstrap]
+
+or
+
+   setarch -R i386 make bootstrap	
 
 *** Fatal signal in the command  temacs -l loadup inc dump.
 

@@ -2406,7 +2406,7 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
   return;
 }
 
-DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 5,
+DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 6,
        "fCopy file: \nGCopy %s to file: \np\nP",
        doc: /* Copy FILE to NEWNAME.  Both args must be strings.
 If NEWNAME names a directory, copy FILE there.
@@ -2426,9 +2426,13 @@ for an existing file with the same name.  If MUSTBENEW is `excl',
 that means to get an error if the file already exists; never overwrite.
 If MUSTBENEW is neither nil nor `excl', that means ask for
 confirmation before overwriting, but do go ahead and overwrite the file
-if the user confirms.  */)
-  (file, newname, ok_if_already_exists, keep_time, mustbenew)
+if the user confirms.
+
+If PRESERVE-UID-GID is non-nil, we try to transfer the
+uid and gid of FILE to NEWNAME.  */)
+  (file, newname, ok_if_already_exists, keep_time, mustbenew, preserve_uid_gid)
      Lisp_Object file, newname, ok_if_already_exists, keep_time, mustbenew;
+     Lisp_Object preserve_uid_gid;
 {
   int ifd, ofd, n;
   char buf[16 * 1024];
@@ -2570,6 +2574,26 @@ if the user confirms.  */)
       report_file_error ("I/O error", Fcons (newname, Qnil));
   immediate_quit = 0;
 
+  /* Preserve the owner and group, if requested.  */
+  if (input_file_statable_p && ! NILP (preserve_uid_gid))
+    fchown (ofd, st.st_uid, st.st_gid);
+
+  if (input_file_statable_p)
+    {
+#ifndef MSDOS
+      fchmod (ofd, st.st_mode & 07777);
+#else /* MSDOS */
+#if defined (__DJGPP__) && __DJGPP__ > 1
+      /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
+         and if it can't, it tells so.  Otherwise, under MSDOS we usually
+         get only the READ bit, which will make the copied file read-only,
+         so it's better not to chmod at all.  */
+      if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
+	chmod (SDATA (encoded_newname), st.st_mode & 07777);
+#endif /* DJGPP version 2 or newer */
+#endif /* MSDOS */
+    }
+
   /* Closing the output clobbers the file times on some systems.  */
   if (emacs_close (ofd) < 0)
     report_file_error ("I/O error", Fcons (newname, Qnil));
@@ -2587,18 +2611,6 @@ if the user confirms.  */)
 		     Fcons (build_string ("Cannot set file date"),
 			    Fcons (newname, Qnil)));
 	}
-#ifndef MSDOS
-      chmod (SDATA (encoded_newname), st.st_mode & 07777);
-#else /* MSDOS */
-#if defined (__DJGPP__) && __DJGPP__ > 1
-      /* In DJGPP v2.0 and later, fstat usually returns true file mode bits,
-         and if it can't, it tells so.  Otherwise, under MSDOS we usually
-         get only the READ bit, which will make the copied file read-only,
-         so it's better not to chmod at all.  */
-      if ((_djstat_flags & _STFAIL_WRITEBIT) == 0)
-	chmod (SDATA (encoded_newname), st.st_mode & 07777);
-#endif /* DJGPP version 2 or newer */
-#endif /* MSDOS */
     }
 
   emacs_close (ifd);
@@ -2775,7 +2787,6 @@ This is what happens in interactive use with M-x.  */)
     {
       if (errno == EXDEV)
 	{
-	  struct stat data;
 #ifdef S_IFLNK
           symlink_target = Ffile_symlink_p (file);
           if (! NILP (symlink_target))
@@ -2783,15 +2794,11 @@ This is what happens in interactive use with M-x.  */)
                                  NILP (ok_if_already_exists) ? Qnil : Qt);
           else
 #endif
-            Fcopy_file (file, newname,
-                        /* We have already prompted if it was an integer,
-                           so don't have copy-file prompt again.  */
-                        NILP (ok_if_already_exists) ? Qnil : Qt,
-			Qt, Qnil);
-
-	  /* Preserve owner and group, if possible (if we are root).  */
-	  if (stat (SDATA (encoded_file), &data) >= 0)
-	    chown (SDATA (encoded_file), data.st_uid, data.st_gid);
+	    Fcopy_file (file, newname,
+			/* We have already prompted if it was an integer,
+			   so don't have copy-file prompt again.  */
+			NILP (ok_if_already_exists) ? Qnil : Qt,
+			Qt, Qnil, Qt);
 
 	  Fdelete_file (file);
 	}

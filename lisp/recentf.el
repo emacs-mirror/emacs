@@ -28,18 +28,18 @@
 ;;; Commentary:
 
 ;; This package maintains a menu for visiting files that were operated
-;; on recently.  When enabled a new "Open Recent" submenu is displayed
-;; in the "Files" menu.  The recent files list is automatically saved
-;; across Emacs sessions.  You can customize the number of recent
-;; files displayed, the location of the menu and others options (see
-;; the source code for details).
+;; on recently.  When enabled a new "Open Recent" sub menu is
+;; displayed in the "Files" menu.  The recent files list is
+;; automatically saved across Emacs sessions.  You can customize the
+;; number of recent files displayed, the location of the menu and
+;; others options (see the source code for details).
 
 ;;; History:
 ;;
 
 ;;; Code:
 (require 'easymenu)
-(require 'wid-edit)
+(require 'tree-widget)
 (require 'timer)
 
 ;;; Internal data
@@ -259,7 +259,8 @@ If `file-name-history' is not empty, do nothing."
 It is passed a filename to give a chance to transform it.
 If it returns nil, the filename is left unchanged."
   :group 'recentf
-  :type 'function)
+  :type '(choice (const :tag "None" nil)
+                 function))
 
 ;;; Utilities
 ;;
@@ -904,30 +905,54 @@ unchanged."
 ;;
 (defun recentf-cancel-dialog (&rest ignore)
   "Cancel the current dialog.
-Used internally by recentf dialogs.
 IGNORE arguments."
   (interactive)
   (kill-buffer (current-buffer))
   (message "Dialog canceled"))
 
+(defun recentf-dialog-goto-first (widget-type)
+  "Move the cursor to the first WIDGET-TYPE in current dialog.
+Go to the beginning of buffer if not found."
+  (goto-char (point-min))
+  (condition-case nil
+      (let (done)
+        (widget-move 1)
+        (while (not done)
+          (if (eq widget-type (widget-type (widget-at (point))))
+              (setq done t)
+            (widget-move 1))))
+    (goto-char (point-min))))
+
 (defvar recentf-dialog-mode-map
   (let ((km (make-sparse-keymap)))
+    (set-keymap-parent km widget-keymap)
     (define-key km "q" 'recentf-cancel-dialog)
     (define-key km [down-mouse-1] 'widget-button-click)
-    (set-keymap-parent km widget-keymap)
     km)
   "Keymap used in recentf dialogs.")
 
-(defun recentf-dialog-mode ()
+(define-derived-mode recentf-dialog-mode nil "recentf-dialog"
   "Major mode of recentf dialogs.
 
 \\{recentf-dialog-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq major-mode 'recentf-dialog-mode)
-  (setq mode-name "recentf-dialog")
-  (use-local-map recentf-dialog-mode-map)
-  (run-mode-hooks 'recentf-dialog-mode-hook))
+  :syntax-table nil
+  :abbrev-table nil
+  (setq truncate-lines t))
+
+(defmacro recentf-dialog (name &rest forms)
+  "Show a dialog buffer with NAME, setup with FORMS."
+  (declare (indent 1) (debug t))
+  `(with-current-buffer (get-buffer-create ,name)
+    ;; Cleanup buffer
+    (let ((inhibit-read-only t)
+          (ol (overlay-lists)))
+      (mapc 'delete-overlay (car ol))
+      (mapc 'delete-overlay (cdr ol))
+      (erase-buffer))
+    (recentf-dialog-mode)
+    ,@forms
+    (widget-setup)
+    (switch-to-buffer (current-buffer))))
 
 ;;; Hooks
 ;;
@@ -976,163 +1001,127 @@ That is, remove a non kept file from the recent list."
 
 ;;; Commands
 ;;
-(defvar recentf-edit-selected-items nil
-  "List of files to be deleted from the recent list.
-Used internally by `recentf-edit-list'.")
 
-(defun recentf-edit-list-action (widget &rest ignore)
-  "Checkbox WIDGET action that toogles a file selection.
-Used internally by `recentf-edit-list'.
+;;; Edit list dialog
+;;
+(defvar recentf-edit-list nil)
+
+(defun recentf-edit-list-select (widget &rest ignore)
+  "Toggle a file selection based on the checkbox WIDGET state.
 IGNORE other arguments."
-  (let ((value (widget-get widget ':tag)))
-    ;; if value is already in the selected items
-    (if (memq value recentf-edit-selected-items)
-        ;; then remove it
-        (progn
-          (setq recentf-edit-selected-items
-                (delq value recentf-edit-selected-items))
-          (message "%s removed from selection" value))
-      ;; else add it
-      (push value recentf-edit-selected-items)
-      (message "%s added to selection" value))))
+  (let ((value (widget-get widget :tag))
+        (check (widget-value widget)))
+    (if check
+        (add-to-list 'recentf-edit-list value)
+      (setq recentf-edit-list (delq value recentf-edit-list)))
+    (message "%s %sselected" value (if check "" "un"))))
+
+(defun recentf-edit-list-validate (&rest ignore)
+  "Process the recent list when the edit list dialog is committed.
+IGNORE arguments."
+  (if recentf-edit-list
+      (let ((i 0))
+        (dolist (e recentf-edit-list)
+          (setq recentf-list (delq e recentf-list)
+                i (1+ i)))
+        (kill-buffer (current-buffer))
+        (message "%S file(s) removed from the list" i)
+        (recentf-clear-data))
+    (message "No file selected")))
 
 (defun recentf-edit-list ()
-  "Show a dialog buffer to edit the recent list.
-That is to select files to be deleted from the recent list."
+  "Show a dialog to delete selected files from the recent list."
   (interactive)
-  (with-current-buffer
-      (get-buffer-create (format "*%s - Edit list*" recentf-menu-title))
-    (switch-to-buffer (current-buffer))
-    ;; Cleanup buffer
-    (let ((inhibit-read-only t)
-          (ol (overlay-lists)))
-      (erase-buffer)
-      ;; Delete all the overlays.
-      (mapc 'delete-overlay (car ol))
-      (mapc 'delete-overlay (cdr ol)))
-    (recentf-dialog-mode)
-    (setq recentf-edit-selected-items nil)
-    ;; Insert the dialog header
+  (recentf-dialog (format "*%s - Edit list*" recentf-menu-title)
+    (set (make-local-variable 'recentf-edit-list) nil)
     (widget-insert
-     "\
-Select the files to be deleted from the recent list.\n\n\
-Click on Ok to update the list. \
-Click on Cancel or type \"q\" to quit.\n")
+     "Click on OK to delete selected files from the recent list.
+Click on Cancel or type `q' to cancel.\n")
     ;; Insert the list of files as checkboxes
     (dolist (item recentf-list)
-      (widget-create
-       'checkbox
-       :value nil                       ; unselected checkbox
-       :format "\n %[%v%]  %t"
-       :tag item
-       :notify 'recentf-edit-list-action))
+      (widget-create 'checkbox
+                     :value nil         ; unselected checkbox
+                     :format "\n %[%v%]  %t"
+                     :tag item
+                     :notify 'recentf-edit-list-select))
     (widget-insert "\n\n")
-    ;; Insert the Ok button
     (widget-create
      'push-button
-     :notify (lambda (&rest ignore)
-               (if recentf-edit-selected-items
-                   (let ((i 0))
-                     (kill-buffer (current-buffer))
-                     (dolist (e recentf-edit-selected-items)
-                       (setq recentf-list (delq e recentf-list)
-                             i (1+ i)))
-                     (message "%S file(s) removed from the list" i)
-                     (recentf-clear-data))
-                 (message "No file selected")))
-     "Ok")
+     :notify 'recentf-edit-list-validate
+     :help-echo "Delete selected files from the recent list"
+      "Ok")
     (widget-insert " ")
-    ;; Insert the Cancel button
     (widget-create
      'push-button
      :notify 'recentf-cancel-dialog
      "Cancel")
-    (widget-setup)
-    (goto-char (point-min))))
+    (recentf-dialog-goto-first 'checkbox)))
 
+;;; Open file dialog
+;;
 (defun recentf-open-files-action (widget &rest ignore)
-  "Button WIDGET action that open a file.
-Used internally by `recentf-open-files'.
+  "Open the file stored in WIDGET's value when notified.
 IGNORE other arguments."
   (kill-buffer (current-buffer))
   (funcall recentf-menu-action (widget-value widget)))
 
-(defvar recentf-open-files-item-shift ""
-  "Amount of space to shift right sub-menu items.
-Used internally by `recentf-open-files'.")
-
 (defun recentf-open-files-item (menu-element)
-  "Insert an item widget for MENU-ELEMENT in the current dialog buffer.
-Used internally by `recentf-open-files'."
-  (let ((item (car menu-element))
-        (file (cdr menu-element)))
-    (if (consp file)               ; This is a sub-menu
-        (let* ((shift recentf-open-files-item-shift)
-               (recentf-open-files-item-shift (concat shift "  ")))
-          (widget-create
-           'item
-           :tag item
-           :sample-face 'bold
-           :format (concat shift "%{%t%}:\n"))
-          (mapc 'recentf-open-files-item file)
-          (widget-insert "\n"))
-      (widget-create
-       'push-button
-       :button-face 'default
-       :tag item
-       :help-echo (concat "Open " file)
-       :format (concat recentf-open-files-item-shift "%[%t%]")
-       :notify 'recentf-open-files-action
-       file)
-      (widget-insert "\n"))))
+  "Return a widget to display MENU-ELEMENT in a dialog buffer."
+  (if (consp (cdr menu-element))
+      ;; Represent a sub-menu with a tree widget
+      `(tree-widget
+        :open t
+        :match ignore
+        :node (item :tag ,(car menu-element)
+                    :sample-face bold
+                    :format "%{%t%}:\n")
+        ,@(mapcar 'recentf-open-files-item
+                  (cdr menu-element)))
+    ;; Represent a single file with a link widget
+    `(link :tag ,(car menu-element)
+           :button-prefix ""
+           :button-suffix ""
+           :button-face default
+           :format "%[%t%]\n"
+           :help-echo ,(concat "Open " (cdr menu-element))
+           :action recentf-open-files-action
+           ,(cdr menu-element))))
 
 (defun recentf-open-files (&optional files buffer-name)
-  "Show a dialog buffer to open a recent file.
-If optional argument FILES is non-nil, it specifies the list of
-recently-opened files to choose from.  It is the whole recent list
-otherwise.
-If optional argument BUFFER-NAME is non-nil, it specifies which buffer
-name to use for the interaction.  It is \"*`recentf-menu-title'*\" by
-default."
+  "Show a dialog to open a recent file.
+If optional argument FILES is non-nil, it is a list of recently-opened
+files to choose from.  It defaults to the whole recent list.
+If optional argument BUFFER-NAME is non-nil, it is a buffer name to
+use for the dialog.  It defaults to \"*`recentf-menu-title'*\"."
   (interactive)
-  (unless files
-    (setq files recentf-list))
-  (unless buffer-name
-    (setq buffer-name (format "*%s*" recentf-menu-title)))
-  (with-current-buffer (get-buffer-create buffer-name)
-    (switch-to-buffer (current-buffer))
-    ;; Cleanup buffer
-    (let ((inhibit-read-only t)
-          (ol (overlay-lists)))
-      (erase-buffer)
-      ;; Delete all the overlays.
-      (mapc 'delete-overlay (car ol))
-      (mapc 'delete-overlay (cdr ol)))
-    (recentf-dialog-mode)
-    ;; Insert the dialog header
-    (widget-insert "Click on a file to open it. ")
-    (widget-insert "Click on Cancel or type \"q\" to quit.\n\n" )
-    ;; Insert the list of files as buttons
-    (let ((recentf-open-files-item-shift ""))
-      (mapc 'recentf-open-files-item
-            (recentf-apply-menu-filter
-             recentf-menu-filter
-             (mapcar 'recentf-make-default-menu-element files))))
-    (widget-insert "\n")
-    ;; Insert the Cancel button
+  (recentf-dialog (or buffer-name (format "*%s*" recentf-menu-title))
+    (widget-insert "Click on a file to open it.
+Click on Cancel or type `q' to cancel.\n" )
+    ;; Use a L&F that looks like the recentf menu.
+    (tree-widget-set-theme "folder")
+    (apply 'widget-create
+           `(group
+             :indent 2
+             :format "\n%v\n"
+             ,@(mapcar 'recentf-open-files-item
+                       (recentf-apply-menu-filter
+                        recentf-menu-filter
+                        (mapcar 'recentf-make-default-menu-element
+                                (or files recentf-list))))))
     (widget-create
      'push-button
      :notify 'recentf-cancel-dialog
      "Cancel")
-    (widget-setup)
-    (goto-char (point-min))))
+    (recentf-dialog-goto-first 'link)))
 
 (defun recentf-open-more-files ()
-  "Show a dialog buffer to open a recent file that is not in the menu."
+  "Show a dialog to open a recent file that is not in the menu."
   (interactive)
   (recentf-open-files (nthcdr recentf-max-menu-items recentf-list)
                       (format "*%s - More*" recentf-menu-title)))
 
+;;; Save/load/cleanup the recent list
+;;
 (defconst recentf-save-file-header
   ";;; Automatically generated by `recentf' on %s.\n"
   "Header to be written into the `recentf-save-file'.")
@@ -1149,16 +1138,16 @@ Write data into the file specified by `recentf-save-file'."
   (interactive)
   (condition-case error
       (with-temp-buffer
-	(erase-buffer)
-	(set-buffer-file-coding-system recentf-save-file-coding-system)
-	(insert (format recentf-save-file-header (current-time-string)))
-	(recentf-dump-variable 'recentf-list recentf-max-saved-items)
-	(recentf-dump-variable 'recentf-filter-changer-state)
-	(insert "\n\n;;; Local Variables:\n"
-		(format ";;; coding: %s\n" recentf-save-file-coding-system)
-		";;; End:\n")
-	(write-file (expand-file-name recentf-save-file))
-	nil)
+        (erase-buffer)
+        (set-buffer-file-coding-system recentf-save-file-coding-system)
+        (insert (format recentf-save-file-header (current-time-string)))
+        (recentf-dump-variable 'recentf-list recentf-max-saved-items)
+        (recentf-dump-variable 'recentf-filter-changer-state)
+        (insert "\n\n;;; Local Variables:\n"
+                (format ";;; coding: %s\n" recentf-save-file-coding-system)
+                ";;; End:\n")
+        (write-file (expand-file-name recentf-save-file))
+        nil)
     (error
      (warn "recentf mode: %s" (error-message-string error)))))
 
@@ -1218,5 +1207,5 @@ that were operated on recently."
 
 (run-hooks 'recentf-load-hook)
 
-;;; arch-tag: 78f1eec9-0d16-4d19-a4eb-2e4529edb62a
+;; arch-tag: 78f1eec9-0d16-4d19-a4eb-2e4529edb62a
 ;;; recentf.el ends here

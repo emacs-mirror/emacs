@@ -497,18 +497,24 @@ off the specialized speedbar mode."
     ;; Check for annotations and change gud-minor-mode to 'gdba if
     ;; they are found.
     (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
-      (when (string-equal (match-string 1 gud-marker-acc) "prompt")
-	(require 'gdb-ui)
-	(gdb-prompt nil))
+      (let ((match (match-string 1 gud-marker-acc)))
+	(when (string-equal match "prompt")
+	  (require 'gdb-ui)
+	  (gdb-prompt nil))
 
-      (setq
-       ;; Append any text before the marker to the output we're going
-       ;; to return - we don't include the marker in this text.
-       output (concat output
-		      (substring gud-marker-acc 0 (match-beginning 0)))
-
-       ;; Set the accumulator to the remaining text.
-       gud-marker-acc (substring gud-marker-acc (match-end 0))))
+	(setq
+	 ;; Append any text before the marker to the output we're going
+	 ;; to return - we don't include the marker in this text.
+	 output (concat output
+			(substring gud-marker-acc 0 (match-beginning 0)))
+	 
+	 ;; Set the accumulator to the remaining text.
+	 
+	 gud-marker-acc (substring gud-marker-acc (match-end 0)))
+	(if (string-equal match "error-begin")
+	    (put-text-property 0 (length gud-marker-acc)
+			       'face font-lock-warning-face
+			       gud-marker-acc))))
 
     ;; Does the remaining text look like it might end with the
     ;; beginning of another marker?  If it does, then keep it in
@@ -2528,16 +2534,13 @@ It is saved for when this flag is not set.")
 	    ;; This must be outside of the save-excursion
 	    ;; in case the source file is our current buffer.
 	    (if process-window
-		(save-selected-window
-		  (select-window process-window)
-		  (gud-display-frame))
+		(progn
+		(with-selected-window process-window
+		  (gud-display-frame)))
 	      ;; We have to be in the proper buffer, (process-buffer proc),
 	      ;; but not in a save-excursion, because that would restore point.
-	      (let ((old-buf (current-buffer)))
-		(set-buffer (process-buffer proc))
-		(unwind-protect
-		    (gud-display-frame)
-		  (set-buffer old-buf)))))
+	      (with-current-buffer (process-buffer proc)
+		(gud-display-frame))))
 
 	  ;; If we deferred text that arrived during this processing,
 	  ;; handle it now.
@@ -3256,11 +3259,11 @@ If GUD-TOOLTIP-DEREFERENCE is t, also prepend a `*' to EXPR."
   (when gud-tooltip-dereference
     (setq expr (concat "*" expr)))
   (case gud-minor-mode
-    (gdba (concat "server print " expr))
-    ((dbx gdbmi) (concat "print " expr))
-    (xdb (concat "p " expr))
-    (sdb (concat expr "/"))
-    (perldb expr)))
+	(gdba (concat "server print " expr))
+	((dbx gdbmi) (concat "print " expr))
+	(xdb (concat "p " expr))
+	(sdb (concat expr "/"))
+	(perldb expr)))
 
 (defun gud-tooltip-tips (event)
   "Show tip for identifier or selection under the mouse.

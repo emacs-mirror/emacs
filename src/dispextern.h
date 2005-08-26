@@ -2593,7 +2593,7 @@ int line_bottom_y P_ ((struct it *));
 int display_prop_intangible_p P_ ((Lisp_Object));
 void resize_echo_area_exactly P_ ((void));
 int resize_mini_window P_ ((struct window *, int));
-int try_window P_ ((Lisp_Object, struct text_pos));
+int try_window P_ ((Lisp_Object, struct text_pos, int));
 void window_box P_ ((struct window *, int, int *, int *, int *, int *));
 int window_box_height P_ ((struct window *));
 int window_text_bottom_y P_ ((struct window *));

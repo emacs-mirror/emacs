@@ -1,3 +1,47 @@
+2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* variables.texi (Defining Variables): `user-variable-p' returns t
+	for aliases of user options, nil for alias loops.
+
+2005-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Creating Keymaps): Put make-sparse-keymap before
+	make-keymap.
+
+2005-06-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Setting Variables): Correct and clarify
+	description of `add-to-ordered-list'.
+
+2005-06-26  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Faces): Minor cleanup.
+
+2005-06-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Faces): `facep' returns t for strings that are
+	face names.
+
+2005-06-25  Richard M. Stallman  <rms@gnu.org>
+
+	* objects.texi (Equality Predicates): Clarify meaning of equal.
+
+	* windows.texi (Selecting Windows): save-selected-window
+	and with-selected-window save and restore the current buffer.
+
+2005-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* numbers.texi (Float Basics): Explain how to test for NaN,
+	and printing the sign of NaNs.
+
+2005-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Use --force.
+
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Face Functions): Correct Texinfo usage.
+
 2005-06-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* lists.texi (Rings): `ring-elements' now returns the elements of

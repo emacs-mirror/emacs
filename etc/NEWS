@@ -1548,6 +1548,21 @@ must remove older versions of cua.el or cua-mode.el as well as the
 loading and customization of those packages from the .emacs file.
 
 +++
+** Org mode is now part of the Emacs distribution
+
+Org mode is a mode for keeping notes, maintaining ToDo lists, and
+doing project planning with a fast and effective plain-text system.
+It also contains a plain-text table editor with spreadsheet-like
+capabilities.
+
+The Org mode table editor can be integrated into any major mode by
+activating the minor Orgtbl-mode.
+
+The documentation for org-mode is in a separate manual; within Emacs,
+type "C-h i m org RET" to read that manual.  A reference card is
+available in `etc/orgcard.tex' and `etc/orgcard.ps'.
+
++++
 ** The new package dns-mode.el add syntax highlight of DNS master files.
 The key binding C-c C-s (`dns-mode-soa-increment-serial') can be used
 to increment the SOA serial.
@@ -2202,6 +2217,80 @@ majority.
 the syntax of backslashes in F90 buffers.
 
 ---
+** Reftex mode changes
++++
+*** Changes to RefTeX's table of contents
+
+The new command keys "<" and ">" in the TOC buffer promote/demote the
+section at point or all sections in the current region, with full
+support for multifile documents.
+
+The new command `reftex-toc-recenter' (`C-c -') shows the current
+section in the TOC buffer without selecting the TOC window.
+Recentering can happen automatically in idle time when the option
+`reftex-auto-recenter-toc' is turned on.  The highlight in the TOC
+buffer stays when the focus moves to a different window.  A dedicated
+frame can show the TOC with the current section always automatically
+highlighted.  The frame is created and deleted from the toc buffer
+with the `d' key.
+
+The toc window can be split off horizontally instead of vertically.
+See new option `reftex-toc-split-windows-horizontally'.
+
+Labels can be renamed globally from the table of contents using the
+key `M-%'.
+
+The new command `reftex-goto-label' jumps directly to a label
+location.
+
++++
+*** Changes related to citations and BibTeX database files
+
+Commands that insert a citation now prompt for optional arguments when
+called with a prefix argument.  Related new options are
+`reftex-cite-prompt-optional-args' and `reftex-cite-cleanup-optional-args'.
+
+The new command `reftex-create-bibtex-file' creates a BibTeX database
+with all entries referenced in the current document.  The keys "e" and
+"E" allow to produce a BibTeX database file from entries marked in a
+citation selection buffer.
+
+The command `reftex-citation' uses the word in the buffer before the
+cursor as a default search string.
+
+The support for chapterbib has been improved.  Different chapters can
+now use BibTeX or an explicit `thebibliography' environment.
+
+The macros which specify the bibliography file (like \bibliography)
+can be configured with the new option `reftex-bibliography-commands'.
+
+Support for jurabib has been added.
+
++++
+*** Global index matched may be verified with a user function
+
+During global indexing, a user function can verify an index match.
+See new option `reftex-index-verify-function'.
+
++++
+*** Parsing documents with many labels can be sped up.
+
+Operating in a document with thousands of labels can be sped up
+considerably by allowing RefTeX to derive the type of a label directly
+from the label prefix like `eq:' or `fig:'.  The option
+`reftex-trust-label-prefix' needs to be configured in order to enable
+this feature.  While the speed-up is significant, this may reduce the
+quality of the context offered by RefTeX to describe a label.
+
++++
+*** Miscellaneous changes
+
+The macros which input a file in LaTeX (like \input, \include) can be
+configured in the new option `reftex-include-file-commands'.
+
+RefTeX supports global incremental search.
+
++++
 ** Prolog mode has a new variable `prolog-font-lock-keywords'
 to support use of font-lock.
 
@@ -4097,6 +4186,7 @@ return window edges in units of pixels, rather than columns and lines.
 +++
 *** The new macro `with-selected-window' temporarily switches the
 selected window without impacting the order of `buffer-list'.
+It saves and restores the current buffer, too.
 
 +++
 *** `select-window' takes an optional second argument NORECORD.
@@ -4106,7 +4196,8 @@ This is like `switch-to-buffer'.
 +++
 *** `save-selected-window' now saves and restores the selected window
 of every frame.  This way, it restores everything that can be changed
-by calling `select-window'.
+by calling `select-window'.  It also saves and restores the current
+buffer.
 
 +++
 *** `set-window-buffer' has an optional argument KEEP-MARGINS.

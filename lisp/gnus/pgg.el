@@ -380,7 +380,8 @@ within the region."
 	(with-output-to-temp-buffer pgg-echo-buffer
 	  (set-buffer standard-output)
 	  (insert-buffer-substring (if status pgg-output-buffer
-				     pgg-errors-buffer)))))))
+				     pgg-errors-buffer)))))
+    status))
 
 ;;;###autoload
 (defun pgg-insert-key ()

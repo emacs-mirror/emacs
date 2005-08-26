@@ -34,6 +34,12 @@
 (eval-after-load "quail/PY-b5"
   '(quail-defrule "ling2" ?$(0!r(B nil t))
 
+;; Enable inputting full-width space (U+3000).
+(eval-after-load "quail/Punct"
+  '(quail-defrule " " ?$A!!(B nil t))
+(eval-after-load "quail/Punct-b5"
+  '(quail-defrule " " ?$(0!!(B nil t))
+
 (autoload 'ucs-input-activate "quail/uni-input"
   "Activate UCS input method.
 With arg, activate UCS input method if and only if arg is positive.

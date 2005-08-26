@@ -772,7 +772,7 @@ See `decipher-loop-no-breaks' if you do not care about word divisions."
           (forward-char))
         (or (equal decipher-char ?\ )
             (progn
-              (setq decipher-char ?\ ;
+              (setq decipher-char ?\s
                     decipher--loop-prev-char ?\ )
               (funcall func)))))))
 

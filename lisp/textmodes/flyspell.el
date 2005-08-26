@@ -66,10 +66,6 @@
     'emacs))
   "The type of Emacs we are currently running.")
 
-(defvar flyspell-use-local-map
-  (or (eq flyspell-emacs 'xemacs)
-      (not (string< emacs-version "20"))))
-
 ;*---------------------------------------------------------------------*/
 ;*    User configuration ...                                           */
 ;*---------------------------------------------------------------------*/
@@ -403,34 +399,22 @@ property of the major mode name.")
 ;*---------------------------------------------------------------------*/
 ;*    The minor mode declaration.                                      */
 ;*---------------------------------------------------------------------*/
-(eval-when-compile (defvar flyspell-local-mouse-map))
-
 (defvar flyspell-mouse-map
   (let ((map (make-sparse-keymap)))
-    (if flyspell-use-meta-tab
-	(define-key map "\M-\t" #'flyspell-auto-correct-word))
     (define-key map (if (featurep 'xemacs) [button2] [down-mouse-2])
       #'flyspell-correct-word)
-    (define-key map flyspell-auto-correct-binding 'flyspell-auto-correct-previous-word)
-    (define-key map [(control \,)] 'flyspell-goto-next-error)
-    (define-key map [(control \.)] 'flyspell-auto-correct-word)
-    map))
+    map)
+  "Keymap for Flyspell to put on erroneous words.")
 
 (defvar flyspell-mode-map
   (let ((map (make-sparse-keymap)))
-    ;; mouse, keyboard bindings and misc definition
     (if flyspell-use-meta-tab
       (define-key map "\M-\t" 'flyspell-auto-correct-word))
-    (cond
-     ;; I don't understand this test, so I left it as is.  --Stef
-     ((or (featurep 'xemacs) flyspell-use-local-map)
-      (define-key map flyspell-auto-correct-binding 'flyspell-auto-correct-previous-word)
-      (define-key map [(control ?\,)] 'flyspell-goto-next-error)
-      (define-key map [(control ?\.)] 'flyspell-auto-correct-word)))
-    map))
-
-;; the name of the overlay property that defines the keymap
-(defvar flyspell-overlay-keymap-property-name 'keymap)
+    (define-key map flyspell-auto-correct-binding 'flyspell-auto-correct-previous-word)
+    (define-key map [(control ?\,)] 'flyspell-goto-next-error)
+    (define-key map [(control ?\.)] 'flyspell-auto-correct-word)
+    map)
+  "Minor mode keymap for Flyspell mode--for the whole buffer.")
 
 ;; dash character machinery
 (defvar flyspell-consider-dash-as-word-delimiter-flag nil
@@ -569,22 +553,6 @@ in your .emacs file.
   (let ((mode-predicate (get major-mode 'flyspell-mode-predicate)))
     (if mode-predicate
 	(setq flyspell-generic-check-word-p mode-predicate)))
-  ;; work around the fact that the `local-map' text-property replaces the
-  ;; buffer's local map rather than shadowing it.
-  (set (make-local-variable 'flyspell-mouse-map)
-       (let ((map (copy-keymap flyspell-mouse-map)))
-	 (set-keymap-parent map (current-local-map))
-	 (if (and (eq flyspell-emacs 'emacs)
-		  (not (string< emacs-version "20")))
-	     (define-key map '[tool-bar] nil))
-	 map))
-  (set (make-local-variable 'flyspell-mode-map)
-       (let ((map (copy-keymap flyspell-mode-map)))
- 	 (set-keymap-parent map (current-local-map))
-	 (if (and (eq flyspell-emacs 'emacs)
-		  (not (string< emacs-version "20")))
-	     (define-key map '[tool-bar] nil))
- 	 map))
   ;; the welcome message
   (if (and flyspell-issue-message-flag
 	   flyspell-issue-welcome-flag
@@ -1570,10 +1538,7 @@ for the overlay."
     (overlay-put flyspell-overlay 'flyspell-overlay t)
     (overlay-put flyspell-overlay 'evaporate t)
     (overlay-put flyspell-overlay 'help-echo "mouse-2: correct word at point")
-    (if flyspell-use-local-map
-        (overlay-put flyspell-overlay
-                     flyspell-overlay-keymap-property-name
-                     flyspell-mouse-map))
+    (overlay-put flyspell-overlay 'keymap flyspell-mouse-map)
     (when (eq face 'flyspell-incorrect)
       (and (stringp flyspell-before-incorrect-word-string)
            (overlay-put flyspell-overlay 'before-string

@@ -516,21 +516,32 @@ which will run faster and will not set the mark or print anything."
 Prompt for a regexp with PROMPT.
 Value is a list, (REGEXP)."
   (list (read-from-minibuffer prompt nil nil nil
-			      'regexp-history nil t)))
+			      'regexp-history nil t)
+	nil nil t))
 
-(defun keep-lines (regexp &optional rstart rend)
+(defun keep-lines (regexp &optional rstart rend interactive)
   "Delete all lines except those containing matches for REGEXP.
 A match split across lines preserves all the lines it lies in.
-Applies to all lines after point.
+When called from Lisp (and usually interactively as well, see below)
+applies to all lines starting after point.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\'),
 the matching is case-sensitive.
 
 Second and third arg RSTART and REND specify the region to operate on.
+This command operates on (the accessible part of) all lines whose
+accessible part is entirely contained in the region determined by RSTART
+and REND.  (A newline ending a line counts as part of that line.)
 
 Interactively, in Transient Mark mode when the mark is active, operate
-on the contents of the region.  Otherwise, operate from point to the
-end of the buffer."
+on all lines whose accessible part is entirely contained in the region.
+Otherwise, the command applies to all lines starting after point.
+When calling this function from Lisp, you can pretend that it was
+called interactively by passing a non-nil INTERACTIVE argument.
+
+This function starts looking for the next match from the end of
+the previous match.  Hence, it ignores matches that overlap
+a previously found match."
 
   (interactive
    (progn
@@ -539,10 +550,20 @@ end of the buffer."
   (if rstart
       (progn
 	(goto-char (min rstart rend))
-	(setq rend (copy-marker (max rstart rend))))
-    (if (and transient-mark-mode mark-active)
+	(setq rend
+	      (progn
+		(save-excursion
+		  (goto-char (max rstart rend))
+		  (unless (or (bolp) (eobp))
+		    (forward-line 0))
+		  (point-marker)))))
+    (if (and interactive transient-mark-mode mark-active)
 	(setq rstart (region-beginning)
-	      rend (copy-marker (region-end)))
+	      rend (progn
+		     (goto-char (region-end))
+		     (unless (or (bolp) (eobp))
+		       (forward-line 0))
+		     (point-marker)))
       (setq rstart (point)
 	    rend (point-max-marker)))
     (goto-char rstart))
@@ -556,7 +577,7 @@ end of the buffer."
 	(if (not (re-search-forward regexp rend 'move))
 	    (delete-region start rend)
 	  (let ((end (save-excursion (goto-char (match-beginning 0))
-				     (beginning-of-line)
+				     (forward-line 0)
 				     (point))))
 	    ;; Now end is first char preserved by the new match.
 	    (if (< start end)
@@ -566,22 +587,34 @@ end of the buffer."
 	;; If the match was empty, avoid matching again at same place.
 	(and (< (point) rend)
 	     (= (match-beginning 0) (match-end 0))
-	     (forward-char 1))))))
+	     (forward-char 1)))))
+  (set-marker rend nil)
+  nil)
 
 
-(defun flush-lines (regexp &optional rstart rend)
-  "Delete lines containing matches for REGEXP.
-If a match is split across lines, all the lines it lies in are deleted.
-Applies to lines after point.
+(defun flush-lines (regexp &optional rstart rend interactive)
+ "Delete lines containing matches for REGEXP.
+When called from Lisp (and usually when called interactively as
+well, see below), applies to the part of the buffer after point.
+The line point is in is deleted if and only if it contains a
+match for regexp starting after point.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\'),
 the matching is case-sensitive.
 
 Second and third arg RSTART and REND specify the region to operate on.
+Lines partially contained in this region are deleted if and only if
+they contain a match entirely contained in it.
 
 Interactively, in Transient Mark mode when the mark is active, operate
 on the contents of the region.  Otherwise, operate from point to the
-end of the buffer."
+end of (the accessible portion of) the buffer.  When calling this function
+from Lisp, you can pretend that it was called interactively by passing
+a non-nil INTERACTIVE argument.
+
+If a match is split across lines, all the lines it lies in are deleted.
+They are deleted _before_ looking for the next match.  Hence, a match
+starting on the same line at which another match ended is ignored."
 
   (interactive
    (progn
@@ -591,7 +624,7 @@ end of the buffer."
       (progn
 	(goto-char (min rstart rend))
 	(setq rend (copy-marker (max rstart rend))))
-    (if (and transient-mark-mode mark-active)
+    (if (and interactive transient-mark-mode mark-active)
 	(setq rstart (region-beginning)
 	      rend (copy-marker (region-end)))
       (setq rstart (point)
@@ -603,13 +636,18 @@ end of the buffer."
       (while (and (< (point) rend)
 		  (re-search-forward regexp rend t))
 	(delete-region (save-excursion (goto-char (match-beginning 0))
-				       (beginning-of-line)
+				       (forward-line 0)
 				       (point))
-		       (progn (forward-line 1) (point)))))))
+		       (progn (forward-line 1) (point))))))
+  (set-marker rend nil)
+  nil)
 
 
-(defun how-many (regexp &optional rstart rend)
-  "Print number of matches for REGEXP following point.
+(defun how-many (regexp &optional rstart rend interactive)
+  "Print and return number of matches for REGEXP following point.
+When called from Lisp and INTERACTIVE is omitted or nil, just return
+the number, do not print it; if INTERACTIVE is t, the function behaves
+in all respects has if it had been called interactively.
 
 If REGEXP contains upper case characters (excluding those preceded by `\\'),
 the matching is case-sensitive.
@@ -618,18 +656,24 @@ Second and third arg RSTART and REND specify the region to operate on.
 
 Interactively, in Transient Mark mode when the mark is active, operate
 on the contents of the region.  Otherwise, operate from point to the
-end of the buffer."
+end of (the accessible portion of) the buffer.
+
+This function starts looking for the next match from the end of
+the previous match.  Hence, it ignores matches that overlap
+a previously found match."
 
   (interactive
    (keep-lines-read-args "How many matches for (regexp): "))
   (save-excursion
     (if rstart
-	(goto-char (min rstart rend))
-      (if (and transient-mark-mode mark-active)
+	(progn
+	  (goto-char (min rstart rend))
+	  (setq rend (max rstart rend)))
+      (if (and interactive transient-mark-mode mark-active)
 	  (setq rstart (region-beginning)
-		rend (copy-marker (region-end)))
+		rend (region-end))
 	(setq rstart (point)
-	      rend (point-max-marker)))
+	      rend (point-max)))
       (goto-char rstart))
     (let ((count 0)
 	  opoint
@@ -641,7 +685,10 @@ end of the buffer."
 	(if (= opoint (point))
 	    (forward-char 1)
 	  (setq count (1+ count))))
-      (message "%d occurrences" count))))
+      (when interactive (message "%d occurrence%s"
+				 count
+				 (if (= count 1) "" "s")))
+      count)))
 
 
 (defvar occur-mode-map
@@ -892,8 +939,7 @@ buffer for each buffer where you invoke `occur'."
 
 (defun occur (regexp &optional nlines)
   "Show all lines in the current buffer containing a match for REGEXP.
-
-If a match spreads across multiple lines, all those lines are shown.
+This function can not handle matches that span more than one line.
 
 Each line is displayed with NLINES lines before and after, or -NLINES
 before if NLINES is negative.
@@ -1001,9 +1047,9 @@ See also `multi-occur'."
 		(display-buffer occur-buf)
 		(setq next-error-last-buffer occur-buf))
 	    (kill-buffer occur-buf)))
-	(run-hooks 'occur-hook))
-      (setq buffer-read-only t)
-      (set-buffer-modified-p nil))))
+        (setq buffer-read-only t)
+        (set-buffer-modified-p nil)
+	(run-hooks 'occur-hook)))))
 
 (defun occur-engine-add-prefix (lines)
   (mapcar
@@ -1603,15 +1649,15 @@ make, or the user didn't cancel the call."
 		;; Change markers to numbers in the match data
 		;; since lots of markers slow down editing.
 		(push (list (point) replaced
-;;; If the replacement has already happened, all we need is the
-;;; current match start and end.  We could get this with a trivial
-;;; match like
-;;; (save-excursion (goto-char (match-beginning 0))
-;;;		    (search-forward (match-string 0))
-;;;                 (match-data t))
-;;; if we really wanted to avoid manually constructing match data.
-;;; Adding current-buffer is necessary so that match-data calls can
-;;; return markers which are appropriate for editing.
+;;;  If the replacement has already happened, all we need is the
+;;;  current match start and end.  We could get this with a trivial
+;;;  match like
+;;;  (save-excursion (goto-char (match-beginning 0))
+;;;		     (search-forward (match-string 0))
+;;;                  (match-data t))
+;;;  if we really wanted to avoid manually constructing match data.
+;;;  Adding current-buffer is necessary so that match-data calls can
+;;;  return markers which are appropriate for editing.
 			    (if replaced
 				(list
 				 (match-beginning 0)

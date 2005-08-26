@@ -1468,80 +1468,79 @@ quit          spell session exited."
 	    end (car (cdr (cdr word)))
 	    word (car word))
 
-      ;; now check spelling of word if it has 3 or more characters.
-      (cond
-       ((> (length word) 2)
-	(or quietly
-	    (message "Checking spelling of %s..."
-		     (funcall ispell-format-word word)))
-	(ispell-send-string "%\n")	; put in verbose mode
-	(ispell-send-string (concat "^" word "\n"))
-	;; wait until ispell has processed word
-	(while (progn
-		 (ispell-accept-output)
-		 (not (string= "" (car ispell-filter)))))
-	;;(ispell-send-string "!\n") ;back to terse mode.
-	(setq ispell-filter (cdr ispell-filter)) ; remove extra \n
-	(if (and ispell-filter (listp ispell-filter))
-	    (if (> (length ispell-filter) 1)
-		(error "Ispell and its process have different character maps")
-	      (setq poss (ispell-parse-output (car ispell-filter)))))
-	(cond ((eq poss t)
-	       (or quietly
-		   (message "%s is correct"
-			    (funcall ispell-format-word word)))
-	       (and (fboundp 'extent-at)
-		    (extent-at start)
-		    (delete-extent (extent-at start))))
-	      ((stringp poss)
-	       (or quietly
-		   (message "%s is correct because of root %s"
-			    (funcall ispell-format-word word)
-			    (funcall ispell-format-word poss)))
-	       (and (fboundp 'extent-at)
-		    (extent-at start)
-		    (delete-extent (extent-at start))))
-	      ((null poss) (message "Error in ispell process"))
-	      (ispell-check-only	; called from ispell minor mode.
-	       (if (fboundp 'make-extent)
-		   (let ((ext (make-extent start end)))
-		     (set-extent-property ext 'face ispell-highlight-face)
-		     (set-extent-property ext 'priority 2000))
-		 (beep)
-		 (message "%s is incorrect"(funcall ispell-format-word word))))
-	      (t			; prompt for correct word.
-	       (save-window-excursion
-		 (setq replace (ispell-command-loop
-				(car (cdr (cdr poss)))
-				(car (cdr (cdr (cdr poss))))
-				(car poss) start end)))
-	       (cond ((equal 0 replace)
-		      (ispell-add-per-file-word-list (car poss)))
-		     (replace
-		      (setq new-word (if (atom replace) replace (car replace))
-			    cursor-location (+ (- (length word) (- end start))
-					       cursor-location))
-		      (if (not (equal new-word (car poss)))
-			  (progn
-			    (delete-region start end)
-			    (setq start (point))
-			    (ispell-insert-word new-word)
-			    (setq end (point))))
-		      (if (not (atom replace)) ;recheck spelling of replacement
-			  (progn
-			    (if (car (cdr replace)) ; query replace requested
-				(save-window-excursion
-				  (query-replace word new-word t)))
-			    (goto-char start)
-			    ;; single word could be split into multiple words
-			    (setq ispell-quit (not (ispell-region start end)))
-			    ))))
-	       ;; keep if rechecking word and we keep choices win.
-	       (if (get-buffer ispell-choices-buffer)
-		   (kill-buffer ispell-choices-buffer))))
-	(ispell-pdict-save ispell-silently-savep)
-	;; NB: Cancels ispell-quit incorrectly if called from ispell-region
-	(if ispell-quit (setq ispell-quit nil replace 'quit))))
+      ;; At this point it used to ignore 2-letter words.
+      ;; But that is silly; if the user asks for it, we should do it. - rms.
+      (or quietly
+	  (message "Checking spelling of %s..."
+		   (funcall ispell-format-word word)))
+      (ispell-send-string "%\n")	; put in verbose mode
+      (ispell-send-string (concat "^" word "\n"))
+      ;; wait until ispell has processed word
+      (while (progn
+	       (ispell-accept-output)
+	       (not (string= "" (car ispell-filter)))))
+      ;;(ispell-send-string "!\n") ;back to terse mode.
+      (setq ispell-filter (cdr ispell-filter)) ; remove extra \n
+      (if (and ispell-filter (listp ispell-filter))
+	  (if (> (length ispell-filter) 1)
+	      (error "Ispell and its process have different character maps")
+	    (setq poss (ispell-parse-output (car ispell-filter)))))
+      (cond ((eq poss t)
+	     (or quietly
+		 (message "%s is correct"
+			  (funcall ispell-format-word word)))
+	     (and (fboundp 'extent-at)
+		  (extent-at start)
+		  (delete-extent (extent-at start))))
+	    ((stringp poss)
+	     (or quietly
+		 (message "%s is correct because of root %s"
+			  (funcall ispell-format-word word)
+			  (funcall ispell-format-word poss)))
+	     (and (fboundp 'extent-at)
+		  (extent-at start)
+		  (delete-extent (extent-at start))))
+	    ((null poss) (message "Error in ispell process"))
+	    (ispell-check-only	      ; called from ispell minor mode.
+	     (if (fboundp 'make-extent)
+		 (let ((ext (make-extent start end)))
+		   (set-extent-property ext 'face ispell-highlight-face)
+		   (set-extent-property ext 'priority 2000))
+	       (beep)
+	       (message "%s is incorrect"(funcall ispell-format-word word))))
+	    (t				; prompt for correct word.
+	     (save-window-excursion
+	       (setq replace (ispell-command-loop
+			      (car (cdr (cdr poss)))
+			      (car (cdr (cdr (cdr poss))))
+			      (car poss) start end)))
+	     (cond ((equal 0 replace)
+		    (ispell-add-per-file-word-list (car poss)))
+		   (replace
+		    (setq new-word (if (atom replace) replace (car replace))
+			  cursor-location (+ (- (length word) (- end start))
+					     cursor-location))
+		    (if (not (equal new-word (car poss)))
+			(progn
+			  (delete-region start end)
+			  (setq start (point))
+			  (ispell-insert-word new-word)
+			  (setq end (point))))
+		    (if (not (atom replace)) ;recheck spelling of replacement
+			(progn
+			  (if (car (cdr replace)) ; query replace requested
+			      (save-window-excursion
+				(query-replace word new-word t)))
+			  (goto-char start)
+			  ;; single word could be split into multiple words
+			  (setq ispell-quit (not (ispell-region start end)))
+			  ))))
+	     ;; keep if rechecking word and we keep choices win.
+	     (if (get-buffer ispell-choices-buffer)
+		 (kill-buffer ispell-choices-buffer))))
+      (ispell-pdict-save ispell-silently-savep)
+      ;; NB: Cancels ispell-quit incorrectly if called from ispell-region
+      (if ispell-quit (setq ispell-quit nil replace 'quit))
       (goto-char cursor-location)	; return to original location
       replace)))
 

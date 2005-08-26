@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2005/03/19 00:40:12 vinicius>
-;; Version: 6.6.6
+;; Time-stamp: <2005/06/27 00:57:22 vinicius>
+;; Version: 6.6.7
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.6.6"
-  "ps-print.el, v 6.6.6 <2005/03/19 vinicius>
+(defconst ps-print-version "6.6.7"
+  "ps-print.el, v 6.6.7 <2005/06/27 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -5961,10 +5961,14 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-begin-page))
 
 
+(defun ps-end-sheet ()
+  (and ps-print-page-p (> ps-page-sheet 0)
+       (ps-output "EndSheet\n")))
+
+
 (defun ps-header-sheet ()
   ;; Print only when a new sheet begins.
-  (and ps-print-page-p (> ps-page-sheet 0)
-       (ps-output "EndSheet\n"))
+  (ps-end-sheet)
   (setq ps-page-sheet (1+ ps-page-sheet))
   (when (ps-print-sheet-p)
     (setq ps-page-order (1+ ps-page-order))
@@ -6689,8 +6693,7 @@ If FACE is not a valid face name, it is used default face."
 
 
 (defun ps-end-job (needs-begin-file)
-  (let ((previous-print ps-print-page-p)
-	(ps-print-page-p t))
+  (let ((ps-print-page-p t))
     (ps-flush-output)
     (save-excursion
       (let ((pages-per-sheet (mod ps-page-printed ps-n-up-printing))
@@ -6717,8 +6720,7 @@ If FACE is not a valid face name, it is used default face."
 		      (number-to-string ps-lines-printed) " BeginPage\n")
 	   (ps-end-page)))
     ;; Set end of PostScript file
-    (and previous-print
-	 (ps-output "EndSheet\n"))
+    (ps-end-sheet)
     (ps-output "\n%%Trailer\n%%Pages: "
 	       (number-to-string
 		(if (and needs-begin-file

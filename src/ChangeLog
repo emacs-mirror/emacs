@@ -1,11 +1,80 @@
+2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (user_variable_p_eh): New function.
+	(Fuser_variable_p): Use it.  Clarify docstring.
+	Return t for aliases of user options, nil for alias loops.
+
+2005-06-27  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (Fdefvar): Improve error message.
+
+2005-06-27  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CARBON_EVENTS] (mac_convert_event_ref): Fix last
+	change.
+
+2005-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fdefvar): Don't try to set constant symbols.
+
+2005-06-25  Richard M. Stallman  <rms@gnu.org>
+
+	* macfns.c (Fx_show_tip): Pass new arg to try_window.
+
+	* w32fns.c (Fx_show_tip): Pass new arg to try_window.
+
+	* xfns.c (Fx_show_tip): Pass new arg to try_window.
+
+	* xdisp.c (try_window): New arg CHECK_MARGINS.  Calls changed.
+	(redisplay_window): Handle try_window reporting point in scroll margin.
+
+	* dispextern.h (try_window): Declare new arg.
+
+	* fileio.c (Fcopy_file): New arg PRESERVE_UID_GID.
+	Use fchmod to copy the file modes.
+	(Frename_file): Don't copy UID and GID here;
+	instead, specify t for PRESERVE_UID_GID when calling Fcopy_file.
+
+	* eval.c (call_debugger): Take full care of extending stack limits
+	to make space for the debugger, and restore the change afterward.
+	Bind debug-on-error to nil.
+	(restore_stack_limits): New subroutine.
+	(Fsignal): Extend specpdl bound along with eval depth bound,
+	for calling edebug.  Don't do either one, for calling debugger.
+	(find_handler_clause): Don't bind debug-on-error here.
+	Don't unbind anything either.
+	Temporarily advance max_specpdl_size for calling
+	internal_with_output_to_temp_buffer.
+	(grow_specpdl): Don't alter max_specpdl_size before signaling
+	an error.
+	(syms_of_eval) <max-specpdl-size>: Doc fix.
+
+	* lread.c (read1): 0.0e+NaN should make a "positive" NaN.
+
+2005-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Frename_file): Undo last change: no need to ifdef away
+	chown on DOS_NT platforms.
+
+	* w32.c (sys_chown): New function.
+
+	* s/ms-w32.h (chown): New; define to sys_chown.
+
+2005-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <nobreak-char-display>: Doc fix.
+	(syms_of_xdisp) <void-text-area-pointer>: Doc fix.
+
+	* fileio.c (Frename_file)[!DOS_NT]: Don't call chown on MSDOS/Windows.
+
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (get_next_display_element): Finish reversing the tests of
 	Vnobreak_char_display.
 
-	* xdisp.c (Vnobreak_char_display): Renamed from Vshow_nonbreak_escape.
+	* xdisp.c (Vnobreak_char_display): Rename from Vshow_nonbreak_escape.
 	All uses changed.
-	(Qnobreak_space): Renamed from Qno_break_space.  All uses changed.
+	(Qnobreak_space): Rename from Qno_break_space.  All uses changed.
 	(syms_of_xdisp): Define nobreak-char-display and nobreak-space.
 
 	* fileio.c (Frename_file): Preserve owner and group, if possible,
@@ -301,8 +370,7 @@
 
 2005-06-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR):
-	Remove macros.
+	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR): Remove macros.
 
 	* unexw32.c (RVA_TO_PTR): Move here from w32heap.h.
 

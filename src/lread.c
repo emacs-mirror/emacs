@@ -2730,6 +2730,23 @@ read1 (readcharfun, pch, first_in_list)
 		    break;
 		  case 'N':
 		    value = zero / zero;
+
+		    /* If that made a "negative" NaN, negate it.  */
+
+		    {
+		      int i;
+		      union { double d; char c[sizeof (double)]; } u_data, u_minus_zero;
+
+		      u_data.d = value;
+		      u_minus_zero.d = - 0.0;
+		      for (i = 0; i < sizeof (double); i++)
+			if (u_data.c[i] & u_minus_zero.c[i])
+			  {
+			    value = - value;
+			    break;
+			  }
+		    }
+		    /* Now VALUE is a positive NaN.  */
 		    break;
 		  default:
 		    value = atof (read_buffer + negative);

@@ -816,7 +816,7 @@ Otherwise, follow with a newline."
 			(texinfo-last-unended-begin)
 			(match-string 1)))
 		     "table")
-	      ? ;space
+	      ?\s
 	    ?\n)))
 
 (defun texinfo-insert-@kbd (&optional arg)

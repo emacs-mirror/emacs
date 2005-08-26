@@ -432,7 +432,7 @@ Also display the main routine in the disassembly buffer if present."
 	    (setq gdb-var-changed t)))
       (if (re-search-forward "Undefined command" nil t)
 	  (message-box "Watching expressions requires gdb 6.0 onwards")
-	(message "No symbol %s in current context." expr)))))
+	(message "No symbol \"%s\" in current context." expr)))))
 
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
@@ -776,6 +776,8 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
 This filter may simply queue input for a later time."
+  (with-current-buffer gud-comint-buffer
+    (remove-text-properties (point-min) (point-max) '(face)))
   (let ((item (concat string "\n")))
     (if gud-running
       (progn

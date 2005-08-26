@@ -493,25 +493,60 @@ starting the compilation process.")
 ;; backward-compatibility alias
 (put 'compilation-info-face 'face-alias 'compilation-info)
 
+(defface compilation-error-file-name
+  '((default :inherit font-lock-warning-face)
+    (((supports :underline t)) :underline t))
+  "Face for displaying file names in compilation errors."
+  :group 'font-lock-highlighting-faces
+  :version "22.1")
+
+(defface compilation-warning-file-name
+  '((default :inherit font-lock-warning-face)
+    (((supports :underline t)) :underline t))
+  "Face for displaying file names in compilation errors."
+  :group 'font-lock-highlighting-faces
+  :version "22.1")
+
+(defface compilation-info-file-name
+  '((default :inherit compilation-info)
+    (((supports :underline t)) :underline t))
+  "Face for displaying file names in compilation errors."
+  :group 'font-lock-highlighting-faces
+  :version "22.1")
+
+(defface compilation-line-number
+  '((default :inherit font-lock-variable-name-face)
+    (((supports :underline t)) :underline t))
+  "Face for displaying file names in compilation errors."
+  :group 'font-lock-highlighting-faces
+  :version "22.1")
+
+(defface compilation-column-number
+  '((default :inherit font-lock-type-face)
+    (((supports :underline t)) :underline t))
+  "Face for displaying file names in compilation errors."
+  :group 'font-lock-highlighting-faces
+  :version "22.1")
+
 (defvar compilation-message-face nil
   "Face name to use for whole messages.
 Faces `compilation-error-face', `compilation-warning-face',
 `compilation-info-face', `compilation-line-face' and
 `compilation-column-face' get prepended to this, when applicable.")
 
-(defvar compilation-error-face 'font-lock-warning-face
+(defvar compilation-error-face 'compilation-error-file-name
   "Face name to use for file name in error messages.")
 
-(defvar compilation-warning-face 'compilation-warning
+(defvar compilation-warning-face 'compilation-warning-file-name
   "Face name to use for file name in warning messages.")
 
-(defvar compilation-info-face 'compilation-info
+(defvar compilation-info-face 'compilation-info-file-name
   "Face name to use for file name in informational messages.")
 
-(defvar compilation-line-face 'font-lock-variable-name-face
+(defvar compilation-line-face 'compilation-line-number
   "Face name to use for line number in message.")
 
-(defvar compilation-column-face 'font-lock-type-face
+(defvar compilation-column-face 'compilation-column-number
   "Face name to use for column number in message.")
 
 ;; same faces as dired uses
@@ -1342,8 +1377,9 @@ Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
     (force-mode-line-update)
     (if (and opoint (< opoint omax))
 	(goto-char opoint))
-    (if compilation-finish-function
-	(funcall compilation-finish-function (current-buffer) msg))
+    (with-no-warnings
+      (if compilation-finish-function
+	  (funcall compilation-finish-function (current-buffer) msg)))
     (let ((functions compilation-finish-functions))
       (while functions
 	(funcall (car functions) (current-buffer) msg)
@@ -1501,8 +1537,9 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
 
 ;;;###autoload
 (defun compilation-next-error-function (n &optional reset)
+  "Advance to the next error message and visit the file where the error was.
+This is the value of `next-error-function' in Compilation buffers."
   (interactive "p")
-  (set-buffer (compilation-find-buffer))
   (when reset
     (setq compilation-current-error nil))
   (let* ((columns compilation-error-screen-columns) ; buffer's local value

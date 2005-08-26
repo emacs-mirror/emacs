@@ -943,7 +943,7 @@ the hook's buffer-local value rather than its default value."
 	  (set hook hook-value))))))
 
 (defun add-to-list (list-var element &optional append)
-  "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
+  "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
 The test for presence of ELEMENT is done with `equal'.
 If ELEMENT is added, it is added at the beginning of the list,
 unless the optional argument APPEND is non-nil, in which case
@@ -965,15 +965,18 @@ other hooks, such as major mode hooks, can do the job."
 
 
 (defun add-to-ordered-list (list-var element &optional order)
-  "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
+  "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
 The test for presence of ELEMENT is done with `eq'.
 
 The resulting list is reordered so that the elements are in the
 order given by each element's numeric list order.  Elements
 without a numeric list order are placed at the end of the list.
 
-If the third optional argument ORDER is non-nil, set the
-element's list order to the given value.
+If the third optional argument ORDER is a number (integer or
+float), set the element's list order to the given value.  If
+ORDER is nil or omitted, do not change the numeric order of
+ELEMENT.  If ORDER has any other value, remove the numeric order
+of ELEMENT if it has one.
 
 The list order for each element is stored in LIST-VAR's
 `list-order' property.
@@ -1723,8 +1726,12 @@ See also `with-temp-buffer'."
 (defmacro with-selected-window (window &rest body)
   "Execute the forms in BODY with WINDOW as the selected window.
 The value returned is the value of the last form in BODY.
-This does not alter the buffer list ordering.
-This function saves and restores the selected window, as well as
+
+This macro saves and restores the current buffer, since otherwise
+its normal operation could potentially make a different
+buffer current.  It does not alter the buffer list ordering.
+
+This macro saves and restores the selected window, as well as
 the selected window in each frame.  If the previously selected
 window of some frame is no longer live at the end of BODY, that
 frame's selected window is left alone.  If the selected window is
@@ -1740,15 +1747,16 @@ See also `with-temp-buffer'."
 	 (save-selected-window-alist
 	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
 		  (frame-list))))
-     (unwind-protect
-	 (progn (select-window ,window 'norecord)
-		,@body)
-       (dolist (elt save-selected-window-alist)
-	 (and (frame-live-p (car elt))
-	      (window-live-p (cadr elt))
-	      (set-frame-selected-window (car elt) (cadr elt))))
-       (if (window-live-p save-selected-window-window)
-	   (select-window save-selected-window-window 'norecord)))))
+     (save-current-buffer
+       (unwind-protect
+	   (progn (select-window ,window 'norecord)
+		  ,@body)
+	 (dolist (elt save-selected-window-alist)
+	   (and (frame-live-p (car elt))
+		(window-live-p (cadr elt))
+		(set-frame-selected-window (car elt) (cadr elt))))
+	 (if (window-live-p save-selected-window-window)
+	     (select-window save-selected-window-window 'norecord))))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.

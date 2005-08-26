@@ -489,7 +489,7 @@ See the function `mouse-select-buffer' and the variable
   "Return t if optional BUFFER is an \"invisible\" buffer.
 If the argument is left out or nil, then the current buffer is considered."
   (and (> (length (buffer-name buffer)) 0)
-       (eq ?\ (aref (buffer-name buffer) 0))))
+       (eq ?\s (aref (buffer-name buffer) 0))))
 
 (defun msb--strip-dir (dir)
   "Strip one hierarchy level from the end of DIR."

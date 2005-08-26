@@ -311,6 +311,7 @@ Boston, MA 02111-1307, USA.  */
 #define chdir   sys_chdir
 #undef chmod
 #define chmod   sys_chmod
+#define chown   sys_chown
 #undef close
 #define close   sys_close
 #undef creat

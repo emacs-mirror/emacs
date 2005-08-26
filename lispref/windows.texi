@@ -463,8 +463,8 @@ The return value is @var{window}.
 @defmac save-selected-window forms@dots{}
 This macro records the selected frame, as well as the selected window
 of each frame, executes @var{forms} in sequence, then restores the
-earlier selected frame and windows It returns the value of the last
-form in @var{forms}.
+earlier selected frame and windows.  It also saves and restores the
+current buffer.  It returns the value of the last form in @var{forms}.
 
 This macro does not save or restore anything about the sizes,
 arrangement or contents of windows; therefore, if the @var{forms}
@@ -478,9 +478,9 @@ the end of @var{forms} remains selected.
 @defmac with-selected-window window forms@dots{}
 This macro selects @var{window} (without changing the buffer list),
 executes @var{forms} in sequence, then restores the previously
-selected window (unless that window is no longer alive).  It is similar
-to @code{save-selected-window} except that it explicitly selects
-@var{window}, without altering the buffer list sequence.
+selected window and current buffer.  It is just like
+@code{save-selected-window}, except that it explicitly selects
+@var{window}, also without altering the buffer list sequence.
 @end defmac
 
 @cindex finding windows

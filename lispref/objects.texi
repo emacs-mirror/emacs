@@ -1857,8 +1857,7 @@ describing the data type.
 
 @defun eq object1 object2
 This function returns @code{t} if @var{object1} and @var{object2} are
-the same object, @code{nil} otherwise.  The ``same object'' means that a
-change in one will be reflected by the same change in the other.
+the same object, @code{nil} otherwise.
 
 @code{eq} returns @code{t} if @var{object1} and @var{object2} are
 integers with the same value.  Also, since symbol names are normally
@@ -1866,7 +1865,8 @@ unique, if the arguments are symbols with the same name, they are
 @code{eq}.  For other types (e.g., lists, vectors, strings), two
 arguments with the same contents or elements are not necessarily
 @code{eq} to each other: they are @code{eq} only if they are the same
-object.
+object, meaning that a change in the contents of one will be reflected
+by the same change in the contents of the other.
 
 @example
 @group

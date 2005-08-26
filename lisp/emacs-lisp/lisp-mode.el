@@ -202,6 +202,8 @@
   (setq comment-column 40)
   ;; Don't get confused by `;' in doc strings when paragraph-filling.
   (set (make-local-variable 'comment-use-global-state) t)
+  (make-local-variable 'comment-indent-function)
+  (setq comment-indent-function 'lisp-comment-indent)
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression lisp-imenu-generic-expression)
   (make-local-variable 'multibyte-syntax-as-symbol)
@@ -722,7 +724,7 @@ which see."
 	       (setq debug-on-error new-value))
 	     value)))))
 
-
+;; Used for comment-indent-function in Lisp modes.
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
       (current-column)

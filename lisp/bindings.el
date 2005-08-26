@@ -781,6 +781,11 @@ language you are using."
 (define-key global-map [insert]		'overwrite-mode)
 (define-key global-map [C-insert]	'kill-ring-save)
 (define-key global-map [S-insert]	'yank)
+;; `insertchar' is what term.c produces.  Should we change term.c
+;; to produce `insert' instead?
+(define-key global-map [insertchar]	'overwrite-mode)
+(define-key global-map [C-insertchar]	'kill-ring-save)
+(define-key global-map [S-insertchar]	'yank)
 (define-key global-map [undo]		'undo)
 (define-key global-map [redo]		'repeat-complex-command)
 (define-key global-map [again]		'repeat-complex-command) ; Sun keyboard
@@ -791,7 +796,6 @@ language you are using."
 ;; (define-key global-map [clearline]	'function-key-error)
 (define-key global-map [insertline]	'open-line)
 (define-key global-map [deleteline]	'kill-line)
-;; (define-key global-map [insertchar]	'function-key-error)
 (define-key global-map [deletechar]	'delete-char)
 ;; (define-key global-map [backtab]	'function-key-error)
 ;; (define-key global-map [f1]		'function-key-error)

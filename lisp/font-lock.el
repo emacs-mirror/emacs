@@ -620,6 +620,7 @@ Major/minor modes can set this variable if they know which option applies.")
   ;; We use this to preserve or protect things when modifying text properties.
   (defmacro save-buffer-state (varlist &rest body)
     "Bind variables according to VARLIST and eval BODY restoring buffer state."
+    (declare (indent 1) (debug let))
     (let ((modified (make-symbol "modified")))
       `(let* ,(append varlist
 		      `((,modified (buffer-modified-p))
@@ -634,8 +635,6 @@ Major/minor modes can set this variable if they know which option applies.")
 	   ,@body)
 	 (unless ,modified
 	   (restore-buffer-modified-p nil)))))
-  (put 'save-buffer-state 'lisp-indent-function 1)
-  (def-edebug-spec save-buffer-state let)
   ;;
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.
