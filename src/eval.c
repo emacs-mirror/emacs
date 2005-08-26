@@ -844,8 +844,16 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 
   sym = Fcar (args);
   if (SYMBOL_CONSTANT_P (sym))
-    error ("Constant symbol `%s' specified in defvar",
-           SDATA (SYMBOL_NAME (sym)));
+    {
+      /* For updward compatibility, allow (defvar :foo (quote :foo)).  */
+      tem = Fcar (Fcdr (args));
+      if (! (CONSP (tem)
+	     && EQ (XCAR (tem), Qquote)
+	     && CONSP (XCDR (tem))
+	     && EQ (XCAR (XCDR (tem)), sym)))
+	error ("Constant symbol `%s' specified in defvar",
+	       SDATA (SYMBOL_NAME (sym)));
+    }
 
   tail = Fcdr (args);
   if (!NILP (Fcdr (Fcdr (tail))))
@@ -2180,7 +2188,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
     return form;
 
   QUIT;
-  if (consing_since_gc > gc_cons_threshold)
+  if (consing_since_gc > gc_cons_combined_threshold)
     {
       GCPRO1 (form);
       Fgarbage_collect ();
@@ -2923,7 +2931,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   register int i;
 
   QUIT;
-  if (consing_since_gc > gc_cons_threshold)
+  if (consing_since_gc > gc_cons_combined_threshold)
     Fgarbage_collect ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)

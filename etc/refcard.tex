@@ -1,4 +1,4 @@
-% Reference Card for GNU Emacs version 21 on Unix systems
+% Reference Card for GNU Emacs version 22 on Unix systems
 %**start of header
 \newcount\columnsperpage
 \newcount\letterpaper
@@ -14,7 +14,7 @@
 \letterpaper=1
 
 % Nothing else needs to be changed below this line.
-% Copyright (c) 1987, 1993, 1996, 1997 Free Software Foundation, Inc.
+% Copyright (c) 1987, 1993, 1996, 1997, 2005 Free Software Foundation, Inc.
 
 % This file is part of GNU Emacs.
 
@@ -62,8 +62,8 @@
 
 % If there were room, it would be nice to see a section on Dired.
 
-\def\versionnumber{2.2}
-\def\year{1997}
+\def\versionnumber{2.3}
+\def\year{2005}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
   \centerline{\small \copyright\ \year\ Free Software Foundation, Inc.
@@ -72,7 +72,7 @@
 \def\copyrightnotice{
 \vskip 1ex plus 2 fill\begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
-\centerline{v\versionnumber{} for GNU Emacs version 21, \year}
+\centerline{v\versionnumber{} for GNU Emacs version 22, \year}
 \centerline{designed by Stephen Gildea}
 
 Permission is granted to make and distribute copies of
@@ -270,13 +270,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
 \title{GNU Emacs Reference Card}
 
-\centerline{(for version 21)}
+\centerline{(for version 22)}
 
 \section{Starting Emacs}
 
-To enter GNU Emacs 21, just type its name: \kbd{emacs}
-
-To read in a file to edit, see Files, below.
+To enter GNU Emacs 22, just type its name: \kbd{emacs}
 
 \section{Leaving Emacs}
 
@@ -291,7 +289,7 @@ To read in a file to edit, see Files, below.
 \key{{\bf insert} contents of another file into this buffer}{C-x i}
 \key{replace this file with the file you really want}{C-x C-v}
 \key{write buffer to a specified file}{C-x C-w}
-\key{version control checkin/checkout}{C-x C-q}
+\key{toggle read-only status of buffer}{C-x C-q}
 
 \section{Getting Help}
 
@@ -303,14 +301,14 @@ the directions.  If you are a first-time user, type \kbd{C-h t} for a
 \key{scroll help window}{C-M-v}
 
 \key{apropos: show commands matching a string}{C-h a}
-\key{show the function a key runs}{C-h c}
+\key{describe the function a key runs}{C-h k}
 \key{describe a function}{C-h f}
 \key{get mode-specific information}{C-h m}
 
 \section{Error Recovery}
 
 \key{{\bf abort} partially typed or executing command}{C-g}
-\metax{{\bf recover} a file lost by a system crash}{M-x recover-file}
+\metax{{\bf recover} files lost by a system crash}{M-x recover-session}
 \metax{{\bf undo} an unwanted change}{C-x u, C-_ {\rm or} C-/}
 \metax{restore a buffer to its original contents}{M-x revert-buffer}
 \key{redraw garbaged screen}{C-l}
@@ -388,6 +386,8 @@ If Emacs is still searching, \kbd{C-g} cancels only the part not done.
 \section{Query Replace}
 
 \key{interactively replace a text string}{M-\%}
+% query-replace-regexp is bound to C-M-% but that can't be typed on
+% consoles.
 \metax{using regular expressions}{M-x query-replace-regexp}
 
 Valid responses in query-replace mode are
@@ -402,12 +402,12 @@ Valid responses in query-replace mode are
 
 \section{Multiple Windows}
 
-When two commands are shown, the second is for ``other frame.''
-
-\key{delete all other windows}{C-x 1}
+When two commands are shown, the second is a similar command for a
+frame instead of a window.
 
 {\setbox0=\hbox{\kbd{0}}\advance\hsize by 0\wd0
 \paralign to \hsize{#\tabskip=10pt plus 1 fil&#\tabskip=0pt&#\cr
+\threecol{delete all other windows}{C-x 1\ \ \ \ }{C-x 5 1}
 \threecol{split window, above and below}{C-x 2\ \ \ \ }{C-x 5 2}
 \threecol{delete this window}{C-x 0\ \ \ \ }{C-x 5 0}
 }}
@@ -449,7 +449,7 @@ When two commands are shown, the second is for ``other frame.''
 \key{set fill column}{C-x f}
 \key{set prefix each line starts with}{C-x .}
 
-\key{set face}{M-g}
+\key{set face}{M-o}
 
 \section{Case Change}
 
@@ -562,7 +562,7 @@ minibuffer.  Type \kbd{F10} to activate the menu bar using the minibuffer.
 
 \section{International Character Sets}
 
-\metax{specify principal language}{M-x set-language-environment}
+\key{specify principal language}{C-x RET l}
 \metax{show all input methods}{M-x list-input-methods}
 \key{enable or disable input method}{C-\\}
 \key{set coding system for next command}{C-x RET c}
@@ -572,7 +572,7 @@ minibuffer.  Type \kbd{F10} to activate the menu bar using the minibuffer.
 \section{Info}
 
 \key{enter the Info documentation reader}{C-h i}
-\key{find specified function or variable in Info}{C-h C-i}
+\key{find specified function or variable in Info}{C-h S}
 \beginindentedkeys
 
 Moving within a node:
@@ -591,6 +591,7 @@ Moving between nodes:
 \key{follow cross reference  (return with \kbd{l})}{f}
 \key{return to last node you saw}{l}
 \key{return to directory node}{d}
+\key{go to top node of Info file}{t}
 \key{go to any node by name}{g}
 
 Other:

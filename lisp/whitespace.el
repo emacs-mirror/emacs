@@ -109,32 +109,32 @@ visited by the buffers.")
 (put 'whitespace-mode-line 'permanent-local nil)
 
 (defvar whitespace-check-buffer-leading nil
-  "Test leading whitespace for file in current buffer if t")
+  "Test leading whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-leading)
 (put 'whitespace-check-buffer-leading 'permanent-local nil)
 
 (defvar whitespace-check-buffer-trailing nil
-  "Test trailing whitespace for file in current buffer if t")
+  "Test trailing whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-trailing)
 (put 'whitespace-check-buffer-trailing 'permanent-local nil)
 
 (defvar whitespace-check-buffer-indent nil
-  "Test indentation whitespace for file in current buffer if t")
+  "Test indentation whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-indent)
 (put 'whitespace-check-buffer-indent 'permanent-local nil)
 
 (defvar whitespace-check-buffer-spacetab nil
-  "Test Space-followed-by-TABS whitespace for file in current buffer if t")
+  "Test Space-followed-by-TABS whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-spacetab)
 (put 'whitespace-check-buffer-spacetab 'permanent-local nil)
 
 (defvar whitespace-check-buffer-ateol nil
-  "Test end-of-line whitespace for file in current buffer if t")
+  "Test end-of-line whitespace for file in current buffer if t.")
 (make-variable-buffer-local 'whitespace-check-buffer-ateol)
 (put 'whitespace-check-buffer-ateol 'permanent-local nil)
 
 (defvar whitespace-highlighted-space nil
-  "The variable to store the extent to highlight")
+  "The variable to store the extent to highlight.")
 (make-variable-buffer-local 'whitespace-highlighted-space)
 (put 'whitespace-highlighted-space 'permanent-local nil)
 
@@ -142,13 +142,12 @@ visited by the buffers.")
 (eval-when-compile
   (if (not (fboundp 'defgroup))
       (defmacro defgroup (sym memb doc &rest args)
-	"Null macro for defgroup in all versions of Emacs that don't define
-defgroup"
+	"Null macro for `defgroup' in all versions of Emacs that don't define it."
 	t))
   (if (not (fboundp 'defcustom))
       (defmacro defcustom (sym val doc &rest args)
-	"Macro to alias defcustom to defvar in all versions of Emacs that
-don't define defcustom"
+	"Macro to alias `defcustom' to `defvar' in all versions of Emacs that
+don't define it."
 	`(defvar ,sym ,val ,doc))))
 
 (if (fboundp 'make-overlay)
@@ -180,23 +179,23 @@ don't define defcustom"
   :group 'convenience))
 
 (defcustom whitespace-check-leading-whitespace t
-  "Flag to check leading whitespace. This is the global for the system.
+  "Flag to check leading whitespace.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-leading'"
+`whitespace-check-buffer-leading'."
   :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-check-trailing-whitespace t
-  "Flag to check trailing whitespace. This is the global for the system.
+  "Flag to check trailing whitespace.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-trailing'"
+`whitespace-check-buffer-trailing'."
   :type 'boolean
   :group 'whitespace)
 
 (defcustom whitespace-check-spacetab-whitespace t
-  "Flag to check space followed by a TAB. This is the global for the system.
+  "Flag to check space followed by a TAB.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-spacetab'"
+`whitespace-check-buffer-spacetab'."
   :type 'boolean
   :group 'whitespace)
 
@@ -206,9 +205,9 @@ It can be overriden by setting a buffer local variable
   :group 'whitespace)
 
 (defcustom whitespace-check-indent-whitespace indent-tabs-mode
-  "Flag to check indentation whitespace. This is the global for the system.
+  "Flag to check indentation whitespace.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-indent'"
+`whitespace-check-buffer-indent'."
   :type 'boolean
   :group 'whitespace)
 
@@ -218,9 +217,9 @@ It can be overriden by setting a buffer local variable
   :group 'whitespace)
 
 (defcustom whitespace-check-ateol-whitespace t
-  "Flag to check end-of-line whitespace. This is the global for the system.
+  "Flag to check end-of-line whitespace.  This is the global for the system.
 It can be overriden by setting a buffer local variable
-`whitespace-check-buffer-ateol'"
+`whitespace-check-buffer-ateol'."
   :type 'boolean
   :group 'whitespace)
 
@@ -242,9 +241,9 @@ determines a file to be clean."
   :group 'whitespace)
 
 (defcustom whitespace-abort-on-error nil
-  "While writing a file, abort if the file is unclean. If
-`whitespace-auto-cleanup' is set, that takes precedence over this
-variable."
+  "While writing a file, abort if the file is unclean.
+If `whitespace-auto-cleanup' is set, that takes precedence over
+this variable."
   :type  'boolean
   :group 'whitespace)
 
@@ -277,7 +276,7 @@ Errors*' buffer before opening (or closing) another file."
 				       tcl-mode tex-mode texinfo-mode
 				       vrml-mode xml-mode)
 
-  "Major Modes in which we turn on whitespace checking.
+  "Major modes in which we turn on whitespace checking.
 
 These are mostly programming and documentation modes.  But you may add other
 modes that you want whitespaces checked in by adding something like the
@@ -608,17 +607,9 @@ whitespace problems."
 (defun whitespace-buffer-leading-cleanup ()
   "Remove any empty lines at the top of the file."
   (save-excursion
-    (let ((pmin nil)
-	  (pmax nil))
-      (goto-char (point-min))
-      (beginning-of-line)
-      (setq pmin (point))
-      (end-of-line)
-      (setq pmax (point))
-      (if (equal pmin pmax)
-	  (progn
-	    (kill-line)
-	    (whitespace-buffer-leading-cleanup))))))
+    (goto-char (point-min))
+    (skip-chars-forward "\n")
+    (delete-region (point-min) (point))))
 
 (defun whitespace-buffer-trailing ()
   "Check to see if are is more than one empty line at the bottom."
@@ -647,26 +638,11 @@ whitespace problems."
 (defun whitespace-buffer-trailing-cleanup ()
   "Delete all the empty lines at the bottom."
   (save-excursion
-    (let ((pmin nil)
-	  (pmax nil))
-      (goto-char (point-max))
-      (beginning-of-line)
-      (setq pmin (point))
-      (end-of-line)
-      (setq pmax (point))
-      (if (equal pmin pmax)
-	  (progn
-	    (goto-char (1- pmin))
-	    (beginning-of-line)
-	    (setq pmin (point))
-	    (end-of-line)
-	    (setq pmax (point))
-	    (if (equal pmin pmax)
-		(progn
-		  (goto-char (1- (point-max)))
-		  (beginning-of-line)
-		  (kill-line)
-		  (whitespace-buffer-trailing-cleanup))))))))
+    (goto-char (point-max))
+    (skip-chars-backward "\n")
+    (if (not (bolp))
+	(forward-char 1))
+    (delete-region (point) (point-max))))
 
 (defun whitespace-buffer-search (regexp)
   "Search for any given whitespace REGEXP."

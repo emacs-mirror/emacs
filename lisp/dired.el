@@ -224,7 +224,7 @@ as in other buffers."
   ;; concentric sets or an order for the marked files.
   ;; The code depends on dynamic scoping on the marker char.
   "In Dired, the current mark character.
-This is what the `do' commands look for and what the `mark' commands store.")
+This is what the do-commands look for, and what the mark-commands store.")
 
 (defvar dired-del-marker ?D
   "Character used to flag files for deletion.")

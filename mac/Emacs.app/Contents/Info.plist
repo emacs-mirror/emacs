@@ -75,6 +75,44 @@
 				<string>NSStringPboardType</string>
 			</array>
 		</dict>
+		<dict>
+			<key>NSKeyEquivalent</key>
+			<dict/>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Emacs/Send Selection</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>mail-selection</string>
+			<key>NSPortName</key>
+			<string>Emacs</string>
+			<key>NSReturnTypes</key>
+			<array/>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+			</array>
+		</dict>
+		<dict>
+			<key>NSKeyEquivalent</key>
+			<dict/>
+			<key>NSMenuItem</key>
+			<dict>
+				<key>default</key>
+				<string>Emacs/Send To</string>
+			</dict>
+			<key>NSMessage</key>
+			<string>mail-to</string>
+			<key>NSPortName</key>
+			<string>Emacs</string>
+			<key>NSReturnTypes</key>
+			<array/>
+			<key>NSSendTypes</key>
+			<array>
+				<string>NSStringPboardType</string>
+			</array>
+		</dict>
 	</array>
 </dict>
 </plist>

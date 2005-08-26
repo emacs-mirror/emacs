@@ -1377,6 +1377,17 @@ in `selection-converter-alist', which see."
   (save-buffer) ; It pops up the save dialog.
   )
 
+(defun mac-services-mail-selection ()
+  (interactive)
+  (compose-mail)
+  (rfc822-goto-eoh)
+  (forward-line 1)
+  (insert (x-selection-value mac-services-selection) "\n"))
+
+(defun mac-services-mail-to ()
+  (interactive)
+  (compose-mail (x-selection-value mac-services-selection)))
+
 (defun mac-services-insert-text ()
   (interactive)
   (let ((text (x-selection-value mac-services-selection)))
@@ -1393,6 +1404,10 @@ in `selection-converter-alist', which see."
   'mac-services-open-file)
 (define-key mac-application-menu-map [services perform open-selection]
   'mac-services-open-selection)
+(define-key mac-application-menu-map [services perform mail-selection]
+  'mac-services-mail-selection)
+(define-key mac-application-menu-map [services perform mail-to]
+  'mac-services-mail-to)
 (define-key mac-application-menu-map [services paste]
   'mac-services-insert-text)
 (define-key mac-application-menu-map [preferences] 'customize)
@@ -1546,54 +1561,52 @@ in `selection-converter-alist', which see."
 	    (if mac-encoded
 		(aset table c mac-encoded))))))))
 
+;; We assume none of official dim2 charsets (0x90..0x99) are encoded
+;; to these fonts.
+
 (define-ccl-program ccl-encode-mac-roman-font
   `(0
-    (if (r0 != ,(charset-id 'ascii))
-	(if (r0 <= ?\x8f)
-	    (translate-character mac-roman-encoder r0 r1)
-	  ((r1 <<= 7)
-	   (r1 |= r2)
-	   (translate-character mac-roman-encoder r0 r1)))))
+    (if (r0 <= ?\xef)
+	(translate-character mac-roman-encoder r0 r1)
+      ((r1 <<= 7)
+       (r1 |= r2)
+       (translate-character mac-roman-encoder r0 r1))))
   "CCL program for Mac Roman font")
 
 (define-ccl-program ccl-encode-mac-centraleurroman-font
   `(0
-    (if (r0 != ,(charset-id 'ascii))
-	(if (r0 <= ?\x8f)
-	    (translate-character encode-mac-centraleurroman r0 r1)
-	  ((r1 <<= 7)
-	   (r1 |= r2)
-	   (translate-character encode-mac-centraleurroman r0 r1)))))
+    (if (r0 <= ?\xef)
+	(translate-character encode-mac-centraleurroman r0 r1)
+      ((r1 <<= 7)
+       (r1 |= r2)
+       (translate-character encode-mac-centraleurroman r0 r1))))
   "CCL program for Mac Central European Roman font")
 
 (define-ccl-program ccl-encode-mac-cyrillic-font
   `(0
-    (if (r0 != ,(charset-id 'ascii))
-	(if (r0 <= ?\x8f)
-	    (translate-character encode-mac-cyrillic r0 r1)
-	  ((r1 <<= 7)
-	   (r1 |= r2)
-	   (translate-character encode-mac-cyrillic r0 r1)))))
+    (if (r0 <= ?\xef)
+	(translate-character encode-mac-cyrillic r0 r1)
+      ((r1 <<= 7)
+       (r1 |= r2)
+       (translate-character encode-mac-cyrillic r0 r1))))
   "CCL program for Mac Cyrillic font")
 
 (define-ccl-program ccl-encode-mac-symbol-font
   `(0
-    (if (r0 != ,(charset-id 'ascii))
-	(if (r0 <= ?\x8f)
-	    (translate-character mac-symbol-encoder r0 r1)
-	  ((r1 <<= 7)
-	   (r1 |= r2)
-	   (translate-character mac-symbol-encoder r0 r1)))))
+    (if (r0 <= ?\xef)
+	(translate-character mac-symbol-encoder r0 r1)
+      ((r1 <<= 7)
+       (r1 |= r2)
+       (translate-character mac-symbol-encoder r0 r1))))
   "CCL program for Mac Symbol font")
 
 (define-ccl-program ccl-encode-mac-dingbats-font
   `(0
-    (if (r0 != ,(charset-id 'ascii))
-	(if (r0 <= ?\x8f)
-	    (translate-character mac-dingbats-encoder r0 r1)
-	  ((r1 <<= 7)
-	   (r1 |= r2)
-	   (translate-character mac-dingbats-encoder r0 r1)))))
+    (if (r0 <= ?\xef)
+	(translate-character mac-dingbats-encoder r0 r1)
+      ((r1 <<= 7)
+       (r1 |= r2)
+       (translate-character mac-dingbats-encoder r0 r1))))
   "CCL program for Mac Dingbats font")
 
 
@@ -1603,35 +1616,80 @@ in `selection-converter-alist', which see."
 	       mac-font-encoder-list)
        font-ccl-encoder-alist))
 
-(defun fontset-add-mac-fonts (fontset &optional base-family)
-  (if base-family
-      (setq base-family (downcase base-family))
-    (let ((ascii-font
-	   (downcase (x-resolve-font-name
-		      (fontset-font fontset (charset-id 'ascii))))))
-      (setq base-family (aref (x-decompose-font-name ascii-font)
-			      xlfd-regexp-family-subnum))))
-;;  (if (not (string-match "^fontset-" fontset))
-;;      (setq fontset
-;;	    (concat "fontset-" (aref (x-decompose-font-name fontset)
-;;				     xlfd-regexp-encoding-subnum))))
-  (dolist
-      (font-encoder
-       (nreverse
-	(mapcar (lambda (lst)
-		  (cons (cons (format (nth 3 lst) base-family) (nth 0 lst))
-			(nth 1 lst)))
-		mac-font-encoder-list)))
-    (let ((font (car font-encoder))
-	  (encoder (cdr font-encoder)))
+(defconst mac-char-fontspec-list
+  ;; Directly operate on a char-table instead of a fontset so that it
+  ;; may not create a dummy fontset.
+  (let ((template (make-char-table 'fontset)))
+    (dolist
+	(font-encoder
+	 (nreverse
+	  (mapcar (lambda (lst)
+		    (cons (cons (nth 3 lst) (nth 0 lst)) (nth 1 lst)))
+		  mac-font-encoder-list)))
+      (let ((font (car font-encoder))
+	    (encoder (cdr font-encoder)))
+	(map-char-table
+	 (lambda (key val)
+	   (or (null val)
+	       (generic-char-p key)
+	       (memq (char-charset key)
+		     '(ascii eight-bit-control eight-bit-graphic))
+	       (aset template key font)))
+	 (get encoder 'translation-table))))
+
+    ;; Like fontset-info, but extend a range only if its "to" part is
+    ;; the predecessor of the current char.
+    (let* ((last '((0 nil)))
+	   (accumulator last)
+	   last-char-or-range last-char last-elt)
       (map-char-table
-       (lambda (key val)
-	 (or (null val)
-	     (generic-char-p key)
-	     (memq (char-charset key)
-		   '(ascii eight-bit-control eight-bit-graphic))
-	     (set-fontset-font fontset key font)))
-       (get encoder 'translation-table)))))
+       (lambda (char elt)
+	 (when elt
+	   (setq last-char-or-range (car (car last))
+		 last-char (if (consp last-char-or-range)
+			       (cdr last-char-or-range)
+			     last-char-or-range)
+		 last-elt (cdr (car last)))
+	   (if (and (eq elt last-elt)
+		    (= char (1+ last-char))
+		    (eq (char-charset char) (char-charset last-char)))
+	       (if (consp last-char-or-range)
+		   (setcdr last-char-or-range char)
+		 (setcar (car last) (cons last-char char)))
+	     (setcdr last (list (cons char elt)))
+	     (setq last (cdr last)))))
+       template)
+      (cdr accumulator))))
+
+(defun fontset-add-mac-fonts (fontset &optional base-family)
+  "Add font-specs for Mac fonts to FONTSET.
+The added font-specs are determined by BASE-FAMILY and the value
+of `mac-char-fontspec-list', which is a list
+of (CHARACTER-OR-RANGE . (FAMILY-FORMAT . REGISTRY)).  If
+BASE-FAMILY is nil, the font family in the added font-specs is
+also nil.  If BASE-FAMILY is a string, `%s' in FAMILY-FORMAT is
+replaced with the string.  Otherwise, `%s' in FAMILY-FORMAT is
+replaced with the ASCII font family name in FONTSET."
+  (if base-family
+      (if (stringp base-family)
+	  (setq base-family (downcase base-family))
+	(let ((ascii-font (fontset-font fontset (charset-id 'ascii))))
+	  (if ascii-font
+	      (setq base-family
+		    (aref (x-decompose-font-name
+			   (downcase (x-resolve-font-name ascii-font)))
+			  xlfd-regexp-family-subnum))))))
+  (let (fontspec-cache fontspec)
+    (dolist (char-fontspec mac-char-fontspec-list)
+      (setq fontspec (cdr (assq (cdr char-fontspec) fontspec-cache)))
+      (when (null fontspec)
+	(setq fontspec
+	      (cons (and base-family
+			 (format (car (cdr char-fontspec)) base-family))
+		    (cdr (cdr char-fontspec))))
+	(setq fontspec-cache (cons (cons (cdr char-fontspec) fontspec)
+				   fontspec-cache)))
+      (set-fontset-font fontset (car char-fontspec) fontspec))))
 
 (defun create-fontset-from-mac-roman-font (font &optional resolved-font
 						fontset-name)
@@ -1648,11 +1706,14 @@ an appropriate name is generated automatically.
 It returns a name of the created fontset."
   (let ((fontset
 	 (create-fontset-from-ascii-font font resolved-font fontset-name)))
-    (fontset-add-mac-fonts fontset)
+    (fontset-add-mac-fonts fontset t)
     fontset))
 
 ;; Setup the default fontset.
 (setup-default-fontset)
+;; Add Mac-encoding fonts unless ETL fonts are installed.
+(unless (x-list-fonts "*-iso8859-1")
+  (fontset-add-mac-fonts "fontset-default"))
 
 ;; Create a fontset that uses mac-roman font.  With this fontset,
 ;; characters decoded from mac-roman encoding (ascii, latin-iso8859-1,
@@ -1660,7 +1721,7 @@ It returns a name of the created fontset."
 (create-fontset-from-fontset-spec
  "-etl-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-mac,
 ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
-(fontset-add-mac-fonts "fontset-mac")
+(fontset-add-mac-fonts "fontset-mac" t)
 
 ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
 (create-fontset-from-x-resource)

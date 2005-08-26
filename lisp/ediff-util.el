@@ -117,7 +117,13 @@ Commands:
   (kill-all-local-variables)
   (setq major-mode 'ediff-mode)
   (setq mode-name "Ediff")
-  (run-mode-hooks 'ediff-mode-hook))
+  ;; We use run-hooks instead of run-mode-hooks for two reasons.
+  ;; The ediff control buffer is read-only and it is not supposed to be
+  ;; modified by minor modes and such. So, run-mode-hooks doesn't do anything
+  ;; useful here on top of what run-hooks does.
+  ;; Second, changing run-hooks to run-mode-hooks would require an
+  ;; if-statement, since XEmacs doesn't have this. 
+  (run-hooks 'ediff-mode-hook))
 
 
 
@@ -3788,9 +3794,8 @@ Ediff Control Panel to restore highlighting."
 		      type ediff-current-diff-overlay-alist))
 	    (buffer (ediff-get-buffer type))
 	    (face (face-name
-		   (symbol-value
-		    (ediff-get-symbol-from-alist
-		     type ediff-current-diff-face-alist)))))
+		   (ediff-get-symbol-from-alist
+		    type ediff-current-diff-face-alist))))
 	(set overlay
 	     (ediff-make-bullet-proof-overlay (point-max) (point-max) buffer))
 	(ediff-set-overlay-face (symbol-value overlay) face)

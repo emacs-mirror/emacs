@@ -8,7 +8,7 @@
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.11.4 of February 19, 2005"
+(defconst viper-version "3.11.5 of July 8, 2005"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -320,6 +320,7 @@
 ;; end pacifier
 
 (require 'viper-init)
+(require 'viper-keym)
 
 ;; better be defined before Viper custom group.
 (defvar viper-custom-file-name (convert-standard-filename "~/.viper")
@@ -691,6 +692,12 @@ remains buffer-local."
 
   (setq viper-mode nil)
 
+  (when (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
+    (setq emulation-mode-map-alists
+	  (delq 'viper--intercept-key-maps
+		(delq 'viper--key-maps emulation-mode-map-alists))
+	  ))
+
   (viper-delocalize-var 'viper-vi-minibuffer-minor-mode)
   (viper-delocalize-var 'viper-insert-minibuffer-minor-mode)
   (viper-delocalize-var 'viper-vi-intercept-minor-mode)
@@ -874,8 +881,26 @@ remains buffer-local."
       "Switch to emacs state while reading password."
       (viper-change-state-to-emacs)))
 
+  (defadvice self-insert-command (around viper-self-insert-ad activate)
+    "Ignore all self-inserting keys in the vi-state."
+    (if (and (eq viper-current-state 'vi-state) (interactive-p))
+	(beep 1)
+      ad-do-it
+      ))
+
+  (when (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
+    ;; needs to be as early as possible
+    (add-to-ordered-list
+     'emulation-mode-map-alists 'viper--intercept-key-maps 100)
+    ;; needs to be after cua-mode
+    (add-to-ordered-list 'emulation-mode-map-alists 'viper--key-maps 500)
+    )
+
   ;; Emacs shell, ange-ftp, and comint-based modes
   (add-hook 'comint-mode-hook 'viper-comint-mode-hook) ; comint
+
+  (add-hook 'eshell-mode-hook
+	    (lambda () (setq viper-auto-indent nil)))
 
   (viper-set-emacs-state-searchstyle-macros nil 'dired-mode) ; dired
   (viper-set-emacs-state-searchstyle-macros nil 'tar-mode) ; tar
@@ -1057,6 +1082,14 @@ remains buffer-local."
     (define-key viper-vi-intercept-map "\C-x)" nil)
     (define-key viper-insert-intercept-map "\C-x)" nil)
     (define-key viper-emacs-intercept-map "\C-x)" nil))
+
+  (defadvice add-minor-mode (after
+			     viper-advice-add-minor-mode
+			     (toggle name &optional keymap after toggle-fun)
+			     activate)
+  "Run viper-normalize-minor-mode-map-alist after adding a minor mode."
+  (viper-normalize-minor-mode-map-alist)
+  (setq-default minor-mode-map-alist minor-mode-map-alist))
 
   ;; catch frame switching event
   (if (viper-window-display-p)

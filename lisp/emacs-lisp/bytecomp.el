@@ -3580,11 +3580,14 @@ discarding."
 
 (defmacro byte-compile-maybe-guarded (condition &rest body)
   "Execute forms in BODY, potentially guarded by CONDITION.
-CONDITION is the test in an `if' form or in a `cond' clause.
-BODY is to compile the first arm of the if or the body of the
-cond clause.  If CONDITION is of the form `(foundp 'foo)'
+CONDITION is a variable whose value is a test in an `if' or `cond'.
+BODY is the code to compile  first arm of the if or the body of the
+cond clause.  If CONDITION's value is of the form `(foundp 'foo)'
 or `(boundp 'foo)', the relevant warnings from BODY about foo
-being undefined will be suppressed."
+being undefined will be suppressed.
+
+If CONDITION's value is `(featurep 'xemacs)', that suppresses all
+warnings during execution of BODY."
   (declare (indent 1) (debug t))
   `(let* ((fbound
 	   (if (eq 'fboundp (car-safe ,condition))
@@ -3602,13 +3605,17 @@ being undefined will be suppressed."
 	  (byte-compile-bound-variables
 	   (if bound
 	       (cons bound byte-compile-bound-variables)
-	     byte-compile-bound-variables)))
-     (progn ,@body)
-     ;; Maybe remove the function symbol from the unresolved list.
-     (if fbound
-	 (setq byte-compile-unresolved-functions
-	       (delq (assq fbound byte-compile-unresolved-functions)
-		     byte-compile-unresolved-functions)))))
+	     byte-compile-bound-variables))
+	  (byte-compile-warnings
+	   (if (equal ,condition '(featurep 'xemacs))
+	       nil byte-compile-warnings)))
+     (unwind-protect
+	 (progn ,@body)
+       ;; Maybe remove the function symbol from the unresolved list.
+       (if fbound
+	   (setq byte-compile-unresolved-functions
+		 (delq (assq fbound byte-compile-unresolved-functions)
+		       byte-compile-unresolved-functions))))))
 
 (defun byte-compile-if (form)
   (byte-compile-form (car (cdr form)))
@@ -3649,12 +3656,12 @@ being undefined will be suppressed."
 	     (if (null (cdr clause))
 		 ;; First clause is a singleton.
 		 (byte-compile-goto-if t for-effect donetag)
-		 (setq nexttag (byte-compile-make-tag))
-		 (byte-compile-goto 'byte-goto-if-nil nexttag)
-		 (byte-compile-maybe-guarded (car clause)
-		   (byte-compile-body (cdr clause) for-effect))
-		 (byte-compile-goto 'byte-goto donetag)
-		 (byte-compile-out-tag nexttag)))))
+	       (setq nexttag (byte-compile-make-tag))
+	       (byte-compile-goto 'byte-goto-if-nil nexttag)
+	       (byte-compile-maybe-guarded (car clause)
+		 (byte-compile-body (cdr clause) for-effect))
+	       (byte-compile-goto 'byte-goto donetag)
+	       (byte-compile-out-tag nexttag)))))
     ;; Last clause
     (let ((guard (car clause)))
       (and (cdr clause) (not (eq guard t))

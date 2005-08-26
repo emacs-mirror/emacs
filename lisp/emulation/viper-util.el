@@ -41,7 +41,6 @@
 (defvar viper-syntax-preference)
 (defvar viper-saved-mark)
 
-(require 'cl)
 (require 'ring)
 
 (if noninteractive
@@ -1068,7 +1067,7 @@
 		 (t key)))
 
 	  ((listp key)
-	   (setq modifiers (subseq key 0 (1- (length key)))
+	   (setq modifiers (viper-subseq key 0 (1- (length key)))
 		 base-key (viper-seq-last-elt key)
 		 base-key-name (symbol-name base-key)
 		 char-p (= (length base-key-name) 1))
@@ -1501,6 +1500,33 @@ This option is appropriate if you like Emacs-style words."
       (setq total (+ total local)))
     total
     ))
+
+
+;; this is copied from cl-extra.el
+;; Return the subsequence of SEQ from START to END.
+;; If END is omitted, it defaults to the length of the sequence.
+;; If START or END is negative, it counts from the end.
+(defun viper-subseq (seq start &optional end)
+  (if (stringp seq) (substring seq start end)
+    (let (len)
+      (and end (< end 0) (setq end (+ end (setq len (length seq)))))
+      (if (< start 0) (setq start (+ start (or len (setq len (length seq))))))
+      (cond ((listp seq)
+	     (if (> start 0) (setq seq (nthcdr start seq)))
+	     (if end
+		 (let ((res nil))
+		   (while (>= (setq end (1- end)) start)
+		     (push (pop seq) res))
+		   (nreverse res))
+	       (copy-sequence seq)))
+	    (t
+	     (or end (setq end (or len (length seq))))
+	     (let ((res (make-vector (max (- end start) 0) nil))
+		   (i 0))
+	       (while (< start end)
+		 (aset res i (aref seq start))
+		 (setq i (1+ i) start (1+ start)))
+	       res))))))
 
 
 

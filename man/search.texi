@@ -294,7 +294,7 @@ commands such as @kbd{@key{PRIOR}} (@code{scroll-down}),
 @kbd{@key{NEXT}} (@code{scroll-up}) and @kbd{C-l} (@code{recenter})
 within the search, thus letting you see more of the text near the
 current match.  You must run these commands via their key sequences to
-stay in the search---typing M-x @var{comand-name} will always
+stay in the search---typing M-x @var{command-name} will always
 terminate a search.
 
   You can give prefix arguments to these commands in the usual way.
@@ -309,6 +309,16 @@ handy during a search.
 
   You can make other commands usable within an incremental search by
 giving the command a non-@code{nil} @code{isearch-scroll} property.
+For example, to make @kbd{C-h l} usable within an incremental search
+in all future Emacs sessions, use @kbd{C-h c} to find what command it
+runs.  (You type @kbd{C-h c C-h l}; it says @code{view-lossage}.)  Then
+you can put the following line in your @file{.emacs} file (@pxref{Init File}):
+
+@example
+(put 'view-lossage 'isearch-scroll t)
+@end example
+
+@noindent
 This works for commands that don't permanently change point, the
 buffer contents, the match data, the current buffer, or the selected
 window and frame.  The command must not delete the current window and
@@ -331,7 +341,8 @@ its new position of point.
 @vindex search-slow-speed
   The slow terminal style of display is used when the terminal baud rate is
 less than or equal to the value of the variable @code{search-slow-speed},
-initially 1200.  See @code{baud-rate} in @ref{Display Custom}.
+initially 1200.  See also the discussion of the variable @code{baud-rate}
+(@pxref{baud-rate,, Customization of Display}).
 
 @vindex search-slow-window-lines
   The number of lines to use in slow terminal search display is controlled
@@ -1012,7 +1023,15 @@ M-x replace-regexp @key{RET} \(c[ad]+r\)-safe @key{RET} \1 @key{RET}
 performs the inverse transformation.  To include a @samp{\} in the
 text to replace with, you must enter @samp{\\}.
 
-  You can also use Lisp expressions to calculate parts of the
+  If you want to enter part of the replacement string by hand each
+time, use @samp{\?} in the replacement string.  Each replacement will
+ask you to edit the replacement string in the minibuffer, putting
+point where the @samp{\?} was.
+
+  The remainder of this subsection is intended for specialized tasks
+and requires knowledge of Lisp.  Most readers can skip it.
+
+  You can use Lisp expressions to calculate parts of the
 replacement string.  To do this, write @samp{\,} followed by the
 expression in the replacement string.  Each replacement calculates the
 value of the expression and converts it to text without quoting (if
@@ -1049,22 +1068,6 @@ already occupied), you can use
 M-x replace-regexp @key{RET} ^.\@{0,72\@}$ @key{RET}
 \,(format "%-72sABC%05d" \& \#) @key{RET}
 @end example
-
-  If you want to enter part of the replacement string by hand each
-time, use @samp{\?} in the replacement string.  Each replacement will
-ask you to edit the replacement string in the minibuffer, putting
-point where the @samp{\?} was.  For example,
-
-@example
-M-x replace-regexp @key{RET} \\footnote@{ @key{RET}
-\&\\label@{fn:\#\?@} @key{RET}
-@end example
-
-@noindent
-will add labels starting with @samp{\label@{fn:0@}} to occurrences of
-@samp{\footnote@{}, but letting you edit each replacement before
-performing it.  To number the labels starting at 1, use @samp{\,(1+
-\#)} instead of @samp{\#}.
 
 @node Replacement and Case, Query Replace, Regexp Replace, Replace
 @subsection Replace Commands and Case
@@ -1257,7 +1260,8 @@ Display a list showing each line in the buffer that contains a match
 for @var{regexp}.  To limit the search to part of the buffer, narrow
 to that part (@pxref{Narrowing}).  A numeric argument @var{n}
 specifies that @var{n} lines of context are to be displayed before and
-after each matching line.
+after each matching line.  Currently, @code{occur} can not correctly
+handle multiline matches.
 
 @kindex RET @r{(Occur mode)}
 @kindex o @r{(Occur mode)}
@@ -1271,7 +1275,7 @@ searched and moves point to the original of the chosen occurrence.
 does not select it.
 
 Occur mode supports the @code{next-error} functionality described in
-in @ref{Compilation Mode}.
+@ref{Compilation Mode}.
 
 @item M-x list-matching-lines
 Synonym for @kbd{M-x occur}.
@@ -1290,19 +1294,31 @@ after point.  In Transient Mark mode, if the region is active, the
 command operates on the region instead.
 
 @item M-x flush-lines @key{RET} @var{regexp} @key{RET}
-Delete each line that contains a match for @var{regexp}, operating on
-the text after point.  In Transient Mark mode, if the region is
-active, the command operates on the region instead.
+This command deletes each line that contains a match for @var{regexp},
+operating on the text after point; it deletes the current line
+if it contains a match starting after point.  In Transient Mark mode,
+if the region is active, the command operates on the region instead;
+it deletes a line partially contained in the region if it contains a
+match entirely contained in the region.
+
+If a match is split across lines, @code{flush-lines} deletes all those
+lines.  It deletes the lines before starting to look for the next
+match; hence, it ignores a match starting on the same line at which
+another match ended.
 
 @item M-x keep-lines @key{RET} @var{regexp} @key{RET}
-Delete each line that @emph{does not} contain a match for
-@var{regexp}, operating on the text after point.  In Transient Mark
-mode, if the region is active, the command operates on the region
-instead.
+This command deletes each line that @emph{does not} contain a match for
+@var{regexp}, operating on the text after point; if point is not at the
+beginning of a line, it always keeps the current line.  In Transient
+Mark mode, if the region is active, the command operates on the region
+instead; it never deletes lines that are only partially contained in
+the region (a newline that ends a line counts as part of that line).
+
+If a match is split across lines, this command keeps all those lines.
 @end table
 
   You can also search multiple files under control of a tags table
-(@pxref{Tags Search}) or through Dired @kbd{A} command
+(@pxref{Tags Search}) or through the Dired @kbd{A} command
 (@pxref{Operating on Files}), or ask the @code{grep} program to do it
 (@pxref{Grep Searching}).
 

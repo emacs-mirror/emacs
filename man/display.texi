@@ -1004,15 +1004,6 @@ global-hl-line-mode} enables or disables the same mode globally.
   This section contains information for customization only.  Beginning
 users should skip it.
 
-@vindex mode-line-inverse-video
-  The variable @code{mode-line-inverse-video} is an obsolete way of
-controlling whether the mode line is displayed in inverse video; the
-preferred way of doing this is to change the @code{mode-line} face.
-@xref{Mode Line}.  However, if @code{mode-line-inverse-video} has a
-value of @code{nil}, then the @code{mode-line} face will be ignored,
-and mode-lines will be drawn using the default text face.
-@xref{Faces}.
-
 @vindex inverse-video
   If the variable @code{inverse-video} is non-@code{nil}, Emacs attempts
 to invert all the lines of the display from what they normally are.
@@ -1135,7 +1126,7 @@ is the default value for @code{indicate-buffer-boundaries} in buffers
 that do not override it.
 
 @vindex baud-rate
-  The variable @code{baud-rate} holds the output speed of the
+  The variable @anchor{baud-rate}@code{baud-rate} holds the output speed of the
 terminal, as far as Emacs knows.  Setting this variable does not
 change the speed of actual data transmission, but the value is used
 for calculations.  On terminals, it affects padding, and decisions

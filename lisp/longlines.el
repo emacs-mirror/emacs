@@ -170,20 +170,20 @@ With optional argument ARG, make the hard newlines invisible again."
   "Make hard newlines between BEG and END visible."
   (let* ((pmin (min beg end))
          (pmax (max beg end))
-         (pos (text-property-any pmin pmax 'hard t)))
+         (pos (text-property-not-all pmin pmax 'hard nil)))
     (while pos
       (put-text-property pos (1+ pos) 'display
                          (copy-sequence longlines-show-effect))
-      (setq pos (text-property-any (1+ pos) pmax 'hard t)))))
+      (setq pos (text-property-not-all (1+ pos) pmax 'hard nil)))))
 
 (defun longlines-unshow-hard-newlines ()
   "Make hard newlines invisible again."
   (interactive)
   (setq longlines-showing nil)
-  (let ((pos (text-property-any (point-min) (point-max) 'hard t)))
+  (let ((pos (text-property-not-all (point-min) (point-max) 'hard nil)))
     (while pos
       (remove-text-properties pos (1+ pos) '(display))
-      (setq pos (text-property-any (1+ pos) (point-max) 'hard t)))))
+      (setq pos (text-property-not-all (1+ pos) (point-max) 'hard nil)))))
 
 ;; Wrapping the paragraphs.
 

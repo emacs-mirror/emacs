@@ -1818,7 +1818,7 @@ This function should be in the list `comint-output-filter-functions'."
 			      (= (point) (point-max)))
 			 (save-excursion
 			   (goto-char (point-max))
-			   (recenter -1)))
+			   (recenter (- -1 scroll-margin))))
 		     (select-window selected)))))
 	     nil t))
       (set-buffer current))))
@@ -1852,7 +1852,7 @@ This function could be on `comint-output-filter-functions' or bound to a key."
   "Put the end of the buffer at the bottom of the window."
   (interactive)
   (goto-char (point-max))
-  (recenter -1))
+  (recenter (- -1 scroll-margin)))
 
 (defun comint-get-old-input-default ()
   "Default for `comint-get-old-input'.

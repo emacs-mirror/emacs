@@ -241,6 +241,23 @@
   :group 'calc
   :type '(regexp))
 
+(defcustom calc-embedded-announce-formula-alist
+  '((c++-mode     . "//Embed\n\\(// .*\n\\)*")
+    (c-mode       . "/\\*Embed\\*/\n\\(/\\* .*\\*/\n\\)*")
+    (f90-mode     . "!Embed\n\\(! .*\n\\)*")
+    (fortran-mode . "C Embed\n\\(C .*\n\\)*")
+    (html-helper-mode . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (html-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (nroff-mode   . "\\\\\"Embed\n\\(\\\\\" .*\n\\)*")
+    (pascal-mode  . "{Embed}\n\\({.*}\n\\)*")
+    (sgml-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (xml-mode     . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (texinfo-mode . "@c Embed\n\\(@c .*\n\\)*"))
+  "*Alist of major modes with appropriate values for `calc-embedded-announce-formula'."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (regexp :tag "Regexp to announce formula")))
+
 (defcustom calc-embedded-open-formula 
   "\\`\\|^\n\\|\\$\\$?\\|\\\\\\[\\|^\\\\begin[^{].*\n\\|^\\\\begin{.*[^x]}.*\n\\|^@.*\n\\|^\\.EQ.*\n\\|\\\\(\\|^%\n\\|^\\.\\\\\"\n"
   "*A regular expression for the opening delimiter of a formula used by calc-embedded."
@@ -253,6 +270,14 @@
   :group 'calc
   :type '(regexp))
 
+(defcustom calc-embedded-open-close-formula-alist
+  nil
+  "*Alist of major modes with pairs of formula delimiters used by calc-embedded."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (regexp :tag "Opening formula delimiter")
+                                  (regexp :tag "Closing formula delimiter"))))
+
 (defcustom calc-embedded-open-word 
   "^\\|[^-+0-9.eE]"
   "*A regular expression for the opening delimiter of a formula used by calc-embedded-word."
@@ -264,6 +289,14 @@
   "*A regular expression for the closing delimiter of a formula used by calc-embedded-word."
   :group 'calc
   :type '(regexp))
+
+(defcustom calc-embedded-open-close-word-alist
+  nil
+  "*Alist of major modes with pairs of word delimiters used by calc-embedded."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (regexp :tag "Opening word delimiter")
+                                  (regexp :tag "Closing word delimiter"))))
 
 (defcustom calc-embedded-open-plain 
   "%%% "
@@ -280,6 +313,24 @@ See calc-embedded-open-plain."
   :group 'calc
   :type '(string))
 
+(defcustom calc-embedded-open-close-plain-alist
+  '((c++-mode     "// %% "   " %%\n")
+    (c-mode       "/* %% "   " %% */\n")
+    (f90-mode     "! %% "    " %%\n")
+    (fortran-mode "C %% "    " %%\n")
+    (html-helper-mode "<!-- %% " " %% -->\n")
+    (html-mode "<!-- %% " " %% -->\n")
+    (nroff-mode   "\\\" %% " " %%\n")
+    (pascal-mode  "{%% "    " %%}\n")
+    (sgml-mode     "<!-- %% " " %% -->\n")
+    (xml-mode     "<!-- %% " " %% -->\n")
+    (texinfo-mode "@c %% "   " %%\n"))
+  "*Alist of major modes with pairs of delimiters for \"plain\" formulas."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (string :tag "Opening \"plain\" delimiter")
+                                  (string :tag "Closing \"plain\" delimiter"))))
+
 (defcustom calc-embedded-open-new-formula 
   "\n\n"
   "*A string which is inserted at front of formula by calc-embedded-new-formula."
@@ -291,6 +342,14 @@ See calc-embedded-open-plain."
   "*A string which is inserted at end of formula by calc-embedded-new-formula."
   :group 'calc
   :type '(string))
+
+(defcustom calc-embedded-open-close-new-formula-alist
+  nil
+  "*Alist of major modes with pairs of new formula delimiters used by calc-embedded."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (string :tag "Opening new formula delimiter")
+                                  (string :tag "Closing new formula delimiter"))))
 
 (defcustom calc-embedded-open-mode 
   "% "
@@ -305,6 +364,24 @@ This is not required to be present for user-written mode annotations."
 This is not required to be present for user-written mode annotations."
   :group 'calc
   :type '(string))
+
+(defcustom calc-embedded-open-close-mode-alist
+  '((c++-mode     "// "   "\n")
+    (c-mode       "/* "   " */\n")
+    (f90-mode     "! "    "\n")
+    (fortran-mode "C "    "\n")
+    (html-helper-mode "<!-- " " -->\n")
+    (html-mode    "<!-- " " -->\n")
+    (nroff-mode   "\\\" " "\n")
+    (pascal-mode  "{ "    " }\n")
+    (sgml-mode    "<!-- " " -->\n")
+    (xml-mode     "<!-- " " -->\n")
+    (texinfo-mode "@c "   "\n"))
+  "*Alist of major modes with pairs of strings to delimit annotations."
+  :group 'calc
+  :type '(alist :key-type (symbol :tag "Major mode")
+                :value-type (list (string :tag "Opening annotation delimiter")
+                                  (string :tag "Closing annotation delimiter"))))
 
 (defcustom calc-gnuplot-name 
   "gnuplot"
@@ -725,6 +802,15 @@ If nil, selections displayed but ignored.")
 
 (defvar calc-trail-window-hook nil
   "Hook called to create the Calc trail window.")
+
+(defvar calc-embedded-new-buffer-hook nil
+  "Hook run when starting embedded mode in a new buffer.")
+
+(defvar calc-embedded-new-formula-hook nil
+  "Hook run when starting embedded mode in a new formula.")
+
+(defvar calc-embedded-mode-hook nil
+  "Hook run when starting embedded mode.")
 
 ;; Verify that Calc is running on the right kind of system.
 (defvar calc-emacs-type-lucid (not (not (string-match "Lucid" emacs-version))))

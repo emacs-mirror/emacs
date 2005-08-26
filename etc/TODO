@@ -93,6 +93,12 @@ to the FSF.
 
 * Other features we would like:
 
+** Create a category of errors called `process-error'
+  for some or all errors associated with using subprocesses.
+
+** Maybe reinterpret `parse-error' as a category of errors
+  and put some other errors under it.
+
 ** A function to check for customizable options that have been
   set but not saved, and ask the user whether to save them.
   This could go in kill-emacs-query-functions, to remind people
@@ -152,6 +158,8 @@ to the FSF.
 ** Replace finder.el with something that generates an Info file
   which gives the same information through a menu structure.  [Dave
   Love started on this.]
+
+** Add a cpio mode, more or less like tar mode.
 
 ** Implement a variant of uncompress.el or jka-compr.el that works with
   GNU Privacy Guard for encryption.  [Code exists but isn't assigned.

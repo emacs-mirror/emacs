@@ -50,6 +50,19 @@
 ;; still under development and is part of a process to migrate Emacs from
 ;; annotations to GDB/MI.
 ;;
+;; Windows Platforms:
+;;
+;; If you are using Emacs and GDB on Windows you will need to flush the buffer
+;; explicitly in your program if you want timely display of I/O in Emacs.
+;; Alternatively you can make the output stream unbuffered, for example, by
+;; using a macro:
+;; 
+;;           #ifdef UNBUFFERED
+;;	     setvbuf(stdout,(char *)NULL, _IONBF,0);
+;;	     #endif
+;;
+;; and compiling with -DUNBUFFERED while debugging.
+;;
 ;; Known Bugs:
 ;;
 ;; TODO:

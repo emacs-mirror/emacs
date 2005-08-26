@@ -65,7 +65,7 @@
 (defvar viper-frame-of-focus nil)
 
 ;; Frame that was selected before the switch-frame event.
-(defconst viper-current-frame-saved (selected-frame))
+(defvar viper-current-frame-saved (selected-frame))
 
 (defcustom viper-surrounding-word-function 'viper-surrounding-word
   "*Function that determines what constitutes a word for clicking events.

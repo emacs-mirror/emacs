@@ -2954,7 +2954,6 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
   QCOMPOUND_TEXT = intern ("COMPOUND_TEXT"); staticpro (&QCOMPOUND_TEXT);
   QUTF8_STRING = intern ("UTF8_STRING"); staticpro (&QUTF8_STRING);
-  QTIMESTAMP = intern ("TIMESTAMP");	staticpro (&QTIMESTAMP);
   QDELETE    = intern ("DELETE");	staticpro (&QDELETE);
   QMULTIPLE  = intern ("MULTIPLE");	staticpro (&QMULTIPLE);
   QINCR      = intern ("INCR");		staticpro (&QINCR);

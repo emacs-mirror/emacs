@@ -1,3 +1,35 @@
+2005-07-08  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (Recognize Coding): Recommend
+	revert-buffer-with-coding-system instead of revert-buffer.
+
+2005-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* anti.texi (Antinews): Mention mode-line-inverse-video.
+
+	* files.texi (Saving): Minor correction about C-x C-w.
+
+	* display.texi (Display Custom): Don't mention mode-line-inverse-video.
+
+2005-07-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* search.texi (Isearch Scroll): Add example of using the
+	`isearch-scroll' property.
+	(Slow Isearch): Reference anchor for `baud-rate' instead of entire
+	`Display Custom' node.
+	(Regexp Replace): Put text that requires Emacs Lisp knowledge last
+	and de-emphasize it.
+	(Other Repeating Search): `occur' currently can not correctly
+	handle multiline matches.  Correct, clarify and update description
+	of `flush-lines' and `keep-lines'.
+
+	* display.texi (Display Custom): Add anchor for `baud-rate'.
+
+2005-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* gnu.texi: Update where to get GNU status; add refs for how to help.
+	Add footnotes 6 and 7.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

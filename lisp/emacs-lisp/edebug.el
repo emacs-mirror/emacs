@@ -2374,18 +2374,19 @@ MSG is printed after `::::} '."
 
 
 (defun edebug-slow-before (edebug-before-index)
-  ;; Debug current function given BEFORE position.
-  ;; Called from functions compiled with edebug-eval-top-level-form.
-  ;; Return the before index.
-  (setcar edebug-offset-indices edebug-before-index)
+  (unless edebug-active
+    ;; Debug current function given BEFORE position.
+    ;; Called from functions compiled with edebug-eval-top-level-form.
+    ;; Return the before index.
+    (setcar edebug-offset-indices edebug-before-index)
 
-  ;; Increment frequency count
-  (aset edebug-freq-count edebug-before-index
-	(1+ (aref edebug-freq-count edebug-before-index)))
+    ;; Increment frequency count
+    (aset edebug-freq-count edebug-before-index
+	  (1+ (aref edebug-freq-count edebug-before-index)))
 
-  (if (or (not (memq edebug-execution-mode '(Go-nonstop next)))
-	  (edebug-input-pending-p))
-      (edebug-debugger edebug-before-index 'before nil))
+    (if (or (not (memq edebug-execution-mode '(Go-nonstop next)))
+	    (edebug-input-pending-p))
+	(edebug-debugger edebug-before-index 'before nil)))
   edebug-before-index)
 
 (defun edebug-fast-before (edebug-before-index)
@@ -2393,22 +2394,24 @@ MSG is printed after `::::} '."
   )
 
 (defun edebug-slow-after (edebug-before-index edebug-after-index edebug-value)
-  ;; Debug current function given AFTER position and VALUE.
-  ;; Called from functions compiled with edebug-eval-top-level-form.
-  ;; Return VALUE.
-  (setcar edebug-offset-indices edebug-after-index)
-
-  ;; Increment frequency count
-  (aset edebug-freq-count edebug-after-index
-	(1+ (aref edebug-freq-count edebug-after-index)))
-  (if edebug-test-coverage (edebug-update-coverage))
-
-  (if (and (eq edebug-execution-mode 'Go-nonstop)
-	   (not (edebug-input-pending-p)))
-      ;; Just return result.
+  (if edebug-active
       edebug-value
-    (edebug-debugger edebug-after-index 'after edebug-value)
-    ))
+    ;; Debug current function given AFTER position and VALUE.
+    ;; Called from functions compiled with edebug-eval-top-level-form.
+    ;; Return VALUE.
+    (setcar edebug-offset-indices edebug-after-index)
+
+    ;; Increment frequency count
+    (aset edebug-freq-count edebug-after-index
+	  (1+ (aref edebug-freq-count edebug-after-index)))
+    (if edebug-test-coverage (edebug-update-coverage))
+
+    (if (and (eq edebug-execution-mode 'Go-nonstop)
+	     (not (edebug-input-pending-p)))
+	;; Just return result.
+	edebug-value
+      (edebug-debugger edebug-after-index 'after edebug-value)
+      )))
 
 (defun edebug-fast-after (edebug-before-index edebug-after-index edebug-value)
   ;; Do nothing but return the value.
@@ -2533,6 +2536,7 @@ MSG is printed after `::::} '."
   ;; Uses local variables of edebug-enter, edebug-before, edebug-after
   ;; and edebug-debugger.
   (let ((edebug-active t)		; for minor mode alist
+	(edebug-with-timeout-suspend (with-timeout-suspend))
 	edebug-stop			; should we enter recursive-edit
 	(edebug-point (+ edebug-def-mark
 			 (aref (nth 2 edebug-data) edebug-offset-index)))
@@ -2759,6 +2763,7 @@ MSG is printed after `::::} '."
 	    (set-buffer current-buffer))
 	  ;; ... nothing more.
 	  )
+      (with-timeout-unsuspend edebug-with-timeout-suspend)
       ;; Reset global variables to outside values in case they were changed.
       (setq
        overlay-arrow-position edebug-outside-o-a-p

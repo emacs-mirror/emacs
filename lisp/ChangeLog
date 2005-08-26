@@ -1,18 +1,380 @@
+2005-07-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-initialize-safe-set)
+	(custom-initialize-safe-default): Doc fixes.
+
+	* frame.el (blink-cursor-mode): Use `custom-initialize-safe-default'
+	and simplify :init-value again.
+
+	* tooltip.el (tooltip-mode): Use `custom-initialize-safe-default'
+	and simplify :init-value again.  Delete autoload.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' again
+	for tooltip-mode.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Do not override
+	explicitly specified :initialize keyword.
+
+2005-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (my-mark-marker, allout-isearch-prior-pos)
+	(allout-unprotected, allout-undo-aggregation, allout-snug-back)
+	(allout-post-command-business, allout-flag-region)
+	(isearch-reenable-font-lock, allout-yank)
+	(allout-insert-latex-header, allout-insert-latex-trailer)
+	(allout-latex-verbatim-quote-curr-line, allout-latexify-exposed)
+	(allout-latex-verb-quote): Fix typos in docstrings.
+	(allout-enwrap-isearch, regexp-sans-escapes): Doc fix.
+	(allout-unprotected, allout-prefix-data):
+	Improve argument/docstring consistency.
+	(allout-chart-subtree): Fix argument spec.
+	(allout-open-topic): Rename `use_sib_bullet' argument to
+	`use-sib-bullet'.  Doc fix.
+
+	* whitespace.el (whitespace-check-buffer-leading)
+	(whitespace-check-buffer-trailing)
+	(whitespace-check-buffer-indent)
+	(whitespace-check-buffer-spacetab)
+	(whitespace-check-buffer-ateol, whitespace-highlighted-space)
+	(whitespace-check-leading-whitespace)
+	(whitespace-check-trailing-whitespace)
+	(whitespace-check-spacetab-whitespace)
+	(whitespace-check-indent-whitespace)
+	(whitespace-check-ateol-whitespace, whitespace-abort-on-error)
+	(whitespace-modes): Fix typos in docstrings.
+	(defgroup, defcustom): Doc fix.
+
+	* winner.el (winner-mode, winner-boring-buffers)
+	(winner-pending-undo-ring): Doc fixes.
+	(winner-ring): Remove unneeded `progn'.
+	(winner-equal): `defsubst' it.
+	(winner-redo): Fix message.
+
+2005-07-13  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-1): Always use vertical-motion to
+	do the last (or only) line move to ensure some movement.
+	Undo 2005-06-23 change--don't check for overlays.
+
+2005-07-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (ccl-encode-mac-roman-font)
+	(ccl-encode-mac-centraleurroman-font)
+	(ccl-encode-mac-cyrillic-font, ccl-encode-mac-symbol-font):
+	(ccl-encode-mac-dingbats-font): Remove check for ASCII.
+	Change charset-id boundary of dimension to ?\xef.
+	(mac-char-fontspec-list): New constant.
+	(fontset-add-mac-fonts): Use it.  Accept non-string `base-family'
+	argument.  Nil uses itself as family in font-spec.  Previous
+	behavior for nil is now provided by non-nil non-string argument.
+	All callers changed.  Add font-specs for Mac fonts to
+	"fontset-default" unless iso8859-1 fonts are installed.
+
+2005-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-get-indent-info): Only indent
+	a continuation line if the \ is preceded by SPC or TAB.
+	(sh-get-indent-info): Simplify.
+	(sh-mark-init, sh-learn-buffer-indent, sh-add-completer):
+	Use with-current-buffer.
+
+	* font-lock.el (font-lock-fontify-keywords-region): Avoid inf-loops
+	when the matched text is empty.
+
+2005-07-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Revert to previous handling of
+	tooltip-mode.  Explain in comment why the complexity is needed.
+
+	* tooltip.el (tooltip-mode): Revert to previous implementation of
+	its defcustom.
+
+	* frame.el (blink-cursor-mode): Revert to previous implementation
+	of its defcustom.  Update comment.
+
+2005-07-12  Lars Hansen  <larsh@soem.dk>
+
+	* desktop.el: Update e-mail address.
+
+2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-services-mail-selection)
+	(mac-services-mail-to): New functions.
+	(mac-application-menu-map): Bind them.
+
+2005-07-12  wulei <milton@wulei.net>  (tiny change)
+
+	* progmodes/gdb-ui.el: Add note about buffering with Windows.
+
+2005-07-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-reevaluate-setting): Doc fix.
+
+2005-07-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-embedded-announce-formula-alist)
+	(calc-embedded-open-close-plain-alist)
+	(calc-embedded-open-close-mode-alist): Add checks for additional
+	major modes (due to Robert J. Chassell <bob@rattlesnake.com>).
+
+2005-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* custom.el (custom-enable-theme): Don't add theme to
+	`custom-enabled-themes' with `push' because there is no
+	setf-method for `delq'.
+
+2005-07-11  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.el (custom-declare-variable): Doc fix.
+
+	* dired-aux.el (dired-compare-directories): Remove "." and ".."
+	from the alists.
+
+	* emacs-lisp/edebug.el (edebug-slow-after, edebug-slow-before):
+	Do nothing if edebug-active.
+
+	* emacs-lisp/edebug.el (edebug-enter): Don't with-timeout-suspend here.
+	(edebug-display): Do it here instead.
+
+2005-07-10  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-face.el (custom-theme-set-faces): Make it work.
+	(custom-reset-faces): Doc fix.
+	(custom-theme-reset-internal-face, custom-theme-face-value):
+	Functions deleted.
+
+	* custom.el (custom-push-theme): Maintain list of the settings
+	of a given theme in its theme-settings property.
+	Maintain position of old settings in the theme-value
+	or theme-face property.
+	(custom-enabled-themes): New variable.
+	(custom-theme-enabled-p): New function.
+	(provide-theme): Update custom-enabled-themes.
+	Disable and reenable the `user' theme.
+	(require-theme): Doc fix.
+	(custom-do-theme-reset, custom-remove-theme): Functions deleted.
+	(custom-theme-value, custom-theme-variable-value): Likewise.
+	(custom-theme-reset-internal): Likewise.
+	(custom-theme-load-themes): Fix bugs and use custom-disable-theme.
+	(custom-enable-theme, custom-disable-theme): New functions.
+	(custom-variable-theme-value, custom-face-theme-value): Likewise.
+	(custom-theme-recalc-variable, custom-theme-recalc-face): Likewise.
+	(custom-theme-reset-variables): Simplify.
+	(deftheme, custom-declare-theme, custom-make-theme-feature):
+	Definitions moved.
+
+2005-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-show-region)
+	(longlines-unshow-hard-newlines): Recognize hard newlines by
+	non-nil hard property, instead of t.
+
+2005-07-10  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-cmd.el (viper--key-maps): New variable.
+	(viper-normalize-minor-mode-map-alist): Use viper--key-maps and
+	emulation-mode-map-alists.
+	(viper-envelop-ESC-key): Use viper-subseq.
+	(viper-search-forward/backward/next): Disable debug-on-error.
+
+	* viper-keym.el (viper-toggle-key, viper-quoted-insert-key)
+	(viper-ESC-key): New defcustoms.
+
+	* viper-macs.el (ex-map-read-args): Use viper-subseq.
+
+	* viper-util.el (viper-key-to-emacs-key): Use viper-subseq.
+	(viper-subseq): Copy of subseq from cl.el.
+
+	* viper.el (viper-go-away, viper-set-hooks): Use
+	emulation-mode-map-alists, advise self-insert-command, add-minor-mode.
+
+	* viper-mous.el (viper-current-frame-saved): Use defvar.
+
+	* viper-init.el: Get rid of -face in face names.
+
+	* ediff-diff.el (ediff-extract-diffs, ediff-extract-diffs3):
+	Make it work with longlines mode
+
+	* ediff-mult.el (ediff-meta-mode-hook): New variable.
+
+	* ediff-ptch.el (ediff-file-name-sans-prefix): Quote regexp.
+
+	* ediff-init: Get rid of -face in face names.
+
+2005-07-10  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-enter): Call with-timeout-suspend
+	and with-timeout-unsuspend.
+
+	* emacs-lisp/debug.el (debug): Call with-timeout-suspend
+	and with-timeout-unsuspend.
+
+	* emacs-lisp/timer.el (with-timeout-timers): New variable.
+	(with-timeout): Bind that variable to record timers.
+	(with-timeout-suspend, with-timeout-unsuspend): New functions.
+
+	* emacs-lisp/debug.el (debug-help-follow): New function.
+	(debugger-mode-map): Use that instead of help-follow.
+	(debugger-setup-buffer): Use eval-buffer-list
+	to handle eval-buffer frames.
+
+2005-07-10  N. Raghavendra  <raghu@mri.ernet.in>  (tiny change)
+
+	* timezone.el (timezone-parse-date): Change first regexp
+	so it will not mistakenly match dates with no time zone.
+
+2005-07-10  Jeff Dwork  <jeff.dwork@amd.com>  (tiny change)
+
+	* facemenu.el (facemenu-read-color): Do case-insensitive matching.
+
+2005-07-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-initialize-safe-set)
+	(custom-initialize-safe-default): New functions.
+
+	* frame.el (blink-cursor-mode): Use `custom-initialize-safe-default'
+	and simplify :init-value.
+
+	* tooltip.el (tooltip-mode): Use `custom-initialize-safe-default'
+	and simplify :init-value.  Delete obsolete comment.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' to
+	handle `tooltip-mode'.  Delete obsolete comment.
+
+	* files.el (set-visited-file-name): Avoid calling
+	`file-name-nondirectory' with a nil argument.
+
+2005-07-09  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-setup-buffer): When eval-buffer
+	was called with nil for the buffer, handle the read position right.
+	Handle read position for eval-region, too.
+
+2005-07-09  Juri Linkov  <juri@jurta.org>
+
+	* fringe.el (fringe-mode): Add period in docstring.
+	(fringe-query-style): Build prompt depending on `all-frames' arg.
+
+	* dired.el (dired-marker-char): Avoid quotations for `do' and `mark'
+	to not create links to unrelated functions in the Help buffer.
+
+	* progmodes/compile.el (compilation-mode-hook, compilation-mode):
+	Doc fix.
+
+	* simple.el (next-error-hook): New variable.
+	(next-error): Use it.  Doc fix.
+
+	* textmodes/ispell.el (ispell-command-loop): Add current
+	dictionary name and program name to mode-line-format.
+	(ispell-region, ispell-process-line): Add current dictionary name
+	and program name to messages.
+
+2005-07-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-embedded-announce-formula-alist)
+	(calc-embedded-open-close-formula-alist)
+	(calc-embedded-open-close-word-alist)
+	(calc-embedded-open-close-plain-alist)
+	(calc-embedded-open-close-new-formula-alist)
+	(calc-embedded-open-close-mode-alist)
+	(calc-embedded-new-buffer-hook, calc-embedded-new-formula-hook)
+	(calc-embedded-mode-hook): New variables.
+
+	* calc/calc-embed.el (calc-embedded-firsttime)
+	(calc-embedded-firsttime-buf, calc-embedded-firsttime-formula):
+	New variables.
+	(calc-do-embedded): Use calc-embedded-firsttime,
+	calc-embedded-firsttime-buf and calc-embedded-firsttime-formula to
+	determine whether or not to run hooks.
+	(calc-embedded-make-info) Set calc-embedded-firsttime-buf and
+	calc-embedded-firsttime-formula appropriately.
+	Set calc-embedded delimiter variables according to mode.
+
+2005-07-08  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-list):
+	Check for "emacs", etc., as entire symbol, not just as word.
+	(checkdoc-file-comments-engine): Use regexp-quote on FN.
+
+	* files.el (set-visited-file-name): Report the error
+	for "empty filename" earlier.
+	(kill-some-buffers): Ignore buffers already dead.
+
+	* fringe.el (fringe-mode): Doc fix.
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded):
+	Check for (featurep 'xemacs) and turn off warnings in what it guards.
+	Use unwind-protect to ensure byte-compile-unresolved-functions
+	is updated.
+
+	* whitespace.el (whitespace-buffer-leading-cleanup):
+	Simplify w/ skip-chars-forward.
+	(whitespace-buffer-trailing-cleanup): Simplify w/ skip-chars-backward.
+
+	* mail/rmail.el (rmail-only-expunge): Fix paren error.
+	Unconditionally try to leave point at the same old place.
+
+2005-07-08  Ralf Angeli  <angeli@iwi.uni-sb.de>  (tiny change)
+
+	* comint.el (comint-postoutput-scroll-to-bottom)
+	(comint-show-maximum-output): Take scroll-margin into consideration.
+
+2005-07-08  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-use-filename-at-point): New choice `guess'.
+	(ido-file-internal): Try ffap-guesser if selected.
+
+	* ido.el (ido-before-fallback-functions): New hook.
+	(ido-buffer-internal, ido-file-internal, ido-read-buffer)
+	(ido-read-file-name): Run it.
+
+2005-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/hideif.el (hide-ifdef-use-define-alist): Pass a list of
+	strings rather than a list of symbols to the completion function.
+
+2005-07-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el (math-apply-units):  Change the places in
+	which units are simplified.
+
+2005-07-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-option, customize-option-other-window):
+	Make them handle aliases.
+
+	* custom.el (custom-variable-p): Make it recursively follow
+	aliases.  Mention that in the docstring.
+
+2005-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-start.el (exec-path): Use `directory' instead of `file'.
+	Fix tag for nil.
+
+2005-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (occur-rename-buffer): Use `generate-new-buffer' also
+	when called non-interactively.  Doc fix.
+
+2005-07-07  Lute Kamstra  <lute@gnu.org>
+
+	* elide-head.el (elide-head-headers-to-hide): Recognize the FSF's
+	new address as well.
+
 2005-07-07  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (make-coding-system): Describe
-	`ascii-incompatible' property in the docstring.
+	* international/mule.el (make-coding-system):
+	Describe `ascii-incompatible' property in the docstring.
 	(set-file-name-coding-system): Signal an error if coding-system is
 	ascii-incompatible.
 	(set-keyboard-coding-system): Likewise.
 
-	* international/mule-cmds.el (set-default-coding-systems): Don't
-	set default-file-name-coding-system and
-	default-keyboard-coding-system if coding-system is
-	ASCII-incompatible.
+	* international/mule-cmds.el (set-default-coding-systems):
+	Don't set default-file-name-coding-system and
+	default-keyboard-coding-system if coding-system is ASCII-incompatible.
 
 	* international/utf-16.el: Declare that all UTF-16-based coding
-	systems ASCII-incompatible.
+	systems are ASCII-incompatible.
 
 2005-07-07  Nick Roberts  <nickrob@snap.net.nz>
 

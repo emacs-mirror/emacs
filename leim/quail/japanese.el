@@ -79,9 +79,9 @@
   (when (= (char-before (overlay-end quail-conv-overlay)) ?n)
     ;; The last char is `n'.  We had better convert it to `ん'
     ;; before kana-kanji conversion.
-    (goto-char (overlay-end quail-conv-overlay))
-    (delete-char -1)
-    (insert ?ん))
+    (goto-char (1- (overlay-end quail-conv-overlay)))
+    (insert ?ん)
+    (delete-char 1))
   (let* ((from (copy-marker (overlay-start quail-conv-overlay)))
 	 (len (- (overlay-end quail-conv-overlay) from)))
     (quail-delete-overlays)

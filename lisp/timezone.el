@@ -149,7 +149,7 @@ Understands the following styles:
 	(time nil)
 	(zone nil))			;This may be nil.
     (cond ((string-match
-	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
+	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]+\\([-+a-zA-Z0-9]+\\)" date)
 	   ;; Styles: (1) and (2) with timezone and buggy timezone
 	   ;; This is most common in mail and news,
 	   ;; so it is worth trying first.

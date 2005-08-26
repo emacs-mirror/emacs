@@ -1,3 +1,130 @@
+2005-07-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (start_display): Don't reseat to next visible line start
+	if current start position is in a string or image.
+	(move_it_vertically_backward): Be sure to move out of strings and
+	images when moving it2 forward.
+	(move_it_by_lines): When moving forward, move to next buffer
+	position if we end up in a string or image.  When moving backward,
+	count rows moved over when moving to start of current row in case
+	row starts in middle of a string or image.  Also move further
+	backward if we end up in a string or image.
+	(try_cursor_movement): if overlay string spans multiple lines,
+	move backward to set cursor on start of an overlay string.
+	(cursor_row_p): Row is ok if cursor is at newline from string, but
+	string starts on this line (so we always position cursor at start
+	of string).
+
+	* indent.c (Fvertical_motion): If start position is on an image,
+	don't move back if we move too far (that's almost certain to happen).
+
+	* xdisp.c (cursor_row_fully_visible_p): Allow partially visible
+	row in minibuffer windows.
+	(try_window): Don't check margins in minibuffer windows.
+
+2005-07-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c: Don't include stdlib.h or composite.h.
+	(x_use_underline_position_properties, last_mouse_press_frame)
+	(x_noop_count, Qvendor_specific_keysyms): Remove unused variables.
+	(syms_of_macterm, mac_initialize): Don't initialize them.
+	(waiting_for_input, initial_argv, initial_argc)
+	(Vcommand_line_args, Vx_no_window_manager, errno, window_scroll)
+	(set_frame_menubar, path_from_vol_dir_name): Remove externs.
+	(extra_keyboard_modifiers): Fix type in extern.
+	(x_window_to_frame, x_window_to_scroll_bar): Remove declarations.
+	(x_scroll_bar_report_motion): Add argument types to declaration.
+	(mac_compute_glyph_string_overhangs): Add declaration.
+	(disable_mouse_highlight): Remove unused variable.
+	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click)
+	(x_scroll_bar_handle_press, x_scroll_bar_handle_release)
+	(x_scroll_bar_handle_drag): Remove argument `timestamp'.  All
+	callers changed.
+	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click): Don't set
+	timestamp.
+	[USE_CARBON_EVENTS] (mac_handle_mouse_event): Likewise.
+	(x_scroll_bar_create, XTset_vertical_scroll_bar): Show scroll bar
+	only when its width is less than the height.
+	(XTredeem_scroll_bar): Sync with xterm.c.
+	(font_name_table, font_name_table_size, font_name_count): Make
+	static.
+	(drag_and_drop_file_list): Remove variable.  Previous use is now
+	local to function.
+	(do_ae_open_documents): Move DRAG_N_DROP event construction part
+	from XTread_socket.
+	(XTread_socket): Consolidate setting of event timestamp.  Move
+	DRAG_N_DROP event construction part to do_ae_open_documents.
+	Support extra_keyboard_modifiers.
+
+	* xfaces.c (try_font_list) [MAC_OS]: Try font family name
+	beginning with that for ASCII.
+
+2005-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (gc_cons_combined_threshold, Vgc_cons_percentage): New vars.
+	(Fgarbage_collect, init_alloc_once): Set gc_cons_combined_threshold.
+	(syms_of_alloc): Declare gc-cons-percentage.
+
+	* eval.c (Feval, Ffuncall):
+	* keyboard.c (read_char):
+	* bytecode.c (MAYBE_GC): Use gc_cons_combined_threshold.
+
+	* lisp.h (gc_cons_combined_threshold): Declare.
+
+2005-07-12  Kim F. Storm  <storm@cua.dk>
+
+	* coding.c (Qprocess_argument):
+	* coding.h (Qprocess_argument): Remove unused var.
+
+	* xselect.c (intern): Remove dup. intern and staticpro for QTIMESTAMP.
+
+2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Include charset.h, coding.h, and
+	Endian.h.
+	[!MAC_OSX] (fchmod, fchown): New functions.
+	(mac_get_code_from_arg): Don't accept Lisp integer as argument.
+	Use SBYTES and EndianU32_BtoN.
+	(mac_get_object_from_code): Return 4 byte string even if argument
+	is 0.  Use make_unibyte_string and EndianU32_NtoB.
+	(Fmac_get_file_creator, Fmac_get_file_type, Fmac_set_file_creator)
+	(Fmac_set_file_type): Fix documents and argument declarations.
+	Don't specify kFSCatInfoNodeFlags.  Support Mac OS Classic.
+
+2005-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Frecenter): Yet another int/Lisp_Object mixup (YAILOM).
+
+2005-07-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (x_update_menu_appearance): Use fontSet resource for
+	Lucid if X_I18N, font otherwise.
+
+2005-07-10  Steven Tamm  <steventamm@mac.com>
+
+	* mac.c (Fmac_get_file_type, Fmac_get_file_creator): Add.
+	(Fmac_set_file_type, Fmac_set_file_creator): Add.
+	(mac_get_object_from_code, mac_get_code_from_arg): Add.
+
+2005-07-10  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (Qeval_buffer_list, Veval_buffer_list): New vars.
+	(syms_of_lread): Set up eval-buffer-list.
+	(Feval_buffer, Feval_region): Bind eval-buffer-list.
+
+2005-07-08  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (Fdefvar): Allow defvaring a constant to itself quoted.
+
+2005-07-08  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (menu_bar_items): Don't GCPRO menu_bar_items_vector here.
+	(syms_of_keyboard): Initialize and staticpro menu_bar_items_vector.
+
+2005-07-07  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Frecenter): Fix last change (set iarg before use).
+
 2005-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (Frecenter): When arg is inside the scroll margin,
@@ -7,7 +134,7 @@
 
 	* w32console.c (initialize_w32_display): Detect when the console
 	dimensions are insane, and default to 80x25 instead.
-	(w32_use_full_screen_buffer): default to NIL.
+	(w32_use_full_screen_buffer): Default to NIL.
 
 2005-07-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -15,11 +142,11 @@
 	VERTICAL_BORDER_FACE_ID for vertical border line.
 	(mac_encode_char): Call check_ccl_update in advance.
 	(mac_to_x_fontname, x_font_name_to_mac_font_name)
-	(init_font_name_table, mac_do_list_fonts, XLoadQueryFont): Don't
-	assume that font family length is less than 32.
+	(init_font_name_table, mac_do_list_fonts, XLoadQueryFont):
+	Don't assume that font family length is less than 32.
 	(x_compute_min_glyph_bounds): Make static.
 	(x_load_font): Never set fonts_changed_p to zero.
-	
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	* Update FSF's address in GPL notices.
@@ -67,8 +194,7 @@
 
 2005-07-01  Masatake YAMATO  <jet@gyve.org>
 
-	* emacs.c (main): Passing ADD_NO_RANDOMIZE to
-	`personality'.
+	* emacs.c (main): Passing ADD_NO_RANDOMIZE to `personality'.
 
 2005-06-30  Juri Linkov  <juri@jurta.org>
 
@@ -196,7 +322,7 @@
 
 2005-06-22  Miles Bader  <miles@gnu.org>
 
-	* xfaces.c (Qvertical_border): Renamed from `Qvertical_divider'.
+	* xfaces.c (Qvertical_border): Rename from `Qvertical_divider'.
 	(realize_basic_faces, syms_of_xfaces): Update references to it.
 	* dispextern.h (enum face_id): Rename `VERTICAL_DIVIDER_FACE_ID'
 	to `VERTICAL_BORDER_FACE_ID'.
@@ -235,8 +361,8 @@
 
 2005-06-17  Richard M. Stallman  <rms@gnu.org>
 
-	* xdisp.c (get_next_display_element): Reverse
-	test of Vshow_nonbreak_escape.
+	* xdisp.c (get_next_display_element):
+	Reverse test of Vshow_nonbreak_escape.
 
 	* term.c (produce_special_glyphs): Use spec_glyph_lookup_face.
 	(Ftty_no_underline): New function.

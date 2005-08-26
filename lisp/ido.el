@@ -578,8 +578,12 @@ the `ido-work-directory-list' list."
 
 (defcustom ido-use-filename-at-point nil
   "*Non-nil means that ido shall look for a filename at point.
+May use `ffap-guesser' to guess whether text at point is a filename.
 If found, use that as the starting point for filename selection."
-  :type 'boolean
+  :type '(choice
+	  (const :tag "Disabled" nil)
+	  (const :tag "Guess filename" guess)
+	  (other :tag "Use literal filename" t))
   :group 'ido)
 
 
@@ -879,6 +883,12 @@ the directory using `ido-read-directory-name'."
 When `ido-everywhere' is non-nil, the commands in this list will read
 the file name using normal `read-file-name' style."
   :type '(repeat symbol)
+  :group 'ido)
+
+(defcustom ido-before-fallback-functions '()
+  "List of functions to call before calling a fallback command.
+The fallback command is passed as an argument to the functions."
+  :type 'hook
   :group 'ido)
 
 ;;; Internal Variables
@@ -1918,7 +1928,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 (defun ido-buffer-internal (method &optional fallback prompt default initial switch-cmd)
   ;; Internal function for ido-switch-buffer and friends
   (if (not ido-mode)
-      (call-interactively (or fallback 'switch-to-buffer))
+      (progn
+	(run-hook-with-args 'ido-before-fallback-functions
+			    (or fallback 'switch-to-buffer))
+	(call-interactively (or fallback 'switch-to-buffer)))
     (let* ((ido-context-switch-command switch-cmd)
 	   (ido-current-directory nil)
 	   (ido-directory-nonreadable nil)
@@ -1937,6 +1950,8 @@ If INITIAL is non-nil, it specifies the initial input string."
 
        ((eq ido-exit 'fallback)
 	(let ((read-buffer-function nil))
+	  (run-hook-with-args 'ido-before-fallback-functions
+			      (or fallback 'switch-to-buffer))
 	  (call-interactively (or fallback 'switch-to-buffer))))
 
        ;; Check buf is non-nil.
@@ -2040,7 +2055,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 		filename t))
 
 	 ((and ido-use-filename-at-point
-	       (setq fn (ffap-string-at-point))
+	       (setq fn (if (eq ido-use-filename-at-point 'guess)
+			    (ffap-guesser)
+			  (ffap-string-at-point)))
 	       (not (string-match "^http:/" fn))
 	       (setq d (file-name-directory fn))
 	       (file-directory-p d))
@@ -2068,6 +2085,8 @@ If INITIAL is non-nil, it specifies the initial input string."
 	;; we don't want to change directory of current buffer.
 	(let ((default-directory ido-current-directory)
 	      (read-file-name-function nil))
+	  (run-hook-with-args 'ido-before-fallback-functions
+			      (or fallback 'find-file))
 	  (call-interactively (or fallback 'find-file))))
 
        ((eq ido-exit 'switch-to-buffer)
@@ -2134,6 +2153,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(setq filename (concat ido-current-directory filename))
 	(ido-record-command fallback filename)
 	(ido-record-work-directory)
+	(run-hook-with-args 'ido-before-fallback-functions fallback)
 	(funcall fallback filename))
 
        ((eq method 'insert)
@@ -4210,6 +4230,7 @@ If REQUIRE-MATCH is non-nil, an existing buffer must be selected."
 	 (buf (ido-read-internal 'buffer prompt 'ido-buffer-history default require-match)))
     (if (eq ido-exit 'fallback)
 	(let ((read-buffer-function nil))
+	  (run-hook-with-args 'ido-before-fallback-functions 'read-buffer)
 	  (read-buffer prompt default require-match))
       buf)))
 
@@ -4256,6 +4277,7 @@ See `read-file-name' for additional parameters."
       (setq filename 'fallback)))
     (if (eq filename 'fallback)
 	(let ((read-file-name-function nil))
+	  (run-hook-with-args 'ido-before-fallback-functions 'read-file-name)
 	  (read-file-name prompt dir default-filename mustmatch initial predicate))
       filename)))
 

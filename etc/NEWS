@@ -2181,6 +2181,9 @@ line is left untouched.
 The function `c-toggle-syntactic-indentation' can be used to toggle
 syntactic indentation.
 
+** In sh-script, a continuation line is only indented if the backslash was
+preceded by a SPC or a TAB.
+	
 ---
 ** Perl mode has a new variable `perl-indent-continued-arguments'.
 

@@ -2408,7 +2408,9 @@ start_display (it, w, pos)
   init_iterator (it, w, CHARPOS (pos), BYTEPOS (pos), row, DEFAULT_FACE_ID);
   it->first_vpos = first_vpos;
 
-  if (!it->truncate_lines_p)
+  /* Don't reseat to previous visible line start if current start
+     position is in a string or image.  */
+  if (it->method == GET_FROM_BUFFER && !it->truncate_lines_p)
     {
       int start_at_line_beg_p;
       int first_y = it->current_y;
@@ -6379,8 +6381,12 @@ move_it_vertically_backward (it, dy)
      y-distance.  */
   it2 = *it;
   it2.max_ascent = it2.max_descent = 0;
-  move_it_to (&it2, start_pos, -1, -1, it2.vpos + 1,
-	      MOVE_TO_POS | MOVE_TO_VPOS);
+  do
+    {
+      move_it_to (&it2, start_pos, -1, -1, it2.vpos + 1,
+		  MOVE_TO_POS | MOVE_TO_VPOS);
+    }
+  while (it2.method != GET_FROM_BUFFER);
   xassert (IT_CHARPOS (*it) >= BEGV);
   it3 = it2;
 
@@ -6578,21 +6584,45 @@ move_it_by_lines (it, dvpos, need_y_p)
       last_height = 0;
     }
   else if (dvpos > 0)
-    move_it_to (it, -1, -1, -1, it->vpos + dvpos, MOVE_TO_VPOS);
+    {
+      move_it_to (it, -1, -1, -1, it->vpos + dvpos, MOVE_TO_VPOS);
+      if (it->method != GET_FROM_BUFFER)
+	move_it_to (it, IT_CHARPOS (*it) + 1, -1, -1, -1, MOVE_TO_POS);
+    }
   else
     {
       struct it it2;
       int start_charpos, i;
 
       /* Start at the beginning of the screen line containing IT's
-	 position.  */
+	 position.  This may actually move vertically backwards,
+         in case of overlays, so adjust dvpos accordingly.  */
+      dvpos += it->vpos;
       move_it_vertically_backward (it, 0);
+      dvpos -= it->vpos;
 
       /* Go back -DVPOS visible lines and reseat the iterator there.  */
       start_charpos = IT_CHARPOS (*it);
-      for (i = -dvpos; i && IT_CHARPOS (*it) > BEGV; --i)
+      for (i = -dvpos; i > 0 && IT_CHARPOS (*it) > BEGV; --i)
 	back_to_previous_visible_line_start (it);
       reseat (it, it->current.pos, 1);
+
+      /* Move further back if we end up in a string or an image.  */
+      while (it->method != GET_FROM_BUFFER)
+	{
+	  /* First try to move to start of display line.  */
+	  dvpos += it->vpos;
+	  move_it_vertically_backward (it, 0);
+	  dvpos -= it->vpos;
+	  if (it->method == GET_FROM_BUFFER)
+	    break;
+	  /* If start of line is still in string or image,
+	     move further back.  */
+	  back_to_previous_visible_line_start (it);
+	  reseat (it, it->current.pos, 1);
+	  dvpos--;
+	}
+
       it->current_x = it->hpos = 0;
 
       /* Above call may have moved too far if continuation lines
@@ -11294,7 +11324,7 @@ cursor_row_fully_visible_p (w, force_p, current_matrix_p)
   window_height = window_box_height (w);
   if (row->height >= window_height)
     {
-      if (!force_p || w->vscroll)
+      if (!force_p || MINI_WINDOW_P (w) || w->vscroll)
 	return 1;
     }
   return 0;
@@ -11824,7 +11854,10 @@ try_cursor_movement (window, startp, scroll_step)
 	      while (!row->mode_line_p
 		     && (MATRIX_ROW_START_CHARPOS (row) > PT
 			 || (MATRIX_ROW_START_CHARPOS (row) == PT
-			     && MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P (row)))
+			     && (MATRIX_ROW_STARTS_IN_MIDDLE_OF_CHAR_P (row)
+				 || (/* STARTS_IN_MIDDLE_OF_STRING_P (row) */
+				     row > w->current_matrix->rows
+				     && (row-1)->ends_in_newline_from_string_p))))
 		     && (row->y > top_scroll_margin
 			 || CHARPOS (startp) == BEGV))
 		{
@@ -12729,7 +12762,8 @@ try_window (window, pos, check_margins)
     }
 
   /* Don't let the cursor end in the scroll margins.  */
-  if (check_margins)
+  if (check_margins
+      && !MINI_WINDOW_P (w))
     {
       int this_scroll_margin, cursor_height;
 
@@ -14994,10 +15028,12 @@ cursor_row_p (w, row)
   if (PT == MATRIX_ROW_END_CHARPOS (row))
     {
       /* If the row ends with a newline from a string, we don't want
-	 the cursor there (if the row is continued it doesn't end in a
-	 newline).  */
+	 the cursor there, but we still want it at the start of the
+	 string if the string starts in this row.
+	 If the row is continued it doesn't end in a newline.  */
       if (CHARPOS (row->end.string_pos) >= 0)
-	cursor_row_p = row->continued_p;
+	cursor_row_p = (row->continued_p
+			|| PT >= MATRIX_ROW_START_CHARPOS (row));
       else if (MATRIX_ROW_ENDS_IN_MIDDLE_OF_CHAR_P (row))
 	{
 	  /* If the row ends in middle of a real character,

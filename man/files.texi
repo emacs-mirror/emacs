@@ -464,8 +464,9 @@ buffer as ``modified'' so that @kbd{C-x C-s} in that buffer
 @kindex C-x C-w
 @findex write-file
   If you wish to mark the buffer as visiting a different file and save it
-right away, use @kbd{C-x C-w} (@code{write-file}).  It is precisely
-equivalent to @code{set-visited-file-name} followed by @kbd{C-x C-s}.
+right away, use @kbd{C-x C-w} (@code{write-file}).  It is
+equivalent to @code{set-visited-file-name} followed by @kbd{C-x C-s}
+(except that @kbd{C-x C-w} asks for confirmation if the file exists).
 @kbd{C-x C-s} used on a buffer that is not visiting a file has the
 same effect as @kbd{C-x C-w}; that is, it reads a file name, marks the
 buffer as visiting that file, and saves it there.  The default file name in

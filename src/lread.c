@@ -85,6 +85,7 @@ Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist
 Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 Lisp_Object Qinhibit_file_name_operation;
+Lisp_Object Qeval_buffer_list, Veval_buffer_list;
 Lisp_Object Qlexical_binding;
 
 extern Lisp_Object Qevent_symbol_element_mask;
@@ -1590,6 +1591,7 @@ This function preserves the position of point.  */)
   if (NILP (filename))
     filename = XBUFFER (buf)->filename;
 
+  specbind (Qeval_buffer_list, Fcons (buf, Veval_buffer_list));
   specbind (Qstandard_output, tem);
   specbind (Qlexical_binding, Qnil);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
@@ -1628,6 +1630,7 @@ This function does not move point.  */)
   else
     tem = printflag;
   specbind (Qstandard_output, tem);
+  specbind (Qeval_buffer_list, Fcons (cbuf, Veval_buffer_list));
 
   /* readevalloop calls functions which check the type of start and end.  */
   readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
@@ -4132,6 +4135,10 @@ This variable is automatically set from the file variables of an interpreted
 This variable automatically becomes buffer-local when set.  */);
   Fmake_variable_buffer_local (Qlexical_binding);
 
+  DEFVAR_LISP ("eval-buffer-list", &Veval_buffer_list,
+	       doc: /* List of buffers being read from by calls to `eval-buffer' and `eval-region'.  */);
+  Veval_buffer_list = Qnil;
+
   /* Vsource_directory was initialized in init_lread.  */
 
   load_descriptor_list = Qnil;
@@ -4172,6 +4179,9 @@ This variable automatically becomes buffer-local when set.  */);
 
   Qload_file_name = intern ("load-file-name");
   staticpro (&Qload_file_name);
+
+  Qeval_buffer_list = intern ("eval-buffer-list");
+  staticpro (&Qeval_buffer_list);
 
   staticpro (&dump_path);
 

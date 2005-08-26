@@ -163,7 +163,7 @@ program."
 ;; returns /dev/null, if can't strip prefix
 (defsubst ediff-file-name-sans-prefix (filename prefix)
   (save-match-data
-    (if (string-match (concat "^" prefix) filename)
+    (if (string-match (concat "^" (regexp-quote prefix)) filename)
 	(substring filename (match-end 0))
       (concat "/null/" filename))))
 

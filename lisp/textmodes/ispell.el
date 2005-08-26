@@ -1659,7 +1659,10 @@ Global `ispell-quit' set to start location to continue spell session."
     ;; setup the *Choices* buffer with valid data.
     (save-excursion
       (set-buffer (get-buffer-create ispell-choices-buffer))
-      (setq mode-line-format (concat "--  %b  --  word: " word))
+      (setq mode-line-format
+	    (concat "--  %b  --  word: " word
+		    "  --  dict: " (or ispell-current-dictionary "default")
+		    "  --  prog: " (file-name-nondirectory ispell-program-name)))
       ;; XEmacs: no need for horizontal scrollbar in choices window
       (with-no-warnings
        (and (fboundp 'set-specifier)
@@ -1819,9 +1822,10 @@ Global `ispell-quit' set to start location to continue spell session."
 			      (erase-buffer)
 			      (setq count ?0
 				    skipped 0
-				    mode-line-format (concat
-						      "--  %b  --  word: "
-						      new-word)
+				    mode-line-format
+				    (concat "--  %b  --  word: " new-word
+					    "  --  dict: "
+					    ispell-alternate-dictionary)
 				    miss (lookup-words new-word)
 				    choices miss
 				    line ispell-choices-win-default-height)
@@ -2512,9 +2516,10 @@ Return nil if spell session is quit,
 	(rstart (make-marker)))
   (unwind-protect
       (save-excursion
-	(message "Spell checking %s using %s dictionary..."
+	(message "Spell checking %s using %s with %s dictionary..."
 		 (if (and (= reg-start (point-min)) (= reg-end (point-max)))
 		     (buffer-name) "region")
+		 (file-name-nondirectory ispell-program-name)
 		 (or ispell-current-dictionary "default"))
 	;; Returns cursor to original location.
 	(save-window-excursion
@@ -2532,7 +2537,8 @@ Return nil if spell session is quit,
 		  (set-marker skip-region-start (- (point) (length key)))
 		  (goto-char reg-start)))
 	    (let (message-log-max)
-	      (message "Continuing spelling check using %s dictionary..."
+	      (message "Continuing spelling check using %s with %s dictionary..."
+		       (file-name-nondirectory ispell-program-name)
 		       (or ispell-current-dictionary "default")))
 	    (set-marker rstart reg-start)
 	    (set-marker ispell-region-end reg-end)
@@ -2609,7 +2615,9 @@ Return nil if spell session is quit,
       (if (not recheckp) (set-marker ispell-region-end nil))
       ;; Only save if successful exit.
       (ispell-pdict-save ispell-silently-savep)
-      (message "Spell-checking done")))))
+      (message "Spell-checking using %s with %s dictionary done"
+	       (file-name-nondirectory ispell-program-name)
+	       (or ispell-current-dictionary "default"))))))
 
 
 (defun ispell-begin-skip-region-regexp ()
@@ -2960,7 +2968,8 @@ Returns the sum shift due to changes in word replacements."
 	      ))
 	    (if (not ispell-quit)
 		(let (message-log-max)
-		  (message "Continuing spelling check using %s dictionary..."
+		  (message "Continuing spelling check using %s with %s dictionary..."
+			   (file-name-nondirectory ispell-program-name)
 			   (or ispell-current-dictionary "default"))))
 	    (sit-for 0)
 	    (setq start (marker-position line-start)

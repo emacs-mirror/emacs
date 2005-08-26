@@ -1,4 +1,4 @@
-README for Edition 2.8 of the Emacs Lisp Reference Manual.
+README for Edition 2.9 of the Emacs Lisp Reference Manual.
 
 * This directory contains the texinfo source files for the Reference
 Manual, make-permuted-index, and the latest version of texinfo.tex,
@@ -11,7 +11,7 @@ Emacs bugs, use bug-gnu-emacs@gnu.org.  To ask questions, use the
 newsgroup gnu.emacs.help.
 
 * The Emacs Lisp Reference Manual is quite large.  It totals around
-980 pages in smallbook format; the info files total almost
+1100 pages in smallbook format; the info files total over
 2.5 megabytes.
 
 * You can format this manual either for Info or for printing hardcopy

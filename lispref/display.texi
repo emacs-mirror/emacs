@@ -1387,6 +1387,10 @@ modified, and the length of the pre-change text replaced by that range.
 length is the number of characters deleted, and the post-change
 beginning and end are equal.)
 
+If these functions modify the buffer, they should bind
+@code{inhibit-modification-hooks} to @code{t} around doing so, to
+avoid confusing the internal mechanism that calls these hooks.
+
 @item insert-in-front-hooks
 @kindex insert-in-front-hooks @r{(overlay property)}
 This property's value is a list of functions to be called before and
@@ -1716,8 +1720,7 @@ This face is used for ordinary text.
 @item mode-line
 @kindex mode-line @r{(face name)}
 This face is used for the mode line of the selected window, and for
-menu bars when toolkit menus are not used---but only if
-@code{mode-line-inverse-video} is non-@code{nil}.
+menu bars when toolkit menus are not used.
 
 @item modeline
 @kindex modeline @r{(face name)}
@@ -4596,13 +4599,6 @@ Here is an example of calling this function explicitly.
 This variable controls whether Emacs uses inverse video for all text
 on the screen.  Non-@code{nil} means yes, @code{nil} means no.  The
 default is @code{nil}.
-@end defopt
-
-@defopt mode-line-inverse-video
-This variable controls the use of inverse video for mode lines and
-menu bars.  If it is non-@code{nil}, then these lines are displayed in
-the face @code{mode-line}.  Otherwise, these lines are displayed
-normally, just like other text.  The default is @code{t}.
 @end defopt
 
 @node Usual Display
