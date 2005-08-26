@@ -125,9 +125,18 @@ usually do not have translators to read other languages for them.\n\n")
 
     (insert "\n\n")
     (setq user-point (point))
-    (insert "\n\n\n")
+    (insert "\n\n")
 
-    (insert "In " (emacs-version) "\n")
+    (insert "If emacs crashed, and you have the emacs process in the gdb debugger,\n"
+	    "please include the output from the following gdb commands:\n"
+	    "    `bt full' and `xbacktrace'.\n")
+
+    (let ((debug-file (expand-file-name "DEBUG" data-directory)))
+      (if (file-readable-p debug-file)
+	(insert "If you would like to further debug the crash, please read the file\n"
+		debug-file " for instructions.\n")))
+
+    (insert "\n\nIn " (emacs-version) "\n")
     (if (fboundp 'x-server-vendor)
 	(condition-case nil
 	    (insert "X server distributor `" (x-server-vendor) "', version "

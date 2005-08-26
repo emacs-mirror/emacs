@@ -2146,6 +2146,8 @@ syms_of_ntproc ()
 {
   Qhigh = intern ("high");
   Qlow = intern ("low");
+  staticpro (&Qhigh);
+  staticpro (&Qlow);
 
 #ifdef HAVE_SOCKETS
   defsubr (&Sw32_has_winsock);
@@ -2241,6 +2243,9 @@ the truename of a file can be slow.  */);
 Note that this option is only useful for files on NTFS volumes, where hard links
 are supported.  Moreover, it slows down `file-attributes' noticeably.  */);
   Vw32_get_true_file_attributes = Qt;
+
+  staticpro (&Vw32_valid_locale_ids);
+  staticpro (&Vw32_valid_codepages);
 }
 /* end of ntproc.c */
 

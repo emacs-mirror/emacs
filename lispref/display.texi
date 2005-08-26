@@ -1133,12 +1133,14 @@ markers.  If @var{buffer} is omitted, the overlay is created in the
 current buffer.
 
 The arguments @var{front-advance} and @var{rear-advance} specify the
-insertion type for the start of the overlay and for the end of the
-overlay, respectively.  @xref{Marker Insertion Types}.  If
-@var{front-advance} is non-@code{nil}, text inserted at the beginning
-of the overlay is excluded from the overlay.  If @var{read-advance} is
-non-@code{nil}, text inserted at the beginning of the overlay is
-included in the overlay.
+marker insertion type for the start of the overlay and for the end of
+the overlay, respectively.  @xref{Marker Insertion Types}.  If they
+are both @code{nil}, the default, then the overlay extends to include
+any text inserted at the beginning, but not text inserted at the end.
+If @var{front-advance} is non-@code{nil}, text inserted at the
+beginning of the overlay is excluded from the overlay.  If
+@var{rear-advance} is non-@code{nil}, text inserted at the end of the
+overlay is included in the overlay.
 @end defun
 
 @defun overlay-start overlay

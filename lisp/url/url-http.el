@@ -501,8 +501,9 @@ should be shown to the user."
 		 (url-request-data url-http-data)
 		 (url-request-extra-headers url-http-extra-headers))
 	     (url-retrieve redirect-uri url-callback-function
-			   (cons redirect-uri
-				 (cdr url-callback-arguments)))
+			   (cons :redirect
+				 (cons redirect-uri
+				       url-callback-arguments)))
 	     (url-mark-buffer-as-dead (current-buffer))))))
       (4				; Client error
        ;; 400 Bad Request

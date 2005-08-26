@@ -189,7 +189,8 @@ buffer."
     (save-current-buffer
       (set-buffer unfolded-buffer)
       (erase-buffer)
-      (insert-buffer folded-ical-buffer)
+      (insert-buffer-substring folded-ical-buffer)
+      (goto-char (point-min))
       (while (re-search-forward "\r?\n[ \t]" nil t)
         (replace-match "" nil nil)))
     unfolded-buffer))

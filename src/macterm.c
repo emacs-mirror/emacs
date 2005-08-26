@@ -94,8 +94,6 @@ Boston, MA 02110-1301, USA.  */
 			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey) \
 			: controlKey)
 #define macAltKey      (NILP (Vmac_command_key_is_meta) ? cmdKey : optionKey)
-
-#define mac_window_to_frame(wp) (((mac_output *) GetWRefCon (wp))->mFP)
 
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
@@ -261,13 +259,18 @@ static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    Lisp_Object *, Lisp_Object *,
 					    unsigned long *));
 
-static int is_emacs_window (WindowPtr);
+static int is_emacs_window P_ ((WindowPtr));
 
-int x_bitmap_icon (struct frame *, Lisp_Object);
-void x_make_frame_visible (struct frame *);
+static void XSetFont P_ ((Display *, GC, XFontStruct *));
 
 /* Defined in macmenu.h.  */
 extern void menubar_selection_callback (FRAME_PTR, int);
+
+#define GC_FORE_COLOR(gc)	(&(gc)->fore_color)
+#define GC_BACK_COLOR(gc)	(&(gc)->back_color)
+#define GC_FONT(gc)		((gc)->xgcv.font)
+#define MAC_WINDOW_NORMAL_GC(w)	(((mac_output *) GetWRefCon (w))->normal_gc)
+
 
 /* X display function emulation */
 
@@ -280,51 +283,6 @@ XFreePixmap (display, pixmap)
 }
 
 
-/* Set foreground color for subsequent QuickDraw commands.  Assume
-   graphic port has already been set.  */
-
-static void
-mac_set_forecolor (unsigned long color)
-{
-  RGBColor fg_color;
-
-  fg_color.red = RED16_FROM_ULONG (color);
-  fg_color.green = GREEN16_FROM_ULONG (color);
-  fg_color.blue = BLUE16_FROM_ULONG (color);
-
-  RGBForeColor (&fg_color);
-}
-
-
-/* Set background color for subsequent QuickDraw commands.  Assume
-   graphic port has already been set.  */
-
-static void
-mac_set_backcolor (unsigned long color)
-{
-  RGBColor bg_color;
-
-  bg_color.red = RED16_FROM_ULONG (color);
-  bg_color.green = GREEN16_FROM_ULONG (color);
-  bg_color.blue = BLUE16_FROM_ULONG (color);
-
-  RGBBackColor (&bg_color);
-}
-
-/* Set foreground and background color for subsequent QuickDraw
-   commands.  Assume that the graphic port has already been set.  */
-
-static void
-mac_set_colors (gc, bg_save)
-     GC gc;
-     RGBColor *bg_save;
-{
-  if (bg_save)
-    GetBackColor (bg_save);
-  mac_set_forecolor (gc->foreground);
-  mac_set_backcolor (gc->background);
-}
-
 /* Mac version of XDrawLine.  */
 
 static void
@@ -334,16 +292,12 @@ XDrawLine (display, w, gc, x1, y1, x2, y2)
      GC gc;
      int x1, y1, x2, y2;
 {
-  RGBColor old_bg;
-
   SetPortWindowPort (w);
 
-  mac_set_colors (gc, &old_bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
 
   MoveTo (x1, y1);
   LineTo (x2, y2);
-
-  RGBBackColor (&old_bg);
 }
 
 void
@@ -359,7 +313,7 @@ mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
 
-  mac_set_colors (gc, NULL);
+  RGBForeColor (GC_FORE_COLOR (gc));
 
   LockPixels (GetGWorldPixMap (p));
   MoveTo (x1, y1);
@@ -368,6 +322,27 @@ mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
 
   SetGWorld (old_port, old_gdh);
 }
+
+
+static void
+mac_erase_rectangle (w, gc, x, y, width, height)
+     WindowPtr w;
+     GC gc;
+     int x, y;
+     unsigned int width, height;
+{
+  Rect r;
+
+  SetPortWindowPort (w);
+
+  RGBBackColor (GC_BACK_COLOR (gc));
+  SetRect (&r, x, y, x + width, y + height);
+
+  EraseRect (&r);
+
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
+}
+
 
 /* Mac version of XClearArea.  */
 
@@ -379,22 +354,7 @@ XClearArea (display, w, x, y, width, height, exposures)
      unsigned int width, height;
      int exposures;
 {
-  struct mac_output *mwp = (mac_output *) GetWRefCon (w);
-  Rect r;
-  XGCValues xgc;
-  RGBColor old_bg;
-
-  xgc.foreground = mwp->x_compatible.foreground_pixel;
-  xgc.background = mwp->x_compatible.background_pixel;
-
-  SetPortWindowPort (w);
-
-  mac_set_colors (&xgc, &old_bg);
-  SetRect (&r, x, y, x + width, y + height);
-
-  EraseRect (&r);
-
-  RGBBackColor (&old_bg);
+  mac_erase_rectangle (w, MAC_WINDOW_NORMAL_GC (w), x, y, width, height);
 }
 
 /* Mac version of XClearWindow.  */
@@ -404,15 +364,9 @@ XClearWindow (display, w)
      Display *display;
      WindowPtr w;
 {
-  struct mac_output *mwp = (mac_output *) GetWRefCon (w);
-  XGCValues xgc;
-
-  xgc.foreground = mwp->x_compatible.foreground_pixel;
-  xgc.background = mwp->x_compatible.background_pixel;
-
   SetPortWindowPort (w);
 
-  mac_set_colors (&xgc, NULL);
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 
 #if TARGET_API_MAC_CARBON
   {
@@ -440,7 +394,6 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 {
   BitMap bitmap;
   Rect r;
-  RGBColor old_bg;
 
   bitmap.rowBytes = sizeof(unsigned short);
   bitmap.baseAddr = (char *)bits;
@@ -448,7 +401,8 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 
   SetPortWindowPort (w);
 
-  mac_set_colors (gc, &old_bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
+  RGBBackColor (GC_BACK_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
 #if TARGET_API_MAC_CARBON
@@ -461,7 +415,7 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
 
-  RGBBackColor (&old_bg);
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 }
 
 
@@ -567,12 +521,16 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
      char *data;
      unsigned int width, height;
      unsigned long fg, bg;
-     unsigned int depth;	/* not used */
+     unsigned int depth;
 {
   Pixmap pixmap;
   BitMap bitmap;
   CGrafPtr old_port;
   GDHandle old_gdh;
+  static GC gc = NULL;		/* not reentrant */
+
+  if (gc == NULL)
+    gc = XCreateGC (display, w, 0, NULL);
 
   pixmap = XCreatePixmap (display, w, width, height, depth);
   if (pixmap == NULL)
@@ -581,8 +539,10 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (pixmap, NULL);
   mac_create_bitmap_from_bitmap_data (&bitmap, data, width, height);
-  mac_set_forecolor (fg);
-  mac_set_backcolor (bg);
+  XSetForeground (display, gc, fg);
+  XSetBackground (display, gc, bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
+  RGBBackColor (GC_BACK_COLOR (gc));
   LockPixels (GetGWorldPixMap (pixmap));
 #if TARGET_API_MAC_CARBON
   CopyBits (&bitmap, GetPortBitMapForCopyBits (pixmap),
@@ -610,16 +570,13 @@ XFillRectangle (display, w, gc, x, y, width, height)
      unsigned int width, height;
 {
   Rect r;
-  RGBColor old_bg;
 
   SetPortWindowPort (w);
 
-  mac_set_colors (gc, &old_bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
   PaintRect (&r); /* using foreground color of gc */
-
-  RGBBackColor (&old_bg);
 }
 
 
@@ -638,7 +595,7 @@ mac_fill_rectangle_to_pixmap (display, p, gc, x, y, width, height)
 
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
-  mac_set_colors (gc, NULL);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
   LockPixels (GetGWorldPixMap (p));
@@ -661,16 +618,13 @@ mac_draw_rectangle (display, w, gc, x, y, width, height)
      unsigned int width, height;
 {
   Rect r;
-  RGBColor old_bg;
 
   SetPortWindowPort (w);
 
-  mac_set_colors (gc, &old_bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width + 1, y + height + 1);
 
   FrameRect (&r); /* using foreground color of gc */
-
-  RGBBackColor (&old_bg);
 }
 
 
@@ -691,7 +645,7 @@ mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
 
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
-  mac_set_colors (gc, NULL);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width + 1, y + height + 1);
 
   LockPixels (GetGWorldPixMap (p));
@@ -713,9 +667,6 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      char *buf;
      int nchars, mode, bytes_per_char;
 {
-  RGBColor old_bg;
-
-  SetPortWindowPort (w);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   UInt32 textFlags, savedFlags;
   if (!NILP(Vmac_use_core_graphics)) {
@@ -724,17 +675,22 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
   }
 #endif
 
-  mac_set_colors (gc, &old_bg);
+  SetPortWindowPort (w);
 
-  TextFont (gc->font->mac_fontnum);
-  TextSize (gc->font->mac_fontsize);
-  TextFace (gc->font->mac_fontface);
+  RGBForeColor (GC_FORE_COLOR (gc));
+  if (mode != srcOr)
+    RGBBackColor (GC_BACK_COLOR (gc));
+
+  TextFont (GC_FONT (gc)->mac_fontnum);
+  TextSize (GC_FONT (gc)->mac_fontsize);
+  TextFace (GC_FONT (gc)->mac_fontface);
   TextMode (mode);
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
 
-  RGBBackColor (&old_bg);
+  if (mode != srcOr)
+    RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   if (!NILP(Vmac_use_core_graphics))
     SwapQDTextFlags(savedFlags);
@@ -913,7 +869,7 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
   BackColor (whiteColor);
   CopyBits (&(w->portBits), &(w->portBits), &src_r, &dest_r, srcCopy, 0);
 
-  mac_set_colors (gc, NULL);
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 #endif /* not TARGET_API_MAC_CARBON */
 }
 
@@ -1003,28 +959,37 @@ mac_copy_area_with_mask_to_pixmap (display, src, mask, dest, gc, src_x, src_y,
 /* Mac replacement for XChangeGC.  */
 
 static void
-XChangeGC (void * ignore, XGCValues* gc, unsigned long mask,
-                XGCValues *xgcv)
+XChangeGC (display, gc, mask, xgcv)
+     Display *display;
+     GC gc;
+     unsigned long mask;
+     XGCValues *xgcv;
 {
   if (mask & GCForeground)
-    gc->foreground = xgcv->foreground;
+    XSetForeground (display, gc, xgcv->foreground);
   if (mask & GCBackground)
-    gc->background = xgcv->background;
+    XSetBackground (display, gc, xgcv->background);
   if (mask & GCFont)
-    gc->font = xgcv->font;
+    XSetFont (display, gc, xgcv->font);
 }
 
 
 /* Mac replacement for XCreateGC.  */
 
-XGCValues *
-XCreateGC (void * ignore, Window window, unsigned long mask,
-                      XGCValues *xgcv)
+GC
+XCreateGC (display, window, mask, xgcv)
+     Display *display;
+     Window window;
+     unsigned long mask;
+     XGCValues *xgcv;
 {
-  XGCValues *gc = (XGCValues *) xmalloc (sizeof (XGCValues));
-  bzero (gc, sizeof (XGCValues));
+  GC gc = xmalloc (sizeof (*gc));
 
-  XChangeGC (ignore, gc, mask, xgcv);
+  if (gc)
+    {
+      bzero (gc, sizeof (*gc));
+      XChangeGC (display, gc, mask, xgcv);
+    }
 
   return gc;
 }
@@ -1044,10 +1009,18 @@ XFreeGC (display, gc)
 /* Mac replacement for XGetGCValues.  */
 
 static void
-XGetGCValues (void* ignore, XGCValues *gc,
-                   unsigned long mask, XGCValues *xgcv)
+XGetGCValues (display, gc, mask, xgcv)
+     Display *display;
+     GC gc;
+     unsigned long mask;
+     XGCValues *xgcv;
 {
-  XChangeGC (ignore, xgcv, mask, gc);
+  if (mask & GCForeground)
+    xgcv->foreground = gc->xgcv.foreground;
+  if (mask & GCBackground)
+    xgcv->background = gc->xgcv.background;
+  if (mask & GCFont)
+    xgcv->font = gc->xgcv.font;
 }
 
 
@@ -1059,7 +1032,13 @@ XSetForeground (display, gc, color)
      GC gc;
      unsigned long color;
 {
-  gc->foreground = color;
+  if (gc->xgcv.foreground != color)
+    {
+      gc->xgcv.foreground = color;
+      gc->fore_color.red = RED16_FROM_ULONG (color);
+      gc->fore_color.green = GREEN16_FROM_ULONG (color);
+      gc->fore_color.blue = BLUE16_FROM_ULONG (color);
+    }
 }
 
 
@@ -1071,7 +1050,25 @@ XSetBackground (display, gc, color)
      GC gc;
      unsigned long color;
 {
-  gc->background = color;
+  if (gc->xgcv.background != color)
+    {
+      gc->xgcv.background = color;
+      gc->back_color.red = RED16_FROM_ULONG (color);
+      gc->back_color.green = GREEN16_FROM_ULONG (color);
+      gc->back_color.blue = BLUE16_FROM_ULONG (color);
+    }
+}
+
+
+/* Mac replacement for XSetFont.  */
+
+static void
+XSetFont (display, gc, font)
+     Display *display;
+     GC gc;
+     XFontStruct *font;
+{
+  gc->xgcv.font = font;
 }
 
 
@@ -1117,19 +1114,6 @@ XSetWindowBackground (display, w, color)
     }
 #endif
 }
-
-
-/* Mac replacement for XSetFont.  */
-
-static void
-XSetFont (display, gc, font)
-     Display *display;
-     GC gc;
-     XFontStruct *font;
-{
-  gc->font = font;
-}
-
 
 /* x_sync is a no-op on Mac.  */
 void
@@ -1441,7 +1425,6 @@ x_draw_fringe_bitmap (w, row, p)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Display *display = FRAME_MAC_DISPLAY (f);
   WindowPtr window = FRAME_MAC_WINDOW (f);
-  XGCValues gcv;
   GC gc = f->output_data.mac->normal_gc;
   struct face *face = p->face;
   int rowY;
@@ -1465,9 +1448,6 @@ x_draw_fringe_bitmap (w, row, p)
 
   if (p->bx >= 0 && !p->overlay_p)
     {
-      XGCValues gcv;
-      gcv.foreground = face->background;
-
 #if 0  /* MAC_TODO: stipple */
       /* In case the same realized face is used for fringes and
 	 for something displayed in the text (e.g. face `region' on
@@ -1479,9 +1459,7 @@ x_draw_fringe_bitmap (w, row, p)
 	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
 #endif
 
-      XFillRectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		      &gcv,
-		      p->bx, p->by, p->nx, p->ny);
+      mac_erase_rectangle (window, face->gc, p->bx, p->by, p->nx, p->ny);
 
 #if 0  /* MAC_TODO: stipple */
       if (!face->stipple)
@@ -1492,15 +1470,17 @@ x_draw_fringe_bitmap (w, row, p)
   if (p->which)
     {
       unsigned short *bits = p->bits + p->dh;
+      XGCValues gcv;
 
-      gcv.foreground = (p->cursor_p
-			? (p->overlay_p ? face->background
-			   : f->output_data.mac->cursor_pixel)
-			: face->foreground);
-      gcv.background = face->background;
-
-      mac_draw_bitmap (display, window, &gcv, p->x, p->y,
+      XGetGCValues (display, face->gc, GCForeground, &gcv);
+      XSetForeground (display, face->gc,
+		      (p->cursor_p
+		       ? (p->overlay_p ? face->background
+			  : f->output_data.mac->cursor_pixel)
+		       : face->foreground));
+      mac_draw_bitmap (display, window, face->gc, p->x, p->y,
 		       p->wd, p->h, bits, p->overlay_p);
+      XSetForeground (display, face->gc, gcv.foreground);
     }
 
   mac_reset_clipping (display, window);
@@ -1975,10 +1955,7 @@ x_clear_glyph_string_rect (s, x, y, w, h)
      struct glyph_string *s;
      int x, y, w, h;
 {
-  XGCValues xgcv;
-
-  xgcv.foreground = s->gc->background;
-  XFillRectangle (s->display, s->window, &xgcv, x, y, w, h);
+  mac_erase_rectangle (s->window, s->gc, x, y, w, h);
 }
 
 
@@ -2566,27 +2543,29 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 {
   XGCValues xgcv;
 
-  xgcv.foreground = s->face->box_color;
+  XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
+  XSetForeground (s->display, s->gc, s->face->box_color);
   mac_set_clip_rectangle (s->display, s->window, clip_rect);
 
   /* Top.  */
-  XFillRectangle (s->display, s->window, &xgcv,
+  XFillRectangle (s->display, s->window, s->gc,
 		  left_x, top_y, right_x - left_x + 1, width);
 
   /* Left.  */
   if (left_p)
-    XFillRectangle (s->display, s->window, &xgcv,
+    XFillRectangle (s->display, s->window, s->gc,
 		    left_x, top_y, width, bottom_y - top_y + 1);
 
   /* Bottom.  */
-  XFillRectangle (s->display, s->window, &xgcv,
+  XFillRectangle (s->display, s->window, s->gc,
 		  left_x, bottom_y - width + 1, right_x - left_x + 1, width);
 
   /* Right.  */
   if (right_p)
-    XFillRectangle (s->display, s->window, &xgcv,
+    XFillRectangle (s->display, s->window, s->gc,
 		    right_x - width + 1, top_y, width, bottom_y - top_y + 1);
 
+  XSetForeground (s->display, s->gc, xgcv.foreground);
   mac_reset_clipping (s->display, s->window);
 }
 
@@ -3005,13 +2984,7 @@ x_draw_stretch_glyph_string (s)
 	    }
 	  else
 #endif /* MAC_TODO */
-	    {
-	      XGCValues xgcv;
-	      XGetGCValues (s->display, gc, GCForeground | GCBackground, &xgcv);
-	      XSetForeground (s->display, gc, xgcv.background);
-	      XFillRectangle (s->display, s->window, gc, x, y, w, h);
-	      XSetForeground (s->display, gc, xgcv.foreground);
-	    }
+	    mac_erase_rectangle (s->window, gc, x, y, w, h);
 
 	  mac_reset_clipping (s->display, s->window);
 	}
@@ -4562,13 +4535,10 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	    && XINT (bar->width) == sb_width
 	    && XINT (bar->height) == height))
 	{
-	  /* Clear areas not covered by the scroll bar because it's not as
-	     wide as the area reserved for it .  This makes sure a
-	     previous mode line display is cleared after C-x 2 C-x 1, for
-	     example.  */
-	  int area_width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
+	  /* Since toolkit scroll bars are smaller than the space reserved
+	     for them on the frame, we have to clear "under" them.  */
 	  XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		      left, top, area_width, height, 0);
+		      left, top, width, height, 0);
 
 #if 0
           if (sb_left + sb_width >= FRAME_PIXEL_WIDTH (f))
@@ -10126,7 +10096,7 @@ useful for non-standard keyboard layouts.  */);
     doc: /* t means that when the option-key is held down while pressing the
 mouse button, the click will register as mouse-2 and while the
 command-key is held down, the click will register as mouse-3.
-'reverse means that the the option-key will register for mouse-3
+'reverse means that the option-key will register for mouse-3
 and the command-key will register for mouse-2.  nil means that
 no emulation should be done and the modifiers should be placed
 on the mouse-1 event. */);

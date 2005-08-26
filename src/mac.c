@@ -1,5 +1,5 @@
 /* Unix emulation routines for GNU Emacs on the Mac OS.
-   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4144,7 +4144,11 @@ nil.  */)
   src_encoding = get_cfstring_encoding_from_lisp (source);
   tgt_encoding = get_cfstring_encoding_from_lisp (target);
 
-  string = string_make_unibyte (string);
+  /* We really want string_to_unibyte, but since it doesn't exist yet, we
+     use string_as_unibyte which works as well, except for the fact that
+     it's too permissive (it doesn't check that the multibyte string only
+     contain single-byte chars).  */
+  string = Fstring_as_unibyte (string);
   if (src_encoding != kCFStringEncodingInvalidId
       && tgt_encoding != kCFStringEncodingInvalidId)
     str = CFStringCreateWithBytes (NULL, SDATA (string), SBYTES (string),

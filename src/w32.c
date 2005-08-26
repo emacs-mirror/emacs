@@ -20,8 +20,6 @@ Boston, MA 02110-1301, USA.
 
    Geoff Voelker (voelker@cs.washington.edu)                         7-29-94
 */
-
-
 #include <stddef.h> /* for offsetof */
 #include <stdlib.h>
 #include <stdio.h>
@@ -73,6 +71,7 @@ Boston, MA 02110-1301, USA.
 #define _ANONYMOUS_STRUCT
 #endif
 #include <windows.h>
+#include <shlobj.h>
 
 #ifdef HAVE_SOCKETS	/* TCP connection support, if kernel can do it */
 #include <sys/socket.h>
@@ -99,6 +98,9 @@ Boston, MA 02110-1301, USA.
 #include "ndir.h"
 #include "w32heap.h"
 #include "systime.h"
+
+typedef HRESULT (WINAPI * ShGetFolderPath_fn)
+  (IN HWND, IN int, IN HANDLE, IN DWORD, OUT char *);
 
 void globals_of_w32 ();
 
@@ -903,7 +905,9 @@ init_environment (char ** argv)
   static const char * const tempdirs[] = {
     "$TMPDIR", "$TEMP", "$TMP", "c:/"
   };
+
   int i;
+
   const int imax = sizeof (tempdirs) / sizeof (tempdirs[0]);
 
   /* Make sure they have a usable $TMPDIR.  Many Emacs functions use
@@ -942,6 +946,8 @@ init_environment (char ** argv)
     LPBYTE lpval;
     DWORD dwType;
     char locale_name[32];
+    struct stat ignored;
+    char default_home[MAX_PATH];
 
     static struct env_entry
     {
@@ -963,6 +969,35 @@ init_environment (char ** argv)
       {"TERM", "cmd"},
       {"LANG", NULL},
     };
+
+    /* For backwards compatibility, check if a .emacs file exists in C:/
+       If not, then we can try to default to the appdata directory under the
+       user's profile, which is more likely to be writable.   */
+    if (stat ("C:/.emacs", &ignored) < 0)
+    {
+      HRESULT profile_result;
+      /* Dynamically load ShGetFolderPath, as it won't exist on versions
+	 of Windows 95 and NT4 that have not been updated to include
+	 MSIE 5.  Also we don't link with shell32.dll by default.  */
+      HMODULE shell32_dll;
+      ShGetFolderPath_fn get_folder_path;
+      shell32_dll = GetModuleHandle ("shell32.dll");
+      get_folder_path = (ShGetFolderPath_fn)
+	GetProcAddress (shell32_dll, "SHGetFolderPathA");
+
+      if (get_folder_path != NULL)
+	{
+	  profile_result = get_folder_path (NULL, CSIDL_APPDATA, NULL,
+					    0, default_home);
+
+	  /* If we can't get the appdata dir, revert to old behaviour.  */
+	  if (profile_result == S_OK)
+	    env_vars[0].def_value = default_home;
+	}
+
+      /* Unload shell32.dll, it is not needed anymore.  */
+      FreeLibrary (shell32_dll);
+    }
 
   /* Get default locale info and use it for LANG.  */
   if (GetLocaleInfo (LOCALE_USER_DEFAULT,

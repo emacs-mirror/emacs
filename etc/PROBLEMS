@@ -2418,11 +2418,11 @@ address space of a process. As the result dumping may fail even if
 you turn off exec-shield. In this case, use the -R option to the setarch
 command:
 
-   setarch -R i386 ./temacs --batch --load loadup [dump|bootstrap]
+   setarch i386 -R ./temacs --batch --load loadup [dump|bootstrap]
 
 or
 
-   setarch -R i386 make bootstrap      
+   setarch i386 -R make bootstrap      
 
 *** Fatal signal in the command  temacs -l loadup inc dump.
 

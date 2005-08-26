@@ -1,3 +1,598 @@
+2005-07-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (highlight-changes-global-initial-state)
+	(highlight-compare-buffers, hilit-chg-turn-on-maybe)
+	(hilit-chg-fixup, highlight-changes-mode):
+	Fix typos in docstrings.
+	(highlight-changes-global-modes, highlight-changes-rotate-faces):
+	Doc fixes.
+
+2005-07-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Never call the
+	mode function using `eval-after-load'.
+
+2005-07-21  Kim F. Storm  <storm@cua.dk>
+
+	* mail/emacsbug.el (report-emacs-bug): Request that backtraces are
+	included when reporting an emacs crash, and tell about the DEBUG file.
+
+	* image-file.el (insert-image-file): Add yank-handler.
+	(image-file-yank-handler): Yank handler to make unique copies of
+	images when they are yanked into a buffer next to each other.
+
+2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* comint.el (comint-use-prompt-regexp, comint-send-input)
+	(comint-source-default, comint-extract-string)
+	(comint-get-source, comint-word, comint-completion)
+	(comint-source, comint-prompt-read-only, comint-update-fence):
+	Fix typos in docstrings.
+	(comint-use-prompt-regexp-instead-of-fields, comint-kill-output):
+	Declare with define-obsolete-*-alias macros.
+	(comint-previous-matching-input-from-input)
+	(comint-next-matching-input-from-input)
+	(comint-previous-matching-input, comint-next-matching-input)
+	(comint-forward-matching-input):
+	Improve argument/docstring consistency.
+
+	* desktop.el (desktop-clear-preserve-buffers-regexp):
+	Also preserve the *server* buffer.
+
+	* simple.el (clone-indirect-buffer): Doc fix.
+	(fixup-whitespace, just-one-space)
+	(backward-delete-char-untabify, lambda): "?\ " -> "?\s".
+	(next-error, next-error-highlight)
+	(next-error-highlight-no-select, next-error-last-buffer)
+	(next-error-buffer-p, next-error-find-buffer, next-error)
+	(previous-error, next-error-no-select, previous-error-no-select)
+	(open-line, split-line, minibuffer-prompt-width, kill-new)
+	(binary-overwrite-mode): Fix typos in docstrings.
+	(set-fill-column): Fix typo in message.
+
+	* skeleton.el (skeleton-proxy-new): Doc fix.
+
+	* strokes.el (strokes-load-hook): Doc fix.
+	(strokes-grid-resolution, strokes-get-grid-position)
+	(strokes-renormalize-to-grid, strokes-read-stroke)
+	(strokes-read-complex-stroke, strokes-file, strokes-last-stroke)
+	(strokes-global-map): Fix typos in docstrings.
+	(strokes-help): Doc fix.  Fix help message and pass it through
+	`substitute-command-keys'.
+
+	* tempo.el (tempo-insert-prompt, tempo-interactive)
+	(tempo-show-completion-buffer, tempo-tags, tempo-match-finder)
+	(tempo-insert-string-functions, tempo-local-tags)
+	(tempo-define-template, tempo-insert-template)
+	(tempo-insert-prompt-compat, tempo-is-user-element)
+	(tempo-insert-mark, tempo-find-match-string, tempo-complete-tag):
+	Fix typos in docstrings.
+
+	* vcursor.el (vcursor-other-window, vcursor-bind-keys)
+	(vcursor-key-bindings, vcursor-use-vcursor-map)
+	(vcursor-find-window, vcursor-scroll-down)
+	(vcursor-disable, vcursor-beginning-of-buffer)
+	(vcursor-end-of-buffer): Fix typos in docstrings.
+	(vcursor-relative-move, vcursor-get-char-count):
+	Improve argument/docstring consistency.
+
+	* version.el: "?\ " -> "?\s".
+
+	* wid-edit.el (widget-default-create, widget-after-change)
+	(widget-default-format-handler, widget-checklist-add-item)
+	(widget-radio-add-item, widget-choose, widget-specify-secret)
+	(widget-field-value-create, widget-field-value-get)
+	(widget-editable-list-format-handler)
+	(widget-editable-list-entry-create, widget-group-value-create)
+	(widget-documentation-link-add)
+	(widget-documentation-string-value-create): "?\ " -> "?\s".
+	(widget-convert-text): Doc fix.
+	(widget-narrow-to-field, widget-field-find)
+	(widget-url-link-action, widget-emacs-library-link-action)
+	(widget-color-notify): Fix typos in docstrings.
+
+	* w32-fns.el (w32-shell-name): Use `bound-and-true-p'.
+	(x-select-text, set-w32-system-coding-system)
+	(w32-add-charset-info): Fix typos in docstrings.
+
+	* emulation/cua-base.el (cua-mode, cua-enable-register-prefix)
+	(cua-enable-cua-keys, cua-use-hyper-key)
+	(cua-virtual-rectangle-edges): Fix typos in docstrings.
+	(cua--M/H-key, cua--init-keymaps): "?\ " -> "?\s".
+
+	* net/tramp.el (tramp-handle-load): Fix typo in error message.
+
+	* emacs-lisp/re-builder.el (regexp-builder): Declare with
+	`defalias' instead of faking it.
+
+	* eshell/em-ls.el (eshell-ls-decorated-name): Doc fix.
+	(eshell-ls-missing, eshell-ls-dired-initial-args)
+	(eshell-ls-use-in-dired): Fix typos in docstrings.
+
+2005-07-20  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-mode): Improve doc string.
+
+2005-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* abbrev.el (expand-region-abbrevs): Doc fix.
+	(inverse-add-mode-abbrev, inverse-add-global-abbrev):
+	Improve argument/docstring consistency.
+
+	* arc-mode.el (archive-get-descr, archive-alternate-display):
+	Doc fixes.
+	(archive-l-e): Improve argument/docstring consistency.
+	(archive-tmpdir, archive-unixdate, archive-unixtime)
+	(archive-chmod-entry): Fix typos in docstrings.
+	(archive-unflag, archive-unflag-backwards)
+	(archive-unmark-all-files): "?\ " -> "?\s".
+
+	* buff-menu.el (Buffer-menu-unmark): Doc fix.
+	(Buffer-menu-not-modified, Buffer-menu-execute)
+	(Buffer-menu-toggle-read-only, Buffer-menu-buffer+size)
+	(list-buffers-noselect, Buffer-menu-select): "?\ " -> "?\s".
+
+	* composite.el (compose-string, encode-composition-rule)
+	(compose-last-chars): Fix typos in docstrings.
+
+	* desktop.el (desktop-enable, desktop-basefilename):
+	Declare with `define-obsolete-variable-alias'.
+	(desktop-internal-v2s): Don't quote keywords.
+	(desktop-clear): "?\ " -> "?\s".
+
+	* dired.el (dired-align-file, dired-flag-backup-files)
+	(dired-change-marks, dired-unmark-all-files): "?\ " -> "?\s".
+	(dired-listing-switches, dired-ls-F-marks-symlinks)
+	(dired-dwim-target, dired-load-hook, dired-mode-hook)
+	(dired-directory, dired-faces, dired, dired-revert)
+	(dired-mode, dired-summary, dired-view-file)
+	(dired-copy-filename-as-kill, dired-delete-file)
+	(dired-no-confirm, dired-unmark-all-marks)
+	(dired-sort-by-date-regexp, dired-sort-by-name-regexp)
+	(dired-sort-inhibit, dired-sort-other): Fix typos in docstrings.
+	(dired-undo, dired-get-file-for-visit, dired-sort-toggle-or-edit):
+	Fix typos in message strings.
+
+	* dired-x.el (virtual-dired): Declare with `defalias'.
+	(dired-mark-unmarked-files, dired-local-variables-file)
+	(dired-omit-here-always): Doc fix.
+	(dired-omit-mode, dired-find-subdir)
+	(dired-enable-local-variables, dired-clean-up-buffers-too)
+	(dired-extra-startup, dired-mark-extension, dired-jump)
+	(dired-jump-other-window, dired-omit-localp, dired-virtual-mode)
+	(dired-smart-shell-command, dired-guess-shell-alist-user)
+	(dired-man, dired-initial-position, dired-x-hands-off-my-keys)
+	(dired-x-bind-find-file, dired-x-submit-report):
+	Fix typos in docstrings.
+	(dired-mark-unmarked-files): "?\ " -> "?\s".
+
+	* dirtrack.el (dirtrack-list): Fix typos in docstring.
+
+	* faces.el (describe-face): "?\ " -> "?\s".
+	(read-all-face-attributes, read-face-font, modify-face)
+	(face-attr-construct, italic): Fix typos in docstrings.
+	(frame-update-face-colors): Declare with
+	`define-obsolete-function-alias'.
+
+	* files.el (find-file-noselect, recode-file-name): Doc fixes.
+	(insert-directory, kill-some-buffers): "?\ " -> "?\s".
+	(magic-mode-alist, buffer-file-numbers-unique)
+	(write-file-functions, get-free-disk-space):
+	Fix typos in docstrings.
+	(find-file-not-found-hooks, find-file-hooks, write-file-hooks)
+	(write-contents-hooks, write-file-hooks):
+	Declare with `define-obsolete-variable-alias'.
+
+	* forms-d2.el (arch-rj): Fix typo in docstrings.
+	(arch-tocol): Likewise.  "?\ " -> "?\s".
+
+	* frame.el (set-frame-font, cursor-in-non-selected-windows):
+	Fix typo in docstring.
+	(set-screen-width, set-screen-height): Delete redundant info in
+	doctrings.
+	(new-frame, screen-height, screen-width): Declare with
+	`define-obsolete-function-alias'.
+	(delete-frame-hook, blink-cursor): Declare with
+	`define-obsolete-variable-alias'.
+
+	* paths.el (prune-directory-list): Fix typos in docstring.
+
+	* pcvs-util.el (cvs-flags-query, cvs-strings->string)
+	(cvs-prefix-get): Fix typos in docstrings.
+
+	* ps-print.el (ps-extend-face-list, ps-extend-face)
+	(ps-print-background-image): Fix typos in docstrings.
+	(ps-default-fg, ps-default-bg): Doc fixes.
+
+	* s-region.el (s-region-bind): Doc fix.
+	(s-region-move-p1, s-region-move-p2): Fix typos in docstrings.
+
+	* textmodes/org.el (org-table-formula-substitute-names)
+	(org-table-get-vertical-vector): Doc fixes.
+	(org-table-recalculate): Remove unused argument to `message'.
+
+2005-07-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-table-column-names)
+	(org-table-column-name-regexp)
+        (org-table-named-field-locations): New variables.
+        (org-archive-subtree): Protect `this-command' when calling
+	`org-copy-subtree' and `org-cut-subtree', to avoid appending to
+	the kill buffer.
+        (org-complete): Remove fixed-formula completion.
+        (org-edit-formulas-map): New variable.
+        (org-table-edit-formulas): New command.
+        (org-finish-edit-formulas, org-abort-edit-formulas)
+	(org-show-variable, org-table-get-vertical-vector): New functions.
+        (org-table-maybe-eval-formula): Handle `:=' fields.
+        (org-table-get-stored-formulas, org-table-store-formulas)
+        (org-table-get-formula, org-table-modify-formulas)
+        (org-table-replace-in-formulas): Handle named field formulas.
+        (org-table-get-specials): Store locations of named fields.
+
+2005-07-19  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-regexp-alist)
+	(grep-mode-font-lock-keywords, grep-process-setup):
+	Use default GNU grep match color "01;31m" instead of "01;41m".
+	(grep-regexp-alist, grep-mode-font-lock-keywords):
+	Use `\\[[0-9]*m' instead of `\\[00m'.
+	(grep-regexp-alist): Move `\\(?:\033\\[K\\)?' from sgr_end to
+	sgr_start where its handling is more important.  Use the real
+	length of sgr_start instead of constant 8.
+	(grep-mode-font-lock-keywords): Don't delete `\\(?:\033\\[K\\)?'
+	specially.  Delete all remaining escape sequences.
+	(grep-process-setup): Set "GREP_COLORS" for GNU grep 2.5.1-cvs.
+	(grep-regexp-alist): Make hyperlink only for binary file name
+	instead of the whole line.
+	(grep-mode-map): Bind `backtab' to `compilation-previous-file'.
+	(grep-mode): Add autoload.
+
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Add `define-compilation-mode'.
+
+2005-07-19  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el (compare-ignore-whitespace, compare-windows-sync)
+	(compare-windows-sync-string-size, compare-windows-recenter)
+	(compare-windows-highlight, compare-windows): Add version 22.1.
+	(compare-windows) <defface>: Inherit from lazy-highlight instead
+	of duplicating its default value.
+
+	* cus-edit.el (custom-mode-map): Bind `C-c C-c' to `Custom-set'.
+	(Custom-mode-menu): Use `info' instead of `Info-goto-node'.
+
+	* descr-text.el (describe-char): Create link buttons for `charset'
+	and `code point'.  Add the current input method name with a link
+	button to `to input' field.  Print face names of display table
+	characters in `The display table entry is displayed by' section
+	instead of printing face-id in the `display' field.
+	Guess hardcoded faces and create a link button for them.
+	Skip empty fields when calculating max-width.
+	Treat `widget-create' specially while inserting strings from the
+	collected field list.
+	(describe-char-after): Made obsolete in version 22.1, not 21.5.
+
+	* diff-mode.el (diff-file-header): Change foreground color from
+	yellow to green on light backgrounds.
+	(diff-context): Inherit from `shadow' only for color/grayscale
+	with more than 88 colors.
+	(diff-indicator-removed, diff-indicator-added)
+	(diff-indicator-changed): New faces.
+	(diff-font-lock-keywords): Use new faces.  Regroup rules.
+	Add "^---$" for `normal' diff format.  Fontify `#' lines with
+	font-lock-comment-delimiter-face and font-lock-comment-face.
+	Add `#' to ^[^...] in the rule for `diff-context-face'.
+
+	* faces.el (mode-line-highlight): Replace RoyalBlue4 with
+	a button-like box.  Inherit from `highlight' on low colors.
+	(shadow): Use shades of gray only for color/grayscale with
+	more than 88 colors.  Use green for light backgrounds with
+	8 colors, and yellow for dark backgrounds with 8 colors.
+
+	* font-lock.el (font-lock-regexp-grouping-backslash): Don't
+	inherit from escape-glyph (use bold for all cases).
+
+	* info.el (info-xref-visited): Use light foreground color `violet'
+	for dark backgrounds instead of dark color `magenta3'.
+	(info-title-1): Use `yellow' color for dark backgrounds.
+
+	* isearch.el (isearch): Use not-too-dark magenta3 instead of
+	too-light magenta2.
+
+	* replace.el (match): Use slightly more light RoyalBlue3 instead
+	of dark RoyalBlue4.
+
+	* wid-edit.el (widget-inactive): Inherit from `shadow'.
+
+2005-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* novice.el (disabled-command-hook): Declare it with
+	`define-obsolete-variable-alias'.
+
+	* desktop.el (desktop-enable, desktop-buffer-modes-to-save)
+	(desktop-buffer-misc-functions, desktop-buffer-handlers)
+	(desktop-load-default): Add release to obsolescence info.
+	(desktop-globals-to-clear, desktop-buffer-mode-handlers)
+	(desktop-append-buffer-args, desktop-read):
+	Fix typos in docstrings.
+	(desktop-kill): Fix typo in message.
+	(desktop-save): Doc fix.
+
+2005-07-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-cmd.el (viper-escape-to-state): Bug fix.
+	(viper-envelop-ESC-key): Change the definition of fast
+	keysequence so it'll work with keyboard macros.
+
+	* ediff.el (ediff-patch-buffer): Change the docstring.
+
+2005-07-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Try to
+	use an auto-coding (if any) before anything else.  If the found
+	auto-coding is invalid, show a warning message.
+
+	* international/mule.el (find-auto-coding): New function created
+	by modifying the body of set-auto-coding.
+	(set-auto-coding): Use find-auto-coding to find a coding.
+
+2005-07-18  Richard M. Stallman  <rms@gnu.org>
+
+	* allout.el (allout-isearch-expose): Use isearch-mode-end-hook-quit,
+	not isearch-mode-end-hook-error.
+	(allout-before-change-protect): Fix error message.
+
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
+	* allout.el (allout-mode):
+	* calculator.el (calculator-copy):
+	* custom.el (custom-known-themes):
+	* dired.el (dired-desktop-buffer-misc-data)
+	(dired-restore-desktop-buffer):
+	* dired-x.el (dired-omit-marker-char):
+	* files.el (basic-save-buffer):
+	* font-core.el (font-lock-mode):
+	* calendar/calendar.el (calendar-goto-hebrew-date)
+	(calendar-goto-coptic-date, calendar-goto-ethiopic-date)
+	(calendar-goto-persian-date):
+	* language/ethio-util.el (ethio-sera-to-fidel-region):
+	* textmodes/picture.el (picture-mode):
+	Delete duplicate duplicate words.
+
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Remove key bindings for regexp
+	chars * ? } |.
+	(isearch-fallback): Don't call `isearch-process-search-char'.
+	(isearch-*-char, isearch-}-char, isearch-|-char): Remove functions.
+	(isearch-process-search-char): Call `isearch-fallback' for regexp
+	chars * ? } |.
+	(isearch-return-char): Make obsolete with `make-obsolete' instead
+	of simply documenting it as obsolete in the docstring.
+	(isearch-fallback): Refill docstring.
+
+	* international/isearch-x.el
+	(isearch-process-search-multibyte-characters): Remove unneeded `concat'.
+	Add intermediate values to `junk-hist' instead of `minibuffer-history'.
+	Test the length of `str'.
+
+2005-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-resolve-xref): Fix typos in error strings.
+	(allout-before-change-protect): Remove unneeded `concat'.
+
+	* array.el (array-mode, array-reconfigure-rows)
+	(untabify-backward): Fix typos in docstrings.
+	(array-reconfigure-rows): Use `insert-buffer-substring', not
+	`insert-buffer'.
+
+	* calendar/icalendar.el (icalendar--get-unfolded-buffer):
+	* progmodes/ada-mode.el (ada-make-body): Use
+	`insert-buffer-substring' and `goto-char', not `insert-buffer'.
+
+	* dired.el (dired-log):
+	* tar-mode.el (tar-subfile-save-buffer):
+	* play/zone.el (zone-pgm-stress-destress):
+	Use `insert-buffer-substring', not `insert-buffer'.
+
+2005-07-17  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-auth-supported): Prefer PLAIN over LOGIN.
+
+2005-07-16  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* lisp/mail/smtpmail.el (smtpmail-auth-supported):
+	Add plain auth method.
+	(smtpmail-try-auth-methods): Add AUTH PLAIN dialog.
+
+2005-07-17  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (dired-other-window): Add ido property.
+
+2005-07-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded):
+	Fix typo in docstring.
+	(byte-compile-interactive-only-functions): Add `insert-buffer' and
+	`insert-file-literally'.
+
+	* emacs-lisp/edebug.el (def-edebug-form-spec): Add obsolescence
+	info and delete redundant message.  Doc fix.
+	(edebug-install-custom-print-funcs, edebug-reset-print-funcs)
+	(edebug-uninstall-custom-print-funcs): Define as obsolete aliases.
+
+2005-07-16  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-and-recursion): New function.
+	(byte-compile-and): Use byte-compile-and-recursion.
+	(byte-compile-or-recursion): New function.
+	(byte-compile-or): Use that.
+	(byte-compile-if): Guard the else-clause too.
+	(byte-compile-maybe-guarded): Handle (not (featurep 'emacs)).
+
+	* isearch.el (isearch-mode-end-hook-quit): New variable.
+	(isearch-done): Bind it.
+	(isearch-mode-end-hook): Doc fix.
+
+	* allout.el (allout-isearch-did-quit): Variable deleted.
+	(allout-real-isearch-abort): Function name no longer used.
+	(allout-mode): Do allout-enwrap-isearch whenever feature is wanted.
+	(allout-isearch-rectification): isearch-mode always exists.
+	Don't set allout-isearch-did-quit.
+	(allout-isearch-expose): Check isearch-mode-end-hook-error, not
+	allout-isearch-did-quit.
+	(allout-enwrap-isearch): Just add the hook.
+	(allout-isearch-abort): Function deleted.
+	(allout-pre-command-business): Avoid warning.
+
+	* progmodes/pascal.el (pascal-outline-map): Use fboundp, not boundp.
+	Correctly avoid warnings.
+	(pascal-outline): Likewise.
+
+	* progmodes/f90.el (f90-abbrev-start): Avoid warning.
+
+	* progmodes/asm-mode.el (asm-comment): Use with-no-warnings.
+
+	* play/tetris.el (tetris-mode): Avoid warning.
+
+	* play/snake.el (snake-mode): Avoid warning.
+
+	* play/gamegrid.el (gamegrid-shared-game-dir): Add defvar.
+	(gamegrid-set-display-table): Avoid warning.
+	(gamegrid-set-timer): Likewise.
+	(gamegrid-make-mono-tty-face): Use set-face-inverse-video-p.
+	(gamegrid-add-score-with-update-game-score-1): Take FILE
+	as argument.
+	(gamegrid-add-score-with-update-game-score): Pass that argument.
+	Rename have-shared-game-dir to gamegrid-shared-game-dir.
+
+	* net/eudc-hotlist.el (eudc-hotlist-mode): Avoid warnings.
+
+	* net/eudc-bob.el (eudc-jump-to-event): Avoid warning.
+	(eudc-bob-display-jpeg, eudc-bob-can-display-inline-images): Likewise.
+
+	* mail/uce.el (uce-reply-to-uce): Replace beginning-of-buffer
+	and insert-file.
+
+	* mail/supercite.el (sc-no-blank-line-or-header): Avoid warning.
+	(sc-ask): Avoid warnings.
+
+	* eshell/em-hist.el (eshell-rebind-keys-alist): Add defvar.
+	(eshell-hist-initialize): Use that var the natural way.
+
+	* emulation/viper-init.el (viper-activate-input-method): Avoid warning.
+
+	* emacs-lisp/re-builder.el (reb-cook-regexp): Avoid
+	warning calling lre-compile-string.
+	(reb-color-display-p): Avoid warning.
+
+	* calculator.el (calculator-last-input): Guard uses
+	of event-key and key-press-event-p.
+	(event-key, key-press-event-p): Delete definitions.
+
+	* emacs-lisp/find-gc.el (find-gc-unsafe-list)
+	(find-gc-source-directory, find-gc-subrs-callers)
+	(find-gc-noreturn-list, find-gc-source-files)
+	(find-gc-subrs-called): Vars renamed and defvar'd.
+
+	* emacs-lisp/checkdoc.el (checkdoc-make-overlay)
+	(checkdoc-overlay-put, checkdoc-delete-overlay)
+	(checkdoc-overlay-start, checkdoc-overlay-end)
+	(checkdoc-mode-line-update, checkdoc-char=):
+	Define such that compiler knows they are defined.
+	(checkdoc-call-eval-buffer): Deleted.  Use eval-buffer directly.
+	(checkdoc-read-event): Deleted.  Use read-event directly.
+
+	* whitespace.el (whitespace-make-overlay)
+	(whitespace-overlay-put, whitespace-delete-overlay)
+	(whitespace-overlay-start, whitespace-overlay-end):
+	Define such that compiler knows they are defined.
+	(whitespace): Move conditional inside.
+
+	* tempo.el (tempo-insert-template): Suppress warning.
+
+	* ediff-diff.el (longlines-mode): Add defvar.
+
+2005-07-16  Gary Howell  <g1howell-list@yahoo.com>  (tiny change)
+
+	* server.el: Bind "C-x #" in a way that works even if C-x is
+	redefined to a command key, not a prefix key.
+
+2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+
+	* emacs-lisp/cl-macs.el (cl-make-type-test): Defer evaluation of
+	cl-make-type-test till execution time.
+
+2005-07-16  Markus Rost  <rost@math.uni-bielefeld.de>
+
+	* dired-x.el (dired-do-relsymlink-regexp): Add missing optional
+	arg ARG and use it.
+
+2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+
+	* emacs-lisp/cl-macs.el (cl-make-type-test): Add `atom' type.
+
+2005-07-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Avoid constructing
+	a defcustom with two :set or :type keywords.
+
+2005-07-15  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
+	Don't give ^M comment-end syntax.
+
+2005-07-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-update, gdb-var-update-handler):
+	Don't consider gdbmi (gdb-mi.el has its own update functions).
+	(gdb-var-delete): Make it work for gdbmi as well.
+	(gdb-speedbar-expand-node): Move var-update here for gdbmi.
+
+	* progmodes/gud.el (etags, sdb): Only require etags when needed.
+	(gud-speedbar-menu-items): Correct logic for enabling items.
+
+2005-07-15  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el: Fix commentary.
+	(ido-define-mode-map): Move ido-next-work-file to C-M-o.
+	Use with-no-warnings around ffap-guesser.
+	(ido-file-internal, ido-read-file-name, ido-read-directory-name):
+	Let bind minibuffer-completing-file-name to t.
+
+2005-07-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (site-run-file, keyboard-type): Doc fixes.
+	(command-line): Check for "--basic-display" argument; also for
+	"--quick", not "--bare-bones" (which was renamed).
+	(fancy-splash-text): Add missing item "Getting New Versions".
+	(normal-splash-screen): Fix typos and improve consistency with
+	`fancy-splash-text'.  Update copyright year.
+
+	* hexl.el (hexl-mode-map): Recognize also `ehelp-command' as a
+	valid binding for `help-char'.
+
+	* emacs-lisp/derived.el (derived-mode-hook-name): Doc fix.
+
+2005-07-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-mode): Disable cua-mode for term buffers.
+
+2005-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* add-log.el (add-log-mailing-address, change-log-merge):
+	Doc fixes.
+	(change-log-get-method-definition): Fix typo in docstring.
+
+2005-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el:
+	(cua--pre-command-handler-1, cua--pre-command-handler)
+	(cua--post-command-handler-1, cua--post-command-handler):
+	Split in two.  Check (buffer local) value of cua-mode.
+	(cua-selection-mode): New command.
+
 2005-07-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.el (custom-initialize-safe-set)
@@ -12,8 +607,8 @@
 	* startup.el (command-line): Use `custom-reevaluate-setting' again
 	for tooltip-mode.
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): Do not override
-	explicitly specified :initialize keyword.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Avoid constructing
+	a defcustom with two :initialize keywords.
 
 2005-07-13  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -24,7 +619,7 @@
 	(allout-insert-latex-header, allout-insert-latex-trailer)
 	(allout-latex-verbatim-quote-curr-line, allout-latexify-exposed)
 	(allout-latex-verb-quote): Fix typos in docstrings.
-	(allout-enwrap-isearch, regexp-sans-escapes): Doc fix.
+	(allout-enwrap-isearch, regexp-sans-escapes): Doc fixes.
 	(allout-unprotected, allout-prefix-data):
 	Improve argument/docstring consistency.
 	(allout-chart-subtree): Fix argument spec.
@@ -42,7 +637,7 @@
 	(whitespace-check-indent-whitespace)
 	(whitespace-check-ateol-whitespace, whitespace-abort-on-error)
 	(whitespace-modes): Fix typos in docstrings.
-	(defgroup, defcustom): Doc fix.
+	(defgroup, defcustom): Doc fixes.
 
 	* winner.el (winner-mode, winner-boring-buffers)
 	(winner-pending-undo-ring): Doc fixes.
@@ -335,7 +930,7 @@
 
 2005-07-07  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-units.el (math-apply-units):  Change the places in
+	* calc/calc-units.el (math-apply-units): Change the places in
 	which units are simplified.
 
 2005-07-07  Luc Teirlinck  <teirllm@auburn.edu>
@@ -6419,7 +7014,8 @@
 	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el
 	* textmodes/reftex-index.el, textmodes/reftex-parse.el
 	* textmodes/reftex-ref.el, textmodes/reftex-vars.el
-	* textmodes/reftex.el, textmodes/org.el: Replace `illegal' with `invalid'.
+	* textmodes/reftex.el, textmodes/org.el:
+	Replace `illegal' with `invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -8652,7 +9248,7 @@
 	* textmodes/org.el (org-set-regexps-and-options): Rename from
 	`org-set-regexps'.  Added checking for STARTUP keyword.
 	(org-get-current-options): Add STARTUP options.
-	(org-table-insert-row): Mode mode intelligent about when
+	(org-table-insert-row): Make mode intelligent about when
 	realignment is needed.
 	(org-self-insert-command, org-delete-backward-char, org-delete-char):
 	New commands.
@@ -11846,7 +12442,7 @@
 
 	* simple.el (line-move-invisible-p): Rename from line-move-invisible.
 	(line-move): New args NOERROR and TO-END.
-	Return t if if succeed in moving specified number of lines.
+	Return t if succeed in moving specified number of lines.
 	(move-end-of-line): New function.
 
 	* simple.el (beginning-of-buffer-other-window): Use with-no-warnings.
@@ -14574,7 +15170,7 @@
 2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* calendar/time-date.el (time-to-number-of-days): New function.
-	Imported from from Gnus.
+	Imported from Gnus.
 
 2004-07-22  Kim F. Storm  <storm@cua.dk>
 
@@ -16135,7 +16731,7 @@
 2004-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (auto-save-file-name-transforms): Make sure ange-ftp temp
-	files files don't contain an accidental additional /.
+	files don't contain an accidental additional /.
 
 	* textmodes/tex-mode.el (tex-compilation-parse-errors): Save excursion
 	in source buffer.
@@ -22557,7 +23153,7 @@
 
 	* menu-bar.el (menu-bar-options-menu): Supply a body for the
 	[save-place] binding in the Options menu.  Have it require
-	'saveplace' and then toggle the variable manually, to avoid an an
+	'saveplace' and then toggle the variable manually, to avoid an
 	unbound variable error.  Thanks to <Sebastien.Kirche@sage.com>
 	for the bug report.
 

@@ -3168,6 +3168,14 @@ syms_of_syntax ()
 
   staticpro (&Vsyntax_code_object);
 
+  staticpro (&gl_state.object);
+  staticpro (&gl_state.global_code);
+  staticpro (&gl_state.current_syntax_table);
+  staticpro (&gl_state.old_prop);
+
+  /* Defined in regex.c */
+  staticpro (&re_match_object);
+
   Qscan_error = intern ("scan-error");
   staticpro (&Qscan_error);
   Fput (Qscan_error, Qerror_conditions,

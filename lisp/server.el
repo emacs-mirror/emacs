@@ -625,7 +625,7 @@ Arg NEXT-BUFFER is a suggestion; if it is a live buffer, use it."
 	      ;; a minibuffer/dedicated-window (if there's no other).
 	      (error (pop-to-buffer next-buffer)))))))))
 
-(global-set-key "\C-x#" 'server-edit)
+(define-key ctl-x-map "#" 'server-edit)
 
 (defun server-unload-hook ()
   (server-start t)

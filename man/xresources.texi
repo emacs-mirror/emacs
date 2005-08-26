@@ -932,7 +932,7 @@ This is the color for editable text.  In Emacs, this color is used for the
 text fields in the file dialog.
 
 @item font_name = "@var{font}"
-This specifies the the font for text in the widget.  @var{font} is a
+This specifies the font for text in the widget.  @var{font} is a
 Pango font name, for example @samp{Sans Italic 10}, @samp{Helvetica
 Bold 12}, @samp{Courier 14}, @samp{Times 18}.  See below for exact
 syntax.  The names are case insensitive.

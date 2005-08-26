@@ -188,7 +188,7 @@ arguments.  If ARGS is not a list, no argument will be passed."
   "Concatenate the STRINGS, adding the SEPARATOR (default \" \").
 This tries to quote the strings to avoid ambiguity such that
   (cvs-string->strings (cvs-strings->string strs)) == strs
-Only some SEPARATOR will work properly."
+Only some SEPARATORs will work properly."
   (let ((sep (or separator " ")))
     (mapconcat
      (lambda (str)
@@ -277,7 +277,7 @@ The SEPARATOR regexp defaults to \"\\s-+\"."
 
 (defun cvs-flags-query (sym &optional desc arg)
   "Query flags based on SYM.
-Optional argument DESC will be used for the prompt
+Optional argument DESC will be used for the prompt.
 If ARG (or a prefix argument) is nil, just use the 0th default.
 If it is a non-negative integer, use the corresponding default.
 If it is a negative integer query for a new value of the corresponding
@@ -382,7 +382,7 @@ If ARG is nil toggle the PREFIX's value between its 0th default and nil
 
 (defun cvs-prefix-get (sym &optional read-only)
   "Return the current value of the prefix SYM.
-and reset it unless READ-ONLY is non-nil."
+And reset it unless READ-ONLY is non-nil."
   (prog1 (symbol-value sym)
     (unless (or read-only
 		(cvs-flags-persist (symbol-value (cvs-prefix-sym sym))))

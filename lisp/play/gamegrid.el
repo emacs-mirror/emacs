@@ -179,9 +179,7 @@ static unsigned char gamegrid_bits[] = {
 
 (defun gamegrid-make-mono-tty-face ()
   (let ((face (make-face 'gamegrid-mono-tty-face)))
-    (condition-case nil
-	(set-face-property face 'reverse t)
-      (error nil))
+    (set-face-inverse-video-p face t)
     face))
 
 (defun gamegrid-make-color-tty-face (color)
@@ -298,7 +296,7 @@ static unsigned char gamegrid_bits[] = {
 	   'emacs-tty)))
 
 (defun gamegrid-set-display-table ()
-  (if (fboundp 'specifierp)
+  (if (featurep 'xemacs)
       (add-spec-to-specifier current-display-table
 			     gamegrid-display-table
 			     (current-buffer)
@@ -409,7 +407,7 @@ static unsigned char gamegrid_bits[] = {
 
 (defun gamegrid-set-timer (delay)
   (if gamegrid-timer
-      (if (featurep 'itimer)
+      (if (fboundp 'set-itimer-restart)
 	  (set-itimer-restart gamegrid-timer delay)
 	(timer-set-time gamegrid-timer
 			(list (aref gamegrid-timer 1)
@@ -475,25 +473,27 @@ FILE is created there."
 ;;        FILE in the user's home directory.  There is presumably no
 ;;        shared game directory.
 
+(defvar gamegrid-shared-game-dir)
+
 (defun gamegrid-add-score-with-update-game-score (file score)
   (let* ((result nil) ;; What is this good for? -- os
-	 (have-shared-game-dir
+	 (gamegrid-shared-game-dir
 	  (not (zerop (logand (file-modes
 			       (expand-file-name "update-game-score"
 						 exec-directory))
 			      #o4000)))))
     (cond ((file-name-absolute-p file)
 	   (gamegrid-add-score-insecure file score))
-	  ((and have-shared-game-dir
+	  ((and gamegrid-shared-game-dir
 		(file-exists-p (expand-file-name file shared-game-score-directory)))
 	   ;; Use the setuid "update-game-score" program to update a
 	   ;; system-wide score file.
-	   (gamegrid-add-score-with-update-game-score-1
+	   (gamegrid-add-score-with-update-game-score-1 file
 	    (expand-file-name file shared-game-score-directory) score))
 	  ;; Else: Add the score to a score file in the user's home
 	  ;; directory.
-	  (have-shared-game-dir
-	   ;; If `have-shared-game-dir' is non-nil, then
+	  (gamegrid-shared-game-dir
+	   ;; If `gamegrid-shared-game-dir' is non-nil, then
 	   ;; "update-gamescore" program is setuid, so don't use it.
 	   (unless (file-exists-p
 		    (directory-file-name gamegrid-user-score-file-directory))
@@ -509,9 +509,9 @@ FILE is created there."
 		 (setq f (expand-file-name file f))
 		 (unless (file-exists-p f)
 		   (write-region "" nil f nil 'silent nil 'excl)))
-	       (gamegrid-add-score-with-update-game-score-1 f score))))))
+	       (gamegrid-add-score-with-update-game-score-1 file f score))))))
 
-(defun gamegrid-add-score-with-update-game-score-1 (target score)
+(defun gamegrid-add-score-with-update-game-score-1 (file target score)
   (let ((default-directory "/")
 	(errbuf (generate-new-buffer " *update-game-score loss*")))
     (apply
@@ -521,7 +521,7 @@ FILE is created there."
        (expand-file-name "update-game-score" exec-directory)
        nil errbuf nil
        "-m" (int-to-string gamegrid-score-file-length)
-       "-d" (if have-shared-game-dir
+       "-d" (if gamegrid-shared-game-dir
 		(expand-file-name shared-game-score-directory)
 	      (file-name-directory target))
        file

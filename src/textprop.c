@@ -719,7 +719,7 @@ it finds a change in some text property, or the beginning or end of an
 overlay, and returns the position of that.
 If none is found, the function returns (point-max).
 
-If the optional third argument LIMIT is non-nil, don't search
+If the optional second argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
      (position, limit)
      Lisp_Object position, limit;
@@ -744,7 +744,7 @@ finds a change in some text property, or the beginning or end of an
 overlay, and returns the position of that.
 If none is found, the function returns (point-max).
 
-If the optional third argument LIMIT is non-nil, don't search
+If the optional second argument LIMIT is non-nil, don't search
 past position LIMIT; return LIMIT if nothing is found before LIMIT.  */)
      (position, limit)
      Lisp_Object position, limit;

@@ -96,7 +96,7 @@ The Lisp code is executed when the node is selected.")
 (defface info-xref-visited
   '((default :inherit info-xref)
     (((class color) (background light)) :foreground "magenta4")
-    (((class color) (background dark)) :foreground "magenta3")) ;"violet"?
+    (((class color) (background dark)) :foreground "violet"))
   "Face for visited Info cross-references."
   :group 'info)
 
@@ -3527,7 +3527,10 @@ the variable `Info-file-list-for-emacs'."
 	   (Info-goto-emacs-command-node command)))))
 
 (defface info-title-1
-  '((((type tty pc) (class color)) :foreground "green" :weight bold)
+  '((((type tty pc) (class color) (background light))
+     :foreground "green" :weight bold)
+    (((type tty pc) (class color) (background dark))
+     :foreground "yellow" :weight bold)
     (t :height 1.2 :inherit info-title-2))
   "Face for info titles at level 1."
   :group 'info)

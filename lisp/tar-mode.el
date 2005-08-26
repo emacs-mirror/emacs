@@ -1120,7 +1120,7 @@ to make your changes permanent."
 	(descriptor tar-superior-descriptor)
 	subfile-size)
     ;; We must make the current buffer unibyte temporarily to avoid
-    ;; multibyte->unibyte conversion in `insert-buffer'.
+    ;; multibyte->unibyte conversion in `insert-buffer-substring'.
     (set-buffer-multibyte nil)
     (setq subfile-size (buffer-size))
     (set-buffer tar-superior-buffer)
@@ -1144,7 +1144,7 @@ to make your changes permanent."
 	  (delete-region data-start data-end)
 	  ;; insert the new data...
 	  (goto-char data-start)
-	  (insert-buffer subfile)
+	  (insert-buffer-substring subfile)
 	  (setq subfile-size
 		(encode-coding-region
 		 data-start (+ data-start subfile-size) coding))

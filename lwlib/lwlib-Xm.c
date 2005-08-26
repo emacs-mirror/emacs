@@ -524,6 +524,10 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
   Widget* old_children;
   unsigned int old_num_children;
 
+  /* Disable drag and drop for labels in menu bar.  */
+  static char overrideTrans[] = "<Btn2Down>: Noop()";
+  XtTranslations override = XtParseTranslationTable (overrideTrans);
+
   old_children = XtCompositeChildren (widget, &old_num_children);
 
   /* Allocate the children array */
@@ -632,6 +636,8 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
 
 	  XtAddCallback (button, XmNcascadingCallback, xm_pull_down_callback,
 			 (XtPointer)instance);
+          XtOverrideTranslations (button, override);
+
 	}
 
       children[child_index] = button;

@@ -1661,7 +1661,7 @@ bindings; see the description of `lookup-key' for more details about this.  */)
 
 DEFUN ("minor-mode-key-binding", Fminor_mode_key_binding, Sminor_mode_key_binding, 1, 2, 0,
        doc: /* Find the visible minor mode bindings of KEY.
-Return an alist of pairs (MODENAME . BINDING), where MODENAME is the
+Return an alist of pairs (MODENAME . BINDING), where MODENAME is
 the symbol which names the minor mode binding KEY, and BINDING is
 KEY's definition in that mode.  In particular, if KEY has no
 minor-mode bindings, return nil.  If the first binding is a

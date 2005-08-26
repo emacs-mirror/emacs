@@ -411,17 +411,15 @@ See `comint-send-input'."
   "*If non-nil, use `comint-prompt-regexp' to recognize prompts.
 If nil, then program output and user-input are given different `field'
 properties, which Emacs commands can use to distinguish them (in
-particular, common movement commands such as begining-of-line respect
-field boundaries in a natural way)."
+particular, common movement commands such as `beginning-of-line'
+respect field boundaries in a natural way)."
   :type 'boolean
   :group 'comint)
 
 ;; Autoload is necessary for Custom to recognize old alias.
 ;;;###autoload
-(defvaralias 'comint-use-prompt-regexp-instead-of-fields
-  'comint-use-prompt-regexp)
-(make-obsolete-variable 'comint-use-prompt-regexp-instead-of-fields
-			'comint-use-prompt-regexp "22.1")
+(define-obsolete-variable-alias 'comint-use-prompt-regexp-instead-of-fields
+    'comint-use-prompt-regexp "22.1")
 
 (defcustom comint-mode-hook nil
   "Hook run upon entry to `comint-mode'.
@@ -1079,14 +1077,14 @@ Moves relative to START, or `comint-input-ring-index'."
     (if (string-match regexp (ring-ref comint-input-ring n))
 	n)))
 
-(defun comint-previous-matching-input (regexp arg)
+(defun comint-previous-matching-input (regexp n)
   "Search backwards through input history for match for REGEXP.
 \(Previous history elements are earlier commands.)
 With prefix argument N, search for Nth previous match.
 If N is negative, find the next or Nth next match."
   (interactive (comint-regexp-arg "Previous input matching (regexp): "))
-  (setq arg (comint-search-arg arg))
-  (let ((pos (comint-previous-matching-input-string-position regexp arg)))
+  (setq n (comint-search-arg n))
+  (let ((pos (comint-previous-matching-input-string-position regexp n)))
     ;; Has a match been found?
     (if (null pos)
 	(error "Not found")
@@ -1099,15 +1097,15 @@ If N is negative, find the next or Nth next match."
        (point))
       (insert (ring-ref comint-input-ring pos)))))
 
-(defun comint-next-matching-input (regexp arg)
+(defun comint-next-matching-input (regexp n)
   "Search forwards through input history for match for REGEXP.
 \(Later history elements are more recent commands.)
 With prefix argument N, search for Nth following match.
 If N is negative, find the previous or Nth previous match."
   (interactive (comint-regexp-arg "Next input matching (regexp): "))
-  (comint-previous-matching-input regexp (- arg)))
+  (comint-previous-matching-input regexp (- n)))
 
-(defun comint-previous-matching-input-from-input (arg)
+(defun comint-previous-matching-input-from-input (n)
   "Search backwards through input history for match for current input.
 \(Previous history elements are earlier commands.)
 With prefix argument N, search for Nth previous match.
@@ -1124,15 +1122,15 @@ If N is negative, search forwards for the -Nth following match."
 	    comint-input-ring-index nil))
   (comint-previous-matching-input
    (concat "^" (regexp-quote comint-matching-input-from-input-string))
-   arg))
+   n))
 
-(defun comint-next-matching-input-from-input (arg)
+(defun comint-next-matching-input-from-input (n)
   "Search forwards through input history for match for current input.
 \(Following history elements are more recent commands.)
 With prefix argument N, search for Nth following match.
 If N is negative, search backwards for the -Nth previous match."
   (interactive "p")
-  (comint-previous-matching-input-from-input (- arg)))
+  (comint-previous-matching-input-from-input (- n)))
 
 
 (defun comint-replace-by-expanded-history (&optional silent start)
@@ -1434,14 +1432,14 @@ If the interpreter is the csh,
 	return the current line with any initial string matching the
 	regexp `comint-prompt-regexp' removed.
     `comint-input-filter-functions' monitors input for \"cd\", \"pushd\", and
-	\"popd\" commands. When it sees one, it cd's the buffer.
-    comint-input-filter is the default: returns t if the input isn't all white
+	\"popd\" commands.  When it sees one, it cd's the buffer.
+    `comint-input-filter' is the default: returns t if the input isn't all white
 	space.
 
 If the Comint is Lucid Common Lisp,
-    comint-get-old-input snarfs the sexp ending at point.
-    comint-input-filter-functions does nothing.
-    comint-input-filter returns nil if the input matches input-filter-regexp,
+    `comint-get-old-input' snarfs the sexp ending at point.
+    `comint-input-filter-functions' does nothing.
+    `comint-input-filter' returns nil if the input matches input-filter-regexp,
 	which matches (1) all whitespace (2) :a, :c, etc.
 
 Similarly for Soar, Scheme, etc."
@@ -2002,8 +2000,8 @@ Does not delete the prompt."
 	(delete-region pmark (point))))
     ;; Output message and put back prompt
     (comint-output-filter proc replacement)))
-(defalias 'comint-kill-output 'comint-delete-output)
-(make-obsolete 'comint-kill-output 'comint-delete-output "21.1")
+(define-obsolete-function-alias 'comint-kill-output
+    'comint-delete-output "21.1")
 
 (defun comint-write-output (filename &optional append mustbenew)
   "Write output from interpreter since last input to FILENAME.
@@ -2169,7 +2167,7 @@ If N is negative, find the next or Nth next match."
       (goto-char pos))))
 
 
-(defun comint-forward-matching-input (regexp arg)
+(defun comint-forward-matching-input (regexp n)
   "Search forward through buffer for input fields that match REGEXP.
 If `comint-use-prompt-regexp' is non-nil, then input fields are identified
 by lines that match `comint-prompt-regexp'.
@@ -2177,7 +2175,7 @@ by lines that match `comint-prompt-regexp'.
 With prefix argument N, search for Nth following match.
 If N is negative, find the previous or Nth previous match."
   (interactive (comint-regexp-arg "Forward input matching (regexp): "))
-  (comint-backward-matching-input regexp (- arg)))
+  (comint-backward-matching-input regexp (- n)))
 
 
 (defun comint-next-prompt (n)
@@ -2388,7 +2386,7 @@ updated using `comint-update-fence', if necessary."
 (defun comint-source-default (previous-dir/file source-modes)
   "Compute the defaults for `load-file' and `compile-file' commands.
 
-PREVIOUS-DIR/FILE is a pair (directory . filename) from the last
+PREVIOUS-DIR/FILE is a pair (DIRECTORY . FILENAME) from the last
 source-file processing command, or nil if there hasn't been one yet.
 SOURCE-MODES is a list used to determine what buffers contain source
 files: if the major mode of the buffer is in SOURCE-MODES, it's source.
@@ -2409,7 +2407,7 @@ processing command (i.e., PREVIOUS-DIR/FILE).  If this is the first time
 the command has been run (PREVIOUS-DIR/FILE is nil), the default directory
 is the cwd, with no default file.  (\"no default file\" = nil)
 
-SOURCE-REGEXP is typically going to be something like (tea-mode)
+SOURCE-MODES is typically going to be something like (tea-mode)
 for T programs, (lisp-mode) for Lisp programs, (soar-mode lisp-mode)
 for Soar programs, etc.
 
@@ -2440,7 +2438,7 @@ the load or compile."
 	  (set-buffer old-buffer)))))
 
 (defun comint-extract-string ()
-  "Return string around POINT, or nil."
+  "Return string around point, or nil."
   (let ((syntax (syntax-ppss)))
     (when (nth 3 syntax)
       (condition-case ()
@@ -2460,7 +2458,7 @@ See `comint-source-default' for more on determining defaults.
 PROMPT is the prompt string.  PREV-DIR/FILE is the (DIRECTORY . FILE) pair
 from the last source processing command.  SOURCE-MODES is a list of major
 modes used to determine what file buffers contain source files.  (These
-two arguments are used for determining defaults).  If MUSTMATCH-P is true,
+two arguments are used for determining defaults.)  If MUSTMATCH-P is true,
 then the filename reader will only accept a file that exists.
 
 A typical use:
@@ -2618,8 +2616,7 @@ This is a good thing to set in mode hooks.")
 (defun comint-word (word-chars)
   "Return the word of WORD-CHARS at point, or nil if none is found.
 Word constituents are considered to be those in WORD-CHARS, which is like the
-inside of a \"[...]\" (see `skip-chars-forward'),
-plus all non-ASCII characters."
+inside of a \"[...]\" (see `skip-chars-forward'), plus all non-ASCII characters."
   (save-excursion
     (let ((here (point))
 	  giveup)

@@ -1830,8 +1830,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-regexp-grouping-backslash
-  '((((class color) (min-colors 16)) :inherit escape-glyph)
-    (t :inherit bold))
+  '((t :inherit bold))
   "Font Lock mode face for backslashes in Lisp regexp grouping constructs."
   :group 'font-lock-highlighting-faces)
 

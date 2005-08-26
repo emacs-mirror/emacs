@@ -1105,7 +1105,7 @@ C-w} to specify a new file name for that buffer.
 
 @findex recode-file-name
   If a mistake occurs when encoding a file name, use the command
-command @kbd{M-x recode-file-name} to change the file name's coding
+@kbd{M-x recode-file-name} to change the file name's coding
 system.  This prompts for an existing file name, its old coding
 system, and the coding system to which you wish to convert.
 

@@ -1,6 +1,6 @@
 /* Header file for the buffer manipulation primitives.
-   Copyright (C) 1985,86,93,94,95,97,98,99,2000,01,03,04
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
+     2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -855,6 +855,7 @@ EXFUN (Fget_file_buffer, 1);
 EXFUN (Fnext_overlay_change, 1);
 EXFUN (Fdelete_overlay, 1);
 EXFUN (Fbuffer_local_value, 2);
+EXFUN (Fgenerate_new_buffer_name, 2);
 
 /* Functions to call before and after each text change.  */
 extern Lisp_Object Vbefore_change_functions;

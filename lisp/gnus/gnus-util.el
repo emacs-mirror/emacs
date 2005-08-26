@@ -1,5 +1,5 @@
 ;;; gnus-util.el --- utility functions for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1576,6 +1576,30 @@ empty directories from OLD-PATH."
       'set-process-query-on-exit-flag)
   (defalias 'gnus-set-process-query-on-exit-flag
     'process-kill-without-query))
+
+(defun gnus-beginning-of-window ()
+  "Move point to the beginning of the window."
+  (move-to-window-line
+   (if (featurep 'xemacs)
+       0
+     (min scroll-margin
+	  (max 1 (- (window-height)
+		    (if mode-line-format 1 0)
+		    (if (and (boundp 'header-line-format)
+			     (symbol-value 'header-line-format))
+			1 0)))))))
+
+(defun gnus-end-of-window ()
+  "Move point to the end of the window."
+  (move-to-window-line
+   (if (featurep 'xemacs)
+       -1
+     (max (- -1 scroll-margin)
+	  (- -1 (max 1 (- (window-height)
+			  (if mode-line-format 1 0)
+			  (if (and (boundp 'header-line-format)
+				   (symbol-value 'header-line-format))
+			      1 0))))))))
 
 (provide 'gnus-util)
 

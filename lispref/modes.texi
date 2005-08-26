@@ -1415,7 +1415,7 @@ This is equivalent to specifying @var{lighter} positionally.
 This is equivalent to specifying @var{keymap} positionally.
 @end table
 
-Any other keyword arguments are passed passed directly to the
+Any other keyword arguments are passed directly to the
 @code{defcustom} generated for the variable @var{mode}.
 
 The command named @var{mode} first performs the standard actions such

@@ -270,7 +270,7 @@ Completion}.
 @end ifnottex
 @item ?
 Display a list of all possible completions of the text in the minibuffer
-(@code{minibuffer-list-completions}).
+(@code{minibuffer-completion-help}).
 @end table
 
 @kindex SPC

@@ -1,3 +1,60 @@
+2005-07-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.14
+
+2005-07-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.13
+
+2005-07-19  Juri Linkov  <juri@jurta.org>
+
+	* files.texi (Comparing Files): Mention resync for `compare-windows'.
+
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
+	* calc.texi (Time Zones, Logical Operations):
+	* cl.texi (Overview):
+	* custom.texi (Easy Customization):
+	* files.texi (Old Versions):
+	* frames.texi (Wheeled Mice):
+	* mule.texi (Specify Coding):
+	* org.texi (TODO types):
+	* sc.texi (Emacs 18 MUAs):
+	* speedbar.texi (Top):
+	* text.texi (Cell Justification):
+	* trouble.texi (After a Crash):
+	* url.texi (History):
+	* xresources.texi (GTK styles):
+	Delete duplicate duplicate words.
+
+2005-07-17  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Creating Frames): Fix foreground color example.
+
+	* custom.texi (Init Examples): Clean up text about conditionals.
+
+2005-07-16  Richard M. Stallman  <rms@gnu.org>
+
+	* mini.texi (Completion Commands): Fix command name for ?.
+
+2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+
+	* cl.texi (Type Predicates): Document `atom' type.
+
+2005-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* display.texi (Standard Faces): Explain that customization of
+	`menu' face has no effect on w32 and with GTK.  Add
+	cross-references.
+
+	* cmdargs.texi (General Variables): Clarify the default location
+	of $HOME on w32 systems.
+
+2005-07-15  Jason Rumney  <jasonr@gnu.org>
+
+	* cmdargs.texi (General Variables): Default HOME on MS Windows has
+	changed.
+
 2005-07-08  Kenichi Handa  <handa@m17n.org>
 
 	* mule.texi (Recognize Coding): Recommend
@@ -40,6 +97,7 @@
 	* mh-e.texi (Copying):
 	* trouble.texi (Checklist): Update FSF's address.
 
+>>>>>>> 1.631
 2005-07-03  Richard M. Stallman  <rms@gnu.org>
 
 	* flymake.texi (Example -- Configuring a tool called directly):
@@ -515,7 +573,7 @@
 
 2005-04-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xresources.texi (Lucid Resources): Add fonSet resource.
+	* xresources.texi (Lucid Resources): Add fontSet resource.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 

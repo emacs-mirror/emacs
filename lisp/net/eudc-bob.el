@@ -69,7 +69,7 @@
 
 (defun eudc-jump-to-event (event)
   "Jump to the window and point where EVENT occurred."
-  (if eudc-xemacs-p
+  (if (fboundp 'event-closest-point)
       (goto-char (event-closest-point event))
     (set-buffer (window-buffer (posn-window (event-start event))))
     (goto-char (posn-point (event-start event)))))
@@ -89,7 +89,7 @@
 
 (defun eudc-bob-can-display-inline-images ()
   "Return non-nil if we can display images inline."
-  (if eudc-xemacs-p
+  (if (fboundp 'console-type)
       (and (memq (console-type) '(x mswindows))
 	   (fboundp 'make-glyph))
     (and (fboundp 'display-graphic-p)
@@ -120,7 +120,7 @@ LABEL."
   "Display the JPEG DATA at point.
 If INLINE is non-nil, try to inline the image otherwise simply
 display a button."
-  (cond (eudc-xemacs-p
+  (cond ((fboundp 'make-glyph)
 	 (let ((glyph (if (eudc-bob-can-display-inline-images)
 			  (make-glyph (list (vector 'jpeg :data data)
 					    [string :data "[JPEG Picture]"])))))

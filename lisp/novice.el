@@ -42,8 +42,7 @@
 If nil, the feature is disabled, i.e., all commands work normally.")
 
 ;;;###autoload
-(defvaralias 'disabled-command-hook 'disabled-command-function)
-;;;###autoload (make-obsolete-variable 'disabled-command-hook 'disabled-command-function "22.1")
+(define-obsolete-variable-alias 'disabled-command-hook 'disabled-command-function "22.1")
 
 ;;;###autoload
 (defun disabled-command-function (&rest ignore)

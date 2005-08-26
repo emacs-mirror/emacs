@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1998, 1999, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/internals
@@ -366,6 +366,18 @@ You can make collections more frequent by specifying a smaller value,
 down to 10,000.  A value less than 10,000 will remain in effect only
 until the subsequent garbage collection, at which time
 @code{garbage-collect} will set the threshold back to 10,000.
+@end defopt
+
+@defopt gc-cons-percentage
+The value of this variable is the minimum portion of the heap that
+should be allocated before a garbage collection takes place.  It is
+used only if the specified size is larger than
+@code{gc-cons-threshold}.
+
+As the heap size increases, the time to perform a garbage collection
+increases, so in order to compensate, this variable tries to
+correspondingly reduce the frequency of collection by letting Emacs
+allocate more memory between each collection.
 @end defopt
 
   The value returned by @code{garbage-collect} describes the amount of

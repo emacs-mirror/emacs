@@ -584,7 +584,7 @@ This recursively follows aliases."
    "Themes that have been defined with `deftheme'.
 The default value is the list (user standard).  The theme `standard'
 contains the Emacs standard settings from the original Lisp files.  The
-theme `user' contains all the the settings the user customized and saved.
+theme `user' contains all the settings the user customized and saved.
 Additional themes declared with the `deftheme' macro will be added to
 the front of this list.")
 

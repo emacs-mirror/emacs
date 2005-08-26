@@ -131,7 +131,7 @@
   (make-temp-name
    (expand-file-name (if (eq system-type 'ms-dos) "ar" "archive.tmp")
 		     temporary-file-directory))
-  "Directory for temporary files made by arc-mode.el."
+  "Directory for temporary files made by `arc-mode.el'."
   :type 'directory
   :group 'archive)
 
@@ -465,9 +465,9 @@ Each descriptor is a vector of the form
   (intern (concat "archive-" (symbol-name archive-subtype) "-" suffix)))
 
 (defun archive-l-e (str &optional len)
-  "Convert little endian string/vector to integer.
-Alternatively, first argument may be a buffer position in the current buffer
-in which case a second argument, length, should be supplied."
+  "Convert little endian string/vector STR to integer.
+Alternatively, STR may be a buffer position in the current buffer
+in which case a second argument, length LEN, should be supplied."
   (if (stringp str)
       (setq len (length str))
     (setq str (buffer-substring str (+ str len))))
@@ -567,7 +567,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
     (format "%02d:%02d:%02d" hour minute second)))
 
 (defun archive-unixdate (low high)
-  "Stringify unix (LOW HIGH) date."
+  "Stringify Unix (LOW HIGH) date."
   (let ((str (current-time-string (cons high low))))
     (format "%s-%s-%s"
 	    (substring str 8 10)
@@ -575,7 +575,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 	    (substring str 20 24))))
 
 (defun archive-unixtime (low high)
-  "Stringify unix (LOW HIGH) time."
+  "Stringify Unix (LOW HIGH) time."
   (let ((str (current-time-string (cons high low))))
     (substring str 11 19)))
 
@@ -587,7 +587,7 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
 
 (defun archive-get-descr (&optional noerror)
   "Return the descriptor vector for file at point.
-Does not signal an error if optional second argument NOERROR is non-nil."
+Does not signal an error if optional argument NOERROR is non-nil."
   (let ((no (archive-get-lineno)))
     (if (and (>= (point) archive-file-list-start)
              (< no (length archive-files)))
@@ -761,7 +761,7 @@ when parsing the archive."
 
 (defun archive-alternate-display ()
   "Toggle alternative display.
-To avoid very long lines some archive mode don't show all information.
+To avoid very long lines archive mode does not show all information.
 This function changes the set of information shown for each files."
   (interactive)
   (setq archive-alternate-display (not archive-alternate-display))
@@ -1159,13 +1159,13 @@ With a prefix argument, mark that many files."
   "In archive mode, un-mark this member if it is marked to be deleted.
 With a prefix argument, un-mark that many files forward."
   (interactive "p")
-  (archive-flag-deleted p ? ))
+  (archive-flag-deleted p ?\s))
 
 (defun archive-unflag-backwards (p)
   "In archive mode, un-mark this member if it is marked to be deleted.
 With a prefix argument, un-mark that many members backward."
   (interactive "p")
-  (archive-flag-deleted (- p) ? ))
+  (archive-flag-deleted (- p) ?\s))
 
 (defun archive-unmark-all-files ()
   "Remove all marks."
@@ -1175,8 +1175,8 @@ With a prefix argument, un-mark that many members backward."
     (save-excursion
       (goto-char archive-file-list-start)
       (while (< (point) archive-file-list-end)
-        (or (= (following-char) ? )
-            (progn (delete-char 1) (insert ? )))
+        (or (= (following-char) ?\s)
+            (progn (delete-char 1) (insert ?\s)))
         (forward-line 1)))
     (restore-buffer-modified-p modified)))
 
@@ -1214,7 +1214,7 @@ Use \\[archive-unmark-all-files] to remove all marks."
 (defun archive-chmod-entry (new-mode)
   "Change the protection bits associated with all marked or this member.
 The new protection bits can either be specified as an octal number or
-as a relative change like \"g+rw\" as for chmod(2)"
+as a relative change like \"g+rw\" as for chmod(2)."
   (interactive "sNew mode (octal or relative): ")
   (if archive-read-only (error "Archive is read-only"))
   (let ((func (archive-name "chmod-entry")))

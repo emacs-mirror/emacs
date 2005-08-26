@@ -503,15 +503,11 @@ Also display the main routine in the disassembly buffer if present."
        (setq gdb-var-list (nreverse var-list))))))
 
 (defun gdb-var-update ()
-  (if (not (member 'gdb-var-update gdb-pending-triggers))
-      (progn
-	(gdb-enqueue-input
-	 (list
-	  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	      "server interpreter mi \"-var-update *\"\n"
-	    "-var-update *\n")
-				 'gdb-var-update-handler))
-	(push 'gdb-var-update gdb-pending-triggers))))
+  (when (not (member 'gdb-var-update gdb-pending-triggers))
+    (gdb-enqueue-input
+     (list "server interpreter mi \"-var-update *\"\n"
+	   'gdb-var-update-handler))
+    (push 'gdb-var-update gdb-pending-triggers)))
 
 (defconst gdb-var-update-regexp "name=\"\\(.*?\\)\"")
 
@@ -522,13 +518,9 @@ Also display the main routine in the disassembly buffer if present."
 	(let ((varnum (match-string 1)))
 	  (gdb-enqueue-input
 	   (list
-	    (if (with-current-buffer gud-comint-buffer
-		  (eq gud-minor-mode 'gdba))
-		(concat "server interpreter mi \"-var-evaluate-expression "
-			varnum "\"\n")
-	      (concat "-var-evaluate-expression " varnum "\n"))
-		     `(lambda () (gdb-var-evaluate-expression-handler
-				  ,varnum t)))))))
+	    (concat "server interpreter mi \"-var-evaluate-expression "
+		    varnum "\"\n")
+	    `(lambda () (gdb-var-evaluate-expression-handler ,varnum t)))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
@@ -544,9 +536,10 @@ Also display the main routine in the disassembly buffer if present."
     (speedbar-timer-fn)))
 
 (defun gdb-var-delete ()
-  "Delete watched expression from the speedbar."
+  "Delete watch expression at point from the speedbar."
   (interactive)
-  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+  (if (with-current-buffer
+	  gud-comint-buffer (memq gud-minor-mode '(gdbmi gdba)))
       (let ((text (speedbar-line-text)))
 	(string-match "\\(\\S-+\\)" text)
 	(let* ((expr (match-string 1 text))
@@ -595,7 +588,9 @@ INDENT is the current indentation depth."
   (cond ((string-match "+" text)        ;expand this node
 	 (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
 	     (gdb-var-list-children token)
-	   (gdbmi-var-list-children token)))
+	   (progn
+	     (gdbmi-var-update)
+	     (gdbmi-var-list-children token))))
 	((string-match "-" text)	;contract this node
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (nth 1 var))

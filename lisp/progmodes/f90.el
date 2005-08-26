@@ -1790,7 +1790,8 @@ Any other key combination is executed normally."
   (let (char event)
     (if (fboundp 'next-command-event) ; XEmacs
         (setq event (next-command-event)
-              char (event-to-character event))
+              char (and (fboundp 'event-to-character)
+			(event-to-character event)))
       (setq event (read-event)
             char event))
     ;; Insert char if not equal to `?', or if abbrev-mode is off.

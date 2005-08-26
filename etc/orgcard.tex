@@ -1,4 +1,4 @@
-% Reference Card for Org Mode 3.13
+% Reference Card for Org Mode 3.14
 %
 %**start of header
 \newcount\columnsperpage
@@ -32,8 +32,8 @@
 
 % You should have received a copy of the GNU General Public License
 % along with GNU Emacs; see the file COPYING.  If not, write to
-% the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-% Boston, MA 02110-1301, USA.
+% the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+% Boston, MA 02111-1307, USA.
 
 % This file is intended to be processed by plain TeX (TeX82).
 %
@@ -58,7 +58,7 @@
 % Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
 % for their many good ideas.
 
-\def\orgversionnumber{3.13}
+\def\orgversionnumber{3.14}
 \def\year{2005}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
@@ -467,29 +467,30 @@ Outside of tables, the same keys may have other functionality.
 Except for the summation commands, these need the Emacs calc package
 installed.
 
-\key{replace current field with result of formula}{C-c =}
-\key{... same calculation for rest of column}{C-u C-c =}
+\key{set and eval column formula}{C-c =}
+\key{set and eval named-field formula}{C-u C-c =}
+\key{edit formulas in separate buffer}{C-c '}
 \key{re-apply all stored equations to current line}{C-c *}
 \key{re-apply all stored equations to entire table}{C-u C-c *}
 
 \kbd{TAB}, \kbd{RET} and \kbd{C-c C-c} trigger automatic recalculation
 in lines starting with: {\tt | \# |}.
 
-\key{rotate recalculation mark through \# * ! \^ \_ \$}{C-\#}
+\key{rotate calculation mark through \# * ! \^ \_ \$}{C-\#}
 
 \key{display column number cursor is in}{C-c ?}
 \key{sum numbers in current column/rectangle}{C-c +}
 \key{copy down with increment}{S-RET$^4$}
 
-A formula can also be typed directly into into a field.  It will be
-executed by \kbd{TAB}, \kbd{RET} and \kbd{C-c C-c}:
+A formula can also be typed directly into into a field and will
+executed by \kbd{TAB}, \kbd{RET} and \kbd{C-c C-c}.  A leading \kbd{=}
+introduces a column formula, \kbd{:=} a named-field formula.
 
 \key{Example: Add Col1 and Col2}{=\$1+\$2}
 \key{... with printf format specification}{=\$1+\$2;\%.2f}
 \key{... with constants from constants.el}{=\$1/\$c/\$cm}
-\key{Apply current (for this column) formula}{=}
-\key{Sum all numbers above/left of cursor}{=sum / =sumh}
-\key{Sum just the 3 fields closest to cursor}{=sum3/=sumh3}
+\key{sum from 3rd hline above to here}{:=vsum(\&III)}
+\key{apply current column formula}{=}
 
 {\bf Miscellaneous}
 
@@ -646,8 +647,8 @@ Subtrees whose header starts with COMMENT are never exported.
 \section{Completion}
 
 In-buffer completion completes TODO keywords at headline start, TeX
-macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'',
-keyword formulas after ``{\tt =}'', and dictionary words elsewhere.
+macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'', and
+dictionary words elsewhere.
 
 \key{Complete word at point}{M-TAB}
 

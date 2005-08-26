@@ -1357,11 +1357,13 @@ buffer. If odd -- assume it is in a file."
 
 ;;;###autoload
 (defun ediff-patch-buffer (&optional arg patch-buf)
-  "Run Ediff by patching BUFFER-NAME.
-Without prefix argument: asks if the patch is in some buffer and prompts for
-the buffer or a file, depending on the answer.
-With prefix arg=1: assumes the patch is in a file and prompts for the file.
-With prefix arg=2: assumes the patch is in a buffer and prompts for the buffer."
+  "Run Ediff by patching the buffer specified at prompt.
+Without the optional prefix ARG, asks if the patch is in some buffer and
+prompts for the buffer or a file, depending on the answer.
+With ARG=1, assumes the patch is in a file and prompts for the file.
+With ARG=2, assumes the patch is in a buffer and prompts for the buffer.
+PATCH-BUF is an optional argument, which specifies the buffer that contains the
+patch. If not given, the user is prompted according to the prefix argument."
   (interactive "P")
   (require 'ediff-ptch)
   (setq patch-buf

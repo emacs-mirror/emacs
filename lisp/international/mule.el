@@ -1623,8 +1623,8 @@ This is used for loading and byte-compiling Emacs Lisp files.")
 	(setq alist (cdr alist))))
     coding-system))
 
-(defun set-auto-coding (filename size)
-  "Return coding system for a file FILENAME of which SIZE bytes follow point.
+(defun find-auto-coding (filename size)
+  "Find a coding system for a file FILENAME of which SIZE bytes follow point.
 These bytes should include at least the first 1k of the file
 and the last 3k of the file, but the middle may be omitted.
 
@@ -1638,12 +1638,21 @@ contents of the current buffer following point against
 succeed, it checks to see if any function in `auto-coding-functions'
 gives a match.
 
-The return value is the specified coding system, or nil if nothing is
-specified.
+If a coding system is specifed, the return value is a
+cons (CODING . SOURCE), where CODING is the specified coding
+system and SOURCE is a symbol `auto-coding-alist',
+`auto-coding-regexp-alist', `coding:', or `auto-coding-functions'
+indicating by what CODING is specified.  Note that the validity
+of CODING is not checked; it's callers responsibility to check
+it.
+
+If nothing is specified, the return value is nil.
 
 The variable `set-auto-coding-function' (which see) is set to this
 function by default."
-  (or (auto-coding-alist-lookup filename)
+  (or (let ((coding-system (auto-coding-alist-lookup filename)))
+	(if coding-system
+	    (cons coding-system 'auto-coding-alist)))
       ;; Try using `auto-coding-regexp-alist'.
       (save-excursion
 	(let ((alist auto-coding-regexp-alist)
@@ -1653,7 +1662,8 @@ function by default."
 	      (when (re-search-forward regexp (+ (point) size) t)
 		(setq coding-system (cdr (car alist)))))
 	    (setq alist (cdr alist)))
-	  coding-system))
+	  (if coding-system
+	      (cons coding-system 'auto-coding-regexp-alist))))
       (let* ((case-fold-search t)
 	     (head-start (point))
 	     (head-end (+ head-start (min size 1024)))
@@ -1687,9 +1697,7 @@ function by default."
 		       (re-search-forward
 			"\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)"
 			head-end t))
-	      (setq coding-system (intern (match-string 2)))
-	      (or (coding-system-p coding-system)
-		  (setq coding-system nil)))))
+	      (setq coding-system (intern (match-string 2))))))
 
 	;; If no coding: tag in the head, check the tail.
 	;; Here we must pay attention to the case that the end-of-line
@@ -1730,10 +1738,9 @@ function by default."
 		  (setq coding-system 'raw-text))
 		(when (and (not coding-system)
 			   (re-search-forward re-coding tail-end t))
-		  (setq coding-system (intern (match-string 1)))
-		  (or (coding-system-p coding-system)
-		      (setq coding-system nil))))))
-	coding-system)
+		  (setq coding-system (intern (match-string 1)))))))
+	(if coding-system
+	    (cons coding-system :coding)))
       ;; Finally, try all the `auto-coding-functions'.
       (let ((funcs auto-coding-functions)
 	    (coding-system nil))
@@ -1743,7 +1750,16 @@ function by default."
 				    (goto-char (point-min))
 				    (funcall (pop funcs) size))
 				(error nil))))
-	coding-system)))
+	(if coding-system
+	    (cons coding-system 'auto-coding-functions)))))
+
+(defun set-auto-coding (filename size)
+  "Return coding system for a file FILENAME of which SIZE bytes follow point.
+See `find-auto-coding' for how the coding system is found.
+Return nil if an invalid coding system is found."
+  (let ((found (find-auto-coding filename size)))
+    (if (and found (coding-system-p (car found)))
+	(car found))))
 
 (setq set-auto-coding-function 'set-auto-coding)
 

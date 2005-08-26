@@ -1,3 +1,25 @@
+2005-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mml.el (mml-minibuffer-read-disposition): Don't use inline by default
+	for text/rtf.  Display default in prompt.  Pass default for M-n.
+
+	* mm-uu.el (mm-uu-copy-to-buffer): Use with-current-buffer.
+
+2005-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-button-mailto): Remove
+	save-selected-window-window hackery because it relies on
+	save-selected-window internals.
+
+2005-07-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page): Use gnus-end-of-window.
+	(gnus-article-next-page-1): Use gnus-beginning-of-window.
+	(gnus-article-prev-page): Ditto.
+
+	* gnus-util.el (gnus-beginning-of-window): New function.
+	(gnus-end-of-window): New function.
+
 2005-07-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-salt.el (gnus-pick-mode): Remove the 5th arg of

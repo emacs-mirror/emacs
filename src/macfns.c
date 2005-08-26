@@ -1570,9 +1570,10 @@ x_set_cursor_color (f, arg, oldval)
     {
       BLOCK_INPUT;
       /* Update frame's cursor_gc.  */
-      f->output_data.mac->cursor_gc->foreground = fore_pixel;
-      f->output_data.mac->cursor_gc->background = pixel;
-
+      XSetBackground (FRAME_MAC_DISPLAY (f),
+		      f->output_data.mac->cursor_gc, pixel);
+      XSetForeground (FRAME_MAC_DISPLAY (f),
+		      f->output_data.mac->cursor_gc, fore_pixel);
       UNBLOCK_INPUT;
 
       if (FRAME_VISIBLE_P (f))

@@ -2398,7 +2398,7 @@ GDB. You can interact with GDB through the GUD buffer in the usual way, but
 there are also further buffers which control the execution and describe the
 state of your program.  It can separate the input/output of your program from
 that of GDB and watches expressions in the speedbar.  It also uses features of
-Emacs 21/22 such as the the toolbar, and bitmaps in the fringe to indicate
+Emacs 21/22 such as the toolbar, and bitmaps in the fringe to indicate
 breakpoints.
 
 Use M-x gdb to start GDB-UI.
@@ -3043,6 +3043,21 @@ variable `calculator-radix-grouping-mode'.
 ** cplus-md.el has been deleted.
 
 * Changes in Emacs 22.1 on non-free operating systems
+
++++
+** The HOME directory defaults to Application Data under the user profile.
+
+If you used a previous version of Emacs without setting the HOME
+environment variable and a `.emacs' was saved, then Emacs will continue
+using C:/ as the default HOME.  But if you are installing Emacs afresh,
+the default location will be the "Application Data" (or similar
+localized name) subdirectory of your user profile.  A typical location
+of this directory is "C:\Documents and Settings\USERNAME\Application Data",
+where USERNAME is your user name.
+
+This change means that users can now have their own `.emacs' files on
+shared computers, and the default HOME directory is less likely to be
+read-only on computers that are administered by someone else.
 
 +++
 ** Passing resources on the command line now works on MS Windows.
@@ -4079,8 +4094,7 @@ emacs tries to read it.
 
 *** The new function `call-process-shell-command'.
 
-This executes a shell command command synchronously in a separate
-process.
+This executes a shell command synchronously in a separate process.
 
 *** The new function `process-file' is similar to `call-process', but
 obeys file handlers.  The file handler is chosen based on
@@ -5028,6 +5042,10 @@ running under X.
 
 ** GC changes:
 
++++
+*** New variable `gc-cons-percentage' automatically grows the GC cons threshold
+as the heap sizxe increases.
+	
 +++
 *** New variables `gc-elapsed' and `gcs-done' provide extra information
 on garbage collection.

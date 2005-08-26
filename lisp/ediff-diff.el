@@ -30,6 +30,7 @@
 ;; compiler pacifier
 (defvar ediff-default-variant)
 (defvar null-device)
+(defvar longlines-mode)
 
 (eval-when-compile
   (let ((load-path (cons (expand-file-name ".") load-path)))

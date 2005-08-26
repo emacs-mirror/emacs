@@ -430,32 +430,20 @@ be re-created.")
 
 ;;; Compatibility
 ;;
-(if (string-match "X[Ee]macs" emacs-version)
-    (progn
-      (defalias 'checkdoc-make-overlay 'make-extent)
-      (defalias 'checkdoc-overlay-put 'set-extent-property)
-      (defalias 'checkdoc-delete-overlay 'delete-extent)
-      (defalias 'checkdoc-overlay-start 'extent-start)
-      (defalias 'checkdoc-overlay-end 'extent-end)
-      (defalias 'checkdoc-mode-line-update 'redraw-modeline)
-      (defalias 'checkdoc-call-eval-buffer 'eval-buffer)
-      )
-  (defalias 'checkdoc-make-overlay 'make-overlay)
-  (defalias 'checkdoc-overlay-put 'overlay-put)
-  (defalias 'checkdoc-delete-overlay 'delete-overlay)
-  (defalias 'checkdoc-overlay-start 'overlay-start)
-  (defalias 'checkdoc-overlay-end 'overlay-end)
-  (defalias 'checkdoc-mode-line-update 'force-mode-line-update)
-  (defalias 'checkdoc-call-eval-buffer 'eval-current-buffer)
-  )
-
-;; Emacs 20s have MULE characters which don't equate to numbers.
-(if (fboundp 'char=)
-    (defalias 'checkdoc-char= 'char=)
-  (defalias 'checkdoc-char= '=))
-
-;; Read events, not characters
-(defalias 'checkdoc-read-event 'read-event)
+(defalias 'checkdoc-make-overlay
+  (if (featurep 'xemacs) 'make-extent 'make-overlay))
+(defalias 'checkdoc-overlay-put
+  (if (featurep 'xemacs) 'set-extent-property 'overlay-put))
+(defalias 'checkdoc-delete-overlay
+  (if (featurep 'xemacs) 'delete-extent 'delete-overlay))
+(defalias 'checkdoc-overlay-start
+  (if (featurep 'xemacs) 'extent-start 'overlay-start))
+(defalias 'checkdoc-overlay-end
+  (if (featurep 'xemacs) 'extent-end 'overlay-end))
+(defalias 'checkdoc-mode-line-update
+  (if (featurep 'xemacs) 'redraw-modeline 'force-mode-line-update))
+(defalias 'checkdoc-char=
+  (if (featurep 'xemacs) 'char= '=))
 
 ;;; User level commands
 ;;
@@ -628,7 +616,7 @@ style."
 		(goto-char (checkdoc-error-start (car (car err-list))))
 		(if (not (pos-visible-in-window-p))
 		    (recenter (- (window-height) 2)))
-		(setq c (checkdoc-read-event)))
+		(setq c (read-event)))
 	      (if (not (integerp c)) (setq c ??))
 	      (cond
 	       ;; Exit condition
@@ -844,7 +832,7 @@ Evaluation is done first because good documentation for something that
 doesn't work is just not useful.  Comments, doc strings, and rogue
 spacing are all verified."
   (interactive)
-  (checkdoc-call-eval-buffer nil)
+  (eval-buffer nil)
   (checkdoc-current-buffer t))
 
 ;;;###autoload

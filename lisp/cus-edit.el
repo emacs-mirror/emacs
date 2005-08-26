@@ -4228,6 +4228,7 @@ The format is suitable for use with `easy-menu-define'."
     (suppress-keymap map)
     (define-key map " " 'scroll-up)
     (define-key map "\177" 'scroll-down)
+    (define-key map "\C-c\C-c" 'Custom-set)
     (define-key map "\C-x\C-s" 'Custom-save)
     (define-key map "q" 'Custom-buffer-done)
     (define-key map "u" 'Custom-goto-parent)
@@ -4257,7 +4258,7 @@ The format is suitable for use with `easy-menu-define'."
     ["Reset to Current" Custom-reset-current t]
     ["Reset to Saved" Custom-reset-saved t]
     ["Reset to Standard Settings" Custom-reset-standard t]
-    ["Info" (Info-goto-node "(emacs)Easy Customization") t]))
+    ["Info" (info "(emacs)Easy Customization") t]))
 
 (defun Custom-goto-parent ()
   "Go to the parent group listed at the top of this buffer.

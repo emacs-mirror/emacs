@@ -184,7 +184,7 @@ attributes (@pxref{Faces}).
 
 @findex customize
 @cindex customization buffer
-  You can browse interactively through the the user options and change
+  You can browse interactively through the user options and change
 some of them using @kbd{M-x customize}.  This command creates a
 @dfn{customization buffer}, which offers commands to navigate through
 a logically organized structure of the Emacs user options; you can
@@ -2313,41 +2313,36 @@ Enable the use of the command @code{narrow-to-region} without confirmation.
 @end example
 
 @item
-Adjusting the configuration to various contexts.
+Adjusting the configuration to various platforms and Emacs versions.
 
-In most of the cases, people want their Emacs to behave the same on
-all their machines, so their configuration should be the same, no
-matter whether it's GNU/Linux or not, under X11 or on a tty, with one
-version of  Emacs or another, ...
-
-What can happen, tho, is that depending on the circumstance some
-features may or may not be available.  In that case just prepend each
-such customization with a little test that ensures that the feature
-can be used.  The best tests are usually checking that the feature is
-available, rather than checking what kind of environment is
-being used.
+Users typically want Emacs to behave the same on all systems, so the
+same init file is right for all platforms.  However, sometimes it
+happens that a function you use for customizing Emacs is not available
+on some platforms or in older Emacs versions.  To deal with that
+situation, put the customization inside a conditional that tests whether
+the function or facility is available, like this:
 
 @example
-(if (fboundp 'blinking-cursor-mode)
-    (blinking-cursor-mode 0))
-@end example
+(if (fboundp 'blink-cursor-mode)
+    (blink-cursor-mode 0))
 
-@example
 (if (boundp 'coding-category-utf-8)
-  (set-coding-priority '(coding-category-utf-8)))
+    (set-coding-priority '(coding-category-utf-8)))
 @end example
+
+@noindent
+You can also simply disregard the errors that occur if the
+function is not defined.
 
 @example
-(require 'cl)                   ; To define `ignore-errors'.
-(ignore-errors (set-face-background 'region "grey75"))
+(condition case ()
+    (set-face-background 'region "grey75")
+  (error nil))
 @end example
 
-Note also that a @code{setq} on a variable which does not exist is
-generally harmless, so those usually do not need to be made
-conditional on any kind of test.
-
+A @code{setq} on a variable which does not exist is generally
+harmless, so those do not need a conditional.
 @end itemize
-
 
 @node Terminal Init
 @subsection Terminal-specific Initialization

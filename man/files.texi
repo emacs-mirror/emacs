@@ -1643,7 +1643,7 @@ them; they exist only in the records of the master file.
 @kindex C-x v g
   For some backends, you can display the file @dfn{annotated} with
 per-line version information and using colors to enhance the visual
-appearance, with the the command @kbd{M-x vc-annotate}.
+appearance, with the command @kbd{M-x vc-annotate}.
 It creates a new buffer
 to display file's text, colored to show how old each part is.  Text
 colored red is new, blue means old, and intermediate colors indicate
@@ -2923,8 +2923,10 @@ window with that in the next window.  Comparison starts at point in each
 window, and each starting position is pushed on the mark ring in its
 respective buffer.  Then point moves forward in each window, a character
 at a time, until a mismatch between the two windows is reached.  Then
-the command is finished.  For more information about windows in Emacs,
-@ref{Windows}.
+the command is finished.  Another invocation of this command with
+points on mismatching positions tries to skip non-matching text and
+move points forward, until a match between the two windows is reached.
+For more information about windows in Emacs, @ref{Windows}.
 
 @vindex compare-ignore-case
 @vindex compare-ignore-whitespace

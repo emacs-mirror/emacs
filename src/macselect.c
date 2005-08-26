@@ -371,7 +371,7 @@ get_scrap_target_type_list (scrap)
   err = GetScrapFlavorCount (scrap, &count);
   if (err == noErr)
     flavor_info = xmalloc (sizeof (ScrapFlavorInfo) * count);
-  if (err == noErr && flavor_info)
+  if (flavor_info)
     {
       err = GetScrapFlavorInfoList (scrap, &count, flavor_info);
       if (err != noErr)
@@ -380,6 +380,8 @@ get_scrap_target_type_list (scrap)
 	  flavor_info = NULL;
 	}
     }
+  if (flavor_info == NULL)
+    count = 0;
 #endif
   for (rest = Vselection_converter_alist; CONSP (rest); rest = XCDR (rest))
     {

@@ -774,7 +774,8 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	   )
 
 	  (if (commandp com)
-	      (progn
+	      ;; pretend that current state is the state we excaped to
+	      (let ((viper-current-state state))
 		(setq prefix-arg (or prefix-arg arg))
 		(command-execute com)))
 	  )
@@ -996,9 +997,12 @@ as a Meta key and any number of multiple escapes is allowed."
 	(inhibit-quit t))
     (if (viper-ESC-event-p event)
 	(progn
-	  (if (viper-fast-keysequence-p)
+	  ;; Emacs 22.50.8 introduced a bug, which makes even a single ESC into
+	  ;; a fast keyseq. To guard against this, we added a check if there
+	  ;; are other events as well
+	  (if (and (viper-fast-keysequence-p) unread-command-events)
 	      (progn
-		(let (minor-mode-map-alist)
+		(let (minor-mode-map-alist emulation-mode-map-alists)
 		  (viper-set-unread-command-events event)
 		  (setq keyseq (read-key-sequence nil 'continue-echo))
 		  ) ; let

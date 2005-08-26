@@ -305,7 +305,7 @@ For more information, see the function `buffer-menu'."
 
 (defun Buffer-menu-unmark (&optional backup)
   "Cancel all requested operations on buffer on this line and move down.
-Optional ARG means move up."
+Optional prefix arg means move up."
   (interactive "P")
   (when (Buffer-menu-no-header)
     (let* ((buf (Buffer-menu-buffer t))
@@ -369,10 +369,10 @@ and then move up one line.  Prefix arg means move that many lines."
   (save-excursion
    (beginning-of-line)
    (forward-char 2)
-   (if (= (char-after) (if arg ?  ?*))
+   (if (= (char-after) (if arg ?\s ?*))
        (let ((buffer-read-only nil))
 	 (delete-char 1)
-	 (insert (if arg ?* ? ))))))
+	 (insert (if arg ?* ?\s))))))
 
 (defun Buffer-menu-beginning ()
   (goto-char (point-min))
@@ -392,7 +392,7 @@ and then move up one line.  Prefix arg means move that many lines."
 	  (setq modp (buffer-modified-p)))
 	(let ((buffer-read-only nil))
 	  (delete-char -1)
-	  (insert (if modp ?* ? ))))))
+	  (insert (if modp ?* ?\s))))))
   (save-excursion
     (Buffer-menu-beginning)
     (let ((buff-menu-buffer (current-buffer))
@@ -405,7 +405,7 @@ and then move up one line.  Prefix arg means move that many lines."
 	      (save-excursion (kill-buffer buf)))
 	  (if (and buf (buffer-name buf))
 	    (progn (delete-char 1)
-		   (insert ? ))
+		   (insert ?\s))
 	  (delete-region (point) (progn (forward-line 1) (point)))
 	    (unless (bobp)
 	      (forward-char -1))))))))
@@ -425,7 +425,7 @@ in the selected frame."
       (setq tem (Buffer-menu-buffer t))
       (let ((buffer-read-only nil))
 	(delete-char -1)
-	(insert ?\ ))
+	(insert ?\s))
       (or (eq tem buff) (memq tem others) (setq others (cons tem others))))
     (setq others (nreverse others)
 	  tem (/ (1- (frame-height)) (1+ (length others))))
@@ -521,7 +521,7 @@ The current window remains selected."
     (save-excursion
       (set-buffer (Buffer-menu-buffer t))
       (vc-toggle-read-only)
-      (setq char (if buffer-read-only ?% ? )))
+      (setq char (if buffer-read-only ?% ?\s)))
     (save-excursion
       (beginning-of-line)
       (forward-char 1)
@@ -594,7 +594,7 @@ For more information, see the function `buffer-menu'."
 	  (make-string (- Buffer-menu-buffer+size-width
 			  (length name)
 			  (length size))
-		       ? )
+		       ?\s)
 	  size))
 
 (defun Buffer-menu-sort (column)
@@ -677,7 +677,7 @@ it means list those buffers and no others.
 For more information, see the function `buffer-menu'."
   (let* ((old-buffer (current-buffer))
 	 (standard-output standard-output)
-	 (mode-end (make-string (- Buffer-menu-mode-width 2) ? ))
+	 (mode-end (make-string (- Buffer-menu-mode-width 2) ?\s))
 	 (header (concat "CRM "
 			 (Buffer-menu-buffer+size
 			  (Buffer-menu-make-sort-button "Buffer" 2)
@@ -712,7 +712,7 @@ For more information, see the function `buffer-menu'."
 	  (insert header
 		  (apply 'string
 			 (mapcar (lambda (c)
-				   (if (memq c '(?\n ?\ )) c underline))
+				   (if (memq c '(?\n ?\s)) c underline))
 				 header)))))
       ;; Collect info for every buffer we're interested in.
       (dolist (buffer (or buffer-list (buffer-list)))
@@ -732,17 +732,17 @@ For more information, see the function `buffer-menu'."
 				      (format-mode-line mode-line-process
 							nil nil buffer))))
 		    (bits (string
-			   (if (eq buffer old-buffer) ?. ?\ )
+			   (if (eq buffer old-buffer) ?. ?\s)
 			   ;; Handle readonly status.  The output buffer
 			   ;; is special cased to appear readonly; it is
 			   ;; actually made so at a later date.
 			   (if (or (eq buffer standard-output)
 				   buffer-read-only)
-			       ?% ?\ )
+			       ?% ?\s)
 			   ;; Identify modified buffers.
-			   (if (buffer-modified-p) ?* ?\ )
+			   (if (buffer-modified-p) ?* ?\s)
 			   ;; Space separator.
-			   ?\ )))
+			   ?\s)))
 		(unless file
 		  ;; No visited file.  Check local value of
 		  ;; list-buffers-directory.

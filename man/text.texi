@@ -2664,7 +2664,7 @@ recognition commands (@pxref{Table Recognition}) are equipped with a
 convenience feature (turned on by default).  During table recognition,
 the contents of a cell are examined to determine which justification
 was originally applied to the cell and then applies this justification
-to the the cell.  This is a speculative algorithm and is therefore not
+to the cell.  This is a speculative algorithm and is therefore not
 perfect, however, the justification is deduced correctly most of the
 time.  If you desire to disable this feature, customize the variable
 @code{table-detect-cell-alignment} to set it to @code{nil}.

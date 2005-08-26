@@ -42,7 +42,6 @@
 (eval-when-compile (require 'cl)) ; for case macro
 
 (require 'comint)
-(require 'etags)
 (require 'font-lock)
 
 ;; ======================================================================
@@ -352,10 +351,10 @@ t means that there is no stack, and we are in display-file mode.")
        (not (memq gud-minor-mode '(gdbmi gdba))))]
     ["Edit value" speedbar-edit-line
      (with-current-buffer gud-comint-buffer
-       (not (memq gud-minor-mode '(gdbmi gdba))))]
+       (memq gud-minor-mode '(gdbmi gdba)))]
     ["Delete expression" gdb-var-delete
      (with-current-buffer gud-comint-buffer
-       (not (memq gud-minor-mode '(gdbmi gdba))))])
+       (memq gud-minor-mode '(gdbmi gdba)))])
   "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
@@ -833,6 +832,7 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive (list (gud-query-cmdline 'sdb)))
 
+  (if gud-sdb-needs-tags (require 'etags))
   (if (and gud-sdb-needs-tags
 	   (not (and (boundp 'tags-file-name)
 		     (stringp tags-file-name)

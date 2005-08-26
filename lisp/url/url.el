@@ -123,9 +123,14 @@ Emacs."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun url-retrieve (url callback &optional cbargs)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
-The callback is called when the object has been completely retrieved, with
+URL is either a string or a parsed URL.
+
+CALLBACK is called when the object has been completely retrieved, with
 the current buffer containing the object, and any MIME headers associated
-with it.  URL is either a string or a parsed URL.
+with it.  Normally it gets the arguments in the list CBARGS.
+However, if what we find is a redirect, CALLBACK is given
+two additional args, `:redirect' and the redirected URL,
+followed by CBARGS.
 
 Return the buffer URL will load into, or nil if the process has
 already completed."

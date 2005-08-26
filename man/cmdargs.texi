@@ -478,10 +478,15 @@ This variable defaults to @file{~/.bash_history} if you use Bash, to
 otherwise.
 @item HOME
 The location of the user's files in the directory tree; used for
-expansion of file names starting with a tilde (@file{~}).  On MS-DOS, it
-defaults to the directory from which Emacs was started, with @samp{/bin}
-removed from the end if it was present.  On Windows, the default value
-of @env{HOME} is @file{C:/}, the root directory of drive @file{C:}.
+expansion of file names starting with a tilde (@file{~}).  On MS-DOS,
+it defaults to the directory from which Emacs was started, with
+@samp{/bin} removed from the end if it was present.  On Windows, the
+default value of @env{HOME} is the @file{Application Data}
+subdirectory of the user profile directory (normally, this is
+@file{C:/Documents and Settings/@var{username}/Application Data},
+where @var{username} is your user name), though for backwards
+compatibility @file{C:/} will be used instead if a @file{.emacs} file
+is found there.
 @item HOSTNAME
 The name of the machine that Emacs is running on.
 @item INCPATH

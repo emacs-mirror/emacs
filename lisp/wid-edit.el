@@ -275,7 +275,7 @@ minibuffer."
 		 (while (not (or (and (>= char ?0) (< char next-digit))
 				 (eq value 'keyboard-quit)))
 		   ;; Unread a SPC to lead to our new menu.
-		   (setq unread-command-events (cons ?\  unread-command-events))
+		   (setq unread-command-events (cons ?\s unread-command-events))
 		   (setq keys (read-key-sequence title))
 		   (setq value
 			 (lookup-key overriding-terminal-local-map keys t)
@@ -377,7 +377,7 @@ new value.")
 	    (end (widget-field-end field)))
 	(when size
 	  (while (and (> end begin)
-		      (eq (char-after (1- end)) ?\ ))
+		      (eq (char-after (1- end)) ?\s))
 	    (setq end (1- end))))
 	(while (< begin end)
 	  (let ((old (char-after begin)))
@@ -441,14 +441,8 @@ new value.")
       (prog1 (progn ,@form)
 	(goto-char (point-max))))))
 
-(defface widget-inactive '((((class grayscale color)
-			     (background dark))
-			    (:foreground "light gray"))
-			   (((class grayscale color)
-			     (background light))
-			    (:foreground "dim gray"))
-			   (t
-			    (:slant italic)))
+(defface widget-inactive
+  '((t :inherit shadow))
   "Face used for inactive widgets."
   :group 'widget-faces)
 ;; backward-compatibility alias
@@ -802,8 +796,8 @@ The optional ARGS are additional keyword arguments."
 				 &optional button-from button-to
 				 &rest args)
   "Return a widget of type TYPE with endpoint FROM TO.
-Optional ARGS are extra keyword arguments for TYPE.
-and TO will be used as the widgets end points. If optional arguments
+No text will be inserted to the buffer, instead the text between FROM
+and TO will be used as the widgets end points.  If optional arguments
 BUTTON-FROM and BUTTON-TO are given, these will be used as the widgets
 button end points.
 Optional ARGS are extra keyword arguments for TYPE."
@@ -1111,7 +1105,7 @@ the field."
   :group 'widgets)
 
 (defun widget-narrow-to-field ()
-  "Narrow to field"
+  "Narrow to field."
   (interactive)
   (let ((field (widget-field-find (point))))
     (if field
@@ -1219,7 +1213,7 @@ When not inside a field, move to the previous button or field."
 
 (defun widget-field-find (pos)
   "Return the field at POS.
-Unlike (get-char-property POS 'field) this, works with empty fields too."
+Unlike (get-char-property POS 'field), this works with empty fields too."
   (let ((fields widget-field-list)
 	field found)
     (while fields
@@ -1269,7 +1263,7 @@ Unlike (get-char-property POS 'field) this, works with empty fields too."
 		   ;; Field too small.
 		   (save-excursion
 		     (goto-char end)
-		     (insert-char ?\  (- (+ begin size) end))))
+		     (insert-char ?\s (- (+ begin size) end))))
 		  ((> (- end begin) size)
 		   ;; Field too large and
 		   (if (or (< (point) (+ begin size))
@@ -1280,7 +1274,7 @@ Unlike (get-char-property POS 'field) this, works with empty fields too."
 		     (setq begin (point)))
 		   (save-excursion
 		     (goto-char end)
-		     (while (and (eq (preceding-char) ?\ )
+		     (while (and (eq (preceding-char) ?\s)
 				 (> (point) begin))
 		       (delete-backward-char 1)))))))
 	(widget-specify-secret field))
@@ -1440,7 +1434,7 @@ If that does not exists, call the value of `widget-complete-field'."
 	       ((eq escape ?n)
 		(when (widget-get widget :indent)
 		  (insert ?\n)
-		  (insert-char ?  (widget-get widget :indent))))
+		  (insert-char ?\s (widget-get widget :indent))))
 	       ((eq escape ?t)
 		(let ((image (widget-get widget :tag-glyph))
 		      (tag (widget-get widget :tag)))
@@ -1504,7 +1498,7 @@ If that does not exists, call the value of `widget-complete-field'."
 	     (when doc-text
 	       (and (eq (preceding-char) ?\n)
 		    (widget-get widget :indent)
-		    (insert-char ?  (widget-get widget :indent)))
+		    (insert-char ?\s (widget-get widget :indent)))
 	       ;; The `*' in the beginning is redundant.
 	       (when (eq (aref doc-text  0) ?*)
 		 (setq doc-text (substring doc-text 1)))
@@ -1757,7 +1751,7 @@ If END is omitted, it defaults to the length of LIST."
   :action 'widget-url-link-action)
 
 (defun widget-url-link-action (widget &optional event)
-  "Open the url specified by WIDGET."
+  "Open the URL specified by WIDGET."
   (browse-url (widget-value widget)))
 
 ;;; The `function-link' Widget.
@@ -1797,7 +1791,7 @@ If END is omitted, it defaults to the length of LIST."
   :action 'widget-emacs-library-link-action)
 
 (defun widget-emacs-library-link-action (widget &optional event)
-  "Find the Emacs Library file specified by WIDGET."
+  "Find the Emacs library file specified by WIDGET."
   (find-file (locate-library (widget-value widget))))
 
 ;;; The `emacs-commentary-link' Widget.
@@ -1878,7 +1872,7 @@ the earlier input."
     (insert value)
     (and size
 	 (< (length value) size)
-	 (insert-char ?\  (- size (length value))))
+	 (insert-char ?\s (- size (length value))))
     (unless (memq widget widget-field-list)
       (setq widget-field-new (cons widget widget-field-new)))
     (move-marker (cdr overlay) (point))
@@ -1911,7 +1905,7 @@ the earlier input."
 	  (while (and size
 		      (not (zerop size))
 		      (> to from)
-		      (eq (char-after (1- to)) ?\ ))
+		      (eq (char-after (1- to)) ?\s))
 	    (setq to (1- to)))
 	  (let ((result (buffer-substring-no-properties from to)))
 	    (when secret
@@ -2192,7 +2186,7 @@ when he invoked the menu."
 If the item is checked, CHOSEN is a cons whose cdr is the value."
   (and (eq (preceding-char) ?\n)
        (widget-get widget :indent)
-       (insert-char ?  (widget-get widget :indent)))
+       (insert-char ?\s (widget-get widget :indent)))
   (widget-specify-insert
    (let* ((children (widget-get widget :children))
 	  (buttons (widget-get widget :buttons))
@@ -2372,7 +2366,7 @@ Return an alist of (TYPE MATCH)."
   ;; (setq type (widget-convert type))
   (and (eq (preceding-char) ?\n)
        (widget-get widget :indent)
-       (insert-char ?  (widget-get widget :indent)))
+       (insert-char ?\s (widget-get widget :indent)))
   (widget-specify-insert
    (let* ((value (widget-get widget :value))
 	  (children (widget-get widget :children))
@@ -2550,7 +2544,7 @@ Return an alist of (TYPE MATCH)."
     ;; (let ((widget-push-button-gui widget-editable-list-gui))
     (cond ((eq escape ?i)
 	   (and (widget-get widget :indent)
-		(insert-char ?\  (widget-get widget :indent)))
+		(insert-char ?\s (widget-get widget :indent)))
 	   (apply 'widget-create-child-and-convert
 		  widget 'insert-button
 		  (widget-get widget :append-button-args)))
@@ -2662,7 +2656,7 @@ Return an alist of (TYPE MATCH)."
     (widget-specify-insert
      (save-excursion
        (and (widget-get widget :indent)
-	    (insert-char ?\  (widget-get widget :indent)))
+	    (insert-char ?\s (widget-get widget :indent)))
        (insert (widget-get widget :entry-format)))
      ;; Parse % escapes in format.
      (while (re-search-forward "%\\(.\\)" nil t)
@@ -2726,7 +2720,7 @@ Return an alist of (TYPE MATCH)."
 	    value (cdr answer))
       (and (eq (preceding-char) ?\n)
 	   (widget-get widget :indent)
-	   (insert-char ?\  (widget-get widget :indent)))
+	   (insert-char ?\s (widget-get widget :indent)))
       (push (cond ((null answer)
 		   (widget-create-child widget arg))
 		  ((widget-get arg :inline)
@@ -2865,7 +2859,7 @@ link for that string."
 	  (narrow-to-region from to)
 	  (goto-char (point-min))
 	  (while (search-forward "\n" nil t)
-	    (insert-char ?\  indent)))))))
+	    (insert-char ?\s indent)))))))
 
 ;;; The `documentation-string' Widget.
 
@@ -2885,7 +2879,7 @@ link for that string."
 	(let ((before (substring doc 0 (match-beginning 0)))
 	      (after (substring doc (match-beginning 0)))
 	      button)
-	  (insert before ?\ )
+	  (insert before ?\s)
 	  (widget-documentation-link-add widget start (point))
 	  (setq button
 		(widget-create-child-and-convert
@@ -2899,7 +2893,7 @@ link for that string."
 	  (when shown
 	    (setq start (point))
 	    (when (and indent (not (zerop indent)))
-	      (insert-char ?\  indent))
+	      (insert-char ?\s indent))
 	    (insert after)
 	    (widget-documentation-link-add widget start (point)))
 	  (widget-put widget :buttons (list button)))
@@ -3600,7 +3594,7 @@ example:
       (widget-apply widget :notify widget event))))
 
 (defun widget-color-notify (widget child &optional event)
-  "Update the sample, and notofy the parent."
+  "Update the sample, and notify the parent."
   (overlay-put (widget-get widget :sample-overlay)
 	       'face (widget-apply widget :sample-face-get))
   (widget-default-notify widget child event))

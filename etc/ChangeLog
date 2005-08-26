@@ -1,3 +1,12 @@
+2005-07-19  Juri Linkov  <juri@jurta.org>
+
+	* grep.txt: New file.
+
+2005-07-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS (Fedora Core 4 GNU/Linux: Segfault during dumping): 
+	-R comes after i386 in setarch command.
+
 2005-07-12  Juri Linkov  <juri@jurta.org>
 
 	* refcard.tex (Files): Change description of `C-x C-q' from
