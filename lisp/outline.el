@@ -453,6 +453,20 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
       (save-excursion (newline-and-indent)))
     (run-hooks 'outline-insert-heading-hook)))
 
+(defun outline-invent-heading (head up)
+  (save-match-data
+    ;; Let's try to invent one by repeating or deleting the last char.
+    (let ((new-head (if up (substring head 0 -1)
+                      (concat head (substring head -1)))))
+      (if (string-match (concat "\\`\\(?:" outline-regexp "\\)")
+                        new-head)
+          ;; Why bother checking that it is indeed higher/lower level ?
+          new-head
+        ;; Didn't work, so ask what to do.
+        (read-string (format "%s heading for `%s': "
+                             (if up "Parent" "Demoted") head)
+                     head nil nil t)))))
+
 (defun outline-promote (&optional children)
   "Promote headings higher up the tree.
 If prefix argument CHILDREN is given, promote also all the children.
@@ -481,18 +495,8 @@ in the region."
 			    (outline-up-heading 1 t)
 			    (and (= (1- level) (funcall outline-level))
 				 (match-string-no-properties 0))))
-			;; Bummer!! There is no lower level heading.
-			;; Let's try to invent one by deleting the last char.
-			(save-match-data
-			  (let ((new-head (substring head 0 -1)))
-			    (if (string-match (concat "\\`\\(?:" outline-regexp "\\)")
-					      new-head)
-				;; Why bother checking that it is indeed lower level ?
-				new-head
-			      ;; Didn't work, so ask what to do.
-			      (read-string (format "Parent heading for `%s': "
-						   head)
-					   head nil nil t)))))))
+                        ;; Bummer!! There is no lower level heading.
+                        (outline-invent-heading head 'up))))
 
       (unless (rassoc level outline-heading-alist)
 	(push (cons head level) outline-heading-alist))
@@ -532,18 +536,8 @@ in the region."
 		    (unless (eobp)
 		      (looking-at outline-regexp)
 		      (match-string-no-properties 0))))
-		(save-match-data
-		  ;; Bummer!! There is no higher-level heading in the buffer.
-		  ;; Let's try to invent one by repeating the last char.
-		  (let ((new-head (concat head (substring head -1))))
-		    (if (string-match (concat "\\`\\(?:" outline-regexp "\\)")
-				      new-head)
-			;; Why bother checking that it is indeed higher level ?
-			new-head
-		      ;; Didn't work, so ask what to do.
-		      (read-string (format "Demoted heading for `%s': "
-					   head)
-				   head nil nil t)))))))
+                ;; Bummer!! There is no higher-level heading in the buffer.
+                (outline-invent-heading head nil))))
 
       (unless (rassoc level outline-heading-alist)
 	(push (cons head level) outline-heading-alist))
@@ -610,12 +604,11 @@ the match data is set appropriately."
 (defun outline-move-subtree-down (&optional arg)
   "Move the currrent subtree down past ARG headlines of the same level."
   (interactive "p")
-  (let ((re (concat "^\\(?:" outline-regexp "\\)"))
-	(movfunc (if (> arg 0) 'outline-get-next-sibling
+  (let ((movfunc (if (> arg 0) 'outline-get-next-sibling
 		   'outline-get-last-sibling))
 	(ins-point (make-marker))
 	(cnt (abs arg))
-	beg end txt folded)
+	beg end folded)
     ;; Select the tree
     (outline-back-to-heading)
     (setq beg (point))
@@ -883,8 +876,7 @@ Show the heading too, if it is currently invisible."
 
 (defun outline-end-of-subtree ()
   (outline-back-to-heading)
-  (let ((opoint (point))
-	(first t)
+  (let ((first t)
 	(level (funcall outline-level)))
     (while (and (not (eobp))
 		(or first (> (funcall outline-level) level)))
@@ -1044,5 +1036,5 @@ convenient way to make a table of contents of the buffer."
 (provide 'outline)
 (provide 'noutline)
 
-;;; arch-tag: 1724410e-7d4d-4f46-b801-49e18171e874
+;; arch-tag: 1724410e-7d4d-4f46-b801-49e18171e874
 ;;; outline.el ends here

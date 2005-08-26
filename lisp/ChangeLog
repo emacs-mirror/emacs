@@ -1,14 +1,21 @@
+2005-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* outline.el (outline-invent-heading): New fun.
+	(outline-promote, outline-demote): Use it.
+	(outline-move-subtree-down): Remove unused vars `re' and `txt'.
+	(outline-end-of-subtree): Remove unused var `opoint'.
+
 2005-08-26  David Reitter  <david.reitter@gmail.com>
 
 	* menu-bar.el (truncate-lines, write-file, print-buffer)
-	(ps-print-buffer-faces, ps-print-buffer, split-window): Disable
-	menu items when the frame they refer to is invisible, or when they
-	refer to a buffer and the minibuffer is selected.
+	(ps-print-buffer-faces, ps-print-buffer, split-window):
+	Disable menu items when the frame they refer to is invisible, or when
+	they refer to a buffer and the minibuffer is selected.
 
 2005-08-26  Pavel Kobiakov  <pk_at_work@yahoo.com>
 
-	* progmodes/flymake.el (flymake-highlight-err-lines): Use
-	save-excursion around flymake-highlight-line to preserve point.
+	* progmodes/flymake.el (flymake-highlight-err-lines):
+	Use save-excursion around flymake-highlight-line to preserve point.
 
 2005-08-26  Eli Zaretskii  <eliz@gnu.org>
 
