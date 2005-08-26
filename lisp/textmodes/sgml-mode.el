@@ -901,7 +901,7 @@ With prefix argument ARG, repeat this ARG times."
 		  (forward-list)))))))
 
 
-(autoload 'compile-internal "compile")
+(autoload 'compilation-start "compile")
 
 (defun sgml-validate (command)
   "Validate an SGML document.
@@ -919,7 +919,7 @@ and move to the line in the SGML document that caused it."
 					 (file-name-nondirectory name))))))))
   (setq sgml-saved-validate-command command)
   (save-some-buffers (not compilation-ask-about-save) nil)
-  (compile-internal command "No more errors"))
+  (compilation-start command))
 
 (defsubst sgml-at-indentation-p ()
   "Return true if point is at the first non-whitespace character on the line."
