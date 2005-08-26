@@ -1,3 +1,10 @@
+2005-08-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/octave-mod.el: Change Author and Maintainer address.
+	(octave-maintainer-address): Change Kurt's email address.
+	* progmodes/octave-inf.el: Change Author and Maintainer address.
+	* progmodes/octave-hlp.el: Change Author and Maintainer address.
+
 2005-08-26  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (version-list-<, version-list-<=, version-list-=)
