@@ -1,3 +1,8 @@
+2005-08-26  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (resize_mini_window): Fix 2005-08-20 change.
+	Don't move PT to new window start.
+
 2005-08-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c (kbd_buffer_get_event) [MAC_OS]: Make events for
