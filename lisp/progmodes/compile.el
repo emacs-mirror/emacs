@@ -918,7 +918,8 @@ The rest of the arguments are optional; for them, nil means use the default.
 
 MODE is the major mode to set in the compilation buffer.  Mode
 may also be t meaning use `compilation-shell-minor-mode' under `comint-mode'.
-NAME-FUNCTION is a function called to name the buffer.
+If NAME-FUNCTION is non-nil, call it with one argument (the mode name)
+to determine the buffer name.
 
 If HIGHLIGHT-REGEXP is non-nil, `next-error' will temporarily highlight
 the matching section of the visited source line; the default is to use the
