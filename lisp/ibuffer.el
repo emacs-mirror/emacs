@@ -40,15 +40,20 @@
 
 (require 'font-core)
 
-(eval-when-compile
-  ;; These come from ibuf-ext.el, which can not be require'd at compile time
-  ;; because it has a recursive dependency on ibuffer.el
-  (defvar ibuffer-auto-mode)               (defvar ibuffer-cached-filter-formats)
-  (defvar ibuffer-compiled-filter-formats) (defvar ibuffer-filter-format-alist)
-  (defvar ibuffer-filter-group-kill-ring)  (defvar ibuffer-filter-groups)
-  (defvar ibuffer-filtering-qualifiers)    (defvar ibuffer-hidden-filter-groups)
-  (defvar ibuffer-inline-columns)          (defvar ibuffer-show-empty-filter-groups)
-  (defvar ibuffer-tmp-hide-regexps)        (defvar ibuffer-tmp-show-regexps))
+;; These come from ibuf-ext.el, which can not be require'd at compile time
+;; because it has a recursive dependency on ibuffer.el
+(defvar ibuffer-auto-mode)
+(defvar ibuffer-cached-filter-formats)
+(defvar ibuffer-compiled-filter-formats)
+(defvar ibuffer-filter-format-alist)
+(defvar ibuffer-filter-group-kill-ring)
+(defvar ibuffer-filter-groups)
+(defvar ibuffer-filtering-qualifiers)
+(defvar ibuffer-hidden-filter-groups)
+(defvar ibuffer-inline-columns)
+(defvar ibuffer-show-empty-filter-groups)
+(defvar ibuffer-tmp-hide-regexps)
+(defvar ibuffer-tmp-show-regexps)
 
 (defgroup ibuffer nil
   "An advanced replacement for `buffer-menu'.
