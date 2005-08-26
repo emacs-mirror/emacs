@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/frames
 @node Frames, Positions, Windows, Top
@@ -205,6 +205,7 @@ parameters @code{foreground-color}, @code{background-color},
 * Initial Parameters::	   Specifying frame parameters when you make a frame.
 * Window Frame Parameters:: List of frame parameters for window systems.
 * Size and Position::      Changing the size and position of a frame.
+* Geometry::               Parsing geometry specifications.
 @end menu
 
 @node Parameter Access
@@ -310,20 +311,42 @@ Line Arguments for Emacs Invocation, emacs, The GNU Emacs Manual}.
 @node Window Frame Parameters
 @subsection Window Frame Parameters
 
-  Just what parameters a frame has depends on what display mechanism it
-uses.  Here is a table of the parameters that have special meanings in a
-window frame; of these, @code{name}, @code{title}, @code{height},
-@code{width}, @code{buffer-list} and @code{buffer-predicate} provide
-meaningful information in terminal frames, and @code{tty-color-mode}
-is meaningful @emph{only} in terminal frames.  Frame parameter whose
-values measured in pixels, when used on text-only terminals, count
-characters or lines instead.
+  Just what parameters a frame has depends on what display mechanism
+it uses.  This section describes the parameters that have special
+meanings on some or all kinds of terminals.  Of these, @code{name},
+@code{title}, @code{height}, @code{width}, @code{buffer-list} and
+@code{buffer-predicate} provide meaningful information in terminal
+frames, and @code{tty-color-mode} is meaningful @emph{only} in
+terminal frames.
+
+@menu
+* Basic Parameters::            Parameters that are fundamental.
+* Position Parameters::         The position of the frame on the screen.
+* Size Parameters::             Frame's size.
+* Layout Parameters::           Size of parts of the frame, and
+                                  enabling or disabling some parts.
+* Buffer Parameters::           Which buffers have been or should be shown.
+* Management Parameters::       Communicating with the window manager.
+* Cursor Parameters::           Controlling the cursor appearance.
+* Color Parameters::            Colors of various parts of the frame.
+@end menu
+
+@node Basic Parameters
+@subsubsection Basic Parameters
+
+  These frame parameters give the most basic information about the
+frame.  @code{title} and @code{name} are meaningful on all terminals.
 
 @table @code
 @item display
 The display on which to open this frame.  It should be a string of the
 form @code{"@var{host}:@var{dpy}.@var{screen}"}, just like the
 @code{DISPLAY} environment variable.
+
+@item display-type
+This parameter describes the range of possible colors that can be used
+in this frame.  Its value is @code{color}, @code{grayscale} or
+@code{mono}.
 
 @item title
 If a frame has a non-@code{nil} title, it appears in the window system's
@@ -342,7 +365,15 @@ you don't specify a name, Emacs sets the frame name automatically
 If you specify the frame name explicitly when you create the frame, the
 name is also used (instead of the name of the Emacs executable) when
 looking up X resources for the frame.
+@end table
 
+@node Position Parameters
+@subsubsection Position Parameters
+
+  Position parameters' values are normally measured in pixels, but on
+text-only terminals they count characters or lines instead.
+
+@table @code
 @item left
 The screen position of the left edge, in pixels, with respect to the
 left edge of the screen.  The value may be a positive number @var{pos},
@@ -397,7 +428,15 @@ When you call @code{make-frame}, you should specify a non-@code{nil}
 value for this parameter if the values of the @code{left} and @code{top}
 parameters represent the user's stated preference; otherwise, use
 @code{nil}.
+@end table
 
+@node Size Parameters
+@subsubsection Size Parameters
+
+  Size parameters' values are normally measured in pixels, but on
+text-only terminals they count characters or lines instead.
+
+@table @code
 @item height
 The height of the frame contents, in characters.  (To get the height in
 pixels, call @code{frame-pixel-height}; see @ref{Size and Position}.)
@@ -417,14 +456,76 @@ The value @code{fullwidth} specifies that width shall be the size of the
 screen.  The value @code{fullheight} specifies that height shall be the
 size of the screen.  The value @code{fullboth} specifies that both the
 width and the height shall be set to the size of the screen.
+@end table
 
-@item window-id
-The number of the window-system window used by the frame
-to contain the actual Emacs windows.
+@node Layout Parameters
+@subsubsection Layout Parameters
 
-@item outer-window-id
-The number of the outermost window-system window used for the whole frame.
+  These frame parameters enable or disable various parts of the
+frame, or control their sizes.
 
+@table @code
+@item border-width
+The width in pixels of the window border.
+
+@item internal-border-width
+The distance in pixels between text and border.
+
+@item vertical-scroll-bars
+Whether the frame has scroll bars for vertical scrolling, and which side
+of the frame they should be on.  The possible values are @code{left},
+@code{right}, and @code{nil} for no scroll bars.
+
+@ignore
+@item horizontal-scroll-bars
+Whether the frame has scroll bars for horizontal scrolling
+(non-@code{nil} means yes).  Horizontal scroll bars are not currently
+implemented.
+@end ignore
+
+@item scroll-bar-width
+The width of vertical scroll bars, in pixels, or @code{nil} meaning to
+use the default width.
+
+@item left-fringe
+@itemx right-fringe
+The default width of the left and right fringes of windows in this
+frame (@pxref{Fringes}).  If either of these is zero, that effectively
+removes the corresponding fringe.  A value of @code{nil} stands for
+the standard fringe width, which is the width needed to display the
+fringe bitmaps.
+
+The combined fringe widths must add up to an integral number of
+columns, so the actual default fringe widths for the frame may be
+larger than the specified values.  The extra width needed to reach an
+acceptable total is distributed evenly between the left and right
+fringe.  However, you can force one fringe or the other to a precise
+width by specifying that width as a negative integer.  If both widths are
+negative, only the left fringe gets the specified width.
+
+@item menu-bar-lines
+The number of lines to allocate at the top of the frame for a menu
+bar.  The default is 1.  A value of @code{nil} means don't display a
+menu bar.  @xref{Menu Bar}.  (The X toolkit and GTK allow at most one
+menu bar line; they treat larger values as 1.)
+
+@item tool-bar-lines
+The number of lines to use for the tool bar.  A value of @code{nil}
+means don't display a tool bar.  (GTK allows at most one tool bar line;
+it treats larger values as 1.)
+
+@item line-spacing
+Additional space to leave below each text line, in pixels (a positive
+integer).  @xref{Line Height}, for more information.
+@end table
+
+@node Buffer Parameters
+@subsubsection Buffer Parameters
+
+  These frame parameters, meaningful on all kinds of terminals, deal
+with which buffers have been, or should, be displayed in the frame.
+
+@table @code
 @item minibuffer
 Whether this frame has its own minibuffer.  The value @code{t} means
 yes, @code{nil} means no, @code{only} means this frame is just a
@@ -443,25 +544,27 @@ considers that buffer.
 A list of buffers that have been selected in this frame,
 ordered most-recently-selected first.
 
+@item unsplittable
+If non-@code{nil}, this frame's window is never split automatically.
+@end table
+
+@node Management Parameters
+@subsubsection Window Management Parameters
+ 
+  These frame parameters, meaningful only on window system displays,
+interact with the window manager.
+
+@table @code
+@item visibility
+The state of visibility of the frame.  There are three possibilities:
+@code{nil} for invisible, @code{t} for visible, and @code{icon} for
+iconified.  @xref{Visibility of Frames}.
+
 @item auto-raise
 Whether selecting the frame raises it (non-@code{nil} means yes).
 
 @item auto-lower
 Whether deselecting the frame lowers it (non-@code{nil} means yes).
-
-@item vertical-scroll-bars
-Whether the frame has scroll bars for vertical scrolling, and which side
-of the frame they should be on.  The possible values are @code{left},
-@code{right}, and @code{nil} for no scroll bars.
-
-@item horizontal-scroll-bars
-Whether the frame has scroll bars for horizontal scrolling
-(non-@code{nil} means yes).  (Horizontal scroll bars are not currently
-implemented.)
-
-@item scroll-bar-width
-The width of the vertical scroll bar, in pixels,
-or @code{nil} meaning to use the default width.
 
 @item icon-type
 The type of icon to use for this frame when it is iconified.  If the
@@ -473,29 +576,35 @@ picture of a gnu); @code{nil} specifies a text icon.
 The name to use in the icon for this frame, when and if the icon
 appears.  If this is @code{nil}, the frame's title is used.
 
-@item background-mode
-This parameter is either @code{dark} or @code{light}, according
-to whether the background color is a light one or a dark one.
+@item window-id
+The number of the window-system window used by the frame
+to contain the actual Emacs windows.
 
-@item tty-color-mode
-@cindex standard colors for character terminals
-This parameter overrides the terminal's color support as given by the
-system's terminal capabilities database in that this parameter's value
-specifies the color mode to use in terminal frames.  The value can be
-either a symbol or a number.  A number specifies the number of colors
-to use (and, indirectly, what commands to issue to produce each
-color).  For example, @code{(tty-color-mode . 8)} forces Emacs to use
-the ANSI escape sequences for 8 standard text colors; and a value of
--1 means Emacs should turn off color support.  If the parameter's
-value is a symbol, that symbol is looked up in the alist
-@code{tty-color-mode-alist}, and if found, the associated number is
-used as the color support mode.
+@item outer-window-id
+The number of the outermost window-system window used for the whole frame.
 
-@item display-type
-This parameter describes the range of possible colors that can be used
-in this frame.  Its value is @code{color}, @code{grayscale} or
-@code{mono}.
+@item wait-for-wm
+If non-@code{nil}, tell Xt to wait for the window manager to confirm
+geometry changes.  Some window managers, including versions of Fvwm2
+and KDE, fail to confirm, so Xt hangs.  Set this to @code{nil} to
+prevent hanging with those window managers.
 
+@ignore
+@item parent-id
+@c ??? Not yet working.
+The X window number of the window that should be the parent of this one.
+Specifying this lets you create an Emacs window inside some other
+application's window.  (It is not certain this will be implemented; try
+it and see if it works.)
+@end ignore
+@end table
+
+@node Cursor Parameters
+@subsubsection Cursor Parameters
+
+  This frame parameter controls the way the cursor looks.
+
+@table @code
 @item cursor-type
 How to display the cursor.  Legitimate values are:
 
@@ -515,52 +624,51 @@ Display a horizontal bar.
 @item (hbar . @var{height})
 Display a horizontal bar @var{height} pixels high.
 @end table
+@end table
 
 @vindex cursor-type
 The buffer-local variable @code{cursor-type} overrides the value of
 the @code{cursor-type} frame parameter, but if it is @code{t}, that
 means to use the cursor specified for the frame.
 
-@item border-width
-The width in pixels of the window border.
+@defvar blink-cursor-alist
+This variable specifies how to blink the cursor.  Each element has the
+form @code{(@var{on-state} . @var{off-state})}.  Whenever the cursor
+type equals @var{on-state} (comparing using @code{equal}), the
+corresponding @var{off-state} specifies what the cursor looks like
+when it blinks ``off''.  Both @var{on-state} and @var{off-state}
+should be suitable values for the @code{cursor-type} frame parameter.
 
-@item internal-border-width
-The distance in pixels between text and border.
+There are various defaults for how to blink each type of cursor, if
+the type is not mentioned as an @var{on-state} here.  Changes in this
+variable do not take effect immediately, because the variable is
+examined only when you specify the @code{cursor-type} parameter.
+@end defvar
 
-@item left-fringe
-@itemx right-fringe
-The default width of the left and right fringes of windows in this
-frame (@pxref{Fringes}).  If either of these is zero, that effectively
-removes the corresponding fringe.  A value of @code{nil} stands for
-the standard fringe width, which is the width needed to display the
-fringe bitmaps.
+@node Color Parameters
+@subsubsection Color Parameters
 
-The combined fringe widths must add up to an integral number of
-columns, so the actual default fringe widths for the frame may be
-larger than the specified values.  The extra width needed to reach an
-acceptable total is distributed evenly between the left and right
-fringe.  However, you can force one fringe or the other to a precise
-width by specifying that width as a negative integer.  If both widths are
-negative, only the left fringe gets the specified width.
+  These frame parameters control the use of colors.
 
-@item unsplittable
-If non-@code{nil}, this frame's window is never split automatically.
+@table @code
+@item background-mode
+This parameter is either @code{dark} or @code{light}, according
+to whether the background color is a light one or a dark one.
 
-@item visibility
-The state of visibility of the frame.  There are three possibilities:
-@code{nil} for invisible, @code{t} for visible, and @code{icon} for
-iconified.  @xref{Visibility of Frames}.
+@item tty-color-mode
+@cindex standard colors for character terminals
+This parameter overrides the terminal's color support as given by the
+system's terminal capabilities database in that this parameter's value
+specifies the color mode to use in terminal frames.  The value can be
+either a symbol or a number.  A number specifies the number of colors
+to use (and, indirectly, what commands to issue to produce each
+color).  For example, @code{(tty-color-mode . 8)} specifies use of the
+ANSI escape sequences for 8 standard text colors.  A value of -1 turns
+off color support.
 
-@item menu-bar-lines
-The number of lines to allocate at the top of the frame for a menu
-bar.  The default is 1.  A value of @code{nil} means don't display a
-menu bar.  @xref{Menu Bar}.  (The X toolkit and GTK allow at most one
-menu bar line; they treat larger values as 1.)
-
-@item tool-bar-lines
-The number of lines to use for the tool bar.  A value of @code{nil}
-means don't display a tool bar.  (GTK allows at most one tool bar line;
-it treats larger values as 1.)
+If the parameter's value is a symbol, it specifies a number through
+the value of @code{tty-color-mode-alist}, and the associated number is
+used instead.
 
 @item screen-gamma
 @cindex gamma correction
@@ -580,39 +688,7 @@ If your monitor displays colors too light, you should specify a
 @code{screen-gamma} value smaller than 2.2.  This requests correction
 that makes colors darker.  A screen gamma value of 1.5 may give good
 results for LCD color displays.
-
-@item line-spacing
-Additional space put below text lines, in pixels (a positive integer)
-
-@item wait-for-wm
-If non-@code{nil}, tell Xt to wait for the window manager to confirm
-geometry changes.  Some window managers, including versions of Fvwm2
-and KDE, fail to confirm, so Xt hangs.  Set this to @code{nil} to
-prevent hanging with those window managers.
-
-@ignore
-@item parent-id
-@c ??? Not yet working.
-The X window number of the window that should be the parent of this one.
-Specifying this lets you create an Emacs window inside some other
-application's window.  (It is not certain this will be implemented; try
-it and see if it works.)
-@end ignore
 @end table
-
-@defvar blink-cursor-alist
-This variable specifies how to blink the cursor.  Each element has the
-form @code{(@var{on-state} . @var{off-state})}.  Whenever the cursor
-type equals @var{on-state} (comparing using @code{equal}), Emacs uses
-@var{off-state} to specify what the cursor looks like when it blinks
-``off''.  Both @var{on-state} and @var{off-state} should be suitable
-values for the @code{cursor-type} frame parameter.
-
-There are various defaults for how to blink each type of cursor,
-if the type is not mentioned as an @var{on-state} here.  Changes
-in this variable do not take effect immediately, because the variable
-is examined only when you specify a cursor type for a frame.
-@end defvar
 
 These frame parameters are semi-obsolete in that they are automatically
 equivalent to particular face attributes of particular faces.
@@ -749,6 +825,12 @@ The argument @var{pretend} has the same meaning as in
 @code{set-screen-width} were used to specify the height and width of the
 screen, in Emacs versions that did not support multiple frames.  They
 are semi-obsolete, but still work; they apply to the selected frame.
+
+@node Geometry
+@subsection Geometry
+
+  Here's how to examine the data in an X-style window geometry
+specification:
 
 @defun x-parse-geometry geom
 @cindex geometry specification
@@ -1150,7 +1232,7 @@ they are currently being displayed or not, and this function returns
 @end defun
 
   The visibility status of a frame is also available as a frame
-parameter.  You can read or change it as such.  @xref{Window Frame
+parameter.  You can read or change it as such.  @xref{Management
 Parameters}.
 
   The user can iconify and deiconify frames with the window manager.
@@ -1195,7 +1277,7 @@ that the minibuffer window is in.
 
 You can also enable auto-raise (raising automatically when a frame is
 selected) or auto-lower (lowering automatically when it is deselected)
-for any frame using frame parameters.  @xref{Window Frame Parameters}.
+for any frame using frame parameters.  @xref{Management Parameters}.
 
 @node Frame Configurations
 @section Frame Configurations
@@ -1504,7 +1586,7 @@ is over mouse-sensitive text.
   These variables affect newly created frames.  They do not normally
 affect existing frames; however, if you set the mouse color of a frame,
 that also updates its pointer shapes based on the current values of
-these variables.  @xref{Window Frame Parameters}.
+these variables.  @xref{Color Parameters}.
 
   The values you can use, to specify either of these pointer shapes, are
 defined in the file @file{lisp/term/x-win.el}.  Use @kbd{M-x apropos

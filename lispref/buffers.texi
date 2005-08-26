@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/buffers
 @node Buffers, Windows, Backups and Auto-Saving, Top
@@ -757,21 +757,24 @@ signal an error if the current buffer is read-only.
 @section The Buffer List
 @cindex buffer list
 
-  The @dfn{buffer list} is a list of all live buffers.  Creating a
-buffer adds it to this list, and killing a buffer removes it.  The
-order of the buffers in the list is based primarily on how recently
-each buffer has been displayed in the selected window.  Buffers move
-to the front of the list when they are selected (selecting a window
-that already displays the buffer counts as selecting the buffer), and
-to the end when they are buried (see @code{bury-buffer}, below).
-Several functions, notably @code{other-buffer}, use this ordering.  A
-buffer list displayed for the user also follows this order.
+  The @dfn{buffer list} is a list of all live buffers.  The order of
+the buffers in the list is based primarily on how recently each buffer
+has been displayed in a window.  Several functions, notably
+@code{other-buffer}, use this ordering.  A buffer list displayed for
+the user also follows this order.
 
+  Creating a buffer adds it to the end of the buffer list, and killing
+a buffer removes it.  Buffers move to the front of the list when they
+are selected for display in a window (@pxref{Displaying Buffers}), and
+to the end when they are buried (see @code{bury-buffer}, below).
+There are no functions available to the Lisp programmer which directly
+manipulate the buffer list.
+  
   In addition to the fundamental Emacs buffer list, each frame has its
 own version of the buffer list, in which the buffers that have been
 selected in that frame come first, starting with the buffers most
 recently selected @emph{in that frame}.  (This order is recorded in
-@var{frame}'s @code{buffer-list} frame parameter; see @ref{Window Frame
+@var{frame}'s @code{buffer-list} frame parameter; see @ref{Buffer
 Parameters}.)  The buffers that were never selected in @var{frame} come
 afterward, ordered according to the fundamental Emacs buffer list.
 
@@ -838,7 +841,7 @@ buffer list that is not now visible in any window in a visible frame.
 If @var{frame} has a non-@code{nil} @code{buffer-predicate} parameter,
 then @code{other-buffer} uses that predicate to decide which buffers to
 consider.  It calls the predicate once for each buffer, and if the value
-is @code{nil}, that buffer is ignored.  @xref{Window Frame Parameters}.
+is @code{nil}, that buffer is ignored.  @xref{Buffer Parameters}.
 
 @c Emacs 19 feature
 If @var{visible-ok} is @code{nil}, @code{other-buffer} avoids returning

@@ -1,5 +1,5 @@
 /* machine description file for HLH Orion 1/05 (Clipper).
-   Copyright (C) 1985 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
    Lee McLoughlin <lmjm%doc.imperial.ac.uk@nss.cs.ucl.ac.uk>
 
 This file is part of GNU Emacs.

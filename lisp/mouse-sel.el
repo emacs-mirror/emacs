@@ -1,7 +1,7 @@
 ;;; mouse-sel.el --- multi-click selection support for Emacs 19
 
-;; Copyright (C) 1993, 1994, 1995, 2001, 2002, 2004
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Mike Williams <mdub@bigfoot.com>
 ;; Keywords: mouse

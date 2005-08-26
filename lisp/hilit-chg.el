@@ -1,6 +1,7 @@
 ;;; hilit-chg.el --- minor mode displaying buffer changes with special face
 
-;; Copyright (C) 1998, 2000, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Richard Sharman <rsharman@pobox.com>
 ;; Keywords: faces
@@ -672,6 +673,7 @@ Hook variables:
 	(if new-highlight-changes-mode
 	    ;; mode is turned on -- but may be passive
 	    (progn
+	      (add-to-list 'desktop-locals-to-save 'highlight-changes-mode)
 	      (hilit-chg-set new-highlight-changes-mode)
 	      (or was-on
 		  ;; run highlight-changes-enable-hook once
@@ -1152,6 +1154,16 @@ from `global-highlight-changes' when turning on global Highlight Changes mode."
 		   (hilit-chg-turn-off-maybe))
 		 )))
    (buffer-list)))
+
+;;;; Desktop support.
+
+;; Called by `desktop-create-buffer' to restore `highlight-changes-mode'.
+(defun hilit-chg-desktop-restore (desktop-buffer-locals)
+  (highlight-changes-mode
+   (or (cdr (assq 'highlight-changes-mode desktop-buffer-locals)) 1)))
+
+(add-to-list 'desktop-minor-mode-handlers
+             '(highlight-changes-mode . hilit-chg-desktop-restore))
 
 ;; ===================== debug ==================
 ;; For debug & test use:

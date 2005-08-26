@@ -139,8 +139,6 @@ Zero means compute the Imenu menu regardless of size."
      :foreground "LightSkyBlue"))
   "Face used to highlight mode line function names."
   :group 'which-func)
-;; backward-compatibility alias
-(put 'which-func-face 'face-alias 'which-func)
 
 (defcustom which-func-format
   `("["

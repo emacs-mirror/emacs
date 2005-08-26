@@ -1,7 +1,7 @@
 ;;; replace.el --- replace commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1996, 1997, 2000, 2001, 2002,
-;;   2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1996, 1997, 2000, 2001,
+;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -88,7 +88,7 @@ is highlighted lazily using isearch lazy highlighting (see
 (defun query-replace-descr (string)
   (mapconcat 'isearch-text-char-description string ""))
 
-(defun query-replace-read-from (string regexp-flag)
+(defun query-replace-read-from (prompt regexp-flag)
   "Query and return the `from' argument of a query-replace operation.
 The return value can also be a pair (FROM . TO) indicating that the user
 wants to replace FROM with TO."
@@ -107,10 +107,10 @@ wants to replace FROM with TO."
 				      query-replace-from-history-variable))))
 	      (read-from-minibuffer
 	       (if (and lastto lastfrom)
-		   (format "%s (default %s -> %s): " string
+		   (format "%s (default %s -> %s): " prompt
 			   (query-replace-descr lastfrom)
 			   (query-replace-descr lastto))
-		 (format "%s: " string))
+		 (format "%s: " prompt))
 	       nil nil nil
 	       query-replace-from-history-variable
 	       nil t t))))
@@ -173,22 +173,22 @@ the original string if not."
     to))
 
 
-(defun query-replace-read-to (from string regexp-flag)
+(defun query-replace-read-to (from prompt regexp-flag)
   "Query and return the `to' argument of a query-replace operation."
   (query-replace-compile-replacement
    (save-excursion
      (read-from-minibuffer
-      (format "%s %s with: " string (query-replace-descr from))
+      (format "%s %s with: " prompt (query-replace-descr from))
       nil nil nil
       query-replace-to-history-variable from t t))
    regexp-flag))
 
-(defun query-replace-read-args (string regexp-flag &optional noerror)
+(defun query-replace-read-args (prompt regexp-flag &optional noerror)
   (unless noerror
     (barf-if-buffer-read-only))
-  (let* ((from (query-replace-read-from string regexp-flag))
+  (let* ((from (query-replace-read-from prompt regexp-flag))
 	 (to (if (consp from) (prog1 (cdr from) (setq from (car from)))
-	       (query-replace-read-to from string regexp-flag))))
+	       (query-replace-read-to from prompt regexp-flag))))
     (list from to current-prefix-arg)))
 
 (defun query-replace (from-string to-string &optional delimited start end)
@@ -1061,6 +1061,8 @@ See also `multi-occur'."
 			    title-face prefix-face match-face keep-props)
   (with-current-buffer out-buf
     (let ((globalcount 0)
+	  ;; Don't generate undo entries for creation of the initial contents.
+	  (buffer-undo-list t)
 	  (coding nil))
       ;; Map over all the buffers
       (dolist (buf buffers)

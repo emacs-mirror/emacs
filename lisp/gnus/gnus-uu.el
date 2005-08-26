@@ -1,6 +1,7 @@
 ;;; gnus-uu.el --- extract (uu)encoded files in Gnus
-;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-;;        2001, 2002, 2003 Free Software Foundation, Inc.
+
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Created: 2 Oct 1993
@@ -836,7 +837,7 @@ When called interactively, prompt for REGEXP."
 	      (erase-buffer)
 	      (insert (format
 		       "Date: %s\nFrom: %s\nSubject: %s Digest\n\n"
-		       (current-time-string) name name))
+		       (message-make-date) name name))
 	      (when (and message-forward-as-mime gnus-uu-digest-buffer)
 		(insert "<#part type=message/rfc822>\nSubject: Topics\n\n"))
 	      (insert "Topics:\n")))
@@ -1353,7 +1354,7 @@ When called interactively, prompt for REGEXP."
 	      (gnus-message 2 "No begin part at the beginning")
 	      (sleep-for 2))
 	  (setq state 'middle))))
-    
+
       ;; When there are no result-files, then something must be wrong.
     (if result-files
 	(message "")
@@ -1439,7 +1440,7 @@ When called interactively, prompt for REGEXP."
 	  ;; We replace certain characters that could make things messy.
 	  (setq gnus-uu-file-name
 		(gnus-map-function
-		 mm-file-name-rewrite-functions 
+		 mm-file-name-rewrite-functions
 		 (file-name-nondirectory (match-string 1))))
 	  (replace-match (concat "begin 644 " gnus-uu-file-name) t t)
 

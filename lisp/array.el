@@ -1,6 +1,7 @@
 ;;; array.el --- array editing commands for GNU Emacs
 
-;; Copyright (C) 1987, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author David M. Brown
 ;; Maintainer: FSF

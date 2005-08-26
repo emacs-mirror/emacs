@@ -1,7 +1,7 @@
 ;;; rmailsum.el --- make summary buffers for the mail reader
 
-;; Copyright (C) 1985, 1993, 1994, 1995, 1996, 2000, 2001
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1993, 1994, 1995, 1996, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -898,6 +898,7 @@ Search, the `unseen' attribute is restored.")
   (define-key rmail-summary-mode-map "x"      'rmail-summary-expunge)
   (define-key rmail-summary-mode-map "w"      'rmail-summary-output-body)
   (define-key rmail-summary-mode-map "."      'rmail-summary-beginning-of-message)
+  (define-key rmail-summary-mode-map "/"      'rmail-summary-end-of-message)
   (define-key rmail-summary-mode-map "<"      'rmail-summary-first-message)
   (define-key rmail-summary-mode-map ">"      'rmail-summary-last-message)
   (define-key rmail-summary-mode-map " "      'rmail-summary-scroll-msg-up)
@@ -1185,6 +1186,16 @@ move to the previous message."
 (defun rmail-summary-beginning-of-message ()
   "Show current message from the beginning."
   (interactive)
+  (rmail-summary-show-message 'BEG))
+
+(defun rmail-summary-end-of-message ()
+  "Show bottom of current message."
+  (interactive)
+  (rmail-summary-show-message 'END))
+
+(defun rmail-summary-show-message (where)
+  "Show current mail message.
+Position it according to WHERE which can be BEG or END"
   (if (and (one-window-p) (not pop-up-frames))
       ;; If there is just one window, put the summary on the top.
       (let ((buffer rmail-view-buffer))
@@ -1196,8 +1207,14 @@ move to the previous message."
 	(or (eq buffer (window-buffer (next-window (frame-first-window))))
 	    (delete-other-windows)))
     (pop-to-buffer rmail-view-buffer))
-  (with-no-warnings
-    (beginning-of-buffer))
+  (cond
+   ((eq where 'BEG)
+	(goto-char (point-min))
+	(search-forward "\n\n"))
+   ((eq where 'END)
+	(goto-char (point-max))
+	(recenter (1- (window-height))))
+   )
   (pop-to-buffer rmail-summary-buffer))
 
 (defun rmail-summary-bury ()

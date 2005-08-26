@@ -1,6 +1,7 @@
 ;;; reveal.el --- Automatically reveal hidden text at point
 
-;; Copyright (C) 2000, 2001, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: outlines

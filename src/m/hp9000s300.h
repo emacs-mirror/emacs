@@ -1,5 +1,5 @@
 /* machine description file for hp9000 series 200 or 300 on either HPUX or BSD.
-   Copyright (C) 1985, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

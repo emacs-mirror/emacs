@@ -1,5 +1,6 @@
 /* Process support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 95, 99, 2000, 01, 04  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

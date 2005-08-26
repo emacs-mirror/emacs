@@ -1,6 +1,7 @@
 ;;; delsel.el --- delete selection if you insert
 
-;; Copyright (C) 1992, 1997, 1998, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1997, 1998, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Matthieu Devin <devin@lucid.com>
 ;; Maintainer: FSF
@@ -100,7 +101,11 @@ any selection."
 		   (unless empty-region
 		     (setq this-command 'ignore))))
 		(type
-		 (delete-active-region)))
+		 (delete-active-region)
+		 (if (and overwrite-mode (eq this-command 'self-insert-command))
+		   (let ((overwrite-mode nil))
+		     (self-insert-command (prefix-numeric-value current-prefix-arg))
+		     (setq this-command 'ignore)))))
 	(file-supersession
 	 ;; If ask-user-about-supersession-threat signals an error,
 	 ;; stop safe_run_hooks from clearing out pre-command-hook.

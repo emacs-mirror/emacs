@@ -477,7 +477,8 @@ connect to the target when working with cross-environments" t)
   (widget-insert "\n\n")
 
   (widget-setup)
-  (beginning-of-buffer)
+  (with-no-warnings
+    (beginning-of-buffer))
   )
 
 

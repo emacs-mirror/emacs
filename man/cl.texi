@@ -5,7 +5,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright (C) 1993, 2002, 2005 Free Software Foundation, Inc.
+Copyright (C) 1993, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

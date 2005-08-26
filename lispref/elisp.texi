@@ -31,7 +31,7 @@ This is edition @value{VERSION} of the GNU Emacs Lisp
 Reference Manual, corresponding to Emacs version @value{EMACSVER}.
 
 Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999,
-              2000, 2002, 2003, 2004, 2005, Free Software Foundation, Inc.
+              2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -543,6 +543,10 @@ Minibuffers
 * Yes-or-No Queries::       Asking a question with a simple answer.
 * Multiple Queries::	    Asking a series of similar questions.
 * Reading a Password::	    Reading a password from the terminal.
+* Minibuffer Commands::     Commands used as key bindings in minibuffers.
+* Minibuffer Contents::     How such commands access the minibuffer text.
+* Minibuffer Windows::      Operating on the special minibuffer windows.
+* Recursive Mini::          Whether recursive entry to minibuffer is allowed.
 * Minibuffer Misc::         Various customization hooks and variables.
 
 Completion
@@ -970,7 +974,8 @@ Processes
 * Datagrams::               UDP network connections.
 * Low-Level Network::       Lower-level but more general function
                               to create connections and servers.
-* Byte Packing::             Using bindat to pack and unpack binary data.
+* Misc Network::            Additional relevant functions for network connections.
+* Byte Packing::            Using bindat to pack and unpack binary data.
 
 Receiving Output from Processes
 
@@ -1001,7 +1006,6 @@ Emacs Display
 * Images::                  Displaying images in Emacs buffers.
 * Buttons::                 Adding clickable buttons to Emacs buffers.
 * Blinking::                How Emacs shows the matching open parenthesis.
-* Inverse Video::	    Specifying how the screen looks.
 * Usual Display::	    The usual conventions for displaying nonprinting chars.
 * Display Tables::	    How to specify other conventions.
 * Beeping::                 Audible signal to the user.
@@ -1016,6 +1020,8 @@ Operating System Interface
 * Time of Day::		    Getting the current time.
 * Time Conversion::         Converting a time from numeric form to a string, or
                               to calendrical data (or vice versa).
+* Time Parsing::            Converting a time from numeric form to text
+                              and vice versa.
 * Processor Run Time::      Getting the run time used by Emacs.
 * Time Calculations::       Adding, subtracting, comparing times, etc.
 * Timers::		    Setting a timer to call a function at a certain time.
@@ -1042,7 +1048,10 @@ Getting out of Emacs
 Tips and Conventions
 
 * Coding Conventions::      Conventions for clean and robust programs.
-* Compilation Tips::        Making compiled code run fast.
+* Key Binding Conventions::   Which keys should be bound by which programs.
+* Programming Tips::          Making Emacs code fit smoothly in Emacs.
+* Compilation Tips::          Making compiled code run fast.
+* Warning Tips::              Turning off compiler warnings.
 * Documentation Tips::      Writing readable documentation strings.
 * Comment Tips::	    Conventions for writing comments.
 * Library Headers::         Standard headers for library packages.

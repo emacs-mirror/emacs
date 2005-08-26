@@ -1,7 +1,7 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes
 
-;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1995, 1996, 1998, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -250,8 +250,6 @@ Any terminating `>' or `/' is not matched.")
   '((t (:inherit font-lock-builtin-face)))
   "`sgml-mode' face used to highlight the namespace part of identifiers."
   :group 'sgml)
-;; backward-compatibility alias
-(put 'sgml-namespace-face 'face-alias 'sgml-namespace)
 (defvar sgml-namespace-face 'sgml-namespace)
 
 ;; internal

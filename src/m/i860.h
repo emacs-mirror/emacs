@@ -1,5 +1,6 @@
 /* machine description file for i860.
-   Copyright (C) 1985, 1986, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

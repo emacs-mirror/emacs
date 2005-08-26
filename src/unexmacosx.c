@@ -1,5 +1,5 @@
 /* Dump Emacs in Mach-O format for use on Mac OS X.
-   Copyright (C) 2001, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

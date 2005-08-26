@@ -1,5 +1,4 @@
 Tutorial de Emacs. Vea al final las condiciones de copiado.
-Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation.
 
 Generalmente los comandos de Emacs involucran la tecla CONTROL
 (algunas veces llamada CTRL O CTL) o la tecla meta (algunas veces
@@ -1188,7 +1187,8 @@ Por favor, en caso de duda, sólo es válido el original en inglés de la
 siguiente nota de derechos de reproducción (que puede encontrar en el
 archivo TUTORIAL).
 
-Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation
+Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Se permite a cualquiera hacer o distribuir copias literales de este
    documento como se recibe, en cualquier medio, siempre que la nota

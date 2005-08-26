@@ -1,5 +1,6 @@
 /* Convert a `struct tm' to a time_t value.
-   Copyright (C) 1993, 94, 95, 96, 97, 98, 99 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    Contributed by Paul Eggert (eggert@twinsun.com).
 
    NOTE: The canonical source of this file is maintained with the GNU C Library.

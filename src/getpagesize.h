@@ -1,5 +1,6 @@
 /* Emulate getpagesize on systems that lack it.
-   Copyright (C) 1986, 1992, 1995, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1986, 1992, 1995, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

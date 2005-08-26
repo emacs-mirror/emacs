@@ -1,6 +1,7 @@
 ;;; forms.el --- Forms mode: edit a file as a form to fill in
 
-;; Copyright (C) 1991, 1994, 1995, 1996, 1997, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 1995, 1996, 1997, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Johan Vromans <jvromans@squirrel.nl>
 

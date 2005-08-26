@@ -1,7 +1,7 @@
 ;;; byte-opt.el --- the optimization passes of the emacs-lisp byte compiler
 
-;; Copyright (c) 1991, 1994, 2000, 2001, 2002, 2004
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1994, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>

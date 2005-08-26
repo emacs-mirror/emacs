@@ -38,6 +38,8 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 
 ** Debug custom themes.
 
+** Get rid of the defadvice calls in org.el.
+
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
@@ -45,9 +47,46 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 ** Investigate reported crashes related to using an
 invalid pointer from string_free_list.
 
+** Emacs on Windows crashes reading JPEG images from files.
+
+The problem is caused by the Emacs executable and the image library
+having multiple, incompatible copies of the run-time code, which can
+happen when mixing a MSVC build of Emacs with a MinGW build of the
+jpeg library (or the other way around).  The fix is straightforward
+and has already been posted on the developers' list, but it is on the
+back burner waiting for a legal comment or an alternate implementation
+(around 30 lines of code).
+
 * BUGS
 
+** The header-line buttons in the buffer list buffer
+should respond to Mouse-1.
+
 ** Fix those modes that still use compile-internal, to not use it.
+
+** Fix recognition of shell's `dirs' command.
+
+Is his change right?
+
+Date: Wed, 29 Jun 2005 18:21:28 -0500 (CDT)
+From: kevin.gal@verizon.net
+
+When I use tcsh (which echoes command input) in a shell buffer,
+entering "M-x dirs" fails because it mistakens the echoed "dirs"
+string as the directory string to use as input when changing the
+buffers default directory.  The attached gziped patch file contains a
+fix.  The patch also binds the "dirs" command to "\e\C-m" in
+shell-mode-map (previously unbound) to make it easy to invoke.
+Finally, a test has been added to see if "shell-dirstack-query" is
+non-nil.  If so, it is not overwritten.
+
+To enable the fix, the user must set comint-process-echoes to t.
+
+** TCP server processes do not work on Windows.
+
+TCP/IP server processes created with `make-network-process' consume
+excesive CPU on some Windows environments.  Usages of 50% and 100%
+CPU time have been observed on different Window XP configurations.
 
 ** Bug in ebrowse
 
@@ -95,20 +134,39 @@ you're going to handle.
 
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
+etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
 leim			working		Kenichi Handa
-lisp/calc		done		Thien-Thi Nguyen
+lib-src			done		ttn
+lisp			done		ttn
+lisp/calc		done		ttn
 lisp/calendar		working		Glenn Morris
-lisp/emulation		done		Thien-Thi Nguyen
-lisp/eshell		done		Thien-Thi Nguyen
+lisp/emacs-lisp		done		ttn
+lisp/emulation		done		ttn
+lisp/eshell		done		ttn
+lisp/gnus		done		ttn
 lisp/international	done		Kenichi Handa
-lisp/languages		done		Kenichi Handa
+lisp/language		done		Kenichi Handa
+lisp/mail		done		ttn
 lisp/mh-e		working		Bill Wohler
-lisp/net		done		Thien-Thi Nguyen
-lisp/play		done		Thien-Thi Nguyen
+lisp/net		done		ttn
+lisp/obsolete		done		ttn
+lisp/play		done		ttn
 lisp/progmodes		done		Nick Roberts
-lisp/term		done		Thien-Thi Nguyen
-lisp/toolbar		done		Thien-Thi Nguyen
-lisp/url		working		Thien-Thi Nguyen
+lisp/term		done		ttn
+lisp/textmodes		done		ttn
+lisp/toolbar		done		ttn
+lisp/url		done		ttn
+lispintro		done		ttn
+lispref			done		ttn
+lwlib			done		ttn
+m4			done		ttn
+mac (and subdirs)	done		ttn
+man			done		ttn
+msdos			done		ttn
+nt (and subdirs)	done		ttn
+oldXMenu		done		ttn
+src (and subdirs)	done		ttn
+vms			done		ttn
 
 ** Check the Emacs manual.
 
@@ -208,7 +266,7 @@ lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
 lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/processes.texi   Chong Yidong	   Thien-Thi Nguyen
+lispref/processes.texi   Chong Yidong	   ttn
 lispref/searching.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
@@ -238,8 +296,8 @@ etc/TUTORIAL.cn
 etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.es          Marcelo Toledo
-etc/TUTORIAL.fr          Thien-Thi Nguyen
-etc/TUTORIAL.it          Thien-Thi Nguyen
+etc/TUTORIAL.fr          ttn
+etc/TUTORIAL.it          ttn
 etc/TUTORIAL.ja		 Kenichi Handa <handa@m17n.org>
 etc/TUTORIAL.ko
 etc/TUTORIAL.nl		 Lute Kamstra

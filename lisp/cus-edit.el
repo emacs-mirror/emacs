@@ -1,7 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -141,7 +141,8 @@
 (require 'cus-face)
 (require 'wid-edit)
 (eval-when-compile
-  (defvar custom-versions-load-alist))	; from cus-load
+  (defvar custom-versions-load-alist)	; from cus-load
+  (defvar recentf-exclude))		; from recentf.el
 
 (condition-case nil
     (require 'cus-load)
@@ -3901,7 +3902,12 @@ if only the first line of the docstring is shown."))
   "Visit `custom-file' and delete all calls to SYMBOL from it.
 Leave point at the old location of the first such call,
 or (if there were none) at the end of the buffer."
-  (let ((default-major-mode 'emacs-lisp-mode))
+  (let ((default-major-mode 'emacs-lisp-mode)
+	(recentf-exclude (if recentf-mode
+			     (cons (concat "\\`"
+					   (regexp-quote (custom-file))
+					   "\\'")
+				   recentf-exclude))))
     (set-buffer (find-file-noselect (custom-file))))
   (goto-char (point-min))
   ;; Skip all whitespace and comments.
@@ -4130,7 +4136,12 @@ or (if there were none) at the end of the buffer."
     (custom-save-variables)
     (custom-save-faces)
     (save-excursion
-      (let ((default-major-mode nil))
+      (let ((default-major-mode nil)
+	    (recentf-exclude (if recentf-mode
+				 (cons (concat "\\`"
+					       (regexp-quote (custom-file))
+					       "\\'")
+				       recentf-exclude))))
 	(set-buffer (find-file-noselect (custom-file))))
       (let ((file-precious-flag t))
 	(save-buffer)))))

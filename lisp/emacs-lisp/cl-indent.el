@@ -1,6 +1,7 @@
 ;;; cl-indent.el --- enhanced lisp-indent mode
 
-;; Copyright (C) 1987, 2000, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Richard Mlynarik <mly@eddie.mit.edu>
 ;; Created: July 1987

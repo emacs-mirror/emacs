@@ -1,5 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -220,10 +220,13 @@ $(lisp)/progmodes/cc-mode.elc: \
 # Build loaddefs.el to make sure it's up-to-date.  If it's not, that
 # might lead to errors during the bootstrap because something fails to
 # autoload as expected.  If there is no emacs binary, then we can't
-# build autoloads yet.  In that case we have to use ldefs-boot.el;
-# bootstrap should always work with ldefs-boot.el.  (Because
-# loaddefs.el is an automatically generated file, we don't want to
-# store it in the source repository).
+# build autoloads yet.  In that case we have to use ldefs-boot.el.
+# Bootstrap should always work with ldefs-boot.el.  Therefore,
+# whenever a new autoload cookie gets added that is necessary during
+# bootstrapping, ldefs-boot.el should be updated by overwriting it with
+# an up-to-date copy of loaddefs.el that is uncorrupted by
+# local changes.  (Because loaddefs.el is an automatically generated
+# file, we don't want to store it in the source repository).
 
 bootstrap-prepare:
 	if test -x $(EMACS); then				\

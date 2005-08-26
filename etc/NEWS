@@ -888,6 +888,9 @@ black or white default foreground color.  This generic shadow face
 allows customization of the appearance of shadowed text in one place,
 so package-specific faces can inherit from it.
 
++++
+*** `vertical-border' face is used for the vertical divider between windows.
+
 ** Font-Lock changes:
 
 +++
@@ -957,8 +960,7 @@ This menu allows you to turn various display features on and off (such
 as the fringes, the tool bar, the speedbar, and the menu bar itself).
 You can also move the vertical scroll bar to either side here or turn
 it off completely.  There is also a menu-item to toggle displaying of
-current date and time, current line and column number in the
-mode-line.
+current date and time, current line and column number in the mode-line.
 
 ---
 *** Speedbar has moved from the "Tools" top level menu to "Show/Hide".
@@ -996,12 +998,10 @@ the new dialog.
 ** Mouse changes:
 
 +++
-*** New display feature: focus follows the mouse from one Emacs window
-to another, even within a frame.  If you set the variable
-mouse-autoselect-window to non-nil value, moving the mouse to a
-different Emacs window will select that window (minibuffer window can
-be selected only when it is active).  The default is nil, so that this
-feature is not enabled.
+*** If you set the new variable `mouse-autoselect-window' to a non-nil
+value, windows are automatically selected as you move the mouse from
+one Emacs window to another, even within a frame.  A minibuffer window
+can be selected only when it is active.
 
 +++
 *** On X, when the window manager requires that you click on a frame to
@@ -1069,7 +1069,7 @@ mouse-wheel-inhibit-click-time variables.
 +++
 *** Under X, mouse-wheel-mode is turned on by default.
 
-** Mule changes:
+** Multilingual Environment (Mule) changes:
 
 ---
 *** Language environment and various default coding systems are setup
@@ -1372,6 +1372,10 @@ The new file etc/compilation.txt gives examples of each type of message.
 This option allows you to specify environment variables for inferior
 compilation processes without affecting the environment that all
 subprocesses inherit.
+
++++
+*** New user option `compilation-disable-input'.
+If this is non-nil, send end-of-file as compilation process input.
 
 +++
 *** New options `next-error-highlight' and `next-error-highlight-no-select'
@@ -1705,7 +1709,7 @@ before calling it, if used while defining a macro.
 
 In addition, when ending or calling a macro with C-x e, the macro can
 be repeated immediately by typing just the `e'.  You can customize
-this behavior via the variable kmacro-call-repeat-key and
+this behavior via the variables kmacro-call-repeat-key and
 kmacro-call-repeat-with-arg.
 
 Keyboard macros can now be debugged and edited interactively.
@@ -1822,8 +1826,30 @@ recognized.
 ---
 ** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.
+
+** The new package scroll-lock.el provides the Scroll Lock minor mode
+for pager-like scrolling.  Keys which normally move point by line or
+paragraph will scroll the buffer by the respective amount of lines
+instead and point will be kept vertically fixed relative to window
+boundaries during scrolling.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
+
+---
+** Changes to cmuscheme
+
+*** Emacs now offers to start Scheme if the user tries to
+evaluate a Scheme expression but no Scheme subprocess is running.
+
+*** If a file `.emacs_NAME' (where NAME is the name of the Scheme interpreter)
+exists in the user's home directory or in ~/.emacs.d, its
+contents are sent to the Scheme subprocess upon startup.
+
+*** There are new commands to instruct the Scheme interpreter to trace
+procedure calls (`scheme-trace-procedure') and to expand syntactic forms
+(`scheme-expand-current-form').  The commands actually sent to the Scheme
+subprocess are controlled by the user options `scheme-trace-command',
+`scheme-untrace-command' and `scheme-expand-current-form'.
 
 ---
 ** Makefile mode has submodes for automake, gmake, makepp and BSD make.
@@ -1887,7 +1913,7 @@ when Emacs visits them.
 *** A numeric prefix argument of `info' selects an Info buffer
 with the number appended to the `*info*' buffer name (e.g. "*info*<2>").
 
----
++++
 *** isearch in Info uses Info-search and searches through multiple nodes.
 
 Before leaving the initial Info node isearch fails once with the error
@@ -1898,31 +1924,38 @@ aroung the whole manual to the top/final node.  The user option
 or the default isearch search function that wraps around the current
 Info node.
 
+---
 *** New search commands: `Info-search-case-sensitively' (bound to S),
 `Info-search-backward', and `Info-search-next' which repeats the last
 search without prompting for a new search string.
 
++++
 *** New command `Info-history-forward' (bound to r and new toolbar icon)
 moves forward in history to the node you returned from after using
 `Info-history-back' (renamed from `Info-last').
 
+---
 *** New command `Info-history' (bound to L) displays a menu of visited nodes.
 
+---
 *** New command `Info-toc' (bound to T) creates a node with table of contents
 from the tree structure of menus of the current Info file.
 
++++
 *** New command `info-apropos' searches the indices of the known
 Info files on your system for a string, and builds a menu of the
 possible matches.
 
+---
 *** New command `Info-copy-current-node-name' (bound to w) copies
 the current Info node name into the kill ring.  With a zero prefix
 arg, puts the node name inside the `info' function call.
 
----
++++
 *** New face `info-xref-visited' distinguishes visited nodes from unvisited
 and a new option `Info-fontify-visited-nodes' to control this.
 
+---
 *** http and ftp links in Info are now operational: they look like cross
 references and following them calls `browse-url'.
 
@@ -2827,6 +2860,10 @@ See the documentation of the user option
 ---
 *** Rmail now displays 5-digit message ids in its summary buffer.
 
+*** The new commands rmail-end-of-message and rmail-summary end-of-message,
+by default bound to `/', go to the end of the current mail message in
+Rmail and Rmail summary buffers.
+
 +++
 *** Support for `movemail' from GNU mailutils was added to Rmail.
 
@@ -2856,6 +2893,10 @@ Upgraded to MH-E version 7.84. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:
+
++++
+*** You can now use < and >, instead of C-x < and C-x >, to scroll
+the calendar left or right.  (The old key bindings still work too.)
 
 +++
 *** There is a new calendar package, icalendar.el, that can be used to
@@ -3250,6 +3291,10 @@ the command `undefined'.  (In earlier Emacs versions, it used
 * Lisp Changes in Emacs 22.1
 
 ** General Lisp changes:
+
+*** The function `expt' handles negative exponents differently.
+The value for `(expt A B)', if both A and B are integers and B is
+negative, is now a float.  For example: (expt 2 -2) => 0.25.
 
 +++
 *** The function `eql' is now available without requiring the CL package.
@@ -3673,6 +3718,25 @@ binding of VARIABLE (a symbol) in buffer BUFFER.  If VARIABLE does not
 have a buffer-local binding in buffer BUFFER, it returns the default
 value of VARIABLE instead.
 
+*** The function `frame-or-buffer-changed-p' now lets you maintain
+various status records in parallel.
+
+It take a variable (a symbol) as argument.  If the variable is non-nil,
+then its value should be a vector installed previously by
+`frame-or-buffer-changed-p'.  If the frame names, buffer names, buffer
+order, or their read-only or modified flags have changed, since the
+time the vector's contents were recorded by a previous call to
+`frame-or-buffer-changed-p', then the function returns t.  Otherwise
+it returns nil.
+
+On the first call to `frame-or-buffer-changed-p', the variable's
+value should be nil.  `frame-or-buffer-changed-p' stores a suitable
+vector into the variable and returns t.
+
+If the variable is itself nil, then `frame-or-buffer-changed-p' uses,
+for compatibility, an internal variable which exists only for this
+purpose.
+
 ** Local variables lists:
 
 +++
@@ -3940,7 +4004,8 @@ using the text properties (esp. the face) of the prompt string.
 *** (while-no-input BODY...) runs BODY, but only so long as no input
 arrives.  If the user types or clicks anything, BODY stops as if a
 quit had occurred.  `while-no-input' returns the value of BODY, if BODY
-finishes.  It returns nil if BODY was aborted.
+finishes.  It returns nil if BODY was aborted by a quit, and t if
+BODY was aborted by arrival of input.
 
 ** Minibuffer changes:
 
@@ -4734,6 +4799,13 @@ faces in the list override later faces in the list; in previous
 releases of Emacs, the order was the opposite.  This change was made
 so that :inherit face lists operate identically to face lists in text
 `face' properties.
+
+---
+*** On terminals, faces with the :inverse-video attribute are displayed
+with swapped foreground and background colors even when one of them is
+not specified.  In previous releases of Emacs, if either foreground
+or background color was unspecified, colors were not swapped.  This
+was inconsistent with the face behavior under X.
 
 ---
 *** `set-fontset-font', `fontset-info', `fontset-font' now operate on
@@ -14513,7 +14585,8 @@ select one of those items.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

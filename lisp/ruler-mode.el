@@ -220,8 +220,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Default face used by the ruler."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-default-face 'face-alias 'ruler-mode-default)
 
 (defface ruler-mode-pad
   '((((type tty))
@@ -234,8 +232,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to pad inactive ruler areas."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-pad-face 'face-alias 'ruler-mode-pad)
 
 (defface ruler-mode-margins
   '((t
@@ -244,8 +240,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to highlight margin areas."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-margins-face 'face-alias 'ruler-mode-margins)
 
 (defface ruler-mode-fringes
   '((t
@@ -254,8 +248,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to highlight fringes areas."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-fringes-face 'face-alias 'ruler-mode-fringes)
 
 (defface ruler-mode-column-number
   '((t
@@ -264,8 +256,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to highlight number graduations."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-column-number-face 'face-alias 'ruler-mode-column-number)
 
 (defface ruler-mode-fill-column
   '((t
@@ -274,8 +264,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to highlight the fill column character."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-fill-column-face 'face-alias 'ruler-mode-fill-column)
 
 (defface ruler-mode-comment-column
   '((t
@@ -284,8 +272,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to highlight the comment column character."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-comment-column-face 'face-alias 'ruler-mode-comment-column)
 
 (defface ruler-mode-goal-column
   '((t
@@ -294,8 +280,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to highlight the goal column character."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-goal-column-face 'face-alias 'ruler-mode-goal-column)
 
 (defface ruler-mode-tab-stop
   '((t
@@ -304,8 +288,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to highlight tab stop characters."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-tab-stop-face 'face-alias 'ruler-mode-tab-stop)
 
 (defface ruler-mode-current-column
   '((t
@@ -315,8 +297,6 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Face used to highlight the `current-column' character."
   :group 'ruler-mode)
-;; backward-compatibility alias
-(put 'ruler-mode-current-column-face 'face-alias 'ruler-mode-current-column)
 
 
 (defsubst ruler-mode-full-window-width ()

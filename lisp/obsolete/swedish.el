@@ -35,6 +35,11 @@
 
 ;; See iso-swed.el for a description of the character set.
 
+(eval-when-compile
+  (defvar news-inews-hook)
+  (defvar news-group-hook-alist)
+  (defvar mail-send-hook))
+
 (defvar swedish-re
   "[ \t\n]\\(och\\|att\\|en\\|{r\\|\\[R\\|p}\\|P\\]\\|som\\|det\\|av\\|den\\|f|r\\|F\\\\R\\)[ \t\n.,?!:;'\")}]"
   "Regular expression for common Swedish words.")
@@ -79,10 +84,9 @@ Leaves point just after the word that looks Swedish."
 
 (setq rmail-show-message-hook 'swascii-to-8859-buffer-maybe)
 
-(or (boundp 'news-group-hook-alist) (setq news-group-hook-alist nil))
 (setq news-group-hook-alist
       (append '(("^swnet." . swascii-to-8859-buffer-maybe))
-	      news-group-hook-alist))
+	      (bound-and-true-p news-group-hook-alist)))
 
 (defvar 8859-to-swascii-trans
   (let ((string (make-string 256 ? ))

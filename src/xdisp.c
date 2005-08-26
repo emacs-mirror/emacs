@@ -1,6 +1,7 @@
 /* Display generation from window structure and buffer text.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1997, 1998, 1999,
-     2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
+                 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1348,6 +1349,9 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
     set_buffer_internal_1 (old_buffer);
 
   current_header_line_height = current_mode_line_height = -1;
+
+  if (visible_p && w->hscroll > 0)
+    *x -= w->hscroll;
 
   return visible_p;
 }
@@ -7201,6 +7205,9 @@ message3_nolog (m, nbytes, multibyte)
 	  set_message (NULL, m, nbytes, multibyte);
 	  if (minibuffer_auto_raise)
 	    Fraise_frame (frame);
+	  /* Assume we are not echoing.
+	     (If we are, echo_now will override this.)  */
+	  echo_message_buffer = Qnil;
 	}
       else
 	clear_message (1, 1);
@@ -7729,13 +7736,16 @@ display_echo_area_1 (a1, a2, a3, a4)
   int window_height_changed_p = 0;
 
   /* Do this before displaying, so that we have a large enough glyph
-     matrix for the display.  */
+     matrix for the display.  If we can't get enough space for the
+     whole text, display the last N lines.  That works by setting w->start.  */
   window_height_changed_p = resize_mini_window (w, 0);
+
+  /* Use the starting position chosen by resize_mini_window.  */
+  SET_TEXT_POS_FROM_MARKER (start, w->start);
 
   /* Display.  */
   clear_glyph_matrix (w->desired_matrix);
   XSETWINDOW (window, w);
-  SET_TEXT_POS (start, BEG, BEG_BYTE);
   try_window (window, start, 0);
 
   return window_height_changed_p;
@@ -7791,8 +7801,14 @@ resize_mini_window_1 (a1, exactly, a3, a4)
 
 /* Resize mini-window W to fit the size of its contents.  EXACT:P
    means size the window exactly to the size needed.  Otherwise, it's
-   only enlarged until W's buffer is empty.  Value is non-zero if
-   the window height has been changed.  */
+   only enlarged until W's buffer is empty.
+   
+   Set W->start to the right place to begin display.  If the whole
+   contents fit, start at the beginning.  Otherwise, start so as
+   to make the end of the contents appear.  This is particularly
+   important for y-or-n-p, but seems desirable generally.
+
+   Value is non-zero if the window height has been changed.  */
 
 int
 resize_mini_window (w, exact_p)
@@ -7803,6 +7819,11 @@ resize_mini_window (w, exact_p)
   int window_height_changed_p = 0;
 
   xassert (MINI_WINDOW_P (w));
+
+  /* By default, start display at the beginning.  */
+  set_marker_both (w->start, w->buffer,
+		   BUF_BEGV (XBUFFER (w->buffer)),
+		   BUF_BEGV_BYTE (XBUFFER (w->buffer)));
 
   /* Don't resize windows while redisplaying a window; it would
      confuse redisplay functions when the size of the window they are
@@ -7867,9 +7888,10 @@ resize_mini_window (w, exact_p)
       if (height > max_height)
 	{
 	  height = max_height;
-	  init_iterator (&it, w, PT, PT_BYTE, NULL, DEFAULT_FACE_ID);
+	  init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
 	  move_it_vertically_backward (&it, (height - 1) * unit);
 	  start = it.current.pos;
+	  SET_PT_BOTH (CHARPOS (start), BYTEPOS (start));
 	}
       else
 	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
@@ -12803,10 +12825,9 @@ redisplay_window (window, just_this_one_p)
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (FRAME_WINDOW_P (f)
-      && update_window_fringes (w, 0)
-      && !just_this_one_p
-      && (used_current_matrix_p || overlay_arrow_seen)
-      && !w->pseudo_window_p)
+      && update_window_fringes (w, (just_this_one_p
+				    || (!used_current_matrix_p && !overlay_arrow_seen)
+				    || w->pseudo_window_p)))
     {
       update_begin (f);
       BLOCK_INPUT;
@@ -17713,6 +17734,15 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
 	  if (pixels > 0)
 	    {
 	      double ppi;
+#ifdef HAVE_WINDOW_SYSTEM
+	      if (FRAME_WINDOW_P (it->f)
+		  && (ppi = (width_p
+			     ? FRAME_X_DISPLAY_INFO (it->f)->resx
+			     : FRAME_X_DISPLAY_INFO (it->f)->resy),
+		      ppi > 0))
+		return OK_PIXELS (ppi / pixels);
+#endif
+
 	      if ((ppi = NUMVAL (Vdisplay_pixels_per_inch), ppi > 0)
 		  || (CONSP (Vdisplay_pixels_per_inch)
 		      && (ppi = (width_p
@@ -23190,7 +23220,7 @@ of the top or bottom of the window.  */);
   scroll_margin = 0;
 
   DEFVAR_LISP ("display-pixels-per-inch",  &Vdisplay_pixels_per_inch,
-    doc: /* Pixels per inch on current display.
+    doc: /* Pixels per inch value for non-window system displays.
 Value is a number or a cons (WIDTH-DPI . HEIGHT-DPI).  */);
   Vdisplay_pixels_per_inch = make_float (72.0);
 

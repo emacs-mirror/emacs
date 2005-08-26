@@ -942,8 +942,10 @@ Suffixes such as .el or .elc should be stripped."
 
   ;; Change the default for minor-mode-map-alist each time a harnessed minor
   ;; mode adds its own keymap to the a-list.
-  (eval-after-load
-   load-file '(setq-default minor-mode-map-alist minor-mode-map-alist))
+  (unless
+      (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
+    (eval-after-load
+	load-file '(setq-default minor-mode-map-alist minor-mode-map-alist)))
   )
 
 
@@ -1421,7 +1423,8 @@ as a Meta key and any number of multiple escapes is allowed."
 	  (if (eq last-command 'd-command) 'kill-region nil))
     (setq chars-deleted (abs (- (point) viper-com-point)))
     (if (> chars-deleted viper-change-notification-threshold)
-	(message "Deleted %d characters" chars-deleted))
+	(unless (viper-is-in-minibuffer)
+	  (message "Deleted %d characters" chars-deleted)))
     (kill-region viper-com-point (point))
     (setq this-command 'd-command)
     (if viper-ex-style-motion
@@ -1447,7 +1450,8 @@ as a Meta key and any number of multiple escapes is allowed."
 	    (if (eq last-command 'D-command) 'kill-region nil))
       (setq lines-deleted (count-lines (point) viper-com-point))
       (if (> lines-deleted viper-change-notification-threshold)
-	  (message "Deleted %d lines" lines-deleted))
+	  (unless (viper-is-in-minibuffer)
+	    (message "Deleted %d lines" lines-deleted)))
       (kill-region (mark t) (point))
       (if (eq m-com 'viper-line) (setq this-command 'D-command)))
     (back-to-indentation)))
@@ -1472,7 +1476,8 @@ as a Meta key and any number of multiple escapes is allowed."
     (copy-region-as-kill viper-com-point (point))
     (setq chars-saved (abs (- (point) viper-com-point)))
     (if (> chars-saved viper-change-notification-threshold)
-	(message "Saved %d characters" chars-saved))
+	(unless (viper-is-in-minibuffer)
+	  (message "Saved %d characters" chars-saved)))
     (goto-char viper-com-point)))
 
 ;; save lines
@@ -1496,7 +1501,8 @@ as a Meta key and any number of multiple escapes is allowed."
       (copy-region-as-kill (mark t) (point))
       (setq lines-saved (count-lines (mark t) (point)))
       (if (> lines-saved viper-change-notification-threshold)
-	  (message "Saved %d lines" lines-saved))))
+	  (unless (viper-is-in-minibuffer)
+	    (message "Saved %d lines" lines-saved)))))
   (viper-deactivate-mark)
   (goto-char viper-com-point))
 
@@ -4020,8 +4026,9 @@ Null string will repeat previous search."
 	  lines-inserted (abs (count-lines (point) sv-point)))
     (if (or (> chars-inserted viper-change-notification-threshold)
 	    (> lines-inserted viper-change-notification-threshold))
-	(message "Inserted %d character(s), %d line(s)"
-		 chars-inserted lines-inserted)))
+	(unless (viper-is-in-minibuffer)
+	  (message "Inserted %d character(s), %d line(s)"
+		   chars-inserted lines-inserted))))
   ;; Vi puts cursor on the last char when the yanked text doesn't contain a
   ;; newline; it leaves the cursor at the beginning when the text contains
   ;; a newline
@@ -4062,8 +4069,9 @@ Null string will repeat previous search."
 	  lines-inserted (abs (count-lines (point) sv-point)))
     (if (or (> chars-inserted viper-change-notification-threshold)
 	    (> lines-inserted viper-change-notification-threshold))
-	(message "Inserted %d character(s), %d line(s)"
-		 chars-inserted lines-inserted)))
+	(unless (viper-is-in-minibuffer)
+	  (message "Inserted %d character(s), %d line(s)"
+		   chars-inserted lines-inserted))))
   ;; Vi puts cursor on the last char when the yanked text doesn't contain a
   ;; newline; it leaves the cursor at the beginning when the text contains
   ;; a newline

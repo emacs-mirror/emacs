@@ -1,7 +1,8 @@
 /* Template for system description header files.
    This file describes the parameters that system description files
    should define or not.
-   Copyright (C) 1985, 1986, 1992, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

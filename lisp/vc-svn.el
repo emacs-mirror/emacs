@@ -1,7 +1,6 @@
 ;;; vc-svn.el --- non-resident support for Subversion version-control
 
-;; Copyright (C) 1995, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author:      FSF (see vc.el for full credits)
 ;; Maintainer:  Stefan Monnier <monnier@gnu.org>

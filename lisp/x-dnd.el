@@ -1,7 +1,6 @@
 ;;; x-dnd.el --- drag and drop support for X.
 
-;; Copyright (C) 2004
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jan Dj,Ad(Brv <jan.h.d@swipnet.se>
 ;; Maintainer: FSF

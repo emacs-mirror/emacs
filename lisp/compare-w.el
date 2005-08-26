@@ -1,6 +1,7 @@
 ;;; compare-w.el --- compare text between windows for Emacs
 
-;; Copyright (C) 1986,1989,1993,1997,2003,2004,2005 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1989, 1993, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: convenience files
@@ -126,8 +127,6 @@ and the value `((4) (4))' for horizontally split windows."
   "Face for highlighting of compare-windows difference regions."
   :group 'compare-w
   :version "22.1")
-;; backward-compatibility alias
-(put 'compare-windows-face 'face-alias 'compare-windows)
 
 (defvar compare-windows-overlay1 nil)
 (defvar compare-windows-overlay2 nil)

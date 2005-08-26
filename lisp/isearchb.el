@@ -1,6 +1,6 @@
 ;;; isearchb --- a marriage between iswitchb and isearch
 
-;; Copyright (C) 2004 John Wiegley
+;; Copyright (C) 2004, 2005 John Wiegley
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Created: 16 Apr 2004

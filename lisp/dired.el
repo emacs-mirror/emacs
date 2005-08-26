@@ -1,7 +1,7 @@
 ;;; dired.el --- directory-browsing commands
 
 ;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 2000,
-;;   2001, 2003, 2004  Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;; Maintainer: FSF
@@ -1469,6 +1469,8 @@ Do so according to the former subdir alist OLD-SUBDIR-ALIST."
 ;; Dired mode is suitable only for specially formatted data.
 (put 'dired-mode 'mode-class 'special)
 
+;; Autoload cookie needed by desktop.el
+;;;###autoload
 (defun dired-mode (&optional dirname switches)
   "\
 Mode for \"editing\" directory listings.
@@ -1951,11 +1953,11 @@ Return the position of the beginning of the filename, or nil if none found."
 		       (eq (preceding-char) ?@)	;; did ls really mark the link?
 		       (forward-char -1))))
 	  (goto-char eol) ;; else not a symbolic link
-	  ;; ls -lF marks dirs, sockets and executables with exactly one
-	  ;; trailing character. (Executable bits on symlinks ain't mean
+	  ;; ls -lF marks dirs, sockets, fifos and executables with exactly
+	  ;; one trailing character. (Executable bits on symlinks ain't mean
 	  ;; a thing, even to ls, but we know it's not a symlink.)
 	  (and used-F
-	       (or (memq file-type '(?d ?s))
+	       (or (memq file-type '(?d ?s ?p))
 		   executable)
 	       (forward-char -1))))
       (or no-error
@@ -3270,7 +3272,6 @@ Ask means pop up a menu for the user to select one of copy, move or link."
          (function (lambda (f) (desktop-file-name (car f) desktop-dirname)))
          dired-subdir-alist)))))
 
-;;;###autoload
 (defun dired-restore-desktop-buffer (desktop-buffer-file-name
                                      desktop-buffer-name
                                      desktop-buffer-misc)
@@ -3290,6 +3291,9 @@ Ask means pop up a menu for the user to select one of copy, move or link."
       (message "Desktop: Directory %s no longer exists." dir)
       (when desktop-missing-file-warning (sit-for 1))
       nil)))
+
+(add-to-list 'desktop-buffer-mode-handlers
+	     '(dired-mode . dired-restore-desktop-buffer))
 
 
 (if (eq system-type 'vax-vms)

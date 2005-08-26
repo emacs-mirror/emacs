@@ -1,5 +1,4 @@
 Emacs-inleiding.  De kopieervoorwaarden staan onderaan.
-Copyright (c) 1985, 1996, 1997, 2003, 2004, 2005 Free Software Foundation
 
 De meeste Emacs-commando's gebruiken de CONTROL-toets (soms CTRL of CTL
 genaamd) en/of de META-toets (soms genaamd EDIT of ALT).  In plaats van
@@ -1205,7 +1204,8 @@ het Engelse origineel.)
 Deze versie van de inleiding valt onder copyright, net als GNU Emacs.
 Je mag deze inleiding verspreiden onder bepaalde voorwaarden:
 
-Copyright (c) 1985, 1996, 1997, 2003, 2004, 2005 Free Software Foundation
+Copyright (C) 1985, 1996, 1997, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Iedereen mag letterlijke kopieën van dit document, zowel ontvangen
    als verspreiden, op elk medium, vooropgesteld dat de
@@ -1229,7 +1229,8 @@ software te gebruiken, te schrijven en te delen!
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (c) 1985, 1996, 1997, 2003, 2004, 2005 Free Software Foundation
+Copyright (C) 1985, 1996, 1997, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim
    copies of this document as received, in any medium, provided that

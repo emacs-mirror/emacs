@@ -1,5 +1,5 @@
 /* machine description file for ibm ps/2 aix386.
-   Copyright (C) 1989, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1989, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

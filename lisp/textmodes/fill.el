@@ -1,7 +1,7 @@
 ;;; fill.el --- fill commands for Emacs		-*- coding: iso-2022-7bit -*-
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
-;;   2003, 2004, 2005  Free Software Foundation, Inc.
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -163,7 +163,7 @@ Remove indentation from each line."
       ;; This is quick, but loses when a tab follows the end of a sentence.
       ;; Actually, it is difficult to tell that from "Mr.\tSmith".
       ;; Blame the typist.
-      (subst-char-in-region beg end ?\t ?\ )
+      (subst-char-in-region beg end ?\t ?\s)
       (while (and (< (point) end)
 		  (re-search-forward end-spc-re end t))
 	(delete-region
@@ -282,7 +282,7 @@ act as a paragraph-separator."
 				(string-match comment-start-skip
 					      first-line-prefix)))
 		       first-line-prefix
-		     (make-string (string-width first-line-prefix) ?\ ))))
+		     (make-string (string-width first-line-prefix) ?\s))))
 	      ;; But either way, reject it if it indicates the start
 	      ;; of a paragraph when text follows it.
 	      (if (not (eq 0 (string-match paragraph-start
@@ -312,7 +312,7 @@ places."
 	  (backward-char 1)
 	  (or (looking-at "[([{,A+,b+(B]")
 	      ;; Don't cut right after a single-letter word.
-	      (and (memq (preceding-char) '(?\t ?\ ))
+	      (and (memq (preceding-char) '(?\t ?\s))
 		   (eq (char-syntax (following-char)) ?w)))))))
 
 (defcustom fill-nobreak-predicate nil
@@ -439,10 +439,10 @@ Point is moved to just past the fill prefix on the first line."
 	(sentence-end-without-space-list
 	 (string-to-list sentence-end-without-space)))
     (while (re-search-forward eol-double-space-re to t)
-      (or (>= (point) to) (memq (char-before) '(?\t ?\ ))
+      (or (>= (point) to) (memq (char-before) '(?\t ?\s))
 	  (memq (char-after (match-beginning 0))
 		sentence-end-without-space-list)
-	  (insert-and-inherit ?\ ))))
+	  (insert-and-inherit ?\s))))
 
   (goto-char from)
   (if enable-multibyte-characters
@@ -471,7 +471,7 @@ Point is moved to just past the fill prefix on the first line."
   (goto-char from)
   (skip-chars-forward " \t")
   ;; Then change all newlines to spaces.
-  (subst-char-in-region from to ?\n ?\ )
+  (subst-char-in-region from to ?\n ?\s)
   (if (and nosqueeze (not (eq justify 'full)))
       nil
     (canonically-space-region (or squeeze-after (point)) to)
@@ -830,10 +830,10 @@ can take care of filling.  JUSTIFY is used as in `fill-paragraph'."
 		(if has-code-and-comment
 		    (concat
 		     (if (not indent-tabs-mode)
-			 (make-string (current-column) ?\ )
+			 (make-string (current-column) ?\s)
 		       (concat
 			(make-string (/ (current-column) tab-width) ?\t)
-			(make-string (% (current-column) tab-width) ?\ )))
+			(make-string (% (current-column) tab-width) ?\s)))
 		     (buffer-substring (point) comin))
 		  (buffer-substring (line-beginning-position) comin))))
 	     beg end)
@@ -1223,7 +1223,7 @@ otherwise it is made canonical."
 			 (while (> count 0)
 			   (skip-chars-forward " ")
 			   (insert-and-inherit
-			    (make-string (/ curr-fracspace nspaces) ?\ ))
+			    (make-string (/ curr-fracspace nspaces) ?\s))
 			   (search-forward " " nil t)
 			   (setq count (1- count)
 				 curr-fracspace
@@ -1282,8 +1282,8 @@ in the paragraph.
 
 When calling from a program, pass range to fill as first two arguments.
 
-Optional third and fourth arguments JUSTIFY and MAIL-FLAG:
-JUSTIFY to justify paragraphs (prefix arg),
+Optional third and fourth arguments JUSTIFYP and CITATION-REGEXP:
+JUSTIFYP to justify paragraphs (prefix arg).
 When filling a mail message, pass a regexp for CITATION-REGEXP
 which will match the prefix of a line which is a citation marker
 plus whitespace, but no other kind of prefix.

@@ -1,6 +1,7 @@
 ;;; message.el --- composing mail and news messages
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, news
@@ -1442,7 +1443,7 @@ no, only reply back to the author."
   :type 'boolean)
 
 (defcustom message-user-fqdn nil
-  "*Domain part of Messsage-Ids."
+  "*Domain part of Message-Ids."
   :version "22.1"
   :group 'message-headers
   :link '(custom-manual "(message)News Headers")

@@ -1,6 +1,7 @@
 ;;; macros.el --- non-primitive commands for keyboard macros
 
-;; Copyright (C) 1985, 86, 87, 92, 94, 95, 04 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1995, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev

@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1999, 2000,
-@c               2001, 2005  Free Software Foundation, Inc.
+@c   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Programs, Building, Text, Top
 @chapter Editing Programs
@@ -1016,7 +1016,7 @@ for example, in C mode the value of the variable is
 after the @samp{/*} itself, and accepts C++ style comments also.
 (Note that @samp{\\} is needed in Lisp syntax to include a @samp{\} in
 the string, which is needed to deny the first star its special meaning
-in regexp syntax.  @xref{Regexps}.)
+in regexp syntax.  @xref{Regexp Backslash}.)
 
 @vindex comment-start
 @vindex comment-end

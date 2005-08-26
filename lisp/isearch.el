@@ -1,7 +1,7 @@
 ;;; isearch.el --- incremental search minor mode
 
-;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999,
-;;   2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1999, 2000,
+;;   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@cs.uiuc.edu>
 ;; Maintainer: FSF
@@ -1068,7 +1068,11 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 	(if isearch-nonincremental
 	    (progn
 	      ;; (sit-for 1) ;; needed if isearch-done does: (message "")
-	      (isearch-done))))
+	      (isearch-done)
+	      ;; The search done message is confusing when the string
+	      ;; is empty, so erase it.
+	      (if (equal isearch-string "")
+		  (message "")))))
 
     (quit  ; handle abort-recursive-edit
      (isearch-abort)  ;; outside of let to restore outside global values
@@ -1143,7 +1147,8 @@ Use `isearch-exit' to quit without signaling."
 		  (funcall isearch-wrap-function)
 	        (goto-char (if isearch-forward (point-min) (point-max)))))))
     ;; C-s in reverse or C-r in forward, change direction.
-    (setq isearch-forward (not isearch-forward)))
+    (setq isearch-forward (not isearch-forward)
+	  isearch-success t))
 
   (setq isearch-barrier (point)) ; For subsequent \| if regexp.
 

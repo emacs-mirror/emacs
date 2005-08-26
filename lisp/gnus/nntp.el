@@ -1,8 +1,8 @@
 ;;; nntp.el --- nntp access for Gnus
 
-;; Copyright (C) 1987, 1988, 1989, 1990, 1992, 1993, 1994, 1995, 1996,
-;; 1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1992, 1993,
+;;   1994, 1995, 1996, 1997, 1998, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -255,7 +255,7 @@ noticing asynchronous data.")
 (defvar nntp-async-timer nil)
 (defvar nntp-async-process-list nil)
 
-(defvar nntp-ssl-program 
+(defvar nntp-ssl-program
   "openssl s_client -quiet -ssl3 -connect %s:%p"
 "A string containing commands for SSL connections.
 Within a string, %s is replaced with the server address and %p with
@@ -889,7 +889,7 @@ command whose response triggered the error."
     (if (numberp article) (int-to-string article) article))))
 
 (deffoo nntp-request-group (group &optional server dont-check)
-  (nntp-with-open-group 
+  (nntp-with-open-group
     nil server
     (when (nntp-send-command "^[245].*\n" "GROUP" group)
       (let ((entry (nntp-find-connection-entry nntp-server-buffer)))
@@ -1156,10 +1156,10 @@ password contained in '~/.nntp-authinfo'."
 
 (defun nntp-open-ssl-stream (buffer)
   (let* ((process-connection-type nil)
-	 (proc (start-process "nntpd" buffer 
+	 (proc (start-process "nntpd" buffer
 			      shell-file-name
 			      shell-command-switch
-			      (format-spec nntp-ssl-program 
+			      (format-spec nntp-ssl-program
 					   (format-spec-make
 					    ?s nntp-address
 					    ?p nntp-port-number)))))
@@ -1317,7 +1317,7 @@ password contained in '~/.nntp-authinfo'."
     ;; that the server has closed the connection.  This MUST be
     ;; handled here as the buffer restored by the save-excursion may
     ;; be the process's former output buffer (i.e. now killed)
-    (or (and process 
+    (or (and process
 	     (memq (process-status process) '(open run)))
         (nntp-report "Server closed connection"))))
 
@@ -1501,7 +1501,7 @@ password contained in '~/.nntp-authinfo'."
           (goto-char (point-min))
           (when (re-search-forward "^[0-9][0-9][0-9] .*\n\\([0-9]+\\)" nil t)
             (let ((low-limit (string-to-number
-			      (buffer-substring (match-beginning 1) 
+			      (buffer-substring (match-beginning 1)
 						(match-end 1)))))
               (while (and articles (<= (car articles) low-limit))
                 (setq articles (cdr articles))))))

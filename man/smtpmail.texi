@@ -3,7 +3,7 @@
 @settitle Emacs SMTP Library
 @syncodeindex vr fn
 @copying
-Copyright @copyright{} 2003, 2004 Free Software Foundation, Inc.
+Copyright @copyright{} 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

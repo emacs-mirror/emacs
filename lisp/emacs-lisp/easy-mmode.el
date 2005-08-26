@@ -194,28 +194,20 @@ For example, you could write
 Use the command `%s' to change this variable." pretty-name mode))
 	       (make-variable-buffer-local ',mode))
 
-	  (let ((curfile (or (and (boundp 'byte-compile-current-file)
-				  byte-compile-current-file)
-			     load-file-name))
-		base-doc-string)
-	    (setq base-doc-string "Non-nil if %s is enabled.
-See the command `%s' for a description of this minor-mode.
+	  (let ((base-doc-string
+                 (concat "Non-nil if %s is enabled.
+See the command `%s' for a description of this minor-mode."
+                         (if body "
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `%s'.")
-	    (if (null body)
-		(setq base-doc-string "Non-nil if %s is enabled.
-See the command `%s' for a description of this minor-mode."))
-
+use either \\[customize] or the function `%s'."))))
 	    `(defcustom ,mode ,init-value
 	       ,(format base-doc-string pretty-name mode mode)
 	       ,@set
 	       ,@initialize
 	       ,@group
 	       ,@type
-	       ,@(cond
-		  ((not (and curfile require)) nil)
-		  ((not (eq require t)) `(:require ,require)))
-	       ,@(nreverse extra-keywords))))
+	       ,@(unless (eq require t) `(:require ,require))
+               ,@(nreverse extra-keywords))))
 
        ;; The actual function.
        (defun ,mode (&optional arg ,@extra-args)

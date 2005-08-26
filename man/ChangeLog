@@ -1,3 +1,140 @@
+2005-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (time-date): Fix description of safe-date-to-time.
+
+2005-08-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Handles): Remove duplicate item.
+	(Encoding Customization): Fix the default value for
+	mm-coding-system-priorities.
+	(Charset Translation): Emacs doesn't use mm-mime-mule-charset-alist.
+	(Basic Functions): Fix reference.
+
+2005-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Charsets): Fj hierarchy uses iso-2022-jp.
+
+2005-08-22  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Standard Faces): Merge the text from
+	`(elisp)Standard Faces' into this node.
+
+2005-08-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs.texi (Top): Delete menu item for deleted node
+	Keyboard Translations.
+
+2005-08-18  Richard M. Stallman  <rms@gnu.org>
+
+	* faq.texi (Obtaining the FAQ): Delete refs to Lerner's email
+	and web site.
+
+	* trouble.texi (Unasked-for Search):
+	Delete xref to Keyboard Translations.
+
+	* glossary.texi (Glossary): Delete xref.
+
+	* faq.texi (Swapping keys): Xref for normal-erase-is-backspace-mode,
+	not keyboard-translate.
+
+	* custom.texi (Minor Modes): Say that the list here is not complete.
+	(Keyboard Translations): Node deleted.
+	(Disabling): Delete xref to it.
+	(Customization Groups): Fix Custom buffer example.
+	(Hooks): Mention remove-hooks.
+
+2005-08-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* building.texi (GDB Graphical Interface): Improve filling of menu
+	item.
+
+2005-08-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Use better node names.
+
+2005-08-14  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Sentences): Fix xref.
+
+2005-08-14  Juri Linkov  <juri@jurta.org>
+
+	* building.texi (Compilation, Grep Searching): Move grep command
+	headings from `Compilation' to `Grep Searching'.
+
+	* dired.texi (Dired and Find):
+	* maintaining.texi (Tags Search): Replace grep xref to
+	`Compilation' node with `Grep Searching'.
+
+	* files.texi (Comparing Files): Replace xref to `Compilation' with
+	`Compilation Mode'.
+
+2005-08-13  Alan Mackenzie  <acm@muc.de>
+
+	* search.texi (Non-ASCII Isearch): Correct a typo.
+	(Replacement Commands): Mention query-replace key binding.
+
+2005-08-11  Richard M. Stallman  <rms@gnu.org>
+
+	* programs.texi (Options for Comments): Fix xref.
+
+	* search.texi (Regexp Backslash, Regexp Example): New nodes split
+	out of Regexps.
+
+	* faq.texi (Using regular expressions): Fix xref.
+
+2005-08-09  Juri Linkov  <juri@jurta.org>
+
+	* building.texi (Compilation): Use `itemx' instead of `item'.
+	(Grep Searching): Simplify phrase.
+
+	* display.texi (Standard Faces): Describe vertical-border on
+	window systems.
+
+	* windows.texi (Split Window): Simplify phrase and mention
+	vertical-border face.
+
+2005-08-09  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Comparing Files): Clarify compare-windows.
+
+	* calendar.texi (Scroll Calendar): Document < and > in calendar.
+
+2005-08-09  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Help-P): Replace `Prev' with `Previous'.
+	(Help-M, Help-Xref): Add S-TAB.
+	(Help-FOO): Update `u' command.
+	(Help-Xref): Move info about Mouse-2 from `Help-Int'.
+	Update info about visibility of xref parts.
+	(Help-Int): Fix `m' command.  Rename `Info-last' to
+	`Info-history-back'.  Add `Info-history-forward'.
+	(Advanced): Fix `g*' and `M-n' commands.
+	(Info Search): Add `index-apropos' in stand-alone browser.
+	Add isearch commands.
+	(Emacs Info Variables): Remove `Info-fontify'.
+	Add `Info-mode-hook'.  Update face names.
+	Add `Info-fontify-maximum-menu-size',
+	`Info-fontify-visited-nodes', `Info-isearch-search'.
+
+2005-08-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.50.
+
+	* tramp.texi: Use @option{} consequently for method names.
+	(Inline methods, External transfer methods): Remove references to
+	Cygwin.
+	(Issues with Cygwin ssh): Explain trouble with Cygwin's ssh
+	implementation.
+
+2005-08-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* mule.texi (Coding Systems): Rephrase the paragraph about
+	codepages: no need for "M-x codepage-setup" anymore, except on
+	MS-DOS.
+
+	* msdog.texi (MS-DOS and MULE): Clarify that this section is for
+	the MS-DOS port only.
+
 2005-07-30  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (info): Don't run multi-install-info.bat.
@@ -113,7 +250,6 @@
 	* mh-e.texi (Copying):
 	* trouble.texi (Checklist): Update FSF's address.
 
->>>>>>> 1.631
 2005-07-03  Richard M. Stallman  <rms@gnu.org>
 
 	* flymake.texi (Example -- Configuring a tool called directly):
@@ -3808,8 +3944,8 @@
 ;; coding: iso-2022-7bit
 ;; End:
 
-    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	Free Software Foundation, Inc.
+    Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001, 2002,
+      2003, 2004, 2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

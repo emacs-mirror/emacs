@@ -1,6 +1,6 @@
 ;;; mlsupport.el --- run-time support for mocklisp code
 
-;; Copyright (C) 1985 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: extensions
@@ -321,15 +321,15 @@
   "Mocklisp compatibility variable; 1 means pass -f when calling csh.")
 
 (defun filter-region (command)
-  (let ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
-	(csh (equal (file-name-nondirectory shell) "csh")))
+  (let* ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
+         (csh (equal (file-name-nondirectory shell) "csh")))
     (call-process-region (point) (mark) shell t t nil
 			 (if (and csh use-csh-option-f) "-cf" "-c")
 			 (concat "exec " command))))
 
 (defun execute-monitor-command (command)
-  (let ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
-	(csh (equal (file-name-nondirectory shell) "csh")))
+  (let* ((shell (if (/= use-users-shell 0) shell-file-name "/bin/sh"))
+         (csh (equal (file-name-nondirectory shell) "csh")))
     (call-process shell nil t t
 		  (if (and csh use-csh-option-f) "-cf" "-c")
 		  (concat "exec " command))))

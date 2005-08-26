@@ -1,6 +1,7 @@
 ;;; generic-x.el --- A collection of generic modes
 
-;; Copyright (C) 1997, 1998, 2003, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Tue Oct 08 1996

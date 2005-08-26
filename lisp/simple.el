@@ -1,8 +1,7 @@
 ;;; simple.el --- basic editing commands for Emacs
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;               2000, 2001, 2002, 2003, 2004, 2005
-;;        Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -309,7 +308,7 @@ select the source buffer."
 When turned on, cursor motion in the compilation, grep, occur or diff
 buffer causes automatic display of the corresponding source code
 location."
-  :group 'next-error :init-value " Fol"
+  :group 'next-error :init-value nil :lighter " Fol"
   (if (not next-error-follow-minor-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
     (add-hook 'post-command-hook 'next-error-follow-mode-post-command-hook nil t)
@@ -3241,8 +3240,8 @@ as a fallback, and won't change the buffer bounds.")
     (or (and (>= position (point-min))
 	     (<= position (point-max)))
 	(if widen-automatically
-	    (error "Global mark position is outside accessible part of buffer")
-	  (widen)))
+	    (widen)
+	  (error "Global mark position is outside accessible part of buffer")))
     (goto-char position)
     (switch-to-buffer buffer)))
 

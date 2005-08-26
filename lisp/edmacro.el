@@ -1,6 +1,7 @@
 ;;; edmacro.el --- keyboard macro editor
 
-;; Copyright (C) 1993, 1994, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Dave Gillespie <daveg@synaptics.com>

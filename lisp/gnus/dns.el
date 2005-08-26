@@ -1,5 +1,6 @@
 ;;; dns.el --- Domain Name Service lookups
-;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network

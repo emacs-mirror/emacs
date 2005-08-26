@@ -1,5 +1,6 @@
 /* Internals of a lightweight menubar widget.
-   Copyright (C) 1999, 2000, 2002, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1999, 2000, 2002, 2003, 2004, 
+                 2005 Free Software Foundation, Inc.
 
 This file is part of the Lucid Widget Library.
 

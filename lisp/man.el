@@ -1,7 +1,7 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2003, 2004
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF

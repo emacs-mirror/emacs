@@ -1,6 +1,7 @@
 /* Declaration of functions and data types used for MD5 sum computing
    library functions.
-   Copyright (C) 1995, 1996, 1997, 1999, 2000 Free Software Foundation, Inc.
+   Copyright (C) 1995, 1996, 1997, 1999, 2000, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    This file is part of GNU Emacs.
 
    The GNU C Library is free software; you can redistribute it and/or

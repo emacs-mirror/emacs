@@ -1,6 +1,6 @@
 ;;; rot13.el --- display a buffer in rot13
 
-;; Copyright (C) 1988,2002 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF

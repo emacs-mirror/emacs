@@ -1,6 +1,7 @@
 ;;; autorevert.el --- revert buffers when files on disk change
 
-;; Copyright (C) 1997, 1998, 1999, 2001, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: convenience
@@ -339,7 +340,7 @@ Use `auto-revert-mode' for changes other than appends!"
       ;; else we might reappend our own end when we save
       (add-hook 'before-save-hook (lambda () (auto-revert-tail-mode 0)) nil t)
       (or (local-variable-p 'auto-revert-tail-pos) ; don't lose prior position
-	  (set (make-variable-buffer-local 'auto-revert-tail-pos)
+	  (set (make-local-variable 'auto-revert-tail-pos)
 	       (save-restriction (widen) (1- (point-max)))))
       ;; let auto-revert-mode set up the mechanism for us if it isn't already
       (or auto-revert-mode

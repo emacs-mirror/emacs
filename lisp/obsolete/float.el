@@ -1,6 +1,6 @@
 ;;; float.el --- obsolete floating point arithmetic package
 
-;; Copyright (C) 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Rosenblatt
 ;; Maintainer: FSF

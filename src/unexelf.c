@@ -1,5 +1,5 @@
-/* Copyright (C) 1985,86,87,88,90,92,1999,2000,01,2003
-   Free Software Foundation, Inc.
+/* Copyright (C) 1985, 1986, 1987, 1988, 1990, 1992, 1999, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

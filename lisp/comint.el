@@ -1,7 +1,7 @@
 ;;; comint.el --- general command interpreter in a window stuff
 
 ;; Copyright (C) 1988, 1990, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -1935,15 +1935,21 @@ The string is sent using `comint-input-sender'.
 Security bug: your string can still be temporarily recovered with
 \\[view-lossage]; `clear-this-command-keys' can fix that."
   (interactive "P")			; Defeat snooping via C-x ESC ESC
-  (let ((proc (get-buffer-process (current-buffer))))
+  (let ((proc (get-buffer-process (current-buffer)))
+	(prefix
+	 (if (eq (window-buffer (selected-window)) (current-buffer))
+	     ""
+	   (format "(In buffer %s) "
+		   (current-buffer)))))
     (if proc
-	(let ((str (read-passwd (or prompt "Non-echoed text: "))))
+	(let ((str (read-passwd (concat prefix
+					(or prompt "Non-echoed text: ")))))
 	  (if (stringp str)
 	      (progn
 		(comint-snapshot-last-prompt)
 		(funcall comint-input-sender proc str))
 	    (message "Warning: text will be echoed")))
-      (error "Current buffer has no process"))))
+      (error "Buffer %s has no process" (current-buffer)))))
 
 (defun comint-watch-for-password-prompt (string)
   "Prompt in the minibuffer for password and send without echoing.
@@ -2585,6 +2591,7 @@ Note that this applies to `comint-dynamic-complete-filename' only."
   :type '(repeat (string :tag "Suffix"))
   :group 'comint-completion)
 
+;;;###autoload
 (defvar comint-file-name-prefix ""
   "Prefix prepended to absolute file names taken from process input.
 This is used by Comint's and shell's completion functions, and by shell's

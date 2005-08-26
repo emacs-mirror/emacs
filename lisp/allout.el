@@ -1,6 +1,7 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992, 93, 94, 2001, 02, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@zope.com>
 ;; Maintainer: Ken Manheimer <klm@zope.com>

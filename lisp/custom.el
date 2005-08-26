@@ -1,7 +1,7 @@
 ;;; custom.el --- tools for declaring and initializing options
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2001, 2002, 2004, 2005
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -726,15 +726,13 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 			 (error "Circular custom dependency between `%s' and `%s'"
 				sym1 sym2))
 			(2-then-1 nil)
-			;; Put symbols with :require last.  The macro
-			;; define-minor-mode generates a defcustom
-			;; with a :require and a :set, where the
-			;; setter function calls the mode function.
-			;; Putting symbols with :require last ensures
-			;; that the mode function will see other
-			;; customized values rather than default
-			;; values.
-			(t (nth 3 a2)))))))
+			;; Put minor modes and symbols with :require last.
+			;; Putting minor modes last ensures that the mode
+			;; function will see other customized values rather
+			;; than default values.
+			(t (or (nth 3 a2)
+                               (eq (get sym2 'custom-set)
+                                   'custom-set-minor-mode))))))))
   (while args
     (let ((entry (car args)))
       (if (listp entry)

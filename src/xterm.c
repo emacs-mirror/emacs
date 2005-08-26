@@ -1,6 +1,6 @@
 /* X Communication module for terminals which understand the X protocol.
    Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-     2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -9274,7 +9274,14 @@ x_wm_set_icon_pixmap (f, pixmap_id)
 #endif
     }
 
-#ifdef USE_X_TOOLKIT /* same as in x_wm_set_window_state.  */
+
+#ifdef USE_GTK
+  {
+    xg_set_frame_icon (f, icon_pixmap, icon_mask);
+    return;
+  }
+
+#elif defined (USE_X_TOOLKIT) /* same as in x_wm_set_window_state.  */
 
   {
     Arg al[1];
@@ -9284,12 +9291,12 @@ x_wm_set_icon_pixmap (f, pixmap_id)
     XtSetValues (f->output_data.x->widget, al, 1);
   }
 
-#else /* not USE_X_TOOLKIT */
+#else /* not USE_X_TOOLKIT && not USE_GTK */
 
   f->output_data.x->wm_hints.flags |= (IconPixmapHint | IconMaskHint);
   XSetWMHints (FRAME_X_DISPLAY (f), window, &f->output_data.x->wm_hints);
 
-#endif /* not USE_X_TOOLKIT */
+#endif /* not USE_X_TOOLKIT && not USE_GTK */
 }
 
 void

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/keymaps
 @node Keymaps, Modes, Command Loop, Top
@@ -2199,7 +2199,7 @@ were @code{nil}.  @xref{Active Keymaps}.
 parameter must be greater than zero.  Emacs uses just one line for the
 menu bar itself; if you specify more than one line, the other lines
 serve to separate the menu bar from the windows in the frame.  We
-recommend 1 or 2 as the value of @code{menu-bar-lines}.  @xref{Window Frame
+recommend 1 or 2 as the value of @code{menu-bar-lines}.  @xref{Layout
 Parameters}.
 
   Here's an example of setting up a menu bar item:

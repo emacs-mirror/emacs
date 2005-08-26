@@ -1,6 +1,7 @@
 ;;; lselect.el --- Lucid interface to X Selections
 
-;; Copyright (C) 1990, 1993, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: emulations
@@ -101,9 +102,9 @@
 
 
 (defun x-own-selection (selection &optional type)
-  "Make a primary X Selection of the given argument.  
-The argument may be a string, a cons of two markers, or an extent.  
-In the latter cases the selection is considered to be the text 
+  "Make a primary X Selection of the given argument.
+The argument may be a string, a cons of two markers, or an extent.
+In the latter cases the selection is considered to be the text
 between the markers, or the between extents endpoints."
   (interactive (if (not current-prefix-arg)
 		   (list (read-string "Store text for pasting: "))
@@ -124,7 +125,7 @@ between the markers, or the between extents endpoints."
 
 
 (defun x-own-secondary-selection (selection &optional type)
-  "Make a secondary X Selection of the given argument.  The argument may be a 
+  "Make a secondary X Selection of the given argument.  The argument may be a
 string or a cons of two markers (in which case the selection is considered to
 be the text between those markers.)"
   (interactive (if (not current-prefix-arg)
@@ -182,7 +183,7 @@ secondary selection instead of the primary selection."
 ;; Random utility functions
 
 (defun x-kill-primary-selection ()
-  "If there is a selection, delete the text it covers, and copy it to 
+  "If there is a selection, delete the text it covers, and copy it to
 both the kill ring and the Clipboard."
   (interactive)
   (or (x-selection-owner-p) (error "emacs does not own the primary selection"))

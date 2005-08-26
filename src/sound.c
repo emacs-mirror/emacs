@@ -1,5 +1,6 @@
 /* sound.c -- sound support.
-   Copyright (C) 1998, 1999, 2001 Free Software Foundation.
+   Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

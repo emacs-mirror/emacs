@@ -1,6 +1,6 @@
 ;;; sun-curs.el --- cursor definitions for Sun windows
 
-;; Copyright (C) 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck <peck@sun.com>
 ;; Keywords: hardware
@@ -32,7 +32,12 @@
 ;;;
 ;;; 9-dec-86 Jeff Peck, Sun Microsystems Inc. <peck@sun.com>
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (defvar *edit-icon*) (defvar char)
+  ;; These are from term/sun-mouse.el
+  (defvar *mouse-window*) (defvar *mouse-x*) (defvar *mouse-y*) (defvar menu))
+
 (require 'sun-fns)
 
 (eval-and-compile
@@ -79,9 +84,11 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
   (if (symbolp icon) (setq icon (symbol-value icon)))
   (sun-change-cursor-icon icon))
 
+;; This does not make much sense...
 (make-local-variable '*edit-icon*)
+
+(defvar icon-edit nil)
 (make-variable-buffer-local 'icon-edit)
-(setq-default icon-edit nil)
 (or (assq 'icon-edit minor-mode-alist)
     (push '(icon-edit " IconEdit") minor-mode-alist))
 
@@ -109,9 +116,6 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
   (insert char)
   (sc::goto-hotspot))
 
-(defun sc::menu-function (window x y)
-  (sun-menu-evaluate window (1+ x) y sc::menu))
-
 (defmenu sc::menu
   ("Cursor Menu")
   ("Pack & Use" sc::pack-buffer-to-cursor)
@@ -126,6 +130,9 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
   ("Help" sc::edit-icon-help-menu)
   ("Quit" sc::quit-edit)
   )
+
+(defun sc::menu-function (window x y)
+  (sun-menu-evaluate window (1+ x) y sc::menu))
 
 (defun sc::quit-edit ()
   (interactive)
@@ -202,7 +209,7 @@ Otherwise, ICON should be a vector or the name of a vector of [x y 32-chars]"
   )
 
 (defun sc::pack-one-line (dummy)
-  (let* (char chr1 chr2)
+  (let (char chr1 chr2)
     (setq char 0 chr1 (mapconcat 'sc::pack-one-char "12345678" "") chr1 char)
     (setq char 0 chr2 (mapconcat 'sc::pack-one-char "12345678" "") chr2 char)
     (forward-line 1)

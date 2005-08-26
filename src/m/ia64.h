@@ -1,5 +1,5 @@
 /* machine description file for the IA-64 architecture.
-   Copyright (C) 2000, 2002, 2003  Free Software Foundation, Inc.
+   Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
      Contributed by David Mosberger <davidm@hpl.hp.com>
 
 This file is part of GNU Emacs.

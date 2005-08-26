@@ -1,7 +1,7 @@
 ;;; uniquify.el --- unique buffer names dependent on file name
 
-;; Copyright (c) 1989, 1995, 1996, 1997, 2001, 2003, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1995, 1996, 1997, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Dick King <king@reasoning.com>
 ;; Maintainer: FSF
