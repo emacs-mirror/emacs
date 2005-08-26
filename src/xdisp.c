@@ -7697,7 +7697,7 @@ resize_mini_window_1 (a1, exactly, a3, a4)
 /* Resize mini-window W to fit the size of its contents.  EXACT:P
    means size the window exactly to the size needed.  Otherwise, it's
    only enlarged until W's buffer is empty.
-   
+
    Set W->start to the right place to begin display.  If the whole
    contents fit, start at the beginning.  Otherwise, start so as
    to make the end of the contents appear.  This is particularly
@@ -7786,7 +7786,6 @@ resize_mini_window (w, exact_p)
 	  init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
 	  move_it_vertically_backward (&it, (height - 1) * unit);
 	  start = it.current.pos;
-	  SET_PT_BOTH (CHARPOS (start), BYTEPOS (start));
 	}
       else
 	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
