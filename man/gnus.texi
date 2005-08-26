@@ -9406,7 +9406,7 @@ newsreaders and mailers that do not understand or use @acronym{MIME}, and
 just send out messages without saying what character sets they use.  To
 help a bit with this, some local news hierarchies have policies that say
 what character set is the default.  For instance, the @samp{fj}
-hierarchy uses @code{iso-2022-jp-2}.
+hierarchy uses @code{iso-2022-jp}.
 
 @vindex gnus-group-charset-alist
 This knowledge is encoded in the @code{gnus-group-charset-alist}

@@ -9,8 +9,8 @@
 @copying
 This file documents the Emacs MIME interface functionality.
 
-Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
-   2005 Free Software Foundation, Inc.
+Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+          Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -212,10 +212,6 @@ Set the undisplayer object.
 @item mm-handle-disposition
 @findex mm-handle-disposition
 Return the parsed @code{Content-Disposition} of the part.
-
-@item mm-handle-disposition
-@findex mm-handle-disposition
-Return the description of the part.
 
 @item mm-get-content-id
 Returns the handle(s) referred to by @code{Content-ID}.
@@ -813,7 +809,9 @@ by using the @code{encoding} @acronym{MML} tag (@pxref{MML Definition}).
 @item mm-coding-system-priorities
 @vindex mm-coding-system-priorities
 Prioritize coding systems to use for outgoing messages.  The default
-is @code{nil}, which means to use the defaults in Emacs.  It is a list of
+is @code{nil}, which means to use the defaults in Emacs, but is
+@code{(iso-8859-1 iso-2022-jp iso-2022-jp-2 shift_jis utf-8)} when
+running Emacs in the Japanese language environment.  It is a list of
 coding system symbols (aliases of coding systems are also allowed, use
 @kbd{M-x describe-coding-system} to make sure you are specifying correct
 coding system names).  For example, if you have configured Emacs
@@ -880,8 +878,9 @@ used, of course.
 @vindex mm-mime-mule-charset-alist
 Things are slightly more complicated when running Emacs with @sc{mule}
 support.  In this case, a list of the @sc{mule} charsets used in the
-part is obtained, and the @sc{mule} charsets are translated to @acronym{MIME}
-charsets by consulting the variable @code{mm-mime-mule-charset-alist}.
+part is obtained, and the @sc{mule} charsets are translated to
+@acronym{MIME} charsets by consulting the table provided by Emacs itself
+or the variable @code{mm-mime-mule-charset-alist} for XEmacs.
 If this results in a single @acronym{MIME} charset, this is used to encode
 the part.  But if the resulting list of @acronym{MIME} charsets contains more
 than one element, two things can happen: If it is possible to encode the
@@ -1168,7 +1167,7 @@ in the subsequent sections.
 This chapter describes the basic, ground-level functions for parsing and
 handling.  Covered here is parsing @code{From} lines, removing comments
 from header lines, decoding encoded words, parsing date headers and so
-on.  High-level functionality is dealt with in the next chapter
+on.  High-level functionality is dealt with in the first chapter
 (@pxref{Decoding and Viewing}).
 
 @menu
@@ -1504,7 +1503,7 @@ Take a time and return the number of days that represents.
 
 @item safe-date-to-time
 Take a date and return a time.  If the date is not syntactically valid,
-return a ``zero'' date.
+return a ``zero'' time.
 
 @item time-less-p
 Take two times and say whether the first time is less (i. e., earlier)

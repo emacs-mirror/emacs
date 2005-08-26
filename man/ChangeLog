@@ -1,3 +1,19 @@
+2005-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (time-date): Fix description of safe-date-to-time.
+
+2005-08-18  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-mime.texi (Handles): Remove duplicate item.
+	(Encoding Customization): Fix the default value for
+	mm-coding-system-priorities.
+	(Charset Translation): Emacs doesn't use mm-mime-mule-charset-alist.
+	(Basic Functions): Fix reference.
+
+2005-08-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Charsets): Fj hierarchy uses iso-2022-jp.
+
 2005-08-22  Juri Linkov  <juri@jurta.org>
 
 	* display.texi (Standard Faces): Merge the text from
