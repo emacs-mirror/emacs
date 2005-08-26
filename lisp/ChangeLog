@@ -5,6 +5,13 @@
 
 2005-08-26  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emerge.el:
+	* ibuffer.el:
+	* info-xref.el:
+	* obsolete/bg-mouse.el:
+	* obsolete/sun-curs.el:
+	* obsolete/swedish.el: Move the `defvar's to the top level.
+
 	* smerge-mode.el (smerge-refined-change): Add :group.
 
 2005-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -10185,7 +10192,7 @@
 
 2005-01-21  Ren,Ai(B Kyllingstad  <listmailxemacs@kyllingstad.com>
 
-	* pcomplete.el: define pcomplete-read-event instead of read-event,
+	* pcomplete.el: Define pcomplete-read-event instead of read-event,
 	since it's not a complete read-event implementation
 
 2005-01-20  Jay Belanger  <belanger@truman.edu>
