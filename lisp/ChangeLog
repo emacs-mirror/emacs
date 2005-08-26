@@ -1,5 +1,9 @@
 2005-08-26  John Wiegley  <johnw@newartisans.com>
 
+	* eshell/esh-cmd.el (eshell-rewrite-named-command): Changed the
+	code around a bit so that an extraneous nil argument is not added
+	to a command when no args are given.
+
 	* eshell/esh-arg.el (eshell-parse-double-quote): If a
 	double-quoted argument resolves to nil, return it as an empty
 	string rather than as nil.  This made it impossible to pass "" to

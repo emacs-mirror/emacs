@@ -294,8 +294,7 @@ If N or M is nil, it means the end of the list."
   "Flatten any lists within ARGS, so that there are no sublists."
   (let ((new-list (list t)))
     (eshell-for a args
-      (if (and (not (eq a nil))
-	       (listp a)
+      (if (and (listp a)
 	       (listp (cdr a)))
 	  (nconc new-list (eshell-flatten-list a))
 	(nconc new-list (list a))))
