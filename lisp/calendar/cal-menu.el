@@ -38,8 +38,10 @@
 
 ;;; Code:
 
+(defvar date)
 (defvar displayed-month)
 (defvar displayed-year)
+(defvar event)
 
 (eval-when-compile (require 'calendar))
 (require 'easymenu)
