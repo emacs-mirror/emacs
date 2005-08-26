@@ -1,3 +1,13 @@
+2005-08-26  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/esh-arg.el (eshell-parse-double-quote): If a
+	double-quoted argument resolves to nil, return it as an empty
+	string rather than as nil.  This made it impossible to pass "" to
+	a shell script as a null string argument.
+
+	* eshell/esh-util.el (eshell-flatten-list): Don't call
+	eshell-flatten-list on a sub-argument if it is eq to nil.
+
 2005-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* outline.el (outline-invent-heading): New fun.
