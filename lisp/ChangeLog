@@ -26,7 +26,7 @@
 
 2005-08-26  Kim F. Storm  <storm@cua.dk>
 
-	* subr.el (version-list-<, version-list-<=, version-list-=)
+	* subr.el (version-list-<, version-list-<=, version-list-=):
 	Renamed from integer-list-*.
 	(version-list-not-zero): Likewise.  Fix while loop.
 	(version=): Use version-list-= instead of string-equal.
