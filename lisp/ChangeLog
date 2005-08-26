@@ -1,3 +1,9 @@
+2005-08-26  Richard M. Stallman  <rms@gnu.org>
+
+	* outline.el (outline-promote): Try shortening the heading.
+	As last resort, read the heading to use.
+	(outline-demote): As last resort, read the heading to use.
+
 2005-08-26  Romain Francoise  <romain@orebokech.com>
 
 	* textmodes/sgml-mode.el (sgml-validate): Use `compilation-start'
