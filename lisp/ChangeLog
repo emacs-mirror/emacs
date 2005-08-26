@@ -1,3 +1,8 @@
+2005-08-26  Pavel Kobiakov  <pk_at_work@yahoo.com>
+
+	* progmodes/flymake.el (flymake-highlight-err-lines): Use
+	save-excursion around flymake-highlight-line to preserve point.
+
 2005-08-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/octave-mod.el: Change Author and Maintainer address.
