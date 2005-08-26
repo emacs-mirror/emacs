@@ -39,6 +39,12 @@
 
 2005-08-26  Romain Francoise  <romain@orebokech.com>
 
+	* progmodes/antlr-mode.el (antlr-default): Fix defface form.
+	(antlr-font-lock-additional-keywords): Fix reference to
+	`antlr-font-lock-literal-regexp' erroneously changed during the
+	mass face rename.
+	(antlr-run-tool): Use `compilation-start'.
+
 	* textmodes/sgml-mode.el (sgml-validate): Use `compilation-start'
 	instead of the obsolete `compile-internal'.
 
