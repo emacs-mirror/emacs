@@ -481,17 +481,22 @@ autoloading with a magic comment:
 Here's what that produces in @file{loaddefs.el}:
 
 @smallexample
-(autoload 'doctor "doctor" "\
-Switch to *doctor* buffer and start giving psychotherapy."
-  t)
+(autoload (quote doctor) "doctor" "\
+Switch to *doctor* buffer and start giving psychotherapy.
+
+\(fn)" t nil)
 @end smallexample
 
 @noindent
+@cindex @code{fn} in function's documentation string
 The backslash and newline immediately following the double-quote are a
 convention used only in the preloaded uncompiled Lisp files such as
 @file{loaddefs.el}; they tell @code{make-docfile} to put the
 documentation string in the @file{etc/DOC} file.  @xref{Building Emacs}.
-See also the commentary in @file{lib-src/make-docfile.c}.
+See also the commentary in @file{lib-src/make-docfile.c}.  @samp{(fn)}
+in the usage part of the documentation string is replaced with the
+function's name when the various help functions (@pxref{Help
+Functions}) display it.
 
   If you write a function definition with an unusual macro that is not
 one of the known and recognized function definition methods, use of an

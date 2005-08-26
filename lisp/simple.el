@@ -3491,8 +3491,8 @@ Outline mode sets this."
 	     ;; at least go to end of line.
 	     (end-of-line))
 	    ((< arg 0)
-	     ;; If we did not move down as far as desired,
-	     ;; at least go to end of line.
+	     ;; If we did not move up as far as desired,
+	     ;; at least go to beginning of line.
 	     (beginning-of-line))
 	    (t
 	     (line-move-finish (or goal-column temporary-goal-column)

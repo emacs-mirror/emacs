@@ -1039,9 +1039,12 @@ the sequence."
 	    /BOTTOM LLY def
 	    currentfont /RelativeCompose known {
 		/relative currentfont /RelativeCompose get def
+		relative false eq {
+		    %% Disable relative composition by setting sufficiently low
+		    %% and high positions.
+		    /relative [ -100000 100000 ] def
+		} if
 	    } {
-		%% Disable relative composition by setting sufficiently low
-		%% and high positions.
 		/relative [ -100000 100000 ] def
 	    } ifelse
 	    [ elt 0 0 ]
@@ -1236,7 +1239,7 @@ NewBitmapDict
 	} ifelse
 	/FirstCode -1 store
 
-	bmp 0 get SpaceWidthRatio ratio div mul size div 0	% wx wy
+	bmp 0 get size div 0		% wx wy
 	setcharwidth			% We can't use setcachedevice here.
 
 	bmp 1 get 0 gt bmp 2 get 0 gt and {

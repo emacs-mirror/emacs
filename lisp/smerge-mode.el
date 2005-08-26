@@ -670,7 +670,7 @@ buffer names."
 	     (ediff-cleanup-mess)
 	     (with-current-buffer buf
 	       (erase-buffer)
-	       (insert-buffer buffer-C)
+	       (insert-buffer-substring buffer-C)
 	       (kill-buffer buffer-A)
 	       (kill-buffer buffer-B)
 	       (kill-buffer buffer-C)

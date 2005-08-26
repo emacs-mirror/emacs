@@ -118,7 +118,8 @@ the command `insert-file-contents'."
 	      (create-image data nil t))
 	     (props
 	      `(display ,image
-			yank-handler (image-file-yank-handler)
+			yank-handler
+			(image-file-yank-handler nil t)
 			intangible ,image
 			rear-nonsticky (display intangible)
 			;; This a cheap attempt to make the whole buffer
@@ -141,12 +142,18 @@ the command `insert-file-contents'."
 ;; recognized as two different images.
 (defun image-file-yank-handler (string)
   "Yank handler for inserting an image into a buffer."
-  (let ((image (get-text-property 0 'display string)))
+  (let ((len (length string))
+	(image (get-text-property 0 'display string)))
+    (remove-text-properties 0 len yank-excluded-properties string)
     (if (consp image)
-	(put-text-property 0 (length string)
-			   'display
-			   (cons (car image) (cdr image))
-			   string))
+	(add-text-properties 0
+			     (or (next-single-property-change 0 'image-counter string)
+				 (length string))
+			     `(display
+			       ,(cons (car image) (cdr image))
+			       yank-handler
+			       ,(cons 'image-file-yank-handler '(nil t)))
+			     string))
     (insert string)))
 
 (put 'image-file-handler 'safe-magic t)

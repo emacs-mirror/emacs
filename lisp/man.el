@@ -352,6 +352,7 @@ Otherwise, the value is whatever the function
 (make-variable-buffer-local 'Man-page-mode-string)
 (make-variable-buffer-local 'Man-original-frame)
 (make-variable-buffer-local 'Man-arguments)
+(put 'Man-arguments 'permanent-local t)
 
 (setq-default Man-sections-alist nil)
 (setq-default Man-refpages-alist nil)
@@ -1005,8 +1006,15 @@ manpage command."
           (if Man-fontify-manpage-flag
               (Man-fontify-manpage)
             (Man-cleanup-manpage))
+
           (run-hooks 'Man-cooked-hook)
-          (Man-mode)
+	  (Man-mode)
+
+	  (if (not Man-page-list)
+	      (let ((args Man-arguments))
+		(kill-buffer (current-buffer))
+		(error "Can't find the %s manpage" args)))
+
           (set-buffer-modified-p nil)
           ))
 	;; Restore case-fold-search before calling
@@ -1082,7 +1090,7 @@ The following key bindings are currently in effect in the buffer:
   (Man-build-page-list)
   (Man-strip-page-headers)
   (Man-unindent)
-  (Man-goto-page 1)
+  (Man-goto-page 1 t)
   (run-mode-hooks 'Man-mode-hook))
 
 (defsubst Man-build-section-alist ()
@@ -1342,35 +1350,32 @@ Specify which REFERENCE to use; default is based on word at point."
   (interactive)
   (quit-window))
 
-(defun Man-goto-page (page)
+(defun Man-goto-page (page &optional noerror)
   "Go to the manual page on page PAGE."
   (interactive
    (if (not Man-page-list)
-       (let ((args Man-arguments))
-	 (kill-buffer (current-buffer))
-	 (error "Can't find the %s manpage" args))
+       (error "Not a man page buffer")
      (if (= (length Man-page-list) 1)
 	 (error "You're looking at the only manpage in the buffer")
        (list (read-minibuffer (format "Go to manpage [1-%d]: "
 				      (length Man-page-list)))))))
-  (if (not Man-page-list)
-      (let ((args Man-arguments))
-	(kill-buffer (current-buffer))
-	(error "Can't find the %s manpage" args)))
-  (if (or (< page 1)
-	  (> page (length Man-page-list)))
-      (error "No manpage %d found" page))
-  (let* ((page-range (nth (1- page) Man-page-list))
-	 (page-start (car page-range))
-	 (page-end (car (cdr page-range))))
-    (setq Man-current-page page
-	  Man-page-mode-string (Man-make-page-mode-string))
-    (widen)
-    (goto-char page-start)
-    (narrow-to-region page-start page-end)
-    (Man-build-section-alist)
-    (Man-build-references-alist)
-    (goto-char (point-min))))
+  (if (and (not Man-page-list) (not noerror))
+      (error "Not a man page buffer"))
+  (when Man-page-list
+    (if (or (< page 1)
+	    (> page (length Man-page-list)))
+	(error "No manpage %d found" page))
+    (let* ((page-range (nth (1- page) Man-page-list))
+	   (page-start (car page-range))
+	   (page-end (car (cdr page-range))))
+      (setq Man-current-page page
+	    Man-page-mode-string (Man-make-page-mode-string))
+      (widen)
+      (goto-char page-start)
+      (narrow-to-region page-start page-end)
+      (Man-build-section-alist)
+      (Man-build-references-alist)
+      (goto-char (point-min)))))
 
 
 (defun Man-next-manpage ()

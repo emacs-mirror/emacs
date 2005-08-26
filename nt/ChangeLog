@@ -1,3 +1,18 @@
+2005-07-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* configure.bat: Don't create lisp/Makefile.unix.
+
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `makefile' and `config.log'.
+
+2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge gnulib getopt implementation into Emacs.
+
+	* inc/gettext.h: Remove; no longer needed now that
+	lib-src/gettext.h exists.
+
 2005-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.bat: Finish config.log with a line that indicates that

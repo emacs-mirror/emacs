@@ -1,7 +1,7 @@
 /* Template for system description header files.
    This file describes the parameters that system description files
    should define or not.
-   Copyright (C) 1985, 1986, 1992, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1999, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -123,8 +123,6 @@ Boston, MA 02110-1301, USA.  */
    emacs lisp pointers */
 #define DATA_SEG_BITS 0x20000000
 #define LINKER $(CC) -Wl,--image-base,DATA_SEG_BITS
-/* gettext.h is in a strange place */
-#define C_SWITCH_SYSTEM -I/usr/share/gettext
 
 /* Use terminfo instead of termcap.  Fewer environment variables to
    go wrong, more terminal types. */

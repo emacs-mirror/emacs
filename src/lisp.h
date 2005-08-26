@@ -1902,9 +1902,11 @@ extern Lisp_Object Vascii_canon_table, Vascii_eqv_table;
 
 extern int consing_since_gc;
 
-/* Threshold for doing another gc.  */
+/* Thresholds for doing another gc.  */
 
-extern EMACS_INT gc_cons_combined_threshold;
+extern EMACS_INT gc_cons_threshold;
+
+extern EMACS_INT gc_relative_threshold;
 
 /* Structure for recording stack slots that need marking.  */
 

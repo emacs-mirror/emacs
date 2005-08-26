@@ -1468,15 +1468,17 @@ startup files.  If you want to turn backup creation off, say something like:
 @vindex gnus-init-file
 @vindex gnus-site-init-file
 When Gnus starts, it will read the @code{gnus-site-init-file}
-(@file{.../site-lisp/gnus} by default) and @code{gnus-init-file}
+(@file{.../site-lisp/gnus-init} by default) and @code{gnus-init-file}
 (@file{~/.gnus} by default) files.  These are normal Emacs Lisp files
 and can be used to avoid cluttering your @file{~/.emacs} and
 @file{site-init} files with Gnus stuff.  Gnus will also check for files
 with the same names as these, but with @file{.elc} and @file{.el}
 suffixes.  In other words, if you have set @code{gnus-init-file} to
 @file{~/.gnus}, it will look for @file{~/.gnus.elc}, @file{~/.gnus.el},
-and finally @file{~/.gnus} (in this order).
-
+and finally @file{~/.gnus} (in this order).  If Emacs was invoked with
+the @option{-q} or @option{--no-init-file} options (@pxref{Initial
+Options, ,Initial Options, emacs, The Emacs Manual}), Gnus doesn't read
+@code{gnus-init-file}.
 
 
 @node Auto Save

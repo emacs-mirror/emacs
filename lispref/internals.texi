@@ -369,15 +369,14 @@ until the subsequent garbage collection, at which time
 @end defopt
 
 @defopt gc-cons-percentage
-The value of this variable is the minimum portion of the heap that
-should be allocated before a garbage collection takes place.  It is
-used only if the specified size is larger than
-@code{gc-cons-threshold}.
+The value of this variable specifies the amount of consing before a
+garbage collection occurs, as a fraction of the current heap size.
+This criterion and @code{gc-cons-threshold} apply in parallel, and
+garbage collection occurs only when both criteria are satisfied.
 
 As the heap size increases, the time to perform a garbage collection
-increases, so in order to compensate, this variable tries to
-correspondingly reduce the frequency of collection by letting Emacs
-allocate more memory between each collection.
+increases.  Thus, it can be desirable to do them less frequently in
+proportion.
 @end defopt
 
   The value returned by @code{garbage-collect} describes the amount of

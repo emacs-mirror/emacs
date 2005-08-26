@@ -712,7 +712,7 @@ anything that the functions on `selection-converter-alist' know about.  */)
 {
   check_mac ();
   CHECK_SYMBOL (selection_name);
-  if (NILP (selection_value)) error ("selection-value may not be nil");
+  if (NILP (selection_value)) error ("SELECTION-VALUE may not be nil");
   x_own_selection (selection_name, selection_value);
   return selection_value;
 }
@@ -724,11 +724,11 @@ anything that the functions on `selection-converter-alist' know about.  */)
 
 DEFUN ("x-get-selection-internal", Fx_get_selection_internal,
        Sx_get_selection_internal, 2, 3, 0,
-       doc: /* Return text selected from some Mac window.
+       doc: /* Return text selected from some Mac application.
 SELECTION is a symbol, typically `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 TYPE is the type of data desired, typically `STRING'.
 TIME_STAMP is ignored on Mac.  */)
-  (selection_symbol, target_type, time_stamp)
+     (selection_symbol, target_type, time_stamp)
      Lisp_Object selection_symbol, target_type, time_stamp;
 {
   Lisp_Object val = Qnil;
@@ -821,7 +821,7 @@ Disowning it means there is no such selection.  */)
 
 DEFUN ("x-selection-owner-p", Fx_selection_owner_p, Sx_selection_owner_p,
        0, 1, 0,
-       doc: /* Whether the current Emacs process owns the given Selection.
+       doc: /* Whether the current Emacs process owns the given SELECTION.
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 For convenience, the symbol nil is the same as `PRIMARY',
@@ -866,7 +866,7 @@ and t is the same as `SECONDARY'.  */)
 
 DEFUN ("x-selection-exists-p", Fx_selection_exists_p, Sx_selection_exists_p,
        0, 1, 0,
-       doc: /* Whether there is an owner for the given Selection.
+       doc: /* Whether there is an owner for the given SELECTION.
 The arg should be the name of the selection in question, typically one of
 the symbols `PRIMARY', `SECONDARY', or `CLIPBOARD'.
 For convenience, the symbol nil is the same as `PRIMARY',
@@ -1077,7 +1077,7 @@ a desired type to which the selection should be converted;
 and the local selection value (whatever was given to `x-own-selection').
 
 The function should return the value to send to the Scrap Manager
-\(a string).  A return value of nil
+\(must be a string).  A return value of nil
 means that the conversion could not be done.
 A return value which is the symbol `NULL'
 means that a side-effect was executed,

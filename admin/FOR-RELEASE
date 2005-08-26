@@ -79,32 +79,6 @@ The *Tree* is then displayed as
 
 The class A seems to be missing.
 
-** Ange-ftp should ignore irrelevant IPv6 errors:
-
-Message-Id: <4121-Tue23Mar2004165249+0100-piet@cs.uu.nl>
-From: "Piet van Oostrum" <piet@cs.uu.nl>
-To: emacs-pretest-bug@gnu.org
-Subject: Ange-ftp can't deal with IPV6/IPV4 fallback
-
-Symptoms:
-
-C-x C-f /ftp.nluug.nl:/
-
-The problem is that the DNS first gives an IPV6 address. However our
-router doesn't do IPV6. Ftp then falls back to IPV4:
-
-ftp> open ftp.nluug.nl
-Trying 2001:610:1:80aa:192:87:102:36...
-ftp: connect to address 2001:610:1:80aa:192:87:102:36: No route to host
-Trying 192.87.102.36...
-Connected to ftp.nluug.nl.
-
-Ange-ftp chokes on the `No route to host' message and doesn't look any
-further.
-
-I think in the near future we will see more of this problem, so it might be
-time to make anfe-ftp more intelligent.
-
 * DOCUMENTATION
 
 ** Document Custom Themes.

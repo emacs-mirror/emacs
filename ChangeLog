@@ -1,3 +1,19 @@
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `data' and `site-lisp' (for in-place installs).
+
+2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge gnulib getopt implementation into Emacs.
+
+	* Makefile.in (AUTOCONF_INPUTS): New macro.
+	($(srcdir)/configure, $(srcdir)/src/stamp-h.in): Depend on it,
+	so that these files also depend on m4/getopt.m4.
+	* configure.in: Configure getopt by including m4/getopt.m4,
+	and configuring a getopt replacement if necessary.
+	* make-dist: Add m4 subdirectory.  Unlink lib-src/getopt.h.
+	* m4/getopt.m4: New file.
+
 2005-07-06  Lute Kamstra  <lute@gnu.org>
 
 	* configure.in: Fix capitalization.

@@ -395,10 +395,10 @@ x_window_to_frame (dpyinfo, wdesc)
 }
 
 
-BOOL my_show_window P_ ((struct frame *, HWND, int));
-void my_set_window_pos P_ ((HWND, HWND, int, int, int, int, UINT));
 static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
 static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
+static void my_create_window P_ ((struct frame *));
+static void my_create_tip_window P_ ((struct frame *));
 
 /* TODO: Native Input Method support; see x_create_im.  */
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -3847,7 +3847,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
   return 0;
 }
 
-void
+static void
 my_create_window (f)
      struct frame * f;
 {
@@ -3863,7 +3863,7 @@ my_create_window (f)
    indirectly via the Window thread, as we do not need to process Window
    messages for the tooltip.  Creating tooltips indirectly also creates
    deadlocks when tooltips are created for menu items.  */
-void
+static void
 my_create_tip_window (f)
      struct frame *f;
 {

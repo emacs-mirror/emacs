@@ -410,7 +410,6 @@ within the region."
 
 (defun pgg-insert-url-with-w3 (url)
   (ignore-errors
-    (require 'w3)
     (require 'url)
     (let (buffer-file-name)
       (url-insert-file-contents url))))

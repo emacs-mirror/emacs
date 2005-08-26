@@ -1,6 +1,6 @@
 ;;; rfc2231.el --- Functions for decoding rfc2231 headers
 
-;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004
+;; Copyright (C) 1998, 1999, 2000, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -52,7 +52,7 @@ The list will be on the form
 	  (prev-value "")
 	  display-name mailbox c display-string parameters
 	  attribute value type subtype number encoded
-	  prev-attribute)
+	  prev-attribute prev-encoded)
       (ietf-drums-init (mail-header-remove-whitespace
 			(mail-header-remove-comments string)))
       (let ((table (copy-syntax-table ietf-drums-syntax-table)))
@@ -106,9 +106,14 @@ The list will be on the form
 	    ;; See if we have any previous continuations.
 	    (when (and prev-attribute
 		       (not (eq prev-attribute attribute)))
-	      (push (cons prev-attribute prev-value) parameters)
+	      (push (cons prev-attribute
+			  (if prev-encoded
+			      (rfc2231-decode-encoded-string prev-value)
+			    prev-value))
+		    parameters)
 	      (setq prev-attribute nil
-		    prev-value ""))
+		    prev-value ""
+		    prev-encoded nil))
 	    (unless (eq c ?=)
 	      (error "Invalid header: %s" string))
 	    (forward-char 1)
@@ -127,7 +132,8 @@ The list will be on the form
 	      (error "Invalid header: %s" string)))
 	    (if number
 		(setq prev-attribute attribute
-		      prev-value (concat prev-value value))
+		      prev-value (concat prev-value value)
+		      prev-encoded encoded)
 	      (push (cons attribute
 			  (if encoded
 			      (rfc2231-decode-encoded-string value)
@@ -137,7 +143,7 @@ The list will be on the form
 	;; Take care of any final continuations.
 	(when prev-attribute
 	  (push (cons prev-attribute
-		      (if encoded
+		      (if prev-encoded
 			  (rfc2231-decode-encoded-string prev-value)
 			prev-value))
 		parameters))

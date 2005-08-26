@@ -8,7 +8,12 @@ that exists, the last hyphen and what follows it is stripped.  If that doesn't
 yield a file that exists, the previous hyphen is stripped, and so on until all
 hyphens are gone.  For example, if the terminal type is `aaa-48-foo', Emacs
 will try first `term/aaa-48-foo.el', then `term/aaa-48.el' and finally
-`term/aaa.el'.
+`term/aaa.el'.  Each terminal specific file should contain a function
+named terminal-init-TERMINALNAME (eg terminal-init-aaa-48 for
+term/aaa-48.el) that Emacs will call in order to initialize the
+terminal. The terminal files should not contain any top level forms
+that are executed when the file is loaded, all the initialization
+actions are performed by the terminal-init-TERMINALNAME functions.
 
    When writing terminal packages, there are some things it is good to keep in
 mind.

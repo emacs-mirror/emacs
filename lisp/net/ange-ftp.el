@@ -743,6 +743,21 @@ These mean that the FTP process should (or already has) been killed."
   :group 'ange-ftp
   :type 'regexp)
 
+(defcustom ange-ftp-potential-error-msgs
+  ;; On Mac OS X we sometimes get things like:
+  ;; 
+  ;;     ftp> open ftp.nluug.nl
+  ;;     Trying 2001:610:1:80aa:192:87:102:36...
+  ;;     ftp: connect to address 2001:610:1:80aa:192:87:102:36: No route to host
+  ;;     Trying 192.87.102.36...
+  ;;     Connected to ftp.nluug.nl.
+  "^ftp: connect to address .*: No route to host"
+  "*Regular expression matching ftp messages that can indicate serious errors.
+These mean that something went wrong, but they may be followed by more
+messages indicating that the error was somehow corrected."
+  :group 'ange-ftp
+  :type 'regexp)
+
 (defcustom ange-ftp-gateway-fatal-msgs
   "No route to host\\|Connection closed\\|No such host\\|Login incorrect"
   "*Regular expression matching login failure messages from rlogin/telnet."
@@ -1071,6 +1086,7 @@ All HOST values should be in lower case.")
 (defvar ange-ftp-xfer-size nil)
 (defvar ange-ftp-process-string nil)
 (defvar ange-ftp-process-result-line nil)
+(defvar ange-ftp-pending-error-line nil)
 (defvar ange-ftp-process-busy nil)
 (defvar ange-ftp-process-result nil)
 (defvar ange-ftp-process-multi-skip nil)
@@ -1544,6 +1560,7 @@ good, skip, fatal, or unknown."
 	((string-match ange-ftp-good-msgs line)
 	 (setq ange-ftp-process-busy nil
 	       ange-ftp-process-result t
+               ange-ftp-pending-error-line nil
 	       ange-ftp-process-result-line line))
 	;; Check this before checking for errors.
 	;; Otherwise the last line of these three seems to be an error:
@@ -1552,11 +1569,17 @@ good, skip, fatal, or unknown."
 	;; 230-"ftp.stsci.edu: unknown host", the new IP address will be...
 	((string-match ange-ftp-multi-msgs line)
 	 (setq ange-ftp-process-multi-skip t))
+	((string-match ange-ftp-potential-error-msgs line)
+         ;; This looks like an error, but we have to keep reading the output
+         ;; to see if it was fixed or not.  E.g. it may indicate that IPv6
+         ;; failed, but maybe a subsequent IPv4 fallback succeeded.
+         (set (make-local-variable 'ange-ftp-pending-error-line) line)
+         t)
 	((string-match ange-ftp-fatal-msgs line)
 	 (delete-process proc)
 	 (setq ange-ftp-process-busy nil
 	       ange-ftp-process-result-line line))
-	(ange-ftp-process-multi-skip
+        (ange-ftp-process-multi-skip
 	 t)
 	(t
 	 (setq ange-ftp-process-busy nil
@@ -1651,12 +1674,21 @@ good, skip, fatal, or unknown."
 			  (string-match "\n" ange-ftp-process-string))
 		(let ((line (substring ange-ftp-process-string
 				       0
-				       (match-beginning 0))))
+				       (match-beginning 0)))
+                      (seen-prompt nil))
 		  (setq ange-ftp-process-string (substring ange-ftp-process-string
 							   (match-end 0)))
 		  (while (string-match "^ftp> *" line)
+                    (setq seen-prompt t)
 		    (setq line (substring line (match-end 0))))
-		  (ange-ftp-process-handle-line line proc)))
+                  (if (not (and seen-prompt ange-ftp-pending-error-line))
+                      (ange-ftp-process-handle-line line proc)
+                    ;; If we've seen a potential error message and it
+                    ;; hasn't been cancelled by a good message before
+                    ;; seeing a propt, then the error was real.
+                    (delete-process proc)
+                    (setq ange-ftp-process-busy nil
+                          ange-ftp-process-result-line ange-ftp-pending-error-line))))
 
 	      ;; has the ftp client finished?  if so then do some clean-up
 	      ;; actions.
@@ -1988,7 +2020,7 @@ on the gateway machine to do the ftp instead."
   (make-local-variable 'comint-password-prompt-regexp)
   ;; This is a regexp that can't match anything.
   ;; ange-ftp has its own ways of handling passwords.
-  (setq comint-password-prompt-regexp "^a\\'z")
+  (setq comint-password-prompt-regexp "\\`a\\`")
   (make-local-variable 'paragraph-start)
   (setq paragraph-start comint-prompt-regexp)
   (run-mode-hooks 'internal-ange-ftp-mode-hook))
@@ -4543,9 +4575,9 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
   (setq ange-ftp-ls-cache-file nil)	;Stop confusing Dired.
   0)
 
-;;; This is turned off because it has nothing properly to do
-;;; with dired.  It could be reasonable to adapt this to
-;;; replace ange-ftp-copy-file.
+;; This is turned off because it has nothing properly to do
+;; with dired.  It could be reasonable to adapt this to
+;; replace ange-ftp-copy-file.
 
 ;;;;; ------------------------------------------------------------
 ;;;;; Noddy support for async copy-file within dired.

@@ -2183,7 +2183,7 @@ syntactic indentation.
 
 ** In sh-script, a continuation line is only indented if the backslash was
 preceded by a SPC or a TAB.
-	
+
 ---
 ** Perl mode has a new variable `perl-indent-continued-arguments'.
 
@@ -5044,8 +5044,8 @@ running under X.
 
 +++
 *** New variable `gc-cons-percentage' automatically grows the GC cons threshold
-as the heap sizxe increases.
-	
+as the heap size increases.
+
 +++
 *** New variables `gc-elapsed' and `gcs-done' provide extra information
 on garbage collection.

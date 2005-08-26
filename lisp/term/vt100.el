@@ -36,8 +36,12 @@
 ;;; Code:
 
 ;; Set up function-key-map entries that termcap and terminfo don't know.
-(load "term/lk201" nil t)
 
+
+(defun terminal-init-vt100 ()
+  "Terminal initialization function for vt100."
+  (load "term/lk201" nil t))
+  
 ;;; Controlling the screen width.
 (defvar vt100-wide-mode (= (frame-width) 132)
   "t if vt100 is in 132-column mode.")

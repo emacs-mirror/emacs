@@ -4117,7 +4117,7 @@ Deleting parts may malfunction or destroy the article; continue? ")
 		       ',gnus-newsgroup-ignored-charsets))
 		  (mbl mml-buffer-list))
 	      (setq mml-buffer-list nil)
-	      (insert-buffer gnus-original-article-buffer)
+	      (insert-buffer-substring gnus-original-article-buffer)
 	      (mime-to-mml ',handles)
 	      (setq gnus-article-mime-handles nil)
 	      (let ((mbl1 mml-buffer-list))
@@ -4199,7 +4199,7 @@ Deleting parts may malfunction or destroy the article; continue? ")
 		     ',gnus-newsgroup-ignored-charsets))
 		(mbl mml-buffer-list))
 	    (setq mml-buffer-list nil)
-	    (insert-buffer gnus-original-article-buffer)
+	    (insert-buffer-substring gnus-original-article-buffer)
 	    (mime-to-mml ',handles)
 	    (setq gnus-article-mime-handles nil)
 	    (let ((mbl1 mml-buffer-list))
@@ -5160,7 +5160,7 @@ If given a numerical ARG, move forward ARG pages."
 If end of article, return non-nil.  Otherwise return nil.
 Argument LINES specifies lines to be scrolled up."
   (interactive "p")
-  (gnus-end-of-window)
+  (move-to-window-line -1)
   (if (save-excursion
 	(end-of-line)
 	(and (pos-visible-in-window-p)	;Not continuation line.
@@ -5182,20 +5182,38 @@ Argument LINES specifies lines to be scrolled up."
     (gnus-article-next-page-1 lines)
     nil))
 
+(defmacro gnus-article-beginning-of-window ()
+  "Move point to the beginning of the window.
+In Emacs, the point is placed at the line number which `scroll-margin'
+specifies."
+  (if (featurep 'xemacs)
+      '(move-to-window-line 0)
+    '(move-to-window-line
+      (min (max 0 scroll-margin)
+	   (max 1 (- (window-height)
+		     (if mode-line-format 1 0)
+		     (if (and (boundp 'header-line-format)
+			      (symbol-value 'header-line-format))
+			 1 0)))))))
+
 (defun gnus-article-next-page-1 (lines)
-  (let ((scroll-in-place nil))
+  (unless (and (not (featurep 'xemacs))
+	       (> (symbol-value 'scroll-margin) 0)
+	       (<= (count-lines (window-start) (point-max))
+		   (symbol-value 'scroll-margin)))
     (condition-case ()
-	(scroll-up lines)
+	(let ((scroll-in-place nil))
+	  (scroll-up lines))
       (end-of-buffer
        ;; Long lines may cause an end-of-buffer error.
-       (goto-char (point-max)))))
-  (gnus-beginning-of-window))
+       (goto-char (point-max))))
+    (gnus-article-beginning-of-window)))
 
 (defun gnus-article-prev-page (&optional lines)
   "Show previous page of current article.
 Argument LINES specifies lines to be scrolled down."
   (interactive "p")
-  (gnus-beginning-of-window)
+  (move-to-window-line 0)
   (if (and gnus-page-broken
 	   (bobp)
 	   (not (save-restriction (widen) (bobp)))) ;Real beginning-of-buffer?
@@ -5203,13 +5221,13 @@ Argument LINES specifies lines to be scrolled down."
 	(gnus-narrow-to-page -1)	;Go to previous page.
 	(goto-char (point-max))
 	(recenter -1))
-    (let ((scroll-in-place nil))
-      (prog1
-	  (condition-case ()
-	      (scroll-down lines)
-	    (beginning-of-buffer
-	     (goto-char (point-min))))
-	(gnus-beginning-of-window)))))
+    (prog1
+	(condition-case ()
+	    (let ((scroll-in-place nil))
+	      (scroll-down lines))
+	  (beginning-of-buffer
+	   (goto-char (point-min))))
+      (gnus-article-beginning-of-window))))
 
 (defun gnus-article-only-boring-p ()
   "Decide whether there is only boring text remaining in the article.
@@ -5818,7 +5836,7 @@ groups."
 	  (window-start (window-start)))
       (erase-buffer)
       (if (gnus-buffer-live-p gnus-original-article-buffer)
-	  (insert-buffer gnus-original-article-buffer))
+	  (insert-buffer-substring gnus-original-article-buffer))
       (let ((winconf gnus-prev-winconf))
 	(kill-all-local-variables)
 	(gnus-article-mode)

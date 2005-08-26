@@ -172,10 +172,14 @@ EMACS_INT misc_objects_consed;
 EMACS_INT intervals_consed;
 EMACS_INT strings_consed;
 
-/* Number of bytes of consing since GC before another GC should be done. */
+/* Minimum number of bytes of consing since GC before next GC. */
 
-static EMACS_INT gc_cons_threshold;
-EMACS_INT gc_cons_combined_threshold;
+EMACS_INT gc_cons_threshold;
+
+/* Similar minimum, computed from Vgc_cons_percentage.  */
+
+EMACS_INT gc_relative_threshold;
+
 static Lisp_Object Vgc_cons_percentage;
 
 /* Nonzero during GC.  */
@@ -4959,12 +4963,10 @@ returns nil, because real GC can't be done.  */)
   if (gc_cons_threshold < 10000)
     gc_cons_threshold = 10000;
 
-  gc_cons_combined_threshold = gc_cons_threshold;
-
   if (FLOATP (Vgc_cons_percentage))
     { /* Set gc_cons_combined_threshold.  */
       EMACS_INT total = 0;
-      EMACS_INT threshold;
+
       total += total_conses  * sizeof (struct Lisp_Cons);
       total += total_symbols * sizeof (struct Lisp_Symbol);
       total += total_markers * sizeof (union Lisp_Misc);
@@ -4974,10 +4976,10 @@ returns nil, because real GC can't be done.  */)
       total += total_intervals * sizeof (struct interval);
       total += total_strings * sizeof (struct Lisp_String);
       
-      threshold = total * XFLOAT_DATA (Vgc_cons_percentage);
-      if (threshold > gc_cons_combined_threshold)
-	gc_cons_combined_threshold = threshold;
+      gc_relative_threshold = total * XFLOAT_DATA (Vgc_cons_percentage);
     }
+  else
+    gc_relative_threshold = 0;
 
   if (garbage_collection_messages)
     {
@@ -6068,7 +6070,8 @@ init_alloc_once ()
   staticidx = 0;
   consing_since_gc = 0;
   gc_cons_threshold = 100000 * sizeof (Lisp_Object);
-  gc_cons_combined_threshold = gc_cons_threshold;
+  gc_relative_threshold = 0;
+
 #ifdef VIRT_ADDR_VARIES
   malloc_sbrk_unused = 1<<22;	/* A large number */
   malloc_sbrk_used = 100000;	/* as reasonable as any number */

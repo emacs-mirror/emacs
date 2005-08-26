@@ -491,10 +491,12 @@ as well as widgets, buttons, overlays, and text properties."
 		  :notify (lambda (&rest ignore)
 			    (list-charset-chars ',charset)
 			    (with-selected-window
-				(get-buffer-window "*Character List*")
+				(get-buffer-window "*Character List*" 0)
 			      (goto-char (point-min))
-			      (search-forward ,(char-to-string char)
-					      nil t)))
+                              (forward-line 2) ;Skip the header.
+                              (let ((case-fold-search nil))
+                                (search-forward ,(char-to-string char)
+                                                nil t))))
 		  ,(if (= (charset-dimension charset) 1)
 		       (format "%d" (nth 1 split))
 		     (format "%d %d" (nth 1 split) (nth 2 split))))))

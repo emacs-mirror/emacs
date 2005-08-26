@@ -575,7 +575,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Choose a reasonable location for temporary files.
   (custom-reevaluate-setting 'temporary-file-directory)
-  (custom-reevaluate-setting 'small-emporary-file-directory)
+  (custom-reevaluate-setting 'small-temporary-file-directory)
   (custom-reevaluate-setting 'auto-save-file-name-transforms)
 
   ;; See if we should import version-control from the environment variable.
@@ -984,7 +984,13 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
         (setq term
               (if (setq hyphend (string-match "[-_][^-_]+$" term))
                   (substring term 0 hyphend)
-                nil)))))
+                nil)))
+      (when term
+	;; The terminal file has been loaded, now call the terminal
+	;; specific initialization function.
+	(let ((term-init-func (intern (concat "terminal-init-" term))))
+	  (when (fboundp term-init-func)
+	    (funcall term-init-func))))))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.
@@ -1343,7 +1349,7 @@ You can do basic editing with the menu bar and scroll bar using the mouse.
 
 Useful File menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
-Recover Session		Recover files you were editing before a crash
+Recover Crashed Session	Recover files you were editing before a crash
 
 Important Help menu items:
 Emacs Tutorial		Learn how to use Emacs efficiently

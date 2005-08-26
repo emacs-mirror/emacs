@@ -2393,6 +2393,7 @@ void
 syms_of_insdel ()
 {
   staticpro (&combine_after_change_list);
+  staticpro (&combine_after_change_buffer);
   combine_after_change_list = Qnil;
   combine_after_change_buffer = Qnil;
 

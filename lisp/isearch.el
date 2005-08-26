@@ -122,8 +122,8 @@ a tab, a carriage return (control-M), a newline, and `]+'."
 
 (defcustom search-invisible 'open
   "If t incremental search can match hidden text.
-nil means don't match invisible text.
-If the value is `open', if the text matched is made invisible by
+A nil value means don't match invisible text.
+When the value is `open', if the text matched is made invisible by
 an overlay having an `invisible' property and that overlay has a property
 `isearch-open-invisible', then incremental search will show the contents.
 \(This applies when using `outline.el' and `hideshow.el'.)
@@ -188,10 +188,10 @@ to the search status stack.")
 
 (defvar search-ring-yank-pointer nil
   "Index in `search-ring' of last string reused.
-nil if none yet.")
+It is nil if none yet.")
 (defvar regexp-search-ring-yank-pointer nil
   "Index in `regexp-search-ring' of last string reused.
-nil if none yet.")
+It is nil if none yet.")
 
 (defcustom search-ring-update nil
   "*Non-nil if advancing or retreating in the search ring should cause search.
@@ -246,22 +246,25 @@ If this is nil, extra highlighting can be \"manually\" removed with
 \\[lazy-highlight-cleanup]."
   :type 'boolean
   :group 'lazy-highlight)
-(defvaralias 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup)
-(make-obsolete-variable 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup "22.1")
+(define-obsolete-variable-alias 'isearch-lazy-highlight-cleanup
+                                'lazy-highlight-cleanup
+                                "22.1")
 
 (defcustom lazy-highlight-initial-delay 0.25
   "*Seconds to wait before beginning to lazily highlight all matches."
   :type 'number
   :group 'lazy-highlight)
-(defvaralias 'isearch-lazy-highlight-initial-delay 'lazy-highlight-initial-delay)
-(make-obsolete-variable 'isearch-lazy-highlight-initial-delay 'lazy-highlight-initial-delay "22.1")
+(define-obsolete-variable-alias 'isearch-lazy-highlight-initial-delay
+                                'lazy-highlight-initial-delay
+                                "22.1")
 
 (defcustom lazy-highlight-interval 0 ; 0.0625
   "*Seconds between lazily highlighting successive matches."
   :type 'number
   :group 'lazy-highlight)
-(defvaralias 'isearch-lazy-highlight-interval 'lazy-highlight-interval)
-(make-obsolete-variable 'isearch-lazy-highlight-interval 'lazy-highlight-interval "22.1")
+(define-obsolete-variable-alias 'isearch-lazy-highlight-interval
+                                'lazy-highlight-interval
+                                "22.1")
 
 (defcustom lazy-highlight-max-at-a-time 20
   "*Maximum matches to highlight at a time (for `lazy-highlight').
@@ -271,8 +274,9 @@ A value of nil means highlight all matches."
   :type '(choice (const :tag "All" nil)
 		 (integer :tag "Some"))
   :group 'lazy-highlight)
-(defvaralias 'isearch-lazy-highlight-max-at-a-time 'lazy-highlight-max-at-a-time)
-(make-obsolete-variable 'isearch-lazy-highlight-max-at-a-time 'lazy-highlight-max-at-a-time "22.1")
+(define-obsolete-variable-alias 'isearch-lazy-highlight-max-at-a-time
+                                'lazy-highlight-max-at-a-time
+                                "22.1")
 
 (defface lazy-highlight
   '((((class color) (min-colors 88) (background light))
@@ -288,8 +292,9 @@ A value of nil means highlight all matches."
   :group 'lazy-highlight)
 (put 'isearch-lazy-highlight-face 'face-alias 'lazy-highlight)
 (defvar lazy-highlight-face 'lazy-highlight)
-(defvaralias 'isearch-lazy-highlight-face 'lazy-highlight-face)
-(make-obsolete-variable 'isearch-lazy-highlight-face 'lazy-highlight-face "22.1")
+(define-obsolete-variable-alias 'isearch-lazy-highlight-face
+                                'lazy-highlight-face
+                                "22.1")
 
 ;; Define isearch-mode keymap.
 
@@ -312,12 +317,12 @@ A value of nil means highlight all matches."
     ;; We need these explicit definitions because, in a dense keymap,
     ;; the binding for t does not affect characters.
     ;; We use a dense keymap to save space.
-    (while (< i ?\ )
+    (while (< i ?\s)
       (define-key map (make-string 1 i) 'isearch-other-control-char)
       (setq i (1+ i)))
 
     ;; Single-byte printing chars extend the search string by default.
-    (setq i ?\ )
+    (setq i ?\s)
     (while (< i 256)
       (define-key map (vector i) 'isearch-printing-char)
       (setq i (1+ i)))
@@ -531,7 +536,7 @@ Type \\[isearch-quote-char] to quote control character to search for it.
 Type \\[isearch-query-replace] to start `query-replace' with string to\
  replace from last search string.
 Type \\[isearch-query-replace-regexp] to start `query-replace-regexp'\
- with string to replace from last search string..
+ with string to replace from last search string.
 
 Type \\[isearch-toggle-case-fold] to toggle search case-sensitivity.
 Type \\[isearch-toggle-regexp] to toggle regular-expression mode.
@@ -1657,7 +1662,7 @@ Isearch mode."
 	       ;; directly to avoid the input method and keyboard
 	       ;; coding system translating it.
 	       (if (and (integerp key)
-			(>= key ?\ ) (/= key 127) (< key 256))
+			(>= key ?\s) (/= key 127) (< key 256))
 		   (progn
 		     (isearch-process-search-char key)
 		     (setq keylist (cdr keylist)))
@@ -1749,7 +1754,7 @@ Isearch mode."
     ;; Assume character codes 0200 - 0377 stand for characters in some
     ;; single-byte character set, and convert them to Emacs
     ;; characters.
-    (if (and isearch-regexp (= char ?\ ))
+    (if (and isearch-regexp (= char ?\s))
 	(if (subregexp-context-p isearch-string (length isearch-string))
 	    (isearch-process-search-string "[ ]" " ")
 	  (isearch-process-search-char char))
@@ -1770,7 +1775,7 @@ Isearch mode."
   (interactive)
   (let ((char last-command-char))
     (if (= char ?\S-\ )
-	(setq char ?\ ))
+	(setq char ?\s))
     (if (and enable-multibyte-characters
 	     (>= char ?\200)
 	     (<= char ?\377))
@@ -2200,7 +2205,7 @@ since they have special meaning in a regexp."
 
 (defun isearch-text-char-description (c)
   (cond
-   ((< c ?\ ) (format "^%c" (+ c 64)))
+   ((< c ?\s) (format "^%c" (+ c 64)))
    ((= c ?\^?) "^?")
    (t (char-to-string c))))
 
@@ -2287,8 +2292,9 @@ is nil.  This function is called when exiting an incremental search if
     (cancel-timer isearch-lazy-highlight-timer)
     (setq isearch-lazy-highlight-timer nil)))
 
-(defalias 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup)
-(make-obsolete 'isearch-lazy-highlight-cleanup 'lazy-highlight-cleanup "22.1")
+(define-obsolete-function-alias 'isearch-lazy-highlight-cleanup
+                                'lazy-highlight-cleanup
+                                "22.1")
 
 (defun isearch-lazy-highlight-new-loop (&optional beg end)
   "Cleanup any previous `lazy-highlight' loop and begin a new one.

@@ -2778,7 +2778,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 		 available, garbage collect if there has been enough
 		 consing going on to make it worthwhile.  */
 	      if (!detect_input_pending_run_timers (0)
-		  && consing_since_gc > gc_cons_combined_threshold / 2)
+		  && consing_since_gc > gc_cons_threshold / 2)
 		Fgarbage_collect ();
 
 	      redisplay ();
@@ -11282,6 +11282,7 @@ might happen repeatedly and make Emacs nonfunctional.  */);
 	       doc: /* Normal hook run when clearing the echo area.  */);
 #endif
   Qecho_area_clear_hook = intern ("echo-area-clear-hook");
+  staticpro (&Qecho_area_clear_hook);
   SET_SYMBOL_VALUE (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,
