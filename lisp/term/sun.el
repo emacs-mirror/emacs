@@ -1,6 +1,7 @@
 ;;; sun.el --- keybinding for standard default sunterm keys
 
-;; Copyright (C) 1987, 2001, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Jeff Peck <peck@sun.com>
 ;; Keywords: terminals
@@ -253,7 +254,7 @@
       (while hooks
 	(eval (car hooks))
 	(setq hooks (cdr hooks)))))
-  
+
   (define-key ctl-x-map "\C-@" 'sun-mouse-once))
 
 (defun emacstool-init ()

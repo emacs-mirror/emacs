@@ -106,7 +106,8 @@ desktop is saved."
   :group 'desktop)
 
 ;; Maintained for backward compatibility
-(define-obsolete-variable-alias 'desktop-enable 'desktop-save-mode "22.1")
+(define-obsolete-variable-alias 'desktop-enable
+                                'desktop-save-mode "22.1")
 
 (defcustom desktop-save 'ask-if-new
   "*Specifies whether the desktop should be saved when it is killed.
@@ -136,7 +137,8 @@ determine where the desktop is saved."
   "Name of file for Emacs desktop, excluding the directory part."
   :type 'file
   :group 'desktop)
-(define-obsolete-variable-alias 'desktop-basefilename 'desktop-base-file-name "22.1")
+(define-obsolete-variable-alias 'desktop-basefilename
+                                'desktop-base-file-name "22.1")
 
 (defcustom desktop-path '("." "~")
   "List of directories to search for the desktop file.
@@ -292,8 +294,8 @@ See `desktop-restore-eager'."
   "When non-nil, save buffer status in desktop file.
 This variable becomes buffer local when set.
 
-If the value is a function, it called by `desktop-save' with argument
-DESKTOP-DIRNAME to obtain auxiliary information to saved in the desktop
+If the value is a function, it is called by `desktop-save' with argument
+DESKTOP-DIRNAME to obtain auxiliary information to save in the desktop
 file along with the state of the buffer for which it was called.
 
 When file names are returned, they should be formatted using the call
@@ -776,11 +778,11 @@ It returns t if a desktop file was loaded, nil otherwise."
 (defun desktop-load-default ()
   "Load the `default' start-up library manually.
 Also inhibit further loading of it."
-  (if (not inhibit-default-init)	; safety check
-      (progn
-	(load "default" t t)
-	(setq inhibit-default-init t))))
-(make-obsolete 'desktop-load-default 'desktop-save-mode "22.1")
+  (unless inhibit-default-init	        ; safety check
+    (load "default" t t)
+    (setq inhibit-default-init t)))
+(make-obsolete 'desktop-load-default
+               'desktop-save-mode "22.1")
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -801,7 +803,7 @@ directory DIRNAME."
   "Save the desktop in directory `desktop-dirname'."
   (interactive)
   (if desktop-dirname
-    (desktop-save desktop-dirname)
+      (desktop-save desktop-dirname)
     (call-interactively 'desktop-save))
   (message "Desktop saved in %s" desktop-dirname))
 

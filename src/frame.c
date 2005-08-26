@@ -2353,8 +2353,7 @@ DEFUN ("frame-char-width", Fframe_char_width, Sframe_char_width,
        0, 1, 0,
        doc: /* Width in pixels of characters in the font in frame FRAME.
 If FRAME is omitted, the selected frame is used.
-The width is the same for all characters, because
-currently Emacs supports only fixed-width fonts.
+On a graphical screen, the width is the standard width of the default font.
 For a terminal screen, the value is always 1.  */)
      (frame)
      Lisp_Object frame;

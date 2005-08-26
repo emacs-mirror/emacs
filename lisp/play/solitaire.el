@@ -1,6 +1,6 @@
 ;;; solitaire.el --- game of solitaire in Emacs Lisp
 
-;; Copyright (C) 1994, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jan Schormann <Jan.Schormann@rechen-gilde.de>
 ;; Created: Fri afternoon, Jun  3,  1994

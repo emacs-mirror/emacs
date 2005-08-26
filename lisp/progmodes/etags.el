@@ -1,6 +1,7 @@
 ;;; etags.el --- etags facility for Emacs
 
-;; Copyright (C) 1985, 86, 88, 89, 92, 93, 94, 95, 96, 98, 2000, 2001
+;; Copyright (C) 1985, 1986, 1988, 1989, 1992, 1993, 1994, 1995, 1996, 1998,
+;;               2000, 2001, 2002, 2003, 2004, 2005
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>

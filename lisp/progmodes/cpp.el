@@ -1,6 +1,7 @@
 ;;; cpp.el --- highlight or hide text according to cpp conditionals
 
-;; Copyright (C) 1994, 1995, 2003 Free Software Foundation
+;; Copyright (C) 1994, 1995, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation
 
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: c, faces, tools

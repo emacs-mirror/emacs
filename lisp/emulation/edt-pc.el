@@ -1,6 +1,7 @@
 ;;; edt-pc.el --- enhanced EDT keypad mode emulation for PC 101 keyboards
 
-;; Copyright (C) 1986, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1994, 1995, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallagher <kevingal@onramp.net>
 ;; Maintainer: Kevin Gallagher <kevingal@onramp.net>

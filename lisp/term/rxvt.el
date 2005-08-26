@@ -1,6 +1,6 @@
 ;;; rxvt.el --- define function key sequences and standard colors for rxvt
 
-;; Copyright (C) 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Keywords: terminals
@@ -36,7 +36,7 @@
   ;; function-key-map. This substitution is needed because if a key
   ;; definition if found in function-key-map, there are no further
   ;; lookups in other keymaps.
-  (substitute-key-definition [f11] [S-f1] function-key-map) 
+  (substitute-key-definition [f11] [S-f1] function-key-map)
   (substitute-key-definition [f12] [S-f2] function-key-map)
   (substitute-key-definition [f13] [S-f3] function-key-map)
   (substitute-key-definition [f14] [S-f4] function-key-map)
@@ -47,7 +47,7 @@
   (substitute-key-definition [f19] [S-f9] function-key-map)
   (substitute-key-definition [f20] [S-f10] function-key-map)
 
-  (substitute-key-definition [f23] [C-f1] function-key-map) 
+  (substitute-key-definition [f23] [C-f1] function-key-map)
   (substitute-key-definition [f24] [C-f2] function-key-map)
   (substitute-key-definition [f25] [C-f3] function-key-map)
   (substitute-key-definition [f26] [C-f4] function-key-map)
@@ -58,7 +58,7 @@
   (substitute-key-definition [f31] [C-f9] function-key-map)
   (substitute-key-definition [f32] [C-f10] function-key-map)
 
-  (substitute-key-definition [f33] [C-S-f1] function-key-map) 
+  (substitute-key-definition [f33] [C-S-f1] function-key-map)
   (substitute-key-definition [f34] [C-S-f2] function-key-map)
   (substitute-key-definition [f35] [C-S-f3] function-key-map)
   (substitute-key-definition [f36] [C-S-f4] function-key-map)

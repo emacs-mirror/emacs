@@ -1,7 +1,7 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001, 2002, 03, 2004
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;               2005  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
@@ -1280,7 +1280,7 @@ If you use ada-xref.el:
       (progn
 	(add-to-list 'align-dq-string-modes 'ada-mode)
 	(add-to-list 'align-open-comment-modes 'ada-mode)
-	(set (make-variable-buffer-local 'align-region-separate)
+	(set (make-local-variable 'align-region-separate)
 	     ada-align-region-separate)
 
 	;; Exclude comments alone on line from alignment.

@@ -1,6 +1,6 @@
 ;;; keypad.el --- simplified keypad bindings
 
-;; Copyright (C) 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard convenience

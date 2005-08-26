@@ -1,3 +1,12 @@
+2005-08-02  Richard M. Stallman  <rms@gnu.org>
+
+	* frame.c (Fframe_char_width): Doc fix.
+
+2005-07-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <redisplay-end-trigger-functions>:
+	Defvar it.
+
 2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32fns.c (my_set_window_pos, my_show_window): Don't declare.
@@ -129,6 +138,11 @@
 
 	* w32fns.c (Vx_hand_shape): Variable removed.
 	(syms_of_w32fns): Intern and staticpro Qw32_charset_default.
+
+2005-07-19  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fstring_as_multibyte): Escape backslashes in the
+	docstring.
 
 2005-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 

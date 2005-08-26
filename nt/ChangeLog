@@ -1,3 +1,7 @@
+2005-07-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt: (HAVE_GETOPT_H, HAVE_GETOPT_LONG_ONLY): Undefine.
+
 2005-07-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* configure.bat: Don't create lisp/Makefile.unix.

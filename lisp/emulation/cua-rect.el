@@ -1,6 +1,7 @@
 ;;; cua-rect.el --- CUA unified rectangle support
 
-;; Copyright (C) 1997-2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Keywords: keyboard emulations convenience CUA
@@ -832,6 +833,7 @@ If command is repeated at same position, delete the rectangle."
 	     (overlay-put overlay 'after-string as)
 	     (overlay-put overlay 'face rface)
 	     (overlay-put overlay 'keymap cua--overlay-keymap)
+	     (overlay-put overlay 'window (selected-window))
 	     (setq new (cons overlay new))))))
     ;; Trim old trailing overlays.
     (mapcar (function delete-overlay) old)

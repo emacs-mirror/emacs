@@ -1,3 +1,8 @@
+2005-07-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (info): Don't run install-info.
+	($(infodir)/dir): New target, produced by running install-info.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

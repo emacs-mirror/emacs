@@ -1,6 +1,7 @@
 ;;; octave-inf.el --- running Octave as an inferior Emacs process
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>
 ;; Author: John Eaton <jwe@bevo.che.wisc.edu>

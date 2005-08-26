@@ -1,6 +1,7 @@
 ;;; dunnet.el --- text adventure for Emacs
 
-;; Copyright (C) 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Ron Schnell <ronnie@driver-aces.com>
 ;; Created: 25 Jul 1992

@@ -4101,6 +4101,19 @@ if LFORMINFO is nil (meaning all bindings are dynamic)."
 (defun byte-compile-no-warnings (form)
   (let (byte-compile-warnings)
     (byte-compile-form (cons 'progn (cdr form)))))
+
+;; Warn about misuses of make-variable-buffer-local.
+(byte-defop-compiler-1 make-variable-buffer-local byte-compile-make-variable-buffer-local)
+(defun byte-compile-make-variable-buffer-local (form)
+  (if (eq (car-safe (car-safe (cdr-safe form))) 'quote)
+      (byte-compile-warn
+       "`make-variable-buffer-local' should be called at toplevel"))
+  (byte-compile-normal-call form))
+(put 'make-variable-buffer-local
+     'byte-hunk-handler 'byte-compile-form-make-variable-buffer-local)
+(defun byte-compile-form-make-variable-buffer-local (form)
+  (byte-compile-keep-pending form 'byte-compile-normal-call))
+
 
 ;;; tags
 

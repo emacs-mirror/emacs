@@ -1,6 +1,7 @@
 ;;; life.el --- John Horton Conway's `Life' game for GNU Emacs
 
-;; Copyright (C) 1988, 2001, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Kyle Jones <kyleuunet.uu.net>
 ;; Maintainer: FSF

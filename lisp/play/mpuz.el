@@ -1,6 +1,6 @@
 ;;; mpuz.el --- multiplication puzzle for GNU Emacs
 
-;; Copyright (C) 1990, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Overhauled: Daniel Pfeiffer <occitan@esperanto.org>

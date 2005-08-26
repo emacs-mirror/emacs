@@ -56,7 +56,7 @@
 ;; explicitly in your program if you want timely display of I/O in Emacs.
 ;; Alternatively you can make the output stream unbuffered, for example, by
 ;; using a macro:
-;; 
+;;
 ;;           #ifdef UNBUFFERED
 ;;	     setvbuf(stdout,(char *)NULL, _IONBF,0);
 ;;	     #endif
@@ -79,7 +79,7 @@
 
 (require 'gud)
 
-(defvar gdb-frame-address "main" "Initialisation for Assembler buffer.")
+(defvar gdb-frame-address "main" "Initialization for Assembler buffer.")
 (defvar gdb-previous-frame-address nil)
 (defvar gdb-memory-address "main")
 (defvar gdb-previous-frame nil)
@@ -87,7 +87,7 @@
 (defvar gdb-frame-number nil)
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil "List of variables in watch window.")
-(defvar gdb-var-changed nil "Non-nil means that gdb-var-list has changed.")
+(defvar gdb-var-changed nil "Non-nil means that `gdb-var-list' has changed.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gdb-buffer-type nil)
 (defvar gdb-overlay-arrow-position nil)
@@ -118,7 +118,7 @@ Possible values are these symbols:
     `user' -- gdb output should be copied to the GUD buffer
               for the user to see.
 
-    `inferior' -- gdb output should be copied to the inferior-io buffer
+    `inferior' -- gdb output should be copied to the inferior-io buffer.
 
     `pre-emacs' -- output should be ignored util the post-prompt
                    annotation is received.  Then the output-sink
@@ -130,7 +130,7 @@ Possible values are these symbols:
     `post-emacs' -- ignore output until the prompt annotation is
 		    received, then go to USER disposition.
 
-gdba (gdb-ui.el) uses all five values,  gdbmi (gdb-mi.el) only two
+gdba (gdb-ui.el) uses all five values, gdbmi (gdb-mi.el) only two
 \(`user' and `emacs').")
 
 (defvar gdb-current-item nil
@@ -149,7 +149,7 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
 
 If `gdb-many-windows' is nil (the default value) then gdb just
-pops up the GUD buffer unless `gdb-show-main' is t. In this case
+pops up the GUD buffer unless `gdb-show-main' is t.  In this case
 it starts with two windows: one displaying the GUD buffer and the
 other with the source file with the main routine of the inferior.
 
@@ -201,6 +201,7 @@ detailed description of this mode.
 
 (defvar gdb-debug-log nil)
 
+;;;###autoload
 (defcustom gdb-enable-debug-log nil
   "Non-nil means record the process input and output in `gdb-debug-log'."
   :type 'boolean
@@ -216,7 +217,7 @@ detailed description of this mode.
 (defcustom gdb-cpp-define-alist-program "gcc -E -dM -"
   "Shell command for generating a list of defined macros in a source file.
 This list is used to display the #define directive associated
-with an identifier as a tooltip. It works in a debug session with
+with an identifier as a tooltip.  It works in a debug session with
 GDB, when gud-tooltip-mode is t.
 
 Set `gdb-cpp-define-alist-flags' for any include paths or
@@ -279,7 +280,7 @@ Also display the main routine in the disassembly buffer if present."
 		  'gdb-tooltip-print))))))
 
 (defun gdb-set-gud-minor-mode (buffer)
-  "Set gud-minor-mode from find-file if appropriate."
+  "Set `gud-minor-mode' from find-file if appropriate."
   (goto-char (point-min))
   (unless (search-forward "No source file named " nil t)
     (condition-case nil
@@ -972,7 +973,7 @@ being debugged."
 (defun gdb-exited (ignored)
   "An annotation handler for `exited' and `signalled'.
 They say that I/O for the subprocess is now GDB, not the program
-being debugged and that the program is no longer running. This
+being debugged and that the program is no longer running.  This
 function is used to change the focus of GUD tooltips to #define
 directives."
   (setq gdb-active-process nil)
@@ -2225,7 +2226,7 @@ corresponding to the mode line clicked."
   (set-window-dedicated-p (selected-window) t))
 
 (defun gdb-setup-windows ()
-  "Layout the window pattern for gdb-many-windows."
+  "Layout the window pattern for `gdb-many-windows'."
   (gdb-display-locals-buffer)
   (gdb-display-stack-buffer)
   (delete-other-windows)
@@ -2379,7 +2380,7 @@ of the current session."
 (defun gdb-put-string (putstring pos &optional dprop)
   "Put string PUTSTRING in front of POS in the current buffer.
 PUTSTRING is displayed by putting an overlay into the current buffer with a
-`before-string' STRING that has a `display' property whose value is
+`before-string' string that has a `display' property whose value is
 PUTSTRING."
   (let ((string (make-string 1 ?x))
 	(buffer (current-buffer)))
@@ -2484,7 +2485,7 @@ BUFFER nil or omitted means use the current buffer."
 
 (def-gdb-auto-updated-buffer gdb-assembler-buffer
   gdb-invalidate-assembler
-  (concat gdb-server-prefix "disassemble " 
+  (concat gdb-server-prefix "disassemble "
 	  (if (member gdb-frame-address '(nil "main")) nil "0x")
 	  gdb-frame-address "\n")
   gdb-assembler-handler

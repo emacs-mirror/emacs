@@ -1,6 +1,7 @@
 ;;; idlw-rinfo.el --- Routine Information for IDLWAVE
 ;; Copyright (c) 1999 Carsten Dominik
-;; Copyright (c) 1999, 2000, 2001,2002,2003,2004,2005 Free Software Foundation
+;; Copyright (c) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation
 
 ;; Author: J.D. Smith <jdsmith@as.arizona.edu>
 ;; Version: 5.7_22

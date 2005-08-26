@@ -4,7 +4,8 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992,93,94,95,96,1998,2000,02,03,04,05 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 2000, 2001, 2002, 2003,
+;; 2004, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -3209,6 +3210,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 (define-obsolete-function-alias 'tooltip-gud-toggle-dereference
                                 'toggle-gud-tooltip-dereference "22.1")
 
+;;;###autoload
 (define-minor-mode gud-tooltip-mode
   "Toggle the display of GUD tooltips."
   :global t
@@ -3225,7 +3227,11 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
     (remove-hook 'tooltip-hook 'gud-tooltip-tips)
     (define-key global-map [mouse-movement] 'ignore)))
   (gud-tooltip-activate-mouse-motions-if-enabled)
-  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+  (if (and
+       gud-comint-buffer
+       (buffer-name gud-comint-buffer); gud-comint-buffer might be kille
+       (with-current-buffer gud-comint-buffer
+	(memq gud-minor-mode '(gdbmi gdba))))
       (if gud-tooltip-mode
 	  (progn
 	    (dolist (buffer (buffer-list))
