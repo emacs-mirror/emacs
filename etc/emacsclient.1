@@ -9,28 +9,30 @@ emacsclient \- tells a running Emacs to visit a file
 .SH "DESCRIPTION"
 This manual page documents briefly the
 .BR emacsclient
-command.
-This manual page was written for the Debian GNU/Linux distribution
-because the original program does not have a manual page.
-Instead, it has documentation in the GNU Info format; see below.
+command.  Full documentation is available in the GNU Info format; see
+below.
+This manual page was originally written for the Debian GNU/Linux
+distribution, but is not specific to that system.
 .PP
-.B emacsclient 
-works in conjunction with the built-in server of Emacs.
+.B emacsclient
+works in conjunction with the built-in Emacs server.
 .PP
-You typically do not call 
+You can either call
 .B emacsclient
-directly.  Instead, you set the environment variable EDITOR
-to 
-.B emacsclient
-and let programs like 'vipw' or 'bug' or anything run
-it for you, which will use an existing Emacs to visit the file.
+directly or let other programs run it for you when necessary.  On
+GNU and Unix systems many programs consult the environment
+variable EDITOR (sometimes also VISUAL) to obtain the command used for
+editing.  Thus, setting this environment variable to 'emacsclient'
+will allow these programs to use an already running Emacs for editing.
+Other operating systems might have their own methods for defining the
+default editor.
 
 For
-.B emacsclient 
-to work, you need an already running Emacs with a server.  Within Emacs, call 
+.B emacsclient
+to work, you need an already running Emacs with a server.  Within Emacs, call
 the function
 `server-start'.  (Your `.emacs' file can do this automatically if you
-add the expression `(server-start)' to it.)  
+add the expression `(server-start)' to it.)
 
 When you've finished editing the buffer, type `C-x #'
 (`server-edit').  This saves the file and sends a message back to the
@@ -54,23 +56,25 @@ immediately without waiting for you to "finish" the buffer in Emacs.
 do not visit files but instead evaluate the arguments as Emacs
 Lisp expressions.
 .TP
+.B \-s, \-\-socket-name=FILENAME
+Use socket named FILENAME for communication.
+.TP
 .B \-a, \-\-alternate-editor=EDITOR
 if the Emacs server is not running, run the specified editor instead.
 This can also be specified via the `ALTERNATE_EDITOR' environment variable.
 .TP
 .B \-d, \-\-display=DISPLAY
 tell the server to display the files on the given display.
+.TP
+.B \-V, \-\-version
+print version information and exit
+.TP
+.B \-h, \-\-help
+print this usage information message and exit
 .SH "SEE ALSO"
 The program is documented fully in
 .IR "Using Emacs as a Server"
 available via the Info system.
-.SH BUGS
-If there is no running Emacs server, 
-.B emacsclient 
-cannot launch one. I use a small Perl script instead of raw 
-.B emacsclient
-to do it (it works only with systems which have BSD sockets, which is fine
-for Debian GNU/Linux).
 .SH AUTHOR
 This manual page was written by Stephane Bortzmeyer <bortzmeyer@debian.org>,
 for the Debian GNU/Linux system (but may be used by others).
