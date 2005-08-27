@@ -1,3 +1,8 @@
+2005-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* eshell/esh-ext.el (eshell-windows-shell-file): Look for
+	command.com, not command.exe.
+
 2005-08-26  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/esh-cmd.el (eshell-rewrite-named-command): Changed the
