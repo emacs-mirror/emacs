@@ -1,5 +1,8 @@
 2005-08-27  Eli Zaretskii  <eliz@gnu.org>
 
+	* simple.el (blink-matching-paren-distance): Document the meaning
+	of nil value, and allow to customize to nil.
+
 	* eshell/esh-ext.el (eshell-windows-shell-file): Look for
 	command.com, not command.exe.
 

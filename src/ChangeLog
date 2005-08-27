@@ -1,3 +1,7 @@
+2005-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (USAGE1): Fix the description of the -Q option.
+
 2005-08-26  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (resize_mini_window): Fix 2005-08-20 change.

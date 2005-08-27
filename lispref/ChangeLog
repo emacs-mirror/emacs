@@ -1,3 +1,8 @@
+2005-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (Startup Summary): Fix the description of the initial
+	startup message display.
+
 2005-08-25  Richard M. Stallman  <rms@gnu.org>
 
 	* searching.texi (Search and Replace): Add replace-regexp-in-string.
