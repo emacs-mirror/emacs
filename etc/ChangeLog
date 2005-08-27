@@ -1,3 +1,11 @@
+2005-08-19  Emilio C. Lopes  <eclig@gmx.net>
+
+	* emacsclient.1 (DESCRIPTION): Reflect inclusion in the
+	Emacs distribution.  Make role of EDITOR clearer.
+	(OPTIONS): Document `-s', `-V' and `-h'
+	as well as their long name counterparts.
+	(BUGS): Remove.
+
 2005-08-26  Romain Francoise  <romain@orebokech.com>
 
 	* PROBLEMS: Fix capitalization of "Gnus".
