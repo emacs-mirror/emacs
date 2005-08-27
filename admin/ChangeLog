@@ -1,3 +1,7 @@
+2005-08-27  Romain Francoise  <romain@orebokech.com>
+
+	* FOR-RELEASE (Bugs): Remove compile-internal item (Done).
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

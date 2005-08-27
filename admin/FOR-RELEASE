@@ -62,8 +62,6 @@ back burner waiting for a legal comment or an alternate implementation
 ** The header-line buttons in the buffer list buffer
 should respond to Mouse-1.
 
-** Fix those modes that still use compile-internal, to not use it.
-
 ** Fix recognition of shell's `dirs' command.
 
 Is his change right?
