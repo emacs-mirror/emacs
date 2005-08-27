@@ -266,7 +266,7 @@ Initialization options:\n\
 --no-site-file              do not load site-start.el\n\
 --no-splash                 do not display a splash screen on startup\n\
 --no-window-system, -nw     do not communicate with X, ignoring $DISPLAY\n\
---quick, -Q                 equivalent to -q --no-site-file\n\
+--quick, -Q                 equivalent to -q --no-site-file --no-splash\n\
 --script FILE               run FILE as an Emacs Lisp script\n\
 --terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --unibyte, --no-multibyte   run Emacs in unibyte mode\n\
