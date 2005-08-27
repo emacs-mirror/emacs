@@ -1,5 +1,12 @@
 2005-08-27  Romain Francoise  <romain@orebokech.com>
 
+	* textmodes/makeinfo.el (makeinfo-compile): Use
+	`compilation-start'.  Set `next-error-function' according to
+	`disable-errors'.
+	(makeinfo-next-error): New function.
+	(makeinfo-region): Adjust to new `makeinfo-compile' prototype.
+	(makeinfo-buffer): Likewise.
+
 	* progmodes/compile.el (compilation-start): Add autoload cookie.
 
 	* progmodes/antlr-mode.el: Don't autoload `compilation-start'.
