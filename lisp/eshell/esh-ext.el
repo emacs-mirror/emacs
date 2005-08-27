@@ -92,7 +92,7 @@ since nothing else but Eshell will be able to understand
       (if (string-match "\\(\\`cmdproxy\\|sh\\)\\.\\(com\\|exe\\)"
 			shell-file-name)
 	  (or (eshell-search-path "cmd.exe")
-	      (eshell-search-path "command.exe"))
+	      (eshell-search-path "command.com"))
 	shell-file-name))
   "*The name of the shell command to use for DOS/Windows batch files.
 This defaults to nil on non-Windows systems, where this variable is
