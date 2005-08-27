@@ -1,3 +1,11 @@
+2005-08-27  Romain Francoise  <romain@orebokech.com>
+
+	* progmodes/compile.el (compilation-start): Add autoload cookie.
+
+	* progmodes/antlr-mode.el: Don't autoload `compilation-start'.
+	* textmodes/sgml-mode.el: Likewise.
+	* progmodes/python.el: Likewise.
+
 2005-08-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (blink-matching-paren-distance): Document the meaning

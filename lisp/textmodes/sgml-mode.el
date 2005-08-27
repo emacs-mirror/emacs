@@ -901,8 +901,6 @@ With prefix argument ARG, repeat this ARG times."
 		  (forward-list)))))))
 
 
-(autoload 'compilation-start "compile")
-
 (defun sgml-validate (command)
   "Validate an SGML document.
 Runs COMMAND, a shell command, in a separate process asynchronously

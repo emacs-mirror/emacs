@@ -911,6 +911,7 @@ Otherwise, construct a buffer name from MODE-NAME."
     (compilation-start command nil name-function highlight-regexp)))
 (make-obsolete 'compile-internal 'compilation-start)
 
+;;;###autoload
 (defun compilation-start (command &optional mode name-function highlight-regexp)
   "Run compilation command COMMAND (low level interface).
 If COMMAND starts with a cd command, that becomes the `default-directory'.

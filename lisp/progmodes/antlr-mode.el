@@ -2229,8 +2229,6 @@ vocabulary of the super-grammar or nil if it is not needed."
     (cons (if glibs (concat " -glib " (mapconcat 'car glibs ";")) "")
 	  (cons unknown glibs))))
 
-(autoload 'compilation-start "compile")
-
 (defun antlr-run-tool (command file &optional saved)
   "Run Antlr took COMMAND on grammar FILE.
 When called interactively, COMMAND is read from the minibuffer and
