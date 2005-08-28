@@ -1,3 +1,11 @@
+2005-08-28  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuf-ext.el (ibuffer-auto-update-changed): Use
+	`frame-or-buffer-changed-p' to check whether we need to update.
+	(ibuffer-auto-mode): Don't advise `get-buffer-create' and
+	`kill-buffer'.  Initialise `ibuffer-auto-buffers-changed'
+	as a `frame-or-buffer-changed-p' state vector instead.
+
 2005-08-27  Romain Francoise  <romain@orebokech.com>
 
 	* textmodes/makeinfo.el (makeinfo-compile): Use
