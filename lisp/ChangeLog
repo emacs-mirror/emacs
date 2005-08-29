@@ -1,3 +1,8 @@
+2005-08-29  Juri Linkov  <juri@jurta.org>
+
+	* outline.el (hide-entry, hide-leaves, outline-toggle-children):
+	Put outline-back-to-heading function call inside save-excursion.
+
 2005-08-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* man.el (Man-init-defvars, Man-translate-references)
