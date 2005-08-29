@@ -1,3 +1,8 @@
+2005-08-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ses.texi: Combine all three indices into one.
+	Correct a few typos.
+
 2005-08-19  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-mime.texi (time-date): Fix description of safe-date-to-time.
