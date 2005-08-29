@@ -2299,7 +2299,7 @@ hooks on `comint-input-filter-functions' are run.  After each SQL
 interpreter output, the hooks on `comint-output-filter-functions' are
 run.
 
-Variable `sql-input-ring-file-name' controls the initialisation of the
+Variable `sql-input-ring-file-name' controls the initialization of the
 input ring history.
 
 Variables `comint-output-filter-functions', a hook, and
