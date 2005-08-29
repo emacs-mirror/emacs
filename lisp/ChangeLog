@@ -32,6 +32,28 @@
 	* emacs-lisp/tcover-ses.el (ses-initial-global-parameters)
 	(ses-mode-map):
 	* emacs-lisp/tcover-unsafep.el (safe-functions):
+	* international/mule-cmds.el (mac-system-coding-system)
+	(mac-system-locale):
+	* language/ethio-util.el (rmail-current-message)
+	(rmail-message-vector):
+	* language/thai-util.el (thai-auto-composition-mode):
+	* mail/metamail.el (rmail-current-message, rmail-message-vector):
+	* mail/mspools.el (rmail-inbox-list, vm-crash-box)
+	(vm-folder-directory, vm-init-file, vm-init-file-loaded)
+	(vm-primary-inbox, vm-spool-files):
+	* mail/rmail.el (deleted-head, font-lock-fontified)
+	(mail-abbrev-syntax-table, mail-abbrevs, messages-head)
+	(rmail-use-spam-filter, rsf-beep, rsf-sleep-after-message)
+	(total-messages):
+	* mail/rmail-spam-filter.el (bbdb/mail_auto_create_p)
+	(rmail-summary-mode-map):
+	* mail/rmailkwd.el (rmail-buffer, rmail-current-message)
+	(rmail-last-label, rmail-last-multi-labels)
+	(rmail-summary-vector, rmail-total-messages):
+	* mail/rmailmsc.el (rmail-current-message, rmail-inbox-list):
+	* mail/rmailsum.el (msgnum):
+	* mail/uce.el (gnus-original-article-buffer, mail-reply-buffer)
+	(rmail-current-message):
 	* obsolete/fast-lock.el (font-lock-face-list):
 	* obsolete/rnewspost.el (mail-reply-buffer):
 	* obsolete/scribe.el (compile-command):
