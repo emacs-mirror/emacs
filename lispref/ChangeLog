@@ -1,3 +1,12 @@
+2005-08-29  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode menu.
+
+	* searching.texi (Searching and Matching): Move node.
+	Rearrange contents and add overall explanation.
+	(Searching and Case): Move node.
+	(Searching and Matching): Update menu.
+
 2005-08-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* os.texi (Startup Summary): Fix the description of the initial
