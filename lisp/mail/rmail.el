@@ -42,6 +42,16 @@
 (require 'mail-utils)
 (eval-when-compile (require 'mule-util)) ; for detect-coding-with-priority
 
+(defvar deleted-head)
+(defvar font-lock-fontified)
+(defvar mail-abbrev-syntax-table)
+(defvar mail-abbrevs)
+(defvar messages-head)
+(defvar rmail-use-spam-filter)
+(defvar rsf-beep)
+(defvar rsf-sleep-after-message)
+(defvar total-messages)
+
 ; These variables now declared in paths.el.
 ;(defvar rmail-spool-directory "/usr/spool/mail/"
 ;  "This is the name of the directory used by the system mailer for\n\
