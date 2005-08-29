@@ -190,6 +190,9 @@
      (defmacro defcustom (var value doc &rest args)
        `(defvar ,var ,value ,doc))))
 
+(defvar compilation-error-regexp-alist)
+(defvar compilation-mode-font-lock-keywords)
+
 (defcustom checkdoc-autofix-flag 'semiautomatic
   "*Non-nil means attempt auto-fixing of doc strings.
 If this value is the symbol `query', then the user is queried before
@@ -653,7 +656,7 @@ style."
 			    "No Additional style errors.  Continuing...")
 			   (sit-for 2))))))
 	       ;; Move to the next error (if available)
-	       ((or (checkdoc-char= c ?n) (checkdoc-char= c ?\ ))
+	       ((or (checkdoc-char= c ?n) (checkdoc-char= c ?\s))
 		(let ((ne (funcall findfunc nil)))
 		  (if (not ne)
 		      (if showstatus
