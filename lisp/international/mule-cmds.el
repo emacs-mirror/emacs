@@ -33,6 +33,9 @@
   (defvar dos-codepage)
   (autoload 'widget-value "wid-edit"))
 
+(defvar mac-system-coding-system)
+(defvar mac-system-locale)
+
 ;;; MULE related key bindings and menus.
 
 (defvar mule-keymap (make-sparse-keymap)
