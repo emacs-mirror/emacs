@@ -28,6 +28,8 @@
 
 ;;; Code:
 
+(defvar thai-auto-composition-mode)
+
 ;; Setting information of Thai characters.
 
 (defconst thai-category-table (make-category-table))
