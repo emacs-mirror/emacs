@@ -47,6 +47,8 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar font-lock-beginning-of-syntax-function)
+
 (defsubst syntax-ppss-depth (ppss)
   (nth 0 ppss))
 
