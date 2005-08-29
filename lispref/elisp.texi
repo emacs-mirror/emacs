@@ -912,13 +912,13 @@ Non-ASCII Characters
 Searching and Matching
 
 * String Search::           Search for an exact match.
+* Searching and Case::      Case-independent or case-significant searching.
 * Regular Expressions::     Describing classes of strings.
 * Regexp Search::           Searching for a match for a regexp.
 * POSIX Regexps::           Searching POSIX-style for the longest match.
-* Search and Replace::	    Internals of @code{query-replace}.
-* Match Data::              Finding out which part of the text matched
-                              various parts of a regexp, after regexp search.
-* Searching and Case::      Case-independent or case-significant searching.
+* Match Data::              Finding out which part of the text matched,
+                              after a string or regexp search.
+* Search and Replace::	    Commands that loop, searching and replacing.
 * Standard Regexps::        Useful regexps for finding sentences, pages,...
 
 Regular Expressions
