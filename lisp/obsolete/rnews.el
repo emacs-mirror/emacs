@@ -59,6 +59,12 @@
 (require 'mail-utils)
 (require 'sendmail)
 
+(defvar caesar-translate-table)
+(defvar minor-modes)
+(defvar news-buffer-save)
+(defvar news-group-name)
+(defvar news-minor-modes)
+
 (autoload 'rmail-output "rmailout"
   "Append this message to Unix mail file named FILE-NAME."
   t)
@@ -887,7 +893,7 @@ Using ls was found to be too slow in a previous version."
 		    (progn
 		      (message
 		       "Added %s to your list of newsgroups." gp)
-		      (end-of-buffer)
+		      (goto-char (point-max))
 		      (insert gp ": 1-1\n")))
 		  (search-backward gp nil t)
 		  (let (start end endofline tem)
