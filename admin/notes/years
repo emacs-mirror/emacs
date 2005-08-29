@@ -12,6 +12,12 @@ How to Maintain Copyright Years for GNU Emacs
  --RMS, 2005-07-13
 
 
+For the refcards under etc/, it's ok to simply use the latest year
+(typically in a `\def\year{YEAR}' expression) for the rendered copyright
+notice, while maintaining the full list of years in the copyright notice
+in the comments.
+
+
 ------------------------------------------------------------------------------
 
 
