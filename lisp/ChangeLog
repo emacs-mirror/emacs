@@ -1,4 +1,43 @@
-2005-08-28  John Paul Wallington  <jpw@gnu.org>
+2005-08-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* man.el (Man-init-defvars, Man-translate-references)
+	(Man-support-local-filenames, Man-highlight-references):
+	* progmodes/sql.el (sql-interactive-mode):
+	* shell.el (shell-mode, shell-resync-dirs): Fix typos in
+	docstrings.
+
+	* emacs-lisp/checkdoc.el (compilation-error-regexp-alist)
+	(compilation-mode-font-lock-keywords): Add defvars.
+	(checkdoc-interactive-loop): "?\ " -> "?\s".
+
+	* emacs-lisp/lisp-mode.el (font-lock-comment-face)
+	(font-lock-doc-face, font-lock-string-face)
+	(font-lock-keywords-case-fold-search): Add defvars.
+	(emacs-lisp-mode-syntax-table): "?\ " -> "?\s".
+
+	* obsolete/sun-fns.el (mouse-select-or-drag-move-point):
+	Don't pass X and Y (they are ignored anyway).
+	(mouse-set-mark, mouse-select-window, mouse-delete-other-windows)
+	(mouse-delete-window): Make arguments optional.
+
+	* obsolete/rnews.el (news-add-news-group): Don't use
+	`end-of-line'.
+	(caesar-translate-table, minor-modes, news-buffer-save)
+	(news-group-name, news-minor-modes): Add defvars.
+
+	* emacs-lisp/lselect.el (mouse-highlight-priority)
+	(x-lost-selection-functions, zmacs-regions):
+	* emacs-lisp/pp.el (font-lock-verbose):
+	* emacs-lisp/syntax.el (font-lock-beginning-of-syntax-function):
+	* emacs-lisp/tcover-ses.el (ses-initial-global-parameters)
+	(ses-mode-map):
+	* emacs-lisp/tcover-unsafep.el (safe-functions):
+	* obsolete/fast-lock.el (font-lock-face-list):
+	* obsolete/rnewspost.el (mail-reply-buffer):
+	* obsolete/scribe.el (compile-command):
+	* obsolete/x-menu.el (x-process-mouse-hook): Add defvars.
+
+005-08-28  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuf-ext.el (ibuffer-auto-update-changed): Use
 	`frame-or-buffer-changed-p' to check whether we need to update.
