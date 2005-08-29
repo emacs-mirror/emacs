@@ -37,7 +37,7 @@
 	* obsolete/scribe.el (compile-command):
 	* obsolete/x-menu.el (x-process-mouse-hook): Add defvars.
 
-005-08-28  John Paul Wallington  <jpw@gnu.org>
+2005-08-28  John Paul Wallington  <jpw@gnu.org>
 
 	* ibuf-ext.el (ibuffer-auto-update-changed): Use
 	`frame-or-buffer-changed-p' to check whether we need to update.
