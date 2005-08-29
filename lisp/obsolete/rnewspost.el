@@ -60,6 +60,8 @@
 (require 'sendmail)
 (require 'rnews)
 
+(defvar mail-reply-buffer)
+
 (defvar news-reply-mode-map () "Mode map used by news-reply.")
 
 (or news-reply-mode-map
