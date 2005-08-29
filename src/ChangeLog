@@ -1,6 +1,16 @@
+2005-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (update_syntax_table): Properly reproduce the special +1
+	setting of e_property at the end of the buffer when bumping into the
+	INTERVALS_AT_ONCE limit.
+
 2005-08-27  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (USAGE1): Fix the description of the -Q option.
+
+2005-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (pos_visible_p): Yet another int/Lisp_Object mixup (YAILOM).
 
 2005-08-26  Kim F. Storm  <storm@cua.dk>
 
@@ -12,8 +22,8 @@
 	* keyboard.c (kbd_buffer_get_event) [MAC_OS]: Make events for
 	ICONIFY/DEICONIFY_EVENT.
 
-	* macterm.c (mac_copy_area, mac_copy_area_with_mask): Restore
-	background color.
+	* macterm.c (mac_copy_area, mac_copy_area_with_mask):
+	Restore background color.
 	(mac_handle_visibility_change): New function.
 	(x_make_frame_invisible, x_iconify_frame)
 	(XTread_socket) [!USE_CARBON_EVENTS]: Use it.

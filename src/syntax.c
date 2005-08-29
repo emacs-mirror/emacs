@@ -133,7 +133,7 @@ update_syntax_table (charpos, count, init, object)
 {
   Lisp_Object tmp_table;
   int cnt = 0, invalidate = 1;
-  INTERVAL i, oldi;
+  INTERVAL i;
 
   if (init)
     {
@@ -164,7 +164,7 @@ update_syntax_table (charpos, count, init, object)
       gl_state.e_property = INTERVAL_LAST_POS (i) - gl_state.offset;
       goto update;
     }
-  oldi = i = count > 0 ? gl_state.forward_i : gl_state.backward_i;
+  i = count > 0 ? gl_state.forward_i : gl_state.backward_i;
 
   /* We are guaranteed to be called with CHARPOS either in i,
      or further off.  */
@@ -249,7 +249,8 @@ update_syntax_table (charpos, count, init, object)
 	    }
 	  else
 	    {
-	      gl_state.b_property = i->position + LENGTH (i) - gl_state.offset;
+	      gl_state.b_property
+		= i->position + LENGTH (i) - gl_state.offset;
 	      gl_state.backward_i = i;
 	    }
 	  return;
@@ -258,7 +259,12 @@ update_syntax_table (charpos, count, init, object)
 	{
 	  if (count > 0)
 	    {
-	      gl_state.e_property = i->position + LENGTH (i) - gl_state.offset;
+	      gl_state.e_property
+		= i->position + LENGTH (i) - gl_state.offset
+		/* e_property at EOB is not set to ZV but to ZV+1, so that
+		   we can do INC(from);UPDATE_SYNTAX_TABLE_FORWARD without
+		   having to check eob between the two.  */
+		+ (NULL_INTERVAL_P (next_interval (i)) ? 1 : 0);
 	      gl_state.forward_i = i;
 	    }
 	  else
