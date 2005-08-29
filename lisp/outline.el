@@ -749,8 +749,8 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 (defun hide-entry ()
   "Hide the body directly following this heading."
   (interactive)
-  (outline-back-to-heading)
   (save-excursion
+    (outline-back-to-heading)
     (outline-end-of-heading)
     (outline-flag-region (point) (progn (outline-next-preface) (point)) t)))
 
@@ -802,8 +802,8 @@ Show the heading too, if it is currently invisible."
 (defun hide-leaves ()
   "Hide all body after this heading at deeper levels."
   (interactive)
-  (outline-back-to-heading)
   (save-excursion
+    (outline-back-to-heading)
     (outline-end-of-heading)
     (hide-region-body (point) (progn (outline-end-of-subtree) (point)))))
 
@@ -860,11 +860,12 @@ Show the heading too, if it is currently invisible."
 (defun outline-toggle-children ()
   "Show or hide the current subtree depending on its current state."
   (interactive)
-  (outline-back-to-heading)
-  (if (not (outline-invisible-p (line-end-position)))
-      (hide-subtree)
-    (show-children)
-    (show-entry)))
+  (save-excursion
+    (outline-back-to-heading)
+    (if (not (outline-invisible-p (line-end-position)))
+	(hide-subtree)
+      (show-children)
+      (show-entry))))
 
 (defun outline-flag-subtree (flag)
   (save-excursion
