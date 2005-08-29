@@ -187,6 +187,8 @@
 (if (and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
     (error "`fast-lock' was written for long file name systems"))
 
+(defvar font-lock-face-list)
+
 (eval-when-compile
  ;;
  ;; We don't do this at the top-level as we only use non-autoloaded macros.
