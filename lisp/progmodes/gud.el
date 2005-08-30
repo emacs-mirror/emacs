@@ -45,6 +45,15 @@
 (require 'comint)
 (require 'font-lock)
 
+(defvar gdb-active-process)
+(defvar gdb-define-alist)
+(defvar gdb-macro-info)
+(defvar gdb-server-prefix)
+(defvar gdb-show-changed-values)
+(defvar gdb-var-changed)
+(defvar gdb-var-list)
+(defvar tool-bar-map)
+
 ;; ======================================================================
 ;; GUD commands must be visible in C buffers visited by GUD
 
@@ -508,9 +517,9 @@ off the specialized speedbar mode."
 	 ;; to return - we don't include the marker in this text.
 	 output (concat output
 			(substring gud-marker-acc 0 (match-beginning 0)))
-	 
+
 	 ;; Set the accumulator to the remaining text.
-	 
+
 	 gud-marker-acc (substring gud-marker-acc (match-end 0)))
 	(if (string-equal match "error-begin")
 	    (put-text-property 0 (length gud-marker-acc)
@@ -2865,12 +2874,12 @@ the character after the end of the expr."
 If `->' is found, return `?.'.  If `.' is found, return `?.'.
 If any other punctuation is found, return `??'.
 If no punctuation is found, return `? '."
-  (let ((result ?\ )
+  (let ((result ?\s)
 	(syntax))
     (while (< span-start span-end)
       (setq syntax (char-syntax (char-after span-start)))
       (cond
-       ((= syntax ?\ ) t)
+       ((= syntax ?\s) t)
        ((= syntax ?.) (setq syntax (char-after span-start))
 	(cond
 	 ((= syntax ?.) (setq result ?.))
@@ -2902,7 +2911,7 @@ Link exprs of the form:
      ((= (car first) (car second)) nil)
      ((= (cdr first) (cdr second)) nil)
      ((= syntax ?.) t)
-     ((= syntax ?\ )
+     ((= syntax ?\s)
       (setq span-start (char-after (- span-start 1)))
       (setq span-end (char-after span-end))
       (cond
