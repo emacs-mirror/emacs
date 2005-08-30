@@ -1,3 +1,7 @@
+2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Add `make-auto-save-file-name'.
+
 2005-08-29  Richard M. Stallman  <rms@gnu.org>
 
 	* elisp.texi (Top): Update subnode menu.
@@ -20,7 +24,7 @@
 
 	* display.texi (Finding Overlays): Fix `find-overlay-prop' in
 	`next-overlay-change' example.
-  
+
 2005-08-22  Juri Linkov  <juri@jurta.org>
 
 	* display.texi (Attribute Functions): Add set-face-inverse-video-p.
@@ -65,7 +69,7 @@
 	(Frame Parameters): Refer to Geometry.
 
 	* buffers.texi (The Buffer List): Fix xrefs.
-	
+
 	* windows.texi (Splitting Windows): Fix xref.
 
 	* frames.texi (Layout Parameters): Add xref.

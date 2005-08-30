@@ -1,3 +1,7 @@
+2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add entry for `make-auto-save-file-name'.
+
 2005-08-19  Emilio C. Lopes  <eclig@gmx.net>
 
 	* emacsclient.1 (DESCRIPTION): Reflect inclusion in the

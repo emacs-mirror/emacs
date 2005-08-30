@@ -3908,6 +3908,10 @@ operations.
 This is useful for autoloaded handlers, to prevent them from being
 autoloaded when not really necessary.
 
++++
+*** The function `make-auto-save-file-name' is now handled by file
+name handlers.  This will be exploited for remote files mainly.
+
 ** Input changes:
 
 +++

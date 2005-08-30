@@ -1,3 +1,16 @@
+2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (make-auto-save-file-name): Add file name handler call
+	if applicable.
+
+	* net/tramp.el (tramp-file-name-handler-alist)
+	(tramp-file-name-for-operation): Add `make-auto-save-file-name'.
+	(tramp-handle-make-auto-save-file-name): Renamed from
+	`tramp-make-auto-save-file-name'.
+	(tramp-exists-file-name-handler): New defun.
+	(tramp-advice-make-auto-save-file-name): Make defadvice only when
+	`make-auto-save-file-name' is not a magic file name operation.
+
 2005-08-30  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-special-keyword): New face.
