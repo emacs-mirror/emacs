@@ -70,6 +70,12 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar font-lock-extra-managed-props)
+(defvar font-lock-keywords)
+(defvar font-lock-maximum-size)
+(defvar font-lock-support-mode)
+
+
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
   :group 'tools
@@ -287,11 +293,11 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 \\(?:: \\(warning:\\)?\\|$\\| ),\\)" 1 2 nil (3))
 
     (gcov-file
-     "^ +-:    \\(0\\):Source:\\(.+\\)$" 2 1 nil 0)    
+     "^ +-:    \\(0\\):Source:\\(.+\\)$" 2 1 nil 0)
     (gcov-bb-file
-     "^ +-:    \\(0\\):Object:\\(?:.+\\)$" nil 1 nil 0)    
+     "^ +-:    \\(0\\):Object:\\(?:.+\\)$" nil 1 nil 0)
     (gcov-never-called-line
-     "^ +\\(#####\\): +\\([0-9]+\\):.+$" nil 2 nil 2 nil 
+     "^ +\\(#####\\): +\\([0-9]+\\):.+$" nil 2 nil 2 nil
      (1 compilation-error-face))
     (gcov-called-line
      "^ +[-0-9]+: +\\([1-9]\\|[0-9]\\{2,\\}\\):.*$" nil 1 nil 0)
