@@ -133,6 +133,9 @@
   (require 'which-func nil t)
   (require 'compile nil t))
 
+(defvar compile-auto-highlight)
+(defvar skeleton-further-elements)
+
 ;; this function is needed at compile time
 (eval-and-compile
   (defun ada-check-emacs-version (major minor &optional is-xemacs)
