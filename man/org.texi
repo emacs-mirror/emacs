@@ -1,7 +1,7 @@
 \input texinfo
 @c %**start of header
-@setfilename org
-@c @setfilename ../info/org
+@c @setfilename org
+@setfilename ../info/org
 @settitle Org Mode Manual
 
 @set VERSION 3.15

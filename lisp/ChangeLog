@@ -1,3 +1,24 @@
+2005-08-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-special-keyword): New face.
+	(org-table-copy-down, org-table-eval-formula)
+	(org-table-recalculate, org-init-section-numbers): Use
+	`string-to-number' instead of `string-to-int'.
+	(org-get-location): Use `insert-buffer-substring' instead of
+	`insert-buffer'.
+	(org-modify-diary-entry-string): New function.
+	(org-get-entries-from-diary): Set the hook for
+	`add-to-diary-list'.
+	(org-disable-agenda-to-diary): renamed from `org-disable-diary'.
+	(org-toggle-fixed-width-section): Use QUOTE keyword if there is no
+	active region.
+	(org-export-as-html): Handle QUOTE keyword.
+	(org-quote-string): New option.
+	(org-bookmark-jump-unhide): New function, used for
+	`bookmark-after-jump-hook'.
+	(org-diary-default-entry): Apply only when not called through
+	`org-agenda'.
+
 2005-08-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* net/eudc.el (mode-popup-menu):
