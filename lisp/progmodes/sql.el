@@ -219,6 +219,10 @@
 (eval-when-compile ;; needed in Emacs 19, 20
   (setq max-specpdl-size 2000))
 
+(defvar font-lock-keyword-face)
+(defvar font-lock-set-defaults)
+(defvar font-lock-string-face)
+
 ;;; Allow customization
 
 (defgroup SQL nil
