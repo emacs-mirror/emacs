@@ -128,6 +128,12 @@
 (defconst vhdl-emacs-21 (and (<= 21 emacs-major-version) (not vhdl-xemacs))
   "Non-nil if Emacs 21, 22, ... is used.")
 
+(defvar compilation-file-regexp-alist)
+(defvar itimer-version)
+(defvar lazy-lock-defer-contextually)
+(defvar lazy-lock-defer-on-scrolling)
+(defvar lazy-lock-defer-on-the-fly)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Variables
