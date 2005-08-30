@@ -76,6 +76,8 @@
 (defvar eudc-form-widget-list nil)
 (defvar eudc-mode-map nil)
 
+(defvar mode-popup-menu)
+
 ;; List of known servers
 ;; Alist of (SERVER . PROTOCOL)
 (defvar eudc-server-hotlist nil)
