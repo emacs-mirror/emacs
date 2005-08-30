@@ -53,10 +53,10 @@
 ;;
 ;; INSTALLATION
 ;; ============
-;; Put this file on the emacs load path and load it with the following 
+;; Put this file on the emacs load path and load it with the following
 ;; line in your .emacs file:
 ;;
-;;   (add-hook 'idlwave-load-hook 
+;;   (add-hook 'idlwave-load-hook
 ;;             (lambda () (require 'idlw-complete-structtag)))
 ;;
 ;; DESCRIPTION
@@ -87,6 +87,7 @@
 ;;  - You can force an update of the tag list with the usual command
 ;;    to update routine info in IDLWAVE: C-c C-i
 
+(defvar idlwave-completion-help-info)
 
 ;; Some variables to identify the previously used structure
 (defvar idlwave-current-tags-var nil)
@@ -144,9 +145,9 @@ an up-to-date completion list."
                   (not (equal start idlwave-current-tags-completion-pos)))
 	      (idlwave-prepare-structure-tag-completion var))
           (setq idlwave-current-tags-completion-pos start)
-	  (setq idlwave-completion-help-info 
+	  (setq idlwave-completion-help-info
 		(list 'idlwave-complete-structure-tag-help))
-	  (idlwave-complete-in-buffer 'structtag 'structtag 
+	  (idlwave-complete-in-buffer 'structtag 'structtag
 				      idlwave-current-struct-tags nil
 				      "Select a structure tag" "structure tag")
 	  t) ; we did the completion: return t to skip other completions
@@ -165,7 +166,7 @@ an up-to-date completion list."
   (if (eq major-mode 'idlwave-shell-mode)
       ;; OK, we are in the shell, do it dynamically
       (progn
-        (message "preparing shell tags") 
+        (message "preparing shell tags")
         ;; The following call puts the tags into `idlwave-current-struct-tags'
         (idlwave-complete-structure-tag-query-shell var)
         ;; initialize
@@ -187,7 +188,7 @@ an up-to-date completion list."
             ;; Find possible definitions of the structure.
             (while (idlwave-find-structure-definition var nil 'all)
               (let ((tags (idlwave-struct-tags)))
-                (when tags 
+                (when tags
                   ;; initialize
                   (setq idlwave-sint-structtags nil
                         idlwave-current-tags-buffer (current-buffer)
