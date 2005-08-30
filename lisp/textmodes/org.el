@@ -1,12 +1,11 @@
-;; org.el --- Outline-based notes management and organizer
+;;; org.el --- Outline-based notes management and organizer
 ;; Carstens outline-mode for keeping track of everything.
-
-;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (c) 2004, 2005 Free Software Foundation
 ;;
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.14
+;; Version: 3.15
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +80,13 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.15
+;;    - QUOTE keyword at the beginning of an entry causes fixed-width export
+;;      of unmodified entry text. `C-c :' toggles this keyword.
+;;    - New face `org-special-keyword' which is used for COMMENT, QUOTE,
+;;      DEADLINE and SCHEDULED, and priority cookies.  Default is only a weak
+;;      color, to reduce the amount of aggressive color in the buffer.
+;;
 ;; Version 3.14
 ;;    - Formulas for individual fields in table.
 ;;    - Automatic recalculation in calculating tables.
@@ -189,7 +195,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.14"
+(defvar org-version "3.15"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -385,6 +391,15 @@ Changes become only effective after restarting Emacs."
 An entry can be toggled between COMMENT and normal with
 \\[org-toggle-comment].
 Changes become only effective after restarting Emacs."
+  :group 'org-keywords
+  :type 'string)
+
+(defcustom org-quote-string "QUOTE"
+  "Entries starting with this keyword will be exported in fixed-width font.
+Quoting applies only to the text in the entry following the headline, and does
+not extend beyond the next headline, even if that is lower level.
+An entry can be toggled between QUOTE and normal with
+\\[org-toggle-fixed-width-section]"
   :group 'org-keywords
   :type 'string)
 
@@ -1593,6 +1608,14 @@ Otherwise, the buffer will just be saved to a file and stay hidden."
   "Face used for level 8 headlines."
   :group 'org-faces)
 
+(defface org-special-keyword ;; font-lock-string-face
+  '((((type tty) (class color)) (:foreground "green"))
+    (((class color) (background light)) (:foreground "RosyBrown"))
+    (((class color) (background dark)) (:foreground "LightSalmon"))
+    (t (:italic t)))
+  "Face used for level 8 headlines."
+  :group 'org-faces)
+
 (defface org-warning ;; font-lock-warning-face
   '((((type tty) (class color)) (:foreground "red"))
     (((class color) (background light)) (:foreground "Red" :bold t))
@@ -1919,17 +1942,22 @@ The following commands are available:
 	  '(org-activate-dates (0 'org-link))
 	  (list (concat "^\\*+[ \t]*" org-not-done-regexp)
 		'(1 'org-warning t))
-	  (list (concat "\\[#[A-Z]\\]") '(0 'org-warning t))
-	  (list (concat "\\<" org-deadline-string) '(0 'org-warning t))
-	  (list (concat "\\<" org-scheduled-string) '(0 'org-warning t))
+	  (list (concat "\\[#[A-Z]\\]") '(0 'org-special-keyword t))
+;	  (list (concat "\\<" org-deadline-string) '(0 'org-warning t))
+;	  (list (concat "\\<" org-scheduled-string) '(0 'org-warning t))
+	  (list (concat "\\<" org-deadline-string) '(0 'org-special-keyword t))
+	  (list (concat "\\<" org-scheduled-string) '(0 'org-special-keyword t))
 	  ;; '("\\(\\s-\\|^\\)\\(\\*\\([a-zA-Z]+\\)\\*\\)\\([^a-zA-Z*]\\|$\\)"
 	  ;; (3 'bold))
 	  ;; '("\\(\\s-\\|^\\)\\(/\\([a-zA-Z]+\\)/\\)\\([^a-zA-Z*]\\|$\\)"
 	  ;; (3 'italic))
 	  ;; '("\\(\\s-\\|^\\)\\(_\\([a-zA-Z]+\\)_\\)\\([^a-zA-Z*]\\|$\\)"
 	  ;; (3 'underline))
-	  (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string "\\)\\>")
-		'(1 'org-warning t))
+;	  (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string "\\)\\>")
+;		'(1 'org-warning t))
+	  (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string 
+			"\\|" org-quote-string "\\)\\>")
+		'(1 'org-special-keyword t))
 	  '("^#.*" (0 'font-lock-comment-face t))
 	  (if org-fontify-done-headline
 	      (list (concat "^[*]+ +\\<\\(" org-done-string "\\)\\(.*\\)\\>")
@@ -2216,7 +2244,7 @@ or nil."
 	(shrink-window-if-larger-than-buffer (get-buffer-window "*Help*"))
 	(setq buffer-read-only nil)
 	(erase-buffer)
-	(insert-buffer buf)
+	(insert-buffer-substring buf)
 	(let ((org-startup-truncated t)
 	      (org-startup-folded t)
 	      (org-startup-with-deadline-check nil))
@@ -4013,7 +4041,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
 	   (get-text-property (point) 'org-marker))
       (org-agenda-show)))
 
-(defvar org-disable-diary nil)          ;Dynamically-scoped param.
+(defvar org-disable-agenda-to-diary nil)          ;Dynamically-scoped param.
 
 (defun org-get-entries-from-diary (date)
   "Get the (Emacs Calendar) diary entries for DATE."
@@ -4021,8 +4049,10 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
 	 (diary-display-hook '(fancy-diary-display))
 	 (list-diary-entries-hook
 	  (cons 'org-diary-default-entry list-diary-entries-hook))
+	 (diary-file-name-prefix-function nil) ; turn this feature off
+	 (diary-modify-entry-list-string-function 'org-modify-diary-entry-string)
 	 entries
-	 (org-disable-diary t))
+	 (org-disable-agenda-to-diary t))
     (save-excursion
       (save-window-excursion
 	(list-diary-entries date 1)))
@@ -4076,35 +4106,43 @@ date.  Itt also removes lines that contain only whitespace."
   (if (re-search-forward "^Org-mode dummy\n?" nil t)
       (replace-match "")))
 
-;; Advise the add-to-diary-list function to allow org to jump to
-;; diary entries. Wrapped into eval-after-load to avoid loading
-;; advice unnecessarily
+;; Make sure entries from the diary have the right text properties.
 (eval-after-load "diary-lib"
-  '(defadvice add-to-diary-list (before org-mark-diary-entry activate)
-     "Make the position visible."
-     (if (and org-disable-diary  ;; called from org-agenda
-	      (stringp string)
-	      (buffer-file-name))
-	 (add-text-properties
-	  0 (length string)
-	  (list 'mouse-face 'highlight
-		'keymap org-agenda-keymap
-		'help-echo
-		(format
-		 "mouse-2 or RET jump to diary file %s"
-		 (abbreviate-file-name (buffer-file-name)))
-		'org-agenda-diary-link t
-		'org-marker (org-agenda-new-marker (point-at-bol)))
-	  string))))
+  '(if (boundp 'diary-modify-entry-list-string-function)
+       ;; We can rely on the hook, nothing to do
+       nil
+     ;; Hook not avaiable, must use advice to make this work
+     (defadvice add-to-diary-list (before org-mark-diary-entry activate)
+       "Make the position visible."
+       (if (and org-disable-agenda-to-diary  ;; called from org-agenda
+		(stringp string)
+		(buffer-file-name))
+	   (setq string (org-modify-diary-entry-string string))))))
+
+(defun org-modify-diary-entry-string (string)
+  "Add text properties to string, allowing org-mode to act on it."
+  (add-text-properties
+   0 (length string)
+   (list 'mouse-face 'highlight
+	 'keymap org-agenda-keymap
+	 'help-echo
+	 (format
+	  "mouse-2 or RET jump to diary file %s"
+	  (abbreviate-file-name (buffer-file-name)))
+	 'org-agenda-diary-link t
+	 'org-marker (org-agenda-new-marker (point-at-bol)))
+   string)
+  string)
 
 (defun org-diary-default-entry ()
   "Add a dummy entry to the diary.
 Needed to avoid empty dates which mess up holiday display."
   ;; Catch the error if dealing with the new add-to-diary-alist
-  (condition-case nil
-      (add-to-diary-list original-date "Org-mode dummy" "")
-    (error
-     (add-to-diary-list original-date  "Org-mode dummy" "" nil))))
+  (when org-disable-agenda-to-diary
+    (condition-case nil
+	(add-to-diary-list original-date "Org-mode dummy" "")
+      (error
+       (add-to-diary-list original-date  "Org-mode dummy" "" nil)))))
 
 (defun org-add-file (&optional file)
   "Add current file to the list of files in variable `org-agenda-files'.
@@ -4238,11 +4276,12 @@ function from a program - use `org-agenda-get-day-entries' instead."
 	 file rtn results)
     ;; If this is called during org-agenda, don't return any entries to
     ;; the calendar.  Org Agenda will list these entries itself.
-    (if org-disable-diary (setq files nil))
+    (if org-disable-agenda-to-diary (setq files nil))
     (while (setq file (pop files))
       (setq rtn (apply 'org-agenda-get-day-entries file date args))
       (setq results (append results rtn)))
-    (concat (org-finalize-agenda-entries results) "\n")))
+    (if results
+	(concat (org-finalize-agenda-entries results) "\n"))))
 
 (defun org-agenda-get-day-entries (file date &rest args)
   "Does the work for `org-diary' and `org-agenda'.
@@ -6270,7 +6309,7 @@ integer, it will be incremented while copying."
 	(progn
 	  (if (and org-table-copy-increment
 		   (string-match "^[0-9]+$" txt))
-	      (setq txt (format "%d" (+ (string-to-int txt) 1))))
+	      (setq txt (format "%d" (+ (string-to-number txt) 1))))
 	  (insert txt)
 	  (org-table-maybe-recalculate-line)
 	  (org-table-align))
@@ -6997,9 +7036,9 @@ If NLAST is a number, only the NLAST fields will actually be summed."
      (t n))))
 
 (defun org-table-get-vertical-vector (desc &optional tbeg col)
-  "Get a calc vector from a column, according to descriptor DESC.
-Optional arguments TBEG and COL can give the beginning of the table
-and the current column, to avoid unnecessary parsing."
+  "Get a calc vector from a column, accorting to desctiptor DESC. 
+Optional arguments TBEG and COL can give the beginning of the table and
+the current column, to avoid unnecessary parsing."
   (save-excursion
     (or tbeg (setq tbeg (org-table-begin)))
     (or col (setq col (org-table-current-column)))
@@ -7047,7 +7086,7 @@ and the current column, to avoid unnecessary parsing."
 		     l ",") "]"))
        ((string-match "\\([0-9]+\\)" desc)
 	(beginning-of-line 1)
-	(when (re-search-backward org-table-dataline-regexp tbeg t
+	(when (re-search-backward org-table-dataline-regexp tbeg t 
 				  (string-to-number (match-string 0 desc)))
 	  (org-table-goto-column col)
 	  (org-trim (org-table-get-field))))))))
@@ -7143,7 +7182,7 @@ and the current column, to avoid unnecessary parsing."
 ACTION can be `remove', `insert', `swap'.  For `swap', two column numbers are
 expected, for the other action only a single column number is needed."
   (let ((list (org-table-get-stored-formulas))
-	(nmax (length (org-split-string
+	(nmax (length (org-split-string 
 		       (buffer-substring (point-at-bol) (point-at-eol))
 		       "|")))
 	col col1 col2 scol si sc1 sc2)
@@ -7222,7 +7261,7 @@ expected, for the other action only a single column number is needed."
 	      fields (org-split-string (match-string 2) " *| *"))
 	(save-excursion
 	  (beginning-of-line (if (equal c "_") 2 0))
-	  (setq line (org-current-line) col 1)
+	  (setq line (org-current-line) col 1)	  
 	  (and (looking-at "^[ \t]*|[^|]*\\(|.*\\)")
 	       (setq fields1 (org-split-string (match-string 1) " *| *"))))
 	(while (and fields1 (setq field (pop fields)))
@@ -7440,7 +7479,7 @@ not overwrite the stored one."
       ;; Insert the references to fields in same row
       (while (string-match "\\$\\([0-9]+\\)?" form)
 	(setq n (if (match-beginning 1)
-		    (string-to-int (match-string 1 form))
+		    (string-to-number (match-string 1 form))
 		  n0)
 	      x (nth (1- n) fields))
 	(unless x (error "Invalid field specifier \"%s\""
@@ -7539,7 +7578,7 @@ $1->    %s\n" orig formula form))
 	(setq eql eqlnum)
 	(while (setq entry (pop eql))
 	  (goto-line org-last-recalc-line)
-	  (org-table-goto-column (string-to-int (car entry)) nil 'force)
+	  (org-table-goto-column (string-to-number (car entry)) nil 'force)
 	  (org-table-eval-formula nil (cdr entry) 'noalign 'nocst 'nostore))))
     (goto-line thisline)
     (org-table-goto-column thiscol)
@@ -7622,7 +7661,7 @@ Parameters get priority."
     (set (make-local-variable 'org-pos) pos)
     (set (make-local-variable 'org-window-configuration) wc)
     (use-local-map org-edit-formulas-map)
-    (setq s "# Edit formulas and finish with `C-c C-c'.
+    (setq s "# Edit formulas and finish with `C-c C-c'. 
 # Use `C-u C-c C-c' to also appy them immediately to the entire table.
 # Use `C-c ?' to get information about $name at point.
 # To cancel editing, press `C-c C-q'.\n")
@@ -7660,7 +7699,7 @@ Parameters get priority."
       (switch-to-buffer-other-window (marker-buffer pos))
       (goto-char pos)
       (goto-char (org-table-begin))
-      (if (re-search-forward (concat "^[ \t]*| *! *.*?| *\\(" var "\\) *|")
+      (if (re-search-forward (concat "^[ \t]*| *! *.*?| *\\(" var "\\) *|") 
 			     (org-table-end) t)
 	  (progn
 	    (goto-char (match-beginning 1))
@@ -7715,7 +7754,7 @@ With prefix ARG, apply the new formulas to the table."
     (org-table-store-formulas eql)
     (move-marker pos nil)
     (kill-buffer "*Edit Formulas*")
-    (if arg
+    (if arg 
 	(org-table-recalculate 'all)
       (message "New formulas installed - press C-u C-c C-c to apply."))))
 
@@ -7801,7 +7840,7 @@ table editor in arbitrary modes.")
 	    (and c (setq minor-mode-map-alist
 			 (cons c (delq c minor-mode-map-alist)))))
 	  (set (make-local-variable (quote org-table-may-need-update)) t)
-	  (make-local-hook (quote before-change-functions))
+	  (make-local-hook (quote before-change-functions)) ; needed for XEmacs
 	  (add-hook 'before-change-functions 'org-before-change-function
 		    nil 'local)
 	  (set (make-local-variable 'org-old-auto-fill-inhibit-regexp)
@@ -8620,14 +8659,13 @@ Does include HTML export options as well as TODO and CATEGORY stuff."
     (insert s)))
 
 (defun org-toggle-fixed-width-section (arg)
-  "Toggle the fixed-width indicator at the beginning of lines in the region.
-If there is no active region, only acts on the current line.
-If the first non-white character in the first line of the region is a
-vertical bar \"|\", then the command removes the bar from all lines in
-the region.  If the first character is not a bar, the command adds a
-bar to all lines, in the column given by the beginning of the region.
-
-If there is a numerical prefix ARG, create ARG new lines starting with \"|\"."
+  "Toggle the fixed-width export.
+If there is no active region, the QUOTE keyword at the current headline is
+inserted or removed.  When present, it causes the text between this headline
+and the next to be exported as fixed-width text, and unmodified.
+If there is an active region, this command adds or removes a colon as the
+first character of this line.  If the first character of a line is a colon,
+this line is also exported in fixed-width font."
   (interactive "P")
   (let* ((cc 0)
 	 (regionp (org-region-active-p))
@@ -8636,23 +8674,33 @@ If there is a numerical prefix ARG, create ARG new lines starting with \"|\"."
 	 (nlines (or arg (if (and beg end) (count-lines beg end) 1)))
 	 (re "[ \t]*\\(:\\)")
 	 off)
-    (save-excursion
-      (goto-char beg)
-      (setq cc (current-column))
-      (beginning-of-line 1)
-      (setq off (looking-at re))
-      (while (> nlines 0)
-	(setq nlines (1- nlines))
-	(beginning-of-line 1)
-	(cond
-	 (arg
-	  (move-to-column cc t)
-	  (insert ":\n")
-	  (forward-line -1))
-	 ((and off (looking-at re))
-	  (replace-match "" t t nil 1))
-	 ((not off) (move-to-column cc t) (insert ":")))
-	(forward-line 1)))))
+    (if regionp
+	(save-excursion
+	  (goto-char beg)
+	  (setq cc (current-column))
+	  (beginning-of-line 1)
+	  (setq off (looking-at re))
+	  (while (> nlines 0)
+	    (setq nlines (1- nlines))
+	    (beginning-of-line 1)
+	    (cond
+	     (arg
+	      (move-to-column cc t)
+	      (insert ":\n")
+	      (forward-line -1))
+	     ((and off (looking-at re))
+	      (replace-match "" t t nil 1))
+	     ((not off) (move-to-column cc t) (insert ":")))
+	    (forward-line 1)))
+      (save-excursion
+	(org-back-to-heading)
+	(if (looking-at (concat outline-regexp
+				"\\( +\\<" org-quote-string "\\>\\)"))
+	    (replace-match "" t t nil 1)
+	  (if (looking-at outline-regexp)
+	      (progn
+		(goto-char (match-end 0))
+		(insert " " org-quote-string))))))))  
 
 (defun org-export-as-html-and-open (arg)
   "Export the outline as HTML and immediately open it with a browser.
@@ -8681,28 +8729,30 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
   (setq-default org-deadline-line-regexp org-deadline-line-regexp)
   (setq-default org-done-string org-done-string)
   (let* ((region-p (org-region-active-p))
-	 (region
-	  (buffer-substring
-	   (if region-p (region-beginning) (point-min))
-	   (if region-p (region-end) (point-max))))
-	 (all_lines
-	  (org-skip-comments (org-split-string region "[\r\n]")))
-	 (lines (org-export-find-first-heading-line all_lines))
-	 (level 0) (line "") (origline "") txt todo
-	 (umax nil)
-	 (filename (concat (file-name-sans-extension (buffer-file-name))
-			   ".html"))
-	 (buffer (find-file-noselect filename))
-	 (levels-open (make-vector org-level-max nil))
-	 (date  (format-time-string "%Y/%m/%d" (current-time)))
+         (region
+          (buffer-substring
+           (if region-p (region-beginning) (point-min))
+           (if region-p (region-end) (point-max))))
+         (all_lines
+          (org-skip-comments (org-split-string region "[\r\n]")))
+         (lines (org-export-find-first-heading-line all_lines))
+         (level 0) (line "") (origline "") txt todo
+         (umax nil)
+         (filename (concat (file-name-sans-extension (buffer-file-name))
+                           ".html"))
+         (buffer (find-file-noselect filename))
+         (levels-open (make-vector org-level-max nil))
+	 (date (format-time-string "%Y/%m/%d" (current-time)))
 	 (time  (format-time-string "%X" (current-time)))
-	 (author      user-full-name)
+         (author      user-full-name)
 	 (title       (buffer-name))
-	 (options     nil)
+         (options     nil)
+	 (quote-re    (concat "^\\*+[ \t]*" org-quote-string "\\>"))
+	 (inquote     nil)
 	 (email       user-mail-address)
-	 (language    org-export-default-language)
+         (language    org-export-default-language)
 	 (text        nil)
-	 (lang-words  nil)
+         (lang-words  nil)
 	 (head-count  0) cnt
 	 (start       0)
 	 table-open type
@@ -8716,22 +8766,22 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
     ;; Search for the export key lines
     (org-parse-key-lines)
     (setq lang-words (or (assoc language org-export-language-setup)
-			 (assoc "en" org-export-language-setup)))
+                         (assoc "en" org-export-language-setup)))
 
     ;; Switch to the output buffer
     (if (or hidden (not org-export-html-show-new-buffer))
-	(set-buffer buffer)
+        (set-buffer buffer)
       (switch-to-buffer-other-window buffer))
     (erase-buffer)
     (fundamental-mode)
     (let ((case-fold-search nil))
       (if options (org-parse-export-options options))
       (setq umax (if arg (prefix-numeric-value arg)
-		   org-export-headline-levels))
+                   org-export-headline-levels))
 
       ;; File header
       (insert (format
-	       "<html lang=\"%s\"><head>
+               "<html lang=\"%s\"><head>
 <title>%s</title>
 <meta http-equiv=\"Content-Type\" content=\"text/html\">
 <meta name=generator content=\"Org-mode\">
@@ -8739,15 +8789,15 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 <meta name=author content=\"%s\">
 </head><body>
 "
-	 language (org-html-expand title) date time author))
+	       language (org-html-expand title) date time author))
       (if title     (insert (concat "<H1 align=\"center\">"
 				    (org-html-expand title) "</H1>\n")))
       (if author    (insert (concat (nth 1 lang-words) ": " author "\n")))
       (if email	  (insert (concat "<a href=\"mailto:" email "\">&lt;"
-				  email "&gt;</a>\n")))
+                                  email "&gt;</a>\n")))
       (if (or author email) (insert "<br>\n"))
       (if (and date time) (insert (concat (nth 2 lang-words) ": "
-					  date " " time "<br>\n")))
+                                          date " " time "<br>\n")))
       (if text      (insert (concat "<p>\n" (org-html-expand text))))
       (if org-export-with-toc
 	  (progn
@@ -8802,124 +8852,141 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	    ))
       (setq head-count 0)
       (org-init-section-numbers)
+
       (while (setq line (pop lines) origline line)
-	;; Protect the links
-	(setq start 0)
-	(while (string-match org-link-maybe-angles-regexp line start)
-	  (setq start (match-end 0))
-	  (setq line (replace-match
-		      (concat "\000" (match-string 1 line) "\000")
-		      t t line)))
-
-	;; replace "<" and ">" by "&lt;" and "&gt;"
-	;; handle @<..> HTML tags (replace "@&gt;..&lt;" by "<..>")
-	(setq line (org-html-expand line))
-
-	;; Verbatim lines
-	(if (and org-export-with-fixed-width
-		 (string-match "^[ \t]*:\\(.*\\)" line))
+	;; end of quote?
+	(when (and inquote (string-match "^\\*+" line))
+	  (insert "</pre>\n")
+	  (setq inquote nil))
+	;; inquote
+	(if inquote
 	    (progn
-	      (let ((l (match-string 1 line)))
-		(while (string-match " " l)
-		  (setq l (replace-match "&nbsp;" t t l)))
-		(insert "\n<span style='font-family:Courier'>"
-			l "</span>"
-			(if (and lines
-				 (not (string-match "^[ \t]+\\(:.*\\)"
-						    (car lines))))
-			    "<br>\n" "\n"))))
+	      (insert line "\n")
+	      (setq line (org-html-expand line))) ;;????? FIXME: not needed?
+
+	  ;; Protect the links
 	  (setq start 0)
-	  (while (string-match org-protected-link-regexp line start)
-	    (setq start (- (match-end 0) 2))
-	    (setq type (match-string 1 line))
-	    (cond
-	     ((member type '("http" "https" "ftp" "mailto" "news"))
-	      ;; standard URL
-	      (setq line (replace-match
-;                          "<a href=\"\\1:\\2\">&lt;\\1:\\2&gt;</a>"
-			  "<a href=\"\\1:\\2\">\\1:\\2</a>"
-			  nil nil line)))
-	     ((string= type "file")
-	      ;; FILE link
-	      (let* ((filename (match-string 2 line))
-		     (abs-p (file-name-absolute-p filename))
-		     (thefile (if abs-p (expand-file-name filename) filename))
-		     (thefile (save-match-data
-				(if (string-match ":[0-9]+$" thefile)
-				    (replace-match "" t t thefile)
-				  thefile)))
-		     (file-is-image-p
-		      (save-match-data
-			(string-match (org-image-file-name-regexp) thefile))))
-		(setq line (replace-match
-			    (if (and org-export-html-inline-images
-				     file-is-image-p)
-				(concat "<img src=\"" thefile "\"/>")
-			      (concat "<a href=\"" thefile "\">\\1:\\2</a>"))
-			    nil nil line))))
+	  (while (string-match org-link-maybe-angles-regexp line start)
+	    (setq start (match-end 0))
+	    (setq line (replace-match
+			(concat "\000" (match-string 1 line) "\000")
+			t t line)))
 
-	     ((member type '("bbdb" "vm" "wl" "rmail" "gnus" "shell"))
-	      (setq line (replace-match
-			  "<i>&lt;\\1:\\2&gt;</i>" nil nil line)))))
+	  ;; replace "<" and ">" by "&lt;" and "&gt;"
+	  ;; handle @<..> HTML tags (replace "@&gt;..&lt;" by "<..>")
+	  (setq line (org-html-expand line))
 
-	  ;; TODO items
-	  (if (and (string-match org-todo-line-regexp line)
-		   (match-beginning 2))
-	      (if (equal (match-string 2 line) org-done-string)
-		  (setq line (replace-match
-			      "<span style='color:green'>\\2</span>"
-			      nil nil line 2))
-		(setq line (replace-match "<span style='color:red'>\\2</span>"
-					  nil nil line 2))))
-
-	  ;; DEADLINES
-	  (if (string-match org-deadline-line-regexp line)
+	  ;; Verbatim lines
+	  (if (and org-export-with-fixed-width
+		   (string-match "^[ \t]*:\\(.*\\)" line))
 	      (progn
-	      (if (save-match-data
-		    (string-match "<a href"
-				  (substring line 0 (match-beginning 0))))
-		  nil  ; Don't do the replacement - it is inside a link
-		(setq line (replace-match "<span style='color:red'>\\&</span>"
-					  nil nil line 1)))))
+		(let ((l (match-string 1 line)))
+		  (while (string-match " " l)
+		    (setq l (replace-match "&nbsp;" t t l)))
+		  (insert "\n<span style='font-family:Courier'>"
+			  l "</span>"
+			  (if (and lines
+				   (not (string-match "^[ \t]+\\(:.*\\)"
+						      (car lines))))
+			      "<br>\n" "\n"))))
 
-	  (cond
-	   ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
-	    ;; This is a headline
-	    (setq level (- (match-end 1) (match-beginning 1))
-		  txt (match-string 2 line))
-	    (if (<= level umax) (setq head-count (+ head-count 1)))
-	    (org-html-level-start level txt umax
-				  (and org-export-with-toc (<= level umax))
-				  head-count))
+	    (setq start 0)
+	    (while (string-match org-protected-link-regexp line start)
+	      (setq start (- (match-end 0) 2))
+	      (setq type (match-string 1 line))
+	      (cond
+	       ((member type '("http" "https" "ftp" "mailto" "news"))
+		;; standard URL
+		(setq line (replace-match
+					;                          "<a href=\"\\1:\\2\">&lt;\\1:\\2&gt;</a>"
+			    "<a href=\"\\1:\\2\">\\1:\\2</a>"
+			    nil nil line)))
+	       ((string= type "file")
+		;; FILE link
+		(let* ((filename (match-string 2 line))
+		       (abs-p (file-name-absolute-p filename))
+		       (thefile (if abs-p (expand-file-name filename) filename))
+		       (thefile (save-match-data
+				  (if (string-match ":[0-9]+$" thefile)
+				      (replace-match "" t t thefile)
+				    thefile)))
+		       (file-is-image-p
+			(save-match-data
+			  (string-match (org-image-file-name-regexp) thefile))))
+		  (setq line (replace-match
+			      (if (and org-export-html-inline-images
+				       file-is-image-p)
+				  (concat "<img src=\"" thefile "\"/>")
+				(concat "<a href=\"" thefile "\">\\1:\\2</a>"))
+			      nil nil line))))
 
-	   ((and org-export-with-tables
-		 (string-match "^\\([ \t]*\\)\\(|\\|\\+-+\\+\\)" line))
-	    (if (not table-open)
-		;; New table starts
-		(setq table-open t table-buffer nil table-orig-buffer nil))
-	    ;; Accumulate lines
-	    (setq table-buffer (cons line table-buffer)
-		  table-orig-buffer (cons origline table-orig-buffer))
-	    (when (or (not lines)
-		      (not (string-match "^\\([ \t]*\\)\\(|\\|\\+-+\\+\\)"
-					 (car lines))))
-	      (setq table-open nil
-		    table-buffer (nreverse table-buffer)
-		    table-orig-buffer (nreverse table-orig-buffer))
-	      (insert (org-format-table-html table-buffer table-orig-buffer))))
-	   (t
-	    ;; Normal lines
-	    ;; Lines starting with "-", and empty lines make new paragraph.
-	    ;; FIXME: Should we add + and *?
-	    (if (string-match "^ *-\\|^[ \t]*$" line) (insert "<p>"))
-	    (insert line (if org-export-preserve-breaks "<br>\n" "\n"))))
-	  ))
-      (if org-export-html-with-timestamp
-	  (insert org-export-html-html-helper-timestamp))
-      (insert "</body>\n</html>\n")
-      (normal-mode)
-      (save-buffer)
-      (goto-char (point-min)))))
+	       ((member type '("bbdb" "vm" "wl" "rmail" "gnus" "shell"))
+		(setq line (replace-match
+			    "<i>&lt;\\1:\\2&gt;</i>" nil nil line)))))
+
+	    ;; TODO items
+	    (if (and (string-match org-todo-line-regexp line)
+		     (match-beginning 2))
+		(if (equal (match-string 2 line) org-done-string)
+		    (setq line (replace-match
+				"<span style='color:green'>\\2</span>"
+				nil nil line 2))
+		  (setq line (replace-match "<span style='color:red'>\\2</span>"
+					    nil nil line 2))))
+
+	    ;; DEADLINES
+	    (if (string-match org-deadline-line-regexp line)
+		(progn
+		  (if (save-match-data
+			(string-match "<a href"
+				      (substring line 0 (match-beginning 0))))
+		      nil     ; Don't do the replacement - it is inside a link
+		    (setq line (replace-match "<span style='color:red'>\\&</span>"
+					      nil nil line 1)))))
+
+
+	    (cond
+	     ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
+	      ;; This is a headline
+	      (setq level (- (match-end 1) (match-beginning 1))
+		    txt (match-string 2 line))
+	      (if (<= level umax) (setq head-count (+ head-count 1)))
+	      (org-html-level-start level txt umax
+				    (and org-export-with-toc (<= level umax))
+				    head-count)
+	      ;; QUOTES
+	      (when (string-match quote-re line)
+		(insert "<pre>")
+		(setq inquote t)))
+
+	     ((and org-export-with-tables
+		   (string-match "^\\([ \t]*\\)\\(|\\|\\+-+\\+\\)" line))
+	      (if (not table-open)
+		  ;; New table starts
+		  (setq table-open t table-buffer nil table-orig-buffer nil))
+	      ;; Accumulate lines
+	      (setq table-buffer (cons line table-buffer)
+		    table-orig-buffer (cons origline table-orig-buffer))
+	      (when (or (not lines)
+			(not (string-match "^\\([ \t]*\\)\\(|\\|\\+-+\\+\\)"
+					   (car lines))))
+		(setq table-open nil
+		      table-buffer (nreverse table-buffer)
+		      table-orig-buffer (nreverse table-orig-buffer))
+		(insert (org-format-table-html table-buffer table-orig-buffer))))
+	     (t
+	      ;; Normal lines
+	      ;; Lines starting with "-", and empty lines make new paragraph.
+	      ;; FIXME: Should we add + and *?
+	      (if (string-match "^ *-\\|^[ \t]*$" line) (insert "<p>"))
+	      (insert line (if org-export-preserve-breaks "<br>\n" "\n"))))
+	    )))
+	(if org-export-html-with-timestamp
+	    (insert org-export-html-html-helper-timestamp))
+	(insert "</body>\n</html>\n")
+	(normal-mode)
+	(save-buffer)
+	(goto-char (point-min)))))
 
 (defun org-format-table-html (lines olines)
   "Find out which HTML converter to use and return the HTML code."
@@ -9229,7 +9296,7 @@ stacked delimiters is N.  Escaping delimiters is not possible."
 	(if (string-match "\\`[A-Z]\\'" number-string)
 	    (aset org-section-numbers i
 		  (- (string-to-char number-string) ?A -1))
-	    (aset org-section-numbers i (string-to-int number-string)))
+	    (aset org-section-numbers i (string-to-number number-string)))
 	(pop numbers))
       (setq i (1- i)))))
 
@@ -9998,14 +10065,23 @@ Show the heading too, if it is currently invisible."
    "\\):[ \t]*"
    (if org-noutline-p "\\(.+\\)" "\\([^\n\r]+\\)")))
 
-;; Advise the bookmark-jump function to make jump position visible
-;; Wrapped into eval-after-load to avoid loading advice unnecessarily
+;; Make `bookmark-jump' show the jump location if it was hidden.
 (eval-after-load "bookmark"
-  '(defadvice bookmark-jump (after org-make-visible activate)
-     "Make the position visible."
-     (and (eq major-mode 'org-mode)
-	  (org-invisible-p)
-	  (org-show-hierarchy-above))))
+  '(if (boundp 'bookmark-after-jump-hook)
+       ;; We can use the hook
+       (add-hook 'bookmark-after-jump-hook 'org-bookmark-jump-unhide)
+     ;; Hook not available, use advice
+     (defadvice bookmark-jump (after org-make-visible activate)
+       "Make the position visible."
+       (org-bookmark-jump-unhide))))
+
+(defun org-bookmark-jump-unhide ()
+  "Unhide the current position, to show the bookmark location."
+  (and (eq major-mode 'org-mode)
+       (or (org-invisible-p)
+	   (save-excursion (goto-char (max (point-min) (1- (point))))
+			   (org-invisible-p)))
+       (org-show-hierarchy-above)))
 
 ;;; Finish up
 
