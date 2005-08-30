@@ -68,6 +68,9 @@
 
 ;;; Code:
 
+(defvar vc-rcs-header)
+(defvar vc-sccs-header)
+
 ;; Some macros are needed for `defcustom'
 (eval-when-compile
   (condition-case nil
@@ -1775,7 +1778,7 @@ char is \"{\", insert extra newline before only if
 	 (save-excursion
 	   (skip-chars-backward "$")
 	   (looking-at "\\(\\$\\$\\)*\\$\\([^\\$]\\|$\\)"))
-	 (insert ?\ ))
+	 (insert ?\s))
     ;; Check whether we are in comment
     (if (and
 	 (save-excursion
@@ -1871,7 +1874,7 @@ to nil."
   (let ((beg (save-excursion (beginning-of-line) (point)))
 	(dollar (and (eq last-command-char ?$)
 		     (eq this-command 'self-insert-command)))
-	(delete (and (memq last-command-char '(?\  ?\n ?\t ?\f))
+	(delete (and (memq last-command-char '(?\s ?\n ?\t ?\f))
 		     (memq this-command '(self-insert-command newline))))
 	my do)
     (and (save-excursion
@@ -1946,7 +1949,7 @@ to nil."
 
 (defun cperl-electric-pod ()
   "Insert a POD chunk appropriate after a =POD directive."
-  (let ((delete (and (memq last-command-char '(?\  ?\n ?\t ?\f))
+  (let ((delete (and (memq last-command-char '(?\s ?\n ?\t ?\f))
 		     (memq this-command '(self-insert-command newline))))
 	head1 notlast name p really-delete over)
     (and (save-excursion
@@ -2224,7 +2227,7 @@ key.  Will untabify if `cperl-electric-backspace-untabify' is non-nil."
 	   (memq last-command '(cperl-electric-semi
 				cperl-electric-terminator
 				cperl-electric-lbrace))
-	   (memq (preceding-char) '(?\  ?\t ?\n)))
+	   (memq (preceding-char) '(?\s ?\t ?\n)))
       (let (p)
 	(if (eq last-command 'cperl-electric-lbrace)
 	    (skip-chars-forward " \t\n"))
@@ -2236,7 +2239,7 @@ key.  Will untabify if `cperl-electric-backspace-untabify' is non-nil."
 	 (setq this-command 'cperl-electric-else-really))
     (if (and cperl-auto-newline
 	     (eq last-command 'cperl-electric-else-really)
-	     (memq (preceding-char) '(?\  ?\t ?\n)))
+	     (memq (preceding-char) '(?\s ?\t ?\n)))
 	(let (p)
 	  (skip-chars-forward " \t\n")
 	  (setq p (point))
@@ -3039,7 +3042,7 @@ Returns true if comment is found."
 	      (progn
 		(setq i (point) i2 i)
 		(if ender
-		    (if (memq (following-char) '(?\  ?\t ?\n ?\f))
+		    (if (memq (following-char) '(?\s ?\t ?\n ?\f))
 			(progn
 			  (if (looking-at "[ \t\n\f]+\\(#[^\n]*\n[ \t\n\f]*\\)+")
 			      (goto-char (match-end 0))
@@ -4031,7 +4034,7 @@ Returns some position at the last line."
 	      (setq p (point))
 	      (skip-chars-forward " \t\n")
 	      (delete-region p (point))
-	      (insert (make-string cperl-indent-region-fix-constructs ?\ ))
+	      (insert (make-string cperl-indent-region-fix-constructs ?\s))
 	      (beginning-of-line)))
 	;; Looking at:
 	;; }     else
@@ -4039,7 +4042,7 @@ Returns some position at the last line."
 	    (progn
 	      (search-forward "}")
 	      (delete-horizontal-space)
-	      (insert (make-string cperl-indent-region-fix-constructs ?\ ))
+	      (insert (make-string cperl-indent-region-fix-constructs ?\s))
 	      (beginning-of-line)))
 	;; Looking at:
 	;; else   {
@@ -4048,7 +4051,7 @@ Returns some position at the last line."
 	    (progn
 	      (forward-word 1)
 	      (delete-horizontal-space)
-	      (insert (make-string cperl-indent-region-fix-constructs ?\ ))
+	      (insert (make-string cperl-indent-region-fix-constructs ?\s))
 	      (beginning-of-line)))
 	;; Looking at:
 	;; foreach my    $var
@@ -4057,7 +4060,7 @@ Returns some position at the last line."
 	    (progn
 	      (forward-word 2)
 	      (delete-horizontal-space)
-	      (insert (make-string cperl-indent-region-fix-constructs ?\ ))
+	      (insert (make-string cperl-indent-region-fix-constructs ?\s))
 	      (beginning-of-line)))
 	;; Looking at:
 	;; foreach my $var     (
@@ -4067,7 +4070,7 @@ Returns some position at the last line."
 	      (forward-sexp 3)
 	      (delete-horizontal-space)
 	      (insert
-	       (make-string cperl-indent-region-fix-constructs ?\ ))
+	       (make-string cperl-indent-region-fix-constructs ?\s))
 	      (beginning-of-line)))
 	;; Looking at:
 	;; } foreach my $var ()    {
@@ -4111,7 +4114,7 @@ Returns some position at the last line."
 				  (cperl-fix-line-spacing end parse-data)
 				  (setq ret (point)))))
 			(insert
-			 (make-string cperl-indent-region-fix-constructs ?\ ))))
+			 (make-string cperl-indent-region-fix-constructs ?\s))))
 		     ((and (looking-at "[ \t]*\n")
 			   (not (if ml
 				    cperl-extra-newline-before-brace-multiline
@@ -4120,7 +4123,7 @@ Returns some position at the last line."
 		      (skip-chars-forward " \t\n")
 		      (delete-region pp (point))
 		      (insert
-		       (make-string cperl-indent-region-fix-constructs ?\ ))))
+		       (make-string cperl-indent-region-fix-constructs ?\s))))
 		    ;; Now we are before `{'
 		    (if (looking-at "[ \t\n]*{[ \t]*[^ \t\n#]")
 			(progn
@@ -4297,7 +4300,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	(looking-at "#+[ \t]*")
 	(setq start (point) c (current-column)
 	      comment-fill-prefix
-	      (concat (make-string (current-column) ?\ )
+	      (concat (make-string (current-column) ?\s)
 		      (buffer-substring (match-beginning 0) (match-end 0)))
 	      spaces (progn (skip-chars-backward " \t")
 			    (buffer-substring (point) start))
@@ -5449,7 +5452,7 @@ Will not move the position at the start to the left."
 	    (setq e (point))
 	    (skip-chars-backward " \t")
 	    (delete-region (point) e)
-	    (indent-to-column col) ;(make-string (- col (current-column)) ?\ ))
+	    (indent-to-column col) ;(make-string (- col (current-column)) ?\s))
 	    (beginning-of-line 2)
 	    (and (< (point) end)
 		 (re-search-forward search end t)
