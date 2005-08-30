@@ -1,3 +1,51 @@
+2005-08-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/eudc.el (mode-popup-menu):
+	* play/handwrite.el (ps-printer-name, ps-lpr-command):
+	* progmodes/ada-mode.el (compile-auto-highlight)
+	(skeleton-further-elements):
+	* progmodes/autoconf.el (font-lock-syntactic-keywords):
+	* progmodes/cmacexp.el (msdos-shells):
+	* progmodes/compile.el (font-lock-extra-managed-props)
+	(font-lock-keywords, font-lock-maximum-size)
+	(font-lock-support-mode):
+	* progmodes/grep.el (font-lock-lines-before):
+	* progmodes/idlw-complete-structtag.el (idlwave-completion-help-info):
+	* progmodes/mixal-mode.el (compile-command):
+	* progmodes/perl-mode.el (font-lock-comment-face)
+	(font-lock-doc-face, font-lock-string-face):
+	* progmodes/prolog.el (comint-prompt-regexp):
+	* progmodes/sh-script.el (font-lock-comment-face)
+	(font-lock-set-defaults, font-lock-string-face):
+	* progmodes/sql.el (font-lock-keyword-face)
+	(font-lock-set-defaults, font-lock-string-face):
+	* progmodes/vhdl-mode.el (compilation-file-regexp-alist)
+	(itimer-version, lazy-lock-defer-contextually)
+	(lazy-lock-defer-on-scrolling, lazy-lock-defer-on-the-fly):
+	Add defvars.
+
+	* progmodes/cperl-mode.el (cperl-electric-lbrace)
+	(cperl-electric-keyword, cperl-electric-pod)
+	(cperl-electric-backspace, cperl-forward-re)
+	(cperl-fix-line-spacing, cperl-fill-paragraph): "?\ " -> "?\s".
+	(vc-rcs-header, vc-sccs-header): Add defvars.
+
+	* progmodes/fortran.el (fortran-indent-to-column): "?\ " -> "?\s".
+	(font-lock-syntactic-keywords, gud-find-expr-function):
+	Add defvars.
+
+	* progmodes/gdb-ui.el (tool-bar-map): Add defvar.
+	(gdb-frame-parameters): Declare before use.
+
+	* progmodes/gud.el (gdb-active-process, gdb-define-alist)
+	(gdb-macro-info, gdb-server-prefix, gdb-show-changed-values)
+	(gdb-var-changed, gdb-var-list, tool-bar-map): Add defvars.
+	(gud-expr-compound-sep, gud-expr-compound): "?\ " -> "?\s".
+
+	* progmodes/idlw-help.el (browse-url-generic-args): Add defvar.
+	(idlwave-help-with-source): Use `insert-buffer-substring', not
+	`insert-buffer'.
+
 2005-08-29  Juri Linkov  <juri@jurta.org>
 
 	* outline.el (hide-entry, hide-leaves, outline-toggle-children):
