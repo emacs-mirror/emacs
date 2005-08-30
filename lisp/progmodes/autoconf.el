@@ -38,6 +38,8 @@
 
 ;;; Code:
 
+(defvar font-lock-syntactic-keywords)
+
 (defvar autoconf-mode-map (make-sparse-keymap))
 
 (defvar autoconf-mode-hook nil
