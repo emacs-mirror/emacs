@@ -111,6 +111,8 @@
 
 (require 'dired-aux)
 
+(defvar vm-folder-directory)
+
 ;;; User-defined variables.
 
 (defgroup dired-x nil
