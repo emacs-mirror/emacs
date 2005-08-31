@@ -201,6 +201,8 @@
 
 ;;; Code:
 
+(defvar mail-yank-prefix)
+
 ;;; Custom.el macros require recompiling this when they are not present.
 ;;; Add in backward compatible custom support.
 (eval-when-compile
@@ -914,7 +916,7 @@ Assumes that value contains no whitespace."
       (insert-file-contents data-file)
       ;; There is zero or one line with special characters declarations.
       (when (search-forward-regexp "^special" nil t)
-	(let ((specials (split-string 
+	(let ((specials (split-string
 			 (buffer-substring (point)
 					   (progn (end-of-line) (point))))))
 	  ;; The line looks like: special ' -** - -** . -** : -*-
@@ -951,7 +953,7 @@ Assumes that value contains no whitespace."
 	(insert-file-contents alias-file)
 	;; Look for a line "add FOO.multi", extract FOO
 	(when (search-forward-regexp "^add \\([^.]+\\)\\.multi" nil t)
-	  (let* ((aliasname (file-name-sans-extension 
+	  (let* ((aliasname (file-name-sans-extension
 			     (file-name-nondirectory alias-file)))
 		 (already-exists-p (assoc aliasname ispell-dictionary-alist))
 		 (realname (match-string 1))
