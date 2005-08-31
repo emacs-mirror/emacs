@@ -33,9 +33,6 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 
 ** Update Speedbar.
 
-** Update vhdl-mode.el based on changes in
-   http://opensource.ethz.ch/emacs/vhdl-mode.html.
-
 ** Debug custom themes.
 
 ** Get rid of the defadvice calls in org.el.

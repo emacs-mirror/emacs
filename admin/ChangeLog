@@ -1,3 +1,8 @@
+2005-08-31  Romain Francoise  <romain@orebokech.com>
+
+	* FOR-RELEASE: (New features): Remove vhdl-mode.el update
+	item (Done).
+
 2005-08-27  Romain Francoise  <romain@orebokech.com>
 
 	* FOR-RELEASE (Bugs): Remove compile-internal item (Done).
