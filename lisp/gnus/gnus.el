@@ -35,6 +35,17 @@
 (require 'mm-util)
 (require 'nnheader)
 
+;; These are defined afterwards with gnus-define-group-parameter
+(defvar gnus-ham-process-destinations)
+(defvar gnus-parameter-ham-marks-alist)
+(defvar gnus-parameter-spam-marks-alist)
+(defvar gnus-spam-autodetect)
+(defvar gnus-spam-autodetect-methods)
+(defvar gnus-spam-newsgroup-contents)
+(defvar gnus-spam-process-destinations)
+(defvar gnus-spam-process-newsgroups)
+
+
 (defgroup gnus nil
   "The coffee-brewing, all singing, all dancing, kitchen sink newsreader."
   :group 'news
