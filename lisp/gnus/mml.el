@@ -41,6 +41,16 @@
   (autoload 'fill-flowed-encode "flow-fill")
   (autoload 'message-posting-charset "message"))
 
+(defvar gnus-article-mime-handles)
+(defvar gnus-mouse-2)
+(defvar gnus-newsrc-hashtb)
+(defvar message-default-charset)
+(defvar message-deletable-headers)
+(defvar message-options)
+(defvar message-posting-charset)
+(defvar message-required-mail-headers)
+(defvar message-required-news-headers)
+
 (defcustom mml-content-type-parameters
   '(name access-type expiration size permission format)
   "*A list of acceptable parameters in MML tag.
