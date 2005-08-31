@@ -80,6 +80,8 @@
 (require 'dnd)
 (require 'code-pages)
 
+(defvar xlfd-regexp-registry-subnum)
+
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (require 'fontset))
