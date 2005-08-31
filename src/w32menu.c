@@ -2321,7 +2321,23 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 					  item != NULL ? (UINT) item
 					    : (UINT) wv->call_data,
 					  utf16_string);
-      if (fuFlags & MF_OWNERDRAW)
+      if (!return_value)
+	{
+	  /* On W9x/ME, unicode menus are not supported, though AppendMenuW
+	     apparently does exist at least in some cases and appears to be
+	     stubbed out to do nothing.  out_string is UTF-8, but since
+	     our standard menus are in English and this is only going to
+	     happen the first time a menu is used, the encoding is
+	     of minor importance compared with menus not working at all.  */
+	  return_value =
+	    AppendMenu (menu, fuFlags,
+			item != NULL ? (UINT) item: (UINT) wv->call_data,
+			out_string);
+	  /* Don't use unicode menus in future.  */
+	  unicode_append_menu = NULL;
+	}
+
+      if (unicode_append_menu && (fuFlags & MF_OWNERDRAW))
 	local_free (out_string);
     }
   else
