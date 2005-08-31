@@ -1,3 +1,9 @@
+2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/tramp.el (tramp-handle-make-auto-save-file-name): Pass list
+	of args to `tramp-run-real-handler', even if it's empty in this
+	case.
+
 2005-08-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* dired.el (dired-move-to-filename-regexp): Add date format for
@@ -10,7 +16,7 @@
 
 	* net/tramp.el (tramp-file-name-handler-alist)
 	(tramp-file-name-for-operation): Add `make-auto-save-file-name'.
-	(tramp-handle-make-auto-save-file-name): Renamed from
+	(tramp-handle-make-auto-save-file-name): Rename from
 	`tramp-make-auto-save-file-name'.
 	(tramp-exists-file-name-handler): New defun.
 	(tramp-advice-make-auto-save-file-name): Make defadvice only when
@@ -27,7 +33,7 @@
 	(org-modify-diary-entry-string): New function.
 	(org-get-entries-from-diary): Set the hook for
 	`add-to-diary-list'.
-	(org-disable-agenda-to-diary): renamed from `org-disable-diary'.
+	(org-disable-agenda-to-diary): Rename from `org-disable-diary'.
 	(org-toggle-fixed-width-section): Use QUOTE keyword if there is no
 	active region.
 	(org-export-as-html): Handle QUOTE keyword.
