@@ -1,3 +1,19 @@
+2005-08-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (PIX_MASK_DRAW, PIX_MASK_RETAIN): Remove argument.  All
+	uses changed.
+	[MAC_OS] (XPutPixel, XGetPixel): Add efficient versions for common
+	cases.
+	(x_create_x_image_and_pixmap) [MAC_OS]: Don't call x_destroy_x_image.
+	[MAC_OS] (find_image_fsspec) [!MAC_OSX]: Don't use FSRef.  Use
+	posix_pathname_to_fsspec.
+	[MAC_OS] (xpm_load_image): Fill in background_transparent field
+	while we have mask.
+
+	* macgui.h [!TARGET_API_MAC_CARBON] (GetPixDepth): New define.
+
+	* macterm.h (PIX_MASK_DRAW, PIX_MASK_RETAIN): Move defines to image.c.
+
 2005-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (update_syntax_table): Properly reproduce the special +1
@@ -28,7 +44,7 @@
 	(x_make_frame_invisible, x_iconify_frame)
 	(XTread_socket) [!USE_CARBON_EVENTS]: Use it.
 	[USE_CARBON_EVENTS] (mac_handle_window_event)
-	(install_window_handler): Handle visibilty change events.
+	(install_window_handler): Handle visibility change events.
 	(x_make_frame_visible): Don't reposition window if it is iconified
 	or asked for visible before.  Select and uncollapse window when it
 	is made visible.

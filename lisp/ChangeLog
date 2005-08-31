@@ -1,3 +1,8 @@
+2005-08-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dired.el (dired-move-to-filename-regexp): Add date format for
+	Mac OS X 10.3 in East Asian locales.
+
 2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (make-auto-save-file-name): Add file name handler call
