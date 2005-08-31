@@ -40,9 +40,12 @@
   (require 'cl)
   ;; Fixme: this should be a gnus variable, not nnmail-.
   (defvar nnmail-pathname-coding-system)
+  (defvar nnmail-active-file-coding-system)
 
   ;; Inappropriate references to other parts of Gnus.
   (defvar gnus-emphasize-whitespace-regexp)
+  (defvar gnus-original-article-buffer)
+  (defvar gnus-user-agent)
   )
 (require 'time-date)
 (require 'netrc)
