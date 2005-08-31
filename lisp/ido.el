@@ -323,6 +323,8 @@
 
 (provide 'ido)
 
+(defvar cua-inhibit-cua-keys)
+
 ;;; User Variables
 ;;
 ;; These are some things you might want to change.
