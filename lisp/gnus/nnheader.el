@@ -31,6 +31,8 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar nnmail-extra-headers)
+
 ;; Requiring `gnus-util' at compile time creates a circular
 ;; dependency between nnheader.el and gnus-util.el.
 ;;(eval-when-compile (require 'gnus-util))
