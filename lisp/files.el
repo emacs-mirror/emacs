@@ -30,6 +30,9 @@
 
 ;;; Code:
 
+(defvar font-lock-keywords)
+
+
 (defgroup backup nil
   "Backups of edited data files."
   :group 'files)
