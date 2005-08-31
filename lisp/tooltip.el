@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(defvar comint-prompt-regexp)
+
 ;;; Customizable settings
 
 (defgroup tooltip nil
