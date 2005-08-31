@@ -86,6 +86,8 @@
 
 ;;; Code:
 
+(defvar comint-last-output-start)
+
 ;; Customization
 
 (defgroup ansi-colors nil
