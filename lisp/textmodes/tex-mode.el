@@ -36,6 +36,9 @@
   (require 'cl)
   (require 'skeleton))
 
+(defvar font-lock-comment-face)
+(defvar font-lock-doc-face)
+
 (require 'shell)
 (require 'compile)
 
