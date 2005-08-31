@@ -37,6 +37,9 @@
 
 ;;; Code:
 
+(defvar font-lock-warning-face)
+
+
 (defgroup outlines nil
   "Support for hierarchical outlining."
   :prefix "outline-"
