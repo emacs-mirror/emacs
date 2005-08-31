@@ -289,6 +289,8 @@
     (setq reftex-tables-dirty t)
     (set symbol value)))
 
+(defvar font-lock-keywords)
+
 
 ;;; =========================================================================
 ;;;
