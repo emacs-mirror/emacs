@@ -1,3 +1,8 @@
+2005-08-31  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (add_menu_item): If unicode_append_menu returns an
+	error, revert to using AppendMenu.
+
 2005-08-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c (PIX_MASK_DRAW, PIX_MASK_RETAIN): Remove argument.  All
