@@ -1,3 +1,14 @@
+2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-make-auto-save-file-name): Deactivate
+	temporarily advice if active (not needed for Emacs 22, but for
+	backwards compatibility).
+	(tramp-exists-file-name-handler): Rewrite.  First implementation
+	was too simple.
+	(tramp-advice-make-auto-save-file-name): Call
+	`tramp-handle-make-auto-save-file-name' (again, just for backwards
+	compatibility).
+
 2005-08-31  Reto Zimmermann  <reto@gnu.org>
 
 	* progmodes/vhdl-mode.el

@@ -3829,12 +3829,19 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 		 ("]" . "_r"))
 	       (buffer-file-name))
 	      tramp-auto-save-directory)
-	   (buffer-file-name)))
-	;; We set it to nil because `make-auto-save-file-name' shouldn't
-	;; recurse infinitely.
-	tramp-auto-save-directory)
-      (tramp-run-real-handler
-       'make-auto-save-file-name nil)))
+	   (buffer-file-name))))
+    ;; Run plain `make-auto-save-file-name'.  There might be an advice when
+    ;; it is not a magic file name operation (since Emacs 22).
+    ;; We must deactivate it temporarily.
+    (if (not (ad-is-active 'make-auto-save-file-name))
+	(tramp-run-real-handler
+	 'make-auto-save-file-name nil)
+      ;; else
+      (ad-deactivate 'make-auto-save-file-name)
+      (prog1
+       (tramp-run-real-handler
+	'make-auto-save-file-name nil)
+       (ad-activate 'make-auto-save-file-name)))))
 
 
 ;; CCC grok APPEND, LOCKNAME, CONFIRM
@@ -6935,16 +6942,27 @@ as default."
 
 ;; Auto saving to a special directory.
 
-(defun tramp-exists-file-name-handler (operation)
-  (let ((file-name-handler-alist (list (cons "/" 'identity))))
-    (eq (find-file-name-handler "/" operation) 'identity)))
+(defun tramp-exists-file-name-handler (operation &rest args)
+  (let ((buffer-file-name "/")
+	(fnha file-name-handler-alist)
+	(check-file-name-operation operation)
+	(file-name-handler-alist
+	 (list
+	  (cons "/"
+		'(lambda (operation &rest args)
+		   "Returns OPERATION if it is the one to be checked"
+		   (if (equal check-file-name-operation operation)
+		       operation
+		     (let ((file-name-handler-alist fnha))
+		       (apply operation args))))))))
+    (eq (apply operation args) operation)))
 
 (unless (tramp-exists-file-name-handler 'make-auto-save-file-name)
   (defadvice make-auto-save-file-name
     (around tramp-advice-make-auto-save-file-name () activate)
     "Invoke `tramp-handle-make-auto-save-file-name' for tramp files."
     (if (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name)))
-	(setq ad-return-value (tramp-make-auto-save-file-name))
+	(setq ad-return-value (tramp-handle-make-auto-save-file-name))
       ad-do-it)))
 
 ;; In Emacs < 22 and XEmacs < 21.5 autosaved remote files have
