@@ -1,3 +1,62 @@
+2005-08-31  Reto Zimmermann  <reto@gnu.org>
+
+	* progmodes/vhdl-mode.el
+	(vhdl-update-sensitivity-list): Handle multi-dimensional array
+	access.
+	(vhdl-end-p): Fix indentation bug "else" after "-- when".
+	(vhdl-set-default-project): New function (easier setting of
+	default).
+	(vhdl-port-copy): Handle extended identifiers for generics.
+	(vhdl-compiler-alist): Better description for error message
+	regexp.
+	(vhdl-make): Query for target, use previous as default.
+	(vhdl-port-copy): Fix port copy for port names starting with
+	"signal".
+	(vhdl-font-lock-keywords-2): Fix fontification for record
+	el. assign.
+	(vhdl-speedbar-make-subpack-line): Add package body link.
+	(vhdl-generate-makefile-1): Not include itself as dependency.
+	(vhdl-font-lock-init): Highlight c-preprocessor directives.
+	(vhdl-*ward-syntactic-ws): Skip c-preprocessor directives.
+	(vhdl-get-syntactic-context): Handle c-preprocessor directives.
+	(vhdl-update-sensitivity-list): Start scan at opening parenthesis.
+	(vhdl-fixup-whitespace-region): Fix jumping point (infinite loop).
+	(vhdl-update-sensitivity-list-buffer): Add string argument for
+	`error'.
+	(vhdl-import-project): Add string argument for `error'.
+	(vhdl-compose-configuration,
+	vhdl-compose-configuration-architecture): Add configuration
+	declaration generation.
+	(vhdl-scan-directory-contents): Scan for block/generate hierarchy.
+	(vhdl-trailer-re): Add "record" keyword (better indentation).
+	(vhdl-fixup-whitespace-region): "[^ \t\"-]+" instead of
+	"[^ \t-\"]+".
+	(vhdl-font-lock-keywords-2): Not highlight formal parameter after
+	'|'.
+	(vhdl-testbench-entity-file-name,
+	vhdl-testbench-architecture-file-name): Allow separate
+	customization of testbench file names.
+	(vhdl-beginning-of-block): Handle optional subprogram parameter
+	list.
+	(vhdl-get-visible-signals): Allow newline within alias
+	declaration.
+	(vhdl-update-sensitivity-list): Signal read only on certain
+	attributes.
+	(vhdl-fixup-whitespace-region): Fix bug with strings (double
+	quotes).
+	(member-ignore-case): Alias for missing function in XEmacs.
+	(vhdl-compiler-alist): Add unit-to-file name mapping for Cadence
+	NC.
+	(vhdl-update-sensitivity-list): Ignore case on read signals.
+	(vhdl-replace-string): Adjust case only for file names.
+	(vhdl-update-sensitivity-list): Fix search for read signals.
+	(vhdl-update-sensitivity-list): Exclude formal parameters.
+	(vhdl-get-visible-signals): Include aliases of signals.
+	(vhdl-get-visible-signals): Fix signal name searching.
+	(vhdl-port-flatten, vhdl-port-reverse-direction): Better message.
+	(vhdl-fixup-whitespace-region): Fix for character
+	literals (e.g. ':').
+
 2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ansi-color.el (comint-last-output-start):
