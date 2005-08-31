@@ -62,6 +62,8 @@
 
 ;;; Code:
 
+(defvar msdos-color-values)
+
 ;; The following list is taken from rgb.txt distributed with X.
 ;;
 ;; WARNING: Some colors, such as "lightred", do not appear in this
