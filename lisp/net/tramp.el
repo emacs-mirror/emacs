@@ -3834,7 +3834,7 @@ Returns a file name in `tramp-auto-save-directory' for autosaving this file."
 	;; recurse infinitely.
 	tramp-auto-save-directory)
       (tramp-run-real-handler
-       'make-auto-save-file-name)))
+       'make-auto-save-file-name nil)))
 
 
 ;; CCC grok APPEND, LOCKNAME, CONFIRM
