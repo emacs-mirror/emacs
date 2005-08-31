@@ -1,5 +1,56 @@
 2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
 
+	* ansi-color.el (comint-last-output-start):
+	* bs.el (font-lock-verbose):
+	* diff-mode.el (add-log-buffer-file-name-function):
+	* dired-x.el (vm-folder-directory):
+	* faces.el (help-xref-stack-item):
+	* files.el (font-lock-keywords):
+	* find-lisp.el (dired-buffers, dired-subdir-alist):
+	* ido.el (cua-inhibit-cua-keys):
+	* log-view.el (cvs-minor-wrap-function):
+	* outline.el (font-lock-warning-face):
+	* simple.el (compilation-current-error):
+	* speedbar.el (ange-ftp-path-format, efs-path-regexp)
+	(font-lock-keywords, x-pointer-hand2, x-pointer-top-left-arrow):
+	* tooltip.el (comint-prompt-regexp):
+	* w32-fns.el (explicit-shell-file-name):
+	* term/mac-win.el (mac-charset-info-alist)
+	(mac-services-selection, mac-system-script-code):
+	* term/tty-colors.el (msdos-color-values):
+	* term/w32-win.el (xlfd-regexp-registry-subnum):
+	* term/x-win.el (x-keysym-table, x-selection-timeout)
+	(x-session-id, x-session-previous-id):
+	* textmodes/ispell.el (mail-yank-prefix):
+	* textmodes/makeinfo.el (tex-end-of-header, tex-start-of-header):
+	* textmodes/org.el (calc-embedded-close-formula)
+	(calc-embedded-open-formula)
+	(font-lock-unfontify-region-function):
+	* textmodes/reftex-global.el (isearch-next-buffer-function)
+	(TeX-master):
+	* textmodes/reftex.el (font-lock-keywords):
+	* textmodes/tex-mode.el (font-lock-comment-face)
+	(font-lock-doc-face):
+	* textmodes/texinfo.el (outline-heading-alist):
+	Add defvars.
+
+	* textmodes/artist.el (x-pointer-crosshair): Add defvar.
+	(artist-spray-chars, artist-mode-init, artist-replace-string)
+	(artist-select-erase-char, artist-vap-find-endpoints-horiz)
+	(artist-vap-find-endpoints-vert, artist-vap-find-endpoints-swne)
+	(artist-vap-find-endpoints-nwse): "?\ " -> "?\s".
+
+	* textmodes/conf-mode.el (outline-heading-end-regexp): Add defvar.
+	(conf-align-assignments): "?\ " -> "?\s".
+
+	* textmodes/reftex-index.el (TeX-master): Add defvar.
+	(reftex-index-phrases-marker): Move up defvar.
+
+	* textmodes/reftex-toc.el (zmacs-regions): Add defvar.
+	(reftex-toc-include-labels-indicator)
+	(reftex-toc-include-index-indicator)
+	(reftex-toc-max-level-indicator): Move up declarations.
+
 	* net/tramp.el (tramp-handle-make-auto-save-file-name): Pass list
 	of args to `tramp-run-real-handler', even if it's empty in this
 	case.

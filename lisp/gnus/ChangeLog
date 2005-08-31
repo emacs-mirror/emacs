@@ -1,3 +1,35 @@
+2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (w3m-minor-mode-map):
+	* gnus-spec.el (gnus-newsrc-file-version):
+	* gnus-util.el (nnmail-active-file-coding-system)
+	(gnus-original-article-buffer, gnus-user-agent):
+	* gnus.el (gnus-ham-process-destinations)
+	(gnus-parameter-ham-marks-alist)
+	(gnus-parameter-spam-marks-alist, gnus-spam-autodetect)
+	(gnus-spam-autodetect-methods, gnus-spam-newsgroup-contents)
+	(gnus-spam-process-destinations, gnus-spam-process-newsgroups):
+	* mm-decode.el (gnus-current-window-configuration):
+	* mm-extern.el (gnus-article-mime-handles):
+	* mm-url.el (url-current-object, url-package-name)
+	(url-package-version):
+	* mm-view.el (gnus-article-mime-handles, gnus-newsgroup-charset)
+	(smime-keys, w3m-cid-retrieve-function-alist)
+	(w3m-current-buffer, w3m-display-inline-images)
+	(w3m-minor-mode-map):
+	* mml-smime.el (gnus-extract-address-components):
+	* mml.el (gnus-article-mime-handles, gnus-mouse-2)
+	(gnus-newsrc-hashtb, message-default-charset)
+	(message-deletable-headers, message-options)
+	(message-posting-charset, message-required-mail-headers)
+	(message-required-news-headers):
+	* mml1991.el (mc-pgp-always-sign):
+	* mml2015.el (mc-pgp-always-sign):
+	* nnheader.el (nnmail-extra-headers):
+	* rfc1843.el (gnus-decode-encoded-word-function)
+	(gnus-decode-header-function, gnus-newsgroup-name):
+	* spam-stat.el (gnus-original-article-buffer): Add defvars.
+
 2005-08-22  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
 
 	* gnus-art.el (gnus-treatment-function-alist): Move date-lapsed to
@@ -18,7 +50,7 @@
 	w3/url.
 	(pgg-insert-url-with-w3): Don't load url here.
 
-2005-08-05  Daiki Ueno <ueno@unixuser.org>
+2005-08-05  Daiki Ueno  <ueno@unixuser.org>
 
 	* mml2015.el (mml2015-pgg-sign): Make sure micalg is correct.
 
