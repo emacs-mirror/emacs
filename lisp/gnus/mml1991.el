@@ -32,6 +32,8 @@
   (require 'cl)
   (require 'mm-util))
 
+(defvar mc-pgp-always-sign)
+
 (autoload 'quoted-printable-decode-region "qp")
 (autoload 'quoted-printable-encode-region "qp")
 
@@ -182,7 +184,7 @@
       (delete-region (point-min) (point)))
     (mm-with-unibyte-current-buffer
       (with-temp-buffer
-	(flet ((gpg-encrypt-func 
+	(flet ((gpg-encrypt-func
 		(sign plaintext ciphertext result recipients &optional
 		      passphrase sign-with-key armor textmode)
 		(if sign
@@ -270,7 +272,7 @@
       (delete-region (point-min) (point)))
     (mm-decode-content-transfer-encoding cte)
     (unless (pgg-encrypt-region
-	     (point-min) (point-max) 
+	     (point-min) (point-max)
 	     (split-string
 	      (or
 	       (message-options-get 'message-recipients)

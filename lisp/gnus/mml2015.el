@@ -35,6 +35,8 @@
 (require 'mm-util)
 (require 'mml)
 
+(defvar mc-pgp-always-sign)
+
 (defvar mml2015-use (or
 		     (progn
 		       (ignore-errors
