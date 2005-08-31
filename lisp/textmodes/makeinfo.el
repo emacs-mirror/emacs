@@ -50,6 +50,10 @@
 (require 'compile)
 (require 'info)
 
+(defvar tex-end-of-header)
+(defvar tex-start-of-header)
+
+
 (defgroup makeinfo nil
   "Run makeinfo conveniently."
   :group 'docs)
