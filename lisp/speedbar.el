@@ -180,6 +180,12 @@
     (require 'image)
   (error nil))
 
+(defvar ange-ftp-path-format)
+(defvar efs-path-regexp)
+(defvar font-lock-keywords)
+(defvar x-pointer-hand2)
+(defvar x-pointer-top-left-arrow)
+
 (defvar speedbar-xemacsp (string-match "XEmacs" emacs-version)
   "Non-nil if we are running in the XEmacs environment.")
 (defvar speedbar-xemacs20p (and speedbar-xemacsp
