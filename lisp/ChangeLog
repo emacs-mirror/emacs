@@ -1,28 +1,35 @@
+2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/lazy-lock.el (lazy-lock) <defgroup>: Move from font-lock.el.
+
+	* obsolete/fast-lock.el (fast-lock) <defgroup>: Move from font-lock.el.
+
+	* font-lock.el (fast-lock, lazy-lock) <defgroup>: Remove.
+	(font-lock-lines-before): Change default to being inactive.
+	(font-lock-default-fontify-region): Obey font-lock-lines-before.
+	(font-lock-after-change-function): Don't handle f-l-lines-before here.
+
 2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
 
-	* net/tramp.el (tramp-handle-make-auto-save-file-name): Deactivate
-	temporarily advice if active (not needed for Emacs 22, but for
-	backwards compatibility).
+	* net/tramp.el (tramp-handle-make-auto-save-file-name):
+	Deactivate temporarily advice if active (not needed for Emacs 22,
+	but for backwards compatibility).
 	(tramp-exists-file-name-handler): Rewrite.  First implementation
 	was too simple.
-	(tramp-advice-make-auto-save-file-name): Call
-	`tramp-handle-make-auto-save-file-name' (again, just for backwards
-	compatibility).
+	(tramp-advice-make-auto-save-file-name):
+	Call `tramp-handle-make-auto-save-file-name' (again, just for
+	backwards compatibility).
 
 2005-08-31  Reto Zimmermann  <reto@gnu.org>
 
 	* progmodes/vhdl-mode.el
-	(vhdl-update-sensitivity-list): Handle multi-dimensional array
-	access.
+	(vhdl-update-sensitivity-list): Handle multi-dimensional array access.
 	(vhdl-end-p): Fix indentation bug "else" after "-- when".
-	(vhdl-set-default-project): New function (easier setting of
-	default).
+	(vhdl-set-default-project): New function (easier setting of default).
 	(vhdl-port-copy): Handle extended identifiers for generics.
-	(vhdl-compiler-alist): Better description for error message
-	regexp.
+	(vhdl-compiler-alist): Better description for error message regexp.
 	(vhdl-make): Query for target, use previous as default.
-	(vhdl-port-copy): Fix port copy for port names starting with
-	"signal".
+	(vhdl-port-copy): Fix port copy for port names starting with "signal".
 	(vhdl-font-lock-keywords-2): Fix fontification for record
 	el. assign.
 	(vhdl-speedbar-make-subpack-line): Add package body link.
@@ -32,32 +39,25 @@
 	(vhdl-get-syntactic-context): Handle c-preprocessor directives.
 	(vhdl-update-sensitivity-list): Start scan at opening parenthesis.
 	(vhdl-fixup-whitespace-region): Fix jumping point (infinite loop).
-	(vhdl-update-sensitivity-list-buffer): Add string argument for
-	`error'.
+	(vhdl-update-sensitivity-list-buffer): Add string argument for `error'.
 	(vhdl-import-project): Add string argument for `error'.
-	(vhdl-compose-configuration,
-	vhdl-compose-configuration-architecture): Add configuration
+	(vhdl-compose-configuration)
+	(vhdl-compose-configuration-architecture): Add configuration
 	declaration generation.
 	(vhdl-scan-directory-contents): Scan for block/generate hierarchy.
 	(vhdl-trailer-re): Add "record" keyword (better indentation).
 	(vhdl-fixup-whitespace-region): "[^ \t\"-]+" instead of
 	"[^ \t-\"]+".
-	(vhdl-font-lock-keywords-2): Not highlight formal parameter after
-	'|'.
-	(vhdl-testbench-entity-file-name,
-	vhdl-testbench-architecture-file-name): Allow separate
+	(vhdl-font-lock-keywords-2): Not highlight formal parameter after '|'.
+	(vhdl-testbench-entity-file-name)
+	(vhdl-testbench-architecture-file-name): Allow separate
 	customization of testbench file names.
-	(vhdl-beginning-of-block): Handle optional subprogram parameter
-	list.
-	(vhdl-get-visible-signals): Allow newline within alias
-	declaration.
-	(vhdl-update-sensitivity-list): Signal read only on certain
-	attributes.
-	(vhdl-fixup-whitespace-region): Fix bug with strings (double
-	quotes).
+	(vhdl-beginning-of-block): Handle optional subprogram parameter list.
+	(vhdl-get-visible-signals): Allow newline within alias declaration.
+	(vhdl-update-sensitivity-list): Signal read only on certain attributes.
+	(vhdl-fixup-whitespace-region): Fix bug with strings (double quotes).
 	(member-ignore-case): Alias for missing function in XEmacs.
-	(vhdl-compiler-alist): Add unit-to-file name mapping for Cadence
-	NC.
+	(vhdl-compiler-alist): Add unit-to-file name mapping for Cadence NC.
 	(vhdl-update-sensitivity-list): Ignore case on read signals.
 	(vhdl-replace-string): Adjust case only for file names.
 	(vhdl-update-sensitivity-list): Fix search for read signals.
@@ -122,8 +122,7 @@
 	(reftex-toc-max-level-indicator): Move up declarations.
 
 	* net/tramp.el (tramp-handle-make-auto-save-file-name): Pass list
-	of args to `tramp-run-real-handler', even if it's empty in this
-	case.
+	of args to `tramp-run-real-handler', even if it's empty in this case.
 
 2005-08-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -147,13 +146,12 @@
 
 	* textmodes/org.el (org-special-keyword): New face.
 	(org-table-copy-down, org-table-eval-formula)
-	(org-table-recalculate, org-init-section-numbers): Use
-	`string-to-number' instead of `string-to-int'.
+	(org-table-recalculate, org-init-section-numbers):
+	Use `string-to-number' instead of `string-to-int'.
 	(org-get-location): Use `insert-buffer-substring' instead of
 	`insert-buffer'.
 	(org-modify-diary-entry-string): New function.
-	(org-get-entries-from-diary): Set the hook for
-	`add-to-diary-list'.
+	(org-get-entries-from-diary): Set the hook for `add-to-diary-list'.
 	(org-disable-agenda-to-diary): Rename from `org-disable-diary'.
 	(org-toggle-fixed-width-section): Use QUOTE keyword if there is no
 	active region.
@@ -222,8 +220,7 @@
 	* man.el (Man-init-defvars, Man-translate-references)
 	(Man-support-local-filenames, Man-highlight-references):
 	* progmodes/sql.el (sql-interactive-mode):
-	* shell.el (shell-mode, shell-resync-dirs): Fix typos in
-	docstrings.
+	* shell.el (shell-mode, shell-resync-dirs): Fix typos in docstrings.
 
 	* emacs-lisp/checkdoc.el (compilation-error-regexp-alist)
 	(compilation-mode-font-lock-keywords): Add defvars.
@@ -239,8 +236,7 @@
 	(mouse-set-mark, mouse-select-window, mouse-delete-other-windows)
 	(mouse-delete-window): Make arguments optional.
 
-	* obsolete/rnews.el (news-add-news-group): Don't use
-	`end-of-line'.
+	* obsolete/rnews.el (news-add-news-group): Don't use `end-of-line'.
 	(caesar-translate-table, minor-modes, news-buffer-save)
 	(news-group-name, news-minor-modes): Add defvars.
 
@@ -280,16 +276,16 @@
 
 2005-08-28  John Paul Wallington  <jpw@gnu.org>
 
-	* ibuf-ext.el (ibuffer-auto-update-changed): Use
-	`frame-or-buffer-changed-p' to check whether we need to update.
+	* ibuf-ext.el (ibuffer-auto-update-changed):
+	Use `frame-or-buffer-changed-p' to check whether we need to update.
 	(ibuffer-auto-mode): Don't advise `get-buffer-create' and
 	`kill-buffer'.  Initialise `ibuffer-auto-buffers-changed'
 	as a `frame-or-buffer-changed-p' state vector instead.
 
 2005-08-27  Romain Francoise  <romain@orebokech.com>
 
-	* textmodes/makeinfo.el (makeinfo-compile): Use
-	`compilation-start'.  Set `next-error-function' according to
+	* textmodes/makeinfo.el (makeinfo-compile):
+	Use `compilation-start'.  Set `next-error-function' according to
 	`disable-errors'.
 	(makeinfo-next-error): New function.
 	(makeinfo-region): Adjust to new `makeinfo-compile' prototype.
@@ -311,7 +307,7 @@
 
 2005-08-26  John Wiegley  <johnw@newartisans.com>
 
-	* eshell/esh-cmd.el (eshell-rewrite-named-command): Changed the
+	* eshell/esh-cmd.el (eshell-rewrite-named-command): Change the
 	code around a bit so that an extraneous nil argument is not added
 	to a command when no args are given.
 

@@ -1,3 +1,8 @@
+2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispnew.c (window_to_frame_hpos, update_window):
+	Avoid gcc warning about unused variable `f'.
+
 2005-08-31  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (add_menu_item): If unicode_append_menu returns an
@@ -5,13 +10,13 @@
 
 2005-08-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* image.c (PIX_MASK_DRAW, PIX_MASK_RETAIN): Remove argument.  All
-	uses changed.
+	* image.c (PIX_MASK_DRAW, PIX_MASK_RETAIN): Remove argument.
+	All uses changed.
 	[MAC_OS] (XPutPixel, XGetPixel): Add efficient versions for common
 	cases.
 	(x_create_x_image_and_pixmap) [MAC_OS]: Don't call x_destroy_x_image.
-	[MAC_OS] (find_image_fsspec) [!MAC_OSX]: Don't use FSRef.  Use
-	posix_pathname_to_fsspec.
+	[MAC_OS] (find_image_fsspec) [!MAC_OSX]: Don't use FSRef.
+	Use posix_pathname_to_fsspec.
 	[MAC_OS] (xpm_load_image): Fill in background_transparent field
 	while we have mask.
 
@@ -133,7 +138,8 @@
 
 2005-08-14  Richard M. Stallman  <rms@gnu.org>
 
-	* image.c (syms_of_image): Init Qxbm, Qpbm before calling define_image_type.
+	* image.c (syms_of_image): Init Qxbm, Qpbm before calling
+	define_image_type.
 
 2005-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -149,7 +155,8 @@
 
 2005-08-11  Richard M. Stallman  <rms@gnu.org>
 
-	* image.c (syms_of_image): Init image_types here, and call define_image_type.
+	* image.c (syms_of_image): Init image_types here, and call
+	define_image_type.
 	(init_image): Not here.
 
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
@@ -272,8 +279,7 @@
 
 	* macmenu.c (Fx_popup_menu, Fx_popup_dialog): Doc fixes.
 
-	* macselect.c (Fx_own_selection_internal): Follow error
-	conventions.
+	* macselect.c (Fx_own_selection_internal): Follow error conventions.
 	(Fx_get_selection_internal, Fx_selection_owner_p)
 	(Fx_selection_exists_p): Doc fixes.
 	(syms_of_macselect) <selection-converter-alist>: Likewise.
@@ -330,8 +336,7 @@
 
 2005-07-19  Kenichi Handa  <handa@m17n.org>
 
-	* fns.c (Fstring_as_multibyte): Escape backslashes in the
-	docstring.
+	* fns.c (Fstring_as_multibyte): Escape backslashes in the docstring.
 
 2005-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
