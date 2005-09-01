@@ -299,6 +299,10 @@ until TEST returns nil."
    `(while (progn ,@body ,test)))
  (put 'do-while 'lisp-indent-function (get 'while 'lisp-indent-function)))
 
+(defgroup lazy-lock nil
+  "Font Lock support mode to fontify lazily."
+  :group 'font-lock)
+
 (defvar lazy-lock-mode nil)			; Whether we are turned on.
 (defvar lazy-lock-buffers nil)			; For deferral.
 (defvar lazy-lock-timers (cons nil nil))	; For deferral and stealth.
@@ -1050,5 +1054,5 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 
 (provide 'lazy-lock)
 
-;;; arch-tag: c1776846-f046-4a45-9684-54b951b12fc9
+;; arch-tag: c1776846-f046-4a45-9684-54b951b12fc9
 ;;; lazy-lock.el ends here
