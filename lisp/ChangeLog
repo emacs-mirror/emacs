@@ -1,3 +1,8 @@
+2005-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Inhibit read-only when encoding.
+	Kill local variables when longlines-mode is turned off.
+
 2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* obsolete/lazy-lock.el (lazy-lock) <defgroup>: Move from font-lock.el.
