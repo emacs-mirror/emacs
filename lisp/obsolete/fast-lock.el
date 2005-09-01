@@ -236,22 +236,27 @@
      (defmacro defcustom (symbol value doc &rest args)
        `(defvar ,symbol ,value ,doc))))
 
-;(defun fast-lock-submit-bug-report ()
-;  "Submit via mail a bug report on fast-lock.el."
-;  (interactive)
-;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.org" "fast-lock 3.14"
-;     '(fast-lock-cache-directories fast-lock-minimum-size
-;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
-;       fast-lock-verbose)
-;     nil nil
-;     (concat "Hi Si.,
-;
-;I want to report a bug.  I've read the `Bugs' section of `Info' on Emacs, so I
-;know how to make a clear and unambiguous report.  To reproduce the bug:
-;
-;Start a fresh editor via `" invocation-name " -no-init-file -no-site-file'.
-;In the `*scratch*' buffer, evaluate:"))))
+;;(defun fast-lock-submit-bug-report ()
+;;  "Submit via mail a bug report on fast-lock.el."
+;;  (interactive)
+;;  (let ((reporter-prompt-for-summary-p t))
+;;    (reporter-submit-bug-report "simon@gnu.org" "fast-lock 3.14"
+;;     '(fast-lock-cache-directories fast-lock-minimum-size
+;;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
+;;       fast-lock-verbose)
+;;     nil nil
+;;     (concat "Hi Si.,
+;;
+;;I want to report a bug.  I've read the `Bugs' section of `Info' on Emacs, so I
+;;know how to make a clear and unambiguous report.  To reproduce the bug:
+;;
+;;Start a fresh editor via `" invocation-name " -no-init-file -no-site-file'.
+;;In the `*scratch*' buffer, evaluate:"))))
+
+(defgroup fast-lock nil
+  "Font Lock support mode to cache fontification."
+  :load 'fast-lock
+  :group 'font-lock)
 
 (defvar fast-lock-mode nil)		; Whether we are turned on.
 (defvar fast-lock-cache-timestamp nil)	; For saving/reading.
@@ -862,5 +867,5 @@ See `fast-lock-get-face-properties'."
 
 (provide 'fast-lock)
 
-;;; arch-tag: 638c431e-8cae-4538-80a1-963ff97d233e
+;; arch-tag: 638c431e-8cae-4538-80a1-963ff97d233e
 ;;; fast-lock.el ends here
