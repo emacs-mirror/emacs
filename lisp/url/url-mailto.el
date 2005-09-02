@@ -88,7 +88,7 @@
       (if tolist
 	  (if (not (string= to ""))
 	      (setcdr tolist
-		      (list (concat to ", " (nth 1 tolist)))))
+		      (list (concat to ", " (cadr tolist)))))
 	(setq args (cons (list "to" to) args))))
 
     (setq subject (cdr-safe (assoc "subject" args)))
