@@ -526,8 +526,8 @@ verbosity is controlled via the variable `lazy-lock-stealth-verbose'."
 		   (if arg (> (prefix-numeric-value arg) 0) (not was-on)))))
     (cond ((and now-on (not font-lock-mode))
 	   ;; Turned on `lazy-lock-mode' rather than `font-lock-mode'.
-	   (let ((font-lock-support-mode 'lazy-lock-mode))
-	     (font-lock-mode t)))
+           (message "Use font-lock-support-mode rather than calling lazy-lock-mode")
+           (sit-for 2))
 	  (now-on
 	   ;; Turn ourselves on.
 	   (set (make-local-variable 'lazy-lock-mode) t)
