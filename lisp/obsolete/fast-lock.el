@@ -379,8 +379,9 @@ For saving, see variables `fast-lock-minimum-size', `fast-lock-save-events',
 	    (if arg (> (prefix-numeric-value arg) 0) (not fast-lock-mode))))
   (if (and fast-lock-mode (not font-lock-mode))
       ;; Turned on `fast-lock-mode' rather than `font-lock-mode'.
-      (let ((font-lock-support-mode 'fast-lock-mode))
-	(font-lock-mode t))
+      (progn
+        (message "Use font-lock-support-mode rather than calling fast-lock-mode")
+        (sit-for 2))
     ;; Let's get down to business.
     (set (make-local-variable 'fast-lock-cache-timestamp) nil)
     (set (make-local-variable 'fast-lock-cache-filename) nil)
