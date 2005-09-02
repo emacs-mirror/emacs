@@ -12823,9 +12823,9 @@ This does background highlighting of translate-off regions.")
  'vhdl-highlight-faces 'font-lock-variable-name-face 'custom-face)
 
 (defface vhdl-font-lock-prompt-face
-  '((((class color) (background light)) (:foreground "Red" :bold t))
-    (((min-colors 88) (class color) (background light))
+  '((((min-colors 88) (class color) (background light))
      (:foreground "Red1" :bold t))
+    (((class color) (background light)) (:foreground "Red" :bold t))
     (((class color) (background dark)) (:foreground "Pink" :bold t))
     (t (:inverse-video t)))
   "Font lock mode face used to highlight prompts."
@@ -15289,8 +15289,9 @@ expansion function)."
   :group 'speedbar-faces)
 
 (defface vhdl-speedbar-architecture-face
-  '((((class color) (background light)) (:foreground "Blue"))
-    (((min-colors 88) (class color) (background light)) (:foreground "Blue1"))
+  '((((min-colors 88) (class color) (background light)) (:foreground "Blue1"))
+    (((class color) (background light)) (:foreground "Blue"))
+    
     (((class color) (background dark)) (:foreground "LightSkyBlue")))
   "Face used for displaying architecture names."
   :group 'speedbar-faces)
@@ -15333,8 +15334,9 @@ expansion function)."
   :group 'speedbar-faces)
 
 (defface vhdl-speedbar-architecture-selected-face
-  '((((class color) (background light)) (:foreground "Blue" :underline t))
-    (((min-colors 88) (class color) (background light)) (:foreground "Blue1" :underline t))
+  '((((min-colors 88) (class color) (background light)) (:foreground
+  "Blue1" :underline t))
+    (((class color) (background light)) (:foreground "Blue" :underline t))
     (((class color) (background dark)) (:foreground "LightSkyBlue" :underline t)))
   "Face used for displaying architecture names."
   :group 'speedbar-faces)

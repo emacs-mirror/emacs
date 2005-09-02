@@ -1,3 +1,13 @@
+2005-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Add eval-when-compile to
+	fix compilation warning. Reorder the key definitions to group
+	together keys emitted by the current version of xterm.
+
+	* progmodes/vhdl-mode.el (vhdl-highlight-faces)
+	(vhdl-speedbar-entity-face, vhdl-speedbar-entity-selected-face):
+	Reorder predicates to correct min-color usage.
+
 2005-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-mode): Inhibit read-only when encoding.
