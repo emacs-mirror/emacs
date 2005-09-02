@@ -1,3 +1,8 @@
+2005-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Other Font Lock Variables): Sync the default of
+	font-lock-lines-before.
+
 2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.texi (Magic File Names): Add `make-auto-save-file-name'.
