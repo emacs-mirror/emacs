@@ -1038,11 +1038,14 @@ Returns the compilation buffer created."
 						       outbuf command))))
 	      ;; Make the buffer's mode line show process state.
 	      (setq mode-line-process '(":%s"))
-	      (when compilation-disable-input
-		(process-send-eof proc))
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (set-process-filter proc 'compilation-filter)
 	      (set-marker (process-mark proc) (point) outbuf)
+	      (when compilation-disable-input
+                (condition-case nil
+                    (process-send-eof proc)
+                  ;; The process may have exited already.
+                  (error nil)))
 	      (setq compilation-in-progress
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available.
