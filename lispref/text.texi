@@ -191,12 +191,11 @@ This is the contents of buffer foo
 
 @group
 (buffer-substring 1 10)
-@result{} "This is t"
+     @result{} "This is t"
 @end group
 @group
 (buffer-substring (point-max) 10)
-@result{} "he contents of buffer foo
-"
+     @result{} "he contents of buffer foo\n"
 @end group
 @end example
 @end defun
@@ -257,8 +256,7 @@ This is the contents of buffer foo
 ---------- Buffer: foo ----------
 
 (buffer-string)
-     @result{} "This is the contents of buffer foo
-"
+     @result{} "This is the contents of buffer foo\n"
 @end group
 @end example
 @end defun
