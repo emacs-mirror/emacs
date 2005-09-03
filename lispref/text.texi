@@ -395,8 +395,8 @@ overlay.
 
 @defun insert-char character count &optional inherit
 This function inserts @var{count} instances of @var{character} into the
-current buffer before point.  The argument @var{count} should be a
-number, and @var{character} must be a character.  The value is @code{nil}.
+current buffer before point.  The argument @var{count} should be an
+integer, and @var{character} must be a character.  The value is @code{nil}.
 
 This function does not convert unibyte character codes 128 through 255
 to multibyte characters, not even if the current buffer is a multibyte
