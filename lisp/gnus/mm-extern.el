@@ -1,5 +1,7 @@
 ;;; mm-extern.el --- showing message/external-body
-;; Copyright (C) 2000, 2001, 2003 Free Software Foundation, Inc.
+
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: message external-body
@@ -30,6 +32,8 @@
 (require 'mm-util)
 (require 'mm-decode)
 (require 'mm-url)
+
+(defvar gnus-article-mime-handles)
 
 (defvar mm-extern-function-alist
   '((local-file . mm-extern-local-file)

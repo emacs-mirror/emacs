@@ -1,7 +1,7 @@
 /* Window creation, deletion and examination for GNU Emacs.
    Does not include redisplay.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 2000,
-     2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -5626,8 +5626,6 @@ struct saved_window
   Lisp_Object scroll_bar_width, vertical_scroll_bar_type;
 };
 
-#define SAVED_WINDOW_VECTOR_SIZE 24 /* Arg to Fmake_vector */
-
 #define SAVED_WINDOW_N(swv,n) \
   ((struct saved_window *) (XVECTOR ((swv)->contents[(n)])))
 
@@ -6207,7 +6205,7 @@ redirection (see `redirect-frame-focus').  */)
   data->saved_windows = tem;
   for (i = 0; i < n_windows; i++)
     XVECTOR (tem)->contents[i]
-      = Fmake_vector (make_number (SAVED_WINDOW_VECTOR_SIZE), Qnil);
+      = Fmake_vector (make_number (VECSIZE (struct saved_window)), Qnil);
   save_window_save (FRAME_ROOT_WINDOW (f), XVECTOR (tem), 0);
   XSETWINDOW_CONFIGURATION (tem, data);
   return (tem);
@@ -6248,33 +6246,33 @@ Second arg LEFT-WIDTH specifies the number of character cells to
 reserve for the left marginal area.  Optional third arg RIGHT-WIDTH
 does the same for the right marginal area.  A nil width parameter
 means no margin.  */)
-     (window, left, right)
-     Lisp_Object window, left, right;
+     (window, left_width, right_width)
+     Lisp_Object window, left_width, right_width;
 {
   struct window *w = decode_window (window);
 
   /* Translate negative or zero widths to nil.
      Margins that are too wide have to be checked elsewhere.  */
 
-  if (!NILP (left))
+  if (!NILP (left_width))
     {
-      CHECK_NUMBER (left);
-      if (XINT (left) <= 0)
-	left = Qnil;
+      CHECK_NUMBER (left_width);
+      if (XINT (left_width) <= 0)
+	left_width = Qnil;
     }
 
-  if (!NILP (right))
+  if (!NILP (right_width))
     {
-      CHECK_NUMBER (right);
-      if (XINT (right) <= 0)
-	right = Qnil;
+      CHECK_NUMBER (right_width);
+      if (XINT (right_width) <= 0)
+	right_width = Qnil;
     }
 
-  if (!EQ (w->left_margin_cols, left)
-      || !EQ (w->right_margin_cols, right))
+  if (!EQ (w->left_margin_cols, left_width)
+      || !EQ (w->right_margin_cols, right_width))
     {
-      w->left_margin_cols = left;
-      w->right_margin_cols = right;
+      w->left_margin_cols = left_width;
+      w->right_margin_cols = right_width;
 
       adjust_window_margins (w);
 
@@ -6319,22 +6317,22 @@ the command `set-fringe-style'.
 If optional fourth arg OUTSIDE-MARGINS is non-nil, draw the fringes
 outside of the display margins.  By default, fringes are drawn between
 display marginal areas and the text area.  */)
-     (window, left, right, outside_margins)
-     Lisp_Object window, left, right, outside_margins;
+     (window, left_width, right_width, outside_margins)
+     Lisp_Object window, left_width, right_width, outside_margins;
 {
   struct window *w = decode_window (window);
 
-  if (!NILP (left))
-    CHECK_NATNUM (left);
-  if (!NILP (right))
-    CHECK_NATNUM (right);
+  if (!NILP (left_width))
+    CHECK_NATNUM (left_width);
+  if (!NILP (right_width))
+    CHECK_NATNUM (right_width);
 
-  if (!EQ (w->left_fringe_width, left)
-      || !EQ (w->right_fringe_width, right)
+  if (!EQ (w->left_fringe_width, left_width)
+      || !EQ (w->right_fringe_width, right_width)
       || !EQ (w->fringes_outside_margins, outside_margins))
     {
-      w->left_fringe_width = left;
-      w->right_fringe_width = right;
+      w->left_fringe_width = left_width;
+      w->right_fringe_width = right_width;
       w->fringes_outside_margins = outside_margins;
 
       adjust_window_margins (w);

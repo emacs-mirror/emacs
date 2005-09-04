@@ -1,7 +1,7 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
-;; 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
@@ -2269,7 +2269,7 @@ programming like EPS.
 FILENAME is ignored, if it doesn't exist or is read protected.
 
 X and Y are relative positions on paper to put the image.
-If X and Y are nil, the image is centralized on paper.
+If X and Y are nil, the image is centered on paper.
 
 XSCALE and YSCALE are scale factor to be applied to image before printing.
 If XSCALE and YSCALE are nil, the original size is used.
@@ -3031,7 +3031,7 @@ Valid values are:
 		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
 		1.0 (full color).
 
-Any other value is ignored and it's used the black color.
+Any other value is ignored and black will be used.
 
 It's used only when `ps-print-color-p' is non-nil."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
@@ -3071,7 +3071,7 @@ Valid values are:
 		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
 		1.0 (full color).
 
-Any other value is ignored and it's used the white color.
+Any other value is ignored and white will be used.
 
 It's used only when `ps-print-color-p' is non-nil.
 
@@ -4137,10 +4137,10 @@ Each symbol correspond to one bit in a bit vector.")
 If optional MERGE-P is non-nil, extensions in FACE-EXTENSION-LIST are merged
 with face extension in ALIST-SYM; otherwise, overrides.
 
-If optional ALIST-SYM is nil, it's used `ps-print-face-extension-alist';
+If optional ALIST-SYM is nil, `ps-print-face-extension-alist' is used;
 otherwise, it should be an alist symbol.
 
-The elements in FACE-EXTENSION-LIST is like those for `ps-extend-face'.
+The elements in FACE-EXTENSION-LIST are like those for `ps-extend-face'.
 
 See `ps-extend-face' for documentation."
   (while face-extension-list
@@ -4155,7 +4155,7 @@ See `ps-extend-face' for documentation."
 If optional MERGE-P is non-nil, extensions in FACE-EXTENSION list are merged
 with face extensions in ALIST-SYM; otherwise, overrides.
 
-If optional ALIST-SYM is nil, it's used `ps-print-face-extension-alist';
+If optional ALIST-SYM is nil, `ps-print-face-extension-alist' is used;
 otherwise, it should be an alist symbol.
 
 The elements of FACE-EXTENSION list have the form:
@@ -5004,7 +5004,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 			     "PrintHeight 2 div BottomMargin add")
 	    "\nBeginBackImage\n")
 	   (ps-insert-file image-file)
-	   ;; coordinate adjustment to centralize image
+	   ;; coordinate adjustment to center image
 	   ;; around x and y position
 	   (let ((box (ps-get-boundingbox)))
 	     (save-excursion

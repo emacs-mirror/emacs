@@ -1,6 +1,6 @@
 ;;; pgg-def.el --- functions/macros for defining PGG functions
 
-;; Copyright (C) 1999, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/11/02

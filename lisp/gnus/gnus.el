@@ -1,7 +1,7 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
-;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997,
-;; 1998, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -34,6 +34,17 @@
 (require 'wid-edit)
 (require 'mm-util)
 (require 'nnheader)
+
+;; These are defined afterwards with gnus-define-group-parameter
+(defvar gnus-ham-process-destinations)
+(defvar gnus-parameter-ham-marks-alist)
+(defvar gnus-parameter-spam-marks-alist)
+(defvar gnus-spam-autodetect)
+(defvar gnus-spam-autodetect-methods)
+(defvar gnus-spam-newsgroup-contents)
+(defvar gnus-spam-process-destinations)
+(defvar gnus-spam-process-newsgroups)
+
 
 (defgroup gnus nil
   "The coffee-brewing, all singing, all dancing, kitchen sink newsreader."

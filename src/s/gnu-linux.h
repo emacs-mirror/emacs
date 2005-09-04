@@ -1,5 +1,6 @@
 /* This file is the configuration file for Linux-based GNU systems
-   Copyright (C) 1985, 86, 92, 94, 96, 1999, 2002, 2004 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1992, 1994, 1996, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

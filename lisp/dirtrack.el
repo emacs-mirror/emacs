@@ -1,6 +1,6 @@
 ;;; dirtrack.el --- Directory Tracking by watching the prompt
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Sun Nov 17 1996
@@ -133,8 +133,8 @@
 (defcustom dirtrack-list (list "^emacs \\([a-zA-Z]:.*\\)>" 1)
   "*List for directory tracking.
 First item is a regexp that describes where to find the path in a prompt.
-Second is a number, the regexp group to match. Optional third item is
-whether the prompt is multi-line. If nil or omitted, prompt is assumed to
+Second is a number, the regexp group to match.  Optional third item is
+whether the prompt is multi-line.  If nil or omitted, prompt is assumed to
 be on a single line."
   :group 'dirtrack
   :type  '(sexp (regexp  :tag "Prompt Expression")

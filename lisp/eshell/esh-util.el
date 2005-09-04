@@ -1,6 +1,7 @@
 ;;; esh-util.el --- general utilities
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 

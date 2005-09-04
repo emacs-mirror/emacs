@@ -1,7 +1,7 @@
 ;;; crm.el --- read multiple strings with completion
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000
-;;       Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Sen Nagata <sen@eccosys.com>
 ;; Keywords: completion, minibuffer, multiple elements

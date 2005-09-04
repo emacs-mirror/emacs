@@ -1,6 +1,6 @@
 ;;; midnight.el --- run something every midnight, e.g., kill old buffers
 
-;;; Copyright (C) 1998, 2004, 2005 Free Software Foundation, Inc.
+;;; Copyright (C) 1998, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Sam Steingold <sds@usa.net>
 ;; Maintainer: Sam Steingold <sds@usa.net>

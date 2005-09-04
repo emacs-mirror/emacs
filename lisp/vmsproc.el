@@ -1,6 +1,6 @@
 ;;; vmsproc.el --- run asynchronous VMS subprocesses under Emacs
 
-;; Copyright (C) 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Mukesh Prasad
 ;; Maintainer: FSF
@@ -34,24 +34,21 @@
   "String to insert to distinguish commands entered by user.")
 
 (defvar subprocess-running nil)
-(defvar command-mode-map nil)
+(defvar subprocess-buf nil)
 
-(if command-mode-map
-    nil
-  (setq command-mode-map (make-sparse-keymap))
-  (define-key command-mode-map "\C-m" 'command-send-input)
-  (define-key command-mode-map "\C-u" 'command-kill-line))
+(defvar command-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-m" 'command-send-input)
+    (define-key map "\C-u" 'command-kill-line)
+    map))
 
 (defun subprocess-input (name str)
   "Handles input from a subprocess.  Called by Emacs."
   (if display-subprocess-window
       (display-buffer subprocess-buf))
-  (let ((old-buffer (current-buffer)))
-    (set-buffer subprocess-buf)
+  (with-current-buffer subprocess-buf
     (goto-char (point-max))
-    (insert str)
-    (insert ?\n)
-    (set-buffer old-buffer)))
+    (insert str ?\n)))
 
 (defun subprocess-exit (name)
   "Called by Emacs upon subprocess exit."
@@ -65,8 +62,7 @@ the end."
   (if subprocess-running
       (return t))
   (setq subprocess-buf (get-buffer-create "*COMMAND*"))
-  (save-excursion
-    (set-buffer subprocess-buf)
+  (with-current-buffer subprocess-buf
     (use-local-map command-mode-map))
   (setq subprocess-running (spawn-subprocess 1 'subprocess-input
 					     'subprocess-exit))
@@ -81,25 +77,24 @@ the end."
     (setq cmd (substring command 0 (string-match " " command)))
     (setq args (substring command (string-match " " command)))
     (call-process cmd nil buffer nil "*dcl*" args)))
-;BUGS: only the output up to the end of the first image activation is trapped.
-;  (if (not subprocess-running)
-;      (start-subprocess))
-;  (save-excursion
-;    (set-buffer buffer)
-;    (let ((output-filename (concat "SYS$SCRATCH:OUTPUT-FOR-"
-;				   (getenv "USER") ".LISTING")))
-;      (while (file-exists-p output-filename)
-;	(delete-file output-filename))
-;      (define-logical-name "SYS$OUTPUT" (concat output-filename "-NEW"))
-;      (send-command-to-subprocess 1 command)
-;      (send-command-to-subprocess 1 (concat
-;				     "RENAME " output-filename
-;				     "-NEW " output-filename))
-;      (while (not (file-exists-p output-filename))
-;	(sleep-for 1))
-;      (define-logical-name "SYS$OUTPUT" nil)
-;      (insert-file output-filename)
-;      (delete-file output-filename))))
+  ;; BUGS: only the output up to the end of the first image activation is trapped.
+  ;; (if (not subprocess-running)
+  ;;     (start-subprocess))
+  ;; (with-current-buffer buffer
+  ;;   (let ((output-filename (concat "SYS$SCRATCH:OUTPUT-FOR-"
+  ;;       			   (getenv "USER") ".LISTING")))
+  ;;     (while (file-exists-p output-filename)
+  ;;       (delete-file output-filename))
+  ;;     (define-logical-name "SYS$OUTPUT" (concat output-filename "-NEW"))
+  ;;     (send-command-to-subprocess 1 command)
+  ;;     (send-command-to-subprocess 1 (concat
+  ;;       			     "RENAME " output-filename
+  ;;       			     "-NEW " output-filename))
+  ;;     (while (not (file-exists-p output-filename))
+  ;;       (sleep-for 1))
+  ;;     (define-logical-name "SYS$OUTPUT" nil)
+  ;;     (insert-file output-filename)
+  ;;     (delete-file output-filename))))
 
 (defun subprocess-command ()
   "Starts asynchronous subprocess if not running and switches to its window."
@@ -115,8 +110,7 @@ the spawned subprocess.  Otherwise brings back current
 line to the last line for resubmission."
   (interactive)
   (beginning-of-line)
-  (let ((current-line (buffer-substring (point)
-                                        (progn (end-of-line) (point)))))
+  (let ((current-line (buffer-substring (point) (line-end-position))))
     (if (eobp)
 	(progn
 	  (if (not subprocess-running)
@@ -129,15 +123,16 @@ line to the last line for resubmission."
 		    (progn (beginning-of-line) (insert command-prefix-string)))
 		(next-line 1))))
       ;; else -- if not at last line in buffer
-      (end-of-buffer)
+      (goto-char (point-max))
       (backward-char)
       (next-line 1)
-      (if (string-equal command-prefix-string
-			(substring current-line 0 (length command-prefix-string)))
-	  (insert (substring current-line (length command-prefix-string)))
-	(insert current-line)))))
+      (insert
+       (if (compare-strings command-prefix-string nil nil
+                            current-line 0 (length command-prefix-string))
+           (substring current-line (length command-prefix-string))
+         current-line)))))
 
-(defun command-kill-line()
+(defun command-kill-line ()
   "Kills the current line.  Used in command mode."
   (interactive)
   (beginning-of-line)
@@ -145,5 +140,5 @@ line to the last line for resubmission."
 
 (define-key esc-map "$" 'subprocess-command)
 
-;;; arch-tag: 600b2512-f903-4887-bcd2-e76b306f5b66
+;; arch-tag: 600b2512-f903-4887-bcd2-e76b306f5b66
 ;;; vmsproc.el ends here

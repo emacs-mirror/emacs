@@ -1,3 +1,205 @@
+2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (w3m-minor-mode-map):
+	* gnus-spec.el (gnus-newsrc-file-version):
+	* gnus-util.el (nnmail-active-file-coding-system)
+	(gnus-original-article-buffer, gnus-user-agent):
+	* gnus.el (gnus-ham-process-destinations)
+	(gnus-parameter-ham-marks-alist)
+	(gnus-parameter-spam-marks-alist, gnus-spam-autodetect)
+	(gnus-spam-autodetect-methods, gnus-spam-newsgroup-contents)
+	(gnus-spam-process-destinations, gnus-spam-process-newsgroups):
+	* mm-decode.el (gnus-current-window-configuration):
+	* mm-extern.el (gnus-article-mime-handles):
+	* mm-url.el (url-current-object, url-package-name)
+	(url-package-version):
+	* mm-view.el (gnus-article-mime-handles, gnus-newsgroup-charset)
+	(smime-keys, w3m-cid-retrieve-function-alist)
+	(w3m-current-buffer, w3m-display-inline-images)
+	(w3m-minor-mode-map):
+	* mml-smime.el (gnus-extract-address-components):
+	* mml.el (gnus-article-mime-handles, gnus-mouse-2)
+	(gnus-newsrc-hashtb, message-default-charset)
+	(message-deletable-headers, message-options)
+	(message-posting-charset, message-required-mail-headers)
+	(message-required-news-headers):
+	* mml1991.el (mc-pgp-always-sign):
+	* mml2015.el (mc-pgp-always-sign):
+	* nnheader.el (nnmail-extra-headers):
+	* rfc1843.el (gnus-decode-encoded-word-function)
+	(gnus-decode-header-function, gnus-newsgroup-name):
+	* spam-stat.el (gnus-original-article-buffer): Add defvars.
+
+2005-08-22  Karl Chen  <quarl@cs.berkeley.edu>  (tiny change)
+
+	* gnus-art.el (gnus-treatment-function-alist): Move date-lapsed to
+	the end of the date treatments.
+
+2005-08-15  Simon Josefsson  <jas@extundo.com>
+
+	* pgg.el (url-insert-file-contents): Don't autoload it, Emacs has
+	it in url-handlers.el and XEmacs in url.el.  Reported by Luca
+	Capello and Romain Francoise.
+	(pgg-fetch-key-function): Removed, not used?
+	(pgg-insert-url-with-w3): Require url, to get
+	url-insert-file-contents regardless of where it is defined.
+
+2005-08-08  Simon Josefsson  <jas@extundo.com>
+
+	* pgg.el: Autoload url-insert-file-contents instead of loading
+	w3/url.
+	(pgg-insert-url-with-w3): Don't load url here.
+
+2005-08-05  Daiki Ueno  <ueno@unixuser.org>
+
+	* mml2015.el (mml2015-pgg-sign): Make sure micalg is correct.
+
+	* pgg-parse.el (pgg-parse-hash-algorithm-alist): Add SHA-2.
+
+2005-08-06  Romain Francoise  <romain@orebokech.com>
+
+	* message.el: Fix typo in docstring.
+
+2005-08-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-bodies.el (mm-encode-body): Use coding system rather than
+	charset to encode text.
+
+	* mm-util.el (mm-find-mime-charset-region): Attempt to reduce the
+	number of charsets if utf-8 is available (XEmacs).
+
+2005-08-04  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-art.el (article-unsplit-urls): Don't anchor urls to the
+	start of the lines.
+	(gnus-picon-databases): Add /usr/share/picons.
+
+2005-08-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-button-valid-localpart-regexp): New variable
+	taken from `gnus-button-mid-or-mail-regexp'.
+	(gnus-button-mid-or-mail-regexp, gnus-button-alist): Use it.
+	(gnus-button-alist): Improve regexp for domain part of the MIDs
+	for news:localpart@domain buttons.
+	(gnus-button-ctan-directory-regexp): Update.
+
+	* message.el (message-kill-buffer): Raise the current frame.
+	(message-bury): Use `window-dedicated-p'.
+
+2005-08-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* sieve-manage.el (sieve-manage-interactive-login): Use
+	make-local-variable rather than make-variable-buffer-local.
+	(sieve-manage-open): Ditto.
+	(sieve-manage-authenticate): Ditto.
+
+	* mml.el (mml-generate-mime-1): Make the content type default to
+	text/plain if the filename is not specified.
+
+2005-08-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-uu.el (gnus-uu-save-article): Use insert-buffer-substring
+	instead of insert-buffer.
+
+	* message.el (message-yank-original): Ditto; set the mark at the
+	end of the yanked message.
+
+2005-07-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page-1): Reduce the number of
+	lines to scroll rather than to stop it.
+
+	* mml.el (mml-generate-default-type): Add doc string.
+	(mml-generate-mime-1): Use mm-default-file-encoding or make it
+	default to application/octet-stream when determining the content
+	type if it is not specified for the part or the mml contents; add
+	a comment about mml-generate-default-type.
+
+2005-07-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml.el (mml-generate-mime-1): Use mm-default-file-encoding or
+	make it default to application/octet-stream when determining the
+	content type if it is not specified for the external contents.
+
+2005-07-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2231.el (rfc2231-parse-string): Take care that not only a
+	segmented parameter but also other parameters might be there.
+
+2005-07-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Delete temp file, directory
+	and buffer immediately if the external process is exited.
+
+2005-07-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page-1): Don't scroll if there're
+	fewer lines than that of scroll-margin.
+	(gnus-article-prev-page): Narrow the range to bind scroll-in-place.
+
+2005-07-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page): Revert.
+	(gnus-article-beginning-of-window): New macro.
+	(gnus-article-next-page-1): Use it.
+	(gnus-article-prev-page): Ditto.
+	(gnus-mime-save-part-and-strip): Use insert-buffer-substring
+	instead of insert-buffer.
+	(gnus-mime-delete-part): Ditto.
+	(gnus-article-edit-exit): Ditto.
+
+	* gnus-util.el (gnus-beginning-of-window): Remove.
+	(gnus-end-of-window): Remove.
+
+	* lpath.el: Don't bind scroll-margin.
+
+2005-07-25  Simon Josefsson  <jas@extundo.com>
+
+	* pgg.el (pgg-insert-url-with-w3): Don't load w3, it is possible
+	to have the url package without w3.  Reported by Daiki Ueno
+	<ueno@unixuser.org> and Luigi Panzeri <matley@muppetslab.org>.
+
+2005-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mml.el (mml-minibuffer-read-disposition): Don't use inline by default
+	for text/rtf.  Display default in prompt.  Pass default for M-n.
+
+	* mm-uu.el (mm-uu-copy-to-buffer): Use with-current-buffer.
+
+2005-07-16  Romain Francoise  <romain@orebokech.com>
+
+	* gnus-uu.el (gnus-uu-save-article): Use `message-make-date'
+	instead of `current-time-string' as the latter creates a time
+	string that is not RFC 2822 compliant (it lacks the zone).
+
+2005-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-button-mailto): Remove
+	save-selected-window-window hackery because it relies on
+	save-selected-window internals.
+
+2005-07-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-next-page): Use gnus-end-of-window.
+	(gnus-article-next-page-1): Use gnus-beginning-of-window.
+	(gnus-article-prev-page): Ditto.
+
+	* gnus-util.el (gnus-beginning-of-window): New function.
+	(gnus-end-of-window): New function.
+
+2005-07-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-salt.el (gnus-pick-mode): Remove the 5th arg of
+	gnus-add-minor-mode.
+	(gnus-binary-mode): Ditto.
+
+	* gnus-topic.el (gnus-topic-mode): Ditto.
+
+2005-07-08  Ralf Angeli  <angeli@iwi.uni-sb.de>  (tiny change)
+
+	* gnus-art.el (gnus-article-next-page, gnus-article-next-page-1)
+	(gnus-article-prev-page): Take scroll-margin into consideration.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

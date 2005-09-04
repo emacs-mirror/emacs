@@ -1,5 +1,6 @@
 /* Process support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1992, 95, 99, 2000, 01, 04  Free Software Foundation, Inc.
+   Copyright (C) 1992, 1995, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2146,6 +2147,8 @@ syms_of_ntproc ()
 {
   Qhigh = intern ("high");
   Qlow = intern ("low");
+  staticpro (&Qhigh);
+  staticpro (&Qlow);
 
 #ifdef HAVE_SOCKETS
   defsubr (&Sw32_has_winsock);
@@ -2241,6 +2244,9 @@ the truename of a file can be slow.  */);
 Note that this option is only useful for files on NTFS volumes, where hard links
 are supported.  Moreover, it slows down `file-attributes' noticeably.  */);
   Vw32_get_true_file_attributes = Qt;
+
+  staticpro (&Vw32_valid_locale_ids);
+  staticpro (&Vw32_valid_codepages);
 }
 /* end of ntproc.c */
 

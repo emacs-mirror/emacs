@@ -1,6 +1,7 @@
 ;;; icon.el --- mode for editing Icon code
 
-;; Copyright (C) 1989 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Chris Smith <csmith@convex.com>
 ;; Created: 15 Feb 89

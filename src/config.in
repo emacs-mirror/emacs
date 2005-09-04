@@ -191,6 +191,12 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `getloadavg' function. */
 #undef HAVE_GETLOADAVG
 
+/* Define to 1 if you have the <getopt.h> header file. */
+#undef HAVE_GETOPT_H
+
+/* Define to 1 if you have the `getopt_long_only' function. */
+#undef HAVE_GETOPT_LONG_ONLY
+
 /* Define to 1 if you have the `getpagesize' function. */
 #undef HAVE_GETPAGESIZE
 
@@ -785,9 +791,9 @@ Boston, MA 02110-1301, USA.  */
 /* If using the C implementation of alloca, define if you know the
    direction of stack growth for your system; otherwise it will be
    automatically deduced at run-time.
-        STACK_DIRECTION > 0 => grows toward higher addresses
-        STACK_DIRECTION < 0 => grows toward lower addresses
-        STACK_DIRECTION = 0 => direction of growth unknown */
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
 #undef STACK_DIRECTION
 
 /* Define to 1 if you have the ANSI C header files. */
@@ -845,6 +851,10 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define for large files, on AIX-style hosts. */
 #undef _LARGE_FILES
+
+/* Define to rpl_ if the getopt replacement functions and variables should be
+   used. */
+#undef __GETOPT_PREFIX
 
 /* Define like PROTOTYPES; this can be used by system headers. */
 #undef __PROTOTYPES

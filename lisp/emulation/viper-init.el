@@ -1,6 +1,7 @@
 ;;; viper-init.el --- some common definitions for Viper
 
-;; Copyright (C) 1997, 98, 99, 2000, 01, 02, 05 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -362,8 +363,8 @@ Use `M-x viper-set-expert-level' to change this.")
 (defun viper-activate-input-method ()
   (cond ((and viper-emacs-p (fboundp 'activate-input-method))
 	 (activate-input-method default-input-method))
-	((and viper-xemacs-p (fboundp 'quail-mode))
-	 (quail-mode 1))))
+	((featurep 'xemacs)
+	 (if (fboundp 'quail-mode) (quail-mode 1)))))
 
 ;; Set quail-mode to ARG
 (defun viper-set-input-method (arg)
@@ -423,13 +424,20 @@ delete the text being replaced, as in standard Vi."
   "*Cursor color when Viper is in Replace state."
   :type 'string
   :group 'viper)
+(if (fboundp 'make-variable-frame-local)
+    (make-variable-frame-local 'viper-replace-overlay-cursor-color))
+
 (defcustom viper-insert-state-cursor-color "Green"
   "Cursor color when Viper is in insert state."
   :type 'string
   :group 'viper)
+(if (fboundp 'make-variable-frame-local)
+    (make-variable-frame-local 'viper-insert-state-cursor-color))
 
 ;; internal var, used to remember the default cursor color of emacs frames
 (defvar viper-vi-state-cursor-color nil)
+(if (fboundp 'make-variable-frame-local)
+    (make-variable-frame-local 'viper-vi-state-cursor-color))
 
 (viper-deflocalvar viper-replace-overlay nil "")
 (put 'viper-replace-overlay 'permanent-local t)
@@ -855,15 +863,13 @@ Related buffers can be cycled through via :R and :P commands."
     (t (:underline t :stipple "gray3")))
   "*Face used to flash out the search pattern."
   :group 'viper-highlighting)
-;; backward-compatibility alias
-(put 'viper-search-face 'face-alias 'viper-search)
 ;; An internal variable.  Viper takes the face from here.
 (defvar viper-search-face 'viper-search
   "Face used to flash out the search pattern.
 DO NOT CHANGE this variable.  Instead, use the customization widget
-to customize the actual face object `viper-search-face'
+to customize the actual face object `viper-search'
 this variable represents.")
-(viper-hide-face 'viper-search)
+(viper-hide-face viper-search-face)
 
 
 (defface viper-replace-overlay
@@ -871,15 +877,13 @@ this variable represents.")
     (t (:underline t :stipple "gray3")))
   "*Face for highlighting replace regions on a window display."
   :group 'viper-highlighting)
-;; backward-compatibility alias
-(put 'viper-replace-overlay-face 'face-alias 'viper-replace-overlay)
 ;; An internal variable.  Viper takes the face from here.
 (defvar viper-replace-overlay-face 'viper-replace-overlay
   "Face for highlighting replace regions on a window display.
 DO NOT CHANGE this variable.  Instead, use the customization widget
-to customize the actual face object `viper-replace-overlay-face'
+to customize the actual face object `viper-replace-overlay'
 this variable represents.")
-(viper-hide-face 'viper-replace-overlay)
+(viper-hide-face viper-replace-overlay-face)
 
 
 (defface viper-minibuffer-emacs
@@ -887,15 +891,13 @@ this variable represents.")
     (t (:weight bold)))
   "Face used in the Minibuffer when it is in Emacs state."
   :group 'viper-highlighting)
-;; backward-compatibility alias
-(put 'viper-minibuffer-emacs-face 'face-alias 'viper-minibuffer-emacs)
 ;; An internal variable.  Viper takes the face from here.
 (defvar viper-minibuffer-emacs-face 'viper-minibuffer-emacs
   "Face used in the Minibuffer when it is in Emacs state.
 DO NOT CHANGE this variable.  Instead, use the customization widget
-to customize the actual face object `viper-minibuffer-emacs-face'
+to customize the actual face object `viper-minibuffer-emacs'
 this variable represents.")
-(viper-hide-face 'viper-minibuffer-emacs)
+(viper-hide-face viper-minibuffer-emacs-face)
 
 
 (defface viper-minibuffer-insert
@@ -903,15 +905,13 @@ this variable represents.")
     (t (:slant italic)))
   "Face used in the Minibuffer when it is in Insert state."
   :group 'viper-highlighting)
-;; backward-compatibility alias
-(put 'viper-minibuffer-insert-face 'face-alias 'viper-minibuffer-insert)
 ;; An internal variable.  Viper takes the face from here.
 (defvar viper-minibuffer-insert-face 'viper-minibuffer-insert
   "Face used in the Minibuffer when it is in Insert state.
 DO NOT CHANGE this variable.  Instead, use the customization widget
-to customize the actual face object `viper-minibuffer-insert-face'
+to customize the actual face object `viper-minibuffer-insert'
 this variable represents.")
-(viper-hide-face 'viper-minibuffer-insert)
+(viper-hide-face viper-minibuffer-insert-face)
 
 
 (defface viper-minibuffer-vi
@@ -919,15 +919,13 @@ this variable represents.")
     (t (:inverse-video t)))
   "Face used in the Minibuffer when it is in Vi state."
   :group 'viper-highlighting)
-;; backward-compatibility alias
-(put 'viper-minibuffer-vi-face 'face-alias 'viper-minibuffer-vi)
 ;; An internal variable.  Viper takes the face from here.
 (defvar viper-minibuffer-vi-face 'viper-minibuffer-vi
   "Face used in the Minibuffer when it is in Vi state.
 DO NOT CHANGE this variable.  Instead, use the customization widget
-to customize the actual face object `viper-minibuffer-vi-face'
+to customize the actual face object `viper-minibuffer-vi'
 this variable represents.")
-(viper-hide-face 'viper-minibuffer-vi)
+(viper-hide-face viper-minibuffer-vi-face)
 
 ;; the current face to be used in the minibuffer
 (viper-deflocalvar

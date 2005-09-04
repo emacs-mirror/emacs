@@ -1,3 +1,52 @@
+2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* NEWS: Add entry for `make-auto-save-file-name'.
+
+2005-08-19  Emilio C. Lopes  <eclig@gmx.net>
+
+	* emacsclient.1 (DESCRIPTION): Reflect inclusion in the
+	Emacs distribution.  Make role of EDITOR clearer.
+	(OPTIONS): Document `-s', `-V' and `-h'
+	as well as their long name counterparts.
+	(BUGS): Remove.
+
+2005-08-26  Romain Francoise  <romain@orebokech.com>
+
+	* PROBLEMS: Fix capitalization of "Gnus".
+
+2005-08-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* MORE.STUFF: Update links and URLs.
+
+2005-08-05  Kenichi Handa  <handa@m17n.org>
+
+	* NEWS: Fix the entry describing code-pages.
+
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Add `icons' (for in-place installs).
+
+2005-07-19  Juri Linkov  <juri@jurta.org>
+
+	* grep.txt: New file.
+
+2005-07-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS (Fedora Core 4 GNU/Linux: Segfault during dumping):
+	-R comes after i386 in setarch command.
+
+2005-07-12  Juri Linkov  <juri@jurta.org>
+
+	* refcard.tex (Files): Change description of `C-x C-q' from
+	`checkin/checkout' to `toggle read-only'.
+	(Getting Help): Replace `C-h c' with `C-h k'.
+	(Error Recovery): Replace `recover-file' with `recover-session'.
+	(Info): Replace key binding `C-h C-i' with `C-h S'.  Add `t'.
+
+2005-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* GNU: Update how to help.  Improve footnote 7.
+
 2005-07-07  Lute Kamstra  <lute@gnu.org>
 
 	* tasks.texi: Delete file.  The GNU Task List is obsolete and has
@@ -2146,7 +2195,7 @@
 ;; End:
 
     Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
-	Free Software Foundation, Inc.
+	2002, 2003, 2004, 2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

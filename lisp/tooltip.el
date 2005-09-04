@@ -1,7 +1,7 @@
 ;;; tooltip.el --- show tooltip windows
 
-;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@acm.org>
 ;; Keywords: help c mouse tools
@@ -26,6 +26,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(defvar comint-prompt-regexp)
 
 ;;; Customizable settings
 
@@ -154,18 +156,15 @@ This might return nil if the event did not occur over a buffer."
 ;; set-buffer prevents redisplay optimizations, so every mouse motion
 ;; would be accompanied by a full redisplay.
 
-;;;###autoload
 (define-minor-mode tooltip-mode
   "Toggle Tooltip display.
 With ARG, turn tooltip mode on if and only if ARG is positive."
   :global t
-  ;; If you change the :init-value below, you also need to change the
-  ;; corresponding code in startup.el.
   :init-value (not (or noninteractive
-		       (and (boundp 'emacs-quick-startup) emacs-quick-startup)
-		       (not (and (fboundp 'display-graphic-p)
-				 (display-graphic-p)))
+		       emacs-basic-display
+		       (not (display-graphic-p))
 		       (not (fboundp 'x-show-tip))))
+  :initialize 'custom-initialize-safe-default
   :group 'tooltip
   (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
     (error "Sorry, tooltips are not yet available on this system"))

@@ -1,6 +1,7 @@
 ;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF

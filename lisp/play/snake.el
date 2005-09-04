@@ -1,6 +1,6 @@
 ;;; snake.el --- implementation of Snake for Emacs
 
-;; Copyright (C) 1997, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Created: 1997-09-10
@@ -370,15 +370,16 @@ Snake mode keybindings:
   (setq major-mode 'snake-mode)
   (setq mode-name "Snake")
 
-  (setq mode-popup-menu
-	'("Snake Commands"
-	  ["Start new game"	snake-start-game]
-	  ["End game"		snake-end-game
-	   (snake-active-p)]
-	  ["Pause"		snake-pause-game
-	   (and (snake-active-p) (not snake-paused))]
-	  ["Resume"		snake-pause-game
-	   (and (snake-active-p) snake-paused)]))
+  (unless (featurep 'emacs)
+    (setq mode-popup-menu
+	  '("Snake Commands"
+	    ["Start new game"	snake-start-game]
+	    ["End game"		snake-end-game
+	     (snake-active-p)]
+	    ["Pause"		snake-pause-game
+	     (and (snake-active-p) (not snake-paused))]
+	    ["Resume"		snake-pause-game
+	     (and (snake-active-p) snake-paused)])))
 
   (setq gamegrid-use-glyphs snake-use-glyphs-flag)
   (setq gamegrid-use-color snake-use-color-flag)

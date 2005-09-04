@@ -1,6 +1,7 @@
 ;;; term.el --- general command interpreter in a window stuff
 
-;;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
 ;; Maintainer: Dan Nicolaescu <dann@ics.uci.edu>, Per Bothner <per@bothner.com>
@@ -1102,6 +1103,8 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-current-face)
   (make-local-variable 'term-pending-frame)
   (setq term-pending-frame nil)
+  ;; Cua-mode's keybindings interfere with the term keybindings, disable it. 
+  (set (make-local-variable 'cua-mode) nil)
   (run-mode-hooks 'term-mode-hook)
   (term-if-xemacs
    (set-buffer-menubar

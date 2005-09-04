@@ -3,12 +3,15 @@
 @setfilename ../info/ses
 @settitle SES: Simple Emacs Spreadsheet
 @setchapternewpage off
+@syncodeindex fn cp
+@syncodeindex vr cp
+@syncodeindex ky cp
 @c %**end of header
 
 @copying
 This file documents SES: the Simple Emacs Spreadsheet.
 
-Copyright @copyright{} 2002, 2005  Free Software Foundation, Inc.
+Copyright @copyright{} 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -534,7 +537,7 @@ the formula becomes
 @end lisp
 and the new row is not included in the sum.
 
-The macro @code{(ses-range @var{from} @var{to})} evalutes to a list of
+The macro @code{(ses-range @var{from} @var{to})} evaluates to a list of
 the values in a rectangle of cells.  If your formula is
 @lisp
 (apply '+ (ses-range A1 A3))
@@ -655,7 +658,7 @@ tabs, so these are replaced with question marks.
 @table @kbd
 @item C-c C-t
 Confine a cell to its own column (@code{ses-truncate-cell}).  This
-alows you to move point to a rightward cell that would otherwise be
+allows you to move point to a rightward cell that would otherwise be
 covered by a spill-over.  If you don't change the rightward cell, the
 confined cell will spill over again the next time it is reprinted.
 
@@ -704,7 +707,7 @@ substitute always signals an error.
 
 Formulas or printers that you type in are checked immediately for
 safety.  If found to be possibly unsafe and you press N to disapprove,
-the action is cancelled and the old formula or printer will remain.
+the action is canceled and the old formula or printer will remain.
 
 Besides viruses (which try to copy themselves to other files),
 @code{unsafep} can also detect all other kinds of Trojan horses, such as
@@ -919,18 +922,9 @@ cell.
 
 @c ===================================================================
 @node Index, Acknowledgements, For Gurus, Top
-@unnumbered Concept Index
+@unnumbered Index
 
 @printindex cp
-
-@heading Function Index
-
-@printindex fn
-
-@heading Variable Index
-
-@printindex vr
-
 
 @c ===================================================================
 

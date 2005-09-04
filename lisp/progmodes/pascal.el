@@ -1,6 +1,7 @@
 ;;; pascal.el --- major mode for editing pascal source in Emacs
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 98, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
+;;               2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Espen Skoglund <esk@gnu.org>
 ;; Keywords: languages
@@ -1493,12 +1494,12 @@ The default is a name found in the buffer around point."
 
 (if pascal-outline-map
     nil
-  (if (boundp 'set-keymap-name)
+  (if (fboundp 'set-keymap-name)
       (set-keymap-name pascal-outline-map 'pascal-outline-map))
-  (if (not (boundp 'set-keymap-parent))
-      (setq pascal-outline-map (copy-keymap pascal-mode-map))
-    (setq pascal-outline-map (make-sparse-keymap))
-    (set-keymap-parent pascal-outline-map pascal-mode-map))
+  (if (fboundp 'set-keymap-parent)
+      (set-keymap-parent (setq pascal-outline-map (make-sparse-keymap))
+			 pascal-mode-map)
+    (setq pascal-outline-map (copy-keymap pascal-mode-map)))
   (define-key pascal-outline-map "\M-\C-a"  'pascal-outline-prev-defun)
   (define-key pascal-outline-map "\M-\C-e"  'pascal-outline-next-defun)
   (define-key pascal-outline-map "\C-c\C-d" 'pascal-outline-goto-defun)
@@ -1533,7 +1534,7 @@ Pascal Outline mode provides some additional commands.
   (interactive "P")
   (setq pascal-outline-mode
 	(if (null arg) (not pascal-outline-mode) t))
-  (if (boundp 'redraw-mode-line)
+  (if (fboundp 'redraw-mode-line)
       (redraw-mode-line))
   (if pascal-outline-mode
       (progn

@@ -1,6 +1,6 @@
 /* Buffer insertion/deletion and gap motion for GNU Emacs.
-   Copyright (C) 1985, 86,93,94,95,97,98, 1999, 2000, 01, 2003, 2005
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2393,6 +2393,7 @@ void
 syms_of_insdel ()
 {
   staticpro (&combine_after_change_list);
+  staticpro (&combine_after_change_buffer);
   combine_after_change_list = Qnil;
   combine_after_change_buffer = Qnil;
 

@@ -1,6 +1,7 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2001, 2003, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Maintainer: FSF
@@ -164,15 +165,11 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
     '((((class color)) (:foreground "red" :weight bold)))
   "Face to use for Emacs' O."
   :group 'gomoku)
-;; backward-compatibility alias
-(put 'gomoku-font-lock-O-face 'face-alias 'gomoku-O)
 
 (defface gomoku-X
     '((((class color)) (:foreground "green" :weight bold)))
   "Face to use for your X."
   :group 'gomoku)
-;; backward-compatibility alias
-(put 'gomoku-font-lock-X-face 'face-alias 'gomoku-X)
 
 (defvar gomoku-font-lock-keywords
   '(("O" . 'gomoku-O)

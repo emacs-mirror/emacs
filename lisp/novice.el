@@ -1,7 +1,7 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1994, 2002, 2004, 2005
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal, help
@@ -42,8 +42,7 @@
 If nil, the feature is disabled, i.e., all commands work normally.")
 
 ;;;###autoload
-(defvaralias 'disabled-command-hook 'disabled-command-function)
-;;;###autoload (make-obsolete-variable 'disabled-command-hook 'disabled-command-function "22.1")
+(define-obsolete-variable-alias 'disabled-command-hook 'disabled-command-function "22.1")
 
 ;;;###autoload
 (defun disabled-command-function (&rest ignore)

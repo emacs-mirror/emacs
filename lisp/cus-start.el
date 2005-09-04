@@ -1,6 +1,7 @@
 ;;; cus-start.el --- define customization properties of builtins
 ;;
-;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Keywords: internal
@@ -40,20 +41,6 @@
 	     ;; alloc.c
 	     (gc-cons-threshold alloc integer)
 	     (garbage-collection-messages alloc boolean)
-	     ;; undo.c
-	     (undo-limit undo integer)
-	     (undo-strong-limit undo integer)
-	     (undo-outer-limit undo
-			       (choice integer
-				       (const :tag "No limit"
-					      :format "%t\n%d"
-					      :doc
-					      "With this choice, \
-the undo info for the current command never gets discarded.
-This should only be chosen under exceptional circumstances,
-since it could result in memory overflow and make Emacs crash."
-					      nil))
-			       "22.1")
 	     ;; buffer.c
 	     (mode-line-format modeline sexp) ;Hard to do right.
 	     (default-major-mode internal function)
@@ -65,7 +52,47 @@ since it could result in memory overflow and make Emacs crash."
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
 	     (selective-display-ellipses display boolean)
-	     (indicate-empty-lines display boolean "21.1")
+	     (indicate-empty-lines fringe boolean "21.1")
+	     (indicate-buffer-boundaries
+	      fringe
+	      (choice
+	       (const :tag "No indicators" nil)
+	       (const :tag "On left, with arrows" left)
+	       (const :tag "On right, with arrows" right)
+	       (set :tag "Pick your own design"
+		    :value ((t . nil))
+		    :format "%{%t%}:\n%v\n%d"
+		    :doc "You can specify a default and then override it \
+for individual indicators.
+Leaving \"Default\" unchecked is equivalent with specifying a default of
+\"Do not show\"."
+		    (choice :tag "Default"
+			    :value (t . nil)
+			    (const :tag "Do not show" (t . nil))
+			    (const :tag "On the left" (t . left))
+			    (const :tag "On the right" (t . right)))
+		    (choice :tag "Top"
+			    :value (top . left)
+			    (const :tag "Do not show" (top . nil))
+			    (const :tag "On the left" (top . left))
+			    (const :tag "On the right" (top . right)))
+		    (choice :tag "Bottom"
+			    :value (bottom . left)
+			    (const :tag "Do not show" (bottom . nil))
+			    (const :tag "On the left" (bottom . left))
+			    (const :tag "On the right" (bottom . right)))
+		    (choice :tag "Up arrow"
+			    :value (up . left)
+			    (const :tag "Do not show" (up . nil))
+			    (const :tag "On the left" (up . left))
+			    (const :tag "On the right" (up . right)))
+		    (choice :tag "Down arrow"
+			    :value (down . left)
+			    (const :tag "Do not show" (down . nil))
+			    (const :tag "On the left" (down . left))
+			    (const :tag "On the right" (down . right))))
+	       (other :tag "On left, no arrows" t))
+	      "22.1")
 	     (scroll-up-aggressively windows
 				     (choice (const :tag "off" nil) number)
 				     "21.1")
@@ -77,8 +104,8 @@ since it could result in memory overflow and make Emacs crash."
 	     ;; callproc.c
 	     (shell-file-name execute file)
 	     (exec-path execute
-			(repeat (choice (const :tag "default" nil)
-					(file :format "%v"))))
+			(repeat (choice (const :tag "default directory" nil)
+					(directory :format "%v"))))
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
 	     (eol-mnemonic-undecided mule string)
@@ -145,6 +172,8 @@ since it could result in memory overflow and make Emacs crash."
 	     (mouse-highlight mouse (choice (const :tag "disabled" nil)
 					    (const :tag "always shown" t)
 					    (other :tag "hidden by keypress" 1)))
+	     ;; fringe.c
+	     (overflow-newline-into-fringe fringe boolean "22.1")
 	     ;; indent.c
 	     (indent-tabs-mode fill boolean)
 	     ;; keyboard.c
@@ -190,7 +219,7 @@ since it could result in memory overflow and make Emacs crash."
 				 :format "%t%n%h"
 				 :inline t
 				 (read-only t))
-			  (const :tag "Inviolable"
+			  (const :tag "Don't Enter"
 				 :doc "Prevent point from ever entering prompt"
 				 :format "%t%n%h"
 				 :inline t
@@ -217,6 +246,20 @@ since it could result in memory overflow and make Emacs crash."
 	     (words-include-escapes editing-basics boolean)
 	     (open-paren-in-column-0-is-defun-start editing-basics boolean
 						    "21.1")
+	     ;; undo.c
+	     (undo-limit undo integer)
+	     (undo-strong-limit undo integer)
+	     (undo-outer-limit undo
+			       (choice integer
+				       (const :tag "No limit"
+					      :format "%t\n%d"
+					      :doc
+					      "With this choice, \
+the undo info for the current command never gets discarded.
+This should only be chosen under exceptional circumstances,
+since it could result in memory overflow and make Emacs crash."
+					      nil))
+			       "22.1")
 	     ;; window.c
 	     (temp-buffer-show-function windows (choice (const nil) function))
 	     (display-buffer-function windows (choice (const nil) function))

@@ -1,6 +1,7 @@
 ;;; asm-mode.el --- mode for editing assembler code
 
-;; Copyright (C) 1991, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -204,7 +205,8 @@ repeatedly until you are satisfied with the kind of comment."
   (let (comempty comment)
     (save-excursion
       (beginning-of-line)
-      (setq comment (comment-search-forward (line-end-position) t))
+      (with-no-warnings
+	(setq comment (comment-search-forward (line-end-position) t)))
       (setq comempty (looking-at "[ \t]*$")))
 
   (cond

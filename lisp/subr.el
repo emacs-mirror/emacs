@@ -1,7 +1,7 @@
 ;;; subr.el --- basic lisp subroutines for Emacs
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005  Free Software Foundation, Inc.
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -1598,7 +1598,7 @@ Strip text properties from the inserted text according to
 
 If STRING has a non-nil `yank-handler' property on the first character,
 the normal insert behavior is modified in various ways.  The value of
-the yank-handler property must be a list with one to five elements
+the yank-handler property must be a list with one to four elements
 with the following format:  (FUNCTION PARAM NOEXCLUDE UNDO).
 When FUNCTION is present and non-nil, it is called instead of `insert'
  to insert the string.  FUNCTION takes one argument--the object to insert.
@@ -1846,14 +1846,14 @@ is allowed once again."
 (defmacro while-no-input (&rest body)
   "Execute BODY only as long as there's no pending input.
 If input arrives, that ends the execution of BODY,
-and `while-no-input' returns nil.  If BODY finishes,
-`while-no-input' returns whatever value BODY produced."
+and `while-no-input' returns t.  Quitting makes it return nil.
+If BODY finishes, `while-no-input' returns whatever value BODY produced."
   (declare (debug t) (indent 0))
   (let ((catch-sym (make-symbol "input")))
     `(with-local-quit
        (catch ',catch-sym
 	 (let ((throw-on-input ',catch-sym))
-	   (when (sit-for 0 0 t)
+	   (or (not (sit-for 0 0 t))
 	     ,@body))))))
 
 (defmacro combine-after-change-calls (&rest body)
@@ -2180,9 +2180,10 @@ arguments with the same names of function `replace-match'.  If START
 is non-nil, start replacements at that index in STRING.
 
 REP is either a string used as the NEWTEXT arg of `replace-match' or a
-function.  If it is a function it is applied to each match to generate
-the replacement passed to `replace-match'; the match-data at this
-point are such that match 0 is the function's argument.
+function.  If it is a function, it is called with the actual text of each
+match, and its value is used as the replacement text.  When REP is called,
+the match-data are the result of matching REGEXP against a substring
+of STRING.
 
 To replace only the first match (if any), make REGEXP match up to \\'
 and replace a sub-expression, e.g.
@@ -2669,9 +2670,9 @@ don't change the volume setting of the sound device.
 
   :device DEVICE - play sound on DEVICE.  If not specified,
 a system-dependent default device name is used."
-  (unless (fboundp 'play-sound-internal)
-    (error "This Emacs binary lacks sound support"))
-  (play-sound-internal sound))
+  (if (fboundp 'play-sound-internal)
+      (play-sound-internal sound)
+    (error "This Emacs binary lacks sound support")))
 
 (defun define-mail-user-agent (symbol composefunc sendfunc
 				      &optional abortfunc hookvar)
@@ -2863,6 +2864,211 @@ convenience wrapper around `make-progress-reporter' and friends.
 				   (setq ,(car spec) (1+ ,(car spec)))))
        (progress-reporter-done ,temp2)
        nil ,@(cdr (cdr spec)))))
+
+
+;;;; Compare Version Strings
+
+(defvar version-separator "."
+  "*Specify the string used to separate the version elements.
+
+Usually the separator is \".\", but it can be any other string.")
+
+
+(defvar version-regexp-alist
+  '(("^a\\(lpha\\)?$"   . -3)
+    ("^b\\(eta\\)?$"    . -2)
+    ("^\\(pre\\|rc\\)$" . -1))
+  "*Specify association between non-numeric version part and a priority.
+
+This association is used to handle version string like \"1.0pre2\",
+\"0.9alpha1\", etc.  It's used by `version-to-list' (which see) to convert the
+non-numeric part to an integer.  For example:
+
+   String Version    Integer List Version
+   \"1.0pre2\"         (1  0 -1 2)
+   \"1.0PRE2\"         (1  0 -1 2)
+   \"22.8beta3\"       (22 8 -2 3)
+   \"22.8Beta3\"       (22 8 -2 3)
+   \"0.9alpha1\"       (0  9 -3 1)
+   \"0.9AlphA1\"       (0  9 -3 1)
+   \"0.9alpha\"        (0  9 -3)
+
+Each element has the following form:
+
+   (REGEXP . PRIORITY)
+
+Where:
+
+REGEXP		regexp used to match non-numeric part of a version string.
+
+PRIORITY	negative integer which indicate the non-numeric priority.")
+
+
+(defun version-to-list (ver)
+  "Convert version string VER into an integer list.
+
+The version syntax is given by the following EBNF:
+
+   VERSION ::= NUMBER ( SEPARATOR NUMBER )*.
+
+   NUMBER ::= (0|1|2|3|4|5|6|7|8|9)+.
+
+   SEPARATOR ::= `version-separator' (which see)
+	       | `version-regexp-alist' (which see).
+
+As an example of valid version syntax:
+
+   1.0pre2   1.0.7.5   22.8beta3   0.9alpha1
+
+As an example of invalid version syntax:
+
+   1.0prepre2   1.0..7.5   22.8X3   alpha3.2   .5
+
+As an example of version convertion:
+
+   String Version    Integer List Version
+   \"1.0.7.5\"         (1  0  7 5)
+   \"1.0pre2\"         (1  0 -1 2)
+   \"1.0PRE2\"         (1  0 -1 2)
+   \"22.8beta3\"       (22 8 -2 3)
+   \"22.8Beta3\"       (22 8 -2 3)
+   \"0.9alpha1\"       (0  9 -3 1)
+   \"0.9AlphA1\"       (0  9 -3 1)
+   \"0.9alpha\"        (0  9 -3)
+
+See documentation for `version-separator' and `version-regexp-alist'."
+  (or (and (stringp ver) (not (string= ver "")))
+      (error "Invalid version string: '%s'" ver))
+  (save-match-data
+    (let ((i 0)
+	  case-fold-search		; ignore case in matching
+	  lst s al)
+      (while (and (setq s (string-match "[0-9]+" ver i))
+		  (= s i))
+	;; handle numeric part
+	(setq lst (cons (string-to-number (substring ver i (match-end 0)))
+			lst)
+	      i   (match-end 0))
+	;; handle non-numeric part
+	(when (and (setq s (string-match "[^0-9]+" ver i))
+		   (= s i))
+	  (setq s (substring ver i (match-end 0))
+		i (match-end 0))
+	  ;; handle alpha, beta, pre, etc. separator
+	  (unless (string= s version-separator)
+	    (setq al version-regexp-alist)
+	    (while (and al (not (string-match (caar al) s)))
+	      (setq al (cdr al)))
+	    (or al (error "Invalid version syntax: '%s'" ver))
+	    (setq lst (cons (cdar al) lst)))))
+      (if (null lst)
+	  (error "Invalid version syntax: '%s'" ver)
+	(nreverse lst)))))
+
+
+(defun version-list-< (l1 l2)
+  "Return t if integer list L1 is lesser than L2.
+
+Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
+etc.  That is, the trailing zeroes are irrelevant.  Also, integer
+list (1) is greater than (1 -1) which is greater than (1 -2)
+which is greater than (1 -3)."
+  (while (and l1 l2 (= (car l1) (car l2)))
+    (setq l1 (cdr l1)
+	  l2 (cdr l2)))
+  (cond
+   ;; l1 not null and l2 not null
+   ((and l1 l2) (< (car l1) (car l2)))
+   ;; l1 null and l2 null         ==> l1 length = l2 length
+   ((and (null l1) (null l2)) nil)
+   ;; l1 not null and l2 null     ==> l1 length > l2 length
+   (l1 (< (version-list-not-zero l1) 0))
+   ;; l1 null and l2 not null     ==> l2 length > l1 length
+   (t  (< 0 (version-list-not-zero l2)))))
+
+
+(defun version-list-= (l1 l2)
+  "Return t if integer list L1 is equal to L2.
+
+Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
+etc.  That is, the trailing zeroes are irrelevant.  Also, integer
+list (1) is greater than (1 -1) which is greater than (1 -2)
+which is greater than (1 -3)."
+  (while (and l1 l2 (= (car l1) (car l2)))
+    (setq l1 (cdr l1)
+	  l2 (cdr l2)))
+  (cond
+   ;; l1 not null and l2 not null
+   ((and l1 l2) nil)
+   ;; l1 null and l2 null     ==> l1 length = l2 length
+   ((and (null l1) (null l2)))
+   ;; l1 not null and l2 null ==> l1 length > l2 length
+   (l1 (zerop (version-list-not-zero l1)))
+   ;; l1 null and l2 not null ==> l2 length > l1 length
+   (t  (zerop (version-list-not-zero l2)))))
+
+
+(defun version-list-<= (l1 l2)
+  "Return t if integer list L1 is lesser than or equal to L2.
+
+Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
+etc.  That is, the trailing zeroes are irrelevant.  Also, integer
+list (1) is greater than (1 -1) which is greater than (1 -2)
+which is greater than (1 -3)."
+  (while (and l1 l2 (= (car l1) (car l2)))
+    (setq l1 (cdr l1)
+	  l2 (cdr l2)))
+  (cond
+   ;; l1 not null and l2 not null
+   ((and l1 l2) (< (car l1) (car l2)))
+   ;; l1 null and l2 null     ==> l1 length = l2 length
+   ((and (null l1) (null l2)))
+   ;; l1 not null and l2 null ==> l1 length > l2 length
+   (l1 (<= (version-list-not-zero l1) 0))
+   ;; l1 null and l2 not null ==> l2 length > l1 length
+   (t  (<= 0 (version-list-not-zero l2)))))
+
+(defun version-list-not-zero (lst)
+  "Return the first non-zero element of integer list LST.
+
+If all LST elements are zeroes or LST is nil, return zero."
+  (while (and lst (zerop (car lst)))
+    (setq lst (cdr lst)))
+  (if lst
+      (car lst)
+    ;; there is no element different of zero
+    0))
+
+
+(defun version< (v1 v2)
+  "Return t if version V1 is lesser than V2.
+
+Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
+etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
+is greater than \"1pre\" which is greater than \"1beta\" which is greater than
+\"1alpha\"."
+  (version-list-< (version-to-list v1) (version-to-list v2)))
+
+
+(defun version<= (v1 v2)
+  "Return t if version V1 is lesser than or equal to V2.
+
+Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
+etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
+is greater than \"1pre\" which is greater than \"1beta\" which is greater than
+\"1alpha\"."
+  (version-list-<= (version-to-list v1) (version-to-list v2)))
+
+(defun version= (v1 v2)
+  "Return t if version V1 is equal to V2.
+
+Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
+etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
+is greater than \"1pre\" which is greater than \"1beta\" which is greater than
+\"1alpha\"."
+  (version-list-= (version-to-list v1) (version-to-list v2)))
+
+
 
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc
 ;;; subr.el ends here

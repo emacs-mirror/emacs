@@ -1,6 +1,6 @@
 ;;; talk.el --- allow several users to talk to each other through Emacs
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: comm, frames

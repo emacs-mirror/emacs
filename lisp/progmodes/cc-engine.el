@@ -1,6 +1,6 @@
 ;;; cc-engine.el --- core syntax guessing engine for CC mode
 
-;; Copyright (C) 1985,1987,1992-2003 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -5599,6 +5599,7 @@ brace."
 			 containing-sexp paren-state))
      )))
 
+;;;###autoload
 (defun c-guess-basic-syntax ()
   "Return the syntactic context of the current line.
 This function does not do any hidden buffer changes."

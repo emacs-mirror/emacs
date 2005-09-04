@@ -1,7 +1,7 @@
 ;;; startup.el --- process Emacs shell arguments
 
 ;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-;;   2001, 2002, 2004, 2005  Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: internal
@@ -191,9 +191,9 @@ This is because we already did so.")
 
 (defvar keyboard-type nil
   "The brand of keyboard you are using.
-This variable is used to define
-the proper function and keypad keys for use under X.  It is used in a
-fashion analogous to the environment variable TERM.")
+This variable is used to define the proper function and keypad
+keys for use under X.  It is used in a fashion analogous to the
+environment variable TERM.")
 
 (defvar window-setup-hook nil
   "Normal hook run to initialize window system display.
@@ -241,7 +241,7 @@ is less convenient.
 This variable is defined for customization so as to make
 it visible in the relevant context.  However, actually customizing it
 is not allowed, since it would not work anyway.  The only way to set
-this variable usefully is to set it during while building and dumping Emacs."
+this variable usefully is to set it while building and dumping Emacs."
   :type '(choice (const :tag "none" nil) string)
   :group 'initialization
   :initialize 'custom-initialize-default
@@ -579,7 +579,7 @@ opening the first frame (e.g. open a connection to an X server).")
 
   ;; Choose a reasonable location for temporary files.
   (custom-reevaluate-setting 'temporary-file-directory)
-  (custom-reevaluate-setting 'small-emporary-file-directory)
+  (custom-reevaluate-setting 'small-temporary-file-directory)
   (custom-reevaluate-setting 'auto-save-file-name-transforms)
 
   ;; See if we should import version-control from the environment variable.
@@ -670,9 +670,9 @@ opening the first frame (e.g. open a connection to an X server).")
     ;; processed.  This is consistent with the way main in emacs.c
     ;; does things.
     (while (and (not done) args)
-      (let* ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
-                         ("--debug-init") ("--iconic") ("--icon-type")
-			 ("--no-blinking-cursor") ("--bare-bones")))
+      (let* ((longopts '(("--no-init-file") ("--no-site-file") ("--debug-init")
+                         ("--user") ("--iconic") ("--icon-type") ("--quick")
+			 ("--no-blinking-cursor") ("--basic-display")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -758,15 +758,7 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; are not set.
   (custom-reevaluate-setting 'blink-cursor-mode)
   (custom-reevaluate-setting 'normal-erase-is-backspace)
-
-  ;; If you change the code below, you need to also change the
-  ;; corresponding code in the tooltip-mode defcustom.  The two need
-  ;; to be equivalent under all conditions, or Custom will get confused.
-  (unless (or noninteractive
-	      emacs-basic-display
-              (not (display-graphic-p))
-              (not (fboundp 'x-show-tip)))
-    (tooltip-mode 1))
+  (custom-reevaluate-setting 'tooltip-mode)
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
@@ -997,7 +989,13 @@ opening the first frame (e.g. open a connection to an X server).")
         (setq term
               (if (setq hyphend (string-match "[-_][^-_]+$" term))
                   (substring term 0 hyphend)
-                nil)))))
+                nil)))
+      (when term
+	;; The terminal file has been loaded, now call the terminal
+	;; specific initialization function.
+	(let ((term-init-func (intern (concat "terminal-init-" term))))
+	  (when (fboundp term-init-func)
+	    (funcall term-init-func))))))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.
@@ -1070,6 +1068,7 @@ Read the Emacs Manual\tView the Emacs manual using Info
 	   :face variable-pitch
 	   "\
 Copying Conditions\tConditions for redistributing and changing Emacs
+Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
   (:face variable-pitch
 	   "You can do basic editing with the menu bar and scroll bar \
@@ -1355,20 +1354,20 @@ You can do basic editing with the menu bar and scroll bar using the mouse.
 
 Useful File menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
-Recover Session		recover files you were editing before a crash
+Recover Crashed Session	Recover files you were editing before a crash
 
 Important Help menu items:
-Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
+Emacs Tutorial		Learn how to use Emacs efficiently
 Emacs FAQ		Frequently asked questions and answers
 Read the Emacs Manual	View the Emacs manual using Info
 \(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
-Copying Conditions	Conditions for redistributing and changing Emacs.
-Getting New Versions	How to obtain the latest version of Emacs.
-More Manuals / Ordering Manuals    How to order printed manuals from the FSF.
+Copying Conditions	Conditions for redistributing and changing Emacs
+Getting New Versions	How to obtain the latest version of Emacs
+More Manuals / Ordering Manuals    How to order printed manuals from the FSF
 ")
 		  (insert "\n\n" (emacs-version)
 			  "
-Copyright (C) 2004 Free Software Foundation, Inc."))
+Copyright (C) 2005 Free Software Foundation, Inc."))
 
 	      ;; No mouse menus, so give help using kbd commands.
 
@@ -1416,7 +1415,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 
 	      (insert "\n\n" (emacs-version)
 		      "
-Copyright (C) 2004 Free Software Foundation, Inc.")
+Copyright (C) 2005 Free Software Foundation, Inc.")
 
 	      (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 		       (eq (key-binding "\C-h\C-d") 'describe-distribution)
@@ -1641,6 +1640,15 @@ normal otherwise."
                      (setq file file-ex))
                    (load file nil t)))
 
+		;; This is used to handle -script.  It's not clear
+		;; we need to document it.
+                ((member argi '("-scriptload"))
+                 (let* ((file (command-line-normalize-file-name
+                               (or argval (pop command-line-args-left))))
+                        ;; Take file from default dir.
+                        (file-ex (expand-file-name file)))
+                   (load file-ex nil t t)))
+
                 ((equal argi "-insert")
                  (setq tem (or argval (pop command-line-args-left)))
                  (or (stringp tem)
@@ -1721,11 +1729,7 @@ normal otherwise."
   ;; Maybe display a startup screen.
   (unless (or inhibit-startup-message
 	      noninteractive
-	      emacs-quick-startup
-	     ;; Don't display startup screen if init file
-	     ;; has started some sort of server.
-	     (and (fboundp 'process-list)
-		  (process-list)))
+	      emacs-quick-startup)
     ;; Display a startup screen, after some preparations.
 
     ;; If there are no switches to process, we might as well

@@ -1,6 +1,6 @@
 ;;; tetris.el --- implementation of Tetris for Emacs
 
-;; Copyright (C) 1997, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Glynn Clements <glynn@sensei.co.uk>
 ;; Version: 2.01
@@ -601,15 +601,16 @@ tetris-mode keybindings:
   (setq major-mode 'tetris-mode)
   (setq mode-name "Tetris")
 
-  (setq mode-popup-menu
-	'("Tetris Commands"
-	  ["Start new game"	tetris-start-game]
-	  ["End game"		tetris-end-game
-	   (tetris-active-p)]
-	  ["Pause"		tetris-pause-game
-	   (and (tetris-active-p) (not tetris-paused))]
-	  ["Resume"		tetris-pause-game
-	   (and (tetris-active-p) tetris-paused)]))
+  (unless (featurep 'emacs)
+    (setq mode-popup-menu
+	  '("Tetris Commands"
+	    ["Start new game"	tetris-start-game]
+	    ["End game"		tetris-end-game
+	     (tetris-active-p)]
+	    ["Pause"		tetris-pause-game
+	     (and (tetris-active-p) (not tetris-paused))]
+	    ["Resume"		tetris-pause-game
+	     (and (tetris-active-p) tetris-paused)])))
 
   (setq gamegrid-use-glyphs tetris-use-glyphs)
   (setq gamegrid-use-color tetris-use-color)

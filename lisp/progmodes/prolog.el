@@ -1,6 +1,7 @@
 ;;; prolog.el --- major mode for editing and running Prolog under Emacs
 
-;; Copyright (C) 1986, 1987, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Keywords: languages
@@ -29,6 +30,9 @@
 ;; Prolog interpreter process.  Font locking is tuned towards GNU Prolog.
 
 ;;; Code:
+
+(defvar comint-prompt-regexp)
+
 
 (defgroup prolog nil
   "Major mode for editing and running Prolog under Emacs."

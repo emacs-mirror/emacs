@@ -1,7 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
-;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -141,7 +141,8 @@
 (require 'cus-face)
 (require 'wid-edit)
 (eval-when-compile
-  (defvar custom-versions-load-alist))	; from cus-load
+  (defvar custom-versions-load-alist)	; from cus-load
+  (defvar recentf-exclude))		; from recentf.el
 
 (condition-case nil
     (require 'cus-load)
@@ -669,7 +670,7 @@ If `last', order groups after non-groups."
   :type 'boolean
   :group 'custom-browse)
 
-(defcustom custom-buffer-sort-alphabetically nil
+(defcustom custom-buffer-sort-alphabetically t
   "If non-nil, sort members of each customization group alphabetically."
   :type 'boolean
   :group 'custom-buffer)
@@ -1021,9 +1022,12 @@ then prompt for the MODE to customize."
 (defun customize-option (symbol)
   "Customize SYMBOL, which must be a user option variable."
   (interactive (custom-variable-prompt))
-  (custom-buffer-create (list (list symbol 'custom-variable))
-			(format "*Customize Option: %s*"
-				(custom-unlispify-tag-name symbol))))
+  (let ((basevar (indirect-variable symbol)))
+    (custom-buffer-create (list (list basevar 'custom-variable))
+			  (format "*Customize Option: %s*"
+				  (custom-unlispify-tag-name basevar)))
+    (unless (eq symbol basevar)
+      (message "`%s' is an alias for `%s'" symbol basevar))))
 
 ;;;###autoload
 (defalias 'customize-variable-other-window 'customize-option-other-window)
@@ -1033,9 +1037,12 @@ then prompt for the MODE to customize."
   "Customize SYMBOL, which must be a user option variable.
 Show the buffer in another window, but don't select it."
   (interactive (custom-variable-prompt))
-  (custom-buffer-create-other-window
-   (list (list symbol 'custom-variable))
-   (format "*Customize Option: %s*" (custom-unlispify-tag-name symbol))))
+  (let ((basevar (indirect-variable symbol)))
+    (custom-buffer-create-other-window
+     (list (list basevar 'custom-variable))
+     (format "*Customize Option: %s*" (custom-unlispify-tag-name basevar)))
+    (unless (eq symbol basevar)
+      (message "`%s' is an alias for `%s'" symbol basevar))))
 
 (defvar customize-changed-options-previous-release "20.2"
   "Version for `customize-changed-options' to refer back to by default.")
@@ -3829,8 +3836,9 @@ Optional EVENT is the location for the menu."
 	    (setq magics (cdr magics)))))
       (widget-put widget :custom-state found)))
   (custom-magic-reset widget))
+
+;;; Reading and writing the custom file.
 
-;;; The `custom-save-all' Function.
 ;;;###autoload
 (defcustom custom-file nil
   "File used for storing customization information.
@@ -3891,12 +3899,33 @@ if only the first line of the docstring is shown."))
 	   (setq user-init-file default-init-file))
 	 user-init-file))))
 
+;;;###autoload
+(defun custom-save-all ()
+  "Save all customizations in `custom-file'."
+  (let* ((filename (custom-file))
+	 (recentf-exclude (if recentf-mode
+			      (cons (concat "\\`"
+					    (regexp-quote (custom-file))
+					    "\\'")
+				    recentf-exclude)))
+	 (old-buffer (find-buffer-visiting filename)))
+    (with-current-buffer (or old-buffer (find-file-noselect filename))
+      (let ((inhibit-read-only t))
+	(custom-save-variables)
+	(custom-save-faces))
+      (let ((file-precious-flag t))
+	(save-buffer))
+      (unless old-buffer
+	(kill-buffer (current-buffer))))))
+
+;; Editing the custom file contents in a buffer.
+
 (defun custom-save-delete (symbol)
-  "Visit `custom-file' and delete all calls to SYMBOL from it.
+  "Delete all calls to SYMBOL from the contents of the current buffer.
 Leave point at the old location of the first such call,
-or (if there were none) at the end of the buffer."
-  (let ((default-major-mode 'emacs-lisp-mode))
-    (set-buffer (find-file-noselect (custom-file))))
+or (if there were none) at the end of the buffer.
+
+This function does not save the buffer."
   (goto-char (point-min))
   ;; Skip all whitespace and comments.
   (while (forward-comment 1))
@@ -4116,19 +4145,7 @@ or (if there were none) at the end of the buffer."
 		  (put symbol 'customized-face-comment nil)))))
   ;; We really should update all custom buffers here.
   (custom-save-all))
-
-;;;###autoload
-(defun custom-save-all ()
-  "Save all customizations in `custom-file'."
-  (let ((inhibit-read-only t))
-    (custom-save-variables)
-    (custom-save-faces)
-    (save-excursion
-      (let ((default-major-mode nil))
-	(set-buffer (find-file-noselect (custom-file))))
-      (let ((file-precious-flag t))
-	(save-buffer)))))
-
+
 ;;; The Customize Menu.
 
 ;;; Menu support
@@ -4222,6 +4239,7 @@ The format is suitable for use with `easy-menu-define'."
     (suppress-keymap map)
     (define-key map " " 'scroll-up)
     (define-key map "\177" 'scroll-down)
+    (define-key map "\C-c\C-c" 'Custom-set)
     (define-key map "\C-x\C-s" 'Custom-save)
     (define-key map "q" 'Custom-buffer-done)
     (define-key map "u" 'Custom-goto-parent)
@@ -4251,7 +4269,7 @@ The format is suitable for use with `easy-menu-define'."
     ["Reset to Current" Custom-reset-current t]
     ["Reset to Saved" Custom-reset-saved t]
     ["Reset to Standard Settings" Custom-reset-standard t]
-    ["Info" (Info-goto-node "(emacs)Easy Customization") t]))
+    ["Info" (info "(emacs)Easy Customization") t]))
 
 (defun Custom-goto-parent ()
   "Go to the parent group listed at the top of this buffer.

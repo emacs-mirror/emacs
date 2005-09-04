@@ -1,6 +1,7 @@
 /* File IO for GNU Emacs.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
-     1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996,
+                 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -5820,13 +5821,13 @@ auto_save_1 ()
 }
 
 static Lisp_Object
-do_auto_save_unwind (stream)  /* used as unwind-protect function */
-     Lisp_Object stream;
+do_auto_save_unwind (arg)  /* used as unwind-protect function */
+     Lisp_Object arg;
 {
+  FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
   auto_saving = 0;
-  if (!NILP (stream))
-    fclose ((FILE *) (XFASTINT (XCAR (stream)) << 16
-		      | XFASTINT (XCDR (stream))));
+  if (stream != NULL)
+    fclose (stream);
   return Qnil;
 }
 
@@ -5871,8 +5872,7 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
   int auto_saved = 0;
   int do_handled_files;
   Lisp_Object oquit;
-  FILE *stream;
-  Lisp_Object lispstream;
+  FILE *stream = NULL;
   int count = SPECPDL_INDEX ();
   int orig_minibuffer_auto_raise = minibuffer_auto_raise;
   int old_message_p = 0;
@@ -5924,24 +5924,10 @@ A non-nil CURRENT-ONLY argument means save only current buffer.  */)
 	}
 
       stream = fopen (SDATA (listfile), "w");
-      if (stream != NULL)
-	{
-	  /* Arrange to close that file whether or not we get an error.
-	     Also reset auto_saving to 0.  */
-	  lispstream = Fcons (Qnil, Qnil);
-	  XSETCARFASTINT (lispstream, (EMACS_UINT)stream >> 16);
-	  XSETCDRFASTINT (lispstream, (EMACS_UINT)stream & 0xffff);
-	}
-      else
-	lispstream = Qnil;
-    }
-  else
-    {
-      stream = NULL;
-      lispstream = Qnil;
     }
 
-  record_unwind_protect (do_auto_save_unwind, lispstream);
+  record_unwind_protect (do_auto_save_unwind,
+			 make_save_value (stream, 0));
   record_unwind_protect (do_auto_save_unwind_1,
 			 make_number (minibuffer_auto_raise));
   minibuffer_auto_raise = 0;

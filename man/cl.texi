@@ -5,7 +5,7 @@
 @copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright (C) 1993, 2002, 2005 Free Software Foundation, Inc.
+Copyright (C) 1993, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -136,7 +136,7 @@ Lisp version of the function (e.g., @code{assoc*}).
 The package described here was written by Dave Gillespie,
 @file{daveg@@synaptics.com}.  It is a total rewrite of the original
 1986 @file{cl.el} package by Cesar Quiroz.  Most features of the
-the Quiroz package have been retained; any incompatibilities are
+Quiroz package have been retained; any incompatibilities are
 noted in the descriptions below.  Care has been taken in this
 version to ensure that each function is defined efficiently,
 concisely, and with minimal impact on the rest of the Emacs
@@ -734,6 +734,11 @@ type symbol @code{nil} stands for nothing at all, and
 The type symbol @code{null} represents the symbol @code{nil}.
 Thus @code{(typep @var{object} 'null)} is equivalent to
 @code{(null @var{object})}.
+
+@item
+The type symbol @code{atom} represents all objects that are not cons
+cells. Thus @code{(typep @var{object} 'atom)} is equivalent to
+@code{(atom @var{object})}.
 
 @item
 The type symbol @code{real} is a synonym for @code{number}, and

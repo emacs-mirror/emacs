@@ -1,7 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code
 
 ;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000, 2001, 2002,
-;;   2003, 2004, 2005  Free Software Foundation, Inc.
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -358,7 +358,7 @@ Elements of the list may be be:
 
 (defvar byte-compile-interactive-only-functions
   '(beginning-of-buffer end-of-buffer replace-string replace-regexp
-			insert-file)
+    insert-file insert-buffer insert-file-literally)
   "List of commands that are not meant to be called from Lisp.")
 
 (defvar byte-compile-not-obsolete-var nil
@@ -3351,11 +3351,14 @@ That command is designed for interactive use only" fn))
 
 (defmacro byte-compile-maybe-guarded (condition &rest body)
   "Execute forms in BODY, potentially guarded by CONDITION.
-CONDITION is the test in an `if' form or in a `cond' clause.
-BODY is to compile the first arm of the if or the body of the
-cond clause.  If CONDITION is of the form `(foundp 'foo)'
-or `(boundp 'foo)', the relevant warnings from BODY about foo
-being undefined will be suppressed."
+CONDITION is a variable whose value is a test in an `if' or `cond'.
+BODY is the code to compile  first arm of the if or the body of the
+cond clause.  If CONDITION's value is of the form (fboundp 'foo)
+or (boundp 'foo), the relevant warnings from BODY about foo's
+being undefined will be suppressed.
+
+If CONDITION's value is (not (featurep 'emacs)) or (featurep 'xemacs),
+that suppresses all warnings during execution of BODY."
   (declare (indent 1) (debug t))
   `(let* ((fbound
 	   (if (eq 'fboundp (car-safe ,condition))
@@ -3373,13 +3376,19 @@ being undefined will be suppressed."
 	  (byte-compile-bound-variables
 	   (if bound
 	       (cons bound byte-compile-bound-variables)
-	     byte-compile-bound-variables)))
-     (progn ,@body)
-     ;; Maybe remove the function symbol from the unresolved list.
-     (if fbound
-	 (setq byte-compile-unresolved-functions
-	       (delq (assq fbound byte-compile-unresolved-functions)
-		     byte-compile-unresolved-functions)))))
+	     byte-compile-bound-variables))
+	  ;; Suppress all warnings, for code not used in Emacs.
+	  (byte-compile-warnings
+	   (if (member ,condition '((featurep 'xemacs)
+				    (not (featurep 'emacs))))
+	       nil byte-compile-warnings)))
+     (unwind-protect
+	 (progn ,@body)
+       ;; Maybe remove the function symbol from the unresolved list.
+       (if fbound
+	   (setq byte-compile-unresolved-functions
+		 (delq (assq fbound byte-compile-unresolved-functions)
+		       byte-compile-unresolved-functions))))))
 
 (defun byte-compile-if (form)
   (byte-compile-form (car (cdr form)))
@@ -3400,7 +3409,8 @@ being undefined will be suppressed."
 	  (byte-compile-form (nth 2 form) for-effect))
 	(byte-compile-goto 'byte-goto donetag)
 	(byte-compile-out-tag elsetag)
-	(byte-compile-body (cdr (cdr (cdr form))) for-effect)
+	(byte-compile-maybe-guarded (list 'not clause)
+	  (byte-compile-body (cdr (cdr (cdr form))) for-effect))
 	(byte-compile-out-tag donetag))))
   (setq for-effect nil))
 
@@ -3420,12 +3430,12 @@ being undefined will be suppressed."
 	     (if (null (cdr clause))
 		 ;; First clause is a singleton.
 		 (byte-compile-goto-if t for-effect donetag)
-		 (setq nexttag (byte-compile-make-tag))
-		 (byte-compile-goto 'byte-goto-if-nil nexttag)
-		 (byte-compile-maybe-guarded (car clause)
-		   (byte-compile-body (cdr clause) for-effect))
-		 (byte-compile-goto 'byte-goto donetag)
-		 (byte-compile-out-tag nexttag)))))
+	       (setq nexttag (byte-compile-make-tag))
+	       (byte-compile-goto 'byte-goto-if-nil nexttag)
+	       (byte-compile-maybe-guarded (car clause)
+		 (byte-compile-body (cdr clause) for-effect))
+	       (byte-compile-goto 'byte-goto donetag)
+	       (byte-compile-out-tag nexttag)))))
     ;; Last clause
     (let ((guard (car clause)))
       (and (cdr clause) (not (eq guard t))
@@ -3441,24 +3451,38 @@ being undefined will be suppressed."
 	(args (cdr form)))
     (if (null args)
 	(byte-compile-form-do-effect t)
-      (while (cdr args)
-	(byte-compile-form (car args))
+      (byte-compile-and-recursion args failtag))))
+
+;; Handle compilation of a nontrivial `and' call.
+;; We use tail recursion so we can use byte-compile-maybe-guarded.
+(defun byte-compile-and-recursion (rest failtag)
+  (if (cdr rest)
+      (progn
+	(byte-compile-form (car rest))
 	(byte-compile-goto-if nil for-effect failtag)
-	(setq args (cdr args)))
-      (byte-compile-form-do-effect (car args))
-      (byte-compile-out-tag failtag))))
+	(byte-compile-maybe-guarded (car rest)
+	  (byte-compile-and-recursion (cdr rest) failtag)))
+    (byte-compile-form-do-effect (car rest))
+    (byte-compile-out-tag failtag)))
 
 (defun byte-compile-or (form)
   (let ((wintag (byte-compile-make-tag))
 	(args (cdr form)))
     (if (null args)
 	(byte-compile-form-do-effect nil)
-      (while (cdr args)
-	(byte-compile-form (car args))
+      (byte-compile-or-recursion args wintag))))
+
+;; Handle compilation of a nontrivial `or' call.
+;; We use tail recursion so we can use byte-compile-maybe-guarded.
+(defun byte-compile-or-recursion (rest wintag)
+  (if (cdr rest)
+      (progn
+	(byte-compile-form (car rest))
 	(byte-compile-goto-if t for-effect wintag)
-	(setq args (cdr args)))
-      (byte-compile-form-do-effect (car args))
-      (byte-compile-out-tag wintag))))
+	(byte-compile-maybe-guarded (list 'not (car rest))
+	  (byte-compile-or-recursion (cdr rest) wintag)))
+    (byte-compile-form-do-effect (car rest))
+    (byte-compile-out-tag wintag)))
 
 (defun byte-compile-while (form)
   (let ((endtag (byte-compile-make-tag))
@@ -3766,6 +3790,19 @@ being undefined will be suppressed."
 (defun byte-compile-no-warnings (form)
   (let (byte-compile-warnings)
     (byte-compile-form (cons 'progn (cdr form)))))
+
+;; Warn about misuses of make-variable-buffer-local.
+(byte-defop-compiler-1 make-variable-buffer-local byte-compile-make-variable-buffer-local)
+(defun byte-compile-make-variable-buffer-local (form)
+  (if (eq (car-safe (car-safe (cdr-safe form))) 'quote)
+      (byte-compile-warn
+       "`make-variable-buffer-local' should be called at toplevel"))
+  (byte-compile-normal-call form))
+(put 'make-variable-buffer-local
+     'byte-hunk-handler 'byte-compile-form-make-variable-buffer-local)
+(defun byte-compile-form-make-variable-buffer-local (form)
+  (byte-compile-keep-pending form 'byte-compile-normal-call))
+
 
 ;;; tags
 

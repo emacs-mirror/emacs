@@ -1,3 +1,25 @@
+2005-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-util.el (url-parse-query-string): New optional argument
+	allow-newlines allows decoding of newlines.
+
+	* url-mailto.el (url-mailto): Allow newlines in URL arguments.
+	Don't lose original "to" value when there is a "to" header.
+	Remove carriage return characters in message body.
+
+2005-08-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-news.el (nntp-open-tls-stream, nntp-open-ssl-stream):
+	* url-http.el (url-http-cookies-sources): Defvar at compile time.
+
+2005-07-15  Richard M. Stallman  <rms@gnu.org>
+
+	* url-http.el (url-http-parse-headers): Add :redirect arg-pair
+	when calling url-retrieve, to indicate a redirect.
+
+	* url.el (url-retrieve): The callback function can get an additional
+	keyword arg pair.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

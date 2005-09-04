@@ -1,7 +1,7 @@
 ;;; gnus-salt.el --- alternate summary mode interfaces for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2002, 2004, 2005
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -128,8 +128,7 @@ It accepts the same format specs that `gnus-summary-line-format' does."
       ;; Set up the menu.
       (when (gnus-visual-p 'pick-menu 'menu)
 	(gnus-pick-make-menu-bar))
-      (gnus-add-minor-mode 'gnus-pick-mode " Pick" gnus-pick-mode-map
-			   nil 'gnus-pick-mode)
+      (gnus-add-minor-mode 'gnus-pick-mode " Pick" gnus-pick-mode-map)
       (gnus-run-hooks 'gnus-pick-mode-hook))))
 
 (defun gnus-pick-setup-message ()
@@ -362,8 +361,7 @@ This must be bound to a button-down mouse event."
       ;; Set up the menu.
       (when (gnus-visual-p 'binary-menu 'menu)
 	(gnus-binary-make-menu-bar))
-      (gnus-add-minor-mode 'gnus-binary-mode " Binary"
-			   gnus-binary-mode-map nil 'gnus-binary-mode)
+      (gnus-add-minor-mode 'gnus-binary-mode " Binary" gnus-binary-mode-map)
       (gnus-run-hooks 'gnus-binary-mode-hook))))
 
 (defun gnus-binary-display-article (article &optional all-header)

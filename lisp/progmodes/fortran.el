@@ -1,7 +1,7 @@
 ;;; fortran.el --- Fortran mode for GNU Emacs
 
 ;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001,
-;;               2003, 2004, 2005  Free Software Foundation, Inc.
+;;               2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Michael D. Prange <prange@erl.mit.edu>
 ;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
@@ -55,6 +55,8 @@
 
 (eval-when-compile			; silence compiler
   (defvar dabbrev-case-fold-search)
+  (defvar font-lock-syntactic-keywords)
+  (defvar gud-find-expr-function)
   (defvar imenu-case-fold-search)
   (defvar imenu-syntax-alist))
 
@@ -1646,7 +1648,7 @@ notes: 1) A non-zero/non-blank character in column 5 indicates a continuation
 	    (let* ((char (if (stringp fortran-comment-indent-char)
 			     (aref fortran-comment-indent-char 0)
 			   fortran-comment-indent-char))
-		   (chars (string ?  ?\t char)))
+		   (chars (string ?\s ?\t char)))
 	      (goto-char (match-end 0))
 	      (skip-chars-backward chars)
 	      (delete-region (point) (progn (skip-chars-forward chars)
@@ -1656,7 +1658,7 @@ notes: 1) A non-zero/non-blank character in column 5 indicates a continuation
 	  (if indent-tabs-mode
 	      (goto-char (match-end 0))
 	    (delete-char 2)
-	    (insert-char ?  5)
+	    (insert-char ?\s 5)
 	    (insert fortran-continuation-string))
 	(if (looking-at " \\{5\\}[^ 0\n]")
 	    (if indent-tabs-mode

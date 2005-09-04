@@ -16,7 +16,7 @@ Please submit a bug report if you find that any of the addresses
 listed here fail.
 
 * The `Emacs Lisp List' at
-  <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/ell.html> has pointers
+  <URL:http://www.damtp.cam.ac.uk/user/eglen/emacs/ell.html> has pointers
   to sources of a large number of packages.
 
 * gnu.emacs.sources
@@ -47,25 +47,18 @@ You might find bug-fixes or enhancements in these places.
 
  * CC mode: <URL:http://cc-mode.sourceforge.net/>
 
- * CPerl: <URL:ftp://ftp.math.ohio-state.edu/pub/users/ilya>
+ * CPerl: <URL:http://www.cpan.org/modules/by-module/CPAN/ILYAZ/cperl-mode/>
 
  * Ediff and Viper: <URL:http://www.cs.sunysb.edu/~kifer/emacs.html>
 
  * Eldoc and Rlogin:
-   <URL:ftp://ftp.splode.com/pub/users/friedman/packages/>
+   <URL:http://www.splode.com/~friedman/software/emacs-lisp/>
 
- * EShell: <URL:http://www.gci-net.com/users/j/johnw/emacs.html>
+ * EShell: <URL:http://www.newartisans.com/johnw/emacs.html>
 
  * Etags: <URL:ftp://pot.potorti.it/pub/software/unix/etags.tar.gz>
 
- * EUDC: <URL:http://lspwww.epfl.ch/%7Efigueire/Software/eudc/>
-
  * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
-
- * Find Func:
-   <URL:http://www.kurims.kyoto-u.ac.jp/%7Epetersen/emacs/find-func.el>
-
- * Flyspell: <URL:http://kaolin.unice.fr/%7Eserrano/emacs/flyspell>
 
  * Fortune: <URL:http://www.coling.uni-freiburg.de/%7Eschauer/emacs.html>
 
@@ -78,25 +71,19 @@ You might find bug-fixes or enhancements in these places.
 
  * Ispell: <URL:http://www.kdstevens.com/%7Estevens/ispell-page.html>
 
- * Iswitchb: <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/iswitchb.el>
-
- * MH-E: <URL:http://mh-e.sourceforge.net/>
-
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 
  * PS mode: <URL:http://odur.let.rug.nl/%7Ekleiweg/postscript/>
 
- * PS-print: <URL:ftp://ftp.cpqd.com.br/pub/users/vinicius/>
+ * PS-print: <URL:http://www.cpqd.com.br/~vinicius/emacs/>
 
- * QuickURL: <URL:http://www.acemake.com/hagbard/archives/quickurl.el>
+ * QuickURL: <URL:http://www.davep.org/emacs/>
 
- * RefTeX: <URL:http://zon.astro.uva.nl/~dominik/Tools/>
+ * RefTeX: <URL:http://staff.science.uva.nl/~dominik/Tools/reftex/>
 
  * Speedbar, Checkdoc etc: <URL:http://cedet.sourceforge.net/>
 
  * SQL: <URL:http://www.geocities.com/TimesSquare/6120/emacs.html>
-
- * Sregex: <URL:http://www.zanshin.com/%7Ebobg/sregex.html>
 
  * Tramp: Remote file access via rsh/ssh
    <URL:http://savannah.gnu.org/projects/tramp/>
@@ -146,7 +133,7 @@ Several are for Debian GNU/Linux in particular.
    mirrors of the `CTAN' TeX archives.
 
  * Dismal: spreadsheet:
-   <URL:http://acs.ist.psu.edu/dismal/dismal.html>
+   <URL:http://www.gnu.org/software/dismal/dismal.html>
 
  * ECB: Emacs Code Browser: <URL:http://ecb.sourceforge.net/>
 
@@ -166,7 +153,7 @@ Several are for Debian GNU/Linux in particular.
  * EMacro: <URL:http://emacro.sourceforge.net/>
    EMacro is a portable configuration file that configures itself.
 
- * Emacs statistical system (ESS): statistical programming within Emacs
+ * Emacs speaks statistics (ESS): statistical programming within Emacs
    <URL:http://ess.r-project.org>
 
  * Emacspeak -- A Speech Output Subsystem For Emacs:
@@ -183,26 +170,18 @@ Several are for Debian GNU/Linux in particular.
    <URL:http://www.emacswiki.org/cgi-bin/wiki?EmacsIRCClient>
 
  * Gnuserv:
-   <URL:ftp://ftp.splode.com/pub/users/friedman/packages/fgnuserv-1.0.tar.gz>
-   Enhanced emacsclient/emacsserver.  See also
-   <URL:http://www.splode.com/users/friedman/software/emacs-lisp/> for
-   other Friedman Emacs hacks.
-
-   The latest versions of gnuserv are maintained by Martin Schwenke,
-   and are available from <URL:http://meltin.net/hacks/emacs/>.  Also
-   available from this Web page: eiffel-mode.el.
+   <URL:http://meltin.net/hacks/emacs/>
+   Enhanced emacsclient/emacsserver.  Also available from this Web
+   page: eiffel-mode.el.
 
  * hm--html-menus:
    <URL:ftp://ftp.tnt.uni-hannover.de/pub/editors/xemacs/contrib>
    HTML-specific editing.  Can work with PSGML.
 
- * Hyperbole: `Hyperbole is an open, efficient, programmable
-   information management and hypertext system.'
-   From GNU distribution mirrors.
-
- * ILISP: <URL:http://ilisp.cons.org/>
-   Provides an interactive environment for manipulating an inferior
-   process running some form of Lisp.
+ * Hyperbole:
+   <URL:http://ftp.gnu.org/pub/gnu/hyperbole/hyperbole-4.01.tar.gz>
+   Hyperbole is an open, efficient, programmable information
+   management and hypertext system.
 
  * JDEE: <URL:http://jdee.sunsite.dk/>
    Provides a Java development environment for Emacs.
@@ -233,9 +212,6 @@ Several are for Debian GNU/Linux in particular.
 
  * Planner Mode:
    <URL:http://sacha.free.net.ph/notebook/wiki/PlannerMode.php>
-
- * Pointers to MIME packages:
-   <URL:http://bmrc.berkeley.edu/%7Etrey/emacs/mime.html>
 
  * Preview LaTeX: embed preview LaTeX images in source buffer.
    <URL:http://preview-latex.sourceforge.net/>

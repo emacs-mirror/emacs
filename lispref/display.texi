@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
-@c   2002, 2005  Free Software Foundation, Inc.
+@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/display
 @node Display, System Interface, Processes, Top
@@ -31,7 +31,6 @@ that Emacs presents to the user.
 * Images::              Displaying images in Emacs buffers.
 * Buttons::             Adding clickable buttons to Emacs buffers.
 * Blinking::            How Emacs shows the matching open parenthesis.
-* Inverse Video::       Specifying how the screen looks.
 * Usual Display::       The usual conventions for displaying nonprinting chars.
 * Display Tables::      How to specify other conventions.
 * Beeping::             Audible signal to the user.
@@ -495,18 +494,17 @@ sequence are echoed immediately.)
 If the value is zero, then command input is not echoed.
 @end defvar
 
-@defopt max-mini-window-height
-This variable specifies the maximum height for resizing minibuffer
-windows.  If a float, it specifies a fraction of the height of the
-frame.  If an integer, it specifies a number of lines.
-@end defopt
-
 @defvar message-truncate-lines
 Normally, displaying a long message resizes the echo area to display
 the entire message.  But if the variable @code{message-truncate-lines}
 is non-@code{nil}, the echo area does not resize, and the message is
 truncated to fit it, as in Emacs 20 and before.
 @end defvar
+
+  The variable @code{max-mini-window-height}, which specifies the
+maximum height for resizing minibuffer windows, also applies to the
+echo area (which is really a special use of the minibuffer window.
+@xref{Minibuffer Misc}.
 
 @node Warnings
 @section Reporting Warnings
@@ -1133,12 +1131,14 @@ markers.  If @var{buffer} is omitted, the overlay is created in the
 current buffer.
 
 The arguments @var{front-advance} and @var{rear-advance} specify the
-insertion type for the start of the overlay and for the end of the
-overlay, respectively.  @xref{Marker Insertion Types}.  If
-@var{front-advance} is non-@code{nil}, text inserted at the beginning
-of the overlay is excluded from the overlay.  If @var{read-advance} is
-non-@code{nil}, text inserted at the beginning of the overlay is
-included in the overlay.
+marker insertion type for the start of the overlay and for the end of
+the overlay, respectively.  @xref{Marker Insertion Types}.  If they
+are both @code{nil}, the default, then the overlay extends to include
+any text inserted at the beginning, but not text inserted at the end.
+If @var{front-advance} is non-@code{nil}, text inserted at the
+beginning of the overlay is excluded from the overlay.  If
+@var{rear-advance} is non-@code{nil}, text inserted at the end of the
+overlay is included in the overlay.
 @end defun
 
 @defun overlay-start overlay
@@ -1387,6 +1387,10 @@ modified, and the length of the pre-change text replaced by that range.
 length is the number of characters deleted, and the post-change
 beginning and end are equal.)
 
+If these functions modify the buffer, they should bind
+@code{inhibit-modification-hooks} to @code{t} around doing so, to
+avoid confusing the internal mechanism that calls these hooks.
+
 @item insert-in-front-hooks
 @kindex insert-in-front-hooks @r{(overlay property)}
 This property's value is a list of functions to be called before and
@@ -1497,18 +1501,24 @@ end of an overlay, before @var{pos}.  If there is none, it returns
 @code{(point-min)}.
 @end defun
 
-  Here's an easy way to use @code{next-overlay-change} to search for the
-next character which gets a non-@code{nil} @code{happy} property from
+  Here's a function which uses @code{next-overlay-change} to search
+for the next character which gets a given property @code{prop} from
 either its overlays or its text properties (@pxref{Property Search}):
 
 @smallexample
 (defun find-overlay-prop (prop)
   (save-excursion
     (while (and (not (eobp))
-                (not (get-char-property (point) 'happy)))
+                (not (get-char-property (point) prop)))
       (goto-char (min (next-overlay-change (point))
-                      (next-single-property-change (point) 'happy))))
+                      (next-single-property-change (point) prop))))
     (point)))
+@end smallexample
+
+  Now you can search for a @code{happy} property like this:
+
+@smallexample
+(find-overlay-prop 'happy)
 @end smallexample
 
 @node Width
@@ -1636,7 +1646,7 @@ parts of Emacs text.
 
 @vindex default-line-spacing
   You can specify the line spacing for all lines in a frame with the
-@code{line-spacing} frame parameter, @xref{Window Frame Parameters}.
+@code{line-spacing} frame parameter (@pxref{Layout Parameters}).
 However, if the variable @code{default-line-spacing} is
 non-@code{nil}, it overrides the frame's @code{line-spacing}
 parameter.  An integer value specifies the number of pixels put below
@@ -1669,7 +1679,9 @@ height.
   A @dfn{face} is a named collection of graphical attributes: font
 family, foreground color, background color, optional underlining, and
 many others.  Faces are used in Emacs to control the style of display of
-particular parts of the text or the frame.
+particular parts of the text or the frame.  @xref{Standard Faces,,,
+emacs, The GNU Emacs Manual}, for the list of faces Emacs normally
+comes with.
 
 @cindex face id
 Each face has its own @dfn{face number}, which distinguishes faces at
@@ -1687,7 +1699,6 @@ same meaning in all frames.  But you can arrange to give a particular
 face name a special meaning in one frame if you wish.
 
 @menu
-* Standard Faces::      The faces Emacs normally comes with.
 * Defining Faces::      How to define a face with @code{defface}.
 * Face Attributes::     What is in a face?
 * Attribute Functions::  Functions to examine and set face attributes.
@@ -1700,140 +1711,6 @@ face name a special meaning in one frame if you wish.
 * Fontsets::            A fontset is a collection of fonts
                           that handle a range of character sets.
 @end menu
-
-@node Standard Faces
-@subsection Standard Faces
-
-  This table lists all the standard faces and their uses.  Most of them
-are used for displaying certain parts of the frames or certain kinds of
-text; you can control how those places look by customizing these faces.
-
-@table @code
-@item default
-@kindex default @r{(face name)}
-This face is used for ordinary text.
-
-@item mode-line
-@kindex mode-line @r{(face name)}
-This face is used for the mode line of the selected window, and for
-menu bars when toolkit menus are not used---but only if
-@code{mode-line-inverse-video} is non-@code{nil}.
-
-@item modeline
-@kindex modeline @r{(face name)}
-This is an alias for the @code{mode-line} face, for compatibility with
-old Emacs versions.
-
-@item mode-line-inactive
-@kindex mode-line-inactive @r{(face name)}
-This face is used for mode lines of non-selected windows.
-This face inherits from @code{mode-line}, so changes
-in that face affect all windows.
-
-@item header-line
-@kindex header-line @r{(face name)}
-This face is used for the header lines of windows that have them.
-
-@item menu
-This face controls the display of menus, both their colors and their
-font.  (This works only on certain systems.)
-
-@item fringe
-@kindex fringe @r{(face name)}
-This face controls the default colors of window fringes, the thin
-areas on either side that are used to display continuation and
-truncation glyphs.  Other faces used to display bitmaps in the fringe
-are implicitly merged with this face.
-
-@item minibuffer-prompt
-@kindex minibuffer-prompt @r{(face name)}
-@vindex minibuffer-prompt-properties
-This face is used for the text of minibuffer prompts.  By default,
-Emacs automatically adds this face to the value of
-@code{minibuffer-prompt-properties}, which is a list of text
-properties used to display the prompt text.
-
-@item scroll-bar
-@kindex scroll-bar @r{(face name)}
-This face controls the colors for display of scroll bars.
-
-@item tool-bar
-@kindex tool-bar @r{(face name)}
-This face is used for display of the tool bar, if any.
-
-@item region
-@kindex region @r{(face name)}
-This face is used for highlighting the region in Transient Mark mode.
-
-@item secondary-selection
-@kindex secondary-selection @r{(face name)}
-This face is used to show any secondary selection you have made.
-
-@item highlight
-@kindex highlight @r{(face name)}
-This face is meant to be used for highlighting for various purposes.
-
-@item mode-line-highlight
-@kindex mode-line-highlight @r{(face name)}
-This face is used for highlighting something on @code{mode-line} or
-@code{header-line} for various purposes.
-
-@item trailing-whitespace
-@kindex trailing-whitespace @r{(face name)}
-This face is used to display excess whitespace at the end of a line,
-if @code{show-trailing-whitespace} is non-@code{nil}.
-
-@item escape-glyph
-@kindex escape-glyph @r{(face name)}
-This face is used to display control characters and escape glyphs.
-@end table
-
-  In contrast, these faces are provided to change the appearance of text
-in specific ways.  You can use them on specific text, when you want
-the effects they produce.
-
-@table @code
-@item bold
-@kindex bold @r{(face name)}
-This face uses a bold font, if possible.  It uses the bold variant of
-the frame's font, if it has one.  It's up to you to choose a default
-font that has a bold variant, if you want to use one.
-
-@item italic
-@kindex italic @r{(face name)}
-This face uses the italic variant of the frame's font, if it has one.
-
-@item bold-italic
-@kindex bold-italic @r{(face name)}
-This face uses the bold italic variant of the frame's font, if it has
-one.
-
-@item underline
-@kindex underline @r{(face name)}
-This face underlines text.
-
-@item fixed-pitch
-@kindex fixed-pitch @r{(face name)}
-This face forces use of a particular fixed-width font.
-
-@item variable-pitch
-@kindex variable-pitch @r{(face name)}
-This face forces use of a particular variable-width font.  It's
-reasonable to customize this to use a different variable-width font, if
-you like, but you should not make it a fixed-width font.
-
-@item shadow
-@kindex shadow @r{(face name)}
-This face is used for making the text less noticeable than the
-surrounding ordinary text.
-@end table
-
-@defvar show-trailing-whitespace
-@tindex show-trailing-whitespace
-If this variable is non-@code{nil}, Emacs uses the
-@code{trailing-whitespace} face to display any spaces and tabs at the
-end of a line.
-@end defvar
 
 @node Defining Faces
 @subsection Defining Faces
@@ -2285,10 +2162,14 @@ This function sets the underline attribute of face @var{face}.
 Non-@code{nil} means do underline; @code{nil} means don't.
 @end defun
 
+@defun set-face-inverse-video-p face inverse-video-p &optional frame
+This function sets the @code{:inverse-video} attribute of face
+@var{face}.
+@end defun
+
 @defun invert-face face &optional frame
-This function inverts the @code{:inverse-video} attribute of face
-@var{face}.  If the attribute is @code{nil}, this function sets it to
-@code{t}, and vice versa.
+This function swaps the foreground and background colors of face
+@var{face}.
 @end defun
 
   These functions examine the attributes of a face.  If you don't
@@ -2297,7 +2178,7 @@ They return the symbol @code{unspecified} if the face doesn't define any
 value for that attribute.
 
 @defun face-foreground face &optional frame inherit
-@defunx face-background face &optional frame
+@defunx face-background face &optional frame inherit
 These functions return the foreground color (or background color,
 respectively) of face @var{face}, as a string.
 
@@ -2375,7 +2256,8 @@ properties too; they apply to all the text covered by the overlay.
 
 @item
 With a region that is active.  In Transient Mark mode, the region is
-highlighted with the face @code{region} (@pxref{Standard Faces}).
+highlighted with the face @code{region} (@pxref{Standard Faces,,,
+emacs, The GNU Emacs Manual}).
 
 @item
 With special glyphs.  Each glyph can specify a particular face
@@ -3073,7 +2955,7 @@ Normally the frame parameter @code{vertical-scroll-bars} controls
 whether the windows in the frame have vertical scroll bars, and
 whether they are on the left or right.  The frame parameter
 @code{scroll-bar-width} specifies how wide they are (@code{nil}
-meaning the default).  @xref{Window Frame Parameters}.
+meaning the default).  @xref{Layout Parameters}.
 
 @defun frame-current-scroll-bars &optional frame
 This function reports the scroll bar type settings for frame
@@ -4586,24 +4468,6 @@ Here is an example of calling this function explicitly.
 @end group
 @end smallexample
 @end deffn
-
-@node Inverse Video
-@section Inverse Video
-@cindex Inverse Video
-
-@defopt inverse-video
-@cindex highlighting
-This variable controls whether Emacs uses inverse video for all text
-on the screen.  Non-@code{nil} means yes, @code{nil} means no.  The
-default is @code{nil}.
-@end defopt
-
-@defopt mode-line-inverse-video
-This variable controls the use of inverse video for mode lines and
-menu bars.  If it is non-@code{nil}, then these lines are displayed in
-the face @code{mode-line}.  Otherwise, these lines are displayed
-normally, just like other text.  The default is @code{t}.
-@end defopt
 
 @node Usual Display
 @section Usual Display Conventions

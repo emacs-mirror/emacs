@@ -1,6 +1,7 @@
 ;;; shell.el --- specialized comint.el for running the shell
 
-;; Copyright (C) 1988, 93, 94, 95, 96, 1997, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1993, 1994, 1995, 1996, 1997, 2000,
+;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Olin Shivers <shivers@cs.cmu.edu>
 ;;	Simon Marshall <simon@gnu.org>
@@ -411,7 +412,7 @@ Variable `shell-completion-fignore' is used to initialize the value of
 `comint-completion-fignore'.
 
 Variables `comint-input-ring-file-name' and `comint-input-autoexpand' control
-the initialisation of the input ring history, and history expansion.
+the initialization of the input ring history, and history expansion.
 
 Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input' and `comint-scroll-to-bottom-on-output'
@@ -790,7 +791,7 @@ line output and parses it to form the new directory stack.
 DON'T issue this command unless the buffer is at a shell prompt.
 Also, note that if some other subprocess decides to do output
 immediately after the query, its output will be taken as the
-new directory stack -- you lose. If this happens, just do the
+new directory stack -- you lose.  If this happens, just do the
 command again."
   (interactive)
   (let* ((proc (get-buffer-process (current-buffer)))

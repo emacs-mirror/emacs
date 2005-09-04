@@ -1,7 +1,7 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: convenience patch diff
@@ -54,6 +54,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+
+(defvar add-log-buffer-file-name-function)
 
 
 (defgroup diff-mode ()
@@ -197,7 +199,7 @@ when editing big diffs)."
     (((class color) (min-colors 88) (background dark))
      :background "grey60" :weight bold)
     (((class color) (background light))
-     :foreground "yellow" :weight bold)
+     :foreground "green" :weight bold)
     (((class color) (background dark))
      :foreground "cyan" :weight bold)
     (t :weight bold))			; :height 1.3
@@ -250,6 +252,27 @@ when editing big diffs)."
 (put 'diff-changed-face 'face-alias 'diff-changed)
 (defvar diff-changed-face 'diff-changed)
 
+(defface diff-indicator-removed
+  '((t :inherit diff-removed))
+  "`diff-mode' face used to highlight indicator of removed lines (-, <)."
+  :group 'diff-mode
+  :version "22.1")
+(defvar diff-indicator-removed-face 'diff-indicator-removed)
+
+(defface diff-indicator-added
+  '((t :inherit diff-added))
+  "`diff-mode' face used to highlight indicator of added lines (+, >)."
+  :group 'diff-mode
+  :version "22.1")
+(defvar diff-indicator-added-face 'diff-indicator-added)
+
+(defface diff-indicator-changed
+  '((t :inherit diff-changed))
+  "`diff-mode' face used to highlight indicator of changed lines."
+  :group 'diff-mode
+  :version "22.1")
+(defvar diff-indicator-changed-face 'diff-indicator-changed)
+
 (defface diff-function
   '((t :inherit diff-context))
   "`diff-mode' face used to highlight function names produced by \"diff -p\"."
@@ -259,7 +282,7 @@ when editing big diffs)."
 (defvar diff-function-face 'diff-function)
 
 (defface diff-context
-  '((t :inherit shadow))
+  '((((class color grayscale) (min-colors 88)) :inherit shadow))
   "`diff-mode' face used to highlight context and other side-information."
   :group 'diff-mode)
 ;; backward-compatibility alias
@@ -298,24 +321,29 @@ when editing big diffs)."
 
 
 (defvar diff-font-lock-keywords
-  `(("^\\(@@ -[0-9,]+ \\+[0-9,]+ @@\\)\\(.*\\)$" ;unified
-     (1 diff-hunk-header-face)
-     (2 diff-function-face))
-    ("^--- .+ ----$" . diff-hunk-header-face) ;context
-    ("^\\(\\*\\{15\\}\\)\\(.*\\)$"	;context
-     (1 diff-hunk-header-face)
-     (2 diff-function-face))
+  `(("^\\(@@ -[0-9,]+ \\+[0-9,]+ @@\\)\\(.*\\)$"          ;unified
+     (1 diff-hunk-header-face) (2 diff-function-face))
+    ("^\\(\\*\\{15\\}\\)\\(.*\\)$"                        ;context
+     (1 diff-hunk-header-face) (2 diff-function-face))
     ("^\\*\\*\\* .+ \\*\\*\\*\\*". diff-hunk-header-face) ;context
+    ("^--- .+ ----$"             . diff-hunk-header-face) ;context
+    ("^[0-9,]+[acd][0-9,]+$"     . diff-hunk-header-face) ;normal
+    ("^---$"                     . diff-hunk-header-face) ;normal
     ("^\\(---\\|\\+\\+\\+\\|\\*\\*\\*\\) \\(\\S-+\\)\\(.*[^*-]\\)?\n"
      (0 diff-header-face) (2 diff-file-header-face prepend))
-    ("^[0-9,]+[acd][0-9,]+$" . diff-hunk-header-face)
-    ("^!.*\n" (0 diff-changed-face))
-    ("^[+>].*\n" (0 diff-added-face))
-    ("^[-<].*\n" (0 diff-removed-face))
-    ("^Index: \\(.+\\).*\n" (0 diff-header-face) (1 diff-index-face prepend))
+    ("^\\([-<]\\)\\(.*\n\\)"
+     (1 diff-indicator-removed-face) (2 diff-removed-face))
+    ("^\\([+>]\\)\\(.*\n\\)"
+     (1 diff-indicator-added-face) (2 diff-added-face))
+    ("^\\(!\\)\\(.*\n\\)"
+     (1 diff-indicator-changed-face) (2 diff-changed-face))
+    ("^Index: \\(.+\\).*\n"
+     (0 diff-header-face) (1 diff-index-face prepend))
     ("^Only in .*\n" . diff-nonexistent-face)
-    ("^#.*" . font-lock-string-face)
-    ("^[^-=+*!<>].*\n" (0 diff-context-face))))
+    ("^\\(#\\)\\(.*\\)"
+     (1 font-lock-comment-delimiter-face)
+     (2 font-lock-comment-face))
+    ("^[^-=+*!<>#].*\n" (0 diff-context-face))))
 
 (defconst diff-font-lock-defaults
   '(diff-font-lock-keywords t nil nil nil (font-lock-multiline . nil)))

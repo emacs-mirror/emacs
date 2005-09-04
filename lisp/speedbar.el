@@ -1,7 +1,7 @@
 ;;; speedbar.el --- quick access to files and tags in a frame
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2005
-;;           Free Software Foundation
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.11a
@@ -179,6 +179,12 @@
 (condition-case nil
     (require 'image)
   (error nil))
+
+(defvar ange-ftp-path-format)
+(defvar efs-path-regexp)
+(defvar font-lock-keywords)
+(defvar x-pointer-hand2)
+(defvar x-pointer-top-left-arrow)
 
 (defvar speedbar-xemacsp (string-match "XEmacs" emacs-version)
   "Non-nil if we are running in the XEmacs environment.")

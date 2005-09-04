@@ -17,7 +17,8 @@
 This file documents WoMan: A program to browse Unix manual pages `W.O.
 (without) man'.
 
-Copyright @copyright{} 2001, 2002, 2004 Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document

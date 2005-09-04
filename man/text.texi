@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001, 2002, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text, Programs, Indentation, Top
 @chapter Commands for Human Languages
@@ -228,7 +228,7 @@ normally similar to the following regexp:
 @end example
 
 @noindent
-This example is explained in the section on regexps.  @xref{Regexps}.
+This example is explained in the section on regexps.  @xref{Regexp Example}.
 
   If you want to use just one space between sentences, you should
 set @code{sentence-end} to this value:
@@ -2664,7 +2664,7 @@ recognition commands (@pxref{Table Recognition}) are equipped with a
 convenience feature (turned on by default).  During table recognition,
 the contents of a cell are examined to determine which justification
 was originally applied to the cell and then applies this justification
-to the the cell.  This is a speculative algorithm and is therefore not
+to the cell.  This is a speculative algorithm and is therefore not
 perfect, however, the justification is deduced correctly most of the
 time.  If you desire to disable this feature, customize the variable
 @code{table-detect-cell-alignment} to set it to @code{nil}.

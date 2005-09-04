@@ -1,7 +1,7 @@
 ;;; dired-aux.el --- less commonly used parts of dired  -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
 ;; Maintainer: FSF
@@ -126,16 +126,21 @@ Examples of PREDICATE:
   (let* ((dir1 (dired-current-directory))
          (file-alist1 (dired-files-attributes dir1))
          (file-alist2 (dired-files-attributes dir2))
-	 (file-list1 (mapcar
+	 file-list1 file-list2)
+    (setq file-alist1 (delq (assoc "." file-alist1) file-alist1))
+    (setq file-alist1 (delq (assoc ".." file-alist1) file-alist1))
+    (setq file-alist2 (delq (assoc "." file-alist2) file-alist2))
+    (setq file-alist2 (delq (assoc ".." file-alist2) file-alist2))
+    (setq file-list1 (mapcar
 		      'cadr
                       (dired-file-set-difference
                        file-alist1 file-alist2
-		       predicate)))
-	 (file-list2 (mapcar
+		       predicate))
+	  file-list2 (mapcar
 		      'cadr
                       (dired-file-set-difference
                        file-alist2 file-alist1
-		       predicate))))
+		       predicate)))
     (dired-fun-in-all-buffers
      dir1 nil
      (lambda ()
@@ -2203,7 +2208,10 @@ Third arg DELIMITED (prefix arg) means replace only word-delimited matches.
 If you exit (\\[keyboard-quit], RET or q), you can resume the query replace
 with the command \\[tags-loop-continue]."
   (interactive
-   "sQuery replace in marked files (regexp): \nsQuery replace %s by: \nP")
+   (let ((common
+	  (query-replace-read-args
+	   "Query replace regexp in marked files" t t)))
+     (list (nth 0 common) (nth 1 common) (nth 2 common))))
   (dolist (file (dired-get-marked-files nil nil 'dired-nondirectory-p))
     (let ((buffer (get-file-buffer file)))
       (if (and buffer (with-current-buffer buffer

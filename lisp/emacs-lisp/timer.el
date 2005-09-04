@@ -1,6 +1,6 @@
 ;;; timer.el --- run a function with args at some time in future
 
-;; Copyright (C) 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -404,6 +404,9 @@ This function returns a timer object which you can use in `cancel-timer'."
 
 ;;;###autoload (put 'with-timeout 'lisp-indent-function 1)
 
+(defvar with-timeout-timers nil
+  "List of all timers used by currently pending `with-timeout' calls.")
+
 ;;;###autoload
 (defmacro with-timeout (list &rest body)
   "Run BODY, but if it doesn't finish in SECONDS seconds, give up.
@@ -416,18 +419,45 @@ be detected.
   (let ((seconds (car list))
 	(timeout-forms (cdr list)))
     `(let ((with-timeout-tag (cons nil nil))
-	   with-timeout-value with-timeout-timer)
+	   with-timeout-value with-timeout-timer
+	   (with-timeout-timers with-timeout-timers))
        (if (catch with-timeout-tag
 	     (progn
 	       (setq with-timeout-timer
 		     (run-with-timer ,seconds nil
 				      'with-timeout-handler
 				      with-timeout-tag))
+	       (push with-timeout-timer with-timeout-timers)
 	       (setq with-timeout-value (progn . ,body))
 	       nil))
 	   (progn . ,timeout-forms)
 	 (cancel-timer with-timeout-timer)
 	 with-timeout-value))))
+
+(defun with-timeout-suspend ()
+  "Stop the clock for `with-timeout'.  Used by debuggers.
+The idea is that the time you spend in the debugger should not
+count against these timeouts.
+
+The value is a list that the debugger can pass to `with-timeout-unsuspend'
+when it exits, to make these timers start counting again."
+  (mapcar (lambda (timer)
+	    (cancel-timer timer)
+	    (list timer
+		  (time-subtract
+		   ;; The time that this timer will go off.
+		   (list (aref timer 1) (aref timer 2) (aref timer 3))
+		   (current-time))))
+	  with-timeout-timers))
+
+(defun with-timeout-unsuspend (timer-spec-list)
+  "Restart the clock for `with-timeout'.
+The argument should be a value previously returned by `with-timeout-suspend'."
+  (dolist (elt timer-spec-list)
+    (let ((timer (car elt))
+	  (delay (cadr elt)))
+      (timer-set-time timer (time-add (current-time) delay)) 
+      (timer-activate timer))))
 
 (defun y-or-n-p-with-timeout (prompt seconds default-value)
   "Like (y-or-n-p PROMPT), with a timeout.

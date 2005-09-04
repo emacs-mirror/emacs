@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/searching
 @node Searching and Matching, Syntax Tables, Non-ASCII Characters, Top
@@ -16,13 +16,13 @@ portions of it.
 
 @menu
 * String Search::         Search for an exact match.
+* Searching and Case::    Case-independent or case-significant searching.
 * Regular Expressions::   Describing classes of strings.
 * Regexp Search::         Searching for a match for a regexp.
 * POSIX Regexps::         Searching POSIX-style for the longest match.
-* Search and Replace::	  Internals of @code{query-replace}.
 * Match Data::            Finding out which part of the text matched,
                             after a string or regexp search.
-* Searching and Case::    Case-independent or case-significant searching.
+* Search and Replace::	  Commands that loop, searching and replacing.
 * Standard Regexps::      Useful regexps for finding sentences, pages,...
 @end menu
 
@@ -157,6 +157,53 @@ except that it searches backward and normally leaves point at the
 beginning of the match.
 @end deffn
 
+@node Searching and Case
+@section Searching and Case
+@cindex searching and case
+
+  By default, searches in Emacs ignore the case of the text they are
+searching through; if you specify searching for @samp{FOO}, then
+@samp{Foo} or @samp{foo} is also considered a match.  This applies to
+regular expressions, too; thus, @samp{[aB]} would match @samp{a} or
+@samp{A} or @samp{b} or @samp{B}.
+
+  If you do not want this feature, set the variable
+@code{case-fold-search} to @code{nil}.  Then all letters must match
+exactly, including case.  This is a buffer-local variable; altering the
+variable affects only the current buffer.  (@xref{Intro to
+Buffer-Local}.)  Alternatively, you may change the value of
+@code{default-case-fold-search}, which is the default value of
+@code{case-fold-search} for buffers that do not override it.
+
+  Note that the user-level incremental search feature handles case
+distinctions differently.  When given a lower case letter, it looks for
+a match of either case, but when given an upper case letter, it looks
+for an upper case letter only.  But this has nothing to do with the
+searching functions used in Lisp code.
+
+@defopt case-replace
+This variable determines whether the higher level replacement
+functions should preserve case.  If the variable is @code{nil}, that
+means to use the replacement text verbatim.  A non-@code{nil} value
+means to convert the case of the replacement text according to the
+text being replaced.
+
+This variable is used by passing it as an argument to the function
+@code{replace-match}.  @xref{Replacing Match}.
+@end defopt
+
+@defopt case-fold-search
+This buffer-local variable determines whether searches should ignore
+case.  If the variable is @code{nil} they do not ignore case; otherwise
+they do ignore case.
+@end defopt
+
+@defvar default-case-fold-search
+The value of this variable is the default value for
+@code{case-fold-search} in buffers that do not override it.  This is the
+same as @code{(default-value 'case-fold-search)}.
+@end defvar
+
 @node Regular Expressions
 @section Regular Expressions
 @cindex regular expression
@@ -166,6 +213,16 @@ beginning of the match.
 denotes a (possibly infinite) set of strings.  Searching for matches for
 a regexp is a very powerful operation.  This section explains how to write
 regexps; the following section says how to search for them.
+
+@findex re-builder
+@cindex authoring regular expressions
+  For convenient interactive development of regular expressions, you
+can use the @kbd{M-x re-builder} command.  It provides a convenient
+interface for creating regular expressions, by giving immediate visual
+feedback in a separate buffer.  As you edit the regexp, all its
+matches in the target buffer are highlighted.  Each parenthesized
+sub-expression of the regexp is shown in a distinct face, which makes
+it easier to verify even very complex regexps.
 
 @menu
 * Syntax of Regexps::       Rules for writing regular expressions.
@@ -1060,212 +1117,15 @@ backtracking specified by the POSIX standard for regular expression
 matching.
 @end defun
 
-@ignore
-@deffn Command delete-matching-lines regexp
-This function is identical to @code{delete-non-matching-lines}, save
-that it deletes what @code{delete-non-matching-lines} keeps.
-
-In the example below, point is located on the first line of text.
-
-@example
-@group
----------- Buffer: foo ----------
-We hold these truths
-to be self-evident,
-that all men are created
-equal, and that they are
----------- Buffer: foo ----------
-@end group
-
-@group
-(delete-matching-lines "the")
-     @result{} nil
-
----------- Buffer: foo ----------
-to be self-evident,
-that all men are created
----------- Buffer: foo ----------
-@end group
-@end example
-@end deffn
-
-@deffn Command flush-lines regexp
-This function is the same as @code{delete-matching-lines}.
-@end deffn
-
-@defun delete-non-matching-lines regexp
-This function deletes all lines following point which don't
-contain a match for the regular expression @var{regexp}.
-@end defun
-
-@deffn Command keep-lines regexp
-This function is the same as @code{delete-non-matching-lines}.
-@end deffn
-
-@deffn Command how-many regexp
-This function counts the number of matches for @var{regexp} there are in
-the current buffer following point.  It prints this number in
-the echo area, returning the string printed.
-@end deffn
-
-@deffn Command count-matches regexp
-This function is a synonym of @code{how-many}.
-@end deffn
-
-@deffn Command list-matching-lines regexp &optional nlines
-This function is a synonym of @code{occur}.
-Show all lines following point containing a match for @var{regexp}.
-Display each line with @var{nlines} lines before and after,
-or @code{-}@var{nlines} before if @var{nlines} is negative.
-@var{nlines} defaults to @code{list-matching-lines-default-context-lines}.
-Interactively it is the prefix arg.
-
-The lines are shown in a buffer named @samp{*Occur*}.
-It serves as a menu to find any of the occurrences in this buffer.
-@kbd{C-h m} (@code{describe-mode}) in that buffer gives help.
-@end deffn
-
-@defopt list-matching-lines-default-context-lines
-Default value is 0.
-Default number of context lines to include around a @code{list-matching-lines}
-match.  A negative number means to include that many lines before the match.
-A positive number means to include that many lines both before and after.
-@end defopt
-@end ignore
-
-@node Search and Replace
-@section Search and Replace
-@cindex replacement
-
-@defun perform-replace from-string replacements query-flag regexp-flag delimited-flag &optional repeat-count map start end
-This function is the guts of @code{query-replace} and related
-commands.  It searches for occurrences of @var{from-string} in the
-text between positions @var{start} and @var{end} and replaces some or
-all of them.  If @var{start} is @code{nil} (or omitted), point is used
-instead, and the end of the buffer's accessible portion is used for
-@var{end}.
-
-If @var{query-flag} is @code{nil}, it replaces all
-occurrences; otherwise, it asks the user what to do about each one.
-
-If @var{regexp-flag} is non-@code{nil}, then @var{from-string} is
-considered a regular expression; otherwise, it must match literally.  If
-@var{delimited-flag} is non-@code{nil}, then only replacements
-surrounded by word boundaries are considered.
-
-The argument @var{replacements} specifies what to replace occurrences
-with.  If it is a string, that string is used.  It can also be a list of
-strings, to be used in cyclic order.
-
-If @var{replacements} is a cons cell, @code{(@var{function}
-. @var{data})}, this means to call @var{function} after each match to
-get the replacement text.  This function is called with two arguments:
-@var{data}, and the number of replacements already made.
-
-If @var{repeat-count} is non-@code{nil}, it should be an integer.  Then
-it specifies how many times to use each of the strings in the
-@var{replacements} list before advancing cyclically to the next one.
-
-If @var{from-string} contains upper-case letters, then
-@code{perform-replace} binds @code{case-fold-search} to @code{nil}, and
-it uses the @code{replacements} without altering the case of them.
-
-Normally, the keymap @code{query-replace-map} defines the possible user
-responses for queries.  The argument @var{map}, if non-@code{nil}, is a
-keymap to use instead of @code{query-replace-map}.
-
-@strong{Usage note:} Do not use this function in your own programs
-unless you want to do something very similar to what
-@code{query-replace} does, including setting the mark and possibly
-querying the user.  For most purposes a simple loop like, for
-instance:
-
-@example
-(while (re-search-forward "foo[ \t]+bar" nil t)
-  (replace-match "foobar"))
-@end example
-
-@noindent
-is preferable.  It runs faster and avoids side effects, such as
-setting the mark.  @xref{Replacing Match,, Replacing the Text that
-Matched}, for a description of @code{replace-match}.
-@end defun
-
-@defvar query-replace-map
-This variable holds a special keymap that defines the valid user
-responses for @code{query-replace} and related functions, as well as
-@code{y-or-n-p} and @code{map-y-or-n-p}.  It is unusual in two ways:
-
-@itemize @bullet
-@item
-The ``key bindings'' are not commands, just symbols that are meaningful
-to the functions that use this map.
-
-@item
-Prefix keys are not supported; each key binding must be for a
-single-event key sequence.  This is because the functions don't use
-@code{read-key-sequence} to get the input; instead, they read a single
-event and look it up ``by hand.''
-@end itemize
-@end defvar
-
-Here are the meaningful ``bindings'' for @code{query-replace-map}.
-Several of them are meaningful only for @code{query-replace} and
-friends.
-
-@table @code
-@item act
-Do take the action being considered---in other words, ``yes.''
-
-@item skip
-Do not take action for this question---in other words, ``no.''
-
-@item exit
-Answer this question ``no,'' and give up on the entire series of
-questions, assuming that the answers will be ``no.''
-
-@item act-and-exit
-Answer this question ``yes,'' and give up on the entire series of
-questions, assuming that subsequent answers will be ``no.''
-
-@item act-and-show
-Answer this question ``yes,'' but show the results---don't advance yet
-to the next question.
-
-@item automatic
-Answer this question and all subsequent questions in the series with
-``yes,'' without further user interaction.
-
-@item backup
-Move back to the previous place that a question was asked about.
-
-@item edit
-Enter a recursive edit to deal with this question---instead of any
-other action that would normally be taken.
-
-@item delete-and-edit
-Delete the text being considered, then enter a recursive edit to replace
-it.
-
-@item recenter
-Redisplay and center the window, then ask the same question again.
-
-@item quit
-Perform a quit right away.  Only @code{y-or-n-p} and related functions
-use this answer.
-
-@item help
-Display some help, then ask again.
-@end table
-
 @node Match Data
 @section The Match Data
 @cindex match data
 
   Emacs keeps track of the start and end positions of the segments of
-text found during a search.  This means, for example, that you can
-search for a complex pattern, such as a date in an Rmail message, and
-then extract parts of the match under control of the pattern.
+text found during a search; this is called the @dfn{match data}.
+Thanks to the match data, you can search for a complex pattern, such
+as a date in a mail message, and then extract parts of the match under
+control of the pattern.
 
   Because the match data normally describe the most recent search only,
 you must be careful not to do another search inadvertently between the
@@ -1284,8 +1144,8 @@ match data around it, to prevent it from being overwritten.
 @node Replacing Match
 @subsection Replacing the Text that Matched
 
-  This function replaces the text matched by the last search with
-@var{replacement}.
+  This function replaces all or part of the text matched by the last
+search.  It works by means of the match data.
 
 @cindex case in replacements
 @defun replace-match replacement &optional fixedcase literal string subexp
@@ -1632,52 +1492,155 @@ associated with it still exists.
 @end smallexample
 @end ignore
 
-@node Searching and Case
-@section Searching and Case
-@cindex searching and case
+@node Search and Replace
+@section Search and Replace
+@cindex replacement
 
-  By default, searches in Emacs ignore the case of the text they are
-searching through; if you specify searching for @samp{FOO}, then
-@samp{Foo} or @samp{foo} is also considered a match.  This applies to
-regular expressions, too; thus, @samp{[aB]} would match @samp{a} or
-@samp{A} or @samp{b} or @samp{B}.
+  If you want to find all matches for a regexp in part of the buffer,
+and replace them, the best way is to write an explicit loop using
+@code{re-search-forward} and @code{replace-match}, like this:
 
-  If you do not want this feature, set the variable
-@code{case-fold-search} to @code{nil}.  Then all letters must match
-exactly, including case.  This is a buffer-local variable; altering the
-variable affects only the current buffer.  (@xref{Intro to
-Buffer-Local}.)  Alternatively, you may change the value of
-@code{default-case-fold-search}, which is the default value of
-@code{case-fold-search} for buffers that do not override it.
+@example
+(while (re-search-forward "foo[ \t]+bar" nil t)
+  (replace-match "foobar"))
+@end example
 
-  Note that the user-level incremental search feature handles case
-distinctions differently.  When given a lower case letter, it looks for
-a match of either case, but when given an upper case letter, it looks
-for an upper case letter only.  But this has nothing to do with the
-searching functions used in Lisp code.
+@noindent
+@xref{Replacing Match,, Replacing the Text that Matched}, for a
+description of @code{replace-match}.
 
-@defopt case-replace
-This variable determines whether the higher level replacement
-functions should preserve case.  If the variable is @code{nil}, that
-means to use the replacement text verbatim.  A non-@code{nil} value
-means to convert the case of the replacement text according to the
-text being replaced.
+  However, replacing matches in a string is more complex, especially
+if you want to do it efficiently.  So Emacs provides a function to do
+this.
 
-This variable is used by passing it as an argument to the function
-@code{replace-match}.  @xref{Replacing Match}.
-@end defopt
+@defun replace-regexp-in-string regexp rep string &optional fixedcase literal subexp start
+This function copies @var{string} and searches it for matches for
+@var{regexp}, and replaces them with @var{rep}.  It returns the
+modified copy.  If @var{start} is non-@code{nil}, the search for
+matches starts at that index in @var{string}, so matches starting
+before that index are not changed.
 
-@defopt case-fold-search
-This buffer-local variable determines whether searches should ignore
-case.  If the variable is @code{nil} they do not ignore case; otherwise
-they do ignore case.
-@end defopt
+This function uses @code{replace-match} to do the replacement, and it
+passes the optional arguments @var{fixedcase}, @var{literal} and
+@var{subexp} along to @code{replace-match}.
 
-@defvar default-case-fold-search
-The value of this variable is the default value for
-@code{case-fold-search} in buffers that do not override it.  This is the
-same as @code{(default-value 'case-fold-search)}.
+Instead of a string, @var{rep} can be a function.  In that case,
+@code{replace-regexp-in-string} calls @var{rep} for each match,
+passing the text of the match as its sole argument.  It collects the
+value @var{rep} returns and passes that to @code{replace-match} as the
+replacement string.  The match-data at this point are the result
+of matching @var{regexp} against a substring of @var{string}.
+@end defun
+
+  If you want to write a command along the lines of @code{query-replace},
+you can use @code{perform-replace} to do the work.
+
+@defun perform-replace from-string replacements query-flag regexp-flag delimited-flag &optional repeat-count map start end
+This function is the guts of @code{query-replace} and related
+commands.  It searches for occurrences of @var{from-string} in the
+text between positions @var{start} and @var{end} and replaces some or
+all of them.  If @var{start} is @code{nil} (or omitted), point is used
+instead, and the end of the buffer's accessible portion is used for
+@var{end}.
+
+If @var{query-flag} is @code{nil}, it replaces all
+occurrences; otherwise, it asks the user what to do about each one.
+
+If @var{regexp-flag} is non-@code{nil}, then @var{from-string} is
+considered a regular expression; otherwise, it must match literally.  If
+@var{delimited-flag} is non-@code{nil}, then only replacements
+surrounded by word boundaries are considered.
+
+The argument @var{replacements} specifies what to replace occurrences
+with.  If it is a string, that string is used.  It can also be a list of
+strings, to be used in cyclic order.
+
+If @var{replacements} is a cons cell, @code{(@var{function}
+. @var{data})}, this means to call @var{function} after each match to
+get the replacement text.  This function is called with two arguments:
+@var{data}, and the number of replacements already made.
+
+If @var{repeat-count} is non-@code{nil}, it should be an integer.  Then
+it specifies how many times to use each of the strings in the
+@var{replacements} list before advancing cyclically to the next one.
+
+If @var{from-string} contains upper-case letters, then
+@code{perform-replace} binds @code{case-fold-search} to @code{nil}, and
+it uses the @code{replacements} without altering the case of them.
+
+Normally, the keymap @code{query-replace-map} defines the possible
+user responses for queries.  The argument @var{map}, if
+non-@code{nil}, specifies a keymap to use instead of
+@code{query-replace-map}.
+@end defun
+
+@defvar query-replace-map
+This variable holds a special keymap that defines the valid user
+responses for @code{perform-replace} and the commands that use it, as
+well as @code{y-or-n-p} and @code{map-y-or-n-p}.  This map is unusual
+in two ways:
+
+@itemize @bullet
+@item
+The ``key bindings'' are not commands, just symbols that are meaningful
+to the functions that use this map.
+
+@item
+Prefix keys are not supported; each key binding must be for a
+single-event key sequence.  This is because the functions don't use
+@code{read-key-sequence} to get the input; instead, they read a single
+event and look it up ``by hand.''
+@end itemize
 @end defvar
+
+Here are the meaningful ``bindings'' for @code{query-replace-map}.
+Several of them are meaningful only for @code{query-replace} and
+friends.
+
+@table @code
+@item act
+Do take the action being considered---in other words, ``yes.''
+
+@item skip
+Do not take action for this question---in other words, ``no.''
+
+@item exit
+Answer this question ``no,'' and give up on the entire series of
+questions, assuming that the answers will be ``no.''
+
+@item act-and-exit
+Answer this question ``yes,'' and give up on the entire series of
+questions, assuming that subsequent answers will be ``no.''
+
+@item act-and-show
+Answer this question ``yes,'' but show the results---don't advance yet
+to the next question.
+
+@item automatic
+Answer this question and all subsequent questions in the series with
+``yes,'' without further user interaction.
+
+@item backup
+Move back to the previous place that a question was asked about.
+
+@item edit
+Enter a recursive edit to deal with this question---instead of any
+other action that would normally be taken.
+
+@item delete-and-edit
+Delete the text being considered, then enter a recursive edit to replace
+it.
+
+@item recenter
+Redisplay and center the window, then ask the same question again.
+
+@item quit
+Perform a quit right away.  Only @code{y-or-n-p} and related functions
+use this answer.
+
+@item help
+Display some help, then ask again.
+@end table
 
 @node Standard Regexps
 @section Standard Regular Expressions Used in Editing

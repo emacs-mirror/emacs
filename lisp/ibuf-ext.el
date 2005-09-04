@@ -1,6 +1,7 @@
 ;;; ibuf-ext.el --- extensions for ibuffer
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
 ;; Maintainer: John Paul Wallington <jpw@gnu.org>
@@ -221,8 +222,7 @@ Currently, this only applies to `ibuffer-saved-filters' and
 	 (ibuffer-buf-matches-predicates buf ibuffer-always-show-predicates)))))
 
 (defun ibuffer-auto-update-changed ()
-  (when ibuffer-auto-buffers-changed
-    (setq ibuffer-auto-buffers-changed nil)
+  (when (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed)
     (mapcar #'(lambda (buf)
 		(ignore-errors
 		  (with-current-buffer buf
@@ -242,10 +242,7 @@ With numeric ARG, enable auto-update if and only if ARG is positive."
        (if arg
 	   (plusp arg)
 	 (not ibuffer-auto-mode)))
-  (defadvice get-buffer-create (after ibuffer-notify-create activate)
-    (setq ibuffer-auto-buffers-changed t))
-  (defadvice kill-buffer (after ibuffer-notify-kill activate)
-    (setq ibuffer-auto-buffers-changed t))
+  (frame-or-buffer-changed-p 'ibuffer-auto-buffers-changed)
   (add-hook 'post-command-hook 'ibuffer-auto-update-changed)
   (ibuffer-update-mode-name))
 

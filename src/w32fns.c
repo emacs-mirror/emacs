@@ -1,6 +1,6 @@
 /* Graphical user interface functions for the Microsoft W32 API.
-   Copyright (C) 1989, 1992, 93, 94, 95, 96, 97, 98, 99, 2000, 01, 04
-     Free Software Foundation, Inc.
+   Copyright (C) 1989, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
+                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -153,7 +153,7 @@ int display_hourglass_p;
    over text or in the modeline.  */
 
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape, Vx_hand_shape;
+Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape;
 
 /* The shape when over mouse-sensitive text.  */
 
@@ -395,10 +395,10 @@ x_window_to_frame (dpyinfo, wdesc)
 }
 
 
-BOOL my_show_window P_ ((struct frame *, HWND, int));
-void my_set_window_pos P_ ((HWND, HWND, int, int, int, int, UINT));
 static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
 static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
+static void my_create_window P_ ((struct frame *));
+static void my_create_tip_window P_ ((struct frame *));
 
 /* TODO: Native Input Method support; see x_create_im.  */
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -3847,7 +3847,7 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
   return 0;
 }
 
-void
+static void
 my_create_window (f)
      struct frame * f;
 {
@@ -3863,7 +3863,7 @@ my_create_window (f)
    indirectly via the Window thread, as we do not need to process Window
    messages for the tooltip.  Creating tooltips indirectly also creates
    deadlocks when tooltips are created for menu items.  */
-void
+static void
 my_create_tip_window (f)
      struct frame *f;
 {
@@ -8760,6 +8760,8 @@ versions of Windows) characters.  */);
   staticpro (&Qw32_charset_ansi);
   Qw32_charset_ansi = intern ("w32-charset-ansi");
   staticpro (&Qw32_charset_symbol);
+  Qw32_charset_default = intern ("w32-charset-default");
+  staticpro (&Qw32_charset_default);
   Qw32_charset_symbol = intern ("w32-charset-symbol");
   staticpro (&Qw32_charset_shiftjis);
   Qw32_charset_shiftjis = intern ("w32-charset-shiftjis");

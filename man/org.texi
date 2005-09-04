@@ -4,8 +4,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.13
-@set DATE July 2005
+@set VERSION 3.15
+@set DATE September 2005
 
 @dircategory Emacs
 @direntry
@@ -94,7 +94,7 @@ Introduction
 
 * Summary::                     Brief summary of what Org-mode does
 * Installation and Activation::  How to install Org-mode
-* Feedback::                    Bug reportes, ideas, patches etc.
+* Feedback::                    Bug reports, ideas, patches etc.
 
 Document Structure
 
@@ -116,9 +116,11 @@ Tables
 Calculations in tables
 
 * Formula syntax::              How to write a formula
-* Applying a formula::          How to get a formula executed
-* Recalculation::               Re-applying all formulas in a table
-* Summing::                     Summing columns and rows
+* Column formulas::             Formulas valid for all fields in a column
+* Advanced features::           Field names, parameters and automatic recalc
+* Named-field formulas::        Formulas valid in single fields
+* Editing/debugging formulas::  Changing a stored formula
+* Appetizer::                   
 
 Hyperlinks
 
@@ -180,7 +182,7 @@ Miscellaneous
 @menu
 * Summary::                     Brief summary of what Org-mode does
 * Installation and Activation::  How to install Org-mode
-* Feedback::                    Bug reportes, ideas, patches etc.
+* Feedback::                    Bug reports, ideas, patches etc.
 @end menu
 
 @node Summary, Installation and Activation, Introduction, Introduction
@@ -198,7 +200,7 @@ help to work with the tree.  Tables are easily created with a built-in
 table editor.  Org-mode supports ToDo items, deadlines, time stamps,
 and scheduling.  It dynamically compiles entries into an agenda that
 utilizes and smoothly integrates much of the Emacs calendar and diary.
-Plain text URL-like links connect to websites, emails, usenet
+Plain text URL-like links connect to websites, emails, Usenet
 messages, BBDB entries, and any files related to the projects.  For
 printing and sharing of notes, an Org-mode file can be exported as a
 structured ASCII file, or as HTML.
@@ -715,10 +717,19 @@ above.
 @cindex calculations, in tables
 @kindex C-c =
 @item C-c =
-Replace current field with the result of a formula.  When called with a
-@kbd{C-u} prefix, apply the equation in the current field and down
-through the current column to a horizonal separator line or the end of
-the table.  For details, see @ref{Table calculations}.
+Install a new formula for the current column and replace current field
+with the result of the formula.
+
+@kindex C-u C-c =
+@item C-u C-c =
+Install a new formula for the current field, which must be a named
+field.  Evaluate the formula and replace the field content with the
+result.
+
+@kindex C-c '
+@item C-c '
+Edit all formulas associated with the current table in a separate
+buffer.
 
 @kindex C-c *
 @item C-c *
@@ -729,9 +740,9 @@ first horizontal separator line).  For details, see @ref{Table calculations}.
 
 @kindex C-#
 @item C-#
-Rotate the recalculation mark in first column through the states
+Rotate the calculation mark in first column through the states
 @samp{}, @samp{#}, @samp{*}, @samp{!}, @samp{$}.  For the meaning of
-these marks see @ref{Table calculations}.  When there is an active
+these marks see @ref{Advanced features}.  When there is an active
 region, change all marks in the region.
 
 @kindex C-c ?
@@ -791,36 +802,58 @@ it off with
 @section Calculations in tables
 @cindex calculations, in tables
 
-While the Org-mode table editor misses many features of a full
-spreadsheet, it nevertheless has very useful capabilities to compute
-fields.  In horizontal direction, it can use complex expressions to
-compute a field from other fields @emph{in the same row}, using named
-columns, constants and parameters.  The Emacs @file{calc} package is
-required for this feature to work.  In vertical direction, only
-summing is supported.
+The table editor has some spreadsheet-like capabilities.  The Emacs
+@file{calc} package is required for this feature to work.  There are
+basically two levels of complexity for table calculations in Org-mode.
+On the basic level, tables do only horizontal computations, so a field
+can be computed from other fields @emph{in the same row}, and Org-mode
+assumes that there is only one formula for each column.  This is very
+efficient to work with and enough for many tasks.  On the complex
+level, columns and individual fields can be named for easier
+referencing in formulas, individual named fields can have their own
+formula associated with them, and recalculation can be automated.
 
 @menu
 * Formula syntax::              How to write a formula
-* Applying a formula::          How to get a formula executed
-* Recalculation::               Re-applying all formulas in a table
-* Summing::                     Summing columns and rows
+* Column formulas::             Formulas valid for all fields in a column
+* Advanced features::           Field names, parameters and automatic recalc
+* Named-field formulas::        Formulas valid in single fields
+* Editing/debugging formulas::  Changing a stored formula
+* Appetizer::                   Taste the power of calc
 @end menu
 
-@node Formula syntax, Applying a formula, Table calculations, Table calculations
+@node Formula syntax, Column formulas, Table calculations, Table calculations
 @subsection Formula syntax
 
-A formula for horizontal computations can be any algebraic expression
-understood by the Emacs @file{calc} package.  Before evaluation,
-variable substitution takes place: @samp{$} is replaced by the field
-the cursor is currently in, and $1..$n reference the fields in the
-current row.  @samp{$name} is interpreted as the name of a column,
-parameter or constant.  Constants are defined globally through the
-variable @code{org-table-formula-constants}.  If you have the
+A formula can be any algebraic expression understood by the Emacs
+@file{calc} package.  Before evaluation by @code{calc-eval}
+(@pxref{Calling Calc from Your Lisp Programs,calc-eval,Calling calc
+from Your Lisp Programs,calc,GNU Emacs Calc Manual}), variable
+substitution takes place:
+
+@example
+  $        @r{refers to the current field}
+  $3       @r{refers to the field in column 3 of the current row}
+  $3..$7   @r{a vector of the fields in columns 3-7 of current row}
+  $P1..$P3 @r{vector of column range, using column names}
+  &2       @r{second data field above the current, in same column}
+  &5-2     @r{vector from fifth to second field above current}
+  &III-II  @r{vector of fields between 2nd and 3rd hline above}
+  &III     @r{vector of fields between third hline above and current field}
+  $name    @r{a named field, parameter or constant}
+@end example
+
+The range vectors can be directly fed into the calc vector functions
+like functions @samp{vmean} and @samp{vsum}.
+
+@samp{$name} is interpreted as the name of a column, parameter or
+constant.  Constants are defined globally through the variable
+@code{org-table-formula-constants}.  If you have the
 @file{constants.el} package, it will also be used to resolve
-constants, including natural constants like @samp{$k} for Plancks
+constants, including natural constants like @samp{$k} for Planck's
 constant, units like @samp{$km} for kilometers.  Column names and
 parameters can be specified in special table lines.  These are
-described below, see @ref{Recalculation}.
+described below, see @ref{Advanced features}.
 
 A formula can contain an optional mode string after a semicolon.  This
 string consists of flags to influence calc's modes@footnote{By
@@ -833,66 +866,65 @@ switch the internal precision to 20 digits, @samp{n3}, @samp{s3},
 @samp{e2} or @samp{f4} to switch to normal, scientific, engineering,
 or fix display format, respectively, and @samp{D}, @samp{R}, @samp{F},
 and @samp{S} to turn on degrees, radians, fraction and symbolic modes,
-respectively.  In addition, you may provide a @code{printf} specifier
-to reformat the final result.  A few examples:
+respectively.  In addition, you may provide a @code{printf} format
+specifier to reformat the final result.  A few examples:
 @example
   $1+$2                @r{Sum of first and second field}
   $1+$2;%.2f           @r{Same, format result to two decimals}
   exp($2)+exp($1)      @r{Math functions can be used}
   $;%.1f               @r{Reformat current cell to 1 decimal}
-  ($3-32)*5/9          @r{degrees F -> C conversion}
+  ($3-32)*5/9          @r{Degrees F -> C conversion}
   $c/$1/$cm            @r{Hz -> cm conversion, using @file{constants.el}}
-  tan($1);Dp3s1        @r{compute in degrees, precision 3, display SCI 1}
-  vmean($2..$7)        @r{compute column range mean, using vector function}
+  tan($1);Dp3s1        @r{Compute in degrees, precision 3, display SCI 1}
+  sin($1);Dp3%.1e      @r{Same, but use printf specifier for display}
+  vmean($2..$7)        @r{Compute column range mean, using vector function}
+  vsum(&III)           @r{Sum numbers from 3rd hline above to here}
   taylor($3,x=7,2)     @r{taylor series of $3, at x=7, second degree}
 @end example
 
-@node Applying a formula, Recalculation, Formula syntax, Table calculations
-@subsection Applying a formula
+@node Column formulas, Advanced features, Formula syntax, Table calculations
+@subsection Column formulas
 
 To apply a formula to a field, type it directly into the field,
 preceded by an equal sign, like @samp{=$1+$2}.  When you press
 @key{TAB} or @key{RET} or @kbd{C-c C-c} with the cursor still in the
-field, the formula will be evaluated and replaced with the result.  If
-the field contains only @samp{=}, the formula most recently applied
-anywhere in the @emph{same column} will be used.
+field, the formula will be stored as the formula for the current
+column, evaluated and the current field replaced with the result.  If
+the field contains only @samp{=}, the previously stored formula for
+this column is used.
 
 For each column, Org-mode will remember the most recently used
-formula.  The information is stored in a special line directly below
-the table.  When adding/deleting/moving columns with the appropriate
-commands, the stored equations will be modified accordingly.  When a
-column used in a calculation is removed, references to this column
-become invalid and will cause an error upon applying the equation.
+formula.  The information is stored in a special line starting with
+@samp{#+TBLFM} directly below the table.  When adding/deleting/moving
+columns with the appropriate commands, the stored equations will be
+modified accordingly.  When a column used in a calculation is removed,
+references to this column become invalid and will cause an error upon
+applying the equation.
 
 Instead of typing an equation into the field, you may also use the
 command @kbd{C-c =}.  It prompts for a formula (with default taken
-from the @samp{#+TBLFM:} line) and applies it to the current field.
-If you use a prefix argument (i.e. @kbd{C-u C-c =}), the formula will
-be applied to the current field and down to the next separator line
-or the end of the table.  A numerical prefix will apply it to that
-many fields in the current column.
-
-When the evaluation of a formula leads to an error, the field content
-becomes the string @samp{#ERROR}.  If you would like see what is going
-on during variable substitution and calculation in order to find a
-bug, turn on formula debugging in the menu and repeat the calculation
-by pressing, for example by pressing @kbd{C-c = @key{RET}} in a field.
-Detailed information will be displayed.
-
-@node Recalculation, Summing, Applying a formula, Table calculations
-@subsection Recalculation
+from the @samp{#+TBLFM:} line) and applies it to the current field.  A
+numerical prefix (e.g. @kbd{C-5 C-c =}) will apply it to that many
+subsequent fields in the current column.
 
 To recompute all the fields in a line, use the command @kbd{C-c *}.
 It re-applies all stored equations to the current row, from left to
 right.  With a @kbd{C-u} prefix, this will be done to every line in
 the table, so use this command it you want to make sure the entire
-table is up-to-date.  A more automatic way of recalculating the
-current line requires marking the line: If the first column of a row
-contains only @samp{#}, the row will be re-computed with every
-@key{TAB}, @key{RET}, and @kbd{C-c C-c} in this row.  Here is an
-example of a table that collects exam results of students, with some
-rows activated for semi-automatic computations.
+table is up-to-date. @kbd{C-u C-c C-c} is another way to update the
+entire table.  Global updating does not touch the line(s) above the
+first horizontal separator line, assuming that this is the table
+header.
 
+@node Advanced features, Named-field formulas, Column formulas, Table calculations
+@subsection Advanced features
+
+If you want want the recalculation of fields to happen automatically,
+or if you want to be able to assign a formula to an individual field
+(instead of an entire column) you need to reserve the first column of
+the table for special marking characters.  Here is an example of a
+table that collects exam results of students and makes use of these
+features:
 @example
 @group
 |---+---------+--------+--------+--------+-------+------|
@@ -903,50 +935,112 @@ rows activated for semi-automatic computations.
 | ^ |         |     m1 |     m2 |     m3 |    mt |      |
 |---+---------+--------+--------+--------+-------+------|
 | # | Peter   |     10 |      8 |     23 |    41 |  8.2 |
-| # | Sara    |      7 |     14 |     19 |    40 |  8.0 |
+| # | Sara    |      6 |     14 |     19 |    39 |  7.8 |
 | # | Sam     |      2 |      4 |      3 |     9 |  1.8 |
 |---+---------+--------+--------+--------+-------+------|
+|   | Average |        |        |        |  29.7 |      |
+| ^ |         |        |        |        |    at |      |
 | $ | max=50  |        |        |        |       |      |
 |---+---------+--------+--------+--------+-------+------|
-#+TBLFM: $6=vsum($P1..$P3)::$7=10*$Tot/$max;%.1f
+#+TBLFM: $6=vsum($P1..$P3)::$7=10*$Tot/$max;%.1f::$at=vmean(&II);%.1f
 @end group
 @end example
-@noindent
-The example also demonstrates a number of features:
-@enumerate
-@item
-If the first field of a row contains only @samp{!}, this row defines
-@emph{names} for the different columns so that you can write
-@samp{$Tot} instead of @samp{$6} --- useful in larger tables,
-when counting columns becomes error prone.
-@item
-If the first field of a row contains only @samp{$}, fields in this row
-can define @emph{parameters} for formulas.  For example, if a field in
-a @samp{$} row contains @samp{max=50}, then formulas in this table can
-refer to the value 50 using @samp{$max}.  Parameters work exactly like
-constants, only that they can be defined on a per-table basis.
-Changing a parameter and then recalculating the table can be useful
-and fun.
-@item
-It the first field contains only @samp{^}, fields in this row define
-names for the fields in the row above, for example @samp{$m1} for
-@samp{10}.  Similarly, if the marking character is @samp{_}, the names
-are valie for the fields in the row below.
-@item
-A column range @samp{$P1..$P3} is expanded to a vector, so that calc's
-vector functions (in this case @samp{vsum}, but there are many more)
-can be applied to ranges.  For a range, columns may be referenced by
-name or number, in either sequence.
-@end enumerate
 
-@noindent If a table contains any line with @samp{#} as the
-first field, @kbd{C-u C-c *} will only change the marked lines and
-leave all unmarked lines alone.  You can also mark a line with
-@samp{*}.  These lines will also be recalculated with @kbd{C-u C-c *},
-but not upon @key{TAB} and @key{RET}.  Use this for lines which are
-slow to calculate.
+@noindent @b{Important}: Please note that for these special tables,
+recalculating the table with @kbd{C-u C-c *} does only affect rows
+which are marked @samp{#} or @samp{*}, and named fields.  The column
+formulas are not applied in rows with empty first field.
 
-Just to wet your appetite on what can be done with the fantastic
+The marking characters have the following meaning:
+@table @samp
+@item !
+The fields in this line define names for the columns, so that you may
+refer to a column as @samp{$Tot} instead of @samp{$6}.
+@item ^
+This row define names for the fields @emph{above} the row.  With such
+a definition, any formula in the table may use @samp{$m1} to refer to
+the value @samp{10}.  Also, named fields can have their own formula
+associated with them.
+@item _
+Similar to @samp{^}, but defines names for the fields in the row
+@emph{below}. 
+@item $
+Fields in this row can define @emph{parameters} for formulas.  For
+example, if a field in a @samp{$} row contains @samp{max=50}, then
+formulas in this table can refer to the value 50 using @samp{$max}.
+Parameters work exactly like constants, only that they can be defined on
+a per-table basis.  Changing a parameter and then recalculating the
+table can be useful.
+@item #
+Fields in this row are automatically recalculated when pressing
+@key{TAB} or @key{RET} or @kbd{S-@key{TAB}} in this row.  Also, this row
+is selected for a global recalculation with @kbd{C-u C-c *}.  Unmarked
+lines will be left alone by this command.
+@item *
+Selects this line for global recalculation with @kbd{C-u C-c *}, but
+not for automatic recalculation.  Use this when automatic
+recalculation slows down editing too much.
+@item  
+Unmarked lines are exempted from recalculation with @kbd{C-u C-c *}.
+All lines that should be recalculated should be marked with @samp{#}
+or @samp{*}.
+@end table
+
+@node Named-field formulas, Editing/debugging formulas, Advanced features, Table calculations
+@subsection Named-field formulas
+
+A named field can have its own formula associated with it.  In the
+example above, this is used for the @samp{at} field that contains
+the average result of the students.  To enter a formula for a named
+field, just type it onto the buffer, preceded by @samp{:=}.  Or use
+@kbd{C-u C-c =}.  This equation will be stored below the table like
+@samp{$name=...}.  Any recalculation in the table (even if only
+requested for the current line) will also update all named field
+formulas.
+
+@node Editing/debugging formulas, Appetizer, Named-field formulas, Table calculations
+@subsection Editing and debugging formulas
+
+To edit a column or field formula, you can use the commands @kbd{C-c
+=} and @kbd{C-u C-c =}, respectively.  The currently active expression
+is then presented as default in the minibuffer, were it may be edited.
+
+Note that making a table field blank does not remove the formula
+associated with the field - during the next recalculation the field
+will be filled again.  To remove a formula from a field, you have to
+give an empty reply when prompted for the formula, or to edit the
+@samp{#+TBLFM} line.
+
+@kindex C-c C-c
+You may edit the @samp{#+TBLFM} directly and re-apply
+the changed equations with @kbd{C-c C-c} in that line, or with the
+normal recalculation commands in the table.  
+
+@kindex C-c '
+@kindex C-c C-c
+@kindex C-c C-q
+@kindex C-c ?
+In particular for large tables with many formulas, it is convenient to
+use the command @kbd{C-c '} to edit the formulas of the current table
+in a separate buffer.  That buffer will show the formulas one per
+line, and you are free to edit, add and remove formulas.  Press
+@kbd{C-c ?} on a @samp{$...}  expression to get information about its
+interpretation.  Exiting the buffer with @kbd{C-c C-c} only stores the
+modified formulas below the table.  Exiting with @kbd{C-u C-c C-c}
+also applies them to the entire table.  @kbd{C-c C-q} exits without
+installing the changes.
+
+When the evaluation of a formula leads to an error, the field content
+becomes the string @samp{#ERROR}.  If you would like see what is going
+on during variable substitution and calculation in order to find a
+bug, turn on formula debugging in the menu and repeat the calculation
+by pressing, for example by pressing @kbd{C-c = @key{RET}} in a field.
+Detailed information will be displayed.
+
+@node Appetizer,  , Editing/debugging formulas, Table calculations
+@subsection Appetizer
+
+Finally, just to wet your appetite on what can be done with the fantastic
 @file{calc} package, here is a table that computes the Taylor series
 for a couple of functions (homework: try that with Excel :-)
 
@@ -964,22 +1058,6 @@ for a couple of functions (homework: try that with Excel :-)
 |---+-------------+---+-----+--------------------------------------|
 #+TBLFM: $5=taylor($2,$4,$3);n3
 @end group
-@end example
-
-@node Summing,  , Recalculation, Table calculations
-@subsection Summing
-
-Finally, when typing a formula into a field, a number of special
-keywords execute predefined sums over the current row or column and
-enter the result into the current field.  These calculations are
-one-off, the formula is not stored, and you will neet to re-enter it
-in order to compute again.
-
-@example
-=       @r{Execute the stored formula valid in this column.}
-=sum    @r{Sum all fields above the current (alias @code{=sumv}).}
-=sumh   @r{Sum all fields to the left of the current field.}
-=sum3   @r{Same as @samp{=sum}, but use just 3 fields above current.}
 @end example
 
 @node orgtbl-mode, table.el, Table calculations, Tables
@@ -1029,7 +1107,7 @@ possible.
 @chapter Hyperlinks
 @cindex hyperlinks
 
-Just like HMTL, Org-mode provides links to other files, usenet
+Just like HMTL, Org-mode provides links to other files, Usenet
 articles, emails and much more.
 
 @menu
@@ -1050,7 +1128,7 @@ articles, emails and much more.
 @cindex USENET links
 @cindex SHELL links
 
-Org-mode supports links to files, websites, usenet and email messages;
+Org-mode supports links to files, websites, Usenet and email messages;
 and BBDB database entries.  Links are just plain-text URL-like
 locators, optionally enclosed by angular brackets.  The following list
 shows examples for each link type.
@@ -1142,13 +1220,14 @@ the @emph{Remember} package by John Wiegley.  @emph{Remember} lets you
 store quick notes with little interruption of your work flow.  See
 @uref{http://www.emacswiki.org/cgi-bin/wiki/RememberMode} for more
 information.  The notes produced by @emph{Remember} can be stored in
-different ways, and Org-mode files are a good target.
-Org-mode allows to file away notes either to a default file, or
-directly to the correct location in your Org-mode outline tree.  The
-following customization will tell @emph{Remember} to use org files as
-target, and to create annotations compatible with Org-mode links.
+different ways, and Org-mode files are a good target.  Org-mode allows
+to file away notes either to a default file, or directly to the
+correct location in your Org-mode outline tree.  The following
+customization@footnote{The two autoload forms are only necessary if
+@file{org.el} is not part of the Emacs distribution or and XEmacs
+package.} will tell @emph{Remember} to use org files as target, and to
+create annotations compatible with Org-mode links.
 
-@c FIXME: The autoload will not be necessary when Org-mode is part of Emacs
 @example
 (autoload 'org-remember-annotation "org")
 (autoload 'org-remember-handler "org")
@@ -1457,7 +1536,7 @@ continuing until the entry is marked DONE.  An example:
 @end example
 
 @item SCHEDULED
-@cindex DEADLINE keyword
+@cindex SCHEDULED keyword
 If a time stamp is preceded by the word @samp{SCHEDULED:}, it means
 you are planning to start working on that task on the given date.  The
 headline will be listed under the given date.  In addition, a reminder
@@ -2138,8 +2217,10 @@ horizontal separator line will be formatted as table header fields.
 
 @cindex fixed width
 @item
-Lines starting with @samp{:} are typeset in a fixed-width font, to
-allow quoting of computer code etc.
+If a headline starts with the word @samp{QUOTE}, the text below the
+headline will be typeset as fixed-width, to allow quoting of computer
+codes etc.  Lines starting with @samp{:} are also typeset in
+fixed-width font.
 
 @cindex HTML tags
 @item
@@ -2233,7 +2314,6 @@ Toggle the COMMENT keyword at the beginning of an entry.
 @cindex completion, of TODO keywords
 @cindex completion, of dictionary words
 @cindex completion, of option keywords
-@cindex completion, of keyword formulas
 
 Org-mode supports in-buffer completion.  This type of completion does
 not make use of the minibuffer.  You simply type a few letters into
@@ -2253,8 +2333,6 @@ After @samp{#+}, complete the special keywords like @samp{TYP_TODO} or
 @samp{OPTIONS} which set file-specific options for Org-mode.  When the
 option keyword is already complete, pressing @kbd{M-@key{TAB}} again
 will insert example settings for this keyword.
-@item
-After @samp{=}, complete keyword formulas for tables.
 @item
 Elsewhere, complete dictionary words using ispell.
 @end itemize
@@ -2376,7 +2454,7 @@ checks for the availability of calc by looking for the function
 been installed properly.  As of Emacs 22, calc is part of the Emacs
 distribution.  Another possibility for interaction between the two
 packages is using calc for embedded calculations. @xref{Embedded Mode,
-, Embedded Mode, calc, The calc maanual}.
+, Embedded Mode, calc, GNU Emacs Calc Manual}.
 @cindex @file{constants.el}
 @item @file{constants.el} by Carsten Dominik
 In a table formula (@pxref{Table calculations}), it is possible to use
@@ -2431,7 +2509,7 @@ have found too hard to fix.
 @item
 If you call @code{fill-paragraph} (bound to @kbd{M-q}) in a table, the
 filling is correctly disabled.  However, if some text directly
-(without an empty line in between) preceeds or follows a table, calling
+(without an empty line in between) precedes or follows a table, calling
 @code{fill-paragraph} in that text will also fill the table like
 normal text.  Also, @code{fill-region} does bypass the
 @code{fill-paragraph} code and will fill tables like normal text.
@@ -2490,7 +2568,8 @@ beta testing and contributed a number of very useful ideas.
 Christian Schlauer proposed angular brackets around links, among other
 things.
 @item
-David Wainberg suggested to implement an archiving mechanism.
+David Wainberg suggested to implement an archiving mechanism and helped
+testing.
 @item
 Linking to VM/BBDB/GNUS was inspired by Tom Shannon's
 @file{organizer-mode.el}.

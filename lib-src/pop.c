@@ -1,5 +1,6 @@
 /* pop.c: client routines for talking to a POP3-protocol post-office server
-   Copyright (c) 1991, 1993, 1996, 1997, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1991, 1993, 1996, 1997, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    Written by Jonathan Kamens, jik@security.ov.com.
 
 This file is part of GNU Emacs.
@@ -75,17 +76,6 @@ extern struct servent *hes_getservbyname (/* char *, char * */);
 #ifdef KERBEROS
 # ifdef HAVE_KRB5_H
 #  include <krb5.h>
-# endif
-# ifdef HAVE_DES_H
-#  include <des.h>
-# else
-#  ifdef HAVE_KERBEROSIV_DES_H
-#   include <kerberosIV/des.h>
-#  else
-#   ifdef HAVE_KERBEROS_DES_H
-#    include <kerberos/des.h>
-#   endif
-#  endif
 # endif
 # ifdef HAVE_KRB_H
 #  include <krb.h>
@@ -1403,12 +1393,24 @@ sendline (server, line)
 {
 #define SENDLINE_ERROR "Error writing to POP server: "
   int ret;
+  char *buf;
 
-  ret = fullwrite (server->file, line, strlen (line));
-  if (ret >= 0)
-    {				/* 0 indicates that a blank line was written */
-      ret = fullwrite (server->file, "\r\n", 2);
-    }
+  /* Combine the string and the CR-LF into one buffer.  Otherwise, two
+     reasonable network stack optimizations, Nagle's algorithm and
+     delayed acks, combine to delay us a fraction of a second on every
+     message we send.  (Movemail writes line without \r\n, client
+     kernel sends packet, server kernel delays the ack to see if it
+     can combine it with data, movemail writes \r\n, client kernel
+     waits because it has unacked data already in its outgoing queue,
+     client kernel eventually times out and sends.)
+
+     This can be something like 0.2s per command, which can add up
+     over a few dozen messages, and is a big chunk of the time we
+     spend fetching mail from a server close by.  */
+  buf = alloca (strlen (line) + 3);
+  strcpy (buf, line);
+  strcat (buf, "\r\n");
+  ret = fullwrite (server->file, buf, strlen (buf));
 
   if (ret < 0)
     {

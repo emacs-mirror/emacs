@@ -1,6 +1,7 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99,
-     2000, 01, 02, 03, 04, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994,
+                 1995, 1997, 1998, 1999, 2000, 2001, 2002,
+                 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3557,10 +3558,12 @@ DEFUN ("make-overlay", Fmake_overlay, Smake_overlay, 2, 5, 0,
        doc: /* Create a new overlay with range BEG to END in BUFFER.
 If omitted, BUFFER defaults to the current buffer.
 BEG and END may be integers or markers.
-The fourth arg FRONT-ADVANCE, if non-nil, makes the
-front delimiter advance when text is inserted there.
-The fifth arg REAR-ADVANCE, if non-nil, makes the
-rear delimiter advance when text is inserted there.  */)
+The fourth arg FRONT-ADVANCE, if non-nil, makes the marker
+for the front of the overlay advance when text is inserted there
+(which means the text *is not* included in the overlay).
+The fifth arg REAR-ADVANCE, if non-nil, makes the marker
+for the rear of the overlay advance when text is inserted there
+(which means the text *is* included in the overlay).  */)
      (beg, end, buffer, front_advance, rear_advance)
      Lisp_Object beg, end, buffer;
      Lisp_Object front_advance, rear_advance;
@@ -5727,7 +5730,7 @@ that fraction of the window's height from the bottom of the window.
 When the value is 0.0, point goes at the bottom line, which in the simple
 case that you moved off with C-f means scrolling just one line.  1.0 means
 point goes at the top, so that in that simple case, the window
-window scrolls by a full window height.  Meaningful values are
+scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
@@ -5740,7 +5743,7 @@ that fraction of the window's height from the top of the window.
 When the value is 0.0, point goes at the top line, which in the simple
 case that you moved off with C-b means scrolling just one line.  1.0 means
 point goes at the bottom, so that in that simple case, the window
-window scrolls by a full window height.  Meaningful values are
+scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
@@ -5928,15 +5931,15 @@ is a member of the list.  */);
      doc: /* Cursor to use when this buffer is in the selected window.
 Values are interpreted as follows:
 
-  t 		 use the cursor specified for the frame
-  nil		 don't display a cursor
-  box		 display a filled box cursor
-  hollow	 display a hollow box cursor
-  bar		 display a vertical bar cursor with default width
-  (bar . WIDTH)	 display a vertical bar cursor with width WIDTH
-  hbar		 display a horizontal bar cursor with default height
+  t 		  use the cursor specified for the frame
+  nil		  don't display a cursor
+  box		  display a filled box cursor
+  hollow	  display a hollow box cursor
+  bar		  display a vertical bar cursor with default width
+  (bar . WIDTH)	  display a vertical bar cursor with width WIDTH
+  hbar		  display a horizontal bar cursor with default height
   (hbar . HEIGHT) display a horizontal bar cursor with height HEIGHT
-  ANYTHING ELSE	 display a hollow box cursor.
+  ANYTHING ELSE	  display a hollow box cursor
 
 When the buffer is displayed in a nonselected window,
 this variable has no effect; the cursor appears as a hollow box.  */);

@@ -1,6 +1,8 @@
 ;;; conf-mode.el --- Simple major mode for editing conf/ini/properties files
 
-;; Copyright (C) 2004 by Daniel Pfeiffer <occitan@esperanto.org>
+;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
+
+;; Author: Daniel Pfeiffer <occitan@esperanto.org>
 ;; Keywords: conf ini windows java
 
 ;; This file is part of GNU Emacs.
@@ -30,6 +32,8 @@
 ;;; Code:
 
 (require 'newcomment)
+
+(defvar outline-heading-end-regexp)
 
 ;; Variables:
 
@@ -227,15 +231,15 @@ whitespace.")
 	    (if (>= arg 0)
 		(progn
 		  (indent-to-column arg)
-		  (or (not conf-assignment-space) (memq (char-before (point)) '(?  ?\t)) (insert ? ))
-		  (insert conf-assignment-sign (if (and conf-assignment-space (not (eolp))) ?\  "")))
-	      (insert (if conf-assignment-space ?\  "") conf-assignment-sign)
+		  (or (not conf-assignment-space) (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))
+		  (insert conf-assignment-sign (if (and conf-assignment-space (not (eolp))) ?\s "")))
+	      (insert (if conf-assignment-space ?\s "") conf-assignment-sign)
 	      (unless (eolp)
 		(indent-to-column (- arg))
-		(or (not conf-assignment-space) (memq (char-before (point)) '(?  ?\t)) (insert ? ))))
+		(or (not conf-assignment-space) (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))))
 	  (unless (eolp)
 	    (if (>= (current-column) (abs arg))
-		(insert ? )
+		(insert ?\s)
 	      (indent-to-column (abs arg))))))
       (forward-line))))
 

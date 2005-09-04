@@ -1,7 +1,7 @@
 ;;; icomplete.el --- minibuffer completion incremental feedback
 
-;; Copyright (C) 1992, 1993, 1994, 1997, 1999, 2001, 2005
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1997, 1999, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@i.am>
 ;; Maintainer: Ken Manheimer <klm@i.am>
@@ -243,13 +243,15 @@ and `minibuffer-setup-hook'."
 		;; embarking on computing completions:
 		(sit-for icomplete-compute-delay)))
 	  (let ((text (while-no-input
-			(icomplete-completions
-			 (field-string)
-			 minibuffer-completion-table
-			 minibuffer-completion-predicate
-			 (not minibuffer-completion-confirm))))
+			(list
+			 (icomplete-completions
+			  (field-string)
+			  minibuffer-completion-table
+			  minibuffer-completion-predicate
+			  (not minibuffer-completion-confirm)))))
 		(buffer-undo-list t))
-	    (if text (insert text)))))))
+	    ;; Do nothing if while-no-input was aborted.
+	    (if (consp text) (insert (car text))))))))
 
 ;;;_ > icomplete-completions (name candidates predicate require-match)
 (defun icomplete-completions (name candidates predicate require-match)

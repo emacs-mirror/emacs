@@ -1,6 +1,7 @@
 ;;; calc-units.el --- unit conversion functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -810,10 +811,10 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 	    (mapcar 'math-to-standard-rec (cdr expr))))))
 
 (defun math-apply-units (expr units ulist &optional pure)
+  (setq expr (math-simplify-units expr))
   (if ulist
       (let ((new 0)
 	    value)
-	(setq expr (math-simplify-units expr))
 	(or (math-numberp expr)
 	    (error "Incompatible units"))
 	(while (cdr ulist)
@@ -826,9 +827,9 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
 		ulist (cdr ulist)))
 	(math-add new (math-mul (math-div expr (nth 1 (car ulist)))
 				(car (car ulist)))))
-    (math-simplify-units (if pure
-			     expr
-			   (list '* expr units)))))
+    (if pure
+        expr
+      (math-simplify-units (list '* expr units)))))
 
 (defvar math-decompose-units-cache nil)
 (defun math-decompose-units (units)

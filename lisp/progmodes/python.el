@@ -67,7 +67,6 @@
 (eval-when-compile
   (require 'compile)
   (autoload 'info-lookup-maybe-add-help "info-look"))
-(autoload 'compilation-start "compile")
 
 (defgroup python nil
   "Silly walks in the Python language."

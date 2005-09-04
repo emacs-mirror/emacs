@@ -1,3 +1,7 @@
 *-spd
 *.pdb
 .arch-inventory
+config.log
+makefile
+obj
+oo

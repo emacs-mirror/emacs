@@ -1,6 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2000, 2001, 2002, 2005
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2000, 2001,
+@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Display, Search, Registers, Top
 @chapter Controlling the Display
@@ -104,14 +104,18 @@ future Emacs versions.
   To see what faces are currently defined, and what they look like,
 type @kbd{M-x list-faces-display}.  It's possible for a given face to
 look different in different frames; this command shows the appearance
-in the frame in which you type it.  Here are the standard faces
-for specifying text appearance:
+in the frame in which you type it.
+
+Here are the standard faces for specifying text appearance.  You can
+use them on specific text, when you want the effects they produce.
 
 @table @code
 @item default
 This face is used for ordinary text that doesn't specify any other face.
 @item bold
 This face uses a bold variant of the default font, if it has one.
+It's up to you to choose a default font that has a bold variant,
+if you want to use one.
 @item italic
 This face uses an italic variant of the default font, if it has one.
 @item bold-italic
@@ -119,9 +123,15 @@ This face uses a bold italic variant of the default font, if it has one.
 @item underline
 This face underlines text.
 @item fixed-pitch
-The basic fixed-pitch face.
+This face forces use of a particular fixed-width font.
 @item variable-pitch
-The basic variable-pitch face.
+This face forces use of a particular variable-width font.  It's
+reasonable to customize this to use a different variable-width font,
+if you like, but you should not make it a fixed-width font.
+@item shadow
+This face is used for making the text less noticeable than the surrounding
+ordinary text.  Usually this can be achieved by using shades of gray in
+contrast with either black or white default foreground color.
 @end table
 
   Here's an incomplete list of faces used to highlight parts of the
@@ -146,19 +156,15 @@ mode is enabled---see below).
 This face is used for displaying a secondary X selection (@pxref{Secondary
 Selection}).
 @item trailing-whitespace
-The face for highlighting trailing whitespace when
-@code{show-trailing-whitespace} is non-@code{nil}; see @ref{Useless
-Whitespace}.
+The face for highlighting excess spaces and tabs at the end of a line
+when @code{show-trailing-whitespace} is non-@code{nil}; see
+@ref{Useless Whitespace}.
 @item nobreak-space
 The face for displaying the character ``nobreak space''.
 @item escape-glyph
 The face for highlighting the @samp{\} or @samp{^} that indicates
 a control character.  It's also used when @samp{\} indicates a
 nobreak space or nobreak (soft) hyphen.
-@item shadow
-The basic face for making the text less noticeable than the surrounding
-ordinary text.  Usually this is achieved by using shades of grey in
-contrast with either black or white default foreground color.
 @end table
 
 @cindex @code{region} face
@@ -175,10 +181,13 @@ appearance of these parts of the frame.
 
 @table @code
 @item mode-line
-This face is used for the mode line of the currently selected window.
-By default, it's drawn with shadows for a ``raised'' effect on window
-systems, and drawn as the inverse of the default face on non-windowed
-terminals.
+@itemx modeline
+This face is used for the mode line of the currently selected window,
+and for menu bars when toolkit menus are not used.  By default, it's
+drawn with shadows for a ``raised'' effect on window systems, and
+drawn as the inverse of the default face on non-windowed terminals.
+@code{modeline} is an alias for the @code{mode-line} face, for
+compatibility with old Emacs versions.
 @item mode-line-inactive
 Like @code{mode-line}, but used for mode lines of the windows other
 than the selected one (if @code{mode-line-in-non-selected-windows} is
@@ -186,15 +195,22 @@ non-@code{nil}).  This face inherits from @code{mode-line}, so changes
 in that face affect mode lines in all windows.
 @item header-line
 Similar to @code{mode-line} for a window's header line.  Most modes
-don't use the header line, but the Info mode does.
+don't use the header line, but some special modes, such the Info mode, do.
 @item vertical-border
-This face is used for the vertical divider between windows on
-character terminals.  By default this face inherits from the
-@code{mode-line-inactive} face.
+This face is used for the vertical divider between windows.
+By default this face inherits from the @code{mode-line-inactive} face
+on character terminals.  On window systems the foreground color of
+this face is used for the vertical line between windows without
+scrollbars.
 @item minibuffer-prompt
+@cindex @code{minibuffer-prompt} face
+@vindex minibuffer-prompt-properties
 This face is used for the prompt strings displayed in the minibuffer.
+By default, Emacs automatically adds this face to the value of
+@code{minibuffer-prompt-properties}, which is a list of text
+properties used to display the prompt text.
 @item fringe
-@cindex fringe
+@cindex @code{fringe} face
 The face for the fringes to the left and right of windows on graphic
 displays.  (The fringes are the narrow portions of the Emacs frame
 between the text area and the window's right and left borders.)
@@ -214,9 +230,16 @@ colors of this face affect the appearance of tool bar icons.  @xref{Tool Bars}.
 @item tooltip
 This face is used for tooltips.  @xref{Tooltips}.
 @item menu
-This face determines the colors and font of Emacs's menus.  Setting the
-font of LessTif/Motif menus is currently not supported; attempts to set
-the font are ignored in this case.  @xref{Menu Bars}.
+@cindex menu bar appearance
+@cindex @code{menu} face, no effect if customized
+@cindex customization of @code{menu} face
+This face determines the colors and font of Emacs's menus.  @xref{Menu
+Bars}.  Setting the font of LessTif/Motif menus is currently not
+supported; attempts to set the font are ignored in this case.
+Likewise, attempts to customize this face in Emacs built with GTK and
+in the MS-Windows port are ignored by the respective GUI toolkits;
+you need to use system-wide styles and options to change the
+appearance of the menus.
 @end table
 
 @node Font Lock
@@ -1004,15 +1027,6 @@ global-hl-line-mode} enables or disables the same mode globally.
   This section contains information for customization only.  Beginning
 users should skip it.
 
-@vindex mode-line-inverse-video
-  The variable @code{mode-line-inverse-video} is an obsolete way of
-controlling whether the mode line is displayed in inverse video; the
-preferred way of doing this is to change the @code{mode-line} face.
-@xref{Mode Line}.  However, if @code{mode-line-inverse-video} has a
-value of @code{nil}, then the @code{mode-line} face will be ignored,
-and mode-lines will be drawn using the default text face.
-@xref{Faces}.
-
 @vindex inverse-video
   If the variable @code{inverse-video} is non-@code{nil}, Emacs attempts
 to invert all the lines of the display from what they normally are.
@@ -1135,7 +1149,7 @@ is the default value for @code{indicate-buffer-boundaries} in buffers
 that do not override it.
 
 @vindex baud-rate
-  The variable @code{baud-rate} holds the output speed of the
+  The variable @anchor{baud-rate}@code{baud-rate} holds the output speed of the
 terminal, as far as Emacs knows.  Setting this variable does not
 change the speed of actual data transmission, but the value is used
 for calculations.  On terminals, it affects padding, and decisions

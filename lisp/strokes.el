@@ -1,6 +1,7 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: FSF
@@ -243,9 +244,9 @@ ones, then strokes should NOT pick the one that came closest."
 
 (defcustom strokes-grid-resolution 9
   "*Integer defining dimensions of the stroke grid.
-The grid is a square grid, where STROKES-GRID-RESOLUTION defaults to
+The grid is a square grid, where `strokes-grid-resolution' defaults to
 `9', making a 9x9 grid whose coordinates go from (0 . 0) on the top
-left to ((STROKES-GRID-RESOLUTION - 1) . (STROKES-GRID-RESOLUTION - 1))
+left to ((strokes-grid-resolution - 1) . (strokes-grid-resolution - 1))
 on the bottom right.  The greater the resolution, the more intricate
 your strokes can be.
 NOTE: This variable should be odd and MUST NOT be less than 3 and need
@@ -259,7 +260,7 @@ WARNING: Changing the value of this variable will gravely affect the
   :group 'strokes)
 
 (defcustom strokes-file (convert-standard-filename "~/.strokes")
-  "*File containing saved strokes for stroke-mode (default is ~/.strokes)."
+  "*File containing saved strokes for Strokes mode (default is ~/.strokes)."
   :type 'file
   :group 'strokes)
 
@@ -284,17 +285,17 @@ This is set properly in the function `strokes-update-window-configuration'.")
   "Last stroke entered by the user.
 Its value gets set every time the function
 `strokes-fill-stroke' gets called,
-since that is the best time to set the variable")
+since that is the best time to set the variable.")
 
 (defvar strokes-global-map '()
   "Association list of strokes and their definitions.
 Each entry is (STROKE . COMMAND) where STROKE is itself a list of
 coordinates (X . Y) where X and Y are lists of positions on the
 normalized stroke grid, with the top left at (0 . 0).  COMMAND is the
-corresponding interactive function")
+corresponding interactive function.")
 
 (defvar strokes-load-hook nil
-  "Function or functions to be called when `strokes' is loaded.")
+  "Functions to be called when Strokes is loaded.")
 
 ;;; ### NOT IMPLEMENTED YET ###
 ;;(defvar edit-strokes-menu
@@ -473,10 +474,10 @@ Compare `strokes-global-set-stroke'."
 
 (defun strokes-get-grid-position (stroke-extent position &optional grid-resolution)
   "Map POSITION to a new grid position.
-Do so  based on its STROKE-EXTENT and GRID-RESOLUTION.
+Do so based on its STROKE-EXTENT and GRID-RESOLUTION.
 STROKE-EXTENT as a list \(\(XMIN . YMIN\) \(XMAX . YMAX\)\).
 If POSITION is a `strokes-lift', then it is itself returned.
-Optional GRID-RESOLUTION may be used in place of STROKES-GRID-RESOLUTION.
+Optional GRID-RESOLUTION may be used in place of `strokes-grid-resolution'.
 The grid is a square whose dimension is [0,GRID-RESOLUTION)."
   (cond ((consp position)		; actual pixel location
 	 (let ((grid-resolution (or grid-resolution strokes-grid-resolution))
@@ -566,7 +567,7 @@ The return value is a list ((XMIN . YMIN) (XMAX . YMAX))."
 (defun strokes-renormalize-to-grid (positions &optional grid-resolution)
   "Map POSITIONS to a new grid whose dimensions are based on GRID-RESOLUTION.
 POSITIONS is a list of positions and stroke-lifts.
-Optional GRID-RESOLUTION may be used in place of STROKES-GRID-RESOLUTION.
+Optional GRID-RESOLUTION may be used in place of `strokes-grid-resolution'.
 The grid is a square whose dimension is [0,GRID-RESOLUTION)."
   (or grid-resolution (setq grid-resolution strokes-grid-resolution))
   (let ((stroke-extent (strokes-get-stroke-extent positions)))
@@ -726,7 +727,7 @@ Optional PROMPT in minibuffer displays before and during stroke reading.
 This function will display the stroke interactively as it is being
 entered in the strokes buffer if the variable
 `strokes-use-strokes-buffer' is non-nil.
-Optional EVENT is acceptable as the starting event of the stroke"
+Optional EVENT is acceptable as the starting event of the stroke."
   (save-excursion
     (let ((pix-locs nil)
 	  (grid-locs nil)
@@ -790,7 +791,7 @@ Optional PROMPT in minibuffer displays before and during stroke reading.
 Note that a complex stroke allows the user to pen-up and pen-down.  This
 is implemented by allowing the user to paint with button 1 or button 2 and
 then complete the stroke with button 3.
-Optional EVENT is acceptable as the starting event of the stroke"
+Optional EVENT is acceptable as the starting event of the stroke."
   (save-excursion
     (save-window-excursion
       (set-window-configuration strokes-window-configuration)
@@ -892,11 +893,12 @@ This must be bound to a mouse event."
 
 ;;;###autoload
 (defun strokes-help ()
-  "Get instruction on using the `strokes' package."
+  "Get instruction on using the Strokes package."
   (interactive)
   (with-output-to-temp-buffer "*Help with Strokes*"
     (princ
-     "This is help for the strokes package.
+     (substitute-command-keys
+      "This is help for the strokes package.
 
 ------------------------------------------------------------
 
@@ -986,7 +988,7 @@ You can change this location by setting the variable `strokes-file'.
 You will be prompted to save them when you exit Emacs, or you can save
 them with
 
-> M-x strokes-save-strokes
+> M-x strokes-prompt-user-save-strokes
 
 Your strokes get loaded automatically when you enable `strokes-mode'.
 You can also load in your user-defined strokes with
@@ -1024,7 +1026,7 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
   variable which many people wanted to see was
   `strokes-use-strokes-buffer' which allows the user to use strokes
   silently--without displaying the strokes.  All variables can be set
-  by customizing the group `strokes' via \[customize-group].")
+  by customizing the group `strokes' via \\[customize-group]."))
     (set-buffer standard-output)
     (help-mode)
     (print-help-return-message)))
@@ -1422,8 +1424,6 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
   "Face for strokes characters."
   :version "21.1"
   :group 'strokes)
-;; backward-compatibility alias
-(put 'strokes-char-face 'face-alias 'strokes-char)
 
 (put 'strokes 'char-table-extra-slots 0)
 (defconst strokes-char-table (make-char-table 'strokes) ;

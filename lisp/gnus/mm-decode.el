@@ -1,6 +1,7 @@
 ;;; mm-decode.el --- Functions for decoding MIME things
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -36,6 +37,8 @@
   (autoload 'mm-inline-partial "mm-partial")
   (autoload 'mm-inline-external-body "mm-extern")
   (autoload 'mm-insert-inline "mm-view"))
+
+(defvar gnus-current-window-configuration)
 
 (add-hook 'gnus-exit-gnus-hook 'mm-destroy-postponed-undisplay-list)
 
@@ -817,11 +820,32 @@ external if displayed external."
 	    (let ((command (mm-mailcap-command
 			    method file (mm-handle-type handle))))
 	      (unwind-protect
-		  (start-process "*display*"
-				 (setq buffer
-				       (generate-new-buffer " *mm*"))
-				 shell-file-name
-				 shell-command-switch command)
+		  (progn
+		    (start-process "*display*"
+				   (setq buffer
+					 (generate-new-buffer " *mm*"))
+				   shell-file-name
+				   shell-command-switch command)
+		    (set-process-sentinel
+		     (get-buffer-process buffer)
+		     `(lambda (process state)
+			(when (eq 'exit (process-status process))
+			  ;; Don't use `ignore-errors'.
+			  (condition-case nil
+			      (delete-file ,file)
+			    (error))
+			  (condition-case nil
+			      (delete-directory ,(file-name-directory file))
+			    (error))
+			  (condition-case nil
+			      (kill-buffer ,buffer)
+			    (error))
+			  (condition-case nil
+			      ,(macroexpand (list 'mm-handle-set-undisplayer
+						  (list 'quote handle)
+						  nil))
+			    (error))
+			  (message "Displaying %s...done" ,command)))))
 		(mm-handle-set-external-undisplayer
 		 handle (cons file buffer)))
 	      (message "Displaying %s..." command))

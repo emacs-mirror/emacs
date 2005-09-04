@@ -1,6 +1,7 @@
 ;;; generic.el --- defining simple major modes with comment and font-lock
 ;;
-;; Copyright (C) 1997, 1999, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;;
 ;; Author:  Peter Breton <pbreton@cs.umb.edu>
 ;; Created: Fri Sep 27 1996
@@ -101,8 +102,7 @@
 (defvar generic-font-lock-keywords nil
   "Keywords for `font-lock-defaults' in a generic mode.")
 (make-variable-buffer-local 'generic-font-lock-keywords)
-(defvaralias 'generic-font-lock-defaults 'generic-font-lock-keywords)
-(make-obsolete-variable 'generic-font-lock-defaults 'generic-font-lock-keywords "22.1")
+(define-obsolete-variable-alias 'generic-font-lock-defaults 'generic-font-lock-keywords "22.1")
 
 ;;;###autoload
 (defvar generic-mode-list nil

@@ -1,6 +1,7 @@
 ;;; mml1991.el --- Old PGP message format (RFC 1991) support for MML
-;; Copyright (C) 1998, 1999, 2000, 2001, 2003, 2005
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Sascha Lüdecke <sascha@meta-x.de>,
 ;;	Simon Josefsson <simon@josefsson.org> (Mailcrypt interface, Gnus glue)
@@ -30,6 +31,8 @@
 (eval-when-compile
   (require 'cl)
   (require 'mm-util))
+
+(defvar mc-pgp-always-sign)
 
 (autoload 'quoted-printable-decode-region "qp")
 (autoload 'quoted-printable-encode-region "qp")
@@ -181,7 +184,7 @@
       (delete-region (point-min) (point)))
     (mm-with-unibyte-current-buffer
       (with-temp-buffer
-	(flet ((gpg-encrypt-func 
+	(flet ((gpg-encrypt-func
 		(sign plaintext ciphertext result recipients &optional
 		      passphrase sign-with-key armor textmode)
 		(if sign
@@ -269,7 +272,7 @@
       (delete-region (point-min) (point)))
     (mm-decode-content-transfer-encoding cte)
     (unless (pgg-encrypt-region
-	     (point-min) (point-max) 
+	     (point-min) (point-max)
 	     (split-string
 	      (or
 	       (message-options-get 'message-recipients)

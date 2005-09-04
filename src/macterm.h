@@ -1,5 +1,6 @@
 /* Display module for Mac OS.
-   Copyright (C) 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -37,11 +38,6 @@ Boston, MA 02110-1301, USA.  */
 
 #define BLACK_PIX_DEFAULT(f) RGB_TO_ULONG(0,0,0)
 #define WHITE_PIX_DEFAULT(f) RGB_TO_ULONG(255,255,255)
-
-/* A black pixel in a mask bitmap/pixmap means ``draw a source
-   pixel''.  A white pixel means ``retain the current pixel''. */
-#define PIX_MASK_DRAW(f) BLACK_PIX_DEFAULT(f)
-#define PIX_MASK_RETAIN(f) WHITE_PIX_DEFAULT(f)
 
 #define FONT_WIDTH(f)   ((f)->max_bounds.width)
 #define FONT_HEIGHT(f)  ((f)->ascent + (f)->descent)
@@ -149,7 +145,7 @@ struct mac_display_info
   int smallest_font_height;
 
   /* Reusable Graphics Context for drawing a cursor in a non-default face. */
-  XGCValues *scratch_cursor_gc;
+  GC scratch_cursor_gc;
 
   /* These variables describe the range of text currently shown in its
      mouse-face, together with the window they apply to. As long as
@@ -388,7 +384,7 @@ struct mac_output {
   /* Relief GCs, colors etc.  */
   struct relief
   {
-    XGCValues *gc;
+    GC gc;
     unsigned long pixel;
     int allocated_p;
   }
@@ -598,6 +594,8 @@ EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 EXFUN (Fx_display_planes, 1);
 extern void x_free_gcs P_ ((struct frame *));
+extern int XParseGeometry P_ ((char *, int *, int *, unsigned int *,
+			       unsigned int *));
 
 /* Defined in macterm.c.  */
 
@@ -611,6 +609,7 @@ extern Pixmap XCreatePixmapFromBitmapData P_ ((Display *, WindowPtr, char *,
 					       unsigned long, unsigned long,
 					       unsigned int));
 extern void XFreePixmap P_ ((Display *, Pixmap));
+extern GC XCreateGC P_ ((Display *, Window, unsigned long, XGCValues *));
 extern void XSetForeground P_ ((Display *, GC, unsigned long));
 extern void XSetBackground P_ ((Display *, GC, unsigned long));
 extern void XSetWindowBackground P_ ((Display *, WindowPtr, unsigned long));

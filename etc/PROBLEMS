@@ -338,7 +338,7 @@ The solution is to use gawk (GNU awk).
 *** Emacs fails to understand most Internet host names, even though
 the names work properly with other programs on the same system.
 *** Emacs won't work with X-windows if the value of DISPLAY is HOSTNAME:0.
-*** GNUs can't make contact with the specified host for nntp.
+*** Gnus can't make contact with the specified host for nntp.
 
 This typically happens on Suns and other systems that use shared
 libraries.  The cause is that the site has installed a version of the
@@ -2418,11 +2418,11 @@ address space of a process. As the result dumping may fail even if
 you turn off exec-shield. In this case, use the -R option to the setarch
 command:
 
-   setarch -R i386 ./temacs --batch --load loadup [dump|bootstrap]
+   setarch i386 -R ./temacs --batch --load loadup [dump|bootstrap]
 
 or
 
-   setarch -R i386 make bootstrap      
+   setarch i386 -R make bootstrap      
 
 *** Fatal signal in the command  temacs -l loadup inc dump.
 
@@ -3561,8 +3561,8 @@ This problem will not happen if the m-...h file for your type
 of machine defines NO_UNION_TYPE.
 
 
-Copyright 1987,88,89,93,94,95,96,97,98,1999,2001,2002,2004
-  Free Software Foundation, Inc.
+Copyright 1987, 1988, 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+   2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 Copying and redistribution of this file with or without modification
 are permitted without royalty provided this notice is preserved.

@@ -1,6 +1,7 @@
 ;;; ediff-ptch.el --- Ediff's  patch support
 
-;; Copyright (C) 1996, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -163,7 +164,7 @@ program."
 ;; returns /dev/null, if can't strip prefix
 (defsubst ediff-file-name-sans-prefix (filename prefix)
   (save-match-data
-    (if (string-match (concat "^" prefix) filename)
+    (if (string-match (concat "^" (regexp-quote prefix)) filename)
 	(substring filename (match-end 0))
       (concat "/null/" filename))))
 

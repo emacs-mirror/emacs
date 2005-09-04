@@ -1,6 +1,7 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
 ;; Keywords: languages, ANTLR, code generator
@@ -828,7 +829,7 @@ in the grammar's actions and semantic predicates, see
 `antlr-font-lock-maximum-decoration'.")
 
 (defvar antlr-default-face 'antlr-default)
-(defface antlr-default
+(defface antlr-default nil
   "Face to prevent strings from language dependent highlighting.
 Do not change."
   :group 'antlr)
@@ -924,7 +925,7 @@ group.  The string matched by the first group is highlighted with
      ("\\$\\sw+" (0 keyword-face))
      ;; the tokens are already fontified as string/docstrings:
      (,(lambda (limit)
-	 (if antlr-literal-regexp
+	 (if antlr-font-lock-literal-regexp
 	     (antlr-re-search-forward antlr-font-lock-literal-regexp limit)))
       (1 antlr-literal-face t)
       :XEMACS (0 nil))			; XEmacs bug workaround
@@ -2240,9 +2241,8 @@ called interactively, the buffers are always saved, see also variable
   (interactive (antlr-run-tool-interactive))
   (or saved (save-some-buffers (not antlr-ask-about-save)))
   (let ((default-directory (file-name-directory file)))
-    (require 'compile)			; only `compile' autoload
-    (compile-internal (concat command " " (file-name-nondirectory file))
-		      "No more errors" "Antlr-Run")))
+    (compilation-start (concat command " " (file-name-nondirectory file))
+		       nil #'(lambda (mode-name) "*Antlr-Run*"))))
 
 (defun antlr-run-tool-interactive ()
   ;; code in `interactive' is not compiled

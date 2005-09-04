@@ -1,4 +1,5 @@
 /* Copyright    Massachusetts Institute of Technology    1985	*/
+/* Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.  */
 
 /*
 Permission to use, copy, modify, distribute, and sell this software and its

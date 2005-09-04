@@ -1,6 +1,6 @@
 ;;; x-menu.el --- menu support for X
 
-;; Copyright (C) 1986 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -22,6 +22,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(defvar x-process-mouse-hook)
 
 (defun x-menu-mode ()
   "Major mode for creating permanent menus for use with X.

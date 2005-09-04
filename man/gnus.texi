@@ -7,9 +7,8 @@
 @syncodeindex pg cp
 
 @copying
-Copyright (c) 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-2002, 2003, 2004, 2005
-Free Software Foundation, Inc.
+Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1468,15 +1467,17 @@ startup files.  If you want to turn backup creation off, say something like:
 @vindex gnus-init-file
 @vindex gnus-site-init-file
 When Gnus starts, it will read the @code{gnus-site-init-file}
-(@file{.../site-lisp/gnus} by default) and @code{gnus-init-file}
+(@file{.../site-lisp/gnus-init} by default) and @code{gnus-init-file}
 (@file{~/.gnus} by default) files.  These are normal Emacs Lisp files
 and can be used to avoid cluttering your @file{~/.emacs} and
 @file{site-init} files with Gnus stuff.  Gnus will also check for files
 with the same names as these, but with @file{.elc} and @file{.el}
 suffixes.  In other words, if you have set @code{gnus-init-file} to
 @file{~/.gnus}, it will look for @file{~/.gnus.elc}, @file{~/.gnus.el},
-and finally @file{~/.gnus} (in this order).
-
+and finally @file{~/.gnus} (in this order).  If Emacs was invoked with
+the @option{-q} or @option{--no-init-file} options (@pxref{Initial
+Options, ,Initial Options, emacs, The Emacs Manual}), Gnus doesn't read
+@code{gnus-init-file}.
 
 
 @node Auto Save
@@ -9405,7 +9406,7 @@ newsreaders and mailers that do not understand or use @acronym{MIME}, and
 just send out messages without saying what character sets they use.  To
 help a bit with this, some local news hierarchies have policies that say
 what character set is the default.  For instance, the @samp{fj}
-hierarchy uses @code{iso-2022-jp-2}.
+hierarchy uses @code{iso-2022-jp}.
 
 @vindex gnus-group-charset-alist
 This knowledge is encoded in the @code{gnus-group-charset-alist}

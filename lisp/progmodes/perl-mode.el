@@ -1,6 +1,7 @@
 ;;; perl-mode.el --- Perl code editing commands for GNU Emacs
 
-;; Copyright (C) 1990, 1994, 2003, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1994, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
 ;; Maintainer: FSF
@@ -105,6 +106,10 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+
+(defvar font-lock-comment-face)
+(defvar font-lock-doc-face)
+(defvar font-lock-string-face)
 
 (defgroup perl nil
   "Major mode for editing Perl code."

@@ -1,6 +1,7 @@
 ;;; lmenu.el --- emulate Lucid's menubar support
 
-;; Copyright (C) 1992, 1993, 1994, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Keywords: emulations obsolete
 
@@ -31,8 +32,10 @@
 ;; Arrange to use current-menubar to set up part of the menu bar.
 
 (defvar current-menubar)
+(defvar lucid-menubar-map)
+(defvar lucid-failing-menubar)
 
-(setq recompute-lucid-menubar 'recompute-lucid-menubar)
+(defvar recompute-lucid-menubar 'recompute-lucid-menubar)
 (defun recompute-lucid-menubar ()
   (define-key lucid-menubar-map [menu-bar]
     (condition-case nil

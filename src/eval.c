@@ -1,6 +1,6 @@
 /* Evaluator for GNU Emacs Lisp interpreter.
    Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1999, 2000, 2001,
-     2002, 2004, 2005 Free Software Foundation, Inc.
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -235,6 +235,7 @@ restore_stack_limits (data)
 {
   max_specpdl_size = XINT (XCAR (data));
   max_lisp_eval_depth = XINT (XCDR (data));
+  return Qnil;
 }
 
 /* Call the Lisp debugger, giving it argument ARG.  */
@@ -471,10 +472,10 @@ usage: (prog1 FIRST BODY...)  */)
 }
 
 DEFUN ("prog2", Fprog2, Sprog2, 2, UNEVALLED, 0,
-       doc: /* Eval X, Y and BODY sequentially; value from Y.
-The value of Y is saved during the evaluation of the remaining args,
-whose values are discarded.
-usage: (prog2 X Y BODY...)  */)
+       doc: /* Eval FORM1, FORM2 and BODY sequentially; value from FORM2.
+The value of FORM2 is saved during the evaluation of the
+remaining args, whose values are discarded.
+usage: (prog2 FORM1 FORM2 BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -564,8 +565,8 @@ usage: (function ARG)  */)
 
 DEFUN ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
        doc: /* Return t if the function was run directly by user input.
-This means that the function was called with call-interactively (which
-includes being called as the binding of a key)
+This means that the function was called with `call-interactively'
+\(which includes being called as the binding of a key)
 and input is currently coming from the keyboard (not in keyboard macro),
 and Emacs is not running in batch mode (`noninteractive' is nil).
 
@@ -586,14 +587,14 @@ unconditionally for that argument.  (`p' is a good way to do this.)  */)
 
 
 DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 0, 0,
-       doc: /* Return t if the function using this was called with call-interactively.
+       doc: /* Return t if the function using this was called with `call-interactively'.
 This is used for implementing advice and other function-modifying
 features of Emacs.
 
 The cleanest way to test whether your function was called with
-`call-interactively', the way to do that is by adding an extra
-optional argument, and making the `interactive' spec specify non-nil
-unconditionally for that argument.  (`p' is a good way to do this.)  */)
+`call-interactively' is by adding an extra optional argument,
+and making the `interactive' spec specify non-nil unconditionally
+for that argument.  (`p' is a good way to do this.)  */)
      ()
 {
   return interactive_p (1) ? Qt : Qnil;
@@ -779,7 +780,7 @@ The return value is BASE-VARIABLE.  */)
 
 
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
-       doc: /* Define SYMBOL as a variable.
+       doc: /* Define SYMBOL as a variable, and return SYMBOL.
 You are not required to define a variable in order to use it,
 but the definition can supply documentation and an initial value
 in a way that tags can recognize.
@@ -806,10 +807,6 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   register Lisp_Object sym, tem, tail;
 
   sym = Fcar (args);
-  if (SYMBOL_CONSTANT_P (sym))
-    error ("Constant symbol `%s' specified in defvar",
-           SDATA (SYMBOL_NAME (sym)));
-
   tail = Fcdr (args);
   if (!NILP (Fcdr (Fcdr (tail))))
     error ("Too many arguments");
@@ -817,6 +814,18 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   tem = Fdefault_boundp (sym);
   if (!NILP (tail))
     {
+      if (SYMBOL_CONSTANT_P (sym))
+	{
+	  /* For upward compatibility, allow (defvar :foo (quote :foo)).  */
+	  Lisp_Object tem = Fcar (tail);
+	  if (! (CONSP (tem)
+		 && EQ (XCAR (tem), Qquote)
+		 && CONSP (XCDR (tem))
+		 && EQ (XCAR (XCDR (tem)), sym)))
+	    error ("Constant symbol `%s' specified in defvar",
+		   SDATA (SYMBOL_NAME (sym)));
+	}
+
       if (NILP (tem))
 	Fset_default (sym, Feval (Fcar (tail)));
       else
@@ -2085,7 +2094,8 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
     return form;
 
   QUIT;
-  if (consing_since_gc > gc_cons_threshold)
+  if (consing_since_gc > gc_cons_threshold
+      && consing_since_gc > gc_relative_threshold)
     {
       GCPRO1 (form);
       Fgarbage_collect ();
@@ -2785,7 +2795,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   register int i;
 
   QUIT;
-  if (consing_since_gc > gc_cons_threshold)
+  if (consing_since_gc > gc_cons_threshold
+      && consing_since_gc > gc_relative_threshold)
     Fgarbage_collect ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
@@ -2851,8 +2862,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  val = (*XSUBR (fun)->function) (internal_args[0]);
 	  goto done;
 	case 2:
-	  val = (*XSUBR (fun)->function) (internal_args[0],
-					  internal_args[1]);
+	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1]);
 	  goto done;
 	case 3:
 	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
@@ -2860,8 +2870,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  goto done;
 	case 4:
 	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
-					  internal_args[2],
-					  internal_args[3]);
+					  internal_args[2], internal_args[3]);
 	  goto done;
 	case 5:
 	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
@@ -3387,7 +3396,7 @@ void
 syms_of_eval ()
 {
   DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,
-	      doc: /* *Limit on number of Lisp variable bindings & unwind-protects.
+	      doc: /* *Limit on number of Lisp variable bindings and `unwind-protect's.
 If Lisp code tries to increase the total number past this amount,
 an error is signaled.
 You can safely use a value considerably larger than the default value,
@@ -3484,10 +3493,8 @@ It does not apply to errors handled by `condition-case'.  */);
   Vdebug_ignored_errors = Qnil;
 
   DEFVAR_BOOL ("debug-on-quit", &debug_on_quit,
-	       doc: /* *Non-nil means enter debugger if quit is signaled (C-g, for example).
-Does not apply if quit is handled by a `condition-case'.
-When you evaluate an expression interactively, this variable
-is temporarily non-nil if `eval-expression-debug-on-quit' is non-nil.  */);
+    doc: /* *Non-nil means enter debugger if quit is signaled (C-g, for example).
+Does not apply if quit is handled by a `condition-case'.  */);
   debug_on_quit = 0;
 
   DEFVAR_BOOL ("debug-on-next-call", &debug_on_next_call,

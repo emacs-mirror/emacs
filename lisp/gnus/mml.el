@@ -1,6 +1,7 @@
 ;;; mml.el --- A package for parsing and validating MML documents
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -39,6 +40,16 @@
   (autoload 'message-fetch-field "message")
   (autoload 'fill-flowed-encode "flow-fill")
   (autoload 'message-posting-charset "message"))
+
+(defvar gnus-article-mime-handles)
+(defvar gnus-mouse-2)
+(defvar gnus-newsrc-hashtb)
+(defvar message-default-charset)
+(defvar message-deletable-headers)
+(defvar message-options)
+(defvar message-posting-charset)
+(defvar message-required-mail-headers)
+(defvar message-required-news-headers)
 
 (defcustom mml-content-type-parameters
   '(name access-type expiration size permission format)
@@ -123,7 +134,13 @@ unknown encoding; `use-ascii': always use ASCII for those characters
 with unknown encoding; `multipart': always send messages with more than
 one charsets.")
 
-(defvar mml-generate-default-type "text/plain")
+(defvar mml-generate-default-type "text/plain"
+  "Content type by which the Content-Type header can be omitted.
+The Content-Type header will not be put in the MIME part if the type
+equals the value and there's no parameter (e.g. charset, format, etc.)
+and `mml-insert-mime-headers-always' is nil.  The value will be bound
+to \"message/rfc822\" when encoding an article to be forwarded as a MIME
+part.  This is for the internal use, you should never modify the value.")
 
 (defvar mml-buffer-list nil)
 
@@ -400,9 +417,14 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
       (mml-tweak-part cont)
       (cond
        ((or (eq (car cont) 'part) (eq (car cont) 'mml))
-	(let ((raw (cdr (assq 'raw cont)))
-	      coded encoding charset filename type flowed)
-	  (setq type (or (cdr (assq 'type cont)) "text/plain"))
+	(let* ((raw (cdr (assq 'raw cont)))
+	       (filename (cdr (assq 'filename cont)))
+	       (type (or (cdr (assq 'type cont))
+			 (if filename
+			     (or (mm-default-file-encoding filename)
+				 "application/octet-stream")
+			   "text/plain")))
+	       coded encoding charset flowed)
 	  (if (and (not raw)
 		   (member (car (split-string type "/")) '("text" "message")))
 	      (progn
@@ -414,7 +436,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		  (cond
 		   ((cdr (assq 'buffer cont))
 		    (insert-buffer-substring (cdr (assq 'buffer cont))))
-		   ((and (setq filename (cdr (assq 'filename cont)))
+		   ((and filename
 			 (not (equal (cdr (assq 'nofile cont)) "yes")))
 		    (let ((coding-system-for-read charset))
 		      (mm-insert-file-contents filename)))
@@ -434,6 +456,10 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		  (cond
 		   ((eq (car cont) 'mml)
 		    (let ((mml-boundary (mml-compute-boundary cont))
+			  ;; It is necessary for the case where this
+			  ;; function is called recursively since
+			  ;; `m-g-d-t' will be bound to "message/rfc822"
+			  ;; when encoding an article to be forwarded.
 			  (mml-generate-default-type "text/plain"))
 		      (mml-to-mime))
 		    (let ((mm-7bit-chars (concat mm-7bit-chars "\x1b")))
@@ -475,7 +501,7 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 		(insert (with-current-buffer (cdr (assq 'buffer cont))
 			  (mm-with-unibyte-current-buffer
 			    (buffer-string)))))
-	       ((and (setq filename (cdr (assq 'filename cont)))
+	       ((and filename
 		     (not (equal (cdr (assq 'nofile cont)) "yes")))
 		(let ((coding-system-for-read mm-binary-coding-system))
 		  (mm-insert-file-contents filename nil nil nil nil t)))
@@ -516,15 +542,21 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	     "access-type=url"))
 	  (when parameters
 	    (mml-insert-parameter-string
-	     cont '(expiration size permission))))
-	(insert "\n\n")
-	(insert "Content-Type: " (cdr (assq 'type cont)) "\n")
-	(insert "Content-ID: " (message-make-message-id) "\n")
-	(insert "Content-Transfer-Encoding: "
-		(or (cdr (assq 'encoding cont)) "binary"))
-	(insert "\n\n")
-	(insert (or (cdr (assq 'contents cont))))
-	(insert "\n"))
+	     cont '(expiration size permission)))
+	  (insert "\n\n")
+	  (insert "Content-Type: "
+		  (or (cdr (assq 'type cont))
+		      (if name
+			  (or (mm-default-file-encoding name)
+			      "application/octet-stream")
+			"text/plain"))
+		  "\n")
+	  (insert "Content-ID: " (message-make-message-id) "\n")
+	  (insert "Content-Transfer-Encoding: "
+		  (or (cdr (assq 'encoding cont)) "binary"))
+	  (insert "\n\n")
+	  (insert (or (cdr (assq 'contents cont))))
+	  (insert "\n")))
        ((eq (car cont) 'multipart)
 	(let* ((type (or (cdr (assq 'type cont)) "mixed"))
 	       (mml-generate-default-type (if (equal type "digest")
@@ -560,7 +592,8 @@ If MML is non-nil, return the buffer up till the correspondent mml tag."
 	    (message-options-set 'message-sender sender))
 	  (if (setq recipients (cdr (assq 'recipients cont)))
 	      (message-options-set 'message-recipients recipients))
-	  (let ((style (mml-signencrypt-style (first (or sign-item encrypt-item)))))
+	  (let ((style (mml-signencrypt-style
+			(first (or sign-item encrypt-item)))))
 	    ;; check if: we're both signing & encrypting, both methods
 	    ;; are the same (why would they be different?!), and that
 	    ;; the signencrypt style allows for combined operation.
@@ -943,13 +976,15 @@ See Info node `(emacs-mime)Composing'.
     description))
 
 (defun mml-minibuffer-read-disposition (type &optional default)
-  (let* ((default (or default
-		      (if (string-match "^text/.*" type)
-			  "inline"
-			"attachment")))
-	 (disposition (completing-read "Disposition: "
-				       '(("attachment") ("inline") (""))
-				       nil t)))
+  (unless default (setq default
+                        (if (and (string-match "\\`text/" type)
+                                 (not (string-match "\\`text/rtf\\'" type)))
+                            "inline"
+                          "attachment")))
+  (let ((disposition (completing-read
+                      (format "Disposition (default %s): " default)
+                      '(("attachment") ("inline") (""))
+                      nil t nil nil default)))
     (if (not (equal disposition ""))
 	disposition
       default)))

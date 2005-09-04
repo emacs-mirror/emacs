@@ -1,7 +1,6 @@
 #### -*- Makefile -*- for the Emacs Manual and other documentation.
 
-# Copyright (C) 2003, 2004
-#  Free Software Foundation, Inc.
+# Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -109,7 +108,6 @@ EMACSSOURCES= \
 	$(srcdir)/kmacro.texi
 
 info: $(INFO_TARGETS)
-	$(MULTI_INSTALL_INFO) --info-dir=$(infodir) $(INFO_TARGETS)
 
 dvi: $(DVI_TARGETS)
 
@@ -123,6 +121,9 @@ dvi: $(DVI_TARGETS)
 # the Texinfo distribution.
 # Some Windows ports of makeinfo seem to require -o to come before the
 # texi filename, contrary to GNU standards.
+
+$(infodir)/dir:
+	$(MULTI_INSTALL_INFO) --info-dir=$(infodir) $(INFO_TARGETS)
 
 $(infodir)/info: $(INFOSOURCES)
 	$(MAKEINFO) --no-split -o $@ info.texi

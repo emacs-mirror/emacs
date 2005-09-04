@@ -1,5 +1,5 @@
 /* prefix-args.c - echo each argument, prefixed by a string.
-   Copyright (C) 1992 Free Software Foundation, Inc.
+   Copyright (C) 1992, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

@@ -1,6 +1,6 @@
 /* Execution of byte code produced by bytecomp.el.
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002, 2003, 2004
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -355,13 +355,14 @@ unmark_byte_stack ()
 /* Garbage collect if we have consed enough since the last time.
    We do this at every branch, to avoid loops that never GC.  */
 
-#define MAYBE_GC()				\
-  if (consing_since_gc > gc_cons_threshold)	\
-    {						\
-      BEFORE_POTENTIAL_GC ();			\
-      Fgarbage_collect ();			\
-      AFTER_POTENTIAL_GC ();			\
-    }						\
+#define MAYBE_GC()					\
+  if (consing_since_gc > gc_cons_threshold		\
+      && consing_since_gc > gc_relative_threshold)	\
+    {							\
+      BEFORE_POTENTIAL_GC ();				\
+      Fgarbage_collect ();				\
+      AFTER_POTENTIAL_GC ();				\
+    }							\
   else
 
 /* Check for jumping out of range.  */
@@ -388,7 +389,7 @@ unmark_byte_stack ()
 	Vquit_flag = Qnil;				\
         BEFORE_POTENTIAL_GC ();				\
 	if (EQ (Vthrow_on_input, flag))			\
-	  Fthrow (Vthrow_on_input, Qnil);		\
+	  Fthrow (Vthrow_on_input, Qt);			\
 	Fsignal (Qquit, Qnil);				\
 	AFTER_POTENTIAL_GC ();				\
       }							\

@@ -1,6 +1,7 @@
 ;;; re-builder.el --- building Regexps with visual feedback
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -299,27 +300,14 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (add-hook 'kill-buffer-hook 'reb-kill-buffer)
   (reb-auto-update nil nil nil))
 
-
-;; Handy macro for doing things in other windows
-(defmacro reb-with-current-window (window &rest body)
-  "With WINDOW selected evaluate BODY forms and reselect previous window."
-
-  (let ((oldwindow (make-symbol "*oldwindow*")))
-    `(let ((,oldwindow (selected-window)))
-       (select-window ,window)
-       (unwind-protect
-	   (progn
-	     ,@body)
-	 (select-window ,oldwindow)))))
-(put 'reb-with-current-window 'lisp-indent-function 0)
-
 (defun reb-color-display-p ()
   "Return t if display is capable of displaying colors."
   (eq 'color
       ;; emacs/xemacs compatibility
       (if (fboundp 'frame-parameter)
 	  (frame-parameter (selected-frame) 'display-type)
-	(frame-property (selected-frame) 'display-type))))
+	(if (fboundp 'frame-property)
+	    (frame-property (selected-frame) 'display-type)))))
 
 (defsubst reb-lisp-syntax-p ()
   "Return non-nil if RE Builder uses a Lisp syntax."
@@ -329,12 +317,18 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   "Return binding for SYMBOL in the RE Builder target buffer."
   `(with-current-buffer reb-target-buffer ,symbol))
 
+(defun reb-initialize-buffer ()
+  "Initialize the current buffer as a RE Builder buffer."
+  (erase-buffer)
+  (reb-insert-regexp)
+  (goto-char (+ 2 (point-min)))
+  (cond ((reb-lisp-syntax-p)
+         (reb-lisp-mode))
+        (t (reb-mode))))
+
 ;;; This is to help people find this in Apropos.
 ;;;###autoload
-(defun regexp-builder ()
-  "Alias for `re-builder': Construct a regexp interactively."
-  (interactive)
-  (re-builder))
+(defalias 'regexp-builder 're-builder)
 
 ;;;###autoload
 (defun re-builder ()
@@ -351,13 +345,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
           reb-window-config (current-window-configuration))
     (select-window (split-window (selected-window) (- (window-height) 4)))
     (switch-to-buffer (get-buffer-create reb-buffer))
-    (erase-buffer)
-    (reb-insert-regexp)
-    (goto-char (+ 2 (point-min)))
-    (cond
-     ((reb-lisp-syntax-p)
-      (reb-lisp-mode))
-     (t (reb-mode)))))
+    (reb-initialize-buffer)))
 
 (defun reb-change-target-buffer (buf)
   "Change the target buffer and display it in the target window."
@@ -395,8 +383,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (interactive)
 
   (reb-assert-buffer-in-window)
-  (reb-with-current-window
-    reb-target-window
+  (with-selected-window reb-target-window
     (if (not (re-search-forward reb-regexp (point-max) t))
 	(message "No more matches.")
       (reb-show-subexp
@@ -408,13 +395,15 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
   (interactive)
 
   (reb-assert-buffer-in-window)
-  (reb-with-current-window reb-target-window
-    (goto-char (1- (point)))
-    (if (not (re-search-backward reb-regexp (point-min) t))
-	(message "No more matches.")
-      (reb-show-subexp
-       (or (and reb-subexp-mode reb-subexp-displayed) 0)
-       t))))
+  (with-selected-window reb-target-window
+    (let ((p (point)))
+      (goto-char (1- p))
+      (if (re-search-backward reb-regexp (point-min) t)
+          (reb-show-subexp
+           (or (and reb-subexp-mode reb-subexp-displayed) 0)
+           t)
+        (goto-char p)
+        (message "No more matches.")))))
 
 (defun reb-toggle-case ()
   "Toggle case sensitivity of searches for RE Builder target buffer."
@@ -451,7 +440,7 @@ On color displays this just puts point to the end of the expression as
 the match should already be marked by an overlay.
 On other displays jump to the beginning and the end of it.
 If the optional PAUSE is non-nil then pause at the end in any case."
-  (reb-with-current-window reb-target-window
+  (with-selected-window reb-target-window
     (if (not (reb-color-display-p))
 	(progn (goto-char (match-beginning subexp))
 	       (sit-for reb-blink-delay)))
@@ -481,14 +470,9 @@ Optional argument SYNTAX must be specified if called non-interactively."
   (if (memq syntax '(read string lisp-re sregex rx))
       (let ((buffer (get-buffer reb-buffer)))
 	(setq reb-re-syntax syntax)
-	(if buffer
-	    (with-current-buffer buffer
-	      (erase-buffer)
-	      (reb-insert-regexp)
-	      (goto-char (+ 2 (point-min)))
-	      (cond ((reb-lisp-syntax-p)
-		     (reb-lisp-mode))
-		    (t (reb-mode))))))
+	(when buffer
+          (with-current-buffer buffer
+            (reb-initialize-buffer))))
     (error "Invalid syntax: %s" syntax)))
 
 
@@ -610,7 +594,8 @@ optional fourth argument FORCE is non-nil."
 (defun reb-cook-regexp (re)
   "Return RE after processing it according to `reb-re-syntax'."
   (cond ((eq reb-re-syntax 'lisp-re)
-	 (lre-compile-string (eval (car (read-from-string re)))))
+	 (if (fboundp 'lre-compile-string)
+	     (lre-compile-string (eval (car (read-from-string re))))))
 	((eq reb-re-syntax 'sregex)
 	 (apply 'sregex (eval (car (read-from-string re)))))
 	((eq reb-re-syntax 'rx)

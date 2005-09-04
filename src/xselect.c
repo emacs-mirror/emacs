@@ -1,6 +1,6 @@
 /* X Selection processing for Emacs.
-   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2001, 2003, 2004
-   Free Software Foundation.
+   Copyright (C) 1993, 1994, 1995, 1996, 1997, 2000, 2001, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2986,7 +2986,6 @@ A value of 0 means wait as long as necessary.  This is initialized from the
   QTEXT      = intern ("TEXT"); 	staticpro (&QTEXT);
   QCOMPOUND_TEXT = intern ("COMPOUND_TEXT"); staticpro (&QCOMPOUND_TEXT);
   QUTF8_STRING = intern ("UTF8_STRING"); staticpro (&QUTF8_STRING);
-  QTIMESTAMP = intern ("TIMESTAMP");	staticpro (&QTIMESTAMP);
   QDELETE    = intern ("DELETE");	staticpro (&QDELETE);
   QMULTIPLE  = intern ("MULTIPLE");	staticpro (&QMULTIPLE);
   QINCR      = intern ("INCR");		staticpro (&QINCR);

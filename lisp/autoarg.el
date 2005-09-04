@@ -1,6 +1,7 @@
 ;;; autoarg.el --- make digit keys supply prefix args
 
-;; Copyright (C) 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author:  Dave Love <fx@gnu.org>
 ;; Created: 1998-09-04

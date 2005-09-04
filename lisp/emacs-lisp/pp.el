@@ -1,6 +1,7 @@
 ;;; pp.el --- pretty printer for Emacs Lisp
 
-;; Copyright (C) 1989, 1993, 2001, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1993, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Randal Schwartz <merlyn@stonehenge.com>
 ;; Keywords: lisp
@@ -25,6 +26,8 @@
 ;;; Commentary:
 
 ;;; Code:
+
+(defvar font-lock-verbose)
 
 (defgroup pp nil
   "Pretty printer for Emacs Lisp."

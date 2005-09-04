@@ -1,13 +1,14 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 03, 05 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
 (defconst ediff-version "2.80" "The current version of Ediff")
-(defconst ediff-date "June 3, 2005" "Date of last update")
+(defconst ediff-date "July 8, 2005" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -1357,11 +1358,13 @@ buffer. If odd -- assume it is in a file."
 
 ;;;###autoload
 (defun ediff-patch-buffer (&optional arg patch-buf)
-  "Run Ediff by patching BUFFER-NAME.
-Without prefix argument: asks if the patch is in some buffer and prompts for
-the buffer or a file, depending on the answer.
-With prefix arg=1: assumes the patch is in a file and prompts for the file.
-With prefix arg=2: assumes the patch is in a buffer and prompts for the buffer."
+  "Run Ediff by patching the buffer specified at prompt.
+Without the optional prefix ARG, asks if the patch is in some buffer and
+prompts for the buffer or a file, depending on the answer.
+With ARG=1, assumes the patch is in a file and prompts for the file.
+With ARG=2, assumes the patch is in a buffer and prompts for the buffer.
+PATCH-BUF is an optional argument, which specifies the buffer that contains the
+patch. If not given, the user is prompted according to the prefix argument."
   (interactive "P")
   (require 'ediff-ptch)
   (setq patch-buf
@@ -1526,15 +1529,15 @@ With optional NODE, goes to that node."
   (add-to-list 'debug-ignored-errors mess))
 
 
+(require 'ediff-util)
+
+(run-hooks 'ediff-load-hook)
+
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
 ;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
-
-(require 'ediff-util)
-
-(run-hooks 'ediff-load-hook)
 
 ;;; arch-tag: 97c71396-db02-4f41-8b48-6a51c3348fcc
 ;;; ediff.el ends here

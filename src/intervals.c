@@ -1,5 +1,6 @@
 /* Code for doing intervals.
-   Copyright (C) 1993, 1994, 1995, 1997, 1998, 2002, 2003 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1995, 1997, 1998, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -790,14 +791,14 @@ update_interval (i, pos)
 	  /* Move right. */
 	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right))
 	    {
-	      i->right->position = INTERVAL_LAST_POS (i) +
-		LEFT_TOTAL_LENGTH (i->right);
+	      i->right->position = INTERVAL_LAST_POS (i)
+	        + LEFT_TOTAL_LENGTH (i->right);
 	      i = i->right;		/* Move to the right child */
 	    }
 	  else if (NULL_PARENT (i))
-	    error ("Point after end of properties");
+	    error ("Point %d after end of properties", pos);
 	  else
-	      i = INTERVAL_PARENT (i);
+            i = INTERVAL_PARENT (i);
 	  continue;
 	}
       else

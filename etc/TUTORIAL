@@ -1,5 +1,4 @@
 Emacs tutorial.  See end for copying conditions.
-Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation.
 
 Emacs commands generally involve the CONTROL key (sometimes labeled
 CTRL or CTL) or the META key (sometimes labeled EDIT or ALT).  Rather than
@@ -1104,7 +1103,8 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation
+Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

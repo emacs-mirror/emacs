@@ -1507,6 +1507,8 @@ is used in previous versions and XEmacs."
            (not (member 'mh-folder-mode which-func-modes)))
   (push 'mh-folder-mode which-func-modes))
 
+;; Autoload cookie needed by desktop.el
+;;;###autoload
 (define-derived-mode mh-folder-mode fundamental-mode "MH-Folder"
   "Major MH-E mode for \"editing\" an MH folder scan listing.\\<mh-folder-mode-map>
 
@@ -1653,7 +1655,6 @@ messages in that region.
     (set (make-local-variable (car pairs)) (car (cdr pairs)))
     (setq pairs (cdr (cdr pairs)))))
 
-;;;###autoload
 (defun mh-restore-desktop-buffer (desktop-buffer-file-name
                                   desktop-buffer-name
                                   desktop-buffer-misc)
@@ -1665,6 +1666,9 @@ DESKTOP-BUFFER-MISC holds a list of miscellaneous info used by the
   (mh-find-path)
   (mh-visit-folder desktop-buffer-name)
   (current-buffer))
+
+(add-to-list 'desktop-buffer-mode-handlers
+             '(mh-folder-mode . mh-restore-desktop-buffer))
 
 (defun mh-scan-folder (folder range &optional dont-exec-pending)
   "Scan the FOLDER over the RANGE.

@@ -1,5 +1,6 @@
 /* Define frame-object for GNU Emacs.
-   Copyright (C) 1993, 1994, 1999, 2000, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1993, 1994, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -443,6 +444,10 @@ struct frame
      realized.  Reset to zero whenever the default face changes.
      Used to see the difference between a font change and face change.  */
   unsigned default_face_done_p : 1;
+
+  /* Set to non-zero if this frame has already been hscrolled during
+     current redisplay.  */
+  unsigned already_hscrolled_p : 1;
 };
 
 #ifdef MULTI_KBOARD
@@ -808,13 +813,13 @@ extern Lisp_Object selected_frame;
 			Display-related Macros
  ***********************************************************************/
 
-/* Canonical y-unit on frame F.  
+/* Canonical y-unit on frame F.
    This value currently equals the line height of the frame (which is
    the height of the default font of F).  */
 
 #define FRAME_LINE_HEIGHT(F) ((F)->line_height)
 
-/* Canonical x-unit on frame F. 
+/* Canonical x-unit on frame F.
    This value currently equals the average width of the default font of F.  */
 
 #define FRAME_COLUMN_WIDTH(F) ((F)->column_width)

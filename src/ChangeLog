@@ -1,3 +1,577 @@
+2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dispnew.c (window_to_frame_hpos, update_window):
+	Avoid gcc warning about unused variable `f'.
+
+2005-08-31  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (add_menu_item): If unicode_append_menu returns an
+	error, revert to using AppendMenu.
+
+2005-08-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (PIX_MASK_DRAW, PIX_MASK_RETAIN): Remove argument.
+	All uses changed.
+	[MAC_OS] (XPutPixel, XGetPixel): Add efficient versions for common
+	cases.
+	(x_create_x_image_and_pixmap) [MAC_OS]: Don't call x_destroy_x_image.
+	[MAC_OS] (find_image_fsspec) [!MAC_OSX]: Don't use FSRef.
+	Use posix_pathname_to_fsspec.
+	[MAC_OS] (xpm_load_image): Fill in background_transparent field
+	while we have mask.
+
+	* macgui.h [!TARGET_API_MAC_CARBON] (GetPixDepth): New define.
+
+	* macterm.h (PIX_MASK_DRAW, PIX_MASK_RETAIN): Move defines to image.c.
+
+2005-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (update_syntax_table): Properly reproduce the special +1
+	setting of e_property at the end of the buffer when bumping into the
+	INTERVALS_AT_ONCE limit.
+
+2005-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (USAGE1): Fix the description of the -Q option.
+
+2005-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (pos_visible_p): Yet another int/Lisp_Object mixup (YAILOM).
+
+2005-08-26  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (resize_mini_window): Fix 2005-08-20 change.
+	Don't move PT to new window start.
+
+2005-08-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (kbd_buffer_get_event) [MAC_OS]: Make events for
+	ICONIFY/DEICONIFY_EVENT.
+
+	* macterm.c (mac_copy_area, mac_copy_area_with_mask):
+	Restore background color.
+	(mac_handle_visibility_change): New function.
+	(x_make_frame_invisible, x_iconify_frame)
+	(XTread_socket) [!USE_CARBON_EVENTS]: Use it.
+	[USE_CARBON_EVENTS] (mac_handle_window_event)
+	(install_window_handler): Handle visibility change events.
+	(x_make_frame_visible): Don't reposition window if it is iconified
+	or asked for visible before.  Select and uncollapse window when it
+	is made visible.
+	(x_make_frame_invisible): Don't reset x_highlight_frame.
+	(x_iconify_frame): Likewise.  Make invisible frame visible before
+	it is iconified.
+	(read_socket_inev): Move variable outside #if USE_CARBON_EVENTS.
+	(do_window_update): Don't change visibility of invisible frame.
+
+2005-08-22  Juri Linkov  <juri@jurta.org>
+
+	* term.c (turn_on_face): Check for TS_set_foreground and
+	TS_set_background depending on standout_mode.  Simplify.
+
+2005-08-21  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (update_window_fringes): Only put TOP and BOTTOM
+	bitmaps on fully visible rows.
+
+	* fringe.c (update_window_fringes): Replace FORCE_P arg with
+	KEEP_CURRENT_P arg; if non-zero, don't update current row fringes,
+	and return 0.
+
+	* xdisp.c (redisplay_window): Call update_window_fringes with
+	KEEP_CURRENT_P non-0 if we are going to refresh fringes later.
+
+2005-08-20  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (display_echo_area_1): Get display start pos from w->start.
+	(resize_mini_window): Set w->start, and PT, so as to display the tail
+	end of the buffer, if it doesn't all fit.
+
+2005-08-18  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (calc_pixel_width_or_height): Use actual display
+	resolution when available instead of Vdisplay_pixels_per_inch.
+
+2005-08-17  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): Adjust X value if window is hscrolled.
+
+	* dispnew.c (buffer_posn_from_coords): Check that target row is
+	within matrix.
+
+2005-08-16  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (x_wm_set_icon_pixmap): Move GTK specific code to
+	xg_set_frame_icon and call it.
+
+	* gtkutil.c (xg_set_frame_icon): New function.
+
+	* gtkutil.h (xg_set_frame_icon): Declare it.
+
+2005-08-16  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (increment_row_positions): Skip non-enabled rows.
+
+	* window.c (SAVED_WINDOW_VECTOR_SIZE): Remove dangerous define.
+	(Fcurrent_window_configuration): Use VECSIZE macro instead.
+
+2005-08-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (message3_nolog): Clear echo_message_buffer.
+
+2005-08-15  Kim F. Storm  <storm@cua.dk>
+
+	* lisp.h (QUIT) [!SYNC_INPUT]: Throw t to Vthrow_on_input.
+
+	* process.c (deactivate_process, status_notify, read_process_output)
+	(update_status, status_convert, decode_status, allocate_pty)
+	(make_process, remove_process, list_processes_1)
+	(create_process_1, unwind_request_sigio, read_process_output)
+	(send_process, keyboard_bit_set): Declare static.
+	(Fdelete_process): Simplify.  Pass process to status_notify, so we
+	don't try to read output from it.
+	(status_notify): New arg deleting_process--don't try to read
+	output from that process.
+
+	* lisp.h (deactivate_process, status_notify, read_process_output):
+	Remove prototypes.
+
+2005-08-14  Richard M. Stallman  <rms@gnu.org>
+
+	* image.c (syms_of_image): Init Qxbm, Qpbm before calling
+	define_image_type.
+
+2005-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_pixbuf_from_pix_and_mask): New function.
+	(xg_get_image_for_pixmap): Move some code to
+	xg_get_pixbuf_from_pix_and_mask, and call it.
+
+	* gtkutil.h (xg_get_pixbuf_from_pix_and_mask): Declare.
+
+	* xterm.c (x_wm_set_icon_pixmap): Call xg_get_pixbuf_from_pix_and_mask
+	to get an GTK icon and set it with GTK functions to avoid having GTK
+	override an icon set with just X functions.
+
+2005-08-11  Richard M. Stallman  <rms@gnu.org>
+
+	* image.c (syms_of_image): Init image_types here, and call
+	define_image_type.
+	(init_image): Not here.
+
+2005-08-09  Richard M. Stallman  <rms@gnu.org>
+
+	* bytecode.c (BYTE_CODE_QUIT): Throw t to Vthrow_on_input.
+
+	* lisp.h (QUIT): Throw t to Vthrow_on_input.
+
+2005-08-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* floatfns.c (Fexpt): Use floats for negative exponent.
+
+2005-08-08  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_modify_menubar_widgets): Remove semicolon that
+	should not be there, causing menu display errors with GTK 2.6.9.
+
+2005-08-07  Richard M. Stallman  <rms@gnu.org>
+
+	* floatfns.c (Fexpt): Undo previous change.
+
+	* dispnew.c (Fframe_or_buffer_changed_p): Take an arg
+	so it can be used with various state vectors.
+
+	* emacs.c (endif): Convert -script into -scriptload.
+	(standard_args): Add -scriptload.  Allow -basic-display with one dash.
+
+	* fns.c (syms_of_fns): Add `emacs' to features.
+
+	* term.c (set_terminal_modes): If no TS_termcap_modes string,
+	output newlines to scroll the old screen contents off the screen.
+
+2005-08-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* floatfns.c (Fexpt): Use floats for negative exponent.
+	Reported by D Goel.
+
+2005-08-02  Richard M. Stallman  <rms@gnu.org>
+
+	* frame.c (Fframe_char_width): Doc fix.
+
+2005-07-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xdisp.c (syms_of_xdisp) <redisplay-end-trigger-functions>:
+	Defvar it.
+
+2005-07-28  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32fns.c (my_set_window_pos, my_show_window): Don't declare.
+	(my_create_window, my_create_tip_window): Make static.
+
+	* w32term.c (my_show_window, my_set_window_pos, my_set_focus)
+	(my_set_foreground_window, my_destroy_window): Make static.
+
+2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge gnulib getopt implementation into Emacs.
+
+	* s/cygwin.h (C_SWITCH_SYSTEM): Remove, since gettext.h is
+	now part of lib-src.
+
+2005-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefvar): Allow (defvar enable-multibyte-characters).
+
+2005-07-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (w32_menu_display_help): Suppress tooltip when
+	navigating menus with the keyboard.
+
+2005-07-23  Richard M. Stallman  <rms@gnu.org>
+
+	* insdel.c (syms_of_insdel): staticpro combine_after_change_buffer.
+
+	* bytecode.c (MAYBE_GC): Test gc_cons_threshold and
+	gc_relative_threshold, one by one.
+
+	* keyboard.c (read_char): Test gc_cons_threshold.
+	(syms_of_keyboard): staticpro Qecho_area_clear_hook.
+
+	* eval.c (Feval, Ffuncall): Test gc_cons_threshold and
+	gc_relative_threshold, one by one.
+
+	* alloc.c (gc_cons_threshold): Not static.
+	(gc_cons_combined_threshold): Var deleted.
+	(gc_relative_threshold): New variable.
+	(Fgarbage_collect, init_alloc_once): Compute gc_relative_threshold
+	instead of gc_cons_combined_threshold.
+
+	* lisp.h (gc_cons_threshold, gc_relative_threshold): Declare.
+	(gc_cons_combined_threshold): Declaration deleted.
+
+2005-07-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Don't include stdlib.h or string.h.
+	(Fdo_applescript, Fmac_file_name_to_posix)
+	(Fmac_file_name_to_posix): Doc fixes.
+	[TARGET_API_MAC_CARBON] (Fmac_get_preference)
+	(Fmac_code_convert_string): Likewise.
+	[MAC_OSX] (init_mac_osx_environment): Fall back on terminal mode
+	if the executable is not contained in a bundle.
+
+	* macfns.c: Don't include stdlib.h or string.h.  Include atimer.h.
+	(gray_width, gray_height): Remove defines.
+	(gray_bits, gray_bitmap_width, gray_bitmap_height)
+	(gray_bitmap_bits): Remove variables.
+	(lispy_function_keys): Remove extern.
+	(free_frame_menubar): Add extern.
+	(x_window_to_frame): Remove function.
+	(unwind_create_tip_frame): Add declaration.
+	(x_set_name_internal): New function.
+	(x_set_name, x_set_title): Use it.
+	(Fx_create_frame, Fx_display_grayscale_p, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_screens)
+	(Fx_display_mm_height, Fx_display_mm_width)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(Fx_display_save_under, Fx_synchronize, Fx_show_tip): Doc fixes.
+
+	* macmenu.c (Fx_popup_menu, Fx_popup_dialog): Doc fixes.
+
+	* macselect.c (Fx_own_selection_internal): Follow error conventions.
+	(Fx_get_selection_internal, Fx_selection_owner_p)
+	(Fx_selection_exists_p): Doc fixes.
+	(syms_of_macselect) <selection-converter-alist>: Likewise.
+
+2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <cursor-type>: Doc fix.
+
+	* ccl.c (Fregister_ccl_program): Fix typos in docstring.
+	(Fccl_execute_on_string): Likewise; add usage info.
+
+	* composite.c (Fcompose_region_internal)
+	(Fcompose_string_internal):
+	Improve argument/docstring consistency.
+
+	* minibuf.c (Fminibuffer_prompt_end, Feval_minibuffer):
+	Fix typos in docstrings.
+
+	* textprop.c (Fnext_char_property_change)
+	(Fprevious_char_property_change): Doc fixes.
+
+	* window.c (Fset_window_margins, Fset_window_fringes):
+	Improve argument/docstring consistency.
+
+	* xfaces.c (Finternal_lisp_face_p): Doc fix.
+
+2005-07-21  Andreas Schwab  <schwab@suse.de>
+
+	* eval.c (restore_stack_limits): Return a value.
+
+2005-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fdefvar): Doc fix.
+
+2005-07-20  Kim F. Storm  <storm@cua.dk>
+
+	* fileio.c (Fdo_auto_save, do_auto_save_unwind):
+	Use make_save_value to unwind protect stream.
+
+	* lread.c (Fload, load_unwind):
+	Use make_save_value to unwind protect stream.
+
+2005-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fprog2, Fcalled_interactively_p),
+	(syms_of_eval) <debug-on-quit>: Doc fixes.
+	(syms_of_eval) <max-specpdl-size>:
+	(Finteractive_p): Fix typos in docstrings.
+
+2005-07-19  Kim F. Storm  <storm@cua.dk>
+
+	* w32fns.c (Vx_hand_shape): Variable removed.
+	(syms_of_w32fns): Intern and staticpro Qw32_charset_default.
+
+2005-07-19  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fstring_as_multibyte): Escape backslashes in the docstring.
+
+2005-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.h (Fgenerate_new_buffer_name): Declare (for use in coding.c).
+
+2005-07-18  Kim F. Storm  <storm@cua.dk>
+
+	* frame.h (struct frame): New member already_hscrolled_p.
+
+	* xdisp.c (redisplay_internal): Only try to hscroll each frame once
+	to avoid redisplay looping hscrolling back and forth ad infinitum.
+
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (scroll-up-aggressively, scroll-down-aggressively):
+	* keymap.c (Fminor_mode_key_binding):
+	* macterm.c (mac-emulate-three-button-mouse):
+	Delete duplicate duplicate words.
+
+2005-07-18  Ken Raeburn  <raeburn@gnu.org>
+
+	* minibuf.c (Ftest_completion): Fix odd syntax in test.
+
+2005-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_set_cursor_color): Use XSetBackground and XSetForeground.
+
+	* macgui.h (struct _XGC): New struct.
+	(GC): Use it.
+	(GCForeground, GCBackground, GCFont): Use X11 mask values.
+	(XCreateGC, XParseGeometry): Move externs to macterm.h.
+
+	* macterm.c (x_bitmap_icon, x_make_frame_visible): Remove declarations.
+	(XSetFont): Add declaration.
+	(mac_set_forecolor, mac_set_backcolor, mac_set_colors):
+	Remove functions.
+	(GC_FORE_COLOR, GC_BACK_COLOR, GC_FONT, MAC_WINDOW_NORMAL_GC):
+	New defines.
+	(XDrawLine, mac_draw_line_to_pixmap, XClearWindow)
+	(mac_draw_bitmap, XCreatePixmapFromBitmapData, XFillRectangle)
+	(mac_draw_rectangle, mac_draw_string_common, mac_scroll_area):
+	Use them.
+	(mac_erase_rectangle): New function.
+	(XClearArea, x_draw_fringe_bitmap, x_clear_glyph_string_rect)
+	(x_draw_stretch_glyph_string): Use it.
+	(XChangeGC, XCreateGC, XGetGCValues, XSetForeground)
+	(XSetBackground, XSetFont): Adjust for new GC implementation.
+	(x_draw_fringe_bitmap, x_draw_box_rect): Use GC to set colors.
+	(XTset_vertical_scroll_bar): Clear area under scroll bar.
+
+	* macterm.h (struct mac_display_info): Change types of
+	scratch_cursor_gc black_relief.gc, and white_relief.gc to GC.
+	(XCreateGC, XParseGeometry): Move externs from macgui.h.
+
+	* xfaces.c [MAC_OS] (XCreateGC): Remove extern.
+
+2005-07-16  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fmake_overlay): Doc fix.
+
+2005-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (syms_of_ntproc): staticpro Qhigh, Qlow,
+	Vw32_valid_locale_ids, and Vw32_valid_codepages.
+
+2005-07-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [TARGET_API_MAC_CARBON] (Fmac_code_convert_string):
+	Use Fstring_as_unibyte instead of string_make_unibyte.
+
+2005-07-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (select_frame_for_redisplay): Use find_symbol_value.
+
+2005-07-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c: Fix redisplay loop in last change.
+	(IT_POS_VALID_AFTER_MOVE_P): New macro.
+	(move_it_vertically_backward, move_it_by_lines): Use it.
+
+2005-07-14  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (init_environment): Default HOME directory to user's
+	appdata directory if possible.
+
+2005-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (pitx): Fix output format.  Print string charpos.
+
+	* lread.c (syms_of_lread): Initialize seen_list.
+
+	* search.c (syms_of_search): Staticpro searchbuf.whitespace_regexp.
+
+	* syntax.c (syms_of_syntax): Staticpro lisp objects in gl_state.
+	Staticpro re_match_object.
+
+2005-07-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macselect.c (get_scrap_target_type_list): Avoid NULL pointer
+	dereference.
+
+	* macterm.c (mac_window_to_frame): Remove duplicate define.
+
+2005-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region_unwind): ARG is changed to a cons.
+	(code_convert_region): Adjust for the above change.
+	(set_conversion_work_buffer): If the work buffer is already in
+	use, generate a new buffer and return it.  Otherwise return Qnil.
+	(run_pre_post_conversion_on_str): Adjust for the above change.
+	(run_pre_write_conversin_on_c_str): Likewise.
+
+2005-07-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (start_display): Don't reseat to next visible line start
+	if current start position is in a string or image.
+	(move_it_vertically_backward): Be sure to move out of strings and
+	images when moving it2 forward.
+	(move_it_by_lines): When moving forward, move to next buffer
+	position if we end up in a string or image.  When moving backward,
+	count rows moved over when moving to start of current row in case
+	row starts in middle of a string or image.  Also move further
+	backward if we end up in a string or image.
+	(try_cursor_movement): If overlay string spans multiple lines,
+	move backward to set cursor on start of an overlay string.
+	(cursor_row_p): Row is ok if cursor is at newline from string, but
+	string starts on this line (so we always position cursor at start
+	of string).
+
+	* indent.c (Fvertical_motion): If start position is on an image,
+	don't move back if we move too far (that's almost certain to happen).
+
+	* xdisp.c (cursor_row_fully_visible_p): Allow partially visible
+	row in minibuffer windows.
+	(try_window): Don't check margins in minibuffer windows.
+
+2005-07-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c: Don't include stdlib.h or composite.h.
+	(x_use_underline_position_properties, last_mouse_press_frame)
+	(x_noop_count, Qvendor_specific_keysyms): Remove unused variables.
+	(syms_of_macterm, mac_initialize): Don't initialize them.
+	(waiting_for_input, initial_argv, initial_argc)
+	(Vcommand_line_args, Vx_no_window_manager, errno, window_scroll)
+	(set_frame_menubar, path_from_vol_dir_name): Remove externs.
+	(extra_keyboard_modifiers): Fix type in extern.
+	(x_window_to_frame, x_window_to_scroll_bar): Remove declarations.
+	(x_scroll_bar_report_motion): Add argument types to declaration.
+	(mac_compute_glyph_string_overhangs): Add declaration.
+	(disable_mouse_highlight): Remove unused variable.
+	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click)
+	(x_scroll_bar_handle_press, x_scroll_bar_handle_release)
+	(x_scroll_bar_handle_drag): Remove argument `timestamp'.
+	All callers changed.
+	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click): Don't set
+	timestamp.
+	[USE_CARBON_EVENTS] (mac_handle_mouse_event): Likewise.
+	(x_scroll_bar_create, XTset_vertical_scroll_bar): Show scroll bar
+	only when its width is less than the height.
+	(XTredeem_scroll_bar): Sync with xterm.c.
+	(font_name_table, font_name_table_size, font_name_count):
+	Make static.
+	(drag_and_drop_file_list): Remove variable.  Previous use is now
+	local to function.
+	(do_ae_open_documents): Move DRAG_N_DROP event construction part
+	from XTread_socket.
+	(XTread_socket): Consolidate setting of event timestamp.
+	Move DRAG_N_DROP event construction part to do_ae_open_documents.
+	Support extra_keyboard_modifiers.
+
+	* xfaces.c (try_font_list) [MAC_OS]: Try font family name
+	beginning with that for ASCII.
+
+2005-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (gc_cons_combined_threshold, Vgc_cons_percentage): New vars.
+	(Fgarbage_collect, init_alloc_once): Set gc_cons_combined_threshold.
+	(syms_of_alloc): Declare gc-cons-percentage.
+
+	* eval.c (Feval, Ffuncall):
+	* keyboard.c (read_char):
+	* bytecode.c (MAYBE_GC): Use gc_cons_combined_threshold.
+
+	* lisp.h (gc_cons_combined_threshold): Declare.
+
+2005-07-12  Kim F. Storm  <storm@cua.dk>
+
+	* coding.c (Qprocess_argument):
+	* coding.h (Qprocess_argument): Remove unused var.
+
+	* xselect.c (intern): Remove dup. intern and staticpro for QTIMESTAMP.
+
+2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Include charset.h, coding.h, and
+	Endian.h.
+	[!MAC_OSX] (fchmod, fchown): New functions.
+	(mac_get_code_from_arg): Don't accept Lisp integer as argument.
+	Use SBYTES and EndianU32_BtoN.
+	(mac_get_object_from_code): Return 4 byte string even if argument
+	is 0.  Use make_unibyte_string and EndianU32_NtoB.
+	(Fmac_get_file_creator, Fmac_get_file_type, Fmac_set_file_creator)
+	(Fmac_set_file_type): Fix documents and argument declarations.
+	Don't specify kFSCatInfoNodeFlags.  Support Mac OS Classic.
+
+2005-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Frecenter): Yet another int/Lisp_Object mixup (YAILOM).
+
+2005-07-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (x_update_menu_appearance): Use fontSet resource for
+	Lucid if X_I18N, font otherwise.
+
+2005-07-10  Steven Tamm  <steventamm@mac.com>
+
+	* mac.c (Fmac_get_file_type, Fmac_get_file_creator): Add.
+	(Fmac_set_file_type, Fmac_set_file_creator): Add.
+	(mac_get_object_from_code, mac_get_code_from_arg): Add.
+
+2005-07-10  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (Qeval_buffer_list, Veval_buffer_list): New vars.
+	(syms_of_lread): Set up eval-buffer-list.
+	(Feval_buffer, Feval_region): Bind eval-buffer-list.
+
+2005-07-08  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (Fdefvar): Allow defvaring a constant to itself quoted.
+
+2005-07-08  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (menu_bar_items): Don't GCPRO menu_bar_items_vector here.
+	(syms_of_keyboard): Initialize and staticpro menu_bar_items_vector.
+
 2005-07-07  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (Frecenter): Fix last change (set iarg before use).
@@ -11,7 +585,7 @@
 
 	* w32console.c (initialize_w32_display): Detect when the console
 	dimensions are insane, and default to 80x25 instead.
-	(w32_use_full_screen_buffer): default to NIL.
+	(w32_use_full_screen_buffer): Default to NIL.
 
 2005-07-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -19,8 +593,8 @@
 	VERTICAL_BORDER_FACE_ID for vertical border line.
 	(mac_encode_char): Call check_ccl_update in advance.
 	(mac_to_x_fontname, x_font_name_to_mac_font_name)
-	(init_font_name_table, mac_do_list_fonts, XLoadQueryFont): Don't
-	assume that font family length is less than 32.
+	(init_font_name_table, mac_do_list_fonts, XLoadQueryFont):
+	Don't assume that font family length is less than 32.
 	(x_compute_min_glyph_bounds): Make static.
 	(x_load_font): Never set fonts_changed_p to zero.
 
@@ -71,8 +645,7 @@
 
 2005-07-01  Masatake YAMATO  <jet@gyve.org>
 
-	* emacs.c (main): Passing ADD_NO_RANDOMIZE to
-	`personality'.
+	* emacs.c (main): Passing ADD_NO_RANDOMIZE to `personality'.
 
 2005-06-30  Juri Linkov  <juri@jurta.org>
 
@@ -200,7 +773,7 @@
 
 2005-06-22  Miles Bader  <miles@gnu.org>
 
-	* xfaces.c (Qvertical_border): Renamed from `Qvertical_divider'.
+	* xfaces.c (Qvertical_border): Rename from `Qvertical_divider'.
 	(realize_basic_faces, syms_of_xfaces): Update references to it.
 	* dispextern.h (enum face_id): Rename `VERTICAL_DIVIDER_FACE_ID'
 	to `VERTICAL_BORDER_FACE_ID'.
@@ -239,8 +812,8 @@
 
 2005-06-17  Richard M. Stallman  <rms@gnu.org>
 
-	* xdisp.c (get_next_display_element): Reverse
-	test of Vshow_nonbreak_escape.
+	* xdisp.c (get_next_display_element):
+	Reverse test of Vshow_nonbreak_escape.
 
 	* term.c (produce_special_glyphs): Use spec_glyph_lookup_face.
 	(Ftty_no_underline): New function.

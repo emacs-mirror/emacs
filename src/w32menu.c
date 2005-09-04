@@ -1,5 +1,6 @@
 /* Menu support for GNU Emacs on the Microsoft W32 API.
-   Copyright (C) 1986,88,93,94,96,98,1999,2003  Free Software Foundation, Inc.
+   Copyright (C) 1986, 1988, 1993, 1994, 1996, 1998, 1999, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -2320,7 +2321,23 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 					  item != NULL ? (UINT) item
 					    : (UINT) wv->call_data,
 					  utf16_string);
-      if (fuFlags & MF_OWNERDRAW)
+      if (!return_value)
+	{
+	  /* On W9x/ME, unicode menus are not supported, though AppendMenuW
+	     apparently does exist at least in some cases and appears to be
+	     stubbed out to do nothing.  out_string is UTF-8, but since
+	     our standard menus are in English and this is only going to
+	     happen the first time a menu is used, the encoding is
+	     of minor importance compared with menus not working at all.  */
+	  return_value =
+	    AppendMenu (menu, fuFlags,
+			item != NULL ? (UINT) item: (UINT) wv->call_data,
+			out_string);
+	  /* Don't use unicode menus in future.  */
+	  unicode_append_menu = NULL;
+	}
+
+      if (unicode_append_menu && (fuFlags & MF_OWNERDRAW))
 	local_free (out_string);
     }
   else
@@ -2418,8 +2435,11 @@ w32_menu_display_help (HWND owner, HMENU menu, UINT item, UINT flags)
       struct frame *f = x_window_to_frame (&one_w32_display_info, owner);
       Lisp_Object frame, help;
 
-      /* No help echo on owner-draw menu items.  */
-      if (flags & MF_OWNERDRAW || flags & MF_POPUP)
+      /* No help echo on owner-draw menu items, or when the keyboard is used
+	 to navigate the menus, since tooltips are distracting if they pop
+	 up elsewhere.  */
+      if (flags & MF_OWNERDRAW || flags & MF_POPUP
+	  || !(flags & MF_MOUSESELECT))
 	help = Qnil;
       else
 	{

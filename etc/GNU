@@ -1,4 +1,5 @@
-Copyright (C) 1985, 1993, 2003, 2005 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
 of this document, in any medium, provided that the copyright notice and
@@ -22,8 +23,9 @@ The GNU Manifesto
      Footnotes added in 1993 help clarify these points.
 
      For up-to-date information about the available GNU software,
-     please see the latest issue of the GNU's Bulletin.  The list is
-     much too long to include here.
+     please see www.gnu.org.  For software tasks to work on, see
+     http://savannah.gnu.org/projects/tasklist.  For other ways
+     to contribute, see http://www.gnu.org/help.
 
 What's GNU?  Gnu's Not Unix!
 ============================
@@ -531,13 +533,13 @@ biased; more subtle is the fact that it lumps together various
 disparate laws which raise very different issues.  Nowadays I urge
 people to reject the term "intellectual property" entirely, lest it
 lead others to suppose that those laws form one coherent issue.  The way to be
-clear is to to discuss patents, copyrights, and trademarks separately.
+clear is to discuss patents, copyrights, and trademarks separately.
 See http://www.gnu.org/philosophy/not-ipr.xhtml for more explanation
 of how this term spreads confusion and bias.
 
-   (7) In 1985 I had not yet recognized the importance of distinguishing
-between "free software" and "freeware".  The term "freeware" means
-software you are free to redistribute, but usually you are not free to study
-and change the source code, so most of it is not free software.
-See http://www.gnu.org/philosophy/words-to-avoid.html for more
+   (7) Subsequently we have learned to distinguish between "free
+software" and "freeware".  The term "freeware" means software you are
+free to redistribute, but usually you are not free to study and change
+the source code, so most of it is not free software.  See
+http://www.gnu.org/philosophy/words-to-avoid.html for more
 explanation.

@@ -1,6 +1,7 @@
 ;;; bs.el --- menu for selecting and displaying buffers
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 ;; Author: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Maintainer: Olaf Sylvester <Olaf.Sylvester@netsurf.de>
 ;; Keywords: convenience
@@ -25,7 +26,7 @@
 ;;; Commentary:
 
 ;; Version: 1.17
-;; X-URL: http://home.netsurf.de/olaf.sylvester/emacs
+;; X-URL: http://www.geekware.de/software/emacs
 ;;
 ;; The bs-package contains a main function bs-show for poping up a
 ;; buffer in a way similar to `list-buffers' and `electric-buffer-list':
@@ -130,6 +131,8 @@
 
 ;;; Code:
 
+(defvar font-lock-verbose)
+
 ;; ----------------------------------------------------------------------
 ;; Globals for customization
 ;; ----------------------------------------------------------------------
@@ -138,7 +141,7 @@
   "Buffer Selection: Maintaining buffers by buffer menu."
   :version "21.1"
   :link '(emacs-commentary-link "bs")
-  :link '(url-link "http://home.netsurf.de/olaf.sylvester/emacs")
+  :link '(url-link "http://www.geekware.de/software/emacs")
   :group 'convenience)
 
 (defgroup bs-appearance nil
@@ -160,15 +163,17 @@
   "*List specifying the layout of a Buffer Selection Menu buffer.
 Each entry specifies a column and is a list of the form of:
 \(HEADER MINIMUM-LENGTH MAXIMUM-LENGTH ALIGNMENT FUN-OR-STRING)
-HEADER         : string for header for first line or a function
-  which calculates column title.
-MINIMUM-LENGTH : minimum width of column (number or name of function).
-  The function must return a positive integer.
-MAXIMUM-LENGTH : maximum width of column (number or name of function)
-                 (currently ignored)
-ALIGNMENT      : alignment of column: (`left' `right' `middle')
-FUN-OR-STRING  : Name of a function for calculating the value or
-a string for a constant value.
+
+HEADER         : String for header for first line or a function
+                 which calculates column title.
+MINIMUM-LENGTH : Minimum width of column (number or name of function).
+                 The function must return a positive integer.
+MAXIMUM-LENGTH : Maximum width of column (number or name of function)
+                 (currently ignored).
+ALIGNMENT      : Alignment of column (`left', `right', `middle').
+FUN-OR-STRING  : Name of a function for calculating the value or a
+                 string for a constant value.
+
 The function gets as parameter the buffer where we have started
 buffer selection and the list of all buffers to show.  The function must
 return a string representing the column's value."

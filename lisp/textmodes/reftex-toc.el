@@ -1,6 +1,7 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
-;;  Free Software Foundation, Inc.
+
+;; Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
 ;; Version: 4.28
@@ -35,6 +36,11 @@
   "Keymap used for *toc* buffer.")
 
 (defvar reftex-toc-menu)
+(defvar zmacs-regions)
+
+(defvar reftex-toc-include-labels-indicator nil)
+(defvar reftex-toc-include-index-indicator nil)
+(defvar reftex-toc-max-level-indicator nil)
 
 (defun reftex-toc-mode ()
   "Major mode for managing Table of Contents for LaTeX files.
@@ -80,9 +86,6 @@ Here are all local bindings.
 
 (defvar reftex-last-window-height nil)
 (defvar reftex-last-window-width nil)
-(defvar reftex-toc-include-labels-indicator nil)
-(defvar reftex-toc-include-index-indicator nil)
-(defvar reftex-toc-max-level-indicator nil)
 
 (defvar reftex-toc-return-marker (make-marker)
   "Marker which makes it possible to return from toc to old position.")

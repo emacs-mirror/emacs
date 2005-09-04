@@ -1,6 +1,7 @@
 ;;; em-hist.el --- history list management
 
-;; Copyright (C) 1999, 2000, 2004 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -204,6 +205,8 @@ element, regardless of any text on the command line.  In that case,
   (define-key eshell-isearch-map [(control ?c)] 'eshell-isearch-cancel-map)
   (define-key eshell-isearch-cancel-map [(control ?c)] 'eshell-isearch-cancel))
 
+(defvar eshell-rebind-keys-alist)
+
 ;;; Functions:
 
 (defun eshell-hist-initialize ()
@@ -217,10 +220,10 @@ element, regardless of any text on the command line.  In that case,
 
   (if (and (eshell-using-module 'eshell-rebind)
 	   (not eshell-non-interactive-p))
-      (let ((rebind-alist (symbol-value 'eshell-rebind-keys-alist)))
+      (let ((rebind-alist eshell-rebind-keys-alist))
 	(make-local-variable 'eshell-rebind-keys-alist)
-	(set 'eshell-rebind-keys-alist
-	     (append rebind-alist eshell-hist-rebind-keys-alist))
+	(setq eshell-rebind-keys-alist
+	      (append rebind-alist eshell-hist-rebind-keys-alist))
 	(set (make-local-variable 'search-invisible) t)
 	(set (make-local-variable 'search-exit-option) t)
 	(add-hook 'isearch-mode-hook

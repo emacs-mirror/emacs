@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C)  2005 Free Software Foundation, Inc.
+@c Copyright (C) 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
 @node Antinews, Mac OS, X Resources, Top
@@ -18,7 +18,10 @@ the mode line, where they can be more easily seen.
 
 @item
 The mode line of the selected window is no longer displayed with a
-special face.  All mode lines are created equal.
+special face.  All mode lines are created equal.  Meanwhile, you can
+use the variable @code{mode-line-inverse-video} to control whether
+mode lines are highlighted at all---@code{nil} means don't highlight
+them.
 
 @item
 Clicking on a link with the left mouse button (@kbd{mouse-1}) will

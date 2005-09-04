@@ -1,4 +1,5 @@
 ;;; spam.el --- Identifying spam
+
 ;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>

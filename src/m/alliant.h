@@ -1,5 +1,6 @@
 /* alliant.h  Alliant machine running system version 2 or 3.
-   Copyright (C) 1985, 1986, 1987, 2002 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
    Note that for version 1 of the Alliant system
    you should use alliant1.h instead of this file.
    Use alliant4.h for version 4.

@@ -1,7 +1,7 @@
 ;;; complete.el --- partial completion mechanism plus other goodies
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000, 2003, 2005
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: abbrev convenience

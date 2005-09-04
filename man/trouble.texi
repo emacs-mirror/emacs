@@ -1,5 +1,6 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2001,2004 Free Software Foundation, Inc.
+@c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2001, 2002,
+@c   2003, 2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
 @chapter Dealing with Common Problems
@@ -303,8 +304,7 @@ the following in your @file{.emacs} file:
 
   When flow control is enabled, you must type @kbd{C-\} to get the
 effect of a @kbd{C-s}, and type @kbd{C-^} to get the effect of a
-@kbd{C-q}.  (These aliases work by means of keyboard translations; see
-@ref{Keyboard Translations}.)
+@kbd{C-q}.
 
 @node Memory Full
 @subsection Running out of Memory
@@ -368,7 +368,7 @@ available.  For each buffer, it lists a buffer number.  To save a
 buffer, use @code{ysave-buffer}; you specify the buffer number, and
 the file name to write that buffer into.  You should use a file name
 which does not already exist; if the file does exist, the script does
-not make make a backup of its old contents.
+not make a backup of its old contents.
 
 @node Emergency Escape
 @subsection Emergency Escape

@@ -1,5 +1,6 @@
 /* Cursor motion subroutines for GNU Emacs.
-   Copyright (C) 1985, 1995 Free Software Foundation, Inc.
+   Copyright (C) 1985, 1995, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
     based primarily on public domain code written by Chris Torek
 
 This file is part of GNU Emacs.

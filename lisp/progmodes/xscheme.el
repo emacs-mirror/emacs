@@ -1,6 +1,6 @@
 ;;; xscheme.el --- run MIT Scheme under Emacs
 
-;; Copyright (C) 1986, 1987, 1989, 1990, 2001, 2004, 2005
+;; Copyright (C) 1986, 1987, 1989, 1990, 2001, 2002, 2003, 2004, 2005
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -33,6 +33,85 @@
 ;;; Code:
 
 (require 'scheme)
+
+;;;; Internal Variables
+
+(defvar xscheme-previous-mode)
+(defvar xscheme-previous-process-state)
+(defvar xscheme-last-input-end)
+
+(defvar xscheme-process-command-line nil
+  "Command used to start the most recent Scheme process.")
+
+(defvar xscheme-process-name "scheme"
+  "Name of xscheme process that we're currently interacting with.")
+
+(defvar xscheme-buffer-name "*scheme*"
+  "Name of xscheme buffer that we're currently interacting with.")
+
+(defvar xscheme-expressions-ring-max 30
+  "*Maximum length of Scheme expressions ring.")
+
+(defvar xscheme-expressions-ring nil
+  "List of expressions recently transmitted to the Scheme process.")
+
+(defvar xscheme-expressions-ring-yank-pointer nil
+  "The tail of the Scheme expressions ring whose car is the last thing yanked.")
+
+(defvar xscheme-running-p nil
+  "This variable, if nil, indicates that the scheme process is
+waiting for input.  Otherwise, it is busy evaluating something.")
+
+(defconst xscheme-control-g-synchronization-p t
+  "If non-nil, insert markers in the scheme input stream to indicate when
+control-g interrupts were signaled.  Do not allow more control-g's to be
+signaled until the scheme process acknowledges receipt.")
+
+(defvar xscheme-control-g-disabled-p nil
+  "This variable, if non-nil, indicates that a control-g is being processed
+by the scheme process, so additional control-g's are to be ignored.")
+
+(defvar xscheme-string-receiver nil
+  "Procedure to send the string argument from the scheme process.")
+
+(defconst default-xscheme-runlight
+  '(": " xscheme-runlight-string)
+  "Default global (shared) xscheme-runlight modeline format.")
+
+(defvar xscheme-runlight "")
+(defvar xscheme-runlight-string nil)
+
+(defvar xscheme-process-filter-state 'idle
+  "State of scheme process escape reader state machine:
+idle                   waiting for an escape sequence
+reading-type           received an altmode but nothing else
+reading-string         reading prompt string")
+
+(defvar xscheme-allow-output-p t
+  "This variable, if nil, prevents output from the scheme process
+from being inserted into the process-buffer.")
+
+(defvar xscheme-prompt ""
+  "The current scheme prompt string.")
+
+(defvar xscheme-string-accumulator ""
+  "Accumulator for the string being received from the scheme process.")
+
+(defvar xscheme-mode-string nil)
+(setq-default scheme-mode-line-process
+	      '("" xscheme-runlight))
+
+(mapcar 'make-variable-buffer-local
+	'(xscheme-expressions-ring
+	  xscheme-expressions-ring-yank-pointer
+	  xscheme-process-filter-state
+	  xscheme-running-p
+	  xscheme-control-g-disabled-p
+	  xscheme-allow-output-p
+	  xscheme-prompt
+	  xscheme-string-accumulator
+	  xscheme-mode-string
+	  scheme-mode-line-process))
 
 (defgroup xscheme nil
   "Major mode for editing Scheme and interacting with MIT's C-Scheme."
@@ -355,6 +434,9 @@ with no args, if that value is non-nil.
 	    (if (eq (process-sentinel process) 'xscheme-process-sentinel)
 		(set-process-sentinel process (cdr previous-state))))))))
 
+(defvar scheme-interaction-mode-commands-alist nil)
+(defvar scheme-interaction-mode-map nil)
+
 (defun scheme-interaction-mode-initialize ()
   (use-local-map scheme-interaction-mode-map)
   (setq major-mode 'scheme-interaction-mode)
@@ -368,7 +450,7 @@ with no args, if that value is non-nil.
 	(car (cdr (car entries))))
       (setq entries (cdr entries)))))
 
-(defvar scheme-interaction-mode-commands-alist nil)
+;; Initialize the command alist
 (setq scheme-interaction-mode-commands-alist
       (append scheme-interaction-mode-commands-alist
 	      '(("\C-c\C-m" xscheme-send-current-line)
@@ -378,7 +460,7 @@ with no args, if that value is non-nil.
 		("\ep" xscheme-yank-pop)
 		("\en" xscheme-yank-push))))
 
-(defvar scheme-interaction-mode-map nil)
+;; Initialize the mode map
 (if (not scheme-interaction-mode-map)
     (progn
       (setq scheme-interaction-mode-map (make-keymap))
@@ -411,18 +493,20 @@ Commands:
 \\{scheme-debugger-mode-map}"
   (error "Invalid entry to scheme-debugger-mode"))
 
+(defvar scheme-debugger-mode-map nil)
+
 (defun scheme-debugger-mode-initialize ()
   (use-local-map scheme-debugger-mode-map)
   (setq major-mode 'scheme-debugger-mode)
   (setq mode-name "Scheme Debugger"))
 
 (defun scheme-debugger-mode-commands (keymap)
-  (let ((char ? ))
+  (let ((char ?\s))
     (while (< char 127)
       (define-key keymap (char-to-string char) 'scheme-debugger-self-insert)
       (setq char (1+ char)))))
 
-(defvar scheme-debugger-mode-map nil)
+;; Initialize the debugger mode map
 (if (not scheme-debugger-mode-map)
     (progn
       (setq scheme-debugger-mode-map (make-keymap))
@@ -675,6 +759,9 @@ Useful for working with debugging Scheme under adb."
   (interactive)
   (process-send-string xscheme-process-name "(proceed)\n"))
 
+(defconst xscheme-control-g-message-string
+  "Sending C-G interrupt to Scheme...")
+
 (defun xscheme-send-control-g-interrupt ()
   "Cause the Scheme processor to halt and flush input.
 Control returns to the top level rep loop."
@@ -694,9 +781,6 @@ Control returns to the top level rep loop."
 	   (interrupt-process xscheme-process-name)
 	   (sleep-for 0.1)
 	   (xscheme-send-char 0)))))
-
-(defconst xscheme-control-g-message-string
-  "Sending C-G interrupt to Scheme...")
 
 (defun xscheme-send-control-u-interrupt ()
   "Cause the Scheme process to halt, returning to previous rep loop."
@@ -721,82 +805,6 @@ Control returns to the top level rep loop."
   (xscheme-send-char char)
   (if (and mark-p xscheme-control-g-synchronization-p)
       (xscheme-send-char 0)))
-
-;;;; Internal Variables
-
-(defvar xscheme-process-command-line nil
-  "Command used to start the most recent Scheme process.")
-
-(defvar xscheme-process-name "scheme"
-  "Name of xscheme process that we're currently interacting with.")
-
-(defvar xscheme-buffer-name "*scheme*"
-  "Name of xscheme buffer that we're currently interacting with.")
-
-(defvar xscheme-expressions-ring-max 30
-  "*Maximum length of Scheme expressions ring.")
-
-(defvar xscheme-expressions-ring nil
-  "List of expressions recently transmitted to the Scheme process.")
-
-(defvar xscheme-expressions-ring-yank-pointer nil
-  "The tail of the Scheme expressions ring whose car is the last thing yanked.")
-
-(defvar xscheme-last-input-end)
-
-(defvar xscheme-process-filter-state 'idle
-  "State of scheme process escape reader state machine:
-idle                   waiting for an escape sequence
-reading-type           received an altmode but nothing else
-reading-string         reading prompt string")
-
-(defvar xscheme-running-p nil
-  "This variable, if nil, indicates that the scheme process is
-waiting for input.  Otherwise, it is busy evaluating something.")
-
-(defconst xscheme-control-g-synchronization-p t
-  "If non-nil, insert markers in the scheme input stream to indicate when
-control-g interrupts were signaled.  Do not allow more control-g's to be
-signaled until the scheme process acknowledges receipt.")
-
-(defvar xscheme-control-g-disabled-p nil
-  "This variable, if non-nil, indicates that a control-g is being processed
-by the scheme process, so additional control-g's are to be ignored.")
-
-(defvar xscheme-allow-output-p t
-  "This variable, if nil, prevents output from the scheme process
-from being inserted into the process-buffer.")
-
-(defvar xscheme-prompt ""
-  "The current scheme prompt string.")
-
-(defvar xscheme-string-accumulator ""
-  "Accumulator for the string being received from the scheme process.")
-
-(defvar xscheme-string-receiver nil
-  "Procedure to send the string argument from the scheme process.")
-
-(defconst default-xscheme-runlight
-  '(": " xscheme-runlight-string)
-  "Default global (shared) xscheme-runlight modeline format.")
-
-(defvar xscheme-runlight "")
-(defvar xscheme-runlight-string nil)
-(defvar xscheme-mode-string nil)
-(setq-default scheme-mode-line-process
-	      '("" xscheme-runlight))
-
-(mapcar 'make-variable-buffer-local
-	'(xscheme-expressions-ring
-	  xscheme-expressions-ring-yank-pointer
-	  xscheme-process-filter-state
-	  xscheme-running-p
-	  xscheme-control-g-disabled-p
-	  xscheme-allow-output-p
-	  xscheme-prompt
-	  xscheme-string-accumulator
-	  xscheme-mode-string
-	  scheme-mode-line-process))
 
 ;;;; Basic Process Control
 
@@ -879,6 +887,61 @@ from being inserted into the process-buffer.")
 (defun xscheme-process-buffer-current-p ()
   "True iff the current buffer is the Scheme process buffer."
   (eq (xscheme-process-buffer) (current-buffer)))
+
+;;;; Process Filter Operations
+
+(defvar xscheme-process-filter-alist
+  '((?A xscheme-eval
+	xscheme-process-filter:string-action-noexcursion)
+    (?D xscheme-enter-debugger-mode
+	xscheme-process-filter:string-action)
+    (?E xscheme-eval
+	xscheme-process-filter:string-action)
+    (?P xscheme-set-prompt-variable
+	xscheme-process-filter:string-action)
+    (?R xscheme-enter-interaction-mode
+	xscheme-process-filter:simple-action)
+    (?b xscheme-start-gc
+	xscheme-process-filter:simple-action)
+    (?c xscheme-unsolicited-read-char
+	xscheme-process-filter:simple-action)
+    (?e xscheme-finish-gc
+	xscheme-process-filter:simple-action)
+    (?f xscheme-exit-input-wait
+	xscheme-process-filter:simple-action)
+    (?g xscheme-enable-control-g
+	xscheme-process-filter:simple-action)
+    (?i xscheme-prompt-for-expression
+	xscheme-process-filter:string-action)
+    (?m xscheme-message
+	xscheme-process-filter:string-action)
+    (?n xscheme-prompt-for-confirmation
+	xscheme-process-filter:string-action)
+    (?o xscheme-output-goto
+	xscheme-process-filter:simple-action)
+    (?p xscheme-set-prompt
+	xscheme-process-filter:string-action)
+    (?s xscheme-enter-input-wait
+	xscheme-process-filter:simple-action)
+    (?v xscheme-write-value
+	xscheme-process-filter:string-action)
+    (?w xscheme-cd
+	xscheme-process-filter:string-action)
+    (?z xscheme-display-process-buffer
+	xscheme-process-filter:simple-action))
+  "Table used to decide how to handle process filter commands.
+Value is a list of entries, each entry is a list of three items.
+
+The first item is the character that the process filter dispatches on.
+The second item is the action to be taken, a function.
+The third item is the handler for the entry, a function.
+
+When the process filter sees a command whose character matches a
+particular entry, it calls the handler with two arguments: the action
+and the string containing the rest of the process filter's input
+stream.  It is the responsibility of the handler to invoke the action
+with the appropriate arguments, and to reenter the process filter with
+the remaining input.")
 
 ;;;; Process Filter
 
@@ -1037,61 +1100,6 @@ from being inserted into the process-buffer.")
   (rplaca (nthcdr 3 xscheme-runlight) runlight)
   (force-mode-line-update t))
 
-;;;; Process Filter Operations
-
-(defvar xscheme-process-filter-alist
-  '((?A xscheme-eval
-	xscheme-process-filter:string-action-noexcursion)
-    (?D xscheme-enter-debugger-mode
-	xscheme-process-filter:string-action)
-    (?E xscheme-eval
-	xscheme-process-filter:string-action)
-    (?P xscheme-set-prompt-variable
-	xscheme-process-filter:string-action)
-    (?R xscheme-enter-interaction-mode
-	xscheme-process-filter:simple-action)
-    (?b xscheme-start-gc
-	xscheme-process-filter:simple-action)
-    (?c xscheme-unsolicited-read-char
-	xscheme-process-filter:simple-action)
-    (?e xscheme-finish-gc
-	xscheme-process-filter:simple-action)
-    (?f xscheme-exit-input-wait
-	xscheme-process-filter:simple-action)
-    (?g xscheme-enable-control-g
-	xscheme-process-filter:simple-action)
-    (?i xscheme-prompt-for-expression
-	xscheme-process-filter:string-action)
-    (?m xscheme-message
-	xscheme-process-filter:string-action)
-    (?n xscheme-prompt-for-confirmation
-	xscheme-process-filter:string-action)
-    (?o xscheme-output-goto
-	xscheme-process-filter:simple-action)
-    (?p xscheme-set-prompt
-	xscheme-process-filter:string-action)
-    (?s xscheme-enter-input-wait
-	xscheme-process-filter:simple-action)
-    (?v xscheme-write-value
-	xscheme-process-filter:string-action)
-    (?w xscheme-cd
-	xscheme-process-filter:string-action)
-    (?z xscheme-display-process-buffer
-	xscheme-process-filter:simple-action))
-  "Table used to decide how to handle process filter commands.
-Value is a list of entries, each entry is a list of three items.
-
-The first item is the character that the process filter dispatches on.
-The second item is the action to be taken, a function.
-The third item is the handler for the entry, a function.
-
-When the process filter sees a command whose character matches a
-particular entry, it calls the handler with two arguments: the action
-and the string containing the rest of the process filter's input
-stream.  It is the responsibility of the handler to invoke the action
-with the appropriate arguments, and to reenter the process filter with
-the remaining input.")
-
 (defun xscheme-process-filter:simple-action (action)
   (setq xscheme-process-filter-state 'idle)
   (funcall action))
@@ -1196,10 +1204,6 @@ the remaining input.")
 (defun xscheme-prompt-for-confirmation (prompt-string)
   (xscheme-send-char (if (y-or-n-p prompt-string) ?y ?n)))
 
-(defun xscheme-prompt-for-expression (prompt-string)
-  (xscheme-send-string-2
-   (read-from-minibuffer prompt-string nil xscheme-prompt-for-expression-map)))
-
 (defvar xscheme-prompt-for-expression-map nil)
 (if (not xscheme-prompt-for-expression-map)
     (progn
@@ -1208,6 +1212,10 @@ the remaining input.")
       (substitute-key-definition 'exit-minibuffer
 				 'xscheme-prompt-for-expression-exit
 				 xscheme-prompt-for-expression-map)))
+
+(defun xscheme-prompt-for-expression (prompt-string)
+  (xscheme-send-string-2
+   (read-from-minibuffer prompt-string nil xscheme-prompt-for-expression-map)))
 
 (defun xscheme-prompt-for-expression-exit ()
   (interactive)

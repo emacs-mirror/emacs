@@ -1,5 +1,4 @@
 Tutorialului de Emacs.  A se citi sfârºitul pentru condiþii.
-Copyright (c) 1998 Free Software Foundation
 Traducere din englezã de Tudor Hulubei <tudor@gnu.org>.
 Mulþumiri Aidei Hulubei <aida@chang.pub.ro> pentru corecturi ºi sugestii.
 
@@ -1092,7 +1091,7 @@ continuare noþita de copyright originalã în limba englezã.
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (c) 1985, 1996 Free Software Foundation
+Copyright (C) 1998, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

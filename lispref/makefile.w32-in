@@ -1,7 +1,6 @@
 # -*- Makefile -*- for the GNU Emacs Lisp Reference Manual.
 
-# Copyright (C) 2003, 2004
-#  Free Software Foundation, Inc.
+# Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -99,7 +98,10 @@ srcs = \
 .PHONY: clean
 
 # The info file is named `elisp'.
+
 info: $(infodir)/elisp
+
+$(infodir)/dir:
 	$(INSTALL_INFO) --info-dir=$(infodir) $(infodir)/elisp
 
 $(infodir)/elisp: $(srcs)

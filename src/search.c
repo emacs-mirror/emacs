@@ -1,6 +1,6 @@
 /* String search routines for GNU Emacs.
-   Copyright (C) 1985, 86,87,93,94,97,98, 1999, 2004
-             Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1997, 1998, 1999, 2002, 2003,
+                 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -3085,6 +3085,7 @@ syms_of_search ()
       searchbufs[i].regexp = Qnil;
       searchbufs[i].whitespace_regexp = Qnil;
       staticpro (&searchbufs[i].regexp);
+      staticpro (&searchbufs[i].whitespace_regexp);
       searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
   searchbuf_head = &searchbufs[0];

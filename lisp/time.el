@@ -1,7 +1,7 @@
 ;;; time.el --- display time, load and mail indicator in mode line of Emacs -*-coding: utf-8 -*-
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 96, 2000, 2001, 2002, 2003
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1996, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 
@@ -142,7 +142,7 @@ See `display-time-use-mail-icon' and `display-time-mail-face'.")
 
 ;; Fixme: Default to icon on graphical display?
 (defcustom display-time-use-mail-icon nil
-  "Non-nil means use an icon as the mail indicator on a graphic display.
+  "Non-nil means use an icon as mail indicator on a graphic display.
 Otherwise use `display-time-mail-string'.  The icon may consume less
 of the mode line.  It is specified by `display-time-mail-icon'."
   :group 'display-time
@@ -161,7 +161,7 @@ This can use the Unicode letter character if you can display it."
 		 string))
 
 (defcustom display-time-format nil
-  "*A string specifying the format for displaying the time in the mode line.
+  "*String specifying format for displaying the time in the mode line.
 See the function `format-time-string' for an explanation of
 how to write this string.  If this is nil, the defaults
 depend on `display-time-day-and-date' and `display-time-24hr-format'."
@@ -204,7 +204,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 	  'local-map (make-mode-line-mouse-map 'mouse-2
 					       read-mail-command)))
       ""))
-  "*A list of expressions governing display of the time in the mode line.
+  "*List of expressions governing display of the time in the mode line.
 For most purposes, you can control the time format using `display-time-format'
 which is a more standard interface.
 

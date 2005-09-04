@@ -1,6 +1,7 @@
 /* Manipulation of keymaps
-   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1998, 1999, 2000,
-     2001, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995,
+                 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1654,7 +1655,7 @@ bindings; see the description of `lookup-key' for more details about this.  */)
 
 DEFUN ("minor-mode-key-binding", Fminor_mode_key_binding, Sminor_mode_key_binding, 1, 2, 0,
        doc: /* Find the visible minor mode bindings of KEY.
-Return an alist of pairs (MODENAME . BINDING), where MODENAME is the
+Return an alist of pairs (MODENAME . BINDING), where MODENAME is
 the symbol which names the minor mode binding KEY, and BINDING is
 KEY's definition in that mode.  In particular, if KEY has no
 minor-mode bindings, return nil.  If the first binding is a

@@ -1,7 +1,7 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2003, 2004, 2005  Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
 ;;	    Daniel Pfeiffer <occitan@esperanto.org>
@@ -70,6 +70,12 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar font-lock-extra-managed-props)
+(defvar font-lock-keywords)
+(defvar font-lock-maximum-size)
+(defvar font-lock-support-mode)
+
+
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
   :group 'tools
@@ -78,7 +84,7 @@
 
 ;;;###autoload
 (defcustom compilation-mode-hook nil
-  "*List of hook functions run by `compilation-mode' (see `run-hooks')."
+  "*List of hook functions run by `compilation-mode' (see `run-mode-hooks')."
   :type 'hook
   :group 'compilation)
 
@@ -287,11 +293,11 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 \\(?:: \\(warning:\\)?\\|$\\| ),\\)" 1 2 nil (3))
 
     (gcov-file
-     "^ +-:    \\(0\\):Source:\\(.+\\)$" 2 1 nil 0)    
+     "^ +-:    \\(0\\):Source:\\(.+\\)$" 2 1 nil 0)
     (gcov-bb-file
-     "^ +-:    \\(0\\):Object:\\(?:.+\\)$" nil 1 nil 0)    
+     "^ +-:    \\(0\\):Object:\\(?:.+\\)$" nil 1 nil 0)
     (gcov-never-called-line
-     "^ +\\(#####\\): +\\([0-9]+\\):.+$" nil 2 nil 2 nil 
+     "^ +\\(#####\\): +\\([0-9]+\\):.+$" nil 2 nil 2 nil
      (1 compilation-error-face))
     (gcov-called-line
      "^ +[-0-9]+: +\\([1-9]\\|[0-9]\\{2,\\}\\):.*$" nil 1 nil 0)
@@ -382,8 +388,11 @@ you may also want to change `compilation-page-delimiter'.")
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
      (" --?o\\(?:utfile\\|utput\\)?[= ]?\\(\\S +\\)" . 1)
-     ("^Compilation finished" . compilation-info-face)
-     ("^Compilation exited abnormally" . compilation-error-face))
+     ("^Compilation \\(finished\\)"
+      (1 compilation-info-face))
+     ("^Compilation \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?"
+      (1 compilation-error-face)
+      (2 compilation-error-face nil t)))
    "Additional things to highlight in Compilation mode.
 This gets tacked on the end of the generated expressions.")
 
@@ -443,6 +452,14 @@ You might also use mode hooks to specify it in certain modes, like this:
   :type 'string
   :group 'compilation)
 
+(defcustom compilation-disable-input nil
+  "*If non-nil, send end-of-file as compilation process input.
+This only affects platforms that support asynchronous processes (see
+`start-process'); synchronous compilation processes never accept input."
+  :type 'boolean
+  :group 'compilation
+  :version "22.1")
+
 ;; A weak per-compilation-buffer hash indexed by (FILENAME . DIRECTORY).  Each
 ;; value is a FILE-STRUCTURE as described above, with the car eq to the hash
 ;; key.	 This holds the tree seen from root, for storing new nodes.
@@ -468,6 +485,12 @@ starting the compilation process.")
 ;; History of compile commands.
 (defvar compile-history nil)
 
+(defface compilation-error
+  '((t :inherit font-lock-warning-face))
+  "Face used to highlight compiler errors."
+  :group 'font-lock-highlighting-faces
+  :version "22.1")
+
 (defface compilation-warning
   '((((class color) (min-colors 16)) (:foreground "Orange" :weight bold))
     (((class color)) (:foreground "cyan" :weight bold))
@@ -475,8 +498,6 @@ starting the compilation process.")
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
   :version "22.1")
-;; backward-compatibility alias
-(put 'compilation-warning-face 'face-alias 'compilation-warning)
 
 (defface compilation-info
   '((((class color) (min-colors 16) (background light))
@@ -487,74 +508,49 @@ starting the compilation process.")
      (:foreground "Green" :weight bold))
     (((class color)) (:foreground "green" :weight bold))
     (t (:weight bold)))
-  "Face used to highlight compiler warnings."
-  :group 'font-lock-highlighting-faces
-  :version "22.1")
-;; backward-compatibility alias
-(put 'compilation-info-face 'face-alias 'compilation-info)
-
-(defface compilation-error-file-name
-  '((default :inherit font-lock-warning-face)
-    (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
-  :group 'font-lock-highlighting-faces
-  :version "22.1")
-
-(defface compilation-warning-file-name
-  '((default :inherit font-lock-warning-face)
-    (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
-  :group 'font-lock-highlighting-faces
-  :version "22.1")
-
-(defface compilation-info-file-name
-  '((default :inherit compilation-info)
-    (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
+  "Face used to highlight compiler information."
   :group 'font-lock-highlighting-faces
   :version "22.1")
 
 (defface compilation-line-number
-  '((default :inherit font-lock-variable-name-face)
-    (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
+  '((t :inherit font-lock-variable-name-face))
+  "Face for displaying line numbers in compiler messages."
   :group 'font-lock-highlighting-faces
   :version "22.1")
 
 (defface compilation-column-number
-  '((default :inherit font-lock-type-face)
-    (((supports :underline t)) :underline t))
-  "Face for displaying file names in compilation errors."
+  '((t :inherit font-lock-type-face))
+  "Face for displaying column numbers in compiler messages."
   :group 'font-lock-highlighting-faces
   :version "22.1")
 
-(defvar compilation-message-face nil
+(defvar compilation-message-face 'underline
   "Face name to use for whole messages.
 Faces `compilation-error-face', `compilation-warning-face',
 `compilation-info-face', `compilation-line-face' and
 `compilation-column-face' get prepended to this, when applicable.")
 
-(defvar compilation-error-face 'compilation-error-file-name
+(defvar compilation-error-face 'compilation-error
   "Face name to use for file name in error messages.")
 
-(defvar compilation-warning-face 'compilation-warning-file-name
+(defvar compilation-warning-face 'compilation-warning
   "Face name to use for file name in warning messages.")
 
-(defvar compilation-info-face 'compilation-info-file-name
+(defvar compilation-info-face 'compilation-info
   "Face name to use for file name in informational messages.")
 
 (defvar compilation-line-face 'compilation-line-number
-  "Face name to use for line number in message.")
+  "Face name to use for line numbers in compiler messages.")
 
 (defvar compilation-column-face 'compilation-column-number
-  "Face name to use for column number in message.")
+  "Face name to use for column numbers in compiler messages.")
 
 ;; same faces as dired uses
 (defvar compilation-enter-directory-face 'font-lock-function-name-face
-  "Face name to use for column number in message.")
+  "Face name to use for entering directory messages.")
 
 (defvar compilation-leave-directory-face 'font-lock-type-face
-  "Face name to use for column number in message.")
+  "Face name to use for leaving directory messages.")
 
 
 
@@ -921,6 +917,7 @@ Otherwise, construct a buffer name from MODE-NAME."
     (compilation-start command nil name-function highlight-regexp)))
 (make-obsolete 'compile-internal 'compilation-start)
 
+;;;###autoload
 (defun compilation-start (command &optional mode name-function highlight-regexp)
   "Run compilation command COMMAND (low level interface).
 If COMMAND starts with a cd command, that becomes the `default-directory'.
@@ -928,7 +925,8 @@ The rest of the arguments are optional; for them, nil means use the default.
 
 MODE is the major mode to set in the compilation buffer.  Mode
 may also be t meaning use `compilation-shell-minor-mode' under `comint-mode'.
-NAME-FUNCTION is a function called to name the buffer.
+If NAME-FUNCTION is non-nil, call it with one argument (the mode name)
+to determine the buffer name.
 
 If HIGHLIGHT-REGEXP is non-nil, `next-error' will temporarily highlight
 the matching section of the visited source line; the default is to use the
@@ -987,7 +985,11 @@ Returns the compilation buffer created."
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
 		"; default-directory: " (prin1-to-string default-directory)
-		" -*-\n" command "\n")
+		" -*-\n"
+		(format "%s started at %s\n\n"
+			mode-name
+			(substring (current-time-string) 0 19))
+		command "\n")
 	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; If we're already in the compilation buffer, go to the end
@@ -1039,6 +1041,11 @@ Returns the compilation buffer created."
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (set-process-filter proc 'compilation-filter)
 	      (set-marker (process-mark proc) (point) outbuf)
+	      (when compilation-disable-input
+                (condition-case nil
+                    (process-send-eof proc)
+                  ;; The process may have exited already.
+                  (error nil)))
 	      (setq compilation-in-progress
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available.
@@ -1158,6 +1165,8 @@ exited abnormally with code %d\n"
     (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
+    (define-key map "\t" 'compilation-next-error)
+    (define-key map [backtab] 'compilation-previous-error)
 
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
@@ -1171,7 +1180,7 @@ exited abnormally with code %d\n"
     (define-key map [menu-bar compilation compilation-separator2]
       '("----" . nil))
     (define-key map [menu-bar compilation compilation-grep]
-      '("Search Files (grep)" . grep))
+      '("Search Files (grep)..." . grep))
     (define-key map [menu-bar compilation compilation-recompile]
       '("Recompile" . recompile))
     (define-key map [menu-bar compilation compilation-compile]
@@ -1213,7 +1222,7 @@ from a different message."
 move point to the error message line and type \\[compile-goto-error].
 To kill the compilation, type \\[kill-compilation].
 
-Runs `compilation-mode-hook' with `run-hooks' (which see).
+Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
 
 \\{compilation-mode-map}"
   (interactive)
@@ -1230,9 +1239,9 @@ Runs `compilation-mode-hook' with `run-hooks' (which see).
 (defmacro define-compilation-mode (mode name doc &rest body)
   "This is like `define-derived-mode' without the PARENT argument.
 The parent is always `compilation-mode' and the customizable `compilation-...'
-variables are also set from the name of the mode you have chosen, by replacing
-the fist word, e.g `compilation-scroll-output' from `grep-scroll-output' if that
-variable exists."
+variables are also set from the name of the mode you have chosen,
+by replacing the first word, e.g `compilation-scroll-output' from
+`grep-scroll-output' if that variable exists."
   (let ((mode-name (replace-regexp-in-string "-mode\\'" "" (symbol-name mode))))
     `(define-derived-mode ,mode compilation-mode ,name
        ,doc
@@ -1511,7 +1520,7 @@ Prefix arg N says how many files to move backwards (or forwards, if negative)."
   (let ((buffer (compilation-find-buffer)))
     (if (get-buffer-process buffer)
 	(interrupt-process (get-buffer-process buffer))
-      (error "The compilation process is not running"))))
+      (error "The %s process is not running" (downcase mode-name)))))
 
 (defalias 'compile-mouse-goto-error 'compile-goto-error)
 
@@ -1756,8 +1765,8 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 				    marker)
 	    (let ((name (expand-file-name
 			 (read-file-name
-			  (format "Find this error in: (default %s) "
-				  filename)
+			  (format "Find this %s in: (default %s) "
+				  compilation-error filename)
 			  dir filename t))))
 	      (if (file-directory-p name)
 		  (setq name (expand-file-name filename name)))

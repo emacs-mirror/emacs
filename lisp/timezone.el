@@ -1,6 +1,7 @@
 ;;; timezone.el --- time zone package for GNU Emacs
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 1996, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 1996, 1999, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu Umeda
 ;; Maintainer: umerin@mse.kyutech.ac.jp
@@ -149,7 +150,7 @@ Understands the following styles:
 	(time nil)
 	(zone nil))			;This may be nil.
     (cond ((string-match
-	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]*\\([-+a-zA-Z0-9]+\\)" date)
+	    "\\([0-9]+\\)[ \t]+\\([^ \t,]+\\)[ \t]+\\([0-9]+\\)[ \t]+\\([0-9]+:[0-9:]+\\)[ \t]+\\([-+a-zA-Z0-9]+\\)" date)
 	   ;; Styles: (1) and (2) with timezone and buggy timezone
 	   ;; This is most common in mail and news,
 	   ;; so it is worth trying first.

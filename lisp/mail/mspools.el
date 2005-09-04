@@ -1,6 +1,6 @@
 ;;; mspools.el --- show mail spools waiting to be read
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -109,6 +109,14 @@
 ;; Shrink wrap the buffer to remove excess white-space?
 
 ;;; Code:
+
+(defvar rmail-inbox-list)
+(defvar vm-crash-box)
+(defvar vm-folder-directory)
+(defvar vm-init-file)
+(defvar vm-init-file-loaded)
+(defvar vm-primary-inbox)
+(defvar vm-spool-files)
 
 ;;; User Variables
 

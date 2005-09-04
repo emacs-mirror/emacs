@@ -1,6 +1,6 @@
 # Makefile for lib-src subdirectory in GNU Emacs.
-# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002, 2003, 2004
-#  Free Software Foundation, Inc.
+# Copyright (C) 1985, 1987, 1988, 1993, 1994, 2002, 2003, 2004,
+#               2005 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -344,7 +344,7 @@ uninstall:
 	 rm -f ${UTILITIES} ${INSTALLABLES} ${SCRIPTS} ${INSTALLABLE_SCRIPTS})
 
 mostlyclean:
-	-rm -f core *.o
+	-rm -f core *.o getopt.h getopt.h-t
 
 clean: mostlyclean
 	-rm -f ${INSTALLABLES} ${UTILITIES} ${DONT_INSTALL}
@@ -382,11 +382,18 @@ test-distrib${EXEEXT}: ${srcdir}/test-distrib.c
 	$(CC) ${ALL_CFLAGS} -o test-distrib ${srcdir}/test-distrib.c
 	./test-distrib ${srcdir}/testfile
 
-GETOPTOBJS = getopt.o getopt1.o
-GETOPTDEPS = $(GETOPTOBJS) ${srcdir}/getopt.h
-getopt.o: ${srcdir}/getopt.c ${srcdir}/getopt.h
+/* We need the following in order to create a <getopt.h> when the system
+   doesn't have one that works with the given compiler.  */
+GETOPT_H = @GETOPT_H@
+getopt.h: getopt_.h
+	cp $(srcdir)/getopt_.h $@-t
+	mv $@-t $@
+
+GETOPTOBJS = @GETOPTOBJS@
+GETOPTDEPS = $(GETOPTOBJS) $(GETOPT_H)
+getopt.o: ${srcdir}/getopt.c $(GETOPT_H) ${srcdir}/gettext.h
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt.c
-getopt1.o: ${srcdir}/getopt1.c ${srcdir}/getopt.h
+getopt1.o: ${srcdir}/getopt1.c $(GETOPT_H)
 	${CC} -c ${CPP_CFLAGS} ${srcdir}/getopt1.c
 
 #ifdef REGEXP_IN_LIBC
@@ -430,7 +437,7 @@ b2m${EXEEXT}: ${srcdir}/b2m.c ../src/config.h $(GETOPTDEPS)
 movemail${EXEEXT}: movemail.o pop.o $(GETOPTDEPS)
 	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} movemail.o pop.o $(GETOPTOBJS) $(LOADLIBES) $(LIBS_MAIL) $(LIBS_MOVE) -o movemail
 
-movemail.o: ${srcdir}/movemail.c ../src/config.h
+movemail.o: ${srcdir}/movemail.c ../src/config.h $(GETOPT_H)
 	$(CC) -c ${CPP_CFLAGS} -Demacs ${MOVE_FLAGS} ${srcdir}/movemail.c
 
 pop.o: ${srcdir}/pop.c  ../src/config.h

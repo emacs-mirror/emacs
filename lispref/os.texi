@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
-@c   Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002, 2003,
+@c   2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/os
 @node System Interface, Antinews, Display, Top
@@ -21,8 +21,10 @@ pertaining to the terminal and the screen.
 * System Environment::  Distinguish the name and kind of system.
 * User Identification:: Finding the name and user id of the user.
 * Time of Day::		Getting the current time.
-* Time Conversion::     Converting a time from numeric form to a string, or
-                          to calendrical data (or vice versa).
+* Time Conversion::     Converting a time from numeric form
+                          to calendrical data, and vice versa).
+* Time Parsing::        Converting a time from numeric form to text
+                          and vice versa.
 * Processor Run Time::  Getting the run time used by Emacs.
 * Time Calculations::   Adding, subtracting, comparing times, etc.
 * Timers::		Setting a timer to call a function at a certain time.
@@ -117,7 +119,7 @@ mode or using a window system.
 
 @item
 It displays the initial echo area message, unless you have suppressed
-that with @code{inhibit-startup-echo-area-message} or @samp{-Q}.
+that with @code{inhibit-startup-echo-area-message}.
 
 @item
 It processes the action arguments from the command line.
@@ -136,7 +138,7 @@ It runs @code{window-setup-hook}.  @xref{Window Systems}.
 @item
 It displays copyleft, nonwarranty, and basic use information, provided
 the value of @code{inhibit-startup-message} is @code{nil}, you didn't
-specify @samp{--no-splash} or @samp{-Q}, and the buffer is still empty.
+specify @samp{--no-splash} or @samp{-Q}.
 @end enumerate
 
 @defopt inhibit-startup-message
@@ -1071,22 +1073,102 @@ exact.  Do not use this function if precise time stamps are required.
 @section Time Conversion
 
   These functions convert time values (lists of two or three integers)
-to strings or to calendrical information.  There is also a function to
-convert calendrical information to a time value.  You can get time
-values from the functions @code{current-time} (@pxref{Time of Day}) and
+to calendrical information and vice versa.  You can get time values
+from the functions @code{current-time} (@pxref{Time of Day}) and
 @code{file-attributes} (@pxref{Definition of file-attributes}).
 
-Many operating systems are limited to time values that contain 32 bits
+  Many operating systems are limited to time values that contain 32 bits
 of information; these systems typically handle only the times from
 1901-12-13 20:45:52 UTC through 2038-01-19 03:14:07 UTC.  However, some
 operating systems have larger time values, and can represent times far
 in the past or future.
 
-Time conversion functions always use the Gregorian calendar, even for
-dates before the Gregorian calendar was introduced.  Year numbers count
-the number of years since the year 1 B.C., and do not skip zero as
-traditional Gregorian years do; for example, the year number @minus{}37
-represents the Gregorian year 38 B.C@.
+  Time conversion functions always use the Gregorian calendar, even
+for dates before the Gregorian calendar was introduced.  Year numbers
+count the number of years since the year 1 B.C., and do not skip zero
+as traditional Gregorian years do; for example, the year number
+@minus{}37 represents the Gregorian year 38 B.C@.
+
+@defun decode-time &optional time
+This function converts a time value into calendrical information.  If
+you don't specify @var{time}, it decodes the current time.  The return
+value is a list of nine elements, as follows:
+
+@example
+(@var{seconds} @var{minutes} @var{hour} @var{day} @var{month} @var{year} @var{dow} @var{dst} @var{zone})
+@end example
+
+Here is what the elements mean:
+
+@table @var
+@item seconds
+The number of seconds past the minute, as an integer between 0 and 59.
+On some operating systems, this is 60 for leap seconds.
+@item minutes
+The number of minutes past the hour, as an integer between 0 and 59.
+@item hour
+The hour of the day, as an integer between 0 and 23.
+@item day
+The day of the month, as an integer between 1 and 31.
+@item month
+The month of the year, as an integer between 1 and 12.
+@item year
+The year, an integer typically greater than 1900.
+@item dow
+The day of week, as an integer between 0 and 6, where 0 stands for
+Sunday.
+@item dst
+@code{t} if daylight savings time is effect, otherwise @code{nil}.
+@item zone
+An integer indicating the time zone, as the number of seconds east of
+Greenwich.
+@end table
+
+@strong{Common Lisp Note:} Common Lisp has different meanings for
+@var{dow} and @var{zone}.
+@end defun
+
+@defun encode-time seconds minutes hour day month year &optional zone
+This function is the inverse of @code{decode-time}.  It converts seven
+items of calendrical data into a time value.  For the meanings of the
+arguments, see the table above under @code{decode-time}.
+
+Year numbers less than 100 are not treated specially.  If you want them
+to stand for years above 1900, or years above 2000, you must alter them
+yourself before you call @code{encode-time}.
+
+The optional argument @var{zone} defaults to the current time zone and
+its daylight savings time rules.  If specified, it can be either a list
+(as you would get from @code{current-time-zone}), a string as in the
+@code{TZ} environment variable, @code{t} for Universal Time, or an
+integer (as you would get from @code{decode-time}).  The specified
+zone is used without any further alteration for daylight savings time.
+
+If you pass more than seven arguments to @code{encode-time}, the first
+six are used as @var{seconds} through @var{year}, the last argument is
+used as @var{zone}, and the arguments in between are ignored.  This
+feature makes it possible to use the elements of a list returned by
+@code{decode-time} as the arguments to @code{encode-time}, like this:
+
+@example
+(apply 'encode-time (decode-time @dots{}))
+@end example
+
+You can perform simple date arithmetic by using out-of-range values for
+the @var{seconds}, @var{minutes}, @var{hour}, @var{day}, and @var{month}
+arguments; for example, day 0 means the day preceding the given month.
+
+The operating system puts limits on the range of possible time values;
+if you try to encode a time that is out of range, an error results.
+For instance, years before 1970 do not work on some systems;
+on others, years as early as 1901 do work.
+@end defun
+
+@node Time Parsing
+@section Parsing and Formatting Times
+
+  These functions convert time values (lists of two or three integers)
+to text in a string, and vice versa.
 
 @defun date-to-time string
 This function parses the time-string @var{string} and returns the
@@ -1211,81 +1293,6 @@ string using that same coding system.
 This function converts @var{seconds}, a floating point number of
 seconds since the epoch, to a time value and returns that.  To perform
 the inverse conversion, use @code{float-time}.
-@end defun
-
-@defun decode-time &optional time
-This function converts a time value into calendrical information.  If
-you don't specify @var{time}, it decodes the current time.  The return
-value is a list of nine elements, as follows:
-
-@example
-(@var{seconds} @var{minutes} @var{hour} @var{day} @var{month} @var{year} @var{dow} @var{dst} @var{zone})
-@end example
-
-Here is what the elements mean:
-
-@table @var
-@item seconds
-The number of seconds past the minute, as an integer between 0 and 59.
-On some operating systems, this is 60 for leap seconds.
-@item minutes
-The number of minutes past the hour, as an integer between 0 and 59.
-@item hour
-The hour of the day, as an integer between 0 and 23.
-@item day
-The day of the month, as an integer between 1 and 31.
-@item month
-The month of the year, as an integer between 1 and 12.
-@item year
-The year, an integer typically greater than 1900.
-@item dow
-The day of week, as an integer between 0 and 6, where 0 stands for
-Sunday.
-@item dst
-@code{t} if daylight savings time is effect, otherwise @code{nil}.
-@item zone
-An integer indicating the time zone, as the number of seconds east of
-Greenwich.
-@end table
-
-@strong{Common Lisp Note:} Common Lisp has different meanings for
-@var{dow} and @var{zone}.
-@end defun
-
-@defun encode-time seconds minutes hour day month year &optional zone
-This function is the inverse of @code{decode-time}.  It converts seven
-items of calendrical data into a time value.  For the meanings of the
-arguments, see the table above under @code{decode-time}.
-
-Year numbers less than 100 are not treated specially.  If you want them
-to stand for years above 1900, or years above 2000, you must alter them
-yourself before you call @code{encode-time}.
-
-The optional argument @var{zone} defaults to the current time zone and
-its daylight savings time rules.  If specified, it can be either a list
-(as you would get from @code{current-time-zone}), a string as in the
-@code{TZ} environment variable, @code{t} for Universal Time, or an
-integer (as you would get from @code{decode-time}).  The specified
-zone is used without any further alteration for daylight savings time.
-
-If you pass more than seven arguments to @code{encode-time}, the first
-six are used as @var{seconds} through @var{year}, the last argument is
-used as @var{zone}, and the arguments in between are ignored.  This
-feature makes it possible to use the elements of a list returned by
-@code{decode-time} as the arguments to @code{encode-time}, like this:
-
-@example
-(apply 'encode-time (decode-time @dots{}))
-@end example
-
-You can perform simple date arithmetic by using out-of-range values for
-the @var{seconds}, @var{minutes}, @var{hour}, @var{day}, and @var{month}
-arguments; for example, day 0 means the day preceding the given month.
-
-The operating system puts limits on the range of possible time values;
-if you try to encode a time that is out of range, an error results.
-For instance, years before 1970 do not work on some systems;
-on others, years as early as 1901 do work.
 @end defun
 
 @node Processor Run Time
@@ -1721,7 +1728,7 @@ Note however that actual key bindings can have an effect on
 @code{key-translation-map}, even though they are overridden by it.
 Indeed, actual key bindings override @code{function-key-map} and thus
 may alter the key sequence that @code{key-translation-map} receives.
-Clearly, it is better to avoid to avoid this type of situation.
+Clearly, it is better to avoid this type of situation.
 
 The intent of @code{key-translation-map} is for users to map one
 character set to another, including ordinary characters normally bound

@@ -1,7 +1,7 @@
 ;;; add-log.el --- change log maintenance commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1988, 1993, 1994, 1997, 1998, 2000, 2003,
-;;   2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1988, 1993, 1994, 1997, 1998, 2000, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tools
@@ -70,7 +70,7 @@ This defaults to the value returned by the function `user-full-name'."
 
 ;;;###autoload
 (defcustom add-log-mailing-address nil
-  "*Electronic mail addresses of user, for inclusion in ChangeLog headers.
+  "*Email addresses of user, for inclusion in ChangeLog headers.
 This defaults to the value of `user-mail-address'.  In addition to
 being a simple string, this value can also be a list.  All elements
 will be recognized as referring to the same user; when creating a new
@@ -976,7 +976,7 @@ Has a preference of looking backwards."
   (goto-char (match-end 0)))
 
 (defun change-log-get-method-definition ()
-"For objective C, return the method name if we are in a method."
+"For Objective C, return the method name if we are in a method."
   (let ((change-log-get-method-definition-md "["))
     (save-excursion
       (if (re-search-backward "^@implementation\\s-*\\([A-Za-z_]*\\)" nil t)
@@ -1022,7 +1022,7 @@ Point is assumed to be at the start of the entry."
 
 ;;;###autoload
 (defun change-log-merge (other-log)
-  "Merge the contents of ChangeLog file OTHER-LOG with this buffer.
+  "Merge the contents of change log file OTHER-LOG with this buffer.
 Both must be found in Change Log mode (since the merging depends on
 the appropriate motion commands).  OTHER-LOG can be either a file name
 or a buffer.

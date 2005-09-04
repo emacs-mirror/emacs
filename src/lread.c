@@ -1,6 +1,7 @@
 /* Lisp parsing and input streams.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1997, 1998,
-     1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
+                 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -86,6 +87,7 @@ Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist
 Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 Lisp_Object Qinhibit_file_name_operation;
+Lisp_Object Qeval_buffer_list, Veval_buffer_list;
 
 extern Lisp_Object Qevent_symbol_element_mask;
 extern Lisp_Object Qfile_exists_p;
@@ -674,7 +676,6 @@ Return t if file exists.  */)
 {
   register FILE *stream;
   register int fd = -1;
-  register Lisp_Object lispstream;
   int count = SPECPDL_INDEX ();
   Lisp_Object temp;
   struct gcpro gcpro1;
@@ -904,10 +905,7 @@ Return t if file exists.  */)
     }
 
   GCPRO1 (file);
-  lispstream = Fcons (Qnil, Qnil);
-  XSETCARFASTINT (lispstream, (EMACS_UINT)stream >> 16);
-  XSETCDRFASTINT (lispstream, (EMACS_UINT)stream & 0xffff);
-  record_unwind_protect (load_unwind, lispstream);
+  record_unwind_protect (load_unwind, make_save_value (stream, 0));
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
@@ -957,11 +955,12 @@ Return t if file exists.  */)
 }
 
 static Lisp_Object
-load_unwind (stream)  /* used as unwind-protect function in load */
-     Lisp_Object stream;
+load_unwind (arg)  /* used as unwind-protect function in load */
+     Lisp_Object arg;
 {
-  fclose ((FILE *) (XFASTINT (XCAR (stream)) << 16
-		    | XFASTINT (XCDR (stream))));
+  FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
+  if (stream != NULL)
+    fclose (stream);
   if (--load_in_progress < 0) load_in_progress = 0;
   return Qnil;
 }
@@ -1453,6 +1452,7 @@ This function preserves the position of point.  */)
   if (NILP (filename))
     filename = XBUFFER (buf)->filename;
 
+  specbind (Qeval_buffer_list, Fcons (buf, Veval_buffer_list));
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
@@ -1488,6 +1488,7 @@ This function does not move point.  */)
   else
     tem = printflag;
   specbind (Qstandard_output, tem);
+  specbind (Qeval_buffer_list, Fcons (cbuf, Veval_buffer_list));
 
   /* readevalloop calls functions which check the type of start and end.  */
   readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
@@ -3962,6 +3963,10 @@ to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
     = build_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
+  DEFVAR_LISP ("eval-buffer-list", &Veval_buffer_list,
+	       doc: /* List of buffers being read from by calls to `eval-buffer' and `eval-region'.  */);
+  Veval_buffer_list = Qnil;
+
   /* Vsource_directory was initialized in init_lread.  */
 
   load_descriptor_list = Qnil;
@@ -4003,11 +4008,15 @@ to load.  See also `load-dangerous-libraries'.  */);
   Qload_file_name = intern ("load-file-name");
   staticpro (&Qload_file_name);
 
+  Qeval_buffer_list = intern ("eval-buffer-list");
+  staticpro (&Qeval_buffer_list);
+
   staticpro (&dump_path);
 
   staticpro (&read_objects);
   read_objects = Qnil;
   staticpro (&seen_list);
+  seen_list = Qnil;
 
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);

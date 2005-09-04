@@ -1,6 +1,6 @@
 ;;; mpuz.el --- multiplication puzzle for GNU Emacs
 
-;; Copyright (C) 1990, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Overhauled: Daniel Pfeiffer <occitan@esperanto.org>
@@ -62,31 +62,23 @@ t means never ding, and `error' means only ding on wrong input."
     (t (:bold t)))
   "*Face to use for letters to be solved."
   :group 'mpuz)
-;; backward-compatibility alias
-(put 'mpuz-unsolved-face 'face-alias 'mpuz-unsolved)
 
 (defface mpuz-solved
   '((((class color)) (:foreground "green1" :bold t))
     (t (:bold t)))
   "*Face to use for solved digits."
   :group 'mpuz)
-;; backward-compatibility alias
-(put 'mpuz-solved-face 'face-alias 'mpuz-solved)
 
 (defface mpuz-trivial
   '((((class color)) (:foreground "blue" :bold t))
     (t (:bold t)))
   "*Face to use for trivial digits solved for you."
   :group 'mpuz)
-;; backward-compatibility alias
-(put 'mpuz-trivial-face 'face-alias 'mpuz-trivial)
 
 (defface mpuz-text
   '((t (:inherit variable-pitch)))
   "*Face to use for text on right."
   :group 'mpuz)
-;; backward-compatibility alias
-(put 'mpuz-text-face 'face-alias 'mpuz-text)
 
 
 ;; Mpuz mode and keymaps

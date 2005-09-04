@@ -1,7 +1,7 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
-;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -200,6 +200,8 @@
 
 
 ;;; Code:
+
+(defvar mail-yank-prefix)
 
 ;;; Custom.el macros require recompiling this when they are not present.
 ;;; Add in backward compatible custom support.
@@ -862,9 +864,113 @@ and added as a submenu of the \"Edit\" menu.")
 				   )
   "Non-nil means that the OS supports asynchronous processes.")
 
+;; Make ispell.el work better with aspell.
+
+(defvar ispell-have-aspell-dictionaries nil
+  "Non-nil if we have queried Aspell for dictionaries at least once.")
+
+(defun ispell-find-aspell-dictionaries ()
+  "Find Aspell's dictionaries, and record in `ispell-dictionary-alist'."
+  (interactive)
+  (unless ispell-really-aspell
+    (error "This function only works with aspell"))
+  (let ((dictionaries
+	 (split-string
+	  (with-temp-buffer
+	    (call-process ispell-program-name nil t nil "dicts")
+	    (buffer-string)))))
+    (setq ispell-dictionary-alist
+	  (mapcar #'ispell-aspell-find-dictionary dictionaries))
+    (ispell-aspell-add-aliases)
+    ;; Add a default entry
+    (let* ((english-dict (assoc "en" ispell-dictionary-alist))
+	   (default-dict (cons nil (cdr english-dict))))
+      (push default-dict ispell-dictionary-alist))
+    (setq ispell-have-aspell-dictionaries t)))
+
+(defvar ispell-aspell-data-dir nil
+  "Data directory of Aspell.")
+
+(defvar ispell-aspell-dict-dir nil
+  "Dictionary directory of Aspell.")
+
+(defun ispell-get-aspell-config-value (key)
+  "Return value of Aspell configuration option KEY.
+Assumes that value contains no whitespace."
+  (with-temp-buffer
+    (call-process ispell-program-name nil t nil "config" key)
+    (car (split-string (buffer-string)))))
+
+(defun ispell-aspell-find-dictionary (dict-name)
+  (let* ((lang ;; Strip out region, variant, etc.
+	  (and (string-match "^[[:alpha:]]+" dict-name)
+	       (match-string 0 dict-name)))
+	 (data-file
+	  (concat (or ispell-aspell-data-dir
+		      (setq ispell-aspell-data-dir
+			    (ispell-get-aspell-config-value "data-dir")))
+		  "/" lang ".dat"))
+	 otherchars)
+    ;; This file really should exist; there is no sensible recovery.
+    (with-temp-buffer
+      (insert-file-contents data-file)
+      ;; There is zero or one line with special characters declarations.
+      (when (search-forward-regexp "^special" nil t)
+	(let ((specials (split-string
+			 (buffer-substring (point)
+					   (progn (end-of-line) (point))))))
+	  ;; The line looks like: special ' -** - -** . -** : -*-
+	  ;; -** means that this character
+	  ;;    - doesn't appear at word start
+	  ;;    * may appear in the middle of a word
+	  ;;    * may appear at word end
+	  ;; `otherchars' is about the middle case.
+	  (while specials
+	    (when (eq (aref (cadr specials) 1) ?*)
+	      (push (car specials) otherchars))
+	    (setq specials (cddr specials))))))
+    (list dict-name
+	  "[[:alpha:]]"
+	  "[^[:alpha:]]"
+	  (regexp-opt otherchars)
+	  t 				; We can't tell, so set this to t
+	  (list "-d" dict-name "--encoding=utf-8")
+	  nil				; aspell doesn't support this
+	  ;; Here we specify the encoding to use while communicating with
+	  ;; aspell.  This doesn't apply to command line arguments, so
+	  ;; just don't pass words to spellcheck as arguments...
+	  'utf-8)))
+
+(defun ispell-aspell-add-aliases ()
+  "Find aspell's dictionary aliases and add them to `ispell-dictionary-alist'."
+  (let ((aliases (file-expand-wildcards
+		  (concat (or ispell-aspell-dict-dir
+			      (setq ispell-aspell-dict-dir
+				    (ispell-get-aspell-config-value "dict-dir")))
+			  "/*.alias"))))
+    (dolist (alias-file aliases)
+      (with-temp-buffer
+	(insert-file-contents alias-file)
+	;; Look for a line "add FOO.multi", extract FOO
+	(when (search-forward-regexp "^add \\([^.]+\\)\\.multi" nil t)
+	  (let* ((aliasname (file-name-sans-extension
+			     (file-name-nondirectory alias-file)))
+		 (already-exists-p (assoc aliasname ispell-dictionary-alist))
+		 (realname (match-string 1))
+		 (realdict (assoc realname ispell-dictionary-alist)))
+	    (when (and realdict (not already-exists-p))
+	      (push (cons aliasname (cdr realdict)) ispell-dictionary-alist))))))))
+
 (defun ispell-valid-dictionary-list ()
   "Returns a list of valid dictionaries.
 The variable `ispell-library-directory' defines the library location."
+  ;; If Ispell is really Aspell, query it for the dictionary list.
+  (when (and (not ispell-have-aspell-dictionaries)
+	     (condition-case ()
+		 (progn (ispell-check-version) t)
+	       (error nil))
+	     ispell-really-aspell)
+    (ispell-find-aspell-dictionaries))
   (let ((dicts (append ispell-local-dictionary-alist ispell-dictionary-alist))
 	(dict-list (cons "default" nil))
 	name load-dict)
@@ -875,7 +981,9 @@ The variable `ispell-library-directory' defines the library location."
       (if (and
 	   name
 	   ;; include all dictionaries if lib directory not known.
-	   (or (not ispell-library-directory)
+	   ;; For Aspell, we already know which dictionaries exist.
+	   (or ispell-really-aspell
+	       (not ispell-library-directory)
 	       (file-exists-p (concat ispell-library-directory
 				      "/" name ".hash"))
 	       (file-exists-p (concat ispell-library-directory "/" name ".has"))
@@ -887,36 +995,11 @@ The variable `ispell-library-directory' defines the library location."
 	  (setq dict-list (cons name dict-list))))
     dict-list))
 
-;;;###autoload
-(if ispell-menu-map-needed
-    (let ((dicts (if (fboundp 'ispell-valid-dictionary-list)
-		     (ispell-valid-dictionary-list)
-		   ;; This case is used in loaddefs.el
-		   ;; since ispell-valid-dictionary-list isn't defined then.
-		   (mapcar (lambda (x) (or (car x) "default"))
-			   ispell-dictionary-alist)))
-	  (dict-map (make-sparse-keymap "Dictionaries")))
-      (setq ispell-menu-map (make-sparse-keymap "Spell"))
-      ;; add the dictionaries to the bottom of the list.
-      (if (not dicts)
-	  (define-key ispell-menu-map [default]
-	    '("Select Default Dict"
-	      "Dictionary for which Ispell was configured"
-	      . (lambda () (interactive)
-		  (ispell-change-dictionary "default")))))
-      (fset 'ispell-dict-map dict-map)
-      (define-key ispell-menu-map [dictionaries]
-	`(menu-item "Select Dict" ispell-dict-map))
-      (dolist (name dicts)
-	(define-key dict-map (vector (intern name))
-	  (cons (concat "Select " (capitalize name) " Dict")
-		`(lambda () (interactive)
-		   (ispell-change-dictionary ,name)))))))
-
 ;;; define commands in menu in opposite order you want them to appear.
 ;;;###autoload
 (if ispell-menu-map-needed
     (progn
+      (setq ispell-menu-map (make-sparse-keymap "Spell"))
       (define-key ispell-menu-map [ispell-change-dictionary]
 	'(menu-item "Change Dictionary..." ispell-change-dictionary
 		    :help "Supply explicit dictionary file name"))
@@ -1491,7 +1574,8 @@ quit          spell session exited."
 			  (funcall ispell-format-word word)))
 	     (and (fboundp 'extent-at)
 		  (extent-at start)
-		  (delete-extent (extent-at start))))
+		  (and (fboundp 'delete-extent)
+		       (delete-extent (extent-at start)))))
 	    ((stringp poss)
 	     (or quietly
 		 (message "%s is correct because of root %s"
@@ -1499,13 +1583,15 @@ quit          spell session exited."
 			  (funcall ispell-format-word poss)))
 	     (and (fboundp 'extent-at)
 		  (extent-at start)
-		  (delete-extent (extent-at start))))
+		  (and (fboundp 'delete-extent)
+		       (delete-extent (extent-at start)))))
 	    ((null poss) (message "Error in ispell process"))
 	    (ispell-check-only	      ; called from ispell minor mode.
 	     (if (fboundp 'make-extent)
-		 (let ((ext (make-extent start end)))
-		   (set-extent-property ext 'face ispell-highlight-face)
-		   (set-extent-property ext 'priority 2000))
+		 (if (fboundp 'set-extent-property)
+		     (let ((ext (make-extent start end)))
+		       (set-extent-property ext 'face ispell-highlight-face)
+		       (set-extent-property ext 'priority 2000)))
 	       (beep)
 	       (message "%s is incorrect"(funcall ispell-format-word word))))
 	    (t				; prompt for correct word.
@@ -1659,7 +1745,10 @@ Global `ispell-quit' set to start location to continue spell session."
     ;; setup the *Choices* buffer with valid data.
     (save-excursion
       (set-buffer (get-buffer-create ispell-choices-buffer))
-      (setq mode-line-format (concat "--  %b  --  word: " word))
+      (setq mode-line-format
+	    (concat "--  %b  --  word: " word
+		    "  --  dict: " (or ispell-current-dictionary "default")
+		    "  --  prog: " (file-name-nondirectory ispell-program-name)))
       ;; XEmacs: no need for horizontal scrollbar in choices window
       (with-no-warnings
        (and (fboundp 'set-specifier)
@@ -1819,9 +1908,10 @@ Global `ispell-quit' set to start location to continue spell session."
 			      (erase-buffer)
 			      (setq count ?0
 				    skipped 0
-				    mode-line-format (concat
-						      "--  %b  --  word: "
-						      new-word)
+				    mode-line-format
+				    (concat "--  %b  --  word: " new-word
+					    "  --  dict: "
+					    ispell-alternate-dictionary)
 				    miss (lookup-words new-word)
 				    choices miss
 				    line ispell-choices-win-default-height)
@@ -2062,9 +2152,13 @@ Optional second argument contains the dictionary to use; the default is
 	    (while (search-backward "*" nil t) (insert "."))
 	    (setq word (buffer-string))
 	    (erase-buffer))
-	  (setq status (if lookup-dict
-			   (call-process prog nil t nil args word lookup-dict)
-			 (call-process prog nil t nil args word)))
+	  (setq status (apply 'call-process prog nil t nil
+			      (nconc (if (and args (> (length args) 0))
+					 (list args)
+				       (if look-p nil
+					 (list "-e")))
+				     (list word)
+				     (if lookup-dict (list lookup-dict)))))
 	  ;; grep returns status 1 and no output when word not found, which
 	  ;; is a perfectly normal thing.
 	  (if (stringp status)
@@ -2512,9 +2606,10 @@ Return nil if spell session is quit,
 	(rstart (make-marker)))
   (unwind-protect
       (save-excursion
-	(message "Spell checking %s using %s dictionary..."
+	(message "Spell checking %s using %s with %s dictionary..."
 		 (if (and (= reg-start (point-min)) (= reg-end (point-max)))
 		     (buffer-name) "region")
+		 (file-name-nondirectory ispell-program-name)
 		 (or ispell-current-dictionary "default"))
 	;; Returns cursor to original location.
 	(save-window-excursion
@@ -2532,7 +2627,8 @@ Return nil if spell session is quit,
 		  (set-marker skip-region-start (- (point) (length key)))
 		  (goto-char reg-start)))
 	    (let (message-log-max)
-	      (message "Continuing spelling check using %s dictionary..."
+	      (message "Continuing spelling check using %s with %s dictionary..."
+		       (file-name-nondirectory ispell-program-name)
 		       (or ispell-current-dictionary "default")))
 	    (set-marker rstart reg-start)
 	    (set-marker ispell-region-end reg-end)
@@ -2609,7 +2705,9 @@ Return nil if spell session is quit,
       (if (not recheckp) (set-marker ispell-region-end nil))
       ;; Only save if successful exit.
       (ispell-pdict-save ispell-silently-savep)
-      (message "Spell-checking done")))))
+      (message "Spell-checking using %s with %s dictionary done"
+	       (file-name-nondirectory ispell-program-name)
+	       (or ispell-current-dictionary "default"))))))
 
 
 (defun ispell-begin-skip-region-regexp ()
@@ -2960,7 +3058,8 @@ Returns the sum shift due to changes in word replacements."
 	      ))
 	    (if (not ispell-quit)
 		(let (message-log-max)
-		  (message "Continuing spelling check using %s dictionary..."
+		  (message "Continuing spelling check using %s with %s dictionary..."
+			   (file-name-nondirectory ispell-program-name)
 			   (or ispell-current-dictionary "default"))))
 	    (sit-for 0)
 	    (setq start (marker-position line-start)

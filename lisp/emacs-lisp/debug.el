@@ -1,7 +1,7 @@
 ;;; debug.el --- debuggers and related commands for Emacs
 
-;; Copyright (C) 1985, 1986, 1994, 2001, 2003, 2005
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, tools, maint
@@ -150,7 +150,8 @@ first will be printed into the backtrace buffer."
 	  (debugger-outer-standard-input standard-input)
 	  (debugger-outer-standard-output standard-output)
 	  (debugger-outer-inhibit-redisplay inhibit-redisplay)
-	  (debugger-outer-cursor-in-echo-area cursor-in-echo-area))
+	  (debugger-outer-cursor-in-echo-area cursor-in-echo-area)
+	  (debugger-with-timeout-suspend (with-timeout-suspend)))
       ;; Set this instead of binding it, so that `q'
       ;; will not restore it.
       (setq overriding-terminal-local-map nil)
@@ -235,6 +236,7 @@ first will be printed into the backtrace buffer."
                     ;; Drew Adams.  --Stef
                     (quit-window))))
 	    (kill-buffer debugger-buffer))
+	  (with-timeout-unsuspend debugger-with-timeout-suspend)
 	  (set-match-data debugger-outer-match-data)))
       ;; Put into effect the modified values of these variables
       ;; in case the user set them with the `e' command.
@@ -312,11 +314,17 @@ That buffer should be current already."
   ;; After any frame that uses eval-buffer,
   ;; insert a line that states the buffer position it's reading at.
   (save-excursion
-    (while (re-search-forward "^  eval-buffer(" nil t)
-      (end-of-line)
-      (insert (format "\n  ;;; Reading at buffer position %d"
-		      (with-current-buffer (nth 2 (backtrace-frame (debugger-frame-number)))
-			(point))))))
+    (let ((tem eval-buffer-list))
+      (while (and tem
+		  (re-search-forward "^  eval-\\(buffer\\|region\\)(" nil t))
+	(end-of-line)
+	(insert (format "  ; Reading at buffer position %d"
+			;; This will get the wrong result
+			;; if there are two nested eval-region calls
+			;; for the same buffer.  That's not a very useful case.
+			(with-current-buffer (car tem)
+			  (point))))
+	(pop tem))))
   (debugger-make-xrefs))
 
 (defun debugger-make-xrefs (&optional buffer)
@@ -591,34 +599,9 @@ Applies to the frame whose line point is on in the backtrace."
     (define-key map "e" 'debugger-eval-expression)
     (define-key map " " 'next-line)
     (define-key map "R" 'debugger-record-expression)
-    (define-key map "\C-m" 'help-follow)
+    (define-key map "\C-m" 'debug-help-follow)
     (define-key map [mouse-2] 'push-button)
     map))
-
-(defcustom debugger-record-buffer "*Debugger-record*"
-  "*Buffer name for expression values, for \\[debugger-record-expression]."
-  :type 'string
-  :group 'debugger
-  :version "20.3")
-
-(defun debugger-record-expression  (exp)
-  "Display a variable's value and record it in `*Backtrace-record*' buffer."
-  (interactive
-   (list (read-from-minibuffer
-	  "Record Eval: "
-	  nil
-	  read-expression-map t
-	  'read-expression-history)))
-  (let* ((buffer (get-buffer-create debugger-record-buffer))
-	 (standard-output buffer))
-    (princ (format "Debugger Eval (%s): " exp))
-    (princ (debugger-eval-expression exp))
-    (terpri))
-
-  (with-current-buffer (get-buffer debugger-record-buffer)
-    (message "%s"
-	     (buffer-substring (line-beginning-position 0)
-			       (line-end-position 0)))))
 
 (put 'debugger-mode 'mode-class 'special)
 
@@ -644,6 +627,52 @@ Complete list of commands:
   (set-syntax-table emacs-lisp-mode-syntax-table)
   (use-local-map debugger-mode-map)
   (run-mode-hooks 'debugger-mode-hook))
+
+(defcustom debugger-record-buffer "*Debugger-record*"
+  "*Buffer name for expression values, for \\[debugger-record-expression]."
+  :type 'string
+  :group 'debugger
+  :version "20.3")
+
+(defun debugger-record-expression  (exp)
+  "Display a variable's value and record it in `*Backtrace-record*' buffer."
+  (interactive
+   (list (read-from-minibuffer
+	  "Record Eval: "
+	  nil
+	  read-expression-map t
+	  'read-expression-history)))
+  (let* ((buffer (get-buffer-create debugger-record-buffer))
+	 (standard-output buffer))
+    (princ (format "Debugger Eval (%s): " exp))
+    (princ (debugger-eval-expression exp))
+    (terpri))
+
+  (with-current-buffer (get-buffer debugger-record-buffer)
+    (message "%s"
+	     (buffer-substring (line-beginning-position 0)
+			       (line-end-position 0)))))
+
+(defun debug-help-follow (&optional pos)
+  "Follow cross-reference at POS, defaulting to point.
+
+For the cross-reference format, see `help-make-xrefs'."
+  (interactive "d")
+  (require 'help-mode)
+  (unless pos
+    (setq pos (point)))
+  (unless (push-button pos)
+    ;; check if the symbol under point is a function or variable
+    (let ((sym
+	   (intern
+	    (save-excursion
+	      (goto-char pos) (skip-syntax-backward "w_")
+	      (buffer-substring (point)
+				(progn (skip-syntax-forward "w_")
+				       (point)))))))
+      (when (or (boundp sym) (fboundp sym) (facep sym))
+	(switch-to-buffer-other-window (generate-new-buffer "*Help*"))
+	(help-do-xref pos #'help-xref-interned (list sym))))))
 
 ;; When you change this, you may also need to change the number of
 ;; frames that the debugger skips.
@@ -680,7 +709,7 @@ Redefining FUNCTION also cancels it."
    (let ((fn (function-called-at-point)) val)
      (when (debugger-special-form-p fn)
        (setq fn nil))
-     (setq val (completing-read 
+     (setq val (completing-read
 		(if fn
 		    (format "Debug on entry to function (default %s): " fn)
 		  "Debug on entry to function: ")

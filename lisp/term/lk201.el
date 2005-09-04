@@ -75,12 +75,13 @@
   (define-key lk201-function-map "\eOx" [kp-8])
   (define-key lk201-function-map "\eOy" [kp-9]))
 
-;; Use inheritance to let the main keymap override these defaults.
-;; This way we don't override terminfo-derived settings or settings
-;; made in the .emacs file.
-(let ((m (copy-keymap lk201-function-map)))
-  (set-keymap-parent m (keymap-parent (terminal-local-value 'local-function-key-map nil)))
-  (set-keymap-parent (terminal-local-value 'local-function-key-map nil) m))
+(defun terminal-init-lk201 ()
+  ;; Use inheritance to let the main keymap override these defaults.
+  ;; This way we don't override terminfo-derived settings or settings
+  ;; made in the .emacs file.
+  (let ((m (copy-keymap lk201-function-map)))
+    (set-keymap-parent m (keymap-parent (terminal-local-value 'local-function-key-map nil)))
+    (set-keymap-parent (terminal-local-value 'local-function-key-map nil) m)))
 
 ;;; arch-tag: 7ffb4444-6a23-43e1-b457-43cf4f673c0d
 ;;; lk201.el ends here

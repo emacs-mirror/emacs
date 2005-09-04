@@ -1,7 +1,7 @@
 ;;; font-lock.el --- Electric font lock mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004 2005  Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004 2005 Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
 ;; Maintainer: FSF
@@ -224,17 +224,6 @@
 (defgroup font-lock-extra-types nil
   "Extra mode-specific type names for highlighting declarations."
   :group 'font-lock)
-
-;; Define support mode groups here to impose `font-lock' group order.
-(defgroup fast-lock nil
-  "Font Lock support mode to cache fontification."
-  :load 'fast-lock
-  :group 'font-lock)
-
-(defgroup lazy-lock nil
-  "Font Lock support mode to fontify lazily."
-  :load 'lazy-lock
-  :group 'font-lock)
 
 ;; User variables.
 
@@ -293,7 +282,7 @@ If a number, only buffers greater than this size have fontification messages."
 		 (integer :tag "size"))
   :group 'font-lock)
 
-(defcustom font-lock-lines-before 1
+(defcustom font-lock-lines-before 0
   "*Number of lines before the changed text to include in refontification."
   :type 'integer
   :group 'font-lock
@@ -1049,6 +1038,8 @@ a very meaningful entity to highlight.")
 	  ;; Use the fontification syntax table, if any.
 	  (when font-lock-syntax-table
 	    (set-syntax-table font-lock-syntax-table))
+          (goto-char beg)
+          (setq beg (line-beginning-position (- 1 font-lock-lines-before)))
 	  ;; check to see if we should expand the beg/end area for
 	  ;; proper multiline matches
 	  (when (and font-lock-multiline
@@ -1105,8 +1096,7 @@ what properties to clear before refontifying a region.")
       (save-match-data
 	;; Rescan between start of lines enclosing the region.
 	(font-lock-fontify-region
-	 (progn (goto-char beg)
-		(forward-line (- font-lock-lines-before)) (point))
+	 (progn (goto-char beg) (forward-line 0) (point))
 	 (progn (goto-char end) (forward-line 1) (point)))))))
 
 (defun font-lock-fontify-block (&optional arg)
@@ -1473,7 +1463,11 @@ LOUDLY, if non-nil, allows progress-meter bar."
       (while (and (< (point) end)
 		  (if (stringp matcher)
 		      (re-search-forward matcher end t)
-		    (funcall matcher end)))
+		    (funcall matcher end))
+                  ;; Beware empty string matches since they will
+                  ;; loop indefinitely.
+                  (or (> (point) (match-beginning 0))
+                      (progn (forward-char 1) t)))
 	(when (and font-lock-multiline
 		   (>= (point)
 		       (save-excursion (goto-char (match-beginning 0))
@@ -1826,8 +1820,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-regexp-grouping-backslash
-  '((((class color) (min-colors 16)) :inherit escape-glyph)
-    (t :inherit bold))
+  '((t :inherit bold))
   "Font Lock mode face for backslashes in Lisp regexp grouping constructs."
   :group 'font-lock-highlighting-faces)
 

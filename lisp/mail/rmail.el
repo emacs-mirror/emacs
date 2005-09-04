@@ -1,7 +1,7 @@
 ;;; rmail.el --- main code of "RMAIL" mail reader for Emacs
 
-;; Copyright (C) 1985,86,87,88,93,94,95,96,97,98,2000,01,2004,2005
-;;		Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1988, 1993, 1994, 1995, 1996, 1997, 1998,
+;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: mail
@@ -41,6 +41,16 @@
 
 (require 'mail-utils)
 (eval-when-compile (require 'mule-util)) ; for detect-coding-with-priority
+
+(defvar deleted-head)
+(defvar font-lock-fontified)
+(defvar mail-abbrev-syntax-table)
+(defvar mail-abbrevs)
+(defvar messages-head)
+(defvar rmail-use-spam-filter)
+(defvar rsf-beep)
+(defvar rsf-sleep-after-message)
+(defvar total-messages)
 
 ; These variables now declared in paths.el.
 ;(defvar rmail-spool-directory "/usr/spool/mail/"
@@ -108,7 +118,7 @@ Please use `rmail-remote-password' instead."
   :group 'rmail-obsolete)
 
 (defcustom rmail-pop-password-required nil
-  "*Non-nil if a password is required when reading mail from a POP server. 
+  "*Non-nil if a password is required when reading mail from a POP server.
 Please use rmail-remote-password-required instead."
   :type 'boolean
   :group 'rmail-obsolete)
@@ -251,21 +261,33 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:"
 	  "\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:"
 	  "\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:\\|^face:"
-	  "\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:"
+	  "\\|^x-mailer:\\|^delivered-to:\\|^lines:"
 	  "\\|^content-transfer-encoding:\\|^x-coding-system:"
 	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
-	  "\\|^x-sign:\\|^x-beenthere:\\|^x-mailman-version:\\|^x-mailman-copy:"
 	  "\\|^precedence:\\|^list-help:\\|^list-post:\\|^list-subscribe:"
 	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
-	  "\\|^content-type:\\|^content-length:"
-	  "\\|^x-attribution:\\|^x-disclaimer:\\|^x-trace:"
-	  "\\|^x-complaints-to:\\|^nntp-posting-date:\\|^user-agent"
-	  "\\|^importance:\\|^envelope-to:\\|^delivery-date"
-	  "\\|^x.*-priority:\\|^x-mimeole:\\|^x-archive:"
-	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization\\|^resent-openpgp"
-	  "\\|^openpgp:\\|^x-request-pgp:\\|^x-original.*:"
-	  "\\|^x-virus-scanned:\\|^x-spam-[^s].*:")
+	  "\\|^content-length:\\|^nntp-posting-date:\\|^user-agent"
+	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
+	  "\\|^mbox-line:\\|^cancel-lock:"
+	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization:\\|^resent-openpgp:"
+
+	  "\\|^x-.*:")
   "*Regexp to match header fields that Rmail should normally hide.
+\(See also `rmail-nonignored-headers', which overrides this regexp.)
+This variable is used for reformatting the message header,
+which normally happens once for each message,
+when you view the message for the first time in Rmail.
+To make a change in this variable take effect
+for a message that you have already viewed,
+go to that message and type \\[rmail-toggle-header] twice."
+  :type 'regexp
+  :group 'rmail-headers)
+
+(defcustom rmail-nonignored-headers "^x-spam-status:"
+  "*Regexp to match X header fields that Rmail should show.
+This regexp overrides `rmail-ignored-headers'; if both this regexp
+and that one match a certain header field, Rmail shows the field.
+
 This variable is used for reformatting the message header,
 which normally happens once for each message,
 when you view the message for the first time in Rmail.
@@ -952,6 +974,7 @@ Note:    it means the file has no messages in it.\n\^_")))
   (define-key rmail-mode-map "w"      'rmail-output-body-to-file)
   (define-key rmail-mode-map "x"      'rmail-expunge)
   (define-key rmail-mode-map "."      'rmail-beginning-of-message)
+  (define-key rmail-mode-map "/"      'rmail-end-of-message)
   (define-key rmail-mode-map "<"      'rmail-first-message)
   (define-key rmail-mode-map ">"      'rmail-last-message)
   (define-key rmail-mode-map " "      'scroll-up)
@@ -1096,7 +1119,8 @@ Note:    it means the file has no messages in it.\n\^_")))
 All normal editing commands are turned off.
 Instead, these commands are available:
 
-\\[rmail-beginning-of-message]	Move point to front of this message (same as \\[beginning-of-buffer]).
+\\[rmail-beginning-of-message]	Move point to front of this message.
+\\[rmail-end-of-message]	Move point to bottom of this message.
 \\[scroll-up]	Scroll to next screen of this message.
 \\[scroll-down]	Scroll to previous screen of this message.
 \\[rmail-next-undeleted-message]	Move to Next non-deleted message.
@@ -1634,7 +1658,7 @@ is non-nil if the user has supplied the password interactively.
 	    (pass  (match-string 5 file))
 	    (host  (substring file (or (match-end 2)
 				       (+ 3 (match-end 1))))))
-	
+
 	(if (not pass)
 	    (when rmail-remote-password-required
 	      (setq got-password (not (rmail-have-password)))
@@ -1652,19 +1676,19 @@ is non-nil if the user has supplied the password interactively.
 		(or (string-equal proto "pop") (string-equal proto "imap"))
 		supplied-password
 		got-password))))
-   
+
    ((string-match "^po:\\([^:]+\\)\\(:\\(.*\\)\\)?" file)
     (let (got-password supplied-password
           (proto "pop")
 	  (user  (match-string 1 file))
 	  (host  (match-string 3 file)))
-      
+
       (when rmail-remote-password-required
 	(setq got-password (not (rmail-have-password)))
 	(setq supplied-password (rmail-get-remote-password nil)))
 
       (list file "pop" supplied-password got-password)))
-   
+
    (t
     (list file nil nil nil))))
 
@@ -2181,7 +2205,8 @@ If the optional argument IGNORED-HEADERS is non-nil,
 delete all header fields whose names match that regexp.
 Otherwise, if `rmail-displayed-headers' is non-nil,
 delete all header fields *except* those whose names match that regexp.
-Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
+Otherwise, delete all header fields whose names match `rmail-ignored-headers'
+unless they also match `rmail-nonignored-headers'."
   (when (search-forward "\n\n" nil t)
     (forward-char -1)
     (let ((case-fold-search t)
@@ -2205,15 +2230,17 @@ Otherwise, delete all header fields whose names match `rmail-ignored-headers'."
 	(or ignored-headers (setq ignored-headers rmail-ignored-headers))
 	(save-restriction
 	  (narrow-to-region (point-min) (point))
+	  (goto-char (point-min))
 	  (while (and ignored-headers
-		      (progn
-			(goto-char (point-min))
-			(re-search-forward ignored-headers nil t)))
+		      (re-search-forward ignored-headers nil t))
 	    (beginning-of-line)
-	    (delete-region (point)
-			   (if (re-search-forward "\n[^ \t]" nil t)
-			       (1- (point))
-			     (point-max)))))))))
+	    (if (looking-at rmail-nonignored-headers)
+		(forward-line 1)
+	      (delete-region (point)
+			     (save-excursion
+			       (if (re-search-forward "\n[^ \t]" nil t)
+				   (1- (point))
+				 (point-max)))))))))))
 
 (defun rmail-msg-is-pruned ()
   (rmail-maybe-set-message-counters)
@@ -2604,7 +2631,19 @@ change the invisible header text."
 (defun rmail-beginning-of-message ()
   "Show current message starting from the beginning."
   (interactive)
-  (rmail-show-message rmail-current-message))
+  (let ((rmail-show-message-hook
+	 (list (function (lambda ()
+			   (goto-char (point-min)))))))
+    (rmail-show-message rmail-current-message)))
+
+(defun rmail-end-of-message ()
+  "Show bottom of current message."
+  (interactive)
+  (let ((rmail-show-message-hook
+	 (list (function (lambda ()
+			   (goto-char (point-max))
+			   (recenter (1- (window-height))))))))
+    (rmail-show-message rmail-current-message)))
 
 (defun rmail-unknown-mail-followup-to ()
   "Handle a \"Mail-Followup-To\" header field with an unknown mailing list.
@@ -2614,7 +2653,7 @@ Ask the user whether to add that list name to `mail-mailing-lists'."
      (let ((mail-followup-to (mail-fetch-field "mail-followup-to" nil t)))
        (when mail-followup-to
 	 (let ((addresses
-		(split-string 
+		(split-string
 		 (mail-strip-quoted-names mail-followup-to)
 		 ",[[:space:]]+" t)))
 	   (dolist (addr addresses)
@@ -3316,10 +3355,10 @@ See also user-option `rmail-confirm-expunge'."
 	  (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax)))
       (if (not dont-show)
 	  (rmail-show-message
-	   (if (zerop rmail-current-message) 1 nil)
-	(if rmail-enable-mime
-	    (goto-char (+ (point-min) opoint))
-	  (goto-char (+ (point) opoint))))))))
+	   (if (zerop rmail-current-message) 1 nil)))
+      (if rmail-enable-mime
+	  (goto-char (+ (point-min) opoint))
+	(goto-char (+ (point) opoint))))))
 
 (defun rmail-expunge ()
   "Erase deleted messages from Rmail file and summary buffer."
@@ -3398,18 +3437,11 @@ use \\[mail-yank-original] to yank the original message into it."
 			      (progn (search-forward "\n*** EOOH ***\n")
 				     (beginning-of-line) (point)))))
 	(setq from (mail-fetch-field "from")
-	      reply-to (or (if just-sender
-			       (mail-fetch-field "mail-reply-to" nil t)
-			     (mail-fetch-field "mail-followup-to" nil t))
+	      reply-to (or (mail-fetch-field "mail-reply-to" nil t)
 			   (mail-fetch-field "reply-to" nil t)
 			   from)
-	      cc (and (not just-sender)
-		      ;; mail-followup-to, if given, overrides cc.
-		      (not (mail-fetch-field "mail-followup-to" nil t))
-		      (mail-fetch-field "cc" nil t))
 	      subject (mail-fetch-field "subject")
 	      date (mail-fetch-field "date")
-	      to (or (mail-fetch-field "to" nil t) "")
 	      message-id (mail-fetch-field "message-id")
 	      references (mail-fetch-field "references" nil nil t)
 	      resent-reply-to (mail-fetch-field "resent-reply-to" nil t)
@@ -3419,7 +3451,16 @@ use \\[mail-yank-original] to yank the original message into it."
 ;;;	      resent-subject (mail-fetch-field "resent-subject")
 ;;;	      resent-date (mail-fetch-field "resent-date")
 ;;;	      resent-message-id (mail-fetch-field "resent-message-id")
-	      )))
+	      )
+	(unless just-sender
+	  (if (mail-fetch-field "mail-followup-to" nil t)
+	      ;; If this header field is present, use it instead of the To and CC fields.
+	      (setq to (mail-fetch-field "mail-followup-to" nil t))
+	    (setq cc (or (mail-fetch-field "cc" nil t) "")
+		  to (or (mail-fetch-field "to" nil t) ""))))
+
+	))
+
     ;; Merge the resent-to and resent-cc into the to and cc.
     (if (and resent-to (not (equal resent-to "")))
 	(if (not (equal to ""))
@@ -4058,7 +4099,6 @@ encoded string (and the same mask) will decode the string."
 
 ;;;;  Desktop support
 
-;;;###autoload
 (defun rmail-restore-desktop-buffer (desktop-buffer-file-name
                                      desktop-buffer-name
                                      desktop-buffer-misc)
@@ -4072,6 +4112,9 @@ encoded string (and the same mask) will decode the string."
     (file-locked
       (kill-buffer (current-buffer))
       nil)))
+
+(add-to-list 'desktop-buffer-mode-handlers
+	     '(rmail-mode . rmail-restore-desktop-buffer))
 
 (provide 'rmail)
 

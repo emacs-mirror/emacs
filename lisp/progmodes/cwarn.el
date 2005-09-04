@@ -1,6 +1,7 @@
 ;;; cwarn.el --- highlight suspicious C and C++ constructions
 
-;; Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: c, languages, faces

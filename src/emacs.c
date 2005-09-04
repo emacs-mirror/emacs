@@ -1,6 +1,6 @@
 /* Fully extensible Emacs, running on Unix, intended for GNU.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2001,
-     2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999,
+                 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -267,7 +267,7 @@ Initialization options:\n\
 --no-site-file              do not load site-start.el\n\
 --no-splash                 do not display a splash screen on startup\n\
 --no-window-system, -nw     do not communicate with X, ignoring $DISPLAY\n\
---quick, -Q                 equivalent to -q --no-site-file\n\
+--quick, -Q                 equivalent to -q --no-site-file --no-splash\n\
 --script FILE               run FILE as an Emacs Lisp script\n\
 --terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --unibyte, --no-multibyte   run Emacs in unibyte mode\n\
@@ -1154,9 +1154,9 @@ main (argc, argv
   if (argmatch (argv, argc, "-script", "--script", 3, &junk, &skip_args))
     {
       noninteractive = 1;	/* Set batch mode.  */
-      /* Convert --script to -l, un-skip it, and sort again so that -l will be
-	 handled in proper sequence.  */
-      argv[skip_args - 1] = "-l";
+      /* Convert --script to --scriptload, un-skip it, and sort again
+	 so that it will be handled in proper sequence.  */
+      argv[skip_args - 1] = "-scriptload";
       skip_args -= 2;
       sort_args (argc, argv);
     }
@@ -1837,7 +1837,7 @@ struct standard_args standard_args[] =
   { "-itype", 0, 15, 0 },
   { "-iconic", "--iconic", 15, 0 },
   { "-D", "--basic-display", 12, 0},
-  { "--basic-display", 0, 12, 0},
+  { "-basic-display", 0, 12, 0},
   { "-bg", "--background-color", 10, 1 },
   { "-background", 0, 10, 1 },
   { "-fg", "--foreground-color", 10, 1 },
@@ -1871,6 +1871,7 @@ struct standard_args standard_args[] =
   { "-directory", 0, 0, 1 },
   { "-l", "--load", 0, 1 },
   { "-load", 0, 0, 1 },
+  { "-scriptload", "--scriptload", 0, 1 },
   { "-f", "--funcall", 0, 1 },
   { "-funcall", 0, 0, 1 },
   { "-eval", "--eval", 0, 1 },

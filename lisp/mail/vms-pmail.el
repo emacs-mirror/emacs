@@ -1,6 +1,6 @@
 ;;; vms-pmail.el --- use Emacs as the editor within VMS mail
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Roland B Roberts <roberts@panix.com>
 ;; Maintainer: FSF

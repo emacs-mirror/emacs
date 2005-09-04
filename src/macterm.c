@@ -1,5 +1,6 @@
 /* Implementation of GUI terminal on the Mac OS.
-   Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+   Copyright (C) 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -22,10 +23,10 @@ Boston, MA 02110-1301, USA.  */
 
 #include <config.h>
 #include <signal.h>
+
 #include <stdio.h>
-#include <stdlib.h>
+
 #include "lisp.h"
-#include "charset.h"
 #include "blockinput.h"
 
 #include "macterm.h"
@@ -62,8 +63,6 @@ Boston, MA 02110-1301, USA.  */
 
 #include "systty.h"
 #include "systime.h"
-#include "atimer.h"
-#include "keymap.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -71,7 +70,8 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/stat.h>
 #include <sys/param.h>
 
-#include "keyboard.h"
+#include "charset.h"
+#include "coding.h"
 #include "frame.h"
 #include "dispextern.h"
 #include "fontset.h"
@@ -82,9 +82,10 @@ Boston, MA 02110-1301, USA.  */
 #include "disptab.h"
 #include "buffer.h"
 #include "window.h"
+#include "keyboard.h"
 #include "intervals.h"
-#include "composite.h"
-#include "coding.h"
+#include "atimer.h"
+#include "keymap.h"
 
 /* Set of macros that handle mapping of Mac modifier keys to emacs.  */
 #define macCtrlKey     (NILP (Vmac_reverse_ctrl_meta) ? controlKey :	\
@@ -94,8 +95,6 @@ Boston, MA 02110-1301, USA.  */
 			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey) \
 			: controlKey)
 #define macAltKey      (NILP (Vmac_command_key_is_meta) ? cmdKey : optionKey)
-
-#define mac_window_to_frame(wp) (((mac_output *) GetWRefCon (wp))->mFP)
 
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
@@ -113,15 +112,6 @@ static int any_help_event_p;
 
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
-
-/* Non-zero means make use of UNDERLINE_POSITION font properties.  */
-
-int x_use_underline_position_properties;
-
-/* Non-zero means draw block and hollow cursor as wide as the glyph
-   under it.  For example, if a block cursor is over a tab, it will be
-   drawn as wide as that tab on the display.  */
-
 
 /* This is a chain of structures for all the X displays currently in
    use.  */
@@ -147,8 +137,6 @@ struct mac_display_info one_mac_display_info;
    functions assume that `selected_frame' is the frame to apply to.  */
 
 extern struct frame *updating_frame;
-
-extern int waiting_for_input;
 
 /* This is a frame waiting to be auto-raised, within XTread_socket.  */
 
@@ -177,7 +165,6 @@ struct frame *pending_autoraise_frame;
 /* Where the mouse was last time we reported a mouse event.  */
 
 static Rect last_mouse_glyph;
-static Lisp_Object last_mouse_press_frame;
 
 /* The scroll bar in which the last X motion event occurred.
 
@@ -211,36 +198,15 @@ static int volatile input_signal_count;
 static int input_signal_count;
 #endif
 
-/* Used locally within XTread_socket.  */
-
-static int x_noop_count;
-
-/* Initial values of argv and argc.  */
-
-extern char **initial_argv;
-extern int initial_argc;
-
-extern Lisp_Object Vcommand_line_args, Vsystem_name;
-
-/* Tells if a window manager is present or not.  */
-
-extern Lisp_Object Vx_no_window_manager;
-
-extern int errno;
+extern Lisp_Object Vsystem_name;
 
 /* A mask of extra modifier bits to put into every keyboard char.  */
 
-extern int extra_keyboard_modifiers;
+extern EMACS_INT extra_keyboard_modifiers;
 
 /* The keysyms to use for the various modifiers.  */
 
 static Lisp_Object Qalt, Qhyper, Qsuper, Qmodifier_value;
-
-static Lisp_Object Qvendor_specific_keysyms;
-
-#if 0
-extern XrmDatabase x_load_resources P_ ((Display *, char *, char *, char *));
-#endif
 
 extern int inhibit_window_system;
 
@@ -248,8 +214,8 @@ extern int inhibit_window_system;
 QDGlobals qd;  /* QuickDraw global information structure.  */
 #endif
 
+#define mac_window_to_frame(wp) (((mac_output *) GetWRefCon (wp))->mFP)
 
-struct frame * x_window_to_frame (struct mac_display_info *, WindowPtr);
 struct mac_display_info *mac_display_info_for_display (Display *);
 static void x_update_window_end P_ ((struct window *, int, int));
 static int x_io_error_quitter P_ ((Display *));
@@ -289,17 +255,23 @@ static void x_flush P_ ((struct frame *f));
 static void x_update_begin P_ ((struct frame *));
 static void x_update_window_begin P_ ((struct window *));
 static void x_after_update_window_line P_ ((struct glyph_row *));
+static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
+					    enum scroll_bar_part *,
+					    Lisp_Object *, Lisp_Object *,
+					    unsigned long *));
 
-static int is_emacs_window (WindowPtr);
+static int is_emacs_window P_ ((WindowPtr));
 
-int x_bitmap_icon (struct frame *, Lisp_Object);
-void x_make_frame_visible (struct frame *);
-
-extern void window_scroll (Lisp_Object, int, int, int);
+static void XSetFont P_ ((Display *, GC, XFontStruct *));
 
 /* Defined in macmenu.h.  */
 extern void menubar_selection_callback (FRAME_PTR, int);
-extern void set_frame_menubar (FRAME_PTR, int, int);
+
+#define GC_FORE_COLOR(gc)	(&(gc)->fore_color)
+#define GC_BACK_COLOR(gc)	(&(gc)->back_color)
+#define GC_FONT(gc)		((gc)->xgcv.font)
+#define MAC_WINDOW_NORMAL_GC(w)	(((mac_output *) GetWRefCon (w))->normal_gc)
+
 
 /* X display function emulation */
 
@@ -312,51 +284,6 @@ XFreePixmap (display, pixmap)
 }
 
 
-/* Set foreground color for subsequent QuickDraw commands.  Assume
-   graphic port has already been set.  */
-
-static void
-mac_set_forecolor (unsigned long color)
-{
-  RGBColor fg_color;
-
-  fg_color.red = RED16_FROM_ULONG (color);
-  fg_color.green = GREEN16_FROM_ULONG (color);
-  fg_color.blue = BLUE16_FROM_ULONG (color);
-
-  RGBForeColor (&fg_color);
-}
-
-
-/* Set background color for subsequent QuickDraw commands.  Assume
-   graphic port has already been set.  */
-
-static void
-mac_set_backcolor (unsigned long color)
-{
-  RGBColor bg_color;
-
-  bg_color.red = RED16_FROM_ULONG (color);
-  bg_color.green = GREEN16_FROM_ULONG (color);
-  bg_color.blue = BLUE16_FROM_ULONG (color);
-
-  RGBBackColor (&bg_color);
-}
-
-/* Set foreground and background color for subsequent QuickDraw
-   commands.  Assume that the graphic port has already been set.  */
-
-static void
-mac_set_colors (gc, bg_save)
-     GC gc;
-     RGBColor *bg_save;
-{
-  if (bg_save)
-    GetBackColor (bg_save);
-  mac_set_forecolor (gc->foreground);
-  mac_set_backcolor (gc->background);
-}
-
 /* Mac version of XDrawLine.  */
 
 static void
@@ -366,16 +293,12 @@ XDrawLine (display, w, gc, x1, y1, x2, y2)
      GC gc;
      int x1, y1, x2, y2;
 {
-  RGBColor old_bg;
-
   SetPortWindowPort (w);
 
-  mac_set_colors (gc, &old_bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
 
   MoveTo (x1, y1);
   LineTo (x2, y2);
-
-  RGBBackColor (&old_bg);
 }
 
 void
@@ -391,7 +314,7 @@ mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
 
-  mac_set_colors (gc, NULL);
+  RGBForeColor (GC_FORE_COLOR (gc));
 
   LockPixels (GetGWorldPixMap (p));
   MoveTo (x1, y1);
@@ -400,6 +323,27 @@ mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
 
   SetGWorld (old_port, old_gdh);
 }
+
+
+static void
+mac_erase_rectangle (w, gc, x, y, width, height)
+     WindowPtr w;
+     GC gc;
+     int x, y;
+     unsigned int width, height;
+{
+  Rect r;
+
+  SetPortWindowPort (w);
+
+  RGBBackColor (GC_BACK_COLOR (gc));
+  SetRect (&r, x, y, x + width, y + height);
+
+  EraseRect (&r);
+
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
+}
+
 
 /* Mac version of XClearArea.  */
 
@@ -411,22 +355,7 @@ XClearArea (display, w, x, y, width, height, exposures)
      unsigned int width, height;
      int exposures;
 {
-  struct mac_output *mwp = (mac_output *) GetWRefCon (w);
-  Rect r;
-  XGCValues xgc;
-  RGBColor old_bg;
-
-  xgc.foreground = mwp->x_compatible.foreground_pixel;
-  xgc.background = mwp->x_compatible.background_pixel;
-
-  SetPortWindowPort (w);
-
-  mac_set_colors (&xgc, &old_bg);
-  SetRect (&r, x, y, x + width, y + height);
-
-  EraseRect (&r);
-
-  RGBBackColor (&old_bg);
+  mac_erase_rectangle (w, MAC_WINDOW_NORMAL_GC (w), x, y, width, height);
 }
 
 /* Mac version of XClearWindow.  */
@@ -436,15 +365,9 @@ XClearWindow (display, w)
      Display *display;
      WindowPtr w;
 {
-  struct mac_output *mwp = (mac_output *) GetWRefCon (w);
-  XGCValues xgc;
-
-  xgc.foreground = mwp->x_compatible.foreground_pixel;
-  xgc.background = mwp->x_compatible.background_pixel;
-
   SetPortWindowPort (w);
 
-  mac_set_colors (&xgc, NULL);
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 
 #if TARGET_API_MAC_CARBON
   {
@@ -472,7 +395,6 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 {
   BitMap bitmap;
   Rect r;
-  RGBColor old_bg;
 
   bitmap.rowBytes = sizeof(unsigned short);
   bitmap.baseAddr = (char *)bits;
@@ -480,7 +402,8 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 
   SetPortWindowPort (w);
 
-  mac_set_colors (gc, &old_bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
+  RGBBackColor (GC_BACK_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
 #if TARGET_API_MAC_CARBON
@@ -493,7 +416,7 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
 
-  RGBBackColor (&old_bg);
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 }
 
 
@@ -599,12 +522,16 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
      char *data;
      unsigned int width, height;
      unsigned long fg, bg;
-     unsigned int depth;	/* not used */
+     unsigned int depth;
 {
   Pixmap pixmap;
   BitMap bitmap;
   CGrafPtr old_port;
   GDHandle old_gdh;
+  static GC gc = NULL;		/* not reentrant */
+
+  if (gc == NULL)
+    gc = XCreateGC (display, w, 0, NULL);
 
   pixmap = XCreatePixmap (display, w, width, height, depth);
   if (pixmap == NULL)
@@ -613,8 +540,10 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (pixmap, NULL);
   mac_create_bitmap_from_bitmap_data (&bitmap, data, width, height);
-  mac_set_forecolor (fg);
-  mac_set_backcolor (bg);
+  XSetForeground (display, gc, fg);
+  XSetBackground (display, gc, bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
+  RGBBackColor (GC_BACK_COLOR (gc));
   LockPixels (GetGWorldPixMap (pixmap));
 #if TARGET_API_MAC_CARBON
   CopyBits (&bitmap, GetPortBitMapForCopyBits (pixmap),
@@ -642,16 +571,13 @@ XFillRectangle (display, w, gc, x, y, width, height)
      unsigned int width, height;
 {
   Rect r;
-  RGBColor old_bg;
 
   SetPortWindowPort (w);
 
-  mac_set_colors (gc, &old_bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
   PaintRect (&r); /* using foreground color of gc */
-
-  RGBBackColor (&old_bg);
 }
 
 
@@ -670,7 +596,7 @@ mac_fill_rectangle_to_pixmap (display, p, gc, x, y, width, height)
 
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
-  mac_set_colors (gc, NULL);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
   LockPixels (GetGWorldPixMap (p));
@@ -693,16 +619,13 @@ mac_draw_rectangle (display, w, gc, x, y, width, height)
      unsigned int width, height;
 {
   Rect r;
-  RGBColor old_bg;
 
   SetPortWindowPort (w);
 
-  mac_set_colors (gc, &old_bg);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width + 1, y + height + 1);
 
   FrameRect (&r); /* using foreground color of gc */
-
-  RGBBackColor (&old_bg);
 }
 
 
@@ -723,7 +646,7 @@ mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
 
   GetGWorld (&old_port, &old_gdh);
   SetGWorld (p, NULL);
-  mac_set_colors (gc, NULL);
+  RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width + 1, y + height + 1);
 
   LockPixels (GetGWorldPixMap (p));
@@ -745,9 +668,6 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
      char *buf;
      int nchars, mode, bytes_per_char;
 {
-  RGBColor old_bg;
-
-  SetPortWindowPort (w);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   UInt32 textFlags, savedFlags;
   if (!NILP(Vmac_use_core_graphics)) {
@@ -756,17 +676,22 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
   }
 #endif
 
-  mac_set_colors (gc, &old_bg);
+  SetPortWindowPort (w);
 
-  TextFont (gc->font->mac_fontnum);
-  TextSize (gc->font->mac_fontsize);
-  TextFace (gc->font->mac_fontface);
+  RGBForeColor (GC_FORE_COLOR (gc));
+  if (mode != srcOr)
+    RGBBackColor (GC_BACK_COLOR (gc));
+
+  TextFont (GC_FONT (gc)->mac_fontnum);
+  TextSize (GC_FONT (gc)->mac_fontsize);
+  TextFace (GC_FONT (gc)->mac_fontface);
   TextMode (mode);
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
 
-  RGBBackColor (&old_bg);
+  if (mode != srcOr)
+    RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   if (!NILP(Vmac_use_core_graphics))
     SwapQDTextFlags(savedFlags);
@@ -871,6 +796,8 @@ mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
 	    &src_r, &dest_r, srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (src));
+
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (dest)));
 }
 
 
@@ -909,26 +836,10 @@ mac_copy_area_with_mask (display, src, mask, dest, gc, src_x, src_y,
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (mask));
   UnlockPixels (GetGWorldPixMap (src));
+
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (dest)));
 }
 
-
-#if 0
-/* Convert a pair of local coordinates to global (screen) coordinates.
-   Assume graphic port has been properly set.  */
-static void
-local_to_global_coord (short *h, short *v)
-{
-  Point p;
-
-  p.h = *h;
-  p.v = *v;
-
-  LocalToGlobal (&p);
-
-  *h = p.h;
-  *v = p.v;
-}
-#endif
 
 /* Mac replacement for XCopyArea: used only for scrolling.  */
 
@@ -953,31 +864,17 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
   Rect src_r, dest_r;
 
   SetPort (w);
-#if 0
-  mac_set_colors (gc, NULL);
-#endif
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
   SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
 
-#if 0
-  /* Need to use global coordinates and screenBits since src and dest
-     areas overlap in general.  */
-  local_to_global_coord (&src_r.left, &src_r.top);
-  local_to_global_coord (&src_r.right, &src_r.bottom);
-  local_to_global_coord (&dest_r.left, &dest_r.top);
-  local_to_global_coord (&dest_r.right, &dest_r.bottom);
-
-  CopyBits (&qd.screenBits, &qd.screenBits, &src_r, &dest_r, srcCopy, 0);
-#else
   /* In Color QuickDraw, set ForeColor and BackColor as follows to avoid
      color mapping in CopyBits.  Otherwise, it will be slow.  */
   ForeColor (blackColor);
   BackColor (whiteColor);
   CopyBits (&(w->portBits), &(w->portBits), &src_r, &dest_r, srcCopy, 0);
 
-  mac_set_colors (gc, NULL);
-#endif
+  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 #endif /* not TARGET_API_MAC_CARBON */
 }
 
@@ -1067,28 +964,37 @@ mac_copy_area_with_mask_to_pixmap (display, src, mask, dest, gc, src_x, src_y,
 /* Mac replacement for XChangeGC.  */
 
 static void
-XChangeGC (void * ignore, XGCValues* gc, unsigned long mask,
-                XGCValues *xgcv)
+XChangeGC (display, gc, mask, xgcv)
+     Display *display;
+     GC gc;
+     unsigned long mask;
+     XGCValues *xgcv;
 {
   if (mask & GCForeground)
-    gc->foreground = xgcv->foreground;
+    XSetForeground (display, gc, xgcv->foreground);
   if (mask & GCBackground)
-    gc->background = xgcv->background;
+    XSetBackground (display, gc, xgcv->background);
   if (mask & GCFont)
-    gc->font = xgcv->font;
+    XSetFont (display, gc, xgcv->font);
 }
 
 
 /* Mac replacement for XCreateGC.  */
 
-XGCValues *
-XCreateGC (void * ignore, Window window, unsigned long mask,
-                      XGCValues *xgcv)
+GC
+XCreateGC (display, window, mask, xgcv)
+     Display *display;
+     Window window;
+     unsigned long mask;
+     XGCValues *xgcv;
 {
-  XGCValues *gc = (XGCValues *) xmalloc (sizeof (XGCValues));
-  bzero (gc, sizeof (XGCValues));
+  GC gc = xmalloc (sizeof (*gc));
 
-  XChangeGC (ignore, gc, mask, xgcv);
+  if (gc)
+    {
+      bzero (gc, sizeof (*gc));
+      XChangeGC (display, gc, mask, xgcv);
+    }
 
   return gc;
 }
@@ -1108,10 +1014,18 @@ XFreeGC (display, gc)
 /* Mac replacement for XGetGCValues.  */
 
 static void
-XGetGCValues (void* ignore, XGCValues *gc,
-                   unsigned long mask, XGCValues *xgcv)
+XGetGCValues (display, gc, mask, xgcv)
+     Display *display;
+     GC gc;
+     unsigned long mask;
+     XGCValues *xgcv;
 {
-  XChangeGC (ignore, xgcv, mask, gc);
+  if (mask & GCForeground)
+    xgcv->foreground = gc->xgcv.foreground;
+  if (mask & GCBackground)
+    xgcv->background = gc->xgcv.background;
+  if (mask & GCFont)
+    xgcv->font = gc->xgcv.font;
 }
 
 
@@ -1123,7 +1037,13 @@ XSetForeground (display, gc, color)
      GC gc;
      unsigned long color;
 {
-  gc->foreground = color;
+  if (gc->xgcv.foreground != color)
+    {
+      gc->xgcv.foreground = color;
+      gc->fore_color.red = RED16_FROM_ULONG (color);
+      gc->fore_color.green = GREEN16_FROM_ULONG (color);
+      gc->fore_color.blue = BLUE16_FROM_ULONG (color);
+    }
 }
 
 
@@ -1135,7 +1055,25 @@ XSetBackground (display, gc, color)
      GC gc;
      unsigned long color;
 {
-  gc->background = color;
+  if (gc->xgcv.background != color)
+    {
+      gc->xgcv.background = color;
+      gc->back_color.red = RED16_FROM_ULONG (color);
+      gc->back_color.green = GREEN16_FROM_ULONG (color);
+      gc->back_color.blue = BLUE16_FROM_ULONG (color);
+    }
+}
+
+
+/* Mac replacement for XSetFont.  */
+
+static void
+XSetFont (display, gc, font)
+     Display *display;
+     GC gc;
+     XFontStruct *font;
+{
+  gc->xgcv.font = font;
 }
 
 
@@ -1181,19 +1119,6 @@ XSetWindowBackground (display, w, color)
     }
 #endif
 }
-
-
-/* Mac replacement for XSetFont.  */
-
-static void
-XSetFont (display, gc, font)
-     Display *display;
-     GC gc;
-     XFontStruct *font;
-{
-  gc->font = font;
-}
-
 
 /* x_sync is a no-op on Mac.  */
 void
@@ -1345,7 +1270,6 @@ mac_draw_vertical_window_border (w, x, y0, y1)
 	     f->output_data.mac->normal_gc, x, y0, x, y1);
 }
 
-
 /* End update of window W (which is equal to updated_window).
 
    Draw vertical borders between horizontally adjacent windows, and
@@ -1357,7 +1281,7 @@ mac_draw_vertical_window_border (w, x, y0, y1)
 
    W may be a menu bar pseudo-window in case we don't have X toolkit
    support.  Such windows don't have a cursor, so don't display it
-   here. */
+   here.  */
 
 static void
 x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
@@ -1389,14 +1313,6 @@ x_update_window_end (w, cursor_on_p, mouse_face_overwritten_p)
       dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_end_col = -1;
       dpyinfo->mouse_face_window = Qnil;
     }
-
-#if 0
-  /* Unhide the caret.  This won't actually show the cursor, unless it
-     was visible before the corresponding call to HideCaret in
-     x_update_window_begin.  */
-  if (w32_use_visible_system_caret)
-    SendMessage (w32_system_caret_hwnd, WM_EMACS_SHOW_CARET, 0, 0);
-#endif
 
   updated_window = NULL;
 }
@@ -1483,19 +1399,18 @@ x_after_update_window_line (desired_row)
 	  height > 0))
     {
       int y = WINDOW_TO_FRAME_PIXEL_Y (w, max (0, desired_row->y));
+
       /* Internal border is drawn below the tool bar.  */
       if (WINDOWP (f->tool_bar_window)
 	  && w == XWINDOW (f->tool_bar_window))
 	y -= width;
 
       BLOCK_INPUT;
-
       XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
 		  0, y, width, height, 0);
       XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
 		  FRAME_PIXEL_WIDTH (f) - width, y,
 		  width, height, 0);
-
       UNBLOCK_INPUT;
     }
 }
@@ -1515,7 +1430,6 @@ x_draw_fringe_bitmap (w, row, p)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Display *display = FRAME_MAC_DISPLAY (f);
   WindowPtr window = FRAME_MAC_WINDOW (f);
-  XGCValues gcv;
   GC gc = f->output_data.mac->normal_gc;
   struct face *face = p->face;
   int rowY;
@@ -1539,9 +1453,6 @@ x_draw_fringe_bitmap (w, row, p)
 
   if (p->bx >= 0 && !p->overlay_p)
     {
-      XGCValues gcv;
-      gcv.foreground = face->background;
-
 #if 0  /* MAC_TODO: stipple */
       /* In case the same realized face is used for fringes and
 	 for something displayed in the text (e.g. face `region' on
@@ -1553,9 +1464,7 @@ x_draw_fringe_bitmap (w, row, p)
 	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
 #endif
 
-      XFillRectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		      &gcv,
-		      p->bx, p->by, p->nx, p->ny);
+      mac_erase_rectangle (window, face->gc, p->bx, p->by, p->nx, p->ny);
 
 #if 0  /* MAC_TODO: stipple */
       if (!face->stipple)
@@ -1566,21 +1475,24 @@ x_draw_fringe_bitmap (w, row, p)
   if (p->which)
     {
       unsigned short *bits = p->bits + p->dh;
+      XGCValues gcv;
 
-      gcv.foreground = (p->cursor_p
-			? (p->overlay_p ? face->background
-			   : f->output_data.mac->cursor_pixel)
-			: face->foreground);
-      gcv.background = face->background;
-
-      mac_draw_bitmap (display, window, &gcv, p->x, p->y,
+      XGetGCValues (display, face->gc, GCForeground, &gcv);
+      XSetForeground (display, face->gc,
+		      (p->cursor_p
+		       ? (p->overlay_p ? face->background
+			  : f->output_data.mac->cursor_pixel)
+		       : face->foreground));
+      mac_draw_bitmap (display, window, face->gc, p->x, p->y,
 		       p->wd, p->h, bits, p->overlay_p);
+      XSetForeground (display, face->gc, gcv.foreground);
     }
 
   mac_reset_clipping (display, window);
 }
 
 
+
 /* This is called when starting Emacs and when restarting after
    suspend.  When starting Emacs, no window is mapped.  And nothing
    must be done to Emacs's own window if it is suspended (though that
@@ -1598,6 +1510,7 @@ static void
 XTreset_terminal_modes ()
 {
 }
+
 
 
 /***********************************************************************
@@ -1786,6 +1699,7 @@ mac_encode_char (c, char2b, font_info, two_byte_p)
  ***********************************************************************/
 
 
+
 static void x_set_glyph_string_clipping P_ ((struct glyph_string *));
 static void x_set_glyph_string_gc P_ ((struct glyph_string *));
 static void x_draw_glyph_string_background P_ ((struct glyph_string *,
@@ -1794,6 +1708,7 @@ static void x_draw_glyph_string_foreground P_ ((struct glyph_string *));
 static void x_draw_composite_glyph_string_foreground P_ ((struct glyph_string *));
 static void x_draw_glyph_string_box P_ ((struct glyph_string *));
 static void x_draw_glyph_string  P_ ((struct glyph_string *));
+static void mac_compute_glyph_string_overhangs P_ ((struct glyph_string *));
 static void x_set_cursor_gc P_ ((struct glyph_string *));
 static void x_set_mode_line_face_gc P_ ((struct glyph_string *));
 static void x_set_mouse_face_gc P_ ((struct glyph_string *));
@@ -2045,10 +1960,7 @@ x_clear_glyph_string_rect (s, x, y, w, h)
      struct glyph_string *s;
      int x, y, w, h;
 {
-  XGCValues xgcv;
-
-  xgcv.foreground = s->gc->background;
-  XFillRectangle (s->display, s->window, &xgcv, x, y, w, h);
+  mac_erase_rectangle (s->window, s->gc, x, y, w, h);
 }
 
 
@@ -2636,27 +2548,29 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 {
   XGCValues xgcv;
 
-  xgcv.foreground = s->face->box_color;
+  XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
+  XSetForeground (s->display, s->gc, s->face->box_color);
   mac_set_clip_rectangle (s->display, s->window, clip_rect);
 
   /* Top.  */
-  XFillRectangle (s->display, s->window, &xgcv,
+  XFillRectangle (s->display, s->window, s->gc,
 		  left_x, top_y, right_x - left_x + 1, width);
 
   /* Left.  */
   if (left_p)
-    XFillRectangle (s->display, s->window, &xgcv,
+    XFillRectangle (s->display, s->window, s->gc,
 		    left_x, top_y, width, bottom_y - top_y + 1);
 
   /* Bottom.  */
-  XFillRectangle (s->display, s->window, &xgcv,
+  XFillRectangle (s->display, s->window, s->gc,
 		  left_x, bottom_y - width + 1, right_x - left_x + 1, width);
 
   /* Right.  */
   if (right_p)
-    XFillRectangle (s->display, s->window, &xgcv,
+    XFillRectangle (s->display, s->window, s->gc,
 		    right_x - width + 1, top_y, width, bottom_y - top_y + 1);
 
+  XSetForeground (s->display, s->gc, xgcv.foreground);
   mac_reset_clipping (s->display, s->window);
 }
 
@@ -3075,13 +2989,7 @@ x_draw_stretch_glyph_string (s)
 	    }
 	  else
 #endif /* MAC_TODO */
-	    {
-	      XGCValues xgcv;
-	      XGetGCValues (s->display, gc, GCForeground | GCBackground, &xgcv);
-	      XSetForeground (s->display, gc, xgcv.background);
-	      XFillRectangle (s->display, s->window, gc, x, y, w, h);
-	      XSetForeground (s->display, gc, xgcv.foreground);
-	    }
+	    mac_erase_rectangle (s->window, gc, x, y, w, h);
 
 	  mac_reset_clipping (s->display, s->window);
 	}
@@ -3396,7 +3304,6 @@ XTring_bell ()
       UNBLOCK_INPUT;
     }
 }
-
 
 
 /* Specify how many text lines, from the top of the window,
@@ -3832,43 +3739,6 @@ x_get_keysym_name (keysym)
 
 
 
-#if 0
-/* Mouse clicks and mouse movement.  Rah.  */
-
-/* Prepare a mouse-event in *RESULT for placement in the input queue.
-
-   If the event is a button press, then note that we have grabbed
-   the mouse.  */
-
-static Lisp_Object
-construct_mouse_click (result, event, f)
-     struct input_event *result;
-     EventRecord *event;
-     struct frame *f;
-{
-  Point mouseLoc;
-
-  result->kind = MOUSE_CLICK_EVENT;
-  result->code = 0;  /* only one mouse button */
-  result->timestamp = event->when;
-  result->modifiers = event->what == mouseDown ? down_modifier : up_modifier;
-
-  mouseLoc = event->where;
-
-  SetPortWindowPort (FRAME_MAC_WINDOW (f));
-
-  GlobalToLocal (&mouseLoc);
-  XSETINT (result->x, mouseLoc.h);
-  XSETINT (result->y, mouseLoc.v);
-
-  XSETFRAME (result->frame_or_window, f);
-
-  result->arg = Qnil;
-  return Qnil;
-}
-#endif
-
-
 /* Function to report a mouse movement to the mainstream Emacs code.
    The input handler calls this.
 
@@ -3924,18 +3794,11 @@ note_mouse_movement (frame, pos)
     }
 }
 
-/* This is used for debugging, to turn off note_mouse_highlight.  */
-
-int disable_mouse_highlight;
-
-
 
 /************************************************************************
 			      Mouse Face
  ************************************************************************/
 
-static struct scroll_bar *x_window_to_scroll_bar ();
-static void x_scroll_bar_report_motion ();
 static int glyph_rect P_ ((struct frame *f, int, int, Rect *));
 
 
@@ -4147,20 +4010,16 @@ static OSStatus install_scroll_bar_timer P_ ((void));
 static OSStatus set_scroll_bar_timer P_ ((EventTimerInterval));
 static int control_part_code_to_scroll_bar_part P_ ((ControlPartCode));
 static void construct_scroll_bar_click P_ ((struct scroll_bar *, int,
-					    unsigned long,
 					    struct input_event *));
 static OSErr get_control_part_bounds P_ ((ControlHandle, ControlPartCode,
 					  Rect *));
 static void x_scroll_bar_handle_press P_ ((struct scroll_bar *,
 					   ControlPartCode,
-					   unsigned long,
 					   struct input_event *));
 static void x_scroll_bar_handle_release P_ ((struct scroll_bar *,
-					     unsigned long,
 					     struct input_event *));
 static void x_scroll_bar_handle_drag P_ ((WindowPtr, struct scroll_bar *,
-					  Point, unsigned long,
-					  struct input_event *));
+					  Point, struct input_event *));
 static void x_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *,
 						int, int, int));
 
@@ -4259,10 +4118,9 @@ control_part_code_to_scroll_bar_part (part_code)
 }
 
 static void
-construct_scroll_bar_click (bar, part, timestamp, bufp)
+construct_scroll_bar_click (bar, part, bufp)
      struct scroll_bar *bar;
      int part;
-     unsigned long timestamp;
      struct input_event *bufp;
 {
   bufp->kind = SCROLL_BAR_CLICK_EVENT;
@@ -4270,7 +4128,6 @@ construct_scroll_bar_click (bar, part, timestamp, bufp)
   bufp->arg = Qnil;
   bufp->part = part;
   bufp->code = 0;
-  bufp->timestamp = timestamp;
   XSETINT (bufp->x, 0);
   XSETINT (bufp->y, 0);
   bufp->modifiers = 0;
@@ -4294,10 +4151,9 @@ get_control_part_bounds (ch, part_code, rect)
 }
 
 static void
-x_scroll_bar_handle_press (bar, part_code, timestamp, bufp)
+x_scroll_bar_handle_press (bar, part_code, bufp)
      struct scroll_bar *bar;
      ControlPartCode part_code;
-     unsigned long timestamp;
      struct input_event *bufp;
 {
   int part = control_part_code_to_scroll_bar_part (part_code);
@@ -4307,7 +4163,7 @@ x_scroll_bar_handle_press (bar, part_code, timestamp, bufp)
 
   if (part != scroll_bar_handle)
     {
-      construct_scroll_bar_click (bar, part, timestamp, bufp);
+      construct_scroll_bar_click (bar, part, bufp);
       HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
       set_scroll_bar_timer (SCROLL_BAR_FIRST_DELAY);
     }
@@ -4318,14 +4174,13 @@ x_scroll_bar_handle_press (bar, part_code, timestamp, bufp)
 }
 
 static void
-x_scroll_bar_handle_release (bar, timestamp, bufp)
+x_scroll_bar_handle_release (bar, bufp)
      struct scroll_bar *bar;
-     unsigned long timestamp;
      struct input_event *bufp;
 {
   if (last_scroll_bar_part != scroll_bar_handle
       || !GC_NILP (bar->dragging))
-    construct_scroll_bar_click (bar, scroll_bar_end_scroll, timestamp, bufp);
+    construct_scroll_bar_click (bar, scroll_bar_end_scroll, bufp);
 
   HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), 0);
   set_scroll_bar_timer (kEventDurationForever);
@@ -4336,11 +4191,10 @@ x_scroll_bar_handle_release (bar, timestamp, bufp)
 }
 
 static void
-x_scroll_bar_handle_drag (win, bar, mouse_pos, timestamp, bufp)
+x_scroll_bar_handle_drag (win, bar, mouse_pos, bufp)
      WindowPtr win;
      struct scroll_bar *bar;
      Point mouse_pos;
-     unsigned long timestamp;
      struct input_event *bufp;
 {
   ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
@@ -4360,13 +4214,13 @@ x_scroll_bar_handle_drag (win, bar, mouse_pos, timestamp, bufp)
       top_range = (XINT (bar->track_height) - (r.bottom - r.top)) *
 	(1.0 + (float) GetControlViewSize (ch) / GetControl32BitMaximum (ch))
 	+ .5;
-      
+
       if (top < 0)
 	top = 0;
       if (top > top_range)
 	top = top_range;
 
-      construct_scroll_bar_click (bar, scroll_bar_handle, timestamp, bufp);
+      construct_scroll_bar_click (bar, scroll_bar_handle, bufp);
       XSETINT (bufp->x, top);
       XSETINT (bufp->y, top_range);
     }
@@ -4404,7 +4258,7 @@ x_scroll_bar_handle_drag (win, bar, mouse_pos, timestamp, bufp)
       else if (part != last_scroll_bar_part
 	       || scroll_bar_timer_event_posted_p)
 	{
-	  construct_scroll_bar_click (bar, part, timestamp, bufp);
+	  construct_scroll_bar_click (bar, part, bufp);
 	  last_scroll_bar_part = part;
 	  HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
 	  set_scroll_bar_timer (SCROLL_BAR_CONTINUOUS_DELAY);
@@ -4475,11 +4329,11 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   r.bottom = disp_top + disp_height;
 
 #if TARGET_API_MAC_CARBON
-  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", 1, 0, 0, 0,
-		   kControlScrollBarProc, (long) bar);
+  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", width < disp_height,
+		   0, 0, 0, kControlScrollBarProc, (long) bar);
 #else
-  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", 1, 0, 0, 0,
-		   scrollBarProc, (long) bar);
+  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", width < disp_height,
+		   0, 0, 0, scrollBarProc, (long) bar);
 #endif
   SET_SCROLL_BAR_CONTROL_HANDLE (bar, ch);
 
@@ -4604,10 +4458,12 @@ x_scroll_bar_remove (bar)
   UNBLOCK_INPUT;
 }
 
+
 /* Set the handle of the vertical scroll bar for WINDOW to indicate
    that we are displaying PORTION characters out of a total of WHOLE
    characters, starting at POSITION.  If WINDOW has no scroll bar,
    create one.  */
+
 static void
 XTset_vertical_scroll_bar (w, portion, whole, position)
      struct window *w;
@@ -4684,13 +4540,10 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	    && XINT (bar->width) == sb_width
 	    && XINT (bar->height) == height))
 	{
-	  /* Clear areas not covered by the scroll bar because it's not as
-	     wide as the area reserved for it .  This makes sure a
-	     previous mode line display is cleared after C-x 2 C-x 1, for
-	     example.  */
-	  int area_width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
+	  /* Since toolkit scroll bars are smaller than the space reserved
+	     for them on the frame, we have to clear "under" them.  */
 	  XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		      left, top, area_width, height, 0);
+		      left, top, width, height, 0);
 
 #if 0
           if (sb_left + sb_width >= FRAME_PIXEL_WIDTH (f))
@@ -4702,7 +4555,8 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
           MoveControl (ch, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM, disp_top);
           SizeControl (ch, sb_width - VERTICAL_SCROLL_BAR_WIDTH_TRIM * 2,
 		       disp_height);
-          ShowControl (ch);
+	  if (sb_width < disp_height)
+	    ShowControl (ch);
 
           /* Remember new settings.  */
           XSETINT (bar->left, sb_left);
@@ -4805,6 +4659,7 @@ XTredeem_scroll_bar (window)
      struct window *window;
 {
   struct scroll_bar *bar;
+  struct frame *f;
 
   /* We can't redeem this window's scroll bar if it doesn't have one.  */
   if (NILP (window->vertical_scroll_bar))
@@ -4813,36 +4668,33 @@ XTredeem_scroll_bar (window)
   bar = XSCROLL_BAR (window->vertical_scroll_bar);
 
   /* Unlink it from the condemned list.  */
-  {
-    FRAME_PTR f = XFRAME (WINDOW_FRAME (window));
+  f = XFRAME (WINDOW_FRAME (window));
+  if (NILP (bar->prev))
+    {
+      /* If the prev pointer is nil, it must be the first in one of
+	 the lists.  */
+      if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
+	/* It's not condemned.  Everything's fine.  */
+	return;
+      else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
+		   window->vertical_scroll_bar))
+	FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
+      else
+	/* If its prev pointer is nil, it must be at the front of
+	   one or the other!  */
+	abort ();
+    }
+  else
+    XSCROLL_BAR (bar->prev)->next = bar->next;
 
-    if (NILP (bar->prev))
-      {
-	/* If the prev pointer is nil, it must be the first in one of
-           the lists.  */
-	if (EQ (FRAME_SCROLL_BARS (f), window->vertical_scroll_bar))
-	  /* It's not condemned.  Everything's fine.  */
-	  return;
-	else if (EQ (FRAME_CONDEMNED_SCROLL_BARS (f),
-		     window->vertical_scroll_bar))
-	  FRAME_CONDEMNED_SCROLL_BARS (f) = bar->next;
-	else
-	  /* If its prev pointer is nil, it must be at the front of
-             one or the other!  */
-	  abort ();
-      }
-    else
-      XSCROLL_BAR (bar->prev)->next = bar->next;
+  if (! NILP (bar->next))
+    XSCROLL_BAR (bar->next)->prev = bar->prev;
 
-    if (! NILP (bar->next))
-      XSCROLL_BAR (bar->next)->prev = bar->prev;
-
-    bar->next = FRAME_SCROLL_BARS (f);
-    bar->prev = Qnil;
-    XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
-    if (! NILP (bar->next))
-      XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
-  }
+  bar->next = FRAME_SCROLL_BARS (f);
+  bar->prev = Qnil;
+  XSETVECTOR (FRAME_SCROLL_BARS (f), bar);
+  if (! NILP (bar->next))
+    XSETVECTOR (XSCROLL_BAR (bar->next)->prev, bar);
 }
 
 /* Remove all scroll bars on FRAME that haven't been saved since the
@@ -4981,8 +4833,8 @@ x_scroll_bar_note_movement (bar, y_pos, t)
 
 #endif /* !USE_TOOLKIT_SCROLL_BARS */
 
-/* Return information to the user about the current position of the
-   mouse on the scroll bar.  */
+/* Return information to the user about the current position of the mouse
+   on the scroll bar.  */
 
 static void
 x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
@@ -5500,6 +5352,7 @@ mac_get_window_bounds (f, inner, outer)
 }
 
 
+
 /* Calculate the absolute position in frame F
    from its current recorded position values and gravity.  */
 
@@ -5731,7 +5584,6 @@ x_set_mouse_pixel_position (f, pix_x, pix_y)
   UNBLOCK_INPUT;
 #endif
 }
-
 
 /* focus shifting, raising and lowering.  */
 
@@ -5758,6 +5610,7 @@ x_unfocus_frame (f)
 }
 
 /* Raise frame F.  */
+
 void
 x_raise_frame (f)
      struct frame *f;
@@ -5771,6 +5624,7 @@ x_raise_frame (f)
 }
 
 /* Lower frame F.  */
+
 void
 x_lower_frame (f)
      struct frame *f;
@@ -5796,6 +5650,53 @@ XTframe_raise_lower (f, raise_flag)
 
 /* Change of visibility.  */
 
+static void
+mac_handle_visibility_change (f)
+     struct frame *f;
+{
+  WindowPtr wp = FRAME_MAC_WINDOW (f);
+  int visible = 0, iconified = 0;
+  struct input_event buf;
+
+  if (IsWindowVisible (wp))
+    if (IsWindowCollapsed (wp))
+      iconified = 1;
+    else
+      visible = 1;
+
+  if (!f->async_visible && visible)
+    {
+      if (f->iconified)
+	{
+	  /* wait_reading_process_output will notice this and update
+	     the frame's display structures.  If we were made
+	     invisible, we should not set garbaged, because that stops
+	     redrawing on Update events.  */
+	  SET_FRAME_GARBAGED (f);
+
+	  EVENT_INIT (buf);
+	  buf.kind = DEICONIFY_EVENT;
+	  XSETFRAME (buf.frame_or_window, f);
+	  kbd_buffer_store_event (&buf);
+	}
+      else if (! NILP (Vframe_list) && ! NILP (XCDR (Vframe_list)))
+	/* Force a redisplay sooner or later to update the
+	   frame titles in case this is the second frame.  */
+	record_asynch_buffer_change ();
+    }
+  else if (f->async_visible && !visible)
+    if (iconified)
+      {
+	EVENT_INIT (buf);
+	buf.kind = ICONIFY_EVENT;
+	XSETFRAME (buf.frame_or_window, f);
+	kbd_buffer_store_event (&buf);
+      }
+
+  f->async_visible = visible;
+  f->async_iconified = iconified;
+}
+
 /* This tries to wait until the frame is really visible.
    However, if the window manager asks the user where to position
    the frame, this will return before the user finishes doing that.
@@ -5820,29 +5721,32 @@ x_make_frame_visible (f)
 	 before the window gets really visible.  */
       if (! FRAME_ICONIFIED_P (f)
 	  && ! f->output_data.mac->asked_for_visible)
-	x_set_offset (f, f->left_pos, f->top_pos, 0);
+#if TARGET_API_MAC_CARBON
+	if (!(FRAME_SIZE_HINTS (f)->flags & (USPosition | PPosition)))
+	  {
+	    struct frame *sf = SELECTED_FRAME ();
+	    if (!FRAME_MAC_P (sf))
+	      RepositionWindow (FRAME_MAC_WINDOW (f), NULL,
+				kWindowCenterOnMainScreen);
+	    else
+	      RepositionWindow (FRAME_MAC_WINDOW (f),
+				FRAME_MAC_WINDOW (sf),
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+				kWindowCascadeStartAtParentWindowScreen
+#else
+				kWindowCascadeOnParentWindowScreen
+#endif
+				);
+	    x_real_positions (f, &f->left_pos, &f->top_pos);
+	  }
+	else
+#endif
+	  x_set_offset (f, f->left_pos, f->top_pos, 0);
 
       f->output_data.mac->asked_for_visible = 1;
 
-#if TARGET_API_MAC_CARBON
-      if (!(FRAME_SIZE_HINTS (f)->flags & (USPosition | PPosition)))
-	{
-	  struct frame *sf = SELECTED_FRAME ();
-	  if (!FRAME_MAC_P (sf))
-	    RepositionWindow (FRAME_MAC_WINDOW (f), NULL,
-			      kWindowCenterOnMainScreen);
-	  else
-	    RepositionWindow (FRAME_MAC_WINDOW (f),
-			      FRAME_MAC_WINDOW (sf),
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-			      kWindowCascadeStartAtParentWindowScreen
-#else
-			      kWindowCascadeOnParentWindowScreen
-#endif
-			      );
-	  x_real_positions (f, &f->left_pos, &f->top_pos);
-	}
-#endif
+      SelectWindow (FRAME_MAC_WINDOW (f));
+      CollapseWindow (FRAME_MAC_WINDOW (f), false);
       ShowWindow (FRAME_MAC_WINDOW (f));
     }
 
@@ -5901,9 +5805,14 @@ void
 x_make_frame_invisible (f)
      struct frame *f;
 {
+  /* A deactivate event does not occur when the last visible frame is
+     made invisible.  So if we clear the highlight here, it will not
+     be rehighlighted when it is made visible.  */
+#if 0
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame = 0;
+#endif
 
   BLOCK_INPUT;
 
@@ -5916,17 +5825,11 @@ x_make_frame_invisible (f)
 
   HideWindow (FRAME_MAC_WINDOW (f));
 
-  /* We can't distinguish this from iconification
-     just by the event that we get from the server.
-     So we can't win using the usual strategy of letting
-     FRAME_SAMPLE_VISIBILITY set this.  So do it by hand,
-     and synchronize with the server to make sure we agree.  */
-  f->visible = 0;
-  FRAME_ICONIFIED_P (f) = 0;
-  f->async_visible = 0;
-  f->async_iconified = 0;
-
   UNBLOCK_INPUT;
+
+#if !USE_CARBON_EVENTS
+  mac_handle_visibility_change (f);
+#endif
 }
 
 /* Change window state from mapped to iconified.  */
@@ -5935,21 +5838,37 @@ void
 x_iconify_frame (f)
      struct frame *f;
 {
+  OSErr err;
+
+  /* A deactivate event does not occur when the last visible frame is
+     iconified.  So if we clear the highlight here, it will not be
+     rehighlighted when it is deiconified.  */
+#if 0
   /* Don't keep the highlight on an invisible frame.  */
   if (FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame == f)
     FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame = 0;
+#endif
 
-#if 0
-  /* Review:  Since window is still visible in dock, still allow updates? */
   if (f->async_iconified)
     return;
-#endif
 
   BLOCK_INPUT;
 
-  CollapseWindow (FRAME_MAC_WINDOW (f), true);
+  FRAME_SAMPLE_VISIBILITY (f);
+
+  if (! FRAME_VISIBLE_P (f))
+    ShowWindow (FRAME_MAC_WINDOW (f));
+
+  err = CollapseWindow (FRAME_MAC_WINDOW (f), true);
 
   UNBLOCK_INPUT;
+
+  if (err != noErr)
+    error ("Can't notify window manager of iconification");
+
+#if !USE_CARBON_EVENTS
+  mac_handle_visibility_change (f);
+#endif
 }
 
 
@@ -6179,9 +6098,9 @@ x_get_font_info (f, font_idx)
 }
 
 /* the global font name table */
-char **font_name_table = NULL;
-int font_name_table_size = 0;
-int font_name_count = 0;
+static char **font_name_table = NULL;
+static int font_name_table_size = 0;
+static int font_name_count = 0;
 
 /* Alist linking character set strings to Mac text encoding and Emacs
    coding system. */
@@ -7338,7 +7257,7 @@ x_load_font (f, fontname, size)
 
     /* Set global flag fonts_changed_p to non-zero if the font loaded
        has a character with a smaller width than any other character
-       before, or if the font loaded has a smalle>r height than any
+       before, or if the font loaded has a smaller height than any
        other font loaded before.  If this happens, it will make a
        glyph matrix reallocation necessary.  */
     fonts_changed_p |= x_compute_min_glyph_bounds (f);
@@ -7435,22 +7354,6 @@ x_find_ccl_program (fontp)
 #define MIN_DOC_SIZE 64
 #define MAX_DOC_SIZE 32767
 
-#if 0
-/* sleep time for WaitNextEvent */
-#define WNE_SLEEP_AT_SUSPEND 10
-#define WNE_SLEEP_AT_RESUME  1
-
-/* the flag appl_is_suspended is used both for determining the sleep
-   time to be passed to WaitNextEvent and whether the cursor should be
-   drawn when updating the display.  The cursor is turned off when
-   Emacs is suspended.  Redrawing it is unnecessary and what needs to
-   be done depends on whether the cursor lies inside or outside the
-   redraw region.  So we might as well skip drawing it when Emacs is
-   suspended.  */
-static Boolean app_is_suspended = false;
-static long app_sleep_time = WNE_SLEEP_AT_RESUME;
-#endif
-
 #define EXTRA_STACK_ALLOC (256 * 1024)
 
 #define ARGV_STRING_LIST_ID 129
@@ -7485,18 +7388,16 @@ Lisp_Object Vmac_pass_command_to_system;
 /* If Non-nil, the Mac "Control" key is passed on to the Mac Toolbox
    for processing before Emacs sees it.  */
 Lisp_Object Vmac_pass_control_to_system;
+#endif
 
 /* Points to the variable `inev' in the function XTread_socket.  It is
-   used for passing an input event to the function back from a Carbon
-   event handler.  */
+   used for passing an input event to the function back from
+   Carbon/Apple event handlers.  */
 static struct input_event *read_socket_inev = NULL;
-#endif
 
 /* Set in term/mac-win.el to indicate that event loop can now generate
    drag and drop events.  */
 Lisp_Object Qmac_ready_for_drag_n_drop;
-
-Lisp_Object drag_and_drop_file_list;
 
 Point saved_menu_event_location;
 
@@ -7777,37 +7678,30 @@ do_window_update (WindowPtr win)
     {
       if (f->async_visible == 0)
         {
+	  /* Update events may occur when a frame gets iconified.  */
+#if 0
           f->async_visible = 1;
           f->async_iconified = 0;
           SET_FRAME_GARBAGED (f);
-
-          /* An update event is equivalent to MapNotify on X, so report
-             visibility changes properly.  */
-          if (! NILP(Vframe_list) && ! NILP (XCDR (Vframe_list)))
-            /* Force a redisplay sooner or later to update the
-               frame titles in case this is the second frame.  */
-            record_asynch_buffer_change ();
+#endif
         }
       else
-        {
+	{
 	  Rect r;
-
 #if TARGET_API_MAC_CARBON
-	  {
-	    RgnHandle region = NewRgn ();
+	  RgnHandle region = NewRgn ();
 
-	    GetPortVisibleRegion (GetWindowPort (win), region);
-	    GetRegionBounds (region, &r);
-	    expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
-	    UpdateControls (win, region);
-	    DisposeRgn (region);
-	  }
+	  GetPortVisibleRegion (GetWindowPort (win), region);
+	  GetRegionBounds (region, &r);
+	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
+	  UpdateControls (win, region);
+	  DisposeRgn (region);
 #else
 	  r = (*win->visRgn)->rgnBBox;
 	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
 	  UpdateControls (win, win->visRgn);
 #endif
-        }
+	}
     }
 
   EndUpdate (win);
@@ -7833,20 +7727,12 @@ static void
 do_app_resume ()
 {
   /* Window-activate events will do the job. */
-#if 0
-  app_is_suspended = false;
-  app_sleep_time = WNE_SLEEP_AT_RESUME;
-#endif
 }
 
 static void
 do_app_suspend ()
 {
   /* Window-deactivate events will do the job. */
-#if 0
-  app_is_suspended = true;
-  app_sleep_time = WNE_SLEEP_AT_SUSPEND;
-#endif
 }
 
 
@@ -8347,6 +8233,17 @@ mac_handle_window_event (next_handler, event, data)
 	  return noErr;
 	}
       break;
+
+    case kEventWindowShown:
+    case kEventWindowHidden:
+    case kEventWindowExpanded:
+    case kEventWindowCollapsed:
+      result = CallNextEventHandler (next_handler, event);
+
+      mac_handle_visibility_change (mac_window_to_frame (wp));
+      return noErr;
+
+      break;
     }
 
   return eventNotHandledErr;
@@ -8400,8 +8297,6 @@ mac_handle_mouse_event (next_handler, event, data)
 	XSETINT (read_socket_inev->x, point.h);
 	XSETINT (read_socket_inev->y, point.v);
 	XSETFRAME (read_socket_inev->frame_or_window, f);
-	read_socket_inev->timestamp =
-	  EventTimeToTicks (GetEventTime (event)) * (1000/60);
 
 	return noErr;
       }
@@ -8424,7 +8319,11 @@ install_window_handler (window)
 #if USE_CARBON_EVENTS
   EventTypeSpec specs_window[] =
     {{kEventClassWindow, kEventWindowUpdate},
-     {kEventClassWindow, kEventWindowBoundsChanging}};
+     {kEventClassWindow, kEventWindowBoundsChanging},
+     {kEventClassWindow, kEventWindowShown},
+     {kEventClassWindow, kEventWindowHidden},
+     {kEventClassWindow, kEventWindowExpanded},
+     {kEventClassWindow, kEventWindowCollapsed}};
   EventTypeSpec specs_mouse[] = {{kEventClassMouse, kEventMouseWheelMoved}};
   static EventHandlerUPP handle_window_eventUPP = NULL;
   static EventHandlerUPP handle_mouse_eventUPP = NULL;
@@ -8475,11 +8374,6 @@ do_ae_open_application(const AppleEvent *pae, AppleEvent *preply, long prefcon)
 }
 
 
-/* Defined in mac.c.  */
-extern int
-path_from_vol_dir_name (char *, int, short, long, char *);
-
-
 /* Called when we receive an AppleEvent with an ID of
    "kAEOpenDocuments".  This routine gets the direct parameter,
    extracts the FSSpecs in it, and puts their names on a list.  */
@@ -8503,6 +8397,9 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
   DescType actual_type;
   Size actual_size;
   SelectionRange position;
+  Lisp_Object file_list = Qnil;
+
+  xassert (read_socket_inev);
 
   err = AEGetParamDesc (message, keyDirectObject, typeAEList, &the_desc);
   if (err != noErr)
@@ -8510,10 +8407,10 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
 
   err = AEGetParamPtr (message, keyAEPosition, typeChar, &actual_type, &position, sizeof(SelectionRange), &actual_size);
   if (err == noErr)
-    drag_and_drop_file_list = Fcons (list3 (make_number (position.lineNum + 1),
-					    make_number (position.startRange + 1),
-					    make_number (position.endRange + 1)),
-				     drag_and_drop_file_list);
+    file_list = Fcons (list3 (make_number (position.lineNum + 1),
+			      make_number (position.startRange + 1),
+			      make_number (position.endRange + 1)),
+		       file_list);
 
   /* Check to see that we got all of the required parameters from the
      event descriptor.  For an 'odoc' event this should just be the
@@ -8567,11 +8464,48 @@ do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
 					  sizeof (unix_path_name) - 1) == noErr)
 #endif
 	      /* x-dnd functions expect undecoded filenames.  */
-	      drag_and_drop_file_list =
-		Fcons (make_unibyte_string (unix_path_name,
-					    strlen (unix_path_name)),
-		       drag_and_drop_file_list);
+	      file_list = Fcons (make_unibyte_string (unix_path_name,
+						      strlen (unix_path_name)),
+				 file_list);
 	  }
+      }
+
+    /* Build a DRAG_N_DROP_EVENT type event as is done in
+       constuct_drag_n_drop in w32term.c.  */
+    if (!NILP (file_list))
+      {
+	struct frame *f = mac_focus_frame (&one_mac_display_info);
+	WindowPtr wp;
+	Lisp_Object frame;
+
+	read_socket_inev->kind = DRAG_N_DROP_EVENT;
+	read_socket_inev->code = 0;
+	read_socket_inev->modifiers = 0;
+
+	XSETINT (read_socket_inev->x, 0);
+	XSETINT (read_socket_inev->y, 0);
+
+	XSETFRAME (frame, f);
+	read_socket_inev->frame_or_window = Fcons (frame, file_list);
+
+#if 0
+	/* Regardless of whether Emacs was suspended or in the
+	   foreground, ask it to redraw its entire screen.  Otherwise
+	   parts of the screen can be left in an inconsistent
+	   state.  */
+	wp = FRAME_MAC_WINDOW (f);
+	if (wp)
+#if TARGET_API_MAC_CARBON
+	  {
+	    Rect r;
+
+	    GetWindowPortBounds (wp, &r);
+	    InvalWindowRect (wp, &r);
+	  }
+#else /* not TARGET_API_MAC_CARBON */
+	InvalRect (&(wp->portRect));
+#endif /* not TARGET_API_MAC_CARBON */
+#endif
       }
   }
 
@@ -8665,11 +8599,12 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
   ItemReference theItem;
   HFSFlavor data;
   Size size = sizeof (HFSFlavor);
+  Lisp_Object file_list;
 
   if (GetFrontWindowOfClass (kMovableModalWindowClass, false))
     return dragNotAcceptedErr;
 
-  drag_and_drop_file_list = Qnil;
+  file_list = Qnil;
   GetDragMouse (theDrag, &mouse, 0L);
   CountDragItems (theDrag, &items);
   for (index = 1; index <= items; index++)
@@ -8695,15 +8630,14 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 					sizeof (unix_path_name) - 1) == noErr)
 #endif
 	    /* x-dnd functions expect undecoded filenames.  */
-            drag_and_drop_file_list =
-	      Fcons (make_unibyte_string (unix_path_name,
-					  strlen (unix_path_name)),
-		     drag_and_drop_file_list);
+            file_list = Fcons (make_unibyte_string (unix_path_name,
+						    strlen (unix_path_name)),
+			       file_list);
 	}
     }
   /* If there are items in the list, construct an event and post it to
      the queue like an interrupt using kbd_buffer_store_event.  */
-  if (!NILP (drag_and_drop_file_list))
+  if (!NILP (file_list))
     {
       struct input_event event;
       Lisp_Object frame;
@@ -8720,7 +8654,7 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       XSETINT (event.x, mouse.h);
       XSETINT (event.y, mouse.v);
       XSETFRAME (frame, f);
-      event.frame_or_window = Fcons (frame, drag_and_drop_file_list);
+      event.frame_or_window = Fcons (frame, file_list);
       event.arg = Qnil;
       /* Post to the interrupt queue */
       kbd_buffer_store_event (&event);
@@ -8979,6 +8913,7 @@ XTread_socket (sd, expected, hold_quit)
     {
       int do_help = 0;
       struct frame *f;
+      unsigned long timestamp;
 
       /* It is necessary to set this (additional) argument slot of an
 	 event to nil because keyboard.c protects incompletely
@@ -8987,6 +8922,12 @@ XTread_socket (sd, expected, hold_quit)
       EVENT_INIT (inev);
       inev.kind = NO_EVENT;
       inev.arg = Qnil;
+
+#if USE_CARBON_EVENTS
+      timestamp = GetEventTime (eventRef) / kEventDurationMillisecond;
+#else
+      timestamp = er.when * (1000 / 60); /* ticks to milliseconds */
+#endif
 
 #if USE_CARBON_EVENTS
       /* Handle new events */
@@ -9089,8 +9030,6 @@ XTread_socket (sd, expected, hold_quit)
 #endif
 		    XSETINT (inev.x, mouse_loc.h);
 		    XSETINT (inev.y, mouse_loc.v);
-		    inev.timestamp = er.when * (1000 / 60);
-		    /* ticks to milliseconds */
 
 		    if (dpyinfo->grabbed && tracked_scroll_bar
 			|| ch != 0
@@ -9124,10 +9063,9 @@ XTread_socket (sd, expected, hold_quit)
 						     &er, &inev);
 			else if (er.what == mouseDown)
 			  x_scroll_bar_handle_press (bar, control_part_code,
-						     inev.timestamp, &inev);
+						     &inev);
 			else
-			  x_scroll_bar_handle_release (bar, inev.timestamp,
-						       &inev);
+			  x_scroll_bar_handle_release (bar, &inev);
 #else  /* not USE_TOOLKIT_SCROLL_BARS */
 			x_scroll_bar_handle_click (bar, control_part_code,
 						   &er, &inev);
@@ -9301,8 +9239,7 @@ XTread_socket (sd, expected, hold_quit)
 		  if (dpyinfo->grabbed && tracked_scroll_bar)
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		    x_scroll_bar_handle_drag (wp, tracked_scroll_bar,
-					      mouse_pos, er.when * (1000 / 60),
-					      &inev);
+					      mouse_pos, &inev);
 #else /* not USE_TOOLKIT_SCROLL_BARS */
 		    x_scroll_bar_note_movement (tracked_scroll_bar,
 						mouse_pos.v
@@ -9390,11 +9327,10 @@ XTread_socket (sd, expected, hold_quit)
 
 		    EVENT_INIT (event);
 		    event.kind = NO_EVENT;
-		    x_scroll_bar_handle_release (tracked_scroll_bar,
-						 er.when * (1000 / 60),
-						 &event);
+		    x_scroll_bar_handle_release (tracked_scroll_bar, &event);
 		    if (event.kind != NO_EVENT)
 		      {
+			event.timestamp = timestamp;
 			kbd_buffer_store_event_hold (&event, hold_quit);
 			count++;
 		      }
@@ -9470,6 +9406,7 @@ XTread_socket (sd, expected, hold_quit)
 		  event.kind = LANGUAGE_CHANGE_EVENT;
 		  event.arg = Qnil;
 		  event.code = current_key_script;
+		  event.timestamp = timestamp;
 		  kbd_buffer_store_event (&event);
 		  count++;
 		}
@@ -9534,58 +9471,18 @@ XTread_socket (sd, expected, hold_quit)
 #else
 	  inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
+	  inev.modifiers |= (extra_keyboard_modifiers
+			     & (meta_modifier | alt_modifier
+				| hyper_modifier | super_modifier));
 	  XSETFRAME (inev.frame_or_window, mac_focus_frame (dpyinfo));
-	  inev.timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
 	  break;
 
 	case kHighLevelEvent:
-	  drag_and_drop_file_list = Qnil;
+	  read_socket_inev = &inev;
+	  AEProcessAppleEvent (&er);
+	  read_socket_inev = NULL;
+	  break;
 
-	  AEProcessAppleEvent(&er);
-
-	  /* Build a DRAG_N_DROP_EVENT type event as is done in
-	     constuct_drag_n_drop in w32term.c.  */
-	  if (!NILP (drag_and_drop_file_list))
-	    {
-	      struct frame *f = mac_focus_frame (dpyinfo);
-	      WindowPtr wp;
-	      Lisp_Object frame;
-
-	      inev.kind = DRAG_N_DROP_EVENT;
-	      inev.code = 0;
-	      inev.timestamp = er.when * (1000 / 60);
-	      /* ticks to milliseconds */
-#if USE_CARBON_EVENTS
-	      inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
-#else
-	      inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
-#endif
-
-	      XSETINT (inev.x, 0);
-	      XSETINT (inev.y, 0);
-
-	      XSETFRAME (frame, f);
-	      inev.frame_or_window = Fcons (frame, drag_and_drop_file_list);
-
-#if 0
-	      /* Regardless of whether Emacs was suspended or in the
-		 foreground, ask it to redraw its entire screen.
-		 Otherwise parts of the screen can be left in an
-		 inconsistent state.  */
-	      wp = FRAME_MAC_WINDOW (f);
-	      if (wp)
-#if TARGET_API_MAC_CARBON
-		{
-		  Rect r;
-
-		  GetWindowPortBounds (wp, &r);
-		  InvalWindowRect (wp, &r);
-		}
-#else /* not TARGET_API_MAC_CARBON */
-                InvalRect (&(wp->portRect));
-#endif /* not TARGET_API_MAC_CARBON */
-#endif
-	    }
 	default:
 	  break;
 	}
@@ -9595,6 +9492,7 @@ XTread_socket (sd, expected, hold_quit)
 
       if (inev.kind != NO_EVENT)
 	{
+	  inev.timestamp = timestamp;
 	  kbd_buffer_store_event_hold (&inev, hold_quit);
 	  count++;
 	}
@@ -9633,6 +9531,29 @@ XTread_socket (sd, expected, hold_quit)
       x_raise_frame (pending_autoraise_frame);
       pending_autoraise_frame = 0;
     }
+
+#if !USE_CARBON_EVENTS
+  /* Check which frames are still visible.  We do this here because
+     there doesn't seem to be any direct notification from the Window
+     Manager that the visibility of a window has changed (at least,
+     not in all cases).  */
+  {
+    Lisp_Object tail, frame;
+
+    FOR_EACH_FRAME (tail, frame)
+      {
+	struct frame *f = XFRAME (frame);
+
+	/* The tooltip has been drawn already.  Avoid the
+	   SET_FRAME_GARBAGED in mac_handle_visibility_change.  */
+	if (EQ (frame, tip_frame))
+	  continue;
+
+	if (FRAME_MAC_P (f))
+	  mac_handle_visibility_change (f);
+      }
+  }
+#endif
 
   UNBLOCK_INPUT;
   return count;
@@ -10067,7 +9988,7 @@ mac_check_for_quit_char ()
       kbd_buffer_store_event (&e);
     }
 }
-#endif /* MAC_OSX */
+#endif	/* MAC_OSX */
 
 static void
 init_menu_bar ()
@@ -10171,7 +10092,6 @@ mac_initialize ()
                                                          bottom */
   baud_rate = 19200;
 
-  x_noop_count = 0;
   last_tool_bar_item = -1;
   any_help_event_p = 0;
 
@@ -10243,12 +10163,6 @@ syms_of_macterm ()
   staticpro (&last_mouse_scroll_bar);
   last_mouse_scroll_bar = Qnil;
 
-  staticpro (&Qvendor_specific_keysyms);
-  Qvendor_specific_keysyms = intern ("vendor-specific-keysyms");
-
-  staticpro (&last_mouse_press_frame);
-  last_mouse_press_frame = Qnil;
-
   Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
   staticpro (&Qmac_ready_for_drag_n_drop);
 
@@ -10259,14 +10173,6 @@ syms_of_macterm ()
 #else
   Vx_toolkit_scroll_bars = Qnil;
 #endif
-
-  DEFVAR_BOOL ("x-use-underline-position-properties",
-               &x_use_underline_position_properties,
-     doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
-nil means ignore them.  If you encounter fonts with bogus
-UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
-to 4.1, set this to nil.  */);
-  x_use_underline_position_properties = 0;
 
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
@@ -10292,7 +10198,7 @@ useful for non-standard keyboard layouts.  */);
     doc: /* t means that when the option-key is held down while pressing the
 mouse button, the click will register as mouse-2 and while the
 command-key is held down, the click will register as mouse-3.
-'reverse means that the the option-key will register for mouse-3
+'reverse means that the option-key will register for mouse-3
 and the command-key will register for mouse-2.  nil means that
 no emulation should be done and the modifiers should be placed
 on the mouse-1 event. */);

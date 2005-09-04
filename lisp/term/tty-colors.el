@@ -1,6 +1,7 @@
 ;;; tty-colors.el --- color support for character terminals
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Eli Zaretskii
 ;; Maintainer: FSF
@@ -60,6 +61,8 @@
 ;; beginning of lisp/term/pc-win.el.
 
 ;;; Code:
+
+(defvar msdos-color-values)
 
 ;; The following list is taken from rgb.txt distributed with X.
 ;;

@@ -1,6 +1,7 @@
 ;;; sup-mouse.el --- supdup mouse support for lisp machines
 
-;; Copyright (C) Free Software Foundation 1985, 1986
+;; Copyright (C) 1985, 1986, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Wolfgang Rupprecht
 ;; Maintainer: FSF

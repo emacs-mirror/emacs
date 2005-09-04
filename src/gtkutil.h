@@ -1,6 +1,5 @@
 /* Definitions and headers for GTK widgets.
-   Copyright (C) 2003
-   Free Software Foundation, Inc.
+   Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -199,6 +198,10 @@ extern void x_wm_set_size_hint P_ ((FRAME_PTR f,
                                     long flags,
                                     int user_position));
 extern void xg_set_background_color P_ ((FRAME_PTR f, unsigned long bg));
+
+extern void xg_set_frame_icon P_ ((FRAME_PTR f,
+                                   Pixmap icon_pixmap,
+                                   Pixmap icon_mask));
 
 /* Mark all callback data that are Lisp_object:s during GC.  */
 extern void xg_mark_data P_ ((void));

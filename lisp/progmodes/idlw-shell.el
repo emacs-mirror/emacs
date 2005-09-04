@@ -1,5 +1,6 @@
 ;; idlw-shell.el --- run IDL as an inferior process of Emacs.
-;; Copyright (c) 1999,2000,2001,2002,2003,2004,2005 Free Software Foundation
+;; Copyright (c) 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation
 
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>
@@ -532,9 +533,7 @@ lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
     '((((class color)) (:foreground "Black" :background "Pink"))
       (t (:underline t)))
     "Face for highlighting lines with breakpoints."
-    :group 'idlwave-shell-highlighting-and-faces)
-  ;; backward-compatibility alias
-  (put 'idlwave-shell-bp-face 'face-alias 'idlwave-shell-bp))
+    :group 'idlwave-shell-highlighting-and-faces))
 
 (defcustom idlwave-shell-disabled-breakpoint-face 
   'idlwave-shell-disabled-bp
@@ -552,10 +551,7 @@ lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
     '((((class color)) (:foreground "Black" :background "gray"))
       (t (:underline t)))
     "Face for highlighting lines with breakpoints."
-    :group 'idlwave-shell-highlighting-and-faces)
-  ;; backward-compatibility alias
-  (put 'idlwave-shell-disabled-bp-face 'face-alias 'idlwave-shell-disabled-bp))
-
+    :group 'idlwave-shell-highlighting-and-faces))
 
 (defcustom idlwave-shell-expression-face 'secondary-selection
   "*The face for `idlwave-shell-expression-overlay'.
@@ -2760,13 +2756,14 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
   t)
 
 (defun idlwave-xemacs-hack-mouse-track (event)
-  (let ((oldfunc (symbol-function 'default-mouse-track-event-is-with-button)))
-    (unwind-protect
-	(progn
-	  (fset 'default-mouse-track-event-is-with-button 
-		'idlwave-default-mouse-track-event-is-with-button)
-	  (mouse-track event))
-      (fset 'default-mouse-track-event-is-with-button oldfunc))))
+  (if (featurep 'xemacs) 
+      (let ((oldfunc (symbol-function 'default-mouse-track-event-is-with-button)))
+	(unwind-protect
+	    (progn
+	      (fset 'default-mouse-track-event-is-with-button 
+		    'idlwave-default-mouse-track-event-is-with-button)
+	      (mouse-track event))
+	  (fset 'default-mouse-track-event-is-with-button oldfunc)))))
 ;;; End terrible hack section
 
 (defun idlwave-shell-mouse-print (event)

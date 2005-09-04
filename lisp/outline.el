@@ -1,7 +1,7 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 2000, 2001, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: outlines
@@ -36,6 +36,9 @@
 ;; - don't bother hiding whitespace
 
 ;;; Code:
+
+(defvar font-lock-warning-face)
+
 
 (defgroup outlines nil
   "Support for hierarchical outlining."
@@ -453,6 +456,20 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
       (save-excursion (newline-and-indent)))
     (run-hooks 'outline-insert-heading-hook)))
 
+(defun outline-invent-heading (head up)
+  (save-match-data
+    ;; Let's try to invent one by repeating or deleting the last char.
+    (let ((new-head (if up (substring head 0 -1)
+                      (concat head (substring head -1)))))
+      (if (string-match (concat "\\`\\(?:" outline-regexp "\\)")
+                        new-head)
+          ;; Why bother checking that it is indeed higher/lower level ?
+          new-head
+        ;; Didn't work, so ask what to do.
+        (read-string (format "%s heading for `%s': "
+                             (if up "Parent" "Demoted") head)
+                     head nil nil t)))))
+
 (defun outline-promote (&optional children)
   "Promote headings higher up the tree.
 If prefix argument CHILDREN is given, promote also all the children.
@@ -471,13 +488,18 @@ in the region."
 			(save-excursion (outline-get-next-sibling) (point))))
    (t
     (outline-back-to-heading t)
-    (let* ((head (match-string 0))
+    (let* ((head (match-string-no-properties 0))
 	   (level (save-match-data (funcall outline-level)))
 	   (up-head (or (outline-head-from-level (1- level) head)
+			;; Use the parent heading, if it is really
+			;; one level less.
 			(save-excursion
 			  (save-match-data
 			    (outline-up-heading 1 t)
-			    (match-string 0))))))
+			    (and (= (1- level) (funcall outline-level))
+				 (match-string-no-properties 0))))
+                        ;; Bummer!! There is no lower level heading.
+                        (outline-invent-heading head 'up))))
 
       (unless (rassoc level outline-heading-alist)
 	(push (cons head level) outline-heading-alist))
@@ -501,7 +523,7 @@ in the region."
 			(point)
 			(save-excursion (outline-get-next-sibling) (point))))
    (t
-    (let* ((head (match-string 0))
+    (let* ((head (match-string-no-properties 0))
 	   (level (save-match-data (funcall outline-level)))
 	   (down-head
 	    (or (outline-head-from-level (1+ level) head)
@@ -516,21 +538,13 @@ in the region."
 				  (<= (funcall outline-level) level))))
 		    (unless (eobp)
 		      (looking-at outline-regexp)
-		      (match-string 0))))
-		(save-match-data
-		  ;; Bummer!! There is no lower heading in the buffer.
-		  ;; Let's try to invent one by repeating the first char.
-		  (let ((new-head (concat (substring head 0 1) head)))
-		    (if (string-match (concat "\\`\\(?:" outline-regexp "\\)")
-				      new-head)
-			;; Why bother checking that it is indeed lower level ?
-			new-head
-		      ;; Didn't work: keep it as is so it's still a heading.
-		      head))))))
+		      (match-string-no-properties 0))))
+                ;; Bummer!! There is no higher-level heading in the buffer.
+                (outline-invent-heading head nil))))
 
-    (unless (rassoc level outline-heading-alist)
-      (push (cons head level) outline-heading-alist))
-    (replace-match down-head nil t)))))
+      (unless (rassoc level outline-heading-alist)
+	(push (cons head level) outline-heading-alist))
+      (replace-match down-head nil t)))))
 
 (defun outline-head-from-level (level head &optional alist)
   "Get new heading with level LEVEL from ALIST.
@@ -593,12 +607,11 @@ the match data is set appropriately."
 (defun outline-move-subtree-down (&optional arg)
   "Move the currrent subtree down past ARG headlines of the same level."
   (interactive "p")
-  (let ((re (concat "^\\(?:" outline-regexp "\\)"))
-	(movfunc (if (> arg 0) 'outline-get-next-sibling
+  (let ((movfunc (if (> arg 0) 'outline-get-next-sibling
 		   'outline-get-last-sibling))
 	(ins-point (make-marker))
 	(cnt (abs arg))
-	beg end txt folded)
+	beg end folded)
     ;; Select the tree
     (outline-back-to-heading)
     (setq beg (point))
@@ -739,8 +752,8 @@ If FLAG is nil then text is shown, while if FLAG is t the text is hidden."
 (defun hide-entry ()
   "Hide the body directly following this heading."
   (interactive)
-  (outline-back-to-heading)
   (save-excursion
+    (outline-back-to-heading)
     (outline-end-of-heading)
     (outline-flag-region (point) (progn (outline-next-preface) (point)) t)))
 
@@ -792,8 +805,8 @@ Show the heading too, if it is currently invisible."
 (defun hide-leaves ()
   "Hide all body after this heading at deeper levels."
   (interactive)
-  (outline-back-to-heading)
   (save-excursion
+    (outline-back-to-heading)
     (outline-end-of-heading)
     (hide-region-body (point) (progn (outline-end-of-subtree) (point)))))
 
@@ -850,11 +863,12 @@ Show the heading too, if it is currently invisible."
 (defun outline-toggle-children ()
   "Show or hide the current subtree depending on its current state."
   (interactive)
-  (outline-back-to-heading)
-  (if (not (outline-invisible-p (line-end-position)))
-      (hide-subtree)
-    (show-children)
-    (show-entry)))
+  (save-excursion
+    (outline-back-to-heading)
+    (if (not (outline-invisible-p (line-end-position)))
+	(hide-subtree)
+      (show-children)
+      (show-entry))))
 
 (defun outline-flag-subtree (flag)
   (save-excursion
@@ -866,8 +880,7 @@ Show the heading too, if it is currently invisible."
 
 (defun outline-end-of-subtree ()
   (outline-back-to-heading)
-  (let ((opoint (point))
-	(first t)
+  (let ((first t)
 	(level (funcall outline-level)))
     (while (and (not (eobp))
 		(or first (> (funcall outline-level) level)))
@@ -1027,5 +1040,5 @@ convenient way to make a table of contents of the buffer."
 (provide 'outline)
 (provide 'noutline)
 
-;;; arch-tag: 1724410e-7d4d-4f46-b801-49e18171e874
+;; arch-tag: 1724410e-7d4d-4f46-b801-49e18171e874
 ;;; outline.el ends here

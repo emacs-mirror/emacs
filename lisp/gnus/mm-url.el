@@ -1,5 +1,6 @@
 ;;; mm-url.el --- a wrapper of url functions/commands for Gnus
-;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
+
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 
@@ -41,6 +42,10 @@
   (if (featurep 'xemacs)
       (require 'timer-funcs)
     (require 'timer)))
+
+(defvar url-current-object)
+(defvar url-package-name)
+(defvar url-package-version)
 
 (defgroup mm-url nil
   "A wrapper of url package and external url command for Gnus."

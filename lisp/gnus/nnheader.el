@@ -1,8 +1,8 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
 
-;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996,
-;;        1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005
-;;        Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994,
+;;   1995, 1996, 1997, 1998, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -30,6 +30,8 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
+
+(defvar nnmail-extra-headers)
 
 ;; Requiring `gnus-util' at compile time creates a circular
 ;; dependency between nnheader.el and gnus-util.el.

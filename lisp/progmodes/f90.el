@@ -1,6 +1,7 @@
 ;;; f90.el --- Fortran-90 mode (free format)
 
-;; Copyright (C) 1995, 1996, 1997, 2000, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
 ;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
@@ -1790,7 +1791,8 @@ Any other key combination is executed normally."
   (let (char event)
     (if (fboundp 'next-command-event) ; XEmacs
         (setq event (next-command-event)
-              char (event-to-character event))
+              char (and (fboundp 'event-to-character)
+			(event-to-character event)))
       (setq event (read-event)
             char event))
     ;; Insert char if not equal to `?', or if abbrev-mode is off.

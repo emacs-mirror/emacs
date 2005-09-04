@@ -1,7 +1,7 @@
 ;;; grep.el --- run Grep as inferior of Emacs, parse match messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2002, 2004, 2005  Free Software Foundation, Inc.
+;;   2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -32,6 +32,9 @@
 ;;; Code:
 
 (require 'compile)
+
+(defvar font-lock-lines-before)
+
 
 (defgroup grep nil
   "Run compiler as inferior of Emacs, parse error messages."
@@ -187,16 +190,13 @@ See `compilation-error-screen-columns'"
     (define-key map "\^?" 'scroll-down)
     (define-key map "\C-c\C-f" 'next-error-follow-minor-mode)
 
-    ;; This is intolerable -- rms
-;;;    (define-key map [remap next-line] 'compilation-next-error)
-;;;    (define-key map [remap previous-line] 'compilation-previous-error)
-
     (define-key map "\r" 'compile-goto-error)  ;; ?
     (define-key map "n" 'next-error-no-select)
     (define-key map "p" 'previous-error-no-select)
     (define-key map "{" 'compilation-previous-file)
     (define-key map "}" 'compilation-next-file)
-    (define-key map "\t" 'compilation-next-file)
+    (define-key map "\t" 'compilation-next-error)
+    (define-key map [backtab] 'compilation-previous-error)
 
     ;; Set up the menu-bar
     (define-key map [menu-bar grep]
@@ -209,7 +209,7 @@ See `compilation-error-screen-columns'"
     (define-key map [menu-bar grep compilation-compile]
       '("Compile..." . compile))
     (define-key map [menu-bar grep compilation-grep]
-      '("Another grep" . grep))
+      '("Another grep..." . grep))
     (define-key map [menu-bar grep compilation-recompile]
       '("Repeat grep" . recompile))
     (define-key map [menu-bar grep compilation-separator2]
@@ -247,24 +247,24 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 
 ;;;###autoload
 (defvar grep-regexp-alist
-  ;; rms: I removed the code to match parens around the line number
-  ;; because it causes confusion and so we will find out if anyone needs it.
-  ;; It causes confusion with a file name that contains a number in parens.
-  '(("^\\(.+?\\)\\([: \t]\\)+\
-\\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
-\\(?:-\\(?:\\([0-9]+\\)\\4\\)?\\.?\\([0-9]+\\)?\\)?\\2"
-     1 (3 . 6) (5 . 7))
+  '(("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2"
+     1 3)
+    ;; Rule to match column numbers is commented out since no known grep
+    ;; produces them
+    ;; ("^\\(.+?\\)\\(:[ \t]*\\)\\([0-9]+\\)\\2\\(?:\\([0-9]+\\)\\(?:-\\([0-9]+\\)\\)?\\2\\)?"
+    ;;  1 3 (4 . 5))
     ("^\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
-\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(?:\033\\[K\\)?\\)"
+\\(\033\\[01;31m\\(?:\033\\[K\\)?\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
      2 3
      ;; Calculate column positions (beg . end) of first grep match on a line
      ((lambda ()
-        (setq compilation-error-screen-columns nil)
-        (- (match-beginning 5) (match-end 1) 8))
+	(setq compilation-error-screen-columns nil)
+        (- (match-beginning 4) (match-end 1)))
       .
-      (lambda () (- (match-end 5) (match-end 1) 8)))
+      (lambda () (- (match-end 5) (match-end 1)
+		    (- (match-end 4) (match-beginning 4)))))
      nil 1)
-    ("^Binary file \\(.+\\) matches$" 1 nil nil 1))
+    ("^Binary file \\(.+\\) matches$" 1 nil nil 0 1))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
 (defvar grep-error "grep hit"
@@ -275,11 +275,14 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 (defvar grep-hit-face	compilation-info-face
   "Face name to use for grep hits.")
 
-(defvar grep-error-face	compilation-error-face
+(defvar grep-error-face	'compilation-error
   "Face name to use for grep error messages.")
 
 (defvar grep-match-face	'match
   "Face name to use for grep matches.")
+
+(defvar grep-context-face 'shadow
+  "Face name to use for grep context lines.")
 
 (defvar grep-mode-font-lock-keywords
    '(;; Command output lines.
@@ -287,26 +290,33 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
      (": \\(.+\\): \\(?:Permission denied\\|No such \\(?:file or directory\\|device or address\\)\\)$"
       1 grep-error-face)
      ;; remove match from grep-regexp-alist before fontifying
+     ("^Grep started.*"
+      (0 '(face nil message nil help-echo nil mouse-face nil) t))
      ("^Grep finished \\(?:(\\(matches found\\))\\|with \\(no matches found\\)\\).*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 grep-hit-face nil t)
-      (2 grep-error-face nil t))
-     ("^Grep \\(exited abnormally\\) with code \\([0-9]+\\).*"
+      (1 compilation-info-face nil t)
+      (2 compilation-warning-face nil t))
+     ("^Grep \\(exited abnormally\\|interrupt\\|killed\\|terminated\\)\\(?:.*with code \\([0-9]+\\)\\)?.*"
       (0 '(face nil message nil help-echo nil mouse-face nil) t)
-      (1 compilation-warning-face)
-      (2 compilation-line-face))
+      (1 grep-error-face)
+      (2 grep-error-face nil t))
+     ("^.+?-[0-9]+-.*\n" (0 grep-context-face))
      ;; Highlight grep matches and delete markers
-     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(?:\033\\[K\\)?\\)"
+     ("\\(\033\\[01;31m\\)\\(.*?\\)\\(\033\\[[0-9]*m\\)"
       ;; Refontification does not work after the markers have been
       ;; deleted.  So we use the font-lock-face property here as Font
       ;; Lock does not clear that.
       (2 (list 'face nil 'font-lock-face grep-match-face))
-      ((lambda (p))
+      ((lambda (bound))
        (progn
 	 ;; Delete markers with `replace-match' because it updates
 	 ;; the match-data, whereas `delete-region' would render it obsolete.
 	 (replace-match "" t t nil 3)
-	 (replace-match "" t t nil 1)))))
+	 (replace-match "" t t nil 1))))
+     ("\\(\033\\[[0-9;]*[mK]\\)"
+      ;; Delete all remaining escape sequences
+      ((lambda (bound))
+       (replace-match "" t t nil 1))))
    "Additional things to highlight in grep output.
 This gets tacked on the end of the generated expressions.")
 
@@ -354,7 +364,10 @@ Set up `compilation-exit-message-function' and run `grep-setup-hook'."
   (when (eq grep-highlight-matches t)
     ;; Modify `process-environment' locally bound in `compilation-start'
     (setenv "GREP_OPTIONS" (concat (getenv "GREP_OPTIONS") " --color=always"))
-    (setenv "GREP_COLOR" "01;41"))
+    ;; for GNU grep 2.5.1
+    (setenv "GREP_COLOR" "01;31")
+    ;; for GNU grep 2.5.1-cvs
+    (setenv "GREP_COLORS" "mt=01;31:fn=:ln=:bn=:se=:ml=:cx=:ne"))
   (set (make-local-variable 'compilation-exit-message-function)
        (lambda (status code msg)
 	 (if (eq status 'exit)
@@ -508,12 +521,12 @@ temporarily highlight in visited source lines."
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
-  (let ((compilation-process-setup-function 'grep-process-setup))
-    (compilation-start (if (and grep-use-null-device null-device)
-			   (concat command-args " " null-device)
-			 command-args)
-		       'grep-mode nil highlight-regexp)))
+  (compilation-start (if (and grep-use-null-device null-device)
+			 (concat command-args " " null-device)
+		       command-args)
+		     'grep-mode nil highlight-regexp))
 
+;;;###autoload
 (define-compilation-mode grep-mode "Grep"
   "Sets `grep-last-buffer' and `compilation-window-height'."
   (setq grep-last-buffer (current-buffer))
@@ -521,6 +534,9 @@ temporarily highlight in visited source lines."
        grep-hit-face)
   (set (make-local-variable 'compilation-error-regexp-alist)
        grep-regexp-alist)
+  (set (make-local-variable 'compilation-process-setup-function)
+       'grep-process-setup)
+  (set (make-local-variable 'compilation-disable-input) t)
   ;; Set `font-lock-lines-before' to 0 to not refontify the previous
   ;; line where grep markers may be already removed.
   (set (make-local-variable 'font-lock-lines-before) 0))

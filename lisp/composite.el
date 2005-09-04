@@ -82,7 +82,7 @@ follows (the point `*' corresponds to both reference points):
 (defun encode-composition-rule (rule)
   "Encode composition rule RULE into an integer value.
 RULE is a cons of global and new reference point symbols
-\(see reference-point-alist)."
+\(see `reference-point-alist')."
 
   ;; This must be compatible with C macro COMPOSITION_ENCODE_RULE
   ;; defined in composite.h.
@@ -219,7 +219,7 @@ The return value is STRING where `composition' property is put on all
 the characters in it.
 
 Optional 2nd and 3rd arguments START and END specify the range of
-STRING to be composed.  They defaults to the beginning and the end of
+STRING to be composed.  They default to the beginning and the end of
 STRING respectively.
 
 Optional 4th argument COMPONENTS, if non-nil, is a character or a
@@ -355,11 +355,11 @@ The argument is a parameterized event of the form
 where N is the number of characters before point to compose,
 COMPONENTS, if non-nil, is the same as the argument to `compose-region'
 \(which see).  If it is nil, `compose-chars-after' is called,
-and that function find a proper rule to compose the target characters.
+and that function finds a proper rule to compose the target characters.
 This function is intended to be used from input methods.
 The global keymap binds special event `compose-last-chars' to this
 function.  Input method may generate an event (compose-last-chars N COMPONENTS)
-after a sequence character events."
+after a sequence of character events."
   (interactive "e")
   (let ((chars (nth 1 args)))
     (if (and (numberp chars)

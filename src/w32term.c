@@ -1,6 +1,6 @@
 /* Implementation of GUI terminal on the Microsoft W32 API.
-   Copyright (C) 1989, 93, 94, 95, 96, 1997, 1998, 1999, 2000, 2001
-   Free Software Foundation, Inc.
+   Copyright (C) 1989, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
+                 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -272,6 +272,11 @@ static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
 static void x_draw_bar_cursor P_ ((struct window *, struct glyph_row *, int,
 				   enum text_cursor_kinds));
 static void w32_clip_to_row P_ ((struct window *, struct glyph_row *, int, HDC));
+static BOOL my_show_window P_ ((struct frame *, HWND, int));
+static void my_set_window_pos P_ ((HWND, HWND, int, int, int, int, UINT));
+static void my_set_focus P_ ((struct frame *, HWND));
+static void my_set_foreground_window P_ ((HWND));
+static void my_destroy_window P_ ((struct frame *, HWND));
 
 static Lisp_Object Qvendor_specific_keysyms;
 
@@ -3632,7 +3637,7 @@ my_create_scrollbar (f, bar)
 
 /*#define ATTACH_THREADS*/
 
-BOOL
+static BOOL
 my_show_window (FRAME_PTR f, HWND hwnd, int how)
 {
 #ifndef ATTACH_THREADS
@@ -3643,7 +3648,7 @@ my_show_window (FRAME_PTR f, HWND hwnd, int how)
 #endif
 }
 
-void
+static void
 my_set_window_pos (HWND hwnd, HWND hwndAfter,
 		   int x, int y, int cx, int cy, UINT flags)
 {
@@ -3661,7 +3666,7 @@ my_set_window_pos (HWND hwnd, HWND hwndAfter,
 #endif
 }
 
-void
+static void
 my_set_focus (f, hwnd)
      struct frame * f;
      HWND hwnd;
@@ -3670,14 +3675,15 @@ my_set_focus (f, hwnd)
 	       (WPARAM) hwnd, 0);
 }
 
-void
+static void
 my_set_foreground_window (hwnd)
      HWND hwnd;
 {
   SendMessage (hwnd, WM_EMACS_SETFOREGROUND, (WPARAM) hwnd, 0);
 }
 
-void
+
+static void
 my_destroy_window (f, hwnd)
      struct frame * f;
      HWND hwnd;

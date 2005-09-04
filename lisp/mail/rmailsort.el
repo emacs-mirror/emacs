@@ -1,6 +1,7 @@
 ;;; rmailsort.el --- Rmail: sort messages
 
-;; Copyright (C) 1990, 1993, 1994, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Maintainer: FSF

@@ -1,6 +1,7 @@
 ;;; s-region.el --- set region using shift key
 
-;; Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: terminals
@@ -63,12 +64,12 @@
     (error "Non-vector key: %S" key)))
 
 (defun s-region-move-p1 (&rest arg)
-  "This is an overlay function to point-moving keys that are interactive \"p\""
+  "This is an overlay function to point-moving keys that are interactive \"p\"."
   (interactive "p")
   (apply (function s-region-move) arg))
 
 (defun s-region-move-p2 (&rest arg)
-  "This is an overlay function to point-moving keys that are interactive \"P\""
+  "This is an overlay function to point-moving keys that are interactive \"P\"."
   (interactive "P")
   (apply (function s-region-move) arg))
 
@@ -83,10 +84,10 @@
   (delete-overlay s-region-overlay))
 
 (defun s-region-bind (keylist &optional map)
-  "Bind shifted keys in KEYLIST to s-region-move-p1 or s-region-move-p2.
-Each key in KEYLIST is shifted and bound to one of the s-region-move
+  "Bind shifted keys in KEYLIST to `s-region-move-p1' or `s-region-move-p2'.
+Each key in KEYLIST is shifted and bound to one of the `s-region-move'
 functions provided it is already bound to some command or other.
-Optional third argument MAP specifies keymap to add binding to, defaulting
+Optional second argument MAP specifies keymap to add binding to, defaulting
 to global keymap."
   (let ((p2 (list 'scroll-up 'scroll-down
 		  'beginning-of-buffer 'end-of-buffer)))

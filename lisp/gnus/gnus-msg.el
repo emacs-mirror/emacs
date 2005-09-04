@@ -1,6 +1,7 @@
 ;;; gnus-msg.el --- mail and post interface for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -466,27 +467,19 @@ Gcc: header for archiving purposes."
   ;; COMPOSEFUNC should return t if succeed.  Undocumented ???
   t)
 
-(defvar save-selected-window-window)
-
 ;;;###autoload
 (defun gnus-button-mailto (address)
   "Mail to ADDRESS."
   (set-buffer (gnus-copy-article-buffer))
   (gnus-setup-message 'message
-    (message-reply address))
-  (and (boundp 'save-selected-window-window)
-       (not (window-live-p save-selected-window-window))
-       (setq save-selected-window-window (selected-window))))
+    (message-reply address)))
 
 ;;;###autoload
 (defun gnus-button-reply (&optional to-address wide)
   "Like `message-reply'."
   (interactive)
   (gnus-setup-message 'message
-    (message-reply to-address wide))
-  (and (boundp 'save-selected-window-window)
-       (not (window-live-p save-selected-window-window))
-       (setq save-selected-window-window (selected-window))))
+    (message-reply to-address wide)))
 
 ;;;###autoload
 (define-mail-user-agent 'gnus-user-agent

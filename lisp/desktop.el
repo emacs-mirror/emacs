@@ -1,10 +1,10 @@
 ;;; desktop.el --- save partial status of Emacs when killed
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 2000, 2001, 2005
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 2000, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
-;; Maintainter: Lars Hansen <larsh@math.ku.dk>
+;; Maintainter: Lars Hansen <larsh@soem.dk>
 ;; Keywords: convenience
 ;; Favourite-brand-of-beer: None, I hate beer.
 
@@ -51,13 +51,66 @@
 ;; function is added to the `after-init-hook'. This function is
 ;; responsible for loading the desktop when Emacs is started.
 
-;; Some words on minor modes: Most minor modes are controlled by
-;; buffer-local variables, which have a standard save / restore
-;; mechanism.  To handle all minor modes, we take the following
-;; approach: (1) check whether the variable name from
-;; `minor-mode-alist' is also a function; and (2) use translation
-;; table `desktop-minor-mode-table' in the case where the two names
-;; are not the same.
+;; Special handling.
+;; -----------------
+;; Variables `desktop-buffer-mode-handlers' and `desktop-minor-mode-handlers'
+;; are supplied to handle special major and minor modes respectively.
+;; `desktop-buffer-mode-handlers' is an alist of major mode specific functions
+;; to restore a desktop buffer. Elements must have the form
+;; 
+;;    (MAJOR-MODE . RESTORE-BUFFER-FUNCTION).
+;; 
+;; Functions listed are called by `desktop-create-buffer' when `desktop-read'
+;; evaluates the desktop file. Buffers with a major mode not specified here,
+;; are restored by the default handler `desktop-restore-file-buffer'.
+;; `desktop-minor-mode-handlers' is an alist of functions to restore
+;; non-standard minor modes.  Elements must have the form
+;; 
+;;    (MINOR-MODE . RESTORE-FUNCTION).
+;; 
+;; Functions are called by `desktop-create-buffer' to restore minor modes.
+;; Minor modes not specified here, are restored by the standard minor mode
+;; function.  If you write a module that defines a major or minor mode that
+;; needs a special handler, then place code like
+
+;;    (defun foo-restore-desktop-buffer
+;;    ...
+;;    (add-to-list 'desktop-buffer-mode-handlers
+;;                 '(foo-mode . foo-restore-desktop-buffer))
+
+;; or
+
+;;    (defun bar-desktop-restore
+;;    ...
+;;    (add-to-list 'desktop-minor-mode-handlers
+;;                 '(bar-mode . bar-desktop-restore))
+
+;; in the module itself, and make shure that the mode function is
+;; autoloaded. See the docstrings of `desktop-buffer-mode-handlers' and
+;; `desktop-minor-mode-handlers' for more info.
+
+;; Minor modes.
+;; ------------
+;; Conventional minor modes (see node "Minor Mode Conventions" in the elisp
+;; manual) are handled in the following way:
+;; When `desktop-save' saves the state of a buffer to the desktop file, it
+;; saves as `desktop-minor-modes' the list of names of those variables in
+;; `minor-mode-alist' that have a non-nil value.
+;; When `desktop-create' restores the buffer, each of the symbols in
+;; `desktop-minor-modes' is called as function with parameter 1.
+;; The variables `desktop-minor-mode-table' and `desktop-minor-mode-handlers'
+;; are used to handle non-conventional minor modes.  `desktop-save' uses
+;; `desktop-minor-mode-table' to map minor mode variables to minor mode
+;; functions before writing `desktop-minor-modes'. If a minor mode has a
+;; variable name that is different form its function name, an entry
+
+;;    (NAME RESTORE-FUNCTION)
+
+;; should be added to `desktop-minor-mode-table'.  If a minor mode should not
+;; be restored, RESTORE-FUNCTION should be set to nil.  `desktop-create' uses
+;; `desktop-minor-mode-handlers' to lookup minor modes that needs a restore
+;; function different from the usual minor mode function.
+;; ---------------------------------------------------------------------------
 
 ;; By the way: don't use desktop.el to customize Emacs -- the file .emacs
 ;; in your home directory is used for that.  Saving global default values
@@ -106,8 +159,8 @@ desktop is saved."
   :group 'desktop)
 
 ;; Maintained for backward compatibility
-(defvaralias 'desktop-enable 'desktop-save-mode)
-(make-obsolete-variable 'desktop-enable 'desktop-save-mode)
+(define-obsolete-variable-alias 'desktop-enable
+                                'desktop-save-mode "22.1")
 
 (defcustom desktop-save 'ask-if-new
   "*Specifies whether the desktop should be saved when it is killed.
@@ -120,7 +173,7 @@ Possible values are:
    if-exists     -- save if desktop file exists, otherwise don't save.
    nil           -- never save.
 The desktop is never saved when `desktop-save-mode' is nil.
-The variables `desktop-directory' and `desktop-base-file-name'
+The variables `desktop-dirname' and `desktop-base-file-name'
 determine where the desktop is saved."
   :type '(choice
     (const :tag "Always save" t)
@@ -137,7 +190,8 @@ determine where the desktop is saved."
   "Name of file for Emacs desktop, excluding the directory part."
   :type 'file
   :group 'desktop)
-(defvaralias 'desktop-basefilename 'desktop-base-file-name)
+(define-obsolete-variable-alias 'desktop-basefilename
+                                'desktop-base-file-name "22.1")
 
 (defcustom desktop-path '("." "~")
   "List of directories to search for the desktop file.
@@ -200,26 +254,21 @@ Feature: Saving `kill-ring' implies saving `kill-ring-yank-pointer'."
     regexp-search-ring-yank-pointer)
   "List of global variables that `desktop-clear' will clear.
 An element may be variable name (a symbol) or a cons cell of the form
-\(VAR . FORM). Symbols are set to nil and for cons cells VAR is set
-to the value obtained by evaluateing FORM."
+\(VAR . FORM).  Symbols are set to nil and for cons cells VAR is set
+to the value obtained by evaluating FORM."
   :type '(repeat (restricted-sexp :match-alternatives (symbolp consp)))
   :group 'desktop
   :version "22.1")
 
-(defcustom desktop-clear-preserve-buffers-regexp
-  "^\\(\\*scratch\\*\\|\\*Messages\\*\\|\\*tramp/.+\\*\\)$"
-  "Regexp identifying buffers that `desktop-clear' should not delete.
-See also `desktop-clear-preserve-buffers'."
-  :type 'regexp
-  :group 'desktop
-  :version "22.1")
-
-(defcustom desktop-clear-preserve-buffers nil
-  "*List of buffer names that `desktop-clear' should not delete.
-See also `desktop-clear-preserve-buffers-regexp'."
+(defcustom desktop-clear-preserve-buffers
+  '("\\*scratch\\*" "\\*Messages\\*" "\\*server\\*" "\\*tramp/.+\\*")
+  "*List of buffers that `desktop-clear' should not delete.
+Each element is a regular expression.  Buffers with a name matched by any of
+these won't be deleted."
   :type '(repeat string)
   :group 'desktop)
 
+;;;###autoload
 (defcustom desktop-locals-to-save
   '(desktop-locals-to-save  ; Itself!  Think it over.
     truncate-lines
@@ -229,12 +278,18 @@ See also `desktop-clear-preserve-buffers-regexp'."
     overwrite-mode
     change-log-default-name
     line-number-mode
-    buffer-file-coding-system)
+    column-number-mode
+    size-indication-mode
+    buffer-file-coding-system
+    indent-tabs-mode
+    indicate-buffer-boundaries
+    indicate-empty-lines
+    show-trailing-whitespace)
   "List of local variables to save for each buffer.
-The variables are saved only when they really are local."
+The variables are saved only when they really are local.  Conventional minor
+modes are restored automatically; they should not be listed here."
   :type '(repeat symbol)
   :group 'desktop)
-(make-variable-buffer-local 'desktop-locals-to-save)
 
 ;; We skip .log files because they are normally temporary.
 ;;         (ftp) files because they require passwords and whatnot.
@@ -293,30 +348,30 @@ See `desktop-restore-eager'."
   "When non-nil, save buffer status in desktop file.
 This variable becomes buffer local when set.
 
-If the value is a function, it called by `desktop-save' with argument
-DESKTOP-DIRNAME to obtain auxiliary information to saved in the desktop
+If the value is a function, it is called by `desktop-save' with argument
+DESKTOP-DIRNAME to obtain auxiliary information to save in the desktop
 file along with the state of the buffer for which it was called.
 
 When file names are returned, they should be formatted using the call
 \"(desktop-file-name FILE-NAME DESKTOP-DIRNAME)\".
 
-Later, when `desktop-read' calls a function in `desktop-buffer-mode-handlers'
-to restore the buffer, the auxiliary information is passed as the argument
-DESKTOP-BUFFER-MISC.")
+Later, when `desktop-read' evaluates the desktop file, auxiliary information
+is passed as the argument DESKTOP-BUFFER-MISC to functions in
+`desktop-buffer-mode-handlers'.")
 (make-variable-buffer-local 'desktop-save-buffer)
 (make-obsolete-variable 'desktop-buffer-modes-to-save
-                        'desktop-save-buffer)
+                        'desktop-save-buffer "22.1")
 (make-obsolete-variable 'desktop-buffer-misc-functions
-                        'desktop-save-buffer)
+                        'desktop-save-buffer "22.1")
 
-(defcustom desktop-buffer-mode-handlers
-  '((dired-mode . dired-restore-desktop-buffer)
-    (rmail-mode . rmail-restore-desktop-buffer)
-    (mh-folder-mode . mh-restore-desktop-buffer)
-    (Info-mode . Info-restore-desktop-buffer))
+;;;###autoload
+(defvar desktop-buffer-mode-handlers
+  nil
   "Alist of major mode specific functions to restore a desktop buffer.
-Functions are called by `desktop-read'. List elements must have the form
-\(MAJOR-MODE . RESTORE-BUFFER-FUNCTION).
+Functions listed are called by `desktop-create-buffer' when `desktop-read'
+evaluates the desktop file.  List elements must have the form
+
+   (MAJOR-MODE . RESTORE-BUFFER-FUNCTION).
 
 Buffers with a major mode not specified here, are restored by the default
 handler `desktop-restore-file-buffer'.
@@ -336,13 +391,22 @@ Furthermore, they may use the following variables:
    desktop-buffer-locals
 
 If a handler returns a buffer, then the saved mode settings
-and variable values for that buffer are copied into it."
-  :type 'alist
-  :group 'desktop)
+and variable values for that buffer are copied into it.
 
+Modules that define a major mode that needs a special handler should contain
+code like
+
+   (defun foo-restore-desktop-buffer
+   ...
+   (add-to-list 'desktop-buffer-mode-handlers
+                '(foo-mode . foo-restore-desktop-buffer))
+
+Furthermore the major mode function must be autoloaded.")
+
+;;;###autoload
 (put 'desktop-buffer-mode-handlers 'risky-local-variable t)
 (make-obsolete-variable 'desktop-buffer-handlers
-                        'desktop-buffer-mode-handlers)
+                        'desktop-buffer-mode-handlers "22.1")
 
 (defcustom desktop-minor-mode-table
   '((auto-fill-function auto-fill-mode)
@@ -354,9 +418,56 @@ mode is active.  RESTORE-FUNCTION is the function to activate the minor mode.
 called.  RESTORE-FUNCTION nil means don't try to restore the minor mode.
 Only minor modes for which the name of the buffer-local variable
 and the name of the minor mode function are different have to be added to
-this table."
+this table.  See also `desktop-minor-mode-handlers'."
   :type 'sexp
   :group 'desktop)
+
+;;;###autoload
+(defvar desktop-minor-mode-handlers
+  nil
+  "Alist of functions to restore non-standard minor modes.
+Functions are called by `desktop-create-buffer' to restore minor modes.
+List elements must have the form
+
+   (MINOR-MODE . RESTORE-FUNCTION).
+
+Minor modes not specified here, are restored by the standard minor mode
+function.
+
+Handlers are called with argument list
+
+   (DESKTOP-BUFFER-LOCALS)
+
+Furthermore, they may use the following variables:
+
+   desktop-file-version
+   desktop-buffer-file-name
+   desktop-buffer-name
+   desktop-buffer-major-mode
+   desktop-buffer-minor-modes
+   desktop-buffer-point
+   desktop-buffer-mark
+   desktop-buffer-read-only
+   desktop-buffer-misc
+
+When a handler is called, the buffer has been created and the major mode has
+been set, but local variables listed in desktop-buffer-locals has not yet been
+created and set.
+
+Modules that define a minor mode that needs a special handler should contain
+code like
+
+   (defun foo-desktop-restore
+   ...
+   (add-to-list 'desktop-minor-mode-handlers
+                '(foo-mode . foo-desktop-restore))
+
+Furthermore the minor mode function must be autoloaded.
+
+See also `desktop-minor-mode-table'.")
+
+;;;###autoload
+(put 'desktop-minor-mode-handlers 'risky-local-variable t)
 
 ;; ----------------------------------------------------------------------------
 (defvar desktop-dirname nil
@@ -381,25 +492,29 @@ this table."
 ;; ----------------------------------------------------------------------------
 (defun desktop-clear ()
   "Empty the Desktop.
-This kills all buffers except for internal ones and those matching
-`desktop-clear-preserve-buffers-regexp' or listed in
-`desktop-clear-preserve-buffers'.  Furthermore, it clears the
-variables listed in `desktop-globals-to-clear'."
+This kills all buffers except for internal ones and those with names matched by
+a regular expression in the list `desktop-clear-preserve-buffers'.
+Furthermore, it clears the variables listed in `desktop-globals-to-clear'."
   (interactive)
   (desktop-lazy-abort)
   (dolist (var desktop-globals-to-clear)
     (if (symbolp var)
       (eval `(setq-default ,var nil))
       (eval `(setq-default ,(car var) ,(cdr var)))))
-  (let ((buffers (buffer-list)))
+  (let ((buffers (buffer-list))
+        (preserve-regexp (concat "^\\("
+                                 (mapconcat (lambda (regexp)
+                                              (concat "\\(" regexp "\\)"))
+                                            desktop-clear-preserve-buffers
+                                            "\\|")
+                                 "\\)$")))
     (while buffers
       (let ((bufname (buffer-name (car buffers))))
          (or
            (null bufname)
-           (string-match desktop-clear-preserve-buffers-regexp bufname)
-           (member bufname desktop-clear-preserve-buffers)
+           (string-match preserve-regexp bufname)
            ;; Don't kill buffers made for internal purposes.
-           (and (not (equal bufname "")) (eq (aref bufname 0) ?\ ))
+           (and (not (equal bufname "")) (eq (aref bufname 0) ?\s))
            (kill-buffer (car buffers))))
       (setq buffers (cdr buffers))))
   (delete-other-windows))
@@ -432,7 +547,7 @@ is nil, ask the user where to save the desktop."
     (condition-case err
       (desktop-save desktop-dirname)
       (file-error
-        (unless (yes-or-no-p "Error while saving the desktop. Ignore? ")
+        (unless (yes-or-no-p "Error while saving the desktop.  Ignore? ")
           (signal (car err) (cdr err)))))))
 
 ;; ----------------------------------------------------------------------------
@@ -454,7 +569,7 @@ TXT is a string that when read and evaluated yields value.
 QUOTE may be `may' (value may be quoted),
 `must' (values must be quoted), or nil (value may not be quoted)."
   (cond
-   ((or (numberp value) (null value) (eq t value))
+   ((or (numberp value) (null value) (eq t value) (keywordp value))
     (cons 'may (prin1-to-string value)))
    ((stringp value)
     (let ((copy (copy-sequence value)))
@@ -621,12 +736,10 @@ See also `desktop-base-file-name'."
                           (and
                             (boundp minor-mode)
                             (symbol-value minor-mode)
-                            (let ((special (assq minor-mode desktop-minor-mode-table)))
-                              (when (or special (functionp minor-mode))
-                                (setq ret
-                                  (cons
-                                    (if special (cadr special) minor-mode)
-                                    ret))))))
+                            (let* ((special (assq minor-mode desktop-minor-mode-table))
+                                   (value (cond (special (cadr special))
+                                                ((functionp minor-mode) minor-mode))))
+                              (when value (add-to-list 'ret value)))))
                         (mapcar #'car minor-mode-alist))
                       ret)
                     (point)
@@ -684,7 +797,6 @@ See also `desktop-base-file-name'."
                   (insert ")\n\n")))
             info)
       (setq default-directory dirname)
-      (when (file-exists-p filename) (delete-file filename))
       (let ((coding-system-for-write 'emacs-mule))
         (write-region (point-min) (point-max) filename nil 'nomessage))))
   (setq desktop-dirname dirname))
@@ -711,7 +823,7 @@ This function also sets `desktop-dirname' to nil."
   "Read and process the desktop file in directory DIRNAME.
 Look for a desktop file in DIRNAME, or if DIRNAME is omitted, look in
 directories listed in `desktop-path'.  If a desktop file is found, it
-is processed and `desktop-after-read-hook' is run. If no desktop file
+is processed and `desktop-after-read-hook' is run.  If no desktop file
 is found, clear the desktop and run `desktop-no-desktop-file-hook'.
 This function is a no-op when Emacs is running in batch mode.
 It returns t if a desktop file was loaded, nil otherwise."
@@ -777,11 +889,11 @@ It returns t if a desktop file was loaded, nil otherwise."
 (defun desktop-load-default ()
   "Load the `default' start-up library manually.
 Also inhibit further loading of it."
-  (if (not inhibit-default-init)	; safety check
-      (progn
-	(load "default" t t)
-	(setq inhibit-default-init t))))
-(make-obsolete 'desktop-load-default 'desktop-save-mode)
+  (unless inhibit-default-init	        ; safety check
+    (load "default" t t)
+    (setq inhibit-default-init t)))
+(make-obsolete 'desktop-load-default
+               'desktop-save-mode "22.1")
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -802,7 +914,7 @@ directory DIRNAME."
   "Save the desktop in directory `desktop-dirname'."
   (interactive)
   (if desktop-dirname
-    (desktop-save desktop-dirname)
+      (desktop-save desktop-dirname)
     (call-interactively 'desktop-save))
   (message "Desktop saved in %s" desktop-dirname))
 
@@ -849,13 +961,20 @@ directory DIRNAME."
 	    buf)
 	nil)))
 
+(defun desktop-load-file (function)
+  "Load the file where auto loaded FUNCTION is defined."
+  (let ((fcell (symbol-function function)))
+    (when (and (listp fcell)
+               (eq 'autoload (car fcell)))
+      (load (cadr fcell)))))
+
 ;; ----------------------------------------------------------------------------
 ;; Create a buffer, load its file, set its mode, ...;
 ;; called from Desktop file only.
 
-(eval-when-compile ; Just to silence the byte compiler
-   (defvar desktop-first-buffer) ;; Dynamically bound in `desktop-read'
-)
+;; Just to silence the byte compiler.
+(eval-when-compile
+  (defvar desktop-first-buffer)) ; Dynamically bound in `desktop-read'
 
 (defun desktop-create-buffer
   (desktop-file-version
@@ -876,6 +995,8 @@ directory DIRNAME."
   ;; To make desktop files with relative file names possible, we cannot
   ;; allow `default-directory' to change. Therefore we save current buffer.
   (save-current-buffer
+    ;; Give major mode module a chance to add a handler.
+    (desktop-load-file desktop-buffer-major-mode)
     (let ((buffer-list (buffer-list))
           (result
            (condition-case err
@@ -913,9 +1034,15 @@ directory DIRNAME."
                (auto-fill-mode 0))
               (t
                (mapc #'(lambda (minor-mode)
-			 (when (functionp minor-mode) (funcall minor-mode 1)))
+                         ;; Give minor mode module a chance to add a handler.
+                         (desktop-load-file minor-mode)
+                         (let ((handler (cdr (assq minor-mode desktop-minor-mode-handlers))))
+                           (if handler
+                               (funcall handler desktop-buffer-locals)
+                             (when (functionp minor-mode)
+                               (funcall minor-mode 1)))))
 		     desktop-buffer-minor-modes)))
-        ;; Even though point and mark are non-nil when written by `desktop-save'
+        ;; Even though point and mark are non-nil when written by `desktop-save',
         ;; they may be modified by handlers wanting to set point or mark themselves.
         (when desktop-buffer-point
           (goto-char
@@ -958,7 +1085,7 @@ directory DIRNAME."
 			       (cons 'overwrite-mode (car mim)))))
 
 (defun desktop-append-buffer-args (&rest args)
-  "Append ARGS at end of `desktop-buffer-args-list'
+  "Append ARGS at end of `desktop-buffer-args-list'.
 ARGS must be an argument list for `desktop-create-buffer'."
   (setq desktop-buffer-args-list (nconc desktop-buffer-args-list (list args)))
   (unless desktop-lazy-timer

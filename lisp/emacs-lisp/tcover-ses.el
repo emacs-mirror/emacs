@@ -1,6 +1,6 @@
 ;;;; testcover-ses.el -- Example use of `testcover' to test "SES"
 
-;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jonathan Yavner <jyavner@engineer.com>
 ;; Maintainer: Jonathan Yavner <jyavner@engineer.com>
@@ -22,6 +22,9 @@
 ;; Boston, MA 02110-1301, USA.
 
 (require 'testcover)
+
+(defvar ses-initial-global-parameters)
+(defvar ses-mode-map)
 
 ;;;Here are some macros that exercise SES.  Set `pause' to t if you want the
 ;;;macros to pause after each step.

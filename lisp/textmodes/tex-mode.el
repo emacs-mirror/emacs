@@ -1,7 +1,7 @@
 ;;; tex-mode.el --- TeX, LaTeX, and SliTeX mode commands -*- coding: utf-8 -*-
 
 ;; Copyright (C) 1985, 1986, 1989, 1992, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: tex
@@ -35,6 +35,9 @@
   (require 'compare-w)
   (require 'cl)
   (require 'skeleton))
+
+(defvar font-lock-comment-face)
+(defvar font-lock-doc-face)
 
 (require 'shell)
 (require 'compile)
@@ -1577,12 +1580,14 @@ Return the process in which TeX is running."
            (star (string-match "\\*" cmd))
 	   (string
 	    (concat
-	     (if file
-		 (if star (concat (substring cmd 0 star)
-				  (shell-quote-argument file)
-				  (substring cmd (1+ star)))
-		   (concat cmd " " (shell-quote-argument file)))
-	       cmd)
+	     (if (null file)
+		 cmd
+               (if (file-name-absolute-p file)
+                   (setq file (convert-standard-filename file)))
+	       (if star (concat (substring cmd 0 star)
+                                (shell-quote-argument file)
+                                (substring cmd (1+ star)))
+                 (concat cmd " " (shell-quote-argument file))))
 	     (if background "&" ""))))
       ;; Switch to buffer before checking for subproc output in it.
       (set-buffer buf)
@@ -1760,7 +1765,11 @@ FILE is typically the output DVI or PDF file."
 	 (save-excursion
 	   (goto-char (point-max))
 	   (and (re-search-backward
-		 "(see the transcript file for additional information)" nil t)
+                 (concat
+                  "(see the transcript file for additional information)"
+                  "\\|^Output written on .*"
+                  (regexp-quote (file-name-nondirectory file))
+                  " (.*)\\.") nil t)
 		(> (save-excursion
 		     (or (re-search-backward "\\[[0-9]+\\]" nil t)
 			 (point-min)))

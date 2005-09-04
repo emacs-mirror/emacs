@@ -1,3 +1,34 @@
+2005-07-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* .cvsignore: Don't ignore fns-* and fns.el, which are no longer
+	generated.  Ignore also ctags.c and getopt.h.
+
+	* makefile.w32-in (clean): Delete getopt.h.
+	(getopt.h): New rule.
+
+2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge gnulib getopt implementation into Emacs.
+
+	* Makefile.in (mostlyclean): Remove getopt.h, getopt.h-t.
+	(GETOPT_H): New macro, from gnulib.
+	(getopt.h): New rule, from gnulib.
+	(GETOPTOBJS): Now autoconfigured.
+	(GETOPTDEPS): getopt.h is now autoconfigured.
+	(getopt.o, getopt1.o): Depend on $(GETOPT_H), not ${srcdir}/getopt.h.
+	(getopt.o): Depend on ${srcdir}/gettext.h.
+	(movemail.o): Depend on $(GETOPT_H).
+	* getopt.c, getopt1.c: Sync from gnulib.
+	* getopt_.h, getopt_int.h, gettext.h: New files, from gnulib.
+	* getopt.h: Removed (now is getopt_.h).
+
+2005-07-13  Ken Raeburn  <raeburn@gnu.org>
+
+	* pop.c: Don't include des.h (or variants thereof); krb.h will do
+	it.
+	(sendline): Add the \r\n to the line in a temporary buffer, and
+	write it all at once.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

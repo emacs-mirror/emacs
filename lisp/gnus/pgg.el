@@ -1,6 +1,7 @@
 ;;; pgg.el --- glue for the various PGP implementations.
 
-;; Copyright (C) 1999, 2000, 2003, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
@@ -34,19 +35,9 @@
 ;; Don't merge these two `eval-when-compile's.
 (eval-when-compile
   (require 'cl))
-;; Fixme: This would be better done with an autoload for
-;; `url-insert-file-contents', and the url stuff rationalized.
-;; (`locate-library' can say whether the url code is available.)
-(eval-when-compile
-  (ignore-errors
-    (require 'w3)
-    (require 'url)))
 
 ;;; @ utility functions
 ;;;
-
-(defvar pgg-fetch-key-function (if (fboundp 'url-insert-file-contents)
-				   (function pgg-fetch-key-with-w3)))
 
 (defun pgg-invoke (func scheme &rest args)
   (progn
@@ -410,7 +401,6 @@ within the region."
 
 (defun pgg-insert-url-with-w3 (url)
   (ignore-errors
-    (require 'w3)
     (require 'url)
     (let (buffer-file-name)
       (url-insert-file-contents url))))

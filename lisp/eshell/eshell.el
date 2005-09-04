@@ -1,6 +1,7 @@
 ;;; eshell.el --- the Emacs command shell
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 ;; Version: 2.4.2
@@ -373,11 +374,10 @@ buffer selected (or created)."
     ;; `same-window-buffer-names', which is done when Eshell is loaded
     (assert (and buf (buffer-live-p buf)))
     (pop-to-buffer buf)
-    (unless (fboundp 'eshell-mode)
+    (if (fboundp 'eshell-mode)
+	(unless (eq major-mode 'eshell-mode)
+	  (eshell-mode))
       (error "`eshell-auto' must be loaded before Eshell can be used"))
-    (unless (eq major-mode 'eshell-mode)
-      (eshell-mode))
-    (assert (eq major-mode 'eshell-mode))
     buf))
 
 (defun eshell-return-exits-minibuffer ()

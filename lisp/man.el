@@ -1,7 +1,7 @@
 ;;; man.el --- browse UNIX manual pages -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2003, 2004
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997, 2001, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Barry A. Warsaw <bwarsaw@cen.com>
 ;; Maintainer: FSF
@@ -352,6 +352,7 @@ Otherwise, the value is whatever the function
 (make-variable-buffer-local 'Man-page-mode-string)
 (make-variable-buffer-local 'Man-original-frame)
 (make-variable-buffer-local 'Man-arguments)
+(put 'Man-arguments 'permanent-local t)
 
 (setq-default Man-sections-alist nil)
 (setq-default Man-refpages-alist nil)
@@ -444,7 +445,7 @@ Otherwise, the value is whatever the function
 ;; utilities
 
 (defun Man-init-defvars ()
-  "Used for initialising variables based on display's color support.
+  "Used for initializing variables based on display's color support.
 This is necessary if one wants to dump man.el with Emacs."
 
   ;; Avoid possible error in call-process by using a directory that must exist.
@@ -552,8 +553,8 @@ This is necessary if one wants to dump man.el with Emacs."
 (defun Man-translate-references (ref)
   "Translates REF from \"chmod(2V)\" to \"2v chmod\" style.
 Leave it as is if already in that style.  Possibly downcase and
-translate the section (see the Man-downcase-section-letters-flag
-and the Man-section-translations-alist variables)."
+translate the section (see the `Man-downcase-section-letters-flag'
+and the `Man-section-translations-alist' variables)."
   (let ((name "")
         (section "")
         (slist Man-section-translations-alist))
@@ -591,7 +592,7 @@ This option allows `man' to interpret command line arguments
 as local filenames.
 Return the value of the variable `Man-support-local-filenames'
 if it was set to nil or t before the call of this function.
-If t, the man command supports `-l' option.  If nil, it don't.
+If t, the man command supports `-l' option.  If nil, it doesn't.
 Otherwise, if the value of `Man-support-local-filenames'
 is neither t nor nil, then determine a new value, set it
 to the variable `Man-support-local-filenames' and return
@@ -904,8 +905,8 @@ Same for the ANSI bold and normal escape sequences."
 
 (defun Man-highlight-references ()
   "Highlight the references on mouse-over.
-references include items in the SEE ALSO section,
-header file(#include <foo.h>) and files in FILES"
+References include items in the SEE ALSO section,
+header file (#include <foo.h>) and files in FILES."
   (let ((dummy 0))
     (Man-highlight-references0
      Man-see-also-regexp Man-reference-regexp 1 dummy
@@ -1005,8 +1006,15 @@ manpage command."
           (if Man-fontify-manpage-flag
               (Man-fontify-manpage)
             (Man-cleanup-manpage))
+
           (run-hooks 'Man-cooked-hook)
-          (Man-mode)
+	  (Man-mode)
+
+	  (if (not Man-page-list)
+	      (let ((args Man-arguments))
+		(kill-buffer (current-buffer))
+		(error "Can't find the %s manpage" args)))
+
           (set-buffer-modified-p nil)
           ))
 	;; Restore case-fold-search before calling
@@ -1082,7 +1090,7 @@ The following key bindings are currently in effect in the buffer:
   (Man-build-page-list)
   (Man-strip-page-headers)
   (Man-unindent)
-  (Man-goto-page 1)
+  (Man-goto-page 1 t)
   (run-mode-hooks 'Man-mode-hook))
 
 (defsubst Man-build-section-alist ()
@@ -1342,35 +1350,32 @@ Specify which REFERENCE to use; default is based on word at point."
   (interactive)
   (quit-window))
 
-(defun Man-goto-page (page)
+(defun Man-goto-page (page &optional noerror)
   "Go to the manual page on page PAGE."
   (interactive
    (if (not Man-page-list)
-       (let ((args Man-arguments))
-	 (kill-buffer (current-buffer))
-	 (error "Can't find the %s manpage" args))
+       (error "Not a man page buffer")
      (if (= (length Man-page-list) 1)
 	 (error "You're looking at the only manpage in the buffer")
        (list (read-minibuffer (format "Go to manpage [1-%d]: "
 				      (length Man-page-list)))))))
-  (if (not Man-page-list)
-      (let ((args Man-arguments))
-	(kill-buffer (current-buffer))
-	(error "Can't find the %s manpage" args)))
-  (if (or (< page 1)
-	  (> page (length Man-page-list)))
-      (error "No manpage %d found" page))
-  (let* ((page-range (nth (1- page) Man-page-list))
-	 (page-start (car page-range))
-	 (page-end (car (cdr page-range))))
-    (setq Man-current-page page
-	  Man-page-mode-string (Man-make-page-mode-string))
-    (widen)
-    (goto-char page-start)
-    (narrow-to-region page-start page-end)
-    (Man-build-section-alist)
-    (Man-build-references-alist)
-    (goto-char (point-min))))
+  (if (and (not Man-page-list) (not noerror))
+      (error "Not a man page buffer"))
+  (when Man-page-list
+    (if (or (< page 1)
+	    (> page (length Man-page-list)))
+	(error "No manpage %d found" page))
+    (let* ((page-range (nth (1- page) Man-page-list))
+	   (page-start (car page-range))
+	   (page-end (car (cdr page-range))))
+      (setq Man-current-page page
+	    Man-page-mode-string (Man-make-page-mode-string))
+      (widen)
+      (goto-char page-start)
+      (narrow-to-region page-start page-end)
+      (Man-build-section-alist)
+      (Man-build-references-alist)
+      (goto-char (point-min)))))
 
 
 (defun Man-next-manpage ()

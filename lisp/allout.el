@@ -1,6 +1,7 @@
 ;;; allout.el --- extensive outline mode for use alone and with other modes
 
-;; Copyright (C) 1992, 93, 94, 2001, 02, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Ken Manheimer <klm@zope.com>
 ;; Maintainer: Ken Manheimer <klm@zope.com>
@@ -868,15 +869,8 @@ allout-pre- and -post-command-hooks.")
 (make-variable-buffer-local 'allout-pre-was-isearching)
 ;;;_   = allout-isearch-prior-pos nil
 (defvar allout-isearch-prior-pos nil
-  "Cue for isearch-dynamic-exposure tracking, used by allout-isearch-expose.")
+  "Cue for isearch-dynamic-exposure tracking, used by `allout-isearch-expose'.")
 (make-variable-buffer-local 'allout-isearch-prior-pos)
-;;;_   = allout-isearch-did-quit
-(defvar allout-isearch-did-quit nil
-  "Distinguishes isearch conclusion and cancellation.
-
-Maintained by `allout-isearch-abort' \(which is wrapped around the real
-isearch-abort), and monitored by `allout-isearch-expose' for action.")
-(make-variable-buffer-local 'allout-isearch-did-quit)
 ;;;_   = allout-override-protect nil
 (defvar allout-override-protect nil
   "Used in `allout-mode' for regulate of concealed-text protection mechanism.
@@ -887,16 +881,16 @@ native outline functions to temporarily override that protection.
 It's automatically reset to nil after every buffer modification.")
 (make-variable-buffer-local 'allout-override-protect)
 ;;;_   > allout-unprotected (expr)
-(defmacro allout-unprotected (expr)
-  "Evaluate EXPRESSION with `allout-override-protect' let-bound t."
+(defmacro allout-unprotected (expression)
+  "Evaluate EXPRESSION with `allout-override-protect' let-bound to t."
   `(let ((allout-override-protect t))
-     ,expr))
+     ,expression))
 ;;;_   = allout-undo-aggregation
 (defvar allout-undo-aggregation 30
   "Amount of successive self-insert actions to bunch together per undo.
 
 This is purely a kludge variable, regulating the compensation for a bug in
-the way that before-change-functions and undo interact.")
+the way that `before-change-functions' and undo interact.")
 (make-variable-buffer-local 'allout-undo-aggregation)
 ;;;_   = file-var-bug hack
 (defvar allout-v18/19-file-var-hack nil
@@ -1154,7 +1148,7 @@ Topic text constituents:
 
 HEADER:	The first line of a topic, include the topic PREFIX and header
 	text.
-PREFIX: The leading text of a topic which which distinguishes it from
+PREFIX: The leading text of a topic which distinguishes it from
 	normal text.  It has a strict form, which consists of a
 	prefix-lead string, padding, and a bullet.  The bullet may be
 	followed by a number, indicating the ordinal number of the
@@ -1343,8 +1337,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
       (if allout-layout
 	  (setq do-layout t))
 
-      (if (and allout-isearch-dynamic-expose
-	       (not (fboundp 'allout-real-isearch-abort)))
+      (if allout-isearch-dynamic-expose
 	  (allout-enwrap-isearch))
 
       (run-hooks 'allout-mode-hook)
@@ -1407,12 +1400,12 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
   "Buffer point last returned by `allout-end-of-current-subtree'.")
 (make-variable-buffer-local 'allout-recent-end-of-subtree)
 ;;;_  > allout-prefix-data (beg end)
-(defmacro allout-prefix-data (beg end)
+(defmacro allout-prefix-data (beginning end)
   "Register allout-prefix state data - BEGINNING and END of prefix.
 
 For reference by `allout-recent' funcs.  Returns BEGINNING."
   `(setq allout-recent-prefix-end ,end
-         allout-recent-prefix-beginning ,beg))
+         allout-recent-prefix-beginning ,beginning))
 ;;;_  > allout-recent-depth ()
 (defmacro allout-recent-depth ()
   "Return depth of last heading encountered by an outline maneuvering function.
@@ -1632,7 +1625,7 @@ list containing, recursively, the charts for the respective subtopics.
 The chart for a topics' offspring precedes the entry for the topic
 itself.
 
-\(fn &optional levels)"
+\(fn &optional LEVELS)"
 
   ;; The other function parameters are for internal recursion, and should
   ;; not be specified by external callers.  ORIG-DEPTH is depth of topic at
@@ -1999,7 +1992,7 @@ Return depth if successful, nil otherwise."
   )
 ;;;_   > allout-snug-back ()
 (defun allout-snug-back ()
-  "Position cursor at end of previous topic
+  "Position cursor at end of previous topic.
 
 Presumes point is at the start of a topic prefix."
  (if (or (bobp) (eobp))
@@ -2226,8 +2219,7 @@ are exempt from this restriction."
 		      (if rehide-place (goto-char rehide-place))
 		      (allout-hide-current-entry-completely))
 		  (allout-hide-current-entry))
-		(error (concat
-			"Change within concealed region prevented.")))))))
+		(error "Change within concealed region prevented"))))))
     )	; if
   )	; defun
 ;;;_   = allout-post-goto-bullet
@@ -2249,8 +2241,8 @@ are mapped to the command of the corresponding control-key on the
 - Implement (and clear) `allout-post-goto-bullet', for hot-spot
   outline commands.
 
-- Massages buffer-undo-list so successive, standard character self-inserts are
-  aggregated.  This kludge compensates for lack of undo bunching when
+- Massages `buffer-undo-list' so successive, standard character self-inserts
+  are aggregated.  This kludge compensates for lack of undo bunching when
   `before-change-functions' is used."
 
 					; Apply any external change func:
@@ -2325,9 +2317,7 @@ return to regular interpretation of self-insert characters."
 	(let* ((this-key-num (cond
 			      ((numberp last-command-char)
 			       last-command-char)
-			      ;; XXX Only XEmacs has characterp.
-			      ((and (fboundp 'characterp)
-				    (characterp last-command-char))
+			      ((fboundp 'char-to-int)
 			       (char-to-int last-command-char))
 			      (t 0)))
 	       mapped-binding)
@@ -2363,7 +2353,7 @@ See `allout-init' for setup instructions."
 
 Called as part of `allout-post-command-business'."
 
-  (let ((isearching (and (boundp 'isearch-mode) isearch-mode)))
+  (let ((isearching isearch-mode))
     (cond ((and isearching (not allout-pre-was-isearching))
 	   (allout-isearch-expose 'start))
 	  ((and isearching allout-pre-was-isearching)
@@ -2371,15 +2361,14 @@ Called as part of `allout-post-command-business'."
 	  ((and (not isearching) allout-pre-was-isearching)
 	   (allout-isearch-expose 'final))
 	  ;; Not and wasn't isearching:
-	  (t (setq allout-isearch-prior-pos nil)
-	     (setq allout-isearch-did-quit nil)))))
+	  (t (setq allout-isearch-prior-pos nil)))))
 ;;;_   = allout-isearch-was-font-lock
 (defvar allout-isearch-was-font-lock
   (and (boundp 'font-lock-mode) font-lock-mode))
 
 ;;;_   > allout-flag-region (from to flag)
 (defmacro allout-flag-region (from to flag)
-  "Hide or show lines from FROM to TO, via Emacs selective-display FLAG char.
+  "Hide or show lines from FROM to TO, via Emacs `selective-display' FLAG char.
 Ie, text following flag C-m \(carriage-return) is hidden until the
 next C-j (newline) char.
 
@@ -2414,51 +2403,16 @@ Returns the endpoint of the region."
       (setq allout-isearch-prior-pos nil)
     (if (not (eq mode 'final))
 	(setq allout-isearch-prior-pos (cons (point) (allout-show-entry)))
-      (if allout-isearch-did-quit
+      (if isearch-mode-end-hook-quit
 	  nil
 	(setq allout-isearch-prior-pos nil)
-	(allout-show-children))))
-  (setq allout-isearch-did-quit nil))
+	(allout-show-children)))))
 ;;;_   > allout-enwrap-isearch ()
 (defun allout-enwrap-isearch ()
-  "Impose `allout-mode' isearch-abort wrapper for dynamic exposure in isearch.
+  "Impose `isearch-abort' wrapper for dynamic exposure in isearch.
 
 The function checks to ensure that the rebinding is done only once."
-
-  (add-hook 'isearch-mode-end-hook 'allout-isearch-rectification)
-  (if (fboundp 'allout-real-isearch-abort)
-      ;;
-      nil
-                                        ; Ensure load of isearch-mode:
-    (if (or (and (fboundp 'isearch-mode)
-                 (fboundp 'isearch-abort))
-            (condition-case error
-                (load-library "isearch-mode")
-              ('file-error (message
-			    "Skipping isearch-mode provisions - %s '%s'"
-			    (car (cdr error))
-			    (car (cdr (cdr error))))
-			   (sit-for 1)
-			   ;; Inhibit subsequent tries and return nil:
-			   (setq allout-isearch-dynamic-expose nil))))
-        ;; Isearch-mode loaded, encapsulate specific entry points for
-        ;; outline dynamic-exposure business:
-        (progn
-	  ;; stash crucial isearch-mode funcs under known, private
-	  ;; names, then register wrapper functions under the old
-	  ;; names, in their stead:
-          (fset 'allout-real-isearch-abort (symbol-function 'isearch-abort))
-          (fset 'isearch-abort 'allout-isearch-abort)))))
-;;;_   > allout-isearch-abort ()
-(defun allout-isearch-abort ()
-  "Wrapper for `allout-real-isearch-abort' \(which see), to register
-actual quits."
-  (interactive)
-  (setq allout-isearch-did-quit nil)
-  (condition-case what
-      (allout-real-isearch-abort)
-    ('quit (setq allout-isearch-did-quit t)
-	  (signal 'quit nil))))
+  (add-hook 'isearch-mode-end-hook 'allout-isearch-rectification))
 
 ;;; Prevent unnecessary font-lock while isearching!
 (defvar isearch-was-font-locking nil)
@@ -2469,7 +2423,7 @@ actual quits."
 	    font-lock-mode nil)))
 (add-hook 'isearch-mode-hook 'isearch-inhibit-font-lock)
 (defun isearch-reenable-font-lock ()
-  "Reenable font-lock after isearching - for use on isearch-mode-end-hook."
+  "Reenable font-lock after isearching - for use on `isearch-mode-end-hook'."
   (if (and (boundp 'font-lock-mode) font-lock-mode)
       (if (and (allout-mode-p) isearch-was-font-locking)
 	  (setq isearch-was-font-locking nil
@@ -2671,15 +2625,15 @@ index for each successive sibling)."
                                    ((allout-sibling-index))))))
     )
   )
-;;;_   > allout-open-topic (relative-depth &optional before use_sib_bullet)
-(defun allout-open-topic (relative-depth &optional before use_sib_bullet)
+;;;_   > allout-open-topic (relative-depth &optional before use-sib-bullet)
+(defun allout-open-topic (relative-depth &optional before use-sib-bullet)
   "Open a new topic at depth RELATIVE-DEPTH.
 
 New topic is situated after current one, unless optional flag BEFORE
 is non-nil, or unless current line is complete empty (not even
 whitespace), in which case open is done on current line.
 
-If USE_SIB_BULLET is true, use the bullet of the prior sibling.
+If USE-SIB-BULLET is true, use the bullet of the prior sibling.
 
 Nuances:
 
@@ -2821,7 +2775,7 @@ Nuances:
     ;;(if doing-beginning (save-excursion (newline (if dbl-space 2 1))))
 
 
-    (allout-rebullet-heading (and use_sib_bullet ref-bullet);;; solicit
+    (allout-rebullet-heading (and use-sib-bullet ref-bullet);;; solicit
                               depth			     ;;; depth
                               nil 			     ;;; number-control
                               nil			     ;;; index
@@ -3439,8 +3393,8 @@ exactly like normal yanks.
 Numbering of yanked topics, and the successive siblings at the depth
 into which they're being yanked, is adjusted.
 
-`allout-yank-pop' works with `allout-yank' just like normal yank-pop
-works with normal yank in non-outline buffers."
+`allout-yank-pop' works with `allout-yank' just like normal `yank-pop'
+works with normal `yank' in non-outline buffers."
 
   (interactive "*P")
   (setq this-command 'yank)
@@ -3472,9 +3426,9 @@ by pops to non-distinctive yanks.  Bug..."
   (interactive)
   (if (not allout-file-xref-bullet)
       (error
-       "outline cross references disabled - no `allout-file-xref-bullet'")
+       "Outline cross references disabled - no `allout-file-xref-bullet'")
     (if (not (string= (allout-current-bullet) allout-file-xref-bullet))
-        (error "current heading lacks cross-reference bullet `%s'"
+        (error "Current heading lacks cross-reference bullet `%s'"
                allout-file-xref-bullet)
       (let (file-name)
         (save-excursion
@@ -4365,9 +4319,9 @@ used verbatim."
 ;;;_  - LaTeX formatting
 ;;;_   > allout-latex-verb-quote (string &optional flow)
 (defun allout-latex-verb-quote (string &optional flow)
-  "Return copy of STRING for literal reproduction across latex processing.
+  "Return copy of STRING for literal reproduction across LaTeX processing.
 Expresses the original characters \(including carriage returns) of the
-string across latex processing."
+string across LaTeX processing."
   (mapconcat (function
 	      (lambda (char)
 		(cond ((memq char '(?\\ ?$ ?% ?# ?& ?{ ?} ?_ ?^ ?- ?*))
@@ -4378,10 +4332,10 @@ string across latex processing."
 	     ""))
 ;;;_   > allout-latex-verbatim-quote-curr-line ()
 (defun allout-latex-verbatim-quote-curr-line ()
-  "Express line for exact \(literal) representation across latex processing.
+  "Express line for exact \(literal) representation across LaTeX processing.
 
 Adjust line contents so it is unaltered \(from the original line)
-across latex processing, within the context of a `verbatim'
+across LaTeX processing, within the context of a `verbatim'
 environment.  Leaves point at the end of the line."
   (beginning-of-line)
   (let ((beg (point))
@@ -4397,7 +4351,7 @@ environment.  Leaves point at the end of the line."
       (goto-char (1+ (match-end 0))))))
 ;;;_   > allout-insert-latex-header (buffer)
 (defun allout-insert-latex-header (buffer)
-  "Insert initial latex commands at point in BUFFER."
+  "Insert initial LaTeX commands at point in BUFFER."
   ;; Much of this is being derived from the stuff in appendix of E in
   ;; the TeXBook, pg 421.
   (set-buffer buffer)
@@ -4471,7 +4425,7 @@ environment.  Leaves point at the end of the line."
 	    )))
 ;;;_   > allout-insert-latex-trailer (buffer)
 (defun allout-insert-latex-trailer (buffer)
-  "Insert concluding latex commands at point in BUFFER."
+  "Insert concluding LaTeX commands at point in BUFFER."
   (set-buffer buffer)
   (insert "\n\\end{document}\n"))
 ;;;_   > allout-latexify-one-item (depth prefix bullet text)
@@ -4526,7 +4480,7 @@ BULLET string, and a list of TEXT strings for the body."
       )))
 ;;;_   > allout-latexify-exposed (arg &optional tobuf)
 (defun allout-latexify-exposed (arg &optional tobuf)
-  "Format current topics exposed portions to TOBUF for latex processing.
+  "Format current topics exposed portions to TOBUF for LaTeX processing.
 TOBUF defaults to a buffer named the same as the current buffer, but
 with \"*\" prepended and \" latex-formed*\" appended.
 
@@ -4640,7 +4594,8 @@ Optional arg DO-DEFAULTING indicates to accept empty input (CR)."
 Representations of actual backslashes - '\\\\\\\\' - are left as a
 single backslash.
 
-Optional arg SUCCESSIVE-BACKSLASHES is used internally for recursion."
+\(fn REGEXP)"
+;; Optional arg SUCCESSIVE-BACKSLASHES is used internally for recursion.
 
   (if (string= regexp "")
       ""
@@ -4683,7 +4638,7 @@ function.  If HOOK is void, it is first set to nil."
 		 (cons function (symbol-value hook)))))))
 ;;;_  : my-mark-marker to accommodate divergent emacsen:
 (defun my-mark-marker (&optional force buffer)
-  "Accommodate the different signature for mark-marker across Emacsen.
+  "Accommodate the different signature for `mark-marker' across Emacsen.
 
 XEmacs takes two optional args, while GNU Emacs does not,
 so pass them along when appropriate."

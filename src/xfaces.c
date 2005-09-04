@@ -1,6 +1,6 @@
 /* xfaces.c -- "Face" primitives.
-   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-   Free Software Foundation.
+   Copyright (C) 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -785,8 +785,6 @@ x_free_gc (f, gc)
 
 #ifdef MAC_OS
 /* Mac OS emulation of GCs */
-
-extern XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
 
 static INLINE GC
 x_create_gc (f, mask, xgcv)
@@ -3926,7 +3924,7 @@ Value is a vector of face attributes.  */)
 DEFUN ("internal-lisp-face-p", Finternal_lisp_face_p,
        Sinternal_lisp_face_p, 1, 2, 0,
        doc: /* Return non-nil if FACE names a face.
-If optional second parameter FRAME is non-nil, check for the
+If optional second argument FRAME is non-nil, check for the
 existence of a frame-local face with name FACE on that frame.
 Otherwise check for the existence of a global face.  */)
      (face, frame)
@@ -4735,7 +4733,12 @@ x_update_menu_appearance (f)
 	  const char *suffix = "List";
 	  Bool motif = True;
 #else
+#if defined HAVE_X_I18N
+
+	  const char *suffix = "Set";
+#else
 	  const char *suffix = "";
+#endif
 	  Bool motif = False;
 #endif
 #if defined HAVE_X_I18N
@@ -6757,14 +6760,21 @@ try_font_list (f, attrs, family, registry, fonts, prefer_face_family)
     nfonts = try_alternative_families (f, try_family, registry, fonts);
 
 #ifdef MAC_OS
-  /* When realizing the default face and a font spec does not matched
-     exactly, Emacs looks for ones with the same registry as the
-     default font.  On the Mac, this is mac-roman, which does not work
-     if the family is -etl-fixed, e.g.  The following widens the
-     choices and fixes that problem.  */
-  if (nfonts == 0 && STRINGP (try_family) && STRINGP (registry)
-      && xstricmp (SDATA (registry), "mac-roman") == 0)
-    nfonts = try_alternative_families (f, try_family, Qnil, fonts);
+  if (nfonts == 0 && STRINGP (try_family) && STRINGP (registry))
+    if (xstricmp (SDATA (registry), "mac-roman") == 0)
+      /* When realizing the default face and a font spec does not
+	 matched exactly, Emacs looks for ones with the same registry
+	 as the default font.  On the Mac, this is mac-roman, which
+	 does not work if the family is -etl-fixed, e.g.  The
+	 following widens the choices and fixes that problem.  */
+      nfonts = try_alternative_families (f, try_family, Qnil, fonts);
+    else if (SBYTES (try_family) > 0
+	     && SREF (try_family, SBYTES (try_family) - 1) != '*')
+      /* Some Central European/Cyrillic font family names have the
+	 Roman counterpart name as their prefix.  */
+      nfonts = try_alternative_families (f, concat2 (try_family,
+						     build_string ("*")),
+					 registry, fonts);
 #endif
 
   if (EQ (try_family, family))

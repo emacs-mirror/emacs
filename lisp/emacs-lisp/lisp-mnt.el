@@ -1,6 +1,7 @@
 ;;; lisp-mnt.el --- utility functions for Emacs Lisp maintainers
 
-;; Copyright (C) 1992, 1994, 1997, 2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1997, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -306,7 +307,7 @@ If FILE is nil, execute BODY in the current buffer."
 	     (insert-file-contents ,filesym)
 	     (lisp-mode)
 	     ,@body)
-	 (save-excursion 
+	 (save-excursion
 	   ;; Switching major modes is too drastic, so just switch
 	   ;; temporarily to the Lisp mode syntax table.
 	   (with-syntax-table lisp-mode-syntax-table

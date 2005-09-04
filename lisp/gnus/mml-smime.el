@@ -1,5 +1,7 @@
 ;;; mml-smime.el --- S/MIME support for MML
-;; Copyright (c) 2000, 2001, 2003 Free Software Foundation, Inc.
+
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: Gnus, MIME, S/MIME, MML
@@ -27,6 +29,8 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar gnus-extract-address-components)
+
 (require 'smime)
 (require 'mm-decode)
 (autoload 'message-narrow-to-headers "message")
@@ -52,7 +56,7 @@
       (if (not (and (not (file-exists-p tmp))
 		    (get-buffer tmp)))
 	  (push tmp certfiles)
-	(setq file (mm-make-temp-file (expand-file-name "mml." 
+	(setq file (mm-make-temp-file (expand-file-name "mml."
 							mm-tmp-directory)))
 	(with-current-buffer tmp
 	  (write-region (point-min) (point-max) file))

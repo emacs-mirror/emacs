@@ -1,6 +1,7 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 01, 02, 05 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -205,6 +206,12 @@ Should be a sexp. For instance (car ediff-filtering-regexp-history) or nil."
 This can be toggled with `ediff-toggle-filename-truncation'."
   :type 'boolean
   :group 'ediff-mult)
+
+(defcustom ediff-meta-mode-hook nil
+  "*Hooks run just after setting up meta mode."
+  :type 'hook
+  :group 'ediff-mult)
+
 (defcustom ediff-registry-setup-hook nil
   "*Hooks run just after the registry control panel is set up."
   :type 'hook
@@ -411,7 +418,8 @@ Commands:
   (kill-all-local-variables)
   (setq major-mode 'ediff-meta-mode)
   (setq mode-name "MetaEdiff")
-  (run-mode-hooks 'ediff-meta-mode-hook))
+  ;; don't use run-mode-hooks here!
+  (run-hooks 'ediff-meta-mode-hook))
 
 
 ;; the keymap for the buffer showing directory differences

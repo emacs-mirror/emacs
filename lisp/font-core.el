@@ -1,7 +1,7 @@
 ;;; font-core.el --- Core interface to font-lock
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
-;;   2002, 2003, 2005  Free Software Foundation, Inc.
+;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: languages, faces
@@ -125,7 +125,7 @@ major modes support different levels of fontification, you can use the variable
 When you turn Font Lock mode on/off the buffer is fontified/defontified, though
 fontification occurs only if the buffer is less than `font-lock-maximum-size'.
 
-For example, to specify that Font Lock mode use use Lazy Lock mode as a support
+For example, to specify that Font Lock mode uses Lazy Lock mode as a support
 mode and use maximum levels of fontification, put in your ~/.emacs:
 
  (setq font-lock-support-mode 'lazy-lock-mode)

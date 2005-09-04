@@ -1,6 +1,7 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -710,7 +711,7 @@ You can manipulate rectangles with these commands:
   C-c C-r Draw a rectangular box around mark and point.
   \\[copy-rectangle-to-register]   Copies a rectangle to a register.
   \\[advertised-undo]   Can undo effects of rectangle overlay commands
-	    commands if invoked soon enough.
+	    if invoked soon enough.
 You can return to the previous mode with:
   C-c C-c Which also strips trailing whitespace from every line.
 	    Stripping is suppressed by supplying an argument.

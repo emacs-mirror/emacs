@@ -1,6 +1,7 @@
 ;;; checkdoc.el --- check documentation strings for style requirements
 
-;;;  Copyright (C) 1997, 1998, 2001, 2004  Free Software Foundation
+;; Copyright (C) 1997, 1998, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Version: 0.6.2
@@ -189,6 +190,9 @@
      (defmacro defcustom (var value doc &rest args)
        `(defvar ,var ,value ,doc))))
 
+(defvar compilation-error-regexp-alist)
+(defvar compilation-mode-font-lock-keywords)
+
 (defcustom checkdoc-autofix-flag 'semiautomatic
   "*Non-nil means attempt auto-fixing of doc strings.
 If this value is the symbol `query', then the user is queried before
@@ -317,12 +321,12 @@ This should be set in an Emacs Lisp file's local variables."
   "List of words (not capitalized) which should be capitalized.")
 
 (defvar checkdoc-proper-noun-regexp
-  (let ((expr "\\<\\(")
+  (let ((expr "\\_<\\(")
 	(l checkdoc-proper-noun-list))
     (while l
       (setq expr (concat expr (car l) (if (cdr l) "\\|" ""))
 	    l (cdr l)))
-    (concat expr "\\)\\>"))
+    (concat expr "\\)\\_>"))
   "Regular expression derived from `checkdoc-proper-noun-regexp'.")
 
 (defvar checkdoc-common-verbs-regexp nil
@@ -430,32 +434,20 @@ be re-created.")
 
 ;;; Compatibility
 ;;
-(if (string-match "X[Ee]macs" emacs-version)
-    (progn
-      (defalias 'checkdoc-make-overlay 'make-extent)
-      (defalias 'checkdoc-overlay-put 'set-extent-property)
-      (defalias 'checkdoc-delete-overlay 'delete-extent)
-      (defalias 'checkdoc-overlay-start 'extent-start)
-      (defalias 'checkdoc-overlay-end 'extent-end)
-      (defalias 'checkdoc-mode-line-update 'redraw-modeline)
-      (defalias 'checkdoc-call-eval-buffer 'eval-buffer)
-      )
-  (defalias 'checkdoc-make-overlay 'make-overlay)
-  (defalias 'checkdoc-overlay-put 'overlay-put)
-  (defalias 'checkdoc-delete-overlay 'delete-overlay)
-  (defalias 'checkdoc-overlay-start 'overlay-start)
-  (defalias 'checkdoc-overlay-end 'overlay-end)
-  (defalias 'checkdoc-mode-line-update 'force-mode-line-update)
-  (defalias 'checkdoc-call-eval-buffer 'eval-current-buffer)
-  )
-
-;; Emacs 20s have MULE characters which don't equate to numbers.
-(if (fboundp 'char=)
-    (defalias 'checkdoc-char= 'char=)
-  (defalias 'checkdoc-char= '=))
-
-;; Read events, not characters
-(defalias 'checkdoc-read-event 'read-event)
+(defalias 'checkdoc-make-overlay
+  (if (featurep 'xemacs) 'make-extent 'make-overlay))
+(defalias 'checkdoc-overlay-put
+  (if (featurep 'xemacs) 'set-extent-property 'overlay-put))
+(defalias 'checkdoc-delete-overlay
+  (if (featurep 'xemacs) 'delete-extent 'delete-overlay))
+(defalias 'checkdoc-overlay-start
+  (if (featurep 'xemacs) 'extent-start 'overlay-start))
+(defalias 'checkdoc-overlay-end
+  (if (featurep 'xemacs) 'extent-end 'overlay-end))
+(defalias 'checkdoc-mode-line-update
+  (if (featurep 'xemacs) 'redraw-modeline 'force-mode-line-update))
+(defalias 'checkdoc-char=
+  (if (featurep 'xemacs) 'char= '=))
 
 ;;; User level commands
 ;;
@@ -628,7 +620,7 @@ style."
 		(goto-char (checkdoc-error-start (car (car err-list))))
 		(if (not (pos-visible-in-window-p))
 		    (recenter (- (window-height) 2)))
-		(setq c (checkdoc-read-event)))
+		(setq c (read-event)))
 	      (if (not (integerp c)) (setq c ??))
 	      (cond
 	       ;; Exit condition
@@ -664,7 +656,7 @@ style."
 			    "No Additional style errors.  Continuing...")
 			   (sit-for 2))))))
 	       ;; Move to the next error (if available)
-	       ((or (checkdoc-char= c ?n) (checkdoc-char= c ?\ ))
+	       ((or (checkdoc-char= c ?n) (checkdoc-char= c ?\s))
 		(let ((ne (funcall findfunc nil)))
 		  (if (not ne)
 		      (if showstatus
@@ -844,7 +836,7 @@ Evaluation is done first because good documentation for something that
 doesn't work is just not useful.  Comments, doc strings, and rogue
 spacing are all verified."
   (interactive)
-  (checkdoc-call-eval-buffer nil)
+  (eval-buffer nil)
   (checkdoc-current-buffer t))
 
 ;;;###autoload
@@ -2326,10 +2318,10 @@ Code:, and others referenced in the style guide."
 	(save-excursion
 	  (goto-char (point-max))
 	  (if (not (re-search-backward
-		    (concat "^;;;[ \t]+" fn "\\(" (regexp-quote fe)
+		    (concat "^;;;[ \t]+" (regexp-quote fn) "\\(" (regexp-quote fe)
 			    "\\)?[ \t]+ends here[ \t]*$"
 			    "\\|^;;;[ \t]+ End of file[ \t]+"
-			    fn "\\(" (regexp-quote fe) "\\)?")
+			    (regexp-quote fn) "\\(" (regexp-quote fe) "\\)?")
 		    nil t))
 	      (if (checkdoc-y-or-n-p "No identifiable footer!  Add one? ")
 		  (progn

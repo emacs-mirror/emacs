@@ -1,6 +1,7 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
-     2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997,
+                 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1153,13 +1154,13 @@ Beware, this often doesn't really do what you think it does.
 It is similar to (decode-coding-string STRING 'emacs-mule-unix).
 If you're not sure, whether to use `string-as-multibyte' or
 `string-to-multibyte', use `string-to-multibyte'.  Beware:
-   (aref (string-as-multibyte "\201") 0) -> 129 (aka ?\201)
-   (aref (string-as-multibyte "\300") 0) -> 192 (aka ?\300)
-   (aref (string-as-multibyte "\300\201") 0) -> 192 (aka ?\300)
-   (aref (string-as-multibyte "\300\201") 1) -> 129 (aka ?\201)
+   (aref (string-as-multibyte "\\201") 0) -> 129 (aka ?\\201)
+   (aref (string-as-multibyte "\\300") 0) -> 192 (aka ?\\300)
+   (aref (string-as-multibyte "\\300\\201") 0) -> 192 (aka ?\\300)
+   (aref (string-as-multibyte "\\300\\201") 1) -> 129 (aka ?\\201)
 but
-   (aref (string-as-multibyte "\201\300") 0) -> 2240
-   (aref (string-as-multibyte "\201\300") 1) -> <error>  */)
+   (aref (string-as-multibyte "\\201\\300") 0) -> 2240
+   (aref (string-as-multibyte "\\201\\300") 1) -> <error>  */)
      (string)
      Lisp_Object string;
 {
@@ -5832,7 +5833,7 @@ syms_of_fns ()
   DEFVAR_LISP ("features", &Vfeatures,
     doc: /* A list of symbols which are the features of the executing emacs.
 Used by `featurep' and `require', and altered by `provide'.  */);
-  Vfeatures = Qnil;
+  Vfeatures = Fcons (intern ("emacs"), Qnil);
   Qsubfeatures = intern ("subfeatures");
   staticpro (&Qsubfeatures);
 

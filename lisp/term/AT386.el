@@ -3,7 +3,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Keywords: terminals
 
-;; Copyright (C) 1992 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -28,34 +28,36 @@
 
 ;;; Code:
 
-(if (boundp 'AT386-keypad-map)
-    nil
-  ;; The terminal initialization should already have set up some keys
-  (setq AT386-keypad-map (lookup-key (terminal-local-value 'local-function-key-map nil) "\e["))
-  (if (not (keymapp AT386-keypad-map))
-      (error "What?  Your AT386 termcap/terminfo has no keycaps in it"))
+(defun terminal-init-AT386 ()
+  "Terminal initialization function for AT386."
+  (if (boundp 'AT386-keypad-map)
+      nil
+    ;; The terminal initialization should already have set up some keys
+    (setq AT386-keypad-map (lookup-key (terminal-local-value 'local-function-key-map nil) "\e["))
+    (if (not (keymapp AT386-keypad-map))
+	(error "What?  Your AT386 termcap/terminfo has no keycaps in it"))
 
-  ;; Equivalents of these are set up automatically by termcap/terminfo
-  ;;  (define-key AT386-keypad-map "A" [up])
-  ;;  (define-key AT386-keypad-map "B" [down])
-  ;;  (define-key AT386-keypad-map "C" [right])
-  ;;  (define-key AT386-keypad-map "D" [left])
+    ;; Equivalents of these are set up automatically by termcap/terminfo
+    ;;  (define-key AT386-keypad-map "A" [up])
+    ;;  (define-key AT386-keypad-map "B" [down])
+    ;;  (define-key AT386-keypad-map "C" [right])
+    ;;  (define-key AT386-keypad-map "D" [left])
 
-  ;; These would be set up by terminfo, but not termcap
-  (define-key AT386-keypad-map "H" [home])
-  (define-key AT386-keypad-map "Y" [end])
-  (define-key AT386-keypad-map "U" [next])	;; PgDn
-  (define-key AT386-keypad-map "V" [prior])	;; PgUp
-  (define-key AT386-keypad-map "@" [insert])	;; Ins key
+    ;; These would be set up by terminfo, but not termcap
+    (define-key AT386-keypad-map "H" [home])
+    (define-key AT386-keypad-map "Y" [end])
+    (define-key AT386-keypad-map "U" [next])	;; PgDn
+    (define-key AT386-keypad-map "V" [prior])	;; PgUp
+    (define-key AT386-keypad-map "@" [insert])	;; Ins key
 
-  ;; These are not normally set up by either
-  (define-key AT386-keypad-map "G" [kp-5])	;; Unlabeled center key
-  (define-key AT386-keypad-map "S" [kp-subtract])
-  (define-key AT386-keypad-map "T" [kp-add])
+    ;; These are not normally set up by either
+    (define-key AT386-keypad-map "G" [kp-5])	;; Unlabeled center key
+    (define-key AT386-keypad-map "S" [kp-subtract])
+    (define-key AT386-keypad-map "T" [kp-add])
 
-  ;; Arrange for the ALT key to be equivalent to ESC
-  (define-key (terminal-local-value 'local-function-key-map nil) "\eN" [27]) ; ALT map
-  )
+    ;; Arrange for the ALT key to be equivalent to ESC
+    (define-key (terminal-local-value 'local-function-key-map nil) "\eN" [27]) ; ALT map
+    ))
 
 ;;; arch-tag: abec1b03-582f-49f8-b8cb-e2fd52ea4bd7
 ;;; AT386.el ends here

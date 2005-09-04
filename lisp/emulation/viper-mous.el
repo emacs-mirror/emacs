@@ -1,6 +1,7 @@
 ;;; viper-mous.el --- mouse support for Viper
 
-;; Copyright (C) 1994, 95, 96, 97, 2001, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -65,7 +66,7 @@
 (defvar viper-frame-of-focus nil)
 
 ;; Frame that was selected before the switch-frame event.
-(defconst viper-current-frame-saved (selected-frame))
+(defvar viper-current-frame-saved (selected-frame))
 
 (defcustom viper-surrounding-word-function 'viper-surrounding-word
   "*Function that determines what constitutes a word for clicking events.

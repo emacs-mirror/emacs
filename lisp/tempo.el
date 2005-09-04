@@ -1,6 +1,7 @@
 ;;; tempo.el --- Flexible template insertion
 
-;; Copyright (C) 1994, 1995, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: David K}gedal <davidk@lysator.liu.se>
 ;; Created: 16 Feb 1994
@@ -117,7 +118,7 @@
 (defcustom tempo-interactive nil
   "*Prompt user for strings in templates.
 If this variable is non-nil, `tempo-insert' prompts the
-user for text to insert in the templates"
+user for text to insert in the templates."
   :type 'boolean
   :group 'tempo)
 
@@ -133,7 +134,7 @@ In Transient Mark mode, this option is unused."
 
 (defcustom tempo-show-completion-buffer t
   "*If non-nil, show a buffer with possible completions, when only
-a partial completion can be found"
+a partial completion can be found."
   :type 'boolean
   :group 'tempo)
 
@@ -148,17 +149,17 @@ disappears at the next keypress; otherwise, it remains forever."
 (defvar tempo-insert-string-functions nil
   "List of functions to run when inserting a string.
 Each function is called with a single arg, STRING and should return
-another string. This could be used for making all strings upcase by
+another string.  This could be used for making all strings upcase by
 setting it to '(upcase), for example.")
 
 (defvar tempo-tags nil
-  "An association list with tags and corresponding templates")
+  "An association list with tags and corresponding templates.")
 
 (defvar tempo-local-tags '((tempo-tags . nil))
   "A list of locally installed tag completion lists.
 It is a association list where the car of every element is a symbol
-whose variable value is a template list. The cdr part, if non-nil, is a
-function or a regexp that defines the string to match. See the
+whose variable value is a template list.  The cdr part, if non-nil,
+is a function or a regexp that defines the string to match.  See the
 documentation for the function `tempo-complete-tag' for more info.
 
 `tempo-tags' is always in the last position in this list.")
@@ -175,8 +176,8 @@ documentation for the function `tempo-complete-tag' for more info.
 (defvar tempo-match-finder "\\b\\([[:word:]]+\\)\\="
   "The regexp or function used to find the string to match against tags.
 
-If `tempo-match-finder is a string, it should contain a regular
-expression with at least one \\( \\) pair. When searching for tags,
+If `tempo-match-finder' is a string, it should contain a regular
+expression with at least one \\( \\) pair.  When searching for tags,
 `tempo-complete-tag' calls `re-search-backward' with this string, and
 the string between the first \\( and \\) is used for matching against
 each string in the tag list. If one is found, the whole text between
@@ -229,51 +230,50 @@ NAME is a string that contains the name of the template, ELEMENTS is a
 list of elements in the template, TAG is the tag used for completion,
 DOCUMENTATION is the documentation string for the insertion command
 created, and TAGLIST (a symbol) is the tag list that TAG (if provided)
-should be added to).  If TAGLIST is nil and TAG is non-nil, TAG is
-added to `tempo-tags'
+should be added to.  If TAGLIST is nil and TAG is non-nil, TAG is
+added to `tempo-tags'.
 
 The elements in ELEMENTS can be of several types:
 
- - A string. It is sent to the hooks in `tempo-insert-string-functions',
+ - A string: It is sent to the hooks in `tempo-insert-string-functions',
    and the result is inserted.
- - The symbol 'p. This position is saved in `tempo-marks'.
- - The symbol 'r. If `tempo-insert' is called with ON-REGION non-nil
-   the current region is placed here. Otherwise it works like 'p.
- - (p PROMPT <NAME> <NOINSERT>) If `tempo-interactive' is non-nil, the
+ - The symbol `p': This position is saved in `tempo-marks'.
+ - The symbol `r': If `tempo-insert' is called with ON-REGION non-nil
+   the current region is placed here.  Otherwise it works like `p'.
+ - (p PROMPT <NAME> <NOINSERT>): If `tempo-interactive' is non-nil, the
    user is prompted in the minibuffer with PROMPT for a string to be
-   inserted. If the optional parameter NAME is non-nil, the text is
-   saved for later insertion with the `s' tag. If there already is
+   inserted.  If the optional parameter NAME is non-nil, the text is
+   saved for later insertion with the `s' tag.  If there already is
    something saved under NAME that value is used instead and no
-   prompting is made. If NOINSERT is provided and non-nil, nothing is
-   inserted, but text is still saved when a NAME is provided. For
-   clarity, the symbol 'noinsert should be used as argument.
- - (P PROMPT <NAME> <NOINSERT>) Works just like the previous tag, but
-   forces tempo-interactive to be true.
- - (r PROMPT <NAME> <NOINSERT>) like the previous, but if
+   prompting is made.  If NOINSERT is provided and non-nil, nothing is
+   inserted, but text is still saved when a NAME is provided.  For
+   clarity, the symbol `noinsert' should be used as argument.
+ - (P PROMPT <NAME> <NOINSERT>): Works just like the previous tag, but
+   forces `tempo-interactive' to be true.
+ - (r PROMPT <NAME> <NOINSERT>): Like the previous tag, but if
    `tempo-interactive' is nil and `tempo-insert' is called with
-   ON-REGION non-nil, the current region is placed here. This usually
+   ON-REGION non-nil, the current region is placed here.  This usually
    happens when you call the template function with a prefix argument.
- - (s NAME) Inserts text previously read with the (p ..) construct.
-   Finds the insertion saved under NAME and inserts it. Acts like 'p
+ - (s NAME): Inserts text previously read with the (p ..) construct.
+   Finds the insertion saved under NAME and inserts it.  Acts like `p'
    if tempo-interactive is nil.
- - '& If there is only whitespace between the line start and point,
-   nothing happens. Otherwise a newline is inserted.
- - '% If there is only whitespace between point and end-of-line
-   nothing happens. Otherwise a newline is inserted.
- - 'n inserts a newline.
- - '> The line is indented using `indent-according-to-mode'. Note that
-   you often should place this item after the text you want on the
-   line.
- - 'r> Like r, but it also indents the region.
- - 'n> Inserts a newline and indents line.
- - 'o Like '% but leaves the point before the newline.
- - nil. It is ignored.
- - Anything else. It is evaluated and the result is treated as an
-   element to be inserted. One additional tag is useful for these
-   cases. If an expression returns a list '(l foo bar), the elements
-   after 'l will be inserted according to the usual rules. This makes
+ - `&': If there is only whitespace between the line start and point,
+   nothing happens.  Otherwise a newline is inserted.
+ - `%': If there is only whitespace between point and end of line,
+   nothing happens.  Otherwise a newline is inserted.
+ - `n': Inserts a newline.
+ - `>': The line is indented using `indent-according-to-mode'.  Note
+   that you often should place this item after the text you want on
+   the line.
+ - `r>': Like `r', but it also indents the region.
+ - `n>': Inserts a newline and indents line.
+ - `o': Like `%' but leaves the point before the newline.
+ - nil: It is ignored.
+ - Anything else: It is evaluated and the result is treated as an
+   element to be inserted.  One additional tag is useful for these
+   cases.  If an expression returns a list '(l foo bar), the elements
+   after `l' will be inserted according to the usual rules.  This makes
    it possible to return several elements from one expression."
-
   (let* ((template-name (intern (concat "tempo-template-"
 				       name)))
 	 (command-name template-name))
@@ -296,15 +296,15 @@ The elements in ELEMENTS can be of several types:
 (defun tempo-insert-template (template on-region)
   "Insert a template.
 TEMPLATE is the template to be inserted.  If ON-REGION is non-nil the
-`r' elements are replaced with the current region. In Transient Mark
+`r' elements are replaced with the current region.  In Transient Mark
 mode, ON-REGION is ignored and assumed true if the region is active."
   (unwind-protect
       (progn
 	(if (or (and (boundp 'transient-mark-mode) ; For Emacs
 		     transient-mark-mode
 		     mark-active)
-		(and (boundp 'zmacs-regions) ; For XEmacs
-		     zmacs-regions (mark)))
+		(if (featurep 'xemacs)
+		    (and zmacs-regions (mark))))
 	    (setq on-region t))
 	(and on-region
 	     (set-marker tempo-region-start (min (mark) (point)))
@@ -399,9 +399,9 @@ possible."
 ;;; tempo-insert-prompt
 
 (defun tempo-insert-prompt-compat (prompt)
-  "Compatibility hack for tempo-insert-prompt.
+  "Compatibility hack for `tempo-insert-prompt'.
 PROMPT can be either a prompt string, or a list of arguments to
-tempo-insert-prompt, or nil."
+`tempo-insert-prompt', or nil."
   (if (consp prompt)			; not nil either
       (apply 'tempo-insert-prompt prompt)
     (tempo-insert-prompt prompt)))
@@ -410,12 +410,12 @@ tempo-insert-prompt, or nil."
   "Prompt for a text string and insert it in the current buffer.
 If the variable `tempo-interactive' is non-nil the user is prompted
 for a string in the minibuffer, which is then inserted in the current
-buffer. If `tempo-interactive' is nil, the current point is placed on
+buffer.  If `tempo-interactive' is nil, the current point is placed on
 `tempo-mark'.
 
 PROMPT is the prompt string, SAVE-NAME is a name to save the inserted
-text under. If the optional argument NO-INSERT is non-nil, no text i
-inserted. This can be useful when there is a SAVE-NAME.
+text under.  If the optional argument NO-INSERT is non-nil, no text is
+inserted.  This can be useful when there is a SAVE-NAME.
 
 If there already is a value for SAVE-NAME, it is used and the user is
 never prompted."
@@ -448,8 +448,7 @@ never prompted."
 ;;; tempo-is-user-element
 
 (defun tempo-is-user-element (element)
-  "Tries all the user-defined element handlers in
-`tempo-user-elements'"
+  "Tries all the user-defined element handlers in `tempo-user-elements'."
   ;; Sigh... I need (some list)
   (catch 'found
     (mapcar (function (lambda (handler)
@@ -531,7 +530,7 @@ and insert the results."
 ;;; tempo-insert-mark
 
 (defun tempo-insert-mark (mark)
-  "Insert a mark `tempo-marks' while keeping it sorted"
+  "Insert a mark `tempo-marks' while keeping it sorted."
   (cond ((null tempo-marks) (setq tempo-marks (list mark)))
 	((< mark (car tempo-marks)) (setq tempo-marks (cons mark tempo-marks)))
 	(t (let ((lp tempo-marks))
@@ -603,8 +602,8 @@ TAG-LIST is a symbol whose variable value is a tag list created with
 
 COMPLETION-FUNCTION is an obsolete option for specifying an optional
 function or string that is used by `\\[tempo-complete-tag]' to find a
-string to match the tag against. It has the same definition as the
-variable `tempo-match-finder'. In this version, supplying a
+string to match the tag against.  It has the same definition as the
+variable `tempo-match-finder'.  In this version, supplying a
 COMPLETION-FUNCTION just sets `tempo-match-finder' locally."
   (let ((old (assq tag-list tempo-local-tags)))
     (if old
@@ -647,7 +646,7 @@ If `tempo-dirty-collection' is nil, the old collection is reused."
 
 (defun tempo-find-match-string (finder)
   "Find a string to be matched against a tag list.
-FINDER is a function or a string. Returns (STRING . POS), or nil
+FINDER is a function or a string.  Returns (STRING . POS), or nil
 if no reasonable string is found."
   (cond ((stringp finder)
 	 (let (successful)
@@ -671,7 +670,7 @@ if no reasonable string is found."
 All the tags in the tag lists in `tempo-local-tags'
 \(this includes `tempo-tags') are searched for a match for the text
 before the point.  The way the string to match for is determined can
-be altered with the variable `tempo-match-finder'. If
+be altered with the variable `tempo-match-finder'.  If
 `tempo-match-finder' returns nil, then the results are the same as
 no match at all.
 

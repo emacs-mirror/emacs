@@ -4,7 +4,8 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992,93,94,95,96,1998,2000,02,03,04,05 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 2000, 2001, 2002, 2003,
+;; 2004, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -42,8 +43,16 @@
 (eval-when-compile (require 'cl)) ; for case macro
 
 (require 'comint)
-(require 'etags)
 (require 'font-lock)
+
+(defvar gdb-active-process)
+(defvar gdb-define-alist)
+(defvar gdb-macro-info)
+(defvar gdb-server-prefix)
+(defvar gdb-show-changed-values)
+(defvar gdb-var-changed)
+(defvar gdb-var-list)
+(defvar tool-bar-map)
 
 ;; ======================================================================
 ;; GUD commands must be visible in C buffers visited by GUD
@@ -352,10 +361,10 @@ t means that there is no stack, and we are in display-file mode.")
        (not (memq gud-minor-mode '(gdbmi gdba))))]
     ["Edit value" speedbar-edit-line
      (with-current-buffer gud-comint-buffer
-       (not (memq gud-minor-mode '(gdbmi gdba))))]
+       (memq gud-minor-mode '(gdbmi gdba)))]
     ["Delete expression" gdb-var-delete
      (with-current-buffer gud-comint-buffer
-       (not (memq gud-minor-mode '(gdbmi gdba))))])
+       (memq gud-minor-mode '(gdbmi gdba)))])
   "Additional menu items to add to the speedbar frame.")
 
 ;; Make sure our special speedbar mode is loaded
@@ -508,9 +517,9 @@ off the specialized speedbar mode."
 	 ;; to return - we don't include the marker in this text.
 	 output (concat output
 			(substring gud-marker-acc 0 (match-beginning 0)))
-	 
+
 	 ;; Set the accumulator to the remaining text.
-	 
+
 	 gud-marker-acc (substring gud-marker-acc (match-end 0)))
 	(if (string-equal match "error-begin")
 	    (put-text-property 0 (length gud-marker-acc)
@@ -586,7 +595,9 @@ and source-file directory for your debugger."
   (gud-def gud-nexti  "nexti %p"      nil   "Step one instruction (skip functions).")
   (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
   (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
-  (gud-def gud-jump   "tbreak %f:%l\njump %f:%l" "\C-j" "Relocate execution address to line at point in source buffer.")
+  (gud-def gud-jump
+	   (progn (gud-call "tbreak %f:%l") (gud-call "jump %f:%l"))
+	   "\C-j" "Set execution address to current line.")
 
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
@@ -833,6 +844,7 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive (list (gud-query-cmdline 'sdb)))
 
+  (if gud-sdb-needs-tags (require 'etags))
   (if (and gud-sdb-needs-tags
 	   (not (and (boundp 'tags-file-name)
 		     (stringp tags-file-name)
@@ -2595,7 +2607,7 @@ It is saved for when this flag is not set.")
 (defun gud-kill-buffer-hook ()
   (setq gud-minor-mode-type gud-minor-mode)
   (condition-case nil
-      (kill-process (get-buffer-process gud-comint-buffer))
+      (kill-process (get-buffer-process (current-buffer)))
     (error nil)))
 
 (defun gud-reset ()
@@ -2862,12 +2874,12 @@ the character after the end of the expr."
 If `->' is found, return `?.'.  If `.' is found, return `?.'.
 If any other punctuation is found, return `??'.
 If no punctuation is found, return `? '."
-  (let ((result ?\ )
+  (let ((result ?\s)
 	(syntax))
     (while (< span-start span-end)
       (setq syntax (char-syntax (char-after span-start)))
       (cond
-       ((= syntax ?\ ) t)
+       ((= syntax ?\s) t)
        ((= syntax ?.) (setq syntax (char-after span-start))
 	(cond
 	 ((= syntax ?.) (setq result ?.))
@@ -2899,7 +2911,7 @@ Link exprs of the form:
      ((= (car first) (car second)) nil)
      ((= (cdr first) (cdr second)) nil)
      ((= syntax ?.) t)
-     ((= syntax ?\ )
+     ((= syntax ?\s)
       (setq span-start (char-after (- span-start 1)))
       (setq span-end (char-after span-end))
       (cond
@@ -3209,6 +3221,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 (define-obsolete-function-alias 'tooltip-gud-toggle-dereference
                                 'toggle-gud-tooltip-dereference "22.1")
 
+;;;###autoload
 (define-minor-mode gud-tooltip-mode
   "Toggle the display of GUD tooltips."
   :global t
@@ -3225,7 +3238,11 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
     (remove-hook 'tooltip-hook 'gud-tooltip-tips)
     (define-key global-map [mouse-movement] 'ignore)))
   (gud-tooltip-activate-mouse-motions-if-enabled)
-  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+  (if (and
+       gud-comint-buffer
+       (buffer-name gud-comint-buffer); gud-comint-buffer might be kille
+       (with-current-buffer gud-comint-buffer
+	(memq gud-minor-mode '(gdbmi gdba))))
       (if gud-tooltip-mode
 	  (progn
 	    (dolist (buffer (buffer-list))

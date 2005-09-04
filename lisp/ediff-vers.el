@@ -1,6 +1,7 @@
 ;;; ediff-vers.el --- version control interface to Ediff
 
-;;; Copyright (C) 1995, 96, 97, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 1997, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -304,13 +305,14 @@
     (if (stringp tmp-file) (delete-file tmp-file))
     (if (stringp ancestor-file) (delete-file ancestor-file))))
 
+
+(provide 'ediff-vers)
+
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
 ;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
-
-(provide 'ediff-vers)
 
 ;;; arch-tag: bbb34f0c-2a90-426a-a77a-c75f479ebbbf
 ;;; ediff-vers.el ends here

@@ -1,6 +1,6 @@
 ;;; iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Dan Nicolaescu <dann@ics.uci.edu>
 
@@ -135,10 +135,10 @@
   (define-key iris-function-map "\e[070q" [?\M-=])
 
   ;; I don't know what to do with those.
-  ;(define-key iris-function-map "^H" [<del>])
-  ;(define-key iris-function-map "^H" [S-<del>])
-  ;(define-key iris-function-map "\177" [C-<del>])
-  ;(define-key iris-function-map "\e[071q" [M-<del>])
+  ;;(define-key iris-function-map "^H" [<del>])
+  ;;(define-key iris-function-map "^H" [S-<del>])
+  ;;(define-key iris-function-map "\177" [C-<del>])
+  ;;(define-key iris-function-map "\e[071q" [M-<del>])
 
   (define-key iris-function-map "\e[Z" [?\S-\t])
   (define-key iris-function-map "\e[072q" [?\C-\t])
@@ -329,12 +329,14 @@
   (define-key iris-function-map "\e[196q" [C-delete])
   (define-key iris-function-map "\e[197q" [M-delete]))
 
-;; Use inheritance to let the main keymap override these defaults.
-;; This way we don't override terminfo-derived settings or settings
-;; made in the .emacs file.
-(let ((m (copy-keymap iris-function-map)))
-  (set-keymap-parent m (keymap-parent (terminal-local-value 'local-function-key-map nil)))
-  (set-keymap-parent (terminal-local-value 'local-function-key-map nil) m))
+(defun terminal-init-iris-ansi ()
+  "Terminal initialization function for iris-ansi."
+  ;; Use inheritance to let the main keymap override these defaults.
+  ;; This way we don't override terminfo-derived settings or settings
+  ;; made in the .emacs file.
+  (let ((m (copy-keymap iris-function-map)))
+    (set-keymap-parent m (keymap-parent (terminal-local-value 'local-function-key-map nil)))
+    (set-keymap-parent (terminal-local-value 'local-function-key-map nil) m)))
 
 ;;; arch-tag: b1d0e73a-bb7d-47be-9fb2-6fb126469a1b
 ;;; iris-ansi.el ends here

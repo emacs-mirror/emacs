@@ -1,5 +1,7 @@
 ;;; binhex.el --- elisp native binhex decode
-;; Copyright (c) 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: binhex news

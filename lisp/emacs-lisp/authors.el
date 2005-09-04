@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2000, 2003, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>

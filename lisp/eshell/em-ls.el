@@ -1,6 +1,7 @@
 ;;; em-ls.el --- implementation of ls in Lisp
 
-;; Copyright (C) 1999, 2000, 2005 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -64,13 +65,13 @@ This is useful for enabling human-readable format (-h), for example."
   :group 'eshell-ls)
 
 (defcustom eshell-ls-dired-initial-args nil
-  "*If non-nil, args is included before any call to `ls' in dired.
+  "*If non-nil, args is included before any call to `ls' in Dired.
 This is useful for enabling human-readable format (-h), for example."
   :type '(repeat :tag "Arguments" string)
   :group 'eshell-ls)
 
 (defcustom eshell-ls-use-in-dired nil
-  "*If non-nil, use `eshell-ls' to read directories in dired."
+  "*If non-nil, use `eshell-ls' to read directories in Dired."
   :set (lambda (symbol value)
 	 (if value
 	     (unless (and (boundp 'eshell-ls-use-in-dired)
@@ -158,7 +159,7 @@ faster and conserves more memory."
 (defface eshell-ls-missing
   '((((class color) (background light)) (:foreground "Red" :weight bold))
     (((class color) (background dark)) (:foreground "Red" :weight bold)))
-  "*The face used for highlighting non-existant file names."
+  "*The face used for highlighting non-existent file names."
   :group 'eshell-ls)
 ;; backward-compatibility alias
 (put 'eshell-ls-missing-face 'face-alias 'eshell-ls-missing)
@@ -863,8 +864,7 @@ to use, and each member of which is the width of that column
 	(cons col-widths newfiles)))))
 
 (defun eshell-ls-decorated-name (file)
-  "Return FILE, possibly decorated.
-Use TRUENAME for predicate tests, if passed."
+  "Return FILE, possibly decorated."
   (if eshell-ls-use-colors
       (let ((face
 	     (cond

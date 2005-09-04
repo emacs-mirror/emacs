@@ -1,6 +1,7 @@
 ;;; mm-util.el --- Utility functions for Mule and low level things
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
-;;   Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	MORIOKA Tomohiko <morioka@jaist.ac.jp>
@@ -766,6 +767,17 @@ charset, and a longer list means no appropriate charset."
     (if (and (memq 'iso-2022-jp-2 charsets)
 	     (memq 'iso-2022-jp-2 hack-charsets))
 	(setq charsets (delq 'iso-2022-jp charsets)))
+    ;; Attempt to reduce the number of charsets if utf-8 is available.
+    (if (and (featurep 'xemacs)
+	     (> (length charsets) 1)
+	     (mm-coding-system-p 'utf-8))
+	(let ((mm-coding-system-priorities
+	       (cons 'utf-8 mm-coding-system-priorities)))
+	  (setq charsets
+		(mm-delete-duplicates
+		 (mapcar 'mm-mime-charset
+			 (delq 'ascii
+			       (mm-find-charset-region b e)))))))
     charsets))
 
 (defmacro mm-with-unibyte-buffer (&rest forms)

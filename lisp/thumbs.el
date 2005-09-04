@@ -1,6 +1,6 @@
 ;;; thumbs.el --- Thumbnails previewer for images files
 
-;; Copyright 2004, 2005 Free Software Foundation, Inc
+;; Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jean-Philippe Theberge <jphiltheberge@videotron.ca>
 ;; Keywords: Multimedia
@@ -138,23 +138,25 @@ this value can let another user see some of your images."
   :group 'thumbs)
 
 ;; Initialize some variable, for later use.
-(defvar thumbs-current-tmp-filename
-  nil
+(defvar thumbs-current-tmp-filename nil
   "Temporary filename of current image.")
-(defvar thumbs-current-image-filename
-  nil
+(make-variable-buffer-local 'thumbs-current-tmp-filename)
+
+(defvar thumbs-current-image-filename nil
   "Filename of current image.")
-(defvar thumbs-current-image-size
-  nil
+(make-variable-buffer-local 'thumbs-current-image-filename)
+
+(defvar thumbs-current-image-size nil
   "Size of current image.")
-(defvar thumbs-image-num
-  nil
+
+(defvar thumbs-image-num nil
   "Number of current image.")
-(defvar thumbs-current-dir
-  nil
+(make-variable-buffer-local 'thumbs-image-num)
+
+(defvar thumbs-current-dir nil
   "Current directory.")
-(defvar thumbs-markedL
-  nil
+
+(defvar thumbs-markedL nil
   "List of marked files.")
 
 (defalias 'thumbs-gensym
@@ -365,8 +367,8 @@ If MARKED is non-nil, the image is marked."
 		   :conversion ,(if marked 'disabled)
 		   :margin ,thumbs-margin)))
     (insert-image i)
-    (setq thumbs-current-image-size
-	  (image-size i t))))
+    (set (make-local-variable 'thumbs-current-image-size)
+         (image-size i t))))
 
 (defun thumbs-insert-thumb (img &optional marked)
   "Insert the thumbnail for IMG at point.
@@ -397,8 +399,7 @@ If MARKED is non-nil, the image is marked."
     (thumbs-mode)
     (thumbs-do-thumbs-insertion L)
     (goto-char (point-min))
-    (setq thumbs-current-dir default-directory)
-    (make-variable-buffer-local 'thumbs-current-dir)))
+    (set (make-local-variable 'thumbs-current-dir) default-directory)))
 
 ;;;###autoload
 (defun thumbs-show-all-from-dir (dir &optional reg same-window)
@@ -436,10 +437,6 @@ and SAME-WINDOW to show thumbs in the same window."
     (setq thumbs-current-image-filename img
 	  thumbs-current-tmp-filename nil
 	  thumbs-image-num (or num 0))
-    (make-variable-buffer-local 'thumbs-current-image-filename)
-    (make-variable-buffer-local 'thumbs-current-tmp-filename)
-    (make-variable-buffer-local 'thumbs-current-image-size)
-    (make-variable-buffer-local 'thumbs-image-num)
     (delete-region (point-min)(point-max))
     (thumbs-insert-image img (thumbs-image-type img) 0)))
 

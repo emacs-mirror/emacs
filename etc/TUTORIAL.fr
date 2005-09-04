@@ -1,5 +1,4 @@
 Didacticiel d'Emacs.  Voir la fin de ce document pour les conditions.
-Copyright (c) 1985, 2001, 2002 Free Software Foundation, Inc.
 
 Les commandes Emacs utilisent généralement la touche CONTROLE (souvent
 désignée par CTRL ou CTL) ou la touche META (souvent désignée par EDIT
@@ -1171,7 +1170,8 @@ Cette version du didacticiel, comme GNU Emacs, est placée sous
 copyright, et vous pouvez en distribuer des copies sous certaines
 conditions :
 
-Copyright (c) 1985, 1996, 2001, 2002 Free Software Foundation
+Copyright (C) 1985, 1996, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Chacun peut créer ou distribuer des copies de ce document tel qu'il
    l'a reçu, sur n'importe quel support, pourvu que la note de

@@ -1,6 +1,7 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
 
-;; Copyright (c) 1996,1997,1998,1999,2001,2004  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
@@ -269,7 +270,7 @@ Will not do anything if `url-show-status' is nil."
    (t (file-name-directory file))))
 
 ;;;###autoload
-(defun url-parse-query-string (query &optional downcase)
+(defun url-parse-query-string (query &optional downcase allow-newlines)
   (let (retval pairs cur key val)
     (setq pairs (split-string query "&"))
     (while pairs
@@ -277,8 +278,10 @@ Will not do anything if `url-show-status' is nil."
 	    pairs (cdr pairs))
       (if (not (string-match "=" cur))
 	  nil				; Grace
-	(setq key (url-unhex-string (substring cur 0 (match-beginning 0)))
-	      val (url-unhex-string (substring cur (match-end 0) nil)))
+	(setq key (url-unhex-string (substring cur 0 (match-beginning 0))
+				    allow-newlines))
+	(setq val (url-unhex-string (substring cur (match-end 0) nil)
+				    allow-newlines))
 	(if downcase
 	    (setq key (downcase key)))
 	(setq cur (assoc key retval))

@@ -1,6 +1,6 @@
 ;;; spam-stat.el --- detecting spam based on statistics
 
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Keywords: network
@@ -122,6 +122,8 @@
 
 
 ;;; Code:
+
+(defvar gnus-original-article-buffer)
 
 (defgroup spam-stat nil
   "Statistical spam detection for Emacs.

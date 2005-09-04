@@ -98,9 +98,9 @@
 (defun isearch-process-search-multibyte-characters (last-char)
   (if (eq this-command 'isearch-printing-char)
       (let ((overriding-terminal-local-map nil)
-	    (prompt (concat (isearch-message-prefix)))
+	    (prompt (isearch-message-prefix))
 	    (minibuffer-local-map isearch-minibuffer-local-map)
-	    str)
+	    str junk-hist)
 	(if isearch-input-method-function
 	    (let (;; Let input method work rather tersely.
 		  (input-method-verbose-flag nil))
@@ -108,8 +108,8 @@
 		    (cons 'with-input-method
 			  (cons last-char unread-command-events))
 		    ;; Inherit current-input-method in a minibuffer.
-		    str (read-string prompt isearch-message nil nil t))
-	      (if (not str)
+		    str (read-string prompt isearch-message 'junk-hist nil t))
+	      (if (or (not str) (< (length str) (length isearch-message)))
 		  ;; All inputs were deleted while the input method
 		  ;; was working.
 		  (setq str "")
@@ -124,7 +124,7 @@
 	    (setq unread-command-events
 		  (cons 'with-keyboard-coding
 			(cons last-char unread-command-events))
-		  str (read-string prompt)))
+		  str (read-string prompt nil 'junk-hist)))
 
 	(if (and str (> (length str) 0))
 	    (let ((unread-command-events nil))

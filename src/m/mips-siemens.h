@@ -1,5 +1,6 @@
 /* m- file for Mips machines.
-   Copyright (C) 1987,1992,1993,95,2002,03  Free Software Foundation, Inc.
+   Copyright (C) 1987, 1992, 1993, 1995, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
    This file contains some changes for our SVR4 based SINIX-Mips 5.4.
    I hope this is helpful to port the emacs to our RM?00 series and

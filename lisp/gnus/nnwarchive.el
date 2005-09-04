@@ -1,5 +1,7 @@
 ;;; nnwarchive.el --- interfacing with web archives
-;; Copyright (C) 1999, 2000, 2003 Free Software Foundation, Inc.
+
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: news egroups mail-archive

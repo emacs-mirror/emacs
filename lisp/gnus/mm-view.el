@@ -1,6 +1,7 @@
 ;;; mm-view.el --- functions for viewing MIME objects
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
-;;        Free Software Foundation, Inc.
+
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; This file is part of GNU Emacs.
@@ -38,6 +39,14 @@
   (autoload 'html2text "html2text")
   (unless (fboundp 'diff-mode)
     (autoload 'diff-mode "diff-mode" "" t nil)))
+
+(defvar gnus-article-mime-handles)
+(defvar gnus-newsgroup-charset)
+(defvar smime-keys)
+(defvar w3m-cid-retrieve-function-alist)
+(defvar w3m-current-buffer)
+(defvar w3m-display-inline-images)
+(defvar w3m-minor-mode-map)
 
 (defvar mm-text-html-renderer-alist
   '((w3  . mm-inline-text-html-render-with-w3)

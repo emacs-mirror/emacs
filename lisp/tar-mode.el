@@ -1,7 +1,7 @@
 ;;; tar-mode.el --- simple editing of tar files from GNU emacs
 
-;; Copyright (C) 1990,91,93,94,95,96,97,98,99,2000,01,2004
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;; Maintainer: FSF
@@ -1120,7 +1120,7 @@ to make your changes permanent."
 	(descriptor tar-superior-descriptor)
 	subfile-size)
     ;; We must make the current buffer unibyte temporarily to avoid
-    ;; multibyte->unibyte conversion in `insert-buffer'.
+    ;; multibyte->unibyte conversion in `insert-buffer-substring'.
     (set-buffer-multibyte nil)
     (setq subfile-size (buffer-size))
     (set-buffer tar-superior-buffer)
@@ -1144,7 +1144,7 @@ to make your changes permanent."
 	  (delete-region data-start data-end)
 	  ;; insert the new data...
 	  (goto-char data-start)
-	  (insert-buffer subfile)
+	  (insert-buffer-substring subfile)
 	  (setq subfile-size
 		(encode-coding-region
 		 data-start (+ data-start subfile-size) coding))

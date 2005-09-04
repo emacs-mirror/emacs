@@ -1,6 +1,7 @@
 ;;; rnews.el --- USENET news reader for GNU Emacs
 
-;; Copyright (C) 1985, 1986, 1987 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: news
@@ -57,6 +58,12 @@
 
 (require 'mail-utils)
 (require 'sendmail)
+
+(defvar caesar-translate-table)
+(defvar minor-modes)
+(defvar news-buffer-save)
+(defvar news-group-name)
+(defvar news-minor-modes)
 
 (autoload 'rmail-output "rmailout"
   "Append this message to Unix mail file named FILE-NAME."
@@ -886,7 +893,7 @@ Using ls was found to be too slow in a previous version."
 		    (progn
 		      (message
 		       "Added %s to your list of newsgroups." gp)
-		      (end-of-buffer)
+		      (goto-char (point-max))
 		      (insert gp ": 1-1\n")))
 		  (search-backward gp nil t)
 		  (let (start end endofline tem)

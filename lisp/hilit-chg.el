@@ -1,6 +1,7 @@
 ;;; hilit-chg.el --- minor mode displaying buffer changes with special face
 
-;; Copyright (C) 1998, 2000, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Richard Sharman <rsharman@pobox.com>
 ;; Keywords: faces
@@ -81,11 +82,11 @@
 ;;
 ;; Example usage:
 ;; (defun my-highlight-changes-enable-hook ()
-;;   (add-hook 'local-write-file-hooks 'highlight-changes-rotate-faces)
+;;   (add-hook 'write-file-functions 'highlight-changes-rotate-faces nil t)
 ;; )
 ;;
 ;; (defun my-highlight-changes-disable-hook ()
-;;   (remove-hook 'local-write-file-hooks 'highlight-changes-rotate-faces)
+;;   (remove-hook 'write-file-functions 'highlight-changes-rotate-faces t)
 ;; )
 ;;
 ;; (add-hook 'highlight-changes-enable-hook 'my-highlight-changes-enable-hook)
@@ -213,7 +214,7 @@
 ;; indentation on inserts gets underlined (which can look pretty ugly!).
 
 (defface highlight-changes
-  '((((min-colors 88) (class color)) (:foreground "red1" ))
+  '((((min-colors 88) (class color)) (:foreground "red1"))
     (((class color)) (:foreground "red" ))
     (t (:inverse-video t)))
   "Face used for highlighting changes."
@@ -270,7 +271,7 @@ This variable must be set to one of the symbols `active' or `passive'."
 (defcustom highlight-changes-global-initial-state 'passive
   "*What state `global-highlight-changes' should start in.
 This is used if `global-highlight-changes' is called with no argument.
-This variable must be set to either `active' or `passive'"
+This variable must be set to either `active' or `passive'."
   :type '(choice (const :tag "Active" active)
 		 (const :tag "Passive" passive))
   :group 'highlight-changes)
@@ -302,8 +303,8 @@ A list means the elements are major modes suitable for Highlight
 Changes mode, or a list whose first element is `not' followed by major
 modes which are not suitable.
 
-t means the buffer is suitable if it is visiting a file and its name
-does not begin with ` ' or `*'.
+A value of t means the buffer is suitable if it is visiting a file and
+its name does not begin with ` ' or `*'.
 
 A value of nil means no buffers are suitable for `global-highlight-changes'
 \(effectively disabling the mode).
@@ -488,7 +489,7 @@ This is the opposite of `hilit-chg-display-changes'."
   "Fix change overlays in region between BEG and END.
 
 Ensure the overlays agree with the changes as determined from
-the text properties of type `hilit-chg' ."
+the text properties of type `hilit-chg'."
   ;; Remove or alter overlays in region beg..end
   (let (ov-start ov-end	 props q)
     ;; temp for debugging:
@@ -641,12 +642,12 @@ Functions:
 \\[highlight-changes-remove-highlight] - remove the change face from the region
 \\[highlight-changes-rotate-faces] - rotate different \"ages\" of changes \
 through
-	various faces.
+	various faces
 
 Hook variables:
-`highlight-changes-enable-hook'  - when enabling Highlight Changes mode.
+`highlight-changes-enable-hook'  - when enabling Highlight Changes mode
 `highlight-changes-toggle-hook'  - when entering active or passive state
-`highlight-changes-disable-hook' - when turning off Highlight Changes mode."
+`highlight-changes-disable-hook' - when turning off Highlight Changes mode"
   (interactive "P")
   (if (or (display-color-p)
 	  (and (fboundp 'x-display-grayscale-p) (x-display-grayscale-p)))
@@ -672,6 +673,7 @@ Hook variables:
 	(if new-highlight-changes-mode
 	    ;; mode is turned on -- but may be passive
 	    (progn
+	      (add-to-list 'desktop-locals-to-save 'highlight-changes-mode)
 	      (hilit-chg-set new-highlight-changes-mode)
 	      (or was-on
 		  ;; run highlight-changes-enable-hook once
@@ -781,11 +783,11 @@ of `highlight-changes-face-list', one level older changes are shown in
 face described by the second element, and so on.  Very old changes remain
 shown in the last face in the list.
 
-You can automatically rotate colors when the buffer is saved
-by adding the following to `local-write-file-hooks', by evaling it in the
-buffer to be saved):
+You can automatically rotate colors when the buffer is saved by adding
+this function to `write-file-functions' as a buffer-local value.  To do
+this, eval the following in the buffer to be saved:
 
-  \(add-hook 'local-write-file-hooks 'highlight-changes-rotate-faces)"
+  \(add-hook 'write-file-functions 'highlight-changes-rotate-faces nil t)"
   (interactive)
   ;; If not in active mode do nothing but don't complain because this
   ;; may be bound to a hook.
@@ -800,8 +802,7 @@ buffer to be saved):
 	;; and display them all if active
 	(if (eq highlight-changes-mode 'active)
 	    (hilit-chg-display-changes))))
-  ;; This always returns nil so it is safe to use in
-  ;; local-write-file-hook
+  ;; This always returns nil so it is safe to use in write-file-functions
   nil)
 
 ;; ========================================================================
@@ -886,7 +887,7 @@ The default is the current buffer and the one in the next window.
 If either buffer is modified and is visiting a file, you are prompted
 to save the file.
 
-Unless the buffer is unmodified and visiting a file,  the buffer is
+Unless the buffer is unmodified and visiting a file, the buffer is
 written to a temporary file for comparison.
 
 If a buffer is read-only, differences will be highlighted but no property
@@ -1110,9 +1111,9 @@ variable `highlight-changes-global-changes-existing-buffers' is non-nil).
 
 A buffer is appropriate for Highlight Changes mode if all these are true:
 - the buffer is not a special buffer (one whose name begins with
-  `*' or ` ')
+  `*' or ` '),
 - the buffer's mode is suitable as per variable
-  `highlight-changes-global-modes'
+  `highlight-changes-global-modes',
 - Highlight Changes mode is not already on for this buffer.
 
 This function is called from `hilit-chg-update-all-buffers' or
@@ -1153,6 +1154,16 @@ from `global-highlight-changes' when turning on global Highlight Changes mode."
 		   (hilit-chg-turn-off-maybe))
 		 )))
    (buffer-list)))
+
+;;;; Desktop support.
+
+;; Called by `desktop-create-buffer' to restore `highlight-changes-mode'.
+(defun hilit-chg-desktop-restore (desktop-buffer-locals)
+  (highlight-changes-mode
+   (or (cdr (assq 'highlight-changes-mode desktop-buffer-locals)) 1)))
+
+(add-to-list 'desktop-minor-mode-handlers
+             '(highlight-changes-mode . hilit-chg-desktop-restore))
 
 ;; ===================== debug ==================
 ;; For debug & test use:

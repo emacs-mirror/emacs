@@ -21,6 +21,10 @@ face name prefixes should be in it for good results.
 
 ** Regenerate the postscript files of the reference cards in etc.
 
+** Ask maintainers of refcard translations to update them.
+
+** Check what should be deleted or updated in MORE.STUFF.
+
 * NEW FEATURES
 
 ** Make VC-over-Tramp work where possible, or at least fail
@@ -29,10 +33,9 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 
 ** Update Speedbar.
 
-** Update vhdl-mode.el based on changes in
-   http://opensource.ethz.ch/emacs/vhdl-mode.html.
-
 ** Debug custom themes.
+
+** Get rid of the defadvice calls in org.el.
 
 * FATAL ERRORS
 
@@ -41,9 +44,44 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 ** Investigate reported crashes related to using an
 invalid pointer from string_free_list.
 
+** Emacs on Windows crashes reading JPEG images from files.
+
+The problem is caused by the Emacs executable and the image library
+having multiple, incompatible copies of the run-time code, which can
+happen when mixing a MSVC build of Emacs with a MinGW build of the
+jpeg library (or the other way around).  The fix is straightforward
+and has already been posted on the developers' list, but it is on the
+back burner waiting for a legal comment or an alternate implementation
+(around 30 lines of code).
+
 * BUGS
 
-** Fix those modes that still use compile-internal, to not use it.
+** The header-line buttons in the buffer list buffer
+should respond to Mouse-1.
+
+** Fix recognition of shell's `dirs' command.
+
+Is his change right?
+
+Date: Wed, 29 Jun 2005 18:21:28 -0500 (CDT)
+From: kevin.gal@verizon.net
+
+When I use tcsh (which echoes command input) in a shell buffer,
+entering "M-x dirs" fails because it mistakens the echoed "dirs"
+string as the directory string to use as input when changing the
+buffers default directory.  The attached gziped patch file contains a
+fix.  The patch also binds the "dirs" command to "\e\C-m" in
+shell-mode-map (previously unbound) to make it easy to invoke.
+Finally, a test has been added to see if "shell-dirstack-query" is
+non-nil.  If so, it is not overwritten.
+
+To enable the fix, the user must set comint-process-echoes to t.
+
+** TCP server processes do not work on Windows.
+
+TCP/IP server processes created with `make-network-process' consume
+excesive CPU on some Windows environments.  Usages of 50% and 100%
+CPU time have been observed on different Window XP configurations.
 
 ** Bug in ebrowse
 
@@ -75,63 +113,52 @@ The *Tree* is then displayed as
 
 The class A seems to be missing.
 
-** Ange-ftp should ignore irrelevant IPv6 errors:
-
-Message-Id: <4121-Tue23Mar2004165249+0100-piet@cs.uu.nl>
-From: "Piet van Oostrum" <piet@cs.uu.nl>
-To: emacs-pretest-bug@gnu.org
-Subject: Ange-ftp can't deal with IPV6/IPV4 fallback
-
-Symptoms:
-
-C-x C-f /ftp.nluug.nl:/
-
-The problem is that the DNS first gives an IPV6 address. However our
-router doesn't do IPV6. Ftp then falls back to IPV4:
-
-ftp> open ftp.nluug.nl
-Trying 2001:610:1:80aa:192:87:102:36...
-ftp: connect to address 2001:610:1:80aa:192:87:102:36: No route to host
-Trying 192.87.102.36...
-Connected to ftp.nluug.nl.
-
-Ange-ftp chokes on the `No route to host' message and doesn't look any
-further.
-
-I think in the near future we will see more of this problem, so it might be
-time to make anfe-ftp more intelligent.
-
 * DOCUMENTATION
 
 ** Document Custom Themes.
 
-** Update lispref/README.
-
 ** Update man/info.texi.
 
 ** Add missing years in copyright notices of all files.
-
-Policy document admin/notes/years must be updated before
-making further progress on this task!!!
 
 Please record your name here and say which part of the distribution
 you're going to handle.
 
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
+etc (and subdirs)	done		Thien-Thi Nguyen (ttn(@gnu.org))
 leim			working		Kenichi Handa
-lisp/calc		working		Thien-Thi Nguyen
+lib-src			done		ttn
+lisp			done		ttn
+lisp/calc		done		ttn
 lisp/calendar		working		Glenn Morris
-lisp/emulation		working		Thien-Thi Nguyen
-lisp/eshell		working		Thien-Thi Nguyen
+lisp/emacs-lisp		done		ttn
+lisp/emulation		done		ttn
+lisp/eshell		done		ttn
+lisp/gnus		done		ttn
 lisp/international	done		Kenichi Handa
-lisp/languages		done		Kenichi Handa
-lisp/mh-e		working		Thien-Thi Nguyen
-lisp/net		working		Thien-Thi Nguyen
-lisp/play		working		Thien-Thi Nguyen
-lisp/term		working		Thien-Thi Nguyen
-lisp/toolbar		working		Thien-Thi Nguyen
-lisp/url		working		Thien-Thi Nguyen
+lisp/language		done		Kenichi Handa
+lisp/mail		done		ttn
+lisp/mh-e		working		Bill Wohler
+lisp/net		done		ttn
+lisp/obsolete		done		ttn
+lisp/play		done		ttn
+lisp/progmodes		done		Nick Roberts
+lisp/term		done		ttn
+lisp/textmodes		done		ttn
+lisp/toolbar		done		ttn
+lisp/url		done		ttn
+lispintro		done		ttn
+lispref			done		ttn
+lwlib			done		ttn
+m4			done		ttn
+mac (and subdirs)	done		ttn
+man			done		ttn
+msdos			done		ttn
+nt (and subdirs)	done		ttn
+oldXMenu		done		ttn
+src (and subdirs)	done		ttn
+vms			done		ttn
 
 ** Check the Emacs manual.
 
@@ -231,7 +258,7 @@ lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
 lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/processes.texi   Chong Yidong	   Thien-Thi Nguyen
+lispref/processes.texi   Chong Yidong	   ttn
 lispref/searching.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
@@ -261,8 +288,8 @@ etc/TUTORIAL.cn
 etc/TUTORIAL.cs          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.es          Marcelo Toledo
-etc/TUTORIAL.fr          Thien-Thi Nguyen
-etc/TUTORIAL.it          Thien-Thi Nguyen
+etc/TUTORIAL.fr          ttn
+etc/TUTORIAL.it          ttn
 etc/TUTORIAL.ja		 Kenichi Handa <handa@m17n.org>
 etc/TUTORIAL.ko
 etc/TUTORIAL.nl		 Lute Kamstra

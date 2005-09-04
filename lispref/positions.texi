@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001
-@c  Free Software Foundation, Inc.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001,
+@c   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/positions
 @node Positions, Markers, Frames, Top
@@ -636,7 +636,7 @@ the end of the accessible portion of the buffer, and pass @var{line} and
 
 When you use @code{compute-motion} for the minibuffer, you need to use
 @code{minibuffer-prompt-width} to get the horizontal position of the
-beginning of the first screen line.  @xref{Minibuffer Misc}.
+beginning of the first screen line.  @xref{Minibuffer Contents}.
 @end defun
 
 @node List Motion

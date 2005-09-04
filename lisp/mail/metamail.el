@@ -1,6 +1,7 @@
 ;;; metamail.el --- Metamail interface for GNU Emacs
 
-;; Copyright (C) 1993, 1996  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1996, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
 ;; Keywords: mail, news, mime, multimedia
@@ -34,6 +35,9 @@
 ;; gnus-mime.el by Spike <Spike@world.std.com>.
 
 ;;; Code:
+
+(defvar rmail-current-message)
+(defvar rmail-message-vector)
 
 (defgroup metamail nil
   "Metamail interface for Emacs."

@@ -1,6 +1,7 @@
 ;;; pong.el --- classical implementation of pong
 
-;; Copyright 1999, 2000, 2001, 2005 by Free Software Foundation, Inc.
+;; Copyright 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Benjamin Drieu <bdrieu@april.org>
 ;; Keywords: games

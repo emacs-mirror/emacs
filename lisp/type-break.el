@@ -1,6 +1,7 @@
 ;;; type-break.el --- encourage rests from typing at appropriate intervals
 
-;; Copyright (C) 1994, 95, 97, 2000, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1997, 2000, 2002, 2003,
+;;   2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>

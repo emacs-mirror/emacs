@@ -1,7 +1,7 @@
 ;;; help-fns.el --- Complex help functions
 
-;; Copyright (C) 1985, 86, 93, 94, 98, 1999, 2000, 01, 02, 03, 2004
-;;   Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001,
+;;   2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help, internal
@@ -217,13 +217,13 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 			(intern (upcase name))))))
 		arglist)))
 
-;;; Could be this, if we make symbol-file do the work below.
-;;; (defun help-C-file-name (subr-or-var kind)
-;;;   "Return the name of the C file where SUBR-OR-VAR is defined.
-;;; KIND should be `var' for a variable or `subr' for a subroutine."
-;;;   (symbol-file (if (symbolp subr-or-var) subr-or-var
-;;; 		 (subr-name subr-or-var))
-;;; 	       (if (eq kind 'var) 'defvar 'defun)))
+;; Could be this, if we make symbol-file do the work below.
+;; (defun help-C-file-name (subr-or-var kind)
+;;   "Return the name of the C file where SUBR-OR-VAR is defined.
+;; KIND should be `var' for a variable or `subr' for a subroutine."
+;;   (symbol-file (if (symbolp subr-or-var) subr-or-var
+;; 		 (subr-name subr-or-var))
+;; 	       (if (eq kind 'var) 'defvar 'defun)))
 ;;;###autoload
 (defun help-C-file-name (subr-or-var kind)
   "Return the name of the C file where SUBR-OR-VAR is defined.
@@ -724,5 +724,5 @@ BUFFER should be a buffer or a buffer name."
 
 (provide 'help-fns)
 
-;;; arch-tag: 9e10331c-ae81-4d13-965d-c4819aaab0b3
+;; arch-tag: 9e10331c-ae81-4d13-965d-c4819aaab0b3
 ;;; help-fns.el ends here

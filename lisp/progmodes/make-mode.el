@@ -1,6 +1,7 @@
 ;;; make-mode.el --- makefile editing commands for Emacs
 
-;; Copyright (C) 1992,94,99,2000,2001, 2002, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>

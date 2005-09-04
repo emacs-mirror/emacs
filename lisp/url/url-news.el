@@ -1,6 +1,7 @@
 ;;; url-news.el --- News Uniform Resource Locator retrieval code
 
-;; Copyright (c) 1996 - 1999, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -29,7 +30,10 @@
 (require 'nntp)
 (autoload 'url-warn "url")
 (autoload 'gnus-group-read-ephemeral-group "gnus-group")
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (defvar nntp-open-tls-stream)
+  (defvar nntp-open-ssl-stream))
 
 (defgroup url-news nil
   "News related options."

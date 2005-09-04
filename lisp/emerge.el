@@ -44,6 +44,18 @@
 ;;;###autoload (define-key menu-bar-emerge-menu [emerge-buffers]
 ;;;###autoload   '("Buffers..." . emerge-buffers))
 
+;; There aren't really global variables, just dynamic bindings
+(defvar A-begin)
+(defvar A-end)
+(defvar B-begin)
+(defvar B-end)
+(defvar diff)
+(defvar diff-vector)
+(defvar merge-begin)
+(defvar merge-end)
+(defvar template)
+(defvar valid-diff)
+
 ;;; Macros
 
 (defmacro emerge-eval-in-buffer (buffer &rest forms)

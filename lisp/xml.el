@@ -1,6 +1,7 @@
 ;;; xml.el --- XML parser
 
-;; Copyright (C) 2000, 01, 03, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Mark A. Hershberger <mah@everybody.org>
@@ -184,6 +185,7 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
 
 (defvar xml-name-re)
 (defvar xml-entity-value-re)
+(defvar xml-att-def-re)
 (let* ((start-chars (concat "[:alpha:]:_"))
        (name-chars  (concat "-[:digit:]." start-chars))
 ;;[3]   	S	   ::=   	(#x20 | #x9 | #xD | #xA)+

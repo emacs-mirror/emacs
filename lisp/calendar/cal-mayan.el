@@ -53,6 +53,8 @@
 
 ;;; Code:
 
+(defvar date)
+
 (require 'calendar)
 
 (defconst calendar-mayan-days-before-absolute-zero 1137142

@@ -1,6 +1,7 @@
 /* Definitions file for GNU Emacs running on Data General's DG/UX
    version 4.32 upto and including 5.4.1.
-   Copyright (C) 1994, 1999 Free Software Foundation, Inc.
+   Copyright (C) 1994, 1999, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

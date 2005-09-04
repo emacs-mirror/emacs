@@ -172,9 +172,15 @@ EMACS_INT misc_objects_consed;
 EMACS_INT intervals_consed;
 EMACS_INT strings_consed;
 
-/* Number of bytes of consing since GC before another GC should be done. */
+/* Minimum number of bytes of consing since GC before next GC. */
 
 EMACS_INT gc_cons_threshold;
+
+/* Similar minimum, computed from Vgc_cons_percentage.  */
+
+EMACS_INT gc_relative_threshold;
+
+static Lisp_Object Vgc_cons_percentage;
 
 /* Nonzero during GC.  */
 
@@ -4899,6 +4905,24 @@ returns nil, because real GC can't be done.  */)
   if (gc_cons_threshold < 10000)
     gc_cons_threshold = 10000;
 
+  if (FLOATP (Vgc_cons_percentage))
+    { /* Set gc_cons_combined_threshold.  */
+      EMACS_INT total = 0;
+
+      total += total_conses  * sizeof (struct Lisp_Cons);
+      total += total_symbols * sizeof (struct Lisp_Symbol);
+      total += total_markers * sizeof (union Lisp_Misc);
+      total += total_string_size;
+      total += total_vector_size * sizeof (Lisp_Object);
+      total += total_floats  * sizeof (struct Lisp_Float);
+      total += total_intervals * sizeof (struct interval);
+      total += total_strings * sizeof (struct Lisp_String);
+      
+      gc_relative_threshold = total * XFLOAT_DATA (Vgc_cons_percentage);
+    }
+  else
+    gc_relative_threshold = 0;
+
   if (garbage_collection_messages)
     {
       if (message_p || minibuf_level > 0)
@@ -5988,6 +6012,8 @@ init_alloc_once ()
   staticidx = 0;
   consing_since_gc = 0;
   gc_cons_threshold = 100000 * sizeof (Lisp_Object);
+  gc_relative_threshold = 0;
+
 #ifdef VIRT_ADDR_VARIES
   malloc_sbrk_unused = 1<<22;	/* A large number */
   malloc_sbrk_used = 100000;	/* as reasonable as any number */
@@ -6019,7 +6045,15 @@ allocated since the last garbage collection.  All data types count.
 Garbage collection happens automatically only when `eval' is called.
 
 By binding this temporarily to a large number, you can effectively
-prevent garbage collection during a part of the program.  */);
+prevent garbage collection during a part of the program.
+See also `gc-cons-percentage'.  */);
+
+  DEFVAR_LISP ("gc-cons-percentage", &Vgc_cons_percentage,
+	       doc: /* *Portion of the heap used for allocation.
+Garbage collection can happen automatically once this portion of the heap
+has been allocated since the last garbage collection.
+If this portion is smaller than `gc-cons-threshold', this is ignored.  */);
+  Vgc_cons_percentage = make_float (0.1);
 
   DEFVAR_INT ("pure-bytes-used", &pure_bytes_used,
 	      doc: /* Number of bytes of sharable Lisp data allocated so far.  */);

@@ -1,6 +1,7 @@
 /* Keyboard and mouse input; editor command loop.
-   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1996, 1997,
-     1999, 2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995,
+                 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4010,7 +4011,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  kbd_fetch_ptr = event + 1;
 	}
 #endif
-#if defined (HAVE_X11) || defined (HAVE_NTGUI)
+#if defined (HAVE_X11) || defined (HAVE_NTGUI) || defined (MAC_OS)
       else if (event->kind == ICONIFY_EVENT)
 	{
 	  /* Make an event (iconify-frame (FRAME)).  */
@@ -7001,8 +7002,6 @@ menu_bar_items (old)
 
   int i;
 
-  struct gcpro gcpro1;
-
   /* In order to build the menus, we need to call the keymap
      accessors.  They all call QUIT.  But this function is called
      during redisplay, during which a quit is fatal.  So inhibit
@@ -7017,8 +7016,6 @@ menu_bar_items (old)
   else
     menu_bar_items_vector = Fmake_vector (make_number (24), Qnil);
   menu_bar_items_index = 0;
-
-  GCPRO1 (menu_bar_items_vector);
 
   /* Build our list of keymaps.
      If we recognize a function key and replace its escape sequence in
@@ -7123,7 +7120,6 @@ menu_bar_items (old)
   menu_bar_items_index = i;
 
   Vinhibit_quit = oquit;
-  UNGCPRO;
   return menu_bar_items_vector;
 }
 
@@ -11167,6 +11163,9 @@ syms_of_keyboard ()
   menu_bar_one_keymap_changed_items = Qnil;
   staticpro (&menu_bar_one_keymap_changed_items);
 
+  menu_bar_items_vector = Qnil;
+  staticpro (&menu_bar_items_vector);
+
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
   defsubr (&Sread_key_sequence_vector);
@@ -11443,6 +11442,7 @@ might happen repeatedly and make Emacs nonfunctional.  */);
 	       doc: /* Normal hook run when clearing the echo area.  */);
 #endif
   Qecho_area_clear_hook = intern ("echo-area-clear-hook");
+  staticpro (&Qecho_area_clear_hook);
   SET_SYMBOL_VALUE (Qecho_area_clear_hook, Qnil);
 
   DEFVAR_LISP ("lucid-menu-bar-dirty-flag", &Vlucid_menu_bar_dirty_flag,

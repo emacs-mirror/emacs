@@ -1,5 +1,6 @@
 /* GNU Emacs site configuration template file.  -*- C -*-
-   Copyright (C) 1988, 1993, 1994 Free Software Foundation, Inc.
+   Copyright (C) 1988, 1993, 1994, 2002, 2003, 2004,
+      2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -269,6 +270,12 @@ Boston, MA 02110-1301, USA.  */
 
 /* Define if `struct timeval' is declared by <sys/time.h>.  */
 #undef HAVE_TIMEVAL
+
+/* Define to 1 if you have the <getopt.h> header file. */
+#undef HAVE_GETOPT_H
+
+/* Define to 1 if you have the `getopt_long_only' function. */
+#undef HAVE_GETOPT_LONG_ONLY
 
 /* If using GNU, then support inline function declarations. */
 #ifdef __GNUC__

@@ -1,6 +1,7 @@
 ;;; find-func.el --- find the definition of the Emacs Lisp function near point
 
-;; Copyright (C) 1997, 1999, 2001, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Jens Petersen <petersen@kurims.kyoto-u.ac.jp>
 ;; Maintainer: petersen@kurims.kyoto-u.ac.jp
@@ -62,7 +63,7 @@
   ;;  (define-derived-mode foo ...), (define-minor-mode foo)
   (concat
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
-ine-minor-mode\\|un-cvs-mode\\|foo\\|[^cfgv]\\w+\\*?\\)\
+ine-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|foo\\|[^cfgv]\\w+\\*?\\)\
 \\|easy-mmode-define-global-mode\\|menu-bar-make-toggle\\)"
    find-function-space-re
    "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")

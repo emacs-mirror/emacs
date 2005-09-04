@@ -1,6 +1,7 @@
 ;;; cmacexp.el --- expand C macros in a region
 
-;; Copyright (C) 1992, 1994, 1996, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1994, 1996, 2000, 2001, 2002, 2003, 2004
+;; Free Software Foundation, Inc.
 
 ;; Author: Francesco Potorti` <pot@gnu.org>
 ;; Adapted-By: ESR
@@ -92,6 +93,9 @@
 
 (provide 'cmacexp)
 
+(defvar msdos-shells)
+
+
 (defgroup c-macro nil
   "Expand C macros in a region."
   :group 'c)
@@ -146,8 +150,9 @@ Normally display output in temp buffer, but
 prefix arg means replace the region with it.
 
 `c-macro-preprocessor' specifies the preprocessor to use.
-Prompt for arguments to the preprocessor \(e.g. `-DDEBUG -I ./include')
-if the user option `c-macro-prompt-flag' is non-nil.
+Tf the user option `c-macro-prompt-flag' is non-nil
+prompt for arguments to the preprocessor \(e.g. `-DDEBUG -I ./include'),
+otherwise use `c-macro-cppflags'.
 
 Noninteractive args are START, END, SUBST.
 For use inside Lisp programs, see also `c-macro-expansion'."

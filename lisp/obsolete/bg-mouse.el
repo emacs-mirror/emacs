@@ -1,6 +1,6 @@
 ;;; bg-mouse.el --- GNU Emacs code for BBN Bitgraph mouse
 
-;; Copyright (C) 2001 Free Software Foundation, Inc. Oct 1985.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: John Robinson <jr@bbn-unix.arpa>
 ;;	Stephen Gildea <gildea@bbn.com>
@@ -49,6 +49,13 @@
 
 ;;; semicolon screws up indenting, so use this instead
 (defconst semicolon ?\;)
+
+(defvar bg-mouse-x)
+(defvar bg-mouse-y)
+(defvar bg-cursor-window)
+;; This variable does not exist since 1991, so it's a safe bet
+;; this package is not really used anymore.  Still...
+(defvar mouse-map)
 
 ;;;  Defuns:
 

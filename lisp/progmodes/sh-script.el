@@ -199,6 +199,9 @@
   (require 'comint))
 (require 'executable)
 
+(defvar font-lock-comment-face)
+(defvar font-lock-set-defaults)
+(defvar font-lock-string-face)
 
 
 (defgroup sh nil
@@ -815,7 +818,7 @@ See `sh-feature'.")
   :group 'sh-script
   :version "22.1")
 
-(defvar sh-font-lock-keywords
+(defvar sh-font-lock-keywords-var
   '((csh sh-append shell
 	 ("\\${?[#?]?\\([A-Za-z_][A-Za-z0-9_]*\\|0\\)" 1
           font-lock-variable-name-face))
@@ -838,7 +841,7 @@ See `sh-feature'.")
 	 1 font-lock-negation-char-face))
 
     ;; The next entry is only used for defining the others
-    (shell sh-append executable-font-lock-keywords
+    (shell
            ;; Using font-lock-string-face here confuses sh-get-indent-info.
            ("\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\\\)$" 3 'sh-escaped-newline)
 	   ("\\\\[^A-Za-z0-9]" 0 font-lock-string-face)
@@ -850,11 +853,11 @@ See `sh-feature'.")
 	  ("^\\(\\sw+\\):"  1 font-lock-variable-name-face)))
   "Default expressions to highlight in Shell Script modes.  See `sh-feature'.")
 
-(defvar sh-font-lock-keywords-1
+(defvar sh-font-lock-keywords-var-1
   '((sh "[ \t]in\\>"))
   "Subdued level highlighting for Shell Script modes.")
 
-(defvar sh-font-lock-keywords-2 ()
+(defvar sh-font-lock-keywords-var-2 ()
   "Gaudy level highlighting for Shell Script modes.")
 
 ;; These are used for the syntax table stuff (derived from cperl-mode).
@@ -1364,9 +1367,12 @@ with your script for an edit-interpret-debug cycle."
 	paragraph-start (concat page-delimiter "\\|$")
 	paragraph-separate paragraph-start
 	comment-start "# "
+	comment-start-skip "#+[\t ]*"
+	local-abbrev-table sh-mode-abbrev-table
 	comint-dynamic-complete-functions sh-dynamic-complete-functions
 	;; we can't look if previous line ended with `\'
 	comint-prompt-regexp "^[ \t]*"
+	imenu-case-fold-search nil
 	font-lock-defaults
 	`((sh-font-lock-keywords
 	   sh-font-lock-keywords-1 sh-font-lock-keywords-2)
@@ -1403,13 +1409,14 @@ with your script for an edit-interpret-debug cycle."
 (defun sh-font-lock-keywords (&optional keywords)
   "Function to get simple fontification based on `sh-font-lock-keywords'.
 This adds rules for comments and assignments."
-  (sh-feature sh-font-lock-keywords
+  (sh-feature sh-font-lock-keywords-var
 	      (when (stringp (sh-feature sh-assignment-regexp))
 		(lambda (list)
 		  `((,(sh-feature sh-assignment-regexp)
 		     1 font-lock-variable-name-face)
 		    ,@keywords
-		    ,@list)))))
+		    ,@list
+		    ,@executable-font-lock-keywords)))))
 
 (defun sh-font-lock-keywords-1 (&optional builtins)
   "Function to get better fontification including keywords."
@@ -1426,10 +1433,10 @@ This adds rules for comments and assignments."
 			 "\\>")
 		(2 font-lock-keyword-face nil t)
 		(6 font-lock-builtin-face))
-	       ,@(sh-feature sh-font-lock-keywords-2)))
+	       ,@(sh-feature sh-font-lock-keywords-var-2)))
 	 (,(concat keywords "\\)\\>")
 	  2 font-lock-keyword-face)
-	 ,@(sh-feature sh-font-lock-keywords-1)))))
+	 ,@(sh-feature sh-font-lock-keywords-var-1)))))
 
 (defun sh-font-lock-keywords-2 ()
   "Function to get better fontification including keywords and builtins."
@@ -1491,6 +1498,7 @@ This adds rules for comments and assignments."
      ("case" sh-handle-this-rc-case sh-handle-prev-rc-case))))
 
 
+
 (defun sh-set-shell (shell &optional no-query-flag insert-flag)
   "Set this buffer's shell to SHELL (a string).
 When used interactively, insert the proper starting #!-line,
@@ -1523,13 +1531,10 @@ Calls the value of `sh-set-shell-hook' if set."
     (if (eq tem t)
 	(setq require-final-newline mode-require-final-newline)))
   (setq
-	comment-start-skip "#+[\t ]*"
-	local-abbrev-table sh-mode-abbrev-table
 	mode-line-process (format "[%s]" sh-shell)
 	sh-shell-variables nil
 	sh-shell-variables-initialized nil
-	imenu-generic-expression (sh-feature sh-imenu-generic-expression)
-	imenu-case-fold-search nil)
+	imenu-generic-expression (sh-feature sh-imenu-generic-expression))
   (make-local-variable 'sh-mode-syntax-table)
   (let ((tem (sh-feature sh-mode-syntax-table-input)))
     (setq sh-mode-syntax-table
@@ -1557,8 +1562,11 @@ Calls the value of `sh-set-shell-hook' if set."
 	(message "Indentation setup for shell type %s" sh-shell))
     (message "No indentation for this shell type.")
     (setq indent-line-function 'sh-basic-indent-line))
+  (when font-lock-mode
+    (setq font-lock-set-defaults nil)
+    (font-lock-set-defaults)
+    (font-lock-fontify-buffer))
   (run-hooks 'sh-set-shell-hook))
-
 
 
 (defun sh-feature (alist &optional function)
@@ -1578,39 +1586,38 @@ Else indexing follows an inheritance logic which works in two ways:
     one shell to be derived from another shell.
     The value thus determined is physically replaced into the alist.
 
-Optional FUNCTION is applied to the determined value and the result is cached
-in ALIST."
+If FUNCTION is non-nil, it is called with one argument,
+the value thus obtained, and the result is used instead."
   (or (if (consp alist)
+	  ;; Check for something that isn't a valid alist.
 	  (let ((l alist))
 	    (while (and l (consp (car l)))
 	      (setq l (cdr l)))
 	    (if l alist)))
-      (if function
-	  (cdr (assoc (setq function (cons sh-shell function)) alist)))
-      (let ((sh-shell sh-shell)
-	    elt val)
-	(while (and sh-shell
-		    (not (setq elt (assq sh-shell alist))))
-	  (setq sh-shell (cdr (assq sh-shell sh-ancestor-alist))))
-	;; If the shell is not known, treat it as sh.
-	(unless elt
-	  (setq elt (assq 'sh alist)))
-	(if (and (consp (setq val (cdr elt)))
-		 (memq (car val) '(sh-append sh-modify)))
-	    (setcdr elt
-		    (setq val
-			  (apply (car val)
-				 (let ((sh-shell (car (cdr val))))
-                                   (if (assq sh-shell alist)
-                                       (sh-feature alist)
-                                     (eval sh-shell)))
-				 (cddr val)))))
-	(if function
-	    (nconc alist
-		   (list (cons function
-			       (setq sh-shell (car function)
-				     val (funcall (cdr function) val))))))
-	val)))
+
+      (let ((orig-sh-shell sh-shell))
+	(let ((sh-shell sh-shell)
+	      elt val)
+	  (while (and sh-shell
+		      (not (setq elt (assq sh-shell alist))))
+	    (setq sh-shell (cdr (assq sh-shell sh-ancestor-alist))))
+	  ;; If the shell is not known, treat it as sh.
+	  (unless elt
+	    (setq elt (assq 'sh alist)))
+	  (setq val (cdr elt))
+	  (if (and (consp val)
+		   (memq (car val) '(sh-append sh-modify)))
+	      (setq val
+		    (apply (car val)
+			   ;; Refer to the value for a different shell,
+			   ;; as a kind of inheritance.
+			   (let ((sh-shell (car (cdr val))))
+			     (sh-feature alist))
+			   (cddr val))))
+	  (if function
+	      (setq sh-shell orig-sh-shell
+		    val (funcall function val)))
+	  val))))
 
 
 
@@ -2033,11 +2040,20 @@ STRING	     This is ignored for the purposes of calculating
 	;; Continuation lines are handled specially
 	(if (sh-this-is-a-continuation)
 	    (progn
-	      ;; We assume the line being continued is already
-	      ;; properly indented...
-	      ;; (setq prev-line-end (sh-prev-line))
-	      (setq align-point (sh-prev-line nil))
-	      (setq result (list '(+ sh-indent-for-continuation)))
+              (setq result
+                    (if (save-excursion
+                          (beginning-of-line)
+                          (not (memq (char-before (- (point) 2)) '(?\s ?\t))))
+                        ;; By convention, if the continuation \ is not
+                        ;; preceded by a SPC or a TAB it means that the line
+                        ;; is cut at a place where spaces cannot be freely
+                        ;; added/removed.  I.e. do not indent the line.
+                        (list '(= nil))
+                      ;; We assume the line being continued is already
+                      ;; properly indented...
+                      ;; (setq prev-line-end (sh-prev-line))
+                      (setq align-point (sh-prev-line nil))
+                      (list '(+ sh-indent-for-continuation))))
 	      (setq have-result t))
 	  (beginning-of-line)
 	  (skip-chars-forward " \t")
@@ -2130,10 +2146,9 @@ STRING	     This is ignored for the purposes of calculating
       (sh-debug "result is now: %s" result)
 
       (or result
-	  (if prev-line-end
-	      (setq result (list (list t prev-line-end)))
-	    (setq result (list (list '= 'sh-first-lines-indent)))
-	    ))
+	  (setq result (list (if prev-line-end
+                                 (list t prev-line-end)
+                               (list '= 'sh-first-lines-indent)))))
 
       (if (eq result t)
 	  (setq result nil))
@@ -2695,11 +2710,9 @@ unless optional argument ARG (the prefix when interactive) is non-nil."
 
 (defun sh-mark-init (buffer)
   "Initialize a BUFFER to be used by `sh-mark-line'."
-  (save-excursion
-    (set-buffer (get-buffer-create buffer))
+  (with-current-buffer (get-buffer-create buffer)
     (erase-buffer)
-    (occur-mode)
-    ))
+    (occur-mode)))
 
 
 (defun sh-mark-line (message point buffer &optional add-linenum occur-point)
@@ -2972,8 +2985,7 @@ This command can often take a long time to run."
 	  (let ((var (car learned-var)))
 	    (sh-mark-line (format "  %s %s" var (symbol-value var))
 			  (nth 2 learned-var) out-buffer)))
-	(save-excursion
-	  (set-buffer out-buffer)
+	(with-current-buffer out-buffer
 	  (goto-char (point-min))
 	  (insert
 	   (format "Indentation values for buffer %s.\n" name)
@@ -3244,8 +3256,7 @@ nil means to return the best completion of STRING, or nil if there is none.
 t means to return a list of all possible completions of STRING.
 `lambda' means to return t if STRING is a valid completion as it stands."
   (let ((sh-shell-variables
-	 (save-excursion
-	   (set-buffer sh-add-buffer)
+	 (with-current-buffer sh-add-buffer
 	   (or sh-shell-variables-initialized
 	       (sh-shell-initialize-variables))
 	   (nconc (mapcar (lambda (var)

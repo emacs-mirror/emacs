@@ -15,7 +15,8 @@ This document describes the Supercite Version 3.1 package for citing and
 attributing the replies for various GNU Emacs mail and news reading
 subsystems.
 
-Copyright @copyright{} 1993, 2001, 2002 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -948,7 +949,7 @@ to:
 (setq mail-citation-hook 'sc-cite-original)
 @end example
 
-Note the lack of of a single quote on the first argument to @code{setq}.
+Note the lack of a single quote on the first argument to @code{setq}.
 
 @node  MH-E with any Emacsen, VM with any Emacsen, Emacs 18 MUAs, Getting Connected
 @comment  node-name,  next,  previous,  up

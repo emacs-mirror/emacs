@@ -1,6 +1,4 @@
-Emacs användarhandledning. I slutet finns kopieringsvillkoren. 
-Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software
-Foundation, Inc.
+Emacs användarhandledning. I slutet finns kopieringsvillkoren.
 
 Emacs-kommandon innebär ofta användning av kontrolltangenten (vanligen
 märkt CTRL eller CTL) eller META-tangenten (på vissa tangentbord märkt
@@ -310,9 +308,9 @@ texten. Tecken som du kan se, så som A, 7, *, etc. tolkas som text och
 sätts in direkt. Skriv <Return> (retur-tangenten) för att sätta in en
 radbrytning.
 
-Du kan radera det sista tecknet du skrev genom att trycka <Delback>. 
+Du kan radera det sista tecknet du skrev genom att trycka <Delback>.
 <Delback> är en tangent på tangentbordet -- samma som du normalt
-använder utanför Emacs för att ta bort det senaste tecknet du skrivit. 
+använder utanför Emacs för att ta bort det senaste tecknet du skrivit.
 Det är vanligen en stor tangent några rader ovanför retur-tangenten,
 och den är vanligtvis märkt "Delete, "Del" eller "Backspace".
 
@@ -325,7 +323,7 @@ markörspositionen.
 
 >>  Gör detta nu: Skriv in några tecken och ta bort dem genom att
     använda <Delback>. Var inte rädd för att skriva i den här filen,
-    du kommer inte att kunna förändra originalet till vägledningen. 
+    du kommer inte att kunna förändra originalet till vägledningen.
     Detta är bara en lokal kopia.
 
 När en rad blir för lång för att rymmas på en skärmbredd så fortsätter
@@ -408,7 +406,7 @@ raderar så många rader OCH innehållet i dem. Detta är alltså inte bara
 en repetition av kommandot. C-u 2 C-k raderar två rader samt de tomma
 raderna, medan C-k två gånger inte kommer att göra det.
 
-Att sätta in borttagen text kallas att "återhämta" den (yanking). 
+Att sätta in borttagen text kallas att "återhämta" den (yanking).
 (Tänk på det som att du rycker, eller drar, tillbaka någon text som
 tagits bort.) Du kan antingen hämta tillbaka borttagen text till samma
 plats som där den blev borttagen, eller så kan du sätta in den på en
@@ -593,7 +591,7 @@ Emacs-fönster så tillhör den alltid en buffert.
 
 >> Skriv C-x 1 för att bli kvitt buffertlistan.
 
-När du har flera buffertar så är bara en av dem "gällande" åt gången. 
+När du har flera buffertar så är bara en av dem "gällande" åt gången.
 Det är den buffert du redigerar. Om du vill redigera en annan buffert
 så måste du byta till den. Om du vill byta till en buffert som
 motsvarar en fil kan du göra det genom att besöka den igen med C-x
@@ -615,7 +613,7 @@ skapades med C-x C-b. Bufferten "*Messages*" motsvarar inte heller
 någon fil. Den innehåller de meddelanden som visas på den nedersta
 raden i Emacs sessionen.
 
->> Skriv C-x b *Messages* <Return> för att se meddelandebufferten. 
+>> Skriv C-x b *Messages* <Return> för att se meddelandebufferten.
    Skriv sedan C-x b TUTORIAL.sv <Return> för att återgå till den här
    handledningen.
 
@@ -979,7 +977,7 @@ Ibland kan du hamna i något som kallas "rekursiv redigering"
 huvudläget i lägesraden. Till exempel kan det stå [(Fundamental)]
 istället för (Fundamental).
 
-För att komma ur rekursiv redigering trycker du <ESC> <ESC> <ESC>. 
+För att komma ur rekursiv redigering trycker du <ESC> <ESC> <ESC>.
 Detta är ett generellt brytkommando. Du kan också använda det för att
 bli kvitt extra fönster och för att komma ut ur minibufferten.
 
@@ -1099,7 +1097,7 @@ ett mail och klaga!
 ----------------
 
 Du kan lära dig mer om Emacs genom att läsa dess manual, antingen i
-bokform eller on-line i Info (använd Hjälp-menyn eller skriv F10 h r). 
+bokform eller on-line i Info (använd Hjälp-menyn eller skriv F10 h r).
 Två finesser som du kan komma att gilla speciellt är komplettering
 (completion), som spar tangenttryckningar, och dired, som förenklar
 filhantering.
@@ -1128,7 +1126,8 @@ Lidell översatte den till Svenska.
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation
+Copyright (C) 1985, 1996, 1998, 2001, 2002, 2003, 2004,
+   2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

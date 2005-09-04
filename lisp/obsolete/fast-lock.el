@@ -1,6 +1,7 @@
 ;;; fast-lock.el --- automagic text properties caching for fast Font Lock mode
 
-;; Copyright (C) 1994, 1995, 1996, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Simon Marshall <simon@gnu.org>
 ;; Maintainer: FSF
@@ -186,6 +187,8 @@
 (if (and (eq system-type 'ms-dos) (not (msdos-long-file-names)))
     (error "`fast-lock' was written for long file name systems"))
 
+(defvar font-lock-face-list)
+
 (eval-when-compile
  ;;
  ;; We don't do this at the top-level as we only use non-autoloaded macros.
@@ -233,22 +236,27 @@
      (defmacro defcustom (symbol value doc &rest args)
        `(defvar ,symbol ,value ,doc))))
 
-;(defun fast-lock-submit-bug-report ()
-;  "Submit via mail a bug report on fast-lock.el."
-;  (interactive)
-;  (let ((reporter-prompt-for-summary-p t))
-;    (reporter-submit-bug-report "simon@gnu.org" "fast-lock 3.14"
-;     '(fast-lock-cache-directories fast-lock-minimum-size
-;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
-;       fast-lock-verbose)
-;     nil nil
-;     (concat "Hi Si.,
-;
-;I want to report a bug.  I've read the `Bugs' section of `Info' on Emacs, so I
-;know how to make a clear and unambiguous report.  To reproduce the bug:
-;
-;Start a fresh editor via `" invocation-name " -no-init-file -no-site-file'.
-;In the `*scratch*' buffer, evaluate:"))))
+;;(defun fast-lock-submit-bug-report ()
+;;  "Submit via mail a bug report on fast-lock.el."
+;;  (interactive)
+;;  (let ((reporter-prompt-for-summary-p t))
+;;    (reporter-submit-bug-report "simon@gnu.org" "fast-lock 3.14"
+;;     '(fast-lock-cache-directories fast-lock-minimum-size
+;;       fast-lock-save-others fast-lock-save-events fast-lock-save-faces
+;;       fast-lock-verbose)
+;;     nil nil
+;;     (concat "Hi Si.,
+;;
+;;I want to report a bug.  I've read the `Bugs' section of `Info' on Emacs, so I
+;;know how to make a clear and unambiguous report.  To reproduce the bug:
+;;
+;;Start a fresh editor via `" invocation-name " -no-init-file -no-site-file'.
+;;In the `*scratch*' buffer, evaluate:"))))
+
+(defgroup fast-lock nil
+  "Font Lock support mode to cache fontification."
+  :load 'fast-lock
+  :group 'font-lock)
 
 (defvar fast-lock-mode nil)		; Whether we are turned on.
 (defvar fast-lock-cache-timestamp nil)	; For saving/reading.
@@ -371,8 +379,9 @@ For saving, see variables `fast-lock-minimum-size', `fast-lock-save-events',
 	    (if arg (> (prefix-numeric-value arg) 0) (not fast-lock-mode))))
   (if (and fast-lock-mode (not font-lock-mode))
       ;; Turned on `fast-lock-mode' rather than `font-lock-mode'.
-      (let ((font-lock-support-mode 'fast-lock-mode))
-	(font-lock-mode t))
+      (progn
+        (message "Use font-lock-support-mode rather than calling fast-lock-mode")
+        (sit-for 2))
     ;; Let's get down to business.
     (set (make-local-variable 'fast-lock-cache-timestamp) nil)
     (set (make-local-variable 'fast-lock-cache-filename) nil)
@@ -859,5 +868,5 @@ See `fast-lock-get-face-properties'."
 
 (provide 'fast-lock)
 
-;;; arch-tag: 638c431e-8cae-4538-80a1-963ff97d233e
+;; arch-tag: 638c431e-8cae-4538-80a1-963ff97d233e
 ;;; fast-lock.el ends here

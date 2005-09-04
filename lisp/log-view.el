@@ -1,6 +1,7 @@
 ;;; log-view.el --- Major mode for browsing RCS/CVS/SCCS log output
 
-;; Copyright (C) 1999, 2000, 2001, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
@@ -35,6 +36,8 @@
 (eval-when-compile (require 'cl))
 (require 'pcvs-util)
 (autoload 'vc-version-diff "vc")
+
+(defvar cvs-minor-wrap-function)
 
 (defgroup log-view nil
   "Major mode for browsing log output of RCS/CVS/SCCS."

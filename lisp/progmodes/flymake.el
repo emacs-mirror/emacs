@@ -1,6 +1,6 @@
 ;;; flymake.el -- a universal on-the-fly syntax checker
 
-;; Copyright (C) 2003, 2005  Free Software Foundation
+;; Copyright (C) 2003, 2004, 2005  Free Software Foundation
 
 ;; Author:  Pavel Kobiakov <pk_at_work@yahoo.com>
 ;; Maintainer: Pavel Kobiakov <pk_at_work@yahoo.com>
@@ -806,11 +806,13 @@ line number outside the file being compiled."
 (defun flymake-highlight-err-lines (buffer err-info-list)
   "Highlight error lines in BUFFER using info from ERR-INFO-LIST."
   (with-current-buffer buffer
+   (save-excursion
     (let* ((idx    0)
 	   (count  (length err-info-list)))
       (while (< idx count)
-	(flymake-highlight-line (car (nth idx err-info-list)) (nth 1 (nth idx err-info-list)))
-	(setq idx (1+ idx))))))
+	(flymake-highlight-line (car (nth idx err-info-list))
+				(nth 1 (nth idx err-info-list)))
+	(setq idx (1+ idx)))))))
 
 (defun flymake-overlay-p (ov)
   "Determine whether overlay OV was created by flymake."
@@ -858,16 +860,12 @@ Return t if it has at least one flymake overlay, nil if no overlay."
     (t (:bold t)))
   "Face used for marking error lines."
   :group 'flymake)
-;; backward-compatibility alias
-(put 'flymake-errline-face 'face-alias 'flymake-errline)
 
 (defface flymake-warnline
   '((((class color)) (:background "LightBlue2"))
     (t (:bold t)))
   "Face used for marking warning lines."
   :group 'flymake)
-;; backward-compatibility alias
-(put 'flymake-warnline-face 'face-alias 'flymake-warnline)
 
 (defun flymake-highlight-line (line-no line-err-info-list)
   "Highlight line LINE-NO in current buffer.

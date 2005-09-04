@@ -14,7 +14,8 @@
 \letterpaper=1
 
 % Nothing else needs to be changed below this line.
-% Copyright (c) 1987, 1993, 1996, 1997, 2005 Free Software Foundation, Inc.
+% Copyright (C) 1987, 1993, 1996, 1997, 2002, 2003, 2004,
+%   2005 Free Software Foundation, Inc.
 
 % This file is part of GNU Emacs.
 
@@ -289,7 +290,7 @@ To enter GNU Emacs 22, just type its name: \kbd{emacs}
 \key{{\bf insert} contents of another file into this buffer}{C-x i}
 \key{replace this file with the file you really want}{C-x C-v}
 \key{write buffer to a specified file}{C-x C-w}
-\key{version control checkin/checkout}{C-x C-q}
+\key{toggle read-only status of buffer}{C-x C-q}
 
 \section{Getting Help}
 
@@ -301,14 +302,14 @@ the directions.  If you are a first-time user, type \kbd{C-h t} for a
 \key{scroll help window}{C-M-v}
 
 \key{apropos: show commands matching a string}{C-h a}
-\key{show the function a key runs}{C-h c}
+\key{describe the function a key runs}{C-h k}
 \key{describe a function}{C-h f}
 \key{get mode-specific information}{C-h m}
 
 \section{Error Recovery}
 
 \key{{\bf abort} partially typed or executing command}{C-g}
-\metax{{\bf recover} a file lost by a system crash}{M-x recover-file}
+\metax{{\bf recover} files lost by a system crash}{M-x recover-session}
 \metax{{\bf undo} an unwanted change}{C-x u, C-_ {\rm or} C-/}
 \metax{restore a buffer to its original contents}{M-x revert-buffer}
 \key{redraw garbaged screen}{C-l}
@@ -572,7 +573,7 @@ minibuffer.  Type \kbd{F10} to activate the menu bar using the minibuffer.
 \section{Info}
 
 \key{enter the Info documentation reader}{C-h i}
-\key{find specified function or variable in Info}{C-h C-i}
+\key{find specified function or variable in Info}{C-h S}
 \beginindentedkeys
 
 Moving within a node:
@@ -591,6 +592,7 @@ Moving between nodes:
 \key{follow cross reference  (return with \kbd{l})}{f}
 \key{return to last node you saw}{l}
 \key{return to directory node}{d}
+\key{go to top node of Info file}{t}
 \key{go to any node by name}{g}
 
 Other:

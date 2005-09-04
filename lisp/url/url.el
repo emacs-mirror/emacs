@@ -1,7 +1,7 @@
 ;;; url.el --- Uniform Resource Locator retrieval tool
 
-;; Copyright (c) 1996, 1997, 1998, 1999, 2001, 2004, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes, hypermedia
@@ -56,7 +56,7 @@
 (require 'url-parse)
 (require 'url-util)
 
-;; Fixme: customize? convert-standard-filename? 
+;; Fixme: customize? convert-standard-filename?
 ;;;###autoload
 (defvar url-configuration-directory "~/.url")
 
@@ -71,7 +71,7 @@ Emacs."
 
     (mailcap-parse-mailcaps)
     (mailcap-parse-mimetypes)
-    
+
     ;; Register all the authentication schemes we can handle
     (url-register-auth-scheme "basic" nil 4)
     (url-register-auth-scheme "digest" nil 7)
@@ -79,11 +79,11 @@ Emacs."
     (setq url-cookie-file
 	  (or url-cookie-file
 	      (expand-file-name "cookies" url-configuration-directory)))
-    
+
     (setq url-history-file
 	  (or url-history-file
 	      (expand-file-name "history" url-configuration-directory)))
-  
+
     ;; Parse the global history file if it exists, so that it can be used
     ;; for URL completion, etc.
     (url-history-parse-history)
@@ -123,9 +123,14 @@ Emacs."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun url-retrieve (url callback &optional cbargs)
   "Retrieve URL asynchronously and call CALLBACK with CBARGS when finished.
-The callback is called when the object has been completely retrieved, with
+URL is either a string or a parsed URL.
+
+CALLBACK is called when the object has been completely retrieved, with
 the current buffer containing the object, and any MIME headers associated
-with it.  URL is either a string or a parsed URL.
+with it.  Normally it gets the arguments in the list CBARGS.
+However, if what we find is a redirect, CALLBACK is given
+two additional args, `:redirect' and the redirected URL,
+followed by CBARGS.
 
 Return the buffer URL will load into, or nil if the process has
 already completed."
@@ -224,7 +229,7 @@ no further processing).  URL is either a string or a parsed URL."
 	    (message "Viewing externally")
 	    (kill-buffer (current-buffer)))
 	(display-buffer (current-buffer))
-	(add-hook 'kill-buffer-hook 
+	(add-hook 'kill-buffer-hook
 		  `(lambda () (mm-destroy-parts ',handle))
 		  nil
 		  t)))))

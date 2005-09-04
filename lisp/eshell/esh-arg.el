@@ -1,6 +1,7 @@
 ;;; esh-arg.el --- argument processing
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -341,8 +342,10 @@ special character that is not itself a backslash."
 	    (save-restriction
 	      (forward-char)
 	      (narrow-to-region (point) end)
-	      (list 'eshell-escape-arg
-		    (eshell-parse-argument)))
+	      (let ((arg (eshell-parse-argument)))
+		(if (eq arg nil)
+		    ""
+		  (list 'eshell-escape-arg arg))))
 	  (goto-char (1+ end)))))))
 
 (defun eshell-parse-special-reference ()

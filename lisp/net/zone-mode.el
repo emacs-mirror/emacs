@@ -1,6 +1,6 @@
 ;;; zone-mode.el --- major mode for editing DNS zone files
 
-;; Copyright (C) 1998, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: John Heidemann <johnh@isi.edu>
 ;; Keywords: DNS, languages

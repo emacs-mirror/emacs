@@ -1,6 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2005 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2004,
+@c   2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/customize
 @node Customization, Loading, Macros, Top
@@ -12,7 +13,7 @@ and also customization groups for classifying them.  We use the term
 definitions---as well as face definitions (@pxref{Defining Faces}).
 
 @menu
-* Common Keywords::      Common keyword arguments for all kinds of 
+* Common Keywords::      Common keyword arguments for all kinds of
                            customization declarations.
 * Group Definitions::    Writing customization group definitions.
 * Variable Definitions:: Declaring user options.
@@ -270,6 +271,22 @@ This is the default @code{:initialize} function.
 Use the @code{:set} function to initialize the variable, if it is
 already set or has been customized; otherwise, just use
 @code{set-default}.
+
+@item custom-initialize-safe-set
+@itemx custom-initialize-safe-default
+These functions behave like @code{custom-initialize-set}
+(@code{custom-initialize-default}, respectively), but catch errors.
+If an error occurs during initialization, they set the variable to
+@code{nil} using @code{set-default}, and throw no error.
+
+These two functions are only meant for options defined in pre-loaded
+files, where some variables or functions used to compute the option's
+value may not yet be defined.  The option normally gets updated in
+@file{startup.el}, ignoring the previously computed value.  Because of
+this typical usage, the value which these two functions compute
+normally only matters when, after startup, one unsets the option's
+value and then reevaluates the defcustom.  By that time, the necessary
+variables and functions will be defined, so there will not be an error.
 @end table
 
 @item :set-after @var{variables}
@@ -318,8 +335,8 @@ type of @var{symbol}.
 Internally, @code{defcustom} uses the symbol property
 @code{standard-value} to record the expression for the default value,
 and @code{saved-value} to record the value saved by the user with the
-customization buffer.  The @code{saved-value} property is actually a
-list whose car is an expression which evaluates to the value.
+customization buffer.  Both properties are actually lists whose car is
+an expression which evaluates to the value.
 
 @node Customization Types
 @section Customization Types
@@ -1088,8 +1105,8 @@ widget.  For the purpose of defining new customization types, the
 argument with the same syntax as the keyword argument to
 @code{defcustom} with the same name.  The third argument is a
 documentation string for the new widget.  You will be able to see that
-string with the @kbd{M-x widget-browse @key{ret} binary-tree-of-string
-@key{ret}} command.
+string with the @kbd{M-x widget-browse @key{RET} binary-tree-of-string
+@key{RET}} command.
 
 After these mandatory arguments follow the keyword arguments.  The most
 important is @code{:type}, which describes the data type we want to match

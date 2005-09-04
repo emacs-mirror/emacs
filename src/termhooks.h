@@ -1,5 +1,6 @@
-/* Parameters and display hooks for output devices
-   Copyright (C) 1985,86,93,94,2003  Free Software Foundation, Inc.
+/* Parameters and display hooks for output devices.
+   Copyright (C) 1985, 1986, 1993, 1994, 2002, 2003, 2004,
+                 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 

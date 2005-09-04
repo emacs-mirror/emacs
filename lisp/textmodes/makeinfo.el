@@ -1,6 +1,7 @@
 ;;; makeinfo.el --- run makeinfo conveniently
 
-;; Copyright (C) 1991, 1993, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1991, 1993, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Maintainer: FSF
@@ -48,6 +49,10 @@
 
 (require 'compile)
 (require 'info)
+
+(defvar tex-end-of-header)
+(defvar tex-start-of-header)
+
 
 (defgroup makeinfo nil
   "Run makeinfo conveniently."
@@ -170,22 +175,27 @@ command to gain use of `next-error'."
                      makeinfo-options
                      " "
                      makeinfo-temp-file)
-             "Use `makeinfo-buffer' to gain use of the `next-error' command"
-	     nil
+	     t
              'makeinfo-compilation-sentinel-region)))))))
 
-;;; Actually run makeinfo.  COMMAND is the command to run.
-;;; ERROR-MESSAGE is what to say when next-error can't find another error.
-;;; If PARSE-ERRORS is non-nil, do try to parse error messages.
-(defun makeinfo-compile (command error-message parse-errors sentinel)
-  (let ((buffer
-	 (compile-internal command error-message nil
-			   (and (not parse-errors)
-				;; If we do want to parse errors, pass nil.
-				;; Otherwise, use this function, which won't
-				;; ever find any errors.
-				(lambda (&rest ignore)
-				  (setq compilation-error-list nil))))))
+(defun makeinfo-next-error (arg reset)
+  "This function is used to disable `next-error' if the user has
+used `makeinfo-region'.  Since the compilation process is used on
+a temporary file in that case, calling `next-error' would give
+nonsensical results."
+  (error "Use `makeinfo-buffer' to gain use of the `next-error' command"))
+
+;; Actually run makeinfo.  COMMAND is the command to run.  If
+;; DISABLE-ERRORS is non-nil, disable `next-error' by setting
+;; `next-error-function' to `makeinfo-next-error' in the compilation
+;; buffer.
+(defun makeinfo-compile (command disable-errors sentinel)
+  (let ((buffer (compilation-start command)))
+    (with-current-buffer buffer
+      (setq next-error-function
+	    (if disable-errors
+		'makeinfo-next-error
+	      'compilation-next-error-function)))
     (set-process-sentinel (get-buffer-process buffer) sentinel)))
 
 ;; Delete makeinfo-temp-file after processing is finished,
@@ -248,9 +258,8 @@ Use the \\[next-error] command to move to the next error
   (save-excursion
     (makeinfo-compile
      (concat makeinfo-run-command " " makeinfo-options
-             " " buffer-file-name)
-     "No more errors."
-     t
+	     " " buffer-file-name)
+     nil
      'makeinfo-compilation-sentinel-buffer)))
 
 (defun makeinfo-compilation-sentinel-buffer (proc msg)

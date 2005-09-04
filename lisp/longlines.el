@@ -1,6 +1,6 @@
 ;;; longlines.el --- automatically wrap long lines
 
-;; Copyright (C) 2000, 2001, 2004, 2005 by Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Authors:    Kai Grossjohann <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 ;;             Alex Schroeder <alex@gnu.org>
@@ -116,6 +116,7 @@ are indicated with a symbol."
           (add-hook 'window-configuration-change-hook
                     'longlines-window-change-function nil t))
         (let ((buffer-undo-list t)
+              (inhibit-read-only t)
               (mod (buffer-modified-p)))
           ;; Turning off undo is OK since (spaces + newlines) is
           ;; conserved, except for a corner case in
@@ -136,7 +137,8 @@ are indicated with a symbol."
     (setq buffer-file-format (delete 'longlines buffer-file-format))
     (if longlines-showing
         (longlines-unshow-hard-newlines))
-    (let ((buffer-undo-list t))
+    (let ((buffer-undo-list t)
+          (inhibit-read-only t))
       (longlines-encode-region (point-min) (point-max)))
     (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
     (remove-hook 'before-kill-functions 'longlines-encode-region t)
@@ -144,7 +146,11 @@ are indicated with a symbol."
     (remove-hook 'post-command-hook 'longlines-post-command-function t)
     (remove-hook 'window-configuration-change-hook
                  'longlines-window-change-function t)
-    (kill-local-variable 'fill-column)))
+    (when longlines-wrap-follows-window-size
+      (kill-local-variable 'fill-column))
+    (kill-local-variable 'require-final-newline)
+    (kill-local-variable 'buffer-substring-filters)
+    (kill-local-variable 'use-hard-newlines)))
 
 (defun longlines-mode-off ()
   "Turn off longlines mode.
@@ -170,20 +176,20 @@ With optional argument ARG, make the hard newlines invisible again."
   "Make hard newlines between BEG and END visible."
   (let* ((pmin (min beg end))
          (pmax (max beg end))
-         (pos (text-property-any pmin pmax 'hard t)))
+         (pos (text-property-not-all pmin pmax 'hard nil)))
     (while pos
       (put-text-property pos (1+ pos) 'display
                          (copy-sequence longlines-show-effect))
-      (setq pos (text-property-any (1+ pos) pmax 'hard t)))))
+      (setq pos (text-property-not-all (1+ pos) pmax 'hard nil)))))
 
 (defun longlines-unshow-hard-newlines ()
   "Make hard newlines invisible again."
   (interactive)
   (setq longlines-showing nil)
-  (let ((pos (text-property-any (point-min) (point-max) 'hard t)))
+  (let ((pos (text-property-not-all (point-min) (point-max) 'hard nil)))
     (while pos
       (remove-text-properties pos (1+ pos) '(display))
-      (setq pos (text-property-any (1+ pos) (point-max) 'hard t)))))
+      (setq pos (text-property-not-all (1+ pos) (point-max) 'hard nil)))))
 
 ;; Wrapping the paragraphs.
 

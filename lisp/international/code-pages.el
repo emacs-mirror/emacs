@@ -216,6 +216,7 @@ Return an updated `non-iso-charset-alist'."
 
 ;; Fixme: Do better for mode-line mnemonics?
 
+;;;###autoload(autoload-coding-system 'cp437 '(require 'code-pages))
 (cp-make-coding-system
  cp437
  [?\Ç
@@ -347,6 +348,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp737 '(require 'code-pages))
 (cp-make-coding-system
  cp737
  [?\Α
@@ -479,6 +481,7 @@ Return an updated `non-iso-charset-alist'."
   ?\ ])
 (coding-system-put 'cp737 'mime-charset nil) ; not in IANA list
 
+;;;###autoload(autoload-coding-system 'cp775 '(require 'code-pages))
 (cp-make-coding-system
  cp775
  [?\Ć
@@ -610,6 +613,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp850 '(require 'code-pages))
 (cp-make-coding-system
  cp850
  [?\Ç
@@ -741,6 +745,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp851 '(require 'code-pages))
 (cp-make-coding-system
  cp851
  [?\Ç
@@ -872,6 +877,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp852 '(require 'code-pages))
 (cp-make-coding-system
  cp852
  [?\Ç
@@ -1003,6 +1009,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp855 '(require 'code-pages))
 (cp-make-coding-system
  cp855
  [?\ђ
@@ -1134,6 +1141,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp857 '(require 'code-pages))
 (cp-make-coding-system
  cp857
  [?\Ç
@@ -1265,6 +1273,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp860 '(require 'code-pages))
 (cp-make-coding-system
  cp860
  [?\Ç
@@ -1396,6 +1405,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp861 '(require 'code-pages))
 (cp-make-coding-system
  cp861
  [?\Ç
@@ -1527,6 +1537,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp862 '(require 'code-pages))
 (cp-make-coding-system
  cp862
  [?\א
@@ -1658,6 +1669,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp863 '(require 'code-pages))
 (cp-make-coding-system
  cp863
  [?\Ç
@@ -1789,6 +1801,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp864 '(require 'code-pages))
 (cp-make-coding-system
  cp864
  [?\°
@@ -1920,6 +1933,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp865 '(require 'code-pages))
 (cp-make-coding-system
  cp865
  [?\Ç
@@ -2051,6 +2065,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp866 '(require 'code-pages))
 (cp-make-coding-system
  cp866
  [?\А
@@ -2184,6 +2199,7 @@ Return an updated `non-iso-charset-alist'."
  "CP866 (Cyrillic)."
  ?A)
 
+;;;###autoload(autoload-coding-system 'cp869 '(require 'code-pages))
 (cp-make-coding-system
  cp869
  [nil
@@ -2315,6 +2331,7 @@ Return an updated `non-iso-charset-alist'."
   ?\■
   ?\ ])
 
+;;;###autoload(autoload-coding-system 'cp874 '(require 'code-pages))
 (cp-make-coding-system
  cp874
  [?\€
@@ -3374,6 +3391,7 @@ Return an updated `non-iso-charset-alist'."
   ?\₫
   ?\ÿ])
 
+;;;###autoload(autoload-coding-system 'next '(require 'code-pages))
 (cp-make-coding-system
  next
  [?\ 
@@ -3506,6 +3524,7 @@ Return an updated `non-iso-charset-alist'."
   nil]
  "NeXTstep encoding." ?N)
 
+;;;###autoload(autoload-coding-system 'koi8-t '(require 'code-pages))
 (cp-make-coding-system
  koi8-t					; used by glibc for tg_TJ
  [?\қ
@@ -3774,6 +3793,7 @@ Return an updated `non-iso-charset-alist'."
 
 ;; Unicode-based alternative which has the possible advantage of
 ;; having its relative sparseness specified.
+;;;###autoload(autoload-coding-system 'iso-8859-6 '(require 'code-pages))
 (cp-make-coding-system
  ;; The base system uses arabic-iso-8bit, but that's not a MIME charset.
  iso-8859-6
@@ -4189,6 +4209,7 @@ Return an updated `non-iso-charset-alist'."
  nil ?G)
 (coding-system-put 'georgian-ps 'mime-charset nil) ; not in IANA list
 
+;;;###autoload(autoload-coding-system 'cp720 '(require 'code-pages))
 ;; From http://www.microsoft.com/globaldev/reference/oem/720.htm
 (cp-make-coding-system
  cp720
@@ -4322,6 +4343,7 @@ Return an updated `non-iso-charset-alist'."
   ?\ ])
 (coding-system-put 'cp720 'mime-charset nil) ; not in IANA list
 
+;;;###autoload(autoload-coding-system 'cp1125 '(require 'code-pages))
 ;; http://oss.software.ibm.com/cvs/icu/charset/data/ucm/ibm-1125_P100-2000.ucm
 (cp-make-coding-system
  cp1125
@@ -4461,6 +4483,7 @@ Return an updated `non-iso-charset-alist'."
 ;; Suggested by Anton Zinoviev <anton@lml.bas.bg>: Bulgarian DOS
 ;; codepage.  Table at
 ;; <URL:http://czyborra.com/charsets/bulgarian-mik.txt.gz>.
+;;;###autoload(autoload-coding-system 'mik '(require 'code-pages))
 (cp-make-coding-system
  mik
  [?А ?Б ?В ?Г ?Д ?Е ?Ж ?З ?И ?Й ?К ?Л ?М ?Н ?О ?П ?Р ?С ?Т ?У ?Ф ?Х ?Ц

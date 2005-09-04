@@ -1,7 +1,7 @@
 ;;; descr-text.el --- describe text mode
 
-;; Copyright (c) 1994, 1995, 1996, 2001, 2002, 2003, 2004, 2005
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 2001, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces, i18n, Unicode, multilingual
@@ -479,13 +479,27 @@ as well as widgets, buttons, overlays, and text properties."
 			 (format ", U+%04X" unicode)
 		       "")))
 	    ("charset"
-	     ,(symbol-name charset)
+	     ,`(widget-create 'link
+			      :notify (lambda (&rest ignore)
+					(describe-character-set ',charset))
+			      ,(symbol-name charset))
 	     ,(format "(%s)" (charset-description charset)))
 	    ("code point"
 	     ,(let ((split (split-char char)))
-		(if (= (charset-dimension charset) 1)
-		    (format "%d" (nth 1 split))
-		  (format "%d %d" (nth 1 split) (nth 2 split)))))
+		`(widget-create
+		  'link
+		  :notify (lambda (&rest ignore)
+			    (list-charset-chars ',charset)
+			    (with-selected-window
+				(get-buffer-window "*Character List*" 0)
+			      (goto-char (point-min))
+                              (forward-line 2) ;Skip the header.
+                              (let ((case-fold-search nil))
+                                (search-forward ,(char-to-string char)
+                                                nil t))))
+		  ,(if (= (charset-dimension charset) 1)
+		       (format "%d" (nth 1 split))
+		     (format "%d %d" (nth 1 split) (nth 2 split))))))
 	    ("syntax"
 	     ,(let ((syntax (syntax-after pos)))
 		(with-temp-buffer
@@ -512,7 +526,14 @@ as well as widgets, buttons, overlays, and text properties."
 		 (if (consp key-list)
 		     (list "type"
 			   (mapconcat #'(lambda (x) (concat "\"" x "\""))
-				      key-list " or ")))))
+				      key-list " or ")
+			   "with"
+			   `(widget-create
+			     'link
+			     :notify (lambda (&rest ignore)
+				       (describe-input-method
+					',current-input-method))
+			     ,(format "%s" current-input-method))))))
 	    ("buffer code"
 	     ,(encoded-string-description
 	       (string-as-unibyte (char-to-string char)) nil))
@@ -536,11 +557,7 @@ as well as widgets, buttons, overlays, and text properties."
 		(format "by display table entry [%s] (see below)"
 			(mapconcat
 			 #'(lambda (x)
-			     (if (> (car x) #x7ffff)
-				 (format "?%c<face-id=%s>"
-					 (logand (car x) #x7ffff)
-					 (lsh (car x) -19))
-			       (format "?%c" (car x))))
+			     (format "?%c" (logand (car x) #x7ffff)))
 			 disp-vector " ")))
 	       (composition
 		(let ((from (car composition))
@@ -571,11 +588,31 @@ as well as widgets, buttons, overlays, and text properties."
 		    (if display
 			(format "terminal code %s" display)
 		      "not encodable for terminal"))))))
+	    ,@(let ((face
+		     (if (not (or disp-vector composition))
+			 (cond
+			  ((and show-trailing-whitespace
+				(save-excursion (goto-char pos)
+						(looking-at "[ \t]+$")))
+			   'trailing-whitespace)
+			  ((and nobreak-char-display unicode (eq unicode '#xa0))
+			   'nobreak-space)
+			  ((and nobreak-char-display unicode (eq unicode '#xad))
+			   'escape-glyph)
+			  ((and (< char 32) (not (memq char '(9 10))))
+			   'escape-glyph)))))
+		(if face (list (list "hardcoded face"
+				     `(widget-create
+				       'link
+				       :notify (lambda (&rest ignore)
+						 (describe-face ',face))
+				       ,(format "%s" face))))))
 	    ,@(let ((unicodedata (and unicode
 				      (describe-char-unicode-data unicode))))
 		(if unicodedata
 		    (cons (list "Unicode data" " ") unicodedata)))))
-    (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
+    (setq max-width (apply #'max (mapcar #'(lambda (x)
+					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
     (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
@@ -585,13 +622,16 @@ as well as widgets, buttons, overlays, and text properties."
 	    (when (cadr elt)
 	      (insert (format formatter (car elt)))
 	      (dolist (clm (cdr elt))
-		(when (>= (+ (current-column)
-			     (or (string-match "\n" clm)
-				 (string-width clm)) 1)
-			  (window-width))
-		  (insert "\n")
-		  (indent-to (1+ max-width)))
-		(insert " " clm))
+		(if (eq (car-safe clm) 'widget-create)
+		    (progn (insert " ") (eval clm))
+		  (when (>= (+ (current-column)
+			       (or (string-match "\n" clm)
+				   (string-width clm))
+			       1)
+			    (window-width))
+		    (insert "\n")
+		    (indent-to (1+ max-width)))
+		  (insert " " clm)))
 	      (insert "\n"))))
 
 	(save-excursion
@@ -619,7 +659,21 @@ as well as widgets, buttons, overlays, and text properties."
 			      (format "%s (0x%02X)" (cadr (aref disp-vector i))
 				      (cddr (aref disp-vector i)))
 			    "-- no font --")
-			  "\n ")))
+			  "\n")
+		  (when (> (car (aref disp-vector i)) #x7ffff)
+		    (let* ((face-id (lsh (car (aref disp-vector i)) -19))
+			   (face (car (delq nil (mapcar (lambda (face)
+							  (and (eq (face-id face)
+								   face-id) face))
+							(face-list))))))
+		      (when face
+			(insert (propertize " " 'display '(space :align-to 5))
+				"face: ")
+			(widget-create 'link
+				       :notify `(lambda (&rest ignore)
+						  (describe-face ',face))
+				       (format "%S" face))
+			(insert "\n"))))))
 	    (insert "these terminal codes:\n")
 	    (dotimes (i (length disp-vector))
 	      (insert (car (aref disp-vector i))
@@ -667,7 +721,7 @@ as well as widgets, buttons, overlays, and text properties."
 	(describe-text-mode)))))
 
 (defalias 'describe-char-after 'describe-char)
-(make-obsolete 'describe-char-after 'describe-char "21.5")
+(make-obsolete 'describe-char-after 'describe-char "22.1")
 
 (provide 'descr-text)
 

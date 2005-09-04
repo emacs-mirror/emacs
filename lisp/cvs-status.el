@@ -1,6 +1,7 @@
 ;;; cvs-status.el --- major mode for browsing `cvs status' output -*- coding: utf-8 -*-
 
-;; Copyright (C) 1999, 2000, 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree tools

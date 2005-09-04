@@ -1,3 +1,8 @@
+2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Emacs.app/Contents/Info.plist (mail-to, mail-selection): New
+	NSServices.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.
@@ -759,7 +764,7 @@
 ;; coding: iso-2022-7bit-unix
 ;; End:
 
-    Copyright (C) 2001 Free Software Foundation, Inc.
+    Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
   Copying and distribution of this file, with or without modification,
   are permitted provided the copyright notice and this notice are preserved.
 

@@ -1,6 +1,7 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters
 
-;; Copyright (C) 1998,99,2000,01,02,03,04  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Michael Mauger <mmaug@yahoo.com>
@@ -217,6 +218,10 @@
 (require 'custom)
 (eval-when-compile ;; needed in Emacs 19, 20
   (setq max-specpdl-size 2000))
+
+(defvar font-lock-keyword-face)
+(defvar font-lock-set-defaults)
+(defvar font-lock-string-face)
 
 ;;; Allow customization
 
@@ -735,10 +740,11 @@ Used by `sql-rename-buffer'.")
 
 (defvar sql-interactive-mode-map
   (let ((map (make-sparse-keymap)))
-    (if (functionp 'set-keymap-parent)
+    (if (fboundp 'set-keymap-parent)
 	(set-keymap-parent map comint-mode-map); Emacs
-      (set-keymap-parents map (list comint-mode-map))); XEmacs
-    (if (functionp 'set-keymap-name)
+      (if (fboundp 'set-keymap-parents)
+	  (set-keymap-parents map (list comint-mode-map)))); XEmacs
+    (if (fboundp 'set-keymap-name)
 	(set-keymap-name map 'sql-interactive-mode-map)); XEmacs
     (define-key map (kbd "C-j") 'sql-accumulate-and-indent)
     (define-key map (kbd "C-c C-w") 'sql-copy-column)
@@ -1900,16 +1906,8 @@ appended to the SQLi buffer without disturbing your SQL buffer."
   (describe-function 'sql-help))
 
 (defun sql-read-passwd (prompt &optional default)
-  "Read a password using PROMPT.
-Optional DEFAULT is password to start with.  This function calls
-`read-passwd' if it is available.  If not, function
-`ange-ftp-read-passwd' is called.  This should always be available,
-even in old versions of Emacs."
-  (if (fboundp 'read-passwd)
-      (read-passwd prompt nil default)
-    (unless (fboundp 'ange-ftp-read-passwd)
-      (autoload 'ange-ftp-read-passwd "ange-ftp"))
-    (ange-ftp-read-passwd prompt default)))
+  "Read a password using PROMPT.  Optional DEFAULT is password to start with."
+  (read-passwd prompt nil default))
 
 (defun sql-get-login (&rest what)
   "Get username, password and database from the user.
@@ -2305,7 +2303,7 @@ hooks on `comint-input-filter-functions' are run.  After each SQL
 interpreter output, the hooks on `comint-output-filter-functions' are
 run.
 
-Variable `sql-input-ring-file-name' controls the initialisation of the
+Variable `sql-input-ring-file-name' controls the initialization of the
 input ring history.
 
 Variables `comint-output-filter-functions', a hook, and

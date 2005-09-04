@@ -1,6 +1,7 @@
 ;;; cl-extra.el --- Common Lisp features, part 2 -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1993,2000,2003  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 2000, 2002, 2003, 2004,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Keywords: extensions
@@ -38,9 +39,7 @@
 
 ;;; Code:
 
-(or (memq 'cl-19 features)
-    (error "Tried to load `cl-extra' before `cl'!"))
-
+(require 'cl)
 
 ;;; Type coercion.
 
@@ -763,5 +762,5 @@ This also does some trivial optimizations to make the form prettier."
 
 (run-hooks 'cl-extra-load-hook)
 
-;;; arch-tag: bcd03437-0871-43fb-a8f1-ad0e0b5427ed
+;; arch-tag: bcd03437-0871-43fb-a8f1-ad0e0b5427ed
 ;;; cl-extra.el ends here

@@ -1,3 +1,8 @@
+2005-07-08  Kenichi Handa  <handa@m17n.org>
+
+	* quail/japanese.el (quail-japanese-kanji-kkc): Fix order of
+	insertion and deletion.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

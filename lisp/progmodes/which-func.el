@@ -1,6 +1,6 @@
 ;;; which-func.el --- print current function in mode line
 
-;; Copyright (C) 1994, 1997, 1998, 2001, 2003, 2005
+;; Copyright (C) 1994, 1997, 1998, 2001, 2002, 2003, 2004, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author:   Alex Rezinsky <alexr@msil.sps.mot.com>
@@ -139,8 +139,6 @@ Zero means compute the Imenu menu regardless of size."
      :foreground "LightSkyBlue"))
   "Face used to highlight mode line function names."
   :group 'which-func)
-;; backward-compatibility alias
-(put 'which-func-face 'face-alias 'which-func)
 
 (defcustom which-func-format
   `("["
