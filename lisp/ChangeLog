@@ -1,3 +1,15 @@
+2005-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (load-theme): Renamed from require-theme.
+	Add interactive spec.
+	(enable-theme): Renamed from custom-enable-theme.
+	Add interactive spec.
+	(disable-theme): Renamed from custom-disable-theme.
+	Add interactive spec.
+	(custom-make-theme-feature): Doc fix.
+	(custom-theme-directory): Doc fix.
+	(provide-theme): Call enable-theme.
+
 2005-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Add eval-when-compile to
