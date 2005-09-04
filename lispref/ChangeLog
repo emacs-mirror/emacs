@@ -1,3 +1,8 @@
+2005-09-03  Richard M. Stallman  <rms@gnu.org>
+
+	* tips.texi (Programming Tips): Add conventions for minibuffer
+	questions and prompts.
+
 2005-09-03  Joshua Varner  <jlvarner@gmail.com>  (tiny change)
 
 	* intro.texi (nil and t): Minor cleanup.

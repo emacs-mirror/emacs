@@ -1,3 +1,13 @@
+2005-09-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (redisplay_internal): Make UPDATED as long as needed.
+	(move_it_in_display_line_to): Stop after last char on line even
+	on a windowing terminal, if that's the specified stop position.
+
+	* fns.c (Fsort): Doc fix.
+
+	* editfns.c (Fpropertize): Don't insist that properties be symbols.
+
 2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* dispnew.c (window_to_frame_hpos, update_window):

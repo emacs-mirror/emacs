@@ -1,3 +1,8 @@
+2005-09-03  Richard M. Stallman  <rms@gnu.org>
+
+	* search.texi (Search Case): Mention vars that control
+	case-fold-search for various operations.
+
 2005-08-30  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Version 3.15.
