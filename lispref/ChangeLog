@@ -1,3 +1,15 @@
+2005-09-03  Richard M. Stallman  <rms@gnu.org>
+
+	* intro.texi (nil and t): Minor cleanup.
+	Delete spurious mention of keyword symbols.
+	(Evaluation Notation): Add index entry.
+	(A Sample Function Description): Minor cleanup.
+	(A Sample Variable Description): Not all vars can be set.
+
+2005-09-03  Joshua Varner  <jlvarner@gmail.com>
+
+	* intro.texi (A Sample Variable Description): 
+
 2005-09-03  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* text.texi (Buffer Contents): Use "\n" in examples' result strings.
