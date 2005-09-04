@@ -6012,6 +6012,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 	     glyphs have the same width.  */
 	  int single_glyph_width = it->pixel_width / it->nglyphs;
 	  int new_x;
+	  int x_before_this_char = x;
+	  int hpos_before_this_char = it->hpos;
 
 	  for (i = 0; i < it->nglyphs; ++i, x = new_x)
 	    {
@@ -6043,8 +6045,22 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 		    {
 		      ++it->hpos;
 		      it->current_x = new_x;
+
+		      /* The character's last glyph just barely fits
+			 in this row.  */
 		      if (i == it->nglyphs - 1)
 			{
+			  /* If this is the destination position,
+			     return a position *before* it in this row,
+			     now that we know it fits in this row.  */
+			  if (BUFFER_POS_REACHED_P ())
+			    {
+			      it->hpos = hpos_before_this_char;
+			      it->current_x = x_before_this_char;
+			      result = MOVE_POS_MATCH_OR_ZV;
+			      break;
+			    }
+
 			  set_iterator_to_next (it, 1);
 #ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
@@ -10596,9 +10612,13 @@ redisplay_internal (preserve_echo_area)
   if (consider_all_windows_p)
     {
       Lisp_Object tail, frame;
-      int i, n = 0, size = 50;
-      struct frame **updated
-	= (struct frame **) alloca (size * sizeof *updated);
+      int i, n = 0, size = 5;
+      struct frame **updated;
+
+      FOR_EACH_FRAME (tail, frame)
+	size++;
+
+      updated = (struct frame **) alloca (size * sizeof *updated);
 
       /* Recompute # windows showing selected buffer.  This will be
 	 incremented each time such a window is displayed.  */
