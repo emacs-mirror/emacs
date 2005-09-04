@@ -1,4 +1,4 @@
-2005-09-03  Joshua Varner  <jlvarner@gmail.com>
+2005-09-03  Joshua Varner  <jlvarner@gmail.com>  (tiny change)
 
 	* intro.texi (nil and t): Minor cleanup.
 	Delete spurious mention of keyword symbols.
