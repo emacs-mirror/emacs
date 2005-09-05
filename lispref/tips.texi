@@ -374,6 +374,20 @@ An error message should start with a capital letter but should not end
 with a period.
 
 @item
+A question asked in the minibuffer with @code{y-or-n-p} or
+@code{yes-or-no-p} should start with a capital letter and end with
+@samp{? }.
+
+@item
+When you mention a default value in a minibuffer prompt,
+put it and the word @samp{default} inside parentheses.
+It should look like this:
+
+@example
+Enter the answer: (default 42)
+@end example
+
+@item
 In @code{interactive}, if you use a Lisp expression to produce a list
 of arguments, don't try to provide the ``correct'' default values for
 region or position arguments.  Instead, provide @code{nil} for those

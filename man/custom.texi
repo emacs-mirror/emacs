@@ -199,6 +199,8 @@ the active fields and other features.
 * Face Customization::       How to edit the attributes of a face.
 * Specific Customization::   Making a customization buffer for specific
                                 variables, faces, or groups.
+* Custom Themes::            How to define collections of customized options
+                                that can be loaded and unloaded together.
 @end menu
 
 @node Customization Groups
@@ -651,6 +653,60 @@ mistake, you can use two special commands to revisit your previous
 changes.  Use @kbd{M-x customize-saved} to look at the options that
 you have saved.  Use @kbd{M-x customize-customized} to look at the
 options that you have set but not saved.
+
+@node Custom Themes
+@subsection Customization Themes
+@cindex custom themes
+
+@dfn{Custom themes} are collections of customized options that can be
+enabled or disabled as a unit.  You can use Custom themes to switch
+quickly and easily between various collections of settings, and to
+transfer such collections from one computer to another.
+
+@findex customize-create-theme
+To define a Custom theme, use the command
+@kbd{M-x customize-create-theme}, which brings up a buffer named
+@samp{*New Custom Theme*}.  At the top of the buffer is an editable
+field where you can specify the name of the theme.  To add a
+customization option to the theme, click on the @samp{INS} button to
+open up a field where you can insert the name of the option.  The
+current value of that option is applied to the theme.  After adding as
+many options as you like, click on @samp{Done} to save the Custom
+theme.
+
+@vindex custom-theme-directory
+Saving a Custom theme named @var{foo} writes its definition into the
+file @file{@var{foo}-theme.el}, in the directory @file{~/.emacs.d/}
+(you can specify the directory by setting
+@code{custom-theme-directory}).
+
+@findex load-theme
+@findex enable-theme
+@findex disable-theme
+You can load the themes you've previously defined with the command
+@code{load-theme}.  It prompts for a theme name in the minibuffer,
+then loads that theme if it isn't already loaded.  It also
+@dfn{enables} the theme, which means putting its settings into effect.
+An enabled theme can be @dfn{disabled} with the command
+@kbd{M-x disable-theme}; this returns the options specified in the
+theme to their original values.  To re-enable the theme, use the
+command @kbd{M-x enable-theme}.
+
+To enable a Custom theme named @var{foo} whenever Emacs is started up,
+add the line @code{(load-theme '@var{foo})} to your @file{.emacs} file
+(@pxref{Init File}).
+
+Enabling a custom theme does not disable the themes already enabled;
+instead, they are all enabled together.  If two enabled Custom themes
+specify different values for an option, the last theme to be enabled
+takes effect.
+
+The options that you set in the ordinary customization buffer
+(@pxref{Easy Customization}) are also considered part of a Custom
+theme, called @samp{user}.  The @samp{user} theme is always enabled,
+and always takes precedence over all other enabled Custom themes.
+Additionally, the @samp{user} theme is recorded in your @file{.emacs}
+file, rather than a @file{user-theme.el} file.
 
 @node Variables
 @section Variables

@@ -197,7 +197,7 @@ in Lisp programs also.
 (not nil)                     ; @r{Emphasize the truth value @var{false}}
 @end example
 
-@cindex @code{t} and truth
+@cindex @code{t}, uses of
 @cindex true
   In contexts where a truth value is expected, any non-@code{nil} value
 is considered to be @var{true}.  However, @code{t} is the preferred way
@@ -209,14 +209,14 @@ choosing, use @code{t}.  The symbol @code{t} always has the value
   In Emacs Lisp, @code{nil} and @code{t} are special symbols that always
 evaluate to themselves.  This is so that you do not need to quote them
 to use them as constants in a program.  An attempt to change their
-values results in a @code{setting-constant} error.  The same is true of
-any symbol whose name starts with a colon (@samp{:}).  @xref{Constant
+values results in a @code{setting-constant} error.  @xref{Constant
 Variables}.
 
 @node Evaluation Notation
 @subsection Evaluation Notation
 @cindex evaluation notation
 @cindex documentation notation
+@cindex notation
 
   A Lisp expression that you can evaluate is called a @dfn{form}.
 Evaluating a form always produces a result, which is a Lisp object.  In
@@ -355,11 +355,11 @@ indicates that the subsequent arguments may be omitted (omitted
 arguments default to @code{nil}).  Do not write @code{&optional} when
 you call the function.
 
-  The keyword @code{&rest} (which must be followed by a single argument
-name) indicates that any number of arguments can follow.  The single
-following argument name will have a value, as a variable, which is a
-list of all these remaining arguments.  Do not write @code{&rest} when
-you call the function.
+  The keyword @code{&rest} (which must be followed by a single
+argument name) indicates that any number of arguments can follow.  The
+single argument name following @code{&rest} will receive, as its
+value, a list of all the remaining arguments passed to the function.
+Do not write @code{&rest} when you call the function.
 
   Here is a description of an imaginary function @code{foo}:
 
@@ -450,9 +450,9 @@ from @var{body}, which includes all remaining elements of the form.
 @cindex variable descriptions
 @cindex option descriptions
 
-  A @dfn{variable} is a name that can hold a value.  Although any
-variable can be set by the user, certain variables that exist
-specifically so that users can change them are called @dfn{user
+  A @dfn{variable} is a name that can hold a value.  Although nearly
+all variables can be set by the user, certain variables exist
+specifically so that users can change them; these are called @dfn{user
 options}.  Ordinary variables and user options are described using a
 format like that for functions except that there are no arguments.
 

@@ -953,7 +953,7 @@ into `features'.
 
 This allows for a file-name convention for autoloading themes:
 Every theme X has a property `provide-theme' whose value is \"X-theme\".
-\(require-theme X) then attempts to load the file `X-theme.el'."
+\(load-theme X) then attempts to load the file `X-theme.el'."
   (intern (concat (symbol-name theme) "-theme")))
 
 ;;; Loading themes.
@@ -996,7 +996,7 @@ Every theme X has a property `provide-theme' whose value is \"X-theme\".
 	 "~/_emacs.d/"
       "~/.emacs.d/")
   "Directory in which Custom theme files should be written.
-`require-theme' searches this directory in addition to load-path.
+`load-theme' searches this directory in addition to load-path.
 The command `customize-create-theme' writes the files it produces
 into this directory."
   :type 'string
@@ -1031,11 +1031,11 @@ by `custom-make-theme-feature'."
   ;; `user' must always be the highest-precedence enabled theme.
   ;; Make that remain true.  (This has the effect of making user settings
   ;; override the ones just loaded, too.)
-  (custom-enable-theme 'user))
+  (enable-theme 'user))
 
-(defun require-theme (theme)
+(defun load-theme (theme)
   "Try to load a theme's settings from its file.
-This also enables the theme; use `custom-disable-theme' to disable it."
+This also enables the theme; use `disable-theme' to disable it."
 
   ;; THEME's feature is stored in THEME's `theme-feature' property.
   ;; Usually the `theme-feature' property contains a symbol created
@@ -1043,6 +1043,7 @@ This also enables the theme; use `custom-disable-theme' to disable it."
 
   ;; Note we do no check for validity of the theme here.
   ;; This allows to pull in themes by a file-name convention
+  (interactive "SCustom theme name: ")
   (let ((load-path (if (file-directory-p custom-theme-directory)
 		       (cons custom-theme-directory load-path)
 		     load-path)))
@@ -1070,12 +1071,12 @@ All the themes loaded for BY-THEME are recorded in BY-THEME's property
   (let ((themes-loaded (get by-theme 'theme-loads-themes)))
     (dolist (theme body)
       (cond ((and (consp theme) (eq (car theme) 'reset))
-	     (custom-disable-theme (cadr theme)))
+	     (disable-theme (cadr theme)))
 	    ((and (consp theme) (eq (car theme) 'hidden))
-	     (require-theme (cadr theme))
-	     (custom-disable-theme (cadr theme)))
+	     (load-theme (cadr theme))
+	     (disable-theme (cadr theme)))
 	    (t
-	     (require-theme theme)))
+	     (load-theme theme)))
       (push theme themes-loaded))
     (put by-theme 'theme-loads-themes themes-loaded)))
 
@@ -1087,10 +1088,11 @@ See `custom-theme-load-themes' for more information on BODY."
 
 ;;; Enabling and disabling loaded themes.
 
-(defun custom-enable-theme (theme)
+(defun enable-theme (theme)
   "Reenable all variable and face settings defined by THEME.
 The newly enabled theme gets the highest precedence (after `user').
 If it is already enabled, just give it highest precedence (after `user')."
+  (interactive "SEnable Custom theme: ")
   (let ((settings (get theme 'theme-settings)))
     (dolist (s settings)
       (let* ((prop (car s))
@@ -1104,11 +1106,12 @@ If it is already enabled, just give it highest precedence (after `user')."
         (cons theme (delq theme custom-enabled-themes)))
   ;; `user' must always be the highest-precedence enabled theme.
   (unless (eq theme 'user)
-    (custom-enable-theme 'user)))
+    (enable-theme 'user)))
 
-(defun custom-disable-theme (theme)
+(defun disable-theme (theme)
   "Disable all variable and face settings defined by THEME.
 See `custom-known-themes' for a list of known themes."
+  (interactive "SDisable Custom theme: ")
   (let ((settings (get theme 'theme-settings)))
     (dolist (s settings)
       (let* ((prop (car s))

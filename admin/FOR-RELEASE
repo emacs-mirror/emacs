@@ -33,10 +33,6 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 
 ** Update Speedbar.
 
-** Debug custom themes.
-
-** Get rid of the defadvice calls in org.el.
-
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
@@ -114,8 +110,6 @@ The *Tree* is then displayed as
 The class A seems to be missing.
 
 * DOCUMENTATION
-
-** Document Custom Themes.
 
 ** Update man/info.texi.
 
@@ -243,7 +237,7 @@ lispref/hash.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/help.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/hooks.texi	 Lute Kamstra
 lispref/internals.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/intro.texi	 "Luc Teirlinck"
+lispref/intro.texi	 "Luc Teirlinck"   Josh Varner
 lispref/keymaps.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
