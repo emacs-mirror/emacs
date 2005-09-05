@@ -1,3 +1,7 @@
+2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Custom Themes): New node.
+
 2005-09-03  Richard M. Stallman  <rms@gnu.org>
 
 	* search.texi (Search Case): Mention vars that control
