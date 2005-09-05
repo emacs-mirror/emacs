@@ -1,3 +1,15 @@
+2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (custom-theme-write-faces): Save the current face
+	spec, not the defface spec.
+
+	* custom.el (custom-known-themes): Clarify meaning of "standard".
+	(custom-push-theme): Save old values in the standard theme.
+	(disable-theme): Correct typo.
+	(custom-face-theme-value) Deleted unused function.
+	(custom-theme-recalc-face): Rewritten to treat enable/disable
+	properly.
+
 2005-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/compile.el (compilation-goto-locus): Take into account
