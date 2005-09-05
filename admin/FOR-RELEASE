@@ -33,8 +33,6 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 
 ** Update Speedbar.
 
-** Document custom themes.
-
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
@@ -112,8 +110,6 @@ The *Tree* is then displayed as
 The class A seems to be missing.
 
 * DOCUMENTATION
-
-** Document Custom Themes.
 
 ** Update man/info.texi.
 
