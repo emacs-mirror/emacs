@@ -10,6 +10,23 @@
 	(custom-theme-directory): Doc fix.
 	(provide-theme): Call enable-theme.
 
+2005-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/lazy-lock.el (lazy-lock-mode):
+	* obsolete/fast-lock.el (fast-lock-mode): Don't try to turn on
+	font-lock-mode if it's off.  Print a warning instead.
+
+	* progmodes/compile.el (compilation-start): Ignore errors if the
+	process died before we get to send-eof.
+
+	* textmodes/tex-mode.el (tex-send-tex-command, tex-bibtex-file):
+	Undo last change.  Enclosing the result in quotes broke things on Unix
+	since tex-send-command passes it through shell-quote-argument.
+	(tex-send-command): Pass `file' through convert-standard-filename
+	when possible.
+	(tex-uptodate-p): Handle the case where TeX hasn't put additional
+	info in a transcript.
+
 2005-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Add eval-when-compile to
@@ -26,6 +43,8 @@
 	Kill local variables when longlines-mode is turned off.
 
 2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (set-locale-environment): Soothe compiler.
 
 	* obsolete/lazy-lock.el (lazy-lock) <defgroup>: Move from font-lock.el.
 
