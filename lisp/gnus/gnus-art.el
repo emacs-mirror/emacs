@@ -236,7 +236,8 @@ longer (in lines) than that number.  If it is a function, the function
 will be called without any parameters, and if it returns nil, there is
 no signature in the buffer.  If it is a string, it will be used as a
 regexp.  If it matches, the text in question is not a signature."
-  :type '(choice (integer :value 200)
+  :type '(choice (const nil)
+		 (integer :value 200)
 		 (number :value 4.0)
 		 (function :value fun)
 		 (regexp :value ".*"))
@@ -869,7 +870,8 @@ see http://www.cs.indiana.edu/picons/ftp/index.html"
 This is meant for people who want to do something automatic based
 on parts -- for instance, adding Vcard info to a database."
   :group 'gnus-article-mime
-  :type 'function)
+  :type '(choice (const nil)
+		 function))
 
 (defcustom gnus-mime-multipart-functions nil
   "An alist of MIME types to functions to display them."

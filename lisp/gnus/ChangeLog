@@ -1,3 +1,89 @@
+2005-09-05  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-tab-body-function): Fixed mismatched custom
+	type.
+
+	* gnus.el (gnus-group-change-level-function): Ditto.
+
+	* gnus-msg.el (gnus-outgoing-message-group):  Ditto.
+
+	* gnus-art.el (gnus-signature-limit)
+	(gnus-article-mime-part-function): Ditto.
+
+2005-09-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* nnweb.el (nnweb-type-definition, nnweb-google-wash-article):
+	Make fetching article by MID work again for Google Groups.  Added
+	FIXME concerning gnus-group-make-web-group.
+
+	* mml-smime.el (mml-smime-sign-query, mml-smime-get-dns-cert):
+	Don't depend on Gnus by using mail-extract-address-components if
+	gnus-extract-address-components is not bound.
+
+	* gnus.el (gnus-user-agent): Use list of symbols instead of
+	symbols.  Display full version number for (S)XEmacs.  Optionally
+	display (S)XEmacs codename.
+
+	* gnus-util.el (gnus-emacs-version): Update for new
+	`gnus-user-agent'.
+
+	* gnus-msg.el (gnus-extended-version): Make it possible to omit
+	Gnus version.
+
+2005-09-02  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* mm-encode.el (mm-encode-content-transfer-encoding): Likewise
+	when encoding.
+
+	* mm-bodies.el (mm-decode-content-transfer-encoding):
+	De-canonicalize CRLF for all text content types, not just
+	text/plain.
+
+2005-09-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-thread-hide-subtree): Doc fix.
+
+	* gnus-msg.el (gnus-inews-insert-gcc): Fix the mistake of using
+	list, not listp.
+
+2005-08-29  Romain Francoise  <romain@orebokech.com>
+
+	* gnus-fun.el (gnus-convert-image-to-face-command): Fix typo in
+	docstring.
+	(gnus-face-from-file): Likewise.
+
+2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (w3m-minor-mode-map):
+	* gnus-spec.el (gnus-newsrc-file-version):
+	* gnus-util.el (nnmail-active-file-coding-system)
+	(gnus-original-article-buffer, gnus-user-agent):
+	* gnus.el (gnus-ham-process-destinations)
+	(gnus-parameter-ham-marks-alist)
+	(gnus-parameter-spam-marks-alist, gnus-spam-autodetect)
+	(gnus-spam-autodetect-methods, gnus-spam-newsgroup-contents)
+	(gnus-spam-process-destinations, gnus-spam-process-newsgroups):
+	* mm-decode.el (gnus-current-window-configuration):
+	* mm-extern.el (gnus-article-mime-handles):
+	* mm-url.el (url-current-object, url-package-name)
+	(url-package-version):
+	* mm-view.el (gnus-article-mime-handles, gnus-newsgroup-charset)
+	(smime-keys, w3m-cid-retrieve-function-alist)
+	(w3m-current-buffer, w3m-display-inline-images)
+	(w3m-minor-mode-map):
+	* mml-smime.el (gnus-extract-address-components):
+	* mml.el (gnus-article-mime-handles, gnus-mouse-2)
+	(gnus-newsrc-hashtb, message-default-charset)
+	(message-deletable-headers, message-options)
+	(message-posting-charset, message-required-mail-headers)
+	(message-required-news-headers):
+	* mml1991.el (mc-pgp-always-sign):
+	* mml2015.el (mc-pgp-always-sign):
+	* nnheader.el (nnmail-extra-headers):
+	* rfc1843.el (gnus-decode-encoded-word-function)
+	(gnus-decode-header-function, gnus-newsgroup-name):
+	* spam-stat.el (gnus-original-article-buffer): Add defvars.
+
 2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-art.el (w3m-minor-mode-map):
