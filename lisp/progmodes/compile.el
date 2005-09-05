@@ -1688,14 +1688,18 @@ and overlay is highlighted between MK and END-MK."
   ;; Show compilation buffer in other window, scrolled to this error.
   (let* ((pop-up-windows t)
 	 ;; Use an existing window if it is in a visible frame.
-	 (w (or (get-buffer-window (marker-buffer msg) 'visible)
-		;; Pop up a window.
-		(display-buffer (marker-buffer msg))))
+         (pre-existing (get-buffer-window (marker-buffer msg) 0))
+         (w (let ((display-buffer-reuse-frames t))
+              ;; Pop up a window.
+              (display-buffer (marker-buffer msg))))
 	 (highlight-regexp (with-current-buffer (marker-buffer msg)
 			     ;; also do this while we change buffer
 			     (compilation-set-window w msg)
 			     compilation-highlight-regexp)))
-    (compilation-set-window-height w)
+    ;; Ideally, the window-size should be passed to `display-buffer' (via
+    ;; something like special-display-buffer) so it's only used when
+    ;; creating a new window.
+    (unless pre-existing (compilation-set-window-height w))
 
     (when highlight-regexp
       (if (timerp next-error-highlight-timer)
