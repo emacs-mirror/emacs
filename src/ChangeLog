@@ -8,7 +8,17 @@
 
 	* editfns.c (Fpropertize): Don't insist that properties be symbols.
 
+2005-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (directory_files_internal_unwind, directory_files_internal)
+	(file_name_completion): Use a Save_Value object rather than a cons of
+	two 16bit ints to store the DIR*.
+	(directory_files_internal, file_name_completion): Handle both EINTR and
+	EAGAIN consistently after `readdir'.
+
 2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c (update_interval): Add position info in error.
 
 	* dispnew.c (window_to_frame_hpos, update_window):
 	Avoid gcc warning about unused variable `f'.

@@ -1,10 +1,17 @@
+2005-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-goto-locus): Take into account
+	iconified frames when determining whether the buffer is
+	already visible.
+	Don't reset window height if the window already existed.
+
 2005-09-04  Chong Yidong  <cyd@stupidchicken.com>
 
-	* custom.el (load-theme): Renamed from require-theme.
+	* custom.el (load-theme): Rename from require-theme.
 	Add interactive spec.
-	(enable-theme): Renamed from custom-enable-theme.
+	(enable-theme): Rename from custom-enable-theme.
 	Add interactive spec.
-	(disable-theme): Renamed from custom-disable-theme.
+	(disable-theme): Rename from custom-disable-theme.
 	Add interactive spec.
 	(custom-make-theme-feature): Doc fix.
 	(custom-theme-directory): Doc fix.
@@ -489,6 +496,12 @@
 	New hook.
 	(add-to-diary-list): Call `diary-modify-entry-list-string-function'
 
+2005-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Simplify.
+
+	* custom.el (custom-theme-set-variables): Sort minor modes last.
+
 2005-08-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* subr.el (version-separator, version-regexp-alist): New vars used by
@@ -564,18 +577,16 @@
 	(xscheme-allow-output-p, xscheme-prompt, xscheme-mode-string):
 	Move to beginning of file.
 	(scheme-interaction-mode-commands-alist)
-	(scheme-interaction-mode-map, scheme-debugger-mode-map): Declare
-	them before use.  Note: the initialization code for the variables
-	has not been moved because it uses functions that reference the
-	variables.
+	(scheme-interaction-mode-map, scheme-debugger-mode-map):
+	Declare them before use.  Note: the initialization code for the variables
+	has not been moved because it uses functions that reference the variables.
 	(xscheme-control-g-message-string, xscheme-process-filter-alist)
 	(xscheme-prompt-for-expression-map): Declare them before use.
 	(scheme-debugger-mode-commands): "?\ " -> "?\s".
 
 2005-08-23  Ed Swarthout  <ed.swarthout@gmail.com>  (tiny change)
 
-	* hexl.el (hexl-print-current-point-info): Fix simple spelling
-	error.
+	* hexl.el (hexl-print-current-point-info): Fix simple spelling error.
 
 2005-08-22  Juri Linkov  <juri@jurta.org>
 
