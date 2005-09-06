@@ -1,5 +1,9 @@
 2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
+	* custom.el (custom-push-theme): Fix last change.
+
+2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
 	* cus-theme.el (custom-theme-write-faces): Save the current face
 	spec, not the defface spec.
 
