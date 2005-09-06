@@ -36,6 +36,11 @@
   "Keymap used for *toc* buffer.")
 
 (defvar reftex-toc-menu)
+(defvar zmacs-regions)
+
+(defvar reftex-toc-include-labels-indicator nil)
+(defvar reftex-toc-include-index-indicator nil)
+(defvar reftex-toc-max-level-indicator nil)
 
 (defun reftex-toc-mode ()
   "Major mode for managing Table of Contents for LaTeX files.
@@ -81,9 +86,6 @@ Here are all local bindings.
 
 (defvar reftex-last-window-height nil)
 (defvar reftex-last-window-width nil)
-(defvar reftex-toc-include-labels-indicator nil)
-(defvar reftex-toc-include-index-indicator nil)
-(defvar reftex-toc-max-level-indicator nil)
 
 (defvar reftex-toc-return-marker (make-marker)
   "Marker which makes it possible to return from toc to old position.")

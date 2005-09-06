@@ -43,6 +43,10 @@
       (require 'timer-funcs)
     (require 'timer)))
 
+(defvar url-current-object)
+(defvar url-package-name)
+(defvar url-package-version)
+
 (defgroup mm-url nil
   "A wrapper of url package and external url command for Gnus."
   :group 'gnus)

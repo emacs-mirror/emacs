@@ -27,6 +27,8 @@
 
 ;;; Code:
 
+(defvar font-lock-verbose)
+
 (defgroup pp nil
   "Pretty printer for Emacs Lisp."
   :prefix "pp-"

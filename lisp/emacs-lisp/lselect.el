@@ -34,6 +34,11 @@
 ;; all upper-case; this may seem tasteless, but it makes there be a 1:1
 ;; correspondence between these symbols and X Atoms (which are upcased.)
 
+;; This is Lucid/XEmacs stuff
+(defvar mouse-highlight-priority)
+(defvar x-lost-selection-functions)
+(defvar zmacs-regions)
+
 (defalias 'x-get-cutbuffer 'x-get-cut-buffer)
 (defalias 'x-store-cutbuffer 'x-set-cut-buffer)
 

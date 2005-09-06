@@ -168,8 +168,9 @@ It includes all faces in list FACES."
 		(princ " '(")
 		(prin1 symbol)
 		(princ " ")
-		(prin1 (or (get symbol 'customized-face)
-			   (get symbol 'face-defface-spec)))
+		(prin1 (list (append '(t)
+				     (custom-face-attributes-get
+				      'font-lock-comment-face nil))))
 		(princ ")")))
 	      faces)
       (if (bolp)

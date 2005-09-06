@@ -110,6 +110,14 @@
 
 ;;; Code:
 
+(defvar rmail-inbox-list)
+(defvar vm-crash-box)
+(defvar vm-folder-directory)
+(defvar vm-init-file)
+(defvar vm-init-file-loaded)
+(defvar vm-primary-inbox)
+(defvar vm-spool-files)
+
 ;;; User Variables
 
 (defgroup mspools nil

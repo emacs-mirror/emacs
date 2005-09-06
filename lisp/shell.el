@@ -412,7 +412,7 @@ Variable `shell-completion-fignore' is used to initialize the value of
 `comint-completion-fignore'.
 
 Variables `comint-input-ring-file-name' and `comint-input-autoexpand' control
-the initialisation of the input ring history, and history expansion.
+the initialization of the input ring history, and history expansion.
 
 Variables `comint-output-filter-functions', a hook, and
 `comint-scroll-to-bottom-on-input' and `comint-scroll-to-bottom-on-output'
@@ -791,7 +791,7 @@ line output and parses it to form the new directory stack.
 DON'T issue this command unless the buffer is at a shell prompt.
 Also, note that if some other subprocess decides to do output
 immediately after the query, its output will be taken as the
-new directory stack -- you lose. If this happens, just do the
+new directory stack -- you lose.  If this happens, just do the
 command again."
   (interactive)
   (let* ((proc (get-buffer-process (current-buffer)))

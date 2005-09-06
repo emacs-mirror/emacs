@@ -32,6 +32,8 @@
   ;; Warning suppression -- can't require x-win in batch:
   (autoload 'xw-defined-colors "x-win"))
 
+(defvar help-xref-stack-item)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font selection.

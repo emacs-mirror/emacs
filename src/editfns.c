@@ -3392,10 +3392,7 @@ usage: (propertize STRING &rest PROPERTIES)  */)
   string = Fcopy_sequence (args[0]);
 
   for (i = 1; i < nargs; i += 2)
-    {
-      CHECK_SYMBOL (args[i]);
-      properties = Fcons (args[i], Fcons (args[i + 1], properties));
-    }
+    properties = Fcons (args[i], Fcons (args[i + 1], properties));
 
   Fadd_text_properties (make_number (0),
 			make_number (SCHARS (string)),

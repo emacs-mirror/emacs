@@ -55,6 +55,8 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar add-log-buffer-file-name-function)
+
 
 (defgroup diff-mode ()
   "Major mode for viewing/editing diffs."

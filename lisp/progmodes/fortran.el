@@ -55,6 +55,8 @@
 
 (eval-when-compile			; silence compiler
   (defvar dabbrev-case-fold-search)
+  (defvar font-lock-syntactic-keywords)
+  (defvar gud-find-expr-function)
   (defvar imenu-case-fold-search)
   (defvar imenu-syntax-alist))
 
@@ -1646,7 +1648,7 @@ notes: 1) A non-zero/non-blank character in column 5 indicates a continuation
 	    (let* ((char (if (stringp fortran-comment-indent-char)
 			     (aref fortran-comment-indent-char 0)
 			   fortran-comment-indent-char))
-		   (chars (string ?  ?\t char)))
+		   (chars (string ?\s ?\t char)))
 	      (goto-char (match-end 0))
 	      (skip-chars-backward chars)
 	      (delete-region (point) (progn (skip-chars-forward chars)
@@ -1656,7 +1658,7 @@ notes: 1) A non-zero/non-blank character in column 5 indicates a continuation
 	  (if indent-tabs-mode
 	      (goto-char (match-end 0))
 	    (delete-char 2)
-	    (insert-char ?  5)
+	    (insert-char ?\s 5)
 	    (insert fortran-continuation-string))
 	(if (looking-at " \\{5\\}[^ 0\n]")
 	    (if indent-tabs-mode

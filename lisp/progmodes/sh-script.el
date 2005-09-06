@@ -199,6 +199,9 @@
   (require 'comint))
 (require 'executable)
 
+(defvar font-lock-comment-face)
+(defvar font-lock-set-defaults)
+(defvar font-lock-string-face)
 
 
 (defgroup sh nil

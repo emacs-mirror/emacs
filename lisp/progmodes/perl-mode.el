@@ -107,6 +107,10 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar font-lock-comment-face)
+(defvar font-lock-doc-face)
+(defvar font-lock-string-face)
+
 (defgroup perl nil
   "Major mode for editing Perl code."
   :prefix "perl-"

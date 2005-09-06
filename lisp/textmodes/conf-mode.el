@@ -33,6 +33,8 @@
 
 (require 'newcomment)
 
+(defvar outline-heading-end-regexp)
+
 ;; Variables:
 
 (defgroup conf nil
@@ -229,15 +231,15 @@ whitespace.")
 	    (if (>= arg 0)
 		(progn
 		  (indent-to-column arg)
-		  (or (not conf-assignment-space) (memq (char-before (point)) '(?  ?\t)) (insert ? ))
-		  (insert conf-assignment-sign (if (and conf-assignment-space (not (eolp))) ?\  "")))
-	      (insert (if conf-assignment-space ?\  "") conf-assignment-sign)
+		  (or (not conf-assignment-space) (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))
+		  (insert conf-assignment-sign (if (and conf-assignment-space (not (eolp))) ?\s "")))
+	      (insert (if conf-assignment-space ?\s "") conf-assignment-sign)
 	      (unless (eolp)
 		(indent-to-column (- arg))
-		(or (not conf-assignment-space) (memq (char-before (point)) '(?  ?\t)) (insert ? ))))
+		(or (not conf-assignment-space) (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))))
 	  (unless (eolp)
 	    (if (>= (current-column) (abs arg))
-		(insert ? )
+		(insert ?\s)
 	      (indent-to-column (abs arg))))))
       (forward-line))))
 

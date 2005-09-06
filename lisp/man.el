@@ -445,7 +445,7 @@ Otherwise, the value is whatever the function
 ;; utilities
 
 (defun Man-init-defvars ()
-  "Used for initialising variables based on display's color support.
+  "Used for initializing variables based on display's color support.
 This is necessary if one wants to dump man.el with Emacs."
 
   ;; Avoid possible error in call-process by using a directory that must exist.
@@ -553,8 +553,8 @@ This is necessary if one wants to dump man.el with Emacs."
 (defun Man-translate-references (ref)
   "Translates REF from \"chmod(2V)\" to \"2v chmod\" style.
 Leave it as is if already in that style.  Possibly downcase and
-translate the section (see the Man-downcase-section-letters-flag
-and the Man-section-translations-alist variables)."
+translate the section (see the `Man-downcase-section-letters-flag'
+and the `Man-section-translations-alist' variables)."
   (let ((name "")
         (section "")
         (slist Man-section-translations-alist))
@@ -592,7 +592,7 @@ This option allows `man' to interpret command line arguments
 as local filenames.
 Return the value of the variable `Man-support-local-filenames'
 if it was set to nil or t before the call of this function.
-If t, the man command supports `-l' option.  If nil, it don't.
+If t, the man command supports `-l' option.  If nil, it doesn't.
 Otherwise, if the value of `Man-support-local-filenames'
 is neither t nor nil, then determine a new value, set it
 to the variable `Man-support-local-filenames' and return
@@ -905,8 +905,8 @@ Same for the ANSI bold and normal escape sequences."
 
 (defun Man-highlight-references ()
   "Highlight the references on mouse-over.
-references include items in the SEE ALSO section,
-header file(#include <foo.h>) and files in FILES"
+References include items in the SEE ALSO section,
+header file (#include <foo.h>) and files in FILES."
   (let ((dummy 0))
     (Man-highlight-references0
      Man-see-also-regexp Man-reference-regexp 1 dummy

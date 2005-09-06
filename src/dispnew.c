@@ -3310,9 +3310,7 @@ window_to_frame_hpos (w, hpos)
      struct window *w;
      int hpos;
 {
-  struct frame *f = XFRAME (w->frame);
-
-  xassert (!FRAME_WINDOW_P (f));
+  xassert (!FRAME_WINDOW_P (XFRAME (w->frame)));
   hpos += WINDOW_LEFT_EDGE_COL (w);
   return hpos;
 }
@@ -4087,10 +4085,8 @@ update_window (w, force_p)
   extern int input_pending;
   extern Lisp_Object do_mouse_tracking;
 #if GLYPH_DEBUG
-  struct frame *f = XFRAME (WINDOW_FRAME (w));
-
   /* Check that W's frame doesn't have glyph matrices.  */
-  xassert (FRAME_WINDOW_P (f));
+  xassert (FRAME_WINDOW_P (XFRAME (WINDOW_FRAME (w))));
   xassert (updating_frame != NULL);
 #endif
 

@@ -35,6 +35,8 @@
 
 ;;; Code:
 
+(defvar explicit-shell-file-name)
+
 ;; Map delete and backspace
 (define-key function-key-map [backspace] "\177")
 (define-key function-key-map [delete] "\C-d")

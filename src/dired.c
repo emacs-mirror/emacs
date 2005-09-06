@@ -132,7 +132,7 @@ Lisp_Object
 directory_files_internal_unwind (dh)
      Lisp_Object dh;
 {
-  DIR *d = (DIR *) ((XINT (XCAR (dh)) << 16) + XINT (XCDR (dh)));
+  DIR *d = (DIR *) XSAVE_VALUE (dh)->pointer;
   closedir (d);
   return Qnil;
 }
@@ -156,7 +156,6 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4, gcpro5;
   DIRENTRY *dp;
-  int retry_p;
 
   /* Because of file name handlers, these functions might call
      Ffuncall, and cause a GC.  */
@@ -190,12 +189,6 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
   /* Now *bufp is the compiled form of MATCH; don't call anything
      which might compile a new regexp until we're done with the loop!  */
 
-  /* Do this opendir after anything which might signal an error; if
-     an error is signaled while the directory stream is open, we
-     have to make sure it gets closed, and setting up an
-     unwind_protect to do so would be a pain.  */
- retry:
-
   d = opendir (SDATA (dirfilename));
   if (d == NULL)
     report_file_error ("Opening directory", Fcons (directory, Qnil));
@@ -204,8 +197,7 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
      file-attributes on filenames, both of which can throw, so we must
      do a proper unwind-protect.  */
   record_unwind_protect (directory_files_internal_unwind,
-			 Fcons (make_number (((unsigned long) d) >> 16),
-				make_number (((unsigned long) d) & 0xffff)));
+			 make_save_value (d, 0));
 
   directory_nbytes = SBYTES (directory);
   re_match_object = Qt;
@@ -223,10 +215,15 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
       errno = 0;
       dp = readdir (d);
 
+      if (dp == NULL && (0
 #ifdef EAGAIN
-      if (dp == NULL && errno == EAGAIN)
-	continue;
+			 || errno == EAGAIN
 #endif
+#ifdef EINTR
+			 || errno == EINTR
+#endif
+			 ))
+	{ QUIT; continue; }
 
       if (dp == NULL)
 	break;
@@ -317,21 +314,10 @@ directory_files_internal (directory, full, match, nosort, attrs, id_format)
 	}
     }
 
-  retry_p = 0;
-#ifdef EINTR
-  retry_p |= errno == EINTR;
-#endif
-
   closedir (d);
 
   /* Discard the unwind protect.  */
   specpdl_ptr = specpdl + count;
-
-  if (retry_p)
-    {
-      list = Qnil;
-      goto retry;
-    }
 
   if (NILP (nosort))
     list = Fsort (Fnreverse (list),
@@ -520,8 +506,7 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 	report_file_error ("Opening directory", Fcons (dirname, Qnil));
 
       record_unwind_protect (directory_files_internal_unwind,
-                             Fcons (make_number (((unsigned long) d) >> 16),
-                                    make_number (((unsigned long) d) & 0xffff)));
+                             make_save_value (d, 0));
 
       /* Loop reading blocks */
       /* (att3b compiler bug requires do a null comparison this way) */
@@ -533,8 +518,19 @@ file_name_completion (file, dirname, all_flag, ver_flag)
 #ifdef VMS
 	  dp = (*readfunc) (d);
 #else
+	  errno = 0;
 	  dp = readdir (d);
+	  if (dp == NULL && (0
+# ifdef EAGAIN
+			     || errno == EAGAIN
+# endif
+# ifdef EINTR
+			     || errno == EINTR
+# endif
+			     ))
+	    { QUIT; continue; }
 #endif
+
 	  if (!dp) break;
 
 	  len = NAMLEN (dp);

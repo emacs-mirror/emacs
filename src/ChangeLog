@@ -1,15 +1,80 @@
+2005-09-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (redisplay_internal): Make UPDATED as long as needed.
+	(move_it_in_display_line_to): Stop after last char on line even
+	on a windowing terminal, if that's the specified stop position.
+
+	* fns.c (Fsort): Doc fix.
+
+	* editfns.c (Fpropertize): Don't insist that properties be symbols.
+
+2005-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (directory_files_internal_unwind, directory_files_internal)
+	(file_name_completion): Use a Save_Value object rather than a cons of
+	two 16bit ints to store the DIR*.
+	(directory_files_internal, file_name_completion): Handle both EINTR and
+	EAGAIN consistently after `readdir'.
+
+2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c (update_interval): Add position info in error.
+
+	* dispnew.c (window_to_frame_hpos, update_window):
+	Avoid gcc warning about unused variable `f'.
+
+2005-08-31  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (add_menu_item): If unicode_append_menu returns an
+	error, revert to using AppendMenu.
+
+2005-08-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (PIX_MASK_DRAW, PIX_MASK_RETAIN): Remove argument.
+	All uses changed.
+	[MAC_OS] (XPutPixel, XGetPixel): Add efficient versions for common
+	cases.
+	(x_create_x_image_and_pixmap) [MAC_OS]: Don't call x_destroy_x_image.
+	[MAC_OS] (find_image_fsspec) [!MAC_OSX]: Don't use FSRef.
+	Use posix_pathname_to_fsspec.
+	[MAC_OS] (xpm_load_image): Fill in background_transparent field
+	while we have mask.
+
+	* macgui.h [!TARGET_API_MAC_CARBON] (GetPixDepth): New define.
+
+	* macterm.h (PIX_MASK_DRAW, PIX_MASK_RETAIN): Move defines to image.c.
+
+2005-08-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (update_syntax_table): Properly reproduce the special +1
+	setting of e_property at the end of the buffer when bumping into the
+	INTERVALS_AT_ONCE limit.
+
+2005-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (USAGE1): Fix the description of the -Q option.
+
+2005-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (pos_visible_p): Yet another int/Lisp_Object mixup (YAILOM).
+
+2005-08-26  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (resize_mini_window): Fix 2005-08-20 change.
+	Don't move PT to new window start.
+
 2005-08-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c (kbd_buffer_get_event) [MAC_OS]: Make events for
 	ICONIFY/DEICONIFY_EVENT.
 
-	* macterm.c (mac_copy_area, mac_copy_area_with_mask): Restore
-	background color.
+	* macterm.c (mac_copy_area, mac_copy_area_with_mask):
+	Restore background color.
 	(mac_handle_visibility_change): New function.
 	(x_make_frame_invisible, x_iconify_frame)
 	(XTread_socket) [!USE_CARBON_EVENTS]: Use it.
 	[USE_CARBON_EVENTS] (mac_handle_window_event)
-	(install_window_handler): Handle visibilty change events.
+	(install_window_handler): Handle visibility change events.
 	(x_make_frame_visible): Don't reposition window if it is iconified
 	or asked for visible before.  Select and uncollapse window when it
 	is made visible.
@@ -93,7 +158,8 @@
 
 2005-08-14  Richard M. Stallman  <rms@gnu.org>
 
-	* image.c (syms_of_image): Init Qxbm, Qpbm before calling define_image_type.
+	* image.c (syms_of_image): Init Qxbm, Qpbm before calling
+	define_image_type.
 
 2005-08-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -109,7 +175,8 @@
 
 2005-08-11  Richard M. Stallman  <rms@gnu.org>
 
-	* image.c (syms_of_image): Init image_types here, and call define_image_type.
+	* image.c (syms_of_image): Init image_types here, and call
+	define_image_type.
 	(init_image): Not here.
 
 2005-08-09  Richard M. Stallman  <rms@gnu.org>
@@ -232,8 +299,7 @@
 
 	* macmenu.c (Fx_popup_menu, Fx_popup_dialog): Doc fixes.
 
-	* macselect.c (Fx_own_selection_internal): Follow error
-	conventions.
+	* macselect.c (Fx_own_selection_internal): Follow error conventions.
 	(Fx_get_selection_internal, Fx_selection_owner_p)
 	(Fx_selection_exists_p): Doc fixes.
 	(syms_of_macselect) <selection-converter-alist>: Likewise.
@@ -290,8 +356,7 @@
 
 2005-07-19  Kenichi Handa  <handa@m17n.org>
 
-	* fns.c (Fstring_as_multibyte): Escape backslashes in the
-	docstring.
+	* fns.c (Fstring_as_multibyte): Escape backslashes in the docstring.
 
 2005-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 

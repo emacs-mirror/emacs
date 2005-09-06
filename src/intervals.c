@@ -791,14 +791,14 @@ update_interval (i, pos)
 	  /* Move right. */
 	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right))
 	    {
-	      i->right->position = INTERVAL_LAST_POS (i) +
-		LEFT_TOTAL_LENGTH (i->right);
+	      i->right->position = INTERVAL_LAST_POS (i)
+	        + LEFT_TOTAL_LENGTH (i->right);
 	      i = i->right;		/* Move to the right child */
 	    }
 	  else if (NULL_PARENT (i))
-	    error ("Point after end of properties");
+	    error ("Point %d after end of properties", pos);
 	  else
-	      i = INTERVAL_PARENT (i);
+            i = INTERVAL_PARENT (i);
 	  continue;
 	}
       else

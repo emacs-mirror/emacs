@@ -36,6 +36,9 @@
   (require 'cl)
   (require 'skeleton))
 
+(defvar font-lock-comment-face)
+(defvar font-lock-doc-face)
+
 (require 'shell)
 (require 'compile)
 
@@ -1577,12 +1580,14 @@ Return the process in which TeX is running."
            (star (string-match "\\*" cmd))
 	   (string
 	    (concat
-	     (if file
-		 (if star (concat (substring cmd 0 star)
-				  (shell-quote-argument file)
-				  (substring cmd (1+ star)))
-		   (concat cmd " " (shell-quote-argument file)))
-	       cmd)
+	     (if (null file)
+		 cmd
+               (if (file-name-absolute-p file)
+                   (setq file (convert-standard-filename file)))
+	       (if star (concat (substring cmd 0 star)
+                                (shell-quote-argument file)
+                                (substring cmd (1+ star)))
+                 (concat cmd " " (shell-quote-argument file))))
 	     (if background "&" ""))))
       ;; Switch to buffer before checking for subproc output in it.
       (set-buffer buf)
@@ -1760,7 +1765,11 @@ FILE is typically the output DVI or PDF file."
 	 (save-excursion
 	   (goto-char (point-max))
 	   (and (re-search-backward
-		 "(see the transcript file for additional information)" nil t)
+                 (concat
+                  "(see the transcript file for additional information)"
+                  "\\|^Output written on .*"
+                  (regexp-quote (file-name-nondirectory file))
+                  " (.*)\\.") nil t)
 		(> (save-excursion
 		     (or (re-search-backward "\\[[0-9]+\\]" nil t)
 			 (point-min)))
@@ -1942,8 +1951,7 @@ FILE is typically the output DVI or PDF file."
                                       default-directory))))
 	      (not dir))
     (let (shell-dirtrack-verbose)
-      (tex-send-command tex-shell-cd-command
-			(concat "\"" (convert-standard-filename dir) "\""))))
+      (tex-send-command tex-shell-cd-command dir)))
   (with-current-buffer (process-buffer (tex-send-command cmd))
     (setq compilation-last-buffer (current-buffer))
     (compilation-forget-errors)
@@ -2308,8 +2316,7 @@ Runs the shell command defined by `tex-show-queue-command'."
 	(tex-out-file
          (tex-append (file-name-nondirectory (buffer-file-name)) ""))
 	(file-dir (file-name-directory (buffer-file-name))))
-    (tex-send-command tex-shell-cd-command
-		      (concat "\"" (convert-standard-filename file-dir) "\""))
+    (tex-send-command tex-shell-cd-command file-dir)
     (tex-send-command tex-bibtex-command tex-out-file))
   (tex-display-shell))
 

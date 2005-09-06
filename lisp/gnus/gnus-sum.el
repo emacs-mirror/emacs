@@ -257,8 +257,7 @@ simplification is selected."
   "*If non-nil, hide all threads initially.
 This can be a predicate specifier which says which threads to hide.
 If threads are hidden, you have to run the command
-`gnus-summary-show-thread' by hand or use `gnus-select-article-hook'
-to expose hidden threads."
+`gnus-summary-show-thread' by hand or select an article."
   :group 'gnus-thread
   :type '(radio (sexp :format "Non-nil\n"
 		      :match (lambda (widget value)

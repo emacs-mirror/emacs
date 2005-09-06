@@ -31,6 +31,8 @@
 
 ;;; Code:
 
+(defvar msgnum)
+
 ;; For rmail-select-summary
 (require 'rmail)
 

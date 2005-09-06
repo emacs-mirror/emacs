@@ -342,8 +342,10 @@ special character that is not itself a backslash."
 	    (save-restriction
 	      (forward-char)
 	      (narrow-to-region (point) end)
-	      (list 'eshell-escape-arg
-		    (eshell-parse-argument)))
+	      (let ((arg (eshell-parse-argument)))
+		(if (eq arg nil)
+		    ""
+		  (list 'eshell-escape-arg arg))))
 	  (goto-char (1+ end)))))))
 
 (defun eshell-parse-special-reference ()

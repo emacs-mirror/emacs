@@ -1813,7 +1813,7 @@ DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
        doc: /* Sort LIST, stably, comparing elements using PREDICATE.
 Returns the sorted list.  LIST is modified by side effects.
 PREDICATE is called with two elements of LIST, and should return non-nil
-if the first element is "less" than the second.  */)
+if the first element should sort before the second.  */)
      (list, predicate)
      Lisp_Object list, predicate;
 {

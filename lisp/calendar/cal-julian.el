@@ -40,6 +40,7 @@
 
 ;;; Code:
 
+(defvar date)
 (defvar displayed-month)
 (defvar displayed-year)
 

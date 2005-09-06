@@ -33,6 +33,8 @@
 (require 'mm-decode)
 (require 'mm-url)
 
+(defvar gnus-article-mime-handles)
+
 (defvar mm-extern-function-alist
   '((local-file . mm-extern-local-file)
     (url . mm-extern-url)

@@ -25,6 +25,8 @@
 
 (require 'testcover)
 
+(defvar safe-functions)
+
 ;;;These forms are all considered safe
 (defconst testcover-unsafep-safe
   '(((lambda (x) (* x 2)) 14)

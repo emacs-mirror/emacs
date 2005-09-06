@@ -67,8 +67,10 @@ message in, you can set this variable to a function that checks the
 current newsgroup name and then returns a suitable group name (or list
 of names)."
   :group 'gnus-message
-  :type '(choice (string :tag "Group")
-		 (function)))
+  :type '(choice (const nil)
+		 (function)
+		 (string :tag "Group")
+		 (repeat :tag "List of groups" (string :tag "Group"))))
 
 (defcustom gnus-mailing-list-groups nil
   "*If non-nil a regexp matching groups that are really mailing lists.
@@ -1031,17 +1033,18 @@ If SILENT, don't prompt the user."
   "Stringified Gnus version and Emacs version.
 See the variable `gnus-user-agent'."
   (interactive)
-  (let* ((float-output-format nil)
-	 (gnus-v
-	  (concat "Gnus/"
-		  (prin1-to-string (gnus-continuum-version gnus-version) t)
-		  " (" gnus-version ")"))
-	 (emacs-v (gnus-emacs-version)))
-    (if (stringp gnus-user-agent)
-	gnus-user-agent
-      (concat gnus-v
-	      (when emacs-v
-		(concat " " emacs-v))))))
+  (if (stringp gnus-user-agent)
+      gnus-user-agent
+    ;; `gnus-user-agent' is a list:
+    (let* ((float-output-format nil)
+	   (gnus-v
+	    (when (memq 'gnus gnus-user-agent)
+	      (concat "Gnus/"
+		      (prin1-to-string (gnus-continuum-version gnus-version) t)
+		      " (" gnus-version ")")))
+	   (emacs-v (gnus-emacs-version)))
+      (concat gnus-v (when (and gnus-v emacs-v) " ")
+	      emacs-v))))
 
 
 ;;;
@@ -1661,7 +1664,7 @@ this is a reply."
 	     (gcc (cond
 		   ((functionp group)
 		    (funcall group))
-		   ((or (stringp group) (list group))
+		   ((or (stringp group) (listp group))
 		    group))))
 	(when gcc
 	  (insert "Gcc: "

@@ -199,6 +199,7 @@
 (defconst artist-version "1.2.6")
 (defconst artist-maintainer-address "tab@lysator.liu.se")
 
+(defvar x-pointer-crosshair)
 
 (eval-and-compile
  (condition-case ()
@@ -404,7 +405,7 @@ Example:
   :type 'integer)
 
 
-(defvar artist-spray-chars '(?\  ?. ?- ?+ ?m ?% ?* ?#)
+(defvar artist-spray-chars '(?\s ?. ?- ?+ ?m ?% ?* ?#)
   ;; This is a defvar, not a defcustom, since the custom
   ;; package shows lists of characters as a lists of integers,
   ;; which is confusing
@@ -1389,9 +1390,9 @@ Keymap summary
     (while (< i 256)
       (aset artist-replacement-table i i)
       (setq i (1+ i))))
-  (aset artist-replacement-table ?\n ?\ )
-  (aset artist-replacement-table ?\t ?\ )
-  (aset artist-replacement-table 0 ?\ )
+  (aset artist-replacement-table ?\n ?\s)
+  (aset artist-replacement-table ?\t ?\s)
+  (aset artist-replacement-table 0 ?\s)
   (make-local-variable 'artist-key-is-drawing)
   (make-local-variable 'artist-key-endpoint1)
   (make-local-variable 'artist-key-poly-point-list)
@@ -2013,7 +2014,7 @@ With optional argument SEE-THRU, set to non-nil, text in the buffer
 	(blink-matching-paren nil))
     (while char-list
       (let ((c (car char-list)))
-	(if (and see-thru (= (aref artist-replacement-table c) ?\ ))
+	(if (and see-thru (= (aref artist-replacement-table c) ?\s))
 	    (artist-move-to-xy (1+ (artist-current-column))
 			       (artist-current-line))
 	  (artist-replace-char c)))
@@ -3069,26 +3070,26 @@ An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
 (defun artist-vap-find-endpoints-horiz (x y)
   "Find endpoints for a horizontal line through X, Y.
 An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
-  (list (artist-vap-find-endpoint x y  1 0 '(?- ?+) '(?  ))
-	(artist-vap-find-endpoint x y -1 0 '(?- ?+) '(?  ))))
+  (list (artist-vap-find-endpoint x y  1 0 '(?- ?+) '(?\s))
+	(artist-vap-find-endpoint x y -1 0 '(?- ?+) '(?\s))))
 
 (defun artist-vap-find-endpoints-vert (x y)
   "Find endpoints for a vertical line through X, Y.
 An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
-  (list (artist-vap-find-endpoint x y 0  1 '(?| ?+) '(?  ))
-	(artist-vap-find-endpoint x y 0 -1 '(?| ?+) '(?  ))))
+  (list (artist-vap-find-endpoint x y 0  1 '(?| ?+) '(?\s))
+	(artist-vap-find-endpoint x y 0 -1 '(?| ?+) '(?\s))))
 
 (defun artist-vap-find-endpoints-swne (x y)
   "Find endpoints for a diagonal line (made by /'s) through X, Y.
 An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
-  (list (artist-vap-find-endpoint x y  1 -1 '(?/ ?X) '(?  ))
-	(artist-vap-find-endpoint x y -1  1 '(?/ ?X) '(?  ))))
+  (list (artist-vap-find-endpoint x y  1 -1 '(?/ ?X) '(?\s))
+	(artist-vap-find-endpoint x y -1  1 '(?/ ?X) '(?\s))))
 
 (defun artist-vap-find-endpoints-nwse (x y)
   "Find endpoints for a diagonal line (made by \\'s) through X, Y.
 An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
-  (list (artist-vap-find-endpoint x y  1  1 '(?\\ ?X) '(?  ))
-	(artist-vap-find-endpoint x y -1 -1 '(?\\ ?X) '(?  ))))
+  (list (artist-vap-find-endpoint x y  1  1 '(?\\ ?X) '(?\s))
+	(artist-vap-find-endpoint x y -1 -1 '(?\\ ?X) '(?\s))))
 
 
 (defun artist-vap-find-endpoints (x y)
@@ -4454,7 +4455,7 @@ If N is negative, move backward."
 (defun artist-select-erase-char (c)
   "Set current erase character to be C."
   (interactive "cType char to use when erasing (type RET for normal): ")
-  (cond ((eq c ?\r) (setq artist-erase-char ?\ )
+  (cond ((eq c ?\r) (setq artist-erase-char ?\s)
 		    (message "Normal erasing"))
 	(t	    (setq artist-erase-char c)
 		    (message "Erasing with \"%c\"" c)))

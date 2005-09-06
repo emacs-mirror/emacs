@@ -40,8 +40,11 @@
 
 ;;; Code:
 
+(defvar date)
 (defvar displayed-month)
 (defvar displayed-year)
+(defvar number)
+(defvar original-date)
 
 (require 'cal-julian)
 

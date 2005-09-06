@@ -219,6 +219,10 @@
 (eval-when-compile ;; needed in Emacs 19, 20
   (setq max-specpdl-size 2000))
 
+(defvar font-lock-keyword-face)
+(defvar font-lock-set-defaults)
+(defvar font-lock-string-face)
+
 ;;; Allow customization
 
 (defgroup SQL nil
@@ -2299,7 +2303,7 @@ hooks on `comint-input-filter-functions' are run.  After each SQL
 interpreter output, the hooks on `comint-output-filter-functions' are
 run.
 
-Variable `sql-input-ring-file-name' controls the initialisation of the
+Variable `sql-input-ring-file-name' controls the initialization of the
 input ring history.
 
 Variables `comint-output-filter-functions', a hook, and

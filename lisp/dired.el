@@ -1860,9 +1860,12 @@ DIR must be a directory name, not a file name."
 	 (western-comma (concat month s "+" dd "," s "+" yyyy))
 	 ;; Japanese MS-Windows ls-lisp has one-digit months, and
 	 ;; omits the Kanji characters after month and day-of-month.
+	 ;; On Mac OS X 10.3, the date format in East Asian locales is
+	 ;; day-of-month digits followed by month digits.
 	 (mm "[ 0-1]?[0-9]")
-	 (japanese
-	  (concat mm l "?" s dd l "?" s "+"
+	 (east-asian
+	  (concat "\\(" mm l "?" s dd l "?" s "+"
+		  "\\|" dd s mm s "+" "\\)"
 		  "\\(" HH:MM "\\|" yyyy l "?" "\\)")))
 	 ;; The "[0-9]" below requires the previous column to end in a digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
@@ -1872,7 +1875,7 @@ DIR must be a directory name, not a file name."
 	 ;; This avoids recognizing `jservice  10  1024' as a date in the line:
 	 ;; drwxr-xr-x  3 jservice  10  1024 Jul  2  1997 esg-host
     (concat ".*[0-9][BkKMGTPEZY]?" s
-	    "\\(" western "\\|" western-comma "\\|" japanese "\\|" iso "\\)"
+	    "\\(" western "\\|" western-comma "\\|" east-asian "\\|" iso "\\)"
 	    s "+"))
   "Regular expression to match up to the file name in a directory listing.
 The default value is designed to recognize dates and times

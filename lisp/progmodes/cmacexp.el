@@ -93,6 +93,9 @@
 
 (provide 'cmacexp)
 
+(defvar msdos-shells)
+
+
 (defgroup c-macro nil
   "Expand C macros in a region."
   :group 'c)

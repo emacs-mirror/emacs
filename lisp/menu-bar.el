@@ -105,6 +105,10 @@ A large number or nil slows down menu responsiveness."
 
 (define-key menu-bar-file-menu [split-window]
   '(menu-item "Split Window" split-window-vertically
+	      :enable (and (frame-live-p menu-updating-frame)
+			   (frame-visible-p menu-updating-frame )
+			   (not (window-minibuffer-p
+				 (frame-selected-window menu-updating-frame))))
 	      :help "Split selected window in two windows"))
 
 (define-key menu-bar-file-menu [separator-window]
@@ -116,6 +120,8 @@ A large number or nil slows down menu responsiveness."
 	      :help "Pretty-print marked region in black and white to PostScript printer"))
 (define-key menu-bar-file-menu [ps-print-buffer]
   '(menu-item "Postscript Print Buffer (B+W)" ps-print-buffer
+	      :enable (and (frame-live-p menu-updating-frame)
+			   (frame-visible-p menu-updating-frame ))
 	      :help "Pretty-print current buffer in black and white to PostScript printer"))
 (define-key menu-bar-file-menu [ps-print-region-faces]
   '(menu-item "Postscript Print Region" ps-print-region-with-faces
@@ -123,6 +129,8 @@ A large number or nil slows down menu responsiveness."
 	      :help "Pretty-print marked region to PostScript printer"))
 (define-key menu-bar-file-menu [ps-print-buffer-faces]
   '(menu-item "Postscript Print Buffer" ps-print-buffer-with-faces
+	      :enable (and (frame-live-p menu-updating-frame)
+			   (frame-visible-p menu-updating-frame ))
 	      :help "Pretty-print current buffer to PostScript printer"))
 (define-key menu-bar-file-menu [print-region]
   '(menu-item "Print Region" print-region
@@ -130,6 +138,8 @@ A large number or nil slows down menu responsiveness."
 	      :help "Print region between mark and current position"))
 (define-key menu-bar-file-menu [print-buffer]
   '(menu-item "Print Buffer" print-buffer
+	      :enable (and (frame-live-p menu-updating-frame)
+			   (frame-visible-p menu-updating-frame ))
 	      :help "Print current buffer with page headings"))
 
 (define-key menu-bar-file-menu [separator-print]
@@ -160,8 +170,10 @@ A large number or nil slows down menu responsiveness."
 	      :help "Re-read current buffer from its file"))
 (define-key menu-bar-file-menu [write-file]
   '(menu-item "Save As..." write-file
-	      :enable (not (window-minibuffer-p
-			    (frame-selected-window menu-updating-frame)))
+	      :enable (and (frame-live-p menu-updating-frame)
+			   (frame-visible-p menu-updating-frame )
+			   (not (window-minibuffer-p
+				 (frame-selected-window menu-updating-frame))))
 	      :help "Write current buffer to another file"))
 (define-key menu-bar-file-menu [save-buffer]
   '(menu-item "Save" save-buffer
@@ -1030,7 +1042,9 @@ mail status in mode line"))
   '(menu-item "Truncate Long Lines in this Buffer"
 	      toggle-truncate-lines
 	      :help "Truncate long lines on the screen"
-	      :button (:toggle . truncate-lines)))
+	      :button (:toggle . truncate-lines)
+	      :enable (and (frame-live-p menu-updating-frame)
+			   (frame-visible-p menu-updating-frame))))
 
 (define-key menu-bar-options-menu [highlight-separator]
   '("--"))

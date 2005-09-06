@@ -30,6 +30,9 @@
 
 ;;; Code:
 
+(defvar font-lock-keywords)
+
+
 (defgroup backup nil
   "Backups of edited data files."
   :group 'files)
@@ -2407,7 +2410,7 @@ If VAL is nil or omitted, the question is whether any value might be
 dangerous."
   (let ((safep (get sym 'safe-local-variable)))
     (or (get sym 'risky-local-variable)
-	(and (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
+	(and (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-commands?$\\|-predicates?$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
 			   (symbol-name sym))
 	     (not safep))
 	;; If the safe-local-variable property isn't t or nil,
@@ -4062,53 +4065,57 @@ Does not consider `auto-save-visited-file-name' as that variable is checked
 before calling this function.  You can redefine this for customization.
 See also `auto-save-file-name-p'."
   (if buffer-file-name
-      (let ((list auto-save-file-name-transforms)
-	    (filename buffer-file-name)
-	    result uniq)
-	;; Apply user-specified translations
-	;; to the file name.
-	(while (and list (not result))
-	  (if (string-match (car (car list)) filename)
-	      (setq result (replace-match (cadr (car list)) t nil
-					  filename)
-		    uniq (car (cddr (car list)))))
-	  (setq list (cdr list)))
-	(if result
-	    (if uniq
-		(setq filename (concat
-				(file-name-directory result)
-				(subst-char-in-string
-				 ?/ ?!
-				 (replace-regexp-in-string "!" "!!"
-							   filename))))
-	      (setq filename result)))
-	(setq result
-	      (if (and (eq system-type 'ms-dos)
-		       (not (msdos-long-file-names)))
-		  ;; We truncate the file name to DOS 8+3 limits
-		  ;; before doing anything else, because the regexp
-		  ;; passed to string-match below cannot handle
-		  ;; extensions longer than 3 characters, multiple
-		  ;; dots, and other atrocities.
-		  (let ((fn (dos-8+3-filename
-			     (file-name-nondirectory buffer-file-name))))
-		    (string-match
-		     "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'"
-		     fn)
-		    (concat (file-name-directory buffer-file-name)
-			    "#" (match-string 1 fn)
-			    "." (match-string 3 fn) "#"))
-		(concat (file-name-directory filename)
-			"#"
-			(file-name-nondirectory filename)
-			"#")))
-	;; Make sure auto-save file names don't contain characters
-	;; invalid for the underlying filesystem.
-	(if (and (memq system-type '(ms-dos windows-nt))
-		 ;; Don't modify remote (ange-ftp) filenames
-		 (not (string-match "^/\\w+@[-A-Za-z0-9._]+:" result)))
-	    (convert-standard-filename result)
-	  result))
+      (let ((handler (find-file-name-handler buffer-file-name
+					     'make-auto-save-file-name)))
+	(if handler
+	    (funcall handler 'make-auto-save-file-name)
+	  (let ((list auto-save-file-name-transforms)
+		(filename buffer-file-name)
+		result uniq)
+	    ;; Apply user-specified translations
+	    ;; to the file name.
+	    (while (and list (not result))
+	      (if (string-match (car (car list)) filename)
+		  (setq result (replace-match (cadr (car list)) t nil
+					      filename)
+			uniq (car (cddr (car list)))))
+	      (setq list (cdr list)))
+	    (if result
+		(if uniq
+		    (setq filename (concat
+				    (file-name-directory result)
+				    (subst-char-in-string
+				     ?/ ?!
+				     (replace-regexp-in-string "!" "!!"
+							       filename))))
+		  (setq filename result)))
+	    (setq result
+		  (if (and (eq system-type 'ms-dos)
+			   (not (msdos-long-file-names)))
+		      ;; We truncate the file name to DOS 8+3 limits
+		      ;; before doing anything else, because the regexp
+		      ;; passed to string-match below cannot handle
+		      ;; extensions longer than 3 characters, multiple
+		      ;; dots, and other atrocities.
+		      (let ((fn (dos-8+3-filename
+				 (file-name-nondirectory buffer-file-name))))
+			(string-match
+			 "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'"
+			 fn)
+			(concat (file-name-directory buffer-file-name)
+				"#" (match-string 1 fn)
+				"." (match-string 3 fn) "#"))
+		    (concat (file-name-directory filename)
+			    "#"
+			    (file-name-nondirectory filename)
+			    "#")))
+	    ;; Make sure auto-save file names don't contain characters
+	    ;; invalid for the underlying filesystem.
+	    (if (and (memq system-type '(ms-dos windows-nt))
+		     ;; Don't modify remote (ange-ftp) filenames
+		     (not (string-match "^/\\w+@[-A-Za-z0-9._]+:" result)))
+		(convert-standard-filename result)
+	      result))))
 
     ;; Deal with buffers that don't have any associated files.  (Mail
     ;; mode tends to create a good number of these.)

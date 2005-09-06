@@ -80,6 +80,10 @@
 (require 'x-dnd)
 
 (defvar x-invocation-args)
+(defvar x-keysym-table)
+(defvar x-selection-timeout)
+(defvar x-session-id)
+(defvar x-session-previous-id)
 
 (defvar x-command-line-resources nil)
 

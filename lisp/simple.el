@@ -34,6 +34,8 @@
   (autoload 'widget-convert "wid-edit")
   (autoload 'shell-mode "shell"))
 
+(defvar compilation-current-error)
+
 (defcustom idle-update-delay 0.5
   "*Idle time delay before updating various things on the screen.
 Various Emacs features that update auxiliary information when point moves
@@ -4207,8 +4209,9 @@ when it is off screen)."
   :group 'paren-blinking)
 
 (defcustom blink-matching-paren-distance (* 25 1024)
-  "*If non-nil, is maximum distance to search for matching open-paren."
-  :type 'integer
+  "*If non-nil, maximum distance to search backwards for matching open-paren.
+If nil, search stops at the beginning of the accessible portion of the buffer."
+  :type '(choice (const nil) integer)
   :group 'paren-blinking)
 
 (defcustom blink-matching-delay 1

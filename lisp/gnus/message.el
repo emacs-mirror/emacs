@@ -6631,7 +6631,8 @@ If nil, the function bound in `text-mode-map' or `global-map' is executed."
   :version "22.1"
   :group 'message
   :link '(custom-manual "(message)Various Commands")
-  :type 'function)
+  :type '(choice (const nil)
+		 function))
 
 (defun message-tab ()
   "Complete names according to `message-completion-alist'.

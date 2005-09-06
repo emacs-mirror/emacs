@@ -37,6 +37,10 @@
 (eval-when-compile (require 'cl))
 (require 'mm-util)
 
+(defvar gnus-decode-encoded-word-function)
+(defvar gnus-decode-header-function)
+(defvar gnus-newsgroup-name)
+
 (defvar rfc1843-word-regexp
   "~\\({\\([\041-\167][\041-\176]\\| \\)+\\)\\(~}\\|$\\)")
 

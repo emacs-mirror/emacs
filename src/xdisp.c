@@ -1350,8 +1350,8 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
 
   current_header_line_height = current_mode_line_height = -1;
 
-  if (visible_p && w->hscroll > 0)
-    *x -= w->hscroll;
+  if (visible_p && XFASTINT (w->hscroll) > 0)
+    *x -= XFASTINT (w->hscroll);
 
   return visible_p;
 }
@@ -6106,6 +6106,8 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 	     glyphs have the same width.  */
 	  int single_glyph_width = it->pixel_width / it->nglyphs;
 	  int new_x;
+	  int x_before_this_char = x;
+	  int hpos_before_this_char = it->hpos;
 
 	  for (i = 0; i < it->nglyphs; ++i, x = new_x)
 	    {
@@ -6137,8 +6139,22 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
 		    {
 		      ++it->hpos;
 		      it->current_x = new_x;
+
+		      /* The character's last glyph just barely fits
+			 in this row.  */
 		      if (i == it->nglyphs - 1)
 			{
+			  /* If this is the destination position,
+			     return a position *before* it in this row,
+			     now that we know it fits in this row.  */
+			  if (BUFFER_POS_REACHED_P ())
+			    {
+			      it->hpos = hpos_before_this_char;
+			      it->current_x = x_before_this_char;
+			      result = MOVE_POS_MATCH_OR_ZV;
+			      break;
+			    }
+
 			  set_iterator_to_next (it, 1);
 #ifdef HAVE_WINDOW_SYSTEM
 			  if (IT_OVERFLOW_NEWLINE_INTO_FRINGE (it))
@@ -7802,7 +7818,7 @@ resize_mini_window_1 (a1, exactly, a3, a4)
 /* Resize mini-window W to fit the size of its contents.  EXACT:P
    means size the window exactly to the size needed.  Otherwise, it's
    only enlarged until W's buffer is empty.
-   
+
    Set W->start to the right place to begin display.  If the whole
    contents fit, start at the beginning.  Otherwise, start so as
    to make the end of the contents appear.  This is particularly
@@ -7891,7 +7907,6 @@ resize_mini_window (w, exact_p)
 	  init_iterator (&it, w, ZV, ZV_BYTE, NULL, DEFAULT_FACE_ID);
 	  move_it_vertically_backward (&it, (height - 1) * unit);
 	  start = it.current.pos;
-	  SET_PT_BOTH (CHARPOS (start), BYTEPOS (start));
 	}
       else
 	SET_TEXT_POS (start, BEGV, BEGV_BYTE);
@@ -10703,9 +10718,13 @@ redisplay_internal (preserve_echo_area)
   if (consider_all_windows_p)
     {
       Lisp_Object tail, frame;
-      int i, n = 0, size = 50;
-      struct frame **updated
-	= (struct frame **) alloca (size * sizeof *updated);
+      int i, n = 0, size = 5;
+      struct frame **updated;
+
+      FOR_EACH_FRAME (tail, frame)
+	size++;
+
+      updated = (struct frame **) alloca (size * sizeof *updated);
 
       /* Recompute # windows showing selected buffer.  This will be
 	 incremented each time such a window is displayed.  */

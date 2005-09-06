@@ -670,7 +670,7 @@ If `last', order groups after non-groups."
   :type 'boolean
   :group 'custom-browse)
 
-(defcustom custom-buffer-sort-alphabetically nil
+(defcustom custom-buffer-sort-alphabetically t
   "If non-nil, sort members of each customization group alphabetically."
   :type 'boolean
   :group 'custom-buffer)
@@ -3836,8 +3836,9 @@ Optional EVENT is the location for the menu."
 	    (setq magics (cdr magics)))))
       (widget-put widget :custom-state found)))
   (custom-magic-reset widget))
+
+;;; Reading and writing the custom file.
 
-;;; The `custom-save-all' Function.
 ;;;###autoload
 (defcustom custom-file nil
   "File used for storing customization information.
@@ -3898,17 +3899,33 @@ if only the first line of the docstring is shown."))
 	   (setq user-init-file default-init-file))
 	 user-init-file))))
 
+;;;###autoload
+(defun custom-save-all ()
+  "Save all customizations in `custom-file'."
+  (let* ((filename (custom-file))
+	 (recentf-exclude (if recentf-mode
+			      (cons (concat "\\`"
+					    (regexp-quote (custom-file))
+					    "\\'")
+				    recentf-exclude)))
+	 (old-buffer (find-buffer-visiting filename)))
+    (with-current-buffer (or old-buffer (find-file-noselect filename))
+      (let ((inhibit-read-only t))
+	(custom-save-variables)
+	(custom-save-faces))
+      (let ((file-precious-flag t))
+	(save-buffer))
+      (unless old-buffer
+	(kill-buffer (current-buffer))))))
+
+;; Editing the custom file contents in a buffer.
+
 (defun custom-save-delete (symbol)
-  "Visit `custom-file' and delete all calls to SYMBOL from it.
+  "Delete all calls to SYMBOL from the contents of the current buffer.
 Leave point at the old location of the first such call,
-or (if there were none) at the end of the buffer."
-  (let ((default-major-mode 'emacs-lisp-mode)
-	(recentf-exclude (if recentf-mode
-			     (cons (concat "\\`"
-					   (regexp-quote (custom-file))
-					   "\\'")
-				   recentf-exclude))))
-    (set-buffer (find-file-noselect (custom-file))))
+or (if there were none) at the end of the buffer.
+
+This function does not save the buffer."
   (goto-char (point-min))
   ;; Skip all whitespace and comments.
   (while (forward-comment 1))
@@ -4128,24 +4145,7 @@ or (if there were none) at the end of the buffer."
 		  (put symbol 'customized-face-comment nil)))))
   ;; We really should update all custom buffers here.
   (custom-save-all))
-
-;;;###autoload
-(defun custom-save-all ()
-  "Save all customizations in `custom-file'."
-  (let ((inhibit-read-only t))
-    (custom-save-variables)
-    (custom-save-faces)
-    (save-excursion
-      (let ((default-major-mode nil)
-	    (recentf-exclude (if recentf-mode
-				 (cons (concat "\\`"
-					       (regexp-quote (custom-file))
-					       "\\'")
-				       recentf-exclude))))
-	(set-buffer (find-file-noselect (custom-file))))
-      (let ((file-precious-flag t))
-	(save-buffer)))))
-
+
 ;;; The Customize Menu.
 
 ;;; Menu support

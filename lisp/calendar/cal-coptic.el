@@ -40,6 +40,8 @@
 
 ;;; Code:
 
+(defvar date)
+
 (require 'cal-julian)
 
 (defvar coptic-calendar-month-name-array

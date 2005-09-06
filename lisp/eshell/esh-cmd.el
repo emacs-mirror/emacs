@@ -453,12 +453,14 @@ hooks should be run before and after the command."
 
 (defun eshell-rewrite-named-command (terms)
   "If no other rewriting rule transforms TERMS, assume a named command."
-  (list (if eshell-in-pipeline-p
-	    'eshell-named-command*
-	  'eshell-named-command)
-	(car terms)
-	(and (cdr terms)
-	     (append (list 'list) (cdr terms)))))
+  (let ((sym (if eshell-in-pipeline-p
+		 'eshell-named-command*
+	       'eshell-named-command))
+	(cmd (car terms))
+	(args (cdr terms)))
+    (if args
+	(list sym cmd (append (list 'list) (cdr terms)))
+      (list sym cmd))))
 
 (eshell-deftest cmd named-command
   "Execute named command"

@@ -50,11 +50,12 @@
 ;;; semicolon screws up indenting, so use this instead
 (defconst semicolon ?\;)
 
-(eval-when-compile
-  (defvar bg-mouse-x) (defvar bg-mouse-y) (defvar bg-cursor-window)
-  ;; This variable does not exist since 1991, so it's a safe bet
-  ;; this package is not really used anymore.  Still...
-  (defvar mouse-map))
+(defvar bg-mouse-x)
+(defvar bg-mouse-y)
+(defvar bg-cursor-window)
+;; This variable does not exist since 1991, so it's a safe bet
+;; this package is not really used anymore.  Still...
+(defvar mouse-map)
 
 ;;;  Defuns:
 

@@ -3,9 +3,9 @@
 ;; Copyright (C) 1997, 2001, 2002, 2003, 2004, 2005
 ;; Free Software Foundation, Inc.
 
-;; Author: Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>
+;; Author: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;; Author: John Eaton <jwe@bevo.che.wisc.edu>
-;; Maintainer: Kurt Hornik <Kurt.Hornik@ci.tuwien.ac.at>
+;; Maintainer: Kurt Hornik <Kurt.Hornik@wu-wien.ac.at>
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.

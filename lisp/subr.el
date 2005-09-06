@@ -2851,8 +2851,9 @@ convenience wrapper around `make-progress-reporter' and friends.
 				   (setq ,(car spec) (1+ ,(car spec)))))
        (progress-reporter-done ,temp2)
        nil ,@(cdr (cdr spec)))))
+
 
-;;;; Integer list & Version funs.
+;;;; Compare Version Strings
 
 (defvar version-separator "."
   "*Specify the string used to separate the version elements.
@@ -2952,7 +2953,7 @@ See documentation for `version-separator' and `version-regexp-alist'."
 	(nreverse lst)))))
 
 
-(defun integer-list-< (l1 l2)
+(defun version-list-< (l1 l2)
   "Return t if integer list L1 is lesser than L2.
 
 Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
@@ -2968,12 +2969,12 @@ which is greater than (1 -3)."
    ;; l1 null and l2 null         ==> l1 length = l2 length
    ((and (null l1) (null l2)) nil)
    ;; l1 not null and l2 null     ==> l1 length > l2 length
-   (l1 (< (integer-list-not-zero l1) 0))
+   (l1 (< (version-list-not-zero l1) 0))
    ;; l1 null and l2 not null     ==> l2 length > l1 length
-   (t  (< 0 (integer-list-not-zero l2)))))
+   (t  (< 0 (version-list-not-zero l2)))))
 
 
-(defun integer-list-= (l1 l2)
+(defun version-list-= (l1 l2)
   "Return t if integer list L1 is equal to L2.
 
 Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
@@ -2989,12 +2990,12 @@ which is greater than (1 -3)."
    ;; l1 null and l2 null     ==> l1 length = l2 length
    ((and (null l1) (null l2)))
    ;; l1 not null and l2 null ==> l1 length > l2 length
-   (l1 (zerop (integer-list-not-zero l1)))
+   (l1 (zerop (version-list-not-zero l1)))
    ;; l1 null and l2 not null ==> l2 length > l1 length
-   (t  (zerop (integer-list-not-zero l2)))))
+   (t  (zerop (version-list-not-zero l2)))))
 
 
-(defun integer-list-<= (l1 l2)
+(defun version-list-<= (l1 l2)
   "Return t if integer list L1 is lesser than or equal to L2.
 
 Note that integer list (1) is equal to (1 0), (1 0 0), (1 0 0 0),
@@ -3010,15 +3011,20 @@ which is greater than (1 -3)."
    ;; l1 null and l2 null     ==> l1 length = l2 length
    ((and (null l1) (null l2)))
    ;; l1 not null and l2 null ==> l1 length > l2 length
-   (l1 (<= (integer-list-not-zero l1) 0))
+   (l1 (<= (version-list-not-zero l1) 0))
    ;; l1 null and l2 not null ==> l2 length > l1 length
-   (t  (<= 0 (integer-list-not-zero l2)))))
+   (t  (<= 0 (version-list-not-zero l2)))))
 
+(defun version-list-not-zero (lst)
+  "Return the first non-zero element of integer list LST.
 
-(defalias 'version= 'string-equal
-  "Return t if version V1 is equal to V2.
-
-Compare version string using `string-equal'.")
+If all LST elements are zeroes or LST is nil, return zero."
+  (while (and lst (zerop (car lst)))
+    (setq lst (cdr lst)))
+  (if lst
+      (car lst)
+    ;; there is no element different of zero
+    0))
 
 
 (defun version< (v1 v2)
@@ -3028,7 +3034,7 @@ Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
 is greater than \"1pre\" which is greater than \"1beta\" which is greater than
 \"1alpha\"."
-  (integer-list-< (version-to-list v1) (version-to-list v2)))
+  (version-list-< (version-to-list v1) (version-to-list v2)))
 
 
 (defun version<= (v1 v2)
@@ -3038,19 +3044,17 @@ Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
 etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
 is greater than \"1pre\" which is greater than \"1beta\" which is greater than
 \"1alpha\"."
-  (integer-list-<= (version-to-list v1) (version-to-list v2)))
+  (version-list-<= (version-to-list v1) (version-to-list v2)))
 
+(defun version= (v1 v2)
+  "Return t if version V1 is equal to V2.
 
-(defun integer-list-not-zero (lst)
-  "Return the first non-zero element of integer list LST.
+Note that version string \"1\" is equal to \"1.0\", \"1.0.0\", \"1.0.0.0\",
+etc.  That is, the trailing \".0\"s are irrelevant.  Also, version string \"1\"
+is greater than \"1pre\" which is greater than \"1beta\" which is greater than
+\"1alpha\"."
+  (version-list-= (version-to-list v1) (version-to-list v2)))
 
-If all LST elements are zeroes or LST is nil, return zero."
-  (while (zerop (car lst))
-    (setq lst (cdr lst)))
-  (if lst
-      (car lst)
-    ;; there is no element different of zero
-    0))
 
 
 ;; arch-tag: f7e0e6e5-70aa-4897-ae72-7a3511ec40bc

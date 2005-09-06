@@ -4,8 +4,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.14
-@set DATE July 2005
+@set VERSION 3.15
+@set DATE September 2005
 
 @dircategory Emacs
 @direntry
@@ -35,7 +35,7 @@
 @copying
 This manual is for Org-mode (version @value{VERSION}).
 
-Copyright @copyright{} 2004, 2005 Free Software Foundation, Inc.
+Copyright @copyright{} 2004, 2005 Free Software Foundation
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1536,7 +1536,7 @@ continuing until the entry is marked DONE.  An example:
 @end example
 
 @item SCHEDULED
-@cindex DEADLINE keyword
+@cindex SCHEDULED keyword
 If a time stamp is preceded by the word @samp{SCHEDULED:}, it means
 you are planning to start working on that task on the given date.  The
 headline will be listed under the given date.  In addition, a reminder
@@ -2217,8 +2217,10 @@ horizontal separator line will be formatted as table header fields.
 
 @cindex fixed width
 @item
-Lines starting with @samp{:} are typeset in a fixed-width font, to
-allow quoting of computer code etc.
+If a headline starts with the word @samp{QUOTE}, the text below the
+headline will be typeset as fixed-width, to allow quoting of computer
+codes etc.  Lines starting with @samp{:} are also typeset in
+fixed-width font.
 
 @cindex HTML tags
 @item

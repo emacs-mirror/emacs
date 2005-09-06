@@ -583,7 +583,7 @@ This recursively follows aliases."
 (defvar custom-known-themes '(user standard)
    "Themes that have been defined with `deftheme'.
 The default value is the list (user standard).  The theme `standard'
-contains the Emacs standard settings from the original Lisp files.  The
+contains the settings before custom themes are applied.  The
 theme `user' contains all the settings the user customized and saved.
 Additional themes declared with the `deftheme' macro will be added to
 the front of this list.")
@@ -649,6 +649,16 @@ See `custom-known-themes' for a list of known themes."
 	(progn
 	  (setcar (cdr setting) mode)
 	  (setcar (cddr setting) value))
+      (if (null old)
+	  (setq old
+		(list
+		 (list 'standard 'set
+		       (if (eq prop 'theme-value)
+			   (symbol-value symbol)
+			 (list
+			  (append
+			   '(t)
+			   (custom-face-attributes-get symbol nil))))))))
       (put symbol prop (cons (list theme mode value) old)))
     ;; Record, for each theme, all its settings.
     (put theme 'theme-settings
@@ -953,7 +963,7 @@ into `features'.
 
 This allows for a file-name convention for autoloading themes:
 Every theme X has a property `provide-theme' whose value is \"X-theme\".
-\(require-theme X) then attempts to load the file `X-theme.el'."
+\(load-theme X) then attempts to load the file `X-theme.el'."
   (intern (concat (symbol-name theme) "-theme")))
 
 ;;; Loading themes.
@@ -996,7 +1006,7 @@ Every theme X has a property `provide-theme' whose value is \"X-theme\".
 	 "~/_emacs.d/"
       "~/.emacs.d/")
   "Directory in which Custom theme files should be written.
-`require-theme' searches this directory in addition to load-path.
+`load-theme' searches this directory in addition to load-path.
 The command `customize-create-theme' writes the files it produces
 into this directory."
   :type 'string
@@ -1031,11 +1041,11 @@ by `custom-make-theme-feature'."
   ;; `user' must always be the highest-precedence enabled theme.
   ;; Make that remain true.  (This has the effect of making user settings
   ;; override the ones just loaded, too.)
-  (custom-enable-theme 'user))
+  (enable-theme 'user))
 
-(defun require-theme (theme)
+(defun load-theme (theme)
   "Try to load a theme's settings from its file.
-This also enables the theme; use `custom-disable-theme' to disable it."
+This also enables the theme; use `disable-theme' to disable it."
 
   ;; THEME's feature is stored in THEME's `theme-feature' property.
   ;; Usually the `theme-feature' property contains a symbol created
@@ -1043,6 +1053,7 @@ This also enables the theme; use `custom-disable-theme' to disable it."
 
   ;; Note we do no check for validity of the theme here.
   ;; This allows to pull in themes by a file-name convention
+  (interactive "SCustom theme name: ")
   (let ((load-path (if (file-directory-p custom-theme-directory)
 		       (cons custom-theme-directory load-path)
 		     load-path)))
@@ -1070,12 +1081,12 @@ All the themes loaded for BY-THEME are recorded in BY-THEME's property
   (let ((themes-loaded (get by-theme 'theme-loads-themes)))
     (dolist (theme body)
       (cond ((and (consp theme) (eq (car theme) 'reset))
-	     (custom-disable-theme (cadr theme)))
+	     (disable-theme (cadr theme)))
 	    ((and (consp theme) (eq (car theme) 'hidden))
-	     (require-theme (cadr theme))
-	     (custom-disable-theme (cadr theme)))
+	     (load-theme (cadr theme))
+	     (disable-theme (cadr theme)))
 	    (t
-	     (require-theme theme)))
+	     (load-theme theme)))
       (push theme themes-loaded))
     (put by-theme 'theme-loads-themes themes-loaded)))
 
@@ -1087,10 +1098,11 @@ See `custom-theme-load-themes' for more information on BODY."
 
 ;;; Enabling and disabling loaded themes.
 
-(defun custom-enable-theme (theme)
+(defun enable-theme (theme)
   "Reenable all variable and face settings defined by THEME.
 The newly enabled theme gets the highest precedence (after `user').
 If it is already enabled, just give it highest precedence (after `user')."
+  (interactive "SEnable Custom theme: ")
   (let ((settings (get theme 'theme-settings)))
     (dolist (s settings)
       (let* ((prop (car s))
@@ -1104,17 +1116,18 @@ If it is already enabled, just give it highest precedence (after `user')."
         (cons theme (delq theme custom-enabled-themes)))
   ;; `user' must always be the highest-precedence enabled theme.
   (unless (eq theme 'user)
-    (custom-enable-theme 'user)))
+    (enable-theme 'user)))
 
-(defun custom-disable-theme (theme)
+(defun disable-theme (theme)
   "Disable all variable and face settings defined by THEME.
 See `custom-known-themes' for a list of known themes."
+  (interactive "SDisable Custom theme: ")
   (let ((settings (get theme 'theme-settings)))
     (dolist (s settings)
       (let* ((prop (car s))
 	     (symbol (cadr s))
 	     (spec-list (get symbol prop)))
-	(put symbol 'theme-value (assq-delete-all theme spec-list))
+	(put symbol prop (assq-delete-all theme spec-list))
 	(if (eq prop 'theme-value)
 	    (custom-theme-recalc-variable symbol)
 	  (custom-theme-recalc-face symbol)))))
@@ -1153,13 +1166,6 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
     (if theme-value
 	(custom-theme-value (car (car theme-value)) theme-value))))
 
-(defun custom-face-theme-value (face)
-  "Return the face spec of FACE according to currently enabled custom themes.
-This function returns nil if no custom theme specifies anything for FACE."
-  (let* ((theme-value (get face 'theme-face)))
-    (if theme-value
-	(custom-theme-value (car (car theme-value)) theme-value))))
-
 (defun custom-theme-recalc-variable (variable)
   "Set VARIABLE according to currently enabled custom themes."
   (let ((valspec (custom-variable-theme-value variable)))
@@ -1174,16 +1180,9 @@ This function returns nil if no custom theme specifies anything for FACE."
 
 (defun custom-theme-recalc-face (face)
   "Set FACE according to currently enabled custom themes."
-  (let ((spec (custom-face-theme-value face)))
-    (when spec
-      (put face 'save-face spec))
-    (unless spec
-      (setq spec (get face 'face-defface-spec)))
-    (when spec
-      (when (or (get face 'force-face) (facep face))
-	(unless (facep face)
-	  (make-empty-face face))
-	(face-spec-set face spec)))))
+  (let ((theme-faces (reverse (get face 'theme-face))))
+    (dolist (spec theme-faces)
+      (face-spec-set face (car (cddr spec))))))
 
 (defun custom-theme-reset-variables (theme &rest args)
   "Reset the specs in THEME of some variables to their values in other themes.

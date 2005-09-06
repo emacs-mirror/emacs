@@ -115,6 +115,10 @@
 
 ;;; Code:
 
+(defvar gnus-original-article-buffer)
+(defvar mail-reply-buffer)
+(defvar rmail-current-message)
+
 (require 'sendmail)
 ;; Those sections of code which are dependent upon
 ;; RMAIL are only evaluated if we have received a message with RMAIL...

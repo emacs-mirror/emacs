@@ -1,3 +1,45 @@
+2005-09-03  Richard M. Stallman  <rms@gnu.org>
+
+	* tips.texi (Programming Tips): Add conventions for minibuffer
+	questions and prompts.
+
+2005-09-03  Joshua Varner  <jlvarner@gmail.com>  (tiny change)
+
+	* intro.texi (nil and t): Minor cleanup.
+	Delete spurious mention of keyword symbols.
+	(Evaluation Notation): Add index entry.
+	(A Sample Function Description): Minor cleanup.
+	(A Sample Variable Description): Not all vars can be set.
+
+2005-09-03  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* text.texi (Buffer Contents): Use "\n" in examples' result strings.
+
+	(Insertion): Document precise type of `insert-char' arg COUNT.
+
+2005-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Other Font Lock Variables): Sync the default of
+	font-lock-lines-before.
+
+2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.texi (Magic File Names): Add `make-auto-save-file-name'.
+
+2005-08-29  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode menu.
+
+	* searching.texi (Searching and Matching): Move node.
+	Rearrange contents and add overall explanation.
+	(Searching and Case): Move node.
+	(Searching and Matching): Update menu.
+
+2005-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* os.texi (Startup Summary): Fix the description of the initial
+	startup message display.
+
 2005-08-25  Richard M. Stallman  <rms@gnu.org>
 
 	* searching.texi (Search and Replace): Add replace-regexp-in-string.
@@ -6,7 +48,7 @@
 
 	* display.texi (Finding Overlays): Fix `find-overlay-prop' in
 	`next-overlay-change' example.
-  
+
 2005-08-22  Juri Linkov  <juri@jurta.org>
 
 	* display.texi (Attribute Functions): Add set-face-inverse-video-p.
@@ -51,7 +93,7 @@
 	(Frame Parameters): Refer to Geometry.
 
 	* buffers.texi (The Buffer List): Fix xrefs.
-	
+
 	* windows.texi (Splitting Windows): Fix xref.
 
 	* frames.texi (Layout Parameters): Add xref.

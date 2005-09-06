@@ -35,10 +35,9 @@
 
 ;; See iso-swed.el for a description of the character set.
 
-(eval-when-compile
-  (defvar news-inews-hook)
-  (defvar news-group-hook-alist)
-  (defvar mail-send-hook))
+(defvar mail-send-hook)
+(defvar news-group-hook-alist)
+(defvar news-inews-hook)
 
 (defvar swedish-re
   "[ \t\n]\\(och\\|att\\|en\\|{r\\|\\[R\\|p}\\|P\\]\\|som\\|det\\|av\\|den\\|f|r\\|F\\\\R\\)[ \t\n.,?!:;'\")}]"

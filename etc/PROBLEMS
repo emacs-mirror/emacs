@@ -342,7 +342,7 @@ The solution is to use gawk (GNU awk).
 *** Emacs fails to understand most Internet host names, even though
 the names work properly with other programs on the same system.
 *** Emacs won't work with X-windows if the value of DISPLAY is HOSTNAME:0.
-*** GNUs can't make contact with the specified host for nntp.
+*** Gnus can't make contact with the specified host for nntp.
 
 This typically happens on Suns and other systems that use shared
 libraries.  The cause is that the site has installed a version of the

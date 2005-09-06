@@ -85,7 +85,7 @@
       (setq this-command 'mouse-yank-move))
   )
 
-(defun mouse-set-mark (window x y)
+(defun mouse-set-mark (&optional window x y)
   "Set mark at mouse cursor."
   (eval-in-window window	;; use this to get the unwind protect
     (let ((point (point)))
@@ -137,7 +137,7 @@ and put the region in the stuff buffer."
   "Select window if not selected, otherwise do mouse-drag-move-point."
   (if (eq (selected-window) window)
       (mouse-drag-move-point window x y)
-    (mouse-select-window window x y)))
+    (mouse-select-window window)))
 
 ;;;
 ;;; esoterica:
@@ -283,15 +283,15 @@ this command is insensitive to mouse location."
   "Split the window vertically at the mouse cursor."
   (eval-in-window window (split-window-vertically (1+ y))))
 
-(defun mouse-select-window (window x y)
+(defun mouse-select-window (&optional window x y)
   "Selects the window, restoring point."
   (select-window window))
 
-(defun mouse-delete-other-windows (window x y)
+(defun mouse-delete-other-windows (&optional window x y)
   "Deletes all windows except the one mouse is in."
   (delete-other-windows window))
 
-(defun mouse-delete-window (window x y)
+(defun mouse-delete-window (window &optional x y)
   "Deletes the window mouse is in."
   (delete-window window))
 
