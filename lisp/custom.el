@@ -649,7 +649,8 @@ See `custom-known-themes' for a list of known themes."
 	(progn
 	  (setcar (cdr setting) mode)
 	  (setcar (cddr setting) value))
-      (if (null old)
+      (if (and (null old)
+	       (boundp symbol))
 	  (setq old
 		(list
 		 (list 'standard 'set
