@@ -56,7 +56,9 @@ distinguish your program from other Lisp programs.@footnote{The
 benefits of a Common Lisp-style package system are considered not to
 outweigh the costs.}  Then take care to begin the names of all global
 variables, constants, and functions in your program with the chosen
-prefix.  This helps avoid name conflicts.
+prefix.  This helps avoid name conflicts.  (Occasionally, for a command
+name intended for users to use, it is cleaner if some words come
+before the package name prefix.)
 
 This recommendation applies even to names for traditional Lisp
 primitives that are not primitives in Emacs Lisp---such as
