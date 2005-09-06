@@ -6084,6 +6084,335 @@ x_wm_set_icon_position (f, icon_x, icon_y)
 
 
 /***********************************************************************
+			  XLFD Pattern Match
+ ***********************************************************************/
+
+/* An XLFD pattern is divided into blocks delimited by '*'.  This
+   structure holds information for each block.  */
+struct xlfdpat_block
+{
+  /* Length of the pattern string in this block.  Non-zero except for
+     the first and the last blocks.  */
+  int len;
+
+  /* Pattern string except the last character in this block.  The last
+     character is replaced with NUL in order to use it as a
+     sentinel.  */
+  unsigned char *pattern;
+
+  /* Last character of the pattern string.  Must not be '?'.  */
+  unsigned char last_char;
+
+  /* One of the tables for the Boyer-Moore string search.  It
+     specifies the number of positions to proceed for each character
+     with which the match fails.  */
+  int skip[256];
+
+  /* The skip value for the last character in the above `skip' is
+     assigned to `infinity' in order to simplify a loop condition.
+     The original value is saved here.  */
+  int last_char_skip;
+};
+
+struct xlfdpat
+{
+  /* Normalized pattern string.  "Normalized" means that capital
+     letters are lowered, blocks are not empty except the first and
+     the last ones, and trailing '?'s in a block that is not the last
+     one are moved to the next one.  The last character in each block
+     is replaced with NUL.  */
+  unsigned char *buf;
+
+  /* Number of characters except '*'s and trailing '?'s in the
+     normalized pattern string.  */
+  int nchars;
+
+  /* Number of trailing '?'s in the normalized pattern string.  */
+  int trailing_anychars;
+
+  /* Number of blocks and information for each block.  The latter is
+     NULL if the pattern is exact (no '*' or '?' in it).  */
+  int nblocks;
+  struct xlfdpat_block *blocks;
+};
+
+static void
+xlfdpat_destroy (pat)
+     struct xlfdpat *pat;
+{
+  if (pat)
+    {
+      if (pat->buf)
+	{
+	  if (pat->blocks)
+	    xfree (pat->blocks);
+	  xfree (pat->buf);
+	}
+      xfree (pat);
+    }
+}
+
+static struct xlfdpat *
+xlfdpat_create (pattern)
+     char *pattern;
+{
+  struct xlfdpat *pat;
+  int nblocks, i, skip;
+  unsigned char last_char, *p, *q, *anychar_head;
+  struct xlfdpat_block *blk;
+
+  pat = xmalloc (sizeof (struct xlfdpat));
+  if (pat == NULL)
+    goto error;
+
+  pat->buf = xmalloc (strlen (pattern) + 1);
+  if (pat->buf == NULL)
+    goto error;
+
+  /* Normalize the pattern string and store it to `pat->buf'.  */
+  nblocks = 0;
+  anychar_head = NULL;
+  q = pat->buf;
+  last_char = '\0';
+  for (p = pattern; *p; p++)
+    {
+      unsigned char c = *p;
+
+      if (c == '*')
+	if (last_char == '*')
+	  /*  ...a** -> ...a*  */
+	  continue;
+	else
+	  {
+	    if (last_char == '?')
+	      if (anychar_head > pat->buf && *(anychar_head - 1) == '*')
+		/*  ...*??* -> ...*??  */
+		continue;
+	      else
+		/*  ...a??* -> ...a*??  */
+		{
+		  *anychar_head++ = '*';
+		  c = '?';
+		}
+	    nblocks++;
+	  }
+      else if (c == '?')
+	{
+	  if (last_char != '?')
+	    anychar_head = q;
+	}
+      else
+	/* On Mac OS X 10.3, tolower also converts non-ASCII
+	   characters for some locales.  */
+	if (isascii (c))
+	  c = tolower (c);
+
+      *q++ = last_char = c;
+    }
+  *q = '\0';
+  nblocks++;
+  pat->nblocks = nblocks;
+  if (last_char != '?')
+    pat->trailing_anychars = 0;
+  else
+    {
+      pat->trailing_anychars = q - anychar_head;
+      q = anychar_head;
+    }
+  pat->nchars = q - pat->buf - (nblocks - 1);
+
+  if (anychar_head == NULL && nblocks == 1)
+    {
+      /* The pattern is exact.  */
+      pat->blocks = NULL;
+      return pat;
+    }
+
+  pat->blocks = xmalloc (sizeof (struct xlfdpat_block) * nblocks);
+  if (pat->blocks == NULL)
+    goto error;
+
+  /* Divide the normalized pattern into blocks.  */
+  p = pat->buf;
+  for (blk = pat->blocks; blk < pat->blocks + nblocks - 1; blk++)
+    {
+      blk->pattern = p;
+      while (*p != '*')
+	p++;
+      blk->len = p - blk->pattern;
+      p++;
+    }
+  blk->pattern = p;
+  blk->len = q - blk->pattern;
+
+  /* Setup a table for the Boyer-Moore string search.  */
+  for (blk = pat->blocks; blk < pat->blocks + nblocks; blk++)
+    if (blk->len != 0)
+      {
+	blk->last_char = blk->pattern[blk->len - 1];
+	blk->pattern[blk->len - 1] = '\0';
+
+	for (skip = 1; skip < blk->len; skip++)
+	  if (blk->pattern[blk->len - skip - 1] == '?')
+	    break;
+
+	for (i = 0; i < 256; i++)
+	  blk->skip[i] = skip;
+
+	p = blk->pattern + (blk->len - skip);
+	while (--skip > 0)
+	  blk->skip[*p++] = skip;
+
+	blk->last_char_skip = blk->skip[blk->last_char];
+      }
+
+  return pat;
+
+ error:
+  xlfdpat_destroy (pat);
+  return NULL;
+}
+
+static INLINE int
+xlfdpat_exact_p (pat)
+     struct xlfdpat *pat;
+{
+  return (pat)->blocks == NULL;
+}
+
+/* Return the first string in STRING + 0, ..., STRING + START_MAX such
+   that the pattern in *BLK matches with its prefix.  Return NULL
+   there is no such strings.  STRING must be lowered in advance.  */
+
+static char *
+xlfdpat_block_match_1 (blk, string, start_max)
+     struct xlfdpat_block *blk;
+     unsigned char *string;
+     int start_max;
+{
+  int start, infinity;
+  unsigned char *p, *s;
+
+  xassert (blk->len > 0);
+  xassert (start_max + blk->len <= strlen (string));
+  xassert (blk->pattern[blk->len - 1] != '?');
+
+  /* See the comments in the function `boyer_moore' (search.c) for the
+     use of `infinity'.  */
+  infinity = start_max + blk->len + 1;
+  blk->skip[blk->last_char] = infinity;
+
+  start = 0;
+  do
+    {
+      /* Check the last character of the pattern. */
+      s = string + blk->len - 1;
+      do
+	{
+	  start += blk->skip[*(s + start)];
+	}
+      while (start <= start_max);
+
+      if (start < infinity)
+	/* Couldn't find the last character.  */
+	return NULL;
+
+      /* No less than `infinity' means we could find the last
+	 character at `s[start - infinity]'.  */
+      start -= infinity;
+
+      /* Check the remaining characters.  We prefer making no-'?'
+	 cases faster because the use of '?' is really rare.  */
+      p = blk->pattern;
+      s = string + start;
+      do
+	{
+	  while (*p++ == *s++)
+	    ;
+	}
+      while (*(p - 1) == '?');
+
+      if (*(p - 1) == '\0')
+	/* Matched.  */
+	return string + start;
+
+      /* Didn't match.  */
+      start += blk->last_char_skip;
+    }
+  while (start <= start_max);
+
+  return NULL;
+}
+
+#define xlfdpat_block_match(b, s, m) \
+  ((b)->len == 1 ? memchr ((s), (b)->last_char, (m) + 1) \
+   : xlfdpat_block_match_1 (b, s, m))
+
+/* Check if XLFD pattern PAT, which is generated by `xfldpat_create',
+   matches with STRING.  STRING must be lowered in advance.  */
+
+static int
+xlfdpat_match (pat, string)
+     struct xlfdpat *pat;
+     unsigned char *string;
+{
+  int str_len, nblocks, i, start_max;
+  struct xlfdpat_block *blk;
+  unsigned char *s;
+
+  xassert (pat->nblocks > 0);
+
+  if (xlfdpat_exact_p (pat))
+    return strcmp (pat->buf, string) == 0;
+
+  /* The number of the characters in the string must not be smaller
+     than that in the pattern.  */
+  str_len = strlen (string);
+  if (str_len < pat->nchars + pat->trailing_anychars)
+    return 0;
+
+  /* Chop off the trailing '?'s.  */
+  str_len -= pat->trailing_anychars;
+
+  /* The last block.  When it is non-empty, it must match at the end
+     of the string.  */
+  nblocks = pat->nblocks;
+  blk = pat->blocks + (nblocks - 1);
+  if (nblocks == 1)
+    /* The last block is also the first one.  */
+    return (str_len == blk->len
+	    && (blk->len == 0 || xlfdpat_block_match (blk, string, 0)));
+  else if (blk->len != 0)
+    if (!xlfdpat_block_match (blk, string + (str_len - blk->len), 0))
+      return 0;
+
+  /* The first block.  When it is non-empty, it must match at the
+     beginning of the string.  */
+  blk = pat->blocks;
+  if (blk->len != 0)
+    {
+      s = xlfdpat_block_match (blk, string, 0);
+      if (s == NULL)
+	return 0;
+      string = s + blk->len;
+    }
+
+  /* The rest of the blocks.  */
+  start_max = str_len - pat->nchars;
+  for (i = 1, blk++; i < nblocks - 1; i++, blk++)
+    {
+      s = xlfdpat_block_match (blk, string, start_max);
+      if (s == NULL)
+	return 0;
+      start_max -= s - string;
+      string = s + blk->len;
+    }
+
+  return 1;
+}
+
+
+/***********************************************************************
 				Fonts
  ***********************************************************************/
 
@@ -6178,7 +6507,8 @@ mac_to_x_fontname (name, size, style, charset)
 {
   Str31 foundry, cs;
   Str255 family;
-  char xf[256], *result, *p;
+  char xf[256], *result;
+  unsigned char *p;
 
   if (sscanf (name, "%31[^-]-%255[^-]-%31s", foundry, family, cs) == 3)
     charset = cs;
@@ -6195,7 +6525,10 @@ mac_to_x_fontname (name, size, style, charset)
   result = xmalloc (strlen (foundry) + strlen (family) + strlen (xf) + 3 + 1);
   sprintf (result, "-%s-%s-%s", foundry, family, xf);
   for (p = result; *p; p++)
-    *p = tolower(*p);
+    /* On Mac OS X 10.3, tolower also converts non-ASCII characters
+       for some locales.  */
+    if (isascii (*p))
+      *p = tolower (*p);
   return result;
 }
 
@@ -6253,7 +6586,7 @@ x_font_name_to_mac_font_name (xf, mf, mf_decoded, style, cs)
     {
       setup_coding_system (coding_system, &coding);
       coding.src_multibyte = 1;
-      coding.dst_multibyte = 1;
+      coding.dst_multibyte = 0;
       coding.mode |= CODING_MODE_LAST_BLOCK;
       encode_coding (&coding, mf_decoded, mf,
 		     strlen (mf_decoded), sizeof (Str255) - 1);
@@ -6267,13 +6600,13 @@ add_font_name_table_entry (char *font_name)
 {
   if (font_name_table_size == 0)
     {
-      font_name_table_size = 16;
+      font_name_table_size = 256;
       font_name_table = (char **)
 	xmalloc (font_name_table_size * sizeof (char *));
     }
   else if (font_name_count + 1 >= font_name_table_size)
     {
-      font_name_table_size += 16;
+      font_name_table_size *= 2;
       font_name_table = (char **)
 	xrealloc (font_name_table,
 		  font_name_table_size * sizeof (char *));
@@ -6498,39 +6831,16 @@ static int xlfd_scalable_fields[] =
   };
 
 static Lisp_Object
-mac_c_string_match (regexp, string, nonspecial, exact)
-     Lisp_Object regexp;
-     const char *string, *nonspecial;
-     int exact;
-{
-  if (exact)
-    {
-      if (strcmp (string, nonspecial) == 0)
-	return build_string (string);
-    }
-  else if (strstr (string, nonspecial))
-    {
-      Lisp_Object str = build_string (string);
-
-      if (fast_string_match (regexp, str) >= 0)
-	return str;
-    }
-
-  return Qnil;
-}
-
-static Lisp_Object
 mac_do_list_fonts (pattern, maxnames)
      char *pattern;
      int maxnames;
 {
   int i, n_fonts = 0;
-  Lisp_Object font_list = Qnil, pattern_regex, fontname;
-  char *regex = (char *) alloca (strlen (pattern) * 2 + 3);
+  Lisp_Object font_list = Qnil;
+  struct xlfdpat *pat;
   char *scaled, *ptr;
   int scl_val[XLFD_SCL_LAST], *field, *val;
-  char *longest_start, *cur_start, *nonspecial;
-  int longest_len, exact;
+  int exact;
 
   if (font_name_table == NULL)  /* Initialize when first used.  */
     init_font_name_table ();
@@ -6588,61 +6898,17 @@ mac_do_list_fonts (pattern, maxnames)
   else
     scl_val[XLFD_SCL_PIXEL_SIZE] = -1;
 
-  ptr = regex;
-  *ptr++ = '^';
+  pat = xlfdpat_create (pattern);
+  if (pat == NULL)
+    return Qnil;
 
-  longest_start = cur_start = ptr;
-  longest_len = 0;
-  exact = 1;
-
-  /* Turn pattern into a regexp and do a regexp match.  Also find the
-     longest substring containing no special characters.  */
-  for (; *pattern; pattern++)
-    {
-      if (*pattern == '?' || *pattern == '*')
-	{
-	  if (ptr - cur_start > longest_len)
-	    {
-	      longest_start = cur_start;
-	      longest_len = ptr - cur_start;
-	    }
-	  exact = 0;
-
-	  if (*pattern == '?')
-	    *ptr++ = '.';
-	  else /* if (*pattern == '*') */
-	    {
-	      *ptr++ = '.';
-	      *ptr++ = '*';
-	    }
-	  cur_start = ptr;
-	}
-      else
-	*ptr++ = tolower (*pattern);
-    }
-
-  if (ptr - cur_start > longest_len)
-    {
-      longest_start = cur_start;
-      longest_len = ptr - cur_start;
-    }
-
-  *ptr = '$';
-  *(ptr + 1) = '\0';
-
-  nonspecial = xmalloc (longest_len + 1);
-  strncpy (nonspecial, longest_start, longest_len);
-  nonspecial[longest_len] = '\0';
-
-  pattern_regex = build_string (regex);
+  exact = xlfdpat_exact_p (pat);
 
   for (i = 0; i < font_name_count; i++)
     {
-      fontname = mac_c_string_match (pattern_regex, font_name_table[i],
-				     nonspecial, exact);
-      if (!NILP (fontname))
+      if (xlfdpat_match (pat, font_name_table[i]))
 	{
-	  font_list = Fcons (fontname, font_list);
+	  font_list = Fcons (build_string (font_name_table[i]), font_list);
 	  if (exact || maxnames > 0 && ++n_fonts >= maxnames)
 	    break;
 	}
@@ -6652,6 +6918,8 @@ mac_do_list_fonts (pattern, maxnames)
 	  int former_len = ptr - font_name_table[i];
 
 	  scaled = xmalloc (strlen (font_name_table[i]) + 20 + 1);
+	  if (scaled == NULL)
+	    continue;
 	  memcpy (scaled, font_name_table[i], former_len);
 	  sprintf (scaled + former_len,
 		   "-%d-%d-75-75-m-%d-%s",
@@ -6659,19 +6927,20 @@ mac_do_list_fonts (pattern, maxnames)
 		   scl_val[XLFD_SCL_POINT_SIZE],
 		   scl_val[XLFD_SCL_AVGWIDTH],
 		   ptr + sizeof ("-0-0-0-0-m-0-") - 1);
-	  fontname = mac_c_string_match (pattern_regex, scaled,
-					 nonspecial, exact);
-	  xfree (scaled);
-	  if (!NILP (fontname))
+
+	  if (xlfdpat_match (pat, scaled))
 	    {
-	      font_list = Fcons (fontname, font_list);
+	      font_list = Fcons (build_string (scaled), font_list);
+	      xfree (scaled);
 	      if (exact || maxnames > 0 && ++n_fonts >= maxnames)
-		break;
+		  break;
 	    }
+	  else
+	    xfree (scaled);
 	}
     }
 
-  xfree (nonspecial);
+  xlfdpat_destroy (pat);
 
   return font_list;
 }
