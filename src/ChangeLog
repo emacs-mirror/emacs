@@ -1,3 +1,19 @@
+2005-09-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (struct xlfdpat_block, struct xlfdpat): New structs.
+	(xlfdpat_destroy, xlfdpat_create, xlfdpat_exact_p)
+	(xlfdpat_block_match_1, xlfdpat_match): New functions.
+	(xlfdpat_block_match): New macro.
+	(mac_to_x_fontname): Don't use tolower for non-ASCII characters.
+	(x_font_name_to_mac_font_name): Set coding.dst_multibyte to 0.
+	(add_font_name_table_entry): Increase font_name_table_size more
+	rapidly.
+	(mac_c_string_match): Remove function.
+	(mac_do_list_fonts): Use XLFD pattern match instead of regular
+	expression match.
+
+	* xfaces.c (xstrlwr): Don't use tolower for non-ASCII characters.
+
 2005-09-03  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (redisplay_internal): Make UPDATED as long as needed.
