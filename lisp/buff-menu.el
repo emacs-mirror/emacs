@@ -638,29 +638,28 @@ For more information, see the function `buffer-menu'."
   (propertize name
 	      'help-echo (if column
 			     (if Buffer-menu-use-header-line
-				 (concat "mouse-2: sort by " (downcase name))
+				 (concat "mouse-1, mouse-2: sort by "
+					 (downcase name))
 			       (concat "mouse-2, RET: sort by "
 				       (downcase name)))
 			   (if Buffer-menu-use-header-line
-			       "mouse-2: sort by visited order"
+			       "mouse-1, mouse-2: sort by visited order"
 			     "mouse-2, RET: sort by visited order"))
 	      'mouse-face 'highlight
-	      'keymap (let ((map (make-sparse-keymap)))
-			(if Buffer-menu-use-header-line
-			    (define-key map [header-line mouse-2]
-			      `(lambda (e)
-				 (interactive "e")
-				 (save-window-excursion
-				   (if e (mouse-select-window e))
-				   (Buffer-menu-sort ,column))))
-			  (define-key map [mouse-2]
-			    `(lambda (e)
-			       (interactive "e")
-			       (if e (mouse-select-window e))
-			       (Buffer-menu-sort ,column)))
-			  (define-key map "\C-m"
-			    `(lambda () (interactive)
-			       (Buffer-menu-sort ,column))))
+	      'keymap (let ((map (make-sparse-keymap))
+			    (fun `(lambda (e)
+				    (interactive "e")
+				    (if e (mouse-select-window e))
+				    (Buffer-menu-sort ,column))))
+			;; This keymap handles both nil and non-nil
+			;; values for Buffer-menu-use-header-line.
+			(define-key map [header-line mouse-1] fun)
+			(define-key map [header-line mouse-2] fun)
+			(define-key map [mouse-2] fun)
+			(define-key map [follow-link] 'mouse-face)
+			(define-key map "\C-m"
+			  `(lambda () (interactive)
+			     (Buffer-menu-sort ,column)))
 			map)))
 
 (defun list-buffers-noselect (&optional files-only buffer-list)

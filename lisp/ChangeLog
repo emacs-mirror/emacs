@@ -1,4 +1,11 @@
-2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
+2005-09-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buff-menu.el (Buffer-menu-make-sort-button): Allow mouse-1
+	clicks when using a header line.  Otherwise, use
+	mouse-1-click-follows-link.
+
+	* mouse.el (mouse-drag-header-line): Do nothing if the header-line
+	can't be moved; don't signal an error.
 
 	* custom.el (custom-push-theme): Fix last change.
 
