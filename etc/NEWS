@@ -1144,6 +1144,12 @@ fontset appropriately.
 ** Customize changes:
 
 +++
+*** Custom themes are collections of customize options.  Create a
+custom theme with M-x customize-create-theme.  Use M-x load-theme to
+load and enable a theme, and M-x disable-theme to disable it.  Use M-x
+enable-theme to renable a disabled theme.
+
++++
 *** The commands M-x customize-face and M-x customize-face-other-window
 now look at the character after point.  If a face or faces are
 specified for that character, the commands by default customize those
