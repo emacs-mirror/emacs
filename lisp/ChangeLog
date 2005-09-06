@@ -1,8 +1,12 @@
+2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buff-menu.el (Buffer-menu-make-sort-button): Add docstrings, use
+	non-anonymous functions.
+
 2005-09-06  Chong Yidong  <cyd@stupidchicken.com>
 
-	* buff-menu.el (Buffer-menu-make-sort-button): Allow mouse-1
-	clicks when using a header line.  Otherwise, use
-	mouse-1-click-follows-link.
+	* buff-menu.el (Buffer-menu-make-sort-button): Allow mouse-1 clicks
+	when using a header line.  Otherwise, use mouse-1-click-follows-link.
 
 	* mouse.el (mouse-drag-header-line): Do nothing if the header-line
 	can't be moved; don't signal an error.
@@ -18,8 +22,7 @@
 	(custom-push-theme): Save old values in the standard theme.
 	(disable-theme): Correct typo.
 	(custom-face-theme-value) Deleted unused function.
-	(custom-theme-recalc-face): Rewritten to treat enable/disable
-	properly.
+	(custom-theme-recalc-face): Rewritten to treat enable/disable properly.
 
 2005-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 

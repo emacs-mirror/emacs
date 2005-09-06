@@ -635,32 +635,35 @@ For more information, see the function `buffer-menu'."
 
 (defun Buffer-menu-make-sort-button (name column)
   (if (equal column Buffer-menu-sort-column) (setq column nil))
-  (propertize name
-	      'help-echo (if column
-			     (if Buffer-menu-use-header-line
-				 (concat "mouse-1, mouse-2: sort by "
-					 (downcase name))
-			       (concat "mouse-2, RET: sort by "
-				       (downcase name)))
-			   (if Buffer-menu-use-header-line
-			       "mouse-1, mouse-2: sort by visited order"
-			     "mouse-2, RET: sort by visited order"))
-	      'mouse-face 'highlight
-	      'keymap (let ((map (make-sparse-keymap))
-			    (fun `(lambda (e)
-				    (interactive "e")
-				    (if e (mouse-select-window e))
-				    (Buffer-menu-sort ,column))))
-			;; This keymap handles both nil and non-nil
-			;; values for Buffer-menu-use-header-line.
-			(define-key map [header-line mouse-1] fun)
-			(define-key map [header-line mouse-2] fun)
-			(define-key map [mouse-2] fun)
-			(define-key map [follow-link] 'mouse-face)
-			(define-key map "\C-m"
-			  `(lambda () (interactive)
-			     (Buffer-menu-sort ,column)))
-			map)))
+  (let* ((downname (downcase name))
+         (map (make-sparse-keymap))
+         (fun `(lambda (&optional e)
+                 ,(concat "Sort the buffer menu by " downname ".")
+                 (interactive (list last-input-event))
+                 (if e (mouse-select-window e))
+                 (Buffer-menu-sort ,column)))
+         (sym (intern (format "Buffer-menu-sort-by-%s-%s" name column))))
+    ;; Use a symbol rather than an anonymous function, to make the output of
+    ;; C-h k less intimidating.
+    (fset sym fun)
+    (setq fun sym)
+    ;; This keymap handles both nil and non-nil
+    ;; values for Buffer-menu-use-header-line.
+    (define-key map [header-line mouse-1] fun)
+    (define-key map [header-line mouse-2] fun)
+    (define-key map [mouse-2] fun)
+    (define-key map [follow-link] 'mouse-face)
+    (define-key map "\C-m" fun)
+    (propertize name
+                'help-echo (concat
+                            (if Buffer-menu-use-header-line
+                                "mouse-1, mouse-2: sort by "
+                              "mouse-2, RET: sort by ")
+                            ;; No clue what this is for, but I preserved the
+                            ;; behavior, just in case.  --Stef
+                            (if column downname "visited order"))
+                'mouse-face 'highlight
+                'keymap map)))
 
 (defun list-buffers-noselect (&optional files-only buffer-list)
   "Create and return a buffer with a list of names of existing buffers.
