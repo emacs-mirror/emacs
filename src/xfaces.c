@@ -835,7 +835,10 @@ xstrlwr (s)
   unsigned char *p = s;
 
   for (p = s; *p; ++p)
-    *p = tolower (*p);
+    /* On Mac OS X 10.3, tolower also converts non-ASCII characters
+       for some locales.  */
+    if (isascii (*p))
+      *p = tolower (*p);
 
   return s;
 }
