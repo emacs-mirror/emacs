@@ -251,7 +251,9 @@ Pass it BUFFER as first arg, and (cdr ARGS) gives the rest of the args."
 ;; information to which we must react; do what needs to be done.
 (defun frame-notice-user-settings ()
   "Act on user's init file settings of frame parameters.
-React to settings of `default-frame-alist', `initial-frame-alist' there."
+React to settings of `initial-frame-alist',
+`window-system-default-frame-alist' and `default-frame-alist'
+there (in decreasing order of priority)."
   ;; Make menu-bar-mode and default-frame-alist consistent.
   (when (boundp 'menu-bar-mode)
     (let ((default (assq 'menu-bar-lines default-frame-alist)))
@@ -279,7 +281,9 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
   ;; want to use save-excursion here, because that may also try to set
   ;; the buffer of the selected window, which fails when the selected
   ;; window is the minibuffer.
-  (let ((old-buffer (current-buffer)))
+  (let ((old-buffer (current-buffer))
+	(window-system-frame-alist (cdr (assq initial-window-system
+					      window-system-default-frame-alist))))
 
     (when (and frame-notice-user-settings
 	       (null frame-initial-frame))
@@ -293,6 +297,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	(modify-frame-parameters nil
 				 (if (null initial-window-system)
 				     (append initial-frame-alist
+					     window-system-frame-alist
 					     default-frame-alist
 					     parms
 					     nil)
@@ -322,6 +327,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
       ;; switch `tool-bar-mode' off.
       (when (display-graphic-p)
 	(let ((tool-bar-lines (or (assq 'tool-bar-lines initial-frame-alist)
+				  (assq 'tool-bar-lines window-system-frame-alist)
 				  (assq 'tool-bar-lines default-frame-alist))))
 	  (when (and tool-bar-originally-present
                      (or (null tool-bar-lines)
@@ -382,6 +388,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
       ;; create here, so that its new value, gleaned from the user's
       ;; .emacs file, will be applied to the existing screen.
       (if (not (eq (cdr (or (assq 'minibuffer initial-frame-alist)
+			    (assq 'minibuffer window-system-frame-alist)
 			    (assq 'minibuffer default-frame-alist)
 			    '(minibuffer . t)))
 		   t))
@@ -401,6 +408,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 		(setq parms (delq (assq 'name parms) parms)))
 
 	    (setq parms (append initial-frame-alist
+				window-system-frame-alist
 				default-frame-alist
 				parms
 				nil))
@@ -480,6 +488,7 @@ React to settings of `default-frame-alist', `initial-frame-alist' there."
 	;; the new parameters.
 	(let (newparms allparms tail)
 	  (setq allparms (append initial-frame-alist
+				 window-system-frame-alist
 				 default-frame-alist nil))
 	  (if (assq 'height frame-initial-geometry-arguments)
 	      (setq allparms (assq-delete-all 'height allparms)))
