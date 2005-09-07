@@ -1,3 +1,10 @@
+2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buff-menu.el (Buffer-menu-sort-by-column): New function.
+	Suggested by Kim F. Storm.
+	(Buffer-menu-sort-button-map): Global keymap for sort buttons.
+	(Buffer-menu-make-sort-button): Use global keymap.
+
 2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* buff-menu.el (Buffer-menu-make-sort-button): Add docstrings, use
