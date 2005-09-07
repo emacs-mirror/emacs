@@ -386,6 +386,11 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** Go through lisp/term/*.el once more and protect terminal-local
+   initializations with '(when (eq 1 (length (frames-on-display-list)))'
+   as in xterm.el.  This is to prevent resource allocation explosions
+   when C-x 5 2 is used repeatedly.
+
 ** Dan Nicolaescu writes:
    > The terminal initialization code still has some issues. 
    > This can be seen when using emacsclient -t on a 256 color xterm. The
