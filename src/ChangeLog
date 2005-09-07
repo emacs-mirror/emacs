@@ -1,5 +1,7 @@
 2005-09-07  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (handle_display_prop): Respect overlay window property.
+
 	* xdisp.c (try_window): Remove superfluous cursor_height calculation.
 	Fixes crash reported by YAMAMOTO Mitsuharu.
 
