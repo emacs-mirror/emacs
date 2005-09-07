@@ -1,3 +1,8 @@
+2005-09-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-poly.el (math-expand-term): Multiply out any powers
+	when in matrix mode.
+
 2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* buff-menu.el (Buffer-menu-sort-by-column): New function.
