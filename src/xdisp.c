@@ -3428,7 +3428,7 @@ handle_display_prop (it)
     }
   else
     {
-      object = it->w->buffer;
+      XSETWINDOW (object, it->w);
       position = &it->current.pos;
     }
 
@@ -3448,6 +3448,9 @@ handle_display_prop (it)
 			     Qdisplay, object);
   if (NILP (prop))
     return HANDLED_NORMALLY;
+
+  if (!STRINGP (it->string))
+    object = it->w->buffer;
 
   if (CONSP (prop)
       /* Simple properties.  */
