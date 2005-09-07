@@ -1,3 +1,8 @@
+2005-09-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (try_window): Remove superfluous cursor_height calculation.
+	Fixes crash reported by YAMAMOTO Mitsuharu.
+
 2005-09-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (struct xlfdpat_block, struct xlfdpat): New structs.
