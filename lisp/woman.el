@@ -1741,7 +1741,10 @@ Leave point at end of new text.  Return length of inserted text."
   (define-key woman-mode-map "w" 'woman)
   (define-key woman-mode-map "\en" 'WoMan-next-manpage)
   (define-key woman-mode-map "\ep" 'WoMan-previous-manpage)
-  (define-key woman-mode-map [M-mouse-2] 'woman-follow-word))
+  (define-key woman-mode-map [M-mouse-2] 'woman-follow-word)
+
+  ;; We don't need to call `man' when we are in `woman-mode'.
+  (define-key woman-mode-map [remap man] 'woman))
 
 (defun woman-follow-word (event)
   "Run WoMan with word under mouse as topic.
@@ -1942,25 +1945,33 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 (defvar WoMan-Man-start-time nil
   "Used to record formatting time used by the `man' command.")
 
-(defadvice Man-getpage-in-background
-  (around Man-getpage-in-background-advice (topic) activate)
-  "Use WoMan unless invoked outside a WoMan buffer or invoked explicitly.
-Otherwise use Man and record start of formatting time."
-  (if (and (eq major-mode 'woman-mode)
-	   (not (eq (caar command-history) 'man)))
-      (WoMan-getpage-in-background topic)
-    ;; Initiates man processing
-    (setq WoMan-Man-start-time (current-time))
-    ad-do-it))
+;; Both advices are disabled because "a file in Emacs should not put
+;; advice on a function in Emacs" (see Info node "(elisp)Advising
+;; Functions").  Counting the formatting time is useful for
+;; developping, but less applicable for daily use.  The advice for
+;; `Man-getpage-in-background' can be discarded, because the
+;; key-binding in `woman-mode-map' has been remapped to call `woman'
+;; but `man'.  Michael Albinus <michael.albinus@gmx.de>
 
-(defadvice Man-bgproc-sentinel
-  (after Man-bgproc-sentinel-advice activate)
-  ;; Terminates man processing
-  "Report formatting time."
-  (let* ((time (current-time))
-	 (time (+ (* (- (car time) (car WoMan-Man-start-time)) 65536)
-		  (- (cadr time) (cadr WoMan-Man-start-time)))))
-    (message "Man formatting done in %d seconds" time)))
+;; (defadvice Man-getpage-in-background
+;;   (around Man-getpage-in-background-advice (topic) activate)
+;;   "Use WoMan unless invoked outside a WoMan buffer or invoked explicitly.
+;; Otherwise use Man and record start of formatting time."
+;;   (if (and (eq major-mode 'woman-mode)
+;; 	   (not (eq (caar command-history) 'man)))
+;;       (WoMan-getpage-in-background topic)
+;;     ;; Initiates man processing
+;;     (setq WoMan-Man-start-time (current-time))
+;;     ad-do-it))
+
+;; (defadvice Man-bgproc-sentinel
+;;   (after Man-bgproc-sentinel-advice activate)
+;;   ;; Terminates man processing
+;;   "Report formatting time."
+;;   (let* ((time (current-time))
+;; 	 (time (+ (* (- (car time) (car WoMan-Man-start-time)) 65536)
+;; 		  (- (cadr time) (cadr WoMan-Man-start-time)))))
+;;     (message "Man formatting done in %d seconds" time)))
 
 
 ;;; Buffer handling:

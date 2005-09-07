@@ -5213,7 +5213,10 @@ Returns nil if none was found, else the command is returned."
 
 (defun tramp-action-password (p multi-method method user host)
   "Query the user for a password."
-  (let ((pw-prompt (match-string 0)))
+  (let ((pw-prompt
+	 (format "Password for %s "
+		 (tramp-make-tramp-file-name
+		  nil method user host ""))))
     (tramp-message 9 "Sending password")
     (tramp-enter-password p pw-prompt user host)))
 
@@ -5300,8 +5303,12 @@ The terminal type can be configured with `tramp-terminal-type'."
 
 (defun tramp-multi-action-password (p method user host)
   "Query the user for a password."
-  (tramp-message 9 "Sending password")
-  (tramp-enter-password p (match-string 0) user host))
+  (let ((pw-prompt
+	 (format "Password for %s "
+		 (tramp-make-tramp-file-name
+		  nil method user host ""))))
+    (tramp-message 9 "Sending password")
+    (tramp-enter-password p pw-prompt user host)))
 
 (defun tramp-multi-action-succeed (p method user host)
   "Signal success in finding shell prompt."

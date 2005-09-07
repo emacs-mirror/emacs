@@ -1,3 +1,19 @@
+2005-09-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* woman.el (top): Remap `man' command by `woman' in
+	`woman-mode-map'.
+	(Man-getpage-in-background-advice): Remove defadvice; it isn't
+	necessary any longer with the remapped command.
+	(Man-bgproc-sentinel-advice): Remove defadvice which counts
+	formatting time only.
+
+	* net/tramp.el (tramp-action-password)
+	(tramp-multi-action-password): Compile the password prompt from
+	`method', `user' and `host'.  Sometimes it isn't obvious which
+	password to enter, for example with remote files offered by
+	recentf.el, or with multiple steps.  Suggested by Robert Marshall
+	<robert@chezmarshall.freeserve.co.uk>.
+
 2005-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
