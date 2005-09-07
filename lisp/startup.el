@@ -979,28 +979,8 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
   (unless (or noninteractive
-              initial-window-system
-              (null term-file-prefix))
-    (let ((term (getenv "TERM"))
-          hyphend
-	  term-init-func)
-      (while (and term
-		  (not (fboundp 
-			(setq term-init-func (intern (concat "terminal-init-" term)))))
-                  (not (load (concat term-file-prefix term) t t)))
-        ;; Strip off last hyphen and what follows, then try again
-        (setq term
-              (if (setq hyphend (string-match "[-_][^-_]+$" term))
-                  (substring term 0 hyphend)
-                nil))
-	(setq term-init-func nil))
-      (when term
-	;; The terminal file has been loaded, now call the terminal
-	;; specific initialization function.
-	(unless term-init-func 
-	  (setq term-init-func (intern (concat "terminal-init-" term)))
-	  (when (fboundp term-init-func)
-	    (funcall term-init-func))))))
+              initial-window-system)
+    (tty-run-terminal-initialization (selected-frame)))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.

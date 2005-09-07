@@ -386,6 +386,14 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** Dan Nicolaescu writes:
+   > The terminal initialization code still has some issues. 
+   > This can be seen when using emacsclient -t on a 256 color xterm. The
+   > terminal frame is only created with 8 color. 
+   > The reason is that terminal-init-xterm calls
+   > xterm-register-default-colors which calls (display-color-cells (selected-frame))
+   > and probably `selected-frame' is not completely setup at that time. 
+   
 ** emacsclient --no-wait and --eval is currently broken.
 
 ** xt-mouse.el needs to be adapted for multi-tty.  It currently
