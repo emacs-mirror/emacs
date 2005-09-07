@@ -12830,12 +12830,11 @@ try_window (window, pos, check_margins)
   if (check_margins
       && !MINI_WINDOW_P (w))
     {
-      int this_scroll_margin, cursor_height;
+      int this_scroll_margin;
 
       this_scroll_margin = max (0, scroll_margin);
       this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
       this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
-      cursor_height = MATRIX_ROW (w->desired_matrix, w->cursor.vpos)->height;
 
       if ((w->cursor.y < this_scroll_margin
 	   && CHARPOS (pos) > BEGV)
