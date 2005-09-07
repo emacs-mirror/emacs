@@ -398,12 +398,16 @@ THINGS TO DO
    > The reason is that terminal-init-xterm calls
    > xterm-register-default-colors which calls (display-color-cells (selected-frame))
    > and probably `selected-frame' is not completely setup at that time. 
-   
+
 ** emacsclient --no-wait and --eval is currently broken.
 
 ** xt-mouse.el needs to be adapted for multi-tty.  It currently
    signals an error on kill-emacs under X, which prevents the user
    from exiting Emacs. (Reported by Mnemonikk on freenode.)
+
+** Consider the `tty-type' frame parameter and the `display-tty-type'
+   function.  They serve the exact same purpose.  I think it may be
+   a good idea to eliminate one of them, preferably `tty-type'.
 
 ** The handling of lisp/term/*.el, and frame creation in general, is a
    big, big mess.  How come the terminal-specific file is loaded by
@@ -1213,6 +1217,7 @@ DIARY OF CHANGES
    frame is selected.
 
    (Done.)
+   
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 

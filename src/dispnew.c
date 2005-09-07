@@ -6776,7 +6776,9 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 
     d->reference_count++;
     d->display_info.tty->top_frame = selected_frame;
-    change_frame_size (XFRAME (selected_frame), FrameRows (d->display_info.tty), FrameCols (d->display_info.tty), 0, 0, 1);
+    change_frame_size (XFRAME (selected_frame),
+                       FrameRows (d->display_info.tty),
+                       FrameCols (d->display_info.tty), 0, 0, 1);
 
     /* Delete the initial display. */
     if (--initial_device->reference_count == 0
@@ -6784,9 +6786,11 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
       (*initial_device->delete_device_hook) (initial_device);
 
     /* Update frame parameters to reflect the new type. */
+    Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
     Fmodify_frame_parameters
       (selected_frame, Fcons (Fcons (Qtty_type,
                                      Fdisplay_tty_type (selected_frame)), Qnil));
+    Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil), Qnil));
   }
   
   {

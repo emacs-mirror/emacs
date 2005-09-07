@@ -661,6 +661,8 @@ affects all frames on the same terminal device.  */)
   struct device *d = NULL;
   Lisp_Object frame, tem;
   struct frame *sf = SELECTED_FRAME ();
+  Lisp_Object tty, tty_type;
+  struct gcpro gcpro1, gcpro2;
 
 #ifdef MSDOS
   if (sf->output_method != output_msdos_raw
@@ -693,7 +695,6 @@ affects all frames on the same terminal device.  */)
   
   if (!d)
     { 
-      Lisp_Object tty, tty_type;
       char *name = 0, *type = 0;
 
       tty = Fassq (Qtty, parms);
@@ -711,7 +712,7 @@ affects all frames on the same terminal device.  */)
 
       tty_type = Fassq (Qtty_type, parms);
       if (EQ (tty_type, Qnil))
-        tty_type = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
+        tty_type = Fassq (Qtty_type, XFRAME (selected_frame)->param_alist);
       if (EQ (tty_type, Qnil) && FRAME_TERMCAP_P (XFRAME (selected_frame))
           && FRAME_TTY (XFRAME (selected_frame))->type)
         tty_type = build_string (FRAME_TTY (XFRAME (selected_frame))->type);
@@ -750,10 +751,14 @@ affects all frames on the same terminal device.  */)
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
+  GCPRO2 (tty_type, tty);
   Fmodify_frame_parameters (frame, Vdefault_frame_alist);
   Fmodify_frame_parameters (frame, parms);
   Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
-
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty_type, tty_type), Qnil));
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty, tty), Qnil));
+  UNGCPRO;
+  
   /* Make the frame face alist be frame-specific, so that each
      frame could change its face definitions independently.  */
   f->face_alist = Fcopy_alist (sf->face_alist);
