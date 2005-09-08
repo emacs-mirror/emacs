@@ -1,5 +1,7 @@
 2005-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* msb.el (msb--very-many-menus): Fix typo.
+
 	* disp-table.el (standard-display-european): Don't set
 	enable-multibyte-characters to nil.
 
