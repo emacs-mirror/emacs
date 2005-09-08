@@ -13079,7 +13079,7 @@ try_window_reusing_current_matrix (w)
 	  /* Disable lines in the current matrix which are now
 	     below the window.  */
 	  for (++row; row < bottom_row; ++row)
-	    row->enabled_p = 0;
+	    row->enabled_p = row->mode_line_p = 0;
 	}
 
       /* Update window_end_pos etc.; last_reused_text_row is the last
