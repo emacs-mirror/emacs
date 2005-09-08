@@ -1,3 +1,8 @@
+2005-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* disp-table.el (standard-display-european): Don't set
+	enable-multibyte-characters to nil.
+
 2005-09-08  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-show-file-shortcuts-flag): New option.
