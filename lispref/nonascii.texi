@@ -717,8 +717,8 @@ operation finishes the job of choosing a coding system.  Very often
 you will want to find out afterwards which coding system was chosen.
 
 @defvar buffer-file-coding-system
-This variable records the coding system that was used for visiting the
-current buffer.  It is used for saving the buffer, and for writing part
+This buffer-local variable records the coding system that was used to visit
+the current buffer.  It is used for saving the buffer, and for writing part
 of the buffer with @code{write-region}.  If the text to be written
 cannot be safely encoded using the coding system specified by this
 variable, these operations select an alternative encoding by calling

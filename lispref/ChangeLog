@@ -1,3 +1,36 @@
+2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* locals.texi (Standard Buffer-Local Variables): Don't include
+	mode variables for minor modes.
+	Fix xrefs for buffer-display-count, buffer-display-table,
+	buffer-offer-save, buffer-saved-size, cache-long-line-scans,
+	enable-multibyte-characters, fill-column, header-line-format,
+	left-fringe-width, left-margin, and right-fringe-width.
+
+	* hooks.texi (Standard Hooks): All hooks should conform to the
+	standard naming convention now.
+	Fix xref for `echo-area-clear-hook'.
+
+	* display.texi (Usual Display): Note that indicate-empty-lines and
+	tab-width are buffer-local.
+
+	* files.texi (Saving Buffers): Add xref to `Killing Buffers'.
+
+	* modes.texi (Mode Help): Note that major-mode is buffer-local.
+
+	* nonascii.texi (Encoding and I/O): Note that
+	buffer-file-coding-system is buffer-local.
+
+	* positions.texi (List Motion): Note that defun-prompt-regexp is
+	buffer-local.
+
+	* text.texi (Auto Filling): Note that auto-fill-function is
+	buffer-local.
+	(Undo): Note that buffer-undo-list is buffer-local.
+
+	* windows.texi (Buffers and Windows): Document
+	buffer-display-count.
+
 2005-09-06  Richard M. Stallman  <rms@gnu.org>
 
 	* tips.texi (Coding Conventions): Sometimes it is ok to put the
