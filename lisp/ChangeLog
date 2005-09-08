@@ -1,5 +1,8 @@
 2005-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
+	* recentf.el (recentf-filename-handler): Add custom choice
+	`abbreviate-file-name'.
+
 	* msb.el (msb--very-many-menus): Fix typo.
 
 	* disp-table.el (standard-display-european): Don't set

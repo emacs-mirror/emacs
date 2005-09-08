@@ -257,6 +257,7 @@ It is passed a filename to give a chance to transform it.
 If it returns nil, the filename is left unchanged."
   :group 'recentf
   :type '(choice (const :tag "None" nil)
+		 (const abbreviate-file-name)
                  function))
 
 (defcustom recentf-show-file-shortcuts-flag t
