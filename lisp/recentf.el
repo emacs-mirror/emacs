@@ -5,7 +5,6 @@
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Created: July 19 1999
-;; Maintainer: FSF
 ;; Keywords: files
 
 ;; This file is part of GNU Emacs.
@@ -259,6 +258,14 @@ If it returns nil, the filename is left unchanged."
   :group 'recentf
   :type '(choice (const :tag "None" nil)
                  function))
+
+(defcustom recentf-show-file-shortcuts-flag t
+  "Whether to show ``[N]'' for the Nth item up to 10.
+If non-nil, `recentf-open-files' will show labels for keys that can be
+used as shortcuts to open the Nth file."
+  :group 'recentf
+  :type 'boolean)
+
 
 ;;; Utilities
 ;;
@@ -349,7 +356,7 @@ filenames."
   "Convert filename NAME to absolute, and canonicalize it.
 See also the function `expand-file-name'.
 If defined, call the function `recentf-filename-handler'
-to postprocess the canonical name."
+to post process the canonical name."
   (let* ((filename (expand-file-name name)))
     (or (and recentf-filename-handler
              (funcall recentf-filename-handler filename))
@@ -926,6 +933,9 @@ Go to the beginning of buffer if not found."
     (set-keymap-parent km widget-keymap)
     (define-key km "q" 'recentf-cancel-dialog)
     (define-key km [down-mouse-1] 'widget-button-click)
+    ;; Keys in reverse order of appearence in help.
+    (dolist (k '("0" "9" "8" "7" "6" "5" "4" "3" "2" "1"))
+      (define-key km k 'recentf-open-file-with-key))
     km)
   "Keymap used in recentf dialogs.")
 
@@ -1063,6 +1073,18 @@ IGNORE other arguments."
   (kill-buffer (current-buffer))
   (funcall recentf-menu-action (widget-value widget)))
 
+;; List of files associated to a digit shortcut key.
+(defvar recentf--files-with-key nil)
+
+(defun recentf-show-digit-shortcut-filter (l)
+  "Filter the list of menu-elements L to show digit shortcuts."
+  (let ((i 0))
+    (dolist (e l)
+      (setq i (1+ i))
+      (recentf-set-menu-element-item
+       e (format "[%d] %s" (% i 10) (recentf-menu-element-item e))))
+    l))
+
 (defun recentf-open-files-item (menu-element)
   "Return a widget to display MENU-ELEMENT in a dialog buffer."
   (if (consp (cdr menu-element))
@@ -1085,6 +1107,26 @@ IGNORE other arguments."
            :action recentf-open-files-action
            ,(cdr menu-element))))
 
+(defun recentf-open-files-items (files)
+  "Return a list of widgets to display FILES in a dialog buffer."
+  (set (make-local-variable 'recentf--files-with-key)
+       (recentf-trunc-list files 10))
+  (mapcar 'recentf-open-files-item
+          (append
+           ;; When requested group the files with shortcuts together
+           ;; at the top of the list.
+           (when recentf-show-file-shortcuts-flag
+             (setq files (nthcdr 10 files))
+             (recentf-apply-menu-filter
+              'recentf-show-digit-shortcut-filter
+              (mapcar 'recentf-make-default-menu-element
+                      recentf--files-with-key)))
+           ;; Then the other files.
+           (recentf-apply-menu-filter
+            recentf-menu-filter
+            (mapcar 'recentf-make-default-menu-element
+                    files)))))
+
 (defun recentf-open-files (&optional files buffer-name)
   "Show a dialog to open a recent file.
 If optional argument FILES is non-nil, it is a list of recently-opened
@@ -1093,24 +1135,42 @@ If optional argument BUFFER-NAME is non-nil, it is a buffer name to
 use for the dialog.  It defaults to \"*`recentf-menu-title'*\"."
   (interactive)
   (recentf-dialog (or buffer-name (format "*%s*" recentf-menu-title))
-    (widget-insert "Click on a file to open it.
-Click on Cancel or type `q' to cancel.\n" )
+    (widget-insert "Click on a file"
+                   (if recentf-show-file-shortcuts-flag
+                       ", or type the corresponding digit key,"
+                     "")
+                   " to open it.\n"
+                   "Click on Cancel or type `q' to cancel.\n")
     ;; Use a L&F that looks like the recentf menu.
     (tree-widget-set-theme "folder")
     (apply 'widget-create
            `(group
              :indent 2
              :format "\n%v\n"
-             ,@(mapcar 'recentf-open-files-item
-                       (recentf-apply-menu-filter
-                        recentf-menu-filter
-                        (mapcar 'recentf-make-default-menu-element
-                                (or files recentf-list))))))
+             ,@(recentf-open-files-items (or files recentf-list))))
     (widget-create
      'push-button
      :notify 'recentf-cancel-dialog
      "Cancel")
     (recentf-dialog-goto-first 'link)))
+
+(defun recentf-open-file-with-key (n)
+  "Open the recent file with the shortcut numeric key N.
+N must be a valid digit.
+`1' opens the first file, `2' the second file, ... `9' the ninth file.
+`0' opens the tenth file."
+  (interactive
+   (list
+    (let ((n (string-to-number (this-command-keys))))
+      (cond
+       ((zerop n) 10)
+       ((and (> n 0) (< n 10)) n)
+       ((error "Invalid digit key %d" n))))))
+  (when recentf--files-with-key
+    (let ((file (nth (1- n) recentf--files-with-key)))
+      (unless file (error "Not that many recent files"))
+      (kill-buffer (current-buffer))
+      (funcall recentf-menu-action file))))
 
 (defun recentf-open-more-files ()
   "Show a dialog to open a recent file that is not in the menu."
