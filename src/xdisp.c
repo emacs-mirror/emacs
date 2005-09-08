@@ -10615,13 +10615,9 @@ redisplay_internal (preserve_echo_area)
   if (consider_all_windows_p)
     {
       Lisp_Object tail, frame;
-      int i, n = 0, size = 5;
-      struct frame **updated;
 
       FOR_EACH_FRAME (tail, frame)
-	size++;
-
-      updated = (struct frame **) alloca (size * sizeof *updated);
+	XFRAME (frame)->updated_p = 0;
 
       /* Recompute # windows showing selected buffer.  This will be
 	 incremented each time such a window is displayed.  */
@@ -10683,15 +10679,7 @@ redisplay_internal (preserve_echo_area)
 		    break;
 #endif
 
-		  if (n == size)
-		    {
-		      int nbytes = size * sizeof *updated;
-		      struct frame **p = (struct frame **) alloca (2 * nbytes);
-		      bcopy (updated, p, nbytes);
-		      size *= 2;
-		    }
-
-		  updated[n++] = f;
+		  f->updated_p = 1;
 		}
 	    }
 	}
@@ -10701,12 +10689,15 @@ redisplay_internal (preserve_echo_area)
 	  /* Do the mark_window_display_accurate after all windows have
 	     been redisplayed because this call resets flags in buffers
 	     which are needed for proper redisplay.  */
-	  for (i = 0; i < n; ++i)
+	  FOR_EACH_FRAME (tail, frame)
 	    {
-	      struct frame *f = updated[i];
-	      mark_window_display_accurate (f->root_window, 1);
-	      if (frame_up_to_date_hook)
-		frame_up_to_date_hook (f);
+	      struct frame *f = XFRAME (frame);
+	      if (f->updated_p)
+		{
+		  mark_window_display_accurate (f->root_window, 1);
+		  if (frame_up_to_date_hook)
+		    frame_up_to_date_hook (f);
+		}
 	    }
 	}
     }
