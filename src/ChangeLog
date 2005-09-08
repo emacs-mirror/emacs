@@ -1,5 +1,8 @@
 2005-09-09  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (try_window_reusing_current_matrix): Clear mode_line_p
+	flag in disabled rows below the window.
+
 	* frame.h (struct frame): New member updated_p.
 
 	* xdisp.c (redisplay_internal): Mark updated frames in new updated_p
