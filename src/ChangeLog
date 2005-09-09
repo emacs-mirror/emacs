@@ -1,5 +1,8 @@
 2005-09-09  Kim F. Storm  <storm@cua.dk>
 
+	* doc.c (Fsubstitute_command_keys): Lookup key binding for
+	commands that are remapped from some other command.
+
 	* xdisp.c (try_window_reusing_current_matrix): Clear mode_line_p
 	flag in disabled rows below the window.
 
