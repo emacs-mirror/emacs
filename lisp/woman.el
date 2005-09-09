@@ -420,7 +420,7 @@
 ;;   Paul A. Thompson <pat@po.cwru.edu>
 ;;   Arrigo Triulzi <arrigo@maths.qmw.ac.uk>
 ;;   Geoff Voelker <voelker@cs.washington.edu>
-;;   Eli Zaretskii <eliz@is.elta.co.il>
+;;   Eli Zaretskii <eliz@gnu.org>
 
 ;;; History:
 ;;  For recent change log see end of file.

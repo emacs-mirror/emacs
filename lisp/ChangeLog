@@ -1,3 +1,7 @@
+2005-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* woman.el: Fix my email address.
+
 2005-09-08  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/sh-script.el (sh-skeleton-pair-default-alist): New var.
