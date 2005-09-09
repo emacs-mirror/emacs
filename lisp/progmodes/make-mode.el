@@ -1833,6 +1833,10 @@ If it isn't in one, return nil."
 		      ;; Don't keep looking across a blank line or comment.
 		      (looking-at "$\\|#")
 		      (not (zerop (forward-line -1))))))
+      ;; Remove leading and trailing whitespace.
+      (when found
+	(setq found (replace-regexp-in-string "[ \t]+\\'" "" found))
+	(setq found (replace-regexp-in-string "\\`[ \t]+" "" found)))
       found)))
 
 (provide 'make-mode)
