@@ -386,7 +386,7 @@ put it and the word @samp{default} inside parentheses.
 It should look like this:
 
 @example
-Enter the answer: (default 42)
+Enter the answer (default 42):
 @end example
 
 @item
