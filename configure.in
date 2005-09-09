@@ -282,6 +282,15 @@ dnl see the `changequote' comment above.
     esac
   ;;
 
+  ## LynxOS ports
+  *-*-lynxos* )
+    opsys=lynxos
+    case "${canonical}" in
+      i[3456]86-*-lynxos*) machine=intel386 ;;
+      powerpc-*-lynxos*) machine=powerpc ;;
+    esac
+  ;;
+
   ## Acorn RISCiX:
   arm-acorn-riscix1.1* )
     machine=acorn opsys=riscix1-1
@@ -1083,7 +1092,6 @@ dnl see the `changequote' comment above.
       *-darwin )                opsys=darwin
                                 CPP="${CC-cc} -E -no-cpp-precomp"
  				;;
-      *-lynxos* )               opsys=lynxos ;;
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
       *-isc2.2* )		opsys=isc2-2 ;;
       *-isc4.0* )		opsys=isc4-0 ;;
