@@ -1,3 +1,7 @@
+2005-09-09  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* mail/sendmail.el (default-sendmail-coding-system): Doc fix.
+
 2005-09-09  Emilio Lopes  <eclig@gmx.net>
 
 	* woman.el: Format- and whitespace-related changes.
