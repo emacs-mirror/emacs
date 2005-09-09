@@ -1,5 +1,10 @@
 2005-09-09  Eli Zaretskii  <eliz@gnu.org>
 
+	* cus-start.el (all): Don't complain about fringe-related
+	built-ins if fringes are not supported.  Ditto about
+	selection-related built-ins.  Fix the test for GTK-related
+	built-ins.
+
 	* menu-bar.el ("Split Window", "Postscript Print Buffer (B+W)")
 	("Postscript Print Buffer", "Print Region", "Save As...")
 	("Save", "Insert File...", "Open Directory...")
