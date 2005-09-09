@@ -319,12 +319,22 @@ Valid types include `google', `dejanews', and `gmane'.")
   ;; We have Google's masked e-mail addresses here.  :-/
   (let ((case-fold-search t))
     (goto-char (point-min))
-    (delete-region (point-min)
-		   (1+ (re-search-forward "^<pre>" nil t)))
-    (goto-char (point-min))
-    (delete-region (- (re-search-forward "^</pre>" nil t) (length "</pre>"))
-		   (point-max))
-    (mm-url-decode-entities)))
+    (if (save-excursion
+	  (or (re-search-forward "The requested message.*could not be found."
+				 nil t)
+	      (not (and (re-search-forward "^<pre>" nil t)
+			(re-search-forward "^</pre>" nil t)))))
+	;; FIXME: Don't know how to indicate "not found".
+	;; Should this function throw an error?  --rsteib
+	(progn
+	  (gnus-message 3 "Requested article not found")
+	  (erase-buffer))
+      (delete-region (point-min)
+		     (1+ (re-search-forward "^<pre>" nil t)))
+      (goto-char (point-min))
+      (delete-region (- (re-search-forward "^</pre>" nil t) (length "</pre>"))
+		     (point-max))
+      (mm-url-decode-entities))))
 
 (defun nnweb-google-parse-1 (&optional Message-ID)
   (let ((i 0)

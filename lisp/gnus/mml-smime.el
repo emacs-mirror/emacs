@@ -29,8 +29,6 @@
 
 (eval-when-compile (require 'cl))
 
-(defvar gnus-extract-address-components)
-
 (require 'smime)
 (require 'mm-decode)
 (autoload 'message-narrow-to-headers "message")
