@@ -3,7 +3,7 @@
 ;; Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
-;; Maintainer: Francis J. Wright <F.J.Wright@qmul.ac.uk>
+;; Maintainer: FSF
 ;; Keywords: help, unix
 ;; Adapted-By: Eli Zaretskii <eliz@gnu.org>
 ;; Version: see `woman-version'
@@ -1221,7 +1221,8 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
   ;; completions, but to return only a case-sensitive match.  This
   ;; does not seem to work properly by default, so I re-do the
   ;; completion if necessary.
-  (let (files)
+  (let (files
+	(default (current-word)))
     (or (stringp topic)
 	(and (eq t
 		 (if (boundp 'woman-topic-at-point)
@@ -1233,13 +1234,15 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
 	     (assoc topic woman-topic-all-completions))
 	(setq topic
 	      (completing-read
-	       "Manual entry: "
+	       (if default
+		   (format "Manual entry (default `%s'): " default)
+		 "Manual entry: ")
 	       woman-topic-all-completions nil 1
-	       ;; Initial input suggestion (was nil), with
-	       ;; cursor at left ready to kill suggestion!:
+	       nil
+	       'woman-topic-history
+	       ;; Default topic.
 	       (and woman-topic-at-point
-		    (cons (or (current-word) "") 0)) ; nearest word
-	       'woman-topic-history)))
+		    default))))
     ;; Note that completing-read always returns a string.
     (if (= (length topic) 0)
 	nil				; no topic, so no file!
