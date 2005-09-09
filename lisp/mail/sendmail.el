@@ -130,6 +130,7 @@ This is used by the default mail-sending commands.  See also
   :type '(radio (function-item sendmail-send-it :tag "Use Sendmail package")
 		(function-item smtpmail-send-it :tag "Use SMTPmail package")
 		(function-item feedmail-send-it :tag "Use Feedmail package")
+		(function-item mailclient-send-it :tag "Use Mailclient package")
 		function)
   :group 'sendmail)
 
