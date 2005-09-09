@@ -52,9 +52,6 @@ back burner waiting for a legal comment or an alternate implementation
 
 * BUGS
 
-** The header-line buttons in the buffer list buffer
-should respond to Mouse-1.
-
 ** Fix recognition of shell's `dirs' command.
 
 Is his change right?
@@ -235,13 +232,13 @@ lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
 lispref/functions.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/hash.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/help.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/hooks.texi	 Lute Kamstra
+lispref/hooks.texi	 Lute Kamstra      Chong Yidong
 lispref/internals.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/intro.texi	 "Luc Teirlinck"   Josh Varner
 lispref/keymaps.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
-lispref/locals.texi
+lispref/locals.texi      Chong Yidong
 lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
 lispref/maps.texi
 lispref/markers.texi     "Luc Teirlinck"   Chong Yidong

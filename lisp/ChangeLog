@@ -1,14 +1,184 @@
+2005-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Don't complain about fringe-related
+	built-ins if fringes are not supported.  Ditto about
+	selection-related built-ins.  Fix the test for GTK-related
+	built-ins.
+
+	* menu-bar.el ("Split Window", "Postscript Print Buffer (B+W)")
+	("Postscript Print Buffer", "Print Region", "Save As...")
+	("Save", "Insert File...", "Open Directory...")
+	("Open File...", "Visit New File..."")
+	("Truncate Long Lines in this Buffer"): Don't look at
+	menu-updating-frame if this display does not support multiple
+	frames.
+
+2005-09-09  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* mail/sendmail.el (default-sendmail-coding-system): Doc fix.
+
+2005-09-09  Emilio Lopes  <eclig@gmx.net>
+
+	* woman.el: Format- and whitespace-related changes.
+
+2005-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* woman.el: Fix my email address.
+
+2005-09-08  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-skeleton-pair-default-alist): New var.
+	(sh-mode): Locally set skeleton-pair-default-alist.
+
+	* progmodes/make-mode.el (makefile-add-log-defun): Trim the result.
+
+	* progmodes/flymake.el: Require `compile' unconditionally.
+
+	* mail/sendmail.el (send-mail-function): Add Mailclient alternative.
+
+	* woman.el (woman-file-name): Provide a default, not initial input.
+
+	* smerge-mode.el (smerge-resolve): Pass args to smerge-remove-props.
+
+	* font-lock.el (font-lock-support-mode): Doc fix.
+
+	* descr-text.el (describe-property-list): Handle non-symbol prop names.
+
+2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
+	Use with-current-buffer.
+	(ange-ftp-gwp-start): Remove unused var `gw-user'.
+	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
+	(ange-ftp-insert-directory): Remove unused var `short'.
+	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
+
+2005-08-30  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (blink-matching-open): Get rid of text props from
+	the string shown in echo area.  Don't permanently set point.
+	Some rearrangements.
+
+	* files.el (risky-local-variable-p):
+	Match `-predicates' and `-commands.
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
+	(custom-save-all): Visit the file if necessary;
+	kill the buffer if we created it.
+	(custom-save-delete): Don't visit file or kill buffer here.
+
+2005-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* recentf.el (recentf-filename-handler): Add custom choice
+	`abbreviate-file-name'.
+
+	* msb.el (msb--very-many-menus): Fix typo.
+
+	* disp-table.el (standard-display-european): Don't set
+	enable-multibyte-characters to nil.
+
+2005-09-08  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-show-file-shortcuts-flag): New option.
+	(recentf-expand-file-name): Doc fix.
+	(recentf-dialog-mode-map): Define digit shortcuts.
+	(recentf--files-with-key): New variable.
+	(recentf-show-digit-shortcut-filter): New function.
+	(recentf-open-files-items): New function.
+	(recentf-open-files): Use it.
+	(recentf-open-file-with-key): New command.
+
+2005-09-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* woman.el (top): Remap `man' command by `woman' in `woman-mode-map'.
+	(Man-getpage-in-background-advice): Remove defadvice; it isn't
+	necessary any longer with the remapped command.
+	(Man-bgproc-sentinel-advice): Remove defadvice which counts
+	formatting time only.
+
+	* net/tramp.el (tramp-action-password)
+	(tramp-multi-action-password): Compile the password prompt from
+	`method', `user' and `host'.  Sometimes it isn't obvious which
+	password to enter, for example with remote files offered by
+	recentf.el, or with multiple steps.  Suggested by Robert Marshall
+	<robert@chezmarshall.freeserve.co.uk>.
+
+2005-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	Fix regexp for when "s///" is at the beginning of line.
+
+2005-09-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-poly.el (math-expand-term): Multiply out any powers
+	when in matrix mode.
+
+2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buff-menu.el (Buffer-menu-sort-by-column): New function.
+	Suggested by Kim F. Storm.
+	(Buffer-menu-sort-button-map): Global keymap for sort buttons.
+	(Buffer-menu-make-sort-button): Use global keymap.
+
+2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buff-menu.el (Buffer-menu-make-sort-button): Add docstrings, use
+	non-anonymous functions.
+
+2005-09-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buff-menu.el (Buffer-menu-make-sort-button): Allow mouse-1 clicks
+	when using a header line.  Otherwise, use mouse-1-click-follows-link.
+
+	* mouse.el (mouse-drag-header-line): Do nothing if the header-line
+	can't be moved; don't signal an error.
+
+2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (custom-theme-write-faces): Save the current face
+	spec, not the defface spec.
+
+	* custom.el (custom-known-themes): Clarify meaning of "standard".
+	(custom-push-theme): Save old values in the standard theme.
+	(disable-theme): Correct typo.
+	(custom-face-theme-value) Deleted unused function.
+	(custom-theme-recalc-face): Rewritten to treat enable/disable properly.
+
+2005-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-goto-locus): Take into account
+	iconified frames when determining whether the buffer is
+	already visible.
+	Don't reset window height if the window already existed.
+
 2005-09-04  Chong Yidong  <cyd@stupidchicken.com>
 
-	* custom.el (load-theme): Renamed from require-theme.
+	* custom.el (load-theme): Rename from require-theme.
 	Add interactive spec.
-	(enable-theme): Renamed from custom-enable-theme.
+	(enable-theme): Rename from custom-enable-theme.
 	Add interactive spec.
-	(disable-theme): Renamed from custom-disable-theme.
+	(disable-theme): Rename from custom-disable-theme.
 	Add interactive spec.
 	(custom-make-theme-feature): Doc fix.
 	(custom-theme-directory): Doc fix.
 	(provide-theme): Call enable-theme.
+
+2005-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/lazy-lock.el (lazy-lock-mode):
+	* obsolete/fast-lock.el (fast-lock-mode): Don't try to turn on
+	font-lock-mode if it's off.  Print a warning instead.
+
+	* progmodes/compile.el (compilation-start): Ignore errors if the
+	process died before we get to send-eof.
+
+	* textmodes/tex-mode.el (tex-send-tex-command, tex-bibtex-file):
+	Undo last change.  Enclosing the result in quotes broke things on Unix
+	since tex-send-command passes it through shell-quote-argument.
+	(tex-send-command): Pass `file' through convert-standard-filename
+	when possible.
+	(tex-uptodate-p): Handle the case where TeX hasn't put additional
+	info in a transcript.
 
 2005-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -26,6 +196,8 @@
 	Kill local variables when longlines-mode is turned off.
 
 2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (set-locale-environment): Soothe compiler.
 
 	* obsolete/lazy-lock.el (lazy-lock) <defgroup>: Move from font-lock.el.
 
@@ -168,6 +340,16 @@
 	(tramp-exists-file-name-handler): New defun.
 	(tramp-advice-make-auto-save-file-name): Make defadvice only when
 	`make-auto-save-file-name' is not a magic file name operation.
+
+2005-08-30  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (risky-local-variable-p):
+	Match `-predicates' and `-commands.
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
+	(custom-save-all): Visit the file if necessary;
+	kill the buffer if we created it.
+	(custom-save-delete): Don't visit file or kill buffer here.
 
 2005-08-30  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -470,6 +652,12 @@
 	New hook.
 	(add-to-diary-list): Call `diary-modify-entry-list-string-function'
 
+2005-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Simplify.
+
+	* custom.el (custom-theme-set-variables): Sort minor modes last.
+
 2005-08-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* subr.el (version-separator, version-regexp-alist): New vars used by
@@ -545,18 +733,16 @@
 	(xscheme-allow-output-p, xscheme-prompt, xscheme-mode-string):
 	Move to beginning of file.
 	(scheme-interaction-mode-commands-alist)
-	(scheme-interaction-mode-map, scheme-debugger-mode-map): Declare
-	them before use.  Note: the initialization code for the variables
-	has not been moved because it uses functions that reference the
-	variables.
+	(scheme-interaction-mode-map, scheme-debugger-mode-map):
+	Declare them before use.  Note: the initialization code for the variables
+	has not been moved because it uses functions that reference the variables.
 	(xscheme-control-g-message-string, xscheme-process-filter-alist)
 	(xscheme-prompt-for-expression-map): Declare them before use.
 	(scheme-debugger-mode-commands): "?\ " -> "?\s".
 
 2005-08-23  Ed Swarthout  <ed.swarthout@gmail.com>  (tiny change)
 
-	* hexl.el (hexl-print-current-point-info): Fix simple spelling
-	error.
+	* hexl.el (hexl-print-current-point-info): Fix simple spelling error.
 
 2005-08-22  Juri Linkov  <juri@jurta.org>
 

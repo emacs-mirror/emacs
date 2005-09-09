@@ -27,6 +27,12 @@
 
 ;; Note: You need to have `w3' installed for some functions to work.
 
+;; FIXME: Due to changes in the HTML output of Google Groups and Gmane, stuff
+;; related to web groups (gnus-group-make-web-group) doesn't work anymore.
+
+;; Fetching an article by MID (cf. gnus-refer-article-method) over Google
+;; Groups should work.
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
@@ -54,13 +60,13 @@ Valid types include `google', `dejanews', and `gmane'.")
 
 (defvar nnweb-type-definition
   '((google
-     (article . ignore)
-     (id . "http://groups.google.de/groups?selm=%s&output=gplain")
+     (id . "http://www.google.com/groups?as_umsgid=%s&hl=en&dmode=source")
+     (article . nnweb-google-wash-article)
      (reference . identity)
      (map . nnweb-google-create-mapping)
      (search . nnweb-google-search)
-     (address . "http://groups.google.de/groups")
-     (base    . "http://groups.google.de")
+     (address . "http://groups.google.com/groups")
+     (base    . "http://groups.google.com")
      (identifier . nnweb-google-identity))
     (dejanews ;; alias of google
      (article . ignore)
@@ -306,35 +312,29 @@ Valid types include `google', `dejanews', and `gmane'.")
 	      (current-buffer))))))
 
 ;;;
-;;; Deja bought by google.com
+;;; groups.google.com
 ;;;
 
 (defun nnweb-google-wash-article ()
-  (let ((case-fold-search t) url)
+  ;; We have Google's masked e-mail addresses here.  :-/
+  (let ((case-fold-search t))
     (goto-char (point-min))
-    (re-search-forward "^<pre>" nil t)
-    (narrow-to-region (point-min) (point))
-    (search-backward "<table " nil t 2)
-    (delete-region (point-min) (point))
-    (if (re-search-forward "Search Result [0-9]+" nil t)
-	(replace-match ""))
-    (if (re-search-forward "View complete thread ([0-9]+ articles?)" nil t)
-	(replace-match ""))
-    (goto-char (point-min))
-    (while (search-forward "<br>" nil t)
-      (replace-match "\n"))
-    (mm-url-remove-markup)
-    (goto-char (point-min))
-    (while (re-search-forward "^[ \t]*\n" nil t)
-      (replace-match ""))
-    (goto-char (point-max))
-    (insert "\n")
-    (widen)
-    (narrow-to-region (point) (point-max))
-    (search-forward "</pre>" nil t)
-    (delete-region (point) (point-max))
-    (mm-url-remove-markup)
-    (widen)))
+    (if (save-excursion
+	  (or (re-search-forward "The requested message.*could not be found."
+				 nil t)
+	      (not (and (re-search-forward "^<pre>" nil t)
+			(re-search-forward "^</pre>" nil t)))))
+	;; FIXME: Don't know how to indicate "not found".
+	;; Should this function throw an error?  --rsteib
+	(progn
+	  (gnus-message 3 "Requested article not found")
+	  (erase-buffer))
+      (delete-region (point-min)
+		     (1+ (re-search-forward "^<pre>" nil t)))
+      (goto-char (point-min))
+      (delete-region (- (re-search-forward "^</pre>" nil t) (length "</pre>"))
+		     (point-max))
+      (mm-url-decode-entities))))
 
 (defun nnweb-google-parse-1 (&optional Message-ID)
   (let ((i 0)

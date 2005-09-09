@@ -583,7 +583,7 @@ This recursively follows aliases."
 (defvar custom-known-themes '(user standard)
    "Themes that have been defined with `deftheme'.
 The default value is the list (user standard).  The theme `standard'
-contains the Emacs standard settings from the original Lisp files.  The
+contains the settings before custom themes are applied.  The
 theme `user' contains all the settings the user customized and saved.
 Additional themes declared with the `deftheme' macro will be added to
 the front of this list.")
@@ -649,6 +649,17 @@ See `custom-known-themes' for a list of known themes."
 	(progn
 	  (setcar (cdr setting) mode)
 	  (setcar (cddr setting) value))
+      (if (and (null old)
+	       (boundp symbol))
+	  (setq old
+		(list
+		 (list 'standard 'set
+		       (if (eq prop 'theme-value)
+			   (symbol-value symbol)
+			 (list
+			  (append
+			   '(t)
+			   (custom-face-attributes-get symbol nil))))))))
       (put symbol prop (cons (list theme mode value) old)))
     ;; Record, for each theme, all its settings.
     (put theme 'theme-settings
@@ -1117,7 +1128,7 @@ See `custom-known-themes' for a list of known themes."
       (let* ((prop (car s))
 	     (symbol (cadr s))
 	     (spec-list (get symbol prop)))
-	(put symbol 'theme-value (assq-delete-all theme spec-list))
+	(put symbol prop (assq-delete-all theme spec-list))
 	(if (eq prop 'theme-value)
 	    (custom-theme-recalc-variable symbol)
 	  (custom-theme-recalc-face symbol)))))
@@ -1156,13 +1167,6 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
     (if theme-value
 	(custom-theme-value (car (car theme-value)) theme-value))))
 
-(defun custom-face-theme-value (face)
-  "Return the face spec of FACE according to currently enabled custom themes.
-This function returns nil if no custom theme specifies anything for FACE."
-  (let* ((theme-value (get face 'theme-face)))
-    (if theme-value
-	(custom-theme-value (car (car theme-value)) theme-value))))
-
 (defun custom-theme-recalc-variable (variable)
   "Set VARIABLE according to currently enabled custom themes."
   (let ((valspec (custom-variable-theme-value variable)))
@@ -1177,16 +1181,9 @@ This function returns nil if no custom theme specifies anything for FACE."
 
 (defun custom-theme-recalc-face (face)
   "Set FACE according to currently enabled custom themes."
-  (let ((spec (custom-face-theme-value face)))
-    (when spec
-      (put face 'save-face spec))
-    (unless spec
-      (setq spec (get face 'face-defface-spec)))
-    (when spec
-      (when (or (get face 'force-face) (facep face))
-	(unless (facep face)
-	  (make-empty-face face))
-	(face-spec-set face spec)))))
+  (let ((theme-faces (reverse (get face 'theme-face))))
+    (dolist (spec theme-faces)
+      (face-spec-set face (car (cddr spec))))))
 
 (defun custom-theme-reset-variables (theme &rest args)
   "Reset the specs in THEME of some variables to their values in other themes.

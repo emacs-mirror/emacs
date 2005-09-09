@@ -448,6 +448,9 @@ struct frame
   /* Set to non-zero if this frame has already been hscrolled during
      current redisplay.  */
   unsigned already_hscrolled_p : 1;
+
+  /* Set to non-zero when current redisplay has updated frame.  */
+  unsigned updated_p : 1;
 };
 
 #ifdef MULTI_KBOARD

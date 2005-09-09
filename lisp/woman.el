@@ -3,7 +3,7 @@
 ;; Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
-;; Maintainer: Francis J. Wright <F.J.Wright@qmul.ac.uk>
+;; Maintainer: FSF
 ;; Keywords: help, unix
 ;; Adapted-By: Eli Zaretskii <eliz@gnu.org>
 ;; Version: see `woman-version'
@@ -420,10 +420,7 @@
 ;;   Paul A. Thompson <pat@po.cwru.edu>
 ;;   Arrigo Triulzi <arrigo@maths.qmw.ac.uk>
 ;;   Geoff Voelker <voelker@cs.washington.edu>
-;;   Eli Zaretskii <eliz@is.elta.co.il>
-
-;;; History:
-;;  For recent change log see end of file.
+;;   Eli Zaretskii <eliz@gnu.org>
 
 
 ;;; Code:
@@ -956,8 +953,9 @@ This is usually either black or white."
     :group 'woman-faces)
 
   (defcustom woman-use-symbol-font nil
-    "*If non-nil then may use the symbol font.  It is off by default,
-mainly because it may change the line spacing (in NTEmacs 20.5)."
+    "*If non-nil then may use the symbol font.
+It is off by default, mainly because it may change the line spacing
+\(in NTEmacs 20.5)."
     :type 'boolean
     :group 'woman-faces)
 
@@ -1221,7 +1219,8 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
   ;; completions, but to return only a case-sensitive match.  This
   ;; does not seem to work properly by default, so I re-do the
   ;; completion if necessary.
-  (let (files)
+  (let (files
+	(default (current-word)))
     (or (stringp topic)
 	(and (eq t
 		 (if (boundp 'woman-topic-at-point)
@@ -1233,13 +1232,15 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
 	     (assoc topic woman-topic-all-completions))
 	(setq topic
 	      (completing-read
-	       "Manual entry: "
+	       (if default
+		   (format "Manual entry (default `%s'): " default)
+		 "Manual entry: ")
 	       woman-topic-all-completions nil 1
-	       ;; Initial input suggestion (was nil), with
-	       ;; cursor at left ready to kill suggestion!:
+	       nil
+	       'woman-topic-history
+	       ;; Default topic.
 	       (and woman-topic-at-point
-		    (cons (or (current-word) "") 0)) ; nearest word
-	       'woman-topic-history)))
+		    default))))
     ;; Note that completing-read always returns a string.
     (if (= (length topic) 0)
 	nil				; no topic, so no file!
@@ -1259,10 +1260,9 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
 	;; Unread the command event (TAB = ?\t = 9) that runs the command
 	;; `minibuffer-complete' in order to automatically complete the
 	;; minibuffer contents as far as possible.
-	(setq unread-command-events '(9))	; and delete any type-ahead!
+	(setq unread-command-events '(9)) ; and delete any type-ahead!
 	(completing-read "Manual file: " files nil 1
-			 (try-completion "" files) 'woman-file-history)))
-      )))
+			 (try-completion "" files) 'woman-file-history))))))
 
 (defun woman-select (predicate list)
   "Select unique elements for which PREDICATE is true in LIST.
@@ -1741,7 +1741,10 @@ Leave point at end of new text.  Return length of inserted text."
   (define-key woman-mode-map "w" 'woman)
   (define-key woman-mode-map "\en" 'WoMan-next-manpage)
   (define-key woman-mode-map "\ep" 'WoMan-previous-manpage)
-  (define-key woman-mode-map [M-mouse-2] 'woman-follow-word))
+  (define-key woman-mode-map [M-mouse-2] 'woman-follow-word)
+
+  ;; We don't need to call `man' when we are in `woman-mode'.
+  (define-key woman-mode-map [remap man] 'woman))
 
 (defun woman-follow-word (event)
   "Run WoMan with word under mouse as topic.
@@ -1942,25 +1945,33 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 (defvar WoMan-Man-start-time nil
   "Used to record formatting time used by the `man' command.")
 
-(defadvice Man-getpage-in-background
-  (around Man-getpage-in-background-advice (topic) activate)
-  "Use WoMan unless invoked outside a WoMan buffer or invoked explicitly.
-Otherwise use Man and record start of formatting time."
-  (if (and (eq major-mode 'woman-mode)
-	   (not (eq (caar command-history) 'man)))
-      (WoMan-getpage-in-background topic)
-    ;; Initiates man processing
-    (setq WoMan-Man-start-time (current-time))
-    ad-do-it))
+;; Both advices are disabled because "a file in Emacs should not put
+;; advice on a function in Emacs" (see Info node "(elisp)Advising
+;; Functions").  Counting the formatting time is useful for
+;; developping, but less applicable for daily use.  The advice for
+;; `Man-getpage-in-background' can be discarded, because the
+;; key-binding in `woman-mode-map' has been remapped to call `woman'
+;; but `man'.  Michael Albinus <michael.albinus@gmx.de>
 
-(defadvice Man-bgproc-sentinel
-  (after Man-bgproc-sentinel-advice activate)
-  ;; Terminates man processing
-  "Report formatting time."
-  (let* ((time (current-time))
-	 (time (+ (* (- (car time) (car WoMan-Man-start-time)) 65536)
-		  (- (cadr time) (cadr WoMan-Man-start-time)))))
-    (message "Man formatting done in %d seconds" time)))
+;; (defadvice Man-getpage-in-background
+;;   (around Man-getpage-in-background-advice (topic) activate)
+;;   "Use WoMan unless invoked outside a WoMan buffer or invoked explicitly.
+;; Otherwise use Man and record start of formatting time."
+;;   (if (and (eq major-mode 'woman-mode)
+;; 	   (not (eq (caar command-history) 'man)))
+;;       (WoMan-getpage-in-background topic)
+;;     ;; Initiates man processing
+;;     (setq WoMan-Man-start-time (current-time))
+;;     ad-do-it))
+
+;; (defadvice Man-bgproc-sentinel
+;;   (after Man-bgproc-sentinel-advice activate)
+;;   ;; Terminates man processing
+;;   "Report formatting time."
+;;   (let* ((time (current-time))
+;; 	 (time (+ (* (- (car time) (car WoMan-Man-start-time)) 65536)
+;; 		  (- (cadr time) (cadr WoMan-Man-start-time)))))
+;;     (message "Man formatting done in %d seconds" time)))
 
 
 ;;; Buffer handling:

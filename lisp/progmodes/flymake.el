@@ -960,8 +960,7 @@ Convert it to flymake internal format."
 	  (setq converted-list (cons (list regexp file line col) converted-list)))))
     converted-list))
 
-(eval-when-compile
-  (require 'compile))
+(require 'compile)
 
 (defvar flymake-err-line-patterns ; regexp file-idx line-idx col-idx (optional) text-idx(optional), match-end to end of string is error text
   (append

@@ -1,3 +1,39 @@
+2005-09-09  Kim F. Storm  <storm@cua.dk>
+
+	* doc.c (Fsubstitute_command_keys): Lookup key binding for
+	commands that are remapped from some other command.
+
+	* xdisp.c (try_window_reusing_current_matrix): Clear mode_line_p
+	flag in disabled rows below the window.
+
+	* frame.h (struct frame): New member updated_p.
+
+	* xdisp.c (redisplay_internal): Mark updated frames in new updated_p
+	member.  Remove local `updated' array and associated variables.
+
+2005-09-07  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_display_prop): Respect overlay window property.
+
+	* xdisp.c (try_window): Remove superfluous cursor_height calculation.
+	Fixes crash reported by YAMAMOTO Mitsuharu.
+
+2005-09-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (struct xlfdpat_block, struct xlfdpat): New structs.
+	(xlfdpat_destroy, xlfdpat_create, xlfdpat_exact_p)
+	(xlfdpat_block_match_1, xlfdpat_match): New functions.
+	(xlfdpat_block_match): New macro.
+	(mac_to_x_fontname): Don't use tolower for non-ASCII characters.
+	(x_font_name_to_mac_font_name): Set coding.dst_multibyte to 0.
+	(add_font_name_table_entry): Increase font_name_table_size more
+	rapidly.
+	(mac_c_string_match): Remove function.
+	(mac_do_list_fonts): Use XLFD pattern match instead of regular
+	expression match.
+
+	* xfaces.c (xstrlwr): Don't use tolower for non-ASCII characters.
+
 2005-09-03  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (redisplay_internal): Make UPDATED as long as needed.
@@ -8,7 +44,17 @@
 
 	* editfns.c (Fpropertize): Don't insist that properties be symbols.
 
+2005-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* dired.c (directory_files_internal_unwind, directory_files_internal)
+	(file_name_completion): Use a Save_Value object rather than a cons of
+	two 16bit ints to store the DIR*.
+	(directory_files_internal, file_name_completion): Handle both EINTR and
+	EAGAIN consistently after `readdir'.
+
 2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* intervals.c (update_interval): Add position info in error.
 
 	* dispnew.c (window_to_frame_hpos, update_window):
 	Avoid gcc warning about unused variable `f'.

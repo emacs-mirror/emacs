@@ -26,14 +26,13 @@ are omitted in the list below.
 The variables whose names end in @samp{-hooks} or @samp{-functions} are
 usually @dfn{abnormal hooks}; their values are lists of functions, but
 these functions are called in a special way (they are passed arguments,
-or their values are used).  A few of these variables are actually normal
-hooks which were named before we established the convention that normal
-hooks' names should end in @samp{-hook}.
+or their values are used). The variables whose names end in
+@samp{-function} have single functions as their values.
 
-The variables whose names end in @samp{-function} have single functions
-as their values.  (In older Emacs versions, some of these variables had
-names ending in @samp{-hook} even though they were not normal hooks;
-however, we have renamed all of those.)
+(In older Emacs versions, some normal hooks had names ending in
+@samp{-hooks} or @samp{-functions}, and some abnormal hooks had names
+ending in @samp{-hook}.  We have renamed all of these to conform to
+the above conventions.)
 
 @c We need to xref to where each hook is documented or else document
 @c it here.
@@ -135,7 +134,7 @@ for appointment notification.
 @xref{Disabling Commands}.
 
 @item echo-area-clear-hook
-@xref{The Echo Area}.
+@xref{Echo Area Customization}.
 
 @item emacs-startup-hook
 @xref{Init File}.

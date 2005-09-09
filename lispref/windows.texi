@@ -717,6 +717,12 @@ based on the local variables of @var{buffer}.  However, if
 widths of @var{window} remain unchanged.  @xref{Fringes}.
 @end defun
 
+@defvar buffer-display-count
+This buffer-local variable records the number of times a buffer is
+displayed in a window.  It is incremented each time
+@code{set-window-buffer} is called for the buffer.
+@end defvar
+
 @defun window-buffer &optional window
 This function returns the buffer that @var{window} is displaying.  If
 @var{window} is omitted, this function returns the buffer for the

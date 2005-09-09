@@ -961,11 +961,11 @@ displays the documentation string of the major mode function.
 @end deffn
 
 @defvar major-mode
-This variable holds the symbol for the current buffer's major mode.
-This symbol should have a function definition that is the command to
-switch to that major mode.  The @code{describe-mode} function uses the
-documentation string of the function as the documentation of the major
-mode.
+This buffer-local variable holds the symbol for the current buffer's
+major mode.  This symbol should have a function definition that is the
+command to switch to that major mode.  The @code{describe-mode}
+function uses the documentation string of the function as the
+documentation of the major mode.
 @end defvar
 
 @node Derived Modes
