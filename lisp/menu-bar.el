@@ -105,10 +105,12 @@ A large number or nil slows down menu responsiveness."
 
 (define-key menu-bar-file-menu [split-window]
   '(menu-item "Split Window" split-window-vertically
-	      :enable (and (frame-live-p menu-updating-frame)
-			   (frame-visible-p menu-updating-frame )
-			   (not (window-minibuffer-p
-				 (frame-selected-window menu-updating-frame))))
+	      :enable (or (not (display-multi-frame-p))
+			  (and (frame-live-p menu-updating-frame)
+			       (frame-visible-p menu-updating-frame )
+			       (not (window-minibuffer-p
+				     (frame-selected-window
+				      menu-updating-frame)))))
 	      :help "Split selected window in two windows"))
 
 (define-key menu-bar-file-menu [separator-window]
@@ -120,8 +122,9 @@ A large number or nil slows down menu responsiveness."
 	      :help "Pretty-print marked region in black and white to PostScript printer"))
 (define-key menu-bar-file-menu [ps-print-buffer]
   '(menu-item "Postscript Print Buffer (B+W)" ps-print-buffer
-	      :enable (and (frame-live-p menu-updating-frame)
-			   (frame-visible-p menu-updating-frame ))
+	      :enable (or (not (display-multi-frame-p))
+			  (and (frame-live-p menu-updating-frame)
+			       (frame-visible-p menu-updating-frame)))
 	      :help "Pretty-print current buffer in black and white to PostScript printer"))
 (define-key menu-bar-file-menu [ps-print-region-faces]
   '(menu-item "Postscript Print Region" ps-print-region-with-faces
@@ -129,8 +132,9 @@ A large number or nil slows down menu responsiveness."
 	      :help "Pretty-print marked region to PostScript printer"))
 (define-key menu-bar-file-menu [ps-print-buffer-faces]
   '(menu-item "Postscript Print Buffer" ps-print-buffer-with-faces
-	      :enable (and (frame-live-p menu-updating-frame)
-			   (frame-visible-p menu-updating-frame ))
+	      :enable (or (not (display-multi-frame-p))
+			  (and (frame-live-p menu-updating-frame)
+			       (frame-visible-p menu-updating-frame)))
 	      :help "Pretty-print current buffer to PostScript printer"))
 (define-key menu-bar-file-menu [print-region]
   '(menu-item "Print Region" print-region
@@ -138,8 +142,9 @@ A large number or nil slows down menu responsiveness."
 	      :help "Print region between mark and current position"))
 (define-key menu-bar-file-menu [print-buffer]
   '(menu-item "Print Buffer" print-buffer
-	      :enable (and (frame-live-p menu-updating-frame)
-			   (frame-visible-p menu-updating-frame ))
+	      :enable (or (not (display-multi-frame-p))
+			  (and (frame-live-p menu-updating-frame)
+			       (frame-visible-p menu-updating-frame)))
 	      :help "Print current buffer with page headings"))
 
 (define-key menu-bar-file-menu [separator-print]
@@ -170,17 +175,21 @@ A large number or nil slows down menu responsiveness."
 	      :help "Re-read current buffer from its file"))
 (define-key menu-bar-file-menu [write-file]
   '(menu-item "Save As..." write-file
-	      :enable (and (frame-live-p menu-updating-frame)
-			   (frame-visible-p menu-updating-frame )
-			   (not (window-minibuffer-p
-				 (frame-selected-window menu-updating-frame))))
+	      :enable (or (not (display-multi-frame-p))
+			  (and (frame-live-p menu-updating-frame)
+			       (frame-visible-p menu-updating-frame )
+			       (not (window-minibuffer-p
+				     (frame-selected-window
+				      menu-updating-frame)))))
 	      :help "Write current buffer to another file"))
 (define-key menu-bar-file-menu [save-buffer]
   '(menu-item "Save" save-buffer
 	      :enable (and (buffer-modified-p)
 			   (buffer-file-name)
-			   (not (window-minibuffer-p
-				 (frame-selected-window menu-updating-frame))))
+			   (or (not (display-multi-frame-p))
+			       (not (window-minibuffer-p
+				     (frame-selected-window
+				      menu-updating-frame)))))
 	      :help "Save current buffer to its file"))
 
 (define-key menu-bar-file-menu [separator-save]
@@ -192,23 +201,28 @@ A large number or nil slows down menu responsiveness."
 	      :help "Discard (kill) current buffer"))
 (define-key menu-bar-file-menu [insert-file]
   '(menu-item "Insert File..." insert-file
-	      :enable (not (window-minibuffer-p
-			    (frame-selected-window menu-updating-frame)))
+	      :enable (or (not (display-multi-frame-p))
+			  (and (not (window-minibuffer-p
+				     (frame-selected-window
+				      menu-updating-frame)))))
 	      :help "Insert another file into current buffer"))
 (define-key menu-bar-file-menu [dired]
   '(menu-item "Open Directory..." dired
-	      :enable (not (window-minibuffer-p
-			    (frame-selected-window menu-updating-frame)))
+	      :enable (or (not (display-multi-frame-p))
+			  (not (window-minibuffer-p
+				(frame-selected-window menu-updating-frame))))
 	      :help "Read a directory, operate on its files"))
 (define-key menu-bar-file-menu [open-file]
   '(menu-item "Open File..." find-file-existing
-	      :enable (not (window-minibuffer-p
-			    (frame-selected-window menu-updating-frame)))
+	      :enable (or (not (display-multi-frame-p))
+			  (not (window-minibuffer-p
+				(frame-selected-window menu-updating-frame))))
 	      :help "Read an existing file into an Emacs buffer"))
 (define-key menu-bar-file-menu [new-file]
   '(menu-item "Visit New File..." find-file
-	      :enable (not (window-minibuffer-p
-			    (frame-selected-window menu-updating-frame)))
+	      :enable (or (not (display-multi-frame-p))
+			  (not (window-minibuffer-p
+				(frame-selected-window menu-updating-frame))))
 	      :help "Read or create a file and edit it"))
 
 
@@ -1043,8 +1057,9 @@ mail status in mode line"))
 	      toggle-truncate-lines
 	      :help "Truncate long lines on the screen"
 	      :button (:toggle . truncate-lines)
-	      :enable (and (frame-live-p menu-updating-frame)
-			   (frame-visible-p menu-updating-frame))))
+	      :enable (or (not (display-multi-frame-p))
+			  (and (frame-live-p menu-updating-frame)
+			       (frame-visible-p menu-updating-frame)))))
 
 (define-key menu-bar-options-menu [highlight-separator]
   '("--"))
