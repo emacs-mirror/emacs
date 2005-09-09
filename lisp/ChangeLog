@@ -1,3 +1,7 @@
+2005-09-09  Emilio Lopes  <eclig@gmx.net>
+
+	* woman.el: Format- and whitespace-related changes.
+
 2005-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* woman.el: Fix my email address.
