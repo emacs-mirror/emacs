@@ -1,3 +1,36 @@
+2005-09-08  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-skeleton-pair-default-alist): New var.
+	(sh-mode): Locally set skeleton-pair-default-alist.
+
+	* progmodes/make-mode.el (makefile-add-log-defun): Trim the result.
+
+	* progmodes/flymake.el: Require `compile' unconditionally.
+
+	* mail/sendmail.el (send-mail-function): Add Mailclient alternative.
+
+	* woman.el (woman-file-name): Provide a default, not initial input.
+
+	* smerge-mode.el (smerge-resolve): Pass args to smerge-remove-props.
+
+	* font-lock.el (font-lock-support-mode): Doc fix.
+
+	* descr-text.el (describe-property-list): Handle non-symbol prop names.
+
+2005-08-30  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (blink-matching-open): Get rid of text props from
+	the string shown in echo area.  Don't permanently set point.
+	Some rearrangements.
+
+	* files.el (risky-local-variable-p):
+	Match `-predicates' and `-commands.
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
+	(custom-save-all): Visit the file if necessary;
+	kill the buffer if we created it.
+	(custom-save-delete): Don't visit file or kill buffer here.
+
 2005-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* recentf.el (recentf-filename-handler): Add custom choice
@@ -64,8 +97,6 @@
 
 	* mouse.el (mouse-drag-header-line): Do nothing if the header-line
 	can't be moved; don't signal an error.
-
-	* custom.el (custom-push-theme): Fix last change.
 
 2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -274,6 +305,16 @@
 	(tramp-exists-file-name-handler): New defun.
 	(tramp-advice-make-auto-save-file-name): Make defadvice only when
 	`make-auto-save-file-name' is not a magic file name operation.
+
+2005-08-30  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (risky-local-variable-p):
+	Match `-predicates' and `-commands.
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
+	(custom-save-all): Visit the file if necessary;
+	kill the buffer if we created it.
+	(custom-save-delete): Don't visit file or kill buffer here.
 
 2005-08-30  Carsten Dominik  <dominik@science.uva.nl>
 

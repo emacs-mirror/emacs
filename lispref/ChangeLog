@@ -1,3 +1,7 @@
+2005-09-08  Richard M. Stallman  <rms@gnu.org>
+
+	* tips.texi (Programming Tips): Correct the "default" prompt spec.
+
 2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
 
 	* locals.texi (Standard Buffer-Local Variables): Don't include
