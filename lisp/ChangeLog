@@ -17,6 +17,15 @@
 
 	* descr-text.el (describe-property-list): Handle non-symbol prop names.
 
+2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
+	Use with-current-buffer.
+	(ange-ftp-gwp-start): Remove unused var `gw-user'.
+	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
+	(ange-ftp-insert-directory): Remove unused var `short'.
+	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
+
 2005-08-30  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (blink-matching-open): Get rid of text props from
@@ -54,8 +63,7 @@
 
 2005-09-07  Michael Albinus  <michael.albinus@gmx.de>
 
-	* woman.el (top): Remap `man' command by `woman' in
-	`woman-mode-map'.
+	* woman.el (top): Remap `man' command by `woman' in `woman-mode-map'.
 	(Man-getpage-in-background-advice): Remove defadvice; it isn't
 	necessary any longer with the remapped command.
 	(Man-bgproc-sentinel-advice): Remove defadvice which counts
