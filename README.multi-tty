@@ -386,6 +386,9 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** cus-start.el has some suspicious uses of window-system, introduced
+   in patch-404.
+
 ** emacsclient --no-wait and --eval is currently broken.
 
 ** xt-mouse.el needs to be adapted for multi-tty.  It currently
