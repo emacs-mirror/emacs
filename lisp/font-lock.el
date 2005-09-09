@@ -846,9 +846,13 @@ happens, so the major mode can be corrected."
 (defcustom font-lock-support-mode 'jit-lock-mode
   "*Support mode for Font Lock mode.
 Support modes speed up Font Lock mode by being choosy about when fontification
-occurs.  Known support modes are Fast Lock mode (symbol `fast-lock-mode'),
-Lazy Lock mode (symbol `lazy-lock-mode'), and Just-in-time Lock mode (symbol
-`jit-lock-mode'.  See those modes for more info.
+occurs.  The default support mode, Just-in-time Lock mode (symbol
+`jit-lock-mode'), is recommended.
+
+Other, older support modes are Fast Lock mode (symbol `fast-lock-mode') and
+Lazy Lock mode (symbol `lazy-lock-mode').  See those modes for more info.
+However, they are no longer recommended, as Just-in-time Lock mode is better.
+
 If nil, means support for Font Lock mode is never performed.
 If a symbol, use that support mode.
 If a list, each element should be of the form (MAJOR-MODE . SUPPORT-MODE),
