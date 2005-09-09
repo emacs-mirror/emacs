@@ -422,9 +422,6 @@
 ;;   Geoff Voelker <voelker@cs.washington.edu>
 ;;   Eli Zaretskii <eliz@gnu.org>
 
-;;; History:
-;;  For recent change log see end of file.
-
 
 ;;; Code:
 
@@ -956,8 +953,9 @@ This is usually either black or white."
     :group 'woman-faces)
 
   (defcustom woman-use-symbol-font nil
-    "*If non-nil then may use the symbol font.  It is off by default,
-mainly because it may change the line spacing (in NTEmacs 20.5)."
+    "*If non-nil then may use the symbol font.
+It is off by default, mainly because it may change the line spacing
+\(in NTEmacs 20.5)."
     :type 'boolean
     :group 'woman-faces)
 
@@ -1262,10 +1260,9 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
 	;; Unread the command event (TAB = ?\t = 9) that runs the command
 	;; `minibuffer-complete' in order to automatically complete the
 	;; minibuffer contents as far as possible.
-	(setq unread-command-events '(9))	; and delete any type-ahead!
+	(setq unread-command-events '(9)) ; and delete any type-ahead!
 	(completing-read "Manual file: " files nil 1
-			 (try-completion "" files) 'woman-file-history)))
-      )))
+			 (try-completion "" files) 'woman-file-history))))))
 
 (defun woman-select (predicate list)
   "Select unique elements for which PREDICATE is true in LIST.
