@@ -367,7 +367,8 @@ since it could result in memory overflow and make Emacs crash."
 		       (eq system-type 'windows-nt))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
 		       (or (boundp 'gtk)
-			   (and (display-graphic-p)
+			   (and window-system
+				(not (eq window-system 'pc))
 				(not (eq system-type 'windows-nt)))))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
