@@ -1,3 +1,7 @@
+2005-09-00  Kevin Ryde  <user42@zip.com.au>
+
+	* MORE.STUFF: Update url for calculator.el.
+
 2005-09-08  Kenichi Handa  <handa@m17n.org>
 
 	* PROBLEMS: Show a patch for Mule-UCS to make it byte-compiled

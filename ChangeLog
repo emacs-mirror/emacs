@@ -1,3 +1,8 @@
+2005-09-09  Eli Zaretskii  <eliz@fencepost.gnu.org>
+
+	* configure.in <lynxsos*>: Support for LynxOS on PPC.
+	* configure: Regenerated.
+
 2005-09-05  Paul Eggert  <eggert@cs.ucla.edu>
 
 	* config.guess, config.sub: Updated from master source.
