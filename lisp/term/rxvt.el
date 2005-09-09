@@ -119,53 +119,58 @@
 
 (defun terminal-init-rxvt ()
   "Terminal initialization function for rxvt."
-  ;; The terminal intialization C code file might have initialized
-  ;; function keys F11->F42 from the termcap/terminfo information.  On
-  ;; a PC-style keyboard these keys correspond to
-  ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C-, C-S-.  The
-  ;; code here subsitutes the corresponding defintions in
-  ;; function-key-map. This substitution is needed because if a key
-  ;; definition if found in function-key-map, there are no further
-  ;; lookups in other keymaps.
-  (substitute-key-definition [f11] [S-f1] function-key-map)
-  (substitute-key-definition [f12] [S-f2] function-key-map)
-  (substitute-key-definition [f13] [S-f3] function-key-map)
-  (substitute-key-definition [f14] [S-f4] function-key-map)
-  (substitute-key-definition [f15] [S-f5] function-key-map)
-  (substitute-key-definition [f16] [S-f6] function-key-map)
-  (substitute-key-definition [f17] [S-f7] function-key-map)
-  (substitute-key-definition [f18] [S-f8] function-key-map)
-  (substitute-key-definition [f19] [S-f9] function-key-map)
-  (substitute-key-definition [f20] [S-f10] function-key-map)
 
-  (substitute-key-definition [f23] [C-f1] function-key-map)
-  (substitute-key-definition [f24] [C-f2] function-key-map)
-  (substitute-key-definition [f25] [C-f3] function-key-map)
-  (substitute-key-definition [f26] [C-f4] function-key-map)
-  (substitute-key-definition [f27] [C-f5] function-key-map)
-  (substitute-key-definition [f28] [C-f6] function-key-map)
-  (substitute-key-definition [f29] [C-f7] function-key-map)
-  (substitute-key-definition [f30] [C-f8] function-key-map)
-  (substitute-key-definition [f31] [C-f9] function-key-map)
-  (substitute-key-definition [f32] [C-f10] function-key-map)
+  ;; The terminal-local stuff only need to be set up on the first
+  ;; frame on that device.
+  (when (eq 1 (length (frames-on-display-list)))
+    ;; The terminal intialization C code file might have initialized
+    ;; function keys F11->F42 from the termcap/terminfo information.  On
+    ;; a PC-style keyboard these keys correspond to
+    ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C-, C-S-.  The
+    ;; code here subsitutes the corresponding defintions in
+    ;; function-key-map. This substitution is needed because if a key
+    ;; definition if found in function-key-map, there are no further
+    ;; lookups in other keymaps.
+    (let ((m (terminal-local-value 'local-function-key-map nil)))
+      (substitute-key-definition [f11] [S-f1] m)
+      (substitute-key-definition [f12] [S-f2] m)
+      (substitute-key-definition [f13] [S-f3] m)
+      (substitute-key-definition [f14] [S-f4] m)
+      (substitute-key-definition [f15] [S-f5] m)
+      (substitute-key-definition [f16] [S-f6] m)
+      (substitute-key-definition [f17] [S-f7] m)
+      (substitute-key-definition [f18] [S-f8] m)
+      (substitute-key-definition [f19] [S-f9] m)
+      (substitute-key-definition [f20] [S-f10] m)
+      
+      (substitute-key-definition [f23] [C-f1] m)
+      (substitute-key-definition [f24] [C-f2] m)
+      (substitute-key-definition [f25] [C-f3] m)
+      (substitute-key-definition [f26] [C-f4] m)
+      (substitute-key-definition [f27] [C-f5] m)
+      (substitute-key-definition [f28] [C-f6] m)
+      (substitute-key-definition [f29] [C-f7] m)
+      (substitute-key-definition [f30] [C-f8] m)
+      (substitute-key-definition [f31] [C-f9] m)
+      (substitute-key-definition [f32] [C-f10] m)
 
-  (substitute-key-definition [f33] [C-S-f1] function-key-map)
-  (substitute-key-definition [f34] [C-S-f2] function-key-map)
-  (substitute-key-definition [f35] [C-S-f3] function-key-map)
-  (substitute-key-definition [f36] [C-S-f4] function-key-map)
-  (substitute-key-definition [f37] [C-S-f5] function-key-map)
-  (substitute-key-definition [f38] [C-S-f6] function-key-map)
-  (substitute-key-definition [f39] [C-S-f7] function-key-map)
-  (substitute-key-definition [f40] [C-S-f8] function-key-map)
-  (substitute-key-definition [f41] [C-S-f9] function-key-map)
-  (substitute-key-definition [f42] [C-S-f10] function-key-map)
+      (substitute-key-definition [f33] [C-S-f1] m)
+      (substitute-key-definition [f34] [C-S-f2] m)
+      (substitute-key-definition [f35] [C-S-f3] m)
+      (substitute-key-definition [f36] [C-S-f4] m)
+      (substitute-key-definition [f37] [C-S-f5] m)
+      (substitute-key-definition [f38] [C-S-f6] m)
+      (substitute-key-definition [f39] [C-S-f7] m)
+      (substitute-key-definition [f40] [C-S-f8] m)
+      (substitute-key-definition [f41] [C-S-f9] m)
+      (substitute-key-definition [f42] [C-S-f10] m))
 
-  ;; Use inheritance to let the main keymap override those defaults.
-  ;; This way we don't override terminfo-derived settings or settings
-  ;; made in the .emacs file.
-  (let ((m (copy-keymap rxvt-function-map)))
-    (set-keymap-parent m (keymap-parent (terminal-local-value 'local-function-key-map nil)))
-    (set-keymap-parent (terminal-local-value 'local-function-key-map nil) m))
+    ;; Use inheritance to let the main keymap override those defaults.
+    ;; This way we don't override terminfo-derived settings or settings
+    ;; made in the .emacs file.
+    (let ((m (copy-keymap rxvt-function-map)))
+      (set-keymap-parent m (keymap-parent (terminal-local-value 'local-function-key-map nil)))
+      (set-keymap-parent (terminal-local-value 'local-function-key-map nil) m)))
 
   ;; Initialize colors and background mode.
   (rxvt-register-default-colors)
