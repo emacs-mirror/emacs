@@ -4227,88 +4227,90 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
 (defun blink-matching-open ()
   "Move cursor momentarily to the beginning of the sexp before point."
   (interactive)
-  (and (> (point) (1+ (point-min)))
-       blink-matching-paren
-       ;; Verify an even number of quoting characters precede the close.
-       (= 1 (logand 1 (- (point)
-			 (save-excursion
-			   (forward-char -1)
-			   (skip-syntax-backward "/\\")
-			   (point)))))
-       (let* ((oldpos (point))
-	      (blinkpos)
-	      (mismatch)
-	      matching-paren)
-	 (save-excursion
-	   (save-restriction
-	     (if blink-matching-paren-distance
-		 (narrow-to-region (max (point-min)
-					(- (point) blink-matching-paren-distance))
-				   oldpos))
-	     (condition-case ()
-		 (let ((parse-sexp-ignore-comments
-			(and parse-sexp-ignore-comments
-			     (not blink-matching-paren-dont-ignore-comments))))
-		   (setq blinkpos (scan-sexps oldpos -1)))
-	       (error nil)))
-	   (and blinkpos
-                ;; Not syntax '$'.
-		(not (eq (syntax-class (syntax-after blinkpos)) 8))
-		(setq matching-paren
-		      (let ((syntax (syntax-after blinkpos)))
-			(and (consp syntax)
-			     (eq (syntax-class syntax) 4)
-			     (cdr syntax)))
-		      mismatch
-		      (or (null matching-paren)
-			  (/= (char-after (1- oldpos))
-			      matching-paren))))
-	   (if mismatch (setq blinkpos nil))
-	   (if blinkpos
-	       ;; Don't log messages about paren matching.
-	       (let (message-log-max)
-		(goto-char blinkpos)
-		(if (pos-visible-in-window-p)
-		    (and blink-matching-paren-on-screen
-			 (sit-for blink-matching-delay))
-		  (goto-char blinkpos)
-		  (message
-		   "Matches %s"
-		   ;; Show what precedes the open in its line, if anything.
-		   (if (save-excursion
-			 (skip-chars-backward " \t")
-			 (not (bolp)))
-		       (buffer-substring (progn (beginning-of-line) (point))
-					 (1+ blinkpos))
-		     ;; Show what follows the open in its line, if anything.
-		     (if (save-excursion
-			   (forward-char 1)
-			   (skip-chars-forward " \t")
-			   (not (eolp)))
-			 (buffer-substring blinkpos
-					   (progn (end-of-line) (point)))
-		       ;; Otherwise show the previous nonblank line,
-		       ;; if there is one.
-		       (if (save-excursion
-			     (skip-chars-backward "\n \t")
-			     (not (bobp)))
-			   (concat
-			    (buffer-substring (progn
+  (when (and (> (point) (1+ (point-min)))
+	     blink-matching-paren
+	     ;; Verify an even number of quoting characters precede the close.
+	     (= 1 (logand 1 (- (point)
+			       (save-excursion
+				 (forward-char -1)
+				 (skip-syntax-backward "/\\")
+				 (point))))))
+    (let* ((oldpos (point))
+	   blinkpos
+	   message-log-max  ; Don't log messages about paren matching.
+	   matching-paren
+	   open-paren-line-string)
+      (save-excursion
+	(save-restriction
+	  (if blink-matching-paren-distance
+	      (narrow-to-region (max (point-min)
+				     (- (point) blink-matching-paren-distance))
+				oldpos))
+	  (condition-case ()
+	      (let ((parse-sexp-ignore-comments
+		     (and parse-sexp-ignore-comments
+			  (not blink-matching-paren-dont-ignore-comments))))
+		(setq blinkpos (scan-sexps oldpos -1)))
+	    (error nil)))
+	(and blinkpos
+	     ;; Not syntax '$'.
+	     (not (eq (syntax-class (syntax-after blinkpos)) 8))
+	     (setq matching-paren
+		   (let ((syntax (syntax-after blinkpos)))
+		     (and (consp syntax)
+			  (eq (syntax-class syntax) 4)
+			  (cdr syntax)))))
+	(cond
+	 ((or (null matching-paren)
+	      (/= (char-before oldpos)
+		  matching-paren))
+	  (message "Mismatched parentheses"))
+	 ((not blinkpos)
+	  (if (not blink-matching-paren-distance)
+	      (message "Unmatched parenthesis")))
+	 ((pos-visible-in-window-p blinkpos)
+	  ;; Matching open within window, temporarily move to blinkpos but only
+	  ;; if `blink-matching-paren-on-screen' is non-nil.
+	  (when blink-matching-paren-on-screen
+	    (save-excursion
+	      (goto-char blinkpos)
+	      (sit-for blink-matching-delay))))
+	 (t
+	  (save-excursion
+	    (goto-char blinkpos)
+	    (setq open-paren-line-string
+		  ;; Show what precedes the open in its line, if anything.
+		  (if (save-excursion
+			(skip-chars-backward " \t")
+			(not (bolp)))
+		      (buffer-substring (line-beginning-position)
+					(1+ blinkpos))
+		    ;; Show what follows the open in its line, if anything.
+		    (if (save-excursion
+			  (forward-char 1)
+			  (skip-chars-forward " \t")
+			  (not (eolp)))
+			(buffer-substring blinkpos
+					  (line-end-position))
+		      ;; Otherwise show the previous nonblank line,
+		      ;; if there is one.
+		      (if (save-excursion
+			    (skip-chars-backward "\n \t")
+			    (not (bobp)))
+			  (concat
+			   (buffer-substring (progn
 					       (skip-chars-backward "\n \t")
-					       (beginning-of-line)
-					       (point))
-					      (progn (end-of-line)
-						     (skip-chars-backward " \t")
-						     (point)))
-			    ;; Replace the newline and other whitespace with `...'.
-			    "..."
-			    (buffer-substring blinkpos (1+ blinkpos)))
-			 ;; There is nothing to show except the char itself.
-			 (buffer-substring blinkpos (1+ blinkpos))))))))
-	     (cond (mismatch
-		    (message "Mismatched parentheses"))
-		   ((not blink-matching-paren-distance)
-		    (message "Unmatched parenthesis"))))))))
+					       (line-beginning-position))
+					     (progn (end-of-line)
+						    (skip-chars-backward " \t")
+						    (point)))
+			   ;; Replace the newline and other whitespace with `...'.
+			   "..."
+			   (buffer-substring blinkpos (1+ blinkpos)))
+			;; There is nothing to show except the char itself.
+			(buffer-substring blinkpos (1+ blinkpos)))))))
+	  (message "Matches %s"
+		   (substring-no-properties open-paren-line-string))))))))
 
 ;Turned off because it makes dbx bomb out.
 (setq blink-paren-function 'blink-matching-open)
