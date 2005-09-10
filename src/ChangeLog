@@ -10,6 +10,7 @@
 	prototype.
 
 	* sysdep.c [WINDOWSNT]: Add prototype for getwd.
+	Don't #undef NULL after including blockinput.h.
 
 	* config.in: Regenerated.
 
