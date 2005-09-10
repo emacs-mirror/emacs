@@ -1,3 +1,7 @@
+2005-09-11  Kim F. Storm  <storm@cua.dk>
+
+	* AUTHORS: Regenerate.
+
 2005-09-10  Giuseppe Scrivano  <gscrivano@gmail.com>
 
 	Remove the MAXPATHLEN limitations:
