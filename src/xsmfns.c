@@ -52,8 +52,6 @@ Boston, MA 02110-1301, USA.  */
 #include "termopts.h"
 #include "xterm.h"
 
-extern char * get_current_dir_name ();
-
 /* The user login name.  */
 
 extern Lisp_Object Vuser_login_name;
