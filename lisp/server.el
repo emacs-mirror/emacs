@@ -481,6 +481,9 @@ The following commands are accepted by the server:
 `-env NAME VALUE'
   An environment variable on the client side.
 
+`-current-frame'
+  Forbid the creation of new frames.
+
 `-nowait'
   Request that the next frame created should not be
   associated with this client.
@@ -560,6 +563,7 @@ The following commands are accepted by the client:
 				    (or file-name-coding-system
 					default-file-name-coding-system)))
 		(client (server-client proc))
+		current-frame
 		nowait ; t if emacsclient does not want to wait for us.
 		frame ; The frame that was opened for the client (if any).
 		display ; Open the frame on this display.
@@ -592,6 +596,9 @@ The following commands are accepted by the client:
 		 ;; -nowait:  Emacsclient won't wait for a result.
 		 ((equal "-nowait" arg) (setq nowait t))
 
+		 ;; -current-frame:  Don't create frames.
+		 ((equal "-current-frame" arg) (setq current-frame t))
+
 		 ;; -display DISPLAY:
 		 ;; Open X frames on the given instead of the default.
 		 ((and (equal "-display" arg) (string-match "\\([^ ]*\\) " request))
@@ -602,26 +609,31 @@ The following commands are accepted by the client:
 		 ((equal "-window-system" arg)
 		  (unless (server-client-get client 'version)
 		    (error "Protocol error; make sure to use the correct version of emacsclient"))
-		  (if (fboundp 'x-create-frame)
-		      (progn
-			(setq frame (make-frame-on-display
-				     (or display
-					 (frame-parameter nil 'device)
-					 (getenv "DISPLAY")
-					 (error "Please specify display"))
-				     (list (cons 'client proc))))
-			;; XXX We need to ensure the client parameter is
-			;; really set because Emacs forgets initialization
-			;; parameters for X frames at the moment.
-			(modify-frame-parameters frame (list (cons 'client proc)))
-			(select-frame frame)
-			(server-client-set client 'frame frame)
-			(server-client-set client 'device (frame-display frame))
-			(setq dontkill t))
-		    ;; This emacs does not support X.
-		    (server-log "Window system unsupported" proc)
-		    (server-send-string proc "-window-system-unsupported \n")
-		    (setq dontkill t)))
+		  (unless current-frame
+		    (if (fboundp 'x-create-frame)
+			(let ((params (if nowait
+					  nil
+					(list (cons 'client proc)))))
+			  (setq frame (make-frame-on-display
+				       (or display
+					   (frame-parameter nil 'device)
+					   (getenv "DISPLAY")
+					   (error "Please specify display"))
+				       params))
+			  (server-log (format "%s created" frame) proc)
+			  ;; XXX We need to ensure the parameters are
+			  ;; really set because Emacs forgets unhandled
+			  ;; initialization parameters for X frames at
+			  ;; the moment.
+			  (modify-frame-parameters frame params)
+			  (select-frame frame)
+			  (server-client-set client 'frame frame)
+			  (server-client-set client 'device (frame-display frame))
+			  (setq dontkill t))
+		      ;; This emacs does not support X.
+		      (server-log "Window system unsupported" proc)
+		      (server-send-string proc "-window-system-unsupported \n")
+		      (setq dontkill t))))
 
 		 ;; -resume:  Resume a suspended tty frame.
 		 ((equal "-resume" arg)
@@ -652,23 +664,26 @@ The following commands are accepted by the client:
 		    (setq request (substring request (match-end 0)))
 		    (unless (server-client-get client 'version)
 		      (error "Protocol error; make sure you use the correct version of emacsclient"))
-		    (server-with-client-environment proc
-			("LANG" "LC_CTYPE" "LC_ALL"
-			 ;; For tgetent(3); list according to ncurses(3).
-			 "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
-			 "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
-			 "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
-			 "TERMINFO_DIRS" "TERMPATH")
-		      (setq frame (make-frame-on-tty tty type
-						     `((client . ,proc)))))
-		    (select-frame frame)
-		    (server-client-set client 'frame frame)
-		    (server-client-set client 'tty (display-name frame))
-		    (server-client-set client 'device (frame-display frame))
+		    (unless current-frame
+		      (server-with-client-environment proc
+			  ("LANG" "LC_CTYPE" "LC_ALL"
+			   ;; For tgetent(3); list according to ncurses(3).
+			   "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
+			   "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
+			   "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
+			   "TERMINFO_DIRS" "TERMPATH")
+			(setq frame (make-frame-on-tty tty type
+						       ;; Ignore nowait here; we always need to clean
+						       ;; up opened ttys when the client dies.
+						       `((client . ,proc)))))
+		      (select-frame frame)
+		      (server-client-set client 'frame frame)
+		      (server-client-set client 'tty (display-name frame))
+		      (server-client-set client 'device (frame-display frame))
 
-		    ;; Reply with our pid.
-		    (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
-		    (setq dontkill t)))
+		      ;; Reply with our pid.
+		      (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
+		      (setq dontkill t))))
 
 		 ;; -position LINE:  Go to the given line in the next file.
 		 ((and (equal "-position" arg) (string-match "\\(\\+[0-9]+\\) " request))

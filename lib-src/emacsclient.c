@@ -67,6 +67,9 @@ int nowait = 0;
 /* Nonzero means args are expressions to be evaluated.  --eval.  */
 int eval = 0;
 
+/* Nonzero means don't open a new frame.  --current-frame.  */
+int current_frame = 0;
+
 /* Nonzero means open a new graphical frame. */
 int window_system = 0;
 
@@ -112,11 +115,6 @@ decode_options (argc, argv)
   if (display && strlen (display) == 0)
     display = NULL;
 
-  if (display)
-    window_system = 1;
-  else
-    tty = 1;
-
   while (1)
     {
       int opt = getopt_long (argc, argv,
@@ -159,12 +157,10 @@ decode_options (argc, argv)
 
         case 't':
           tty = 1;
-          window_system = 0;
           break;
 
         case 'c':
-          window_system = 0;
-          tty = 0;
+          current_frame = 1;
           break;
 
 	case 'H':
@@ -178,10 +174,24 @@ decode_options (argc, argv)
 	}
     }
 
-  if (tty) {
-    nowait = 0;
-    display = 0;
-  }
+  if (!tty && display)
+    window_system = 1;
+  else
+    tty = 1;
+
+  /* `emacsclient --no-wait' should open a new permanent frame, then exit.
+     Otherwise, --no-wait always implies --current-frame.  */
+  if (nowait && argc - optind > 0)
+    current_frame = 1;
+
+  if (current_frame)
+    {
+      tty = 0;
+      window_system = 0;
+    }
+
+  if (tty)
+    window_system = 0;
 }
 
 void
@@ -710,6 +720,9 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   if (nowait)
     fprintf (out, "-nowait ");
 
+  if (current_frame)
+    fprintf (out, "-current-frame ");
+  
   if (display)
     {
       fprintf (out, "-display ");
