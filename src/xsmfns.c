@@ -52,10 +52,7 @@ Boston, MA 02110-1301, USA.  */
 #include "termopts.h"
 #include "xterm.h"
 
-#ifndef MAXPATHLEN
-#define MAXPATHLEN 1024
-#endif /* not MAXPATHLEN */
-
+extern char * get_current_dir_name ();
 
 /* The user login name.  */
 
@@ -205,7 +202,7 @@ smc_save_yourself_CB (smcConn,
   int val_idx = 0;
   int props_idx = 0;
 
-  char cwd[MAXPATHLEN+1];
+  char *cwd = NULL;
   char *smid_opt;
 
   /* How to start a new instance of Emacs.  */
@@ -259,12 +256,9 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->vals[0].value = SDATA (Vuser_login_name);
   ++props_idx;
 
-  /* The current directory property, not mandatory.  */
-#ifdef HAVE_GETCWD
-  if (getcwd (cwd, MAXPATHLEN+1) != 0)
-#else
-  if (getwd (cwd) != 0)
-#endif
+  cwd = get_current_dir_name ();
+
+  if (cwd)
     {
       props[props_idx] = &prop_ptr[props_idx];
       props[props_idx]->name = SmCurrentDirectory;
@@ -280,6 +274,9 @@ smc_save_yourself_CB (smcConn,
   SmcSetProperties (smcConn, props_idx, props);
 
   xfree (smid_opt);
+
+  if (cwd)
+    free (cwd);
 
   /* See if we maybe shall interact with the user.  */
   if (interactStyle != SmInteractStyleAny
