@@ -1,3 +1,8 @@
+2005-09-10  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-directory, vc-update-change-log): Throw an error on
+	the attempt to do it over Tramp.  This is not yet supported.
+
 2005-09-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (menu-bar-menu-frame-live-and-visible-p)
