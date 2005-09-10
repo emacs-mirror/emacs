@@ -260,7 +260,7 @@ void hft_reset ();
 SIGMASKTYPE sigprocmask_set;
 
 
-#ifndef HAVE_CURRENT_DIR_NAME
+#ifndef HAVE_GET_CURRENT_DIR_NAME
 
 /* Return the current working directory.  Returns NULL on errors.
    Any other returned value must be freed with free. This is used
