@@ -366,10 +366,7 @@ since it could result in memory overflow and make Emacs crash."
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
-		       (or (boundp 'gtk)
-			   (and window-system
-				(not (eq window-system 'pc))
-				(not (eq system-type 'windows-nt)))))
+		       (featurep 'gtk))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
 		      ((string-match "selection" (symbol-name symbol))
