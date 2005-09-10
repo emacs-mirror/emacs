@@ -258,6 +258,81 @@ void hft_reset ();
 
 SIGMASKTYPE sigprocmask_set;
 
+
+#ifndef HAVE_CURRENT_DIR_NAME
+
+/* Return the current working directory.  Returns NULL on errors. 
+   Any other returned value must be freed with free. This is used
+   only when get_current_dir_name is not defined on the system.  */
+char*
+get_current_dir_name ()
+{
+  char *buf;
+  char *pwd;
+  struct stat dotstat, pwdstat;
+  /* If PWD is accurate, use it instead of calling getwd.  PWD is
+     sometimes a nicer name, and using it may avoid a fatal error if a
+     parent directory is searchable but not readable.  */
+    if ((pwd = getenv ("PWD")) != 0
+      && (IS_DIRECTORY_SEP (*pwd) || (*pwd && IS_DEVICE_SEP (pwd[1])))
+      && stat (pwd, &pwdstat) == 0
+      && stat (".", &dotstat) == 0
+      && dotstat.st_ino == pwdstat.st_ino
+      && dotstat.st_dev == pwdstat.st_dev
+#ifdef MAXPATHLEN
+      && strlen (pwd) < MAXPATHLEN
+#endif
+      )
+    {
+      buf = (char *) malloc (strlen (pwd) + 1);
+      if (!buf)
+        return NULL;
+      strcpy (buf, pwd);
+    }
+#ifdef HAVE_GETCWD
+  else
+    {
+      size_t buf_size = 1024;
+      buf = (char *) malloc (buf_size); 
+      if (!buf)
+        return NULL;
+      for (;;)
+        {
+          if (getcwd (buf, buf_size) == buf)
+            break;
+          if (errno != ERANGE)
+            {
+              int tmp_errno = errno;
+              free (buf);
+              errno = tmp_errno;
+              return NULL;
+            }
+          buf_size *= 2;
+          buf = (char *) realloc (buf, buf_size);
+          if (!buf)
+            return NULL;
+        }
+    }
+#else
+  else
+    {
+      /* We need MAXPATHLEN here.  */
+      buf = (char *) malloc (MAXPATHLEN + 1);
+      if (!buf)
+        return NULL;
+      if (getwd (buf) == NULL)
+        {
+          int tmp_errno = errno;
+          free (buf);
+          errno = tmp_errno;
+          return NULL;
+        }
+    }
+#endif
+  return buf;
+}
+#endif
+
 
 /* Specify a different file descriptor for further input operations.  */
 
