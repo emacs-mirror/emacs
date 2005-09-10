@@ -1,3 +1,8 @@
+2005-09-10  Romain Francoise  <romain@orebokech.com>
+
+	* buffer.c (init_buffer): Grow buffer to add directory separator
+	and terminal zero.
+
 2005-09-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* buffer.c (init_buffer): Fix error message for failed call to

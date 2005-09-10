@@ -5135,7 +5135,7 @@ init_buffer ()
 
   pwd = get_current_dir_name ();
 
-  if(!pwd)
+  if (!pwd)
     fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
 
 #ifndef VMS
@@ -5144,6 +5144,8 @@ init_buffer ()
   rc = strlen (pwd);
   if (!(IS_DIRECTORY_SEP (pwd[rc - 1])))
     {
+      /* Grow buffer to add directory separator and '\0'.  */
+      pwd = (char *) xrealloc (pwd, rc + 2);
       pwd[rc] = DIRECTORY_SEP;
       pwd[rc + 1] = '\0';
     }
@@ -5152,7 +5154,7 @@ init_buffer ()
   current_buffer->directory = make_unibyte_string (pwd, strlen (pwd));
   if (! NILP (buffer_defaults.enable_multibyte_characters))
     /* At this momemnt, we still don't know how to decode the
-       direcotry name.  So, we keep the bytes in multibyte form so
+       directory name.  So, we keep the bytes in multibyte form so
        that ENCODE_FILE correctly gets the original bytes.  */
     current_buffer->directory
       = string_to_multibyte (current_buffer->directory);
