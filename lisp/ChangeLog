@@ -1,3 +1,14 @@
+2005-09-10  Emilio C. Lopes  <eclig@gmx.net>
+  
+	* woman.el (woman-topic-at-point-default): Renamed to
+	woman-use-topic-at-point-default.
+	(woman-topic-at-point): Renamed to woman-use-topic-at-point.
+	(woman-file-name): Reflect renames above.  Automatically use the
+	word at point as topic if woman-use-topic-at-point is non-nil.
+	Otherwise offer it as default but don't insert it in the
+	minibuffer.  Also use `test-completion' instead of `assoc' as
+	suggested by Stefan Monnier.
+
 2005-09-10  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-directory, vc-update-change-log): Throw an error on
