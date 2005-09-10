@@ -1,5 +1,7 @@
 2005-09-10  Eli Zaretskii  <eliz@gnu.org>
 
+	* sysdep.c [WINDOWSNT]: Add prototype for getwd.
+
 	* config.in: Regenerated.
 
 2005-09-10  Giuseppe Scrivano  <gscrivano@gmail.com>
