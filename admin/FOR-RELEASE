@@ -27,10 +27,6 @@ face name prefixes should be in it for good results.
 
 * NEW FEATURES
 
-** Make VC-over-Tramp work where possible, or at least fail
-gracefully if something isn't supported over Tramp.
-To be done by Andre Spiegel <spiegel@gnu.org>.
-
 ** Update Speedbar.
 
 * FATAL ERRORS
