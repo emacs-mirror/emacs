@@ -5153,7 +5153,7 @@ init_buffer ()
 
   current_buffer->directory = make_unibyte_string (pwd, strlen (pwd));
   if (! NILP (buffer_defaults.enable_multibyte_characters))
-    /* At this momemnt, we still don't know how to decode the
+    /* At this moment, we still don't know how to decode the
        directory name.  So, we keep the bytes in multibyte form so
        that ENCODE_FILE correctly gets the original bytes.  */
     current_buffer->directory
