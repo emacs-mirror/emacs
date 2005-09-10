@@ -187,6 +187,7 @@ extern int quit_char;
 #define _P_WAIT 0
 int _CRTAPI1 _spawnlp (int, const char *, const char *, ...);
 int _CRTAPI1 _getpid (void);
+extern char *getwd (char *);
 #endif
 
 #ifdef NONSYSTEM_DIR_LIBRARY
@@ -261,7 +262,7 @@ SIGMASKTYPE sigprocmask_set;
 
 #ifndef HAVE_CURRENT_DIR_NAME
 
-/* Return the current working directory.  Returns NULL on errors. 
+/* Return the current working directory.  Returns NULL on errors.
    Any other returned value must be freed with free. This is used
    only when get_current_dir_name is not defined on the system.  */
 char*
@@ -293,7 +294,7 @@ get_current_dir_name ()
   else
     {
       size_t buf_size = 1024;
-      buf = (char *) malloc (buf_size); 
+      buf = (char *) malloc (buf_size);
       if (!buf)
         return NULL;
       for (;;)
