@@ -1,3 +1,17 @@
+2005-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-menu-frame-live-and-visible-p)
+	(menu-bar-non-minibuffer-window-p): New functions.
+	("Split Window", "Save As..."): Use them.
+	("Postscript Print Buffer (B+W)", "Postscript Print Buffer")
+	("Print Buffer", "Truncate Long Lines in this Buffer"):  Use
+	menu-bar-menu-frame-live-and-visible-p.
+	("Save Buffer", "Insert File", "Open Directory...")
+	("Open File...", "Visit New File..."): Use
+	menu-bar-non-minibuffer-window-p.
+	(kill-this-buffer-enabled-p, dired <menu-enable>): Use
+	menu-bar-non-minibuffer-window-p.
+
 2005-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el (all): Don't complain about fringe-related
