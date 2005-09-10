@@ -47,7 +47,6 @@ extern void srandom P_ ((unsigned int));
 #endif
 
 #include "blockinput.h"
-#undef NULL
 
 #ifdef MAC_OS8
 /* It is essential to include stdlib.h so that this file picks up
