@@ -50,8 +50,6 @@ extern int errno;
 #include "keymap.h"
 #include "frame.h"
 
-extern char * get_current_dir_name ();
-
 struct buffer *current_buffer;		/* the current buffer */
 
 /* First buffer in chain of all buffers (in reverse order of creation).
@@ -5136,9 +5134,9 @@ init_buffer ()
     Fset_buffer_multibyte (Qnil);
 
   pwd = get_current_dir_name ();
- 
+
   if(!pwd)
-    fatal ("`get_cwd' failed: %s\n", strerror (errno)); 
+    fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
 
 #ifndef VMS
   /* Maybe this should really use some standard subroutine
