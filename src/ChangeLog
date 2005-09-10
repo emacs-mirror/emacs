@@ -18,8 +18,8 @@
 
 	Remove the MAXPATHLEN limitations:
 
-	* sysdep.c (get_current_dir_name) [!HAVE_CURRENT_DIR_NAME]: New
-	function.
+	* sysdep.c (get_current_dir_name) [!HAVE_GET_CURRENT_DIR_NAME]:
+	New function.
 
 	* buffer.c (init_buffer): Use it.
 
