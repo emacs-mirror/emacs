@@ -1,3 +1,8 @@
+2005-09-10  Pascal Dupuis  <Pascal.Dupuis@esat.kuleuven.be>  (tiny change)
+
+	* progmodes/octave-inf.el (inferior-octave-startup): Resync
+	current dir at the end.
+
 2005-09-10  Emilio C. Lopes  <eclig@gmx.net>
   
 	* woman.el (woman-topic-at-point-default): Renamed to
