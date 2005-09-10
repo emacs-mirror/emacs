@@ -1,3 +1,8 @@
+2005-09-10  Alan Mackenzie  <acm@muc.de>
+
+	* page.el (narrow-to-page): Exclude _entire_ multi-line delimiter
+	from the region narrowed to.
+
 2005-09-10  Magnus Henoch  <mange@freemail.hu>
 
 	* textmodes/ispell.el (ispell-check-version): Signal an error if
