@@ -14,7 +14,7 @@
 	current dir at the end.
 
 2005-09-10  Emilio C. Lopes  <eclig@gmx.net>
-  
+
 	* woman.el (woman-topic-at-point-default): Renamed to
 	woman-use-topic-at-point-default.
 	(woman-topic-at-point): Renamed to woman-use-topic-at-point.
@@ -947,7 +947,7 @@
 
 2005-08-15  David Ponce  <david@dponce.com>
 
-	* tree-widget.el Update Commentary header.
+	* tree-widget.el: Update Commentary header.
 	(tree-widget-theme): Doc fix.
 	(tree-widget-space-width): New option.
 	(tree-widget-image-properties): Look up in the default theme too.
@@ -2605,7 +2605,7 @@
 
 	* ediff-ptch.el (ediff-file-name-sans-prefix): Quote regexp.
 
-	* ediff-init: Get rid of -face in face names.
+	* ediff-init.el: Get rid of -face in face names.
 
 2005-07-10  Richard M. Stallman  <rms@gnu.org>
 
@@ -8831,18 +8831,16 @@
 
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
-	* calc/calc-forms.el, calc/calc-sel: Replace `illegal' with `invalid'.
-	* midnight.el, vc-cvs.el: Replace `illegal' with `invalid'.
-	* emacs-lisp/cl-macs.el: Replace `illegal' with `invalid'.
-	* emulation/vip.el: Replace `illegal' with `invalid'.
-	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with
-	`invalid'.
-	* mail/supercite.el: Replace `illegal' with `invalid'.
+	* calc/calc-forms.el, calc/calc-sel.el:
+	* midnight.el, vc-cvs.el:
+	* emacs-lisp/cl-macs.el:
+	* emulation/vip.el:
+	* eshell/esh-io.el, eshell/esh-var.el:
+	* mail/supercite.el:
 	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el
 	* progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el
 	* progmodes/ebnf-yac.el, progmodes/ebnf2ps.el, progmodes/idlwave.el
 	* progmodes/sh-script.el, progmodes/xscheme.el:
-	Replace `illegal' with `invalid'.
 	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el
 	* textmodes/reftex-index.el, textmodes/reftex-parse.el
 	* textmodes/reftex-ref.el, textmodes/reftex-vars.el
@@ -9007,7 +9005,7 @@
 
 2005-03-22  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-embed (calc-embedded-original-modes): New variable.
+	* calc/calc-embed.el (calc-embedded-original-modes): New variable.
 	(calc-embedded-save-original-modes)
 	(calc-embedded-restore-original-modes): New functions.
 	(calc-do-embedded): Save original modes when entering embedded mode
@@ -18831,7 +18829,7 @@
 
 2004-05-09  Jason Rumney  <jasonr@gnu.org>
 
-	* international/code-pages (cp932, cp936, cp949, c950): Remove.
+	* international/code-pages.el (cp932, cp936, cp949, c950): Remove.
 	Only define cp125* if windows-125* is already defined.
 
 	* language/korean.el (cp949): Add alias.
