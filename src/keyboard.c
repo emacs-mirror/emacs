@@ -672,6 +672,7 @@ static void restore_getcjmp P_ ((jmp_buf));
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
 static void clear_event P_ ((struct input_event *));
 static void any_kboard_state P_ ((void));
+static Lisp_Object restore_kboard_configuration P_ ((Lisp_Object));
 static SIGTYPE interrupt_signal P_ ((int signalnum));
 static void handle_interrupt P_ ((void));
 static void timer_start_idle P_ ((void));
