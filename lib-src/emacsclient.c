@@ -179,9 +179,9 @@ decode_options (argc, argv)
   else
     tty = 1;
 
-  /* `emacsclient --no-wait' should open a new permanent frame, then exit.
-     Otherwise, --no-wait always implies --current-frame.  */
-  if (nowait && argc - optind > 0)
+  /* --no-wait implies --current-frame on ttys when there are file
+       arguments or expressions given.  */
+  if (nowait && tty && argc - optind > 0)
     current_frame = 1;
 
   if (current_frame)
