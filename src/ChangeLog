@@ -1,3 +1,7 @@
+2005-09-11  Chris Prince  <cprince@gmail.com>  (tiny change)
+
+	* w32term.c (x_bitmap_icon): Load small icons too.
+
 2005-09-10  Romain Francoise  <romain@orebokech.com>
 
 	* buffer.c (init_buffer): Grow buffer to add directory separator
