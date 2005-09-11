@@ -1,3 +1,35 @@
+2005-09-10  Romain Francoise  <romain@orebokech.com>
+
+	* buffer.c (init_buffer): Grow buffer to add directory separator
+	and terminal zero.  Fix typos.
+
+2005-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* buffer.c (init_buffer): Fix error message for failed call to
+	get_current_dir_name.
+	(get_current_dir_name): Remove prototype.
+
+	* xsmfns.c: (get_current_dir_name): Remove prototype.
+
+	* lisp.h: (get_current_dir_name) [!HAVE_GET_CURRENT_DIR_NAME]: Add
+	prototype.
+
+	* sysdep.c [WINDOWSNT]: Add prototype for getwd.
+	Don't #undef NULL after including blockinput.h.
+
+	* config.in: Regenerated.
+
+2005-09-10  Giuseppe Scrivano  <gscrivano@gmail.com>
+
+	Remove the MAXPATHLEN limitations:
+
+	* sysdep.c (get_current_dir_name) [!HAVE_GET_CURRENT_DIR_NAME]:
+	New function.
+
+	* buffer.c (init_buffer): Use it.
+
+	* xsmfns.c (smc_save_yourself_CB): Ditto.
+
 2005-09-09  Kim F. Storm  <storm@cua.dk>
 
 	* doc.c (Fsubstitute_command_keys): Lookup key binding for

@@ -3110,6 +3110,9 @@ struct tty_display_info;
 struct device;
 
 /* defined in sysdep.c */
+#ifndef HAVE_GET_CURRENT_DIR_NAME
+extern char *get_current_dir_name P_ ((void));
+#endif
 extern void stuff_char P_ ((char c));
 extern void init_sigio P_ ((int));
 extern void sys_subshell P_ ((void));

@@ -31,6 +31,8 @@
 /^LOADLIBES *=/s!=.*$!=!
 /^ALLOCA *=/s!@ALLOCA@!!
 /^EXEEXT *=/s!@EXEEXT@!!
+/^GETOPT_H *=/s!@GETOPT_H@!getopt.h!
+/^GETOPTOBJS *=/s!@GETOPTOBJS@!getopt.o getopt1.o!
 /^INSTALLABLES/s/emacsclient *//
 s!^	\./!	!
 /^UTILITIES=/s/ wakeup//

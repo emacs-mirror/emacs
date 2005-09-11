@@ -112,7 +112,7 @@ thus showing a page other than the one point was originally in."
 	     (save-excursion
 	       (goto-char (match-beginning 0)) ; was (beginning-of-line)
 	       (looking-at page-delimiter)))
-	(beginning-of-line))
+	(goto-char (match-beginning 0))) ; was (beginning-of-line)
     (narrow-to-region (point)
 		      (progn
 			;; Find the top of the page.
