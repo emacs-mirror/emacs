@@ -386,9 +386,19 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
-** xt-mouse.el needs to be adapted for multi-tty.  It currently
-   signals an error on kill-emacs under X, which prevents the user
-   from exiting Emacs. (Reported by Mnemonikk on freenode.)
+** This long-standing bug (first reported by Han Boetes) seems to come
+   and go all the time.  It is time to track it down and fix it.
+
+	emacs
+		M-x server-start
+	
+	# From another xterm:
+	emacsclient -e '(y-or-n-p "Do you want me to crash? ")'
+		# Notice how the answer ends up in the *scratch* buffer
+		M-x garbage-collect
+		SIGSEGV
+
+** frames-on-display-list should also accept frames.
 
 ** Consider the `tty-type' frame parameter and the `display-tty-type'
    function.  They serve the exact same purpose.  I think it may be
@@ -398,11 +408,14 @@ THINGS TO DO
    big, big mess.  How come the terminal-specific file is loaded by
    tty-create-frame-with-faces?  I don't think it is necessary to load
    these files for each frame; once per terminal should be enough.
+   Update: lisp/term/*.el is not loaded repeatedly anymore, but
+   faces.el still needs to be cleaned up.
 
 ** Fix frame-set-background-mode in this branch.  It was recently
    changed in CVS, and frame.el in multi-tty has not yet been adapted
    for the changes.  (It needs to look at
-   default-frame-background-mode.)
+   default-frame-background-mode.)  (Update: maybe it is fixed now;
+   needs testing.)
 
 ** I think `(set-)terminal-local-value' and the terminal parameter
    mechanism should be integrated into a single framework.
@@ -410,6 +423,9 @@ THINGS TO DO
 ** Add the following hooks: after-delete-frame-hook (for server.el,
    instead of delete-frame-functions),
    after-delete-terminal-functions, after-create-terminal-functions.
+
+** If the first key pressed on a new tty terminal is a function key,
+   it is not recognized correctly.  May be related to the bug below.
 
 ** Having {reset,init}_all_sys_modes in set-input-mode breaks arrow
    keys on non-selected terminals under screen, and sometimes on other
@@ -1202,6 +1218,12 @@ DIARY OF CHANGES
    frame is selected.
 
    (Done.)
+
+-- xt-mouse.el needs to be adapted for multi-tty.  It currently
+   signals an error on kill-emacs under X, which prevents the user
+   from exiting Emacs. (Reported by Mnemonikk on freenode.)
+
+   (Done, I hope.)
    
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

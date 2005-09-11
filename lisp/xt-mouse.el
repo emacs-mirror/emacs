@@ -103,17 +103,21 @@
 		(vector (list down-where down-data) down)
 	      (vector down))))))))
 
-(defvar xterm-mouse-x 0
-  "Position of last xterm mouse event relative to the frame.")
-
-(defvar xterm-mouse-y 0
-  "Position of last xterm mouse event relative to the frame.")
+;; These two variables have been converted to terminal parameters.
+;;
+;;(defvar xterm-mouse-x 0
+;;  "Position of last xterm mouse event relative to the frame.")
+;;
+;;(defvar xterm-mouse-y 0
+;;  "Position of last xterm mouse event relative to the frame.")
 
 ;; Indicator for the xterm-mouse mode.
 
 (defun xterm-mouse-position-function (pos)
   "Bound to `mouse-position-function' in XTerm mouse mode."
-  (setcdr pos (cons xterm-mouse-x xterm-mouse-y))
+  (when (terminal-parameter nil 'xterm-mouse-x)
+    (setcdr pos (cons (terminal-parameter nil 'xterm-mouse-x)
+		      (terminal-parameter nil 'xterm-mouse-y))))
   pos)
 
 ;; read xterm sequences above ascii 127 (#x7f)
@@ -145,8 +149,8 @@
          (left (nth 0 ltrb))
          (top (nth 1 ltrb)))
 
-    (setq xterm-mouse-x x
-	  xterm-mouse-y y)
+    (set-terminal-parameter nil 'xterm-mouse-x x)
+    (set-terminal-parameter nil 'xterm-mouse-y y)
     (if w
 	(list mouse (posn-at-x-y (- x left) (- y top) w t))
       (list mouse
@@ -166,7 +170,7 @@ down the SHIFT key while pressing the mouse button."
   :global t :group 'mouse
   (if xterm-mouse-mode
       ;; Turn it on
-      (unless window-system
+      (progn
 	(setq mouse-position-function #'xterm-mouse-position-function)
 	(turn-on-xterm-mouse-tracking))
     ;; Turn it off
@@ -175,15 +179,43 @@ down the SHIFT key while pressing the mouse button."
 
 (defun turn-on-xterm-mouse-tracking ()
   "Enable Emacs mouse tracking in xterm."
-  (if xterm-mouse-mode
-      (send-string-to-terminal "\e[?1000h")))
+  (dolist (f (frame-list))
+    (when (eq t (frame-live-p f))
+      (with-selected-frame f
+	(when xterm-mouse-mode
+	  (send-string-to-terminal "\e[?1000h"))))))
 
 (defun turn-off-xterm-mouse-tracking (&optional force)
   "Disable Emacs mouse tracking in xterm."
-  (if (or force xterm-mouse-mode)
-      (send-string-to-terminal "\e[?1000l")))
+  (dolist (f (frame-list))
+    (when (eq t (frame-live-p f))
+      (with-selected-frame f
+	(when (or force xterm-mouse-mode)
+	  (send-string-to-terminal "\e[?1000l"))))))
+
+(defun turn-on-xterm-mouse-tracking-on-terminal (terminal)
+  "Enable xterm mouse tracking on TERMINAL."
+  (when (and xterm-mouse-mode (eq t (display-live-p terminal)))
+    (send-string-to-terminal "\e[?1000h" terminal)))
+
+(defun turn-off-xterm-mouse-tracking-on-terminal (terminal)
+  "Disable xterm mouse tracking on TERMINAL."
+  (when (and xterm-mouse-mode (eq t (display-live-p terminal)))
+    (send-string-to-terminal "\e[?1000l" terminal)))
+
+(defun xterm-mouse-handle-delete-frame (frame)
+  "Turn off xterm mouse tracking if FRAME is the last frame on its device."
+  (when (and (eq t (frame-live-p frame))
+	     (<= 1 (length (frames-on-display-list (frame-display frame)))))
+    (turn-off-xterm-mouse-tracking-on-terminal frame)))
+
+;; Frame creation and deletion.
+(add-hook 'after-make-frame-functions 'turn-on-xterm-mouse-tracking-on-terminal)
+(add-hook 'delete-frame-functions 'xterm-mouse-handle-delete-frame)
 
 ;; Restore normal mouse behaviour outside Emacs.
+(add-hook 'suspend-tty-functions 'turn-off-xterm-mouse-tracking-on-terminal)
+(add-hook 'resume-tty-functions 'turn-on-xterm-mouse-tracking-on-terminal)
 (add-hook 'suspend-hook 'turn-off-xterm-mouse-tracking)
 (add-hook 'suspend-resume-hook 'turn-on-xterm-mouse-tracking)
 (add-hook 'kill-emacs-hook 'turn-off-xterm-mouse-tracking)
