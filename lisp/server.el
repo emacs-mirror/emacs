@@ -687,8 +687,8 @@ The following commands are accepted by the client:
 
 		 ;; -position LINE:  Go to the given line in the next file.
 		 ((and (equal "-position" arg) (string-match "\\(\\+[0-9]+\\) " request))
-		  (setq request (substring request (match-end 0))
-			lineno (string-to-number (substring (match-string 1 request) 1))))
+		  (setq lineno (string-to-number (substring (match-string 1 request) 1))
+			request (substring request (match-end 0))))
 
 		 ;; -position LINE:COLUMN:  Set point to the given position in the next file.
 		 ((and (equal "-position" arg) (string-match "\\+\\([0-9]+\\):\\([0-9]+\\) " request))
@@ -703,7 +703,8 @@ The following commands are accepted by the client:
 		    (if coding-system
 			(setq file (decode-coding-string file coding-system)))
 		    (setq file (command-line-normalize-file-name file))
-		    (push (list file lineno columnno) files))
+		    (push (list file lineno columnno) files)
+		    (server-log (format "New file: %s (%d:%d)" file lineno columnno) proc))
 		  (setq lineno 1
 			columnno 0))
 
