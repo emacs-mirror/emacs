@@ -393,6 +393,10 @@ THINGS TO DO
 
 ** frames-on-display-list should also accept frames.
 
+** I smell something funny around pop_kboard's "deleted kboard" case.
+   Determine what are the circumstances of this case, and fix any
+   bug that comes to light.
+
 ** Consider the `tty-type' frame parameter and the `display-tty-type'
    function.  They serve the exact same purpose.  I think it may be
    a good idea to eliminate one of them, preferably `tty-type'.

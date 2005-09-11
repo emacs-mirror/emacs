@@ -1138,8 +1138,23 @@ void
 pop_kboard ()
 {
 #ifdef MULTI_KBOARD
+  struct device *d;
   struct kboard_stack *p = kboard_stack;
-  current_kboard = p->kboard;
+  int ok = 0;
+  current_kboard = NULL;
+  for (d = device_list; d; d = d->next_device)
+    {
+      if (d->kboard == p->kboard)
+        {
+          current_kboard = p->kboard;
+          break;
+        }
+    }
+  if (current_kboard == NULL)
+    {
+      /* The display we remembered has been deleted.  */
+      current_kboard = FRAME_KBOARD (SELECTED_FRAME ());
+    }
   kboard_stack = p->next;
   xfree (p);
 #endif
@@ -1177,11 +1192,11 @@ static Lisp_Object
 restore_kboard_configuration (was_locked)
      Lisp_Object was_locked;
 {
-  pop_kboard ();
   if (NILP (was_locked))
     any_kboard_state ();
   else
     single_kboard_state ();
+  pop_kboard ();
   return Qnil;
 }
 
