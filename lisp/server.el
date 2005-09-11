@@ -612,7 +612,12 @@ The following commands are accepted by the client:
 		  (unless current-frame
 		    (if (fboundp 'x-create-frame)
 			(let ((params (if nowait
-					  nil
+					  ;; Flag frame as client-created, but use a dummy client.
+					  ;; This will prevent the frame from being deleted when
+					  ;; emacsclient quits while also preventing
+					  ;; `server-save-buffers-kill-display' from unexpectedly
+					  ;; killing emacs on that frame.
+					  (list (cons 'client 'nowait))
 					(list (cons 'client proc)))))
 			  (setq frame (make-frame-on-display
 				       (or display
@@ -1052,7 +1057,8 @@ With prefix arg, silently save all file-visiting buffers, then kill.
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
   (interactive "P")
-  (let ((proc (frame-parameter (selected-frame) 'client)))
+  (let ((proc (frame-parameter (selected-frame) 'client))
+	(frame (selected-frame)))
     (if proc
 	(let ((buffers (server-client-get proc 'buffers)))
 	  ;; If client is bufferless, emulate a normal Emacs session
@@ -1062,7 +1068,9 @@ only these files will be asked to be saved."
 			     (if buffers
 				 (lambda () (memq (current-buffer) buffers))
 			       t))
-	  (server-delete-client proc))
+	  (server-delete-client proc)
+	  (when (frame-live-p frame)
+	    (delete-frame frame)))
       (save-buffers-kill-emacs))))
 
 (define-key ctl-x-map "#" 'server-edit)
