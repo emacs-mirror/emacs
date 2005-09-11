@@ -30,6 +30,7 @@ Boston, MA 02110-1301, USA.  */
 #include "keyboard.h"
 #include "frame.h"
 #include "syssignal.h"
+#include "termhooks.h"  /* For FRAME_KBOARD reference in y-or-n-p. */
 
 #ifdef STDC_HEADERS
 #include <float.h>
@@ -1891,9 +1892,9 @@ selected frame's display device).  */)
 {
   Lisp_Object result;
   struct device *d = get_device (device, 1);
-  push_device_kboard (d);
+  push_kboard (d->kboard);
   result = Fsymbol_value (symbol);
-  pop_frame_kboard ();
+  pop_kboard ();
   return result;
 }
 
@@ -1911,9 +1912,9 @@ selected frame's display device).  */)
 {
   Lisp_Object result;
   struct device *d = get_device (device, 1);
-  push_device_kboard (d);
+  push_kboard (d->kboard);
   result = Fset (symbol, value);
-  pop_frame_kboard ();
+  pop_kboard ();
   return result;
 }
 

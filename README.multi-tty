@@ -31,27 +31,28 @@ The following is a (sadly incomplete) list of people who have
 contributed to the project by testing, submitting patches, bug
 reports, and suggestions.  Thanks!
 
-ARISAWA Akihiro <ari at mbf dot ocn dot ne dot jp>
-Vincent Bernat <bernat at luffy dot cx>
-Han Boetes <han at mijncomputer dot nl>
-Robert J. Chassell <bob at rattlesnake dot com>
-Romain Francoise <romain at orebokech dot com>
-Ami Fischman <ami at fischman dot org>
-Friedrich Delgado Friedrichs <friedel at nomaden dot org>
-IRIE Tetsuya <irie at t dot email dot ne dot jp>
-Yoshiaki Kasahara <kasahara at nc dot kyushu-u dot ac dot jp>
-Bas Kok <nekkobassu at yahoo dot com>
-Jurej Kubelka <Juraj dot Kubelka at email dot cz>
-David Lichteblau <david at lichteblau dot com>
-Xavier Mallard <zedek at gnu-rox dot org>
-Istvan Marko <mi-mtty at kismala dot com>
-Ted Morse <morse at ciholas dot com>
-Dan Nicolaescu <dann at ics dot uci dot edu>
-Gergely Nagy <algernon at debian dot org>
-Mark Plaksin <happy at mcplaksin dot org>
-Francisco Borges <borges at let dot rug dot nl>
-Frank Ruell <stoerte at dreamwarrior dot net>
-Dan Waber <dwaber at logolalia dot com>
+ARISAWA Akihiro <ari@mbf.ocn.ne.jp>
+Vincent Bernat <bernat@luffy.cx>
+Han Boetes <han@mijncomputer.nl>
+Robert J. Chassell <bob@rattlesnake.com>
+Romain Francoise <romain@orebokech.com>
+Ami Fischman <ami@fischman.org>
+Friedrich Delgado Friedrichs <friedel@nomaden.org>
+IRIE Tetsuya <irie@t.email.ne.jp>
+Yoshiaki Kasahara <kasahara@nc.kyushu-u.ac.jp>
+Bas Kok <nekkobassu@yahoo.com>
+Jurej Kubelka <Juraj.Kubelka@email.cz>
+David Lichteblau <david@lichteblau.com>
+Xavier Mallard <zedek@gnu-rox.org>
+Istvan Marko <mi-mtty@kismala.com>
+Ted Morse <morse@ciholas.com>
+Gergely Nagy <algernon@debian.org>
+Dan Nicolaescu <dann@ics.uci.edu>
+Kalle Olavi Niemitalo <kon@iki.fi>
+Mark Plaksin <happy@mcplaksin.org>
+Francisco Borges <borges@let.rug.nl>
+Frank Ruell <stoerte@dreamwarrior.net>
+Dan Waber <dwaber@logolalia.com>
 and many others.
 
 Richard Stallman was kind enough to review an earlier version of my
@@ -387,17 +388,8 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
-** This long-standing bug (first reported by Han Boetes) seems to come
-   and go all the time.  It is time to track it down and fix it.
-
-	emacs
-		M-x server-start
-	
-	# From another xterm:
-	emacsclient -e '(y-or-n-p "Do you want me to crash? ")'
-		# Notice how the answer ends up in the *scratch* buffer
-		M-x garbage-collect
-		SIGSEGV
+** Report GTK multi-display problems to GTK maintainers.  For extra
+   credit, fix them.
 
 ** frames-on-display-list should also accept frames.
 
@@ -1238,6 +1230,20 @@ DIARY OF CHANGES
 	> suspend). 
 
    (I think patch-370 fixed this.)
+
+-- This long-standing bug (first reported by Han Boetes) seems to come
+   and go all the time.  It is time to track it down and fix it.
+
+	emacs
+		M-x server-start
+	
+	# From another xterm:
+	emacsclient -e '(y-or-n-p "Do you want me to crash? ")'
+		# Notice how the answer ends up in the *scratch* buffer
+		M-x garbage-collect
+		SIGSEGV
+
+   (Fixed in patch-414 after detailed analysis by Kalle Olavi Niemitalo.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 

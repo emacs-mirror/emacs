@@ -467,7 +467,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   specbind (Qminibuffer_default, defalt);
 
-  single_kboard_state ();
 #ifdef HAVE_X_WINDOWS
   if (display_hourglass_p)
     cancel_hourglass ();
@@ -550,6 +549,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
 
   if (minibuffer_auto_raise)
     Fraise_frame (mini_frame);
+
+  temporarily_switch_to_single_kboard (XFRAME (mini_frame)->device->kboard);
 
   /* We have to do this after saving the window configuration
      since that is what restores the current buffer.  */

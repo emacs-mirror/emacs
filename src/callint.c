@@ -408,8 +408,8 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
       real_this_command= save_real_this_command;
       current_kboard->Vlast_command = save_last_command;
 
-      single_kboard_state ();
-      return apply1 (function, specs);
+      temporarily_switch_to_single_kboard (NULL);
+      return unbind_to (speccount, apply1 (function, specs));
     }
 
   /* Here if function specifies a string to control parsing the defaults */
@@ -875,7 +875,7 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
   real_this_command= save_real_this_command;
   current_kboard->Vlast_command = save_last_command;
 
-  single_kboard_state ();
+  temporarily_switch_to_single_kboard (NULL);
 
   {
     Lisp_Object val;

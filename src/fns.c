@@ -48,6 +48,7 @@ Boston, MA 02110-1301, USA.  */
 #include "frame.h"
 #include "window.h"
 #include "blockinput.h"
+#include "termhooks.h"  /* For display->kboard reference in terminal-local-value. */
 #if defined (HAVE_MENUS) && defined (HAVE_X_WINDOWS)
 #include "xterm.h"
 #endif
@@ -3307,7 +3308,9 @@ is nil and `use-dialog-box' is non-nil.  */)
 	  Fraise_frame (mini_frame);
 	}
 
+      temporarily_switch_to_single_kboard (FRAME_KBOARD (SELECTED_FRAME ()));
       obj = read_filtered_event (1, 0, 0, 0);
+
       cursor_in_echo_area = 0;
       /* If we need to quit, quit with cursor_in_echo_area = 0.  */
       QUIT;

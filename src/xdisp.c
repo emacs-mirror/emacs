@@ -15888,7 +15888,7 @@ display_mode_line (w, face_id, format)
      values.  */
   push_frame_kboard (it.f);
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
-  pop_frame_kboard ();
+  pop_kboard ();
 
   unbind_to (count, Qnil);
 
@@ -16551,7 +16551,7 @@ are the selected window and the window's buffer).  */)
 
   push_frame_kboard (it.f);
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
-  pop_frame_kboard ();
+  pop_kboard ();
 
   if (no_props)
     {

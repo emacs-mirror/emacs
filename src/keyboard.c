@@ -1034,24 +1034,19 @@ This function is called by the editor initialization to begin editing.  */)
      like it is done in the splash screen display, we have to
      make sure that we restore single_kboard as command_loop_1
      would have done if it were left normally.  */
-  record_unwind_protect (recursive_edit_unwind,
-			 Fcons (buffer, single_kboard ? Qt : Qnil));
+  temporarily_switch_to_single_kboard (FRAME_KBOARD (SELECTED_FRAME ()));
+  record_unwind_protect (recursive_edit_unwind, buffer);
 
   recursive_edit_1 ();
   return unbind_to (count, Qnil);
 }
 
 Lisp_Object
-recursive_edit_unwind (info)
-     Lisp_Object info;
+recursive_edit_unwind (buffer)
+     Lisp_Object buffer;
 {
-  if (BUFFERP (XCAR (info)))
-    Fset_buffer (XCAR (info));
-
-  if (NILP (XCDR (info)))
-    any_kboard_state ();
-  else
-    single_kboard_state ();
+  if (BUFFERP (buffer))
+    Fset_buffer (buffer);
 
   command_loop_level--;
   update_mode_lines = 1;
@@ -1116,8 +1111,8 @@ struct kboard_stack
 static struct kboard_stack *kboard_stack;
 
 void
-push_device_kboard (d)
-     struct device *d;
+push_kboard (k)
+     struct kboard *k;
 {
 #ifdef MULTI_KBOARD
   struct kboard_stack *p
@@ -1127,7 +1122,7 @@ push_device_kboard (d)
   p->kboard = current_kboard;
   kboard_stack = p;
 
-  current_kboard = d->kboard;
+  current_kboard = k;
 #endif
 }
 
@@ -1135,20 +1130,11 @@ void
 push_frame_kboard (f)
      FRAME_PTR f;
 {
-#ifdef MULTI_KBOARD
-  struct kboard_stack *p
-    = (struct kboard_stack *) xmalloc (sizeof (struct kboard_stack));
-
-  p->next = kboard_stack;
-  p->kboard = current_kboard;
-  kboard_stack = p;
-
-  current_kboard = FRAME_KBOARD (f);
-#endif
+  push_kboard (f->device->kboard);
 }
 
 void
-pop_frame_kboard ()
+pop_kboard ()
 {
 #ifdef MULTI_KBOARD
   struct kboard_stack *p = kboard_stack;
@@ -1156,6 +1142,46 @@ pop_frame_kboard ()
   kboard_stack = p->next;
   xfree (p);
 #endif
+}
+
+/* Switch to single_kboard mode.  If K is non-nil, set it as the
+  current keyboard.  Use record_unwind_protect to return to the
+  previous state later.  */
+
+void
+temporarily_switch_to_single_kboard (k)
+     struct kboard *k;
+{
+#ifdef MULTI_KBOARD
+  int was_locked = single_kboard;
+  if (k != NULL)
+    push_kboard (k);
+  else
+    push_kboard (current_kboard);
+  single_kboard_state ();
+  record_unwind_protect (restore_kboard_configuration,
+                         (was_locked ? Qt : Qnil));
+#endif
+}
+
+void
+record_single_kboard_state ()
+{
+  push_kboard (current_kboard);
+  record_unwind_protect (restore_kboard_configuration,
+                         (single_kboard ? Qt : Qnil));
+}
+
+static Lisp_Object
+restore_kboard_configuration (was_locked)
+     Lisp_Object was_locked;
+{
+  pop_kboard ();
+  if (NILP (was_locked))
+    any_kboard_state ();
+  else
+    single_kboard_state ();
+  return Qnil;
 }
 
 /* Handle errors that are not handled at inner levels
@@ -4472,9 +4498,12 @@ timer_check (do_it_now)
 	{
 	  if (NILP (vector[0]))
 	    {
-	      int was_locked = single_kboard;
 	      int count = SPECPDL_INDEX ();
 	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
+
+	      /* On unbind_to, resume allowing input from any kboard, if that
+                 was true before.  */
+              record_single_kboard_state ();
 
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
@@ -4486,10 +4515,6 @@ timer_check (do_it_now)
 	      Vdeactivate_mark = old_deactivate_mark;
 	      timers_run++;
 	      unbind_to (count, Qnil);
-
-	      /* Resume allowing input from any kboard, if that was true before.  */
-	      if (!was_locked)
-		any_kboard_state ();
 
 	      /* Since we have handled the event,
 		 we don't need to tell the caller to wake up and do it.  */
