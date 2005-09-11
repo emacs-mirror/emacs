@@ -814,7 +814,10 @@ Otherwise returns the library directory name, if that is defined."
         (goto-char (point-min))
         (let (case-fold-search)
           (setq ispell-really-aspell
-                (and (search-forward "(but really Aspell " nil t) t))))
+		(and (search-forward-regexp "(but really Aspell \\(.*\\))" nil t)
+		     (if (version< (match-string 1) "0.60")
+			 (error "aspell version 0.60 or greater is required")
+		       t)))))
       (kill-buffer (current-buffer)))
     result))
 

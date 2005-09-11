@@ -108,7 +108,8 @@ into widget buttons that call `describe-text-category' or
 		       (while properties
 			 (push (list (pop properties) (pop properties)) ret))
 		       ret)
-		     (lambda (a b) (string< (nth 0 a) (nth 0 b)))))
+		     (lambda (a b) (string< (prin1-to-string (nth 0 a) t)
+					    (prin1-to-string (nth 0 b) t)))))
     (let ((key (nth 0 elt))
 	  (value (nth 1 elt)))
       (widget-insert (propertize (format "  %-20s " key)

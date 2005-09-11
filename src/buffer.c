@@ -32,10 +32,6 @@ Boston, MA 02110-1301, USA.  */
 extern int errno;
 #endif
 
-#ifndef MAXPATHLEN
-/* in 4.1 [probably SunOS? -stef] , param.h fails to define this. */
-#define MAXPATHLEN 1024
-#endif /* not MAXPATHLEN */
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -5131,7 +5127,6 @@ init_buffer_once ()
 void
 init_buffer ()
 {
-  char buf[MAXPATHLEN + 1];
   char *pwd;
   struct stat dotstat, pwdstat;
   Lisp_Object temp;
@@ -5154,40 +5149,28 @@ init_buffer ()
   if (NILP (buffer_defaults.enable_multibyte_characters))
     Fset_buffer_multibyte (Qnil);
 
-  /* If PWD is accurate, use it instead of calling getwd.  PWD is
-     sometimes a nicer name, and using it may avoid a fatal error if a
-     parent directory is searchable but not readable.  */
-  if ((pwd = getenv ("PWD")) != 0
-      && (IS_DIRECTORY_SEP (*pwd) || (*pwd && IS_DEVICE_SEP (pwd[1])))
-      && stat (pwd, &pwdstat) == 0
-      && stat (".", &dotstat) == 0
-      && dotstat.st_ino == pwdstat.st_ino
-      && dotstat.st_dev == pwdstat.st_dev
-      && strlen (pwd) < MAXPATHLEN)
-    strcpy (buf, pwd);
-#ifdef HAVE_GETCWD
-  else if (getcwd (buf, MAXPATHLEN+1) == 0)
-    fatal ("`getcwd' failed: %s\n", strerror (errno));
-#else
-  else if (getwd (buf) == 0)
-    fatal ("`getwd' failed: %s\n", buf);
-#endif
+  pwd = get_current_dir_name ();
+
+  if (!pwd)
+    fatal ("`get_current_dir_name' failed: %s\n", strerror (errno));
 
 #ifndef VMS
   /* Maybe this should really use some standard subroutine
      whose definition is filename syntax dependent.  */
-  rc = strlen (buf);
-  if (!(IS_DIRECTORY_SEP (buf[rc - 1])))
+  rc = strlen (pwd);
+  if (!(IS_DIRECTORY_SEP (pwd[rc - 1])))
     {
-      buf[rc] = DIRECTORY_SEP;
-      buf[rc + 1] = '\0';
+      /* Grow buffer to add directory separator and '\0'.  */
+      pwd = (char *) xrealloc (pwd, rc + 2);
+      pwd[rc] = DIRECTORY_SEP;
+      pwd[rc + 1] = '\0';
     }
 #endif /* not VMS */
 
-  current_buffer->directory = make_unibyte_string (buf, strlen (buf));
+  current_buffer->directory = make_unibyte_string (pwd, strlen (pwd));
   if (! NILP (buffer_defaults.enable_multibyte_characters))
-    /* At this momemnt, we still don't know how to decode the
-       direcotry name.  So, we keep the bytes in multibyte form so
+    /* At this moment, we still don't know how to decode the
+       directory name.  So, we keep the bytes in multibyte form so
        that ENCODE_FILE correctly gets the original bytes.  */
     current_buffer->directory
       = string_to_multibyte (current_buffer->directory);
@@ -5206,6 +5189,8 @@ init_buffer ()
 
   temp = get_minibuffer (0);
   XBUFFER (temp)->directory = current_buffer->directory;
+
+  free (pwd);
 }
 
 /* initialize the buffer routines */

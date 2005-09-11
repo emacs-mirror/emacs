@@ -2108,7 +2108,7 @@
 	* pgg.texi (User Commands, Backend methods): Do.
 	* gnus.texi: Markup fixes.
 	(Setting Process Marks): Fix `M P a' entry.
-	* emacs-mime: Fixes.
+	* emacs-mime.texi: Fixes.
 
 2004-09-23  Reiner Steib  <Reiner.Steib@gmx.de>
 

@@ -5418,16 +5418,25 @@ x_bitmap_icon (f, icon)
      struct frame *f;
      Lisp_Object icon;
 {
-  HANDLE hicon;
+  HANDLE main_icon;
+  HANDLE small_icon = NULL;
 
   if (FRAME_W32_WINDOW (f) == 0)
     return 1;
 
   if (NILP (icon))
-    hicon = LoadIcon (hinst, EMACS_CLASS);
+    main_icon = LoadIcon (hinst, EMACS_CLASS);
   else if (STRINGP (icon))
-    hicon = LoadImage (NULL, (LPCTSTR) SDATA (icon), IMAGE_ICON, 0, 0,
-		       LR_DEFAULTSIZE | LR_LOADFROMFILE);
+    {
+      /* Load the main icon from the named file.  */
+      main_icon = LoadImage (NULL, (LPCTSTR) SDATA (icon), IMAGE_ICON, 0, 0,
+			     LR_DEFAULTSIZE | LR_LOADFROMFILE);
+      /* Try to load a small icon to go with it.  */
+      small_icon = LoadImage (NULL, (LPCSTR) SDATA (icon), IMAGE_ICON,
+			      GetSystemMetrics (SM_CXSMICON),
+			      GetSystemMetrics (SM_CYSMICON),
+			      LR_LOADFROMFILE);
+    }
   else if (SYMBOLP (icon))
     {
       LPCTSTR name;
@@ -5447,16 +5456,21 @@ x_bitmap_icon (f, icon)
       else
 	return 1;
 
-      hicon = LoadIcon (NULL, name);
+      main_icon = LoadIcon (NULL, name);
     }
   else
     return 1;
 
-  if (hicon == NULL)
+  if (main_icon == NULL)
     return 1;
 
   PostMessage (FRAME_W32_WINDOW (f), WM_SETICON, (WPARAM) ICON_BIG,
-               (LPARAM) hicon);
+               (LPARAM) main_icon);
+
+  /* If there is a small icon that goes with it, set that too.  */
+  if (small_icon)
+    PostMessage (FRAME_W32_WINDOW (f), WM_SETICON, (WPARAM) ICON_SMALL,
+		 (LPARAM) small_icon);
 
   return 0;
 }

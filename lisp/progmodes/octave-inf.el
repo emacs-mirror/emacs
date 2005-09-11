@@ -248,7 +248,11 @@ startup file, `~/.emacs-octave'."
 
     ;; And finally, everything is back to normal.
     (set-process-filter proc 'inferior-octave-output-filter)
-    (run-hooks 'inferior-octave-startup-hook)))
+    (run-hooks 'inferior-octave-startup-hook)
+    (run-hooks 'inferior-octave-startup-hook)
+    ;; Just in case, to be sure a cd in the startup file
+    ;; won't have detrimental effects.
+    (inferior-octave-resync-dirs)))
 
 
 (defun inferior-octave-complete ()

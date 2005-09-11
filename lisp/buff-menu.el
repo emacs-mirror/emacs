@@ -633,35 +633,40 @@ For more information, see the function `buffer-menu'."
 	    (insert m2)))
 	(forward-line)))))
 
+(defun Buffer-menu-sort-by-column (&optional e)
+  "Sort the buffer menu by the column clicked on."
+  (interactive (list last-input-event))
+  (if e (mouse-select-window e))
+  (let* ((pos (event-start e))
+	 (obj (posn-object pos))
+	 (col (if obj
+		  (get-text-property (cdr obj) 'column (car obj))
+		(get-text-property (posn-point pos) 'column))))
+    (Buffer-menu-sort col)))
+
+(defvar Buffer-menu-sort-button-map
+  (let ((map (make-sparse-keymap)))
+    ;; This keymap handles both nil and non-nil values for
+    ;; Buffer-menu-use-header-line.
+    (define-key map [header-line mouse-1] 'Buffer-menu-sort-by-column)
+    (define-key map [header-line mouse-2] 'Buffer-menu-sort-by-column)
+    (define-key map [mouse-2] 'Buffer-menu-sort-by-column)
+    (define-key map [follow-link] 'mouse-face)
+    (define-key map "\C-m" 'Buffer-menu-sort-by-column)
+    map)
+  "Local keymap for Buffer menu sort buttons.")
+
 (defun Buffer-menu-make-sort-button (name column)
   (if (equal column Buffer-menu-sort-column) (setq column nil))
   (propertize name
-	      'help-echo (if column
-			     (if Buffer-menu-use-header-line
-				 (concat "mouse-2: sort by " (downcase name))
-			       (concat "mouse-2, RET: sort by "
-				       (downcase name)))
-			   (if Buffer-menu-use-header-line
-			       "mouse-2: sort by visited order"
-			     "mouse-2, RET: sort by visited order"))
+	      'column column
+	      'help-echo (concat
+			  (if Buffer-menu-use-header-line
+			      "mouse-1, mouse-2: sort by "
+			    "mouse-2, RET: sort by ")
+			  (if column (downcase name) "visited order"))
 	      'mouse-face 'highlight
-	      'keymap (let ((map (make-sparse-keymap)))
-			(if Buffer-menu-use-header-line
-			    (define-key map [header-line mouse-2]
-			      `(lambda (e)
-				 (interactive "e")
-				 (save-window-excursion
-				   (if e (mouse-select-window e))
-				   (Buffer-menu-sort ,column))))
-			  (define-key map [mouse-2]
-			    `(lambda (e)
-			       (interactive "e")
-			       (if e (mouse-select-window e))
-			       (Buffer-menu-sort ,column)))
-			  (define-key map "\C-m"
-			    `(lambda () (interactive)
-			       (Buffer-menu-sort ,column))))
-			map)))
+	      'keymap Buffer-menu-sort-button-map))
 
 (defun list-buffers-noselect (&optional files-only buffer-list)
   "Create and return a buffer with a list of names of existing buffers.

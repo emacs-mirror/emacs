@@ -130,6 +130,7 @@ This is used by the default mail-sending commands.  See also
   :type '(radio (function-item sendmail-send-it :tag "Use Sendmail package")
 		(function-item smtpmail-send-it :tag "Use SMTPmail package")
 		(function-item feedmail-send-it :tag "Use Feedmail package")
+		(function-item mailclient-send-it :tag "Use Mailclient package")
 		function)
   :group 'sendmail)
 
@@ -886,9 +887,9 @@ See also the function `select-message-coding-system'.")
   "Default coding system for encoding the outgoing mail.
 This variable is used only when `sendmail-coding-system' is nil.
 
-This variable is set/changed by the command set-language-environment.
+This variable is set/changed by the command `set-language-environment'.
 User should not set this variable manually,
-instead use sendmail-coding-system to get a constant encoding
+instead use `sendmail-coding-system' to get a constant encoding
 of outgoing mails regardless of the current language environment.
 See also the function `select-message-coding-system'.")
 

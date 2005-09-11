@@ -1219,6 +1219,12 @@ fontset appropriately.
 ** Customize changes:
 
 +++
+*** Custom themes are collections of customize options.  Create a
+custom theme with M-x customize-create-theme.  Use M-x load-theme to
+load and enable a theme, and M-x disable-theme to disable it.  Use M-x
+enable-theme to renable a disabled theme.
+
++++
 *** The commands M-x customize-face and M-x customize-face-other-window
 now look at the character after point.  If a face or faces are
 specified for that character, the commands by default customize those
@@ -1834,6 +1840,12 @@ instead and point will be kept vertically fixed relative to window
 boundaries during scrolling.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
+
+** The variable `woman-topic-at-point' was renamed
+to `woman-use-topic-at-point' and behaves differently: if this
+variable is non-nil, the `woman' command uses the word at point
+automatically, without asking for a confirmation.  Otherwise, the word
+at point is suggested as default, but not inserted at the prompt.
 
 ---
 ** Changes to cmuscheme

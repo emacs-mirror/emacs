@@ -476,14 +476,16 @@
 	    (buffer-disable-undo)
 	    (mm-insert-part handle)
 	    (require 'font-lock)
-	    ;; Inhibit font-lock this time (*-mode-hook might run
-	    ;; `turn-on-font-lock') so that jit-lock may not turn off
-	    ;; font-lock immediately after this.
-	    (let ((font-lock-mode t))
-	      (funcall mode))
-	    (let ((font-lock-verbose nil))
-	      ;; I find font-lock a bit too verbose.
-	      (font-lock-fontify-buffer))
+	    (let ((font-lock-maximum-size nil)
+		  ;; Disable support modes, e.g., jit-lock, lazy-lock, etc.
+		  (font-lock-mode-hook nil)
+		  (font-lock-support-mode nil)
+		  ;; I find font-lock a bit too verbose.
+		  (font-lock-verbose nil))
+	      (funcall mode)
+	      ;; The mode function might have already turned on font-lock.
+	      (unless (symbol-value 'font-lock-mode)
+		(font-lock-fontify-buffer)))
 	    ;; By default, XEmacs font-lock uses non-duplicable text
 	    ;; properties.  This code forces all the text properties
 	    ;; to be copied along with the text.

@@ -720,11 +720,11 @@ to 1.
 @end deffn
 
 @defopt defun-prompt-regexp
-If non-@code{nil}, this variable holds a regular expression that
-specifies what text can appear before the open-parenthesis that starts a
-defun.  That is to say, a defun begins on a line that starts with a
-match for this regular expression, followed by a character with
-open-parenthesis syntax.
+If non-@code{nil}, this buffer-local variable holds a regular
+expression that specifies what text can appear before the
+open-parenthesis that starts a defun.  That is to say, a defun begins
+on a line that starts with a match for this regular expression,
+followed by a character with open-parenthesis syntax.
 @end defopt
 
 @defopt open-paren-in-column-0-is-defun-start

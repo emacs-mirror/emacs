@@ -369,9 +369,16 @@ since it could result in memory overflow and make Emacs crash."
 		      ((string-match "\\`w32-" (symbol-name symbol))
 		       (eq system-type 'windows-nt))
 		      ((string-match "\\`x-.*gtk" (symbol-name symbol))
-		       (or (boundp 'gtk) (not (eq system-type 'windows-nt))))
+		       (or (boundp 'gtk)
+			   (and window-system
+				(not (eq window-system 'pc))
+				(not (eq system-type 'windows-nt)))))
 		      ((string-match "\\`x-" (symbol-name symbol))
 		       (fboundp 'x-create-frame))
+		      ((string-match "selection" (symbol-name symbol))
+		       (fboundp 'x-selection-exists-p))
+		      ((string-match "fringe" (symbol-name symbol))
+		       (fboundp 'define-fringe-bitmap))
 		      (t t))))
     (if (not (boundp symbol))
 	;; If variables are removed from C code, give an error here!

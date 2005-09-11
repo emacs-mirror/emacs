@@ -185,7 +185,7 @@
      "Elisp Files (%d)")
     ((eq major-mode 'latex-mode)
      3030
-     "LaTex Files (%d)")
+     "LaTeX Files (%d)")
     ('no-multi
      3099
      "Other files (%d)")))

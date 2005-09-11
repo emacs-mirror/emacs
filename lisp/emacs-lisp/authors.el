@@ -78,6 +78,7 @@ files.")
     ("Jay K. Adams" "jka@ece.cmu.edu" "Jay Adams")
     ("J,Ai(Br,At(Bme Marant" "J,bi(Br,bt(Bme Marant" "Jerome Marant")
     ("Jens-Ulrik Holger Petersen" "Jens-Ulrik Petersen")
+    ("Johan Bockg,Ae(Brd" "Johan Bockgard")
     ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
     ("Joseph Arceneaux" "Joe Arceneaux")
@@ -195,7 +196,7 @@ Changes to files in this list are not listed.")
     ("Michael K. Johnson" :changed "configure.in" "emacs.c" "intel386.h"
      "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h" "systty.h" "unexec.c"
       "ymakefile" "linux.h")
-    ("Kyle E. Jones" :wrote "mldrag.el")
+    ("Kyle Jones" :wrote "mldrag.el")
     ("Henry Kautz" :wrote "bib-mode.el")
     ("Joseph M. Kelsey" :changed "fileio.c" "vms-pwd.h" "vmsfns.c" "dir.h"
      "uaf.h")

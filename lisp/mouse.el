@@ -538,11 +538,10 @@ resized by dragging their header-line."
 	 (window (posn-window start))
 	 (frame (window-frame window))
 	 (first-window (frame-first-window frame)))
-    (when (or (eq window first-window)
-	      (= (nth 1 (window-edges window))
-		 (nth 1 (window-edges first-window))))
-      (error "Cannot move header-line at the top of the frame"))
-    (mouse-drag-mode-line-1 start-event nil)))
+    (unless (or (eq window first-window)
+		(= (nth 1 (window-edges window))
+		   (nth 1 (window-edges first-window))))
+      (mouse-drag-mode-line-1 start-event nil))))
 
 
 (defun mouse-drag-vertical-line (start-event)

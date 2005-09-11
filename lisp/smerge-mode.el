@@ -372,7 +372,7 @@ This relies on mode-specific knowledge and thus only works in
 some major modes.  Uses `smerge-resolve-function' to do the actual work."
   (interactive)
   (smerge-match-conflict)
-  (smerge-remove-props)
+  (smerge-remove-props (match-beginning 0) (match-end 0))
   (cond
    ;; Trivial diff3 -A non-conflicts.
    ((and (eq (match-end 1) (match-end 3))

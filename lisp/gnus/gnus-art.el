@@ -4862,7 +4862,14 @@ If displaying \"text/html\" is discouraged \(see
 	      (forward-line -1)
 	      (setq beg (point)))
 	    (gnus-article-insert-newline)
-	    (mm-insert-inline handle (mm-get-part handle))
+	    (mm-insert-inline handle
+			      (let ((charset
+				     (mail-content-type-get
+				      (mm-handle-type handle) 'charset)))
+				(if (eq charset 'gnus-decoded)
+				    (mm-get-part handle)
+				  (mm-decode-string (mm-get-part handle)
+						    charset))))
 	    (goto-char (point-max))))
 	  ;; Do highlighting.
 	  (save-excursion

@@ -221,6 +221,9 @@ Boston, MA 02110-1301, USA.  */
 /* Define to 1 if you have the `getwd' function. */
 #undef HAVE_GETWD
 
+/* Define to 1 if you have the `get_current_dir_name' function. */
+#undef HAVE_GET_CURRENT_DIR_NAME
+
 /* Define to 1 if you have the ungif library (-lungif). */
 #undef HAVE_GIF
 

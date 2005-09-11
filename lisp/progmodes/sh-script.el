@@ -490,7 +490,10 @@ This is buffer-local in every such buffer.")
     map)
   "Keymap used in Shell-Script mode.")
 
-
+(defvar sh-skeleton-pair-default-alist '((?( _ ?)) (?\))
+				      (?[ ?\s _ ?\s ?]) (?\])
+				      (?{ _ ?}) (?\}))
+  "Value to use for `skeleton-pair-default-alist' in Shell-Script mode.")
 
 (defcustom sh-dynamic-complete-functions
   '(shell-dynamic-complete-environment-variable
@@ -1362,6 +1365,8 @@ with your script for an edit-interpret-debug cycle."
   (make-local-variable 'sh-shell-variables-initialized)
   (make-local-variable 'imenu-generic-expression)
   (make-local-variable 'sh-indent-supported-here)
+  (make-local-variable 'skeleton-pair-default-alist)
+  (setq skeleton-pair-default-alist sh-skeleton-pair-default-alist)
   (setq skeleton-end-hook (lambda ()
 			    (or (eolp) (newline) (indent-relative)))
 	paragraph-start (concat page-delimiter "\\|$")
