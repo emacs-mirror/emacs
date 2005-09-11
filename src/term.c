@@ -85,8 +85,6 @@ static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((struct tty_display_info *));
 static void tty_hide_cursor P_ ((struct tty_display_info *));
 
-static struct device *get_tty_device (Lisp_Object device);
-
 void delete_initial_device P_ ((struct device *));
 void create_tty_output P_ ((struct frame *));
 void delete_tty_output P_ ((struct frame *));
@@ -2164,11 +2162,11 @@ get_device (Lisp_Object device, int throw)
 
 /* Return the tty display object specified by DEVICE. */
 
-static struct device *
-get_tty_device (Lisp_Object device)
+struct device *
+get_tty_device (Lisp_Object terminal)
 {
-  struct device *d = get_device (device, 0);
-  
+  struct device *d = get_device (terminal, 0);
+
   if (d && d->type == output_initial)
     d = NULL;
 

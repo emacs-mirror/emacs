@@ -6285,21 +6285,27 @@ FILE = nil means just close any termscript file currently open.  */)
 
 
 DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
-       Ssend_string_to_terminal, 1, 1, 0,
+       Ssend_string_to_terminal, 1, 2, 0,
        doc: /* Send STRING to the terminal without alteration.
-Control characters in STRING will have terminal-dependent effects.  */)
-     (string)
+Control characters in STRING will have terminal-dependent effects.
+
+Optional parameter TERMINAL specifies the tty display device to use.
+It may be a terminal id, a frame, or nil for the terminal used by the
+currently selected frame.  */)
+  (string, display)
      Lisp_Object string;
+     Lisp_Object display;
 {
+  struct device *d = get_tty_device (display);
   struct tty_display_info *tty;
 
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
 
-  if (! FRAME_TERMCAP_P (SELECTED_FRAME ()))
-    error ("Current frame is not on a tty device");
+  if (!d)
+    error ("Unknown display device");
 
-  tty = CURTTY ();
+  tty = d->display_info.tty;
   
   if (tty->termscript)
     {

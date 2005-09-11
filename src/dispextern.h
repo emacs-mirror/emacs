@@ -2930,6 +2930,7 @@ extern void calculate_costs P_ ((struct frame *));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
 extern void tty_setup_colors P_ ((struct tty_display_info *, int));
 extern struct device *get_device P_ ((Lisp_Object display, int));
+extern struct device *get_tty_device P_ ((Lisp_Object terminal));
 extern struct device *get_named_tty P_ ((char *));
 EXFUN (Fdisplay_tty_type, 1);
 extern struct device *init_initial_device P_ ((void));

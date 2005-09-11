@@ -3267,7 +3267,8 @@ is nil and `use-dialog-box' is non-nil.  */)
     {
 
 #ifdef HAVE_MENUS
-      if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+      if (FRAME_WINDOW_P (SELECTED_FRAME ())
+          && (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
 	  && use_dialog_box
 	  && have_menus_p ())
 	{
@@ -3398,7 +3399,8 @@ is nil, and `use-dialog-box' is non-nil.  */)
   CHECK_STRING (prompt);
 
 #ifdef HAVE_MENUS
-  if ((NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
+  if (FRAME_WINDOW_P (SELECTED_FRAME ())
+      && (NILP (last_nonmenu_event) || CONSP (last_nonmenu_event))
       && use_dialog_box
       && have_menus_p ())
     {
