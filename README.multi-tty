@@ -428,22 +428,6 @@ THINGS TO DO
 ** If the first key pressed on a new tty terminal is a function key,
    it is not recognized correctly.  May be related to the bug below.
 
-** Having {reset,init}_all_sys_modes in set-input-mode breaks arrow
-   keys on non-selected terminals under screen, and sometimes on other
-   terminal types as well.  The other function keys continue to work
-   fine.  Sometimes faces on these screens become garbled.
-
-   This only seems to affect displays that are of the same terminfo
-   type as the selected one. Interestingly, in screen Emacs normally
-   reports the up arrow key as `M-o A', but after the above SNAFU, it
-   complains about `M-[ a'.  UNIX ttys are a complete mystery to me,
-   but it seems the reset-reinitialize cycle somehow leaves the
-   non-selected terminals in a different state than usual.  I have no
-   idea how this could happen.
-
-   Currently set-input-mode resets only the currently selected
-   terminal, which seems to somehow work around the problem.
-
 ** Fix set-input-mode for multi-tty.  It's a truly horrible interface;
    what if we'd blow it up into several separate functions (with a
    compatibility definition)?
@@ -1226,6 +1210,34 @@ DIARY OF CHANGES
 
    (Done, I hope.)
    
+
+-- Having {reset,init}_all_sys_modes in set-input-mode breaks arrow
+   keys on non-selected terminals under screen, and sometimes on other
+   terminal types as well.  The other function keys continue to work
+   fine.  Sometimes faces on these screens become garbled.
+
+   This only seems to affect displays that are of the same terminfo
+   type as the selected one. Interestingly, in screen Emacs normally
+   reports the up arrow key as `M-o A', but after the above SNAFU, it
+   complains about `M-[ a'.  UNIX ttys are a complete mystery to me,
+   but it seems the reset-reinitialize cycle somehow leaves the
+   non-selected terminals in a different state than usual.  I have no
+   idea how this could happen.
+
+   Currently set-input-mode resets only the currently selected
+   terminal, which seems to somehow work around the problem.
+
+   Update:
+
+	Dan Nicolaescu <dann@ics.uci.edu> writes:
+	> Some terminals have 2 modes for cursor keys: Application Mode where
+	> the cursor keys transmit the codes defined in the terminfo entry, and
+	> Cursor mode. Applications have to send the smkx and rmkx terminfo
+	> strings to switch between the 2 modes. So Emacs (and emacsclient) have
+	> to send smkx when initializing and rmkx when quitting (or on
+	> suspend). 
+
+   (I think patch-370 fixed this.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 
