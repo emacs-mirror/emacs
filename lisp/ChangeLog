@@ -1,3 +1,7 @@
+2005-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (normal-mode): Check boundness of font-lock-keywords.
+
 2005-09-12  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/compile.el: Don't decide a file's directory
@@ -21,7 +25,7 @@
 	* time-stamp.el: Mention variable `time-stamp-pattern' in doc
 	strings of the variables it can override.
 
-	(time-stamp): new (as yet undocumented) time-stamp-format escapes
+	(time-stamp): New (as yet undocumented) time-stamp-format escapes
 	%Q and %q, for fully-qualified domain name and unqualified host name.
 
 2005-09-11  Kim F. Storm  <storm@cua.dk>
@@ -41,14 +45,14 @@
 
 2005-09-10  Pascal Dupuis  <Pascal.Dupuis@esat.kuleuven.be>  (tiny change)
 
-	* progmodes/octave-inf.el (inferior-octave-startup): Resync
-	current dir at the end.
+	* progmodes/octave-inf.el (inferior-octave-startup):
+	Resync current dir at the end.
 
 2005-09-10  Emilio C. Lopes  <eclig@gmx.net>
 
-	* woman.el (woman-topic-at-point-default): Renamed to
-	woman-use-topic-at-point-default.
-	(woman-topic-at-point): Renamed to woman-use-topic-at-point.
+	* woman.el (woman-topic-at-point-default):
+	Rename to woman-use-topic-at-point-default.
+	(woman-topic-at-point): Rename to woman-use-topic-at-point.
 	(woman-file-name): Reflect renames above.  Automatically use the
 	word at point as topic if woman-use-topic-at-point is non-nil.
 	Otherwise offer it as default but don't insert it in the
@@ -66,28 +70,26 @@
 	(menu-bar-non-minibuffer-window-p): New functions.
 	("Split Window", "Save As..."): Use them.
 	("Postscript Print Buffer (B+W)", "Postscript Print Buffer")
-	("Print Buffer", "Truncate Long Lines in this Buffer"):  Use
-	menu-bar-menu-frame-live-and-visible-p.
+	("Print Buffer", "Truncate Long Lines in this Buffer"):
+	Use menu-bar-menu-frame-live-and-visible-p.
 	("Save Buffer", "Insert File", "Open Directory...")
-	("Open File...", "Visit New File..."): Use
-	menu-bar-non-minibuffer-window-p.
-	(kill-this-buffer-enabled-p, dired <menu-enable>): Use
-	menu-bar-non-minibuffer-window-p.
+	("Open File...", "Visit New File..."):
+	Use menu-bar-non-minibuffer-window-p.
+	(kill-this-buffer-enabled-p, dired <menu-enable>):
+	Use menu-bar-non-minibuffer-window-p.
 
 2005-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el (all): Don't complain about fringe-related
 	built-ins if fringes are not supported.  Ditto about
-	selection-related built-ins.  Fix the test for GTK-related
-	built-ins.
+	selection-related built-ins.  Fix the test for GTK-related built-ins.
 
 	* menu-bar.el ("Split Window", "Postscript Print Buffer (B+W)")
 	("Postscript Print Buffer", "Print Region", "Save As...")
 	("Save", "Insert File...", "Open Directory...")
 	("Open File...", "Visit New File..."")
 	("Truncate Long Lines in this Buffer"): Don't look at
-	menu-updating-frame if this display does not support multiple
-	frames.
+	menu-updating-frame if this display does not support multiple frames.
 
 2005-09-09  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
 
@@ -119,15 +121,6 @@
 	* font-lock.el (font-lock-support-mode): Doc fix.
 
 	* descr-text.el (describe-property-list): Handle non-symbol prop names.
-
-2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
-	Use with-current-buffer.
-	(ange-ftp-gwp-start): Remove unused var `gw-user'.
-	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
-	(ange-ftp-insert-directory): Remove unused var `short'.
-	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
 
 2005-08-30  Richard M. Stallman  <rms@gnu.org>
 
@@ -164,6 +157,13 @@
 	(recentf-open-files): Use it.
 	(recentf-open-file-with-key): New command.
 
+2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buff-menu.el (Buffer-menu-sort-by-column): New function.
+	Suggested by Kim F. Storm.
+	(Buffer-menu-sort-button-map): Global keymap for sort buttons.
+	(Buffer-menu-make-sort-button): Use global keymap.
+
 2005-09-07  Michael Albinus  <michael.albinus@gmx.de>
 
 	* woman.el (top): Remap `man' command by `woman' in `woman-mode-map'.
@@ -189,14 +189,14 @@
 	* calc/calc-poly.el (math-expand-term): Multiply out any powers
 	when in matrix mode.
 
-2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
-
-	* buff-menu.el (Buffer-menu-sort-by-column): New function.
-	Suggested by Kim F. Storm.
-	(Buffer-menu-sort-button-map): Global keymap for sort buttons.
-	(Buffer-menu-make-sort-button): Use global keymap.
-
 2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
+	Use with-current-buffer.
+	(ange-ftp-gwp-start): Remove unused var `gw-user'.
+	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
+	(ange-ftp-insert-directory): Remove unused var `short'.
+	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
 
 	* buff-menu.el (Buffer-menu-make-sort-button): Add docstrings, use
 	non-anonymous functions.
