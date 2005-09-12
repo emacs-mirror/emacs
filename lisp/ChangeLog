@@ -1,3 +1,21 @@
+2005-09-12  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el: Don't decide a file's directory
+	until the user actually tries to go there.
+	(compilation-next-error-function):
+	Pass compilation-find-file the directory from the file-struct.
+	(compilation-internal-error-properties): Separate local FILE-STRUCT
+	from FILE.  Doc the args better.  Rename arg FMT to FMTS.
+	(compilation-find-file): Arg DIR renamed to DIRECTORY.
+	Expand it, and if nil, use default-directory.
+	(compilation-get-file-structure): Don't mix specified directory
+	with default directory.  Put specified directory into
+	file-struct.  Don't make the file name absolute.
+
+	* progmodes/compile.el (compilation-error-regexp-alist): Doc fix.
+	(compile-command): Add autoload.
+	(compilation-disable-input): Add autoload.
+
 2005-09-11  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* time-stamp.el: Mention variable `time-stamp-pattern' in doc
