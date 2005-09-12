@@ -31,6 +31,9 @@
 
 ;;; Code:
 
+(defvar comint-prompt-regexp)
+
+
 (defgroup prolog nil
   "Major mode for editing and running Prolog under Emacs."
   :group 'languages)

@@ -73,7 +73,7 @@
 	(setq headers-start (match-end 0)
 	      to (url-unhex-string (substring url 0 (match-beginning 0)))
 	      args (url-parse-query-string
-		    (substring url headers-start nil) t))
+		    (substring url headers-start nil) t t))
       (setq to (url-unhex-string url)))
     (setq source-url (url-view-url t))
     (if (and url-request-data (not (assoc "subject" args)))
@@ -84,16 +84,23 @@
     (if (and source-url (not (assoc "x-url-from" args)))
 	(setq args (cons (list "x-url-from" source-url) args)))
 
-    (if (assoc "to" args)
-	(push (cdr (assoc "to" args)) to)
-      (setq args (cons (list "to" to) args)))
+    (let ((tolist (assoc "to" args)))
+      (if tolist
+	  (if (not (string= to ""))
+	      (setcdr tolist
+		      (list (concat to ", " (cadr tolist)))))
+	(setq args (cons (list "to" to) args))))
+
     (setq subject (cdr-safe (assoc "subject" args)))
     (if (fboundp url-mail-command) (funcall url-mail-command) (mail))
     (while args
       (if (string= (caar args) "body")
 	  (progn
 	    (goto-char (point-max))
-	    (insert (mapconcat 'identity (cdar args) "\n")))
+	    (insert (mapconcat 
+		     #'(lambda (string)
+			 (replace-regexp-in-string "\r\n" "\n" string))
+		     (cdar args) "\n")))
 	(url-mail-goto-field (caar args))
 	(setq func (intern-soft (concat "mail-" (caar args))))
 	(insert (mapconcat 'identity (cdar args) ", ")))

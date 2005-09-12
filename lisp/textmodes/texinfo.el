@@ -42,6 +42,7 @@
       `(defvar ,var ,value ,doc)))
 
 (eval-when-compile (require 'tex-mode) (require 'cl))
+(defvar outline-heading-alist)
 
 (defgroup texinfo nil
   "Texinfo Mode."

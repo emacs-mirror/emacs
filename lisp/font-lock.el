@@ -224,17 +224,6 @@
 (defgroup font-lock-extra-types nil
   "Extra mode-specific type names for highlighting declarations."
   :group 'font-lock)
-
-;; Define support mode groups here to impose `font-lock' group order.
-(defgroup fast-lock nil
-  "Font Lock support mode to cache fontification."
-  :load 'fast-lock
-  :group 'font-lock)
-
-(defgroup lazy-lock nil
-  "Font Lock support mode to fontify lazily."
-  :load 'lazy-lock
-  :group 'font-lock)
 
 ;; User variables.
 
@@ -293,7 +282,7 @@ If a number, only buffers greater than this size have fontification messages."
 		 (integer :tag "size"))
   :group 'font-lock)
 
-(defcustom font-lock-lines-before 1
+(defcustom font-lock-lines-before 0
   "*Number of lines before the changed text to include in refontification."
   :type 'integer
   :group 'font-lock
@@ -1049,6 +1038,8 @@ a very meaningful entity to highlight.")
 	  ;; Use the fontification syntax table, if any.
 	  (when font-lock-syntax-table
 	    (set-syntax-table font-lock-syntax-table))
+          (goto-char beg)
+          (setq beg (line-beginning-position (- 1 font-lock-lines-before)))
 	  ;; check to see if we should expand the beg/end area for
 	  ;; proper multiline matches
 	  (when (and font-lock-multiline
@@ -1105,8 +1096,7 @@ what properties to clear before refontifying a region.")
       (save-match-data
 	;; Rescan between start of lines enclosing the region.
 	(font-lock-fontify-region
-	 (progn (goto-char beg)
-		(forward-line (- font-lock-lines-before)) (point))
+	 (progn (goto-char beg) (forward-line 0) (point))
 	 (progn (goto-char end) (forward-line 1) (point)))))))
 
 (defun font-lock-fontify-block (&optional arg)

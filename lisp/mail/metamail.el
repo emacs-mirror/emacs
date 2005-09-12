@@ -36,6 +36,9 @@
 
 ;;; Code:
 
+(defvar rmail-current-message)
+(defvar rmail-message-vector)
+
 (defgroup metamail nil
   "Metamail interface for Emacs."
   :group 'mail

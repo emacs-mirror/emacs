@@ -116,6 +116,7 @@ are indicated with a symbol."
           (add-hook 'window-configuration-change-hook
                     'longlines-window-change-function nil t))
         (let ((buffer-undo-list t)
+              (inhibit-read-only t)
               (mod (buffer-modified-p)))
           ;; Turning off undo is OK since (spaces + newlines) is
           ;; conserved, except for a corner case in
@@ -136,7 +137,8 @@ are indicated with a symbol."
     (setq buffer-file-format (delete 'longlines buffer-file-format))
     (if longlines-showing
         (longlines-unshow-hard-newlines))
-    (let ((buffer-undo-list t))
+    (let ((buffer-undo-list t)
+          (inhibit-read-only t))
       (longlines-encode-region (point-min) (point-max)))
     (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
     (remove-hook 'before-kill-functions 'longlines-encode-region t)
@@ -144,7 +146,11 @@ are indicated with a symbol."
     (remove-hook 'post-command-hook 'longlines-post-command-function t)
     (remove-hook 'window-configuration-change-hook
                  'longlines-window-change-function t)
-    (kill-local-variable 'fill-column)))
+    (when longlines-wrap-follows-window-size
+      (kill-local-variable 'fill-column))
+    (kill-local-variable 'require-final-newline)
+    (kill-local-variable 'buffer-substring-filters)
+    (kill-local-variable 'use-hard-newlines)))
 
 (defun longlines-mode-off ()
   "Turn off longlines mode.

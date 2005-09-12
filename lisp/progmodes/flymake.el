@@ -806,11 +806,13 @@ line number outside the file being compiled."
 (defun flymake-highlight-err-lines (buffer err-info-list)
   "Highlight error lines in BUFFER using info from ERR-INFO-LIST."
   (with-current-buffer buffer
+   (save-excursion
     (let* ((idx    0)
 	   (count  (length err-info-list)))
       (while (< idx count)
-	(flymake-highlight-line (car (nth idx err-info-list)) (nth 1 (nth idx err-info-list)))
-	(setq idx (1+ idx))))))
+	(flymake-highlight-line (car (nth idx err-info-list))
+				(nth 1 (nth idx err-info-list)))
+	(setq idx (1+ idx)))))))
 
 (defun flymake-overlay-p (ov)
   "Determine whether overlay OV was created by flymake."

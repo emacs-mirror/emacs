@@ -907,6 +907,12 @@ searches also, including those performed by the replace commands
 (@pxref{Replace}) and the minibuffer history matching commands
 (@pxref{Minibuffer History}).
 
+  Several related variables control case-sensitivity of searching and
+matching for specific commands or activities.  For instance,
+@code{tags-case-fold-search} controls case sensitivity for
+@code{find-tag}.  To find these variables, do @kbd{M-x
+apropos-variable @key{RET} case-fold-search @key{RET}}.
+
 @node Replace
 @section Replacement Commands
 @cindex replacement

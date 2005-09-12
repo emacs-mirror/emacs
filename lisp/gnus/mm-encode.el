@@ -118,7 +118,7 @@ ENCODING can be: nil (do nothing); one of `quoted-printable', `base64';
     ;; Likewise base64 below.
     (quoted-printable-encode-region (point-min) (point-max) t))
    ((eq encoding 'base64)
-    (when (equal type "text/plain")
+    (when (string-match "\\`text/" type)
       (goto-char (point-min))
       (while (search-forward "\n" nil t)
 	(replace-match "\r\n" t t)))

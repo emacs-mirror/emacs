@@ -37,6 +37,8 @@
 (require 'pcvs-util)
 (autoload 'vc-version-diff "vc")
 
+(defvar cvs-minor-wrap-function)
+
 (defgroup log-view nil
   "Major mode for browsing log output of RCS/CVS/SCCS."
   :group 'pcl-cvs

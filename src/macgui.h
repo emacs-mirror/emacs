@@ -87,6 +87,10 @@ typedef GWorldPtr Pixmap;
 
 #define FACE_DEFAULT (~0)
 
+#if !TARGET_API_MAC_CARBON
+#define GetPixDepth(pmh) ((*(pmh))->pixelSize)
+#endif
+
 
 /* Emulate XCharStruct.  */
 typedef struct _XCharStruct

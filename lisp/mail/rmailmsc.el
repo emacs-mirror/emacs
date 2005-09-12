@@ -26,6 +26,9 @@
 
 ;;; Code:
 
+(defvar rmail-current-message)
+(defvar rmail-inbox-list)
+
 ;;;###autoload
 (defun set-rmail-inbox-list (file-name)
   "Set the inbox list of the current RMAIL file to FILE-NAME.

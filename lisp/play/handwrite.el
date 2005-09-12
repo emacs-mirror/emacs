@@ -69,6 +69,9 @@
 
 ;;; Code:
 
+(defvar ps-printer-name)
+(defvar ps-lpr-command)
+
 
 ;; Variables
 

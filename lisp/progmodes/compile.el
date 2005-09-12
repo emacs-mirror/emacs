@@ -70,6 +70,12 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar font-lock-extra-managed-props)
+(defvar font-lock-keywords)
+(defvar font-lock-maximum-size)
+(defvar font-lock-support-mode)
+
+
 (defgroup compilation nil
   "Run compiler as inferior of Emacs, parse error messages."
   :group 'tools
@@ -287,11 +293,11 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 \\(?:: \\(warning:\\)?\\|$\\| ),\\)" 1 2 nil (3))
 
     (gcov-file
-     "^ +-:    \\(0\\):Source:\\(.+\\)$" 2 1 nil 0)    
+     "^ +-:    \\(0\\):Source:\\(.+\\)$" 2 1 nil 0)
     (gcov-bb-file
-     "^ +-:    \\(0\\):Object:\\(?:.+\\)$" nil 1 nil 0)    
+     "^ +-:    \\(0\\):Object:\\(?:.+\\)$" nil 1 nil 0)
     (gcov-never-called-line
-     "^ +\\(#####\\): +\\([0-9]+\\):.+$" nil 2 nil 2 nil 
+     "^ +\\(#####\\): +\\([0-9]+\\):.+$" nil 2 nil 2 nil
      (1 compilation-error-face))
     (gcov-called-line
      "^ +[-0-9]+: +\\([1-9]\\|[0-9]\\{2,\\}\\):.*$" nil 1 nil 0)
@@ -911,6 +917,7 @@ Otherwise, construct a buffer name from MODE-NAME."
     (compilation-start command nil name-function highlight-regexp)))
 (make-obsolete 'compile-internal 'compilation-start)
 
+;;;###autoload
 (defun compilation-start (command &optional mode name-function highlight-regexp)
   "Run compilation command COMMAND (low level interface).
 If COMMAND starts with a cd command, that becomes the `default-directory'.
@@ -918,7 +925,8 @@ The rest of the arguments are optional; for them, nil means use the default.
 
 MODE is the major mode to set in the compilation buffer.  Mode
 may also be t meaning use `compilation-shell-minor-mode' under `comint-mode'.
-NAME-FUNCTION is a function called to name the buffer.
+If NAME-FUNCTION is non-nil, call it with one argument (the mode name)
+to determine the buffer name.
 
 If HIGHLIGHT-REGEXP is non-nil, `next-error' will temporarily highlight
 the matching section of the visited source line; the default is to use the
@@ -1030,11 +1038,14 @@ Returns the compilation buffer created."
 						       outbuf command))))
 	      ;; Make the buffer's mode line show process state.
 	      (setq mode-line-process '(":%s"))
-	      (when compilation-disable-input
-		(process-send-eof proc))
 	      (set-process-sentinel proc 'compilation-sentinel)
 	      (set-process-filter proc 'compilation-filter)
 	      (set-marker (process-mark proc) (point) outbuf)
+	      (when compilation-disable-input
+                (condition-case nil
+                    (process-send-eof proc)
+                  ;; The process may have exited already.
+                  (error nil)))
 	      (setq compilation-in-progress
 		    (cons proc compilation-in-progress)))
 	  ;; No asynchronous processes available.
@@ -1677,14 +1688,18 @@ and overlay is highlighted between MK and END-MK."
   ;; Show compilation buffer in other window, scrolled to this error.
   (let* ((pop-up-windows t)
 	 ;; Use an existing window if it is in a visible frame.
-	 (w (or (get-buffer-window (marker-buffer msg) 'visible)
-		;; Pop up a window.
-		(display-buffer (marker-buffer msg))))
+         (pre-existing (get-buffer-window (marker-buffer msg) 0))
+         (w (let ((display-buffer-reuse-frames t))
+              ;; Pop up a window.
+              (display-buffer (marker-buffer msg))))
 	 (highlight-regexp (with-current-buffer (marker-buffer msg)
 			     ;; also do this while we change buffer
 			     (compilation-set-window w msg)
 			     compilation-highlight-regexp)))
-    (compilation-set-window-height w)
+    ;; Ideally, the window-size should be passed to `display-buffer' (via
+    ;; something like special-display-buffer) so it's only used when
+    ;; creating a new window.
+    (unless pre-existing (compilation-set-window-height w))
 
     (when highlight-regexp
       (if (timerp next-error-highlight-timer)

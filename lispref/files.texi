@@ -2580,7 +2580,9 @@ Here are the operations that a magic file name handler gets to handle:
 @code{get-file-buffer},
 @code{insert-directory},
 @code{insert-file-contents},@*
-@code{load}, @code{make-directory},
+@code{load},
+@code{make-auto-save-file-name},
+@code{make-directory},
 @code{make-directory-internal},
 @code{make-symbolic-link},@*
 @code{rename-file}, @code{set-file-modes}, @code{set-file-times},

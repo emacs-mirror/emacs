@@ -123,6 +123,8 @@
 
 ;;; Code:
 
+(defvar gnus-original-article-buffer)
+
 (defgroup spam-stat nil
   "Statistical spam detection for Emacs.
 Use the functions to build a dictionary of words and their statistical

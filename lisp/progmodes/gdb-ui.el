@@ -79,6 +79,8 @@
 
 (require 'gud)
 
+(defvar tool-bar-map)
+
 (defvar gdb-frame-address "main" "Initialization for Assembler buffer.")
 (defvar gdb-previous-frame-address nil)
 (defvar gdb-memory-address "main")
@@ -703,6 +705,13 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   (if gdb-use-inferior-io-buffer
       (gdb-display-buffer
        (gdb-get-create-buffer 'gdb-inferior-io))))
+
+(defconst gdb-frame-parameters
+  '((height . 14) (width . 80)
+    (unsplittable . t)
+    (tool-bar-lines . nil)
+    (menu-bar-lines . nil)
+    (minibuffer . nil)))
 
 (defun gdb-frame-inferior-io-buffer ()
   "Display IO of inferior in a new frame."
@@ -1409,13 +1418,6 @@ static char *magick[] = {
   (interactive)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-breakpoints-buffer)))
-
-(defconst gdb-frame-parameters
-  '((height . 14) (width . 80)
-    (unsplittable . t)
-    (tool-bar-lines . nil)
-    (menu-bar-lines . nil)
-    (minibuffer . nil)))
 
 (defun gdb-frame-breakpoints-buffer ()
   "Display status of user-settable breakpoints in a new frame."

@@ -1,3 +1,464 @@
+2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-theme.el (custom-theme-write-faces): Save the current face
+	spec, not the defface spec.
+
+	* custom.el (custom-known-themes): Clarify meaning of "standard".
+	(custom-push-theme): Save old values in the standard theme.
+	(disable-theme): Correct typo.
+	(custom-face-theme-value) Deleted unused function.
+	(custom-theme-recalc-face): Rewritten to treat enable/disable
+	properly.
+
+2005-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-goto-locus): Take into account
+	iconified frames when determining whether the buffer is
+	already visible.
+	Don't reset window height if the window already existed.
+
+2005-09-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (load-theme): Rename from require-theme.
+	Add interactive spec.
+	(enable-theme): Rename from custom-enable-theme.
+	Add interactive spec.
+	(disable-theme): Rename from custom-disable-theme.
+	Add interactive spec.
+	(custom-make-theme-feature): Doc fix.
+	(custom-theme-directory): Doc fix.
+	(provide-theme): Call enable-theme.
+
+2005-09-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* obsolete/lazy-lock.el (lazy-lock-mode):
+	* obsolete/fast-lock.el (fast-lock-mode): Don't try to turn on
+	font-lock-mode if it's off.  Print a warning instead.
+
+	* progmodes/compile.el (compilation-start): Ignore errors if the
+	process died before we get to send-eof.
+
+	* textmodes/tex-mode.el (tex-send-tex-command, tex-bibtex-file):
+	Undo last change.  Enclosing the result in quotes broke things on Unix
+	since tex-send-command passes it through shell-quote-argument.
+	(tex-send-command): Pass `file' through convert-standard-filename
+	when possible.
+	(tex-uptodate-p): Handle the case where TeX hasn't put additional
+	info in a transcript.
+
+2005-09-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Add eval-when-compile to
+	fix compilation warning. Reorder the key definitions to group
+	together keys emitted by the current version of xterm.
+
+	* progmodes/vhdl-mode.el (vhdl-highlight-faces)
+	(vhdl-speedbar-entity-face, vhdl-speedbar-entity-selected-face):
+	Reorder predicates to correct min-color usage.
+
+2005-09-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Inhibit read-only when encoding.
+	Kill local variables when longlines-mode is turned off.
+
+2005-09-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-cmds.el (set-locale-environment): Soothe compiler.
+
+	* obsolete/lazy-lock.el (lazy-lock) <defgroup>: Move from font-lock.el.
+
+	* obsolete/fast-lock.el (fast-lock) <defgroup>: Move from font-lock.el.
+
+	* font-lock.el (fast-lock, lazy-lock) <defgroup>: Remove.
+	(font-lock-lines-before): Change default to being inactive.
+	(font-lock-default-fontify-region): Obey font-lock-lines-before.
+	(font-lock-after-change-function): Don't handle f-l-lines-before here.
+
+2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-handle-make-auto-save-file-name):
+	Deactivate temporarily advice if active (not needed for Emacs 22,
+	but for backwards compatibility).
+	(tramp-exists-file-name-handler): Rewrite.  First implementation
+	was too simple.
+	(tramp-advice-make-auto-save-file-name):
+	Call `tramp-handle-make-auto-save-file-name' (again, just for
+	backwards compatibility).
+
+2005-08-31  Reto Zimmermann  <reto@gnu.org>
+
+	* progmodes/vhdl-mode.el
+	(vhdl-update-sensitivity-list): Handle multi-dimensional array access.
+	(vhdl-end-p): Fix indentation bug "else" after "-- when".
+	(vhdl-set-default-project): New function (easier setting of default).
+	(vhdl-port-copy): Handle extended identifiers for generics.
+	(vhdl-compiler-alist): Better description for error message regexp.
+	(vhdl-make): Query for target, use previous as default.
+	(vhdl-port-copy): Fix port copy for port names starting with "signal".
+	(vhdl-font-lock-keywords-2): Fix fontification for record
+	el. assign.
+	(vhdl-speedbar-make-subpack-line): Add package body link.
+	(vhdl-generate-makefile-1): Not include itself as dependency.
+	(vhdl-font-lock-init): Highlight c-preprocessor directives.
+	(vhdl-*ward-syntactic-ws): Skip c-preprocessor directives.
+	(vhdl-get-syntactic-context): Handle c-preprocessor directives.
+	(vhdl-update-sensitivity-list): Start scan at opening parenthesis.
+	(vhdl-fixup-whitespace-region): Fix jumping point (infinite loop).
+	(vhdl-update-sensitivity-list-buffer): Add string argument for `error'.
+	(vhdl-import-project): Add string argument for `error'.
+	(vhdl-compose-configuration)
+	(vhdl-compose-configuration-architecture): Add configuration
+	declaration generation.
+	(vhdl-scan-directory-contents): Scan for block/generate hierarchy.
+	(vhdl-trailer-re): Add "record" keyword (better indentation).
+	(vhdl-fixup-whitespace-region): "[^ \t\"-]+" instead of
+	"[^ \t-\"]+".
+	(vhdl-font-lock-keywords-2): Not highlight formal parameter after '|'.
+	(vhdl-testbench-entity-file-name)
+	(vhdl-testbench-architecture-file-name): Allow separate
+	customization of testbench file names.
+	(vhdl-beginning-of-block): Handle optional subprogram parameter list.
+	(vhdl-get-visible-signals): Allow newline within alias declaration.
+	(vhdl-update-sensitivity-list): Signal read only on certain attributes.
+	(vhdl-fixup-whitespace-region): Fix bug with strings (double quotes).
+	(member-ignore-case): Alias for missing function in XEmacs.
+	(vhdl-compiler-alist): Add unit-to-file name mapping for Cadence NC.
+	(vhdl-update-sensitivity-list): Ignore case on read signals.
+	(vhdl-replace-string): Adjust case only for file names.
+	(vhdl-update-sensitivity-list): Fix search for read signals.
+	(vhdl-update-sensitivity-list): Exclude formal parameters.
+	(vhdl-get-visible-signals): Include aliases of signals.
+	(vhdl-get-visible-signals): Fix signal name searching.
+	(vhdl-port-flatten, vhdl-port-reverse-direction): Better message.
+	(vhdl-fixup-whitespace-region): Fix for character
+	literals (e.g. ':').
+
+2005-08-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ansi-color.el (comint-last-output-start):
+	* bs.el (font-lock-verbose):
+	* diff-mode.el (add-log-buffer-file-name-function):
+	* dired-x.el (vm-folder-directory):
+	* faces.el (help-xref-stack-item):
+	* files.el (font-lock-keywords):
+	* find-lisp.el (dired-buffers, dired-subdir-alist):
+	* ido.el (cua-inhibit-cua-keys):
+	* log-view.el (cvs-minor-wrap-function):
+	* outline.el (font-lock-warning-face):
+	* simple.el (compilation-current-error):
+	* speedbar.el (ange-ftp-path-format, efs-path-regexp)
+	(font-lock-keywords, x-pointer-hand2, x-pointer-top-left-arrow):
+	* tooltip.el (comint-prompt-regexp):
+	* w32-fns.el (explicit-shell-file-name):
+	* term/mac-win.el (mac-charset-info-alist)
+	(mac-services-selection, mac-system-script-code):
+	* term/tty-colors.el (msdos-color-values):
+	* term/w32-win.el (xlfd-regexp-registry-subnum):
+	* term/x-win.el (x-keysym-table, x-selection-timeout)
+	(x-session-id, x-session-previous-id):
+	* textmodes/ispell.el (mail-yank-prefix):
+	* textmodes/makeinfo.el (tex-end-of-header, tex-start-of-header):
+	* textmodes/org.el (calc-embedded-close-formula)
+	(calc-embedded-open-formula)
+	(font-lock-unfontify-region-function):
+	* textmodes/reftex-global.el (isearch-next-buffer-function)
+	(TeX-master):
+	* textmodes/reftex.el (font-lock-keywords):
+	* textmodes/tex-mode.el (font-lock-comment-face)
+	(font-lock-doc-face):
+	* textmodes/texinfo.el (outline-heading-alist):
+	Add defvars.
+
+	* textmodes/artist.el (x-pointer-crosshair): Add defvar.
+	(artist-spray-chars, artist-mode-init, artist-replace-string)
+	(artist-select-erase-char, artist-vap-find-endpoints-horiz)
+	(artist-vap-find-endpoints-vert, artist-vap-find-endpoints-swne)
+	(artist-vap-find-endpoints-nwse): "?\ " -> "?\s".
+
+	* textmodes/conf-mode.el (outline-heading-end-regexp): Add defvar.
+	(conf-align-assignments): "?\ " -> "?\s".
+
+	* textmodes/reftex-index.el (TeX-master): Add defvar.
+	(reftex-index-phrases-marker): Move up defvar.
+
+	* textmodes/reftex-toc.el (zmacs-regions): Add defvar.
+	(reftex-toc-include-labels-indicator)
+	(reftex-toc-include-index-indicator)
+	(reftex-toc-max-level-indicator): Move up declarations.
+
+	* net/tramp.el (tramp-handle-make-auto-save-file-name): Pass list
+	of args to `tramp-run-real-handler', even if it's empty in this case.
+
+2005-08-31  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dired.el (dired-move-to-filename-regexp): Add date format for
+	Mac OS X 10.3 in East Asian locales.
+
+2005-08-31  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (make-auto-save-file-name): Add file name handler call
+	if applicable.
+
+	* net/tramp.el (tramp-file-name-handler-alist)
+	(tramp-file-name-for-operation): Add `make-auto-save-file-name'.
+	(tramp-handle-make-auto-save-file-name): Rename from
+	`tramp-make-auto-save-file-name'.
+	(tramp-exists-file-name-handler): New defun.
+	(tramp-advice-make-auto-save-file-name): Make defadvice only when
+	`make-auto-save-file-name' is not a magic file name operation.
+
+2005-08-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-special-keyword): New face.
+	(org-table-copy-down, org-table-eval-formula)
+	(org-table-recalculate, org-init-section-numbers):
+	Use `string-to-number' instead of `string-to-int'.
+	(org-get-location): Use `insert-buffer-substring' instead of
+	`insert-buffer'.
+	(org-modify-diary-entry-string): New function.
+	(org-get-entries-from-diary): Set the hook for `add-to-diary-list'.
+	(org-disable-agenda-to-diary): Rename from `org-disable-diary'.
+	(org-toggle-fixed-width-section): Use QUOTE keyword if there is no
+	active region.
+	(org-export-as-html): Handle QUOTE keyword.
+	(org-quote-string): New option.
+	(org-bookmark-jump-unhide): New function, used for
+	`bookmark-after-jump-hook'.
+	(org-diary-default-entry): Apply only when not called through
+	`org-agenda'.
+
+2005-08-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* net/eudc.el (mode-popup-menu):
+	* play/handwrite.el (ps-printer-name, ps-lpr-command):
+	* progmodes/ada-mode.el (compile-auto-highlight)
+	(skeleton-further-elements):
+	* progmodes/autoconf.el (font-lock-syntactic-keywords):
+	* progmodes/cmacexp.el (msdos-shells):
+	* progmodes/compile.el (font-lock-extra-managed-props)
+	(font-lock-keywords, font-lock-maximum-size)
+	(font-lock-support-mode):
+	* progmodes/grep.el (font-lock-lines-before):
+	* progmodes/idlw-complete-structtag.el (idlwave-completion-help-info):
+	* progmodes/mixal-mode.el (compile-command):
+	* progmodes/perl-mode.el (font-lock-comment-face)
+	(font-lock-doc-face, font-lock-string-face):
+	* progmodes/prolog.el (comint-prompt-regexp):
+	* progmodes/sh-script.el (font-lock-comment-face)
+	(font-lock-set-defaults, font-lock-string-face):
+	* progmodes/sql.el (font-lock-keyword-face)
+	(font-lock-set-defaults, font-lock-string-face):
+	* progmodes/vhdl-mode.el (compilation-file-regexp-alist)
+	(itimer-version, lazy-lock-defer-contextually)
+	(lazy-lock-defer-on-scrolling, lazy-lock-defer-on-the-fly):
+	Add defvars.
+
+	* progmodes/cperl-mode.el (cperl-electric-lbrace)
+	(cperl-electric-keyword, cperl-electric-pod)
+	(cperl-electric-backspace, cperl-forward-re)
+	(cperl-fix-line-spacing, cperl-fill-paragraph): "?\ " -> "?\s".
+	(vc-rcs-header, vc-sccs-header): Add defvars.
+
+	* progmodes/fortran.el (fortran-indent-to-column): "?\ " -> "?\s".
+	(font-lock-syntactic-keywords, gud-find-expr-function):
+	Add defvars.
+
+	* progmodes/gdb-ui.el (tool-bar-map): Add defvar.
+	(gdb-frame-parameters): Declare before use.
+
+	* progmodes/gud.el (gdb-active-process, gdb-define-alist)
+	(gdb-macro-info, gdb-server-prefix, gdb-show-changed-values)
+	(gdb-var-changed, gdb-var-list, tool-bar-map): Add defvars.
+	(gud-expr-compound-sep, gud-expr-compound): "?\ " -> "?\s".
+
+	* progmodes/idlw-help.el (browse-url-generic-args): Add defvar.
+	(idlwave-help-with-source): Use `insert-buffer-substring', not
+	`insert-buffer'.
+
+2005-08-29  Juri Linkov  <juri@jurta.org>
+
+	* outline.el (hide-entry, hide-leaves, outline-toggle-children):
+	Put outline-back-to-heading function call inside save-excursion.
+
+2005-08-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* man.el (Man-init-defvars, Man-translate-references)
+	(Man-support-local-filenames, Man-highlight-references):
+	* progmodes/sql.el (sql-interactive-mode):
+	* shell.el (shell-mode, shell-resync-dirs): Fix typos in docstrings.
+
+	* emacs-lisp/checkdoc.el (compilation-error-regexp-alist)
+	(compilation-mode-font-lock-keywords): Add defvars.
+	(checkdoc-interactive-loop): "?\ " -> "?\s".
+
+	* emacs-lisp/lisp-mode.el (font-lock-comment-face)
+	(font-lock-doc-face, font-lock-string-face)
+	(font-lock-keywords-case-fold-search): Add defvars.
+	(emacs-lisp-mode-syntax-table): "?\ " -> "?\s".
+
+	* obsolete/sun-fns.el (mouse-select-or-drag-move-point):
+	Don't pass X and Y (they are ignored anyway).
+	(mouse-set-mark, mouse-select-window, mouse-delete-other-windows)
+	(mouse-delete-window): Make arguments optional.
+
+	* obsolete/rnews.el (news-add-news-group): Don't use `end-of-line'.
+	(caesar-translate-table, minor-modes, news-buffer-save)
+	(news-group-name, news-minor-modes): Add defvars.
+
+	* emacs-lisp/lselect.el (mouse-highlight-priority)
+	(x-lost-selection-functions, zmacs-regions):
+	* emacs-lisp/pp.el (font-lock-verbose):
+	* emacs-lisp/syntax.el (font-lock-beginning-of-syntax-function):
+	* emacs-lisp/tcover-ses.el (ses-initial-global-parameters)
+	(ses-mode-map):
+	* emacs-lisp/tcover-unsafep.el (safe-functions):
+	* international/mule-cmds.el (mac-system-coding-system)
+	(mac-system-locale):
+	* language/ethio-util.el (rmail-current-message)
+	(rmail-message-vector):
+	* language/thai-util.el (thai-auto-composition-mode):
+	* mail/metamail.el (rmail-current-message, rmail-message-vector):
+	* mail/mspools.el (rmail-inbox-list, vm-crash-box)
+	(vm-folder-directory, vm-init-file, vm-init-file-loaded)
+	(vm-primary-inbox, vm-spool-files):
+	* mail/rmail.el (deleted-head, font-lock-fontified)
+	(mail-abbrev-syntax-table, mail-abbrevs, messages-head)
+	(rmail-use-spam-filter, rsf-beep, rsf-sleep-after-message)
+	(total-messages):
+	* mail/rmail-spam-filter.el (bbdb/mail_auto_create_p)
+	(rmail-summary-mode-map):
+	* mail/rmailkwd.el (rmail-buffer, rmail-current-message)
+	(rmail-last-label, rmail-last-multi-labels)
+	(rmail-summary-vector, rmail-total-messages):
+	* mail/rmailmsc.el (rmail-current-message, rmail-inbox-list):
+	* mail/rmailsum.el (msgnum):
+	* mail/uce.el (gnus-original-article-buffer, mail-reply-buffer)
+	(rmail-current-message):
+	* obsolete/fast-lock.el (font-lock-face-list):
+	* obsolete/rnewspost.el (mail-reply-buffer):
+	* obsolete/scribe.el (compile-command):
+	* obsolete/x-menu.el (x-process-mouse-hook): Add defvars.
+
+2005-08-28  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuf-ext.el (ibuffer-auto-update-changed):
+	Use `frame-or-buffer-changed-p' to check whether we need to update.
+	(ibuffer-auto-mode): Don't advise `get-buffer-create' and
+	`kill-buffer'.  Initialise `ibuffer-auto-buffers-changed'
+	as a `frame-or-buffer-changed-p' state vector instead.
+
+2005-08-27  Romain Francoise  <romain@orebokech.com>
+
+	* textmodes/makeinfo.el (makeinfo-compile):
+	Use `compilation-start'.  Set `next-error-function' according to
+	`disable-errors'.
+	(makeinfo-next-error): New function.
+	(makeinfo-region): Adjust to new `makeinfo-compile' prototype.
+	(makeinfo-buffer): Likewise.
+
+	* progmodes/compile.el (compilation-start): Add autoload cookie.
+
+	* progmodes/antlr-mode.el: Don't autoload `compilation-start'.
+	* textmodes/sgml-mode.el: Likewise.
+	* progmodes/python.el: Likewise.
+
+2005-08-27  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (blink-matching-paren-distance): Document the meaning
+	of nil value, and allow to customize to nil.
+
+	* eshell/esh-ext.el (eshell-windows-shell-file): Look for
+	command.com, not command.exe.
+
+2005-08-26  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/esh-cmd.el (eshell-rewrite-named-command): Change the
+	code around a bit so that an extraneous nil argument is not added
+	to a command when no args are given.
+
+	* eshell/esh-arg.el (eshell-parse-double-quote): If a
+	double-quoted argument resolves to nil, return it as an empty
+	string rather than as nil.  This made it impossible to pass "" to
+	a shell script as a null string argument.
+
+2005-08-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* outline.el (outline-invent-heading): New fun.
+	(outline-promote, outline-demote): Use it.
+	(outline-move-subtree-down): Remove unused vars `re' and `txt'.
+	(outline-end-of-subtree): Remove unused var `opoint'.
+
+2005-08-26  David Reitter  <david.reitter@gmail.com>
+
+	* menu-bar.el (truncate-lines, write-file, print-buffer)
+	(ps-print-buffer-faces, ps-print-buffer, split-window):
+	Disable menu items when the frame they refer to is invisible, or when
+	they refer to a buffer and the minibuffer is selected.
+
+2005-08-26  Pavel Kobiakov  <pk_at_work@yahoo.com>
+
+	* progmodes/flymake.el (flymake-highlight-err-lines):
+	Use save-excursion around flymake-highlight-line to preserve point.
+
+2005-08-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* progmodes/octave-mod.el: Change Author and Maintainer address.
+	(octave-maintainer-address): Change Kurt's email address.
+	* progmodes/octave-inf.el: Change Author and Maintainer address.
+	* progmodes/octave-hlp.el: Change Author and Maintainer address.
+
+2005-08-26  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (version-list-<, version-list-<=, version-list-=):
+	Renamed from integer-list-*.
+	(version-list-not-zero): Likewise.  Fix while loop.
+	(version=): Use version-list-= instead of string-equal.
+
+2005-08-26  Richard M. Stallman  <rms@gnu.org>
+
+	* outline.el (outline-promote): Try shortening the heading.
+	As last resort, read the heading to use.
+	(outline-demote): As last resort, read the heading to use.
+
+2005-08-26  Romain Francoise  <romain@orebokech.com>
+
+	* progmodes/compile.el (compilation-start): Doc fix.
+
+	* progmodes/antlr-mode.el (antlr-default): Fix defface form.
+	(antlr-font-lock-additional-keywords): Fix reference to
+	`antlr-font-lock-literal-regexp' erroneously changed during the
+	mass face rename.
+	(antlr-run-tool): Use `compilation-start'.
+
+	* textmodes/sgml-mode.el (sgml-validate): Use `compilation-start'
+	instead of the obsolete `compile-internal'.
+
+2005-08-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calendar/cal-bahai.el (date, displayed-month, displayed-year)
+	(number, original-date):
+	* calendar/cal-china.el (date):
+	* calendar/cal-coptic.el (date):
+	* calendar/cal-french.el (date):
+	* calendar/cal-hebrew.el (date, entry, number, original-date):
+	* calendar/cal-islam.el (date, number, original-date):
+	* calendar/cal-iso.el (date):
+	* calendar/cal-julian.el (date):
+	* calendar/cal-mayan.el (date):
+	* calendar/cal-menu.el (date, event):
+	* calendar/cal-persia.el (date):
+	* calendar/lunar.el (date):
+	* calendar/solar.el (date): Add defvars.
+
+	* emerge.el:
+	* ibuffer.el:
+	* info-xref.el:
+	* obsolete/bg-mouse.el:
+	* obsolete/sun-curs.el:
+	* obsolete/swedish.el: Move the `defvar's to the top level.
+
+	* smerge-mode.el (smerge-refined-change): Add :group.
+
 2005-08-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* smerge-mode.el (smerge-remove-props): Make the args non-optional.
@@ -46,6 +507,12 @@
 	* calendar/diary-lib.el (diary-modify-entry-list-string-function):
 	New hook.
 	(add-to-diary-list): Call `diary-modify-entry-list-string-function'
+
+2005-08-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Simplify.
+
+	* custom.el (custom-theme-set-variables): Sort minor modes last.
 
 2005-08-24  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
@@ -122,18 +589,16 @@
 	(xscheme-allow-output-p, xscheme-prompt, xscheme-mode-string):
 	Move to beginning of file.
 	(scheme-interaction-mode-commands-alist)
-	(scheme-interaction-mode-map, scheme-debugger-mode-map): Declare
-	them before use.  Note: the initialization code for the variables
-	has not been moved because it uses functions that reference the
-	variables.
+	(scheme-interaction-mode-map, scheme-debugger-mode-map):
+	Declare them before use.  Note: the initialization code for the variables
+	has not been moved because it uses functions that reference the variables.
 	(xscheme-control-g-message-string, xscheme-process-filter-alist)
 	(xscheme-prompt-for-expression-map): Declare them before use.
 	(scheme-debugger-mode-commands): "?\ " -> "?\s".
 
 2005-08-23  Ed Swarthout  <ed.swarthout@gmail.com>  (tiny change)
 
-	* hexl.el (hexl-print-current-point-info): Fix simple spelling
-	error.
+	* hexl.el (hexl-print-current-point-info): Fix simple spelling error.
 
 2005-08-22  Juri Linkov  <juri@jurta.org>
 
@@ -10176,7 +10641,7 @@
 
 2005-01-21  Ren,Ai(B Kyllingstad  <listmailxemacs@kyllingstad.com>
 
-	* pcomplete.el: define pcomplete-read-event instead of read-event,
+	* pcomplete.el: Define pcomplete-read-event instead of read-event,
 	since it's not a complete read-event implementation
 
 2005-01-20  Jay Belanger  <belanger@truman.edu>

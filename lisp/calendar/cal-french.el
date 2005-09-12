@@ -43,6 +43,8 @@
 
 ;;; Code:
 
+(defvar date)
+
 (require 'calendar)
 
 (defun french-calendar-accents ()

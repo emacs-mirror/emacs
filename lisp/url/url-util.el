@@ -270,7 +270,7 @@ Will not do anything if `url-show-status' is nil."
    (t (file-name-directory file))))
 
 ;;;###autoload
-(defun url-parse-query-string (query &optional downcase)
+(defun url-parse-query-string (query &optional downcase allow-newlines)
   (let (retval pairs cur key val)
     (setq pairs (split-string query "&"))
     (while pairs
@@ -278,8 +278,10 @@ Will not do anything if `url-show-status' is nil."
 	    pairs (cdr pairs))
       (if (not (string-match "=" cur))
 	  nil				; Grace
-	(setq key (url-unhex-string (substring cur 0 (match-beginning 0)))
-	      val (url-unhex-string (substring cur (match-end 0) nil)))
+	(setq key (url-unhex-string (substring cur 0 (match-beginning 0))
+				    allow-newlines))
+	(setq val (url-unhex-string (substring cur (match-end 0) nil)
+				    allow-newlines))
 	(if downcase
 	    (setq key (downcase key)))
 	(setq cur (assoc key retval))

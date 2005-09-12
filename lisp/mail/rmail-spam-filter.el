@@ -86,6 +86,9 @@
     (require 'rmailsum)
   (if (not (fboundp 'rmail-make-summary-line)) (load-library "rmailsum")))
 
+(defvar bbdb/mail_auto_create_p)
+(defvar rmail-summary-mode-map)
+
 ;; For find-if and other cool common lisp functions we may want to use.
 (eval-when-compile
   (require 'cl))

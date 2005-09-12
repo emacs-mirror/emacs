@@ -33,6 +33,9 @@
 
 (require 'compile)
 
+(defvar font-lock-lines-before)
+
+
 (defgroup grep nil
   "Run compiler as inferior of Emacs, parse error messages."
   :group 'tools

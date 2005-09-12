@@ -33,8 +33,8 @@
   ;; better in that case to use rxvt's initializion function.
   (if (and (getenv "COLORTERM")
 	   (string-match "\\`rxvt" (getenv "COLORTERM")))
-      (progn
-	(load "term/rxvt")
+      (progn 
+	(eval-when-compile (load "term/rxvt"))
 	(terminal-init-rxvt))
 
     ;; The terminal intialization C code file might have initialized
@@ -98,20 +98,11 @@
     (substitute-key-definition [f60] [A-f12] function-key-map)
 
     (let ((map (make-sparse-keymap)))
-      (define-key map "\e[A" [up])
-      (define-key map "\e[B" [down])
-      (define-key map "\e[C" [right])
-      (define-key map "\e[D" [left])
-      (define-key map "\e[1~" [home])
-      (define-key map "\e[2~" [insert])
-      (define-key map "\e[3~" [delete])
-      (define-key map "\e[4~" [select])
-      (define-key map "\e[5~" [prior])
-      (define-key map "\e[6~" [next])
-      (define-key map "\e[11~" [f1])
-      (define-key map "\e[12~" [f2])
-      (define-key map "\e[13~" [f3])
-      (define-key map "\e[14~" [f4])
+      ;; xterm from X.org 6.8.2 uses these key definitions.
+      (define-key map "\eOP" [f1])
+      (define-key map "\eOQ" [f2])
+      (define-key map "\eOR" [f3])
+      (define-key map "\eOS" [f4])
       (define-key map "\e[15~" [f5])
       (define-key map "\e[17~" [f6])
       (define-key map "\e[18~" [f7])
@@ -120,12 +111,6 @@
       (define-key map "\e[21~" [f10])
       (define-key map "\e[23~" [f11])
       (define-key map "\e[24~" [f12])
-      (define-key map "\e[29~" [print])
-
-      (define-key map "\eOP" [f1])
-      (define-key map "\eOQ" [f2])
-      (define-key map "\eOR" [f3])
-      (define-key map "\eOS" [f4])
 
       (define-key map "\eO2P" [S-f1])
       (define-key map "\eO2Q" [S-f2])
@@ -179,6 +164,13 @@
       (define-key map "\e[23;3~" [A-f11])
       (define-key map "\e[24;3~" [A-f12])
 
+      (define-key map "\eOA" [up])
+      (define-key map "\eOB" [down])
+      (define-key map "\eOC" [right])
+      (define-key map "\eOD" [left])
+      (define-key map "\eOF" [end])
+      (define-key map "\eOH" [home])
+
       (define-key map "\e[1;2A" [S-up])
       (define-key map "\e[1;2B" [S-down])
       (define-key map "\e[1;2C" [S-right])
@@ -207,6 +199,11 @@
       (define-key map "\e[1;3F" [A-end])
       (define-key map "\e[1;3H" [A-home])
 
+      (define-key map "\e[2~" [insert])
+      (define-key map "\e[3~" [delete])
+      (define-key map "\e[5~" [prior])
+      (define-key map "\e[6~" [next])
+
       (define-key map "\e[2;2~" [S-insert])
       (define-key map "\e[3;2~" [S-delete])
       (define-key map "\e[5;2~" [S-prior])
@@ -227,12 +224,15 @@
       (define-key map "\e[5;3~" [A-prior])
       (define-key map "\e[6;3~" [A-next])
 
-      (define-key map "\eOA" [up])
-      (define-key map "\eOB" [down])
-      (define-key map "\eOC" [right])
-      (define-key map "\eOD" [left])
-      (define-key map "\eOF" [end])
-      (define-key map "\eOH" [home])
+      (define-key map "\e[4~" [select])
+      (define-key map "\e[29~" [print])
+
+      ;; Other versions of xterm might emit these.
+      (define-key map "\e[A" [up])
+      (define-key map "\e[B" [down])
+      (define-key map "\e[C" [right])
+      (define-key map "\e[D" [left])
+      (define-key map "\e[1~" [home])
 
       (define-key map "\eO2A" [S-up])
       (define-key map "\eO2B" [S-down])
@@ -247,6 +247,11 @@
       (define-key map "\eO5D" [C-left])
       (define-key map "\eO5F" [C-end])
       (define-key map "\eO5H" [C-home])
+
+      (define-key map "\e[11~" [f1])
+      (define-key map "\e[12~" [f2])
+      (define-key map "\e[13~" [f3])
+      (define-key map "\e[14~" [f4])
 
       ;; Use inheritance to let the main keymap override those defaults.
       ;; This way we don't override terminfo-derived settings or settings

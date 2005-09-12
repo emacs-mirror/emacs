@@ -228,7 +228,7 @@ If TYPE is `text/plain' CRLF->LF translation may occur."
 	 nil))
     (when (and
 	   (memq encoding '(base64 x-uuencode x-uue x-binhex x-yenc))
-	   (equal type "text/plain"))
+	   (string-match "\\`text/" type))
       (goto-char (point-min))
       (while (search-forward "\r\n" nil t)
 	(replace-match "\n" t t)))))

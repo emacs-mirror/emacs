@@ -79,6 +79,9 @@
 (require 'fontset)
 (require 'dnd)
 
+(defvar mac-charset-info-alist)
+(defvar mac-services-selection)
+(defvar mac-system-script-code)
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)

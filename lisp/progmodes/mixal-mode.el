@@ -55,6 +55,8 @@
 
 ;;; Code:
 
+(defvar compile-command)
+
 ;;; Key map
 (defvar mixal-mode-map
   (let ((map (make-sparse-keymap)))

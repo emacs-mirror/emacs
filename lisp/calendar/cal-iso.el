@@ -41,6 +41,8 @@
 
 ;;; Code:
 
+(defvar date)
+
 (require 'calendar)
 
 (defun calendar-absolute-from-iso (date)

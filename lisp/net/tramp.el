@@ -1856,6 +1856,7 @@ on the FILENAME argument, even if VISIT was a string.")
     (insert-file-contents . tramp-handle-insert-file-contents)
     (write-region . tramp-handle-write-region)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
+    (make-auto-save-file-name . tramp-handle-make-auto-save-file-name)
     (unhandled-file-name-directory . tramp-handle-unhandled-file-name-directory)
     (dired-compress-file . tramp-handle-dired-compress-file)
     (dired-call-process . tramp-handle-dired-call-process)
@@ -1863,7 +1864,7 @@ on the FILENAME argument, even if VISIT was a string.")
      . tramp-handle-dired-recursive-delete-directory)
     (set-visited-file-modtime . tramp-handle-set-visited-file-modtime)
     (verify-visited-file-modtime . tramp-handle-verify-visited-file-modtime))
-        "Alist of handler functions.
+  "Alist of handler functions.
 Operations not mentioned here will be handled by the normal Emacs functions.")
 
 ;; Handlers for partial tramp file names. For GNU Emacs just
@@ -3807,6 +3808,41 @@ This will break if COMMAND prints a newline, followed by the value of
 
       (tramp-run-real-handler 'find-backup-file-name (list filename)))))
 
+(defun tramp-handle-make-auto-save-file-name ()
+  "Like `make-auto-save-file-name' for tramp files.
+Returns a file name in `tramp-auto-save-directory' for autosaving this file."
+  (when tramp-auto-save-directory
+    (unless (file-exists-p tramp-auto-save-directory)
+      (make-directory tramp-auto-save-directory t)))
+  ;; jka-compr doesn't like auto-saving, so by appending "~" to the
+  ;; file name we make sure that jka-compr isn't used for the
+  ;; auto-save file.
+  (let ((buffer-file-name
+	 (if tramp-auto-save-directory
+	     (expand-file-name
+	      (tramp-subst-strs-in-string
+	       '(("_" . "|")
+		 ("/" . "_a")
+		 (":" . "_b")
+		 ("|" . "__")
+		 ("[" . "_l")
+		 ("]" . "_r"))
+	       (buffer-file-name))
+	      tramp-auto-save-directory)
+	   (buffer-file-name))))
+    ;; Run plain `make-auto-save-file-name'.  There might be an advice when
+    ;; it is not a magic file name operation (since Emacs 22).
+    ;; We must deactivate it temporarily.
+    (if (not (ad-is-active 'make-auto-save-file-name))
+	(tramp-run-real-handler
+	 'make-auto-save-file-name nil)
+      ;; else
+      (ad-deactivate 'make-auto-save-file-name)
+      (prog1
+       (tramp-run-real-handler
+	'make-auto-save-file-name nil)
+       (ad-activate 'make-auto-save-file-name)))))
+
 
 ;; CCC grok APPEND, LOCKNAME, CONFIRM
 (defun tramp-handle-write-region
@@ -4086,8 +4122,9 @@ ARGS are the arguments OPERATION has been called with."
     (nth 2 args))
    ; BUF
    ((member operation
-	    (list 'set-visited-file-modtime 'verify-visited-file-modtime
-	          ; XEmacs only
+	    (list 'make-auto-save-file-name
+	          'set-visited-file-modtime 'verify-visited-file-modtime
+		  ; XEmacs only
 		  'backup-buffer))
     (buffer-file-name
      (if (bufferp (nth 0 args)) (nth 0 args) (current-buffer))))
@@ -6905,33 +6942,28 @@ as default."
 
 ;; Auto saving to a special directory.
 
-(defun tramp-make-auto-save-file-name (fn)
-  "Returns a file name in `tramp-auto-save-directory' for autosaving this file."
-  (when tramp-auto-save-directory
-    (unless (file-exists-p tramp-auto-save-directory)
-      (make-directory tramp-auto-save-directory t)))
-  ;; jka-compr doesn't like auto-saving, so by appending "~" to the
-  ;; file name we make sure that jka-compr isn't used for the
-  ;; auto-save file.
-  (let ((buffer-file-name (expand-file-name
-			   (tramp-subst-strs-in-string '(("_" . "|")
-							 ("/" . "_a")
-							 (":" . "_b")
-							 ("|" . "__")
-							 ("[" . "_l")
-							 ("]" . "_r"))
-						       fn)
-			   tramp-auto-save-directory)))
-    (make-auto-save-file-name)))
+(defun tramp-exists-file-name-handler (operation &rest args)
+  (let ((buffer-file-name "/")
+	(fnha file-name-handler-alist)
+	(check-file-name-operation operation)
+	(file-name-handler-alist
+	 (list
+	  (cons "/"
+		'(lambda (operation &rest args)
+		   "Returns OPERATION if it is the one to be checked"
+		   (if (equal check-file-name-operation operation)
+		       operation
+		     (let ((file-name-handler-alist fnha))
+		       (apply operation args))))))))
+    (eq (apply operation args) operation)))
 
-(defadvice make-auto-save-file-name
-  (around tramp-advice-make-auto-save-file-name () activate)
-  "Invoke `tramp-make-auto-save-file-name' for tramp files."
-  (if (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name))
-	   tramp-auto-save-directory)
-      (setq ad-return-value
-            (tramp-make-auto-save-file-name (buffer-file-name)))
-    ad-do-it))
+(unless (tramp-exists-file-name-handler 'make-auto-save-file-name)
+  (defadvice make-auto-save-file-name
+    (around tramp-advice-make-auto-save-file-name () activate)
+    "Invoke `tramp-handle-make-auto-save-file-name' for tramp files."
+    (if (and (buffer-file-name) (tramp-tramp-file-p (buffer-file-name)))
+	(setq ad-return-value (tramp-handle-make-auto-save-file-name))
+      ad-do-it)))
 
 ;; In Emacs < 22 and XEmacs < 21.5 autosaved remote files have
 ;; permission 0666 minus umask. This is a security threat.

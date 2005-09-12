@@ -54,6 +54,12 @@
 
 ;;; Code:
 
+(defvar date)
+(defvar displayed-month)
+(defvar displayed-year)
+(defvar number)
+(defvar original-date)
+
 (require 'cal-julian)
 
 (defvar bahai-calendar-month-name-array
@@ -215,7 +221,7 @@ calendar.  This function is provided for use with the
             (mark (regexp-quote diary-nonmarking-symbol)))
         (calendar-for-loop i from 1 to number do
            (let* ((d diary-date-forms)
-                  (bdate (calendar-bahai-from-absolute 
+                  (bdate (calendar-bahai-from-absolute
                           (calendar-absolute-from-gregorian gdate)))
                   (month (extract-calendar-month bdate))
                   (day (extract-calendar-day bdate))
@@ -460,7 +466,7 @@ Prefix arg will make the entry nonmarking."
     (make-diary-entry
      (concat
       bahai-diary-entry-symbol
-      (calendar-date-string 
+      (calendar-date-string
        (calendar-bahai-from-absolute
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))
@@ -478,7 +484,7 @@ Prefix arg will make the entry nonmarking."
     (make-diary-entry
      (concat
       bahai-diary-entry-symbol
-      (calendar-date-string 
+      (calendar-date-string
        (calendar-bahai-from-absolute
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))))
@@ -497,7 +503,7 @@ Prefix arg will make the entry nonmarking."
     (make-diary-entry
      (concat
       bahai-diary-entry-symbol
-      (calendar-date-string 
+      (calendar-date-string
        (calendar-bahai-from-absolute
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))))

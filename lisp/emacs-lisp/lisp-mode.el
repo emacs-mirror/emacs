@@ -30,6 +30,11 @@
 
 ;;; Code:
 
+(defvar font-lock-comment-face)
+(defvar font-lock-doc-face)
+(defvar font-lock-keywords-case-fold-search)
+(defvar font-lock-string-face)
+
 (defvar lisp-mode-abbrev-table nil)
 
 (defvar emacs-lisp-mode-syntax-table
@@ -50,7 +55,7 @@
       (while (< i 128)
 	(modify-syntax-entry i "_   " table)
 	(setq i (1+ i)))
-      (modify-syntax-entry ?  "    " table)
+      (modify-syntax-entry ?\s "    " table)
       (modify-syntax-entry ?\t "    " table)
       (modify-syntax-entry ?\f "    " table)
       (modify-syntax-entry ?\n ">   " table)

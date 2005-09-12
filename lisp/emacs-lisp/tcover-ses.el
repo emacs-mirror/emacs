@@ -23,6 +23,9 @@
 
 (require 'testcover)
 
+(defvar ses-initial-global-parameters)
+(defvar ses-mode-map)
+
 ;;;Here are some macros that exercise SES.  Set `pause' to t if you want the
 ;;;macros to pause after each step.
 (let* ((pause nil)

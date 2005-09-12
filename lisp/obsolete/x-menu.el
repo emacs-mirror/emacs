@@ -23,6 +23,8 @@
 
 ;;; Code:
 
+(defvar x-process-mouse-hook)
+
 (defun x-menu-mode ()
   "Major mode for creating permanent menus for use with X.
 These menus are implemented entirely in Lisp; popup menus, implemented

@@ -29,6 +29,8 @@
 
 (eval-when-compile (require 'cl))
 
+(defvar gnus-extract-address-components)
+
 (require 'smime)
 (require 'mm-decode)
 (autoload 'message-narrow-to-headers "message")
@@ -54,7 +56,7 @@
       (if (not (and (not (file-exists-p tmp))
 		    (get-buffer tmp)))
 	  (push tmp certfiles)
-	(setq file (mm-make-temp-file (expand-file-name "mml." 
+	(setq file (mm-make-temp-file (expand-file-name "mml."
 							mm-tmp-directory)))
 	(with-current-buffer tmp
 	  (write-region (point-min) (point-max) file))
@@ -79,7 +81,10 @@
   (list 'keyfile
 	(if (= (length smime-keys) 1)
 	    (cadar smime-keys)
-	  (or (let ((from (cadr (funcall gnus-extract-address-components
+	  (or (let ((from (cadr (funcall (if (boundp
+					      'gnus-extract-address-components)
+					     gnus-extract-address-components
+					   'mail-extract-address-components)
 					 (or (save-excursion
 					       (save-restriction
 						 (message-narrow-to-headers)
@@ -105,7 +110,10 @@
 	(while (not result)
 	  (setq who (read-from-minibuffer
 		     (format "%sLookup certificate for: " (or bad ""))
-		     (cadr (funcall gnus-extract-address-components
+		     (cadr (funcall (if (boundp
+					 'gnus-extract-address-components)
+					gnus-extract-address-components
+				      'mail-extract-address-components)
 				    (or (save-excursion
 					  (save-restriction
 					    (message-narrow-to-headers)

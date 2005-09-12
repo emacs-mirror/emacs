@@ -46,6 +46,9 @@
 
 ;;; Code:
 
+(defvar dired-buffers)
+(defvar dired-subdir-alist)
+
 ;; Internal variables
 
 (defvar find-lisp-regexp nil

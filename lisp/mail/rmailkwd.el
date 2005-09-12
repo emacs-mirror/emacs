@@ -27,6 +27,13 @@
 
 ;;; Code:
 
+(defvar rmail-buffer)
+(defvar rmail-current-message)
+(defvar rmail-last-label)
+(defvar rmail-last-multi-labels)
+(defvar rmail-summary-vector)
+(defvar rmail-total-messages)
+
 ;; Global to all RMAIL buffers.  It exists primarily for the sake of
 ;; completion.  It is better to use strings with the label functions
 ;; and let them worry about making the label.

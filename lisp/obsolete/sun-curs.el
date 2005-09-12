@@ -32,11 +32,15 @@
 ;;;
 ;;; 9-dec-86 Jeff Peck, Sun Microsystems Inc. <peck@sun.com>
 
-(eval-when-compile
-  (require 'cl)
-  (defvar *edit-icon*) (defvar char)
-  ;; These are from term/sun-mouse.el
-  (defvar *mouse-window*) (defvar *mouse-x*) (defvar *mouse-y*) (defvar menu))
+(eval-when-compile (require 'cl))
+
+(defvar *edit-icon*)
+(defvar char)
+;; These are from term/sun-mouse.el
+(defvar *mouse-window*)
+(defvar *mouse-x*)
+(defvar *mouse-y*)
+(defvar menu)
 
 (require 'sun-fns)
 

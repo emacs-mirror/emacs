@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(defvar compile-command)
+
 (defgroup scribe nil
   "Scribe mode."
   :prefix "scribe-"

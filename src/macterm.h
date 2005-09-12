@@ -39,11 +39,6 @@ Boston, MA 02110-1301, USA.  */
 #define BLACK_PIX_DEFAULT(f) RGB_TO_ULONG(0,0,0)
 #define WHITE_PIX_DEFAULT(f) RGB_TO_ULONG(255,255,255)
 
-/* A black pixel in a mask bitmap/pixmap means ``draw a source
-   pixel''.  A white pixel means ``retain the current pixel''. */
-#define PIX_MASK_DRAW(f) BLACK_PIX_DEFAULT(f)
-#define PIX_MASK_RETAIN(f) WHITE_PIX_DEFAULT(f)
-
 #define FONT_WIDTH(f)   ((f)->max_bounds.width)
 #define FONT_HEIGHT(f)  ((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)

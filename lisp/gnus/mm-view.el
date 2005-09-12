@@ -40,6 +40,14 @@
   (unless (fboundp 'diff-mode)
     (autoload 'diff-mode "diff-mode" "" t nil)))
 
+(defvar gnus-article-mime-handles)
+(defvar gnus-newsgroup-charset)
+(defvar smime-keys)
+(defvar w3m-cid-retrieve-function-alist)
+(defvar w3m-current-buffer)
+(defvar w3m-display-inline-images)
+(defvar w3m-minor-mode-map)
+
 (defvar mm-text-html-renderer-alist
   '((w3  . mm-inline-text-html-render-with-w3)
     (w3m . mm-inline-text-html-render-with-w3m)
