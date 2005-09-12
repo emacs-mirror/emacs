@@ -1,3 +1,7 @@
+2005-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url-mailto.el (url-mailto): Always use a new mail buffer.
+
 2005-09-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-util.el (url-parse-query-string): New optional argument

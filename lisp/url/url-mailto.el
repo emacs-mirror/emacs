@@ -92,7 +92,7 @@
 	(setq args (cons (list "to" to) args))))
 
     (setq subject (cdr-safe (assoc "subject" args)))
-    (if (fboundp url-mail-command) (funcall url-mail-command) (mail))
+    (if (fboundp url-mail-command) (funcall url-mail-command) (mail 'new))
     (while args
       (if (string= (caar args) "body")
 	  (progn
