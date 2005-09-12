@@ -5769,6 +5769,8 @@ auto_save_error (error)
   Lisp_Object args[3], msg;
   int i, nbytes;
   struct gcpro gcpro1;
+  char *msgbuf;
+  USE_SAFE_ALLOCA;
 
   ring_bell ();
 
@@ -5778,13 +5780,15 @@ auto_save_error (error)
   msg = Fformat (3, args);
   GCPRO1 (msg);
   nbytes = SBYTES (msg);
+  SAFE_ALLOCA (msgbuf, char *, nbytes);
+  bcopy (SDATA (msg), msgbuf, nbytes);
 
   for (i = 0; i < 3; ++i)
     {
       if (i == 0)
-	message2 (SDATA (msg), nbytes, STRING_MULTIBYTE (msg));
+	message2 (msgbuf, nbytes, STRING_MULTIBYTE (msg));
       else
-	message2_nolog (SDATA (msg), nbytes, STRING_MULTIBYTE (msg));
+	message2_nolog (msgbuf, nbytes, STRING_MULTIBYTE (msg));
       Fsleep_for (make_number (1), Qnil);
     }
 
