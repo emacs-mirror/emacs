@@ -1,3 +1,7 @@
+2005-09-12  Richard M. Stallman  <rms@gnu.org>
+
+	* net/newsticker.el: New file.
+
 2005-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (normal-mode): Check boundness of font-lock-keywords.
