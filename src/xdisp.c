@@ -16171,6 +16171,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		else /* c == 0 */
 		  break;
 	      }
+	    this += SDATA (elt) - lisp_string;
+	    lisp_string = SDATA (elt);
 	  }
       }
       break;
