@@ -43,7 +43,7 @@
 	(mh-show-from-face, mh-show-xface-face, mh-speedbar-folder-face)
 	(mh-speedbar-selected-folder-face)
 	(mh-speedbar-folder-with-unseen-messages-face)
-	(mh-speedbar-selected-folder-with-unseen-messages-face): 
+	(mh-speedbar-selected-folder-with-unseen-messages-face):
 	New backward-compatibility aliases for renamed faces.
 	(mh-folder-body-face, mh-folder-cur-msg-face)
 	(mh-folder-cur-msg-number-face, mh-folder-date-face)
@@ -56,7 +56,7 @@
 	(mh-show-pgg-unknown-face, mh-show-pgg-bad-face)
 	(mh-show-to-face, mh-show-from-face, mh-show-subject-face)
 	(mh-speedbar-folder-with-unseen-messages)
-	(mh-speedbar-selected-folder-with-unseen-messages): 
+	(mh-speedbar-selected-folder-with-unseen-messages):
 	Use renamed MH-E faces.
 
 	* mh-utils.el (mh-letter-font-lock-keywords)
@@ -900,7 +900,7 @@
 
 	* mh-e.el (Version, mh-version): Updated for release 7.4.3.
 
-	* This patch release contains the following two patches:
+	This patch release contains the following two patches:
 
 	* mh-identity.el (mh-identity-make-menu): Removed condition on
 	mh-auto-fields-list. Use it to enable or disable menu item
@@ -8402,7 +8402,7 @@
 	defcustom to mh-utils because I got an error about a nil value for
 	mh-tool-bar-reply-3-buttons when I fired up mh-rmail.
 
-	* mh-comp.el, mh-funcs,el, mh-mime.el, mh-pick.el: Moved (provide)
+	* mh-comp.el, mh-funcs.el, mh-mime.el, mh-pick.el: Moved (provide)
 	to the end of the file to be consistent with most other files (see
 	additional rationale in mh-e.el description below).
 
@@ -9210,7 +9210,7 @@
 2002-08-19  Peter S Galbraith  <psg@debian.org>
 
 	* reply-to.xpm, reply-to.pbm, reply-from.xpm, reply-from.pbm,
-	reply-all.xpm, reply-all.bpm:  New icons for various reply methods.
+	* reply-all.xpm, reply-all.bpm:  New icons for various reply methods.
 	* mh-e.el (mh-folder-tool-bar-map): Split reply button into three
 	that won't prompt for "from", "to" and "all".
 	* mh-comp.el (mh-reply): Put variable reply-to in the interactive
@@ -10234,7 +10234,7 @@
 	operations made on all messages in the selected range when
 	transient-mark-mode is on doesn't work in XEmacs.
 
-	* mh-e.el, mh-utils: Conditionalize calls to
+	* mh-e.el, mh-utils.el: Conditionalize calls to
 	'add-to-list 'facemenu-unlisted-faces for XEmacs.
 
 2001-12-11  Jeffrey C Honig  <jch@honig.net>

@@ -1,3 +1,14 @@
+2005-09-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam-report.el (spam-report-gmane): Fix generation of spam
+	report URL.
+
+2005-09-10  Simon Josefsson  <jas@extundo.com>
+
+	* gnus-agent.el (gnus-agent-synchronize-flags): Make the default
+	t, based on discussion on the ding list with Robert Epprecht
+	<epprecht@solnet.ch>.
+
 2005-09-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* spam-report.el (spam-report-gmane): Make it work without

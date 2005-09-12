@@ -1,3 +1,9 @@
+2005-09-11  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in (../src/config.h): Don't overwrite. Print a
+	message instead.
+	(../src/paths.h): Removed.
+
 2005-07-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Don't ignore fns-* and fns.el, which are no longer
