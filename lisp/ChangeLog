@@ -1,3 +1,8 @@
+2005-09-13  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mail/sendmail.el (mail): Use new buffer if `noerase' argument is
+	`new'.
+
 2005-09-12  Richard M. Stallman  <rms@gnu.org>
 
 	* font-lock.el (font-lock-keywords): Add autoload.
