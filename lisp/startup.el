@@ -976,20 +976,28 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (unless (or noninteractive
               window-system
               (null term-file-prefix))
-    (let ((term (getenv "TERM"))
+    (let* ((TERM (getenv "TERM"))
+           (term TERM)
           hyphend)
       (while (and term
                   (not (load (concat term-file-prefix term) t t)))
         ;; Strip off last hyphen and what follows, then try again
         (setq term
-              (if (setq hyphend (string-match "[-_][^-_]+$" term))
+              (if (setq hyphend (string-match "[-_][^-_]+\\'" term))
                   (substring term 0 hyphend)
                 nil)))
-      (when term
-	;; The terminal file has been loaded, now call the terminal
-	;; specific initialization function.
-	(let ((term-init-func (intern (concat "terminal-init-" term))))
-	  (when (fboundp term-init-func)
+      (setq term TERM)
+      ;; The terminal file has been loaded, now call the terminal specific
+      ;; initialization function.
+      (while term
+	(let ((term-init-func (intern-soft (concat "terminal-init-" term))))
+	  (if (not (fboundp term-init-func))
+              ;; Strip off last hyphen and what follows, then try again
+              (setq term
+                    (if (setq hyphend (string-match "[-_][^-_]+\\'" term))
+                        (substring term 0 hyphend)
+                      nil))
+            (setq term nil)
 	    (funcall term-init-func))))))
 
   ;; Update the out-of-memory error message based on user's key bindings
