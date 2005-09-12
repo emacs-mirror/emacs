@@ -1,3 +1,12 @@
+2005-09-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (message3): Pass copy of lisp string to message_dolog.
+
+	* print.c (print_error_message): Pass copy of caller name to
+	message_dolog.
+
+	* fileio.c (auto_save_error): Pass copy of lisp string to message2.
+
 2005-09-12  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (display_mode_element): Be sure to make variables THIS
