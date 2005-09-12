@@ -1025,7 +1025,9 @@ print_error_message (data, stream, context, caller)
    *Messages*.  */
   if (!NILP (caller) && SYMBOLP (caller))
     {
-      const char *name = SDATA (SYMBOL_NAME (caller));
+      Lisp_Object cname = SYMBOL_NAME (caller);
+      char *name = alloca (SBYTES (cname));
+      bcopy (SDATA (cname), name, SBYTES (cname));
       message_dolog (name, strlen (name), 0, 0);
       message_dolog (": ", 2, 0, 0);
     }
