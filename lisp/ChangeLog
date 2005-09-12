@@ -1,5 +1,8 @@
 2005-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
+	* custom.el (custom-push-theme): Handle the case where a symbol is
+	bound but face properties have not yet been assigned.
+
 	* mail/sendmail.el (mail): Use new buffer if `noerase' argument is
 	`new'.
 
