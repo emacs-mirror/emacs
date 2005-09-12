@@ -10,7 +10,7 @@
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS
 ;; Time-stamp:  "26. August 2005, 16:33:46 (ulf)"
-;; CVS-Version: $Id: newsticker.el,v 1.130 2005/08/26 14:35:20 u11 Exp $
+;; CVS-Version: $Id: newsticker.el,v 1.1 2005/09/12 15:30:19 rms Exp $
 
 (defconst newsticker-version "1.8" "Version number of newsticker.el.")
 
@@ -4915,4 +4915,5 @@ This function is suited for adding it to `newsticker-new-item-functions'."
 
 (provide 'newsticker)
 
+;; arch-tag: ab761dfa-67bc-4207-bc64-4307271dc381
 ;;; newsticker.el ends here
