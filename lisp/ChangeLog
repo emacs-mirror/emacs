@@ -3,8 +3,11 @@
 	* custom.el (custom-push-theme): Handle the case where a symbol is
 	bound but face properties have not yet been assigned.
 
-	* mail/sendmail.el (mail): Use new buffer if `noerase' argument is
-	`new'.
+	* mail/sendmail.el (mail): Use new buffer if `noerase' is `new'.
+	Fix behavior if noerase is `t' and there is no mail buffer.
+	
+	* simple.el (sendmail-user-agent-compose): Use a new mail buffer
+	if `continue' is nil, rather than signal an error.
 
 2005-09-12  Richard M. Stallman  <rms@gnu.org>
 

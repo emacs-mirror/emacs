@@ -1657,6 +1657,9 @@ The seventh argument ACTIONS is a list of actions to take
 
   (if (eq noerase 'new)
       (pop-to-buffer (generate-new-buffer "*mail*"))
+    (and noerase
+	 (not (get-buffer "*mail*"))
+	 (setq noerase nil))
     (pop-to-buffer "*mail*"))
 
   ;; Avoid danger that the auto-save file can't be written.
@@ -1673,8 +1676,8 @@ The seventh argument ACTIONS is a list of actions to take
   ;; (in case the user has actually visited a file *mail*).
 ;  (set-visited-file-name nil)
   (let (initialized)
-    (and (or (not noerase)
-	     (eq noerase 'new))
+    (and (not (and noerase
+		   (not (eq noerase 'new))))
 	 (if buffer-file-name
 	     (if (buffer-modified-p)
 		 (when (y-or-n-p "Buffer has unsaved changes; reinitialize it and discard them? ")
