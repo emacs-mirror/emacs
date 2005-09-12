@@ -341,10 +341,10 @@ The optional @var{pred} argument controls which buffers to ask about
 If it is @code{nil}, that means to ask only about file-visiting buffers.
 If it is @code{t}, that means also offer to save certain other non-file
 buffers---those that have a non-@code{nil} buffer-local value of
-@code{buffer-offer-save}.  (A user who says @samp{yes} to saving a
-non-file buffer is asked to specify the file name to use.)  The
-@code{save-buffers-kill-emacs} function passes the value @code{t} for
-@var{pred}.
+@code{buffer-offer-save} (@pxref{Killing Buffers}).  A user who says
+@samp{yes} to saving a non-file buffer is asked to specify the file
+name to use.  The @code{save-buffers-kill-emacs} function passes the
+value @code{t} for @var{pred}.
 
 If @var{pred} is neither @code{t} nor @code{nil}, then it should be
 a function of no arguments.  It will be called in each buffer to decide

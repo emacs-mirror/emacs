@@ -1,3 +1,7 @@
+2005-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* config.nt (HAVE_GET_CURRENT_DIR_NAME): Undefine.
+
 2005-08-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* .cvsignore: Add `obj' and `oo' for in-place installations.

@@ -220,8 +220,10 @@ for users who call this function in `.emacs'."
 	(unless (or (memq window-system '(x w32)))
 	  (and (terminal-coding-system)
 	       (set-terminal-coding-system nil))))
-    ;; Turn off multibyte chars for more compatibility.
-    (setq-default enable-multibyte-characters nil)
+
+    (display-warning 'i18n
+		     "`standard-display-european' is semi-obsolete"
+		     :warning)
 
     ;; Switch to Latin-1 language environment
     ;; unless some other has been specified.

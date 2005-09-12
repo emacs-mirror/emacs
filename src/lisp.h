@@ -3134,6 +3134,9 @@ EXFUN (Fx_popup_dialog, 3);
 extern void syms_of_xmenu P_ ((void));
 
 /* defined in sysdep.c */
+#ifndef HAVE_GET_CURRENT_DIR_NAME
+extern char *get_current_dir_name P_ ((void));
+#endif
 extern void stuff_char P_ ((char c));
 extern void init_sigio P_ ((int));
 extern void request_sigio P_ ((void));

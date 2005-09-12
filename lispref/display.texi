@@ -4546,11 +4546,11 @@ buffers that do not override it.  @xref{Default Value}.
 @end defvar
 
 @defopt tab-width
-The value of this variable is the spacing between tab stops used for
-displaying tab characters in Emacs buffers.  The value is in units of
-columns, and the default is 8.  Note that this feature is completely
-independent of the user-settable tab stops used by the command
-@code{tab-to-tab-stop}.  @xref{Indent Tabs}.
+The value of this buffer-local variable is the spacing between tab
+stops used for displaying tab characters in Emacs buffers.  The value
+is in units of columns, and the default is 8.  Note that this feature
+is completely independent of the user-settable tab stops used by the
+command @code{tab-to-tab-stop}.  @xref{Indent Tabs}.
 @end defopt
 
 @defopt indicate-empty-lines
@@ -4559,6 +4559,7 @@ independent of the user-settable tab stops used by the command
 When this is non-@code{nil}, Emacs displays a special glyph in the
 fringe of each empty line at the end of the buffer, on terminals that
 support it (window systems).  @xref{Fringes}.
+This variable is automatically buffer-local in every buffer.
 @end defopt
 
 @defvar indicate-buffer-boundaries

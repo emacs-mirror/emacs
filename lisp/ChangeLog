@@ -1,6 +1,187 @@
-2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
+2005-09-11  Kim F. Storm  <storm@cua.dk>
 
-	* custom.el (custom-push-theme): Fix last change.
+	* emacs-lisp/authors.el (authors-aliases): Update list.
+	(authors-fixed-entries): Update mldrag.el entry.
+
+2005-09-10  Alan Mackenzie  <acm@muc.de>
+
+	* page.el (narrow-to-page): Exclude _entire_ multi-line delimiter
+	from the region narrowed to.
+
+2005-09-10  Magnus Henoch  <mange@freemail.hu>
+
+	* textmodes/ispell.el (ispell-check-version): Signal an error if
+	aspell version is less than 0.60.
+
+2005-09-10  Pascal Dupuis  <Pascal.Dupuis@esat.kuleuven.be>  (tiny change)
+
+	* progmodes/octave-inf.el (inferior-octave-startup): Resync
+	current dir at the end.
+
+2005-09-10  Emilio C. Lopes  <eclig@gmx.net>
+
+	* woman.el (woman-topic-at-point-default): Renamed to
+	woman-use-topic-at-point-default.
+	(woman-topic-at-point): Renamed to woman-use-topic-at-point.
+	(woman-file-name): Reflect renames above.  Automatically use the
+	word at point as topic if woman-use-topic-at-point is non-nil.
+	Otherwise offer it as default but don't insert it in the
+	minibuffer.  Also use `test-completion' instead of `assoc' as
+	suggested by Stefan Monnier.
+
+2005-09-10  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-directory, vc-update-change-log): Throw an error on
+	the attempt to do it over Tramp.  This is not yet supported.
+
+2005-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-menu-frame-live-and-visible-p)
+	(menu-bar-non-minibuffer-window-p): New functions.
+	("Split Window", "Save As..."): Use them.
+	("Postscript Print Buffer (B+W)", "Postscript Print Buffer")
+	("Print Buffer", "Truncate Long Lines in this Buffer"):  Use
+	menu-bar-menu-frame-live-and-visible-p.
+	("Save Buffer", "Insert File", "Open Directory...")
+	("Open File...", "Visit New File..."): Use
+	menu-bar-non-minibuffer-window-p.
+	(kill-this-buffer-enabled-p, dired <menu-enable>): Use
+	menu-bar-non-minibuffer-window-p.
+
+2005-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Don't complain about fringe-related
+	built-ins if fringes are not supported.  Ditto about
+	selection-related built-ins.  Fix the test for GTK-related
+	built-ins.
+
+	* menu-bar.el ("Split Window", "Postscript Print Buffer (B+W)")
+	("Postscript Print Buffer", "Print Region", "Save As...")
+	("Save", "Insert File...", "Open Directory...")
+	("Open File...", "Visit New File..."")
+	("Truncate Long Lines in this Buffer"): Don't look at
+	menu-updating-frame if this display does not support multiple
+	frames.
+
+2005-09-09  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* mail/sendmail.el (default-sendmail-coding-system): Doc fix.
+
+2005-09-09  Emilio Lopes  <eclig@gmx.net>
+
+	* woman.el: Format- and whitespace-related changes.
+
+2005-09-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* woman.el: Fix my email address.
+
+2005-09-08  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-skeleton-pair-default-alist): New var.
+	(sh-mode): Locally set skeleton-pair-default-alist.
+
+	* progmodes/make-mode.el (makefile-add-log-defun): Trim the result.
+
+	* progmodes/flymake.el: Require `compile' unconditionally.
+
+	* mail/sendmail.el (send-mail-function): Add Mailclient alternative.
+
+	* woman.el (woman-file-name): Provide a default, not initial input.
+
+	* smerge-mode.el (smerge-resolve): Pass args to smerge-remove-props.
+
+	* font-lock.el (font-lock-support-mode): Doc fix.
+
+	* descr-text.el (describe-property-list): Handle non-symbol prop names.
+
+2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
+	Use with-current-buffer.
+	(ange-ftp-gwp-start): Remove unused var `gw-user'.
+	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
+	(ange-ftp-insert-directory): Remove unused var `short'.
+	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
+
+2005-08-30  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (blink-matching-open): Get rid of text props from
+	the string shown in echo area.  Don't permanently set point.
+	Some rearrangements.
+
+	* files.el (risky-local-variable-p):
+	Match `-predicates' and `-commands.
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
+	(custom-save-all): Visit the file if necessary;
+	kill the buffer if we created it.
+	(custom-save-delete): Don't visit file or kill buffer here.
+
+2005-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* recentf.el (recentf-filename-handler): Add custom choice
+	`abbreviate-file-name'.
+
+	* msb.el (msb--very-many-menus): Fix typo.
+
+	* disp-table.el (standard-display-european): Don't set
+	enable-multibyte-characters to nil.
+
+2005-09-08  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-show-file-shortcuts-flag): New option.
+	(recentf-expand-file-name): Doc fix.
+	(recentf-dialog-mode-map): Define digit shortcuts.
+	(recentf--files-with-key): New variable.
+	(recentf-show-digit-shortcut-filter): New function.
+	(recentf-open-files-items): New function.
+	(recentf-open-files): Use it.
+	(recentf-open-file-with-key): New command.
+
+2005-09-07  Michael Albinus  <michael.albinus@gmx.de>
+
+	* woman.el (top): Remap `man' command by `woman' in `woman-mode-map'.
+	(Man-getpage-in-background-advice): Remove defadvice; it isn't
+	necessary any longer with the remapped command.
+	(Man-bgproc-sentinel-advice): Remove defadvice which counts
+	formatting time only.
+
+	* net/tramp.el (tramp-action-password)
+	(tramp-multi-action-password): Compile the password prompt from
+	`method', `user' and `host'.  Sometimes it isn't obvious which
+	password to enter, for example with remote files offered by
+	recentf.el, or with multiple steps.  Suggested by Robert Marshall
+	<robert@chezmarshall.freeserve.co.uk>.
+
+2005-09-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/perl-mode.el (perl-font-lock-syntactic-keywords):
+	Fix regexp for when "s///" is at the beginning of line.
+
+2005-09-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-poly.el (math-expand-term): Multiply out any powers
+	when in matrix mode.
+
+2005-09-08  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buff-menu.el (Buffer-menu-sort-by-column): New function.
+	Suggested by Kim F. Storm.
+	(Buffer-menu-sort-button-map): Global keymap for sort buttons.
+	(Buffer-menu-make-sort-button): Use global keymap.
+
+2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buff-menu.el (Buffer-menu-make-sort-button): Add docstrings, use
+	non-anonymous functions.
+
+2005-09-06  Chong Yidong  <cyd@stupidchicken.com>
+
+	* buff-menu.el (Buffer-menu-make-sort-button): Allow mouse-1 clicks
+	when using a header line.  Otherwise, use mouse-1-click-follows-link.
+
+	* mouse.el (mouse-drag-header-line): Do nothing if the header-line
+	can't be moved; don't signal an error.
 
 2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -11,8 +192,7 @@
 	(custom-push-theme): Save old values in the standard theme.
 	(disable-theme): Correct typo.
 	(custom-face-theme-value) Deleted unused function.
-	(custom-theme-recalc-face): Rewritten to treat enable/disable
-	properly.
+	(custom-theme-recalc-face): Rewritten to treat enable/disable properly.
 
 2005-09-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -210,6 +390,16 @@
 	(tramp-exists-file-name-handler): New defun.
 	(tramp-advice-make-auto-save-file-name): Make defadvice only when
 	`make-auto-save-file-name' is not a magic file name operation.
+
+2005-08-30  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (risky-local-variable-p):
+	Match `-predicates' and `-commands.
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
+	(custom-save-all): Visit the file if necessary;
+	kill the buffer if we created it.
+	(custom-save-delete): Don't visit file or kill buffer here.
 
 2005-08-30  Carsten Dominik  <dominik@science.uva.nl>
 
@@ -762,7 +952,7 @@
 
 2005-08-15  David Ponce  <david@dponce.com>
 
-	* tree-widget.el Update Commentary header.
+	* tree-widget.el: Update Commentary header.
 	(tree-widget-theme): Doc fix.
 	(tree-widget-space-width): New option.
 	(tree-widget-image-properties): Look up in the default theme too.
@@ -2420,7 +2610,7 @@
 
 	* ediff-ptch.el (ediff-file-name-sans-prefix): Quote regexp.
 
-	* ediff-init: Get rid of -face in face names.
+	* ediff-init.el: Get rid of -face in face names.
 
 2005-07-10  Richard M. Stallman  <rms@gnu.org>
 
@@ -8646,18 +8836,16 @@
 
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
-	* calc/calc-forms.el, calc/calc-sel: Replace `illegal' with `invalid'.
-	* midnight.el, vc-cvs.el: Replace `illegal' with `invalid'.
-	* emacs-lisp/cl-macs.el: Replace `illegal' with `invalid'.
-	* emulation/vip.el: Replace `illegal' with `invalid'.
-	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with
-	`invalid'.
-	* mail/supercite.el: Replace `illegal' with `invalid'.
+	* calc/calc-forms.el, calc/calc-sel.el:
+	* midnight.el, vc-cvs.el:
+	* emacs-lisp/cl-macs.el:
+	* emulation/vip.el:
+	* eshell/esh-io.el, eshell/esh-var.el:
+	* mail/supercite.el:
 	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el
 	* progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el
 	* progmodes/ebnf-yac.el, progmodes/ebnf2ps.el, progmodes/idlwave.el
 	* progmodes/sh-script.el, progmodes/xscheme.el:
-	Replace `illegal' with `invalid'.
 	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el
 	* textmodes/reftex-index.el, textmodes/reftex-parse.el
 	* textmodes/reftex-ref.el, textmodes/reftex-vars.el
@@ -8822,7 +9010,7 @@
 
 2005-03-22  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-embed (calc-embedded-original-modes): New variable.
+	* calc/calc-embed.el (calc-embedded-original-modes): New variable.
 	(calc-embedded-save-original-modes)
 	(calc-embedded-restore-original-modes): New functions.
 	(calc-do-embedded): Save original modes when entering embedded mode
@@ -18646,7 +18834,7 @@
 
 2004-05-09  Jason Rumney  <jasonr@gnu.org>
 
-	* international/code-pages (cp932, cp936, cp949, c950): Remove.
+	* international/code-pages.el (cp932, cp936, cp949, c950): Remove.
 	Only define cp125* if windows-125* is already defined.
 
 	* language/korean.el (cp949): Add alias.

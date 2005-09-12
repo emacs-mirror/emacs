@@ -267,12 +267,12 @@ The expansion is entirely correct because it uses the C preprocessor."
     ("\\<sub\\s-+\\S-+\\s-*(\\([^)]+\\))" 1 '(1))
     ;; regexp and funny quotes
     ("[?:.,;=!~({[][ \t\n]*\\(/\\)" (1 '(7)))
-    ("[?:.,;=!~({[ \t\n]\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
+    ("\\(^\\|[?:.,;=!~({[ \t]\\)\\([msy]\\|q[qxrw]?\\|tr\\)\\>\\s-*\\([^])}> \n\t]\\)"
      ;; Nasty cases:
      ;; /foo/m  $a->m  $#m $m @m %m
      ;; \s (appears often in regexps).
      ;; -s file
-     (2 (if (assoc (char-after (match-beginning 2))
+     (3 (if (assoc (char-after (match-beginning 3))
 		   perl-quote-like-pairs)
 	    '(15) '(7))))
     ;; TODO: here-documents ("<<\\(\\sw\\|['\"]\\)")

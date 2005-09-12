@@ -4,6 +4,7 @@
 ;; Free Software Foundation, Inc.
 
 ;; Author: Ray Blaak <blaak@infomatch.com>
+;; Maintainer: FSF  (Blaak's email addr bounces, Aug 2005)
 ;; Keywords: languages
 
 ;; This file is part of GNU Emacs.

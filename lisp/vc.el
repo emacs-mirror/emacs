@@ -2259,6 +2259,8 @@ With prefix arg READ-SWITCHES, specify a value to override
   (interactive "DDired under VC (directory): \nP")
   (let ((vc-dired-switches (concat vc-dired-listing-switches
                                    (if vc-dired-recurse "R" ""))))
+    (if (eq (string-match tramp-file-name-regexp dir) 0)
+        (error "Sorry, vc-directory does not work over Tramp"))
     (if read-switches
         (setq vc-dired-switches
               (read-string "Dired listing switches: "
@@ -2809,6 +2811,9 @@ log entries should be gathered."
           ;; it should find all relevant files relative to
           ;; the default-directory.
 	  nil)))
+  (dolist (file (or args (list default-directory)))
+    (if (eq (string-match tramp-file-name-regexp file) 0)
+        (error "Sorry, vc-update-change-log does not work over Tramp")))
   (vc-call-backend (vc-responsible-backend default-directory)
                    'update-changelog args))
 

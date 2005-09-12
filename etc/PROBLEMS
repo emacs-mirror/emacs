@@ -903,6 +903,36 @@ distributions, such as Debian, may already have applied such a patch.)
 Note that Emacs has native support for Unicode, roughly equivalent to
 Mule-UCS's, so you may not need it.
 
+** Mule-UCS compilation problem.
+
+Emacs of old versions and XEmacs byte-compile the form `(progn progn
+...)' the same way as `(progn ...)', but Emacs of version 21.3 and the
+later process that form just as interpreter does, that is, as `progn'
+variable reference.  Apply the following patch to Mule-UCS 0.84 to
+make it compiled by the latest Emacs.
+
+--- mucs-ccl.el	2 Sep 2005 00:42:23 -0000	1.1.1.1
++++ mucs-ccl.el	2 Sep 2005 01:31:51 -0000	1.3
+@@ -639,10 +639,14 @@
+       (mucs-notify-embedment 'mucs-ccl-required name)
+       (setq ccl-pgm-list (cdr ccl-pgm-list)))
+ ;   (message "MCCLREGFIN:%S" result)
+-    `(progn
+-       (setq mucs-ccl-facility-alist
+-	     (quote ,mucs-ccl-facility-alist))
+-       ,@result)))
++    ;; The only way the function is used in this package is included
++    ;; in `mucs-package-definition-end-hook' value, where it must
++    ;; return (possibly empty) *list* of forms.  Do this.  Do not rely
++    ;; on byte compiler to remove extra `progn's in `(progn ...)' 
++    ;; form.
++    `((setq mucs-ccl-facility-alist
++	    (quote ,mucs-ccl-facility-alist))
++      ,@result)))
+ 
+ ;;; Add hook for embedding translation informations to a package.
+ (add-hook 'mucs-package-definition-end-hook
+
 ** Accented ISO-8859-1 characters are displayed as | or _.
 
 Try other font set sizes (S-mouse-1).  If the problem persists with

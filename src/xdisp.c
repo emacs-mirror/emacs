@@ -3428,7 +3428,7 @@ handle_display_prop (it)
     }
   else
     {
-      object = it->w->buffer;
+      XSETWINDOW (object, it->w);
       position = &it->current.pos;
     }
 
@@ -3448,6 +3448,9 @@ handle_display_prop (it)
 			     Qdisplay, object);
   if (NILP (prop))
     return HANDLED_NORMALLY;
+
+  if (!STRINGP (it->string))
+    object = it->w->buffer;
 
   if (CONSP (prop)
       /* Simple properties.  */
@@ -10612,13 +10615,9 @@ redisplay_internal (preserve_echo_area)
   if (consider_all_windows_p)
     {
       Lisp_Object tail, frame;
-      int i, n = 0, size = 5;
-      struct frame **updated;
 
       FOR_EACH_FRAME (tail, frame)
-	size++;
-
-      updated = (struct frame **) alloca (size * sizeof *updated);
+	XFRAME (frame)->updated_p = 0;
 
       /* Recompute # windows showing selected buffer.  This will be
 	 incremented each time such a window is displayed.  */
@@ -10680,15 +10679,7 @@ redisplay_internal (preserve_echo_area)
 		    break;
 #endif
 
-		  if (n == size)
-		    {
-		      int nbytes = size * sizeof *updated;
-		      struct frame **p = (struct frame **) alloca (2 * nbytes);
-		      bcopy (updated, p, nbytes);
-		      size *= 2;
-		    }
-
-		  updated[n++] = f;
+		  f->updated_p = 1;
 		}
 	    }
 	}
@@ -10698,12 +10689,15 @@ redisplay_internal (preserve_echo_area)
 	  /* Do the mark_window_display_accurate after all windows have
 	     been redisplayed because this call resets flags in buffers
 	     which are needed for proper redisplay.  */
-	  for (i = 0; i < n; ++i)
+	  FOR_EACH_FRAME (tail, frame)
 	    {
-	      struct frame *f = updated[i];
-	      mark_window_display_accurate (f->root_window, 1);
-	      if (frame_up_to_date_hook)
-		frame_up_to_date_hook (f);
+	      struct frame *f = XFRAME (frame);
+	      if (f->updated_p)
+		{
+		  mark_window_display_accurate (f->root_window, 1);
+		  if (frame_up_to_date_hook)
+		    frame_up_to_date_hook (f);
+		}
 	    }
 	}
     }
@@ -12830,12 +12824,11 @@ try_window (window, pos, check_margins)
   if (check_margins
       && !MINI_WINDOW_P (w))
     {
-      int this_scroll_margin, cursor_height;
+      int this_scroll_margin;
 
       this_scroll_margin = max (0, scroll_margin);
       this_scroll_margin = min (this_scroll_margin, WINDOW_TOTAL_LINES (w) / 4);
       this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
-      cursor_height = MATRIX_ROW (w->desired_matrix, w->cursor.vpos)->height;
 
       if ((w->cursor.y < this_scroll_margin
 	   && CHARPOS (pos) > BEGV)
@@ -13086,7 +13079,7 @@ try_window_reusing_current_matrix (w)
 	  /* Disable lines in the current matrix which are now
 	     below the window.  */
 	  for (++row; row < bottom_row; ++row)
-	    row->enabled_p = 0;
+	    row->enabled_p = row->mode_line_p = 0;
 	}
 
       /* Update window_end_pos etc.; last_reused_text_row is the last

@@ -1,3 +1,37 @@
+2005-09-10  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam-report.el (spam-report-gmane): Fix generation of spam
+	report URL.
+
+2005-09-10  Simon Josefsson  <jas@extundo.com>
+
+	* gnus-agent.el (gnus-agent-synchronize-flags): Make the default
+	t, based on discussion on the ding list with Robert Epprecht
+	<epprecht@solnet.ch>.
+
+2005-09-07  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam-report.el (spam-report-gmane): Make it work without
+	X-Report-Spam header.  Gmane now only provides Archived-At.  This
+	is only used if `spam-report-gmane-use-article-number' is nil.
+	(spam-report-gmane-spam-header): Removed.  Not used anymore.
+
+	* nnweb.el (nnweb-google-wash-article): Print a message if article
+	is not available.
+
+2005-09-07  TSUCHIYA Masatoshi  <tsuchiya@namazu.org>
+
+	* gnus-art.el (gnus-mime-display-single): Decode text/* parts
+	content before displaying.
+
+2005-09-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mml-smime.el: Remove defvar of gnus-extract-address-components.
+
+2005-09-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-display-inline-fontify): Disable support modes.
+
 2005-09-05  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-tab-body-function): Fixed mismatched custom
@@ -5,7 +39,7 @@
 
 	* gnus.el (gnus-group-change-level-function): Ditto.
 
-	* gnus-msg.el (gnus-outgoing-message-group):  Ditto.
+	* gnus-msg.el (gnus-outgoing-message-group): Ditto.
 
 	* gnus-art.el (gnus-signature-limit)
 	(gnus-article-mime-part-function): Ditto.
@@ -236,8 +270,6 @@
 
 	* gnus-util.el (gnus-beginning-of-window): Remove.
 	(gnus-end-of-window): Remove.
-
-	* lpath.el: Don't bind scroll-margin.
 
 2005-07-25  Simon Josefsson  <jas@extundo.com>
 

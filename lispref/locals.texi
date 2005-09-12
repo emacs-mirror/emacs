@@ -15,10 +15,11 @@ buffer-local only when set; a few of them are always local in every
 buffer.  Many Lisp packages define such variables for their internal
 use, but we don't try to list them all here.
 
-@table @code
-@item abbrev-mode
-@xref{Abbrevs}.
+Each minor modes defines a buffer-local variable named
+@samp{@var{modename}-mode}.  @xref{Minor Mode Conventions}.  Minor
+mode variables will not be listed here.
 
+@table @code
 @item auto-fill-function
 @xref{Auto Filling}.
 
@@ -29,13 +30,13 @@ use, but we don't try to list them all here.
 @xref{Auto-Saving}.
 
 @item buffer-backed-up
-@xref{Backup Files}.
+@xref{Making Backups}.
 
 @item buffer-display-count
-@xref{Displaying Buffers}.
+@xref{Buffers and Windows}.
 
 @item buffer-display-table
-@xref{Display Tables}.
+@xref{Active Display Table}.
 
 @item buffer-display-time
 @xref{Buffers and Windows}.
@@ -62,19 +63,19 @@ use, but we don't try to list them all here.
 @xref{Invisible Text}.
 
 @item buffer-offer-save
-@xref{Saving Buffers}.
+@xref{Killing Buffers}.
 
 @item buffer-read-only
 @xref{Read Only Buffers}.
 
 @item buffer-saved-size
-@xref{Point}.
+@xref{Auto-Saving}.
 
 @item buffer-undo-list
 @xref{Undo}.
 
 @item cache-long-line-scans
-@xref{Text Lines}.
+@xref{Truncation}.
 
 @item case-fold-search
 @xref{Searching and Case}.
@@ -103,10 +104,10 @@ Does not work yet.
 @end ignore
 
 @item enable-multibyte-characters
-@ref{Non-ASCII Characters}.
+@ref{Text Representations}.
 
 @item fill-column
-@xref{Auto Filling}.
+@xref{Margins}.
 
 @item fringes-outside-margins
 @xref{Fringes}.
@@ -115,7 +116,7 @@ Does not work yet.
 @xref{Moving Point,,, emacs, The GNU Emacs Manual}.
 
 @item header-line-format
-@xref{Mode Line Data}.
+@xref{Header Lines}.
 
 @item indicate-buffer-boundaries
 @xref{Usual Display}.
@@ -124,10 +125,10 @@ Does not work yet.
 @xref{Usual Display}.
 
 @item left-fringe-width
-@xref{Fringes}.
+@xref{Fringe Size/Pos}.
 
 @item left-margin
-@xref{Indentation}.
+@xref{Margins}.
 
 @item left-margin-width
 @xref{Display Margins}.
@@ -136,7 +137,7 @@ Does not work yet.
 @xref{Line Height}.
 
 @item local-abbrev-table
-@xref{Abbrevs}.
+@xref{Standard Abbrev Tables}.
 
 @item major-mode
 @xref{Mode Help}.
@@ -162,14 +163,11 @@ Does not work yet.
 @item mode-name
 @xref{Mode Line Variables}.
 
-@item overwrite-mode
-@xref{Insertion}.
-
 @item point-before-scroll
 Used for communication between mouse commands and scroll-bar commands.
 
 @item right-fringe-width
-@xref{Fringes}.
+@xref{Fringe Size/Pos}.
 
 @item right-margin-width
 @xref{Display Margins}.
@@ -194,9 +192,6 @@ Used for communication between mouse commands and scroll-bar commands.
 
 @item truncate-lines
 @xref{Truncation}.
-
-@item vc-mode
-@xref{Mode Line Variables}.
 
 @item vertical-scroll-bar
 @xref{Scroll Bars}.

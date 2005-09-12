@@ -1200,8 +1200,8 @@ text in the buffer automatically add elements to the front of the undo
 list, which is in the variable @code{buffer-undo-list}.
 
 @defvar buffer-undo-list
-This variable's value is the undo list of the current buffer.
-A value of @code{t} disables the recording of undo information.
+This buffer-local variable's value is the undo list of the current
+buffer. A value of @code{t} disables the recording of undo information.
 @end defvar
 
 Here are the kinds of elements an undo list can have:
@@ -1768,8 +1768,8 @@ justify existing text, see @ref{Filling}.
 justification style to refill portions of the text.  @xref{Margins}.
 
 @defvar auto-fill-function
-The value of this variable should be a function (of no arguments) to be
-called after self-inserting a character from the table
+The value of this buffer-local variable should be a function (of no
+arguments) to be called after self-inserting a character from the table
 @code{auto-fill-chars}.  It may be @code{nil}, in which case nothing
 special is done in that case.
 

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
-;; Maintainer: Francis J. Wright <F.J.Wright@qmul.ac.uk>
+;; Maintainer: FSF
 ;; Keywords: help, unix
 ;; Adapted-By: Eli Zaretskii <eliz@gnu.org>
 ;; Version: see `woman-version'
@@ -136,27 +136,23 @@
 ;;   man man_page_name
 
 
-;; Using the `word at point' as a topic suggestion
-;; ===============================================
+;; Using the word at point as the default topic
+;; ============================================
 
-;; By default, the `woman' command uses the word nearest to point in
-;; the current buffer as a suggestion for the topic to look up.  The
-;; topic must be confirmed or edited in the minibuffer.  This
-;; suggestion can be turned off, or `woman' can use the suggested
-;; topic without confirmation* if possible, by setting the user-option
-;; `woman-topic-at-point' to nil or t respectively.  (Its default
-;; value is neither nil nor t, meaning ask for confirmation.)
+;; The `woman' command uses the word nearest to point in the current
+;; buffer as the default topic to look up if it matches the name of a
+;; manual page installed on the system.  The default topic can also be
+;; used without confirmation by setting the user-option
+;; `woman-use-topic-at-point' to t; thanks to Benjamin Riefenstahl for
+;; suggesting this functionality.
 
-;; [* Thanks to Benjamin Riefenstahl for suggesting this
-;; functionality.]
-
-;; The variable `woman-topic-at-point' can be rebound locally, which
-;; may be useful to provide special private key bindings, e.g.
+;; The variable `woman-use-topic-at-point' can be rebound locally,
+;; which may be useful to provide special private key bindings, e.g.
 
 ;;  (global-set-key "\C-cw"
 ;;  		  (lambda ()
 ;;  		    (interactive)
-;;  		    (let ((woman-topic-at-point t))
+;;  		    (let ((woman-use-topic-at-point t))
 ;;  		      (woman)))))
 
 
@@ -420,10 +416,7 @@
 ;;   Paul A. Thompson <pat@po.cwru.edu>
 ;;   Arrigo Triulzi <arrigo@maths.qmw.ac.uk>
 ;;   Geoff Voelker <voelker@cs.washington.edu>
-;;   Eli Zaretskii <eliz@is.elta.co.il>
-
-;;; History:
-;;  For recent change log see end of file.
+;;   Eli Zaretskii <eliz@gnu.org>
 
 
 ;;; Code:
@@ -714,26 +707,21 @@ Default is \"CONTENTS\"."
   :type 'string
   :group 'woman-interface)
 
-(defcustom woman-topic-at-point-default 'confirm
-  ;; `woman-topic-at-point' may be let-bound when woman is loaded, in
-  ;; which case its global value does not get defined.
+(defcustom woman-use-topic-at-point-default nil
+  ;; `woman-use-topic-at-point' may be let-bound when woman is loaded,
+  ;; in which case its global value does not get defined.
   ;; `woman-file-name' sets it to this value if it is unbound.
-  "*Default value for `woman-topic-at-point'."
+  "*Default value for `woman-use-topic-at-point'."
   :type '(choice (const :tag "Yes" t)
-		 (const :tag "No" nil)
-		 (other :tag "Confirm" confirm))
+		 (const :tag "No" nil))
   :group 'woman-interface)
 
-(defcustom woman-topic-at-point woman-topic-at-point-default
-  "*Controls use by `woman' of `word at point' as a topic suggestion.
-If non-nil then the `woman' command uses the word at point as an
-initial topic suggestion when it reads a topic from the minibuffer; if
-t then the `woman' command uses the word at point WITHOUT
-INTERACTIVE CONFIRMATION if it exists as a topic.  The default value
-is `confirm', meaning suggest a topic and ask for confirmation."
+(defcustom woman-use-topic-at-point woman-use-topic-at-point-default
+  "*Control use of the word at point as the default topic.
+If non-nil the `woman' command uses the word at point automatically,
+without interactive confirmation, if it exists as a topic."
   :type '(choice (const :tag "Yes" t)
-		 (const :tag "No" nil)
-		 (other :tag "Confirm" confirm))
+		 (const :tag "No" nil))
   :group 'woman-interface)
 
 (defvar woman-file-regexp nil
@@ -956,8 +944,9 @@ This is usually either black or white."
     :group 'woman-faces)
 
   (defcustom woman-use-symbol-font nil
-    "*If non-nil then may use the symbol font.  It is off by default,
-mainly because it may change the line spacing (in NTEmacs 20.5)."
+    "*If non-nil then may use the symbol font.
+It is off by default, mainly because it may change the line spacing
+\(in NTEmacs 20.5)."
     :type 'boolean
     :group 'woman-faces)
 
@@ -1200,10 +1189,11 @@ It is saved to the file named by the variable `woman-cache-filename'."
 
 (defun woman-file-name (topic &optional re-cache)
   "Get the name of the UN*X man-page file describing a chosen TOPIC.
-When `woman' is called interactively, the word at point may be used as
-the topic or initial topic suggestion, subject to the value of the
-user option `woman-topic-at-point'.  Return nil if no file can be found.
-Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
+When `woman' is called interactively, the word at point may be
+automatically used as the topic, if the value of the user option
+`woman-use-topic-at-point' is non-nil.  Return nil if no file can
+be found.  Optional argument RE-CACHE, if non-nil, forces the
+cache to be re-read."
   ;; Handle the caching of the directory and topic lists:
   (if (and (not re-cache)
 	   (or
@@ -1221,25 +1211,30 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
   ;; completions, but to return only a case-sensitive match.  This
   ;; does not seem to work properly by default, so I re-do the
   ;; completion if necessary.
-  (let (files)
+  (let (files
+	(default (current-word)))
     (or (stringp topic)
-	(and (eq t
-		 (if (boundp 'woman-topic-at-point)
-		     woman-topic-at-point
-		   ;; Was let-bound when file loaded, so ...
-		   (setq woman-topic-at-point woman-topic-at-point-default)))
-	     (setq topic
-		   (or (current-word t) ""))	; only within or adjacent to word
-	     (assoc topic woman-topic-all-completions))
+	(and (if (boundp 'woman-use-topic-at-point)
+		 woman-use-topic-at-point
+	       ;; Was let-bound when file loaded, so ...
+	       (setq woman-use-topic-at-point woman-use-topic-at-point-default))
+	     (setq topic (or (current-word t) "")) ; only within or adjacent to word
+	     (test-completion topic woman-topic-all-completions))
 	(setq topic
-	      (completing-read
-	       "Manual entry: "
-	       woman-topic-all-completions nil 1
-	       ;; Initial input suggestion (was nil), with
-	       ;; cursor at left ready to kill suggestion!:
-	       (and woman-topic-at-point
-		    (cons (or (current-word) "") 0)) ; nearest word
-	       'woman-topic-history)))
+	      (let* ((word-at-point (current-word))
+		     (default
+		       (when (and word-at-point
+				  (test-completion
+				   word-at-point woman-topic-all-completions))
+			 word-at-point)))
+		(completing-read
+		 (if default
+		     (format "Manual entry [default: %s]: " default)
+		   "Manual entry: ")
+		 woman-topic-all-completions nil 1
+		 nil
+		 'woman-topic-history
+		 default))))
     ;; Note that completing-read always returns a string.
     (if (= (length topic) 0)
 	nil				; no topic, so no file!
@@ -1259,10 +1254,9 @@ Optional argument RE-CACHE, if non-nil, forces the cache to be re-read."
 	;; Unread the command event (TAB = ?\t = 9) that runs the command
 	;; `minibuffer-complete' in order to automatically complete the
 	;; minibuffer contents as far as possible.
-	(setq unread-command-events '(9))	; and delete any type-ahead!
+	(setq unread-command-events '(9)) ; and delete any type-ahead!
 	(completing-read "Manual file: " files nil 1
-			 (try-completion "" files) 'woman-file-history)))
-      )))
+			 (try-completion "" files) 'woman-file-history))))))
 
 (defun woman-select (predicate list)
   "Select unique elements for which PREDICATE is true in LIST.
@@ -1741,7 +1735,10 @@ Leave point at end of new text.  Return length of inserted text."
   (define-key woman-mode-map "w" 'woman)
   (define-key woman-mode-map "\en" 'WoMan-next-manpage)
   (define-key woman-mode-map "\ep" 'WoMan-previous-manpage)
-  (define-key woman-mode-map [M-mouse-2] 'woman-follow-word))
+  (define-key woman-mode-map [M-mouse-2] 'woman-follow-word)
+
+  ;; We don't need to call `man' when we are in `woman-mode'.
+  (define-key woman-mode-map [remap man] 'woman))
 
 (defun woman-follow-word (event)
   "Run WoMan with word under mouse as topic.
@@ -1942,25 +1939,33 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
 (defvar WoMan-Man-start-time nil
   "Used to record formatting time used by the `man' command.")
 
-(defadvice Man-getpage-in-background
-  (around Man-getpage-in-background-advice (topic) activate)
-  "Use WoMan unless invoked outside a WoMan buffer or invoked explicitly.
-Otherwise use Man and record start of formatting time."
-  (if (and (eq major-mode 'woman-mode)
-	   (not (eq (caar command-history) 'man)))
-      (WoMan-getpage-in-background topic)
-    ;; Initiates man processing
-    (setq WoMan-Man-start-time (current-time))
-    ad-do-it))
+;; Both advices are disabled because "a file in Emacs should not put
+;; advice on a function in Emacs" (see Info node "(elisp)Advising
+;; Functions").  Counting the formatting time is useful for
+;; developping, but less applicable for daily use.  The advice for
+;; `Man-getpage-in-background' can be discarded, because the
+;; key-binding in `woman-mode-map' has been remapped to call `woman'
+;; but `man'.  Michael Albinus <michael.albinus@gmx.de>
 
-(defadvice Man-bgproc-sentinel
-  (after Man-bgproc-sentinel-advice activate)
-  ;; Terminates man processing
-  "Report formatting time."
-  (let* ((time (current-time))
-	 (time (+ (* (- (car time) (car WoMan-Man-start-time)) 65536)
-		  (- (cadr time) (cadr WoMan-Man-start-time)))))
-    (message "Man formatting done in %d seconds" time)))
+;; (defadvice Man-getpage-in-background
+;;   (around Man-getpage-in-background-advice (topic) activate)
+;;   "Use WoMan unless invoked outside a WoMan buffer or invoked explicitly.
+;; Otherwise use Man and record start of formatting time."
+;;   (if (and (eq major-mode 'woman-mode)
+;; 	   (not (eq (caar command-history) 'man)))
+;;       (WoMan-getpage-in-background topic)
+;;     ;; Initiates man processing
+;;     (setq WoMan-Man-start-time (current-time))
+;;     ad-do-it))
+
+;; (defadvice Man-bgproc-sentinel
+;;   (after Man-bgproc-sentinel-advice activate)
+;;   ;; Terminates man processing
+;;   "Report formatting time."
+;;   (let* ((time (current-time))
+;; 	 (time (+ (* (- (car time) (car WoMan-Man-start-time)) 65536)
+;; 		  (- (cadr time) (cadr WoMan-Man-start-time)))))
+;;     (message "Man formatting done in %d seconds" time)))
 
 
 ;;; Buffer handling:

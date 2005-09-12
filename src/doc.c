@@ -57,6 +57,8 @@ static Lisp_Object Vbuild_files;
 
 extern Lisp_Object Voverriding_local_map, Qclosure;
 
+extern Lisp_Object Qremap;
+
 /* For VMS versions with limited file name syntax,
    convert the name to something VMS will allow.  */
 static void
@@ -821,6 +823,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else if (strp[0] == '\\' && strp[1] == '[')
 	{
 	  int start_idx;
+	  int follow_remap = 1;
 
 	  changed = 1;
 	  strp += 2;		/* skip \[ */
@@ -839,10 +842,20 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  idx = strp - SDATA (string);
 	  name = Fintern (make_string (start, length_byte), Qnil);
 
+	do_remap:
 	  /* Ignore remappings unless there are no ordinary bindings. */
  	  tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qt);
  	  if (NILP (tem))
 	    tem = Fwhere_is_internal (name, keymap, Qt, Qnil, Qnil);
+
+	  if (VECTORP (tem) && XVECTOR (tem)->size > 1
+	      && EQ (AREF (tem, 0), Qremap) && SYMBOLP (AREF (tem, 1))
+	      && follow_remap)
+	    {
+	      name = AREF (tem, 1);
+	      follow_remap = 0;
+	      goto do_remap;
+	    }
 
 	  /* Note the Fwhere_is_internal can GC, so we have to take
 	     relocation of string contents into account.  */
