@@ -1,3 +1,11 @@
+2005-09-11  Stephen Gildea  <gildea@stop.mail-abuse.org>
+
+	* time-stamp.el: Mention variable `time-stamp-pattern' in doc
+	strings of the variables it can override.
+
+	(time-stamp): new (as yet undocumented) time-stamp-format escapes
+	%Q and %q, for fully-qualified domain name and unqualified host name.
+
 2005-09-11  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/authors.el (authors-aliases): Update list.
