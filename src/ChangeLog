@@ -1,3 +1,8 @@
+2005-09-12  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (display_mode_element): Be sure to make variables THIS
+	and LISP_STRING point into a string data of ELT.
+
 2005-09-12  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Ftranslate_region_internal): Reload `tt' after
