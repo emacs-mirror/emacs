@@ -1,5 +1,10 @@
 2005-09-12  Richard M. Stallman  <rms@gnu.org>
 
+	* font-lock.el (font-lock-keywords): Add autoload.
+
+	* help-fns.el (describe-variable): Rearrange to put source link
+	in a predictable place.
+
 	* net/newsticker.el: New file.
 
 2005-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
