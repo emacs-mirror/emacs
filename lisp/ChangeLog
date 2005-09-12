@@ -9,6 +9,30 @@
 
 2005-09-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* calendar/calendar.el (calendar-for-loop): Add edebug info.
+	(calendar-basic-setup): Use the new nil arg.
+	(number-of-diary-entries): Move to diary-lib.el.
+
+	* calendar/diary-lib.el: Use with-current-buffer, match-string.
+	(diary-list-entries): Use with-syntax-table and dolist.
+	Rename from list-diary-entries.
+	Use number-of-diary-entries if `number' is nil.
+	(diary, diary-view-entries): Use this new name and new nil arg value.
+	(number-of-diary-entries): Move from calendar.el.
+	(diary-unhide-everything): New function.
+	(include-other-diary-files, fancy-diary-display)
+	(diary-show-all-entries, make-diary-entry): Use it.
+	(diary-mail-entries): Use buffer-string.
+	(mark-diary-entries): Fix long standing paren typo.
+	(diary-sexp-entry): Use count-lines.
+	(make-diary-entry): Avoid `previous-line'.
+	(diary-mode-map): New var.
+	(diary-mode): Redraw cal after saving.  Setup header-line.
+	(fancy-diary-display-mode): Use local-set-key.
+
+	* startup.el (command-line): Try calling various terminal-init-foo-bar
+	functions by stripping hyphenated suffixes from $TERM.
+
 	* files.el (normal-mode): Check boundness of font-lock-keywords.
 
 2005-09-12  Richard M. Stallman  <rms@gnu.org>
