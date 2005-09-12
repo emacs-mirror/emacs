@@ -1,5 +1,8 @@
 2005-09-12  Kim F. Storm  <storm@cua.dk>
 
+	* composite.c (compose_chars_in_text): Fix setup of `pend'.
+	Unconditionally reload `ptr' and `pend' after eval.
+
 	* xdisp.c (message3): Pass copy of lisp string to message_dolog.
 
 	* print.c (print_error_message): Pass copy of caller name to
