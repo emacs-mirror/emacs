@@ -1,3 +1,7 @@
+2005-09-13  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (print_error_message): Fix last change.
+
 2005-09-12  Kim F. Storm  <storm@cua.dk>
 
 	* composite.c (compose_chars_in_text): Fix setup of `pend'.
