@@ -1,3 +1,23 @@
+2005-09-12  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Ftranslate_region_internal): Reload `tt' after
+	signal_after_change that may have GC'ed.
+	(Fmessage, Fmessage_box, Fmessage_or_box): Doc fix.
+
+	* keymap.c (Fdescribe_buffer_bindings): Reload `translate'
+	after insert while runs signal_after_change.
+
+	* minibuf.c (Fminibuffer_complete_word): Move `completion_string'
+	declaration to where it is used.
+
+	* w32.c (check_windows_init_file): Fix allocation of error buffer.
+
+	* xfns.c (x_encode_text): Declare static.  Add FREEP arg.
+	(x_set_name_internal): Call x_encode_text with new FREEP arg to
+	know if xfree is needed instead of guessing.
+
+	* xterm.h (x_encode_text): Remove prototype.
+
 2005-09-11  Chris Prince  <cprince@gmail.com>  (tiny change)
 
 	* w32term.c (x_bitmap_icon): Load small icons too.
