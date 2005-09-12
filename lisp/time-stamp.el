@@ -5,7 +5,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer's Time-stamp: <2004-06-13 19:04:36 teirllm>
+;; Maintainer's Time-stamp: <2004-09-25 20:55:35 gildea>
 ;; Maintainer: Stephen Gildea <gildea@stop.mail-abuse.org>
 ;; Keywords: tools
 
@@ -143,20 +143,26 @@ the first (last) `time-stamp-line-limit' lines of the file for the
 file to be time-stamped by \\[time-stamp].  A value of 0 searches the
 entire buffer (use with care).
 
-Do not change `time-stamp-line-limit', `time-stamp-start', or
-`time-stamp-end' for yourself or you will be incompatible
-with other people's files!  If you must change them for some application,
-do so in the local variables section of the time-stamped file itself.")
+This value can also be set with the variable `time-stamp-pattern'.
+
+Do not change `time-stamp-line-limit', `time-stamp-start',
+`time-stamp-end', or `time-stamp-pattern' for yourself or you will be
+incompatible with other people's files!  If you must change them for some
+application, do so in the local variables section of the time-stamped file
+itself.")
 
 
 (defvar time-stamp-start "Time-stamp:[ \t]+\\\\?[\"<]+"    ;Do not change!
   "Regexp after which the time stamp is written by \\[time-stamp].
 See also the variables `time-stamp-end' and `time-stamp-line-limit'.
 
-Do not change `time-stamp-line-limit', `time-stamp-start', or
-`time-stamp-end' for yourself or you will be incompatible
-with other people's files!  If you must change them for some application,
-do so in the local variables section of the time-stamped file itself.")
+This value can also be set with the variable `time-stamp-pattern'.
+
+Do not change `time-stamp-line-limit', `time-stamp-start',
+`time-stamp-end', or `time-stamp-pattern' for yourself or you will be
+incompatible with other people's files!  If you must change them for some
+application, do so in the local variables section of the time-stamped file
+itself.")
 
 
 (defvar time-stamp-end "\\\\?[\">]"    ;Do not change!
@@ -165,13 +171,15 @@ do so in the local variables section of the time-stamped file itself.")
 and the following match of `time-stamp-end', then writes the
 time stamp specified by `time-stamp-format' between them.
 
+This value can also be set with the variable `time-stamp-pattern'.
+
 The end text normally starts on the same line as the start text ends,
 but if there are any newlines in `time-stamp-format', the same number
 of newlines must separate the start and end.  \\[time-stamp] tries
 to not change the number of lines in the buffer.  `time-stamp-inserts-lines'
 controls this behavior.
 
-Do not change `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
+Do not change `time-stamp-start', `time-stamp-end', `time-stamp-pattern',
 or `time-stamp-inserts-lines' for yourself or you will be incompatible
 with other people's files!  If you must change them for some application,
 do so in the local variables section of the time-stamped file itself.")
@@ -231,9 +239,11 @@ Examples:
 \"@set Time-stamp: %:b %:d, %:y$\"
 \"newcommand{\\\\\\\\timestamp}{%%}\"
 
-Do not change `time-stamp-pattern' for yourself or you will be incompatible
-with other people's files!  Set it only in the local variables section
-of the time-stamped file itself.")
+Do not change `time-stamp-pattern' `time-stamp-line-limit',
+`time-stamp-start', or `time-stamp-end' for yourself or you will be
+incompatible with other people's files!  If you must change them for
+some application, do so only in the local variables section of the
+time-stamped file itself.")
 
 
 
@@ -251,10 +261,11 @@ look like one of the following:
 The time stamp is written between the brackets or quotes:
       Time-stamp: <2001-02-18 10:20:51 gildea>
 The time stamp is updated only if the variable `time-stamp-active' is non-nil.
-The format of the time stamp is set by the variable `time-stamp-format'.
-The variables `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
-`time-stamp-count', and `time-stamp-inserts-lines' control finding the
-template."
+The format of the time stamp is set by the variable `time-stamp-pattern' or
+`time-stamp-format'.  The variables `time-stamp-pattern',
+`time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
+`time-stamp-count', and `time-stamp-inserts-lines' control finding 
+the template."
   (interactive)
   (let ((line-limit time-stamp-line-limit)
 	(ts-start time-stamp-start)
@@ -588,6 +599,13 @@ and all `time-stamp-format' compatibility."
 	  (user-full-name))
 	 ((eq cur-char ?h)		;mail host name
 	  (time-stamp-mail-host-name))
+	 ((eq cur-char ?q)		;(undocumented unqual hostname)
+	  (let ((qualname (system-name)))
+	    (if (string-match "\\." qualname)
+		(substring qualname 0 (match-beginning 0))
+	      qualname)))
+	 ((eq cur-char ?Q)		;(undocumented fully-qualified host)
+	  (system-name))
 	 ))
 	(let ((padded-result
 	       (format (format "%%%s%c"
