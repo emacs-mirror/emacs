@@ -1,3 +1,8 @@
+2005-09-06  Richard M. Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Sometimes it is ok to put the
+	package prefix elsewhere than at the start of the name.
+
 2005-09-03  Richard M. Stallman  <rms@gnu.org>
 
 	* tips.texi (Programming Tips): Add conventions for minibuffer
