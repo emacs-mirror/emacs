@@ -1,3 +1,12 @@
+2005-09-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/codepage.el (dos-unsupported-char-glyph):
+	* net/newsticker.el (tool-bar-map, w3-mode-map)
+	(w3m-minor-mode-map):
+	* progmodes/vhdl-mode.el (conf-alist, conf-entry, conf-key)
+	(ent-alist):
+	* textmodes/reftex-vars.el (reftex-tables-dirty): Add defvars.
+
 2005-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (custom-push-theme): Handle the case where a symbol is
@@ -5,7 +14,7 @@
 
 	* mail/sendmail.el (mail): Use new buffer if `noerase' is `new'.
 	Fix behavior if noerase is `t' and there is no mail buffer.
-	
+
 	* simple.el (sendmail-user-agent-compose): Use a new mail buffer
 	if `continue' is nil, rather than signal an error.
 
@@ -68,7 +77,6 @@
 
 	* time-stamp.el: Mention variable `time-stamp-pattern' in doc
 	strings of the variables it can override.
-
 	(time-stamp): New (as yet undocumented) time-stamp-format escapes
 	%Q and %q, for fully-qualified domain name and unqualified host name.
 
