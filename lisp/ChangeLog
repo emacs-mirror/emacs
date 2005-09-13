@@ -1,3 +1,8 @@
+2005-09-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-major-mode-menu): Make `prefix' optional.
+	Delete unused local var.
+
 2005-09-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-fns.el (describe-categories): "?\ " -> "?\s".

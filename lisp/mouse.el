@@ -153,7 +153,7 @@ PREFIX is the prefix argument (if any) to pass to the command."
 
 (defvar mouse-major-mode-menu-prefix)	; dynamically bound
 
-(defun mouse-major-mode-menu (event prefix)
+(defun mouse-major-mode-menu (event &optional prefix)
   "Pop up a mode-specific menu of mouse commands.
 Default to the Edit menu if the major mode doesn't define a menu."
   ;; Switch to the window clicked on, because otherwise
@@ -173,8 +173,7 @@ Default to the Edit menu if the major mode doesn't define a menu."
 	 ;; default to the edit menu.
 	 (newmap (if ancestor
 		     (make-sparse-keymap (concat mode-name " Mode"))
-		   menu-bar-edit-menu))
-	 result)
+		   menu-bar-edit-menu)))
     (if ancestor
 	;; Make our menu inherit from the desired keymap which we want
 	;; to display as the menu now.
