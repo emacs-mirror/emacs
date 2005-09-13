@@ -1,9 +1,9 @@
 \input texinfo   @c -*-texinfo-*-
-@comment $Id: newsticker.texi,v 1.4 2005/08/09 20:10:13 u11 Exp $
+@comment $Id: newsticker.texi,v 1.1 2005/09/13 15:50:31 rms Exp $
 @comment %**start of header
 @setfilename newsticker.info
 @set VERSION 1.8
-@set UPDATED ``$Id: newsticker.texi,v 1.4 2005/08/09 20:10:13 u11 Exp $''
+@set UPDATED ``$Id: newsticker.texi,v 1.1 2005/09/13 15:50:31 rms Exp $''
 @settitle Newsticker @value{VERSION}
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -671,3 +671,6 @@ Byte-compiling newsticker.el is recommended.
 
 
 
+@ignore
+   arch-tag: 7a4de539-117c-4658-b799-0b9e3d0ccec0
+@end ignore
