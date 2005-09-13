@@ -269,22 +269,20 @@ face (according to `face-differs-from-default-p')."
 (defun help-do-arg-highlight (doc args)
   (with-syntax-table (make-syntax-table emacs-lisp-mode-syntax-table)
     (modify-syntax-entry ?\- "w")
-    (while args
-      (let ((arg (prog1 (car args) (setq args (cdr args)))))
-        (setq doc (replace-regexp-in-string
-                   ;; This is heuristic, but covers all common cases
-                   ;; except ARG1-ARG2
-                   (concat "\\<"                   ; beginning of word
-                           "\\(?:[a-z-]*-\\)?"     ; for xxx-ARG
-                           "\\("
-                           (regexp-quote arg)
-                           "\\)"
-                           "\\(?:es\\|s\\|th\\)?"  ; for ARGth, ARGs
-                           "\\(?:-[a-z-]+\\)?"     ; for ARG-xxx
-                           "\\>")                  ; end of word
-                   (help-default-arg-highlight arg)
-                   doc t t 1))))
-    doc))
+    (dolist (arg args doc)
+      (setq doc (replace-regexp-in-string
+                 ;; This is heuristic, but covers all common cases
+                 ;; except ARG1-ARG2
+                 (concat "\\<"                   ; beginning of word
+                         "\\(?:[a-z-]*-\\)?"     ; for xxx-ARG
+                         "\\("
+                         (regexp-quote arg)
+                         "\\)"
+                         "\\(?:es\\|s\\|th\\)?"  ; for ARGth, ARGs
+                         "\\(?:-[a-z0-9-]+\\)?"  ; for ARG-xxx, ARG-n
+                         "\\>")                  ; end of word
+                 (help-default-arg-highlight arg)
+                 doc t t 1)))))
 
 (defun help-highlight-arguments (usage doc &rest args)
   (when usage
@@ -712,7 +710,7 @@ BUFFER should be a buffer or a buffer name."
 	    (dotimes (i 95)
 	      (let ((elt (aref docs i)))
 		(when elt
-		  (insert (+ i ?\ ) ": " elt "\n"))))
+		  (insert (+ i ?\s) ": " elt "\n"))))
 	    (while (setq table (char-table-parent table))
 	      (insert "\nThe parent category table is:")
 	      (describe-vector table 'help-describe-category-set))))))))
