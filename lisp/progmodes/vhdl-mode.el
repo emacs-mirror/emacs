@@ -134,11 +134,14 @@
   "Non-nil if GNU Emacs 22, ... is used.")
 
 (defvar compilation-file-regexp-alist)
+(defvar conf-alist)
+(defvar conf-entry)
+(defvar conf-key)
+(defvar ent-alist)
 (defvar itimer-version)
 (defvar lazy-lock-defer-contextually)
 (defvar lazy-lock-defer-on-scrolling)
 (defvar lazy-lock-defer-on-the-fly)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Variables
@@ -363,7 +366,7 @@ Unit-to-file name mapping: mapping of library unit names to names of files
   Case adjustment  : adjust case of inserted unit names
 
 \(*) The regular expression must match the error message starting from the
-    beginning of the line (but not necessarily to the end of the line). 
+    beginning of the line (but not necessarily to the end of the line).
 
 Compile options allows insertion of the library name (see `vhdl-project-alist')
 in order to set the compilers library option (e.g. \"vcom -work my_lib\").
@@ -1059,7 +1062,7 @@ begin  -- process <label>
     <cursor>
   elsif <clock>'event and <clock> = '1' then  -- rising clock edge
     if <enable> = '1' then  -- synchronous load
-      
+
     end if;
   end if;
 end process <label>;"
@@ -1328,7 +1331,7 @@ Type `C-j' for newlines."
   WaveGen_Proc: process
   begin
     -- insert signal assignments here
-    
+
     wait until Clk = '1';
   end process WaveGen_Proc;
 "
@@ -4403,16 +4406,16 @@ Usage:
         outputs from this component -> output port created
       - signals that are inputs to AND outputs from subcomponents are
         considered as internal connections -> internal signal created
- 
+
       Purpose:  With appropriate naming conventions it is possible to
     create higher design levels with only a few mouse clicks or key
     strokes.  A new design level can be created by simply generating a new
     component, placing the required subcomponents from the hierarchy
     browser, and wiring everything automatically.
- 
+
       Note: Automatic wiring only works reliably on templates of new
     components and component instantiations that were created by VHDL mode.
- 
+
       Component declarations can be placed in a components package (option
     `vhdl-use-components-package') which can be automatically generated for
     an entire directory or project (`C-c C-c M-p').  The VHDL'93 direct
@@ -4434,7 +4437,7 @@ Usage:
 |     Note: Configurations of subcomponents (i.e. hierarchical configuration
 |   declarations) are currently not considered when displaying
 |   configurations in speedbar.
- 
+
       See the options group `vhdl-compose' for all relevant user options.
 
 
@@ -15291,7 +15294,7 @@ expansion function)."
 (defface vhdl-speedbar-architecture-face
   '((((min-colors 88) (class color) (background light)) (:foreground "Blue1"))
     (((class color) (background light)) (:foreground "Blue"))
-    
+
     (((class color) (background dark)) (:foreground "LightSkyBlue")))
   "Face used for displaying architecture names."
   :group 'speedbar-faces)
