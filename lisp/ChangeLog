@@ -1,5 +1,9 @@
 2005-09-13  Juanma Barranquero  <lekktu@gmail.com>
 
+	* help-fns.el (describe-categories): "?\ " -> "?\s".
+	(help-do-arg-highlight): Recognize also ARG-n, as in
+	`move-to-left-margin' (ARG+n is already recognized).  Simplify.
+
 	* international/codepage.el (dos-unsupported-char-glyph):
 	* net/newsticker.el (tool-bar-map, w3-mode-map)
 	(w3m-minor-mode-map):
