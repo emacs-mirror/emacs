@@ -2996,6 +2996,10 @@ used to effect hiding for hideshow minor mode.  Integration with isearch
 handles the overlay property `display' specially, preserving it during
 temporary overlay showing in the course of an isearch operation.
 
+** New variable `hs-allow-nesting' non-nil means that hiding a block does
+not discard the hidden state of any "internal" blocks; when the parent
+block is later shown, the internal blocks remain hidden.  Default is nil.
+
 +++
 ** `hide-ifdef-mode' now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
