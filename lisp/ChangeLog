@@ -1,5 +1,12 @@
 2005-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
+	Use with-current-buffer.
+	(ange-ftp-gwp-start): Remove unused var `gw-user'.
+	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
+	(ange-ftp-insert-directory): Remove unused var `short'.
+	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
+
 	* pcvs-defs.el (cvs-version): Recognize CVSNT version string.
 	(cvs-execute-single-dir): Change default: cvs-1.9 is ancient.
 
@@ -284,13 +291,6 @@
 	when in matrix mode.
 
 2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
-	Use with-current-buffer.
-	(ange-ftp-gwp-start): Remove unused var `gw-user'.
-	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
-	(ange-ftp-insert-directory): Remove unused var `short'.
-	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
 
 	* buff-menu.el (Buffer-menu-make-sort-button): Add docstrings, use
 	non-anonymous functions.
