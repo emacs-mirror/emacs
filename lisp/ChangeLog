@@ -1,3 +1,19 @@
+2005-09-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el
+	(hs-hide-comments-when-hiding-all): Remove autoload cookie.
+	(hs-allow-nesting): New user var.
+	(hs-discard-overlays): Skip "internal" overlays if nesting allowed.
+	(hs-hide-block-at-point): When nesting allowed,
+	if there is already an overlay in place, delete it.
+	(hs-safety-is-job-n): Delete func; remove call sites.
+	(hs-hide-level-recursive): Don't pre-clean if nesting allowed.
+	(hs-overlay-at): New func.
+	(hs-already-hidden-p, hs-show-block): Use it.
+	(hs-hide-all): Don't pre-clean if nesting allowed.
+	(hs-show-all): Temporarily disallow
+	nesting around call to `hs-discard-overlays'.
+
 2005-09-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-major-mode-menu): Make `prefix' optional.
