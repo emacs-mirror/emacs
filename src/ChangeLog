@@ -1,3 +1,8 @@
+2005-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* fileio.c (Fexpand_file_name): Check multibyteness of
+	default_directory.
+
 2005-09-13  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (compose_chars_in_text): Delete it.
