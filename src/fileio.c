@@ -1056,6 +1056,7 @@ See also the function `substitute-in-file-name'.  */)
 #endif /* DOS_NT */
   int length;
   Lisp_Object handler, result;
+  int multibyte;
 
   CHECK_STRING (name);
 
@@ -1133,6 +1134,7 @@ See also the function `substitute-in-file-name'.  */)
 
   name = FILE_SYSTEM_CASE (name);
   nm = SDATA (name);
+  multibyte = STRING_MULTIBYTE (name);
 
 #ifdef DOS_NT
   /* We will force directory separators to be either all \ or /, so make
@@ -1298,8 +1300,7 @@ See also the function `substitute-in-file-name'.  */)
 	  if (index (nm, '/'))
 	    {
 	      nm = sys_translate_unix (nm);
-	      return make_specified_string (nm, -1, strlen (nm),
-					    STRING_MULTIBYTE (name));
+	      return make_specified_string (nm, -1, strlen (nm), multibyte);
 	    }
 #endif /* VMS */
 #ifdef DOS_NT
@@ -1311,8 +1312,7 @@ See also the function `substitute-in-file-name'.  */)
 	  if (IS_DIRECTORY_SEP (nm[1]))
 	    {
 	      if (strcmp (nm, SDATA (name)) != 0)
-		name = make_specified_string (nm, -1, strlen (nm),
-					      STRING_MULTIBYTE (name));
+		name = make_specified_string (nm, -1, strlen (nm), multibyte);
 	    }
 	  else
 #endif
@@ -1321,8 +1321,7 @@ See also the function `substitute-in-file-name'.  */)
 	    {
 	      char temp[] = " :";
 
-	      name = make_specified_string (nm, -1, p - nm,
-					    STRING_MULTIBYTE (name));
+	      name = make_specified_string (nm, -1, p - nm, multibyte);
 	      temp[0] = DRIVE_LETTER (drive);
 	      name = concat2 (build_string (temp), name);
 	    }
@@ -1330,8 +1329,7 @@ See also the function `substitute-in-file-name'.  */)
 #else /* not DOS_NT */
 	  if (nm == SDATA (name))
 	    return name;
-	  return make_specified_string (nm, -1, strlen (nm),
-					STRING_MULTIBYTE (name));
+	  return make_specified_string (nm, -1, strlen (nm), multibyte);
 #endif /* not DOS_NT */
 	}
     }
@@ -1443,6 +1441,7 @@ See also the function `substitute-in-file-name'.  */)
       && !newdir)
     {
       newdir = SDATA (default_directory);
+      multibyte |= STRING_MULTIBYTE (default_directory);
 #ifdef DOS_NT
       /* Note if special escape prefix is present, but remove for now.  */
       if (newdir[0] == '/' && newdir[1] == ':')
@@ -1708,8 +1707,7 @@ See also the function `substitute-in-file-name'.  */)
   CORRECT_DIR_SEPS (target);
 #endif /* DOS_NT */
 
-  result = make_specified_string (target, -1, o - target,
-                                  STRING_MULTIBYTE (name));
+  result = make_specified_string (target, -1, o - target, multibyte);
 
   /* Again look to see if the file name has special constructs in it
      and perhaps call the corresponding file handler.  This is needed
