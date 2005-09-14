@@ -1,3 +1,7 @@
+2005-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* obsolete/iso-insert.el: Move to obsolete/ from international/.
+
 2005-09-14  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* progmodes/hideshow.el
