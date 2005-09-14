@@ -1,3 +1,9 @@
+2005-09-14  Romain Francoise  <romain@orebokech.com>
+
+	* fileio.c (write_region_inhibit_fsync): New variable.
+	(Fwrite_region): Use it to skip call to fsync.
+	(syms_of_fileio): Initialize it.
+
 2005-09-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (code_convert_region_unwind): Argument format changed.

@@ -225,6 +225,11 @@ int vms_stmlf_recfm;
    expanding file names.  This can be bound to / or \. */
 Lisp_Object Vdirectory_sep_char;
 
+#ifdef HAVE_FSYNC
+/* Nonzero means skip the call to fsync in Fwrite-region.  */
+int write_region_inhibit_fsync;
+#endif
+
 extern Lisp_Object Vuser_login_name;
 
 #ifdef WINDOWSNT
@@ -5296,7 +5301,7 @@ This does code conversion according to the value of
      Disk full in NFS may be reported here.  */
   /* mib says that closing the file will try to write as fast as NFS can do
      it, and that means the fsync here is not crucial for autosave files.  */
-  if (!auto_saving && fsync (desc) < 0)
+  if (!auto_saving && !write_region_inhibit_fsync && fsync (desc) < 0)
     {
       /* If fsync fails with EINTR, don't treat that as serious.  */
       if (errno != EINTR)
@@ -6741,6 +6746,13 @@ This variable is initialized automatically from `auto-save-list-file-prefix'
 shortly after Emacs reads your `.emacs' file, if you have not yet given it
 a non-nil value.  */);
   Vauto_save_list_file_name = Qnil;
+
+#ifdef HAVE_FSYNC
+  DEFVAR_BOOL ("write-region-inhibit-fsync", &write_region_inhibit_fsync,
+	       doc: /* *Non-nil means don't call fsync after saving files.
+Enabling this variable may result in data loss!  */);
+  write_region_inhibit_fsync = 0;
+#endif
 
   defsubr (&Sfind_file_name_handler);
   defsubr (&Sfile_name_directory);
