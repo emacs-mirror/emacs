@@ -1,3 +1,7 @@
+2005-09-14  Romain Francoise  <romain@orebokech.com>
+
+	* files.texi (Saving): Mention write-region-inhibit-fsync.
+
 2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Custom Themes): New node.

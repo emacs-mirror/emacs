@@ -502,6 +502,15 @@ variable @code{require-final-newline} according to
 @code{mode-require-final-newline}.  By setting the latter variable,
 you can control how these modes handle final newlines.
 
+@vindex write-region-inhibit-fsync
+  When Emacs saves a file to disk, it issues an @code{fsync} call to the
+operating system to ensure that your data has indeed reached the media.
+This is important for safety if the system crashes or in case of power
+outage.  However, it can be disruptive on laptops using power saving
+because it forces the system to spin up the drive each time you save a
+file; the variable @code{write-region-inhibit-fsync} disables this
+synchronization.  This may result in data loss, use with care!
+
 @menu
 * Backup::              How Emacs saves the old version of your file.
 * Interlocking::        How Emacs protects against simultaneous editing
