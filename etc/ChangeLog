@@ -1,3 +1,7 @@
+2005-09-14  Romain Francoise  <romain@orebokech.com>
+
+	* NEWS: Add entry for write-region-inhibit-fsync.
+
 2005-09-09  Kevin Ryde  <user42@zip.com.au>
 
 	* MORE.STUFF: Update url for calculator.el.

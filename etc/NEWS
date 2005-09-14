@@ -618,6 +618,12 @@ controls whether or not the function `make-auto-save-file-name' will
 attempt to construct a unique auto-save name (e.g. for remote files).
 
 +++
+*** The new option `write-region-inhibit-fsync' disables calls to fsync
+in `write-region'.  This can be useful on laptops to avoid spinning up
+the hard drive upon each file save.  Enabling this variable may result
+in data loss, use with care.
+
++++
 *** If the user visits a file larger than `large-file-warning-threshold',
 Emacs asks for confirmation.
 
