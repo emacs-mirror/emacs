@@ -1,12 +1,12 @@
 ;;; hideshow.el --- minor mode cmds to selectively display code/comment blocks
 
 ;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
-;;               2004, 2005  Free Software Foundation
+;;               2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;;      Dan Nicolaescu <dann@ics.uci.edu>
 ;; Keywords: C C++ java lisp tools editing comments blocks hiding outlines
-;; Maintainer-Version: 5.58.2.4
+;; Maintainer-Version:
 ;; Time-of-Day-Author-Most-Likely-to-be-Recalcitrant: early morning
 
 ;; This file is part of GNU Emacs.
@@ -208,11 +208,11 @@
 ;; Thanks go to the following people for valuable ideas, code and
 ;; bug reports.
 ;;
-;;     Dean Andrews, Alf-Ivar Holm, Holger Bauer, Christoph Conrad, Dave
-;;     Love, Dirk Herrmann, Gael Marziou, Jan Djarv, Guillaume Leray,
-;;     Moody Ahmad, Preston F. Crow, Lars Lindberg, Reto Zimmermann,
-;;     Keith Sheffield, Chew Meng Kuan, Tony Lam, Pete Ware, François
-;;     Pinard, Stefan Monnier, Joseph Eydelnant, Michael Ernst
+;;  Dean Andrews, Alf-Ivar Holm, Holger Bauer, Christoph Conrad, Dave Love,
+;;  Dirk Herrmann, Gael Marziou, Jan Djarv, Guillaume Leray, Moody Ahmad,
+;;  Preston F. Crow, Lars Lindberg, Reto Zimmermann, Keith Sheffield,
+;;  Chew Meng Kuan, Tony Lam, Pete Ware, François Pinard, Stefan Monnier,
+;;  Joseph Eydelnant, Michael Ernst, Peter Heslin
 ;;
 ;; Special thanks go to Dan Nicolaescu, who reimplemented hideshow using
 ;; overlays (rather than selective display), added isearch magic, folded
@@ -587,7 +587,8 @@ as cdr."
             (while (and (< (point) q)
                         (> (point) p)
                         (not (looking-at hs-c-start-regexp)))
-              (setq p (point)) ;; use this to avoid an infinite cycle
+              ;; avoid an infinite cycle
+              (setq p (point))
               (forward-comment 1)
               (skip-chars-forward " \t\n\f"))
             (when (or (not (looking-at hs-c-start-regexp))
@@ -746,7 +747,7 @@ If `hs-hide-comments-when-hiding-all' is non-nil, also hide the comments."
                    (funcall hs-hide-all-non-comment-function)
                  (hs-hide-block-at-point t)))
            ;; found a comment, probably
-           (let ((c-reg (hs-inside-comment-p))) ; blech!
+           (let ((c-reg (hs-inside-comment-p)))
              (when (and c-reg (car c-reg))
                (if (> (count-lines (car c-reg) (nth 1 c-reg)) 1)
                    (hs-hide-block-at-point t c-reg)
@@ -812,7 +813,8 @@ See documentation for functions `hs-hide-block' and `run-hooks'."
                (setq p (car c-reg)
                      q (cadr c-reg))))
             ((and (hs-find-block-beginning)
-                  (looking-at hs-block-start-regexp)) ; fresh match-data, ugh
+                  ;; ugh, fresh match-data
+                  (looking-at hs-block-start-regexp))
              (setq p (point)
                    q (progn (hs-forward-sexp (hs-match-data t) 1) (point)))))
       (when (and p q)
