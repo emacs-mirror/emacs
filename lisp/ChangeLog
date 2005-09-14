@@ -1,3 +1,16 @@
+2005-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-defs.el (cvs-version): Recognize CVSNT version string.
+	(cvs-execute-single-dir): Change default: cvs-1.9 is ancient.
+
+	* calendar/cal-menu.el: Don't require easymenu, since we don't use it.
+	(check-calendar-holidays, diary-list-entries): Autoload.
+	Otherwise `emacs -q' followed by "mouse-2 -> diary entries" burps.
+	(calendar-mouse-holidays, calendar-mouse-view-diary-entries): Simplify.
+
+	* calendar/diary-lib.el (diary-show-all-entries): Fix last change,
+	which mistakenly removed a call to display-buffer.
+
 2005-09-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* obsolete/iso-insert.el: Move to obsolete/ from international/.
