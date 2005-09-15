@@ -1,3 +1,8 @@
+2005-09-15  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-save-file-modes): New option.
+	(recentf-save-list): Use it.
+
 2005-09-15  Nick Roberts  <nickrob@snap.net.nz>
 
 	* bindings.el (mode-line-eol-desc, mode-line-coding-system-map)
