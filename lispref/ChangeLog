@@ -1,3 +1,7 @@
+2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Defining Images): Document `image-load-path'.
+
 2005-09-15  Richard M. Stallman  <rms@gnu.org>
 
 	* objects.texi (Printed Representation): Minor cleanup.
