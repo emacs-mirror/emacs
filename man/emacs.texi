@@ -378,7 +378,9 @@ File Handling
 
 Saving Files
 
+* Save Commands::       Commands for saving files.
 * Backup::              How Emacs saves the old version of your file.
+* Customize Save::      Customizing the saving of files.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
 * File Shadowing::      Copying files to "shadows" automatically.
