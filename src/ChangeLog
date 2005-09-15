@@ -1,3 +1,8 @@
+2005-09-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_vertically): Don't try to fetch byte BEGV-1.
+	(reseat_at_next_visible_line_start): Likewise (in xassert).
+
 2005-09-14  Romain Francoise  <romain@orebokech.com>
 
 	* fileio.c (write_region_inhibit_fsync): New variable.
