@@ -4606,6 +4606,17 @@ When you click the mouse when the mouse pointer is over a hot-spot,
 an event is composed by combining the ID of the hot-spot with the
 mouse event, e.g. [area4 mouse-1] if the hot-spot's ID is `area4'.
 
++++
+*** The function `find-image' now searches in etc/images/ and etc/.
+The new variable `image-load-path' is a list of locations in which to
+search for image files.  The default is to search in etc/images, then
+in etc/, and finally in the directories specified by `load-path'.
+Subdirectories of etc/ and etc/images are not recursively searched; if
+you put an image file in a subdirectory, you have to specify it
+explicitly; for example, if an image is put in etc/images/foo/bar.xpm:
+
+  (defimage foo-image '((:type xpm :file "foo/bar.xpm")))
+
 ** Mouse pointer features:
 
 +++ (lispref)
