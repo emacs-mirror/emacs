@@ -123,7 +123,7 @@ corresponding to the mode line clicked."
 
 (defvar mode-line-coding-system-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [mode-line mouse-3]
+    (define-key map [mode-line mouse-1]
       (lambda (e)
 	(interactive "e")
 	(save-selected-window
@@ -156,7 +156,7 @@ corresponding to the mode line clicked."
       (setq desc
 	    (propertize
 	     mnemonic
-	     'help-echo (format "%s end-of-line; mouse-3 to cycle"
+	     'help-echo (format "%s end-of-line; mouse-1 to cycle"
 				(if (eq eol 0) "Unix-style LF"
 				  (if (eq eol 1) "Dos-style CRLF"
 				    (if (eq eol 2) "Mac-style CR"
@@ -164,7 +164,7 @@ corresponding to the mode line clicked."
 	     'keymap
 	     (eval-when-compile
 	       (let ((map (make-sparse-keymap)))
-		 (define-key map [mode-line mouse-3] 'mode-line-change-eol)
+		 (define-key map [mode-line mouse-1] 'mode-line-change-eol)
 		 map))
 	     'mouse-face 'mode-line-highlight))
       (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
@@ -190,7 +190,7 @@ corresponding to the mode line clicked."
 	    (when buffer-file-coding-system
 	      (if enable-multibyte-characters
 		  (concat (symbol-name buffer-file-coding-system)
-			  " buffer; mouse-3: describe coding system")
+			  " buffer; mouse-1: describe coding system")
 		(concat "Unibyte " (symbol-name buffer-file-coding-system)
 			" buffer")))))
       'mouse-face 'mode-line-highlight
@@ -230,27 +230,27 @@ Normally nil in most modes, since there is no process to display.")
   (list (propertize
 	 "%1*"
 	 'help-echo (purecopy (lambda (window object point)
- 				(format "%sead-only: mouse-3 toggles"
+ 				(format "%sead-only: mouse-1 toggles"
 					(save-selected-window
 					  (select-window window)
 					  (if buffer-read-only
 					      "R"
 					    "Not r")))))
 	 'local-map (purecopy (make-mode-line-mouse-map
-			       'mouse-3
+			       'mouse-1
 			       #'mode-line-toggle-read-only))
 	 'mouse-face 'mode-line-highlight)
 	(propertize
 	 "%1+"
 	 'help-echo  (purecopy (lambda (window object point)
-				 (format "%sodified: mouse-3 toggles"
+				 (format "%sodified: mouse-1 toggles"
 					 (save-selected-window
 					   (select-window window)
 					   (if (buffer-modified-p)
 					     "M"
 					   "Not m")))))
 	 'local-map (purecopy (make-mode-line-mouse-map
-			       'mouse-3 #'mode-line-toggle-modified))
+			       'mouse-1 #'mode-line-toggle-modified))
 	 'mouse-face 'mode-line-highlight))
   "Mode-line control for displaying whether current buffer is modified.")
 
