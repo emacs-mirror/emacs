@@ -1,3 +1,14 @@
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* objects.texi (Printed Representation): Minor cleanup.
+	(Box Diagrams): Minor fix.
+	(Cons Cell Type): Move (...) index item here.
+	(Box Diagrams): From here.
+	(Array Type): Minor fix.
+	(Type Predicates): Delete index "predicates".
+	(Hash Table Type): Clarify xref.
+	(Dotted Pair Notation): Minor fix.
+
 2005-09-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* files.texi (Saving Buffers): Fix typo.

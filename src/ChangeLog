@@ -1,3 +1,16 @@
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (overlay_arrow_at_row): Add HAVE_WINDOW_SYSTEM conditional.
+	(display_mode_element): Instead of `lisp_string' and `this',
+	record `offset' and increment that.
+	`last_offset' replaces `last'.
+
+	* Makefile.in (XMENU_OBJ): Variable deleted.
+	(obj): Use xmenu.o unconditionally.
+	(SOME_MACHINE_OBJECTS): Delete xmenu.o.
+
+	* emacs.c (main): Don't conditionalize syms_of_xmenu on HAVE_XMENU.
+
 2005-09-15  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (move_it_vertically): Don't try to fetch byte BEGV-1.

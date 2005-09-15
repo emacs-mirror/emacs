@@ -1484,6 +1484,14 @@ colors as on X.
 
 * New Modes and Packages in Emacs 22.1
 
+---
+** Newsticker is now part of the Emacs distribution.
+
+Newsticker asynchronously retrieves headlines (RSS) from a list of news
+sites, prepares these headlines for reading, and allows for loading the
+corresponding articles in a web browser.  Its documentation is in a
+separate manual.
+
 +++
 ** Filesets are collections of files.  You can define a fileset in
 various ways, such as based on a directory tree or based on
@@ -2997,12 +3005,14 @@ updated `skeleton-insert' docstring explains these new features along
 with other details of skeleton construction.
 
 ---
-** New variable `hs-set-up-overlay' allows customization of the overlay
+** Hideshow mode changes
+
+*** New variable `hs-set-up-overlay' allows customization of the overlay
 used to effect hiding for hideshow minor mode.  Integration with isearch
 handles the overlay property `display' specially, preserving it during
 temporary overlay showing in the course of an isearch operation.
 
-** New variable `hs-allow-nesting' non-nil means that hiding a block does
+*** New variable `hs-allow-nesting' non-nil means that hiding a block does
 not discard the hidden state of any "internal" blocks; when the parent
 block is later shown, the internal blocks remain hidden.  Default is nil.
 
