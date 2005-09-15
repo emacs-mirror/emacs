@@ -1,3 +1,7 @@
+2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (sendmail-user-agent-compose): Revert last change.
+
 2005-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.

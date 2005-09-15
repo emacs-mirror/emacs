@@ -4444,8 +4444,9 @@ See also `read-mail-command' concerning reading mail."
   (let ((cc (cdr (assoc-string "cc" other-headers t)))
 	(in-reply-to (cdr (assoc-string "in-reply-to" other-headers t)))
 	(body (cdr (assoc-string "body" other-headers t))))
-    (mail (if continue t 'new)
-	  to subject in-reply-to cc yank-action send-actions)
+    (or (mail continue to subject in-reply-to cc yank-action send-actions)
+	continue
+	(error "Message aborted"))
     (save-excursion
       (rfc822-goto-eoh)
       (while other-headers
