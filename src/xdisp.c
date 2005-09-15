@@ -4807,7 +4807,8 @@ reseat_at_next_visible_line_start (it, on_newline_p)
 	   && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
 				 (double) it->selective)) /* iftc */
       {
-	xassert (FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
+	xassert (IT_BYTEPOS (*it) == BEGV
+		 || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
 	newline_found_p = forward_to_next_line_start (it, &skipped_p);
       }
 
@@ -6525,6 +6526,7 @@ move_it_vertically (it, dy)
       /* If buffer ends in ZV without a newline, move to the start of
 	 the line to satisfy the post-condition.  */
       if (IT_CHARPOS (*it) == ZV
+	  && ZV > BEGV
 	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n')
 	move_it_by_lines (it, 0, 0);
     }
