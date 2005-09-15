@@ -376,7 +376,7 @@ that was visited in the buffer.
 * Time Stamps::         Emacs can update time stamps on saved files.
 @end menu
 
-@node Saving Commands
+@node Save Commands
 @subsection Commands for Saving Files
 
   These are the commands that relate to saving and writing files.
