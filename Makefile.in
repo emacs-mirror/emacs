@@ -486,7 +486,7 @@ install-arch-indep: mkdir info
 	      chmod a+r ${infodir}/dir); \
 	   fi; \
 	   cd ${srcdir}/info ; \
-	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* emacs-mime* emacs-xtra* eshell* eudc* flymake* forms* gnus* idlwave* info* message* mh-e* org* pcl-cvs* pgg* reftex* sc* ses* sieve* speedbar* tramp* vip* widget* woman* smtpmail* url*; do \
+	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* emacs-mime* emacs-xtra* eshell* eudc* flymake* forms* gnus* idlwave* info* message* mh-e* newsticker* org* pcl-cvs* pgg* reftex* sc* ses* sieve* speedbar* tramp* vip* widget* woman* smtpmail* url*; do \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f; \
 	      chmod a+r ${infodir}/$$f); \
@@ -496,7 +496,7 @@ install-arch-indep: mkdir info
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
-	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime emacs-xtra eshell eudc flymake forms gnus idlwave info message mh-e org pcl-cvs pgg reftex sc ses sieve speedbar tramp vip viper widget woman smtpmail url; do \
+	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime emacs-xtra eshell eudc flymake forms gnus idlwave info message mh-e newsticker org pcl-cvs pgg reftex sc ses sieve speedbar tramp vip viper widget woman smtpmail url; do \
 	    (cd $${thisdir}; \
 	     ${INSTALL_INFO} --info-dir=${infodir} ${infodir}/$$f); \
 	  done; \
@@ -562,7 +562,7 @@ uninstall:
 	done
 	(cd ${archlibdir} && rm -f fns-*)
 	-rm -rf ${libexecdir}/emacs/${version}
-	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* emacs-xtra* flymake* forms* gnus* info* mh-e* org* sc* ses* vip* smtpmail* url*)
+	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* emacs-xtra* flymake* forms* gnus* info* mh-e* newsticker* org* sc* ses* vip* smtpmail* url*)
 	(cd ${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext})
 	(cd ${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 
@@ -721,9 +721,9 @@ force-info:
 # put the info files in $(srcdir),
 # so we can do ok running make in the build dir.
 info: force-info
-	(cd man; $(MAKE) $(MFLAGS) info)
-	(cd lispref; $(MAKE) $(MFLAGS) info)
-	(cd lispintro; $(MAKE) $(MFLAGS) info)
+	-(cd man; $(MAKE) $(MFLAGS) info)
+	-(cd lispref; $(MAKE) $(MFLAGS) info)
+	-(cd lispintro; $(MAKE) $(MFLAGS) info)
 dvi:
 	(cd man; $(MAKE) $(MFLAGS) dvi)
 	(cd lispref; $(MAKE) $(MFLAGS) elisp.dvi)
