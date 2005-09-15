@@ -1,9 +1,9 @@
 \input texinfo   @c -*-texinfo-*-
-@comment $Id: newsticker.texi,v 1.1 2005/09/13 15:50:31 rms Exp $
+@comment $Id: newsticker.texi,v 1.2 2005/09/13 19:35:24 miles Exp $
 @comment %**start of header
-@setfilename newsticker.info
+@setfilename ../info/newsticker.info
 @set VERSION 1.8
-@set UPDATED ``$Id: newsticker.texi,v 1.1 2005/09/13 15:50:31 rms Exp $''
+@set UPDATED ``$Id: newsticker.texi,v 1.2 2005/09/13 19:35:24 miles Exp $''
 @settitle Newsticker @value{VERSION}
 @syncodeindex vr cp
 @syncodeindex fn cp
