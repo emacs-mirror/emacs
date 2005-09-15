@@ -1,3 +1,9 @@
+2005-09-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-eol-desc, mode-line-coding-system-map)
+	(mode-line-mule-info, mode-line-modified): Move bindings from
+	mouse-3 to mouse-1.
+
 2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (sendmail-user-agent-compose): Revert last change.
