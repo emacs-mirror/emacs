@@ -124,12 +124,14 @@
       ;; It seems Microsoft-ish to send without warning.
       ;; Fixme: presumably this should depend on a privacy setting.
       (if (y-or-n-p "Send this auto-generated mail? ")
-	  (cond ((eq url-mail-command 'compose-mail)
-		 (funcall (get mail-user-agent 'sendfunc) nil))
-		;; otherwise, we can't be sure
-		((fboundp 'message-send-and-exit)
-		 (message-send-and-exit))
-		(t (mail-send-and-exit nil)))))
+	  (let ((buffer (current-buffer)))
+	    (cond ((eq url-mail-command 'compose-mail)
+		   (funcall (get mail-user-agent 'sendfunc) nil))
+		  ;; otherwise, we can't be sure
+		  ((fboundp 'message-send-and-exit)
+		   (message-send-and-exit))
+		  (t (mail-send-and-exit nil)))
+	    (kill-buffer buffer))))
     nil))
 
 (provide 'url-mailto)
