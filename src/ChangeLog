@@ -1,3 +1,8 @@
+2005-09-16  Romain Francoise  <romain@orebokech.com>
+
+	* fileio.c (syms_of_fileio): Clarify docstring of
+	`write-region-inhibit-fsync'.
+
 2005-09-15  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (overlay_arrow_at_row): Add HAVE_WINDOW_SYSTEM conditional.
