@@ -1,37 +1,18 @@
 2005-09-16  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/reftex-auc.el: Small changes to remove compiler
-	warnings.
-
-	* textmodes/reftex-cite.el: Small changes to remove compiler
-	warnings.
-
-	* textmodes/reftex-dcr.el: Small changes to remove compiler
-	warnings.
-
-	* textmodes/reftex-global.el: Small changes to remove compiler
-	warnings.
-
-	* textmodes/reftex-index.el: Small changes to remove compiler
-	warnings.
-	(reftex-query-index-phrase): More efficient use of markers.
-
-	* textmodes/reftex-parse.el: Small changes to remove compiler
-	warnings.
-
-	* textmodes/reftex-ref.el: Small changes to remove compiler
-	warnings.
-
-	* textmodes/reftex-sel.el: Small changes to remove compiler
-	warnings.
-
-	* textmodes/reftex-toc.el: Small changes to remove compiler
-	warnings.
-
-	* textmodes/reftex-vars.el: Small changes to remove compiler
-	warnings.
-
+	* textmodes/reftex-auc.el:
+	* textmodes/reftex-cite.el:
+	* textmodes/reftex-dcr.el:
+	* textmodes/reftex-global.el:
+	* textmodes/reftex-parse.el:
+	* textmodes/reftex-ref.el:
+	* textmodes/reftex-sel.el:
+	* textmodes/reftex-toc.el:
+	* textmodes/reftex-vars.el:
 	* textmodes/reftex.el: Small changes to remove compiler warnings.
+
+	* textmodes/reftex-index.el: Likewise.
+	(reftex-query-index-phrase): More efficient use of markers.
 
 2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
 
