@@ -865,105 +865,99 @@ diary entries."
   (let ((marking-diary-entries t)
         file-glob-attrs marks)
     (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
-      (setq mark-diary-entries-in-calendar t)
-      (message "Marking diary entries...")
-      (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
-      (let ((d diary-date-forms)
-            (old-diary-syntax-table (syntax-table))
-            temp)
-        (set-syntax-table diary-syntax-table)
-        (while d
-          (let* ((date-form (if (equal (car (car d)) 'backup)
-                                (cdr (car d))
-                              (car d)));; ignore 'backup directive
-                 (dayname
-                  (diary-name-pattern calendar-day-name-array
-                                      calendar-day-abbrev-array))
-                 (monthname
-                  (format "%s\\|\\*"
-                   (diary-name-pattern calendar-month-name-array
-                                       calendar-month-abbrev-array)))
-                 (month "[0-9]+\\|\\*")
-                 (day "[0-9]+\\|\\*")
-                 (year "[0-9]+\\|\\*")
-                 (l (length date-form))
-                 (d-name-pos (- l (length (memq 'dayname date-form))))
-                 (d-name-pos (if (/= l d-name-pos) (+ 2 d-name-pos)))
-                 (m-name-pos (- l (length (memq 'monthname date-form))))
-                 (m-name-pos (if (/= l m-name-pos) (+ 2 m-name-pos)))
-                 (d-pos (- l (length (memq 'day date-form))))
-                 (d-pos (if (/= l d-pos) (+ 2 d-pos)))
-                 (m-pos (- l (length (memq 'month date-form))))
-                 (m-pos (if (/= l m-pos) (+ 2 m-pos)))
-                 (y-pos (- l (length (memq 'year date-form))))
-                 (y-pos (if (/= l y-pos) (+ 2 y-pos)))
-                 (regexp
-                  (concat
-                   "\\(\\`\\|\^M\\|\n\\)\\("
-                   (mapconcat 'eval date-form "\\)\\(")
-                   "\\)"))
-                 (case-fold-search t))
-            (goto-char (point-min))
-            (while (re-search-forward regexp nil t)
-              (let* ((dd-name
-                      (if d-name-pos
-                          (match-string-no-properties d-name-pos)))
-                     (mm-name
-                      (if m-name-pos
-                          (match-string-no-properties m-name-pos)))
-                     (mm (string-to-number
-                          (if m-pos
-                              (match-string-no-properties m-pos)
-                            "")))
-                     (dd (string-to-number
-                          (if d-pos
-                              (match-string-no-properties d-pos)
-                            "")))
-                     (y-str (if y-pos
-                                (match-string-no-properties y-pos)))
-                     (yy (if (not y-str)
-                             0
-                           (if (and (= (length y-str) 2)
-                                    abbreviated-calendar-year)
-                               (let* ((current-y
-                                       (extract-calendar-year
-                                        (calendar-current-date)))
-                                      (y (+ (string-to-number y-str)
-                                            (* 100
-                                               (/ current-y 100)))))
-                                 (if (> (- y current-y) 50)
-                                     (- y 100)
-                                   (if (> (- current-y y) 50)
-                                       (+ y 100)
-                                     y)))
-                             (string-to-number y-str)))))
-                (save-excursion
-                  (setq entry (buffer-substring-no-properties
-                               (point) (line-end-position))
-                        temp (diary-pull-attrs entry file-glob-attrs)
-                        entry (nth 0 temp)
-                        marks (nth 1 temp)))
-                (if dd-name
-                    (mark-calendar-days-named
-                     (cdr (assoc-string
-                           dd-name
-                           (calendar-make-alist
-                            calendar-day-name-array
-                            0 nil calendar-day-abbrev-array) t)) marks)
-                  (if mm-name
-                      (setq mm
-                            (if (string-equal mm-name "*") 0
-                              (cdr (assoc-string
-                                    mm-name
-                                    (calendar-make-alist
-                                     calendar-month-name-array
-                                     1 nil calendar-month-abbrev-array) t)))))
-                  (mark-calendar-date-pattern mm dd yy marks))))
-            (setq d (cdr d))))
-        (mark-sexp-diary-entries)
-        (run-hooks 'nongregorian-diary-marking-hook
-                   'mark-diary-entries-hook)
-        (set-syntax-table old-diary-syntax-table)
+      (save-excursion
+        (setq mark-diary-entries-in-calendar t)
+        (message "Marking diary entries...")
+        (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
+        (with-syntax-table diary-syntax-table
+          (dolist (date-form diary-date-forms)
+            (if (eq (car date-form) 'backup)
+                (setq date-form (cdr date-form))) ;; ignore 'backup directive
+            (let* ((dayname
+                    (diary-name-pattern calendar-day-name-array
+                                        calendar-day-abbrev-array))
+                   (monthname
+                    (format "%s\\|\\*"
+                            (diary-name-pattern calendar-month-name-array
+                                                calendar-month-abbrev-array)))
+                   (month "[0-9]+\\|\\*")
+                   (day "[0-9]+\\|\\*")
+                   (year "[0-9]+\\|\\*")
+                   (l (length date-form))
+                   (d-name-pos (- l (length (memq 'dayname date-form))))
+                   (d-name-pos (if (/= l d-name-pos) (+ 2 d-name-pos)))
+                   (m-name-pos (- l (length (memq 'monthname date-form))))
+                   (m-name-pos (if (/= l m-name-pos) (+ 2 m-name-pos)))
+                   (d-pos (- l (length (memq 'day date-form))))
+                   (d-pos (if (/= l d-pos) (+ 2 d-pos)))
+                   (m-pos (- l (length (memq 'month date-form))))
+                   (m-pos (if (/= l m-pos) (+ 2 m-pos)))
+                   (y-pos (- l (length (memq 'year date-form))))
+                   (y-pos (if (/= l y-pos) (+ 2 y-pos)))
+                   (regexp
+                    (concat
+                     "\\(\\`\\|\^M\\|\n\\)\\("
+                     (mapconcat 'eval date-form "\\)\\(")
+                     "\\)"))
+                   (case-fold-search t))
+              (goto-char (point-min))
+              (while (re-search-forward regexp nil t)
+                (let* ((dd-name
+                        (if d-name-pos
+                            (match-string-no-properties d-name-pos)))
+                       (mm-name
+                        (if m-name-pos
+                            (match-string-no-properties m-name-pos)))
+                       (mm (string-to-number
+                            (if m-pos
+                                (match-string-no-properties m-pos)
+                              "")))
+                       (dd (string-to-number
+                            (if d-pos
+                                (match-string-no-properties d-pos)
+                              "")))
+                       (y-str (if y-pos
+                                  (match-string-no-properties y-pos)))
+                       (yy (if (not y-str)
+                               0
+                             (if (and (= (length y-str) 2)
+                                      abbreviated-calendar-year)
+                                 (let* ((current-y
+                                         (extract-calendar-year
+                                          (calendar-current-date)))
+                                        (y (+ (string-to-number y-str)
+                                              (* 100
+                                                 (/ current-y 100)))))
+                                   (if (> (- y current-y) 50)
+                                       (- y 100)
+                                     (if (> (- current-y y) 50)
+                                         (+ y 100)
+                                       y)))
+                               (string-to-number y-str)))))
+                  (let ((tmp (diary-pull-attrs (buffer-substring-no-properties
+                                                (point) (line-end-position))
+                                               file-glob-attrs)))
+                    (setq entry (nth 0 tmp)
+                          marks (nth 1 tmp)))
+                  (if dd-name
+                      (mark-calendar-days-named
+                       (cdr (assoc-string
+                             dd-name
+                             (calendar-make-alist
+                              calendar-day-name-array
+                              0 nil calendar-day-abbrev-array) t)) marks)
+                    (if mm-name
+                        (setq mm
+                              (if (string-equal mm-name "*") 0
+                                (cdr (assoc-string
+                                      mm-name
+                                      (calendar-make-alist
+                                       calendar-month-name-array
+                                       1 nil calendar-month-abbrev-array) t)))))
+                    (mark-calendar-date-pattern mm dd yy marks))))))
+          (mark-sexp-diary-entries)
+          (run-hooks 'nongregorian-diary-marking-hook
+                     'mark-diary-entries-hook))
         (message "Marking diary entries...done")))))
 
 (defun mark-sexp-diary-entries ()
