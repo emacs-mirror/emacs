@@ -1,3 +1,10 @@
+2005-09-16  Romain Francoise  <romain@orebokech.com>
+
+	Update all manuals to specify GFDL version 1.2.
+
+	* doclicense.texi (GNU Free Documentation License): Update to
+	version 1.2.
+
 2005-09-15  Richard M. Stallman  <rms@gnu.org>
 
 	* buffers.texi (List Buffers): Fix xref.
