@@ -1,6 +1,6 @@
 2005-09-16  Romain Francoise  <romain@orebokech.com>
 
-	Update all manuals to specify GFDL version 1.2.
+	Update all files to specify GFDL version 1.2.
 
 	* doclicense.texi (GNU Free Documentation License): Update to
 	version 1.2.
