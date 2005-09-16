@@ -7,9 +7,9 @@
 @syncodeindex fn cp
 
 @c Version and Contact Info
-@set VERSION 4.28
-@set EDITION 4.28
-@set DATE May 2005
+@set VERSION 4.30
+@set EDITION 4.30
+@set DATE September 2005
 @set AUCTEXSITE @uref{http://www.nongnu.org/auctex/,AUCTeX distribution site}
 @set MAINTAINERSITE @uref{http://www.astro.uva.nl/~dominik/Tools/,maintainers webpage}
 @set MAINTAINER Carsten Dominik
@@ -25,8 +25,7 @@ citations and indices for LaTeX documents with Emacs.
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}
 
-Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2004,
-   2005 Free Software Foundation, Inc.
+Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -154,7 +153,7 @@ Citations
 * Citation Info::                    View the corresponding database entry.
 * Chapterbib and Bibunits::          Multiple bibliographies in a Document.
 * Citations Outside LaTeX::          How to make citations in Emails etc.
-* BibTeX Database Subsets::          Extract parts of a big database.
+* BibTeX Database Subsets::          Extract parts of a big database. 
 
 Index Support
 
@@ -1669,7 +1668,7 @@ support for citations helps to select the correct key quickly.
 * Citation Info::                    View the corresponding database entry.
 * Chapterbib and Bibunits::          Multiple bibliographies in a Document.
 * Citations Outside LaTeX::          How to make citations in Emails etc.
-* BibTeX Database Subsets::          Extract parts of a big database.
+* BibTeX Database Subsets::          Extract parts of a big database. 
 @end menu
 
 @node Creating Citations, Citation Styles, , Citations
@@ -1773,12 +1772,12 @@ separate @code{\cite} macro for each of it.
 @item e
 Create a new BibTeX database file which contains all @i{marked} entries
 in the selection buffer.  If no entries are marked, all entries are
-selected.
+selected. 
 
 @item E
 Create a new BibTeX database file which contains all @i{unmarked}
 entries in the selection buffer.  If no entries are marked, all entries
-are selected.
+are selected. 
 
 @item @key{TAB}
 Enter a citation key with completion.  This may also be a key which does
@@ -3212,7 +3211,7 @@ way.
 
 Before calling a @b{Ref@TeX{}} function, the style hook should always
 test for the availability of the function, so that the style file will
-also work for people who do not use @b{Ref@TeX{}}.
+also work for people who do not use @b{Ref@TeX{}}. 
 
 Additions made with style files in the way described below remain local
 to the current document.  For example, if one package uses AMSTeX, the
@@ -3493,7 +3492,7 @@ With @i{Viper} mode prior to Vipers version 3.01, you need to protect
 
 @b{Ref@TeX{}} was written by @i{Carsten Dominik}
 @email{dominik@@science.uva.nl}, with contributions by @i{Stephen
-Eglen}.  @b{Ref@TeX{}} is currently maintained by
+Eglen}.  @b{Ref@TeX{}} is currently maintained by 
 
 @noindent
 Carsten Dominik <dominik@@science.uva.nl>
@@ -3713,7 +3712,7 @@ Produce a list of all duplicate labels in the document.
 Create a new BibTeX database file with all entries referenced in document.
 The command prompts for a filename and writes the collected entries to
 that file.  Only entries referenced in the current document with
-any @code{\cite}-like macros are used.
+any @code{\cite}-like macros are used. 
 The sequence in the new file is the same as it was in the old database.
 @end deffn
 
@@ -3818,7 +3817,7 @@ only in that frame.  So when creating that frame (with @kbd{d} key in an
 ordinary TOC window), the automatic recentering is turned on.  When the
 frame gets destroyed, automatic recentering is turned off again.
 
-This feature can be turned on and off from the menu
+This feature can be turned on and off from the menu 
 (Ref->Options).
 @end defopt
 
@@ -3928,7 +3927,7 @@ group which contains all labels.
 This may also be a function to do local parsing and identify point to be
 in a non-standard label environment.  The function must take an
 argument @var{bound} and limit backward searches to this value.  It
-should return either @code{nil} or a cons cell @code{(@var{function}
+should return either nil or a cons cell @code{(@var{function}
 . @var{position})} with the function symbol and the position where the
 special environment starts.  See the Info documentation for an
 example.
@@ -4085,7 +4084,7 @@ special packages like fancyref) are being used.  RefTeX can and by
 default does parse around each label to detect the correct label type,
 but this process can be slow when a document contains thousands of
 labels.  If you use label prefixes consistently, you may speed up
-document parsing by setting this variable to a non-@code{nil} value.  RefTeX
+document parsing by setting this variable to a non-nil value.  RefTeX
 will then compare the label prefix with the prefixes found in
 `reftex-label-alist' and derive the correct label type in this way.
 Possible values for this option are:
@@ -4094,7 +4093,7 @@ Possible values for this option are:
 t       @r{This means to trust any label prefixes found.}
 regexp  @r{If a regexp, only prefixes matched by the regexp are trusted.}
 list    @r{List of accepted prefixes, as strings.  The colon is part of}
-        @r{the prefix, e.g. ("fn:" "eqn:" "item:").}
+        @r{the prefix, e.g. ("fn:" "eqn:" "item:").}   
 nil     @r{Never trust a label prefix.}
 @end example
 The only disadvantage of using this feature is that the label context
@@ -4650,7 +4649,7 @@ case.
 
 @defopt reftex-index-verify-function
 A function which is called at each match during global indexing.
-If the function returns @code{nil}, the current match is skipped.
+If the function returns nil, the current match is skipped.
 @end defopt
 
 @defopt reftex-index-phrases-skip-indexed-matches
@@ -4770,10 +4769,10 @@ escapes.
 
 @defopt reftex-revisit-to-echo
 Non-@code{nil} means, automatic citation display will revisit files if
-necessary.  When @code{nil}, citation display in echo area will only
-be active for cached echo strings (see @code{reftex-cache-cite-echo}),
-or for BibTeX database files which are already visited by a live
-associated buffers.
+necessary.  When nil, citation display in echo area will only be active
+for cached echo strings (see @code{reftex-cache-cite-echo}), or for
+BibTeX database files which are already visited by a live associated
+buffers.
 @end defopt
 
 @defopt reftex-cache-cite-echo
@@ -5114,7 +5113,7 @@ See the AUCTeX documentation for more information.
 
 @defopt reftex-revisit-to-follow
 Non-@code{nil} means, follow-mode will revisit files if necessary.
-When @code{nil}, follow-mode will be suspended for stuff in unvisited files.
+When nil, follow-mode will be suspended for stuff in unvisited files.
 @end defopt
 
 @defopt reftex-allow-detached-macro-args
@@ -5178,11 +5177,11 @@ Fixed bug with @samp{%F} in a label prefix.  Added new escapes
 
 @noindent @b{Version 4.24}
 @itemize @bullet
-@item
+@item 
 Inserting citation commands now prompts for optional arguments
 when called with a prefix argument.  Related new options are
 @code{reftex-cite-prompt-optional-args} and
-@code{reftex-cite-cleanup-optional-args}.
+@code{reftex-cite-cleanup-optional-args}. 
 @item
 New option @code{reftex-trust-label-prefix}.  Configure this variable
 if you'd like RefTeX to base its classification of labels on prefixes.
@@ -5190,7 +5189,7 @@ This can speed-up document parsing, but may in some cases reduce the
 quality of the context used by RefTeX to describe a label.
 @item
 Fixed bug in @code{reftex-create-bibtex-file} when @code{reftex-comment-citations}
-is non-@code{nil}.
+is non-nil.
 @item
 Fixed bugs in indexing: Case-sensitive search, quotes before and/or
 after words.  Disabbled indexing in comment lines.
@@ -5198,7 +5197,7 @@ after words.  Disabbled indexing in comment lines.
 
 @noindent @b{Version 4.22}
 @itemize @bullet
-@item
+@item 
 New command @code{reftex-create-bibtex-file} to create a new database
 with all entries referenced in the current document.
 @item
@@ -5208,7 +5207,7 @@ from entries marked in a citation selection buffer.
 
 @noindent @b{Version 4.21}
 @itemize @bullet
-@item
+@item 
 Renaming labels from the toc buffer with key @kbd{M-%}.
 @end itemize
 
@@ -5424,7 +5423,7 @@ File search further refined.  New option @code{reftex-file-extensions}.
 document, all labels and associated context.  New keys @kbd{i}, @kbd{l},
 and @kbd{c}.  New options @code{reftex-toc-include-labels},
 @code{reftex-toc-include-context},
-@code{reftex-toc-include-file-boundaries}.
+@code{reftex-toc-include-file-boundaries}. 
 @end itemize
 
 @noindent @b{Version 3.41}
@@ -5537,7 +5536,7 @@ New option @code{reftex-cache-cite-echo}.
 @kbd{M-x reftex-reset-mode} now also removes the file with parsing
 info.
 @item
-Default of @code{reftex-revisit-to-follow} changed to @code{nil}.
+Default of @code{reftex-revisit-to-follow} changed to nil.
 @end itemize
 
 @noindent @b{Version 3.24}
