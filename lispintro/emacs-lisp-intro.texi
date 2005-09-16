@@ -213,7 +213,7 @@ Boston, MA 02110-1301 USA           Fax: +1 (617) 542-2652
 ISBN 1-882114-43-4
 
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; there
 being no Invariant Section, with the Front-Cover Texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of
