@@ -74,6 +74,15 @@ See the command `recentf-save-list'."
   :group 'recentf
   :type 'file)
 
+(defcustom recentf-save-file-modes 384 ;; 0600
+  "Mode bits of recentf save file, as an integer, or nil.
+If non-nil, after writing `recentf-save-file', set its mode bits to
+this value.  By default give R/W access only to the user who owns that
+file.  See also the function `set-file-modes'."
+  :group 'recentf
+  :type '(choice (const :tag "Don't change" nil)
+          integer))
+  
 (defcustom recentf-exclude nil
   "*List of regexps and predicates for filenames excluded from the recent list.
 When a filename matches any of the regexps or satisfies any of the
@@ -257,7 +266,7 @@ It is passed a filename to give a chance to transform it.
 If it returns nil, the filename is left unchanged."
   :group 'recentf
   :type '(choice (const :tag "None" nil)
-		 (const abbreviate-file-name)
+                 (const abbreviate-file-name)
                  function))
 
 (defcustom recentf-show-file-shortcuts-flag t
@@ -1206,6 +1215,8 @@ Write data into the file specified by `recentf-save-file'."
                 (format ";;; coding: %s\n" recentf-save-file-coding-system)
                 ";;; End:\n")
         (write-file (expand-file-name recentf-save-file))
+        (when recentf-save-file-modes
+          (set-file-modes recentf-save-file recentf-save-file-modes))
         nil)
     (error
      (warn "recentf mode: %s" (error-message-string error)))))

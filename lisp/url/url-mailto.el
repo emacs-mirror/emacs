@@ -92,7 +92,11 @@
 	(setq args (cons (list "to" to) args))))
 
     (setq subject (cdr-safe (assoc "subject" args)))
-    (if (fboundp url-mail-command) (funcall url-mail-command) (mail))
+    (if (fboundp url-mail-command)
+	(if (eq url-mail-command 'compose-mail)
+	    (compose-mail nil nil nil 'new)
+	  (funcall url-mail-command))
+      (mail 'new))
     (while args
       (if (string= (caar args) "body")
 	  (progn
@@ -124,12 +128,14 @@
       ;; It seems Microsoft-ish to send without warning.
       ;; Fixme: presumably this should depend on a privacy setting.
       (if (y-or-n-p "Send this auto-generated mail? ")
-	  (cond ((eq url-mail-command 'compose-mail)
-		 (funcall (get mail-user-agent 'sendfunc) nil))
-		;; otherwise, we can't be sure
-		((fboundp 'message-send-and-exit)
-		 (message-send-and-exit))
-		(t (mail-send-and-exit nil)))))
+	  (let ((buffer (current-buffer)))
+	    (cond ((eq url-mail-command 'compose-mail)
+		   (funcall (get mail-user-agent 'sendfunc) nil))
+		  ;; otherwise, we can't be sure
+		  ((fboundp 'message-send-and-exit)
+		   (message-send-and-exit))
+		  (t (mail-send-and-exit nil)))
+	    (kill-buffer buffer))))
     nil))
 
 (provide 'url-mailto)

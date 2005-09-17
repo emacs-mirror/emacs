@@ -310,10 +310,6 @@ XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o
 
 #ifdef HAVE_MENUS
 
-#ifndef HAVE_CARBON
-XMENU_OBJ = xmenu.o
-#endif
-
 #ifdef USE_GTK
 GTK_OBJ= gtkutil.o
 #endif
@@ -449,9 +445,6 @@ LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM L
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 #endif /* not HAVE_X11 */
 #else /* not HAVE_X_WINDOWS */
-#if defined(HAVE_MENUS) && !defined(HAVE_CARBON)
-XMENU_OBJ = xmenu.o
-#endif
 #endif /* not HAVE_X_WINDOWS */
 
 LIBSOUND= @LIBSOUND@
@@ -577,7 +570,7 @@ emacsappsrc = ${srcdir}/../mac/Emacs.app/
 
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
-obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
+obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
 	charset.o coding.o category.o ccl.o \
 	cm.o term.o xfaces.o $(XOBJ) $(GTK_OBJ)\
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
@@ -596,7 +589,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
    These go in the DOC file on all machines
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
-  xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
+  xterm.o xfns.o xselect.o xrdb.o xsmfns.o fringe.o image.o \
   mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o \
   w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o \
   w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o

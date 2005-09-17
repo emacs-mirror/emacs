@@ -1,3 +1,9 @@
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (update-game-score.o): New target.
+	Compile and link this progranm separately.
+	(update-game-score${EXEEXT}): Use GETOPTDEPTS.
+
 2005-09-11  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (../src/config.h): Don't overwrite. Print a

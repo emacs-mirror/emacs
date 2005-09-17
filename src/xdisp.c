@@ -4794,7 +4794,8 @@ reseat_at_next_visible_line_start (it, on_newline_p)
 	   && indented_beyond_p (IT_CHARPOS (*it), IT_BYTEPOS (*it),
 				 (double) it->selective)) /* iftc */
       {
-	xassert (FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
+	xassert (IT_BYTEPOS (*it) == BEGV
+		 || FETCH_BYTE (IT_BYTEPOS (*it) - 1) == '\n');
 	newline_found_p = forward_to_next_line_start (it, &skipped_p);
       }
 
@@ -6512,6 +6513,7 @@ move_it_vertically (it, dy)
       /* If buffer ends in ZV without a newline, move to the start of
 	 the line to satisfy the post-condition.  */
       if (IT_CHARPOS (*it) == ZV
+	  && ZV > BEGV
 	  && FETCH_BYTE (IT_BYTEPOS (*it) - 1) != '\n')
 	move_it_by_lines (it, 0, 0);
     }
@@ -10019,12 +10021,14 @@ overlay_arrow_at_row (it, row)
 	  if (FRAME_WINDOW_P (it->f)
 	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) > 0)
 	    {
+#ifdef HAVE_WINDOW_SYSTEM
 	      if (val = Fget (var, Qoverlay_arrow_bitmap), SYMBOLP (val))
 		{
 		  int fringe_bitmap;
 		  if ((fringe_bitmap = lookup_fringe_bitmap (val)) != 0)
 		    return make_number (fringe_bitmap);
 		}
+#endif
 	      return make_number (-1); /* Use default arrow bitmap */
 	    }
 	  return overlay_arrow_string_or_property (var);
@@ -15969,7 +15973,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
       {
 	/* A string: output it and check for %-constructs within it.  */
 	unsigned char c;
-	const unsigned char *this, *lisp_string;
+	int offset = 0;
 
 	if (!NILP (props) || risky)
 	  {
@@ -16027,8 +16031,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	      }
 	  }
 
-	this = SDATA (elt);
-	lisp_string = this;
+	offset = 0;
 
 	if (literal)
 	  {
@@ -16051,42 +16054,44 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	    break;
 	  }
 
+	/* Handle the non-literal case.  */
+
 	while ((precision <= 0 || n < precision)
-	       && *this
+	       && SREF (elt, offset) != 0
 	       && (mode_line_target != MODE_LINE_DISPLAY
 		   || it->current_x < it->last_visible_x))
 	  {
-	    const unsigned char *last = this;
+	    int last_offset = offset;
 
 	    /* Advance to end of string or next format specifier.  */
-	    while ((c = *this++) != '\0' && c != '%')
+	    while ((c = SREF (elt, offset++)) != '\0' && c != '%')
 	      ;
 
-	    if (this - 1 != last)
+	    if (offset - 1 != last_offset)
 	      {
 		int nchars, nbytes;
 
 		/* Output to end of string or up to '%'.  Field width
 		   is length of string.  Don't output more than
 		   PRECISION allows us.  */
-		--this;
+		offset--;
 
-		prec = c_string_width (last, this - last, precision - n,
+		prec = c_string_width (SDATA (elt) + last_offset,
+				       offset - last_offset, precision - n,
 				       &nchars, &nbytes);
 
 		switch (mode_line_target)
 		  {
 		  case MODE_LINE_NOPROP:
 		  case MODE_LINE_TITLE:
-		    n += store_mode_line_noprop (last, 0, prec);
+		    n += store_mode_line_noprop (SDATA (elt) + last_offset, 0, prec);
 		    break;
 		  case MODE_LINE_STRING:
 		    {
-		      int bytepos = last - lisp_string;
+		      int bytepos = last_offset;
 		      int charpos = string_byte_to_char (elt, bytepos);
 		      int endpos = (precision <= 0
-				    ? string_byte_to_char (elt,
-							   this - lisp_string)
+				    ? string_byte_to_char (elt, offset)
 				    : charpos + nchars);
 
 		      n += store_mode_line_string (NULL,
@@ -16097,7 +16102,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		    break;
 		  case MODE_LINE_DISPLAY:
 		    {
-		      int bytepos = last - lisp_string;
+		      int bytepos = last_offset;
 		      int charpos = string_byte_to_char (elt, bytepos);
 		      n += display_string (NULL, elt, Qnil, 0, charpos,
 					   it, 0, prec, 0,
@@ -16108,12 +16113,12 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	      }
 	    else /* c == '%' */
 	      {
-		const unsigned char *percent_position = this;
+		int percent_position = offset;
 
 		/* Get the specified minimum width.  Zero means
 		   don't pad.  */
 		field = 0;
-		while ((c = *this++) >= '0' && c <= '9')
+		while ((c = SREF (elt, offset++)) >= '0' && c <= '9')
 		  field = field * 10 + c - '0';
 
 		/* Don't pad beyond the total padding allowed.  */
@@ -16133,7 +16138,7 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		    int bytepos, charpos;
 		    unsigned char *spec;
 
-		    bytepos = percent_position - lisp_string;
+		    bytepos = percent_position;
 		    charpos = (STRING_MULTIBYTE (elt)
 			       ? string_byte_to_char (elt, bytepos)
 			       : bytepos);
@@ -16191,8 +16196,6 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		else /* c == 0 */
 		  break;
 	      }
-	    this += SDATA (elt) - lisp_string;
-	    lisp_string = SDATA (elt);
 	  }
       }
       break;

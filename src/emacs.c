@@ -1628,12 +1628,10 @@ main (argc, argv
 #endif
 #endif /* HAVE_X_WINDOWS */
 
-#ifdef HAVE_MENUS
 #ifndef HAVE_NTGUI
 #ifndef MAC_OS
       /* Called before init_window_once for Mac OS Classic.  */
       syms_of_xmenu ();
-#endif
 #endif
 #endif
 

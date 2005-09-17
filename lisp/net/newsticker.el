@@ -10,7 +10,7 @@
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS
 ;; Time-stamp:  "26. August 2005, 16:33:46 (ulf)"
-;; CVS-Version: $Id: newsticker.el,v 1.2 2005/09/12 22:54:28 miles Exp $
+;; CVS-Version: $Id: newsticker.el,v 1.3 2005/09/13 08:47:44 lektu Exp $
 
 (defconst newsticker-version "1.8" "Version number of newsticker.el.")
 
@@ -86,7 +86,7 @@
 ;; following.
 ;;   (add-hook 'newsticker-mode-hook 'imenu-add-menubar-index)
 
-;; That's it. 
+;; That's it.
 
 ;; Usage
 ;; -----
@@ -352,6 +352,11 @@
 
 (require 'derived)
 (require 'xml)
+
+;; Silence warnings
+(defvar tool-bar-map)
+(defvar w3-mode-map)
+(defvar w3m-minor-mode-map)
 
 ;; ======================================================================
 ;;; Customizables
@@ -967,7 +972,7 @@ If t the echo area will not show immortal items.  See also
   :type 'boolean
   :set 'newsticker--set-customvar
   :group 'newsticker-ticker)
-  
+
 (defcustom newsticker-hide-old-items-in-echo-area
   t
   "Decides whether to show only the newest news items in the ticker.
@@ -2368,7 +2373,7 @@ running already."
             (run-at-time newsticker-display-interval
                          newsticker-display-interval
                          'newsticker--display-tick))))
-  
+
 (defun newsticker-stop ()
   "Stop the newsticker and the newsticker-ticker.
 Cancel the timers for display and retrieval.  Run `newsticker-stop-hook'
@@ -2429,7 +2434,7 @@ Unless FORCE is t this is donly only if necessary, i.e. when the
        ;; Emacs 21.3.50 does not care if we turn off auto-fill in the
        ;; definition of newsticker-mode, so we do it here (again)
        (auto-fill-mode -1)
-       
+
        (set-buffer-file-coding-system 'utf-8)
 
        (if newsticker-use-full-width
@@ -2521,7 +2526,7 @@ calls `w3m-toggle-inline-image'.  It works only if
                           (w3m-remove-image
                            pos (next-single-property-change pos 'w3m-image))
                         (w3m-toggle-inline-image t))))))))))))
-  
+
 ;; ======================================================================
 ;;; keymap stuff
 ;; ======================================================================
@@ -2789,7 +2794,7 @@ not get changed."
   (interactive)
   (newsticker--buffer-hideshow 'desc-old nil)
   (newsticker--buffer-redraw))
-  
+
 (defun newsticker-show-old-item-desc ()
   "Show the description of old items."
   (interactive)
@@ -2863,7 +2868,7 @@ not get changed."
   "Hide description of entry at point."
   (interactive)
   (save-excursion
-    (let* (pos1 pos2 
+    (let* (pos1 pos2
                 (inhibit-read-only t)
                 inv-prop org-inv-prop
                 is-invisible)
@@ -2890,7 +2895,7 @@ not get changed."
   "Show description of entry at point."
   (interactive)
   (save-excursion
-    (let* (pos1 pos2 
+    (let* (pos1 pos2
                 (inhibit-read-only t)
                 inv-prop org-inv-prop
                 is-invisible)
@@ -3049,7 +3054,7 @@ in an element of `newsticker-url-list' or `newsticker-url-list-defaults'."
         (set-process-coding-system proc 'no-conversion 'no-conversion)
         (set-process-sentinel proc 'newsticker--sentinel)))))
 
-  
+
 (defun newsticker-mouse-browse-url (event)
   "Call `browse-url' for the link of the item at which the EVENT occurred."
   (interactive "e")
@@ -3157,7 +3162,7 @@ Argument EVENT tells what has happened to the process."
                   (let ((start (match-beginning 0)))
                     (unless (search-forward "-->" nil t)
                       (error "Can't find end of comment"))
-                    (delete-region start (point)))) 
+                    (delete-region start (point))))
                 ;; And another one (20050702)! If description is HTML
                 ;; encoded and starts with a `<', wrap the whole
                 ;; description in a CDATA expression.  This happened for
@@ -3324,7 +3329,7 @@ Argument EVENT tells what has happened to the process."
                              (guid (if (stringp tguid)
                                        tguid
                                      (car (xml-node-children tguid)))))
-                        ;;(message "guid=%s" guid) 
+                        ;;(message "guid=%s" guid)
                         (setq old-item
                               (newsticker--cache-contains newsticker--cache
                                                           name-symbol title
@@ -3396,7 +3401,7 @@ Argument EVENT tells what has happened to the process."
         (when (and imageurl
                    (string-match "%l" newsticker-heading-format))
           (newsticker--image-get name imageurl))))))
-  
+
 (defun newsticker--display-tick ()
   "Called from the display timer.
 This function calls a display function, according to the variable
@@ -3828,17 +3833,17 @@ Keeps order of feeds as given in `newsticker-url-list' and
                                                           feed-name-symbol)))
                     items)
               (put-text-property pos (point) 'feed (car feed))
-              
+
               ;; insert empty line between feeds
               (let ((p (point)))
                 (insert "\n")
                 (put-text-property p (point) 'hard t)))))
         (append newsticker-url-list newsticker-url-list-defaults))
-  
+
   (newsticker--buffer-set-faces (point-min) (point-max))
   (newsticker--buffer-set-invisibility (point-min) (point-max))
   (goto-char (point-min)))
-  
+
 (defun newsticker--buffer-insert-item (item &optional feed-name-symbol)
   "Insert a news item in the current buffer.
 Insert the string PREFIX and a formatted representation of the
@@ -3889,7 +3894,7 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                (setq format newsticker-item-format)
              (if (eq type 'feed)
                  (setq format newsticker-heading-format)))
-           
+
            (while (> (length format) 0)
              (let ((prefix (if (> (length format) 1)
                                (substring format 0 2)
@@ -3971,7 +3976,7 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                         ;; in case that the format string contained newlines
                         (put-text-property p (point) 'hard t))
                       (setq format (substring format (match-beginning 2)))))))
-    
+
            ;; decode HTML if possible...
            (let ((is-rendered-HTML nil))
              (when (and newsticker-html-renderer pos-text-start pos-text-end)
@@ -3990,8 +3995,6 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
                          (save-excursion
                            (funcall newsticker-html-renderer pos-text-start
                                     pos-text-end)))
-                       ;; FIXME: compiler warning about free variable
-                       ;; w3m-minor-mode-map
                        (cond ((eq newsticker-html-renderer 'w3m-region)
                               (add-text-properties pos (point-max)
                                                    (list 'keymap
@@ -4060,7 +4063,7 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
              (add-text-properties pos (point)
                                   (list 'nt-title (newsticker--title item)
                                         'nt-desc (newsticker--desc item))))
-    
+
            (add-text-properties pos (point)
                                 (list 'nt-type type
                                       'nt-face type
@@ -4083,7 +4086,7 @@ FEED-NAME-SYMBOL tells to which feed this item belongs."
            ;; left margin
            ;;(unless (memq type '(feed item))
            ;;(set-left-margin pos (1- (point)) 1))
-           
+
            ;; save rendered stuff
            (cond ((eq type 'desc)
 		  ;; preformatted contents
@@ -4201,8 +4204,8 @@ property to '(<nt-type>-<nt-age> <nt-type> <nt-age>)."
         (put-text-property (max (point-min) pos1) (1- pos2)
                            'invisible
                            (list (intern
-                                  (concat 
-                                   (symbol-name 
+                                  (concat
+                                   (symbol-name
                                     (if (eq nt-type 'extra) 'desc nt-type))
                                    "-"
                                    (symbol-name nt-age)))
@@ -4218,8 +4221,8 @@ property to '(<nt-type>-<nt-age> <nt-type> <nt-age>)."
         (put-text-property (1- pos1) (1- pos2)
                            'invisible
                            (list (intern
-                                  (concat 
-                                   (symbol-name 
+                                  (concat
+                                   (symbol-name
                                     (if (eq nt-type 'extra) 'desc nt-type))
                                    "-"
                                    (symbol-name nt-age)))
@@ -4253,7 +4256,7 @@ The face is chosen according the values of NT-FACE and AGE."
                      'newsticker-enclosure-face))))
     (when face
       (put-text-property pos1 (max pos1 pos2) 'face face))))
-         
+
 (defun newsticker--insert-image (img string)
   "Insert IMG with STRING at point.
 This is a work-around for a strange behavior of Emacs versions before
@@ -4528,7 +4531,7 @@ older than TIME."
                   (newsticker--debug-msg
                    "Item `%s' from %s has expired on %s"
                    (newsticker--title item)
-                   (format-time-string "%Y-%02m-%d, %H:%M" 
+                   (format-time-string "%Y-%02m-%d, %H:%M"
                                        (newsticker--time item))
                    (format-time-string "%Y-%02m-%d, %H:%M" exp-time))
                   (setcar (nthcdr 4 item) new-age)))))
@@ -4746,7 +4749,7 @@ well."
             (setcdr feed-list (sort (cdr feed-list)
                                     sort-fun)))
           newsticker--cache)))
-  
+
 (defun newsticker--cache-update (&optional save)
   "Update newsticker cache file.
 If optional argument SAVE is not nil the cache file is saved to disk."
@@ -4832,7 +4835,7 @@ Export subscriptions to a buffer in OPML Format."
                            (list name url nil nil nil) t)))
           outlines))
   (customize-variable 'newsticker-url-list))
-  
+
 ;; ======================================================================
 ;;; Auto marking
 ;; ======================================================================

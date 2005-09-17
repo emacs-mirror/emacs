@@ -78,10 +78,10 @@ syntax.  @xref{Read and Print}.
   In most cases, an object's printed representation is also a read
 syntax for the object.  However, some types have no read syntax, since
 it does not make sense to enter objects of these types as constants in
-a Lisp program.  These objects are printed in @dfn{hash notation}: the
-characters @samp{#<} followed by a descriptive string (typically the
-type name followed by the name of the object), and closed with a
-matching @samp{>}.  For example:
+a Lisp program.  These objects are printed in @dfn{hash notation},
+which consists of the characters @samp{#<}, a descriptive string
+(typically the type name followed by the name of the object), and a
+closing @samp{>}.  For example:
 
 @example
 (current-buffer)
@@ -621,6 +621,7 @@ come to refer to any structure made out of cons cells.
 @dfn{atoms}.
 
 @cindex parenthesis
+@cindex @samp{(@dots{})} in lists
   The read syntax and printed representation for lists are identical, and
 consist of a left parenthesis, an arbitrary number of elements, and a
 right parenthesis.  Here are examples of lists:
@@ -706,7 +707,6 @@ buttercup)}, sketched in a different manner:
 @end group
 @end smallexample
 
-@cindex @samp{(@dots{})} in lists
 @cindex @code{nil} in lists
 @cindex empty list
   A list with no elements in it is the @dfn{empty list}; it is identical
@@ -749,7 +749,7 @@ two-element list:
 @end group
 @end example
 
-  The same list represented in the first box notation looks like this:
+  The same list represented in the second box notation looks like this:
 
 @example
 @group
@@ -776,7 +776,7 @@ two-element list:
   @dfn{Dotted pair notation} is a general syntax for cons cells that
 represents the @sc{car} and @sc{cdr} explicitly.  In this syntax,
 @code{(@var{a} .@: @var{b})} stands for a cons cell whose @sc{car} is
-the object @var{a}, and whose @sc{cdr} is the object @var{b}.  Dotted
+the object @var{a} and whose @sc{cdr} is the object @var{b}.  Dotted
 pair notation is more general than list syntax because the @sc{cdr}
 does not have to be a list.  However, it is more cumbersome in cases
 where list syntax would work.  In dotted pair notation, the list
@@ -913,9 +913,9 @@ you can get the same effect with nested one-dimensional arrays.)  Each
 type of array has its own read syntax; see the following sections for
 details.
 
-  The array type is contained in the sequence type and
-contains the string type, the vector type, the bool-vector type, and the
-char-table type.
+  The array type is a subset of the sequence type, and contains the
+string type, the vector type, the bool-vector type, and the char-table
+type.
 
 @node String Type
 @subsection String Type
@@ -1166,8 +1166,8 @@ only the first 3 bits are used:
 
     A hash table is a very fast kind of lookup table, somewhat like an
 alist in that it maps keys to corresponding values, but much faster.
-Hash tables have no read syntax, and
-print using hash notation.  @xref{Hash Tables}.
+Hash tables have no read syntax, and print using hash notation.
+@xref{Hash Tables}, for functions that operate on hash tables.
 
 @example
 (make-hash-table)
@@ -1607,7 +1607,6 @@ to a non-@code{nil} value.  @xref{Output Variables}.
 
 @node Type Predicates
 @section Type Predicates
-@cindex predicates
 @cindex type checking
 @kindex wrong-type-argument
 
@@ -1942,6 +1941,7 @@ always true.
 @end group
 @end example
 
+@cindex equality of strings
 Comparison of strings is case-sensitive, but does not take account of
 text properties---it compares only the characters in the strings.  For
 technical reasons, a unibyte string and a multibyte string are

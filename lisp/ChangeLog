@@ -1,10 +1,92 @@
+2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-load-path): New variable.
+	(image-search-load-path): New function.
+	(find-image): Search for images in `image-load-path'.
+
+2005-09-15  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-save-file-modes): New option.
+	(recentf-save-list): Use it.
+
+2005-09-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* bindings.el (mode-line-eol-desc, mode-line-coding-system-map)
+	(mode-line-mule-info, mode-line-modified): Move bindings from
+	mouse-3 to mouse-1.
+
+2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (sendmail-user-agent-compose): Revert last change.
+
+2005-09-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
+	Use with-current-buffer.
+	(ange-ftp-gwp-start): Remove unused var `gw-user'.
+	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
+	(ange-ftp-insert-directory): Remove unused var `short'.
+	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
+
+	* pcvs-defs.el (cvs-version): Recognize CVSNT version string.
+	(cvs-execute-single-dir): Change default: cvs-1.9 is ancient.
+
+	* calendar/cal-menu.el: Don't require easymenu, since we don't use it.
+	(check-calendar-holidays, diary-list-entries): Autoload.
+	Otherwise `emacs -q' followed by "mouse-2 -> diary entries" burps.
+	(calendar-mouse-holidays, calendar-mouse-view-diary-entries): Simplify.
+
+	* calendar/diary-lib.el (diary-show-all-entries): Fix last change,
+	which mistakenly removed a call to display-buffer.
+
+2005-09-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* obsolete/iso-insert.el: Move to obsolete/ from international/.
+
+2005-09-14  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* progmodes/hideshow.el
+	(hs-hide-comments-when-hiding-all): Remove autoload cookie.
+	(hs-allow-nesting): New user var.
+	(hs-discard-overlays): Skip "internal" overlays if nesting allowed.
+	(hs-hide-block-at-point): When nesting allowed,
+	if there is already an overlay in place, delete it.
+	(hs-safety-is-job-n): Delete func; remove call sites.
+	(hs-hide-level-recursive): Don't pre-clean if nesting allowed.
+	(hs-overlay-at): New func.
+	(hs-already-hidden-p, hs-show-block): Use it.
+	(hs-hide-all): Don't pre-clean if nesting allowed.
+	(hs-show-all): Temporarily disallow
+	nesting around call to `hs-discard-overlays'.
+
+2005-09-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-major-mode-menu): Make `prefix' optional.
+	Delete unused local var.
+
+2005-09-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (describe-categories): "?\ " -> "?\s".
+	(help-do-arg-highlight): Recognize also ARG-n, as in
+	`move-to-left-margin' (ARG+n is already recognized).  Simplify.
+
+	* international/codepage.el (dos-unsupported-char-glyph):
+	* net/newsticker.el (tool-bar-map, w3-mode-map)
+	(w3m-minor-mode-map):
+	* progmodes/vhdl-mode.el (conf-alist, conf-entry, conf-key)
+	(ent-alist):
+	* textmodes/reftex-vars.el (reftex-tables-dirty): Add defvars.
+
 2005-09-13  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (custom-push-theme): Handle the case where a symbol is
 	bound but face properties have not yet been assigned.
 
-	* mail/sendmail.el (mail): Use new buffer if `noerase' argument is
-	`new'.
+	* mail/sendmail.el (mail): Use new buffer if `noerase' is `new'.
+	Fix behavior if noerase is `t' and there is no mail buffer.
+
+	* simple.el (sendmail-user-agent-compose): Use a new mail buffer
+	if `continue' is nil, rather than signal an error.
 
 2005-09-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -65,7 +147,6 @@
 
 	* time-stamp.el: Mention variable `time-stamp-pattern' in doc
 	strings of the variables it can override.
-
 	(time-stamp): New (as yet undocumented) time-stamp-format escapes
 	%Q and %q, for fully-qualified domain name and unqualified host name.
 
@@ -231,13 +312,6 @@
 	when in matrix mode.
 
 2005-09-06  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* net/ange-ftp.el (ange-ftp-process-filter): Revert to ^#+$.
-	Use with-current-buffer.
-	(ange-ftp-gwp-start): Remove unused var `gw-user'.
-	(ange-ftp-guess-hash-mark-size): Remove unused var `result'.
-	(ange-ftp-insert-directory): Remove unused var `short'.
-	(ange-ftp-file-name-sans-versions): Remove unused var `host-type'.
 
 	* buff-menu.el (Buffer-menu-make-sort-button): Add docstrings, use
 	non-anonymous functions.

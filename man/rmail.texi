@@ -92,7 +92,7 @@ need to ``exit'' formally.  If you switch from Rmail to editing in
 other buffers, and never happen to switch back, you have exited.  Just
 make sure to save the Rmail file eventually (like any other file you
 have changed).  @kbd{C-x s} is a good enough way to do this
-(@pxref{Saving}).  The Rmail command @kbd{b}, @code{rmail-bury},
+(@pxref{Save Commands}).  The Rmail command @kbd{b}, @code{rmail-bury},
 buries the Rmail buffer and its summary buffer without expunging and
 saving the Rmail file.
 

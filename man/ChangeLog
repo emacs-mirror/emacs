@@ -1,3 +1,25 @@
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* buffers.texi (List Buffers): Fix xref.
+
+	* rmail.texi (Rmail Basics): Fix xref.
+
+	* emacs.texi (Top): Update subnode menus.
+
+	* files.texi (Saving Commands): New node, broken out of Saving.
+	(Customize Save): New node, broken out of Saving.
+	Clarify effect of write-region-inhibit-fsync.
+	(Misc File Ops): Say write-region-inhibit-fsync affects write-region.
+
+	* newsticker.texi: Fix @setfilename.
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add newsticker targets.
+	(../info/newsticker, newsticker.dvi): New targets.
+
+2005-09-14  Romain Francoise  <romain@orebokech.com>
+
+	* files.texi (Saving): Mention write-region-inhibit-fsync.
+
 2005-09-05  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Custom Themes): New node.

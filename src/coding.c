@@ -5349,8 +5349,8 @@ static int shrink_conversion_region_threshhold = 1024;
       }									\
   } while (0)
 
-/* ARG is (CODING . BUFFER) where CODING is what to be set in
-   Vlast_coding_system_used and BUFFER if non-nil is a buffer to
+/* ARG is (CODING BUFFER ...) where CODING is what to be set in
+   Vlast_coding_system_used and the remaining elements are buffers to
    kill.  */
 static Lisp_Object
 code_convert_region_unwind (arg)
@@ -5358,8 +5358,8 @@ code_convert_region_unwind (arg)
 {
   inhibit_pre_post_conversion = 0;
   Vlast_coding_system_used = XCAR (arg);
-  if (! NILP (XCDR (arg)))
-    Fkill_buffer (XCDR (arg));
+  for (arg = XCDR (arg); ! NILP (arg); arg = XCDR (arg))
+    Fkill_buffer (XCAR (arg));
   return Qnil;
 }
 
@@ -6077,6 +6077,7 @@ run_pre_post_conversion_on_str (str, coding, encodep)
   int multibyte = STRING_MULTIBYTE (str);
   Lisp_Object old_deactivate_mark;
   Lisp_Object buffer_to_kill;
+  Lisp_Object unwind_arg;
 
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
   /* It is not crucial to specbind this.  */
@@ -6087,15 +6088,25 @@ run_pre_post_conversion_on_str (str, coding, encodep)
      unibyte<->multibyte conversion.  For that, we adjust the
      multibyteness of the working buffer to that of STR.  */
   buffer_to_kill = set_conversion_work_buffer (multibyte);
-  record_unwind_protect (code_convert_region_unwind,
-			 Fcons (Vlast_coding_system_used, buffer_to_kill));
+  if (NILP (buffer_to_kill))
+    unwind_arg = Fcons (Vlast_coding_system_used, Qnil);
+  else
+    unwind_arg = list2 (Vlast_coding_system_used, buffer_to_kill);
+  record_unwind_protect (code_convert_region_unwind, unwind_arg);
 
   insert_from_string (str, 0, 0,
 		      SCHARS (str), SBYTES (str), 0);
   UNGCPRO;
   inhibit_pre_post_conversion = 1;
   if (encodep)
-    call2 (coding->pre_write_conversion, make_number (BEG), make_number (Z));
+    {
+      struct buffer *prev = current_buffer;
+
+      call2 (coding->pre_write_conversion, make_number (BEG), make_number (Z));
+      if (prev != current_buffer)
+	/* We must kill the current buffer too.  */
+	Fsetcdr (unwind_arg, Fcons (Fcurrent_buffer (), XCDR (unwind_arg)));
+    }
   else
     {
       Vlast_coding_system_used = coding->symbol;
@@ -6129,6 +6140,7 @@ run_pre_write_conversin_on_c_str (str, size, nchars, nbytes, coding)
 {
   struct gcpro gcpro1, gcpro2;
   struct buffer *cur = current_buffer;
+  struct buffer *prev;
   Lisp_Object old_deactivate_mark, old_last_coding_system_used;
   Lisp_Object args[3];
   Lisp_Object buffer_to_kill;
@@ -6145,6 +6157,7 @@ run_pre_write_conversin_on_c_str (str, size, nchars, nbytes, coding)
   insert_1_both (*str, nchars, nbytes, 0, 0, 0);
   UNGCPRO;
   inhibit_pre_post_conversion = 1;
+  prev = current_buffer;
   args[0] = coding->pre_write_conversion;
   args[1] = make_number (BEG);
   args[2] = make_number (Z);
@@ -6164,6 +6177,8 @@ run_pre_write_conversin_on_c_str (str, size, nchars, nbytes, coding)
   bcopy (BEG_ADDR, *str, coding->produced);
   coding->src_multibyte
     = ! NILP (current_buffer->enable_multibyte_characters);
+  if (prev != current_buffer)
+    Fkill_buffer (Fcurrent_buffer ());
   set_buffer_internal (cur);
   if (! NILP (buffer_to_kill))
     Fkill_buffer (buffer_to_kill);

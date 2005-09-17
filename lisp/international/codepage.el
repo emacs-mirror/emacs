@@ -44,6 +44,8 @@
 
 ;;; Code:
 
+(defvar dos-unsupported-char-glyph)
+
 (defun cp-coding-system-for-codepage-1 (coding mnemonic iso-name
 					       decoder encoder)
   "Make coding system CODING for a DOS codepage using translation tables.

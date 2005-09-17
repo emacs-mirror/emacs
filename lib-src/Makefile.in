@@ -460,10 +460,12 @@ emacsclient${EXEEXT}: ${srcdir}/emacsclient.c ../src/config.h $(GETOPTDEPS)
 hexl${EXEEXT}: ${srcdir}/hexl.c ../src/config.h
 	$(CC) ${ALL_CFLAGS} ${srcdir}/hexl.c $(LOADLIBES) -o hexl
 
-update-game-score${EXEEXT}: ${srcdir}/update-game-score.c ../src/config.h
-	$(CC) ${ALL_CFLAGS} ${srcdir}/update-game-score.c \
+update-game-score${EXEEXT}: update-game-score.o $(GETOPTDEPS)
+	$(CC) ${LINK_CFLAGS} ${MOVE_FLAGS} update-game-score.o $(GETOPTOBJS) $(LOADLIBES) -o update-game-score
+
+update-game-score.o: ${srcdir}/update-game-score.c ../src/config.h $(GETOPT_H)
+	$(CC) -c ${CPP_CFLAGS} ${srcdir}/update-game-score.c \
 	  -DHAVE_SHARED_GAME_DIR="\"$(gamedir)\"" \
-	  $(LOADLIBES) -o update-game-score
 
 /* These are NOT included in INSTALLABLES or UTILITIES.
    See ../src/Makefile.in.  */

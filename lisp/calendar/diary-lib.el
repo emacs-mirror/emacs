@@ -764,7 +764,8 @@ is created."
         (pop-up-frames (window-dedicated-p (selected-window))))
     (with-current-buffer (or (find-buffer-visiting d-file)
                              (find-file-noselect d-file t))
-      (diary-unhide-everything))))
+      (diary-unhide-everything)
+      (display-buffer (current-buffer)))))
 
 (defcustom diary-mail-addr
   (if (boundp 'user-mail-address) user-mail-address "")

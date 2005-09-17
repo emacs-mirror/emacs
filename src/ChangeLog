@@ -1,3 +1,47 @@
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (overlay_arrow_at_row): Add HAVE_WINDOW_SYSTEM conditional.
+	(display_mode_element): Instead of `lisp_string' and `this',
+	record `offset' and increment that.
+	`last_offset' replaces `last'.
+
+	* Makefile.in (XMENU_OBJ): Variable deleted.
+	(obj): Use xmenu.o unconditionally.
+	(SOME_MACHINE_OBJECTS): Delete xmenu.o.
+
+	* emacs.c (main): Don't conditionalize syms_of_xmenu on HAVE_XMENU.
+
+2005-09-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_vertically): Don't try to fetch byte BEGV-1.
+	(reseat_at_next_visible_line_start): Likewise (in xassert).
+
+2005-09-14  Romain Francoise  <romain@orebokech.com>
+
+	* fileio.c (write_region_inhibit_fsync): New variable.
+	(Fwrite_region): Use it to skip call to fsync.
+	(syms_of_fileio): Initialize it.
+
+2005-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region_unwind): Argument format changed.
+	(run_pre_post_conversion_on_str): If pre-write-conversion function
+	changed the current buffer, delete the new buffer.
+	(run_pre_write_conversin_on_c_str): Likewise.
+
+	* fileio.c (Fexpand_file_name): Check multibyteness of
+	default_directory.
+
+2005-09-13  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (compose_chars_in_text): Delete it.
+
+	* composite.h (compose_chars_in_text): Delete extern.
+
+2005-09-13  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (print_error_message): Fix last change.
+
 2005-09-12  Kim F. Storm  <storm@cua.dk>
 
 	* composite.c (compose_chars_in_text): Fix setup of `pend'.
