@@ -304,6 +304,11 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcd
 #define LIB_X11_LIB -lX11
 #endif
 
+/* xmenu.c should not be compiled on OSX.  */
+#ifndef HAVE_CARBON
+XMENU_OBJ = xmenu.o
+#endif
+
 #ifdef HAVE_X_WINDOWS
 
 XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o
@@ -570,7 +575,7 @@ emacsappsrc = ${srcdir}/../mac/Emacs.app/
 
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
-obj=    dispnew.o frame.o scroll.o xdisp.o xmenu.o window.o \
+obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o \
 	cm.o term.o xfaces.o $(XOBJ) $(GTK_OBJ)\
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
