@@ -1,3 +1,15 @@
+2005-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS): Add newsticker targets.
+	(../info/newsticker, newsticker.dvi): New targets.
+
+2005-09-17  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.texi: Replace @command with @code.  Replace @example
+	with @lisp.
+	(Top): Added explanations to menu items.
+	(GNU Free Documentation License): Removed.
+
 2005-09-16  Romain Francoise  <romain@orebokech.com>
 
 	Update all files to specify GFDL version 1.2.

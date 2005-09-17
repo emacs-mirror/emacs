@@ -1,3 +1,11 @@
+2005-09-17  Magnus Henoch  <mange@freemail.hu>
+
+	* textmodes/ispell.el (ispell-aspell-supports-utf8): New variable.
+	(ispell-check-version): Set ispell-aspell-supports-utf8 to t for
+	aspell versions >= 0.60.
+	(ispell-valid-dictionary-list): Call ispell-find-aspell-dictionaries
+	only if ispell-aspell-supports-utf8 is non-nil.
+
 2005-09-17  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* progmodes/scheme.el (scheme-mode-variables): Use setq to assign
