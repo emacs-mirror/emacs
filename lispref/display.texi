@@ -3956,16 +3956,17 @@ image files.  If an element is a string, it is taken to be the name of
 a directory to search.  If an element is a variable symbol, the value
 of that variable is used as a list of directories to search.
 
-The default is to search in @file{@code{data-directory}/images}, then
-in @code{data-directory}, and finally in the directories specified by
+The default is to search in the @file{images} subdirectory of the
+directory specified by @code{data-directory}, then the directory
+specified by @code{data-directory}, and finally in the directories in
 @code{load-path}.  Subdirectories are not automatically included in
 the search, so if you put an image file in a subdirectory, you have to
-supply the subdirectory name explicitly.  For example, if you put an
-image file @file{bar.xpm} in @file{@code{data-directory}/images/foo/},
-you should define the image as:
+supply the subdirectory name explicitly.  For example, to find the
+image @file{images/foo/bar.xpm} within @code{data-directory} you
+should specify the image as follows:
 
 @example
-  (defimage foo-image '((:type xpm :file "foo/bar.xpm")))
+(defimage foo-image '((:type xpm :file "foo/bar.xpm")))
 @end example
 @end defvar
 
