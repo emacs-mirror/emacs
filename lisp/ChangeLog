@@ -1,3 +1,8 @@
+2005-09-17  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* progmodes/scheme.el (scheme-mode-variables): Use setq to assign
+	buffer-local value to lisp-indent-function.
+
 2005-09-17  Milan Zamazal  <pdm@zamazal.org>
 
 	* progmodes/glasses.el (glasses-make-readable): If
