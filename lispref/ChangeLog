@@ -1,3 +1,7 @@
+2005-09-17  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Images): Clean up previous change.
+
 2005-09-16  Romain Francoise  <romain@orebokech.com>
 
 	* elisp.texi: Specify GFDL version 1.2.

@@ -25,6 +25,10 @@
 	(image-search-load-path): New function.
 	(find-image): Search for images in `image-load-path'.
 
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* follow.el: Change Maintainer field.
+
 2005-09-15  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-save-file-modes): New option.

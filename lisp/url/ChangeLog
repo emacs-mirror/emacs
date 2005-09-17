@@ -1,3 +1,10 @@
+2005-09-17  Richard M. Stallman  <rms@gnu.org>
+
+	* url-vars.el (url-mail-command): Don't test fboundp of `compose-mail'.
+
+	* url-mailto.el (url-mailto): Special case `mail'.
+	Don't test fboundp of `compose-mail'.
+
 2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* url-mailto.el (url-mailto): Delete mail buffer after sending

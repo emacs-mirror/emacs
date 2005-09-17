@@ -46,6 +46,9 @@ and has already been posted on the developers' list, but it is on the
 back burner waiting for a legal comment or an alternate implementation
 (around 30 lines of code).
 
+** goeran@uddeborg.se's Sep 13 crash report
+about trying to display the invalid gif file poison.gif.
+
 * BUGS
 
 ** Fix recognition of shell's `dirs' command.

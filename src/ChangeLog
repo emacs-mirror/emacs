@@ -1,7 +1,6 @@
 2005-09-16  Romain Francoise  <romain@orebokech.com>
 
-	* fileio.c (syms_of_fileio): Clarify docstring of
-	`write-region-inhibit-fsync'.
+	* fileio.c (syms_of_fileio) <write-region-inhibit-fsync>: Doc fix.
 
 2005-09-15  Richard M. Stallman  <rms@gnu.org>
 
