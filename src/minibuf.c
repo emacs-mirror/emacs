@@ -2164,7 +2164,6 @@ Return nil if there is no valid completion, else t.  */)
 {
   Lisp_Object completion, tem, tem1;
   register int i, i_byte;
-  register const unsigned char *completion_string;
   struct gcpro gcpro1, gcpro2;
   int prompt_end_charpos = XINT (Fminibuffer_prompt_end ());
 
@@ -2295,7 +2294,7 @@ Return nil if there is no valid completion, else t.  */)
   {
     int len, c;
     int bytes = SBYTES (completion);
-    completion_string = SDATA (completion);
+    register const unsigned char *completion_string = SDATA (completion);
     for (; i_byte < SBYTES (completion); i_byte += len, i++)
       {
 	c = STRING_CHAR_AND_LENGTH (completion_string + i_byte,

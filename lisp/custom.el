@@ -649,17 +649,16 @@ See `custom-known-themes' for a list of known themes."
 	(progn
 	  (setcar (cdr setting) mode)
 	  (setcar (cddr setting) value))
-      (if (and (null old)
-	       (boundp symbol))
-	  (setq old
-		(list
-		 (list 'standard 'set
-		       (if (eq prop 'theme-value)
-			   (symbol-value symbol)
-			 (list
-			  (append
-			   '(t)
-			   (custom-face-attributes-get symbol nil))))))))
+      ;; If no custom theme has been applied yet, first save the
+      ;; current values to the 'standard theme.
+      (if (null old)
+	  (if (and (eq prop 'theme-value)
+		   (boundp symbol))
+	      (setq old
+		    (list (list 'standard 'set (symbol-value symbol))))
+	    (if (facep symbol)
+		(setq old (list (list 'standard 'set (list
+		  (append '(t) (custom-face-attributes-get symbol nil)))))))))
       (put symbol prop (cons (list theme mode value) old)))
     ;; Record, for each theme, all its settings.
     (put theme 'theme-settings

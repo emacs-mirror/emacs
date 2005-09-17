@@ -7048,7 +7048,15 @@ message3 (m, nbytes, multibyte)
   /* First flush out any partial line written with print.  */
   message_log_maybe_newline ();
   if (STRINGP (m))
-    message_dolog (SDATA (m), nbytes, 1, multibyte);
+    {
+      char *buffer;
+      USE_SAFE_ALLOCA;
+
+      SAFE_ALLOCA (buffer, char *, nbytes);
+      bcopy (SDATA (m), buffer, nbytes);
+      message_dolog (buffer, nbytes, 1, multibyte);
+      SAFE_FREE ();
+    }
   message3_nolog (m, nbytes, multibyte);
 
   UNGCPRO;
@@ -16183,6 +16191,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		else /* c == 0 */
 		  break;
 	      }
+	    this += SDATA (elt) - lisp_string;
+	    lisp_string = SDATA (elt);
 	  }
       }
       break;

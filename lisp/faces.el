@@ -1834,20 +1834,27 @@ created."
   ;; User init file can set term-file-prefix to nil to prevent this.
   (with-selected-frame frame
     (unless (null term-file-prefix)
-      (let ((term (frame-parameter frame 'tty-type))
-	    hyphend term-init-func)
+      (let* ((term (frame-parameter frame 'tty-type))
+	     (term2 term)
+	     hyphend term-init-func)
 	(while (and term
-		    (not (fboundp
-			  (setq term-init-func (intern (concat "terminal-init-" term)))))
 		    (not (load (concat term-file-prefix term) t t)))
 	  ;; Strip off last hyphen and what follows, then try again
 	  (setq term
 		(if (setq hyphend (string-match "[-_][^-_]+$" term))
 		    (substring term 0 hyphend)
 		  nil)))
-	(when (and term (fboundp term-init-func))
-	  ;; The terminal file has been loaded, now call the terminal
-	  ;; specific initialization function.
+	;; The terminal file has been loaded, now find and call the
+	;; terminal specific initialization function.
+	(while (and term2
+		    (not (fboundp
+			  (setq term-init-func (intern (concat "terminal-init-" term2))))))
+	  ;; Strip off last hyphen and what follows, then try again
+	  (setq term2
+		(if (setq hyphend (string-match "[-_][^-_]+$" term2))
+		    (substring term2 0 hyphend)
+		  nil)))
+	(when (fboundp term-init-func)
 	  (funcall term-init-func))))))
 
 ;; Called from C function init_display to initialize faces of the

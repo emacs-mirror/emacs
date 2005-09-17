@@ -616,7 +616,7 @@ compose_chars_in_text (start, end, string)
       GCPRO1 (string);
       stop = end;
       ptr = SDATA (string) + string_char_to_byte (string, start);
-      pend = ptr + SBYTES (string);
+      pend = SDATA (string) + SBYTES (string);
     }
   else
     {
@@ -680,9 +680,18 @@ compose_chars_in_text (start, end, string)
 		    {
 		      start += XINT (val);
 		      if (STRINGP (string))
-			ptr = SDATA (string) + string_char_to_byte (string, start);
+			{
+			  ptr = SDATA (string) + string_char_to_byte (string, start);
+			  pend = SDATA (string) + SBYTES (string);
+			}
 		      else
 			ptr = CHAR_POS_ADDR (start);
+		    }
+		  else if (STRINGP (string))
+		    {
+		      start++;
+		      ptr = SDATA (string) + string_char_to_byte (string, start);
+		      pend = SDATA (string) + SBYTES (string);
 		    }
 		  else
 		    {
