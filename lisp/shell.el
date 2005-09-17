@@ -797,19 +797,26 @@ command again."
   (let* ((proc (get-buffer-process (current-buffer)))
 	 (pmark (process-mark proc)))
     (goto-char pmark)
-    (insert shell-dirstack-query) (insert "\n")
+    ;; If the process echoes commands, don't insert a fake command in
+    ;; the buffer or it will appear twice.
+    (unless comint-process-echoes
+      (insert shell-dirstack-query) (insert "\n"))
     (sit-for 0) ; force redisplay
     (comint-send-string proc shell-dirstack-query)
     (comint-send-string proc "\n")
     (set-marker pmark (point))
-    (let ((pt (point))) ; wait for 1 line
+    (let ((pt (point))
+	  (regexp
+	   (concat
+	    (if comint-process-echoes
+		;; Skip command echo if the process echoes
+		(concat "\\(" (regexp-quote shell-dirstack-query) "\n\\)")
+	      "\\(\\)")
+	    "\\(.+\n\\)")))
       ;; This extra newline prevents the user's pending input from spoofing us.
       (insert "\n") (backward-char 1)
-      (while (not (looking-at
-		   (concat "\\(" ; skip literal echo in case of stty echo
-			   (regexp-quote shell-dirstack-query)
-			   "\n\\)?" ; skip if present
-			   "\\(" ".+\n" "\\)")) ) ; what to actually look for
+      ;; Wait for one line.
+      (while (not (looking-at regexp))
 	(accept-process-output proc)
 	(goto-char pt)))
     (goto-char pmark) (delete-char 1) ; remove the extra newline

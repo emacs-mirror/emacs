@@ -1,3 +1,9 @@
+2005-09-17  Romain Francoise  <romain@orebokech.com>
+
+	* shell.el (shell-resync-dirs): Handle echoing processes more
+	reliably.  Don't insert resync command if `comint-process-echoes'
+	is non-nil.
+
 2005-09-17  Magnus Henoch  <mange@freemail.hu>
 
 	* textmodes/ispell.el (ispell-aspell-supports-utf8): New variable.
