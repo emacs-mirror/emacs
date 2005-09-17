@@ -1,3 +1,8 @@
+2005-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (XMENU_OBJ) [!HAVE_CARBON]: Reinstate variable.
+	(obj): Use XMENU_OBJ, not a literal xmenu.o.
+
 2005-09-16  Romain Francoise  <romain@orebokech.com>
 
 	* fileio.c (syms_of_fileio) <write-region-inhibit-fsync>: Doc fix.
