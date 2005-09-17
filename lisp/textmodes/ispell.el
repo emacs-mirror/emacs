@@ -719,6 +719,12 @@ LANGUAGE.aff file \(e.g., english.aff\).")
 
 (defvar ispell-really-aspell nil) ; Non-nil if aspell extensions should be used
 
+(defvar ispell-aspell-supports-utf8 nil
+  "Non-nil means to try to automatically find aspell dictionaries.
+This is set to t in ispell-check-version for aspell >= 0.60.
+
+Earlier aspell versions do not consistently support UTF-8.  Handling
+this would require some extra guessing in `ispell-aspell-find-dictionary'.")
 
 
 
@@ -814,9 +820,11 @@ Otherwise returns the library directory name, if that is defined."
         (goto-char (point-min))
         (let (case-fold-search)
           (setq ispell-really-aspell
-		(and (search-forward-regexp "(but really Aspell \\(.*\\))" nil t)
-		     (if (version< (match-string 1) "0.60")
-			 (error "aspell version 0.60 or greater is required")
+		(and (search-forward-regexp
+		      "(but really Aspell \\(.*\\))" nil t)
+		     (progn
+		       (setq ispell-aspell-supports-utf8
+			     (not (version< (match-string 1) "0.60")))
 		       t)))))
       (kill-buffer (current-buffer)))
     result))
@@ -972,7 +980,8 @@ The variable `ispell-library-directory' defines the library location."
 	     (condition-case ()
 		 (progn (ispell-check-version) t)
 	       (error nil))
-	     ispell-really-aspell)
+	     ispell-really-aspell
+	     ispell-aspell-supports-utf8)
     (ispell-find-aspell-dictionaries))
   (let ((dicts (append ispell-local-dictionary-alist ispell-dictionary-alist))
 	(dict-list (cons "default" nil))
