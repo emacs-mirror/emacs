@@ -1532,7 +1532,7 @@ written into the buffer `*icalendar-errors*'."
          (setq found-error t)
          (setq error-string (format "%s\n%s\nCannot handle this event: %s"
                                     error-val error-string e))
-         (message error-string))))
+         (message "%s" error-string))))
     (if found-error
         (save-current-buffer
           (set-buffer (get-buffer-create "*icalendar-errors*"))
