@@ -225,8 +225,8 @@ The prompt will be set to PROMPT."
   (if (and (eshell-processp (car entry))
 	   (nth 2 entry)
 	   eshell-done-messages-in-minibuffer)
-      (message "[%s]+ Done %s" (process-name (car entry)
-					     (process-command (car entry)))))
+      (message "[%s]+ Done %s" (process-name (car entry))
+	       (process-command (car entry))))
   (setq eshell-process-list
 	(delq entry eshell-process-list)))
 
