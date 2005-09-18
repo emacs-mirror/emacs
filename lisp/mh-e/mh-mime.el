@@ -858,7 +858,7 @@ If message has been encoded for transfer take that into account."
   (interactive)
   (setq mh-decode-mime-flag (not mh-decode-mime-flag))
   (mh-show nil t)
-  (message (format "(setq mh-decode-mime-flag %s)" mh-decode-mime-flag)))
+  (message "(setq mh-decode-mime-flag %s)" mh-decode-mime-flag))
 
 ;;;###mh-autoload
 (defun mh-decode-message-header ()

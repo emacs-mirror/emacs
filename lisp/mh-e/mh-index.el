@@ -1325,7 +1325,7 @@ space-separated list of folders, or nothing to search all folders."
           mh-index-sequence-search-flag t
           mh-index-previous-search (list folders sequence))
     (mh-index-write-data)
-    (when (stringp message) (message message))))
+    (when (stringp message) (message "%s" message))))
 
 ;;;###mh-autoload
 (defun mh-index-new-messages (folders)
