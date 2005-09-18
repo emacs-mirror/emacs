@@ -564,7 +564,7 @@ Optional argument END is maximum excursion."
                               (hi-lock-current-line)))))))
       (when hi-lock-mode (hi-lock-set-file-patterns all-patterns))
       (if (interactive-p)
-        (message (format "Hi-lock added %d patterns." (length all-patterns)))))))
+        (message "Hi-lock added %d patterns." (length all-patterns))))))
 
 (defun hi-lock-font-lock-hook ()
   "Add hi lock patterns to font-lock's."

@@ -443,7 +443,7 @@ satisfy the predicate VAR-PREDICATE."
 	(setq p (cdr p))))
     (and (apropos-print t nil)
 	 message
-	 (message message))))
+	 (message "%s" message))))
 
 
 ;;;###autoload

@@ -845,7 +845,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	       (apply 'message qprompt qs-args)
 	       (setq char (set qs-var (read-char))))
 	     ;; Display the question with the answer.
-	     (message (concat (apply 'format qprompt qs-args)
+	     (message "%s" (concat (apply 'format qprompt qs-args)
 			      (char-to-string char)))
 	     (memq (cdr elt) '(t y yes)))))))
 

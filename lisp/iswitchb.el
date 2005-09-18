@@ -1122,7 +1122,7 @@ Return the modified list with the last element prepended to it."
 	      (set-buffer-major-mode newbufcreated))
 	  (iswitchb-visit-buffer newbufcreated))
       ;; else wont create new buffer
-      (message (format "no buffer matching `%s'" buf)))))
+      (message "no buffer matching `%s'" buf))))
 
 (defun iswitchb-window-buffer-p  (buffer)
   "Return window pointer if BUFFER is visible in another frame.

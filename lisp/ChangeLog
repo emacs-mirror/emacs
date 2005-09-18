@@ -1,3 +1,160 @@
+2005-09-18  D Goel  <deego@gnufans.org>
+
+	* apropos.el (apropos-command): Fix `message' call: first arg
+	should be a format spec. In this and all other cases that appear
+	below and elsewhere in the source code, I made a change only when
+	two conditions were satisfied: [1] I can think of a possibility
+	that the arguments would cause an error, for example, the code is
+	question relies on extarnal variables such as filenames. [2] I was
+	sure that the arg to `message' could not have been nil in the
+	code.  
+
+	* textmodes/tildify.el (tildify-region): Ditto.
+
+	* textmodes/reftex-index.el (reftex-index-change-entry)
+	(reftex-index-phrase-selection-or-word)
+	(reftex-query-index-phrase): Ditto.
+
+	* textmodes/reftex-dcr.el (reftex-echo-ref, reftex-echo-cite): Ditto.
+
+	* textmodes/org.el (org-complete, org-deadline, org-schedule)
+	(org-priority, org-table-sum): Ditto.
+
+	* textmodes/ispell.el (ispell-check-version)
+	(ispell-parse-output): Ditto.
+
+	* textmodes/flyspell.el (flyspell-mode-on)
+	(flyspell-notify-misspell, flyspell-word)
+	(flyspell-display-next-corrections): Ditto.
+
+	* textmodes/bibtex.el (bibtex-print-help-message): Ditto.
+
+	* textmodes/artist.el (artist-key-set-point-poly): Ditto.
+
+	* term/mac-win.el (mac-services-insert-text): Ditto.
+
+	* progmodes/vhdl-mode.el (vhdl-warning, vhdl-print-warnings)
+	(vhdl-hooked-abbrev, vhdl-template-insert-fun)
+	(vhdl-port-paste-testbench, vhdl-compose-new-component)
+	(vhdl-compose-configuration): Ditto.
+
+	* progmodes/sh-script.el (sh-blink, sh-show-indent)
+	(sh-set-indent, sh-learn-line-indent): Ditto.
+
+	* progmodes/ps-mode.el (ps-mode-target-column): Ditto.
+
+	* progmodes/idlwave.el (idlwave-make-tags)
+	(idlwave-scan-library-catalogs): Ditto.
+
+	* progmodes/idlw-shell.el (idlwave-shell-parse-stack-and-display): Ditto.
+
+	* progmodes/gud.el (gud-jdb-analyze-source): Ditto.
+
+	* progmodes/flymake.el (flymake-log): Ditto.
+
+	* progmodes/ebnf2ps.el (ebnf-generate-region): Ditto.
+
+	* progmodes/cmacexp.el (c-macro-expansion): Ditto.
+
+	* progmodes/ada-xref.el (ada-treat-cmd-string): Ditto.
+
+	* progmodes/ada-mode.el (ada-create-case-exception-substring)
+	(ada-justified-indent-current, ada-batch-reformat): Ditto.
+
+	* play/zone.el (zone): Ditto.
+
+	* play/landmark.el (lm-move): Ditto.
+
+	* play/decipher.el (decipher-show-alphabet): Ditto.
+
+	* net/newsticker.el (newsticker--display-jump)
+	(newsticker--display-scroll): Ditto.
+
+	* mail/rmail-spam-filter.el (rsf-add-subject-to-spam-list)
+	(rsf-add-sender-to-spam-list, rsf-add-region-to-spam-list): Ditto.
+
+	* mail/feedmail.el (feedmail-dump-message-to-queue): Ditto.
+
+	* eshell/esh-proc.el (eshell-remove-process-entry): Ditto.
+
+	* emulation/ws-mode.el (ws-last-error): Ditto.
+
+	* emulation/viper-macs.el (ex-map-read-args, ex-unmap-read-args)
+	(viper-record-kbd-macro): Ditto.
+
+	* emulation/viper-ex.el (ex-pwd, viper-info-on-file): Ditto.
+
+	* emacs-lisp/lisp-mnt.el (lm-report-bug): Ditto.
+
+	* emacs-lisp/find-func.el (find-function-noselect): Ditto.
+
+	* calendar/timeclock.el (timeclock-status-string)
+	(timeclock-workday-remaining-string)
+	(timeclock-workday-elapsed-string)
+	(timeclock-when-to-leave-string): Ditto.
+
+	* calendar/icalendar.el (icalendar--convert-ical-to-diary): Ditto.
+
+	* calc/calc-units.el (calc-enter-units-table): Ditto.
+
+	* calc/calc-mode.el (calc-mode-record-mode): Ditto.
+
+	* woman.el (woman-mini-help): Ditto.
+
+	* wdired.el (wdired-change-to-wdired-mode): Ditto.
+
+	* vc.el (vc-retrieve-snapshot): Ditto.
+
+	* strokes.el (strokes-read-stroke, strokes-read-complex-stroke): Ditto.
+
+	* startup.el (display-startup-echo-area-message): Ditto.
+
+	* simple.el (set-goal-column): Ditto.
+
+	* ses.el (ses-command-hook, ses-recalculate-cell): Ditto.
+
+	* server.el (server-process-filter): Ditto.
+
+	* printing.el (pr-interface-txt-print, pr-interface-printify)
+	(pr-interface-ps): Ditto.
+
+	* pcvs.el (cvs-help): Ditto.
+
+	* log-edit.el (log-edit, log-edit-mode-help): Ditto.
+
+	* iswitchb.el (iswitchb-possible-new-buffer): Ditto.
+
+	* isearch.el (isearch-edit-string): Ditto.
+
+	* image-mode.el (image-mode, image-minor-mode): Ditto.
+
+	* ibuf-macs.el (define-ibuffer-filter): Ditto.
+
+	* hi-lock.el (hi-lock-find-patterns): Ditto.
+
+	* files.el (toggle-read-only): Ditto.
+
+	* ediff-util.el (ediff-copy-diff)
+	(ediff-write-merge-buffer-and-maybe-kill): Ditto.
+
+	* echistory.el (Electric-history-undefined): Ditto.
+
+	* dnd.el (dnd-insert-text): Ditto.
+
+	* dired-aux.el (dired-query): Ditto.
+
+	* desktop.el (desktop-restore-file-buffer)
+	(desktop-lazy-create-buffer): Ditto.
+
+	* bookmark.el (bookmark-bmenu-locate): Ditto.
+
+	* obsolete/fast-lock.el (@top-level): Ditto in the macro definition of `with-temp-message'.	
+
+	* pcomplete.el (pcomplete--help): Fix `message' format spec. Not
+	having a %s would be weird, though not technically wrong.
+
+
+	
 2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-add-charset-info): Doc fix.

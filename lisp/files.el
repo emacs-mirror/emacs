@@ -3580,7 +3580,7 @@ If visiting file read-only and `view-read-only' is non-nil, enter view mode."
      (t (setq buffer-read-only (not buffer-read-only))
         (force-mode-line-update)))
     (if (vc-backend buffer-file-name)
-        (message (substitute-command-keys
+        (message "%s" (substitute-command-keys
                   (concat "File is under version-control; "
                           "use \\[vc-next-action] to check in/out"))))))
 

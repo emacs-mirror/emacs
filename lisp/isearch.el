@@ -1016,7 +1016,7 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 		;; read a key the normal way.
 		;; Word search does not apply (yet) to regexp searches,
 		;; no check is made here.
-		(message (isearch-message-prefix nil nil t))
+		(message "%s" (isearch-message-prefix nil nil t))
 		(if (memq (lookup-key isearch-mode-map (vector e))
 			  '(isearch-yank-word
 			    isearch-yank-word-or-char))
