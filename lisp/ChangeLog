@@ -1,3 +1,8 @@
+2005-09-18  Romain Francoise  <romain@orebokech.com>
+
+	* calendar/diary-lib.el (mark-diary-entries): Rearrange to wrap
+	with-current-buffer form in save-excursion.
+
 2005-09-18  D Goel  <deego@gnufans.org>
 
 	* apropos.el (apropos-command): Fix `message' call: first arg
@@ -7,7 +12,7 @@
 	that the arguments would cause an error, for example, the code is
 	question relies on extarnal variables such as filenames. [2] I was
 	sure that the arg to `message' could not have been nil in the
-	code.  
+	code.
 
 	* textmodes/tildify.el (tildify-region): Ditto.
 
@@ -148,13 +153,12 @@
 
 	* bookmark.el (bookmark-bmenu-locate): Ditto.
 
-	* obsolete/fast-lock.el (@top-level): Ditto in the macro definition of `with-temp-message'.	
+	* obsolete/fast-lock.el (@top-level): Ditto in the macro
+	definition of `with-temp-message'.
 
 	* pcomplete.el (pcomplete--help): Fix `message' format spec. Not
 	having a %s would be weird, though not technically wrong.
 
-
-	
 2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-add-charset-info): Doc fix.
