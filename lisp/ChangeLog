@@ -1,3 +1,10 @@
+2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (image-load-path): Use symbol `data-directory' instead
+	of its value, for backward compatibility with packages that bind
+	it during `find-image'.  Suggested by Katsumi Yamaoka.
+	(image-search-load-path): Handle symbols whose values are strings.
+
 2005-09-18  Romain Francoise  <romain@orebokech.com>
 
 	* calendar/diary-lib.el (mark-diary-entries): Rearrange to wrap
