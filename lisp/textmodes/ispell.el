@@ -788,7 +788,7 @@ Otherwise returns the library directory name, if that is defined."
 								 (point))
 				 ", "
 				 ispell-version))
-	    (message result))
+	    (message "%s" result))
 	;; return library directory.
 	(if (re-search-forward "LIBDIR = \\\"\\([^ \t\n]*\\)\\\"" nil t)
 	    (setq result (buffer-substring (match-beginning 1) (match-end 1)))))
@@ -2387,7 +2387,7 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
     (substring output 2))		; return root word
    ((equal 0 (string-match "[\ra-zA-Z]" output))
     (ding)				; error message from ispell!
-    (message (concat "Ispell error: " output))
+    (message "Ispell error: %s" output)
     (sit-for 5)
     nil)
    (t					; need to process &, ?, and #'s

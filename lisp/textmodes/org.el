@@ -2805,7 +2805,7 @@ At all other locations, this simply calls `ispell-complete-word'."
 		      (assoc completion table))
 		 (insert " "))
 	     (if (and (equal type :opt) (assoc completion table))
-		 (message (substitute-command-keys
+		 (message "%s" (substitute-command-keys
 			   "Press \\[org-complete] again to insert example settings"))))
 	    (t
 	     (message "Making completion list...")
@@ -2912,7 +2912,7 @@ to modify it to the correct date."
    org-deadline-string " "
    (format-time-string (car org-time-stamp-formats)
 		       (org-read-date nil 'to-time)))
-  (message (substitute-command-keys
+  (message "%s" (substitute-command-keys
 	    "Use \\[org-timestamp-up-day] and \\[org-timestamp-down-day] to change the date.")))
 
 (defun org-schedule ()
@@ -2924,7 +2924,7 @@ to modify it to the correct date."
    org-scheduled-string " "
    (format-time-string (car org-time-stamp-formats)
 		       (org-read-date nil 'to-time)))
-  (message (substitute-command-keys
+  (message "%s" (substitute-command-keys
 	    "Use \\[org-timestamp-up-day] and \\[org-timestamp-down-day] to change the date.")))
 
 
@@ -2997,7 +2997,7 @@ ACTION can be set, up, or down."
 	(setq current org-default-priority))
       (cond
        ((eq action 'set)
-	(message (format "Priority A-%c, SPC to remove: " org-lowest-priority))
+	(message "Priority A-%c, SPC to remove: " org-lowest-priority)
 	(setq new (read-char-exclusive))
 	(cond ((equal new ?\ ) (setq remove t))
 	      ((or (< (upcase new) ?A) (> (upcase new) org-lowest-priority))
@@ -7014,9 +7014,13 @@ If NLAST is a number, only the NLAST fields will actually be summed."
 		     (format "%d:%02d:%02d" h m s))))
 	(kill-new sres)
 	(if (interactive-p)
-	    (message (substitute-command-keys
-		      (format "Sum of %d items: %-20s     (\\[yank] will insert result into buffer)"
-			      (length numbers) sres))))
+	    (message "%s"
+		     (concat
+		      (format "Sum of %d items: %-20s     "  (length numbers) sres)
+		      (substitute-command-keys
+		       "(\\[yank] will insert result into buffer)")
+		      ))
+	  )
 	sres))))
 
 (defun org-table-get-number-for-summing (s)

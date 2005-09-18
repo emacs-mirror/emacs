@@ -1022,7 +1022,7 @@ When index is restricted, select the previous section as restriction criterion."
         (reftex-insert-index (list data) reftex-index-tag t
                              "EDITED")))
     (setq reftex-last-follow-point 1)
-    (and message (message message))))
+    (and message (message "%s" message))))
 
 ;; Index map
 (define-key reftex-index-map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
@@ -1187,7 +1187,7 @@ You get a chance to edit the entry in the phrases buffer - finish with
   (set-marker reftex-index-return-marker (point))
   (reftex-index-selection-or-word arg 'phrase)
   (if (eq major-mode 'reftex-index-phrases-mode)
-      (message 
+      (message "%s" 
        (substitute-command-keys
         "Return to LaTeX with \\[reftex-index-phrases-save-and-return]"))))
 
@@ -1910,7 +1910,7 @@ both ends."
                           ;; Recursive edit
                           (save-match-data
                             (save-excursion
-                              (message 
+                              (message "%s" 
                                (substitute-command-keys
                                 "Recursive edit.  Resume with \\[exit-recursive-edit]"))
                               (recursive-edit))))
