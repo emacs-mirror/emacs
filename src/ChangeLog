@@ -1,3 +1,7 @@
+2005-09-18  John Paul Wallington  <jpw@pobox.com>
+
+	* data.c (Fdefalias): Signal an error if SYMBOL is not a symbol.
+
 2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (SOME_MACHINE_OBJECTS): Undo previous change.
