@@ -1,3 +1,10 @@
+2005-09-18  Andreas Schwab  <schwab@suse.de>
+
+	* window.h (struct window): Remove height_fixed_p, no longer set.
+
+	* window.c (make_window): Don't initialize height_fixed_p.
+	(window_fixed_size_p): Don't use it.
+
 2005-09-18  John Paul Wallington  <jpw@pobox.com>
 
 	* data.c (Fdefalias): Signal an error if SYMBOL is not a symbol.
