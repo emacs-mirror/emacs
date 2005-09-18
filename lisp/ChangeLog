@@ -1,3 +1,7 @@
+2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-add-charset-info): Doc fix.
+
 2005-09-17  Romain Francoise  <romain@orebokech.com>
 
 	* shell.el (shell-resync-dirs): Handle echoing processes more

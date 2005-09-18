@@ -1,3 +1,14 @@
+2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Undo previous change.
+
+	* macfns.c (image_cache_refcount, dpyinfo_refcount) [GLYPH_DEBUG]:
+	New variables.
+	[TARGET_API_MAC_CARBON] (Fx_file_dialog): Don't allow multiple
+	file selection.
+
+	* sysdep.c [MAC_OS8]: Don't include stdlib.h.  Include sys/param.h.
+
 2005-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* Makefile.in (XMENU_OBJ) [!HAVE_CARBON]: Reinstate variable.
