@@ -1,3 +1,8 @@
+2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Defining Images): Updated documentation for
+	`image-load-path'.
+
 2005-09-17  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Defining Images): Clean up previous change.
