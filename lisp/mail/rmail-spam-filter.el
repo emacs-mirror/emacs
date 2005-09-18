@@ -449,10 +449,10 @@ it from rmail file.  Called for each new message retrieved by
     (if rsf-autosave-newly-added-definitions
 	(progn
 	  (custom-save-all)
-	  (message (concat "added subject \n <<< \n" message-subject
+	  (message "%s" (concat "added subject \n <<< \n" message-subject
 			   " \n >>> \n to list of spam definitions. \n"
 			   "and saved the spam definitions to file.")))
-      (message (concat "added subject \n <<< \n" message-subject
+      (message "%s" (concat "added subject \n <<< \n" message-subject
 		       " \n >>> \n to list of spam definitions. \n"
 		       "Don't forget to save the spam definitions to file using the spam
 		       menu"))
@@ -478,10 +478,10 @@ it from rmail file.  Called for each new message retrieved by
     (if rsf-autosave-newly-added-definitions
 	(progn
 	  (custom-save-all)
-	  (message (concat "added sender \n <<< \n" message-sender
+	  (message "%s" (concat "added sender \n <<< \n" message-sender
 			   " \n >>> \n to list of spam definitions. \n"
 			   "and saved the spam definitions to file.")))
-      (message (concat "added sender \n <<< \n " message-sender
+      (message "%s" (concat "added sender \n <<< \n " message-sender
 		       " \n >>> \n to list of spam definitions."
 		       "Don't forget to save the spam definitions to file using the spam
 		       menu"))
@@ -521,10 +521,10 @@ Added to spam definitions as a contents field."
 	  (if rsf-autosave-newly-added-definitions
 	      (progn
 		(custom-save-all)
-		(message (concat "added highlighted text \n <<< \n" region-to-spam-list
+		(message "%s" (concat "added highlighted text \n <<< \n" region-to-spam-list
 				 " \n >>> \n to list of spam definitions. \n"
 				 "and saved the spam definitions to file.")))
-	    (message (concat "added highlighted text \n <<< \n " region-to-spam-list
+	    (message "%s" (concat "added highlighted text \n <<< \n " region-to-spam-list
 			     " \n >>> \n to list of spam definitions."
 			     "Don't forget to save the spam definitions to file using the
 			     spam menu"))
