@@ -260,7 +260,7 @@ in `load-path'."
       (setq function (symbol-function function)
 	    def (symbol-function function)))
     (if aliases
-	(message aliases))
+	(message "%s" aliases))
     (let ((library
 	   (cond ((eq (car-safe def) 'autoload)
 		  (nth 1 def))
