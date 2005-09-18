@@ -179,7 +179,7 @@ If the element is a function or a list of a function and a number,
         (error
          (funcall restore)
          (while (not (input-pending-p))
-           (message (format "We were zoning when we wrote %s..." pgm))
+           (message "We were zoning when we wrote %s..." pgm)
            (sit-for 3)
            (message "...here's hoping we didn't hose your buffer!")
            (sit-for 3)))
