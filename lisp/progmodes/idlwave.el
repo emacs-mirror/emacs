@@ -3995,7 +3995,7 @@ you specify /."
 	      ;; Call etags
 	      (if (not (string-match "^[ \\t]*$" item))
 		  (progn
-		    (message (concat "Tagging " item "..."))
+		    (message "%s" (concat "Tagging " item "..."))
 		    (setq errbuf (get-buffer-create "*idltags-error*"))
 		    (setq status (+ status
 				    (if (eq 0 (call-process
@@ -5188,7 +5188,7 @@ be set to nil to disable library catalog scanning."
 		     message-base
 		     (not (string= idlwave-library-catalog-libname
 				   old-libname)))
-		(message (concat message-base
+		(message "%s" (concat message-base
 				 idlwave-library-catalog-libname))
 		(setq old-libname idlwave-library-catalog-libname))
 	      (when idlwave-library-catalog-routines

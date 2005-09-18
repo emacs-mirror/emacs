@@ -2157,7 +2157,7 @@ Ignore byte-compiler warnings you might see."
 
 (defun vhdl-warning (string &optional nobeep)
   "Print out warning STRING and beep."
-  (message (concat "WARNING:  " string))
+  (message "WARNING:  %s" string)
   (unless (or nobeep noninteractive) (beep)))
 
 (defun vhdl-print-warnings ()
@@ -2165,7 +2165,7 @@ Ignore byte-compiler warnings you might see."
   (let ((no-warnings (length vhdl-warnings)))
     (setq vhdl-warnings (nreverse vhdl-warnings))
     (while vhdl-warnings
-      (message (concat "WARNING:  " (car vhdl-warnings)))
+      (message "WARNING:  %s" (car vhdl-warnings))
       (setq vhdl-warnings (cdr vhdl-warnings)))
     (beep)
     (when (> no-warnings 1)
@@ -10605,7 +10605,7 @@ but not if inside a comment or quote)."
 	    (vhdl-template-invoked-by-hook t))
 	(let ((caught (catch 'abort
 			(funcall func))))
-	  (when (stringp caught) (message caught)))
+	  (when (stringp caught) (message "%s" caught)))
 	(when (= invoke-char ?-) (setq abbrev-start-location (point)))
 	;; delete CR which is still in event queue
 	(if (fboundp 'enqueue-eval-event)
@@ -10768,7 +10768,7 @@ but not if inside a comment or quote)."
 (defun vhdl-template-insert-fun (fun)
   "Call FUN to insert a built-in template."
   (let ((caught (catch 'abort (when fun (funcall fun)))))
-    (when (stringp caught) (message caught))))
+    (when (stringp caught) (message "%s" caught))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -11695,7 +11695,7 @@ reflected in a subsequent paste operation."
 	(setq arch-buffer (current-buffer))
 	(when ent-buffer (set-buffer ent-buffer) (save-buffer))
 	(set-buffer arch-buffer) (save-buffer))
-      (message
+      (message "%s"
        (concat (format "Pasting port as testbench \"%s(%s)\"...done"
 		       ent-name arch-name)
 	       (and ent-file-name
@@ -15498,7 +15498,7 @@ expansion function)."
     (setq arch-buffer (current-buffer))
     (when ent-buffer (set-buffer ent-buffer) (save-buffer))
     (set-buffer arch-buffer) (save-buffer)
-    (message
+    (message "%s"
      (concat (format "Creating component \"%s(%s)\"...done" ent-name arch-name)
 	     (and ent-file-name
 		  (format "\n  File created: \"%s\"" ent-file-name))
@@ -16120,7 +16120,7 @@ current project/directory."
 	   (vhdl-template-footer)
 	 (vhdl-comment-display-line) (insert "\n"))
        (save-buffer))
-     (message
+     (message "%s"
       (concat (format "Generating configuration \"%s\"...done" conf-name)
 	      (and conf-file-name
 		   (format "\n  File created: \"%s\"" conf-file-name))))))
