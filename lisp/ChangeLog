@@ -1,3 +1,9 @@
+2005-09-18  Michael Albinus  <michael.albinus@gmx.de>
+
+	* tramp.el (tramp-login-prompt-regexp): Expand regexp in order to
+	cover prompts like "login as:".  Reported by Slawomir Nowaczyk
+	<slawomir.nowaczyk.847@student.lu.se>.
+
 2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.el (image-load-path): Use symbol `data-directory' instead
