@@ -1,3 +1,8 @@
+2005-09-18  D Goel  <deego@gnufans.org>
+
+	* sieve.el (sieve-help): Fix `message' call: first arg should be a
+	format spec.
+	
 2005-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-edit-article-done): Remove text props
