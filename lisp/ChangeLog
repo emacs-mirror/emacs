@@ -1,3 +1,9 @@
+2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-default-fontify-region):
+	Don't unconditionally add a line, since the after-change-function
+	already did it.
+
 2005-09-19  Miles Bader  <miles@gnu.org>
 
 	* net/newsticker.el: Get rid of CVS keyword.
