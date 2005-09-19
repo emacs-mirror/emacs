@@ -1,3 +1,7 @@
+2005-09-19  Miles Bader  <miles@gnu.org>
+
+	* newsticker.texi: Get rid of CVS keywords.
+
 2005-09-15  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Finding the Parent): Fix description of how Gnus
