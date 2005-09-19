@@ -864,8 +864,8 @@ diary entries."
     (redraw-calendar))
   (let ((marking-diary-entries t)
         file-glob-attrs marks)
-    (save-excursion
-      (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
+    (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
+      (save-excursion
         (setq mark-diary-entries-in-calendar t)
         (message "Marking diary entries...")
         (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
