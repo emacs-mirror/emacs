@@ -1,3 +1,10 @@
+2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line):
+	Delete unused var `old-selected-window'.
+	(mouse-drag-region-1): Delete unused vars `start-frame' `end-of-range'.
+	(mouse-drag-secondary): Delete unused var `start-frame'.
+
 2005-09-19  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com> (tiny change)
 
 	* term/rxvt.el (terminal-init-rxvt): Add entry for [end].
