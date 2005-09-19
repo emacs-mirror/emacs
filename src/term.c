@@ -250,8 +250,9 @@ tty_set_terminal_modes (struct device *display)
           /* Output enough newlines to scroll all the old screen contents
              off the screen, so it won't be overwritten and lost.  */
           int i;
+          current_tty = tty;
           for (i = 0; i < FRAME_LINES (XFRAME (selected_frame)); i++)
-            putchar ('\n');
+            cmputc ('\n');
         }
 
       OUTPUT_IF (tty, tty->TS_termcap_modes);
