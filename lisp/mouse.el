@@ -405,7 +405,6 @@ MODE-LINE-P non-nil means dragging a mode line; nil means a header line."
 	 (start-event-window (posn-window start))
 	 (start-event-frame (window-frame start-event-window))
 	 (start-nwindows (count-windows t))
-	 (old-selected-window (selected-window))
 	 (minibuffer (frame-parameter nil 'minibuffer))
 	 should-enlarge-minibuffer event mouse y top bot edges wconfig growth)
     (track-mouse
@@ -553,7 +552,6 @@ resized by dragging their header-line."
 	 (start-event-frame (window-frame (car (car (cdr start-event)))))
 	 (start-event-window (car (car (cdr start-event))))
 	 (start-nwindows (count-windows t))
-	 (old-selected-window (selected-window))
 	 event mouse x left right edges wconfig growth
 	 (which-side
 	  (or (cdr (assq 'vertical-scroll-bars (frame-parameters start-event-frame)))
@@ -865,7 +863,6 @@ at the same position."
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
 	 (start-window-start (window-start start-window))
-	 (start-frame (window-frame start-window))
 	 (start-hscroll (window-hscroll start-window))
 	 (bounds (window-edges start-window))
 	 (make-cursor-line-fully-visible nil)
@@ -899,10 +896,7 @@ at the same position."
 		    (window-buffer start-window))
       (overlay-put mouse-drag-overlay 'window (selected-window)))
     (deactivate-mark)
-    ;; end-of-range is used only in the single-click case.
-    ;; It is the place where the drag has reached so far
-    ;; (but not outside the window where the drag started).
-    (let (event end end-point last-end-point (end-of-range (point)))
+    (let (event end end-point last-end-point)
       (track-mouse
 	(while (progn
 		 (setq event (read-event))
@@ -924,8 +918,6 @@ at the same position."
 	      ;; point jumps in the direction away from START-POINT.
 	      (goto-char start-point)
 	      (goto-char end-point)
-	      (if (zerop (% click-count 3))
-		  (setq end-of-range (point)))
 	      (let ((range (mouse-start-end start-point (point) click-count)))
 		(move-overlay mouse-drag-overlay (car range) (nth 1 range))))
 
@@ -935,14 +927,10 @@ at the same position."
 		 ((null mouse-row))
 		 ((< mouse-row top)
 		  (mouse-scroll-subr start-window (- mouse-row top)
-				     mouse-drag-overlay start-point)
-		  ;; Without this, point tends to jump back to the starting
-		  ;; position where the mouse button was pressed down.
-		  (setq end-of-range (overlay-start mouse-drag-overlay)))
+				     mouse-drag-overlay start-point))
 		 ((>= mouse-row bottom)
 		  (mouse-scroll-subr start-window (1+ (- mouse-row bottom))
-				     mouse-drag-overlay start-point)
-		  (setq end-of-range (overlay-end mouse-drag-overlay))))))))))
+				     mouse-drag-overlay start-point)))))))))
 
       ;; In case we did not get a mouse-motion event
       ;; for the final move of the mouse before a drag event
@@ -957,8 +945,6 @@ at the same position."
 	;; point jumps in the direction away from START-POINT.
 	(goto-char start-point)
 	(goto-char end-point)
-	(if (zerop (% click-count 3))
-	    (setq end-of-range (point)))
 	(let ((range (mouse-start-end start-point (point) click-count)))
 	  (move-overlay mouse-drag-overlay (car range) (nth 1 range))))
 
@@ -1492,7 +1478,6 @@ The function returns a non-nil value if it creates a secondary selection."
 	 (start-posn (event-start start-event))
 	 (start-point (posn-point start-posn))
 	 (start-window (posn-window start-posn))
-	 (start-frame (window-frame start-window))
 	 (bounds (window-edges start-window))
 	 (top (nth 1 bounds))
 	 (bottom (if (window-minibuffer-p start-window)
@@ -2433,5 +2418,5 @@ and selects that window."
 (make-obsolete 'mldrag-drag-vertical-line 'mouse-drag-vertical-line "21.1")
 (provide 'mldrag)
 
-;;; arch-tag: 9a710ce1-914a-4923-9b81-697f7bf82ab3
+;; arch-tag: 9a710ce1-914a-4923-9b81-697f7bf82ab3
 ;;; mouse.el ends here
