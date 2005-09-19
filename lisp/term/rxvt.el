@@ -33,7 +33,7 @@
   ;; a PC-style keyboard these keys correspond to
   ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C-, C-S-.  The
   ;; code here subsitutes the corresponding defintions in
-  ;; function-key-map. This substitution is needed because if a key
+  ;; function-key-map.  This substitution is needed because if a key
   ;; definition if found in function-key-map, there are no further
   ;; lookups in other keymaps.
   (substitute-key-definition [f11] [S-f1] function-key-map)
@@ -75,12 +75,13 @@
     (define-key map "\e[B" [down])
     (define-key map "\e[C" [right])
     (define-key map "\e[D" [left])
-    (define-key map "\e[7~" [home])
     (define-key map "\e[2~" [insert])
     (define-key map "\e[3~" [delete])
     (define-key map "\e[4~" [select])
     (define-key map "\e[5~" [prior])
     (define-key map "\e[6~" [next])
+    (define-key map "\e[7~" [home])
+    (define-key map "\e[8~" [end])
     (define-key map "\e[11~" [f1])
     (define-key map "\e[12~" [f2])
     (define-key map "\e[13~" [f3])
@@ -236,5 +237,5 @@ for the currently selected frame."
 	  (setq default-frame-background-mode 'dark)))
     (frame-set-background-mode (selected-frame))))
 
-;;; arch-tag: 20cf2fb6-6318-4bab-9dbf-1d15048f2257
+;; arch-tag: 20cf2fb6-6318-4bab-9dbf-1d15048f2257
 ;;; rxvt.el ends here
