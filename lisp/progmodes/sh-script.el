@@ -2574,7 +2574,7 @@ If INFO is supplied it is used, else it is calculated from current line."
 	(goto-char blinkpos)
 	(if msg (message "%s" msg) (message nil))
 	(sit-for blink-matching-delay))
-    (if message (message "%s" msg) (message nil))))
+    (if msg (message "%s" msg) (message nil))))
 
 (defun sh-show-indent (arg)
   "Show the how the currently line would be indented.
