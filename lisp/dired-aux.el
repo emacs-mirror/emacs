@@ -1126,8 +1126,8 @@ Special value `always' suppresses confirmation."
 	     (setq backup (car (find-backup-file-name to)))
 	     (or (eq 'always dired-backup-overwrite)
 		 (dired-query 'overwrite-backup-query
-			      (format "Make backup for existing file `%s'? "
-				      to))))
+			      "Make backup for existing file `%s'? "
+			      to)))
 	(progn
 	  (rename-file to backup 0)	; confirm overwrite of old backup
 	  (dired-relist-entry backup)))))

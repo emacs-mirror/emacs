@@ -1,3 +1,8 @@
+2005-09-19  Johan Bockg,Ae(Brd  <bojohan+sf@dd.chalmers.se>
+
+	* dired-aux.el (dired-handle-overwrite): Don't use `format' here.
+	The prompt is formatted later.
+
 2005-09-19  David Ponce  <david@dponce.com>
 
 	* tree-widget.el (tree-widget-value-create): Save the converted
