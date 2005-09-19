@@ -2,7 +2,7 @@
 @comment %**start of header
 @setfilename ../info/newsticker
 @set VERSION 1.8
-@set UPDATED ``$Id: newsticker.texi,v 1.5.2.1 2005/09/19 10:20:01 miles Exp $''
+@settitle Newsticker @value{VERSION}
 @syncodeindex vr cp
 @syncodeindex fn cp
 @syncodeindex pg cp
