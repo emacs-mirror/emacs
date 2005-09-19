@@ -1,4 +1,17 @@
-2005-09-00  Kevin Ryde  <user42@zip.com.au>
+2005-09-17  Romain Francoise  <romain@orebokech.com>
+
+	* gfdl.1: Update to version 1.2.  Delete UC macro.
+
+2005-09-15  Kenichi Handa  <handa@m17n.org>
+
+	* PROBLEMS: Fix the paragraph describing the limitation of
+	UTF-8/16/7.
+
+2005-09-14  Romain Francoise  <romain@orebokech.com>
+
+	* NEWS: Add entry for write-region-inhibit-fsync.
+
+2005-09-09  Kevin Ryde  <user42@zip.com.au>
 
 	* MORE.STUFF: Update url for calculator.el.
 

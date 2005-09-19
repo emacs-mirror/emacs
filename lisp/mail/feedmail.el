@@ -1943,7 +1943,7 @@ mapped to mostly alphanumerics for safety."
 	       (file-exists-p a-s-file-name)
 	       (delete-file a-s-file-name))))
     (if feedmail-queue-chatty
-	(progn (message (concat "FQM: Queued in " filename))
+	(progn (message "%s" (concat "FQM: Queued in " filename))
 	       (sit-for feedmail-queue-chatty-sit-for)))
     (if feedmail-queue-chatty
 	(progn

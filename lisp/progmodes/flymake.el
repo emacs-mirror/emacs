@@ -183,7 +183,7 @@ TEXT is a format control string, and the remaining arguments ARGS
 are the string substitutions (see `format')."
   (if (<= level flymake-log-level)
       (let* ((msg (apply 'format text args)))
-	(message msg)
+	(message "%s" msg)
 	;;(with-temp-buffer
 	;;    (insert msg)
 	;;   (insert "\n")

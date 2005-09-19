@@ -48,6 +48,7 @@ Emacs
 * Message: (message).	Mail and news composition mode that goes with Gnus.
 * MH-E: (mh-e).		Emacs interface to the MH mail system.
 * MIME: (emacs-mime).   Emacs MIME de/composition library.
+* Newsticker: (newsticker).   A News ticker for Emacs.
 * PGG: (pgg).   	Emacs interface to various PGP implementations.
 * SC: (sc).		Supercite lets you cite parts of messages you're
 			  replying to, in flexible ways.

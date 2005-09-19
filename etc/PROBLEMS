@@ -845,9 +845,16 @@ mule-unicode-0100-24ff:-gnu-unifont-*-iso10646-1
 
 ** The UTF-8/16/7 coding systems don't encode CJK (Far Eastern) characters.
 
-Emacs by default only supports the parts of the Unicode BMP whose code
-points are in the ranges 0000-33ff and e000-ffff.  This excludes: most
-of CJK, Yi and Hangul, as well as everything outside the BMP.
+Emacs directly supports the Unicode BMP whose code points are in the
+ranges 0000-33ff and e000-ffff, and indirectly supports the parts of
+CJK characters belonging to these legacy charsets:
+
+    GB2312, Big5, JISX0208, JISX0212, JISX0213-1, JISX0213-2, KSC5601
+
+The latter support is done in Utf-Translate-Cjk mode (turned on by
+default).   Which Unicode CJK characters are decoded into which Emacs
+charset is decided by the current language environment.  For instance,
+in Chinese-GB, most of them are decoded into chinese-gb2312.
 
 If you read UTF-8 data with code points outside these ranges, the
 characters appear in the buffer as raw bytes of the original UTF-8
@@ -856,13 +863,6 @@ correctly as UTF-8, assuming you don't break the composed sequences.
 If you read such characters from UTF-16 or UTF-7 data, they are
 substituted with the Unicode `replacement character', and you lose
 information.
-
-To edit such UTF data, turn on Utf-Translate-Cjk mode, which makes
-many common CJK characters available for encoding and decoding and can
-be extended by updating the tables it uses.  This also allows you to
-save as UTF buffers containing characters decoded by the chinese-,
-japanese- and korean- coding systems, e.g. cut and pasted from
-elsewhere.
 
 ** Mule-UCS loads very slowly.
 

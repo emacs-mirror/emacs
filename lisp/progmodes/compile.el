@@ -307,7 +307,7 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 (defcustom compilation-error-regexp-alist
   (mapcar 'car compilation-error-regexp-alist-alist)
   "Alist that specifies how to match errors in compiler output.
-Note that on Unix everything is a valid filename, so these
+On GNU and Unix, any string is a valid filename, so these
 matchers must make some common sense assumptions, which catch
 normal cases.  A shorter list will be lighter on resource usage.
 
@@ -436,6 +436,7 @@ nil as an element means to try the default directory."
 			 (string :tag "Directory")))
   :group 'compilation)
 
+;;;###autoload
 (defcustom compile-command "make -k "
   "*Last shell command used to do a compilation; default for next compilation.
 
@@ -452,6 +453,7 @@ You might also use mode hooks to specify it in certain modes, like this:
   :type 'string
   :group 'compilation)
 
+;;;###autoload
 (defcustom compilation-disable-input nil
   "*If non-nil, send end-of-file as compilation process input.
 This only affects platforms that support asynchronous processes (see
@@ -664,24 +666,26 @@ just char-counts."
       (move-to-column col)
     (goto-char (min (+ (line-beginning-position) col) (line-end-position)))))
 
-(defun compilation-internal-error-properties (file line end-line col end-col type fmt)
+(defun compilation-internal-error-properties (file line end-line col end-col type fmts)
   "Get the meta-info that will be added as text-properties.
 LINE, END-LINE, COL, END-COL are integers or nil.
-TYPE can be 0, 1, or 2.
-FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
+TYPE can be 0, 1, or 2, meaning error, warning, or just info.
+FILE should be (FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil.
+FMTS is a list of format specs for transforming the file name.
+ (See `compilation-error-regexp-alist'.)"
   (unless file (setq file '("*unknown*")))
-  (setq file (compilation-get-file-structure file fmt))
-  ;; Get first already existing marker (if any has one, all have one).
-  ;; Do this first, as the compilation-assq`s may create new nodes.
-  (let* ((marker-line (car (cddr file)))	; a line structure
+  (let* ((file-struct (compilation-get-file-structure file fmts))
+	 ;; Get first already existing marker (if any has one, all have one).
+	 ;; Do this first, as the compilation-assq`s may create new nodes.
+	 (marker-line (car (cddr file-struct)))	; a line structure
 	 (marker (nth 3 (cadr marker-line)))	; its marker
 	 (compilation-error-screen-columns compilation-error-screen-columns)
 	 end-marker loc end-loc)
     (if (not (and marker (marker-buffer marker)))
-	(setq marker)			; no valid marker for this file
+	(setq marker nil)		; no valid marker for this file
       (setq loc (or line 1))		; normalize no linenumber to line 1
       (catch 'marker			; find nearest loc, at least one exists
-	(dolist (x (nthcdr 3 file))	; loop over remaining lines
+	(dolist (x (nthcdr 3 file-struct))	; loop over remaining lines
 	  (if (> (car x) loc)		; still bigger
 	      (setq marker-line x)
 	    (if (> (- (or (car marker-line) 1) loc)
@@ -710,17 +714,18 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
 	    (forward-to-indentation 0))
 	  (setq marker (list (point-marker))))))
 
-    (setq loc (compilation-assq line (cdr file)))
+    (setq loc (compilation-assq line (cdr file-struct)))
     (if end-line
-	(setq end-loc (compilation-assq end-line (cdr file))
+	(setq end-loc (compilation-assq end-line (cdr file-struct))
 	      end-loc (compilation-assq end-col end-loc))
       (if end-col			; use same line element
 	  (setq end-loc (compilation-assq end-col loc))))
     (setq loc (compilation-assq col loc))
     ;; If they are new, make the loc(s) reference the file they point to.
-    (or (cdr loc) (setcdr loc `(,line ,file ,@marker)))
+    (or (cdr loc) (setcdr loc `(,line ,file-struct ,@marker)))
     (if end-loc
-	(or (cdr end-loc) (setcdr end-loc `(,(or end-line line) ,file ,@end-marker))))
+	(or (cdr end-loc)
+	    (setcdr end-loc `(,(or end-line line) ,file-struct ,@end-marker))))
 
     ;; Must start with face
     `(face ,compilation-message-face
@@ -1570,8 +1575,7 @@ This is the value of `next-error-function' in Compilation buffers."
     ;; markers for that file.
     (unless (and (nth 3 loc) (marker-buffer (nth 3 loc)))
       (with-current-buffer (compilation-find-file marker (caar (nth 2 loc))
-						  (or (cdar (nth 2 loc))
-						      default-directory))
+						  (cadr (car (nth 2 loc))))
 	(save-restriction
 	  (widen)
 	  (goto-char (point-min))
@@ -1734,16 +1738,21 @@ and overlay is highlighted between MK and END-MK."
 	    (copy-marker (line-beginning-position))))))
 
 
-(defun compilation-find-file (marker filename dir &rest formats)
+(defun compilation-find-file (marker filename directory &rest formats)
   "Find a buffer for file FILENAME.
 Search the directories in `compilation-search-path'.
 A nil in `compilation-search-path' means to try the
-current directory, which is passed in DIR.
+\"current\" directory, which is passed in DIRECTORY.
+If DIRECTORY. is relative, it is combined with `default-directory'.
+If DIRECTORY. is nil, that means use `default-directory'.
 If FILENAME is not found at all, ask the user where to find it.
 Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
   (or formats (setq formats '("%s")))
   (save-excursion
     (let ((dirs compilation-search-path)
+	  (spec-dir (if directory
+			(expand-file-name directory)
+		      default-directory))
 	  buffer thisdir fmts name)
       (if (file-name-absolute-p filename)
 	  ;; The file name is absolute.  Use its explicit directory as
@@ -1753,7 +1762,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 		filename (file-name-nondirectory filename)))
       ;; Now search the path.
       (while (and dirs (null buffer))
-	(setq thisdir (or (car dirs) dir)
+	(setq thisdir (or (car dirs) spec-dir)
 	      fmts formats)
 	;; For each directory, try each format string.
 	(while (and fmts (null buffer))
@@ -1771,7 +1780,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 			 (read-file-name
 			  (format "Find this %s in: (default %s) "
 				  compilation-error filename)
-			  dir filename t))))
+			  spec-dir filename t))))
 	      (if (file-directory-p name)
 		  (setq name (expand-file-name filename name)))
 	      (setq buffer (and (file-exists-p name)
@@ -1785,26 +1794,32 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 
 (defun compilation-get-file-structure (file &optional fmt)
   "Retrieve FILE's file-structure or create a new one.
-FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME)."
+FILE should be (FILENAME) or (RELATIVE-FILENAME . DIRNAME).
+In the former case, FILENAME may be relative or absolute.
 
+The file-structure looks like this:
+  (list (list FILENAME [DIR-FROM-PREV-MSG]) FMT LINE-STRUCT...)
+"
   (or (gethash file compilation-locs)
       ;; File was not previously encountered, at least not in the form passed.
       ;; Let's normalize it and look again.
       (let ((filename (car file))
-	    (default-directory (if (cdr file)
-				   (file-truename (cdr file))
-				 default-directory)))
+	    ;; Get the specified directory from FILE.
+	    (spec-directory (if (cdr file)
+				(file-truename (cdr file)))))
 
 	;; Check for a comint-file-name-prefix and prepend it if appropriate.
 	;; (This is very useful for compilation-minor-mode in an rlogin-mode
 	;; buffer.)
-	(if (boundp 'comint-file-name-prefix)
-	    (if (file-name-absolute-p filename)
-		(setq filename
-		      (concat (with-no-warnings comint-file-name-prefix) filename))
-	      (setq default-directory
-		    (file-truename
-		     (concat (with-no-warnings comint-file-name-prefix) default-directory)))))
+	(when (and (boundp 'comint-file-name-prefix)
+		   (not (equal comint-file-name-prefix "")))
+	  (if (file-name-absolute-p filename)
+	      (setq filename
+		    (concat comint-file-name-prefix filename))
+	    (if spec-directory
+		(setq spec-directory
+		      (file-truename
+		       (concat comint-file-name-prefix spec-directory))))))
 
 	;; If compilation-parse-errors-filename-function is
 	;; defined, use it to process the filename.
@@ -1820,20 +1835,13 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME)."
 	;; name and fix them.
 	(setq filename (command-line-normalize-file-name filename))
 
-	;; Now eliminate any "..", because find-file would get them wrong.
-	;; Make relative and absolute filenames, with or without links, the
-	;; same.
-	(setq filename
-	      (list (abbreviate-file-name
-		     (file-truename (if (cdr file)
-					(expand-file-name filename)
-				      filename)))))
-
 	;; Store it for the possibly unnormalized name
 	(puthash file
 		 ;; Retrieve or create file-structure for normalized name
-		 (or (gethash filename compilation-locs)
-		     (puthash filename (list filename fmt) compilation-locs))
+		 (or (gethash (list filename) compilation-locs)
+		     (puthash (list filename)
+			      (list (list filename spec-directory) fmt)
+			      compilation-locs))
 		 compilation-locs))))
 
 (add-to-list 'debug-ignored-errors "^No more [-a-z ]+s yet$")

@@ -33,6 +33,8 @@
 
 ;;; Code:
 
+(defvar dos-unsupported-char-glyph)
+
 ;; I doubt we need compatibility versions of any of these autoloaded
 ;; functions apart from codepage-setup, which users may call.
 

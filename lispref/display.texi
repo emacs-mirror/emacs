@@ -3946,9 +3946,30 @@ The first specification in the list whose @var{type} is supported, and
 @var{file} exists, is used to construct the image specification to be
 returned.  If no specification is satisfied, @code{nil} is returned.
 
-The image is looked for first on @code{load-path} and then in
-@code{data-directory}.
+The image is looked for in @code{image-load-path}.
 @end defun
+
+@defvar image-load-path
+@tindex image-load-path
+This variable's value is a list of locations in which to search for
+image files.  If an element is a string or a variable symbol whose
+value is a string, the string is taken to be the name of a directory
+to search.  If an element is a variable symbol whose value is a list,
+that is taken to be a list of directory names to search.
+
+The default is to search in the @file{images} subdirectory of the
+directory specified by @code{data-directory}, then the directory
+specified by @code{data-directory}, and finally in the directories in
+@code{load-path}.  Subdirectories are not automatically included in
+the search, so if you put an image file in a subdirectory, you have to
+supply the subdirectory name explicitly.  For example, to find the
+image @file{images/foo/bar.xpm} within @code{data-directory}, you
+should specify the image as follows:
+
+@example
+(defimage foo-image '((:type xpm :file "foo/bar.xpm")))
+@end example
+@end defvar
 
 @node Showing Images
 @subsection Showing Images

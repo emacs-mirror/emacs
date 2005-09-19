@@ -273,7 +273,6 @@ make_window ()
   XSETWINDOW (val, p);
   XSETFASTINT (p->last_point, 0);
   p->frozen_window_start_p = 0;
-  p->height_fixed_p = 0;
   p->last_cursor_off_p = p->cursor_off_p = 0;
   p->left_margin_cols = Qnil;
   p->right_margin_cols = Qnil;
@@ -2438,27 +2437,22 @@ window_fixed_size_p (w, width_p, check_siblings_p)
     }
   else if (BUFFERP (w->buffer))
     {
-      if (w->height_fixed_p && !width_p)
-	fixed_p = 1;
-      else
+      struct buffer *old = current_buffer;
+      Lisp_Object val;
+
+      current_buffer = XBUFFER (w->buffer);
+      val = find_symbol_value (Qwindow_size_fixed);
+      current_buffer = old;
+
+      fixed_p = 0;
+      if (!EQ (val, Qunbound))
 	{
-	  struct buffer *old = current_buffer;
-	  Lisp_Object val;
+	  fixed_p = !NILP (val);
 
-	  current_buffer = XBUFFER (w->buffer);
-	  val = find_symbol_value (Qwindow_size_fixed);
-	  current_buffer = old;
-
-	  fixed_p = 0;
-	  if (!EQ (val, Qunbound))
-	    {
-	      fixed_p = !NILP (val);
-
-	      if (fixed_p
-		  && ((EQ (val, Qheight) && width_p)
-		      || (EQ (val, Qwidth) && !width_p)))
-		fixed_p = 0;
-	    }
+	  if (fixed_p
+	      && ((EQ (val, Qheight) && width_p)
+		  || (EQ (val, Qwidth) && !width_p)))
+	    fixed_p = 0;
 	}
 
       /* Can't tell if this one is resizable without looking at

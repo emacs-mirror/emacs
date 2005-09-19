@@ -64,7 +64,7 @@ Sensible choices are the functions `ps-spool-buffer' and
 ;; XXX - Default print buffer is bogus
 (defun mh-ps-spool-buffer (buffer)
   "Send BUFFER to printer queue."
-  (message (format "mh-ps-spool-buffer %s" buffer))
+  (message "mh-ps-spool-buffer %s" buffer)
   (save-excursion
     (set-buffer buffer)
     (let ((ps-print-color-p mh-ps-print-color-option)
@@ -85,8 +85,8 @@ Sensible choices are the functions `ps-spool-buffer' and
   "Print MSG.
 First the message is decoded in BUFFER before the results are sent to the
 printer."
-  (message (format "mh-ps-spool-a-msg msg %s buffer %s"
-		   msg buffer))
+  (message "mh-ps-spool-a-msg msg %s buffer %s"
+		   msg buffer)
   (let ((mh-show-buffer mh-show-buffer)
 	(folder mh-current-folder)
         ;; The following is commented out because
@@ -113,8 +113,8 @@ printer."
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use."
   (interactive (list (mh-interactive-range "Print")))
-  (message (format "mh-ps-print-msg range %s keys %s"
-		    range (this-command-keys)))
+  (message "mh-ps-print-msg range %s keys %s"
+		    range (this-command-keys))
   (mh-iterate-on-range msg range
     (let ((buffer (get-buffer-create mh-temp-buffer)))
       (unwind-protect
@@ -152,8 +152,8 @@ interactive use."
 (defun mh-ps-print-msg-show (file)
   "Print current show buffer to FILE."
   (interactive (list (mh-ps-print-preprint current-prefix-arg)))
-  (message (format "mh-ps-print-msg-show file %s keys %s mh-show-buffer %s"
-		   file (this-command-keys) mh-show-buffer))
+  (message "mh-ps-print-msg-show file %s keys %s mh-show-buffer %s"
+		   file (this-command-keys mh-show-buffer))
   (let ((msg (mh-get-msg-num t))
         (folder mh-current-folder)
         (show-buffer mh-show-buffer)

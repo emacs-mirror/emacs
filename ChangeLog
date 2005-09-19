@@ -1,3 +1,9 @@
+2005-09-15  Ulf Jasper  <ulf.jasper@web.de>
+
+	* Makefile.in (install-arch-indep, uninstall):
+	Handle newsticker manual.
+	(info): Add - to commands.
+
 2005-09-11  Kim F. Storm  <storm@cua.dk>
 
 	* AUTHORS: Regenerate.

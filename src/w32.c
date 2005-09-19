@@ -3894,7 +3894,9 @@ check_windows_init_file ()
 	  Lisp_Object load_path_print = Fprin1_to_string (full_load_path, Qnil);
 	  char *init_file_name = SDATA (init_file);
 	  char *load_path = SDATA (load_path_print);
-	  char *buffer = alloca (1024);
+	  char *buffer = alloca (1024
+				 + strlen (init_file_name)
+				 + strlen (load_path));
 
 	  sprintf (buffer,
 		   "The Emacs Windows initialization file \"%s.el\" "

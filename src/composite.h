@@ -221,7 +221,6 @@ extern void compose_region P_ ((int, int, Lisp_Object, Lisp_Object,
 extern void syms_of_composite P_ ((void));
 extern void compose_text P_ ((int, int, Lisp_Object, Lisp_Object,
 			      Lisp_Object));
-extern void compose_chars_in_text P_ ((int, int, Lisp_Object));
 
 #endif /* not EMACS_COMPOSITE_H */
 

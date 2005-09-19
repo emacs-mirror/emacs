@@ -725,7 +725,7 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
     Fsignal (Qinvalid_function, Fcons (function, Qnil));
   if (! NILP (sort_first))
     return call3 (intern ("map-keymap-internal"), function, keymap, Qt);
-      
+
   map_keymap (keymap, map_keymap_call, function, NULL, 1);
   return Qnil;
 }
@@ -2863,6 +2863,9 @@ You type        Translation\n\
 	    insert (buf, bufend - buf);
 
 	    insert ("\n", 1);
+
+	    /* Insert calls signal_after_change which may GC. */
+	    translate = SDATA (Vkeyboard_translate_table);
 	  }
 
       insert ("\n", 1);

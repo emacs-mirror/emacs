@@ -734,7 +734,7 @@ If INTERACTIVE-FLAG is non-nil then the function was called interactively."
                    (apply 'mh-write-msg-to-file msg (cdr mh-last-destination)))
                  (mh-next-msg interactive-flag)
                  (format "Destination: %s" (cdr mh-last-destination)))))
-    (message output)))
+    (message "%s" output)))
 
 (defun mh-quit ()
   "Quit the current MH-E folder.
@@ -778,12 +778,12 @@ bottom of the current message."
         (if (mh-in-show-buffer (mh-show-buffer)
               (pos-visible-in-window-p (point-max)))
             (progn
-              (message (format
-                        "End of message (Type %s to read %s undeleted message)"
-                        (single-key-description last-input-event)
-                        (if (equal mh-next-direction 'backward)
-                            "previous"
-                          "next")))
+              (message 
+               "End of message (Type %s to read %s undeleted message)"
+               (single-key-description last-input-event)
+               (if (equal mh-next-direction 'backward)
+                   "previous"
+                 "next"))
               (setq mh-page-to-next-msg-flag t))
           (scroll-other-window arg)))
     (mh-show)))

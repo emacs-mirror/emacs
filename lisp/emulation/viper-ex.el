@@ -1590,7 +1590,7 @@ reversed."
 
 ;; Ex print working directory
 (defun ex-pwd ()
-  (message default-directory))
+  (message "%s" default-directory))
 
 ;; Ex quit command
 (defun ex-quit ()
@@ -2230,7 +2230,7 @@ Type 'mak ' (including the space) to run make with no args."
 		       (if (buffer-modified-p) "[Modified]" "[Unchanged]")))
     (if (< (+ 1 (length info) (length file))
 	   (window-width (minibuffer-window)))
-	(message (concat file " " info))
+	(message "%s" (concat file " " info))
       (save-window-excursion
 	(with-output-to-temp-buffer " *viper-info*"
 	  (princ (concat "\n" file "\n\n\t" info "\n\n")))

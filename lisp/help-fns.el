@@ -269,22 +269,20 @@ face (according to `face-differs-from-default-p')."
 (defun help-do-arg-highlight (doc args)
   (with-syntax-table (make-syntax-table emacs-lisp-mode-syntax-table)
     (modify-syntax-entry ?\- "w")
-    (while args
-      (let ((arg (prog1 (car args) (setq args (cdr args)))))
-        (setq doc (replace-regexp-in-string
-                   ;; This is heuristic, but covers all common cases
-                   ;; except ARG1-ARG2
-                   (concat "\\<"                   ; beginning of word
-                           "\\(?:[a-z-]*-\\)?"     ; for xxx-ARG
-                           "\\("
-                           (regexp-quote arg)
-                           "\\)"
-                           "\\(?:es\\|s\\|th\\)?"  ; for ARGth, ARGs
-                           "\\(?:-[a-z-]+\\)?"     ; for ARG-xxx
-                           "\\>")                  ; end of word
-                   (help-default-arg-highlight arg)
-                   doc t t 1))))
-    doc))
+    (dolist (arg args doc)
+      (setq doc (replace-regexp-in-string
+                 ;; This is heuristic, but covers all common cases
+                 ;; except ARG1-ARG2
+                 (concat "\\<"                   ; beginning of word
+                         "\\(?:[a-z-]*-\\)?"     ; for xxx-ARG
+                         "\\("
+                         (regexp-quote arg)
+                         "\\)"
+                         "\\(?:es\\|s\\|th\\)?"  ; for ARGth, ARGs
+                         "\\(?:-[a-z0-9-]+\\)?"  ; for ARG-xxx, ARG-n
+                         "\\>")                  ; end of word
+                 (help-default-arg-highlight arg)
+                 doc t t 1)))))
 
 (defun help-highlight-arguments (usage doc &rest args)
   (when usage
@@ -522,108 +520,13 @@ it is displayed along with the global value."
       (let* ((valvoid (not (with-current-buffer buffer (boundp variable))))
 	     ;; Extract the value before setting up the output buffer,
 	     ;; in case `buffer' *is* the output buffer.
-	     (val (unless valvoid (buffer-local-value variable buffer))))
+	     (val (unless valvoid (buffer-local-value variable buffer)))
+	     val-start-pos)
 	(help-setup-xref (list #'describe-variable variable buffer)
 			 (interactive-p))
 	(with-output-to-temp-buffer (help-buffer)
 	  (with-current-buffer buffer
 	    (prin1 variable)
-	    (if valvoid
-		(princ " is void")
-	      (with-current-buffer standard-output
-		(princ "'s value is ")
-		(terpri)
-		(let ((from (point)))
-		  (pp val)
-		  ;; Hyperlinks in variable's value are quite frequently
-		  ;; inappropriate e.g C-h v <RET> features <RET>
-		  ;; (help-xref-on-pp from (point))
-		  (if (< (point) (+ from 20))
-		      (delete-region (1- from) from)))))
-	    (terpri)
-	    (when (local-variable-p variable)
-	      (princ (format "%socal in buffer %s; "
-			     (if (get variable 'permanent-local)
-				 "Permanently l" "L")
-			     (buffer-name)))
-	      (if (not (default-boundp variable))
-		  (princ "globally void")
-		(let ((val (default-value variable)))
-		  (with-current-buffer standard-output
-		    (princ "global value is ")
-		    (terpri)
-		    ;; Fixme: pp can take an age if you happen to
-		    ;; ask for a very large expression.  We should
-		    ;; probably print it raw once and check it's a
-		    ;; sensible size before prettyprinting.  -- fx
-		    (let ((from (point)))
-		      (pp val)
-		      ;; See previous comment for this function.
-		      ;; (help-xref-on-pp from (point))
-		      (if (< (point) (+ from 20))
-			(delete-region (1- from) from))))))
-	      (terpri))
-	    (terpri)
-	    (with-current-buffer standard-output
-	      (when (> (count-lines (point-min) (point-max)) 10)
-		;; Note that setting the syntax table like below
-		;; makes forward-sexp move over a `'s' at the end
-		;; of a symbol.
-		(set-syntax-table emacs-lisp-mode-syntax-table)
-		(goto-char (point-min))
-		(if valvoid
-		    (forward-line 1)
-		  (forward-sexp 1)
-		  (delete-region (point) (progn (end-of-line) (point)))
-		  (save-excursion
-		    (insert "\n\nValue:")
-		    (set (make-local-variable 'help-button-cache)
-			 (point-marker)))
-		  (insert " value is shown ")
-		  (insert-button "below"
-				 'action help-button-cache
-				 'follow-link t
-				 'help-echo "mouse-2, RET: show value")
-		  (insert ".\n\n")))
-	      ;; Add a note for variables that have been make-var-buffer-local.
-	      (when (and (local-variable-if-set-p variable)
-			 (or (not (local-variable-p variable))
-			     (with-temp-buffer
-			       (local-variable-if-set-p variable))))
-		(save-excursion
-		  (forward-line -1)
-		  (insert "Automatically becomes buffer-local when set in any fashion.\n"))))
- 	    ;; Mention if it's an alias
-            (let* ((alias (condition-case nil
-                             (indirect-variable variable)
-                           (error variable)))
-                   (obsolete (get variable 'byte-obsolete-variable))
-                   (doc (or (documentation-property variable 'variable-documentation)
-                            (documentation-property alias 'variable-documentation))))
-              (unless (eq alias variable)
-                (princ (format "This variable is an alias for `%s'." alias))
-                (terpri)
-                (terpri))
-              (when obsolete
-                (princ "This variable is obsolete")
-                (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
-                (princ ";") (terpri)
-                (princ (if (stringp (car obsolete)) (car obsolete)
-                         (format "use `%s' instead." (car obsolete))))
-                (terpri)
-                (terpri))
-              (princ (or doc "Not documented as a variable.")))
-	    ;; Make a link to customize if this variable can be customized.
-	    (if (custom-variable-p variable)
-		(let ((customize-label "customize"))
-		  (terpri)
-		  (terpri)
-		  (princ (concat "You can " customize-label " this variable."))
-		  (with-current-buffer standard-output
-		    (save-excursion
-		      (re-search-backward
-		       (concat "\\(" customize-label "\\)") nil t)
-		      (help-xref-button 1 'help-customize-variable variable)))))
 	    ;; Make a hyperlink to the library if appropriate.  (Don't
 	    ;; change the format of the buffer's initial line in case
 	    ;; anything expects the current format.)
@@ -647,16 +550,115 @@ it is displayed along with the global value."
 		      (if (get-buffer " *DOC*")
 			  (help-C-file-name variable 'var)
 			'C-source)))
-	      (when file-name
-		(princ "\n\nDefined in `")
-		(princ (if (eq file-name 'C-source) "C source code" file-name))
-		(princ "'.")
-		(with-current-buffer standard-output
-		  (save-excursion
-		    (re-search-backward "`\\([^`']+\\)'" nil t)
-		    (help-xref-button 1 'help-variable-def
-				      variable file-name)))))
+	      (if file-name
+		  (progn
+		    (princ " is a variable defined in `")
+		    (princ (if (eq file-name 'C-source) "C source code" file-name))
+		    (princ "'.\n")
+		    (with-current-buffer standard-output
+		      (save-excursion
+			(re-search-backward "`\\([^`']+\\)'" nil t)
+			(help-xref-button 1 'help-variable-def
+					  variable file-name)))
+		    (if valvoid
+			(princ "It is void as a variable.\n")
+		      (princ "Its ")))
+		(if valvoid
+		    (princ " is void as a variable.\n")
+		  (princ "'s "))))
+	    (if valvoid
+		nil
+	      (with-current-buffer standard-output
+		(setq val-start-pos (point))
+		(princ "value is ")
+		(terpri)
+		(let ((from (point)))
+		  (pp val)
+		  ;; Hyperlinks in variable's value are quite frequently
+		  ;; inappropriate e.g C-h v <RET> features <RET>
+		  ;; (help-xref-on-pp from (point))
+		  (if (< (point) (+ from 20))
+		      (delete-region (1- from) from)))))
+	    (terpri)
 
+	    (when (local-variable-p variable)
+	      (princ (format "%socal in buffer %s; "
+			     (if (get variable 'permanent-local)
+				 "Permanently l" "L")
+			     (buffer-name)))
+	      (if (not (default-boundp variable))
+		  (princ "globally void")
+		(let ((val (default-value variable)))
+		  (with-current-buffer standard-output
+		    (princ "global value is ")
+		    (terpri)
+		    ;; Fixme: pp can take an age if you happen to
+		    ;; ask for a very large expression.  We should
+		    ;; probably print it raw once and check it's a
+		    ;; sensible size before prettyprinting.  -- fx
+		    (let ((from (point)))
+		      (pp val)
+		      ;; See previous comment for this function.
+		      ;; (help-xref-on-pp from (point))
+		      (if (< (point) (+ from 20))
+			  (delete-region (1- from) from)))))))
+	    ;; Add a note for variables that have been make-var-buffer-local.
+	    (when (and (local-variable-if-set-p variable)
+		       (or (not (local-variable-p variable))
+			   (with-temp-buffer
+			     (local-variable-if-set-p variable))))
+	      (princ "\nAutomatically becomes buffer-local when set in any fashion.\n"))
+	    (terpri)
+
+	    ;; If the value is large, move it to the end.
+	    (with-current-buffer standard-output
+	      (when (> (count-lines (point-min) (point-max)) 10)
+		;; Note that setting the syntax table like below
+		;; makes forward-sexp move over a `'s' at the end
+		;; of a symbol.
+		(set-syntax-table emacs-lisp-mode-syntax-table)
+		(goto-char val-start-pos)
+		(delete-region (point) (progn (end-of-line) (point)))
+		(save-excursion
+		  (insert "\n\nValue:")
+		  (set (make-local-variable 'help-button-cache)
+		       (point-marker)))
+		(insert "value is shown ")
+		(insert-button "below"
+			       'action help-button-cache
+			       'follow-link t
+			       'help-echo "mouse-2, RET: show value")
+		(insert ".\n\n")))
+
+ 	    ;; Mention if it's an alias
+            (let* ((alias (condition-case nil
+                             (indirect-variable variable)
+                           (error variable)))
+                   (obsolete (get variable 'byte-obsolete-variable))
+                   (doc (or (documentation-property variable 'variable-documentation)
+                            (documentation-property alias 'variable-documentation))))
+              (unless (eq alias variable)
+                (princ (format "\nThis variable is an alias for `%s'.\n" alias)))
+              (when obsolete
+                (princ "\nThis variable is obsolete")
+                (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
+                (princ ";") (terpri)
+                (princ (if (stringp (car obsolete)) (car obsolete)
+                         (format "use `%s' instead." (car obsolete))))
+                (terpri))
+	      (princ "Documentation:\n")
+              (princ (or doc "Not documented as a variable.")))
+	    ;; Make a link to customize if this variable can be customized.
+	    (if (custom-variable-p variable)
+		(let ((customize-label "customize"))
+		  (terpri)
+		  (terpri)
+		  (princ (concat "You can " customize-label " this variable."))
+		  (with-current-buffer standard-output
+		    (save-excursion
+		      (re-search-backward
+		       (concat "\\(" customize-label "\\)") nil t)
+		      (help-xref-button 1 'help-customize-variable variable)))))
 	    (print-help-return-message)
 	    (save-excursion
 	      (set-buffer standard-output)
@@ -708,7 +710,7 @@ BUFFER should be a buffer or a buffer name."
 	    (dotimes (i 95)
 	      (let ((elt (aref docs i)))
 		(when elt
-		  (insert (+ i ?\ ) ": " elt "\n"))))
+		  (insert (+ i ?\s) ": " elt "\n"))))
 	    (while (setq table (char-table-parent table))
 	      (insert "\nThe parent category table is:")
 	      (describe-vector table 'help-describe-category-set))))))))

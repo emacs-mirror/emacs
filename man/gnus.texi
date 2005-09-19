@@ -12,7 +12,7 @@ Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001,
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
+under the terms of the GNU Free Documentation License, Version 1.2 or
 any later version published by the Free Software Foundation; with no
 Invariant Sections, with the Front-Cover texts being ``A GNU
 Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
@@ -9624,17 +9624,16 @@ by giving the @kbd{A T} command a numerical prefix.
 @kindex M-^ (Summary)
 @cindex Message-ID
 @cindex fetching by Message-ID
-You can also ask the @acronym{NNTP} server for an arbitrary article, no
-matter what group it belongs to.  @kbd{M-^}
-(@code{gnus-summary-refer-article}) will ask you for a
-@code{Message-ID}, which is one of those long, hard-to-read thingies
-that look something like @samp{<38o6up$6f2@@hymir.ifi.uio.no>}.  You
-have to get it all exactly right.  No fuzzy searches, I'm afraid.
-@end table
+You can also ask Gnus for an arbitrary article, no matter what group it
+belongs to.  @kbd{M-^} (@code{gnus-summary-refer-article}) will ask you
+for a @code{Message-ID}, which is one of those long, hard-to-read
+thingies that look something like @samp{<38o6up$6f2@@hymir.ifi.uio.no>}.
+You have to get it all exactly right.  No fuzzy searches, I'm afraid.
 
-The current select method will be used when fetching by
-@code{Message-ID} from non-news select method, but you can override this
-by giving this command a prefix.
+Gnus looks for the @code{Message-ID} in the headers that have already
+been fetched, but also tries all the select methods specified by
+@code{gnus-refer-article-method} if it is not found.
+@end table
 
 @vindex gnus-refer-article-method
 If the group you are reading is located on a back end that does not
@@ -20501,8 +20500,19 @@ very interesting:
  1000)
 @end example
 
-The possibilities are endless.
+Suppose you're reading a high volume group and you're only interested
+in replies. The plan is to score down all articles that don't have
+subject that begin with "Re:", "Fw:" or "Fwd:" and then score up all
+parents of articles that have subjects that begin with reply marks.
 
+@example
+((! ("subject" "re:\\|fwd?:" r))
+  -200)
+((1- ("subject" "re:\\|fwd?:" r))
+  200)
+@end example
+
+The possibilities are endless.
 
 @node Advanced Scoring Tips
 @subsection Advanced Scoring Tips

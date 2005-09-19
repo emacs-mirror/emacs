@@ -1516,11 +1516,12 @@ x_set_scroll_bar_background (f, value, oldval)
    Otherwise store 0 in *STRINGP, which means that the `encoding' of
    the result should be `COMPOUND_TEXT'.  */
 
-unsigned char *
-x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
+static unsigned char *
+x_encode_text (string, coding_system, selectionp, text_bytes, stringp, freep)
      Lisp_Object string, coding_system;
      int *text_bytes, *stringp;
      int selectionp;
+     int *freep;
 {
   int result = string_xstring_p (string);
   struct coding_system coding;
@@ -1530,6 +1531,7 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
       /* No multibyte character in OBJ.  We need not encode it.  */
       *text_bytes = SBYTES (string);
       *stringp = 1;
+      *freep = 0;
       return SDATA (string);
     }
 
@@ -1543,6 +1545,7 @@ x_encode_text (string, coding_system, selectionp, text_bytes, stringp)
 			SCHARS (string), SBYTES (string), Qnil);
   *text_bytes = coding.produced;
   *stringp = (result == 1 || !EQ (coding_system, Qcompound_text));
+  *freep = 1;
   return coding.destination;
 }
 
@@ -1581,15 +1584,12 @@ x_set_name_internal (f, name)
 	   in the future which can encode all Unicode characters.
 	   But, for the moment, there's no way to know that the
 	   current window manager supports it or not.  */
-	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp);
+	text.value = x_encode_text (name, coding_system, 0, &bytes, &stringp,
+				    &do_free_text_value);
 	text.encoding = (stringp ? XA_STRING
 			 : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	text.format = 8;
 	text.nitems = bytes;
-
-        /* Check early, because ENCODE_UTF_8 below may GC and name may be
-           relocated.  */
-        do_free_text_value = text.value != SDATA (name);
 
 	if (NILP (f->icon_name))
 	  {
@@ -1599,12 +1599,11 @@ x_set_name_internal (f, name)
 	  {
 	    /* See the above comment "Note: Encoding strategy".  */
 	    icon.value = x_encode_text (f->icon_name, coding_system, 0,
-					&bytes, &stringp);
+					&bytes, &stringp, &do_free_icon_value);
 	    icon.encoding = (stringp ? XA_STRING
 			     : FRAME_X_DISPLAY_INFO (f)->Xatom_COMPOUND_TEXT);
 	    icon.format = 8;
 	    icon.nitems = bytes;
-            do_free_icon_value = icon.value != SDATA (f->icon_name);
 	  }
 
 #ifdef USE_GTK
@@ -1967,7 +1966,7 @@ xic_create_fontsetname (base_fontname, motif)
 	 - the same but with the family also replaced with -*-*-.  */
       char *p = base_fontname;
       int i;
-      
+
       for (i = 0; *p; p++)
 	if (*p == '-') i++;
       if (i != 14)
@@ -1991,7 +1990,7 @@ xic_create_fontsetname (base_fontname, motif)
 	  char *allcs = "*-*-*-*-*-*-*";
 	  char *allfamilies = "-*-*-";
 	  char *all = "*-*-*-*-";
-	  
+
 	  for (i = 0, p = base_fontname; i < 8; p++)
 	    {
 	      if (*p == '-')

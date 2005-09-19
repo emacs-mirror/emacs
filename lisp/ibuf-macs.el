@@ -281,7 +281,7 @@ bound to the current value of the filter.
 	 ,(concat (or documentation "This filter is not documented."))
 	 (interactive (list ,reader))
 	 (ibuffer-push-filter (cons ',name qualifier))
-	 (message
+	 (message "%s"
 	  (format ,(concat (format "Filter by %s added: " description)
 			   " %s")
 		  qualifier))

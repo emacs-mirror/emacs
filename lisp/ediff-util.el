@@ -2075,7 +2075,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
 	  (ediff-clear-fine-differences n))
       ;; Make sure that the message about saving and how to restore is seen
       ;; by the user
-      (message messg))
+      (message "%s" messg))
     ))
 
 ;; Save Nth diff of buffer BUF-TYPE \(A, B, or C\).
@@ -2720,7 +2720,7 @@ only if this merge job is part of a group, i.e., was invoked from within
 	     (format "Another buffer is visiting file %s. Too dangerous to save the merge buffer"
 		     file)))
 	(beep)
-	(message warn-message)
+	(message "%s" warn-message)
 	(with-output-to-temp-buffer ediff-msg-buffer
 	  (princ "\n\n")
 	  (princ warn-message)
@@ -3286,7 +3286,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	    (princ warn-message)
 	    (princ "\n\n"))
 	  (if (y-or-n-p
-	       (message warn-message))
+	       (message "%s" warn-message))
 	      (with-current-buffer buff
 		(save-buffer)
 		(kill-buffer (current-buffer)))

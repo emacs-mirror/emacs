@@ -140,7 +140,7 @@ The Command History listing is recomputed each time this mode is invoked."
 (defun Electric-history-undefined ()
   (interactive)
   (ding)
-  (message (substitute-command-keys "Type \\[Helper-help] for help, ? for commands, C-c C-c to quit, Space to execute"))
+  (message "%s" (substitute-command-keys "Type \\[Helper-help] for help, ? for commands, C-c C-c to quit, Space to execute"))
   (sit-for 4))
 
 (defun Electric-history-quit ()

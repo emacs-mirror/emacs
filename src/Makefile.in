@@ -305,15 +305,16 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcd
 #define LIB_X11_LIB -lX11
 #endif
 
+/* xmenu.c should not be compiled on OSX.  */
+#ifndef HAVE_CARBON
+XMENU_OBJ = xmenu.o
+#endif
+
 #ifdef HAVE_X_WINDOWS
 
 XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o fringe.o image.o
 
 #ifdef HAVE_MENUS
-
-#ifndef HAVE_CARBON
-XMENU_OBJ = xmenu.o
-#endif
 
 #ifdef USE_GTK
 GTK_OBJ= gtkutil.o
@@ -450,9 +451,6 @@ LIBX= $(LIBXMENU) $(X11_LDFLAGS) $(LIBXT) LIBTIFF LIBJPEG LIBPNG LIBGIF LIBXPM L
 LIBX= $(LIBXMENU) LD_SWITCH_X_SITE -lX10 LIBX10_MACHINE LIBX10_SYSTEM
 #endif /* not HAVE_X11 */
 #else /* not HAVE_X_WINDOWS */
-#if defined(HAVE_MENUS) && !defined(HAVE_CARBON)
-XMENU_OBJ = xmenu.o
-#endif
 #endif /* not HAVE_X_WINDOWS */
 
 LIBSOUND= @LIBSOUND@

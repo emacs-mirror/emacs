@@ -2943,6 +2943,8 @@ It returns the number of characters changed.  */)
 	{
 	  if (tt)
 	    {
+	      /* Reload as signal_after_change in last iteration may GC.  */
+	      tt = SDATA (table);
 	      if (string_multibyte)
 		{
 		  str = tt + string_char_to_byte (table, oc);
@@ -3250,8 +3252,9 @@ The message also goes into the `*Messages*' buffer.
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
-If the first argument is nil, the function clears any existing message;
-this lets the minibuffer contents show.  See also `current-message'.
+If the first argument is nil or the empty string, the function clears
+any existing message; this lets the minibuffer contents show.  See
+also `current-message'.
 
 usage: (message STRING &rest ARGS)  */)
      (nargs, args)
@@ -3280,8 +3283,8 @@ If a dialog box is not available, use the echo area.
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
-If the first argument is nil, clear any existing message; let the
-minibuffer contents show.
+If the first argument is nil or the empty string, clear any existing
+message; let the minibuffer contents show.
 
 usage: (message-box STRING &rest ARGS)  */)
      (nargs, args)
@@ -3342,8 +3345,8 @@ Otherwise, use the echo area.
 The first argument is a format control string, and the rest are data
 to be formatted under control of the string.  See `format' for details.
 
-If the first argument is nil, clear any existing message; let the
-minibuffer contents show.
+If the first argument is nil or the empty string, clear any existing
+message; let the minibuffer contents show.
 
 usage: (message-or-box STRING &rest ARGS)  */)
      (nargs, args)

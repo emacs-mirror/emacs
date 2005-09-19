@@ -2058,7 +2058,7 @@ To carry out the deletions that you've marked, use \\<bookmark-bmenu-mode-map>\\
   (interactive)
   (if (bookmark-bmenu-check-position)
       (let ((bmrk (bookmark-bmenu-bookmark)))
-        (message (bookmark-location bmrk)))))
+        (message "%s" (bookmark-location bmrk)))))
 
 (defun bookmark-bmenu-relocate ()
   "Change the file path of the bookmark on the current line,

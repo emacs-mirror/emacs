@@ -174,9 +174,7 @@ variable."
 		       (string :tag "Encoding")))
   :group 'url-mime)
 
-(defcustom url-mail-command (if (fboundp 'compose-mail)
-				'compose-mail
-			      'url-mail)
+(defcustom url-mail-command 'compose-mail
   "*This function will be called whenever url needs to send mail.
 It should enter a mail-mode-like buffer in the current window.
 The commands `mail-to' and `mail-subject' should still work in this

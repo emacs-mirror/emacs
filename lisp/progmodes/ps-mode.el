@@ -630,7 +630,7 @@ defines the beginning of a group. These tokens are:  {  [  <<"
 	      (current-column))
 	  (error
 	   (ding)
-	   (message (error-message-string err))
+	   (message "%s" (error-message-string err))
 	   0))
       (let (target)
 	(if (not (re-search-backward "[^ \t\n\r\f][ \t\n\r\f]*\\=" nil t))

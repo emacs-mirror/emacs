@@ -822,9 +822,11 @@ tilde expansion, all directory names starting with `~' will be ignored."
   :type '(repeat string))
 
 (defcustom tramp-login-prompt-regexp
-  ".*ogin: *"
+  ".*ogin\\( .*\\)?: *"
   "*Regexp matching login-like prompts.
-The regexp should match at end of buffer."
+The regexp should match at end of buffer.
+
+Sometimes the prompt is reported to look like \"login as:\"."
   :group 'tramp
   :type 'regexp)
 

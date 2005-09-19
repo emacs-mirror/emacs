@@ -371,7 +371,7 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 	  (server-switch-buffer (nth 1 client))
 	  (run-hooks 'server-switch-hook)
 	  (unless nowait
-	    (message (substitute-command-keys
+	    (message "%s" (substitute-command-keys
 		      "When done with a buffer, type \\[server-edit]")))))
       ;; Avoid preserving the connection after the last real frame is deleted.
       (if tmp-frame (delete-frame tmp-frame))))

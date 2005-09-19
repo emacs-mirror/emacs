@@ -1,3 +1,115 @@
+2005-09-18  Andreas Schwab  <schwab@suse.de>
+
+	* window.h (struct window): Remove height_fixed_p, no longer set.
+
+	* window.c (make_window): Don't initialize height_fixed_p.
+	(window_fixed_size_p): Don't use it.
+
+2005-09-18  John Paul Wallington  <jpw@pobox.com>
+
+	* data.c (Fdefalias): Signal an error if SYMBOL is not a symbol.
+
+2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (SOME_MACHINE_OBJECTS): Undo previous change.
+
+	* macfns.c (image_cache_refcount, dpyinfo_refcount) [GLYPH_DEBUG]:
+	New variables.
+	[TARGET_API_MAC_CARBON] (Fx_file_dialog): Don't allow multiple
+	file selection.
+
+	* sysdep.c [MAC_OS8]: Don't include stdlib.h.  Include sys/param.h.
+
+2005-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (XMENU_OBJ) [!HAVE_CARBON]: Reinstate variable.
+	(obj): Use XMENU_OBJ, not a literal xmenu.o.
+
+2005-09-16  Romain Francoise  <romain@orebokech.com>
+
+	* fileio.c (syms_of_fileio) <write-region-inhibit-fsync>: Doc fix.
+
+2005-09-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (overlay_arrow_at_row): Add HAVE_WINDOW_SYSTEM conditional.
+	(display_mode_element): Instead of `lisp_string' and `this',
+	record `offset' and increment that.
+	`last_offset' replaces `last'.
+
+	* Makefile.in (XMENU_OBJ): Variable deleted.
+	(obj): Use xmenu.o unconditionally.
+	(SOME_MACHINE_OBJECTS): Delete xmenu.o.
+
+	* emacs.c (main): Don't conditionalize syms_of_xmenu on HAVE_XMENU.
+
+2005-09-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_vertically): Don't try to fetch byte BEGV-1.
+	(reseat_at_next_visible_line_start): Likewise (in xassert).
+
+2005-09-14  Romain Francoise  <romain@orebokech.com>
+
+	* fileio.c (write_region_inhibit_fsync): New variable.
+	(Fwrite_region): Use it to skip call to fsync.
+	(syms_of_fileio): Initialize it.
+
+2005-09-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region_unwind): Argument format changed.
+	(run_pre_post_conversion_on_str): If pre-write-conversion function
+	changed the current buffer, delete the new buffer.
+	(run_pre_write_conversin_on_c_str): Likewise.
+
+	* fileio.c (Fexpand_file_name): Check multibyteness of
+	default_directory.
+
+2005-09-13  Kenichi Handa  <handa@m17n.org>
+
+	* composite.c (compose_chars_in_text): Delete it.
+
+	* composite.h (compose_chars_in_text): Delete extern.
+
+2005-09-13  Kim F. Storm  <storm@cua.dk>
+
+	* print.c (print_error_message): Fix last change.
+
+2005-09-12  Kim F. Storm  <storm@cua.dk>
+
+	* composite.c (compose_chars_in_text): Fix setup of `pend'.
+	Unconditionally reload `ptr' and `pend' after eval.
+
+	* xdisp.c (message3): Pass copy of lisp string to message_dolog.
+
+	* print.c (print_error_message): Pass copy of caller name to
+	message_dolog.
+
+	* fileio.c (auto_save_error): Pass copy of lisp string to message2.
+
+2005-09-12  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (display_mode_element): Be sure to make variables THIS
+	and LISP_STRING point into a string data of ELT.
+
+2005-09-12  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Ftranslate_region_internal): Reload `tt' after
+	signal_after_change that may have GC'ed.
+	(Fmessage, Fmessage_box, Fmessage_or_box): Doc fix.
+
+	* keymap.c (Fdescribe_buffer_bindings): Reload `translate'
+	after insert while runs signal_after_change.
+
+	* minibuf.c (Fminibuffer_complete_word): Move `completion_string'
+	declaration to where it is used.
+
+	* w32.c (check_windows_init_file): Fix allocation of error buffer.
+
+	* xfns.c (x_encode_text): Declare static.  Add FREEP arg.
+	(x_set_name_internal): Call x_encode_text with new FREEP arg to
+	know if xfree is needed instead of guessing.
+
+	* xterm.h (x_encode_text): Remove prototype.
+
 2005-09-11  Chris Prince  <cprince@gmail.com>  (tiny change)
 
 	* w32term.c (x_bitmap_icon): Load small icons too.

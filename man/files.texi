@@ -366,6 +366,21 @@ variables defined for that file (@pxref{File Variables}).
   @dfn{Saving} a buffer in Emacs means writing its contents back into the file
 that was visited in the buffer.
 
+@menu
+* Save Commands::       Commands for saving files.
+* Backup::              How Emacs saves the old version of your file.
+* Customize Save::      Customizing the saving of files.
+* Interlocking::        How Emacs protects against simultaneous editing
+                          of one file by two users.
+* Shadowing: File Shadowing.  Copying files to "shadows" automatically.
+* Time Stamps::         Emacs can update time stamps on saved files.
+@end menu
+
+@node Save Commands
+@subsection Commands for Saving Files
+
+  These are the commands that relate to saving and writing files.
+
 @table @kbd
 @item C-x C-s
 Save the current buffer in its visited file on disk (@code{save-buffer}).
@@ -482,33 +497,6 @@ version on disk does not match what Emacs last read or wrote, Emacs
 notifies you of this fact, because it probably indicates a problem caused
 by simultaneous editing and requires your immediate attention.
 @xref{Interlocking,, Simultaneous Editing}.
-
-@vindex require-final-newline
-  If the value of the variable @code{require-final-newline} is
-@code{t}, Emacs silently puts a newline at the end of any file that
-doesn't already end in one, every time a file is saved or written.  If
-the value is @code{visit}, Emacs adds a newline at the end of any file
-that doesn't have one, just after it visits the file.  (This marks the
-buffer as modified, and you can undo it.)  If the value is
-@code{visit-save}, that means to add newlines both on visiting and on
-saving.  If the value is @code{nil}, Emacs leaves the end of the file
-unchanged; if it's neither @code{nil} nor @code{t}, Emacs asks you
-whether to add a newline.  The default is @code{nil}.
-
-@vindex mode-require-final-newline
-  Many major modes are designed for specific kinds of files that are
-always supposed to end in newlines.  These major modes set the
-variable @code{require-final-newline} according to
-@code{mode-require-final-newline}.  By setting the latter variable,
-you can control how these modes handle final newlines.
-
-@menu
-* Backup::              How Emacs saves the old version of your file.
-* Interlocking::        How Emacs protects against simultaneous editing
-                          of one file by two users.
-* Shadowing: File Shadowing.  Copying files to "shadows" automatically.
-* Time Stamps::         Emacs can update time stamps on saved files.
-@end menu
 
 @node Backup
 @subsection Backup Files
@@ -715,6 +703,38 @@ making backups.  One unfortunate similarity is that these operations
 typically break hard links, disconnecting the file name you visited from
 any alternate names for the same file.  This has nothing to do with
 Emacs---the version control system does it.
+
+@node Customize Save
+@subsection Customizing Saving of Files
+
+@vindex require-final-newline
+  If the value of the variable @code{require-final-newline} is
+@code{t}, saving or writing a file silently puts a newline at the end
+if there isn't already one there.  If the value is @code{visit}, Emacs
+adds a newline at the end of any file that doesn't have one, just
+after it visits the file.  (This marks the buffer as modified, and you
+can undo it.)  If the value is @code{visit-save}, that means to add
+newlines both on visiting and on saving.  If the value is @code{nil},
+Emacs leaves the end of the file unchanged; if it's neither @code{nil}
+nor @code{t}, Emacs asks you whether to add a newline.  The default is
+@code{nil}.
+
+@vindex mode-require-final-newline
+  Many major modes are designed for specific kinds of files that are
+always supposed to end in newlines.  These major modes set the
+variable @code{require-final-newline} according to
+@code{mode-require-final-newline}.  By setting the latter variable,
+you can control how these modes handle final newlines.
+
+@vindex write-region-inhibit-fsync
+  When Emacs saves a file, it invokes the @code{fsync} system call to
+force the data immediately out to disk.  This is important for safety
+if the system crashes or in case of power outage.  However, it can be
+disruptive on laptops using power saving, because it requires the disk
+to spin up each time you save a file.  Setting
+@code{write-region-inhibit-fsync} to a non-@code{nil} value disables
+this synchronization.  Be careful---this means increased risk of data
+loss.
 
 @node Interlocking
 @subsection Protection against Simultaneous Editing
@@ -2999,8 +3019,10 @@ leaving point unchanged before the contents and the mark after them.
 @findex write-region
   @kbd{M-x write-region} is the inverse of @kbd{M-x insert-file}; it
 copies the contents of the region into the specified file.  @kbd{M-x
-append-to-file} adds the text of the region to the end of the specified
-file.  @xref{Accumulating Text}.
+append-to-file} adds the text of the region to the end of the
+specified file.  @xref{Accumulating Text}.  The variable
+@code{write-region-inhibit-fsync} applies to these commands, as well
+as saving files; see @ref{Customize Save}.
 
 @findex delete-file
 @cindex deletion (of files)

@@ -4,7 +4,7 @@
 ;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
-;; Maintainer: Anders Lindgren <andersl@andersl.com>
+;; Maintainer: FSF (Anders' email bounces, Sep 2005)
 ;; Created: 1995-05-25
 ;; Keywords: display, window, minor-mode, convenience
 ;; Last Changed: 1999-11-17

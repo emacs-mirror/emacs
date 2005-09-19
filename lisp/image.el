@@ -49,6 +49,16 @@ IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
 with one argument, a string containing the image data.  If PREDICATE returns
 a non-nil value, TYPE is the image's type.")
 
+(defvar image-load-path
+  (list (file-name-as-directory (expand-file-name "images" data-directory))
+	'data-directory 'load-path)
+  "List of locations in which to search for image files.
+If an element is a string, it defines a directory to search.
+If an element is a variable symbol whose value is a string, that
+value defines a directory to search.
+If an element is a variable symbol whose value is a list, the
+value is used as a list of directories to search.")
+
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
@@ -269,6 +279,27 @@ BUFFER nil or omitted means use the current buffer."
 	  (delete-overlay overlay)))
       (setq overlays (cdr overlays)))))
 
+(defun image-search-load-path (file path)
+  (let (element found pathname)
+    (while (and (not found) (consp path))
+      (setq element (car path))
+      (cond
+       ((stringp element)
+	(setq found
+	      (file-readable-p
+	       (setq pathname (expand-file-name file element)))))
+       ((and (symbolp element) (boundp element))
+	(setq element (symbol-value element))
+	(cond
+	 ((stringp element)
+	  (setq found
+		(file-readable-p
+		 (setq pathname (expand-file-name file element)))))
+	 ((consp element)
+	  (if (setq pathname (image-search-load-path file element))
+	      (setq found t))))))
+      (setq path (cdr path)))
+    (if found pathname)))
 
 ;;;###autoload
 (defun find-image (specs)
@@ -286,7 +317,7 @@ is supported, and FILE exists, is used to construct the image
 specification to be returned.  Return nil if no specification is
 satisfied.
 
-The image is looked for first on `load-path' and then in `data-directory'."
+The image is looked for in `image-load-path'."
   (let (image)
     (while (and specs (null image))
       (let* ((spec (car specs))
@@ -296,20 +327,11 @@ The image is looked for first on `load-path' and then in `data-directory'."
 	     found)
 	(when (image-type-available-p type)
 	  (cond ((stringp file)
-		 (let ((path load-path))
-		   (while (and (not found) path)
-		     (let ((try-file (expand-file-name file (car path))))
-		       (when (file-readable-p try-file)
-			 (setq found try-file)))
-		     (setq path (cdr path)))
-		   (unless found
-		     (let ((try-file (expand-file-name file data-directory)))
-		       (if (file-readable-p try-file)
-			   (setq found try-file))))
-		   (if found
-		       (setq image
-			     (cons 'image (plist-put (copy-sequence spec)
-						     :file found))))))
+		 (if (setq found (image-search-load-path
+				  file image-load-path))
+		     (setq image
+			   (cons 'image (plist-put (copy-sequence spec)
+						   :file found)))))
 		((not (null data))
 		 (setq image (cons 'image spec)))))
 	(setq specs (cdr specs))))
