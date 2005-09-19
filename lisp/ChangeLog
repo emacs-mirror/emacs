@@ -1,3 +1,7 @@
+2005-09-19  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com> (tiny change)
+
+	* term/rxvt.el (terminal-init-rxvt): Add entry for [end].
+
 2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/calendar.el (mark-visible-calendar-date): Save excursion.
