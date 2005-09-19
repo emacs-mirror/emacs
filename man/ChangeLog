@@ -1,3 +1,8 @@
+2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (newsticker.dvi): Fix erroneous use of curly
+	brackets on macro `srcdir'.
+
 2005-09-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS): Add newsticker targets.

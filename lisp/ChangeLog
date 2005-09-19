@@ -1,3 +1,8 @@
+2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/sh-script.el (sh-blink): Fix spurious reference to
+	variable `message'.
+
 2005-09-18  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-login-prompt-regexp): Expand regexp in order
@@ -19,12 +24,12 @@
 2005-09-18  D Goel  <deego@gnufans.org>
 
 	* apropos.el (apropos-command): Fix `message' call: first arg
-	should be a format spec. In this and all other cases that appear
+	should be a format spec.  In this and all other cases that appear
 	below and elsewhere in the source code, I made a change only when
 	two conditions were satisfied: [1] I can think of a possibility
-	that the arguments would cause an error, for example, the code is
-	question relies on extarnal variables such as filenames. [2] I was
-	sure that the arg to `message' could not have been nil in the
+	that the arguments would cause an error, for example, the code in
+	question relies on external variables such as filenames.  [2] I
+	was sure that the arg to `message' could not have been nil in the
 	code.
 
 	* textmodes/tildify.el (tildify-region): Ditto.
@@ -169,8 +174,8 @@
 	* obsolete/fast-lock.el (@top-level): Ditto in the macro
 	definition of `with-temp-message'.
 
-	* pcomplete.el (pcomplete--help): Fix `message' format spec. Not
-	having a %s would be weird, though not technically wrong.
+	* pcomplete.el (pcomplete--help): Fix `message' format spec.
+	Not having a %s would be weird, though not technically wrong.
 
 2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
