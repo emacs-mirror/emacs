@@ -1,3 +1,8 @@
+2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (mark-visible-calendar-date): Save excursion.
+	Re-indent within 80 columns.  Use inhibit-read-only.
+
 2005-09-19  Romain Francoise  <romain@orebokech.com>
 
 	* calendar/diary-lib.el (mark-diary-entries): Revert last change.
