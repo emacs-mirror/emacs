@@ -1,3 +1,13 @@
+2005-09-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Finding the Parent): Fix description of how Gnus
+	finds article.
+
+2005-09-14  Jari Aalto  <jari.aalto@cante.net>
+
+	* gnus.texi (Advanced Scoring Examples): New exmples to teach how
+	to drop off non-answered articles.
+
 2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* makefile.w32-in (newsticker.dvi): Fix erroneous use of curly

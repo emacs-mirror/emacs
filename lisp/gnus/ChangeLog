@@ -3,6 +3,15 @@
 	* sieve.el (sieve-help): Fix `message' call: first arg should be a
 	format spec.
 	
+2005-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-group-startup-message): Bind image-load-path.
+
+2005-09-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-display-part): Protect against broken
+	MIME messages.
+
 2005-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-edit-article-done): Remove text props
