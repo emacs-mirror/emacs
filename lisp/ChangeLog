@@ -1,3 +1,8 @@
+2005-09-19  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-value-create): Save the converted
+	tree :node widget.
+
 2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/sh-script.el (sh-blink): Fix spurious reference to
