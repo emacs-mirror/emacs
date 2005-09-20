@@ -9,7 +9,7 @@
 
 2005-09-14  Jari Aalto  <jari.aalto@cante.net>
 
-	* gnus.texi (Advanced Scoring Examples): New exmples to teach how
+	* gnus.texi (Advanced Scoring Examples): New examples to teach how
 	to drop off non-answered articles.
 
 2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
@@ -2855,8 +2855,8 @@
 
 2004-02-29  Juanma Barranquero  <lektu@terra.es>
 
-	* makefile.w32-in (mostlyclean, clean, maintainer-clean): Use
-	$(DEL) instead of rm, and ignore exit code.
+	* makefile.w32-in (mostlyclean, clean, maintainer-clean):
+	Use $(DEL) instead of rm, and ignore exit code.
 
 2004-02-29  Kai Grossjohann  <kgrossjo@eu.uu.net>
 
