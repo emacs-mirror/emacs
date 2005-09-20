@@ -163,10 +163,16 @@ program."
 ;; strip prefix from filename
 ;; returns /dev/null, if can't strip prefix
 (defsubst ediff-file-name-sans-prefix (filename prefix)
-  (save-match-data
-    (if (string-match (concat "^" (regexp-quote prefix)) filename)
-	(substring filename (match-end 0))
-      (concat "/null/" filename))))
+  (if prefix
+      (save-match-data
+	(if (string-match (concat "^" (if (stringp prefix)
+					  (regexp-quote prefix)
+					""))
+			  filename)
+	    (substring filename (match-end 0))
+	  (concat "/null/" filename)))
+    filename)
+  )
 
 
 
@@ -260,11 +266,14 @@ program."
       count)))
 
 ;; Fix up the file names in the list using the argument FILENAME
-;; Algorithm: find the first file's directory and cut it out from each file
-;; name in the patch.  Prepend the directory of FILENAME to each file in the
-;; patch.  In addition, the first file in the patch is replaced by FILENAME.
-;; Each file is actually a file-pair of files found in the context diff header
-;; In the end, for each pair, we select the shortest existing file.
+;; Algorithm: find the files' directories in the patch and, if a directory is
+;; absolute, cut it out from the corresponding file name in the patch.
+;; Relative directories are not cut out.
+;; Prepend the directory of FILENAME to each resulting file (which came
+;; originally from the patch).
+;; In addition, the first file in the patch document is replaced by FILENAME.
+;; Each file is actually a pair of files found in the context diff header
+;; In the end, for each pair, we ask the user which file to patch.
 ;; Note: Ediff doesn't recognize multi-file patches that are separated
 ;; with the `Index:' line.  It treats them as a single-file patch.
 ;;
@@ -275,30 +284,41 @@ program."
 			;; directory part of filename
 			(file-name-as-directory filename)
 		      (file-name-directory filename)))
-	;; Filename-spec is objA; at this point it is represented as
-	;; (file1 . file2). We get it using ediff-get-session-objA
-	;; directory part of the first file in the patch
-	(base-dir1 (file-name-directory
-		    (car (ediff-get-session-objA-name (car ediff-patch-map)))))
-	;; directory part of the 2nd file in the patch
-	(base-dir2 (file-name-directory
-		    (cdr (ediff-get-session-objA-name (car ediff-patch-map)))))
+	;; In case 2 files are possible patch targets, the user will be offered
+	;; to choose file1 or file2.  In a multifile patch, if the user chooses
+	;; 1 or 2, this choice is preserved to decide future alternatives.
+	chosen-alternative
 	)
 
     ;; chop off base-dirs
     (mapcar (lambda (session-info)
-	      (let ((proposed-file-names
-		     (ediff-get-session-objA-name session-info)))
+	      (let* ((proposed-file-names
+		      ;; Filename-spec is objA; it is represented as
+		      ;; (file1 . file2). Get it using ediff-get-session-objA.
+		      (ediff-get-session-objA-name session-info))
+		     ;; base-dir1 is  the dir part of the 1st file in the patch
+		     (base-dir1 (file-name-directory (car proposed-file-names)))
+		     ;; directory part of the 2nd file in the patch
+		     (base-dir2 (file-name-directory (cdr proposed-file-names)))
+		     )
+		;; If both base-dir1 and base-dir2 are relative, assume that
+		;; these dirs lead to the actual files starting at the present
+		;; directory. So, we don't strip these relative dirs from the
+		;; file names. This is a heuristic intended to improve guessing
+		(unless (or (file-name-absolute-p base-dir1)
+			    (file-name-absolute-p base-dir2))
+		  (setq base-dir1 ""
+			base-dir2 ""))
 		(or (string= (car proposed-file-names) "/dev/null")
 		    (setcar proposed-file-names
 			    (ediff-file-name-sans-prefix
 			     (car proposed-file-names) base-dir1)))
-	      (or (string=
-		   (cdr proposed-file-names) "/dev/null")
-		  (setcdr proposed-file-names
-			  (ediff-file-name-sans-prefix
-			   (cdr proposed-file-names) base-dir2)))
-	      ))
+		(or (string=
+		     (cdr proposed-file-names) "/dev/null")
+		    (setcdr proposed-file-names
+			    (ediff-file-name-sans-prefix
+			     (cdr proposed-file-names) base-dir2)))
+		))
 	    ediff-patch-map)
 
     ;; take the given file name into account
@@ -314,8 +334,8 @@ program."
 		     (ediff-get-session-objA-name session-info)))
 		(if (and (string-match "^/null/" (car proposed-file-names))
 			 (string-match "^/null/" (cdr proposed-file-names)))
-		    ;; couldn't strip base-dir1 and base-dir2
-		    ;; hence, something is wrong
+		    ;; couldn't intuit the file name to patch, so
+		    ;; something is amiss
 		    (progn
 		      (with-output-to-temp-buffer ediff-msg-buffer
 			(ediff-with-current-buffer standard-output
@@ -367,17 +387,29 @@ other files, enter /dev/null
 		     (f1-exists (file-exists-p file1))
 		     (f2-exists (file-exists-p file2)))
 		(cond
-		 ((and (< (length file2) (length file1))
-		       f2-exists)
+		 ((and
+		   ;; The patch program prefers the shortest file as the patch
+		   ;; target. However, this is a questionable heuristic. In an
+		   ;; interactive program, like ediff, we can offer the user a
+		   ;; choice.
+		   ;; (< (length file2) (length file1))
+		   (not f1-exists)
+		   f2-exists)
 		  ;; replace file-pair with the winning file2
 		  (setcar session-file-object file2))
-		 ((and (< (length file1) (length file2))
-		       f1-exists)
+		 ((and
+		   ;; (< (length file1) (length file2))
+		   (not f2-exists)
+		   f1-exists)
 		  ;; replace file-pair with the winning file1
 		  (setcar session-file-object file1))
 		 ((and f1-exists f2-exists
 		       (string= file1 file2))
 		  (setcar session-file-object file1))
+		 ((and f1-exists f2-exists (eq chosen-alternative 1))
+		  (setcar session-file-object file1))
+		 ((and f1-exists f2-exists (eq chosen-alternative 2))
+		  (setcar session-file-object file2))
 		 ((and f1-exists f2-exists)
 		  (with-output-to-temp-buffer ediff-msg-buffer
 		    (ediff-with-current-buffer standard-output
@@ -393,10 +425,15 @@ Please advice:
     Type `y' to use %s as the target;
     Type `n' to use %s as the target.
 "
-				   file1 file2 file2 file1)))
+				   file1 file2 file1 file2)))
 		  (setcar session-file-object
-			  (if (y-or-n-p (format "Use %s ? " file2))
-			      file2 file1)))
+			  (if (y-or-n-p (format "Use %s ? " file1))
+			      (progn
+				(setq chosen-alternative 1)
+				file1)
+			    (setq chosen-alternative 2)
+			    file2))
+		  )
 		 (f2-exists (setcar session-file-object file2))
 		 (f1-exists (setcar session-file-object file1))
 		 (t
@@ -407,7 +444,7 @@ Please advice:
 		    (if (string= file1 file2)
 			(princ (format "
 	%s
-is the target for this patch.  However, this file does not exist."
+is assumed to be the target for this patch.  However, this file does not exist."
 				       file1))
 		      (princ (format "
 	%s
@@ -441,22 +478,26 @@ are two possible targets for this patch.  However, these files do not exist."
 
 ;; prompt for file, get the buffer
 (defun ediff-prompt-for-patch-file ()
-  (let ((dir (cond (ediff-patch-default-directory) ; try patch default dir
-		   (ediff-use-last-dir ediff-last-dir-patch)
+  (let ((dir (cond (ediff-use-last-dir ediff-last-dir-patch)
+		   (ediff-patch-default-directory) ; try patch default dir
 		   (t default-directory)))
-	(coding-system-for-read ediff-coding-system-for-read))
-    (find-file-noselect
-     (read-file-name
-      (format "Patch is in file:%s "
-	      (cond ((and buffer-file-name
-			  (equal (expand-file-name dir)
-				 (file-name-directory buffer-file-name)))
-		     (concat
-		      " (default "
-		      (file-name-nondirectory buffer-file-name)
-		      ")"))
-		    (t "")))
-      dir buffer-file-name 'must-match))
+	(coding-system-for-read ediff-coding-system-for-read)
+	patch-file-name)
+    (setq patch-file-name
+	  (read-file-name
+	   (format "Patch is in file:%s "
+		   (cond ((and buffer-file-name
+			       (equal (expand-file-name dir)
+				      (file-name-directory buffer-file-name)))
+			  (concat
+			   " (default "
+			   (file-name-nondirectory buffer-file-name)
+			   ")"))
+			 (t "")))
+	   dir buffer-file-name 'must-match))
+    (if (file-directory-p patch-file-name)
+	(error "Patch file cannot be a directory: %s" patch-file-name)
+      (find-file-noselect patch-file-name))
     ))
 
 
@@ -647,7 +688,7 @@ optional argument, then use it."
     (ediff-maybe-checkout buf-to-patch)
 
     (ediff-with-current-buffer patch-diagnostics
-      (insert-buffer patch-buf)
+      (insert-buffer-substring patch-buf)
       (message "Applying patch ... ")
       ;; fix environment for gnu patch, so it won't make numbered extensions
       (setq backup-style (getenv "VERSION_CONTROL"))

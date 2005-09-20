@@ -1405,6 +1405,7 @@ This option is appropriate if you like Emacs-style words."
 		       viper-SEP-char-class
 		       (or within-line "\n")
 		       (if within-line (viper-line-pos 'end)))))
+
 (defsubst viper-skip-all-separators-backward (&optional within-line)
   (if (eq viper-syntax-preference 'strict-vi)
       (if within-line
@@ -1433,6 +1434,7 @@ This option is appropriate if you like Emacs-style words."
      ;; Emacs may consider some of these as words, but we don't want them
      viper-non-word-characters
      (viper-line-pos 'end))))
+
 (defun viper-skip-nonalphasep-backward ()
   (if (eq viper-syntax-preference 'strict-vi)
       (skip-chars-backward
@@ -1501,6 +1503,12 @@ This option is appropriate if you like Emacs-style words."
       (setq total (+ total local)))
     total
     ))
+
+;; tells when point is at the beginning of field
+(defun viper-beginning-of-field ()
+  (or (bobp)
+      (not (eq (get-char-property (point) 'field)
+	       (get-char-property (1- (point)) 'field)))))
 
 
 ;; this is copied from cl-extra.el

@@ -367,7 +367,7 @@ to invocation.")
 		   (ediff-unique-buffer-name "*ediff-merge" "*")))
 	    (save-excursion
 	      (set-buffer buffer-C)
-	      (insert-buffer buf)
+	      (insert-buffer-substring buf)
 	      (funcall (ediff-with-current-buffer buf major-mode))
 	      (widen) ; merge buffer is always widened
 	      (add-hook 'local-write-file-hooks 'ediff-set-merge-mode nil t)
