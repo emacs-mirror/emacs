@@ -1,3 +1,9 @@
+2005-09-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_set_geometry): Do a gtk_window_move if program
+	positions have been set for the frame (as is done for frames in
+	special-display-buffer-names).
+
 2005-09-19  Kim F. Storm  <storm@cua.dk>
 
 	* editfns.c (Fformat): Don't scan past end of format string that
