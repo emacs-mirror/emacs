@@ -1,3 +1,8 @@
+2005-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix loading rxvt at run
+	time.
+
 2005-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-move-drag-overlay): New function.
