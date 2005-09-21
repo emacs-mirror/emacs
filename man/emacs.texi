@@ -877,13 +877,13 @@ X Options and Resources
 * LessTif Resources::   X resources for LessTif and Motif menus.
 * GTK resources::       Resources for GTK widgets.
 
-Emacs and the Mac OS
+Emacs and Mac OS
 
-* Mac Input::           Keyboard input on the Mac.
-* Mac International::   International character sets on the Mac.
+* Mac Input::           Keyboard and mouse input on Mac.
+* Mac International::   International character sets on Mac.
 * Mac Environment Variables::  Setting environment variables for Emacs.
-* Mac Directories::     Volumes and directories on the Mac.
-* Mac Font Specs::      Specifying fonts on the Mac.
+* Mac Directories::     Volumes and directories on Mac.
+* Mac Font Specs::      Specifying fonts on Mac.
 * Mac Functions::       Mac-specific Lisp functions.
 
 MS-DOS and Windows 95/98/NT
