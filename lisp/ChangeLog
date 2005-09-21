@@ -1,41 +1,41 @@
 2005-09-20  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-ptch.el (ediff-file-name-sans-prefix): treat nil as an empty
-	string.
-	(ediff-fixup-patch-map): better heuristic for intuiting the file names
-	to patch.
-	(ediff-prompt-for-patch-file): more intuitive prompt.
+	* ediff-ptch.el (ediff-file-name-sans-prefix): Treat nil as an
+	empty string.
+	(ediff-fixup-patch-map): Better heuristic for intuiting the file
+	names to patch.
+	(ediff-prompt-for-patch-file): More intuitive prompt.
 
-	* ediff-util.el: use insert-buffer-substring.
+	* ediff-util.el: Use insert-buffer-substring.
 
-	* ediff-vers.el (cvs-run-ediff-on-file-descriptor): bug fix.
+	* ediff-vers.el (cvs-run-ediff-on-file-descriptor): Bug fix.
 
-	* viper-cmd.el (viper-change-state): don't move over the field
+	* viper-cmd.el (viper-change-state): Don't move over the field
 	boundaries in the minibuffer.
-	(viper-set-minibuffer-style): add viper-minibuffer-post-command-hook.
-	(viper-minibuffer-post-command-hook): new hook.
-	(viper-line): don't move cursor at bolp.
+	(viper-set-minibuffer-style): Add viper-minibuffer-post-command-hook.
+	(viper-minibuffer-post-command-hook): New hook.
+	(viper-line): Don't move cursor at bolp.
 
-	* viper-ex.el (ex-pwd, viper-info-on-file): fixed message
+	* viper-ex.el (ex-pwd, viper-info-on-file): Fix message.
 
-	* viper-init.el: add alias to make-variable-buffer-local to avoid
+	* viper-init.el: Add alias to make-variable-buffer-local to avoid
 	compiler warnings.
 
-	* viper-macs.el (ex-map): better messages.
+	* viper-macs.el (ex-map): Better messages.
 
-	* viper-utils.el (viper-beginning-of-field): new function.
+	* viper-utils.el (viper-beginning-of-field): New function.
 
-	* viper.el: replace make-variable-buffer-local with
+	* viper.el: Replace make-variable-buffer-local with
 	viper-make-variable-buffer-local everywhere, to avoid warnings.
 
 2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line):
 	Delete unused var `old-selected-window'.
-	(mouse-drag-region-1): Delete unused vars `start-frame' `end-of-range'.
+	(mouse-drag-region-1): Delete unused vars `start-frame', `end-of-range'.
 	(mouse-drag-secondary): Delete unused var `start-frame'.
 
-2005-09-19  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com> (tiny change)
+2005-09-19  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
 	* term/rxvt.el (terminal-init-rxvt): Add entry for [end].
 
