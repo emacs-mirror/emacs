@@ -49,7 +49,7 @@
 
 2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* Font-lock.el (font-lock-default-fontify-region): Don't add a line
+	* font-lock.el (font-lock-default-fontify-region): Don't add a line
 	unconditionally, since the after-change-function already did it.
 
 2005-09-19  Miles Bader  <miles@gnu.org>
