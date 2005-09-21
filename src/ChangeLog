@@ -1,3 +1,8 @@
+2005-09-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* process.c (create_process) [RTU || UNIPLUS || DONT_REOPEN_PTY]:
+	Setup slave tty options before forking.
+
 2005-09-20  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_set_geometry): Do a gtk_window_move if program

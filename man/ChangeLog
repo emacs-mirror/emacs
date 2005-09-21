@@ -1,3 +1,28 @@
+2005-09-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.texi (Top): Update submenus from macos.texi.
+
+	* macos.texi: Change `Mac OS 8 or 9' to `Mac OS Classic'.
+	(Mac OS): Update feature support status.
+	(Mac Input): List supported input scripts.  Remove description
+	about `mac-keyboard-text-encoding'.  Mention mouse button
+	emulation and related variables.
+	(Mac International): Mention Central European and Cyrillic
+	support.  Now `keyboard-coding-system' is dynamically changed.
+	Add description about coding system for selection.  Add
+	description about language environment.
+	(Mac Environment Variables): Mention
+	`~/.MacOSX/environment.plist'.  Give example of command line
+	arguments.  Add Preferences support.
+	(Mac Directories): Explicitly state that this node is for Mac OS
+	Classic only.
+	(Mac Font Specs): Mention specification for scalable fonts.  List
+	supported charsets.  Add preferred way of creating fontsets.  Add
+	description about `mac-allow-anti-aliasing'.
+	(Mac Functions): Add descriptions about `mac-set-file-creator',
+	`mac-get-file-creator', `mac-set-file-type', `mac-get-file-type',
+	and `mac-get-preference'.
+
 2005-09-19  Miles Bader  <miles@gnu.org>
 
 	* newsticker.texi: Get rid of CVS keywords.
