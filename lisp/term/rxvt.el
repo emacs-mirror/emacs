@@ -176,8 +176,8 @@
     ("blue"           4 (  0   0 205))	; blue3
     ("magenta"        5 (205   0 205))	; magenta3
     ("cyan"           6 (  0 205 205))	; cyan3
-    ("white"          7 (250 235 215))	; AntiqueWhite
-    ("brightblack"    8 ( 64  64  64))	; gray25
+    ("white"          7 (229 229 229))	; gray90
+    ("brightblack"    8 ( 77  77  77))	; gray30
     ("brightred"      9 (255   0   0))	; red
     ("brightgreen"   10 (  0 255   0))	; green
     ("brightyellow"  11 (255 255   0))	; yellow

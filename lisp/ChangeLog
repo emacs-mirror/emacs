@@ -1,3 +1,7 @@
+2005-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/rxvt.el (rxvt-standard-colors): Fix some colors.
+
 2005-09-20  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* ediff-ptch.el (ediff-prompt-for-patch-file): More intuitive prompt.
