@@ -1,34 +1,48 @@
+2005-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-move-drag-overlay): New function.
+	(mouse-drag-region-1): Use it.
+	Try to simplify a bit the state handling.  Handle clicks on links
+	inside intangible areas.
+	(mouse-save-then-kill): Minor simplification.
+	(mouse-secondary-overlay): Make it always non-nil instead of
+	recreating it each time.
+	(mouse-start-secondary, mouse-set-secondary, mouse-drag-secondary)
+	(mouse-kill-secondary, mouse-secondary-save-then-kill):
+	Simplify accordingly.
+
 2005-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/rxvt.el (rxvt-standard-colors): Fix some colors.
 
 2005-09-20  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-ptch.el (ediff-prompt-for-patch-file): More intuitive prompt.
-	(ediff-file-name-sans-prefix): Treat nil as an empty string.
-	(ediff-fixup-patch-map): Better heuristic for intuiting the file
-	names to patch.
+	* ediff-ptch.el (ediff-file-name-sans-prefix): Treat nil as an empty
+	string.
+	(ediff-fixup-patch-map): Better heuristic for intuiting the file names
+	to patch.
+	(ediff-prompt-for-patch-file): More intuitive prompt.
 
-	* ediff-util.el: Use insert-buffer-substring.
+	* ediff-util.el: use insert-buffer-substring.
 
 	* ediff-vers.el (cvs-run-ediff-on-file-descriptor): Bug fix.
 
-	* viper-cmd.el (viper-change-state): Don't move over the field
-	boundaries in the minibuffer.
+	* emulation/viper-cmd.el (viper-change-state): Don't move over the
+	field boundaries in the minibuffer.
 	(viper-set-minibuffer-style): Add viper-minibuffer-post-command-hook.
 	(viper-minibuffer-post-command-hook): New hook.
 	(viper-line): Don't move cursor at bolp.
 
-	* viper-ex.el (ex-pwd, viper-info-on-file): Fix message.
+	* emulation/viper-ex.el (ex-pwd, viper-info-on-file): Fix message.
 
-	* viper-init.el: Add alias to make-variable-buffer-local to avoid
-	compiler warnings.
+	* emulation/viper-init.el: add alias to make-variable-buffer-local to
+	avoid compiler warnings.
 
-	* viper-macs.el (ex-map): Better messages.
+	* emulation/viper-macs.el (ex-map): Better messages.
 
-	* viper-utils.el (viper-beginning-of-field): New function.
+	* emulation/viper-utils.el (viper-beginning-of-field): New function.
 
-	* viper.el: Replace make-variable-buffer-local with
+	* emulation/viper.el: replace make-variable-buffer-local with
 	viper-make-variable-buffer-local everywhere, to avoid warnings.
 
 2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
