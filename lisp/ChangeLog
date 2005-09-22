@@ -1,3 +1,7 @@
+2005-09-22  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-value-create): Fix previous change.
+
 2005-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (terminal-init-xterm): Fix loading rxvt at run
