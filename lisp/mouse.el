@@ -868,8 +868,9 @@ at the same position."
     ;; that a tiny move during a single-click would cause the intangible
     ;; text to be selected.
     (goto-char start)
-    (goto-char end))
-  (let ((range (mouse-start-end start (point) mode)))
+    (goto-char end)
+    (setq end (point)))
+  (let ((range (mouse-start-end start end mode)))
     (move-overlay ol (car range) (nth 1 range))))
 
 (defun mouse-drag-region-1 (start-event)

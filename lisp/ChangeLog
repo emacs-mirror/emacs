@@ -1,11 +1,14 @@
+2005-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-move-drag-overlay): Fix last change.
+
 2005-09-22  David Ponce  <david@dponce.com>
 
 	* tree-widget.el (tree-widget-value-create): Fix previous change.
 
 2005-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* term/xterm.el (terminal-init-xterm): Fix loading rxvt at run
-	time.
+	* term/xterm.el (terminal-init-xterm): Fix loading rxvt at run time.
 
 2005-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -117,8 +120,16 @@
 
 2005-09-18  D Goel  <deego@gnufans.org>
 
-	* apropos.el (apropos-command):
-	* textmodes/tildify.el (tildify-region):
+	* apropos.el (apropos-command): Fix `message' call: first arg
+	should be a format spec.  In this and all other cases that appear
+	below and elsewhere in the source code, I made a change only when
+	two conditions were satisfied: [1] I can think of a possibility
+	that the arguments would cause an error, for example, the code in
+	question relies on external variables such as filenames.  [2] I
+	was sure that the arg to `message' could not have been nil in the code.
+
+	* textmodes/tildify.el (tildify-region): Ditto.
+
 	* textmodes/reftex-index.el (reftex-index-change-entry)
 	(reftex-index-phrase-selection-or-word, reftex-query-index-phrase):
 	* textmodes/reftex-dcr.el (reftex-echo-ref, reftex-echo-cite):
