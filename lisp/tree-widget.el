@@ -651,7 +651,9 @@ This hook should be local in the buffer setup to display widgets.")
           (widget-put tree :node (widget-convert node))
           ;; Create the icon widget for the expanded tree.
           (push (widget-create-child-and-convert
-                 tree (widget-get tree (if args :open-icon :empty-icon)))
+                 tree (widget-get tree (if args :open-icon :empty-icon))
+                 ;; Pass the node widget to child.
+                 :node (widget-get tree :node))
                 buttons)
           ;; Create the tree node widget.
           (push (widget-create-child tree (widget-get tree :node))
@@ -701,7 +703,9 @@ This hook should be local in the buffer setup to display widgets.")
       (widget-put tree :node (widget-convert node))
       ;; Create the icon widget for the collapsed tree.
       (push (widget-create-child-and-convert
-             tree (widget-get tree :close-icon))
+             tree (widget-get tree :close-icon)
+             ;; Pass the node widget to child.
+             :node (widget-get tree :node))
             buttons)
       ;; Create the tree node widget.
       (push (widget-create-child tree (widget-get tree :node))
