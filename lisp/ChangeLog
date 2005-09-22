@@ -22,13 +22,12 @@
 
 2005-09-20  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-ptch.el (ediff-file-name-sans-prefix): Treat nil as an empty
-	string.
+	* ediff-ptch.el (ediff-prompt-for-patch-file): More intuitive prompt.
+	(ediff-file-name-sans-prefix): Treat nil as an empty string.
 	(ediff-fixup-patch-map): Better heuristic for intuiting the file names
 	to patch.
-	(ediff-prompt-for-patch-file): More intuitive prompt.
 
-	* ediff-util.el: use insert-buffer-substring.
+	* ediff-util.el: Use insert-buffer-substring.
 
 	* ediff-vers.el (cvs-run-ediff-on-file-descriptor): Bug fix.
 
@@ -40,14 +39,14 @@
 
 	* emulation/viper-ex.el (ex-pwd, viper-info-on-file): Fix message.
 
-	* emulation/viper-init.el: add alias to make-variable-buffer-local to
+	* emulation/viper-init.el: Add alias to make-variable-buffer-local to
 	avoid compiler warnings.
 
 	* emulation/viper-macs.el (ex-map): Better messages.
 
 	* emulation/viper-utils.el (viper-beginning-of-field): New function.
 
-	* emulation/viper.el: replace make-variable-buffer-local with
+	* emulation/viper.el: Replace make-variable-buffer-local with
 	viper-make-variable-buffer-local everywhere, to avoid warnings.
 
 2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
