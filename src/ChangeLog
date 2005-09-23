@@ -1,3 +1,8 @@
+2005-09-23  Richard M. Stallman  <rms@gnu.org>
+
+	* editfns.c (Fformat): Explicitly test for end of format string
+	and don't use `index'.
+
 2005-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* s/aix4-2.h (BROKEN_GET_CURRENT_DIR_NAME): Define

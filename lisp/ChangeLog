@@ -1,3 +1,7 @@
+2005-09-23  David Reitter  <david.reitter@gmail.com>
+
+	* mail/mailclient.el: New file.
+
 2005-09-23  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-highlight-incorrect-region)

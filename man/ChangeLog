@@ -1,3 +1,7 @@
+2005-09-20  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* text.texi (Paragraphs): Correction about Paragraph-Indent Text mode.
+
 2005-09-23  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi Version 3.16
