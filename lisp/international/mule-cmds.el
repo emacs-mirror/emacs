@@ -1901,7 +1901,6 @@ specifies the character set for the major languages of Western Europe."
     (if (functionp func)
 	(funcall func)))
   (if (and utf-translate-cjk-mode
-	   utf-translate-cjk-lang-env
 	   (not (eq utf-translate-cjk-lang-env language-name))
 	   (catch 'tag
 	     (dolist (charset (get-language-info language-name 'charset))
