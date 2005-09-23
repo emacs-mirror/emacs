@@ -1,3 +1,8 @@
+2005-09-23  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (encode_coding_object): If a pre-write-conversion
+	function makes a new buffer, kill it.
+
 2005-07-29  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (QCascii_compatible_p): New variable. 
