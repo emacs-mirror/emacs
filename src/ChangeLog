@@ -1,3 +1,13 @@
+2005-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* s/aix4-2.h (BROKEN_GET_CURRENT_DIR_NAME): Define
+	BROKEN_GET_CURRENT_DIR_NAME.
+
+	* sysdep.c (get_current_dir_name): Also define if
+	BROKEN_GET_CURRENT_DIR_NAME. 
+
+	* m/ibmrs6000.h: Test for USG5, not USG5_4.
+
 2005-09-22  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (message_dolog): Add warning about GC and Lisp strings.
