@@ -1,3 +1,9 @@
+2005-09-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-environment): Don't
+	check utf-translate-cjk-lang-env is nil or not on deciding if we
+	have to call utf-translate-cjk-load-tables.
+
 2005-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mouse.el (mouse-move-drag-overlay): Fix last change.
