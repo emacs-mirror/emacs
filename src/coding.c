@@ -6887,6 +6887,7 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
   Lisp_Object attrs;
   Lisp_Object buffer;
   int saved_pt = -1, saved_pt_byte;
+  int kill_src_buffer = 0;
 
   buffer = Fcurrent_buffer ();
 
@@ -6924,6 +6925,8 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 	args[2] = make_number (Z);
 	safe_call (3, args);
       }
+      if (XBUFFER (coding->src_object) != current_buffer)
+	kill_src_buffer = 1;
       coding->src_object = Fcurrent_buffer ();
       if (BEG != GPT)
 	move_gap_both (BEG, BEG_BYTE);
@@ -7026,6 +7029,8 @@ encode_coding_object (coding, src_object, from, from_byte, to, to_byte,
 			  saved_pt_byte + (coding->produced - bytes));
     }
 
+  if (kill_src_buffer)
+    Fkill_buffer (coding->src_object);
   unbind_to (count, Qnil);
 }
 
