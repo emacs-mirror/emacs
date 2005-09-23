@@ -1,3 +1,19 @@
+2005-09-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-mode-map, orgtbl-mode-map): Move
+	keybindings with `C-c C-h' prefix to `C-c C-x' prefix.  Make use
+	of `remap' feature when available.  Additional key bindings for
+	better tty support.
+	(org-mode-restart, org-force-self-insert): New commands.
+	(org-time-stamp-inactive): New command.
+	(org-remap): New function.
+	(org-table-auto-blank-field, org-level-color-stars-only): New
+	options.
+	(org-enable-fixed-width-editor): Moved to `org-structure'
+	customization group.
+	(org-self-insert-command, orgtbl-self-insert-command): Modified to
+	blank field after field motion commands.
+
 2005-09-23  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (set-language-environment): Don't
