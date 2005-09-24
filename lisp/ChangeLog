@@ -1,3 +1,11 @@
+2005-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (version-regexp-alist): Extend valid syntax for version
+	strings: allow any of the characters -,_,+ to separate the
+	alpha/beta/rc part from the version part.  Doc fix.
+	(version-to-list): Doc fix.  Bind case-fold-search to t, as
+	advertised.
+
 2005-09-23  David Reitter  <david.reitter@gmail.com>
 
 	* mail/mailclient.el: New file.
