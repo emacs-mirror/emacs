@@ -1,4 +1,4 @@
-2005-09-24  Steven Huwig  <shuwig@columbus.rr.com>  (tiny change)
+2005-09-24  Steven Huwig  <steven_h@acm.org>  (tiny change)
 
 	* progmodes/python.el (python-describe-symbol): Add globals() and
 	locals() to the arguments of emacs.ehelp.
