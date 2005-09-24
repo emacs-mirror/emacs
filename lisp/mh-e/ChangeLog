@@ -1,3 +1,10 @@
+2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
+
+	* mh-mime.el (mh-compose-forward, mh-mhn-compose-forw):
+	* mh-comp.el (mh-insert-letter):
+	* mh-utils.el (mh-prompt-for-folder):
+	Follow convention for reading with the minibuffer.
+
 2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mh-print.el (mh-ps-print-msg-show): Fix misplaced parenthesis in

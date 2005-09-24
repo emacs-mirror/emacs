@@ -81,10 +81,10 @@ If any of the optional arguments are absent, they are prompted for."
   (interactive (list
                 (read-string "Forw Content-description: ")
                 (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
-                (read-string (format "Messages%s: "
+                (read-string (concat "Messages"
                                      (if (numberp mh-sent-from-msg)
-                                         (format " [%d]" mh-sent-from-msg)
-                                       "")))))
+                                         (format " (default %d): " mh-sent-from-msg)
+                                       ": ")))))
   (if (equal mh-compose-insertion 'gnus)
       (mh-mml-forward-message description folder message)
     (mh-mhn-compose-forw description folder message)))
@@ -374,10 +374,10 @@ See also \\[mh-edit-mhn]."
   (interactive (list
                 (read-string "Forw Content-description: ")
                 (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
-                (read-string (format "Messages%s: "
+                (read-string (concat "Messages"
                                      (if (numberp mh-sent-from-msg)
-                                         (format " [%d]" mh-sent-from-msg)
-                                       "")))))
+                                         (format " (default %d): " mh-sent-from-msg)
+                                       ": ")))))
   (beginning-of-line)
   (insert "#forw [")
   (and description
