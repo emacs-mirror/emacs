@@ -335,8 +335,8 @@ is slower."
 (defun gnus-completing-read-with-default (default prompt &rest args)
   ;; Like `completing-read', except that DEFAULT is the default argument.
   (let* ((prompt (if default
-		     (concat prompt " (default " default ") ")
-		   (concat prompt " ")))
+		     (concat prompt " (default " default "): ")
+		   (concat prompt ": ")))
 	 (answer (apply 'completing-read prompt args)))
     (if (or (null answer) (zerop (length answer)))
 	default

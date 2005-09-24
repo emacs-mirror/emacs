@@ -4197,7 +4197,7 @@ Otherwise, generate and save a value for `canlock-password' first."
 		   (zerop
 		    (length
 		     (setq to (completing-read
-			       "Followups to (default: no Followup-To header) "
+			       "Followups to (default no Followup-To header): "
 			       (mapcar #'list
 				       (cons "poster"
 					     (message-tokenize-header

@@ -1,8 +1,22 @@
+2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
+
+	* smime.el (smime-sign-buffer, smime-decrypt-buffer):
+	* mm-view.el (mm-view-pkcs7-decrypt):
+	* gnus-sum.el (gnus-summary-limit-to-extra)
+	(gnus-summary-respool-article, gnus-read-move-group-name):
+	* gnus-score.el (gnus-summary-increase-score):
+	* gnus-util.el (gnus-completing-read-with-default):
+	* gnus-art.el (gnus-read-save-file-name)
+	(gnus-summary-save-in-rmail, gnus-summary-save-in-mail)
+	(gnus-summary-save-in-file, gnus-summary-save-body-in-file):
+	* message.el (message-check-news-header-syntax):
+	Follow convention for reading with the minibuffer.
+
 2005-09-18  D Goel  <deego@gnufans.org>
 
 	* sieve.el (sieve-help): Fix `message' call: first arg should be a
 	format spec.
-	
+
 2005-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.el (gnus-group-startup-message): Bind image-load-path.
