@@ -1341,9 +1341,9 @@ don't support `help'."
 			nil nil symbol))))
   (if (equal symbol "") (error "No symbol"))
   (let* ((func `(lambda ()
-		  (comint-redirect-send-command (format "emacs.ehelp(%S)\n"
-							,symbol)
-						"*Help*" nil))))
+		  (comint-redirect-send-command
+		   (format "emacs.ehelp(%S, globals(), locals())\n" ,symbol)
+		   "*Help*" nil))))
     ;; Ensure we have a suitable help buffer.
     ;; Fixme: Maybe process `Related help topics' a la help xrefs and
     ;; allow C-c C-f in help buffer.
