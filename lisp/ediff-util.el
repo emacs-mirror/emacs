@@ -2111,7 +2111,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
     (if this-buf-n-th-diff-saved
 	(if (yes-or-no-p
 	     (format
-	      "You've previously copied diff region %d to buffer %S.  Confirm "
+	      "You've previously copied diff region %d to buffer %S.  Confirm? "
 	      (1+ n) buf-type))
 	    t
 	  (error "Quit"))

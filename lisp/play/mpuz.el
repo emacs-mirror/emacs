@@ -400,7 +400,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 (defun mpuz-offer-abort ()
   "Ask if user wants to abort current puzzle."
   (interactive)
-  (if (y-or-n-p "Abort game ")
+  (if (y-or-n-p "Abort game? ")
       (let ((buf (mpuz-get-buffer)))
 	(message "Mult Puzzle aborted.")
 	(setq mpuz-in-progress nil
@@ -444,7 +444,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 	       (mpuz-ding t))
 	      (t
 	       (mpuz-try-proposal letter-char digit-char))))
-    (if (y-or-n-p "Start a new game ")
+    (if (y-or-n-p "Start a new game? ")
 	(mpuz-start-new-game)
       (message "OK. I won't."))))
 
@@ -489,7 +489,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 			       (t			"not serious.")))))
     (message message)
     (sit-for 4)
-    (if (y-or-n-p (concat message "  Start a new game "))
+    (if (y-or-n-p (concat message "  Start a new game? "))
 	(mpuz-start-new-game)
       (message "Good Bye!"))))
 

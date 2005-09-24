@@ -1,7 +1,36 @@
+2005-09-25  Romain Francoise  <romain@orebokech.com>
+
+	* dired-aux.el (dired-copy-file-recursive):
+	* dired.el (dired-delete-file):
+	* ediff-mult.el (ediff-dir-diff-copy-file):
+	* ediff-util.el (ediff-test-save-region):
+	* forms.el (forms-mode):
+	* ido.el (ido-file-internal, ido-delete-file-at-head):
+	* log-edit.el (log-edit-done):
+	* ses.el (ses-yank-resize):
+	* play/gomoku.el (gomoku-human-plays, gomoku)
+	(gomoku-human-resigns, gomoku-prompt-for-other-game)
+	(gomoku-offer-a-draw):
+	* play/landmark.el (lm-human-resigns, lm):
+	* net/eudcb-ldap.el (eudc-ldap-check-base):
+	* play/mpuz.el (mpuz-offer-abort, mpuz-try-letter, mpuz-close-game):
+	* progmodes/ebrowse.el (ebrowse-find-pattern):
+	* progmodes/idlw-shell.el (idlwave-shell-set-bp-check):
+	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer): 
+	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and
+	space.
+
+	* vc.el (vc-delete-file):
+	* play/gomoku.el (gomoku-terminate-game, gomoku)
+	(gomoku-prompt-for-move, gomoku-human-takes-back):
+	* play/landmark.el (lm-human-takes-back, lm-prompt-for-move)
+	(lm-start-robot, lm-human-plays): Remove extraneous spaces in
+	messages.
+
 2005-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/rxvt.el (rxvt-register-default-colors): Add support for 255
-	color rxvt terminals by using the code xterm.el used to use before 
+	color rxvt terminals by using the code xterm.el used to use before
 	2005-04-09 in order to match the colors used by rxvt.
 
 2005-09-24  Emanuele Giaquinta <emanuele.giaquinta@gmail.com> (tiny change)

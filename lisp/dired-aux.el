@@ -1147,7 +1147,7 @@ Special value `always' suppresses confirmation."
     (if (and recursive
 	     (eq t (car attrs))
 	     (or (eq recursive 'always)
-		 (yes-or-no-p (format "Recursive copies of %s " from))))
+		 (yes-or-no-p (format "Recursive copies of %s? " from))))
 	;; This is a directory.
 	(let ((files (directory-files from nil dired-re-no-dot)))
 	  (if (eq recursive 'top) (setq recursive 'always)) ; Don't ask any more.

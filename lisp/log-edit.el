@@ -383,7 +383,7 @@ If you want to abort the commit, simply delete the buffer."
 		       (equal (log-edit-files) log-edit-initial-files)))
 	     (progn
 	       (log-edit-show-files)
-	       (not (y-or-n-p "Really commit ? "))))
+	       (not (y-or-n-p "Really commit? "))))
 	(progn (when (not win) (log-edit-hide-buf))
 	       (message "Oh, well!  Later maybe?"))
       (run-hooks 'log-edit-done-hook)

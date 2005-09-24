@@ -1239,7 +1239,7 @@ If the buffer is non-empty, delete the old header first."
           (beginning-of-line 2))          
       (cond ((fboundp 'zmacs-activate-region) (zmacs-activate-region))
             ((boundp 'make-active) (setq mark-active t)))
-      (if (yes-or-no-p "Delete and rebuilt header ")
+      (if (yes-or-no-p "Delete and rebuild header? ")
           (delete-region (point-min) (point))))
 
     ;; Insert the mode line

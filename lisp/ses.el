@@ -2560,7 +2560,7 @@ spot, or error signal if user requests cancel."
 	  colbool  (> needcols 0))
     (when (or rowbool colbool)
       ;;Need to insert.  Get confirm
-      (or (y-or-n-p (format "Yank will insert %s%s%s.  Continue "
+      (or (y-or-n-p (format "Yank will insert %s%s%s.  Continue? "
 			    (if rowbool (format "%d rows" needrows) "")
 			    (if (and rowbool colbool) " and " "")
 			    (if colbool (format "%d columns" needcols) "")))

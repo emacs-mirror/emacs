@@ -2727,7 +2727,7 @@ backend to NEW-BACKEND, and unregister FILE from the current backend.
       (error "Deleting files under %s is not supported in VC" backend))
     (if (and buf (buffer-modified-p buf))
 	(error "Please save files before deleting them"))
-    (unless (y-or-n-p (format "Really want to delete %s ? "
+    (unless (y-or-n-p (format "Really want to delete %s? "
 			      (file-name-nondirectory file)))
       (error "Abort!"))
     (unless (or (file-directory-p file) (null make-backup-files))
