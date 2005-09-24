@@ -1,3 +1,8 @@
+2005-09-24  Emanuele Giaquinta <emanuele.giaquinta@gmail.com> (tiny change)
+
+	* term/rxvt.el (rxvt-register-default-colors): Add support for 88
+	colors rxvt-unicode terminals by using the same code as xterm.el.
+
 2005-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/tex-mode.el (tex-font-lock-append-prop)
