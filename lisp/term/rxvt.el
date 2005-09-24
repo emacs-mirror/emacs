@@ -210,36 +210,67 @@ for the currently selected frame."
       (setq colors (cdr colors)
 	    color (car colors)
 	    ncolors (1- ncolors)))
-    (when (and (> ncolors 0) (= ncolors 72))  ; rxvt-unicode
-      ;; 64 non-gray colors
-      (let ((levels '(0 139 205 255))
-	    (r 0) (g 0) (b 0))
-	(while (> ncolors 8)
+    (when (> ncolors 0)
+      (cond
+       ((= ncolors 240)			; 256-color rxvt
+	;; 216 non-gray colors first
+	(let ((r 0) (g 0) (b 0))
+	  (while (> ncolors 24)
+	    ;; This and other formulae taken from 256colres.pl and
+	    ;; 88colres.pl in the xterm distribution.
+	    (tty-color-define (format "color-%d" (- 256 ncolors))
+			      (- 256 ncolors)
+			      (mapcar 'rxvt-rgb-convert-to-16bit
+				      (list (round (* r 42.5))
+					    (round (* g 42.5))
+					    (round (* b 42.5)))))
+	    (setq b (1+ b))
+	    (if (> b 5)
+		(setq g (1+ g)
+		      b 0))
+	    (if (> g 5)
+		(setq r (1+ r)
+		      g 0))
+	    (setq ncolors (1- ncolors))))
+	;; Now the 24 gray colors
+	(while (> ncolors 0)
+	  (setq color (rxvt-rgb-convert-to-16bit (+ 8 (* (- 24 ncolors) 10))))
+	  (tty-color-define (format "color-%d" (- 256 ncolors))
+			    (- 256 ncolors)
+			    (list color color color))
+	  (setq ncolors (1- ncolors))))
+       
+       ((and (> ncolors 0) (= ncolors 72)) ; rxvt-unicode
+	;; 64 non-gray colors
+	(let ((levels '(0 139 205 255))
+	      (r 0) (g 0) (b 0))
+	  (while (> ncolors 8)
+	    (tty-color-define (format "color-%d" (- 88 ncolors))
+			      (- 88 ncolors)
+			      (mapcar 'rxvt-rgb-convert-to-16bit
+				      (list (nth r levels)
+					    (nth g levels)
+					    (nth b levels))))
+	    (setq b (1+ b))
+	    (if (> b 3)
+		(setq g (1+ g)
+		      b 0))
+	    (if (> g 3)
+		(setq r (1+ r)
+		      g 0))
+	    (setq ncolors (1- ncolors))))
+	;; Now the 8 gray colors
+	(while (> ncolors 0)
+	  (setq color (rxvt-rgb-convert-to-16bit
+		       (floor
+			(if (= ncolors 8)
+			    46.36363636
+			  (+ (* (- 8 ncolors) 23.18181818) 69.54545454)))))
 	  (tty-color-define (format "color-%d" (- 88 ncolors))
 			    (- 88 ncolors)
-			    (mapcar 'rxvt-rgb-convert-to-16bit
-				    (list (nth r levels)
-					  (nth g levels)
-					  (nth b levels))))
-	  (setq b (1+ b))
-	  (if (> b 3)
-	      (setq g (1+ g)
-		    b 0))
-	  (if (> g 3)
-	      (setq r (1+ r)
-		    g 0))
+			    (list color color color))
 	  (setq ncolors (1- ncolors))))
-      ;; Now the 8 gray colors
-      (while (> ncolors 0)
-	(setq color (rxvt-rgb-convert-to-16bit
-		     (floor
-		      (if (= ncolors 8)
-			  46.36363636
-			(+ (* (- 8 ncolors) 23.18181818) 69.54545454)))))
-	(tty-color-define (format "color-%d" (- 88 ncolors))
-			  (- 88 ncolors)
-			  (list color color color))
-	(setq ncolors (1- ncolors))))
+       (t (error "Unsupported number of rxvt colors (%d)" (+ 16 ncolors)))))
     ;; Modifying color mappings means realized faces don't use the
     ;; right colors, so clear them.
     (clear-face-cache)))

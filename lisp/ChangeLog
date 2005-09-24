@@ -1,3 +1,9 @@
+2005-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/rxvt.el (rxvt-register-default-colors): Add support for 255
+	color rxvt terminals by using the code xterm.el used to use before 
+	2005-04-09 in order to match the colors used by rxvt.
+
 2005-09-24  Emanuele Giaquinta <emanuele.giaquinta@gmail.com> (tiny change)
 
 	* term/rxvt.el (rxvt-register-default-colors): Add support for 88
