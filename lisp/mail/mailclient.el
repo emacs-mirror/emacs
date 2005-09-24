@@ -170,4 +170,5 @@ The mail client is taken to be the handler of mailto URLs."
 
 (provide 'mailclient)
 
+;; arch-tag: 35d10fc8-a1bc-4f29-a4e6-c288e53578ef
 ;;; mailclient.el ends here
