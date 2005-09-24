@@ -1,3 +1,11 @@
+2005-09-25  Romain Francoise  <romain@orebokech.com>
+
+	* gnus-agent.el (gnus-agent-expire-group, gnus-agent-expire):
+	* gnus-start.el (gnus-subscribe-interactively):
+	* gnus-uu.el (gnus-uu-grab-articles):
+	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and
+	space.
+
 2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
 
 	* smime.el (smime-sign-buffer, smime-decrypt-buffer):

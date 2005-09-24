@@ -2934,7 +2934,7 @@ FORCE is equivalent to setting the expiration predicates to true."
       (if (or (not (eq articles t))
               (yes-or-no-p
                (concat "Are you sure that you want to "
-                       "expire all articles in " group ".")))
+                       "expire all articles in " group "? ")))
           (let ((gnus-command-method (gnus-find-method-for-group group))
                 (overview (gnus-get-buffer-create " *expire overview*"))
                 orig)
@@ -3308,7 +3308,7 @@ FORCE is equivalent to setting the expiration predicates to true."
       (gnus-agent-expire-group group articles force)
     (if (or (not (eq articles t))
             (yes-or-no-p "Are you sure that you want to expire all \
-articles in every agentized group."))
+articles in every agentized group? "))
         (let ((methods (gnus-agent-covered-methods))
               ;; Bind gnus-agent-expire-current-dirs to enable tracking
               ;; of agent directories.
