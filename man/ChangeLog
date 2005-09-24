@@ -47,8 +47,8 @@
 
 2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
 
-	* makefile.w32-in (newsticker.dvi): Fix erroneous use of curly
-	brackets on macro `srcdir'.
+	* makefile.w32-in (newsticker.dvi): Use parentheses instead of curly
+	braces (which are unsupported by NMAKE) for macro `srcdir'.
 
 2005-09-17  Eli Zaretskii  <eliz@gnu.org>
 
