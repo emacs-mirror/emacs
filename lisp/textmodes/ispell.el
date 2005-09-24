@@ -880,6 +880,16 @@ and added as a submenu of the \"Edit\" menu.")
 (defvar ispell-have-aspell-dictionaries nil
   "Non-nil if we have queried Aspell for dictionaries at least once.")
 
+(defun ispell-maybe-find-aspell-dictionaries ()
+  "Find Aspell's dictionaries, unless already done."
+  (when (and (not ispell-have-aspell-dictionaries)
+	     (condition-case ()
+		 (progn (ispell-check-version) t)
+	       (error nil))
+	     ispell-really-aspell
+	     ispell-aspell-supports-utf8)
+    (ispell-find-aspell-dictionaries)))
+
 (defun ispell-find-aspell-dictionaries ()
   "Find Aspell's dictionaries, and record in `ispell-dictionary-alist'."
   (interactive)
@@ -976,13 +986,7 @@ Assumes that value contains no whitespace."
   "Returns a list of valid dictionaries.
 The variable `ispell-library-directory' defines the library location."
   ;; If Ispell is really Aspell, query it for the dictionary list.
-  (when (and (not ispell-have-aspell-dictionaries)
-	     (condition-case ()
-		 (progn (ispell-check-version) t)
-	       (error nil))
-	     ispell-really-aspell
-	     ispell-aspell-supports-utf8)
-    (ispell-find-aspell-dictionaries))
+  (ispell-maybe-find-aspell-dictionaries)
   (let ((dicts (append ispell-local-dictionary-alist ispell-dictionary-alist))
 	(dict-list (cons "default" nil))
 	name load-dict)
@@ -3573,6 +3577,7 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 (defun ispell-accept-buffer-local-defs ()
   "Load all buffer-local information, restarting Ispell when necessary."
+  (ispell-maybe-find-aspell-dictionaries)
   (ispell-buffer-local-dict)		; May kill ispell-process.
   (ispell-buffer-local-words)		; Will initialize ispell-process.
   (ispell-buffer-local-parsing))
