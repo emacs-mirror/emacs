@@ -166,13 +166,20 @@ will prompt for other arguments."
   ;; OPT-ARGS is a list of optional argument indices, as given by
   ;; `reftex-parse-args'.
   (let* ((opt (and (integerp itag) (member itag opt-args)))
-         (index-tags (cdr (assq 'index-tags 
-                                (symbol-value reftex-docstruct-symbol))))
-         (default (reftex-default-index))
-         (prompt (concat "Index tag"
-                         (if default (format " (default: %s)" default) "")
-                         (if opt " (optional)" "") ": "))
-         (tag (completing-read prompt (mapcar 'list index-tags))))
+	 (index-tags (cdr (assq 'index-tags
+				(symbol-value reftex-docstruct-symbol))))
+	 (default (reftex-default-index))
+	 (prompt (concat "Index tag"
+			 (if (or opt default)
+			     (format " (%s): "
+				     (concat
+				      (if opt "optional" "")
+				      (if default
+					  (concat (if opt ", " "")
+						  (format "default %s" default))
+					"")))
+			   ": ")))
+	 (tag (completing-read prompt (mapcar 'list index-tags))))
     (if (and default (equal tag "")) (setq tag default))
     (reftex-update-default-index tag)
     tag))

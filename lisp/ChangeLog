@@ -1,3 +1,75 @@
+2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
+
+	* woman.el (woman-file-name):
+	* wid-edit.el (widget-file-prompt-value)
+	(widget-coding-system-prompt-value):
+	* w32-fns.el (set-w32-system-coding-system):
+	* vc.el (vc-version-diff, vc-annotate):
+	* textmodes/reftex-auc.el (reftex-arg-cite)
+	(reftex-arg-index-tag):
+	* textmodes/refer.el (refer-get-bib-files):
+	* textmodes/artist.el (artist-figlet-choose-font):
+	* terminal.el (terminal-emulator):
+	* replace.el (occur-read-primary-args):
+	* rect.el (string-rectangle, string-insert-rectangle):
+	* ps-print.el (ps-print-preprint):
+	* progmodes/pascal.el (pascal-goto-defun):
+	* progmodes/etags.el (visit-tags-table, visit-tags-table-buffer):
+	* progmodes/compile.el (compilation-find-file):
+	* printing.el (pr-interactive-n-up):
+	* play/animate.el (animate-birthday-present):
+	* net/rcompile.el (remote-compile):
+	* man.el (man, Man-goto-section, Man-follow-manual-reference):
+	* mail/rmailsum.el (rmail-summary-search-backward)
+	(rmail-summary-search):
+	* mail/rmailout.el (rmail-output-read-rmail-file-name)
+	(rmail-output-read-file-name):
+	* mail/rmail.el (rmail-search, rmail-search-backwards):
+	* mail/mailabbrev.el (merge-mail-abbrevs, rebuild-mail-abbrevs):
+	* locate.el (locate):
+	* international/quail.el (quail-show-keyboard-layout):
+	* international/mule.el (set-buffer-file-coding-system)
+	(revert-buffer-with-coding-system, set-file-name-coding-system)
+	(set-terminal-coding-system, set-keyboard-coding-system)
+	(set-next-selection-coding-system):
+	* international/mule-diag.el (describe-coding-system)
+	(describe-font, describe-fontset):
+	* international/mule-cmds.el (universal-coding-system-argument)
+	(search-unencodable-char, describe-input-method)
+	(set-language-environment, describe-language-environment):
+	* international/codepage.el (codepage-setup):
+	* international/code-pages.el (codepage-setup):
+	* info.el (Info-search, Info-follow-reference)
+	(Info-search-backward):
+	* emacs-lisp/advice.el (ad-read-advised-function)
+	(ad-read-advice-class, ad-clear-cache, ad-activate)
+	(ad-deactivate, ad-update, ad-unadvise, ad-read-advice-name)
+	(ad-enable-advice, ad-disable-advice, ad-remove-advice)
+	(ad-read-regexp):
+	* ediff-util.el (ediff-toggle-regexp-match):
+	* ediff-ptch.el (ediff-prompt-for-patch-file):
+	* dired-aux.el (dired-diff):
+	* diff.el (diff):
+	* cus-edit.el (custom-variable-prompt):
+	* calendar/timeclock.el (timeclock-ask-for-project):
+	* calc/calcalg3.el (calc-get-fit-variables):
+	* calc/calc-store.el (calc-edit-variable)
+	(calc-permanent-variable):
+	* vc-mcvs.el (vc-mcvs-register):
+	* shadowfile.el (shadow-define-literal-group):
+	* woman.el (woman-file-name):
+	* vc.el (vc-version-diff, vc-merge):
+	* textmodes/reftex-index.el (reftex-index-complete-tag):
+	* format.el (format-decode-buffer, format-decode-region):
+	* emulation/viper-cmd.el (viper-read-string-with-history):
+	* emacs-lisp/debug.el (cancel-debug-on-entry):
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	* ediff.el (ediff-merge-revisions)
+	(ediff-merge-revisions-with-ancestor, ediff-revision):
+	* completion.el (interactive-completion-string-reader):
+	* calc/calc-prog.el (calc-user-define-formula):
+	Follow convention for reading with the minibuffer.
+
 2005-09-24  Steven Huwig  <steven_h@acm.org>  (tiny change)
 
 	* progmodes/python.el (python-describe-symbol): Add globals() and

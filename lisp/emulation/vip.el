@@ -893,7 +893,7 @@ is the name of the register for COM."
 each line in the region."
   (setq vip-quote-string
 	(let ((str
-	       (vip-read-string (format "quote string \(default \"%s\"\): "
+	       (vip-read-string (format "quote string (default %s): "
 					vip-quote-string))))
 	  (if (string= str "") vip-quote-string str)))
   (vip-enlarge-region (point) (mark))

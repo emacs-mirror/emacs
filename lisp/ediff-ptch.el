@@ -485,7 +485,7 @@ are two possible targets for this patch.  However, these files do not exist."
 	patch-file-name)
     (setq patch-file-name
 	  (read-file-name
-	   (format "Patch is in file:%s "
+	   (format "Patch is in file%s: "
 		   (cond ((and buffer-file-name
 			       (equal (expand-file-name dir)
 				      (file-name-directory buffer-file-name)))

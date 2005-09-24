@@ -278,7 +278,7 @@ wrong, use this command again to toggle back to the right mode."
 		       buffer-file-coding-system)))
      (list (read-coding-system
 	    (if default
-		(format "Coding system for following command (default, %s): " default)
+		(format "Coding system for following command (default %s): " default)
 	      "Coding system for following command: ")
 	    default))))
   (let* ((keyseq (read-key-sequence
@@ -616,7 +616,7 @@ or nil if all characters are encodable."
   (interactive
    (list (let ((default (or buffer-file-coding-system 'us-ascii)))
 	   (read-coding-system
-	    (format "Coding-system (default, %s): " default)
+	    (format "Coding-system (default %s): " default)
 	    default))))
   (let ((pos (unencodable-char-position (point) (point-max) coding-system)))
     (if pos
@@ -1490,7 +1490,7 @@ which marks the variable `default-input-method' as set for Custom buffers."
   "Describe input method INPUT-METHOD."
   (interactive
    (list (read-input-method-name
-	  "Describe input method (default, current choice): ")))
+	  "Describe input method (default current choice): ")))
   (if (and input-method (symbolp input-method))
       (setq input-method (symbol-name input-method)))
   (help-setup-xref (list #'describe-input-method
@@ -1810,7 +1810,7 @@ which is the name of a language environment.  For example, \"Latin-1\"
 specifies the character set for the major languages of Western Europe."
   (interactive (list (read-language-name
 		      nil
-		      "Set language environment (default, English): ")))
+		      "Set language environment (default English): ")))
   (if language-name
       (if (symbolp language-name)
 	  (setq language-name (symbol-name language-name)))
@@ -1986,7 +1986,7 @@ of `buffer-file-coding-system' set by this function."
   (interactive
    (list (read-language-name
 	  'documentation
-	  "Describe language environment (default, current choice): ")))
+	  "Describe language environment (default current choice): ")))
   (if (null language-name)
       (setq language-name current-language-environment))
   (if (or (null language-name)
@@ -2014,7 +2014,7 @@ of `buffer-file-coding-system' set by this function."
 	      (l (copy-sequence input-method-alist)))
 	  (insert "Input methods")
 	  (when input-method
-	    (insert " (default, " input-method ")")
+	    (insert " (default " input-method ")")
 	    (setq input-method (assoc input-method input-method-alist))
 	    (setq l (cons input-method (delete input-method l))))
 	  (insert ":\n")

@@ -2219,18 +2219,18 @@ a regular expression typed in by the user."
 	    regexp-A
 	    (read-string
 	     (format
-	      "Ignore A-regions matching this regexp (default \"%s\"): "
+	      "Ignore A-regions matching this regexp (default %s): "
 	      ediff-regexp-hide-A))
 	    regexp-B
 	    (read-string
 	     (format
-	      "Ignore B-regions matching this regexp (default \"%s\"): "
+	      "Ignore B-regions matching this regexp (default %s): "
 	      ediff-regexp-hide-B)))
       (if ediff-3way-comparison-job
 	  (setq regexp-C
 		(read-string
 		 (format
-		  "Ignore C-regions matching this regexp (default \"%s\"): "
+		  "Ignore C-regions matching this regexp (default %s): "
 		  ediff-regexp-hide-C))))
       (if (eq ediff-hide-regexp-connective 'and)
 	  (setq msg-connective "BOTH"
@@ -2258,18 +2258,18 @@ a regular expression typed in by the user."
 	    regexp-A
 	    (read-string
 	     (format
-	      "Focus on A-regions matching this regexp (default \"%s\"): "
+	      "Focus on A-regions matching this regexp (default %s): "
 	      ediff-regexp-focus-A))
 	    regexp-B
 	    (read-string
 	     (format
-	      "Focus on B-regions matching this regexp (default \"%s\"): "
+	      "Focus on B-regions matching this regexp (default %s): "
 	      ediff-regexp-focus-B)))
       (if ediff-3way-comparison-job
 	  (setq regexp-C
 		(read-string
 		 (format
-		  "Focus on C-regions matching this regexp (default \"%s\"): "
+		  "Focus on C-regions matching this regexp (default %s): "
 		  ediff-regexp-focus-C))))
       (if (eq ediff-focus-regexp-connective 'and)
 	  (setq msg-connective "BOTH"

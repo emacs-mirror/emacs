@@ -1261,13 +1261,13 @@ buffer."
     (setq rev1
 	  (read-string
 	   (format
-	    "Version 1 to merge (default: %s's working version): "
+	    "Version 1 to merge (default %s's working version): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
 	  rev2
 	  (read-string
 	   (format
-	    "Version 2 to merge (default: %s): "
+	    "Version 2 to merge (default %s): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer"))))
     (ediff-load-version-control)
@@ -1293,19 +1293,19 @@ buffer."
     (setq rev1
 	  (read-string
 	   (format
-	    "Version 1 to merge (default: %s's working version): "
+	    "Version 1 to merge (default %s's working version): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
 	  rev2
 	  (read-string
 	   (format
-	    "Version 2 to merge (default: %s): "
+	    "Version 2 to merge (default %s): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer")))
 	  ancestor-rev
 	  (read-string
 	   (format
-	    "Ancestor version (default: %s's base revision): "
+	    "Ancestor version (default %s's base revision): "
 	    (if (stringp file)
 		(file-name-nondirectory file) "current buffer"))))
     (ediff-load-version-control)
@@ -1411,11 +1411,11 @@ Uses `vc.el' or `rcs.el' depending on `ediff-version-control-package'."
   (let (rev1 rev2)
     (setq rev1
 	  (read-string
-	   (format "Revision 1 to compare (default: %s's latest revision): "
+	   (format "Revision 1 to compare (default %s's latest revision): "
 		   (file-name-nondirectory file)))
 	  rev2
 	  (read-string
-	   (format "Revision 2 to compare (default: %s's current state): "
+	   (format "Revision 2 to compare (default %s's current state): "
 		   (file-name-nondirectory file))))
     (ediff-load-version-control)
     (funcall

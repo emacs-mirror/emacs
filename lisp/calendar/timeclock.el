@@ -599,7 +599,7 @@ relative only to the time worked today, and not to past time."
 (defun timeclock-ask-for-project ()
   "Ask the user for the project they are clocking into."
   (timeclock-completing-read
-   (format "Clock into which project (default \"%s\"): "
+   (format "Clock into which project (default %s): "
 	   (or timeclock-last-project
 	       (car timeclock-project-list)))
    (mapcar 'list timeclock-project-list)

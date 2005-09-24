@@ -67,8 +67,8 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
       (setq items (list (or (reftex-citation t) ""))))
      (t
       (setq prompt (concat (if optional "(Optional) " "")
-                           (if prompt prompt "Add key")
-                           ": (default none) "))
+			   (if prompt prompt "Add key")
+			   " (default none): "))
       (setq items (multi-prompt "," t prompt (LaTeX-bibitem-list)))))
     (apply 'LaTeX-add-bibitems items)
     (TeX-argument-insert (mapconcat 'identity items ",") optional)))
@@ -79,8 +79,8 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
 This is the name of an index, not the entry."
   (let (tag taglist)
     (setq prompt (concat (if optional "(Optional) " "")
-                         (if prompt prompt "Index tag")
-                         ": (default none) "))
+			 (if prompt prompt "Index tag")
+			 " (default none): "))
     (if (and reftex-support-index (reftex-plug-flag 4))
         ;; Use RefTeX completion
         (progn

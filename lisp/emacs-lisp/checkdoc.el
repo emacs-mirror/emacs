@@ -1585,7 +1585,7 @@ mouse-[0-3]\\)\\)\\>"))
 		     ;; a prefix.
 		     (let ((disambiguate
 			    (completing-read
-			     "Disambiguating Keyword (default: variable): "
+			     "Disambiguating Keyword (default variable): "
 			     '(("function") ("command") ("variable")
 			       ("option") ("symbol"))
 			     nil t nil nil "variable")))
