@@ -1,3 +1,8 @@
+2005-09-24  Steven Huwig  <shuwig@columbus.rr.com>  (tiny change)
+
+	* progmodes/python.el (python-describe-symbol): Add globals() and
+	locals() to the arguments of emacs.ehelp.
+
 2005-09-24  Magnus Henoch  <mange@freemail.hu>
 
 	* textmodes/ispell.el (ispell-maybe-find-aspell-dictionaries): New
