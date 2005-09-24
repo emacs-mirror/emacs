@@ -1,3 +1,9 @@
+2005-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-append-prop)
+	(tex-font-lock-suscript, tex-insert-quote, latex-indent): Adjust to the
+	new symbol used for the tex-verbatim face.
+
 2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
 
 	* woman.el (woman-file-name):
@@ -77,8 +83,8 @@
 
 2005-09-24  Magnus Henoch  <mange@freemail.hu>
 
-	* textmodes/ispell.el (ispell-maybe-find-aspell-dictionaries): New
-	function, code extracted from ispell-valid-dictionary-list.
+	* textmodes/ispell.el (ispell-maybe-find-aspell-dictionaries):
+	New function, code extracted from ispell-valid-dictionary-list.
 	(ispell-valid-dictionary-list, ispell-accept-buffer-local-defs):
 	Call it.
 
@@ -87,8 +93,7 @@
 	* subr.el (version-regexp-alist): Extend valid syntax for version
 	strings: allow any of the characters -,_,+ to separate the
 	alpha/beta/rc part from the version part.  Doc fix.
-	(version-to-list): Doc fix.  Bind case-fold-search to t, as
-	advertised.
+	(version-to-list): Doc fix.  Bind case-fold-search to t, as advertised.
 
 2005-09-23  David Reitter  <david.reitter@gmail.com>
 
@@ -100,8 +105,8 @@
 	(flyspell-incorrect-hook, flyspell-highlight-duplicate-region):
 	Doc fixes.
 
-	* progmodes/cc-mode.el (c-font-lock-init): Specify
-	font-lock-lines-before.
+	* progmodes/cc-mode.el (c-font-lock-init):
+	Specify font-lock-lines-before.
 
 2005-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
