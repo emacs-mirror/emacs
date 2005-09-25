@@ -240,7 +240,7 @@ for the currently selected frame."
 			    (list color color color))
 	  (setq ncolors (1- ncolors))))
        
-       ((and (> ncolors 0) (= ncolors 72)) ; rxvt-unicode
+       ((= ncolors 72) ; rxvt-unicode
 	;; 64 non-gray colors
 	(let ((levels '(0 139 205 255))
 	      (r 0) (g 0) (b 0))

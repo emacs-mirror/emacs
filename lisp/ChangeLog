@@ -1,3 +1,8 @@
+2005-09-24  Andreas Schwab  <schwab@suse.de>
+
+	* term/rxvt.el (rxvt-register-default-colors): Delete redundant
+	condition. 
+	
 2005-09-25  Romain Francoise  <romain@orebokech.com>
 
 	* dired-aux.el (dired-copy-file-recursive):
