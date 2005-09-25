@@ -419,7 +419,7 @@ detailed meanings of these arguments."
 ;;;###autoload
 (defun describe-coding-system (coding-system)
   "Display information about CODING-SYSTEM."
-  (interactive "zDescribe coding system (default, current choices): ")
+  (interactive "zDescribe coding system (default current choices): ")
   (if (null coding-system)
       (describe-current-coding-system)
     (help-setup-xref (list #'describe-coding-system coding-system)
@@ -831,7 +831,7 @@ but still contains full information about each coding system."
 ;;;###autoload
 (defun describe-font (fontname)
   "Display information about fonts which partially match FONTNAME."
-  (interactive "sFontname (default, current choice for ASCII chars): ")
+  (interactive "sFontname (default current choice for ASCII chars): ")
   (or (and window-system (fboundp 'fontset-list))
       (error "No fontsets being used"))
   (when (or (not fontname) (= (length fontname) 0))
@@ -921,7 +921,7 @@ This shows which font is used for which character(s)."
 			  (mapcar 'cdr fontset-alias-alist)))
 	   (completion-ignore-case t))
        (list (completing-read
-	      "Fontset (default, used by the current frame): "
+	      "Fontset (default used by the current frame): "
 	      fontset-list nil t)))))
   (if (= (length fontset) 0)
       (setq fontset (frame-parameter nil 'font)))

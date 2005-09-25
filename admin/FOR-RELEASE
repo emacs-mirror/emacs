@@ -57,36 +57,6 @@ TCP/IP server processes created with `make-network-process' consume
 excesive CPU on some Windows environments.  Usages of 50% and 100%
 CPU time have been observed on different Window XP configurations.
 
-** Bug in ebrowse
-
-Date: Fri, 27 May 2005 17:35:48 +0200
-From: Markus Gritsch <gritsch@iue.tuwien.ac.at>
-
-the C++ header file which led to the problematic BROWSE file reads
-
-namespace test {
-     class Base
-     {
-     };
-
-     class B : public Base
-     {
-     };
-}
-
-class A : public test::Base
-{
-};
-
-The *Tree* is then displayed as
-
-   *Globals*
-   test
-   test::Base
-     test::B
-
-The class A seems to be missing.
-
 * DOCUMENTATION
 
 ** Update man/info.texi.

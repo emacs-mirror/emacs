@@ -1424,10 +1424,10 @@ not indent and do not delete headers.  Leaves the mark before the letter
 and point after it."
   (interactive
    (list (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
-         (read-input (format "Message number%s: "
+         (read-input (concat "Message number"
                              (if (numberp mh-sent-from-msg)
-                                 (format " [%d]" mh-sent-from-msg)
-                               "")))
+                                 (format " (default %d): " mh-sent-from-msg)
+                               ": ")))
          current-prefix-arg))
   (save-restriction
     (narrow-to-region (point) (point))

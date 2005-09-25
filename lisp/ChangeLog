@@ -1,3 +1,267 @@
+2005-09-24  Andreas Schwab  <schwab@suse.de>
+
+	* term/rxvt.el (rxvt-register-default-colors): Delete redundant
+	condition. 
+	
+2005-09-25  Romain Francoise  <romain@orebokech.com>
+
+	* dired-aux.el (dired-copy-file-recursive):
+	* dired.el (dired-delete-file):
+	* ediff-mult.el (ediff-dir-diff-copy-file):
+	* ediff-util.el (ediff-test-save-region):
+	* forms.el (forms-mode):
+	* ido.el (ido-file-internal, ido-delete-file-at-head):
+	* log-edit.el (log-edit-done):
+	* ses.el (ses-yank-resize):
+	* play/gomoku.el (gomoku-human-plays, gomoku)
+	(gomoku-human-resigns, gomoku-prompt-for-other-game)
+	(gomoku-offer-a-draw):
+	* play/landmark.el (lm-human-resigns, lm):
+	* net/eudcb-ldap.el (eudc-ldap-check-base):
+	* play/mpuz.el (mpuz-offer-abort, mpuz-try-letter, mpuz-close-game):
+	* progmodes/ebrowse.el (ebrowse-find-pattern):
+	* progmodes/idlw-shell.el (idlwave-shell-set-bp-check):
+	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer): 
+	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and
+	space.
+
+	* vc.el (vc-delete-file):
+	* play/gomoku.el (gomoku-terminate-game, gomoku)
+	(gomoku-prompt-for-move, gomoku-human-takes-back):
+	* play/landmark.el (lm-human-takes-back, lm-prompt-for-move)
+	(lm-start-robot, lm-human-plays): Remove extraneous spaces in
+	messages.
+
+2005-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/rxvt.el (rxvt-register-default-colors): Add support for 255
+	color rxvt terminals by using the code xterm.el used to use before
+	2005-04-09 in order to match the colors used by rxvt.
+
+2005-09-24  Emanuele Giaquinta <emanuele.giaquinta@gmail.com> (tiny change)
+
+	* term/rxvt.el (rxvt-register-default-colors): Add support for 88
+	colors rxvt-unicode terminals by using the same code as xterm.el.
+
+2005-09-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-append-prop)
+	(tex-font-lock-suscript, tex-insert-quote, latex-indent): Adjust to the
+	new symbol used for the tex-verbatim face.
+
+2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
+
+	* woman.el (woman-file-name):
+	* wid-edit.el (widget-file-prompt-value)
+	(widget-coding-system-prompt-value):
+	* w32-fns.el (set-w32-system-coding-system):
+	* vc.el (vc-version-diff, vc-annotate):
+	* textmodes/reftex-auc.el (reftex-arg-cite)
+	(reftex-arg-index-tag):
+	* textmodes/refer.el (refer-get-bib-files):
+	* textmodes/artist.el (artist-figlet-choose-font):
+	* terminal.el (terminal-emulator):
+	* replace.el (occur-read-primary-args):
+	* rect.el (string-rectangle, string-insert-rectangle):
+	* ps-print.el (ps-print-preprint):
+	* progmodes/pascal.el (pascal-goto-defun):
+	* progmodes/etags.el (visit-tags-table, visit-tags-table-buffer):
+	* progmodes/compile.el (compilation-find-file):
+	* printing.el (pr-interactive-n-up):
+	* play/animate.el (animate-birthday-present):
+	* net/rcompile.el (remote-compile):
+	* man.el (man, Man-goto-section, Man-follow-manual-reference):
+	* mail/rmailsum.el (rmail-summary-search-backward)
+	(rmail-summary-search):
+	* mail/rmailout.el (rmail-output-read-rmail-file-name)
+	(rmail-output-read-file-name):
+	* mail/rmail.el (rmail-search, rmail-search-backwards):
+	* mail/mailabbrev.el (merge-mail-abbrevs, rebuild-mail-abbrevs):
+	* locate.el (locate):
+	* international/quail.el (quail-show-keyboard-layout):
+	* international/mule.el (set-buffer-file-coding-system)
+	(revert-buffer-with-coding-system, set-file-name-coding-system)
+	(set-terminal-coding-system, set-keyboard-coding-system)
+	(set-next-selection-coding-system):
+	* international/mule-diag.el (describe-coding-system)
+	(describe-font, describe-fontset):
+	* international/mule-cmds.el (universal-coding-system-argument)
+	(search-unencodable-char, describe-input-method)
+	(set-language-environment, describe-language-environment):
+	* international/codepage.el (codepage-setup):
+	* international/code-pages.el (codepage-setup):
+	* info.el (Info-search, Info-follow-reference)
+	(Info-search-backward):
+	* emacs-lisp/advice.el (ad-read-advised-function)
+	(ad-read-advice-class, ad-clear-cache, ad-activate)
+	(ad-deactivate, ad-update, ad-unadvise, ad-read-advice-name)
+	(ad-enable-advice, ad-disable-advice, ad-remove-advice)
+	(ad-read-regexp):
+	* ediff-util.el (ediff-toggle-regexp-match):
+	* ediff-ptch.el (ediff-prompt-for-patch-file):
+	* dired-aux.el (dired-diff):
+	* diff.el (diff):
+	* cus-edit.el (custom-variable-prompt):
+	* calendar/timeclock.el (timeclock-ask-for-project):
+	* calc/calcalg3.el (calc-get-fit-variables):
+	* calc/calc-store.el (calc-edit-variable)
+	(calc-permanent-variable):
+	* vc-mcvs.el (vc-mcvs-register):
+	* shadowfile.el (shadow-define-literal-group):
+	* woman.el (woman-file-name):
+	* vc.el (vc-version-diff, vc-merge):
+	* textmodes/reftex-index.el (reftex-index-complete-tag):
+	* format.el (format-decode-buffer, format-decode-region):
+	* emulation/viper-cmd.el (viper-read-string-with-history):
+	* emacs-lisp/debug.el (cancel-debug-on-entry):
+	* emacs-lisp/checkdoc.el (checkdoc-this-string-valid-engine):
+	* ediff.el (ediff-merge-revisions)
+	(ediff-merge-revisions-with-ancestor, ediff-revision):
+	* completion.el (interactive-completion-string-reader):
+	* calc/calc-prog.el (calc-user-define-formula):
+	Follow convention for reading with the minibuffer.
+
+2005-09-24  Steven Huwig  <steven_h@acm.org>  (tiny change)
+
+	* progmodes/python.el (python-describe-symbol): Add globals() and
+	locals() to the arguments of emacs.ehelp.
+
+2005-09-24  Magnus Henoch  <mange@freemail.hu>
+
+	* textmodes/ispell.el (ispell-maybe-find-aspell-dictionaries):
+	New function, code extracted from ispell-valid-dictionary-list.
+	(ispell-valid-dictionary-list, ispell-accept-buffer-local-defs):
+	Call it.
+
+2005-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (version-regexp-alist): Extend valid syntax for version
+	strings: allow any of the characters -,_,+ to separate the
+	alpha/beta/rc part from the version part.  Doc fix.
+	(version-to-list): Doc fix.  Bind case-fold-search to t, as advertised.
+
+2005-09-23  David Reitter  <david.reitter@gmail.com>
+
+	* mail/mailclient.el: New file.
+
+2005-09-23  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-highlight-incorrect-region)
+	(flyspell-incorrect-hook, flyspell-highlight-duplicate-region):
+	Doc fixes.
+
+	* progmodes/cc-mode.el (c-font-lock-init):
+	Specify font-lock-lines-before.
+
+2005-09-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* smerge-mode.el (smerge-remove-props): Cause re-highlighting of the
+	whole conflict.
+
+2005-09-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-mode-map, orgtbl-mode-map):
+	Move keybindings with `C-c C-h' prefix to `C-c C-x' prefix.  Make use
+	of `remap' feature when available.  Additional key bindings for
+	better tty support.
+	(org-mode-restart, org-force-self-insert): New commands.
+	(org-time-stamp-inactive): New command.
+	(org-remap): New function.
+	(org-table-auto-blank-field, org-level-color-stars-only): New options.
+	(org-enable-fixed-width-editor): Move to `org-structure'
+	customization group.
+	(org-self-insert-command, orgtbl-self-insert-command): Modify to
+	blank field after field motion commands.
+
+2005-09-23  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-environment):
+	Don't check utf-translate-cjk-lang-env is nil or not on deciding if we
+	have to call utf-translate-cjk-load-tables.
+
+2005-09-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-move-drag-overlay): Fix last change.
+
+2005-09-22  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-value-create): Fix previous change.
+
+2005-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (terminal-init-xterm): Fix loading rxvt at run time.
+
+2005-09-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-move-drag-overlay): New function.
+	(mouse-drag-region-1): Use it.
+	Try to simplify a bit the state handling.  Handle clicks on links
+	inside intangible areas.
+	(mouse-save-then-kill): Minor simplification.
+	(mouse-secondary-overlay): Make it always non-nil instead of
+	recreating it each time.
+	(mouse-start-secondary, mouse-set-secondary, mouse-drag-secondary)
+	(mouse-kill-secondary, mouse-secondary-save-then-kill):
+	Simplify accordingly.
+
+2005-09-21  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/rxvt.el (rxvt-standard-colors): Fix some colors.
+
+2005-09-20  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-ptch.el (ediff-prompt-for-patch-file): More intuitive prompt.
+	(ediff-file-name-sans-prefix): Treat nil as an empty string.
+	(ediff-fixup-patch-map): Better heuristic for intuiting the file names
+	to patch.
+
+	* ediff-util.el: Use insert-buffer-substring.
+
+	* ediff-vers.el (cvs-run-ediff-on-file-descriptor): Bug fix.
+
+	* emulation/viper-cmd.el (viper-change-state): Don't move over the
+	field boundaries in the minibuffer.
+	(viper-set-minibuffer-style): Add viper-minibuffer-post-command-hook.
+	(viper-minibuffer-post-command-hook): New hook.
+	(viper-line): Don't move cursor at bolp.
+
+	* emulation/viper-ex.el (ex-pwd, viper-info-on-file): Fix message.
+
+	* emulation/viper-init.el: Add alias to make-variable-buffer-local to
+	avoid compiler warnings.
+
+	* emulation/viper-macs.el (ex-map): Better messages.
+
+	* emulation/viper-utils.el (viper-beginning-of-field): New function.
+
+	* emulation/viper.el: Replace make-variable-buffer-local with
+	viper-make-variable-buffer-local everywhere, to avoid warnings.
+
+2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mouse.el (mouse-drag-mode-line-1, mouse-drag-vertical-line):
+	Delete unused var `old-selected-window'.
+	(mouse-drag-region-1): Delete unused vars `start-frame', `end-of-range'.
+	(mouse-drag-secondary): Delete unused var `start-frame'.
+
+2005-09-19  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* term/rxvt.el (terminal-init-rxvt): Add entry for [end].
+
+2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/calendar.el (mark-visible-calendar-date): Save excursion.
+	Re-indent within 80 columns.  Use inhibit-read-only.
+
+2005-09-19  Romain Francoise  <romain@orebokech.com>
+
+	* calendar/diary-lib.el (mark-diary-entries): Revert last change.
+
+2005-09-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-default-fontify-region): Don't add a line
+	unconditionally, since the after-change-function already did it.
+
 2005-09-19  Miles Bader  <miles@gnu.org>
 
 	* net/newsticker.el: Get rid of CVS keyword.
@@ -43,150 +307,91 @@
 	two conditions were satisfied: [1] I can think of a possibility
 	that the arguments would cause an error, for example, the code in
 	question relies on external variables such as filenames.  [2] I
-	was sure that the arg to `message' could not have been nil in the
-	code.
+	was sure that the arg to `message' could not have been nil in the code.
 
 	* textmodes/tildify.el (tildify-region): Ditto.
 
 	* textmodes/reftex-index.el (reftex-index-change-entry)
-	(reftex-index-phrase-selection-or-word)
-	(reftex-query-index-phrase): Ditto.
-
-	* textmodes/reftex-dcr.el (reftex-echo-ref, reftex-echo-cite): Ditto.
-
+	(reftex-index-phrase-selection-or-word, reftex-query-index-phrase):
+	* textmodes/reftex-dcr.el (reftex-echo-ref, reftex-echo-cite):
 	* textmodes/org.el (org-complete, org-deadline, org-schedule)
-	(org-priority, org-table-sum): Ditto.
-
-	* textmodes/ispell.el (ispell-check-version)
-	(ispell-parse-output): Ditto.
-
-	* textmodes/flyspell.el (flyspell-mode-on)
-	(flyspell-notify-misspell, flyspell-word)
-	(flyspell-display-next-corrections): Ditto.
-
-	* textmodes/bibtex.el (bibtex-print-help-message): Ditto.
-
-	* textmodes/artist.el (artist-key-set-point-poly): Ditto.
-
-	* term/mac-win.el (mac-services-insert-text): Ditto.
-
+	(org-priority, org-table-sum):
+	* textmodes/ispell.el (ispell-check-version, ispell-parse-output):
+	* textmodes/flyspell.el (flyspell-mode-on, flyspell-notify-misspell)
+	(flyspell-word, flyspell-display-next-corrections):
+	* textmodes/bibtex.el (bibtex-print-help-message):
+	* textmodes/artist.el (artist-key-set-point-poly):
+	* term/mac-win.el (mac-services-insert-text):
 	* progmodes/vhdl-mode.el (vhdl-warning, vhdl-print-warnings)
 	(vhdl-hooked-abbrev, vhdl-template-insert-fun)
 	(vhdl-port-paste-testbench, vhdl-compose-new-component)
-	(vhdl-compose-configuration): Ditto.
-
+	(vhdl-compose-configuration):
 	* progmodes/sh-script.el (sh-blink, sh-show-indent)
-	(sh-set-indent, sh-learn-line-indent): Ditto.
-
-	* progmodes/ps-mode.el (ps-mode-target-column): Ditto.
-
+	(sh-set-indent, sh-learn-line-indent):
+	* progmodes/ps-mode.el (ps-mode-target-column):
 	* progmodes/idlwave.el (idlwave-make-tags)
-	(idlwave-scan-library-catalogs): Ditto.
-
-	* progmodes/idlw-shell.el (idlwave-shell-parse-stack-and-display): Ditto.
-
-	* progmodes/gud.el (gud-jdb-analyze-source): Ditto.
-
-	* progmodes/flymake.el (flymake-log): Ditto.
-
-	* progmodes/ebnf2ps.el (ebnf-generate-region): Ditto.
-
-	* progmodes/cmacexp.el (c-macro-expansion): Ditto.
-
-	* progmodes/ada-xref.el (ada-treat-cmd-string): Ditto.
-
+	(idlwave-scan-library-catalogs):
+	* progmodes/idlw-shell.el (idlwave-shell-parse-stack-and-display):
+	* progmodes/gud.el (gud-jdb-analyze-source):
+	* progmodes/flymake.el (flymake-log):
+	* progmodes/ebnf2ps.el (ebnf-generate-region):
+	* progmodes/cmacexp.el (c-macro-expansion):
+	* progmodes/ada-xref.el (ada-treat-cmd-string):
 	* progmodes/ada-mode.el (ada-create-case-exception-substring)
-	(ada-justified-indent-current, ada-batch-reformat): Ditto.
-
-	* play/zone.el (zone): Ditto.
-
-	* play/landmark.el (lm-move): Ditto.
-
-	* play/decipher.el (decipher-show-alphabet): Ditto.
-
+	(ada-justified-indent-current, ada-batch-reformat):
+	* play/zone.el (zone):
+	* play/landmark.el (lm-move):
+	* play/decipher.el (decipher-show-alphabet):
 	* net/newsticker.el (newsticker--display-jump)
-	(newsticker--display-scroll): Ditto.
-
+	(newsticker--display-scroll):
 	* mail/rmail-spam-filter.el (rsf-add-subject-to-spam-list)
-	(rsf-add-sender-to-spam-list, rsf-add-region-to-spam-list): Ditto.
-
-	* mail/feedmail.el (feedmail-dump-message-to-queue): Ditto.
-
-	* eshell/esh-proc.el (eshell-remove-process-entry): Ditto.
-
-	* emulation/ws-mode.el (ws-last-error): Ditto.
-
+	(rsf-add-sender-to-spam-list, rsf-add-region-to-spam-list):
+	* mail/feedmail.el (feedmail-dump-message-to-queue):
+	* eshell/esh-proc.el (eshell-remove-process-entry):
+	* emulation/ws-mode.el (ws-last-error):
 	* emulation/viper-macs.el (ex-map-read-args, ex-unmap-read-args)
-	(viper-record-kbd-macro): Ditto.
-
-	* emulation/viper-ex.el (ex-pwd, viper-info-on-file): Ditto.
-
-	* emacs-lisp/lisp-mnt.el (lm-report-bug): Ditto.
-
-	* emacs-lisp/find-func.el (find-function-noselect): Ditto.
-
+	(viper-record-kbd-macro):
+	* emulation/viper-ex.el (ex-pwd, viper-info-on-file):
+	* emacs-lisp/lisp-mnt.el (lm-report-bug):
+	* emacs-lisp/find-func.el (find-function-noselect):
 	* calendar/timeclock.el (timeclock-status-string)
-	(timeclock-workday-remaining-string)
-	(timeclock-workday-elapsed-string)
-	(timeclock-when-to-leave-string): Ditto.
-
-	* calendar/icalendar.el (icalendar--convert-ical-to-diary): Ditto.
-
-	* calc/calc-units.el (calc-enter-units-table): Ditto.
-
-	* calc/calc-mode.el (calc-mode-record-mode): Ditto.
-
-	* woman.el (woman-mini-help): Ditto.
-
-	* wdired.el (wdired-change-to-wdired-mode): Ditto.
-
-	* vc.el (vc-retrieve-snapshot): Ditto.
-
-	* strokes.el (strokes-read-stroke, strokes-read-complex-stroke): Ditto.
-
-	* startup.el (display-startup-echo-area-message): Ditto.
-
-	* simple.el (set-goal-column): Ditto.
-
-	* ses.el (ses-command-hook, ses-recalculate-cell): Ditto.
-
-	* server.el (server-process-filter): Ditto.
-
+	(timeclock-workday-remaining-string, timeclock-workday-elapsed-string)
+	(timeclock-when-to-leave-string):
+	* calendar/icalendar.el (icalendar--convert-ical-to-diary):
+	* calc/calc-units.el (calc-enter-units-table):
+	* calc/calc-mode.el (calc-mode-record-mode):
+	* woman.el (woman-mini-help):
+	* wdired.el (wdired-change-to-wdired-mode):
+	* vc.el (vc-retrieve-snapshot):
+	* strokes.el (strokes-read-stroke, strokes-read-complex-stroke):
+	* startup.el (display-startup-echo-area-message):
+	* simple.el (set-goal-column):
+	* ses.el (ses-command-hook, ses-recalculate-cell):
+	* server.el (server-process-filter):
 	* printing.el (pr-interface-txt-print, pr-interface-printify)
-	(pr-interface-ps): Ditto.
-
-	* pcvs.el (cvs-help): Ditto.
-
-	* log-edit.el (log-edit, log-edit-mode-help): Ditto.
-
-	* iswitchb.el (iswitchb-possible-new-buffer): Ditto.
-
-	* isearch.el (isearch-edit-string): Ditto.
-
-	* image-mode.el (image-mode, image-minor-mode): Ditto.
-
-	* ibuf-macs.el (define-ibuffer-filter): Ditto.
-
-	* hi-lock.el (hi-lock-find-patterns): Ditto.
-
-	* files.el (toggle-read-only): Ditto.
-
+	(pr-interface-ps):
+	* pcvs.el (cvs-help):
+	* log-edit.el (log-edit, log-edit-mode-help):
+	* iswitchb.el (iswitchb-possible-new-buffer):
+	* isearch.el (isearch-edit-string):
+	* image-mode.el (image-mode, image-minor-mode):
+	* ibuf-macs.el (define-ibuffer-filter):
+	* hi-lock.el (hi-lock-find-patterns):
+	* files.el (toggle-read-only):
 	* ediff-util.el (ediff-copy-diff)
-	(ediff-write-merge-buffer-and-maybe-kill): Ditto.
-
-	* echistory.el (Electric-history-undefined): Ditto.
-
-	* dnd.el (dnd-insert-text): Ditto.
-
-	* dired-aux.el (dired-query): Ditto.
-
-	* desktop.el (desktop-restore-file-buffer)
-	(desktop-lazy-create-buffer): Ditto.
-
-	* bookmark.el (bookmark-bmenu-locate): Ditto.
-
-	* obsolete/fast-lock.el (@top-level): Ditto in the macro
-	definition of `with-temp-message'.
+	(ediff-write-merge-buffer-and-maybe-kill):
+	* echistory.el (Electric-history-undefined):
+	* dnd.el (dnd-insert-text):
+	* dired-aux.el (dired-query):
+	* desktop.el (desktop-restore-file-buffer, desktop-lazy-create-buffer):
+	* bookmark.el (bookmark-bmenu-locate):
+	* obsolete/fast-lock.el (@top-level) <with-temp-message macro>:
+	Fix `message' calls to ensure first arg is a format string.
+	The change was made only when these two conditions were satisfied:
+	[1] when there is a possibility that the arguments would cause an error
+	for example, if the code in question relies on external variables
+	such as filenames, and
+	[2] if the arg to `message' could not have been nil in the code.
 
 	* pcomplete.el (pcomplete--help): Fix `message' format spec.
 	Not having a %s would be weird, though not technically wrong.

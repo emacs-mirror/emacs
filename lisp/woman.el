@@ -1229,7 +1229,7 @@ cache to be re-read."
 			 word-at-point)))
 		(completing-read
 		 (if default
-		     (format "Manual entry [default: %s]: " default)
+		     (format "Manual entry (default %s): " default)
 		   "Manual entry: ")
 		 woman-topic-all-completions nil 1
 		 nil

@@ -907,7 +907,7 @@ If the value is nil, don't highlight the buffer names specially."
 	       (input
 		(read-from-minibuffer
 		 (if default
-		     (format "List lines matching regexp (default `%s'): "
+		     (format "List lines matching regexp (default %s): "
 			     (query-replace-descr default))
 		   "List lines matching regexp: ")
 		 nil

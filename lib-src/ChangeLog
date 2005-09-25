@@ -1,3 +1,9 @@
+2005-09-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ebrowse.c (add_sym): Compare namespace names instead of
+	namespace objects.  This prevents the parser from incorrectly
+	treating classes whose superclass is in another namespace.
+
 2005-09-15  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (update-game-score.o): New target.

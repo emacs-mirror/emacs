@@ -652,7 +652,7 @@ file for the command instead of the current score file."
 	       (intern			; need symbol
 		(gnus-completing-read-with-default
 		 (symbol-name (car gnus-extra-headers))	; default response
-		 "Score extra header:"	; prompt
+		 "Score extra header"	; prompt
 		 (mapcar (lambda (x)	; completion list
 			   (cons (symbol-name x) x))
 			 gnus-extra-headers)

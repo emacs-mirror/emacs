@@ -6856,7 +6856,10 @@ message_log_maybe_newline ()
    terminated with a newline when NLFLAG is non-zero.  MULTIBYTE, if
    nonzero, means interpret the contents of M as multibyte.  This
    function calls low-level routines in order to bypass text property
-   hooks, etc. which might not be safe to run.  */
+   hooks, etc. which might not be safe to run.
+
+   This may GC (insert may run before/after change hooks),
+   so the buffer M must NOT point to a Lisp string.  */
 
 void
 message_dolog (m, nbytes, nlflag, multibyte)
@@ -7068,10 +7071,7 @@ message_log_check_duplicate (prev_bol, prev_bol_byte, this_bol, this_bol_byte)
    out any existing message, and let the mini-buffer text show
    through.
 
-   The buffer M must continue to exist until after the echo area gets
-   cleared or some other message gets displayed there.  This means do
-   not pass text that is stored in a Lisp string; do not pass text in
-   a buffer that was alloca'd.  */
+   This may GC, so the buffer M must NOT point to a Lisp string.  */
 
 void
 message2 (m, nbytes, multibyte)
@@ -8128,7 +8128,11 @@ truncate_message_1 (nchars, a2, a3, a4)
 
    If S is not null, set the message to the first LEN bytes of S.  LEN
    zero means use the whole string.  MULTIBYTE_P non-zero means S is
-   multibyte.  Display the message multibyte in that case.  */
+   multibyte.  Display the message multibyte in that case.
+
+   Doesn't GC, as with_echo_area_buffer binds Qinhibit_modification_hooks
+   to t before calling set_message_1 (which calls insert).
+  */
 
 void
 set_message (s, string, nbytes, multibyte_p)

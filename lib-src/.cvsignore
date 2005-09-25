@@ -20,5 +20,6 @@ test-distrib
 update-game-score
 yow
 Makefile
+makefile
 *-spd
 *.pdb

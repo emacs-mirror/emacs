@@ -6293,7 +6293,7 @@ static INLINE int
 xlfdpat_exact_p (pat)
      struct xlfdpat *pat;
 {
-  return (pat)->blocks == NULL;
+  return pat->blocks == NULL;
 }
 
 /* Return the first string in STRING + 0, ..., STRING + START_MAX such
@@ -6311,7 +6311,7 @@ xlfdpat_block_match_1 (blk, string, start_max)
 
   xassert (blk->len > 0);
   xassert (start_max + blk->len <= strlen (string));
-  xassert (blk->pattern[blk->len - 1] != '?');
+  xassert (blk->last_char != '?');
 
   /* See the comments in the function `boyer_moore' (search.c) for the
      use of `infinity'.  */
@@ -6706,28 +6706,29 @@ init_font_name_table ()
 	{
 	  Lisp_Object rest = XCDR (XCDR (text_encoding_info));
 
-	  for (; !NILP (rest); rest = XCDR (rest))
-	    {
-	      char *cs = SDATA (XCAR (rest));
+	  if (size > 0 || style == normal)
+	    for (; !NILP (rest); rest = XCDR (rest))
+	      {
+		char *cs = SDATA (XCAR (rest));
 
-	      if (size == 0)
-		{
-		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								style, cs));
-		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								italic, cs));
-		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								bold, cs));
-		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								italic | bold,
-								cs));
-		}
-	      else
-		{
-		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								style, cs));
-		}
-	    }
+		if (size == 0)
+		  {
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  style, cs));
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  italic, cs));
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  bold, cs));
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  italic | bold,
+								  cs));
+		  }
+		else
+		  {
+		    add_font_name_table_entry (mac_to_x_fontname (name, size,
+								  style, cs));
+		  }
+	      }
 	}
     }
 

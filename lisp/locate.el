@@ -209,7 +209,7 @@ With prefix arg, prompt for the locate command to run."
 	       (input
 		(read-from-minibuffer
 		 (if  (> (length default) 0)
-		     (format "Locate (default `%s'): " default)
+		     (format "Locate (default %s): " default)
 		   (format "Locate: "))
 		 nil nil nil 'locate-history-list default t)))
 	       (and (equal input "") default

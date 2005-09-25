@@ -2138,7 +2138,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (ido-record-command method dirname)
 	      (ido-record-work-directory)
 	      (funcall method dirname))
-	     ((y-or-n-p (format "Directory %s does not exist. Create it " filename))
+	     ((y-or-n-p (format "Directory %s does not exist. Create it? " filename))
 	      (ido-record-command method dirname)
 	      (ido-record-work-directory dirname)
 	      (make-directory-internal dirname)
@@ -3529,7 +3529,7 @@ for first matching file."
 	       (file-exists-p file)
 	       (not (file-directory-p file))
 	       (file-writable-p ido-current-directory)
-	       (yes-or-no-p (concat "Delete " file " ")))
+	       (yes-or-no-p (concat "Delete " file "? ")))
       (delete-file file)
       ;; Check if file still exists.
       (if (file-exists-p file)

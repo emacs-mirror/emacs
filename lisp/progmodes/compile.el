@@ -1778,7 +1778,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 				    marker)
 	    (let ((name (expand-file-name
 			 (read-file-name
-			  (format "Find this %s in: (default %s) "
+			  (format "Find this %s in (default %s): "
 				  compilation-error filename)
 			  spec-dir filename t))))
 	      (if (file-directory-p name)

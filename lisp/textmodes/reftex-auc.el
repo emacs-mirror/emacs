@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -67,8 +67,8 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
       (setq items (list (or (reftex-citation t) ""))))
      (t
       (setq prompt (concat (if optional "(Optional) " "")
-                           (if prompt prompt "Add key")
-                           ": (default none) "))
+			   (if prompt prompt "Add key")
+			   " (default none): "))
       (setq items (multi-prompt "," t prompt (LaTeX-bibitem-list)))))
     (apply 'LaTeX-add-bibitems items)
     (TeX-argument-insert (mapconcat 'identity items ",") optional)))
@@ -79,8 +79,8 @@ What is being used depends upon `reftex-plug-into-AUCTeX'."
 This is the name of an index, not the entry."
   (let (tag taglist)
     (setq prompt (concat (if optional "(Optional) " "")
-                         (if prompt prompt "Index tag")
-                         ": (default none) "))
+			 (if prompt prompt "Index tag")
+			 " (default none): "))
     (if (and reftex-support-index (reftex-plug-flag 4))
         ;; Use RefTeX completion
         (progn

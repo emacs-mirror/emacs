@@ -307,7 +307,7 @@ If the format is not specified, this function attempts to guess.
 `buffer-file-format' is set to the format used, and any mode-functions
 for the format are called."
   (interactive
-   (list (format-read "Translate buffer from format (default: guess): ")))
+   (list (format-read "Translate buffer from format (default guess): ")))
   (save-excursion
     (goto-char (point-min))
     (format-decode format (buffer-size) t)))
@@ -318,7 +318,7 @@ Arg FORMAT is optional; if omitted the format will be determined by looking
 for identifying regular expressions at the beginning of the region."
   (interactive
    (list (region-beginning) (region-end)
-	 (format-read "Translate region from format (default: guess): ")))
+	 (format-read "Translate region from format (default guess): ")))
   (save-excursion
     (goto-char from)
     (format-decode format (- to from) nil)))

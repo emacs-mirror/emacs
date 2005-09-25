@@ -59,10 +59,10 @@ With prefix arg, prompt for second argument SWITCHES,
 		      (save-excursion (goto-char (mark t))
 				      (dired-get-filename t t)))))
      (require 'diff)
-     (list (read-file-name (format "Diff %s with: %s"
+     (list (read-file-name (format "Diff %s with%s: "
 				   (dired-get-filename t)
 				   (if default
-				       (concat "(default " default ") ")
+				       (concat " (default " default ")")
 				     ""))
 			   (if default
 			       (dired-current-directory)
@@ -1147,7 +1147,7 @@ Special value `always' suppresses confirmation."
     (if (and recursive
 	     (eq t (car attrs))
 	     (or (eq recursive 'always)
-		 (yes-or-no-p (format "Recursive copies of %s " from))))
+		 (yes-or-no-p (format "Recursive copies of %s? " from))))
 	;; This is a directory.
 	(let ((files (directory-files from nil dired-re-no-dot)))
 	  (if (eq recursive 'top) (setq recursive 'always)) ; Don't ask any more.
