@@ -150,7 +150,7 @@ the function specified by `spam-report-url-ping-function'."
       (process-send-string
        tcp-connection
        (format "GET %s HTTP/1.1\nUser-Agent: %s (spam-report.el)\nHost: %s\n\n"
-	       report (gnus-emacs-version) host)))))
+	       report (gnus-extended-version) host)))))
 
 ;;;###autoload
 (defun spam-report-process-queue (&optional file keep)

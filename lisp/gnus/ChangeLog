@@ -20,6 +20,25 @@
 	* message.el (message-check-news-header-syntax):
 	Follow convention for reading with the minibuffer.
 
+2005-09-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam-report.el (spam-report-url-ping-plain): Use
+	gnus-extended-version as User-Agent.
+
+	* gnus-agent.el (gnus-agent-synchronize-flags): Explain why the
+	default value is nil.
+
+2005-09-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-synchronize-flags): Switch the
+	default to nil, to be able to use Gnus at all.  If the default
+	switches to something else, then the function should be fixed not
+	be exceedingly slow.
+
+2005-09-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-url.el (mm-url-decode-entities): Fix regexp.
+
 2005-09-18  D Goel  <deego@gnufans.org>
 
 	* sieve.el (sieve-help): Fix `message' call: first arg should be a

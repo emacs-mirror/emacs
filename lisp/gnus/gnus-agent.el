@@ -118,6 +118,8 @@ If nil, only read articles will be expired."
 (defcustom gnus-agent-synchronize-flags t
   "Indicate if flags are synchronized when you plug in.
 If this is `ask' the hook will query the user."
+  ;; If the default switches to something else than nil, then the function
+  ;; should be fixed not be exceedingly slow.  See 2005-09-20 ChangeLog entry.
   :version "21.1"
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Never" nil)
