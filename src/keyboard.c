@@ -474,10 +474,6 @@ int input_pending;
 
 int meta_key;
 
-/* Non-zero means force key bindings update in parse_menu_item.  */
-
-int update_menu_bindings;
-
 extern char *pending_malloc_warning;
 
 /* Circular buffer for pre-read keyboard input.  */
@@ -7403,9 +7399,7 @@ parse_menu_item (item, notreal, inmenubar)
       else
 	def = AREF (item_properties, ITEM_PROPERTY_DEF);
 
-      if (!update_menu_bindings)
-	chkcache = 0;
-      else if (NILP (XCAR (cachelist))) /* Have no saved key.  */
+      if (NILP (XCAR (cachelist))) /* Have no saved key.  */
 	{
 	  if (newcache		/* Always check first time.  */
 	      /* Should we check everything when precomputing key
@@ -11408,12 +11402,6 @@ The default value is nil, in which case, point adjustment are
 suppressed only after special commands that set
 `disable-point-adjustment' (which see) to non-nil.  */);
   Vglobal_disable_point_adjustment = Qnil;
-
-  DEFVAR_BOOL ("update-menu-bindings", &update_menu_bindings,
-	       doc: /* Non-nil means updating menu bindings is allowed.
-A value of nil means menu bindings should not be updated.
-Used during Emacs' startup.  */);
-  update_menu_bindings = 1;
 
   DEFVAR_LISP ("minibuffer-message-timeout", &Vminibuffer_message_timeout,
 	       doc: /* *How long to display an echo-area message when the minibuffer is active.
