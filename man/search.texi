@@ -464,9 +464,12 @@ say, incremental regexp and non-regexp searches have independent
 defaults.  They also have separate search rings that you can access with
 @kbd{M-p} and @kbd{M-n}.
 
+@vindex search-whitespace-regexp
   If you type @key{SPC} in incremental regexp search, it matches any
-sequence of whitespace characters, including newlines.  If you want
-to match just a space, type @kbd{C-q @key{SPC}}.
+sequence of whitespace characters, including newlines.  If you want to
+match just a space, type @kbd{C-q @key{SPC}}.  You can control what a
+bare spece matches by setting the variable
+@code{search-whitespace-regexp} to the desired regexp.
 
   Note that adding characters to the regexp in an incremental regexp
 search can make the cursor move back and start again.  For example, if
