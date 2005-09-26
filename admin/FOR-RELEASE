@@ -29,6 +29,11 @@ face name prefixes should be in it for good results.
 
 ** Update Speedbar.
 
+* BUGS
+
+** Make a new interface for specifying window configurations
+so that we can fix bugs in balance-windows.
+
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.

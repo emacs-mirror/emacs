@@ -1,3 +1,7 @@
+2005-09-25  Richard M. Stallman  <rms@gnu.org>
+
+	* search.texi (Regexp Search): Doc search-whitespace-regexp.
+
 2005-09-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Mail): Fix gnus-confirm-mail-reply-to-news entry.

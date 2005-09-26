@@ -1,5 +1,9 @@
 2005-09-25  Richard M. Stallman  <rms@gnu.org>
 
+	* simple.el (blink-matching-open): Don't no-op when point is BEGV+1.
+
+	* isearch.el (isearch-forward, isearch-forward-regexp): Doc fixes.
+
 	* progmodes/compile.el (compilation-error-properties):
 	When getting the file from the previous error message,
 	correctly decode the new data format.

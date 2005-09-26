@@ -1,3 +1,9 @@
+2005-09-25  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (update_menu_bindings): Variable deleted.
+	(syms_of_keyboard): Don't defvar it.
+	(parse_menu_item): Don't test it.
+
 2005-09-23  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (Fformat): Explicitly test for end of format string
