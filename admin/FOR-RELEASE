@@ -181,7 +181,7 @@ lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi     Chong Yidong
 lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
 lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
-lispref/errors.texi      "Luc Teirlinck"
+lispref/errors.texi      "Luc Teirlinck"   Chong Yidong
 lispref/eval.texi        "Luc Teirlinck"   Chong Yidong
 lispref/files.texi       "Luc Teirlinck"   Chong Yidong
 lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
@@ -196,7 +196,7 @@ lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
 lispref/locals.texi      Chong Yidong
 lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
-lispref/maps.texi
+lispref/maps.texi        Chong Yidong
 lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
 lispref/modes.texi	 Chong Yidong
