@@ -1,3 +1,10 @@
+2005-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/org.el (org-table-sum): Fix format string.
+
+	* textmodes/tex-mode.el (tex-insert-quote, latex-indent):
+	Quote face names.
+
 2005-09-26  Romain Francoise  <romain@orebokech.com>
 
 	* isearch.el (isearch-forward-regexp): Close doc string.
@@ -38,7 +45,7 @@
 	* play/mpuz.el (mpuz-offer-abort, mpuz-try-letter, mpuz-close-game):
 	* progmodes/ebrowse.el (ebrowse-find-pattern):
 	* progmodes/idlw-shell.el (idlwave-shell-set-bp-check):
-	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer): 
+	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer):
 	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and
 	space.
 
