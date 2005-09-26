@@ -533,6 +533,9 @@ Type \\[isearch-quote-char] to quote control character to search for it.
 \\[isearch-abort] when search is successful aborts and moves point to\
  starting point.
 
+If you try to exit with the search string still empty, it invokes
+ nonincremental search.
+
 Type \\[isearch-query-replace] to start `query-replace' with string to\
  replace from last search string.
 Type \\[isearch-query-replace-regexp] to start `query-replace-regexp'\
@@ -579,7 +582,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info.
 In regexp incremental searches, a space or spaces normally matches
 any whitespace (the variable `search-whitespace-regexp' controls
 precisely what that means).  If you want to search for a literal space
-and nothing else, enter `[ ]'."
+and nothing else, enter C-q SPC.
   (interactive "P\np")
   (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
 
