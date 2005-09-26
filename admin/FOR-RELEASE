@@ -29,11 +29,6 @@ face name prefixes should be in it for good results.
 
 ** Update Speedbar.
 
-* BUGS
-
-** Make a new interface for specifying window configurations
-so that we can fix bugs in balance-windows.
-
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
@@ -55,6 +50,9 @@ back burner waiting for a legal comment or an alternate implementation
 about trying to display the invalid gif file poison.gif.
 
 * BUGS
+
+** Make a new interface for specifying window configurations
+so that we can fix bugs in balance-windows.
 
 ** TCP server processes do not work on Windows.
 
