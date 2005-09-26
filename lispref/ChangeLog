@@ -1,3 +1,7 @@
+2005-09-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* errors.texi (Standard Errors): Corrected xrefs.
+
 2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Defining Images): Updated documentation for
