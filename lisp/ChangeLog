@@ -1,3 +1,12 @@
+2005-09-25  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-error-properties):
+	When getting the file from the previous error message,
+	correctly decode the new data format.
+
+	* progmodes/cc-cmds.el (c-electric-paren):
+	Call old-blink-paren only for close-paren.
+
 2005-09-24  Andreas Schwab  <schwab@suse.de>
 
 	* term/rxvt.el (rxvt-register-default-colors): Delete redundant
