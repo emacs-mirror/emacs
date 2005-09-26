@@ -582,7 +582,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info.
 In regexp incremental searches, a space or spaces normally matches
 any whitespace (the variable `search-whitespace-regexp' controls
 precisely what that means).  If you want to search for a literal space
-and nothing else, enter C-q SPC.
+and nothing else, enter C-q SPC."
   (interactive "P\np")
   (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
 

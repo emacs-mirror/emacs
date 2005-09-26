@@ -1,3 +1,7 @@
+2005-09-26  Romain Francoise  <romain@orebokech.com>
+
+	* isearch.el (isearch-forward-regexp): Close doc string.
+
 2005-09-25  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (blink-matching-open): Don't no-op when point is BEGV+1.
