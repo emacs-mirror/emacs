@@ -93,28 +93,31 @@ and create tags for extern variables unless \-\-no\-globals is used.
 .TP
 .B \-d, \-\-defines
 Create tag entries for C preprocessor constant definitions
-and enum constants, too.  This is the
-default behavior for \fBetags\fP.
+and enum constants, too.  Since this is the default behavior of
+\fBetags\fP, only \fBctags\fP accepts this option.
 .TP
 .B \-D, \-\-no\-defines
 Do not create tag entries for C preprocessor constant definitions
 and enum constants.
 This may make the tags file much smaller if many header files are tagged.
-This is the default behavior for \fBctags\fP.
+Since this is the default behavior of \fBctags\fP, only \fBetags\fP
+accepts this option.
 .TP
-.B \-g, \-\-globals
+.B \-\-globals
 Create tag entries for global variables in C, C++, Objective C, Java,
 and Perl.
-This is the default behavior for \fBetags\fP.
+Since this is the default behavior of \fBetags\fP, only \fBctags\fP
+accepts this option.
 .TP
-.B \-G, \-\-no\-globals
+.B \-\-no\-globals
 Do not tag global variables.  Typically this reduces the file size by
-one fourth.  This is the default behavior for \fBctags\fP.
+one fourth.  Since this is the default behavior of \fBctags\fP, only
+\fBetags\fP accepts this option.
 .TP
 \fB\-i\fP \fIfile\fP, \fB\-\-include=\fIfile\fP
 Include a note in the tag file indicating that, when searching for a
 tag, one should also consult the tags file \fIfile\fP after checking the
-current file.  This options is only accepted by \fBetags\fP.
+current file.  Only \fBetags\fP accepts this option.
 .TP
 .B \-I, \-\-ignore\-indentation
 Don't rely on indentation as much as we normally do.  Currently, this
