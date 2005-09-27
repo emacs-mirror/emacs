@@ -11,6 +11,8 @@
 	* systime.h (get_operating_system_release): ... here.
 
 	* xterm.c (set_vertical_scroll_bar): Move prototype ...
+	(handle_one_xevent): Refer to union field to match the type
+	required by the function definition. 
 
 	* xterm.h: ... here.
 

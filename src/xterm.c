@@ -6750,13 +6750,13 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 			      && (int)(event.xbutton.time - ignore_next_mouse_click_timeout) > 0)
 			    {
 			      ignore_next_mouse_click_timeout = 0;
-			      construct_mouse_click (&inev.ie, &event, f);
+			      construct_mouse_click (&inev.ie, &event.xbutton, f);
 			    }
 			  if (event.type == ButtonRelease)
 			    ignore_next_mouse_click_timeout = 0;
 			}
 		      else
-			construct_mouse_click (&inev.ie, &event, f);
+			construct_mouse_click (&inev.ie, &event.xbutton, f);
 		    }
                 }
           }
