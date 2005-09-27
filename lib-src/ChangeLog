@@ -4,6 +4,7 @@
 	(prolog_pr): Cast strlen to int before comparison.
 	(LOOKING_AT, LOOKING_AT_NOCASE): Let the preprocessor check that
 	the second argument is indeed a literal string.
+	(main): In append mode, sort the tags file after writing it.
 
 2005-09-27  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
