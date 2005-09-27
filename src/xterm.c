@@ -4024,8 +4024,6 @@ static Boolean xaw3d_arrow_scroll;
 
 static Boolean xaw3d_pick_top;
 
-extern void set_vertical_scroll_bar P_ ((struct window *));
-
 /* Action hook installed via XtAppAddActionHook when toolkit scroll
    bars are used..  The hook is responsible for detecting when
    the user ends an interaction with the scroll bar, and generates

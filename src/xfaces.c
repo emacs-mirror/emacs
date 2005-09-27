@@ -5810,6 +5810,7 @@ lookup_derived_face (f, symbol, c, face_id, signal_p)
      Lisp_Object symbol;
      int c;
      int face_id;
+     int signal_p;
 {
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];

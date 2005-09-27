@@ -11375,6 +11375,7 @@ static int
 cursor_row_fully_visible_p (w, force_p, current_matrix_p)
      struct window *w;
      int force_p;
+     int current_matrix_p;
 {
   struct glyph_matrix *matrix;
   struct glyph_row *row;

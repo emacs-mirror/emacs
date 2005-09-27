@@ -187,7 +187,6 @@ extern Lisp_Object QCfilter;
 
 #include "syswait.h"
 
-extern void set_waiting_for_input P_ ((EMACS_TIME *));
 extern char *get_operating_system_release ();
 
 #ifndef USE_CRT_DLL
