@@ -41,7 +41,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.13";
+char pot_etags_version[] = "@(#) pot revision number is 17.14";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -1475,12 +1475,13 @@ main (argc, argv)
   if (fclose (tagf) == EOF)
     pfatal (tagfile);
 
-  if (update)
-    {
-      char cmd[2*BUFSIZ+10];
-      sprintf (cmd, "sort -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
-      exit (system (cmd));
-    }
+  if (CTAGS)
+    if (append_to_tagfile || update)
+      {
+	char cmd[2*BUFSIZ+10];
+	sprintf (cmd, "sort -o %.*s %.*s", BUFSIZ, tagfile, BUFSIZ, tagfile);
+	exit (system (cmd));
+      }
   return EXIT_SUCCESS;
 }
 
