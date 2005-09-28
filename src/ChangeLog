@@ -1,3 +1,7 @@
+2005-09-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (struct _XCharStruct): Each member now takes short value.
+
 2005-09-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* xfaces.c (lookup_derived_face): Add parameter type.
