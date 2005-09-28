@@ -1058,9 +1058,15 @@ external if displayed external."
 (defun mm-insert-part (handle)
   "Insert the contents of HANDLE in the current buffer."
   (save-excursion
-    (insert (if (mm-multibyte-p)
-		(mm-string-as-multibyte (mm-get-part handle))
-	      (mm-get-part handle)))))
+    (insert
+     (cond ((eq (mail-content-type-get (mm-handle-type handle) 'charset)
+		'gnus-decoded)
+	    (with-current-buffer (mm-handle-buffer handle)
+	      (buffer-string)))
+	   ((mm-multibyte-p)
+	    (mm-string-as-multibyte (mm-get-part handle)))
+	   (t
+	    (mm-get-part handle))))))
 
 (defun mm-file-name-delete-whitespace (file-name)
   "Remove all whitespace characters from FILE-NAME."

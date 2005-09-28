@@ -12199,6 +12199,9 @@ Where the news is to be fetched from---the address.
 
 @item s
 The opened/closed/denied status of the server.
+
+@item a
+Whether this server is agentized.
 @end table
 
 @vindex gnus-server-mode-line-format
