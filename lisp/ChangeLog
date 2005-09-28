@@ -1,3 +1,9 @@
+2005-09-28  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Set CUA move property on additional commands:
+	up-list, down-list, backward-up-list, end-of-defun beginning-of-defun,
+	forward-sexp backward-sexp, forward-list, backward-list
+
 2005-09-28  Romain Francoise  <romain@orebokech.com>
 
 	* comint.el (comint-show-output): Really set point at the
