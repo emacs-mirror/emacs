@@ -1,3 +1,11 @@
+2005-09-27  Jay Belanger <belanger@truman.edu>
+
+	* calccard.tex: Update `versionnumber', remove `versiondate'.
+	(Error Recovery): Refer to "initial state" rather than "default
+	state".
+	(Algebra): Mention LaTeX language mode.
+	(Programming): Delete reference to "Z =".
+
 2005-09-24  Steven Huwig  <steven_h@acm.org>  (tiny change)
 
 	* emacs.py (ehelp): Add g and l to arg list, and use them in the
