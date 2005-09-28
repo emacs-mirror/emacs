@@ -1,3 +1,9 @@
+2005-09-28  Kim F. Storm  <storm@cua.dk>
+
+	* image.c (gif_load): Fix size of allocated image buffer
+	for images where a sub-image may be larger than the image's
+	total height/width specifications.
+
 2005-09-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macgui.h (struct _XCharStruct): Each member now takes short value.
@@ -16,7 +22,7 @@
 
 	* xterm.c (set_vertical_scroll_bar): Move prototype ...
 	(handle_one_xevent): Refer to union field to match the type
-	required by the function definition. 
+	required by the function definition.
 
 	* xterm.h: ... here.
 
@@ -40,7 +46,7 @@
 	BROKEN_GET_CURRENT_DIR_NAME.
 
 	* sysdep.c (get_current_dir_name): Also define if
-	BROKEN_GET_CURRENT_DIR_NAME. 
+	BROKEN_GET_CURRENT_DIR_NAME.
 
 	* m/ibmrs6000.h: Test for USG5, not USG5_4.
 
