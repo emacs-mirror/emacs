@@ -2056,7 +2056,11 @@ Sets mark to the value of point when this command is run."
 	   (set-window-start (selected-window) (point))
 	   (comint-skip-prompt))
 	  (t
-	   (goto-char (field-beginning pos))
+	   (let* ((beg (field-beginning pos))
+		  (pt (if (= (point-min) beg)
+			  (point-min)
+			(1+ beg))))
+	     (goto-char pt))
 	   (set-window-start (selected-window) (point))))))
 
 
