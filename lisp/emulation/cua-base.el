@@ -1324,6 +1324,10 @@ If ARG is the atom `-', scroll upward by nearly full screen."
    move-end-of-line move-beginning-of-line
    end-of-buffer beginning-of-buffer
    scroll-up scroll-down
+   up-list down-list backward-up-list
+   end-of-defun beginning-of-defun
+   forward-sexp backward-sexp
+   forward-list backward-list
    forward-sentence backward-sentence
    forward-paragraph backward-paragraph))
   (put cmd 'CUA 'move))
