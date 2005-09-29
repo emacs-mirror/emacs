@@ -219,7 +219,8 @@ Default value, nil, means edit the string instead."
      (:background "magenta4" :foreground "cyan1"))
     (t (:inverse-video t)))
   "Face for highlighting Isearch matches."
-  :group 'isearch)
+  :group 'isearch
+  :group 'basic-faces)
 (defvar isearch 'isearch)
 
 (defcustom isearch-lazy-highlight t
@@ -289,7 +290,8 @@ A value of nil means highlight all matches."
      (:background "turquoise3"))
     (t (:underline t)))
   "Face for lazy highlighting of matches other than the current one."
-  :group 'lazy-highlight)
+  :group 'lazy-highlight
+  :group 'basic-faces)
 (put 'isearch-lazy-highlight-face 'face-alias 'lazy-highlight)
 (defvar lazy-highlight-face 'lazy-highlight)
 (define-obsolete-variable-alias 'isearch-lazy-highlight-face
