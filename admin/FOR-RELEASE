@@ -29,6 +29,18 @@ face name prefixes should be in it for good results.
 
 ** Update Speedbar.
 
+** Rework how the fringe "angle" bitmap at at bottom of buffer is
+shown to include an indication of whether the last line has a NL or not.
+[Assigned to KFS]
+
+** Rework how fringe bitmaps are defined and used.
+Currently, bitmap usage and bitmap appearence are "mixed-up" in a
+one-level representation.  It would be cleaner to split the
+representation into a two-level model where first level maps
+bitmap usage to a bitmap name, and second level maps bitmap name to
+a bitmap appearence.
+[Assigned to KFS]
+
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
@@ -59,6 +71,7 @@ so that we can fix bugs in balance-windows.
 TCP/IP server processes created with `make-network-process' consume
 excesive CPU on some Windows environments.  Usages of 50% and 100%
 CPU time have been observed on different Window XP configurations.
+Seems to be a problem in sys_select in w32proc.c.
 
 * DOCUMENTATION
 
