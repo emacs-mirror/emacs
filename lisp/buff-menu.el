@@ -77,8 +77,7 @@
 (defface Buffer-menu-buffer
   '((t (:weight bold)))
   "Face used to highlight buffer name."
-  :group 'Buffer-menu
-  :group 'font-lock-highlighting-faces)
+  :group 'Buffer-menu)
 
 (defcustom Buffer-menu-buffer+size-width 26
   "*How wide to jointly make the buffer name and size columns."
