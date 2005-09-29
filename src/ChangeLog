@@ -1,3 +1,9 @@
+2005-09-29  Juri Linkov  <juri@jurta.org>
+
+	* editfns.c (Fmessage, Fmessage_box, Fmessage_or_box):
+	Rename argument name `string' to `format-string'.
+	(Fformat): Doc fix.
+
 2005-09-28  Kim F. Storm  <storm@cua.dk>
 
 	* image.c (gif_load): Fix size of allocated image buffer
