@@ -490,7 +490,7 @@ starting the compilation process.")
 (defface compilation-error
   '((t :inherit font-lock-warning-face))
   "Face used to highlight compiler errors."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defface compilation-warning
@@ -498,7 +498,7 @@ starting the compilation process.")
     (((class color)) (:foreground "cyan" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defface compilation-info
@@ -511,19 +511,19 @@ starting the compilation process.")
     (((class color)) (:foreground "green" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler information."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defface compilation-line-number
   '((t :inherit font-lock-variable-name-face))
   "Face for displaying line numbers in compiler messages."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defface compilation-column-number
   '((t :inherit font-lock-type-face))
   "Face for displaying column numbers in compiler messages."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defvar compilation-message-face 'underline
