@@ -1,3 +1,28 @@
+2005-09-29  Juri Linkov  <juri@jurta.org>
+
+	* faces.el: Rearrange face definitions to be in the same order as
+	their face descriptions in "(emacs)Standard Faces".
+
+	* isearch.el (isearch, lazy-highlight): Add group `basic-faces'.
+
+	* tooltip.el (tooltip): Add group `basic-faces'.
+
+	* buff-menu.el (Buffer-menu-buffer): Remove group
+	`font-lock-highlighting-faces'.
+
+	* progmodes/compile.el (compilation-error, compilation-warning)
+	(compilation-info, compilation-line-number, compilation-column-number):
+	Change group from `font-lock-highlighting-faces' to `compilation'.
+
+	* progmodes/vhdl-mode.el (vhdl-font-lock-prompt-face)
+	(vhdl-font-lock-attribute-face, vhdl-font-lock-enumvalue-face)
+	(vhdl-font-lock-function-face, vhdl-font-lock-directive-face)
+	(vhdl-font-lock-reserved-words-face)
+	(vhdl-font-lock-translate-off-face, syntax-alist): Remove group
+	`font-lock-highlighting-faces'.
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Default to nil.
+
 2005-09-28  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el: Set CUA move property on additional commands:
