@@ -764,19 +764,11 @@
 
 	* descr-text.el (describe-property-list): Handle non-symbol prop names.
 
-2005-08-30  Richard M. Stallman  <rms@gnu.org>
+2005-09-08  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (blink-matching-open): Get rid of text props from
 	the string shown in echo area.  Don't permanently set point.
 	Some rearrangements.
-
-	* files.el (risky-local-variable-p):
-	Match `-predicates' and `-commands.
-
-	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
-	(custom-save-all): Visit the file if necessary;
-	kill the buffer if we created it.
-	(custom-save-delete): Don't visit file or kill buffer here.
 
 2005-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
