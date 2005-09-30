@@ -2333,20 +2333,22 @@ If PROMPT (the prefix), prompt for a coding system to use."
 (autoload 'idna-to-unicode "idna")
 
 (defun article-decode-idna-rhs ()
-  "Decode IDNA strings in RHS in From:, To: and Cc: headers in current buffer."
+  "Decode IDNA strings in RHS in various headers in current buffer.
+The following headers are decoded: From:, To:, Cc:, Reply-To:,
+Mail-Reply-To: and Mail-Followup-To:."
   (when gnus-use-idna
     (save-restriction
       (let ((inhibit-point-motion-hooks t)
 	    (inhibit-read-only t))
 	(article-narrow-to-head)
 	(goto-char (point-min))
-	(while (re-search-forward "@.*\\(xn--[-A-Za-z0-9.]*\\)[ \t\n\r,>]" nil t)
+	(while (re-search-forward "@[^ \t\n\r,>]*\\(xn--[-A-Za-z0-9.]*\\)[ \t\n\r,>]" nil t)
 	  (let (ace unicode)
 	    (when (save-match-data
 		    (and (setq ace (match-string 1))
 			 (save-excursion
 			   (and (re-search-backward "^[^ \t]" nil t)
-				(looking-at "From\\|To\\|Cc")))
+				(looking-at "From\\|To\\|Cc\\|Reply-To\\|Mail-Reply-To\\|Mail-Followup-To")))
 			 (setq unicode (idna-to-unicode ace))))
 	      (unless (string= ace unicode)
 		(replace-match unicode nil nil nil 1)))))))))
@@ -4864,14 +4866,17 @@ If displaying \"text/html\" is discouraged \(see
 	      (forward-line -1)
 	      (setq beg (point)))
 	    (gnus-article-insert-newline)
-	    (mm-insert-inline handle
-			      (let ((charset
-				     (mail-content-type-get
-				      (mm-handle-type handle) 'charset)))
-				(if (eq charset 'gnus-decoded)
-				    (mm-get-part handle)
-				  (mm-decode-string (mm-get-part handle)
-						    charset))))
+	    (mm-insert-inline
+	     handle
+	     (let ((charset (mail-content-type-get (mm-handle-type handle)
+						   'charset)))
+	       (cond ((not charset)
+		      (mm-string-as-multibyte (mm-get-part handle)))
+		     ((eq charset 'gnus-decoded)
+		      (with-current-buffer (mm-handle-buffer handle)
+			(buffer-string)))
+		     (t
+		      (mm-decode-string (mm-get-part handle) charset)))))
 	    (goto-char (point-max))))
 	  ;; Do highlighting.
 	  (save-excursion

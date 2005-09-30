@@ -219,7 +219,8 @@ Default value, nil, means edit the string instead."
      (:background "magenta4" :foreground "cyan1"))
     (t (:inverse-video t)))
   "Face for highlighting Isearch matches."
-  :group 'isearch)
+  :group 'isearch
+  :group 'basic-faces)
 (defvar isearch 'isearch)
 
 (defcustom isearch-lazy-highlight t
@@ -289,7 +290,8 @@ A value of nil means highlight all matches."
      (:background "turquoise3"))
     (t (:underline t)))
   "Face for lazy highlighting of matches other than the current one."
-  :group 'lazy-highlight)
+  :group 'lazy-highlight
+  :group 'basic-faces)
 (put 'isearch-lazy-highlight-face 'face-alias 'lazy-highlight)
 (defvar lazy-highlight-face 'lazy-highlight)
 (define-obsolete-variable-alias 'isearch-lazy-highlight-face
@@ -529,6 +531,9 @@ Type \\[isearch-quote-char] to quote control character to search for it.
 \\[isearch-abort] when search is successful aborts and moves point to\
  starting point.
 
+If you try to exit with the search string still empty, it invokes
+ nonincremental search.
+
 Type \\[isearch-query-replace] to start `query-replace' with string to\
  replace from last search string.
 Type \\[isearch-query-replace-regexp] to start `query-replace-regexp'\
@@ -575,7 +580,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info.
 In regexp incremental searches, a space or spaces normally matches
 any whitespace (the variable `search-whitespace-regexp' controls
 precisely what that means).  If you want to search for a literal space
-and nothing else, enter `[ ]'."
+and nothing else, enter C-q SPC."
   (interactive "P\np")
   (isearch-mode t (null not-regexp) nil (not no-recursive-edit)))
 

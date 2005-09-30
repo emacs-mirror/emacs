@@ -1,3 +1,46 @@
+2005-09-29  Juri Linkov  <juri@jurta.org>
+
+	* editfns.c (Fmessage, Fmessage_box, Fmessage_or_box):
+	Rename argument name `string' to `format-string'.
+	(Fformat): Doc fix.
+
+2005-09-28  Kim F. Storm  <storm@cua.dk>
+
+	* image.c (gif_load): Fix size of allocated image buffer
+	for images where a sub-image may be larger than the image's
+	total height/width specifications.
+
+2005-09-28  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (struct _XCharStruct): Each member now takes short value.
+
+2005-09-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xfaces.c (lookup_derived_face): Add parameter type.
+
+	* xdisp.c (cursor_row_fully_visible_p): Add parameter type.
+
+	* marker.c (verify_bytepos): Add parameter type.
+
+	* process.c (get_operating_system_release): Move prototype ...
+
+	* systime.h (get_operating_system_release): ... here.
+
+	* xterm.c (set_vertical_scroll_bar): Move prototype ...
+	(handle_one_xevent): Refer to union field to match the type
+	required by the function definition.
+
+	* xterm.h: ... here.
+
+	* fns.c (internal_equal, seed_random): Fix prototypes.
+	(internal_equal): Add missing parameter.
+
+2005-09-25  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (update_menu_bindings): Variable deleted.
+	(syms_of_keyboard): Don't defvar it.
+	(parse_menu_item): Don't test it.
+
 2005-09-23  Richard M. Stallman  <rms@gnu.org>
 
 	* editfns.c (Fformat): Explicitly test for end of format string
@@ -9,7 +52,7 @@
 	BROKEN_GET_CURRENT_DIR_NAME.
 
 	* sysdep.c (get_current_dir_name): Also define if
-	BROKEN_GET_CURRENT_DIR_NAME. 
+	BROKEN_GET_CURRENT_DIR_NAME.
 
 	* m/ibmrs6000.h: Test for USG5, not USG5_4.
 

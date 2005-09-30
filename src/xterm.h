@@ -1006,6 +1006,7 @@ extern XtAppContext Xt_app_con;
 extern void x_query_colors P_ ((struct frame *f, XColor *, int));
 extern void x_query_color P_ ((struct frame *f, XColor *));
 extern void x_clear_area P_ ((Display *, Window, int, int, int, int, int));
+extern void set_vertical_scroll_bar P_ ((struct window *));
 
 extern int x_dispatch_event P_ ((XEvent *, Display *));
 

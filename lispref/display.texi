@@ -208,9 +208,9 @@ explicitly.
   This section describes the functions for explicitly producing echo
 area messages.  Many other Emacs features display messages there, too.
 
-@defun message string &rest arguments
-This function displays a message in the echo area.  The
-argument @var{string} is similar to a C language @code{printf} control
+@defun message format-string &rest arguments
+This function displays a message in the echo area.  The argument
+@var{format-string} is similar to a C language @code{printf} format
 string.  See @code{format} in @ref{Formatting Strings}, for the details
 on the conversion specifications.  @code{message} returns the
 constructed string.
@@ -218,14 +218,15 @@ constructed string.
 In batch mode, @code{message} prints the message text on the standard
 error stream, followed by a newline.
 
-If @var{string}, or strings among the @var{arguments}, have @code{face}
-text properties, these affect the way the message is displayed.
+If @var{format-string}, or strings among the @var{arguments}, have
+@code{face} text properties, these affect the way the message is displayed.
 
 @c Emacs 19 feature
-If @var{string} is @code{nil}, @code{message} clears the echo area; if
-the echo area has been expanded automatically, this brings it back to
-its normal size.  If the minibuffer is active, this brings the
-minibuffer contents back onto the screen immediately.
+If @var{format-string} is @code{nil} or the empty string,
+@code{message} clears the echo area; if the echo area has been
+expanded automatically, this brings it back to its normal size.
+If the minibuffer is active, this brings the minibuffer contents back
+onto the screen immediately.
 
 @example
 @group
@@ -254,7 +255,7 @@ the execution of @var{body}.  It displays @var{message}, executes
 the previous echo area contents.
 @end defmac
 
-@defun message-or-box string &rest arguments
+@defun message-or-box format-string &rest arguments
 This function displays a message like @code{message}, but may display it
 in a dialog box instead of the echo area.  If this function is called in
 a command that was invoked using the mouse---more precisely, if
@@ -268,7 +269,7 @@ You can force use of the mouse or of the echo area by binding
 @code{last-nonmenu-event} to a suitable value around the call.
 @end defun
 
-@defun message-box string &rest arguments
+@defun message-box format-string &rest arguments
 This function displays a message like @code{message}, but uses a dialog
 box (or a pop-up menu) whenever that is possible.  If it is impossible
 to use a dialog box or pop-up menu, because the terminal does not

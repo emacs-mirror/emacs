@@ -260,14 +260,17 @@ If `file-name-history' is not empty, do nothing."
   :group 'recentf
   :type 'hook)
 
-(defcustom recentf-filename-handler nil
-  "Function to call to process filename handled by recentf.
-It is passed a filename to give a chance to transform it.
-If it returns nil, the filename is left unchanged."
+(defcustom recentf-filename-handlers nil
+  "Functions to post process recent file names.
+They are successively passed a file name to transform it."
   :group 'recentf
-  :type '(choice (const :tag "None" nil)
-                 (const abbreviate-file-name)
-                 function))
+  :type '(choice
+          (const :tag "None" nil)
+          (repeat :tag "Functions"
+           (choice
+            (const file-truename)
+            (const abbreviate-file-name)
+            (function :tag "Other function")))))
 
 (defcustom recentf-show-file-shortcuts-flag t
   "Whether to show ``[N]'' for the Nth item up to 10.
@@ -362,15 +365,25 @@ filenames."
     (and m (setq recentf-list (delq (car m) recentf-list)))
     (push filename recentf-list)))
 
+(defun recentf-apply-filename-handlers (name)
+  "Apply `recentf-filename-handlers' to file NAME.
+Return the transformed file name, or NAME if any handler failed, or
+returned nil."
+  (or (condition-case nil
+          (let ((handlers recentf-filename-handlers)
+                (filename name))
+            (while (and filename handlers)
+              (setq filename (funcall (car handlers) filename)
+                    handlers (cdr handlers)))
+            filename)
+        (error nil))
+      name))
+
 (defsubst recentf-expand-file-name (name)
-  "Convert filename NAME to absolute, and canonicalize it.
-See also the function `expand-file-name'.
-If defined, call the function `recentf-filename-handler'
-to post process the canonical name."
-  (let* ((filename (expand-file-name name)))
-    (or (and recentf-filename-handler
-             (funcall recentf-filename-handler filename))
-        filename)))
+  "Convert file NAME to absolute, and canonicalize it.
+NAME is first passed to the function `expand-file-name', then to
+`recentf-filename-handlers' to post process it."
+  (recentf-apply-filename-handlers (expand-file-name name)))
 
 (defun recentf-include-p (filename)
   "Return non-nil if FILENAME should be included in the recent list.
@@ -436,23 +449,24 @@ Return non-nil if F1 is less than F2."
 ;;; Menu building
 ;;
 (defvar recentf-menu-items-for-commands
-  (list ["Cleanup list"
-         recentf-cleanup
-         :help "Remove all excluded and non-kept files from the recent list"
-         :active t]
-        ["Edit list..."
-         recentf-edit-list
-         :help "Edit the files that are kept in the recent list"
-         :active t]
-        ["Save list now"
-         recentf-save-list
-         :help "Save the list of recently opened files now"
-         :active t]
-        ["Options..."
-         (customize-group "recentf")
-         :help "Customize recently opened files menu and options"
-         :active t]
-        )
+  (list
+   ["Cleanup list"
+    recentf-cleanup
+    :help "Remove duplicates, and obsoletes files from the recent list"
+    :active t]
+   ["Edit list..."
+    recentf-edit-list
+    :help "Manually remove files from the recent list"
+    :active t]
+   ["Save list now"
+    recentf-save-list
+    :help "Save the list of recently opened files now"
+    :active t]
+   ["Options..."
+    (customize-group "recentf")
+    :help "Customize recently opened files menu and options"
+    :active t]
+   )
   "List of menu items for recentf commands.")
 
 (defvar recentf-menu-filter-commands nil
@@ -1236,13 +1250,16 @@ empty `file-name-history' with the recent list."
                                            recentf-list))))))
 
 (defun recentf-cleanup ()
-  "Remove all non-kept and excluded files from the recent list."
+  "Cleanup the recent list.
+That is, remove duplicates, non-kept, and excluded files."
   (interactive)
   (message "Cleaning up the recentf list...")
   (let ((n 0) newlist)
     (dolist (f recentf-list)
+      (setq f (recentf-expand-file-name f))
       (if (and (recentf-include-p f)
-               (recentf-keep-p f))
+               (recentf-keep-p f)
+               (not (recentf-string-member f newlist)))
           (push f newlist)
         (setq n (1+ n))
         (message "File %s removed from the recentf list" f)))

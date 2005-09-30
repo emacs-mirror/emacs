@@ -2138,6 +2138,7 @@ static widget_value *
 find_next_selectable (mw, item, skip_titles)
      XlwMenuWidget mw;
      widget_value *item;
+     int skip_titles;
 {
   widget_value *current = item;
   enum menu_separator separator;
@@ -2174,6 +2175,7 @@ static widget_value *
 find_prev_selectable (mw, item, skip_titles)
      XlwMenuWidget mw;
      widget_value *item;
+     int skip_titles;
 {
   widget_value *current = item;
   widget_value *prev = item;

@@ -3256,7 +3256,7 @@ If the first argument is nil or the empty string, the function clears
 any existing message; this lets the minibuffer contents show.  See
 also `current-message'.
 
-usage: (message STRING &rest ARGS)  */)
+usage: (message FORMAT-STRING &rest ARGS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3286,7 +3286,7 @@ to be formatted under control of the string.  See `format' for details.
 If the first argument is nil or the empty string, clear any existing
 message; let the minibuffer contents show.
 
-usage: (message-box STRING &rest ARGS)  */)
+usage: (message-box FORMAT-STRING &rest ARGS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3348,7 +3348,7 @@ to be formatted under control of the string.  See `format' for details.
 If the first argument is nil or the empty string, clear any existing
 message; let the minibuffer contents show.
 
-usage: (message-or-box STRING &rest ARGS)  */)
+usage: (message-or-box FORMAT-STRING &rest ARGS)  */)
      (nargs, args)
      int nargs;
      Lisp_Object *args;
@@ -3413,8 +3413,8 @@ usage: (propertize STRING &rest PROPERTIES)  */)
    : SBYTES (STRING))
 
 DEFUN ("format", Fformat, Sformat, 1, MANY, 0,
-       doc: /* Format a string out of a control-string and arguments.
-The first argument is a control string.
+       doc: /* Format a string out of a format-string and arguments.
+The first argument is a format control string.
 The other arguments are substituted into it to make the result, a string.
 It may contain %-sequences meaning to substitute the next argument.
 %s means print a string argument.  Actually, prints any object, with `princ'.

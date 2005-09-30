@@ -1109,7 +1109,7 @@ Inserts the value of `tex-open-quote' (normally ``) or `tex-close-quote'
 inserts \" characters."
   (interactive "*P")
   (if (or arg (memq (char-syntax (preceding-char)) '(?/ ?\\))
-	  (eq (get-text-property (point) 'face) tex-verbatim)
+	  (eq (get-text-property (point) 'face) 'tex-verbatim)
 	  (save-excursion
 	    (backward-char (length tex-open-quote))
 	    (when (or (looking-at (regexp-quote tex-open-quote))
@@ -2341,7 +2341,7 @@ Runs the shell command defined by `tex-show-queue-command'."
 
 (defun latex-indent (&optional arg)
   (if (and (eq (get-text-property (line-beginning-position) 'face)
-	       tex-verbatim))
+	       'tex-verbatim))
       'noindent
     (with-syntax-table tex-latex-indent-syntax-table
       ;; TODO: Rather than ignore $, we should try to be more clever about it.

@@ -1,8 +1,93 @@
+2005-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-show-warning): If a character is in
+	ps-print-translation-table, don't treat it as non-printable.
+
+2005-09-30  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-themes-load-path): New variable.
+	(tree-widget-themes-directory): Doc fix.
+	(tree-widget-image-formats) [Emacs]: Doc fix.
+	(tree-widget--locate-sub-directory): New function.
+	(tree-widget-themes-directory): Use it.
+
+	* recentf.el (recentf-filename-handlers): Rename from
+	`recentf-filename-handler'.  Allow a list of functions.
+	(recentf-menu-items-for-commands): Fix :help strings.
+	(recentf-apply-filename-handlers): New function.
+	(recentf-expand-file-name): Use it.
+	(recentf-cleanup): Remove duplicates too.
+
+2005-09-29  Juri Linkov  <juri@jurta.org>
+
+	* faces.el: Rearrange face definitions to be in the same order as
+	their face descriptions in "(emacs)Standard Faces".
+
+	* isearch.el (isearch, lazy-highlight): Add group `basic-faces'.
+
+	* tooltip.el (tooltip): Add group `basic-faces'.
+
+	* buff-menu.el (Buffer-menu-buffer): Remove group
+	`font-lock-highlighting-faces'.
+
+	* progmodes/compile.el (compilation-error, compilation-warning)
+	(compilation-info, compilation-line-number, compilation-column-number):
+	Change group from `font-lock-highlighting-faces' to `compilation'.
+
+	* progmodes/vhdl-mode.el (vhdl-font-lock-prompt-face)
+	(vhdl-font-lock-attribute-face, vhdl-font-lock-enumvalue-face)
+	(vhdl-font-lock-function-face, vhdl-font-lock-directive-face)
+	(vhdl-font-lock-reserved-words-face)
+	(vhdl-font-lock-translate-off-face, syntax-alist): Remove group
+	`font-lock-highlighting-faces'.
+
+	* cus-edit.el (custom-buffer-sort-alphabetically): Default to nil.
+
+2005-09-28  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Set CUA move property on additional commands:
+	up-list, down-list, backward-up-list, end-of-defun beginning-of-defun,
+	forward-sexp backward-sexp, forward-list, backward-list
+
+2005-09-28  Romain Francoise  <romain@orebokech.com>
+
+	* comint.el (comint-show-output): Really set point at the
+	beginning of the output when not using `comint-use-prompt-regexp'.
+
+2005-09-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-lang.el (math-oper-table): Raise the precedence of "/"
+	in TeX mode.
+
+2005-09-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/org.el (org-table-sum): Fix format string.
+
+	* textmodes/tex-mode.el (tex-insert-quote, latex-indent):
+	Quote face names.
+
+2005-09-26  Romain Francoise  <romain@orebokech.com>
+
+	* isearch.el (isearch-forward-regexp): Close doc string.
+
+2005-09-25  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (blink-matching-open): Don't no-op when point is BEGV+1.
+
+	* isearch.el (isearch-forward, isearch-forward-regexp): Doc fixes.
+
+	* progmodes/compile.el (compilation-error-properties):
+	When getting the file from the previous error message,
+	correctly decode the new data format.
+
+	* progmodes/cc-cmds.el (c-electric-paren):
+	Call old-blink-paren only for close-paren.
+
 2005-09-24  Andreas Schwab  <schwab@suse.de>
 
 	* term/rxvt.el (rxvt-register-default-colors): Delete redundant
-	condition. 
-	
+	condition.
+
 2005-09-25  Romain Francoise  <romain@orebokech.com>
 
 	* dired-aux.el (dired-copy-file-recursive):
@@ -21,7 +106,7 @@
 	* play/mpuz.el (mpuz-offer-abort, mpuz-try-letter, mpuz-close-game):
 	* progmodes/ebrowse.el (ebrowse-find-pattern):
 	* progmodes/idlw-shell.el (idlwave-shell-set-bp-check):
-	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer): 
+	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer):
 	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and
 	space.
 
@@ -699,19 +784,11 @@
 
 	* descr-text.el (describe-property-list): Handle non-symbol prop names.
 
-2005-08-30  Richard M. Stallman  <rms@gnu.org>
+2005-09-08  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (blink-matching-open): Get rid of text props from
 	the string shown in echo area.  Don't permanently set point.
 	Some rearrangements.
-
-	* files.el (risky-local-variable-p):
-	Match `-predicates' and `-commands.
-
-	* cus-edit.el (custom-buffer-sort-alphabetically): Default to t.
-	(custom-save-all): Visit the file if necessary;
-	kill the buffer if we created it.
-	(custom-save-delete): Don't visit file or kill buffer here.
 
 2005-09-08  Reiner Steib  <Reiner.Steib@gmx.de>
 

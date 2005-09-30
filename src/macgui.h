@@ -95,11 +95,14 @@ typedef GWorldPtr Pixmap;
 /* Emulate XCharStruct.  */
 typedef struct _XCharStruct
 {
-  int rbearing;
-  int lbearing;
-  int width;
-  int ascent;
-  int descent;
+  short	lbearing;		/* origin to left edge of raster */
+  short	rbearing;		/* origin to right edge of raster */
+  short	width;			/* advance to next char's origin */
+  short	ascent;			/* baseline to top edge of raster */
+  short	descent;		/* baseline to bottom edge of raster */
+#if 0
+  unsigned short attributes;	/* per char flags (not predefined) */
+#endif
 } XCharStruct;
 
 #define STORE_XCHARSTRUCT(xcs, w, bds)			\

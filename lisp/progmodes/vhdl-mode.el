@@ -12832,40 +12832,35 @@ This does background highlighting of translate-off regions.")
     (((class color) (background dark)) (:foreground "Pink" :bold t))
     (t (:inverse-video t)))
   "Font lock mode face used to highlight prompts."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-attribute-face
   '((((class color) (background light)) (:foreground "Orchid"))
     (((class color) (background dark)) (:foreground "LightSteelBlue"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight standardized attributes."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-enumvalue-face
   '((((class color) (background light)) (:foreground "SaddleBrown"))
     (((class color) (background dark)) (:foreground "BurlyWood"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight standardized enumeration values."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-function-face
   '((((class color) (background light)) (:foreground "Cyan4"))
     (((class color) (background dark)) (:foreground "Orchid1"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight standardized functions and packages."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-directive-face
   '((((class color) (background light)) (:foreground "CadetBlue"))
     (((class color) (background dark)) (:foreground "Aquamarine"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight directives."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-reserved-words-face
   '((((class color) (background light)) (:foreground "Orange" :bold t))
@@ -12874,16 +12869,14 @@ This does background highlighting of translate-off regions.")
     (((class color) (background dark)) (:foreground "Yellow" :bold t))
     (t ()))
   "Font lock mode face used to highlight additional reserved words."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 (defface vhdl-font-lock-translate-off-face
   '((((class color) (background light)) (:background "LightGray"))
     (((class color) (background dark)) (:background "DimGray"))
     (t ()))
   "Font lock mode face used to background highlight translate-off regions."
-  :group 'vhdl-highlight-faces
-  :group 'font-lock-highlighting-faces)
+  :group 'vhdl-highlight-faces)
 
 ;; font lock mode faces used to highlight words with special syntax.
 (let ((syntax-alist vhdl-special-syntax-alist))
@@ -12897,8 +12890,7 @@ This does background highlighting of translate-off regions.")
 	       (t ()))
 	     ,(concat "Font lock mode face used to highlight "
 		      (nth 0 (car syntax-alist)) ".")
-	     :group 'vhdl-highlight-faces
-	     :group 'font-lock-highlighting-faces))
+	     :group 'vhdl-highlight-faces))
     (setq syntax-alist (cdr syntax-alist))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
