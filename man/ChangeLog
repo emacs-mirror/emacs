@@ -1,3 +1,8 @@
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* mini.texi (Minibuffer): The default value now appears before the
+	colon in minibuffer prompts.
+
 2005-09-28  Simon Josefsson  <jas@extundo.com>
 
 	* message.texi (IDNA): Fix.
