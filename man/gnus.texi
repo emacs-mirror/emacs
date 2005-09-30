@@ -12680,35 +12680,6 @@ that says how many seconds the @code{nntp} back end should wait for a
 connection before giving up.  If it is @code{nil}, which is the default,
 no timeouts are done.
 
-@c @item nntp-command-timeout
-@c @vindex nntp-command-timeout
-@c @cindex PPP connections
-@c @cindex dynamic IP addresses
-@c If you're running Gnus on a machine that has a dynamically assigned
-@c address, Gnus may become confused.  If the address of your machine
-@c changes after connecting to the @acronym{NNTP} server, Gnus will simply sit
-@c waiting forever for replies from the server.  To help with this
-@c unfortunate problem, you can set this command to a number.  Gnus will
-@c then, if it sits waiting for a reply from the server longer than that
-@c number of seconds, shut down the connection, start a new one, and resend
-@c the command.  This should hopefully be transparent to the user.  A
-@c likely number is 30 seconds.
-@c
-@c @item nntp-retry-on-break
-@c @vindex nntp-retry-on-break
-@c If this variable is non-@code{nil}, you can also @kbd{C-g} if Gnus
-@c hangs.  This will have much the same effect as the command timeout
-@c described above.
-
-@item nntp-server-hook
-@vindex nntp-server-hook
-This hook is run as the last step when connecting to an @acronym{NNTP}
-server.
-
-@item nntp-buggy-select
-@vindex nntp-buggy-select
-Set this to non-@code{nil} if your select routine is buggy.
-
 @item nntp-nov-is-evil
 @vindex nntp-nov-is-evil
 If the @acronym{NNTP} server does not support @acronym{NOV}, you could set this
@@ -12740,11 +12711,6 @@ that fetching will probably be slower.  If this variable is @code{nil},
 @vindex nntp-prepare-server-hook
 A hook run before attempting to connect to an @acronym{NNTP} server.
 
-@item nntp-warn-about-losing-connection
-@vindex nntp-warn-about-losing-connection
-If this variable is non-@code{nil}, some noise will be made when a
-server closes connection.
-
 @item nntp-record-commands
 @vindex nntp-record-commands
 If non-@code{nil}, @code{nntp} will log all commands it sends to the
@@ -12757,8 +12723,8 @@ that doesn't seem to work.
 It is possible to customize how the connection to the nntp server will
 be opened.  If you specify an @code{nntp-open-connection-function}
 parameter, Gnus will use that function to establish the connection.
-Five pre-made functions are supplied.  These functions can be grouped in
-two categories: direct connection functions (three pre-made), and
+Six pre-made functions are supplied.  These functions can be grouped in
+two categories: direct connection functions (four pre-made), and
 indirect ones (two pre-made).
 
 @item nntp-prepare-post-hook
@@ -12775,14 +12741,6 @@ inhibit Gnus to add a @code{Message-ID} header, you could say:
 
 Note that not all servers support the recommended ID.  This works for
 INN versions 2.3.0 and later, for instance.
-
-@item nntp-read-timeout
-@vindex nntp-read-timeout
-How long nntp should wait between checking for the end of output.
-Shorter values mean quicker response, but is more CPU intensive.  The
-default is 0.1 seconds.  If you have a slow line to the server (and
-don't like to see Emacs eat your available CPU power), you might set
-this to, say, 1.
 
 @end table
 
@@ -12958,7 +12916,9 @@ Address of the intermediate host to connect to.
 
 The following variables affect the behavior of all, or several of the
 pre-made connection functions.  When not specified, all functions are
-affected.
+affected (the values of the following variables will be used as the
+default if each virtual @code{nntp} server doesn't specify those server
+variables individually).
 
 @table @code
 
@@ -12966,7 +12926,7 @@ affected.
 @vindex nntp-pre-command
 A command wrapper to use when connecting through a non native
 connection function (all except @code{nntp-open-network-stream},
-@code{nntp-open-tls-stream}, and @code{nntp-open-ssl-stream}.  This is
+@code{nntp-open-tls-stream}, and @code{nntp-open-ssl-stream}).  This is
 where you would put a @samp{SOCKS} wrapper for instance.
 
 @item nntp-address
@@ -12977,7 +12937,7 @@ The address of the @acronym{NNTP} server.
 @vindex nntp-port-number
 Port number to connect to the @acronym{NNTP} server.  The default is
 @samp{nntp}.  If you use @acronym{NNTP} over
-@acronym{tls}/@acronym{ssl}, you may want to use integer ports rather
+@acronym{TLS}/@acronym{SSL}, you may want to use integer ports rather
 than named ports (i.e, use @samp{563} instead of @samp{snews} or
 @samp{nntps}), because external @acronym{TLS}/@acronym{SSL} tools may
 not work with named ports.

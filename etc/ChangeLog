@@ -1,3 +1,7 @@
+2005-09-28  Simon Josefsson  <jas@extundo.com>
+
+	* GNUS-NEWS: Fix IDNA notes.
+
 2005-09-27  Jay Belanger <belanger@truman.edu>
 
 	* calccard.tex: Update `versionnumber', remove `versiondate'.
