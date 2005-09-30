@@ -1,5 +1,11 @@
 2005-09-30  David Ponce  <david@dponce.com>
 
+	* tree-widget.el (tree-widget-themes-load-path): New variable.
+	(tree-widget-themes-directory): Doc fix.
+	(tree-widget-image-formats) [Emacs]: Doc fix.
+	(tree-widget--locate-sub-directory): New function.
+	(tree-widget-themes-directory): Use it.
+
 	* recentf.el (recentf-filename-handlers): Rename from
 	`recentf-filename-handler'.  Allow a list of functions.
 	(recentf-menu-items-for-commands): Fix :help strings.
