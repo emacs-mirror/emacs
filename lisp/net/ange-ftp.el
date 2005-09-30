@@ -1298,6 +1298,8 @@ only return the directory part of FILE."
       (setq file
 	    (if (file-name-absolute-p temp)
 		temp
+	      ;; Wouldn't `expand-file-name' be better than `concat' ?
+	      ;; It would fail when `a/b/..' != `a', tho.  --Stef
 	      (concat (file-name-directory file) temp)))))
   file)
 
@@ -1800,8 +1802,7 @@ good, skip, fatal, or unknown."
     (set-process-query-on-exit-flag proc nil)
     (set-process-sentinel proc 'ange-ftp-gwp-sentinel)
     (set-process-filter proc 'ange-ftp-gwp-filter)
-    (save-excursion
-      (set-buffer (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
       (goto-char (point-max))
       (set-marker (process-mark proc) (point)))
     (setq ange-ftp-gwp-running t
@@ -2324,14 +2325,14 @@ and NOWAIT."
 	;; This works around a misfeature of some versions of netbsd ftpd
 	;; where `ls' can only take one argument: either one set of flags
 	;; or a file/directory name.
-	;; FIXME: if we're trying to `ls' a single file, this fails since we
+	;; If we're trying to `ls' a single file, this fails since we
 	;; can't cd to a file.  We can't fix this problem here, tho, because
 	;; at this point we don't know whether the argument is a file or
-	;; a directory.  Such an `ls' is only every used (apparently) from
+	;; a directory.  Such an `ls' is only ever used (apparently) from
 	;; `insert-directory' when the `full-directory-p' argument is nil
 	;; (which seems to only be used by dired when updating its display
-	;; after operating on a set of files).  We should change
-	;; ange-ftp-insert-directory so that this case is handled by getting
+	;; after operating on a set of files).  So we've changed
+	;; `ange-ftp-insert-directory' such that in this case it gets
 	;; a full listing of the directory and extracting the line
 	;; corresponding to the requested file.
 	(unless (equal cmd1 ".")
@@ -3174,7 +3175,7 @@ logged in as user USER and cd'd to directory DIR."
 	 (ange-ftp-real-file-name-directory n))))))
 
 (defun ange-ftp-expand-file-name (name &optional default)
-  "Documented as original."
+  "Documented as `expand-file-name'."
   (save-match-data
     (setq default (or default default-directory))
     (cond ((eq (string-to-char name) ?~)
@@ -3448,7 +3449,9 @@ system TYPE.")
       (let ((file-ent (ange-ftp-get-file-entry
 		       (ange-ftp-file-name-as-directory name))))
 	(if (stringp file-ent)
-	    (file-directory-p
+	    ;; Calling file-directory-p doesn't work because ange-ftp
+	    ;; is temporarily disabled for this operation.
+	    (ange-ftp-file-directory-p
 	     (ange-ftp-expand-symlink file-ent
 				      (file-name-directory
 				       (directory-file-name name))))
@@ -4476,21 +4479,41 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; `ange-ftp-ls' handles this.
 
 (defun ange-ftp-insert-directory (file switches &optional wildcard full)
-  (let ((parsed (ange-ftp-ftp-name (expand-file-name file)))
-	tem)
-    (if parsed
-	(if (and (not wildcard)
-		 (setq tem (file-symlink-p (directory-file-name file))))
-	    (ange-ftp-insert-directory
-	     (ange-ftp-expand-symlink
-	      tem (file-name-directory (directory-file-name file)))
-	     switches wildcard full)
-	  (insert
-	   (if wildcard
-	       (let ((default-directory (file-name-directory file)))
-		 (ange-ftp-ls (file-name-nondirectory file) switches nil nil t))
-	     (ange-ftp-ls file switches full))))
-      (ange-ftp-real-insert-directory file switches wildcard full))))
+  (if (not (ange-ftp-ftp-name (expand-file-name file)))
+      (ange-ftp-real-insert-directory file switches wildcard full)
+    ;; Follow symlinks.
+    (let (tem)
+      (while (and (not wildcard)
+                  (stringp (setq tem (ange-ftp-get-file-entry
+                                      (directory-file-name file)))))
+        (setq file
+              (ange-ftp-expand-symlink
+               tem (file-name-directory (directory-file-name file))))))
+    (insert
+     (cond
+      (wildcard
+       (let ((default-directory (file-name-directory file)))
+         (ange-ftp-ls (file-name-nondirectory file) switches nil nil t)))
+      (full
+       (ange-ftp-ls file switches 'parse))
+      (t
+       ;; If `full' is nil we're going to do `ls' for a single file.
+       ;; Problem is that for various reasons, ange-ftp-ls needs to cd and
+       ;; then do an ls of current dir, which obviously won't work if we
+       ;; want to ls a file.  So instead, we get a full listing of the
+       ;; parent directory and extract the line corresponding to `file'.
+       (when (string-match "d\\'" switches)
+         ;; Remove "d" which dired added to `switches'.
+         (setq switches (substring switches 0 (match-beginning 0))))
+       (let* ((dirlist (ange-ftp-ls (or (file-name-directory file) ".")
+                                    switches nil))
+              (case-fold-search nil))
+         ;; FIXME: This presumes a particular output format, which is
+         ;; basically Unix.
+         (if (string-match (concat "^.+[^ ] " (regexp-quote file)
+                                   "\\( -> .*\\)?[@/*=]?\n") dirlist)
+             (match-string 0 dirlist)
+           "")))))))
 
 (defun ange-ftp-dired-uncache (dir)
   (if (ange-ftp-ftp-name (expand-file-name dir))
@@ -4502,10 +4525,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (defun ange-ftp-file-name-sans-versions (file keep-backup-version)
   (let* ((short (ange-ftp-abbreviate-filename file))
 	 (parsed (ange-ftp-ftp-name short))
-	 func)
-    (if parsed
-	(setq func (cdr (assq (ange-ftp-host-type (car parsed))
-			      ange-ftp-sans-version-alist))))
+	 (func (if parsed (cdr (assq (ange-ftp-host-type (car parsed))
+                                     ange-ftp-sans-version-alist)))))
     (if func (funcall func file keep-backup-version)
       (ange-ftp-real-file-name-sans-versions file keep-backup-version))))
 
