@@ -1,3 +1,19 @@
+2005-09-30  Bill Wohler  <wohler@newt.com>
+
+	Moved MH-E image files from toolbar and mail directories into
+	etc/images.
+
+	* mail/reply2.*: Moved to etc/images/mail/reply*.
+
+	* toolbar/execute.*, toolbar/highlight.*, toolbar/mh-logo.xpm:
+	* toolbar/page-down.*, toolbar/show.*, toolbar/widen.*: Moved to
+	etc/images.
+	
+	* toolbar/alias.*, toolbar/refile.*, toolbar/repack.*:
+	* toolbar/reply*: Moved to etc/images/mail.
+
+	* toolbar/rescan.*: Moved and renamed to etc/images/refresh.*.
+
 2005-09-30  Eric M. Ludlam <zappo@gnu.org>
 
 	* speedbar.el: New version 1.0pre3.
