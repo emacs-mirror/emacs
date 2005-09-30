@@ -37,6 +37,8 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/utsname.h>
 #endif
 
+#include "lisp.h"
+
 /* systime.h includes <sys/time.h> which, on some systems, is required
    for <sys/resource.h>; thus systime.h must be included before
    <sys/resource.h> */
@@ -48,7 +50,6 @@ Boston, MA 02110-1301, USA.  */
 
 #include <ctype.h>
 
-#include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
 #include "charset.h"
@@ -71,7 +72,6 @@ Boston, MA 02110-1301, USA.  */
 extern char **environ;
 #endif
 
-extern Lisp_Object make_time P_ ((time_t));
 extern size_t emacs_strftimeu P_ ((char *, size_t, const char *,
 				   const struct tm *, int));
 static int tm_diff P_ ((struct tm *, struct tm *));
