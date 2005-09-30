@@ -1,3 +1,8 @@
+2005-09-30  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-show-warning): If a character is in
+	ps-print-translation-table, don't treat it as non-printable.
+
 2005-09-30  David Ponce  <david@dponce.com>
 
 	* tree-widget.el (tree-widget-themes-load-path): New variable.
