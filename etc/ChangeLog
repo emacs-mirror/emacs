@@ -1,3 +1,9 @@
+2005-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/ezimage: New directory.
+
+	* images/ezimage/*.xpm: Add images used by speedbar.el.
+
 2005-09-30  David Ponce  <david@dponce.com>
 
 	* NEWS: Update recentf changes.
