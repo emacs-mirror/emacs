@@ -1,3 +1,12 @@
+2005-09-30  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-filename-handlers): Rename from
+	`recentf-filename-handler'.  Allow a list of functions.
+	(recentf-menu-items-for-commands): Fix :help strings.
+	(recentf-apply-filename-handlers): New function.
+	(recentf-expand-file-name): Use it.
+	(recentf-cleanup): Remove duplicates too.
+
 2005-09-29  Juri Linkov  <juri@jurta.org>
 
 	* faces.el: Rearrange face definitions to be in the same order as
