@@ -1,3 +1,25 @@
+2005-09-30  Bill Wohler  <wohler@newt.com>
+
+	Moved MH-E image files from toolbar and mail directories into
+	etc/images.
+
+	* images/mail: New directory.
+
+	* images/mail/reply.*: Moved here from lisp/mail/reply2*.
+
+	* images/mail/alias.*, images/mail/refile.*, images/mail/repack.*:
+	* images/mail/reply*: Moved here from lisp/toolbar.
+
+	* images/execute.*, images/highlight.*, images/mh-logo.xpm:
+	* images/page-down.*, images/show.*, images/widen.*: Moved here
+	from lisp/toolbar.
+	
+	* images/refresh.*: Moved here from lisp/toolbar/rescan.*. Use
+	GNOME 2.10's refresh icon.
+
+	* images/README: New file that indicates which icons came from
+	GNOME (see lisp/toolbar/README).
+
 2005-09-30  Romain Francoise  <romain@orebokech.com>
 
 	* NEWS: Mention changes to `read-buffer'.
