@@ -6231,7 +6231,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
               if (status_return == XBufferOverflow)
                 {
                   copy_bufsiz = nbytes + 1;
-                  copy_bufptr = (char *) alloca (copy_bufsiz);
+                  copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
                   nbytes = XmbLookupString (FRAME_XIC (f),
                                             &event.xkey, copy_bufptr,
                                             copy_bufsiz, &keysym,
@@ -6249,7 +6249,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
                   if (status_return == XBufferOverflow)
                     {
                       copy_bufsiz = nbytes + 1;
-                      copy_bufptr = (char *) alloca (copy_bufsiz);
+                      copy_bufptr = (unsigned char *) alloca (copy_bufsiz);
                       nbytes = Xutf8LookupString (FRAME_XIC (f),
                                                   &event.xkey,
                                                   copy_bufptr,

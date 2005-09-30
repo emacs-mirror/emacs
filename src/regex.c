@@ -524,9 +524,6 @@ init_syntax_once ()
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
-/* Type of source-pattern and string chars.  */
-typedef const unsigned char re_char;
-
 typedef char boolean;
 #define false 0
 #define true 1

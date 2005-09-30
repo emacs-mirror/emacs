@@ -2178,7 +2178,7 @@ slurp_file (file, size)
 
   if (stat (file, &st) == 0
       && (fp = fopen (file, "rb")) != NULL
-      && (buf = (char *) xmalloc (st.st_size),
+      && (buf = (unsigned char *) xmalloc (st.st_size),
 	  fread (buf, 1, st.st_size, fp) == st.st_size))
     {
       *size = st.st_size;
@@ -3029,7 +3029,7 @@ xbm_read_bitmap_data (contents, end, width, height, data)
 
   bytes_per_line = (*width + 7) / 8 + padding_p;
   nbytes = bytes_per_line * *height;
-  p = *data = (char *) xmalloc (nbytes);
+  p = *data = (unsigned char *) xmalloc (nbytes);
 
   if (v10)
     {

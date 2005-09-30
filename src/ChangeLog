@@ -1,3 +1,41 @@
+2005-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* image.c (slurp_file, xbm_read_bitmap_data): Cast to the correct
+	type.
+	* xterm.c (handle_one_xevent, handle_one_xevent): Likewise.
+
+	* unexelf.c (fatal): Fix prototype.
+
+	* term.c (fatal): Implement using varargs.
+
+	* regex.c (re_char): Move typedef ... 
+	* regex.h (re_char): ... here.
+	(re_iswctype, re_wctype, re_set_whitespace_regexp): New
+	prototypes.
+
+	* emacs.c (malloc_set_state): Fix return type.
+	(endif): Fix type.
+
+	* lisp.h (fatal): Add argument types.
+
+	* dispextern.h (fatal): Delete prototype.
+
+	* systime.h: (make_time): Prototype moved from ...
+	* editfns.c (make_time): ... here.
+
+	* editfns.c: Move systime.h include after lisp.h.
+	* dired.c: 
+	* xsmfns.c: 
+	* process.c: Likewise.
+	
+	* alloc.c (old_malloc_hook, old_realloc_hook, old_realloc_hook):
+	Add parameter types.
+	(__malloc_hook, __realloc_hook, __free_hook): Fix prototypes.
+	(emacs_blocked_free): Change definition to match __free_hook.
+	(emacs_blocked_malloc): Change definition to match __malloc_hook.
+	(emacs_blocked_realloc): Change definition to match
+	__realloc_hook.
+
 2005-09-30  Romain Francoise  <romain@orebokech.com>
 
 	* minibuf.c (Fread_buffer): Follow convention for reading from the

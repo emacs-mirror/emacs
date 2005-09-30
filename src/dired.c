@@ -33,7 +33,6 @@ Boston, MA 02110-1301, USA.  */
 #include <grp.h>
 #endif
 
-#include "systime.h"
 #include <errno.h>
 
 #ifdef VMS
@@ -93,6 +92,7 @@ extern struct direct *readdir ();
 #endif
 
 #include "lisp.h"
+#include "systime.h"
 #include "buffer.h"
 #include "commands.h"
 #include "charset.h"
