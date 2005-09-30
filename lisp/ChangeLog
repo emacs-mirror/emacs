@@ -1,3 +1,12 @@
+2005-09-30  Eric M. Ludlam <zappo@gnu.org>
+
+	* speedbar.el: New version 1.0pre3.
+
+	* ezimage.el, sb-image.el: New files.
+
+	* sb-*.xpm: Files removed.  New image files installed into
+	etc/images/ezimage.
+
 2005-09-30  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el (ps-mule-show-warning): If a character is in
