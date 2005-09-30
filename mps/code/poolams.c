@@ -1176,7 +1176,8 @@ static Res amsIterate(Seg seg, AMSObjectFunction f, void *closure)
           /* Find out how large the free block is. */
           more = BTFindLongResRange(&dummy, &nextIndex, amsseg->allocTable,
                                     i, amsseg->grains, 1);
-          AVER(more && dummy == i);
+          AVER(more);
+          AVER(dummy == i);
           next = AMS_INDEX_ADDR(seg, nextIndex);
         } else {
           /* If there's no allocTable, this is the free block at the end. */

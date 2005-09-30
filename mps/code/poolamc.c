@@ -666,8 +666,10 @@ static void amcNailMarkRange(Seg seg, Addr base, Addr limit)
   Index ibase, ilimit;
   Size headerSize;
 
-  AVER(SegBase(seg) <= base && base < SegLimit(seg));
-  AVER(SegBase(seg) <= limit && limit <= SegLimit(seg));
+  AVER(SegBase(seg) <= base);
+  AVER(base < SegLimit(seg));
+  AVER(SegBase(seg) <= limit);
+  AVER(limit <= SegLimit(seg));
   AVER(base < limit);
 
   board = amcSegNailboard(seg);
@@ -694,8 +696,10 @@ static Bool amcNailRangeIsMarked(Seg seg, Addr base, Addr limit)
   Index ibase, ilimit;
   Size headerSize;
 
-  AVER(SegBase(seg) <= base && base < SegLimit(seg));
-  AVER(SegBase(seg) <= limit && limit <= SegLimit(seg));
+  AVER(SegBase(seg) <= base);
+  AVER(base < SegLimit(seg));
+  AVER(SegBase(seg) <= limit);
+  AVER(limit <= SegLimit(seg));
   AVER(base < limit);
 
   board = amcSegNailboard(seg);
@@ -1282,8 +1286,8 @@ static Res AMCScan(Bool *totalReturn, ScanState ss, Pool pool, Seg seg)
 
   /* <design/poolamc/#seg-scan.finish> @@@@ base? */
   limit = AddrAdd(SegLimit(seg), format->headerSize);
-  AVER(SegBase(seg) <= base
-       && base <= AddrAdd(SegLimit(seg), format->headerSize));
+  AVER(SegBase(seg) <= base);
+  AVER(base <= AddrAdd(SegLimit(seg), format->headerSize));
   if (base < limit) {
     res = (*format->scan)(ss, base, limit);
     if (res != ResOK) {
@@ -2030,7 +2034,8 @@ static Bool AMCCheck(AMC amc)
     CHECKD(amcGen, amc->afterRampGen);
   }
   /* nothing to check for rampCount */
-  CHECKL(amc->rampMode >= outsideRamp && amc->rampMode <= collectingRamp);
+  CHECKL(amc->rampMode >= outsideRamp);
+  CHECKL(amc->rampMode <= collectingRamp);
 
   return TRUE;
 }
