@@ -1401,7 +1401,8 @@ void TraceStart(Trace trace, double mortality, double finishingTime)
 
   AVERT(Trace, trace);
   AVER(trace->state == TraceINIT);
-  AVER(0.0 <= mortality && mortality <= 1.0);
+  AVER(0.0 <= mortality);
+  AVER(mortality <= 1.0);
   arena = trace->arena;
   AVER(finishingTime >= 0.0);
 
