@@ -1,3 +1,8 @@
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* minibuf.c (Fread_buffer): Follow convention for reading from the
+	minibuffer with a default value.  Doc fix.
+
 2005-09-29  Juri Linkov  <juri@jurta.org>
 
 	* editfns.c (Fmessage, Fmessage_box, Fmessage_or_box):
