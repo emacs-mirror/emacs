@@ -131,14 +131,29 @@
   :type  'boolean
   :group 'tree-widget)
 
+(defvar tree-widget-themes-load-path
+  '(load-path
+    (let ((dir (if (fboundp 'locate-data-directory)
+                   (locate-data-directory "tree-widget") ;; XEmacs
+                 data-directory)))
+      (and dir (list dir (expand-file-name "images" dir))))
+    )
+  "List of locations where to search for the themes sub-directory.
+Each element is an expression that will be evaluated to return a
+single directory or a list of directories to search.
+
+The default is to search in the `load-path' first, then in the
+\"images\" sub directory in the data directory, then in the data
+directory.
+The data directory is the value of the variable `data-directory' on
+Emacs, and what `(locate-data-directory \"tree-widget\")' returns on
+XEmacs.")
+
 (defcustom tree-widget-themes-directory "tree-widget"
   "*Name of the directory where to look up for image themes.
 When nil use the directory where the tree-widget library is located.
 When a relative name is specified, try to locate that sub directory in
-`load-path', then in the data directory, and use the first one found.
-The data directory is the value of the variable `data-directory' on
-Emacs, and what `(locate-data-directory \"tree-widget\")' returns on
-XEmacs.
+the locations specified in `tree-widget-themes-load-path'.
 The default is to use the \"tree-widget\" relative name."
   :type '(choice (const :tag "Default" "tree-widget")
                  (const :tag "With the library" nil)
@@ -236,7 +251,7 @@ Give the image the specified properties PROPS."
       (apply 'create-image `(,file ,type nil ,@props)))
     (defsubst tree-widget-image-formats ()
       "Return the alist of image formats/file name extensions.
-See also the option `widget-image-file-name-suffixes'."
+See also the option `widget-image-conversion'."
       (delq nil
             (mapcar
              #'(lambda (fmt)
@@ -264,47 +279,54 @@ Does nothing if NAME is already the current theme."
          (make-vector 4 nil))
     (aset tree-widget--theme 0 name)))
 
+(defun tree-widget--locate-sub-directory (name path)
+  "Locate the sub-directory NAME in PATH.
+Return the absolute name of the directory found, or nil if not found."
+  (let (dir elt)
+    (while (and (not dir) (consp path))
+      (setq elt  (condition-case nil (eval (car path)) (error nil))
+            path (cdr path))
+      (cond
+       ((stringp elt)
+        (setq dir (expand-file-name name elt))
+        (or (file-accessible-directory-p dir)
+            (setq dir nil)))
+       ((and elt (not (equal elt (car path))))
+        (setq dir (tree-widget--locate-sub-directory name elt)))))
+    dir))
+
 (defun tree-widget-themes-directory ()
   "Locate the directory where to search for a theme.
 It is defined in variable `tree-widget-themes-directory'.
 Return the absolute name of the directory found, or nil if the
 specified directory is not accessible."
   (let ((found (aref tree-widget--theme 1)))
-    (if found
-        ;; The directory is available in the cache.
-        (unless (eq found 'void) found)
-      (cond
-       ;; Use the directory where tree-widget is located.
-       ((null tree-widget-themes-directory)
-        (setq found (locate-library "tree-widget"))
-        (when found
-          (setq found (file-name-directory found))
-          (or (file-accessible-directory-p found)
-              (setq found nil))))
-       ;; Check accessibility of absolute directory name.
-       ((file-name-absolute-p tree-widget-themes-directory)
-        (setq found (expand-file-name tree-widget-themes-directory))
+    (cond
+     ;; The directory was not found.
+     ((eq found 'void)
+      (setq found nil))
+     ;; The directory is available in the cache.
+     (found)
+     ;; Use the directory where this library is located.
+     ((null tree-widget-themes-directory)
+      (setq found (locate-library "tree-widget"))
+      (when found
+        (setq found (file-name-directory found))
         (or (file-accessible-directory-p found)
-            (setq found nil)))
-       ;; Locate a sub-directory in `load-path' and data directory.
-       (t
-        (let ((path
-               (append load-path
-                       (list (if (fboundp 'locate-data-directory)
-                                 ;; XEmacs
-                                 (locate-data-directory "tree-widget")
-                               ;; Emacs
-                               data-directory)))))
-          (while (and path (not found))
-            (when (car path)
-              (setq found (expand-file-name
-                           tree-widget-themes-directory (car path)))
-              (or (file-accessible-directory-p found)
-                  (setq found nil)))
-            (setq path (cdr path))))))
-      ;; Store the result in the cache for later use.
-      (aset tree-widget--theme 1 (or found 'void))
-      found)))
+            (setq found nil))))
+     ;; Check accessibility of absolute directory name.
+     ((file-name-absolute-p tree-widget-themes-directory)
+      (setq found (expand-file-name tree-widget-themes-directory))
+      (or (file-accessible-directory-p found)
+          (setq found nil)))
+     ;; Locate a sub-directory in `tree-widget-themes-load-path'.
+     (t
+      (setq found (tree-widget--locate-sub-directory
+                   tree-widget-themes-directory
+                   tree-widget-themes-load-path))))
+    ;; Store the result in the cache for later use.
+    (aset tree-widget--theme 1 (or found 'void))
+    found))
 
 (defsubst tree-widget-set-image-properties (props)
   "In current theme, set images properties to PROPS."
@@ -351,9 +373,9 @@ XEmacs in the variables `tree-widget-image-properties-emacs', and
     plist))
 
 (defconst tree-widget--cursors
-  ;; Pointer shapes when the mouse pointer is over tree-widget images.
-  ;; This feature works since Emacs 22, and ignored on older versions,
-  ;; and XEmacs.
+  ;; Pointer shapes when the mouse pointer is over inactive
+  ;; tree-widget images.  This feature works since Emacs 22, and
+  ;; ignored on older versions, and XEmacs.
   '(
     ("guide"     . arrow)
     ("no-guide"  . arrow)
