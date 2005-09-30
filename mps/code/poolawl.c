@@ -1239,7 +1239,8 @@ static Bool AWLCheck(AWL awl)
   CHECKL(1uL << awl->alignShift == awl->poolStruct.alignment);
   CHECKD(Chain, awl->chain);
   /* 30 is just a sanity check really, not a constraint. */
-  CHECKL(0 <= awl->gen && awl->gen <= 30);
+  CHECKL(0 <= awl->gen);
+  CHECKL(awl->gen <= 30);
   /* Nothing to check about succAccesses. */
   CHECKL(FUNCHECK(awl->findDependent));
   /* Don't bother to check stats. */
