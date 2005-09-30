@@ -1,3 +1,7 @@
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* NEWS: Mention changes to `read-buffer'.
+
 2005-09-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* images/ezimage: New directory.

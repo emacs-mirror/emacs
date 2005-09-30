@@ -3699,6 +3699,12 @@ If the variable is itself nil, then `frame-or-buffer-changed-p' uses,
 for compatibility, an internal variable which exists only for this
 purpose.
 
++++
+*** The function `read-buffer' follows the convention for reading from
+the minibuffer with a default value: if DEF is non-nil, the minibuffer
+prompt provided in PROMPT is edited to show the default value provided
+in DEF before the terminal colon and space.
+
 ** Local variables lists:
 
 +++
