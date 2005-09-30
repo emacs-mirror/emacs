@@ -8,7 +8,7 @@
 	* toolbar/execute.*, toolbar/highlight.*, toolbar/mh-logo.xpm:
 	* toolbar/page-down.*, toolbar/show.*, toolbar/widen.*: Moved to
 	etc/images.
-	
+
 	* toolbar/alias.*, toolbar/refile.*, toolbar/repack.*:
 	* toolbar/reply*: Moved to etc/images/mail.
 
