@@ -2,7 +2,7 @@
 
 	* speedbar.el: New version 1.0pre3.
 
-	* ezimage.el, sb-image.el: New files.
+	* dframe.el, ezimage.el, sb-image.el: New files.
 
 	* sb-*.xpm: Files removed.  New image files installed into
 	etc/images/ezimage.
