@@ -848,7 +848,8 @@ static Bool pagesFindFreeInZones(Index *baseReturn, VMChunk *chunkReturn,
             break;
           }
 
-          AVER(base < limit && limit < chunk->limit);
+          AVER(base < limit);
+          AVER(limit < chunk->limit);
         } while(ZoneSetIsMember(arena, zones, limit));
 
         /* If the ZoneSet was universal, then the area found ought to */

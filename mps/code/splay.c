@@ -830,8 +830,8 @@ static Compare SplayFindFirstCompare(void *key, SplayNode node)
   } else if ((*testNode)(tree, node, closureP, closureS)) {
     return CompareEQUAL;
   } else {
-    AVER(SplayNodeRightChild(node) != NULL &&
-         (*testTree)(tree, SplayNodeRightChild(node), closureP, closureS));
+    AVER(SplayNodeRightChild(node) != NULL);
+    AVER((*testTree)(tree, SplayNodeRightChild(node), closureP, closureS));
     return CompareGREATER;
   }
 }
@@ -861,8 +861,8 @@ static Compare SplayFindLastCompare(void *key, SplayNode node)
   } else if ((*testNode)(tree, node, closureP, closureS)) {
     return CompareEQUAL;
   } else {
-    AVER(SplayNodeLeftChild(node) != NULL &&
-         (*testTree)(tree, SplayNodeLeftChild(node), closureP, closureS));
+    AVER(SplayNodeLeftChild(node) != NULL);
+    AVER((*testTree)(tree, SplayNodeLeftChild(node), closureP, closureS));
     return CompareLESS;
   }
 }
