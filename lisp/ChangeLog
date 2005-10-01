@@ -1,29 +1,37 @@
 2005-10-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* speedbar.el: Re-apply arch tag.
-	(speedbar-version): Renamed to version 1.0.  Suggested by Eric
+	(speedbar-version): Rename to version 1.0.  Suggested by Eric
 	M. Ludlam.
 	Reapply two changes from Emacs CVS' version of speedbar lost
 	during the merge:
-	(speedbar-use-imenu-flag): Avoid unnecessary use of
-	locate-library.
+	(speedbar-use-imenu-flag): Avoid unnecessary use of locate-library.
 	(speedbar-frame-parameters): Improve customize type.
+
+2005-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-gwp-start): Use with-current-buffer.
+	(ange-ftp-file-directory-p): Fix the symlink case.
+	(ange-ftp-insert-directory): When listing a single file, get a list of
+	the parent buffer and extract the relevant line.  Inspired from a patch
+	by Katsumi Yamaoka <yamaoka@jpl.org>.
+	(ange-ftp-file-name-sans-versions): Simplify.
 
 2005-09-30  Bill Wohler  <wohler@newt.com>
 
-	Moved MH-E image files from toolbar and mail directories into
+	Move MH-E image files from toolbar and mail directories into
 	etc/images.
 
-	* mail/reply2.*: Moved to etc/images/mail/reply*.
+	* mail/reply2.*: Move to etc/images/mail/reply*.
 
 	* toolbar/execute.*, toolbar/highlight.*, toolbar/mh-logo.xpm:
-	* toolbar/page-down.*, toolbar/show.*, toolbar/widen.*: Moved to
+	* toolbar/page-down.*, toolbar/show.*, toolbar/widen.*: Move to
 	etc/images.
 
 	* toolbar/alias.*, toolbar/refile.*, toolbar/repack.*:
-	* toolbar/reply*: Moved to etc/images/mail.
+	* toolbar/reply*: Move to etc/images/mail.
 
-	* toolbar/rescan.*: Moved and renamed to etc/images/refresh.*.
+	* toolbar/rescan.*: Move and rename to etc/images/refresh.*.
 
 2005-09-30  Eric M. Ludlam <zappo@gnu.org>
 
@@ -31,7 +39,7 @@
 
 	* dframe.el, ezimage.el, sb-image.el: New files.
 
-	* sb-*.xpm: Files removed.  New image files installed into
+	* sb-*.xpm: Remove files.  New image files installed into
 	etc/images/ezimage.
 
 2005-09-30  Kenichi Handa  <handa@m17n.org>
@@ -143,15 +151,13 @@
 	* progmodes/ebrowse.el (ebrowse-find-pattern):
 	* progmodes/idlw-shell.el (idlwave-shell-set-bp-check):
 	* textmodes/reftex-index.el (reftex-index-initialize-phrases-buffer):
-	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and
-	space.
+	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and space.
 
 	* vc.el (vc-delete-file):
 	* play/gomoku.el (gomoku-terminate-game, gomoku)
 	(gomoku-prompt-for-move, gomoku-human-takes-back):
 	* play/landmark.el (lm-human-takes-back, lm-prompt-for-move)
-	(lm-start-robot, lm-human-plays): Remove extraneous spaces in
-	messages.
+	(lm-start-robot, lm-human-plays): Remove extraneous spaces in messages.
 
 2005-09-24  Dan Nicolaescu  <dann@ics.uci.edu>
 
