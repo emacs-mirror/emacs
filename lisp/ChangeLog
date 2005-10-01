@@ -1,3 +1,11 @@
+2005-10-01  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-valid-entry-whitespace-re):
+	Do not match newline.
+	(bibtex-realign): Do not use bibtex-valid-entry-whitespace-re.
+	(bibtex-summary): Remove unnecessary save-excursion.
+	(bibtex-fill-field-bounds): Use fill-region-as-paragraph.
+
 2005-10-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Add charset info for "iso10646-1".  Modify

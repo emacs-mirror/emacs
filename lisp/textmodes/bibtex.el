@@ -1120,7 +1120,7 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
   "Regexp matching the name of a valid BibTeX entry.")
 
 (defvar bibtex-valid-entry-whitespace-re
-  (concat "[ \t\n]*\\(" bibtex-valid-entry-re "\\)")
+  (concat "[ \t]*\\(" bibtex-valid-entry-re "\\)")
   "Regexp matching the name of a valid BibTeX entry preceded by whitespace.")
 
 (defvar bibtex-any-valid-entry-re
@@ -2566,34 +2566,33 @@ Use `bibtex-summary-function' to generate summary."
   "Return summary of current BibTeX entry.
 Used as default value of `bibtex-summary-function'."
   ;; It would be neat to customize this function.  How?
-  (save-excursion
-    (if (looking-at bibtex-entry-maybe-empty-head)
-        (let* ((bibtex-autokey-name-case-convert 'identity)
-               (bibtex-autokey-name-length 'infty)
-               (bibtex-autokey-names 1)
-               (bibtex-autokey-names-stretch 0)
-               (bibtex-autokey-name-separator " ")
-               (bibtex-autokey-additional-names " etal")
-               (names (bibtex-autokey-get-names))
-               (bibtex-autokey-year-length 4)
-               (year (bibtex-autokey-get-year))
-               (bibtex-autokey-titlewords 5)
-               (bibtex-autokey-titlewords-stretch 2)
-               (bibtex-autokey-titleword-case-convert 'identity)
-               (bibtex-autokey-titleword-length 5)
-               (bibtex-autokey-titleword-separator " ")
-               (title (bibtex-autokey-get-title))
-               (journal (bibtex-autokey-get-field
-                         "journal" bibtex-autokey-transcriptions))
-               (volume (bibtex-autokey-get-field "volume"))
-               (pages (bibtex-autokey-get-field "pages" '(("-.*\\'" . "")))))
-          (mapconcat (lambda (arg)
-                       (if (not (string= "" (cdr arg)))
-                           (concat (car arg) (cdr arg))))
-                     `((" " . ,names) (" " . ,year) (": " . ,title)
-                       (", " . ,journal) (" " . ,volume) (":" . ,pages))
-                     ""))
-      (error "Entry not found"))))
+  (if (looking-at bibtex-entry-maybe-empty-head)
+      (let* ((bibtex-autokey-name-case-convert 'identity)
+             (bibtex-autokey-name-length 'infty)
+             (bibtex-autokey-names 1)
+             (bibtex-autokey-names-stretch 0)
+             (bibtex-autokey-name-separator " ")
+             (bibtex-autokey-additional-names " etal")
+             (names (bibtex-autokey-get-names))
+             (bibtex-autokey-year-length 4)
+             (year (bibtex-autokey-get-year))
+             (bibtex-autokey-titlewords 5)
+             (bibtex-autokey-titlewords-stretch 2)
+             (bibtex-autokey-titleword-case-convert 'identity)
+             (bibtex-autokey-titleword-length 5)
+             (bibtex-autokey-titleword-separator " ")
+             (title (bibtex-autokey-get-title))
+             (journal (bibtex-autokey-get-field
+                       "journal" bibtex-autokey-transcriptions))
+             (volume (bibtex-autokey-get-field "volume"))
+             (pages (bibtex-autokey-get-field "pages" '(("-.*\\'" . "")))))
+        (mapconcat (lambda (arg)
+                     (if (not (string= "" (cdr arg)))
+                         (concat (car arg) (cdr arg))))
+                   `((" " . ,names) (" " . ,year) (": " . ,title)
+                     (", " . ,journal) (" " . ,volume) (":" . ,pages))
+                   ""))
+    (error "Entry not found")))
 
 (defun bibtex-pop (arg direction)
   "Fill current field from the ARGth same field's text in DIRECTION.
@@ -3950,9 +3949,9 @@ If optional arg MOVE is non-nil move point to end of field."
               (insert " ")
             (indent-to-column bibtex-text-indentation)))
       (re-search-forward "[ \t\n]*=[ \t\n]*" end-field))
-    (while (re-search-forward "[ \t\n]+" end-field 'move)
-      (replace-match " "))
-    (do-auto-fill)
+    ;; Paragraphs within fields are not preserved. Bother?
+    (fill-region-as-paragraph (line-beginning-position) end-field
+                              default-justification nil (point))
     (if move (goto-char end-field))))
 
 (defun bibtex-fill-field (&optional justify)
@@ -3992,13 +3991,14 @@ If `bibtex-align-at-equal-sign' is non-nil, align equal signs, too."
 (defun bibtex-realign ()
   "Realign BibTeX entries such that they are separated by one blank line."
   (goto-char (point-min))
-  (let ((case-fold-search t))
+  (let ((case-fold-search t)
+        (valid-entry (concat "[ \t\n]*\\(" bibtex-valid-entry-re "\\)")))
     ;; No blank lines prior to the first valid entry if there no
     ;; non-white characters in front of it.
-    (when (looking-at bibtex-valid-entry-whitespace-re)
+    (when (looking-at valid-entry)
       (replace-match "\\1"))
     ;; Valid entries are separated by one blank line.
-    (while (re-search-forward bibtex-valid-entry-whitespace-re nil t)
+    (while (re-search-forward valid-entry nil t)
       (replace-match "\n\n\\1"))
     ;; One blank line past the last valid entry if it is followed by
     ;; non-white characters, no blank line otherwise.
