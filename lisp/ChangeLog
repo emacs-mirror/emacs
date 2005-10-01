@@ -1,3 +1,9 @@
+2005-10-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Add charset info for "iso10646-1".  Modify
+	default fontset to use ATSUI-compatible fonts for some charsets if
+	available.
+
 2005-10-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* speedbar.el: Re-apply arch tag.

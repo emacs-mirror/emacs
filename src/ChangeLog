@@ -1,3 +1,31 @@
+2005-10-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (init_keyboard) [MAC_OSX]: Don't install SIGINT handler.
+
+	* macfns.c (start_hourglass): Apply 2005-05-07 change for xfns.c.
+	(x_create_tip_frame) [GLYPH_DEBUG]: Uncomment debug code.
+	(Fx_create_frame, x_create_tip_frame) [USE_ATSUI]: Try
+	ATSUI-compatible 12pt Monaco font first.
+
+	* macgui.h (struct _XCharStruct): New member valid_p.
+	(STORE_XCHARSTRUCT): Set valid_p.
+	(struct MacFontStruct) [USE_ATSUI]: New member mac_style.
+
+	* macterm.c (mac_draw_string_common, x_per_char_metric)
+	(mac_compute_glyph_string_overhangs, init_font_name_table)
+	(XLoadQueryFont, mac_unload_font) [USE_ATSUI]: Add ATSUI support.
+	(atsu_get_text_layout_with_text_ptr) [USE_ATSUI]: New function.
+	(x_draw_glyph_string_background)
+	(x_draw_glyph_string_foreground) [MAC_OS8 && USE_ATSUI]: Don't use
+	XDrawImageString.  Always draw background and foreground separately.
+	(x_draw_glyph_string_foreground) [USE_ATSUI]: Don't use 8-bit
+	functions for one-byte chars when using ATSUI-compatible fonts.
+	(atsu_font_id_hash) [USE_ATSUI]: New variable.
+	(syms_of_macterm) [USE_ATSUI]: Initialize and staticpro it.
+	(XLoadQueryFont): Set min_byte1, max_byte1, min_char_or_byte2, and
+	max_char_or_byte2 more in detail.
+	(quit_char_comp, mac_check_for_quit_char) [MAC_OSX]: Remove functions.
+
 2005-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* image.c (slurp_file, xbm_read_bitmap_data): Cast to the correct
