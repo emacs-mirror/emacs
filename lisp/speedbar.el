@@ -4,9 +4,9 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.247 2005/06/30 02:37:40 zappo Exp $
+;; X-RCS: $Id: speedbar.el,v 1.68 2005/09/30 13:15:10 cyd Exp $
 
-(defvar speedbar-version "1.0pre3"
+(defvar speedbar-version "1.0"
   "The current version of speedbar.")
 (defvar speedbar-incompatible-version "0.14beta4"
   "This version of speedbar is incompatible with this version.
@@ -278,7 +278,9 @@ Any parameter supported by a frame may be added.  The parameter `height'
 will be initialized to the height of the frame speedbar is
 attached to and added to this list before the new frame is initialized."
   :group 'speedbar
-  :type '(repeat (sexp :tag "Parameter:")))
+  :type '(repeat (cons :format "%v"
+		       (symbol :tag "Parameter")
+		       (sexp :tag "Value"))))
 
 ;; These values by Hrvoje Niksic <hniksic@srce.hr>
 (defcustom speedbar-frame-plist
@@ -297,7 +299,7 @@ is attached to."
 			(symbol :tag "Property")
 			(sexp :tag "Value"))))
 
-(defcustom speedbar-use-imenu-flag (stringp (locate-library "imenu"))
+(defcustom speedbar-use-imenu-flag (fboundp 'imenu)
   "*Non-nil means use imenu for file parsing.  nil to use etags.
 XEmacs prior to 20.4 doesn't support imenu, therefore the default is to
 use etags instead.  Etags support is not as robust as imenu support."
@@ -3598,7 +3600,7 @@ functions to do caching and flushing if appropriate."
 
     nil
 
-(eval-when-compile (if (locate-library "imenu") (require 'imenu)))
+(eval-when-compile (condition-case nil (require 'imenu) (error nil)))
 
 (defun speedbar-fetch-dynamic-imenu (file)
   "Load FILE into a buffer, and generate tags using Imenu.
@@ -4092,7 +4094,9 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
   )
 
 (provide 'speedbar)
-;;; speedbar ends here
 
 ;; run load-time hooks
 (run-hooks 'speedbar-load-hook)
+
+;; arch-tag: 4477e6d1-f78c-48b9-a503-387d3c9767d5
+;;; speedbar ends here

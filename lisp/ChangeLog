@@ -1,3 +1,14 @@
+2005-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* speedbar.el: Re-apply arch tag.
+	(speedbar-version): Renamed to version 1.0.  Suggested by Eric
+	M. Ludlam.
+	Reapply two changes from Emacs CVS' version of speedbar lost
+	during the merge:
+	(speedbar-use-imenu-flag): Avoid unnecessary use of
+	locate-library.
+	(speedbar-frame-parameters): Improve customize type.
+
 2005-09-30  Bill Wohler  <wohler@newt.com>
 
 	Moved MH-E image files from toolbar and mail directories into
