@@ -10743,11 +10743,6 @@ init_keyboard ()
   poll_suppress_count = 1;
   start_polling ();
 #endif
-
-#ifdef MAC_OSX
-  /* At least provide an escape route since C-g doesn't work.  */
-  signal (SIGINT, interrupt_signal);
-#endif
 }
 
 /* This type's only use is in syms_of_keyboard, to initialize the
