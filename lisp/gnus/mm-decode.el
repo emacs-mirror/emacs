@@ -222,7 +222,12 @@ before the external MIME handler is invoked."
     ("text/richtext" mm-inline-text identity)
     ("text/x-patch" mm-display-patch-inline
      (lambda (handle)
-       (locate-library "diff-mode")))
+       ;; If the diff-mode.el package is installed, the function is
+       ;; autoloaded.  Checking (locate-library "diff-mode") would be trying
+       ;; to cater to broken installations.  OTOH checking the function
+       ;; makes it possible to install another package which provides an
+       ;; alternative implementation of diff-mode.  --Stef
+       (fboundp 'diff-mode)))
     ("application/emacs-lisp" mm-display-elisp-inline identity)
     ("application/x-emacs-lisp" mm-display-elisp-inline identity)
     ("text/html"
@@ -451,20 +456,18 @@ If not set, `default-directory' will be used."
 (defvar mm-viewer-completion-map
   (let ((map (make-sparse-keymap 'mm-viewer-completion-map)))
     (set-keymap-parent map minibuffer-local-completion-map)
+    ;; Should we bind other key to minibuffer-complete-word?
+    (define-key map " " 'self-insert-command)
     map)
   "Keymap for input viewer with completion.")
-
-;; Should we bind other key to minibuffer-complete-word?
-(define-key mm-viewer-completion-map " " 'self-insert-command)
 
 (defvar mm-viewer-completion-map
   (let ((map (make-sparse-keymap 'mm-viewer-completion-map)))
     (set-keymap-parent map minibuffer-local-completion-map)
+    ;; Should we bind other key to minibuffer-complete-word?
+    (define-key map " " 'self-insert-command)
     map)
   "Keymap for input viewer with completion.")
-
-;; Should we bind other key to minibuffer-complete-word?
-(define-key mm-viewer-completion-map " " 'self-insert-command)
 
 ;;; The functions.
 
@@ -564,7 +567,7 @@ Postpone undisplaying of viewers for types in
 	     ;; what really needs to be done here is a way to link a
 	     ;; MIME handle back to it's parent MIME handle (in a multilevel
 	     ;; MIME article).  That would probably require changing
-	     ;; the mm-handle API so we simply store the multipart buffert
+	     ;; the mm-handle API so we simply store the multipart buffer
 	     ;; name as a text property of the "multipart/whatever" string.
 	     (add-text-properties 0 (length (car ctl))
 				  (list 'buffer (mm-copy-to-buffer)
@@ -807,8 +810,7 @@ external if displayed external."
 				   (mm-mailcap-command
 				    method file (mm-handle-type handle)))
 		     (if (buffer-live-p buffer)
-			 (save-excursion
-			   (set-buffer buffer)
+			 (with-current-buffer buffer
 			   (buffer-string))))
 		 (progn
 		   (ignore-errors (delete-file file))
