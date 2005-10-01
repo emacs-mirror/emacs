@@ -1132,6 +1132,7 @@ correspoinding TextEncodingBase value."
 (mac-add-charset-info "mac-symbol" 33)
 (mac-add-charset-info "adobe-fontspecific" 33) ; for X-Symbol
 (mac-add-charset-info "mac-dingbats" 34)
+(mac-add-charset-info "iso10646-1" 126) ; for ATSUI
 
 
 ;;;; Keyboard layout/language change events
@@ -1714,9 +1715,21 @@ It returns a name of the created fontset."
 
 ;; Setup the default fontset.
 (setup-default-fontset)
-;; Add Mac-encoding fonts unless ETL fonts are installed.
-(unless (x-list-fonts "*-iso8859-1")
-  (fontset-add-mac-fonts "fontset-default"))
+(cond ((x-list-fonts "*-iso10646-1")
+       ;; Use ATSUI (if available) for the following charsets.
+       (dolist
+	   (charset '(latin-iso8859-1
+		      latin-iso8859-2 latin-iso8859-3 latin-iso8859-4
+		      thai-tis620 greek-iso8859-7 arabic-iso8859-6
+		      hebrew-iso8859-8 cyrillic-iso8859-5
+		      latin-iso8859-9 latin-iso8859-15 latin-iso8859-14
+		      japanese-jisx0212 chinese-sisheng ipa
+		      vietnamese-viscii-lower vietnamese-viscii-upper
+		      lao ethiopic tibetan))
+	 (set-fontset-font nil charset '(nil . "iso10646-1"))))
+      ((null (x-list-fonts "*-iso8859-1"))
+       ;; Add Mac-encoding fonts unless ETL fonts are installed.
+       (fontset-add-mac-fonts "fontset-default")))
 
 ;; Create a fontset that uses mac-roman font.  With this fontset,
 ;; characters decoded from mac-roman encoding (ascii, latin-iso8859-1,
