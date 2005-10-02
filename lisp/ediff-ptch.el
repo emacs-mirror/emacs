@@ -305,8 +305,8 @@ program."
 		;; these dirs lead to the actual files starting at the present
 		;; directory. So, we don't strip these relative dirs from the
 		;; file names. This is a heuristic intended to improve guessing
-		(unless (or (file-name-absolute-p base-dir1)
-			    (file-name-absolute-p base-dir2))
+		(unless (or (and base-dir1 (file-name-absolute-p base-dir1))
+			    (and base-dir2 (file-name-absolute-p base-dir2)))
 		  (setq base-dir1 ""
 			base-dir2 ""))
 		(or (string= (car proposed-file-names) "/dev/null")
