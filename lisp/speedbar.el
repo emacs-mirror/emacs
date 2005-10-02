@@ -4,7 +4,6 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: speedbar.el,v 1.68 2005/09/30 13:15:10 cyd Exp $
 
 (defvar speedbar-version "1.0"
   "The current version of speedbar.")
@@ -27,8 +26,8 @@ this version is not backward compatible to 0.14 or earlier.")
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -2822,12 +2821,15 @@ indicator, then do not add a space."
 		      (re-search-forward "^\\([0-9]+\\):\\s-*[[<][+-\?][]>] "
 					 nil t))
 	    (setq speedbar-ro-to-do-point (point))
-	    (if (not (file-writable-p (speedbar-line-file)))
-		(speedbar-add-indicator
-		 speedbar-object-read-only-indicator
-		 (regexp-quote speedbar-object-read-only-indicator))
-	      (speedbar-add-indicator
-	       " " (regexp-quote speedbar-object-read-only-indicator))))
+	    (let ((f (speedbar-line-file)))
+	      (if f
+		  (if (not (file-writable-p f))
+		      (speedbar-add-indicator
+		       speedbar-object-read-only-indicator
+		       (regexp-quote speedbar-object-read-only-indicator))
+		    (speedbar-add-indicator
+		     " " (regexp-quote
+			  speedbar-object-read-only-indicator))))))
 	  (if (input-pending-p)
 	      ;; return that we are incomplete
 	      nil

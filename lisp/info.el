@@ -4012,8 +4012,6 @@ This will add a speedbar major display mode."
   (speedbar-change-initial-expansion-list "Info")
   )
 
-(eval-when-compile (defvar speedbar-attached-frame))
-
 (defun Info-speedbar-hierarchy-buttons (directory depth &optional node)
   "Display an Info directory hierarchy in speedbar.
 DIRECTORY is the current directory in the attached frame.
@@ -4030,13 +4028,12 @@ specific node to expand."
     ;; being known at creation time.
     (if (not node)
 	(speedbar-with-writable (insert "Info Nodes:\n")))
-    (let ((completions nil)
-	  (cf (selected-frame)))
-      (select-frame speedbar-attached-frame)
+    (let ((completions nil))
+      (speedbar-select-attached-frame)
       (save-window-excursion
 	(setq completions
 	      (Info-speedbar-fetch-file-nodes (or node '"(dir)top"))))
-      (select-frame cf)
+      (select-frame speedbar-frame)
       (if completions
 	  (speedbar-with-writable
 	   (dolist (completion completions)
@@ -4052,7 +4049,7 @@ specific node to expand."
 (defun Info-speedbar-goto-node (text node indent)
   "When user clicks on TEXT, go to an info NODE.
 The INDENT level is ignored."
-  (select-frame speedbar-attached-frame)
+  (speedbar-select-attached-frame)
   (let* ((buff (or (get-buffer "*info*")
 		   (progn (info) (get-buffer "*info*"))))
 	 (bwin (get-buffer-window buff 0)))
@@ -4062,7 +4059,7 @@ The INDENT level is ignored."
 	  (raise-frame (window-frame bwin)))
       (if speedbar-power-click
 	  (let ((pop-up-frames t)) (select-window (display-buffer buff)))
-	(select-frame speedbar-attached-frame)
+	(speedbar-select-attached-frame)
 	(switch-to-buffer buff)))
     (if (not (string-match "^(\\([^)]+\\))\\([^.]+\\)$" node))
 	(error "Invalid node %s" node)
@@ -4128,7 +4125,7 @@ NODESPEC is a string of the form: (file)node."
       (nreverse completions))))
 
 ;;; Info mode node listing
-;; FIXME: Seems not to be used.  -stef
+;; This is called by `speedbar-add-localized-speedbar-support'
 (defun Info-speedbar-buttons (buffer)
   "Create a speedbar display to help navigation in an Info file.
 BUFFER is the buffer speedbar is requesting buttons for."
@@ -4136,8 +4133,7 @@ BUFFER is the buffer speedbar is requesting buttons for."
 		      (let ((case-fold-search t))
 			(not (looking-at "Info Nodes:"))))
       (erase-buffer))
-  (Info-speedbar-hierarchy-buttons nil 0)
-  )
+  (Info-speedbar-hierarchy-buttons nil 0))
 
 (dolist (mess '("^First node in file$"
 		"^No `.*' in index$"

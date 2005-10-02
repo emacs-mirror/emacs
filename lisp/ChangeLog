@@ -1,3 +1,13 @@
+2005-10-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* speedbar.el: Remove RCS tag.
+	(speedbar-check-read-only): Handle non-existent files.
+
+	* dframe.el, ezimage.el, sb-image.el: Remove RCS tags.
+
+	* info.el (Info-speedbar-hierarchy-buttons)
+	(Info-speedbar-goto-node): Call speedbar-select-attached-frame.
+
 2005-10-01  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-valid-entry-whitespace-re):
