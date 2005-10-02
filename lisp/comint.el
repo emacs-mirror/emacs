@@ -3109,8 +3109,8 @@ When redirection is completed, the process filter is restored to
 this value.")
 
 (defvar comint-redirect-subvert-readonly nil
-  "Non-nil means comint-redirect can insert into otherwise-readonly buffers.
-The readonly status is toggled around insertion.
+  "Non-nil means `comint-redirect' can insert into read-only buffers.
+This works by binding `inhibit-read-only' around the insertion.
 This is useful, for instance, for insertion into Help mode buffers.
 You probably want to set it locally to the output buffer.")
 
