@@ -1,3 +1,11 @@
+2005-10-02  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/ebnf2ps.el (ebnf-eps-production-list):
+	Use insert-buffer-substring.
+
+	* net/tramp.el: Pacify byte compiler warnings in pacification code.
+	(tramp-handle-file-local-copy): Use insert-buffer-substring.
+
 2005-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/ange-ftp.el (ange-ftp-insert-directory): Undo unintended part
