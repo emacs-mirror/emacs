@@ -1,3 +1,7 @@
+2005-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* TODO: Clarify the local variables entry.
+
 2005-09-30  Bill Wohler  <wohler@newt.com>
 
 	Moved MH-E image files from toolbar and mail directories into
@@ -13,9 +17,9 @@
 	* images/execute.*, images/highlight.*, images/mh-logo.xpm:
 	* images/page-down.*, images/show.*, images/widen.*: Moved here
 	from lisp/toolbar.
-	
-	* images/refresh.*: Moved here from lisp/toolbar/rescan.*. Use
-	GNOME 2.10's refresh icon.
+
+	* images/refresh.*: Moved here from lisp/toolbar/rescan.*.
+	Use GNOME 2.10's refresh icon.
 
 	* images/README: New file that indicates which icons came from
 	GNOME (see lisp/toolbar/README).
@@ -41,8 +45,7 @@
 2005-09-27  Jay Belanger <belanger@truman.edu>
 
 	* calccard.tex: Update `versionnumber', remove `versiondate'.
-	(Error Recovery): Refer to "initial state" rather than "default
-	state".
+	(Error Recovery): Refer to "initial state" rather than "default state".
 	(Algebra): Mention LaTeX language mode.
 	(Programming): Delete reference to "Z =".
 
@@ -57,8 +60,7 @@
 
 2005-09-15  Kenichi Handa  <handa@m17n.org>
 
-	* PROBLEMS: Fix the paragraph describing the limitation of
-	UTF-8/16/7.
+	* PROBLEMS: Fix the paragraph describing the limitation of UTF-8/16/7.
 
 2005-09-14  Romain Francoise  <romain@orebokech.com>
 
@@ -160,12 +162,11 @@
 2005-07-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS (Fedora Core 4 GNU/Linux: Segfault during dumping):
-	Added it again.
+	Add it again.
 
 2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
 
-	* NEWS: Added an entry for Org-mode, and a change entry for
-	reftex-mode.
+	* NEWS: Add an entry for Org-mode, and a change entry for reftex-mode.
 
 2005-06-28  Richard M. Stallman  <rms@gnu.org>
 
