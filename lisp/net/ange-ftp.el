@@ -4484,7 +4484,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
     ;; Follow symlinks.
     (let (tem)
       (while (and (not wildcard)
-                  (stringp (setq tem (ange-ftp-get-file-entry
+                  (stringp (setq tem (file-symlink-p
                                       (directory-file-name file)))))
         (setq file
               (ange-ftp-expand-symlink

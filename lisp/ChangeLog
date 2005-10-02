@@ -1,3 +1,8 @@
+2005-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el (ange-ftp-insert-directory): Undo unintended part
+	in last change.
+
 2005-10-02  Romain Francoise  <romain@orebokech.com>
 
 	* progmodes/compile.el (compile-goto-error): Delete extra paren.
