@@ -1,3 +1,8 @@
+2005-10-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (fatal): Undo previous change.
+	* term.c (fatal): Undo previous change.
+
 2005-10-01  Richard M. Stallman  <rms@gnu.org>
 
 	* xfaces.c (face_color_gray_p): Colors close to black count as gray.

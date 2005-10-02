@@ -25,7 +25,6 @@ Boston, MA 02110-1301, USA.  */
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
-#include <stdarg.h>
 
 #include "termchar.h"
 #include "termopts.h"
@@ -2690,13 +2689,12 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
 /* VARARGS 1 */
 void
-fatal (const char *str, ...)
+fatal (str, arg1, arg2)
+     char *str, *arg1, *arg2;
 {
-  va_list ap;
-  va_start (ap, str);
   fprintf (stderr, "emacs: ");
-  vfprintf (stderr, str, ap);
-  va_end (ap);
+  fprintf (stderr, str, arg1, arg2);
+  fprintf (stderr, "\n");
   fflush (stderr);
   exit (1);
 }
