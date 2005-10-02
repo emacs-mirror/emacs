@@ -4,7 +4,7 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: dframe.el,v 1.27 2005/02/06 17:02:45 berndl Exp $
+;; X-RCS: $Id: dframe.el,v 1.1 2005/09/30 13:18:43 cyd Exp $
 
 (defvar dframe-version "1.3"
   "The current version of the dedicated frame library.")
@@ -1065,4 +1065,5 @@ mode-line.  This is only useful for non-XEmacs."
 
 (provide 'dframe)
 
+;; arch-tag: df9b91b6-e85e-4a76-a02e-b3cb5b686bd4
 ;;; dframe.el ends here

@@ -4,7 +4,7 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: ezimage.el,v 1.4 2003/11/20 04:11:33 zappo Exp $
+;; X-RCS: $Id: ezimage.el,v 1.1 2005/09/30 13:15:10 cyd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -368,4 +368,5 @@ See `ezimage-expand-image-button-alist' for details."
 
 (provide 'ezimage)
 
+;; arch-tag: d4ea2d93-3c7a-4cb3-b5a6-c1b9178183aa
 ;;; sb-image.el ends here

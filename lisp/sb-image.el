@@ -4,7 +4,7 @@
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
 ;; Keywords: file, tags, tools
-;; X-RCS: $Id: sb-image.el,v 1.10 2003/08/25 17:23:39 zappo Exp $
+;; X-RCS: $Id: sb-image.el,v 1.1 2005/09/30 13:15:10 cyd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -108,4 +108,5 @@ See `speedbar-expand-image-button-alist' for details."
 
 (provide 'sb-image)
 
+;; arch-tag: 6b05accd-e8b8-4290-8379-f063f3dacabb
 ;;; sb-image.el ends here
