@@ -4507,10 +4507,11 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
          (setq switches (substring switches 0 (match-beginning 0))))
        (let* ((dirlist (ange-ftp-ls (or (file-name-directory file) ".")
                                     switches nil))
+              (filename (file-name-nondirectory (directory-file-name file)))
               (case-fold-search nil))
          ;; FIXME: This presumes a particular output format, which is
          ;; basically Unix.
-         (if (string-match (concat "^.+[^ ] " (regexp-quote file)
+         (if (string-match (concat "^.+[^ ] " (regexp-quote filename)
                                    "\\( -> .*\\)?[@/*=]?\n") dirlist)
              (match-string 0 dirlist)
            "")))))))

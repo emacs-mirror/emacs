@@ -2,6 +2,8 @@
 
 	* net/ange-ftp.el (ange-ftp-insert-directory): Undo unintended part
 	in last change.
+	(ange-ftp-insert-directory): Fix up the search for the case where
+	`file' is absolute.
 
 2005-10-02  Romain Francoise  <romain@orebokech.com>
 
