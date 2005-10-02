@@ -1,3 +1,13 @@
+2005-10-01  Richard M. Stallman  <rms@gnu.org>
+
+	* comint.el (comint-redirect-subvert-readonly): Doc fix.
+
+	* simple.el (next-error-internal): New function.
+
+	* progmodes/compile.el (compilation-buffer-name): New arg MODE-COMMAND.
+	(compilation-start): Pass new arg to compilation-buffer-name.
+	(compile-goto-error): Use next-error-internal.
+
 2005-10-01  Chong Yidong  <cyd@stupidchicken.com>
 
 	* speedbar.el: Remove RCS tag.

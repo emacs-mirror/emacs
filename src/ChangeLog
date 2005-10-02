@@ -1,3 +1,7 @@
+2005-10-01  Richard M. Stallman  <rms@gnu.org>
+
+	* xfaces.c (face_color_gray_p): Colors close to black count as gray.
+
 2005-10-01  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (try_window): Skip scroll-margin check if ZV is visible.
