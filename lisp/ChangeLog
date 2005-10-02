@@ -1,3 +1,8 @@
+2005-10-02  Andreas Schwab  <schwab@suse.de>
+
+	* ediff-ptch.el (ediff-fixup-patch-map): Handle file names without
+	directory component in the session info.
+
 2005-10-01  Richard M. Stallman  <rms@gnu.org>
 
 	* comint.el (comint-redirect-subvert-readonly): Doc fix.
