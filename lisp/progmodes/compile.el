@@ -1553,7 +1553,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
       (dired-other-window (car (get-text-property (point) 'directory)))
     (push-mark)
     (setq compilation-current-error (point))
-    (next-error-internal))))
+    (next-error-internal)))
 
 ;; Return a compilation buffer.
 ;; If the current buffer is a compilation buffer, return it.

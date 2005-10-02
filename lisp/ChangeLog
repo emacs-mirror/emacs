@@ -1,3 +1,7 @@
+2005-10-02  Romain Francoise  <romain@orebokech.com>
+
+	* progmodes/compile.el (compile-goto-error): Delete extra paren.
+
 2005-10-02  Andreas Schwab  <schwab@suse.de>
 
 	* ediff-ptch.el (ediff-fixup-patch-map): Handle file names without
