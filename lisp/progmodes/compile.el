@@ -899,19 +899,20 @@ visible rather than the beginning."
   :group 'compilation)
 
 
-(defun compilation-buffer-name (mode-name name-function)
+(defun compilation-buffer-name (mode-name mode-command name-function)
   "Return the name of a compilation buffer to use.
 If NAME-FUNCTION is non-nil, call it with one argument MODE-NAME
 to determine the buffer name.
 Likewise if `compilation-buffer-name-function' is non-nil.
-If current buffer is in Compilation mode for the same mode name
+If current buffer is the mode MODE-COMMAND,
 return the name of the current buffer, so that it gets reused.
 Otherwise, construct a buffer name from MODE-NAME."
   (cond (name-function
 	 (funcall name-function mode-name))
 	(compilation-buffer-name-function
 	 (funcall compilation-buffer-name-function mode-name))
-	((eq major-mode (nth 1 compilation-arguments))
+	((and (eq mode-command major-mode)
+	      (eq major-mode (nth 1 compilation-arguments)))
 	 (buffer-name))
 	(t
 	 (concat "*" (downcase mode-name) "*"))))
@@ -960,7 +961,7 @@ Returns the compilation buffer created."
     (with-current-buffer
 	(setq outbuf
 	      (get-buffer-create
-	       (compilation-buffer-name name-of-mode name-function)))
+	       (compilation-buffer-name name-of-mode mode name-function)))
       (let ((comp-proc (get-buffer-process (current-buffer))))
 	(if comp-proc
 	    (if (or (not (eq (process-status comp-proc) 'run))
@@ -1552,7 +1553,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
       (dired-other-window (car (get-text-property (point) 'directory)))
     (push-mark)
     (setq compilation-current-error (point))
-    (next-error 0)))
+    (next-error-internal))))
 
 ;; Return a compilation buffer.
 ;; If the current buffer is a compilation buffer, return it.
