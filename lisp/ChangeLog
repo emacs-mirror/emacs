@@ -1,3 +1,9 @@
+2005-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-drop-data): Don't set dnd-open-file-other-window
+	to nil if dropping on a window.  Handle dropping on a minibuffer window
+	like dropping on a non-window part of Emacs.
+
 2005-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
