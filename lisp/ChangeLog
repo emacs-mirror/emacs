@@ -149,7 +149,7 @@
 
 	* emulation/cua-base.el: Set CUA move property on additional commands:
 	up-list, down-list, backward-up-list, end-of-defun beginning-of-defun,
-	forward-sexp backward-sexp, forward-list, backward-list
+	forward-sexp, backward-sexp, forward-list, backward-list.
 
 2005-09-28  Romain Francoise  <romain@orebokech.com>
 
