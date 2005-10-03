@@ -1,3 +1,7 @@
+2005-10-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* display.texi (Fringe Size/Pos): Simplify and add detail.
+
 2005-09-30  Romain Francoise  <romain@orebokech.com>
 
 	* minibuf.texi (High-Level Completion): Explain that the prompt
