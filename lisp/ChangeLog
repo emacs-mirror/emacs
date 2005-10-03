@@ -1,3 +1,11 @@
+2005-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-styles.el (c-setup-paragraph-variables): Make sure we do
+	not change the global value of those vars.
+
+	* progmodes/cc-mode.el (c-basic-common-init): Remove calls to
+	make-local-variable which we do not need any more.
+
 2005-10-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* speedbar.el (speedbar-ignored-path-regexp, speedbar-line-path)
@@ -17,6 +25,9 @@
 	like dropping on a non-window part of Emacs.
 
 2005-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/ange-ftp.el: Use with-current-buffer.
+	(ange-ftp-insert-directory): Do not follow symlinks any more.
 
 	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
 	Remove interactive spec.
