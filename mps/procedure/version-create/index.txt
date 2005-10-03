@@ -1,0 +1,46 @@
+How to create a new version
+
+For example, say the last version of the MPS is 1.105, with a single release 1.105.0.  This document tells you how to create a new version (1.106) from the master sources.  
+
+Readership: all.  Confidential: no.  
+
+Background: refer to PQTCM ("Product Quality Through Change Management", <http://www.ravenbrook.com/doc/1999/05/20/pqtcm/>) for background, terminology, rationale, and usage guidance.  
+
+Peer documents:
+  <http://info.ravenbrook.com/project/mps/master/procedure/release-build/>.
+
+
+Do I need this procedure?
+
+You might not need to create a new version.  An alternative is to create a further 'point release' on the existing version.  Refer to PQTCM when deciding.  
+
+
+What is a version?
+
+A version is a 'clone' of all the master source files, that then has its own evolution.  A Version has these parts:
+
+Perforce branch, defining the mapping used to integrate from master to version.  By convention, the name of the branch is "mps/version/A.BBB", in other words the pathname of that version's sub-tree (eg. "mps/version/1.105" for 1.105).  Eg. 
+  p4 branch -o mps/version/1.105
+  //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/1.105/...
+
+Cloned (integrated) and submitted files, in the "version/A.BBB/..." sub-tree.  Usually a copy of the entire "master" subtree and all its files.  These were created in a single change with "p4 integrate -b <branchspec>".  For each of these files, Perforce reports the first action as "branch".  Some files may then be further modified.  
+
+Origin: The point in time that the initial integrate was performed, expressed as its changelevel minus one, defines the "Origin" of the version.  The Origin is the last change on the master sources that also made it into the version sources by virtue of the initial integrate command.  
+
+Entry in the table at <http://info.ravenbrook.com/project/mps/version/>.
+
+
+How to make a new version:
+
+1. Make the branch:  p4 branch mps/version/A.BBB
+
+2. p4 integrate -b mps/version/A.BBB ...
+
+3. p4 submit
+
+4. Find the Origin of the new version: do p4 changes -m 2 on the master and note the latest change that was in before the integrate.  Note: it's better to do it this way -- do the integrate from the _implicit_ tip of the master, and then check back to see what happened -- because it's hard to get wrong.  Clashes with master submits could theoretically occur, and could be avoided by determining the origin first and specifying it to the initial integrate, but in practice this never happens.  
+
+5. Update the table at <http://info.ravenbrook.com/project/mps/version/>.
+
+
+$Id$
