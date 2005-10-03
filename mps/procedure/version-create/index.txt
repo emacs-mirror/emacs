@@ -34,11 +34,11 @@ How to make a new version:
 
 1. Make the branch:  p4 branch mps/version/A.BBB
 
-2. p4 integrate -b mps/version/A.BBB ...
+2. p4 integrate -b mps/version/A.BBB
 
 3. p4 submit
 
-4. Find the Origin of the new version: do p4 changes -m 2 on the master and note the latest change that was in before the integrate.  Note: it's better to do it this way -- do the integrate from the _implicit_ tip of the master, and then check back to see what happened -- because it's hard to get wrong.  Clashes with master submits could theoretically occur, and could be avoided by determining the origin first and specifying it to the initial integrate, but in practice this never happens.  
+4. Find the Origin of the new version: do p4 changes -m 2 on the master and note the latest change that was in before the integrate.  Note: it's better to do it this way -- do the integrate from the _implicit_ tip of the master, and then check back to see what happened -- because it's hard to get wrong.  Also, then the integrate has the changelevel origin+1.  Clashes with master submits could theoretically occur, and could be avoided by determining the origin first and specifying it to the initial integrate, but in practice this never happens.  
 
 5. Update the table at <http://info.ravenbrook.com/project/mps/version/>.
 
