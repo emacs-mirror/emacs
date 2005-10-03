@@ -2730,23 +2730,25 @@ continuation, horizontal scrolling, and the overlay arrow.
 @node Fringe Size/Pos
 @subsection Fringe Size and Position
 
-  Here's how to control the position and width of the window fringes.
+  The following buffer-local variables control the position and width
+of the window fringes.
 
 @defvar fringes-outside-margins
-If the value is non-@code{nil}, the frames appear outside the display
-margins.  The fringes normally appear between the display margins and
-the window text.  It works to set @code{fringes-outside-margins}
-buffer-locally.  @xref{Display Margins}.
+The fringes normally appear between the display margins and the window
+text.  If the value is non-@code{nil}, they appear outside the display
+margins.  @xref{Display Margins}.
 @end defvar
 
 @defvar left-fringe-width
 This variable, if non-@code{nil}, specifies the width of the left
-fringe in pixels.
+fringe in pixels.  A value of @code{nil} means to use the left fringe
+width from the window's frame.
 @end defvar
 
 @defvar right-fringe-width
 This variable, if non-@code{nil}, specifies the width of the right
-fringe in pixels.
+fringe in pixels.  A value of @code{nil} means to use the right fringe
+width from the window's frame.
 @end defvar
 
   The values of these variables take effect when you display the
