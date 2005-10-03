@@ -1,3 +1,7 @@
+2005-10-03  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-mode): Use custom-initialize-set.
+
 2005-10-02  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/ebnf2ps.el (ebnf-eps-production-list):
