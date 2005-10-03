@@ -3155,7 +3155,7 @@ Otherwise do not move and return nil."
 	    nil))))))
 
 (defun speedbar-line-directory (&optional depth)
-  "Retrieve the directoryname associated with the current line.
+  "Retrieve the directory name associated with the current line.
 This may require traversing backwards from DEPTH and combining the default
 directory with these items.  This function is replaceable in
 `speedbar-mode-functions-list' as `speedbar-line-directory'."
@@ -4094,6 +4094,30 @@ TEXT is the buffer's name, TOKEN and INDENT are unused."
 	(add-to-list 'font-lock-global-modes '(not speedbar-mode))
       )
   )
+
+
+;;; Obsolete variables and functions
+
+(define-obsolete-variable-alias
+  'speedbar-ignored-path-regexp 'speedbar-ignored-directory-regexp)
+
+(define-obsolete-variable-alias 'speedbar-ignored-path-expressions
+  'speedbar-ignored-directory-expressions)
+
+(define-obsolete-function-alias 'speedbar-add-ignored-path-regexp
+  'speedbar-add-ignored-directory-regexp)
+
+(define-obsolete-function-alias 'speedbar-line-path
+  'speedbar-line-directory)
+
+(define-obsolete-function-alias 'speedbar-buffers-line-path
+  'speedbar-buffers-line-directory)
+
+(define-obsolete-function-alias 'speedbar-path-line
+  'speedbar-directory-line)
+
+(define-obsolete-function-alias 'speedbar-buffers-line-path
+  'speedbar-buffers-line-directory)
 
 (provide 'speedbar)
 

@@ -1,3 +1,15 @@
+2005-10-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* speedbar.el (speedbar-ignored-path-regexp, speedbar-line-path)
+	(speedbar-ignored-path-expressions, speedbar-buffers-line-path)
+	(speedbar-add-ignored-path-regexp, speedbar-buffers-line-path)
+	(speedbar-path-line): Define obsolete aliases.
+	(speedbar-line-directory): Doc fix.
+
+	* progmodes/vhdl-mode.el (vhdl-speedbar-initialize)
+	(vhdl-speedbar-rescan-hierarchy): Call speedbar-line-directory
+	instead of speedbar-line-path.
+
 2005-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* x-dnd.el (x-dnd-drop-data): Don't set dnd-open-file-other-window
