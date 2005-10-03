@@ -1,3 +1,8 @@
+2005-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Drag and Drop): Remove the x- from
+	x-dnd-open-file-other-window and xdnd-protocol-alist.
+
 2005-09-30  Romain Francoise  <romain@orebokech.com>
 
 	* mini.texi (Minibuffer): The default value now appears before the
