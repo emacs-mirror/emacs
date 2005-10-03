@@ -110,6 +110,76 @@
 
 	* speedbar.el: New version 1.0pre3.
 
+	Frame management code (including timer, and mouse click specifics)
+	moved to dframe.el:
+	(speedbar-attached-frame): Removed.  Use dframe-attached-frame.
+	(speedbar-timer): Removed.  Use dframe-timer.
+	(speedbar-close-frame): Removed.  Use dframe-close-frame.
+	(speedbar-activity-change-focus-flag): Removed.  Use
+	dframe-activity-change-focus-flag.
+	(speedbar-update-speed, speedbar-navigating-speed): Obsolete.  Use
+	dframe-update-speed.
+	
+	(speedbar-current-frame): New macro.  Use this instead of the
+	variable speedbar-frame.
+
+	(speedbar-use-images, speedbar-expand-image-button-alist)
+	(speedbar-insert-image-button-maybe): Moved to sb-image.el.
+
+	(speedbar-find-image-on-load-path): Removed.  Replaced by
+	defezimage in ezimage.el.
+	(speedbar-expand-image-button-alist): Removed.  Replaced by
+	ezimage-expand-image-button-alist in ezimage.el.
+	
+	(speedbar-ignored-directory-regexp)
+	(speedbar-add-ignored-directory-regexp)
+	(speedbar-ignored-directory-expressions)
+	(speedbar-line-directory, speedbar-buffers-line-directory)
+	(speedbar-directory-line, speedbar-buffers-line-directory):
+	Renamed, replacing `path' with `directory'.
+
+	(speedbar-create-directory, speedbar-expand-line-descendants)
+	(speedbar-toggle-line-expansion)
+	(speedbar-contract-line-descendants): New commands.
+
+	(speedbar-query-confirmation-method, speedbar-select-frame-method)
+	(speedbar-use-tool-tips-flag): New options.
+
+	(speedbar-check-read-only, speedbar-require-version)
+	(speedbar-insert-separator, speedbar-buffers-tail-notes)
+	(speedbar-handle-delete-frame, speedbar-try-completion)
+	(speedbar-update-localized-contents): New functions.
+
+	(speedbar-incompatible-version, speedbar-ro-to-do-point)
+	(speedbar-object-read-only-indicator): New variables.
+
+	(speedbar-visiting-tag-hook, speedbar-before-visiting-file-hook):
+	New hooks.
+
+	(speedbar-separator-face): New face.
+
+	(speedbar-supported-extension-expressions): Add `.g' and `.ma?k'.
+	(speedbar-ignored-modes): Add fundamental-mode.
+	(speedbar-directory-unshown-regexp): Add . directories.
+
+	(speedbar-key-map): Remove old SPC and DEL page up/down keys.
+	(speedbar-file-key-map): Add SPC to toggle node expansion, `[' and
+	`]' for full expand/close.
+	(speedbar-buffers-key-map): Add SPC to toggle node expansion.
+
+	(speedbar-check-vc): Support hidden files.
+	(speedbar-vc-check-dir-p): Use vc-state if available for CVS.
+	(speedbar-this-file-in-vc): Use vc-state if available.  If VC
+	state is nil, it is not checked out.
+
+	(speedbar-line-text, speedbar-line-token): Support expand buttons
+	with no text.
+	(speedbar-refresh): Universal argument acts as power-click.
+	(speedbar-fetch-dynamic-tags): If a buffer is in Emacs, switch to
+	that buffer to get variable values.
+
+	And many other bugfixes.
+
 	* dframe.el, ezimage.el, sb-image.el: New files.
 
 	* sb-*.xpm: Remove files.  New image files installed into
