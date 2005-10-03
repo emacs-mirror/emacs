@@ -1,3 +1,8 @@
+2005-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el (ispell-find-aspell-dictionaries):
+	Remove interactive spec.
+
 2005-10-03  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-mode): Use custom-initialize-set.
@@ -56,9 +61,9 @@
 
 2005-10-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* term/mac-win.el: Add charset info for "iso10646-1".  Modify
-	default fontset to use ATSUI-compatible fonts for some charsets if
-	available.
+	* term/mac-win.el: Add charset info for "iso10646-1".
+	Modify default fontset to use ATSUI-compatible fonts for some charsets
+	if available.
 
 2005-10-01  Chong Yidong  <cyd@stupidchicken.com>
 
