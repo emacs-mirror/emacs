@@ -1,5 +1,16 @@
 2005-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* bindings.el (global-map): Resync [home] and [end] bindings with C-a
+	and C-e.
+
+	* emacs-lisp/eldoc.el: Move comments into docstrings.
+	(eldoc-message-commands): Initialize in its declaration.
+	Add move-beginning-of-line and move-end-of-line.
+	(eldoc-add-command, eldoc-add-command-completions)
+	(eldoc-remove-command, eldoc-remove-command-completions): Simplify.
+
+	* outline.el (outline-mark-subtree): Activate the mark.
+
 	* calendar/appt.el (appt-time-regexp): New var.
 	(appt-add, appt-make-list): Use it.
 	(appt-convert-time): Clean up.
