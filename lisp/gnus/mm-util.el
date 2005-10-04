@@ -568,14 +568,21 @@ If the charset is `composition', return the actual one."
     ;; This is for XEmacs.
     (mm-mule-charset-to-mime-charset charset)))
 
-(defun mm-delete-duplicates (list)
-  "Simple substitute for CL `delete-duplicates', testing with `equal'."
-  (let (result head)
-    (while list
-      (setq head (car list))
-      (setq list (delete head list))
-      (setq result (cons head result)))
-    (nreverse result)))
+(if (fboundp 'delete-dups)
+    (defalias 'mm-delete-duplicates 'delete-dups)
+  (defun mm-delete-duplicates (list)
+    "Destructively remove `equal' duplicates from LIST.
+Store the result in LIST and return it.  LIST must be a proper list.
+Of several `equal' occurrences of an element in LIST, the first
+one is kept.
+
+This is a compatibility function for Emacsen without `delete-dups'."
+    ;; Code from `subr.el' in Emacs 22:
+    (let ((tail list))
+      (while tail
+	(setcdr tail (delete (car tail) (cdr tail)))
+	(setq tail (cdr tail))))
+    list))
 
 ;; Fixme:  This is used in places when it should be testing the
 ;; default multibyteness.  See mm-default-multibyte-p.

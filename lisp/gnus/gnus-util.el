@@ -1037,14 +1037,6 @@ This function saves the current buffer."
 	 (set-buffer gnus-group-buffer)
 	 (eq major-mode 'gnus-group-mode))))
 
-(defun gnus-remove-duplicates (list)
-  (let (new)
-    (while list
-      (or (member (car list) new)
-	  (setq new (cons (car list) new)))
-      (setq list (cdr list)))
-    (nreverse new)))
-
 (defun gnus-remove-if (predicate list)
   "Return a copy of LIST with all items satisfying PREDICATE removed."
   (let (out)
