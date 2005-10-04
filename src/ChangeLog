@@ -1,5 +1,11 @@
 2005-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* regex.h (re_char): Don't expose it in the interface.
+	(re_set_whitespace_regexp): Adjust the arg's type to not use it.
+
+	* regex.c (re_char): Move it back here.
+	(re_set_whitespace_regexp): Change the arg's type to not use it.
+
 	* keyboard.c (make_lispy_event): If point has moved between down and up
 	event, make it a drag, not a click, to mirror what
 	mouse-drag-region expects.
