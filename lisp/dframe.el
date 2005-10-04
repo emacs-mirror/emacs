@@ -257,7 +257,8 @@ Local to those buffers, as a function called that created it.")
 	)
 
     ;; mouse bindings so we can manipulate the items on each line
-    (define-key map [down-mouse-1] 'dframe-double-click)
+    ;; (define-key map [down-mouse-1] 'dframe-double-click)
+    (define-key map [follow-link] 'mouse-face)
     (define-key map [mouse-2] 'dframe-click)
     ;; This is the power click for new frames, or refreshing a cache
     (define-key map [S-mouse-2] 'dframe-power-click)
@@ -921,8 +922,9 @@ BUFFER and POSITION are optional because XEmacs doesn't use them."
 	     dframe-help-echo-function)
     (let ((dframe-suppress-message-flag t))
       (with-current-buffer buffer
-	(if position (goto-char position))
-	(funcall dframe-help-echo-function)))))
+	(save-excursion
+	  (if position (goto-char position))
+	  (funcall dframe-help-echo-function))))))
 
 (defun dframe-mouse-set-point (e)
   "Set POINT based on event E.

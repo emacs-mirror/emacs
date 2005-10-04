@@ -1,3 +1,13 @@
+2005-10-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-next, Info-prev, Info-up): Select info buffer, in
+	case the user clicks on the link while another window is selected.
+	(Info-speedbar-hierarchy-buttons): Use speedbar-current-frame.
+
+	* dframe.el (dframe-update-keymap): Use mouse-1-click-follows-link
+	functionality.
+	(dframe-help-echo): Save point in case mouse tracking is off.
+
 2005-10-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* net/ange-ftp.el (ange-ftp-ls): Fix typo introduced in last change.
