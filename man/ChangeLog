@@ -1,3 +1,7 @@
+2005-10-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.texi (GDB): Describe use of watch expressions.
+
 2005-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Drag and Drop): Remove the x- from
