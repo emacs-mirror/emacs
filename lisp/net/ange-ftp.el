@@ -2610,7 +2610,7 @@ away in the internal cache."
 					       (ange-ftp-abbreviate-filename
 						ange-ftp-this-file)))))
 		    (with-current-buffer (get-buffer-create
-                                          ange-ftp-data-buffer-name))
+                                          ange-ftp-data-buffer-name)
 		      (erase-buffer)
 		      (if (ange-ftp-real-file-readable-p temp)
 			  (ange-ftp-real-insert-file-contents temp)
