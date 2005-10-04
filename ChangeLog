@@ -1,3 +1,9 @@
+2005-10-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in: Prefer Carbon if --enable-carbon-app or
+	--with-carbon is explicitly specified even when X11 is detected.
+	* configure: Regenerate.
+
 2005-09-15  Ulf Jasper  <ulf.jasper@web.de>
 
 	* Makefile.in (install-arch-indep, uninstall):

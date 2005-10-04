@@ -1,3 +1,8 @@
+2005-10-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_invert_rectangle): New function.
+	(XTflash): Use it.
+
 2005-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* regex.h (re_char): Don't expose it in the interface.
