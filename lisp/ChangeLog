@@ -1,3 +1,27 @@
+2005-10-04  Richard M. Stallman  <rms@gnu.org>
+
+	* wid-edit.el (widget-file-complete): Get the widget start point
+	the right way.  Default directory to `/' if file has none.
+
+	* x-dnd.el (x-dnd-drop-data): Check for dedicated windows.
+
+	* textmodes/flyspell.el (flyspell-mode-on):
+	Call ispell-maybe-find-aspell-dictionaries.
+
+	* textmodes/ispell.el (ispell-word, ispell-region):
+	Call ispell-maybe-find-aspell-dictionaries.
+	(ispell-accept-buffer-local-defs):
+	Don't call ispell-maybe-find-aspell-dictionaries
+	
+2005-10-04  Richard M. Stallman  <rms@gnu.org>
+
+	* iswitchb.el (iswitchb-buffer-ignore): Label it risky.
+
+2005-10-04  Emilio C. Lopes  <eclig@gmx.net>
+
+	* iswitchb.el (iswitchb-ignore-buffername-p): Use `functionp'
+	instead of `fboundp' in order to allow for anonymous functions.
+
 2005-10-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info.el (Info-next, Info-prev, Info-up): Select info buffer, in
@@ -50,6 +74,7 @@
 
 	* ido.el (ido-mode): Use custom-initialize-set.
 
+>>>>>>> 1.8276
 2005-10-02  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/ebnf2ps.el (ebnf-eps-production-list):
