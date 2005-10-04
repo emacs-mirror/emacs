@@ -524,6 +524,9 @@ init_syntax_once ()
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
+/* Type of source-pattern and string chars.  */
+typedef const unsigned char re_char;
+
 typedef char boolean;
 #define false 0
 #define true 1
@@ -1262,9 +1265,9 @@ static re_char *whitespace_regexp;
 
 void
 re_set_whitespace_regexp (regexp)
-     re_char *regexp;
+     const char *regexp;
 {
-  whitespace_regexp = regexp;
+  whitespace_regexp = (re_char *) regexp;
 }
 WEAK_ALIAS (__re_set_syntax, re_set_syntax)
 
