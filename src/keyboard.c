@@ -5507,13 +5507,23 @@ make_lispy_event (event)
 		if (CONSP (down)
 		    && INTEGERP (XCAR (down)) && INTEGERP (XCDR (down)))
 		  {
-		    xdiff = XFASTINT (event->x) - XFASTINT (XCAR (down));
-		    ydiff = XFASTINT (event->y) - XFASTINT (XCDR (down));
+		    xdiff = XINT (event->x) - XINT (XCAR (down));
+		    ydiff = XINT (event->y) - XINT (XCDR (down));
 		  }
 
 		if (xdiff < double_click_fuzz && xdiff > - double_click_fuzz
-		    && ydiff < double_click_fuzz
-		    && ydiff > - double_click_fuzz)
+		    && ydiff < double_click_fuzz && ydiff > - double_click_fuzz
+		  /* Maybe the mouse has moved a lot, caused scrolling, and
+		     eventually ended up at the same screen position (but
+		     not buffer position) in which case it is a drag, not
+		     a click.  */
+		    /* FIXME: OTOH if the buffer position has changed
+		       because of a timer or process filter rather than
+		       because of mouse movement, it should be considered as
+		       a click.  But mouse-drag-region completely ignores
+		       this case and it hasn't caused any real problem, so
+		       it's probably OK to ignore it as well.  */
+		    && EQ (Fcar (Fcdr (start_pos)), Fcar (Fcdr (position))))
 		  /* Mouse hasn't moved (much).  */
 		  event->modifiers |= click_modifier;
 		else

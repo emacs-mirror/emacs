@@ -1,3 +1,9 @@
+2005-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keyboard.c (make_lispy_event): If point has moved between down and up
+	event, make it a drag, not a click, to mirror what
+	mouse-drag-region expects.
+
 2005-10-02  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* lisp.h (fatal): Undo previous change.
@@ -17,8 +23,8 @@
 
 	* macfns.c (start_hourglass): Apply 2005-05-07 change for xfns.c.
 	(x_create_tip_frame) [GLYPH_DEBUG]: Uncomment debug code.
-	(Fx_create_frame, x_create_tip_frame) [USE_ATSUI]: Try
-	ATSUI-compatible 12pt Monaco font first.
+	(Fx_create_frame, x_create_tip_frame) [USE_ATSUI]:
+	Try ATSUI-compatible 12pt Monaco font first.
 
 	* macgui.h (struct _XCharStruct): New member valid_p.
 	(STORE_XCHARSTRUCT): Set valid_p.
@@ -41,8 +47,7 @@
 
 2005-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* image.c (slurp_file, xbm_read_bitmap_data): Cast to the correct
-	type.
+	* image.c (slurp_file, xbm_read_bitmap_data): Cast to the correct type.
 	* xterm.c (handle_one_xevent, handle_one_xevent): Likewise.
 
 	* unexelf.c (fatal): Fix prototype.
@@ -51,8 +56,7 @@
 
 	* regex.c (re_char): Move typedef ...
 	* regex.h (re_char): ... here.
-	(re_iswctype, re_wctype, re_set_whitespace_regexp): New
-	prototypes.
+	(re_iswctype, re_wctype, re_set_whitespace_regexp): New prototypes.
 
 	* emacs.c (malloc_set_state): Fix return type.
 	(endif): Fix type.
@@ -74,8 +78,7 @@
 	(__malloc_hook, __realloc_hook, __free_hook): Fix prototypes.
 	(emacs_blocked_free): Change definition to match __free_hook.
 	(emacs_blocked_malloc): Change definition to match __malloc_hook.
-	(emacs_blocked_realloc): Change definition to match
-	__realloc_hook.
+	(emacs_blocked_realloc): Change definition to match __realloc_hook.
 
 2005-09-30  Romain Francoise  <romain@orebokech.com>
 
@@ -132,8 +135,8 @@
 
 2005-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* s/aix4-2.h (BROKEN_GET_CURRENT_DIR_NAME): Define
-	BROKEN_GET_CURRENT_DIR_NAME.
+	* s/aix4-2.h (BROKEN_GET_CURRENT_DIR_NAME):
+	Define BROKEN_GET_CURRENT_DIR_NAME.
 
 	* sysdep.c (get_current_dir_name): Also define if
 	BROKEN_GET_CURRENT_DIR_NAME.
