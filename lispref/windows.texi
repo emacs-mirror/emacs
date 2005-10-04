@@ -30,6 +30,7 @@ displayed in windows.
 * Size of Window::          Accessing the size of a window.
 * Resizing Windows::        Changing the size of a window.
 * Coordinates and Windows:: Converting coordinates to windows.
+* Window Split Tree::       The layout and sizes of all windows in a frame.
 * Window Configurations::   Saving and restoring the state of the screen.
 * Window Hooks::            Hooks for scrolling, window size changes,
                               redisplay going past a certain point,
@@ -2165,6 +2166,32 @@ The coordinates are not in any part of @var{window}.
 
 The function @code{coordinates-in-window-p} does not require a frame as
 argument because it always uses the frame that @var{window} is on.
+@end defun
+
+@node Window Split Tree
+@section The Window Split Tree
+@cindex window split tree
+
+  A @dfn{window split tree} specifies the layout, size, and relationship
+between all windows in one frame.
+
+@defun split-window-tree &optional frame
+This function returns the window split tree for frame @var{frame}.
+If @var{frame} is omitted, the selected frame is used.
+
+The return value is a list of the form @code{(@var{root} @var{mini})},
+where @var{root} represents the window split tree of the frame's
+root window, and @var{mini} is the frame's minibuffer window.
+
+If the root window is not split, @var{root} is the root window itself.
+Otherwise, @var{root} is a list @code{(@var{dir} @var{edges} @var{w1}
+@var{w2} ...)} where @var{dir} is @code{nil} for a horisontal split,
+and @code{t} for a vertical split, @var{edges} gives the combined size and
+position of the subwindows in the split, and the rest of the elements
+are the subwindows in the split.  Each of the subwindows may again be
+a window or a list representing a window split, and so on.  The
+@var{edges} element is a list @code{(@var{left}@var{ top}@var{ right}@var{ bottom})}
+similar to the value returned by @code{window-edges}.
 @end defun
 
 @node Window Configurations
