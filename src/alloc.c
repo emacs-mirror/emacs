@@ -547,6 +547,21 @@ DEFUN ("memory-full-p", Fmemory_full_p, Smemory_full_p, 0, 0, 0,
   return (spare_memory ? Qnil : Qt);
 }
 
+/* If we released our reserve (due to running out of memory),
+   and we have a fair amount free once again,
+   try to set aside another reserve in case we run out once more.
+
+   This is called when a relocatable block is freed in ralloc.c.  */
+
+void
+refill_memory_reserve ()
+{
+#ifndef SYSTEM_MALLOC
+  if (spare_memory == 0)
+    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
+#endif
+}
+
 /* Called if we can't allocate relocatable space for a buffer.  */
 
 void
@@ -1134,20 +1149,6 @@ allocate_buffer ()
 
 #ifndef SYSTEM_MALLOC
 
-/* If we released our reserve (due to running out of memory),
-   and we have a fair amount free once again,
-   try to set aside another reserve in case we run out once more.
-
-   This is called when a relocatable block is freed in ralloc.c.  */
-
-void
-refill_memory_reserve ()
-{
-  if (spare_memory == 0)
-    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
-}
-
-
 /* Arranging to disable input signals while we're in malloc.
 
    This only works with GNU malloc.  To help out systems which can't
