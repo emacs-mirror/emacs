@@ -1,3 +1,7 @@
+2005-10-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/ange-ftp.el (ange-ftp-ls): Fix typo introduced in last change.
+
 2005-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-styles.el (c-setup-paragraph-variables): Make sure we do
@@ -142,7 +146,7 @@
 	dframe-activity-change-focus-flag.
 	(speedbar-update-speed, speedbar-navigating-speed): Obsolete.  Use
 	dframe-update-speed.
-	
+
 	(speedbar-current-frame): New macro.  Use this instead of the
 	variable speedbar-frame.
 
@@ -153,7 +157,7 @@
 	defezimage in ezimage.el.
 	(speedbar-expand-image-button-alist): Removed.  Replaced by
 	ezimage-expand-image-button-alist in ezimage.el.
-	
+
 	(speedbar-ignored-directory-regexp)
 	(speedbar-add-ignored-directory-regexp)
 	(speedbar-ignored-directory-expressions)
