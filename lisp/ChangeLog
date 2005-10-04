@@ -1,3 +1,14 @@
+2005-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/appt.el (appt-time-regexp): New var.
+	(appt-add, appt-make-list): Use it.
+	(appt-convert-time): Clean up.
+
+	* textmodes/tex-mode.el (tex-font-lock-syntactic-face-function):
+	Don't set any syntax-table property here.
+	(tex-font-lock-verb): New function.  Do it here.
+	(tex-font-lock-syntactic-keywords): Use it.
+
 2005-10-04  Richard M. Stallman  <rms@gnu.org>
 
 	* wid-edit.el (widget-file-complete): Get the widget start point
@@ -12,7 +23,7 @@
 	Call ispell-maybe-find-aspell-dictionaries.
 	(ispell-accept-buffer-local-defs):
 	Don't call ispell-maybe-find-aspell-dictionaries
-	
+
 2005-10-04  Richard M. Stallman  <rms@gnu.org>
 
 	* iswitchb.el (iswitchb-buffer-ignore): Label it risky.
@@ -74,7 +85,6 @@
 
 	* ido.el (ido-mode): Use custom-initialize-set.
 
->>>>>>> 1.8276
 2005-10-02  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/ebnf2ps.el (ebnf-eps-production-list):
