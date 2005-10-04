@@ -1,3 +1,9 @@
+2005-10-04  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (window_split_tree): New function.
+	(Fwindow_split_tree): New defun.
+	(syms_of_window): Defsubr it.
+
 2005-10-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_invert_rectangle): New function.
