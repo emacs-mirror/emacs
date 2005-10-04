@@ -715,6 +715,23 @@ atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
 #endif
 
 static void
+mac_invert_rectangle (display, w, x, y, width, height)
+     Display *display;
+     WindowPtr w;
+     int x, y;
+     unsigned int width, height;
+{
+  Rect r;
+
+  SetPortWindowPort (w);
+
+  SetRect (&r, x, y, x + width, y + height);
+
+  InvertRect (&r);
+}
+
+
+static void
 mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 			bytes_per_char)
      Display *display;
@@ -3486,9 +3503,57 @@ void
 XTflash (f)
      struct frame *f;
 {
+  /* Get the height not including a menu bar widget.  */
+  int height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
+  /* Height of each line to flash.  */
+  int flash_height = FRAME_LINE_HEIGHT (f);
+  /* These will be the left and right margins of the rectangles.  */
+  int flash_left = FRAME_INTERNAL_BORDER_WIDTH (f);
+  int flash_right = FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
+
+  int width;
+
+  /* Don't flash the area between a scroll bar and the frame
+     edge it is next to.  */
+  switch (FRAME_VERTICAL_SCROLL_BAR_TYPE (f))
+    {
+    case vertical_scroll_bar_left:
+      flash_left += VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+      break;
+
+    case vertical_scroll_bar_right:
+      flash_right -= VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+      break;
+
+    default:
+      break;
+    }
+
+  width = flash_right - flash_left;
+
   BLOCK_INPUT;
 
-  FlashMenuBar (0);
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			    flash_left,
+			    (FRAME_INTERNAL_BORDER_WIDTH (f)
+			     + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
+			    width, flash_height);
+      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			    flash_left,
+			    (height - flash_height
+			     - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			    width, flash_height);
+    }
+  else
+    /* If it is short, flash it all.  */
+    mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			  flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			  width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+
+  x_flush (f);
 
   {
     struct timeval wakeup;
@@ -3500,24 +3565,49 @@ XTflash (f)
     wakeup.tv_sec += (wakeup.tv_usec / 1000000);
     wakeup.tv_usec %= 1000000;
 
-    /* Keep waiting until past the time wakeup.  */
-    while (1)
+    /* Keep waiting until past the time wakeup or any input gets
+       available.  */
+    while (! detect_input_pending ())
       {
-        struct timeval timeout;
+	struct timeval current;
+	struct timeval timeout;
 
-        EMACS_GET_TIME (timeout);
+	EMACS_GET_TIME (current);
 
-        /* In effect, timeout = wakeup - timeout.
-           Break if result would be negative.  */
-        if (timeval_subtract (&timeout, wakeup, timeout))
-          break;
+	/* Break if result would be negative.  */
+	if (timeval_subtract (&current, wakeup, current))
+	  break;
 
-        /* Try to wait that long--but we might wake up sooner.  */
-        select (0, NULL, NULL, NULL, &timeout);
+	/* How long `select' should wait.  */
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 10000;
+
+	/* Try to wait that long--but we might wake up sooner.  */
+	select (0, NULL, NULL, NULL, &timeout);
       }
   }
 
-  FlashMenuBar (0);
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			    flash_left,
+			    (FRAME_INTERNAL_BORDER_WIDTH (f)
+			     + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
+			    width, flash_height);
+      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			    flash_left,
+			    (height - flash_height
+			     - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			    width, flash_height);
+    }
+  else
+    /* If it is short, flash it all.  */
+    mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			  flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			  width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+
+  x_flush (f);
 
   UNBLOCK_INPUT;
 }
