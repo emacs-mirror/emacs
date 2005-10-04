@@ -1,3 +1,7 @@
+2005-09-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* time-date.el: Autoload parse-time-string, XEmacs needs it.
+
 2005-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-decode.el (mm-inline-media-tests): Check presence of the diff-mode

@@ -91,6 +91,7 @@ and type 3 is the list (HIGH LOW MICRO)."
    ((eq type 1) (list high low))
    ((eq type 2) (list high low micro))))
 
+(autoload 'parse-time-string "parse-time")
 (autoload 'timezone-make-date-arpa-standard "timezone")
 
 ;;;###autoload
