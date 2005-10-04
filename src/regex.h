@@ -608,10 +608,7 @@ extern re_wctype_t re_wctype (const unsigned char* str);
 
 typedef int re_wchar_t;
 
-/* Type of source-pattern and string chars.  */
-typedef const unsigned char re_char;
-
-extern void re_set_whitespace_regexp (re_char *regexp);
+extern void re_set_whitespace_regexp (const char *regexp);
 
 #endif /* not WIDE_CHAR_SUPPORT */
 
