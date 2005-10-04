@@ -2991,12 +2991,12 @@ It will read a file name from the minibuffer when invoked."
   "Perform completion on file name preceding point."
   (interactive)
   (let* ((end (point))
-	 (beg (save-excursion
-		(skip-chars-backward "^ ")
-		(point)))
+	 (beg (widget-field-start widget))
 	 (pattern (buffer-substring beg end))
 	 (name-part (file-name-nondirectory pattern))
-	 (directory (file-name-directory pattern))
+	 ;; I think defaulting to root is right
+	 ;; because these really should be absolute file names.
+	 (directory (or (file-name-directory pattern) "/"))
 	 (completion (file-name-completion name-part directory)))
     (cond ((eq completion t))
 	  ((null completion)
