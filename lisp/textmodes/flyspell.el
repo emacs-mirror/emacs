@@ -536,6 +536,7 @@ in your .emacs file.
 ;*---------------------------------------------------------------------*/
 (defun flyspell-mode-on ()
   "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead."
+  (ispell-maybe-find-aspell-dictionaries)
   (setq ispell-highlight-face 'flyspell-incorrect)
   ;; local dictionaries setup
   (or ispell-local-dictionary ispell-dictionary
