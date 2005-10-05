@@ -163,7 +163,7 @@
 		     (let ((sym (intern-soft
 				 (buffer-substring
 				  (point) (progn (forward-sexp 1) (point))))))
-		       (eq n (or (get sym 'doc-string-elt) 3)))))))
+		       (eq n (get sym 'doc-string-elt)))))))
 	  font-lock-doc-face
 	font-lock-string-face)
     font-lock-comment-face))
