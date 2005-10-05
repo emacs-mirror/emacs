@@ -1337,8 +1337,11 @@ static char *magick[] = {
 		(setq bptno (match-string 1))
 		(setq flag (char-after (match-beginning 2)))
 		(beginning-of-line)
-		(if (re-search-forward " in .* at\\s-+" nil t)
+		(if (re-search-forward " in \\(.*\\) at\\s-+" nil t)
 		    (progn
+		      (let ((buffer-read-only nil))
+			(add-text-properties (match-beginning 1) (match-end 1)
+					     '(face font-lock-function-name-face)))
 		      (looking-at "\\(\\S-+\\):\\([0-9]+\\)")
 		      (let ((line (match-string 2)) (buffer-read-only nil)
 			    (file (match-string 1)))
@@ -1531,17 +1534,31 @@ static char *magick[] = {
 (defun gdb-info-frames-custom ()
   (with-current-buffer (gdb-get-buffer 'gdb-stack-buffer)
     (save-excursion
-      (let ((buffer-read-only nil))
+      (let ((buffer-read-only nil)
+	    bl el)
 	(goto-char (point-min))
 	(while (< (point) (point-max))
-	  (add-text-properties (line-beginning-position) (line-end-position)
+	  (setq bl (line-beginning-position)
+		el (line-end-position))
+	  (add-text-properties bl el
 			     '(mouse-face highlight
 			       help-echo "mouse-2, RET: Select frame"))
-	  (beginning-of-line)
-	  (when (and (looking-at "^#\\([0-9]+\\)")
-		     (equal (match-string 1) gdb-frame-number))
-	    (put-text-property (line-beginning-position) (line-end-position)
-			       'face '(:inverse-video t)))
+	  (goto-char bl)
+	  (when (looking-at "^#\\([0-9]+\\)")
+	    (if (equal (match-string 1) gdb-frame-number)
+		(put-text-property bl el 'face '(:inverse-video t))
+	      (when (re-search-forward " in \\([^ ]+\\) (" el t)
+		(put-text-property (match-beginning 1) (match-end 1)
+				   'face font-lock-function-name-face)
+		(setq bl (match-end 0))
+		(while (re-search-forward "<\\([^>]+\\)>" el t)
+		  (put-text-property (match-beginning 1) (match-end 1)
+				     'face font-lock-function-name-face))
+		(goto-char bl)
+		(while (re-search-forward "\\(\\(\\sw\\|[_.]\\)+\\)=" el t)
+		  (put-text-property (match-beginning 1) (match-end 1)
+				     'face font-lock-variable-name-face))
+		)))
 	  (forward-line 1))))))
 
 (defun gdb-stack-buffer-name ()
@@ -1648,6 +1665,14 @@ static char *magick[] = {
     (define-key map [mouse-2] 'gdb-threads-select)
     map))
 
+(defvar gdb-threads-font-lock-keywords
+  '(
+    (") +\\([^ ]+\\) ("  (1 font-lock-function-name-face))
+    ("in \\([^ ]+\\) ("  (1 font-lock-function-name-face))
+    ("\\(\\(\\sw\\|[_.]\\)+\\)="  (1 font-lock-variable-name-face))
+    )
+  "Font lock keywords used in `gdb-threads-mode'.")
+
 (defun gdb-threads-mode ()
   "Major mode for gdb frames.
 
@@ -1657,6 +1682,8 @@ static char *magick[] = {
   (setq mode-name "Threads")
   (setq buffer-read-only t)
   (use-local-map gdb-threads-mode-map)
+  (set (make-local-variable 'font-lock-defaults)
+       '(gdb-threads-font-lock-keywords))
   (run-mode-hooks 'gdb-threads-mode-hook)
   'gdb-invalidate-threads)
 
@@ -1702,6 +1729,12 @@ static char *magick[] = {
     (define-key map "q" 'kill-this-buffer)
      map))
 
+(defvar gdb-registers-font-lock-keywords
+  '(
+    ("^[^ ]+" . font-lock-variable-name-face)
+    )
+  "Font lock keywords used in `gdb-registers-mode'.")
+
 (defun gdb-registers-mode ()
   "Major mode for gdb registers.
 
@@ -1711,6 +1744,8 @@ static char *magick[] = {
   (setq mode-name "Registers:")
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
+  (set (make-local-variable 'font-lock-defaults)
+       '(gdb-registers-font-lock-keywords))
   (run-mode-hooks 'gdb-registers-mode-hook)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
       'gdb-invalidate-registers
@@ -1955,6 +1990,12 @@ corresponding to the mode line clicked."
     (define-key map (vector 'header-line 'down-mouse-1) 'ignore)
     map))
 
+(defvar gdb-memory-font-lock-keywords
+  '(;; <__function.name+n>
+    ("<\\(\\(\\sw\\|[_.]\\)+\\)\\(\\+[0-9]+\\)?>" (1 font-lock-function-name-face))
+    )
+  "Font lock keywords used in `gdb-memory-mode'.")
+
 (defun gdb-memory-mode ()
   "Major mode for examining memory.
 
@@ -2026,6 +2067,8 @@ corresponding to the mode line clicked."
 		       'help-echo "mouse-3: Select unit size"
 		       'mouse-face 'mode-line-highlight
 		       'local-map gdb-memory-unit-keymap))))
+  (set (make-local-variable 'font-lock-defaults)
+       '(gdb-memory-font-lock-keywords))
   (run-mode-hooks 'gdb-memory-mode-hook)
   'gdb-invalidate-memory)
 
@@ -2094,6 +2137,23 @@ corresponding to the mode line clicked."
     (define-key map "q" 'kill-this-buffer)
      map))
 
+(defvar gdb-local-font-lock-keywords
+  '(
+    ;; var = (struct struct_tag) value
+    ( "\\(^\\(\\sw\\|[_.]\\)+\\) += +(\\(struct\\) \\(\\(\\sw\\|[_.]\\)+\\)"
+      (1 font-lock-variable-name-face)
+      (3 font-lock-keyword-face)
+      (4 font-lock-type-face))
+    ;; var = (type) value 
+    ( "\\(^\\(\\sw\\|[_.]\\)+\\) += +(\\(\\(\\sw\\|[_.]\\)+\\)"
+      (1 font-lock-variable-name-face)
+      (3 font-lock-type-face))
+    ;; var = val
+    ( "\\(^\\(\\sw\\|[_.]\\)+\\) += +[^(]"
+      (1 font-lock-variable-name-face))
+    )
+  "Font lock keywords used in `gdb-local-mode'.")
+
 (defun gdb-locals-mode ()
   "Major mode for gdb locals.
 
@@ -2103,6 +2163,8 @@ corresponding to the mode line clicked."
   (setq mode-name (concat "Locals:" gdb-selected-frame))
   (setq buffer-read-only t)
   (use-local-map gdb-locals-mode-map)
+  (set (make-local-variable 'font-lock-defaults)
+       '(gdb-local-font-lock-keywords))
   (run-mode-hooks 'gdb-locals-mode-hook)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
       'gdb-invalidate-locals

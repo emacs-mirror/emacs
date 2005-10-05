@@ -1,3 +1,18 @@
+2005-10-06  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Put 
+	`font-lock-function-name-face'.
+	(gdb-info-frames-custom): Put `font-lock-function-name-face'
+	and `font-lock-variable-name-face'
+	(gdb-registers-font-lock-keywords): New font lock keywords definition.
+	(gdb-registers-mode): Use `gdb-registers-font-lock-keywords`.
+	(gdb-memory-font-lock-keywords): New font lock keywords definition.
+	(gdb-memory-mode): Use `gdb-memory-font-lock-keywords'.
+	(gdb-local-font-lock-keywords): New font lock keywords definition.
+	(gdb-locals-mode): Use `gdb-local-font-lock-keywords'
+	(gdb-threads-font-lock-keywords): New font lock keywords definition.
+	(gdb-threads-mode): Use `gdb-threads-font-lock-keywords'.
+
 2005-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/scheme.el (scheme-mode-syntax-table): Mark ; as being
