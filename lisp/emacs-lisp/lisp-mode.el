@@ -59,9 +59,9 @@
       (modify-syntax-entry ?\t "    " table)
       (modify-syntax-entry ?\f "    " table)
       (modify-syntax-entry ?\n ">   " table)
-;;; This is probably obsolete since nowadays such features use overlays.
-;;;      ;; Give CR the same syntax as newline, for selective-display.
-;;;      (modify-syntax-entry ?\^m ">   " table)
+      ;; This is probably obsolete since nowadays such features use overlays.
+      ;; ;; Give CR the same syntax as newline, for selective-display.
+      ;; (modify-syntax-entry ?\^m ">   " table)
       (modify-syntax-entry ?\; "<   " table)
       (modify-syntax-entry ?` "'   " table)
       (modify-syntax-entry ?' "'   " table)
@@ -82,8 +82,8 @@
   (let ((table (copy-syntax-table emacs-lisp-mode-syntax-table)))
     (modify-syntax-entry ?\[ "_   " table)
     (modify-syntax-entry ?\] "_   " table)
-    (modify-syntax-entry ?# "' 14bn" table)
-    (modify-syntax-entry ?| "\" 23b" table)
+    (modify-syntax-entry ?# "' 14b" table)
+    (modify-syntax-entry ?| "\" 23bn" table)
     table))
 
 (define-abbrev-table 'lisp-mode-abbrev-table ())
@@ -154,35 +154,38 @@
 
 (defun lisp-font-lock-syntactic-face-function (state)
   (if (nth 3 state)
-      ;; This might be a docstring.
-      (let* ((listbeg (nth 1 state))
-             (firstsym (and listbeg
-                            (save-excursion
-                              (goto-char listbeg)
-                              (and (looking-at "([ \t\n]*\\(\\(\\sw\\|\\s_\\)+\\)")
-                                   (match-string 1)))))
-             (docelt (and firstsym (get (intern-soft firstsym)
-                                        lisp-doc-string-elt-property))))
-        (if (and docelt
-                 ;; It's a string passed to a macro that has docstrings.
-                 ;; Check whether it's in docstring position.
-                 (let ((startpos (nth 8 state)))
-                   (save-excursion
-                     (when (functionp docelt)
-                       (goto-char (match-end 1))
-                       (setq docelt (funcall docelt)))
-                     (goto-char listbeg)
-                     (forward-char 1)
-                     (condition-case nil
-                         (while (and (> docelt 0) (< (point) startpos)
-                                     (progn (forward-sexp 1) t))
-                           (setq docelt (1- docelt)))
-                       (error nil))
-                     (and (zerop docelt) (<= (point) startpos)
-                          (progn (forward-comment (point-max)) t)
-                          (= (point) (nth 8 state))))))
-            font-lock-doc-face
-          font-lock-string-face))
+      ;; This might be a (doc)string or a |...| symbol.
+      (let ((startpos (nth 8 state)))
+        (if (eq (char-after startpos) ?|)
+            ;; This is not a string, but a |...| symbol.
+            nil
+          (let* ((listbeg (nth 1 state))
+                 (firstsym (and listbeg
+                                (save-excursion
+                                  (goto-char listbeg)
+                                  (and (looking-at "([ \t\n]*\\(\\(\\sw\\|\\s_\\)+\\)")
+                                       (match-string 1)))))
+                 (docelt (and firstsym (get (intern-soft firstsym)
+                                            lisp-doc-string-elt-property))))
+            (if (and docelt
+                     ;; It's a string in a form that can have a docstring.
+                     ;; Check whether it's in docstring position.
+                     (save-excursion
+                       (when (functionp docelt)
+                         (goto-char (match-end 1))
+                         (setq docelt (funcall docelt)))
+                       (goto-char listbeg)
+                       (forward-char 1)
+                       (condition-case nil
+                           (while (and (> docelt 0) (< (point) startpos)
+                                       (progn (forward-sexp 1) t))
+                             (setq docelt (1- docelt)))
+                         (error nil))
+                       (and (zerop docelt) (<= (point) startpos)
+                            (progn (forward-comment (point-max)) t)
+                            (= (point) (nth 8 state)))))
+                font-lock-doc-face
+              font-lock-string-face))))
     font-lock-comment-face))
 
 ;; The LISP-SYNTAX argument is used by code in inf-lisp.el and is
