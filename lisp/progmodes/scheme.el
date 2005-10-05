@@ -90,7 +90,12 @@
     (modify-syntax-entry ?\] ")[  " st)
     (modify-syntax-entry ?{ "(}  " st)
     (modify-syntax-entry ?} "){  " st)
-    (modify-syntax-entry ?\| "\" 23b" st)
+    (modify-syntax-entry ?\| "\" 23bn" st)
+    ;; Guile allows #! ... !# comments.
+    ;; But SRFI-22 defines the comment as #!...\n instead.
+    ;; Also Guile says that the !# should be on a line of its own.
+    ;; It's too difficult to get it right, for too little benefit.
+    ;; (modify-syntax-entry ?! "_ 2" st)
 
     ;; Other atom delimiters
     (modify-syntax-entry ?\( "()  " st)
@@ -103,7 +108,7 @@
     ;; Special characters
     (modify-syntax-entry ?, "'   " st)
     (modify-syntax-entry ?@ "'   " st)
-    (modify-syntax-entry ?# "' 14bn" st)
+    (modify-syntax-entry ?# "' 14b" st)
     (modify-syntax-entry ?\\ "\\   " st)
     st))
 
@@ -167,9 +172,11 @@
   (setq font-lock-defaults
         '((scheme-font-lock-keywords
            scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
-          nil t (("+-*/.<>=!?$%_&~^:#" . "w")) beginning-of-defun
+          nil t (("+-*/.<>=!?$%_&~^:" . "w") (?#. "w 14"))
+          beginning-of-defun
           (font-lock-mark-block-function . mark-defun)
-          (font-lock-syntactic-face-function . lisp-font-lock-syntactic-face-function))))
+          (font-lock-syntactic-face-function
+           . scheme-font-lock-syntactic-face-function))))
 
 (defvar scheme-mode-line-process "")
 
@@ -344,6 +351,16 @@ See `run-hooks'."
 
 (defvar scheme-font-lock-keywords scheme-font-lock-keywords-1
   "Default expressions to highlight in Scheme modes.")
+
+(defun scheme-font-lock-syntactic-face-function (state)
+  (if (nth 3 state)
+      ;; In a string.
+      (if (eq (char-after (nth 8 state)) ?|)
+          ;; This is not a string, but a |...| symbol.
+          nil
+        font-lock-string-face)
+    ;; In a comment.
+    font-lock-comment-face))
 
 ;;;###autoload
 (define-derived-mode dsssl-mode scheme-mode "DSSSL"
