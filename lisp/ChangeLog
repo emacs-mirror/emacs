@@ -1,3 +1,34 @@
+2005-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/scheme.el (scheme-mode-syntax-table): Mark ; as being
+	also the second char of a comment-start sequence.
+	(scheme-sexp-comment-syntax-table): New var.
+	(lambda, define): Set their scheme-doc-string-elt property.
+	(scheme-font-lock-syntactic-face-function): Handle sexp-comments.
+	Use lisp-font-lock-syntactic-face-function now that it properly
+	handles |...| symbols.
+	(scheme-mode-variables): Set lisp-doc-string-elt-property,
+	parse-sexp-lookup-properties and font-lock-extra-managed-props.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-syntax-table): Move the nesting
+	bit from # to |.
+	(lisp-font-lock-syntactic-face-function): Distinguish |...| symbols.
+
+	* emacs-lisp/lisp-mode.el (lambda): Add its doc-string-elt property.
+	(lisp-doc-string-elt-property): New var.
+	(lisp-font-lock-syntactic-face-function): Use it.
+	Rewrite to recognize docstrings even for forms not at toplevel.
+
+	* progmodes/scheme.el (scheme-mode-syntax-table): Put the nested
+	annotation on the | part of #| rather than on the # part.
+	(scheme-font-lock-syntactic-face-function): New function, to
+	distinguish strings from |...| symbols.
+	(scheme-mode-variables): Use it.  Also fix up the font-lock-time
+	syntax-table so that #|...|# is properly highlighted.
+
+	* emacs-lisp/lisp-mode.el (lisp-font-lock-syntactic-face-function):
+	Don't mark as docstring the 3rd elem of an unknown toplevel form.
+
 2005-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* bindings.el (global-map): Resync [home] and [end] bindings with C-a
