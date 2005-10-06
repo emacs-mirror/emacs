@@ -4,6 +4,10 @@
 	(gdb-ann3): Set it.
 	(gdb-put-breakpoint-icon): Don't take fringe-width from speedbar
 	frame.
+	(gdb-info-frames-custom): Use inverse-video for first five
+	characters of selected frame only.
+	(gdb-get-frame-number): Select frame even when point is on frame
+	number.
 
 2005-10-06  Masatake YAMATO  <jet@gyve.org>
 
