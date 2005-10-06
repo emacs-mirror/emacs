@@ -1,3 +1,26 @@
+2005-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/cal-menu.el (calendar-mouse-view-diary-entries):
+	Use the new `list-only' arg to diary-list-entries.
+
+	* calendar/diary-lib.el: Use overlays rather than selective-display.
+	(diary-selective-display): New var.
+	(diary-header-line-format): Use it.
+	(diary-list-entries): Add argument `list-only'.
+	Put the buffer in diary-mode.  Don't add \^M at beg and end.
+	Replace \^M by invisible overlays.
+	(diary-unhide-everything): Replace \^M by invisible overlays.
+	(print-diary-entries): Look for overlays rather than \^M.
+	Add a space to the temp buffer name.
+	(diary-show-all-entries, mark-diary-entries, make-diary-entry):
+	Put the buffer in diary-mode.
+	(list-sexp-diary-entries): Replace \^M by invisible overlays.
+	(diary-anniversary): Make the year arg optional.
+	(diary-time-regexp): New const.
+	(diary-font-lock-keywords): Use it to accept a few more time formats.
+
+	* pcvs.el (cvs-sentinel): Make sure we do re-enable undo.
+
 2005-10-06  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* textmodes/artist.el (artist-ellipse-mirror-quadrant):
@@ -15,8 +38,8 @@
 
 2005-10-06  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-language-environment): Fix
-	setting up of case-table for unibyte mode.
+	* international/mule-cmds.el (set-language-environment):
+	Fix setting up of case-table for unibyte mode.
 
 	* simple.el (what-cursor-position): If the character is displayed
 	by some `display' text property, show that.  Don't use
@@ -26,8 +49,7 @@
 
 	* progmodes/gdb-ui.el (gdb-fringe-width): New variable.
 	(gdb-ann3): Set it.
-	(gdb-put-breakpoint-icon): Don't take fringe-width from speedbar
-	frame.
+	(gdb-put-breakpoint-icon): Don't take fringe-width from speedbar frame.
 	(gdb-info-frames-custom): Use inverse-video for first five
 	characters of selected frame only.
 	(gdb-get-frame-number): Select frame even when point is on frame
