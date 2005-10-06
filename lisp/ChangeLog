@@ -1,3 +1,9 @@
+2005-10-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* dframe.el (x-pointer-hand2, x-pointer-top-left-arrow):
+	* wid-edit.el (widget):
+	* progmodes/vhdl-mode.el (speedbar-attached-frame): Add defvars.
+
 2005-10-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (set-language-environment): Fix
@@ -20,8 +26,8 @@
 
 2005-10-06  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Put 
-	`font-lock-function-name-face'.
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom):
+	Put `font-lock-function-name-face'.
 	(gdb-info-frames-custom): Put `font-lock-function-name-face'
 	and `font-lock-variable-name-face'
 	(gdb-registers-font-lock-keywords): New font lock keywords definition.
@@ -32,39 +38,40 @@
 	(gdb-locals-mode): Use `gdb-local-font-lock-keywords'
 	(gdb-threads-font-lock-keywords): New font lock keywords definition.
 	(gdb-threads-mode): Use `gdb-threads-font-lock-keywords'.
-	
+
 2005-10-05  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-merge.el (ediff-merge-region-is-non-clash): new defsubst.
-	(ediff-merge-region-is-non-clash-to-skip): previouslu called
+
+	* ediff-merge.el (ediff-merge-region-is-non-clash): New defsubst.
+	(ediff-merge-region-is-non-clash-to-skip): Previously called
 	ediff-merge-region-is-non-clash.
-	
-	* ediff-mult.el (ediff-append-custom-diff,ediff-meta-show-patch): use
-	insert-buffer-substring.
-	
-	* ediff-ptch.el (ediff-fixup-patch-map): use better heuristics for
-	selecting files to patch. Also bug fixes.
-	
-	* ediff-util.el (ediff-setup): bug fix.
-	(ediff-next-difference): Never skip clashes that differ in white space
-	only.
-	
-	* ediff-wind.el (ediff-setup-control-frame,ediff-destroy-control-frame):
-	check the menubar feature.
-	
-	* viper-cmd.el (viper-normalize-minor-mode-map-alist,
-	viper-refresh-mode-line): use make-local-variable to localize some vars
-	instead of make-variable-buffer-local. Suggested by Stefan Monnier.
-	
-	* viper-init.el (viper-make-variable-buffer-local): delete alias.
-	(viper-restore-cursor-type,viper-set-insert-cursor-type): use
-	make-local-variable instead of make-variable-buffer-local. Suggested by
+
+	* ediff-mult.el (ediff-append-custom-diff, ediff-meta-show-patch):
+	Use insert-buffer-substring.
+
+	* ediff-ptch.el (ediff-fixup-patch-map): Use better heuristics for
+	selecting files to patch.  Also bug fixes.
+
+	* ediff-util.el (ediff-setup): Bug fix.
+	(ediff-next-difference): Never skip clashes that differ in white
+	space only.
+
+	* ediff-wind.el (ediff-setup-control-frame)
+	(ediff-destroy-control-frame): Check the menubar feature.
+
+	* viper-cmd.el (viper-normalize-minor-mode-map-alist)
+	(viper-refresh-mode-line): Use make-local-variable to localize
+	some vars instead of make-variable-buffer-local.  Suggested by
 	Stefan Monnier.
-	
-	* viper.el (viper-mode): don't use viper-make-variable-buffer-local.
-	(viper-comint-mode-hook): use make-local-variable on
+
+	* viper-init.el (viper-make-variable-buffer-local): Delete alias.
+	(viper-restore-cursor-type, viper-set-insert-cursor-type):
+	Use make-local-variable instead of make-variable-buffer-local.
+	Suggested by Stefan Monnier.
+
+	* viper.el (viper-mode): Don't use viper-make-variable-buffer-local.
+	(viper-comint-mode-hook): Use make-local-variable on
 	require-final-newline.
-	(viper-non-hook-settings): don't use make-variable-buffer-local.
+	(viper-non-hook-settings): Don't use make-variable-buffer-local.
 
 2005-10-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
