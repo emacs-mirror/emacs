@@ -1,3 +1,9 @@
+2005-10-06  Kenichi Handa  <handa@m17n.org>
+
+	* simple.el (what-cursor-position): If the character is displayed
+	by some `display' text property, show that.  Don't use
+	single-key-description for eight-bit characters in multibyte mode.
+
 2005-10-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-fringe-width): New variable.
