@@ -1,3 +1,10 @@
+2005-10-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-fringe-width): New variable.
+	(gdb-ann3): Set it.
+	(gdb-put-breakpoint-icon): Don't take fringe-width from speedbar
+	frame.
+
 2005-10-06  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom): Put 
