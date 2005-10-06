@@ -103,6 +103,7 @@ and #define directives otherwise.")
 (defvar gdb-error "Non-nil when GDB is reporting an error.")
 (defvar gdb-macro-info nil
   "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
+(defvar gdb-fringe-width nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -377,7 +378,8 @@ Also display the main routine in the disassembly buffer if present."
 	gdb-location-alist nil
 	gdb-find-file-unhook nil
 	gdb-error nil
-	gdb-macro-info nil)
+	gdb-macro-info nil
+	gdb-buffer-fringe-width (car (window-fringes)))
   ;;
   (setq gdb-buffer-type 'gdba)
   ;;
@@ -2470,7 +2472,8 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-put-breakpoint-icon (enabled bptno)
   (let ((start (- (line-beginning-position) 1))
 	(end (+ (line-end-position) 1))
-	(putstring (if enabled "B" "b")))
+	(putstring (if enabled "B" "b"))
+	(source-window (get-buffer-window (current-buffer) 0)))
     (add-text-properties
      0 1 '(help-echo "mouse-1: set/clear bkpt, mouse-3: enable/disable bkpt")
      putstring)
@@ -2480,7 +2483,9 @@ BUFFER nil or omitted means use the current buffer."
        0 1 `(gdb-bptno ,bptno gdb-enabled nil) putstring))
     (gdb-remove-breakpoint-icons start end)
     (if (display-images-p)
-	(if (>= (car (window-fringes)) 8)
+	(if (>= (or left-fringe-width
+		   (if source-window (car (window-fringes source-window)))
+		   gdb-buffer-fringe-width) 8)
 	    (gdb-put-string
 	     nil (1+ start)
 	     `(left-fringe breakpoint
@@ -2490,9 +2495,9 @@ BUFFER nil or omitted means use the current buffer."
 	  (when (< left-margin-width 2)
 	    (save-current-buffer
 	      (setq left-margin-width 2)
-	      (if (get-buffer-window (current-buffer) 0)
+	      (if source-window
 		  (set-window-margins
-		   (get-buffer-window (current-buffer) 0)
+		   source-window
 		   left-margin-width right-margin-width))))
 	  (put-image
 	   (if enabled
