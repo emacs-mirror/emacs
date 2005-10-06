@@ -1,3 +1,8 @@
+2005-10-06  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (handle_one_xevent): Handle keysyms directly mapped to
+	Unicode characters.
+
 2005-09-23  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (encode_coding_object): If a pre-write-conversion
