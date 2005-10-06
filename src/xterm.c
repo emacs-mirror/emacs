@@ -6310,6 +6310,14 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 	      goto done_keysym;
 	    }
 
+	  /* Keysyms directly mapped to Unicode characters.  */
+	  if (keysym >= 0x01000100 && keysym <= 0x0110FFFF)
+	    {
+	      inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	      inev.ie.code = keysym & 0xFFFFFF;
+	      goto done_keysym;
+	    }
+
 	  /* Now non-ASCII.  */
 	  if (HASH_TABLE_P (Vx_keysym_table)
 	      && (NATNUMP (c = Fgethash (make_number (keysym),
