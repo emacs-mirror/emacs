@@ -1,3 +1,8 @@
+2005-10-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* play/zone.el (zone): Wrap body with save-window-excursion.
+	Suggested by Michael Cadilhac.
+
 2005-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/cal-menu.el (calendar-mouse-view-diary-entries):
