@@ -9,7 +9,7 @@
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.11.5 of September 19, 2005"
+(defconst viper-version "3.11.5 of October 5, 2005"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -605,8 +605,6 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 		    ))
 	      (viper-set-expert-level 'dont-change-unless)))
 
-	(if viper-xemacs-p
-	    (viper-make-variable-buffer-local 'bar-cursor))
 	(if (eq major-mode 'viper-mode)
 	    (setq major-mode 'fundamental-mode))
 
@@ -627,8 +625,8 @@ This startup message appears whenever you load Viper, unless you type `y' now."
 
 ;; This hook designed to enable Vi-style editing in comint-based modes."
 (defun viper-comint-mode-hook ()
-  (setq require-final-newline nil
-	viper-ex-style-editing nil
+  (set (make-local-variable 'require-final-newline) nil)
+  (setq viper-ex-style-editing nil
 	viper-ex-style-motion nil)
   (viper-change-state-to-insert))
 
@@ -1000,25 +998,12 @@ It also can't undo some Viper settings."
 ;; these are primarily advices and Vi-ish variable settings
 (defun viper-non-hook-settings ()
 
-  ;; This var is not local in Emacs, so we make it local.  It must be local
-  ;; because although the stack of minor modes can be the same for all buffers,
-  ;; the associated *keymaps* can be different.  In Viper,
-  ;; viper-vi-local-user-map, viper-insert-local-user-map, and others can have
-  ;; different keymaps for different buffers.  Also, the keymaps associated
-  ;; with viper-vi/insert-state-modifier-minor-mode can be different.
-  ;; ***This is needed only in case emulation-mode-map-alists is not defined
-  (unless
-      (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    (viper-make-variable-buffer-local 'minor-mode-map-alist))
-
   ;; Viper changes the default mode-line-buffer-identification
   (setq-default mode-line-buffer-identification '(" %b"))
 
   ;; setup emacs-supported vi-style feel
   (setq next-line-add-newlines nil
 	require-final-newline t)
-
-  (viper-make-variable-buffer-local 'require-final-newline)
 
   ;; don't bark when mark is inactive
   (if viper-emacs-p
@@ -1027,7 +1012,6 @@ It also can't undo some Viper settings."
   (setq scroll-step 1)
 
   ;; Variable displaying the current Viper state in the mode line.
-  (viper-deflocalvar viper-mode-string viper-emacs-state-id)
   (or (memq 'viper-mode-string global-mode-string)
       (setq global-mode-string
 	    (append '("" viper-mode-string) (cdr global-mode-string))))
@@ -1336,9 +1320,9 @@ These two lines must come in the order given.
 (provide 'viper)
 
 
-;;; Local Variables:
-;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
-;;; End:
+;; Local Variables:
+;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)
+;; End:
 
-;;; arch-tag: 5f3e844c-c4e6-4bbd-9b73-63bdc14e7d79
+;; arch-tag: 5f3e844c-c4e6-4bbd-9b73-63bdc14e7d79
 ;;; viper.el ends here
