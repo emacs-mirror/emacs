@@ -1,0 +1,163 @@
+MEMORY POOL SYSTEM -- DLL VERSION
+
+Richard Kistruck, Ravenbrook Limited, 2005-10-06
+
+CONTENTS
+
+  1. Introduction
+  2. Overview
+  3. DLL Interface
+  4. What's in the box
+  5. What else has changed
+  A. References
+  B. Document history
+  C. Copyright and license
+
+
+INTRODUCTION
+
+This document helps you write code to use the DLL version of the MPS (that is: the MPS packaged as a dynamically-linked library).  
+
+Readership: all.  Confidential: no.  Status: rough notes, informally peer-reviewed.  Author: RHSK.
+
+Background: The MPS ships in two versions: the static-library version (packaged as a statically-linked library, that is: a .lib file, which is bound into the client executable by the executable's developer), and the DLL version.  To use the DLL version, extra steps are required; this document describes them.  
+
+Peer documents:
+  <http://info.ravenbrook.com/project/mps/master/readme.txt>
+  <http://info.ravenbrook.com/project/mps/manual/reference/>
+
+
+OVERVIEW
+
+Logically, the MPS library provides various EXPORTS (see mps.h), and requires various IMPORTS (mpslib.h*).
+
+However, any DLL (on Windows) must state, for each import, the *filename* of the DLL that will provide that import.  When building the MPS DLL, we do not know the filename of the DLL that will provide the mpslib.h imports ("MyApp.exe"? "languageruntime.dll"?).  Corollary: the MPS DLL must require no imports.
+
+(*: telemetry builds also require mpsio.h)
+
+
+DLL INTERFACE
+
+The MPS DLL (mpsdy.dll) provides the same exports as the MPS statically-linked library (mps.lib), plus one extra: "mps_lib_callback_register()".  It requires no imports.
+
+Exports are linked automatically by the operating system.  (For example, client code simply calls mps_arena_create(), etc).  
+
+Instead of imports, the client must 'manually' provide the mpslib.h functions to the MPS, by calling mps_lib_callback_register(name, function-pointer) one-by-one for each mpslib.h function.  The client must do this 'soon after linking': register all callbacks before calling any mps.h function, or behaviour is undefined (will try to assert, as long as you have at least registered mps_lib_assert_fail!).
+
+Once the client registers its mpslib functions, they may be called by the MPS at various times, just as for the statically-linked version of the MPS.  
+
+See mpslib.h for the list of functions the client must register.  There is no way for the client to check that all required callbacks have been successfully registered.  [Should MPS provide a way for the client to check this?  Even linkers report unresolved symbols; surely we should set our sights at least that high. -RHSK]
+
+Scope of the DLL callback-register mechanism's state: currently, the DLL stores the function pointers passed to mps_lib_callback_register() in global static data.  When, whether, and how this is created, shared, and destroyed, is up to the operating system.  The function pointers in the static data are statically initialised to dummy functions.  The client does not need to do anything to the callback-register mechanism on shut-down: storage is reclaimed by the operating system automatically.
+
+[Aside: multiple calls to mps_lib_callback_register() with the same callback name do currently work (later supersedes earlier).  Is this considered to be needed functionality, or might it unhelpfully mask a client bug?  There's also an issue supporting this with future mechanisms -- if we actually manage to get the OS to do the linking, for example.  If it's not needed, we should probably assert to disallow it. -RHSK]
+
+Examples, using release 1.106.0:
+
+From "mpslib.h", the list of functions is:
+    extern int mps_lib_get_EOF(void);
+    extern mps_lib_FILE *mps_lib_get_stderr(void);
+    extern mps_lib_FILE *mps_lib_get_stdout(void);
+    extern int mps_lib_fputc(int, mps_lib_FILE *);
+    extern int mps_lib_fputs(const char *, mps_lib_FILE *);
+    extern void mps_lib_assert_fail(const char *);
+    extern void *(mps_lib_memset)(void *, int, size_t);
+    extern void *(mps_lib_memcpy)(void *, const void *, size_t);
+    extern int (mps_lib_memcmp)(const void *, const void *, size_t);
+    extern mps_clock_t mps_clock(void);
+    extern mps_clock_t mps_clocks_per_sec(void);
+    extern unsigned long mps_lib_telemetry_control(void);
+
+The callback name of each function is just its C identifier.
+
+From "mpslibcb.h":
+    int mps_lib_callback_register(const char *, mps_lib_function_t);
+
+Example of registering a callback:
+    #include "mpslibcb.h"
+
+    res = mps_lib_callback_register(
+      "mps_clock",
+      (mps_lib_function_t) my_clock_function
+    );
+    if(res != MPS_RES_OK) {
+      printf("mps_lib_callback_register failed.\n");
+      exit(1);
+    }
+
+
+WHAT'S IN THE BOX
+
+Files for MPS DLL, new in 1.105.0:
+
+  mpslibcb.h:  declares the mps_lib_callback_register() interface.
+
+  mpsdy.dll:  the MPS DLL
+
+  mpsdy.lib:  the .lib file produced when linking mpsdy.dll
+
+  (Also included, though not needed for DLLs: mpsplcb.lib.  Whilst the register callback functionality is not required for a statically-linking client, it might be desirable in some circumstances.  The "mpsplcb.lib" provides it: it is simply an 'adaptor' that satisfies all the mpslib.h import requirements with stub functions, and provides the mps_lib_callback_register() interface for the client to pass in function pointers for the stubs to call.  The mpsdy.dll DLL incorporates this same adaptor.)
+
+Files for using the MPS statically-linked library are:
+
+  mps.lib:  the MPS statically-linked library
+
+  mpsplan.lib:  ("ANSI plinth") a working example of implementing the interfaces that the MPS requires the client to provide, namely the "mpslib.h", and, for telemetry versions, "mpsio.h", interfaces.  Source is provided in mpsliban.c and mpsioan.c.
+
+
+WHAT ELSE HAS CHANGED
+
+Obviously, various linker flags are different to make a DLL.
+
+In addition, the MPS -- in both static .lib and dynamic .dll form -- is now built with /Gs (for compilations) and /GZ (for linking).  This suppresses stack probe / stack check, which would otherwise require __chkesp from C library.  
+
+
+A. REFERENCES
+
+
+B. DOCUMENT HISTORY
+
+2005-10-06  RHSK  Created based on <http://info.ravenbrook.com/mail/2005/10/05/14-25-04/0.txt>.
+
+
+C. COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved.  This is an open source license.  Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains.
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+$Id$
