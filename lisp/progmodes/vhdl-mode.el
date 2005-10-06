@@ -142,6 +142,8 @@
 (defvar lazy-lock-defer-contextually)
 (defvar lazy-lock-defer-on-scrolling)
 (defvar lazy-lock-defer-on-the-fly)
+(defvar speedbar-attached-frame)
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Variables
