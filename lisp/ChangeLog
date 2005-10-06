@@ -1,5 +1,8 @@
 2005-10-06  Kenichi Handa  <handa@m17n.org>
 
+	* international/mule-cmds.el (set-language-environment): Fix
+	setting up of case-table for unibyte mode.
+
 	* simple.el (what-cursor-position): If the character is displayed
 	by some `display' text property, show that.  Don't use
 	single-key-description for eight-bit characters in multibyte mode.
