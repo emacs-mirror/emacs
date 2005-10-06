@@ -2,6 +2,7 @@
 
 	* dframe.el (x-pointer-hand2, x-pointer-top-left-arrow):
 	* wid-edit.el (widget):
+	* progmodes/gdb-ui.el (gdb-buffer-fringe-width):
 	* progmodes/vhdl-mode.el (speedbar-attached-frame): Add defvars.
 
 2005-10-06  Kenichi Handa  <handa@m17n.org>
