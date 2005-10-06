@@ -79,6 +79,7 @@
 
 (require 'gud)
 
+(defvar gdb-buffer-fringe-width)
 (defvar tool-bar-map)
 
 (defvar gdb-frame-address "main" "Initialization for Assembler buffer.")
@@ -2150,7 +2151,7 @@ corresponding to the mode line clicked."
       (1 font-lock-variable-name-face)
       (3 font-lock-keyword-face)
       (4 font-lock-type-face))
-    ;; var = (type) value 
+    ;; var = (type) value
     ( "\\(^\\(\\sw\\|[_.]\\)+\\) += +(\\(\\(\\sw\\|[_.]\\)+\\)"
       (1 font-lock-variable-name-face)
       (3 font-lock-type-face))
