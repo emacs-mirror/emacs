@@ -1,36 +1,36 @@
 How to create a new version
 
-For example, say the last version of the MPS is 1.105, with a single release 1.105.0.  This document tells you how to create a new version (1.106) from the master sources.  
+This document tells you how to create a new version from the master sources.  (For example, if the last version of the MPS is 1.105, with a single release 1.105.0, this document tells you how to take a new clone from the master sources to create version 1.106).  
 
-Readership: all.  Confidential: no.  
+Readership: MPS staff.  Confidential: no.  Status: rough notes, informally peer-reviewed.  Author: RHSK.
 
-Background: refer to PQTCM ("Product Quality Through Change Management", <http://www.ravenbrook.com/doc/1999/05/20/pqtcm/>) for background, terminology, rationale, and usage guidance.  
+Background: refer to PQTCM ("Product Quality Through Change Management", <http://www.ravenbrook.com/doc/1999/05/20/pqtcm/>) for background, terminology, rationale, and usage guidance.  This tells you what "a version" actually is.  
 
 Peer documents:
   <http://info.ravenbrook.com/project/mps/master/procedure/release-build/>.
 
 
-Do I need this procedure?
+__Do I need this procedure?__
 
-You might not need to create a new version.  An alternative is to create a further 'point release' on the existing version.  Refer to PQTCM when deciding.  
+You might not need to create a new version.  An alternative is to create a further 'point release' on the existing version.  Refer to PQTCM when deciding.  (Summary: am I changing the specification?).  
 
 
-What is a version?
+__What is a version?__
 
 A version is a 'clone' of all the master source files, that then has its own evolution.  A Version has these parts:
 
-Perforce branch, defining the mapping used to integrate from master to version.  By convention, the name of the branch is "mps/version/A.BBB", in other words the pathname of that version's sub-tree (eg. "mps/version/1.105" for 1.105).  Eg. 
+Perforce branch, defining the mapping used to integrate from master to version.  By convention, the name of the branch is "mps/version/A.BBB": note that we make the branch name exactly match the pathname of that version's sub-tree.  For example:  
   p4 branch -o mps/version/1.105
   //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/1.105/...
 
-Cloned (integrated) and submitted files, in the "version/A.BBB/..." sub-tree.  Usually a copy of the entire "master" subtree and all its files.  These were created in a single change with "p4 integrate -b <branchspec>".  For each of these files, Perforce reports the first action as "branch".  Some files may then be further modified.  
+Cloned (integrated) and submitted files, in the "version/A.BBB/..." sub-tree.  Usually this is a clone of the entire "master" subtree and all its files.  These were created in a single change with "p4 integrate -b <branchspec>".  This initial integrate is what populates the version branch with files; before that it was empty.  For each of these files, Perforce reports the first action as "branch".  Some files may then be further modified.  
 
 Origin: The point in time that the initial integrate was performed, expressed as its changelevel minus one, defines the "Origin" of the version.  The Origin is the last change on the master sources that also made it into the version sources by virtue of the initial integrate command.  
 
 Entry in the table at <http://info.ravenbrook.com/project/mps/version/>.
 
 
-How to make a new version:
+__How to make a new version:__
 
 1. Make the branch:  p4 branch mps/version/A.BBB
 
@@ -38,9 +38,52 @@ How to make a new version:
 
 3. p4 submit
 
-4. Find the Origin of the new version: do p4 changes -m 2 on the master and note the latest change that was in before the integrate.  Note: it's better to do it this way -- do the integrate from the _implicit_ tip of the master, and then check back to see what happened -- because it's hard to get wrong.  Also, then the integrate has the changelevel origin+1.  Clashes with master submits could theoretically occur, and could be avoided by determining the origin first and specifying it to the initial integrate, but in practice this never happens.  
+4. Determine the Origin of the new version: do p4 changes -m 5 on the master, and note the latest change that was in before the integrate.  
+
+[Note: it's better to do it this way -- do the integrate from the _implicit_ tip of the master, and then check back to see what happened -- because it's hard to get wrong.  Also, then the integrate has the changelevel origin+1.  Clashes with master submits could theoretically occur, and could be avoided by determining the origin first and specifying it to the initial integrate, but in practice this never happens.  RHSK]
 
 5. Update the table at <http://info.ravenbrook.com/project/mps/version/>.
 
+END OF PROCEDURE
+
+COPYRIGHT AND LICENSE
+
+Copyright (C) 2005 Ravenbrook Limited <http://www.ravenbrook.com/>.
+All rights reserved.  This is an open source license.  Contact
+Ravenbrook for commercial licensing options.
+
+Redistribution and use in source and binary forms, with or without
+modification, are permitted provided that the following conditions are
+met:
+
+1. Redistributions of source code must retain the above copyright
+notice, this list of conditions and the following disclaimer.
+
+2. Redistributions in binary form must reproduce the above copyright
+notice, this list of conditions and the following disclaimer in the
+documentation and/or other materials provided with the distribution.
+
+3. Redistributions in any form must be accompanied by information on how
+to obtain complete source code for this software and any
+accompanying software that uses this software.  The source code must
+either be included in the distribution or be available for no more than
+the cost of distribution plus a nominal fee, and must be freely
+redistributable under reasonable conditions.  For an executable file,
+complete source code means the source code for all modules it contains. 
+It does not include source code for modules or files that typically
+accompany the major components of the operating system on which the
+executable file runs.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS
+IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED
+TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR
+PURPOSE, OR NON-INFRINGEMENT, ARE DISCLAIMED. IN NO EVENT SHALL THE
+COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT
+NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 $Id$

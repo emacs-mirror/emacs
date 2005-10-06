@@ -7,6 +7,7 @@ CONTENTS
 
   1. Introduction
   2. Mac OS X
+  3. Windows
   A. References
   B. Document history
   C. Copyright and license
@@ -28,10 +29,22 @@ This document is not confidential.
 
 2. MAC OS X
 
+2005-02-02
 Building on early releases of Mac OS X (DP3? 10.1?) required various 
 workarounds to get a clean compile.  These workarounds have now been 
-removed from master sources.  RHSK 2005-02-02.
+removed from master sources.  RHSK.
 See <http://www.ravenbrook.com/project/mps/issue/job000602/>
+
+
+3. WINDOWS
+
+2005-10-06 (1.105)
+All MPS versions are now built with /Gs (for compilations) and /GZ 
+(for linking).  This suppresses stack probe / stack check, which 
+would otherwise require __chkesp from C library.  This change was 
+necessary to enable the new DLL version of the MPS, "mpsdy.dll".  
+RHSK.
+See <http://www.ravenbrook.com/project/mps/master/manual/supplement/dll-notes/>
 
 
 A. REFERENCES
