@@ -1,3 +1,11 @@
+2005-10-06  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* textmodes/artist.el (artist-ellipse-mirror-quadrant):
+	Fix bug introduced 2005-07-03: Use (car (last ...))
+	to faithfully reproduce replaced artist-last.
+	(artist-set-arrow-points-for-poly): Likewise.
+	Suggested by Johan Bockg,Ae(Brd.
+
 2005-10-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* dframe.el (x-pointer-hand2, x-pointer-top-left-arrow):
