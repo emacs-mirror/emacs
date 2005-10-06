@@ -1,3 +1,8 @@
+2005-10-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Add variables and
+	functions to indices.  Be more precise.
+
 2005-10-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* speedbar.texi (GDB): Describe use of watch expressions.
