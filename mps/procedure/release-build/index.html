@@ -40,7 +40,7 @@
 
 <h2><a id="section-1" name="section-1">1. Introduction</a></h2>
 
-<p> This is the procedure for building a release of the Memory Pool System from the version sources. </p>
+<p> This is the procedure for building a generic release of the Memory Pool System (an "mps-kit") from the version sources. </p>
 
 <p> The readership of this document is anyone developing the integration. </p>
 
@@ -72,7 +72,7 @@ before you continue.</strong> </p></li>
 
 <li><p> Determine the changelevel at which you're going to make the
 release.  This will usually be the latest submitted changelevel on the
-version branch; to get it use </p> <blockquote> <code>p4 changes -m 1
+version branch; to get it, use p4 changes with a max of 1 (one):</p> <blockquote> <code>p4 changes -m 1
 version/VERSION/...</code> </blockquote> </li>
 
 </ol>
@@ -101,7 +101,7 @@ version/VERSION/...</code> </blockquote> </li>
   <p> Create a tarball containing the MPS sources, and open it for add: </p>
 
   <blockquote><code>
-    cp -r version/VERSION mps-kit-RELEASE <br />
+    cp -R version/VERSION mps-kit-RELEASE <br />
     mkdir -p release/RELEASE<br />
     tar cf - mps-kit-RELEASE | gzip -c &gt; release/RELEASE/mps-kit-RELEASE.tar.gz <br />
     rm -r mps-kit-RELEASE<br />
