@@ -1,3 +1,11 @@
+2005-10-07  Nick Roberts  <nickrob@snap.net.nz>
+	
+	* progmodes/gud.el (gud-menu-map): Only display un-intuitive
+	gud-break and gud-remove icons when the fringe is not available.
+
+	* progmodes/gdb-ui.el (gdb-fringe-width -> gdb-buffer-fringe-width):
+	Typo.
+
 2005-10-06  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* play/zone.el (zone): Wrap body with save-window-excursion.
