@@ -305,6 +305,17 @@
   (and (not (Math-scalarp a))
        (not (math-known-scalarp a t))))
 
+(defun math-known-square-matrixp (a)
+  (if (eq (car-safe a) '^)
+      (math-known-square-matrixp (nth 1 a))
+    (and (math-known-matrixp a)
+         (or (math-square-matrixp a)
+             (and (or
+                   (integerp calc-matrix-mode)
+                   (eq calc-matrix-mode 'square))
+                  (eq (car-safe a) 'var)
+                  (not (math-const-var a)))))))
+                  
 ;;; Try to prove that A is a scalar (i.e., a non-vector).
 (defun math-check-known-scalarp (a)
   (cond ((Math-objectp a) t)
@@ -1869,6 +1880,21 @@
 	   (cond ((and math-simplify-only
 		       (not (equal a math-simplify-only)))
 		  (list '^ a b))
+                 ((and (eq (car-safe a) '*)
+                       (or 
+                        (and
+                         (math-known-matrixp (nth 1 a))
+                         (math-known-matrixp (nth 2 a)))
+                        (and
+                         calc-matrix-mode
+                         (not (eq calc-matrix-mode 'scalar))
+                         (and (not (math-known-scalarp (nth 1 a)))
+                              (not (math-known-scalarp (nth 2 a)))))))
+                  (if (and (= b -1)
+                           (math-known-square-matrixp (nth 1 a))
+                           (math-known-square-matrixp (nth 2 a)))
+                      (list '* (list '^ (nth 2 a) -1) (list '^ (nth 1 a) -1))
+                    (list '^ a b)))
 		 ((and (eq (car-safe a) '*)
 		       (or (math-known-num-integerp b)
 			   (math-known-nonnegp (nth 1 a))
