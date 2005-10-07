@@ -3963,6 +3963,7 @@ update_single_window (w, force_p)
     }
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Redraw lines from the current matrix of window W that are
    overlapped by other rows.  YB is bottom-most y-position in W.  */
@@ -4068,6 +4069,8 @@ redraw_overlapping_rows (w, yb)
 	break;
     }
 }
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 #ifdef GLYPH_DEBUG
@@ -4229,11 +4232,13 @@ update_window (w, force_p)
       /* Fix the appearance of overlapping/overlapped rows.  */
       if (!paused_p && !w->pseudo_window_p)
 	{
+#ifdef HAVE_WINDOW_SYSTEM
 	  if (changed_p && rif->fix_overlapping_area)
 	    {
 	      redraw_overlapped_rows (w, yb);
 	      redraw_overlapping_rows (w, yb);
 	    }
+#endif
 
 	  /* Make cursor visible at cursor position of W.  */
 	  set_window_cursor_after_update (w);
