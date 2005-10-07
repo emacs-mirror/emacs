@@ -195,7 +195,7 @@ STRING is the description of the appointment.
 FLAG, if non-nil, says that the element was made with `appt-add'
 so calling `appt-make-list' again should preserve it.")
 
-(defconst appt-max-time 1439
+(defconst appt-max-time (1- (* 24 60))
   "11:59pm in minutes - number of minutes in a day minus 1.")
 
 (defvar appt-mode-string nil
@@ -484,13 +484,15 @@ Usually just deletes the appointment buffer."
 			      lowest-window w)))))
     (select-window lowest-window)))
 
+(defconst appt-time-regexp
+  "[0-9]?[0-9]\\(h\\([0-9][0-9]\\)?\\|[:.][0-9][0-9]\\)\\(am\\|pm\\)?")
+
 ;;;###autoload
 (defun appt-add (new-appt-time new-appt-msg)
   "Add an appointment for today at NEW-APPT-TIME with message NEW-APPT-MSG.
 The time should be in either 24 hour format or am/pm format."
   (interactive "sTime (hh:mm[am/pm]): \nsMessage: ")
-  (unless (string-match "[0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?"
-		    new-appt-time)
+  (unless (string-match appt-time-regexp new-appt-time)
     (error "Unacceptable time-string"))
   (let* ((appt-time-string (concat new-appt-time " " new-appt-msg))
          (appt-time (list (appt-convert-time new-appt-time)))
@@ -577,16 +579,14 @@ appointment package (if it is not already active)."
                             (calendar-date-equal
                              (calendar-current-date) (car (car entry-list))))
                   (let ((time-string (cadr (car entry-list))))
-                    (while (string-match
-                            "\\([0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?\\).*"
-                            time-string)
+                    (while (string-match appt-time-regexp time-string)
                       (let* ((beg (match-beginning 0))
                              ;; Get just the time for this appointment.
-                             (only-time (match-string 1 time-string))
+                             (only-time (match-string 0 time-string))
                              ;; Find the end of this appointment
                              ;; (the start of the next).
                              (end (string-match
-                                   "^[ \t]*[0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?"
+                                   (concat "\n[ \t]*" appt-time-regexp)
                                    time-string
                                    (match-end 0)))
                              ;; Get the whole string for this appointment.
@@ -633,31 +633,23 @@ APPT-LIST is a list of the same format as `appt-time-msg-list'."
   "Convert hour:min[am/pm] format to minutes from midnight.
 A period (.) can be used instead of a colon (:) to separate the
 hour and minute parts."
-  (let ((conv-time 0)
-        (hr 0)
-        (min 0))
-
-    (string-match "[:.]\\([0-9][0-9]\\)" time2conv)
-    (setq min (string-to-number
-               (match-string 1 time2conv)))
-
-    (string-match "[0-9]?[0-9][:.]" time2conv)
-    (setq hr (string-to-number
-              (match-string 0 time2conv)))
+  ;; Formats that should be accepted:
+  ;;   10:00 10.00 10h00 10h 10am 10:00am 10.00am
+  (let ((min (if (string-match "[h:.]\\([0-9][0-9]\\)" time2conv)
+                 (string-to-number (match-string 1 time2conv))
+               0))
+        (hr (if (string-match "[0-9]*[0-9]" time2conv)
+                (string-to-number (match-string 0 time2conv))
+              0)))
 
     ;; convert the time appointment time into 24 hour time
-
     (cond ((and (string-match "pm" time2conv) (< hr 12))
 	   (setq hr (+ 12 hr)))
 	  ((and (string-match "am" time2conv) (= hr 12))
            (setq hr 0)))
 
-    ;; convert the actual time
-    ;; into minutes for comparison
-    ;; against the actual time.
-
-    (setq conv-time (+ (* hr 60) min))
-    conv-time))
+    ;; convert the actual time into minutes.
+    (+ (* hr 60) min)))
 
 
 (defun appt-update-list ()
@@ -719,5 +711,5 @@ ARG is positive, otherwise off."
 
 (provide 'appt)
 
-;;; arch-tag: bf5791c4-8921-499e-a26f-772b1788d347
+;; arch-tag: bf5791c4-8921-499e-a26f-772b1788d347
 ;;; appt.el ends here

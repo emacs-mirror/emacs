@@ -494,13 +494,20 @@
 		       viper-empty-keymap))
 	       ))
 	
-  ;; in emacs with emulation-mode-map-alists, nothing needs to be done
+  ;; This var is not local in Emacs, so we make it local.  It must be local
+  ;; because although the stack of minor modes can be the same for all buffers,
+  ;; the associated *keymaps* can be different.  In Viper,
+  ;; viper-vi-local-user-map, viper-insert-local-user-map, and others can have
+  ;; different keymaps for different buffers.  Also, the keymaps associated
+  ;; with viper-vi/insert-state-modifier-minor-mode can be different.
+  ;; ***This is needed only in case emulation-mode-map-alists is not defined.
+  ;; In emacs with emulation-mode-map-alists, nothing needs to be done
   (unless
       (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
-    (setq minor-mode-map-alist
-	  (viper-append-filter-alist
-	   (append viper--intercept-key-maps viper--key-maps)
-	   minor-mode-map-alist)))
+    (set (make-local-variable 'minor-mode-map-alist)
+         (viper-append-filter-alist
+          (append viper--intercept-key-maps viper--key-maps)
+          minor-mode-map-alist)))
   )
 
 
@@ -509,7 +516,7 @@
 
 ;; Modifies mode-line-buffer-identification.
 (defun viper-refresh-mode-line ()
-  (setq viper-mode-string
+  (set (make-local-variable 'viper-mode-string)
 	(cond ((eq viper-current-state 'emacs-state) viper-emacs-state-id)
 	      ((eq viper-current-state 'vi-state) viper-vi-state-id)
 	      ((eq viper-current-state 'replace-state) viper-replace-state-id)
@@ -4781,7 +4788,7 @@ sensitive for VI-style look-and-feel."
 	      level-changed t)
 	(insert "
 Please specify your level of familiarity with the venomous VI PERil
-(and the VI Plan for Emacs Rescue).
+\(and the VI Plan for Emacs Rescue).
 You can change it at any time by typing `M-x viper-set-expert-level RET'
 
  1 -- BEGINNER: Almost all Emacs features are suppressed.
@@ -5000,5 +5007,5 @@ Mail anyway (y or n)? ")
 
 
 
-;;; arch-tag: 739a6450-5fda-44d0-88b0-325053d888c2
+;; arch-tag: 739a6450-5fda-44d0-88b0-325053d888c2
 ;;; viper-cmd.el ends here

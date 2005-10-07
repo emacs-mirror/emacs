@@ -1,3 +1,31 @@
+2005-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-url.el (mm-url-predefined-programs): Add switches for curl.
+
+	* gnus-util.el (gnus-remove-duplicates): Remove.
+
+	* nnmail.el (nnmail-article-group): Use mm-delete-duplicates
+	instead of gnus-remove-duplicates.
+
+	* message.el (message-remove-duplicates): Remove.
+	(message-idna-to-ascii-rhs-1): Use mm-delete-duplicates instead of
+	message-remove-duplicates.
+
+	* mm-util.el (mm-delete-duplicates): Use `delete-dups' if
+	available, else use implementation from `delete-dups'.
+
+2005-10-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* time-date.el: Autoload parse-time-string, XEmacs needs it.
+
+2005-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-decode.el (mm-inline-media-tests): Check presence of the diff-mode
+	function rather than the diff-mode.el package.
+	(mm-display-external): Use with-current-buffer.
+	(mm-viewer-completion-map, mm-viewer-completion-map):
+	Move initialization inside declaration.
+
 2005-09-28  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el: Remove useless autoloads.
@@ -16,10 +44,9 @@
 	* mm-uu.el (mm-uu-emacs-sources-regexp): Make variable
 	customizable.  Change default value.
 	(mm-uu-diff-groups-regexp): Change default value.
-	(mm-uu-type-alist): Added doc string.
-	(mm-uu-configure): Added doc string.  Make it interactive.
-	(mm-uu-diff-groups-regexp): Fix missing quotes from previous
-	commit.
+	(mm-uu-type-alist): Add doc string.
+	(mm-uu-configure): Add doc string.  Make it interactive.
+	(mm-uu-diff-groups-regexp): Fix missing quotes from previous commit.
 
 2005-09-27  Simon Josefsson  <jas@extundo.com>
 
@@ -75,8 +102,8 @@
 
 2005-09-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* spam-report.el (spam-report-url-ping-plain): Use
-	gnus-extended-version as User-Agent.
+	* spam-report.el (spam-report-url-ping-plain):
+	Use gnus-extended-version as User-Agent.
 
 	* gnus-agent.el (gnus-agent-synchronize-flags): Explain why the
 	default value is nil.
@@ -92,7 +119,7 @@
 
 	* mm-url.el (mm-url-decode-entities): Fix regexp.
 
-2005-09-18  D Goel  <deego@gnufans.org>
+2005-09-18  Deepak Goel  <deego@gnufans.org>
 
 	* sieve.el (sieve-help): Fix `message' call: first arg should be a
 	format spec.
@@ -125,9 +152,9 @@
 2005-09-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* spam-report.el (spam-report-gmane): Make it work without
-	X-Report-Spam header.  Gmane now only provides Archived-At.  This
-	is only used if `spam-report-gmane-use-article-number' is nil.
-	(spam-report-gmane-spam-header): Removed.  Not used anymore.
+	X-Report-Spam header.  Gmane now only provides Archived-At.
+	This is only used if `spam-report-gmane-use-article-number' is nil.
+	(spam-report-gmane-spam-header): Remove.  Not used anymore.
 
 	* nnweb.el (nnweb-google-wash-article): Print a message if article
 	is not available.

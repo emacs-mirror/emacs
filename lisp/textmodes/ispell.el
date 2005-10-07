@@ -892,7 +892,6 @@ and added as a submenu of the \"Edit\" menu.")
 
 (defun ispell-find-aspell-dictionaries ()
   "Find Aspell's dictionaries, and record in `ispell-dictionary-alist'."
-  (interactive)
   (unless ispell-really-aspell
     (error "This function only works with aspell"))
   (let ((dictionaries
@@ -1528,6 +1527,7 @@ quit          spell session exited."
   (interactive (list ispell-following-word ispell-quietly current-prefix-arg))
   (if continue
       (ispell-continue)
+    (ispell-maybe-find-aspell-dictionaries)
     (ispell-accept-buffer-local-defs)	; use the correct dictionary
     (let ((cursor-location (point))	; retain cursor location
 	  (word (ispell-get-word following))
@@ -2586,6 +2586,7 @@ a new one will be started when needed."
 Return nil if spell session is quit,
  otherwise returns shift offset amount for last line processed."
   (interactive "r")			; Don't flag errors on read-only bufs.
+  (ispell-maybe-find-aspell-dictionaries)
   (if (not recheckp)
       (ispell-accept-buffer-local-defs)) ; set up dictionary, local words, etc.
   (let ((skip-region-start (make-marker))
@@ -3547,7 +3548,6 @@ You can bind this to the key C-c i in GNUS or mail by adding to
 
 (defun ispell-accept-buffer-local-defs ()
   "Load all buffer-local information, restarting Ispell when necessary."
-  (ispell-maybe-find-aspell-dictionaries)
   (ispell-buffer-local-dict)		; May kill ispell-process.
   (ispell-buffer-local-words)		; Will initialize ispell-process.
   (ispell-buffer-local-parsing))

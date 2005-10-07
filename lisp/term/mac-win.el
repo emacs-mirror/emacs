@@ -1132,6 +1132,7 @@ correspoinding TextEncodingBase value."
 (mac-add-charset-info "mac-symbol" 33)
 (mac-add-charset-info "adobe-fontspecific" 33) ; for X-Symbol
 (mac-add-charset-info "mac-dingbats" 34)
+(mac-add-charset-info "iso10646-1" 126) ; for ATSUI
 
 
 ;;;; Keyboard layout/language change events

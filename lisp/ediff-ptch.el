@@ -297,16 +297,23 @@ program."
 		      ;; (file1 . file2). Get it using ediff-get-session-objA.
 		      (ediff-get-session-objA-name session-info))
 		     ;; base-dir1 is  the dir part of the 1st file in the patch
-		     (base-dir1 (file-name-directory (car proposed-file-names)))
+		     (base-dir1
+		      (or (file-name-directory (car proposed-file-names))
+			  ""))
 		     ;; directory part of the 2nd file in the patch
-		     (base-dir2 (file-name-directory (cdr proposed-file-names)))
+		     (base-dir2
+		      (or (file-name-directory (cdr proposed-file-names))
+			  ""))
 		     )
-		;; If both base-dir1 and base-dir2 are relative, assume that
+		;; If both base-dir1 and base-dir2 are relative and exist,
+		;; assume that
 		;; these dirs lead to the actual files starting at the present
 		;; directory. So, we don't strip these relative dirs from the
 		;; file names. This is a heuristic intended to improve guessing
 		(unless (or (file-name-absolute-p base-dir1)
-			    (file-name-absolute-p base-dir2))
+			    (file-name-absolute-p base-dir2)
+			    (not (file-exists-p base-dir1))
+			    (not (file-exists-p base-dir2)))
 		  (setq base-dir1 ""
 			base-dir2 ""))
 		(or (string= (car proposed-file-names) "/dev/null")
@@ -377,8 +384,8 @@ other files, enter /dev/null
 			   (concat actual-dir (cdr proposed-file-names)))))
 		))
 	    ediff-patch-map)
-    ;; check for the shorter existing file in each pair and discard the other
-    ;; one
+    ;; Check for the existing files in each pair and discard the nonexisting
+    ;; ones. If both exist, ask the user.
     (mapcar (lambda (session-info)
 	      (let* ((file1 (car (ediff-get-session-objA-name session-info)))
 		     (file2 (cdr (ediff-get-session-objA-name session-info)))

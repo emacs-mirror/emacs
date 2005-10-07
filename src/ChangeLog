@@ -1,3 +1,107 @@
+2005-10-04  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (window_split_tree): New function.
+	(Fwindow_split_tree): New defun.
+	(syms_of_window): Defsubr it.
+
+2005-10-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_invert_rectangle): New function.
+	(XTflash): Use it.
+
+2005-10-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* regex.h (re_char): Don't expose it in the interface.
+	(re_set_whitespace_regexp): Adjust the arg's type to not use it.
+
+	* regex.c (re_char): Move it back here.
+	(re_set_whitespace_regexp): Change the arg's type to not use it.
+
+	* keyboard.c (make_lispy_event): If point has moved between down and up
+	event, make it a drag, not a click, to mirror what
+	mouse-drag-region expects.
+
+2005-10-02  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* lisp.h (fatal): Undo previous change.
+	* term.c (fatal): Undo previous change.
+
+2005-10-01  Richard M. Stallman  <rms@gnu.org>
+
+	* xfaces.c (face_color_gray_p): Colors close to black count as gray.
+
+2005-10-01  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (try_window): Skip scroll-margin check if ZV is visible.
+
+2005-10-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (init_keyboard) [MAC_OSX]: Don't install SIGINT handler.
+
+	* macfns.c (start_hourglass): Apply 2005-05-07 change for xfns.c.
+	(x_create_tip_frame) [GLYPH_DEBUG]: Uncomment debug code.
+	(Fx_create_frame, x_create_tip_frame) [USE_ATSUI]:
+	Try ATSUI-compatible 12pt Monaco font first.
+
+	* macgui.h (struct _XCharStruct): New member valid_p.
+	(STORE_XCHARSTRUCT): Set valid_p.
+	(struct MacFontStruct) [USE_ATSUI]: New member mac_style.
+
+	* macterm.c (mac_draw_string_common, x_per_char_metric)
+	(mac_compute_glyph_string_overhangs, init_font_name_table)
+	(XLoadQueryFont, mac_unload_font) [USE_ATSUI]: Add ATSUI support.
+	(atsu_get_text_layout_with_text_ptr) [USE_ATSUI]: New function.
+	(x_draw_glyph_string_background)
+	(x_draw_glyph_string_foreground) [MAC_OS8 && USE_ATSUI]: Don't use
+	XDrawImageString.  Always draw background and foreground separately.
+	(x_draw_glyph_string_foreground) [USE_ATSUI]: Don't use 8-bit
+	functions for one-byte chars when using ATSUI-compatible fonts.
+	(atsu_font_id_hash) [USE_ATSUI]: New variable.
+	(syms_of_macterm) [USE_ATSUI]: Initialize and staticpro it.
+	(XLoadQueryFont): Set min_byte1, max_byte1, min_char_or_byte2, and
+	max_char_or_byte2 more in detail.
+	(quit_char_comp, mac_check_for_quit_char) [MAC_OSX]: Remove functions.
+
+2005-09-30  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* image.c (slurp_file, xbm_read_bitmap_data): Cast to the correct type.
+	* xterm.c (handle_one_xevent, handle_one_xevent): Likewise.
+
+	* unexelf.c (fatal): Fix prototype.
+
+	* term.c (fatal): Implement using varargs.
+
+	* regex.c (re_char): Move typedef ...
+	* regex.h (re_char): ... here.
+	(re_iswctype, re_wctype, re_set_whitespace_regexp): New prototypes.
+
+	* emacs.c (malloc_set_state): Fix return type.
+	(endif): Fix type.
+
+	* lisp.h (fatal): Add argument types.
+
+	* dispextern.h (fatal): Delete prototype.
+
+	* systime.h: (make_time): Prototype moved from ...
+	* editfns.c (make_time): ... here.
+
+	* editfns.c: Move systime.h include after lisp.h.
+	* dired.c:
+	* xsmfns.c:
+	* process.c: Likewise.
+
+	* alloc.c (old_malloc_hook, old_realloc_hook, old_realloc_hook):
+	Add parameter types.
+	(__malloc_hook, __realloc_hook, __free_hook): Fix prototypes.
+	(emacs_blocked_free): Change definition to match __free_hook.
+	(emacs_blocked_malloc): Change definition to match __malloc_hook.
+	(emacs_blocked_realloc): Change definition to match __realloc_hook.
+
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* minibuf.c (Fread_buffer): Follow convention for reading from the
+	minibuffer with a default value.  Doc fix.
+
 2005-09-29  Juri Linkov  <juri@jurta.org>
 
 	* editfns.c (Fmessage, Fmessage_box, Fmessage_or_box):
@@ -48,8 +152,8 @@
 
 2005-09-23  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* s/aix4-2.h (BROKEN_GET_CURRENT_DIR_NAME): Define
-	BROKEN_GET_CURRENT_DIR_NAME.
+	* s/aix4-2.h (BROKEN_GET_CURRENT_DIR_NAME):
+	Define BROKEN_GET_CURRENT_DIR_NAME.
 
 	* sysdep.c (get_current_dir_name): Also define if
 	BROKEN_GET_CURRENT_DIR_NAME.

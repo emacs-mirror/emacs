@@ -1290,9 +1290,9 @@ static re_char *whitespace_regexp;
 
 void
 re_set_whitespace_regexp (regexp)
-     re_char *regexp;
+     const char *regexp;
 {
-  whitespace_regexp = regexp;
+  whitespace_regexp = (re_char *) regexp;
 }
 WEAK_ALIAS (__re_set_syntax, re_set_syntax)
 

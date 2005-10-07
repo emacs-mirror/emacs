@@ -1,3 +1,7 @@
+2005-10-01  Jason Rumney  <jasonr@gnu.org>
+
+	* admin.el (set-version): Set version numbers in nt/emacs.rc.
+
 2005-08-31  Romain Francoise  <romain@orebokech.com>
 
 	* FOR-RELEASE: (New features): Remove vhdl-mode.el update

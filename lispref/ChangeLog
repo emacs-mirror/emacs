@@ -1,3 +1,18 @@
+2005-10-04  Kim F. Storm  <storm@cua.dk>
+
+	* windows.texi (Window Split Tree): New section describing
+	new function window-split-tree function.
+
+2005-10-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* display.texi (Fringe Size/Pos): Simplify and add detail.
+
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* minibuf.texi (High-Level Completion): Explain that the prompt
+	given to `read-buffer' should end with a colon and a space.
+	Update usage examples.
+
 2005-09-29  Juri Linkov  <juri@jurta.org>
 
 	* display.texi (Displaying Messages): Rename argument name

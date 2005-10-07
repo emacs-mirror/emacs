@@ -118,10 +118,10 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/wait.h>
 #endif
 
+#include "lisp.h"
 #include "systime.h"
 #include "systty.h"
 
-#include "lisp.h"
 #include "window.h"
 #include "buffer.h"
 #include "character.h"

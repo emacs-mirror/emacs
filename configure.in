@@ -1668,6 +1668,20 @@ else
   fi
 fi
 
+HAVE_CARBON=no
+if test "${with_carbon}" != no; then
+  AC_CHECK_HEADER(Carbon/Carbon.h, HAVE_CARBON=yes)
+fi
+if test "${window_system}" = x11 && test "${HAVE_CARBON}" = yes; then
+  if test "${with_carbon+set}" != set \
+     && test "${carbon_appdir_x+set}" != set; then
+    HAVE_CARBON=no
+  fi
+fi
+if test "${HAVE_CARBON}" = yes; then
+  window_system=mac
+fi
+
 case "${window_system}" in
   x11 )
     HAVE_X_WINDOWS=yes
@@ -1686,7 +1700,7 @@ dnl make this decision later: use the toolkit if we have X11R5 or newer.
       * ) USE_X_TOOLKIT=maybe ;;
     esac
   ;;
-  none )
+  mac | none )
     HAVE_X_WINDOWS=no
     HAVE_X11=no
     USE_X_TOOLKIT=none
@@ -1713,13 +1727,6 @@ if test "${opsys}" = "hpux9shr"; then
       opsysfile="s/hpux9shxr4.h"
       ;;
   esac
-fi
-
-HAVE_CARBON=no
-if test "${HAVE_X11}" != "yes"; then
-  if test "${with_carbon}" != "no"; then
-     AC_CHECK_HEADER(Carbon/Carbon.h, HAVE_CARBON=yes)
-  fi
 fi
 
 ### Compute the unexec source name from the object name.
@@ -2345,7 +2352,6 @@ AC_CHECK_HEADER(malloc/malloc.h, AC_DEFINE(HAVE_MALLOC_MALLOC_H, 1, [Define to 1
 ### Use Mac OS X Carbon API to implement GUI.
 if test "${HAVE_CARBON}" = "yes"; then
   AC_DEFINE(HAVE_CARBON, 1, [Define to 1 if you are using the Carbon API on Mac OS X.])
-  window_system=mac
   ## Specify the install directory
   carbon_appdir=
   if test "${carbon_appdir_x}" != ""; then

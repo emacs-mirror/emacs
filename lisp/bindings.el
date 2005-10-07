@@ -742,7 +742,7 @@ language you are using."
 
 ;; natural bindings for terminal keycaps --- defined in X keysym order
 (define-key global-map [C-S-backspace]  'kill-whole-line)
-(define-key global-map [home]		'beginning-of-line)
+(define-key global-map [home]		'move-beginning-of-line)
 (define-key global-map [C-home]		'beginning-of-buffer)
 (define-key global-map [M-home]		'beginning-of-buffer-other-window)
 (define-key esc-map    [home]		'beginning-of-buffer-other-window)
@@ -762,7 +762,7 @@ language you are using."
 (define-key global-map [M-prior]	'scroll-other-window-down)
 (define-key esc-map    [prior]		'scroll-other-window-down)
 (define-key esc-map [?\C-\S-v]		'scroll-other-window-down)
-(define-key global-map [end]		'end-of-line)
+(define-key global-map [end]		'move-end-of-line)
 (define-key global-map [C-end]		'end-of-buffer)
 (define-key global-map [M-end]		'end-of-buffer-other-window)
 (define-key esc-map    [end]		'end-of-buffer-other-window)

@@ -27,8 +27,6 @@ face name prefixes should be in it for good results.
 
 * NEW FEATURES
 
-** Update Speedbar.
-
 ** Rework how the fringe "angle" bitmap at at bottom of buffer is
 shown to include an indication of whether the last line has a NL or not.
 [Assigned to KFS]
@@ -66,6 +64,8 @@ back burner waiting for a legal comment or an alternate implementation
 (around 30 lines of code).
 
 * BUGS
+
+* Pierre Albarede's Aug 30 bug report about C-v and long lines.
 
 ** Make a new interface for specifying window configurations
 so that we can fix bugs in balance-windows.

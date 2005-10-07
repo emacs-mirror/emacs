@@ -1,3 +1,22 @@
+2005-10-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Add variables and
+	functions to indices.  Be more precise.
+
+2005-10-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.texi (GDB): Describe use of watch expressions.
+
+2005-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Drag and Drop): Remove the x- from
+	x-dnd-open-file-other-window and xdnd-protocol-alist.
+
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* mini.texi (Minibuffer): The default value now appears before the
+	colon in minibuffer prompts.
+
 2005-09-28  Simon Josefsson  <jas@extundo.com>
 
 	* message.texi (IDNA): Fix.

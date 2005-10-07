@@ -660,6 +660,79 @@ mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
 #endif
 
 
+#if USE_ATSUI
+static OSStatus
+atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
+     ConstUniCharArrayPtr text;
+     UniCharCount text_length;
+     ATSUStyle style;
+     ATSUTextLayout *text_layout;
+{
+  OSStatus err;
+  static ATSUTextLayout saved_text_layout = NULL; /* not reentrant */
+
+  if (saved_text_layout == NULL)
+    {
+      UniCharCount lengths[] = {kATSUToTextEnd};
+      ATSUAttributeTag tags[] = {kATSULineLayoutOptionsTag};
+      ByteCount sizes[] = {sizeof (ATSLineLayoutOptions)};
+      static ATSLineLayoutOptions line_layout =
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+	kATSLineDisableAllLayoutOperations  | kATSLineUseDeviceMetrics
+#else
+	kATSLineIsDisplayOnly
+#endif
+	;
+      ATSUAttributeValuePtr values[] = {&line_layout};
+
+      err = ATSUCreateTextLayoutWithTextPtr (text,
+					     kATSUFromTextBeginning,
+					     kATSUToTextEnd,
+					     text_length,
+					     1, lengths, &style,
+					     &saved_text_layout);
+      if (err == noErr)
+	err = ATSUSetLayoutControls (saved_text_layout,
+				     sizeof (tags) / sizeof (tags[0]),
+				     tags, sizes, values);
+      /* XXX: Should we do this? */
+      if (err == noErr)
+	err = ATSUSetTransientFontMatching (saved_text_layout, true);
+    }
+  else
+    {
+      err = ATSUSetRunStyle (saved_text_layout, style,
+			     kATSUFromTextBeginning, kATSUToTextEnd);
+      if (err == noErr)
+	err = ATSUSetTextPointerLocation (saved_text_layout, text,
+					  kATSUFromTextBeginning,
+					  kATSUToTextEnd,
+					  text_length);
+    }
+
+  if (err == noErr)
+    *text_layout = saved_text_layout;
+  return err;
+}
+#endif
+
+static void
+mac_invert_rectangle (display, w, x, y, width, height)
+     Display *display;
+     WindowPtr w;
+     int x, y;
+     unsigned int width, height;
+{
+  Rect r;
+
+  SetPortWindowPort (w);
+
+  SetRect (&r, x, y, x + width, y + height);
+
+  InvertRect (&r);
+}
+
+
 static void
 mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 			bytes_per_char)
@@ -684,6 +757,89 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
   if (mode != srcOr)
     RGBBackColor (GC_BACK_COLOR (gc));
 
+#if USE_ATSUI
+  if (GC_FONT (gc)->mac_style)
+    {
+      OSErr err;
+      ATSUTextLayout text_layout;
+
+      xassert (bytes_per_char == 2);
+
+#ifndef WORDS_BIG_ENDIAN
+      {
+	int i;
+	Unichar *text = (Unichar *)buf;
+
+	for (i = 0; i < nchars; i++)
+	  text[i] = buf[2*i] << 8 | buf[2*i+1];
+      }
+#endif
+      err = atsu_get_text_layout_with_text_ptr ((ConstUniCharArrayPtr)buf,
+						nchars,
+						GC_FONT (gc)->mac_style,
+						&text_layout);
+      if (err == noErr)
+	{
+#ifdef MAC_OSX
+	  if (NILP (Vmac_use_core_graphics))
+	    {
+#endif
+	      MoveTo (x, y);
+	      ATSUDrawText (text_layout,
+			    kATSUFromTextBeginning, kATSUToTextEnd,
+			    kATSUUseGrafPortPenLoc, kATSUUseGrafPortPenLoc);
+#ifdef MAC_OSX
+	    }
+	  else
+	    {
+	      CGrafPtr port;
+	      CGContextRef context;
+	      Rect rect;
+	      RgnHandle region = NewRgn ();
+	      float port_height;
+	      ATSUAttributeTag tags[] = {kATSUCGContextTag};
+	      ByteCount sizes[] = {sizeof (CGContextRef)};
+	      ATSUAttributeValuePtr values[] = {&context};
+
+	      GetPort (&port);
+	      QDBeginCGContext (port, &context);
+	      GetPortBounds (port, &rect);
+	      port_height = rect.bottom - rect.top;
+	      GetClip (region);
+	      GetRegionBounds (region, &rect);
+	      /* XXX: This is not correct if the clip region is not a
+		 simple rectangle.  */
+	      CGContextClipToRect (context,
+				   CGRectMake (rect.left,
+					       port_height - rect.bottom,
+					       rect.right - rect.left,
+					       rect.bottom - rect.top));
+	      DisposeRgn (region);
+	      CGContextSetRGBFillColor
+		(context,
+		 RED_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+		 GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+		 BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+		 1.0);
+	      err = ATSUSetLayoutControls (text_layout,
+					   sizeof (tags) / sizeof (tags[0]),
+					   tags, sizes, values);
+	      if (err == noErr)
+		ATSUDrawText (text_layout,
+			      kATSUFromTextBeginning, kATSUToTextEnd,
+			      Long2Fix (x), Long2Fix (port_height - y));
+	      ATSUClearLayoutControls (text_layout,
+				       sizeof (tags) / sizeof (tags[0]),
+				       tags);
+	      CGContextSynchronize (context);
+	      QDEndCGContext (port, &context);
+	    }
+#endif
+	}
+    }
+  else
+    {
+#endif
   TextFont (GC_FONT (gc)->mac_fontnum);
   TextSize (GC_FONT (gc)->mac_fontsize);
   TextFace (GC_FONT (gc)->mac_fontface);
@@ -691,6 +847,9 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
+#if USE_ATSUI
+    }
+#endif
 
   if (mode != srcOr)
     RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
@@ -1552,6 +1711,61 @@ x_per_char_metric (font, char2b)
 
   xassert (font && char2b);
 
+#if USE_ATSUI
+  if (font->mac_style)
+    {
+      if (char2b->byte1 >= font->min_byte1
+	  && char2b->byte1 <= font->max_byte1
+	  && char2b->byte2 >= font->min_char_or_byte2
+	  && char2b->byte2 <= font->max_char_or_byte2)
+	{
+	  pcm = (font->per_char
+		 + ((font->max_char_or_byte2 - font->min_char_or_byte2 + 1)
+		    * (char2b->byte1 - font->min_byte1))
+		 + (char2b->byte2 - font->min_char_or_byte2));
+	}
+
+      if (pcm && !pcm->valid_p)
+	{
+	  OSErr err;
+	  ATSUTextLayout text_layout;
+	  UniChar c;
+	  int char_width;
+	  ATSTrapezoid glyph_bounds;
+	  Rect char_bounds;
+
+	  c = (char2b->byte1 << 8) + char2b->byte2;
+	  BLOCK_INPUT;
+	  err = atsu_get_text_layout_with_text_ptr (&c, 1,
+						    font->mac_style,
+						    &text_layout);
+	  if (err == noErr)
+	    err = ATSUMeasureTextImage (text_layout,
+					kATSUFromTextBeginning, kATSUToTextEnd,
+					0, 0, &char_bounds);
+
+	  if (err == noErr)
+	    err = ATSUGetGlyphBounds (text_layout, 0, 0,
+				      kATSUFromTextBeginning, kATSUToTextEnd,
+				      kATSUseFractionalOrigins, 1,
+				      &glyph_bounds, NULL);
+	  UNBLOCK_INPUT;
+	  if (err != noErr)
+	    pcm = NULL;
+	  else
+	    {
+	      xassert (glyph_bounds.lowerRight.x - glyph_bounds.lowerLeft.x
+		       == glyph_bounds.upperRight.x - glyph_bounds.upperLeft.x);
+
+	      char_width = Fix2Long (glyph_bounds.upperRight.x
+				     - glyph_bounds.upperLeft.x);
+	      STORE_XCHARSTRUCT (*pcm, char_width, char_bounds);
+	    }
+	}
+    }
+  else
+    {
+#endif
   if (font->per_char != NULL)
     {
       if (font->min_byte1 == 0 && font->max_byte1 == 0)
@@ -1603,6 +1817,9 @@ x_per_char_metric (font, char2b)
 	  && char2b->byte2 <= font->max_char_or_byte2)
 	pcm = &font->max_bounds;
     }
+#if USE_ATSUI
+    }
+#endif
 
   return ((pcm == NULL
 	   || (pcm->width == 0 && (pcm->rbearing - pcm->lbearing) == 0))
@@ -1930,6 +2147,35 @@ mac_compute_glyph_string_overhangs (s)
       Rect r;
       MacFontStruct *font = s->font;
 
+#if USE_ATSUI
+      if (font->mac_style)
+	{
+	  OSErr err;
+	  ATSUTextLayout text_layout;
+	  UniChar *buf;
+	  int i;
+
+	  SetRect (&r, 0, 0, 0, 0);
+	  buf = xmalloc (sizeof (UniChar) * s->nchars);
+	  if (buf)
+	    {
+	      for (i = 0; i < s->nchars; i++)
+		buf[i] = (s->char2b[i].byte1 << 8) + s->char2b[i].byte2;
+
+	      err = atsu_get_text_layout_with_text_ptr (buf, s->nchars,
+							font->mac_style,
+							&text_layout);
+	      if (err == noErr)
+		err = ATSUMeasureTextImage (text_layout,
+					    kATSUFromTextBeginning,
+					    kATSUToTextEnd,
+					    0, 0, &r);
+	      xfree (buf);
+	    }
+	}
+      else
+	{
+#endif
       TextFont (font->mac_fontnum);
       TextSize (font->mac_fontsize);
       TextFace (font->mac_fontface);
@@ -1951,6 +2197,9 @@ mac_compute_glyph_string_overhangs (s)
 	      xfree (buf);
 	    }
 	}
+#if USE_ATSUI
+        }
+#endif
 
       s->right_overhang = r.right > s->width ? r.right - s->width : 0;
       s->left_overhang = r.left < 0 ? -r.left : 0;
@@ -2008,7 +2257,7 @@ x_draw_glyph_string_background (s, force_p)
 	}
       else
 #endif
-#ifdef MAC_OS8
+#if defined (MAC_OS8) && !USE_ATSUI
         if (FONT_HEIGHT (s->font) < s->height - 2 * box_line_width
 	       || s->font_not_found_p
 	       || s->extends_to_end_of_line_p
@@ -2062,11 +2311,15 @@ x_draw_glyph_string_foreground (s)
 	boff = VCENTER_BASELINE_OFFSET (s->font, s->f) - boff;
 
       /* If we can use 8-bit functions, condense S->char2b.  */
-      if (!s->two_byte_p)
+      if (!s->two_byte_p
+#if USE_ATSUI
+	  && GC_FONT (s->gc)->mac_style == NULL
+#endif
+	  )
 	for (i = 0; i < s->nchars; ++i)
 	  char1b[i] = s->char2b[i].byte2;
 
-#ifdef MAC_OS8
+#if defined (MAC_OS8) && !USE_ATSUI
       /* Draw text with XDrawString if background has already been
 	 filled.  Otherwise, use XDrawImageString.  (Note that
 	 XDrawImageString is usually faster than XDrawString.)  Always
@@ -2077,14 +2330,18 @@ x_draw_glyph_string_foreground (s)
 #endif
 	{
 	  /* Draw characters with 16-bit or 8-bit functions.  */
-	  if (s->two_byte_p)
+	  if (s->two_byte_p
+#if USE_ATSUI
+	      || GC_FONT (s->gc)->mac_style
+#endif
+	      )
 	    XDrawString16 (s->display, s->window, s->gc, x,
 			   s->ybase - boff, s->char2b, s->nchars);
 	  else
 	    XDrawString (s->display, s->window, s->gc, x,
 			 s->ybase - boff, char1b, s->nchars);
 	}
-#ifdef MAC_OS8
+#if defined (MAC_OS8) && !USE_ATSUI
       else
 	{
 	  if (s->two_byte_p)
@@ -3251,9 +3508,57 @@ void
 XTflash (f)
      struct frame *f;
 {
+  /* Get the height not including a menu bar widget.  */
+  int height = FRAME_TEXT_LINES_TO_PIXEL_HEIGHT (f, FRAME_LINES (f));
+  /* Height of each line to flash.  */
+  int flash_height = FRAME_LINE_HEIGHT (f);
+  /* These will be the left and right margins of the rectangles.  */
+  int flash_left = FRAME_INTERNAL_BORDER_WIDTH (f);
+  int flash_right = FRAME_PIXEL_WIDTH (f) - FRAME_INTERNAL_BORDER_WIDTH (f);
+
+  int width;
+
+  /* Don't flash the area between a scroll bar and the frame
+     edge it is next to.  */
+  switch (FRAME_VERTICAL_SCROLL_BAR_TYPE (f))
+    {
+    case vertical_scroll_bar_left:
+      flash_left += VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+      break;
+
+    case vertical_scroll_bar_right:
+      flash_right -= VERTICAL_SCROLL_BAR_WIDTH_TRIM;
+      break;
+
+    default:
+      break;
+    }
+
+  width = flash_right - flash_left;
+
   BLOCK_INPUT;
 
-  FlashMenuBar (0);
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			    flash_left,
+			    (FRAME_INTERNAL_BORDER_WIDTH (f)
+			     + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
+			    width, flash_height);
+      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			    flash_left,
+			    (height - flash_height
+			     - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			    width, flash_height);
+    }
+  else
+    /* If it is short, flash it all.  */
+    mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			  flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			  width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+
+  x_flush (f);
 
   {
     struct timeval wakeup;
@@ -3265,24 +3570,49 @@ XTflash (f)
     wakeup.tv_sec += (wakeup.tv_usec / 1000000);
     wakeup.tv_usec %= 1000000;
 
-    /* Keep waiting until past the time wakeup.  */
-    while (1)
+    /* Keep waiting until past the time wakeup or any input gets
+       available.  */
+    while (! detect_input_pending ())
       {
-        struct timeval timeout;
+	struct timeval current;
+	struct timeval timeout;
 
-        EMACS_GET_TIME (timeout);
+	EMACS_GET_TIME (current);
 
-        /* In effect, timeout = wakeup - timeout.
-           Break if result would be negative.  */
-        if (timeval_subtract (&timeout, wakeup, timeout))
-          break;
+	/* Break if result would be negative.  */
+	if (timeval_subtract (&current, wakeup, current))
+	  break;
 
-        /* Try to wait that long--but we might wake up sooner.  */
-        select (0, NULL, NULL, NULL, &timeout);
+	/* How long `select' should wait.  */
+	timeout.tv_sec = 0;
+	timeout.tv_usec = 10000;
+
+	/* Try to wait that long--but we might wake up sooner.  */
+	select (0, NULL, NULL, NULL, &timeout);
       }
   }
 
-  FlashMenuBar (0);
+  /* If window is tall, flash top and bottom line.  */
+  if (height > 3 * FRAME_LINE_HEIGHT (f))
+    {
+      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			    flash_left,
+			    (FRAME_INTERNAL_BORDER_WIDTH (f)
+			     + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
+			    width, flash_height);
+      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			    flash_left,
+			    (height - flash_height
+			     - FRAME_INTERNAL_BORDER_WIDTH (f)),
+			    width, flash_height);
+    }
+  else
+    /* If it is short, flash it all.  */
+    mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
+			  flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+			  width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
+
+  x_flush (f);
 
   UNBLOCK_INPUT;
 }
@@ -6447,6 +6777,10 @@ static char **font_name_table = NULL;
 static int font_name_table_size = 0;
 static int font_name_count = 0;
 
+#if USE_ATSUI
+static Lisp_Object atsu_font_id_hash;
+#endif
+
 /* Alist linking character set strings to Mac text encoding and Emacs
    coding system. */
 static Lisp_Object Vmac_charset_info_alist;
@@ -6653,6 +6987,74 @@ init_font_name_table ()
   Lisp_Object text_encoding_info_alist;
   struct gcpro gcpro1;
 
+  text_encoding_info_alist = create_text_encoding_info_alist ();
+
+#if USE_ATSUI
+  if (!NILP (assq_no_quit (make_number (kTextEncodingMacUnicode),
+			   text_encoding_info_alist)))
+    {
+      OSErr err;
+      ItemCount nfonts, i;
+      ATSUFontID *font_ids = NULL;
+      Ptr name, prev_name = NULL;
+      ByteCount name_len;
+
+      atsu_font_id_hash =
+	make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+			 make_float (DEFAULT_REHASH_SIZE),
+			 make_float (DEFAULT_REHASH_THRESHOLD),
+			 Qnil, Qnil, Qnil);;
+      err = ATSUFontCount (&nfonts);
+      if (err == noErr)
+	font_ids = xmalloc (sizeof (ATSUFontID) * nfonts);
+      if (font_ids)
+	err = ATSUGetFontIDs (font_ids, nfonts, NULL);
+      if (err == noErr)
+	for (i = 0; i < nfonts; i++)
+	  {
+	    err = ATSUFindFontName (font_ids[i], kFontFamilyName,
+				    kFontMacintoshPlatform, kFontNoScript,
+				    kFontNoLanguage, 0, NULL, &name_len, NULL);
+	    if (err != noErr)
+	      continue;
+	    name = xmalloc (name_len + 1);
+	    if (name == NULL)
+	      continue;
+	    name[name_len] = '\0';
+	    err = ATSUFindFontName (font_ids[i], kFontFamilyName,
+				    kFontMacintoshPlatform, kFontNoScript,
+				    kFontNoLanguage, name_len, name,
+				    NULL, NULL);
+	    if (err == noErr
+		&& *name != '.'
+		&& (prev_name == NULL
+		    || strcmp (name, prev_name) != 0))
+	      {
+		static char *cs = "iso10646-1";
+
+		add_font_name_table_entry (mac_to_x_fontname (name, 0,
+							      normal, cs));
+		add_font_name_table_entry (mac_to_x_fontname (name, 0,
+							      italic, cs));
+		add_font_name_table_entry (mac_to_x_fontname (name, 0,
+							      bold, cs));
+		add_font_name_table_entry (mac_to_x_fontname (name, 0,
+							      italic | bold, cs));
+		Fputhash (Fdowncase (make_unibyte_string (name, name_len)),
+			  long_to_cons (font_ids[i]), atsu_font_id_hash);
+		xfree (prev_name);
+		prev_name = name;
+	      }
+	    else
+	      xfree (name);
+	  }
+      if (prev_name)
+	xfree (prev_name);
+      if (font_ids)
+	xfree (font_ids);
+    }
+#endif
+
   /* Create a dummy instance iterator here to avoid creating and
      destroying it in the loop.  */
   if (FMCreateFontFamilyInstanceIterator (0, &ffii) != noErr)
@@ -6664,8 +7066,6 @@ init_font_name_table ()
       FMDisposeFontFamilyInstanceIterator (&ffii);
       return;
     }
-
-  text_encoding_info_alist = create_text_encoding_info_alist ();
 
   GCPRO1 (text_encoding_info_alist);
 
@@ -7163,6 +7563,9 @@ XLoadQueryFont (Display *dpy, char *fontname)
   Str255 mfontname, mfontname_decoded;
   Str31 charset;
   SInt16 fontnum;
+#if USE_ATSUI
+  ATSUStyle mac_style = NULL;
+#endif
   Style fontface;
 #if TARGET_API_MAC_CARBON
   TextEncoding encoding;
@@ -7214,6 +7617,48 @@ XLoadQueryFont (Display *dpy, char *fontname)
 
   x_font_name_to_mac_font_name (name, mfontname, mfontname_decoded,
 				&fontface, charset);
+#if USE_ATSUI
+  if (strcmp (charset, "iso10646-1") == 0) /* XXX */
+    {
+      OSErr err;
+      ATSUAttributeTag tags[] = {kATSUFontTag, kATSUSizeTag,
+				 kATSUQDBoldfaceTag, kATSUQDItalicTag};
+      ByteCount sizes[] = {sizeof (ATSUFontID), sizeof (Fixed),
+			   sizeof (Boolean), sizeof (Boolean)};
+      static ATSUFontID font_id;
+      static Fixed size_fixed;
+      static Boolean bold_p, italic_p;
+      ATSUAttributeValuePtr values[] = {&font_id, &size_fixed,
+					&bold_p, &italic_p};
+      ATSUFontFeatureType types[] = {kAllTypographicFeaturesType};
+      ATSUFontFeatureSelector selectors[] = {kAllTypeFeaturesOffSelector};
+      Lisp_Object font_id_cons;
+      
+      font_id_cons = Fgethash (Fdowncase
+			       (make_unibyte_string (mfontname,
+						     strlen (mfontname))),
+			       atsu_font_id_hash, Qnil);
+      if (NILP (font_id_cons))
+	return NULL;
+      font_id = cons_to_long (font_id_cons);
+      size_fixed = Long2Fix (size);
+      bold_p = (fontface & bold) != 0;
+      italic_p = (fontface & italic) != 0;
+      err = ATSUCreateStyle (&mac_style);
+      if (err != noErr)
+	return NULL;
+      err = ATSUSetFontFeatures (mac_style, sizeof (types) / sizeof (types[0]),
+      				 types, selectors);
+      if (err != noErr)
+	return NULL;
+      err = ATSUSetAttributes (mac_style, sizeof (tags) / sizeof (tags[0]),
+			       tags, sizes, values);
+      fontnum = -1;
+      scriptcode = kTextEncodingMacUnicode;
+    }
+  else
+    {
+#endif
   c2pstr (mfontname);
 #if TARGET_API_MAC_CARBON
   fontnum = FMGetFontFamilyFromName (mfontname);
@@ -7227,6 +7672,9 @@ XLoadQueryFont (Display *dpy, char *fontname)
     return NULL;
   scriptcode = FontToScript (fontnum);
 #endif
+#if USE_ATSUI
+    }
+#endif
 
   font = (MacFontStruct *) xmalloc (sizeof (struct MacFontStruct));
 
@@ -7234,6 +7682,9 @@ XLoadQueryFont (Display *dpy, char *fontname)
   font->mac_fontsize = size;
   font->mac_fontface = fontface;
   font->mac_scriptcode = scriptcode;
+#if USE_ATSUI
+  font->mac_style = mac_style;
+#endif
 
   /* Apple Japanese (SJIS) font is listed as both
      "*-jisx0208.1983-sjis" (Japanese script) and "*-jisx0201.1976-0"
@@ -7244,6 +7695,91 @@ XLoadQueryFont (Display *dpy, char *fontname)
 
   font->full_name = mac_to_x_fontname (mfontname_decoded, size, fontface, charset);
 
+#if USE_ATSUI
+  if (font->mac_style)
+    {
+      OSErr err;
+      ATSUTextLayout text_layout;
+      UniChar c = 0x20;
+      Rect char_bounds, min_bounds, max_bounds;
+      int min_width, max_width;
+      ATSTrapezoid glyph_bounds;
+
+      font->per_char = xmalloc (sizeof (XCharStruct) * 0x10000);
+      if (font->per_char == NULL)
+	{
+	  mac_unload_font (&one_mac_display_info, font);
+	  return NULL;
+	}
+      bzero (font->per_char, sizeof (XCharStruct) * 0x10000);
+
+      err = atsu_get_text_layout_with_text_ptr (&c, 1,
+						font->mac_style,
+						&text_layout);
+      if (err != noErr)
+	{
+	  mac_unload_font (&one_mac_display_info, font);
+	  return NULL;
+	}
+
+      for (c = 0x20; c <= 0x7e; c++)
+	{
+	  err = ATSUClearLayoutCache (text_layout, kATSUFromTextBeginning);
+	  if (err == noErr)
+	    err = ATSUMeasureTextImage (text_layout,
+					kATSUFromTextBeginning, kATSUToTextEnd,
+					0, 0, &char_bounds);
+	  if (err == noErr)
+	    err = ATSUGetGlyphBounds (text_layout, 0, 0,
+				      kATSUFromTextBeginning, kATSUToTextEnd,
+				      kATSUseFractionalOrigins, 1,
+				      &glyph_bounds, NULL);
+	  if (err == noErr)
+	    {
+	      xassert (glyph_bounds.lowerRight.x - glyph_bounds.lowerLeft.x
+		       == glyph_bounds.upperRight.x - glyph_bounds.upperLeft.x);
+
+	      char_width = Fix2Long (glyph_bounds.upperRight.x
+				     - glyph_bounds.upperLeft.x);
+	      STORE_XCHARSTRUCT (font->per_char[c],
+				 char_width, char_bounds);
+	      if (c == 0x20)
+		{
+		  min_width = max_width = char_width;
+		  min_bounds = max_bounds = char_bounds;
+		  font->ascent = -Fix2Long (glyph_bounds.upperLeft.y);
+		  font->descent = Fix2Long (glyph_bounds.lowerLeft.y);
+		}
+	      else
+		{
+		  if (char_width > 0)
+		    {
+		      min_width = min (min_width, char_width);
+		      max_width = max (max_width, char_width);
+		    }
+		  if (!EmptyRect (&char_bounds))
+		    {
+		      SetRect (&min_bounds,
+			       max (min_bounds.left, char_bounds.left),
+			       max (min_bounds.top, char_bounds.top),
+			       min (min_bounds.right, char_bounds.right),
+			       min (min_bounds.bottom, char_bounds.bottom));
+		      UnionRect (&max_bounds, &char_bounds, &max_bounds);
+		    }
+		}
+	    }
+	}
+      STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
+      STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
+
+      font->min_byte1 = 0;
+      font->max_byte1 = 0xff;
+      font->min_char_or_byte2 = 0;
+      font->max_char_or_byte2 = 0xff;
+    }
+  else
+    {
+#endif
   is_two_byte_font = font->mac_scriptcode == smJapanese ||
                      font->mac_scriptcode == smTradChinese ||
                      font->mac_scriptcode == smSimpChinese ||
@@ -7258,24 +7794,26 @@ XLoadQueryFont (Display *dpy, char *fontname)
   font->ascent = the_fontinfo.ascent;
   font->descent = the_fontinfo.descent;
 
-  font->min_byte1 = 0;
-  if (is_two_byte_font)
-    font->max_byte1 = 1;
-  else
-    font->max_byte1 = 0;
-  font->min_char_or_byte2 = 0x20;
-  font->max_char_or_byte2 = 0xff;
-
   if (is_two_byte_font)
     {
+      font->min_byte1 = 0xa1;
+      font->max_byte1 = 0xfe;
+      font->min_char_or_byte2 = 0xa1;
+      font->max_char_or_byte2 = 0xfe;
+
       /* Use the width of an "ideographic space" of that font because
          the_fontinfo.widMax returns the wrong width for some fonts.  */
       switch (font->mac_scriptcode)
         {
         case smJapanese:
+	  font->min_byte1 = 0x81;
+	  font->max_byte1 = 0xfc;
+	  font->min_char_or_byte2 = 0x40;
+	  font->max_char_or_byte2 = 0xfc;
           char_width = StringWidth("\p\x81\x40");
           break;
         case smTradChinese:
+	  font->min_char_or_byte2 = 0x40;
           char_width = StringWidth("\p\xa1\x40");
           break;
         case smSimpChinese:
@@ -7287,9 +7825,15 @@ XLoadQueryFont (Display *dpy, char *fontname)
         }
     }
   else
-    /* Do this instead of use the_fontinfo.widMax, which incorrectly
-       returns 15 for 12-point Monaco! */
-    char_width = CharWidth ('m');
+    {
+      font->min_byte1 = font->max_byte1 = 0;
+      font->min_char_or_byte2 = 0x20;
+      font->max_char_or_byte2 = 0xff;
+
+      /* Do this instead of use the_fontinfo.widMax, which incorrectly
+	 returns 15 for 12-point Monaco! */
+      char_width = CharWidth ('m');
+    }
 
   if (is_two_byte_font)
     {
@@ -7308,55 +7852,56 @@ XLoadQueryFont (Display *dpy, char *fontname)
     }
   else
     {
-      font->per_char = (XCharStruct *)
-	xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
-      {
-	int c, min_width, max_width;
-	Rect char_bounds, min_bounds, max_bounds;
-	char ch;
+      int c, min_width, max_width;
+      Rect char_bounds, min_bounds, max_bounds;
+      char ch;
 
-	min_width = max_width = char_width;
-	SetRect (&min_bounds, -32767, -32767, 32767, 32767);
-	SetRect (&max_bounds, 0, 0, 0, 0);
-        for (c = 0x20; c <= 0xff; c++)
-          {
-	    ch = c;
-	    char_width = CharWidth (ch);
-	    QDTextBounds (1, &ch, &char_bounds);
-	    STORE_XCHARSTRUCT (font->per_char[c - 0x20],
-			       char_width, char_bounds);
-	    /* Some Japanese fonts (in SJIS encoding) return 0 as the
-	       character width of 0x7f.  */
-	    if (char_width > 0)
-	      {
-		min_width = min (min_width, char_width);
-		max_width = max (max_width, char_width);
-	      }
-	    if (!EmptyRect (&char_bounds))
-	      {
-		SetRect (&min_bounds,
-			 max (min_bounds.left, char_bounds.left),
-			 max (min_bounds.top, char_bounds.top),
-			 min (min_bounds.right, char_bounds.right),
-			 min (min_bounds.bottom, char_bounds.bottom));
-		UnionRect (&max_bounds, &char_bounds, &max_bounds);
-	      }
-	  }
-	STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
-	STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
-	if (min_width == max_width
-	    && max_bounds.left >= 0 && max_bounds.right <= max_width)
-	  {
-	    /* Fixed width and no overhangs.  */
-	    xfree (font->per_char);
-	    font->per_char = NULL;
-	  }
-      }
+      font->per_char = xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
+
+      min_width = max_width = char_width;
+      SetRect (&min_bounds, -32767, -32767, 32767, 32767);
+      SetRect (&max_bounds, 0, 0, 0, 0);
+      for (c = 0x20; c <= 0xff; c++)
+	{
+	  ch = c;
+	  char_width = CharWidth (ch);
+	  QDTextBounds (1, &ch, &char_bounds);
+	  STORE_XCHARSTRUCT (font->per_char[c - 0x20],
+			     char_width, char_bounds);
+	  /* Some Japanese fonts (in SJIS encoding) return 0 as the
+	     character width of 0x7f.  */
+	  if (char_width > 0)
+	    {
+	      min_width = min (min_width, char_width);
+	      max_width = max (max_width, char_width);
+	    }
+	  if (!EmptyRect (&char_bounds))
+	    {
+	      SetRect (&min_bounds,
+		       max (min_bounds.left, char_bounds.left),
+		       max (min_bounds.top, char_bounds.top),
+		       min (min_bounds.right, char_bounds.right),
+		       min (min_bounds.bottom, char_bounds.bottom));
+	      UnionRect (&max_bounds, &char_bounds, &max_bounds);
+	    }
+	}
+      STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
+      STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
+      if (min_width == max_width
+	  && max_bounds.left >= 0 && max_bounds.right <= max_width)
+	{
+	  /* Fixed width and no overhangs.  */
+	  xfree (font->per_char);
+	  font->per_char = NULL;
+	}
     }
 
   TextFont (old_fontnum);  /* restore previous font number, size and face */
   TextSize (old_fontsize);
   TextFace (old_fontface);
+#if USE_ATSUI
+  }
+#endif
 
   return font;
 }
@@ -7370,6 +7915,10 @@ mac_unload_font (dpyinfo, font)
   xfree (font->full_name);
   if (font->per_char)
     xfree (font->per_char);
+#if USE_ATSUI
+  if (font->mac_style)
+    ATSUDisposeStyle (font->mac_style);
+#endif
   xfree (font);
 }
 
@@ -10214,75 +10763,6 @@ init_quit_char_handler ()
 
   mac_determine_quit_char_modifiers();
 }
-
-static Boolean
-quit_char_comp (EventRef inEvent, void *inCompData)
-{
-  if (GetEventClass(inEvent) != kEventClassKeyboard)
-    return false;
-  if (GetEventKind(inEvent) != kEventRawKeyDown)
-    return false;
-  {
-    UInt32 keyCode;
-    UInt32 keyModifiers;
-    GetEventParameter(inEvent, kEventParamKeyCode,
-		      typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode);
-    if (keyCode != mac_quit_char_keycode)
-      return false;
-    GetEventParameter(inEvent, kEventParamKeyModifiers,
-		      typeUInt32, NULL, sizeof(UInt32), NULL, &keyModifiers);
-    if (keyModifiers != mac_quit_char_modifiers)
-      return false;
-  }
-  return true;
-}
-
-void
-mac_check_for_quit_char ()
-{
-  EventRef event;
-  static EMACS_TIME last_check_time = { 0, 0 };
-  static EMACS_TIME one_second = { 1, 0 };
-  EMACS_TIME now, t;
-
-  /* If windows are not initialized, return immediately (keep it bouncin').  */
-  if (!mac_quit_char_modifiers)
-    return;
-
-  /* Don't check if last check is less than a second ago.  */
-  EMACS_GET_TIME (now);
-  EMACS_SUB_TIME (t, now, last_check_time);
-  if (EMACS_TIME_LT (t, one_second))
-    return;
-  last_check_time = now;
-
-  /* Redetermine modifiers because they are based on lisp variables */
-  mac_determine_quit_char_modifiers ();
-
-  /* Fill the queue with events */
-  BLOCK_INPUT;
-  ReceiveNextEvent (0, NULL, kEventDurationNoWait, false, &event);
-  event = FindSpecificEventInQueue (GetMainEventQueue (), quit_char_comp,
-				    NULL);
-  UNBLOCK_INPUT;
-  if (event)
-    {
-      struct input_event e;
-
-      /* Use an input_event to emulate what the interrupt handler does. */
-      EVENT_INIT (e);
-      e.kind = ASCII_KEYSTROKE_EVENT;
-      e.code = quit_char;
-      e.arg = Qnil;
-      e.modifiers = NULL;
-      e.timestamp = EventTimeToTicks (GetEventTime (event)) * (1000/60);
-      XSETFRAME (e.frame_or_window, mac_focus_frame (&one_mac_display_info));
-      /* Remove event from queue to prevent looping. */
-      RemoveEventFromQueue (GetMainEventQueue (), event);
-      ReleaseEvent (event);
-      kbd_buffer_store_event (&e);
-    }
-}
 #endif	/* MAC_OSX */
 
 static void
@@ -10459,6 +10939,11 @@ syms_of_macterm ()
 
   Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
   staticpro (&Qmac_ready_for_drag_n_drop);
+
+#if USE_ATSUI
+  staticpro (&atsu_font_id_hash);
+  atsu_font_id_hash = Qnil;
+#endif
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);

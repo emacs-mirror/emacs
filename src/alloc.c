@@ -547,6 +547,21 @@ DEFUN ("memory-full-p", Fmemory_full_p, Smemory_full_p, 0, 0, 0,
   return (spare_memory ? Qnil : Qt);
 }
 
+/* If we released our reserve (due to running out of memory),
+   and we have a fair amount free once again,
+   try to set aside another reserve in case we run out once more.
+
+   This is called when a relocatable block is freed in ralloc.c.  */
+
+void
+refill_memory_reserve ()
+{
+#ifndef SYSTEM_MALLOC
+  if (spare_memory == 0)
+    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
+#endif
+}
+
 /* Called if we can't allocate relocatable space for a buffer.  */
 
 void
@@ -1134,20 +1149,6 @@ allocate_buffer ()
 
 #ifndef SYSTEM_MALLOC
 
-/* If we released our reserve (due to running out of memory),
-   and we have a fair amount free once again,
-   try to set aside another reserve in case we run out once more.
-
-   This is called when a relocatable block is freed in ralloc.c.  */
-
-void
-refill_memory_reserve ()
-{
-  if (spare_memory == 0)
-    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
-}
-
-
 /* Arranging to disable input signals while we're in malloc.
 
    This only works with GNU malloc.  To help out systems which can't
@@ -1161,20 +1162,21 @@ refill_memory_reserve ()
 #ifndef SYNC_INPUT
 
 #ifndef DOUG_LEA_MALLOC
-extern void * (*__malloc_hook) P_ ((size_t));
-extern void * (*__realloc_hook) P_ ((void *, size_t));
-extern void (*__free_hook) P_ ((void *));
+extern void * (*__malloc_hook) P_ ((size_t, const void *));
+extern void * (*__realloc_hook) P_ ((void *, size_t, const void *));
+extern void (*__free_hook) P_ ((void *, const void *));
 /* Else declared in malloc.h, perhaps with an extra arg.  */
 #endif /* DOUG_LEA_MALLOC */
-static void * (*old_malloc_hook) ();
-static void * (*old_realloc_hook) ();
-static void (*old_free_hook) ();
+static void * (*old_malloc_hook) P_ ((size_t, const void *));
+static void * (*old_realloc_hook) P_ ((void *,  size_t, const void*));
+static void (*old_free_hook) P_ ((void*, const void*));
 
 /* This function is used as the hook for free to call.  */
 
 static void
-emacs_blocked_free (ptr)
+emacs_blocked_free (ptr, ptr2)
      void *ptr;
+     const void *ptr2;
 {
   BLOCK_INPUT_ALLOC;
 
@@ -1221,8 +1223,9 @@ emacs_blocked_free (ptr)
 /* This function is the malloc hook that Emacs uses.  */
 
 static void *
-emacs_blocked_malloc (size)
+emacs_blocked_malloc (size, ptr)
      size_t size;
+     const void *ptr;
 {
   void *value;
 
@@ -1268,9 +1271,10 @@ emacs_blocked_malloc (size)
 /* This function is the realloc hook that Emacs uses.  */
 
 static void *
-emacs_blocked_realloc (ptr, size)
+emacs_blocked_realloc (ptr, size, ptr2)
      void *ptr;
      size_t size;
+     const void *ptr2;
 {
   void *value;
 

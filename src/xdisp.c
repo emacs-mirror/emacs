@@ -12943,7 +12943,8 @@ try_window (window, pos, check_margins)
       this_scroll_margin *= FRAME_LINE_HEIGHT (it.f);
 
       if ((w->cursor.y < this_scroll_margin
-	   && CHARPOS (pos) > BEGV)
+	   && CHARPOS (pos) > BEGV
+	   && IT_CHARPOS (it) < ZV)
 	  /* rms: considering make_cursor_line_fully_visible_p here
 	     seems to give wrong results.  We don't want to recenter
 	     when the last line is partly visible, we want to allow

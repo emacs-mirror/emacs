@@ -609,7 +609,12 @@ typedef enum { RECC_ERROR = 0,
 	       RECC_ASCII, RECC_UNIBYTE
 } re_wctype_t;
 
+extern char re_iswctype (int ch,    re_wctype_t cc);
+extern re_wctype_t re_wctype (const unsigned char* str);
+
 typedef int re_wchar_t;
+
+extern void re_set_whitespace_regexp (const char *regexp);
 
 #endif /* not WIDE_CHAR_SUPPORT */
 

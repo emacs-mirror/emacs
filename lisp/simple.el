@@ -261,6 +261,14 @@ See variables `compilation-parse-errors-function' and
       (funcall next-error-function (prefix-numeric-value arg) reset)
       (run-hooks 'next-error-hook))))
 
+(defun next-error-internal ()
+  "Visit the source code corresponding to the `next-error' message at point."
+  (setq next-error-last-buffer (current-buffer))
+  ;; we know here that next-error-function is a valid symbol we can funcall
+  (with-current-buffer next-error-last-buffer
+    (funcall next-error-function 0 nil)
+    (run-hooks 'next-error-hook)))
+
 (defalias 'goto-next-locus 'next-error)
 (defalias 'next-match 'next-error)
 
@@ -888,22 +896,42 @@ in *Help* buffer.  See also the command `describe-char'."
 	  (message "point=%d of %d (%d%%) column %d %s"
 		   pos total percent col hscroll))
       (let ((coding buffer-file-coding-system)
-	    encoded encoding-msg)
+	    encoded encoding-msg display-prop under-display)
 	(if (or (not coding)
 		(eq (coding-system-type coding) t))
 	    (setq coding default-buffer-file-coding-system))
 	(if (eq (char-charset char) 'eight-bit)
 	    (setq encoding-msg
 		  (format "(0%o, %d, 0x%x, raw-byte)" char char char))
-	  (setq encoded (and (>= char 128) (encode-coding-char char coding)))
+	  ;; Check if the character is displayed with some `display'
+	  ;; text property.  In that case, set under-display to the
+	  ;; buffer substring covered by that property.
+	  (setq display-prop (get-text-property pos 'display))
+	  (if display-prop
+	      (let ((to (or (next-single-property-change pos 'display)
+			    (point-max))))
+		(if (< to (+ pos 4))
+		    (setq under-display "")
+		  (setq under-display "..."
+			to (+ pos 4)))
+		(setq under-display
+		      (concat (buffer-substring-no-properties pos to)
+			      under-display)))
+	    (setq encoded (and (>= char 128) (encode-coding-char char coding))))
 	  (setq encoding-msg
-		(if encoded
-		    (format "(0%o, %d, 0x%x, file %s)"
-			    char char char
-			    (if (> (length encoded) 1)
-				"..."
-			      (encoded-string-description encoded coding)))
-		  (format "(0%o, %d, 0x%x)" char char char))))
+		(if display-prop
+		    (if (not (stringp display-prop))
+			(format "(0%o, %d, 0x%x, part of display \"%s\")"
+				char char char under-display)
+		      (format "(0%o, %d, 0x%x, part of display \"%s\"->\"%s\")"
+			      char char char under-display display-prop))
+		  (if encoded
+		      (format "(0%o, %d, 0x%x, file %s)"
+			      char char char
+			      (if (> (length encoded) 1)
+				  "..."
+				(encoded-string-description encoded coding)))
+		    (format "(0%o, %d, 0x%x)" char char char)))))
 	(if detail
 	    ;; We show the detailed information about CHAR.
 	    (describe-char (point)))
@@ -914,9 +942,11 @@ in *Help* buffer.  See also the command `describe-char'."
 		       (buffer-substring-no-properties (point) (1+ (point))))
 		     encoding-msg pos total percent beg end col hscroll)
 	  (message "Char: %s %s point=%d of %d (%d%%) column %d %s"
-		   (if (< char 256)
-		       (single-key-description char)
-		     (buffer-substring-no-properties (point) (1+ (point))))
+		   (if enable-multibyte-characters
+		       (if (< char 128)
+			   (single-key-description char)
+			 (buffer-substring-no-properties (point) (1+ (point))))
+		     (single-key-description char))
 		   encoding-msg pos total percent col hscroll))))))
 
 (defvar read-expression-map
