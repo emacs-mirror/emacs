@@ -1,3 +1,7 @@
+2005-10-08  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (window_tree, Fwindow_tree): Rename fns added 2005-10-04.
+
 2005-10-07  Kim F. Storm  <storm@cua.dk>
 
 	* dispnew.c (redraw_overlapped_rows, redraw_overlapping_rows)
