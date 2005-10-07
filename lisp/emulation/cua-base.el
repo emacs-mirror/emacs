@@ -548,7 +548,7 @@ a cons (TYPE . COLOR), then both properties are affected."
 
 ;;; Global Mark support is in cua-gmrk.el
 
-(autoload 'cua-toggle-global-mark "cua-gmrk.el" nil t nil)
+(autoload 'cua-toggle-global-mark "cua-gmrk" nil t nil)
 
 ;; Stub definitions until cua-gmrk.el is loaded
 

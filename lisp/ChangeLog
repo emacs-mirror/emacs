@@ -1,3 +1,21 @@
+2005-10-07  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-do-shell-command-pipe)
+	(ibuffer-do-shell-command-pipe-replace)
+	(ibuffer-do-shell-command-file, ibuffer-do-eval)
+	(ibuffer-do-view-and-eval, ibuffer-do-rename-uniquely)
+	(ibuffer-do-revert, ibuffer-do-replace-regexp)
+	(ibuffer-do-query-replace, ibuffer-do-query-replace-regexp)
+	(ibuffer-do-print, ibuffer-filter-by-mode, ibuffer-filter-by-used-mode)
+	(ibuffer-filter-by-name, ibuffer-filter-by-filename)
+	(ibuffer-filter-by-size-gt, ibuffer-filter-by-size-lt)
+	(ibuffer-filter-by-content, ibuffer-filter-by-predicate
+	(ibuffer-do-sort-by-major-mode, ibuffer-do-sort-by-mode-name)
+	(ibuffer-do-sort-by-alphabetic, ibuffer-do-sort-by-size):
+	Autoload file sans suffix.
+
+	* emulation/cua-base.el (cua-toggle-global-mark): Likewise.
+
 2005-10-07  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-menu-open-all-flag): New option.
@@ -25,7 +43,7 @@
 	(compile, recompile, bootstrap): Depend on mh-autoloads.
 
 2005-10-07  Nick Roberts  <nickrob@snap.net.nz>
-	
+
 	* progmodes/gud.el (gud-menu-map): Only display un-intuitive
 	gud-break and gud-remove icons when the fringe is not available.
 
