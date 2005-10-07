@@ -352,6 +352,7 @@
 	(if (eq calc-complex-mode 'polar) 1 0)
 	(cond ((eq calc-matrix-mode 'scalar) 0)
 	      ((eq calc-matrix-mode 'matrix) -2)
+	      ((eq calc-matrix-mode 'square) -3)
 	      (calc-matrix-mode)
 	      (t -1))
 	(cond ((eq calc-simplify-mode 'none) -1)
@@ -476,7 +477,9 @@
 		     (cond ((eq arg 0) 'scalar)
 			   ((< (prefix-numeric-value arg) 1)
 			    (and (< (prefix-numeric-value arg) -1) 'matrix))
-			   (arg (prefix-numeric-value arg))
+			   (arg 
+                            (if (consp arg) 'square
+                              (prefix-numeric-value arg)))
 			   ((eq calc-matrix-mode 'matrix) 'scalar)
 			   ((eq calc-matrix-mode 'scalar) nil)
 			   (t 'matrix)))
@@ -485,9 +488,11 @@
 		calc-matrix-mode calc-matrix-mode)
      (message (if (eq calc-matrix-mode 'matrix)
 		  "Variables are assumed to be matrices"
-		(if calc-matrix-mode
-		    "Variables are assumed to be scalars (non-matrices)"
-		  "Variables are not assumed to be matrix or scalar"))))))
+                (if (eq calc-matrix-mode 'square)
+                    "Variables are assumed to be square matrices"
+                  (if calc-matrix-mode
+                      "Variables are assumed to be scalars (non-matrices)"
+                    "Variables are not assumed to be matrix or scalar")))))))
 
 (defun calc-set-simplify-mode (mode arg msg)
   (calc-change-mode 'calc-simplify-mode
