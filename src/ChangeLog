@@ -1,3 +1,37 @@
+2005-10-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (struct glyph_string): Rename member for_overlaps_p
+	to for_overlaps.  Now occupy 3 bits.
+	(OVERLAPS_PRED, OVERLAPS_SUCC, OVERLAPS_BOTH)
+	(OVERLAPS_ERASED_CURSOR): New defines.
+	(struct redisplay_interface): Add new OVERLAPS arg to member
+	fix_overlapping_area.
+	(x_fix_overlapping_area): Add new OVERLAPS arg.
+	(get_glyph_string_clip_rects): Add extern.
+
+	* dispnew.c (redraw_overlapping_rows): Call
+	rif->fix_overlapping_area with new OVERLAPS arg as redrawn part.
+
+	* xdisp.c: Rename member for_overlaps_p in struct glyph_string to
+	for_overlaps.
+	(get_glyph_string_clip_rects): New function created from
+	get_glyph_string_clip_rect.  Set clipping rectangles according to
+	the value of for_overlaps.  Enable to store multiple clipping
+	rectangles.
+	(get_glyph_string_clip_rect): Use get_glyph_string_clip_rects.
+	(fill_composite_glyph_string, fill_glyph_string, draw_glyphs):
+	Rename argument OVERLAPS_P to OVERLAPS.  All uses in macros changed.
+	(x_fix_overlapping_area): Add OVERLAPS arg.  Pass it to	draw_glyphs.
+	(draw_phys_cursor_glyph): Set width of erased cursor to use it for
+	calculating clipping rectangles later.  Call
+	x_fix_overlapping_area with new OVERLAPS arg to draw only erased
+	cursor area.
+	(expose_overlaps): Call x_fix_overlapping_area with new
+	OVERLAPS arg to draw overlaps in both preceding and succeeding rows.
+
+	* xterm.c, w32term.c, macterm.c: Rename member for_overlaps_p in
+	struct glyph_string to for_overlaps.
+
 2005-10-04  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (window_split_tree): New function.
