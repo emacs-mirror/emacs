@@ -6232,7 +6232,7 @@ usage: (save-window-excursion BODY ...)  */)
  ***********************************************************************/
 
 static Lisp_Object
-window_split_tree (w)
+window_tree (w)
      struct window *w;
 {
   Lisp_Object tail = Qnil;
@@ -6245,10 +6245,10 @@ window_split_tree (w)
       XSETWINDOW (wn, w);
       if (!NILP (w->hchild))
 	wn = Fcons (Qnil, Fcons (Fwindow_edges (wn),
-				 window_split_tree (XWINDOW (w->hchild))));
+				 window_tree (XWINDOW (w->hchild))));
       else if (!NILP (w->vchild))
 	wn = Fcons (Qt, Fcons (Fwindow_edges (wn),
-			       window_split_tree (XWINDOW (w->vchild))));
+			       window_tree (XWINDOW (w->vchild))));
 
       if (NILP (result))
 	{
@@ -6268,12 +6268,12 @@ window_split_tree (w)
 
 
 
-DEFUN ("window-split-tree", Fwindow_split_tree, Swindow_split_tree,
+DEFUN ("window-tree", Fwindow_tree, Swindow_tree,
        0, 1, 0,
-       doc: /* Return the window split tree for frame FRAME.
+       doc: /* Return the window tree for frame FRAME.
 
 The return value is a list of the form (ROOT MINI), where ROOT
-represents the window split tree of the frame's root window, and MINI
+represents the window tree of the frame's root window, and MINI
 is the frame's minibuffer window.
 
 If the root window is not split, ROOT is the root window itself.
@@ -6301,7 +6301,7 @@ selected frame.  */)
   if (!FRAME_LIVE_P (f))
     return Qnil;
 
-  return window_split_tree (XWINDOW (FRAME_ROOT_WINDOW (f)));
+  return window_tree (XWINDOW (FRAME_ROOT_WINDOW (f)));
 }
 
 
@@ -7110,7 +7110,7 @@ The selected frame is the one whose configuration has changed.  */);
   defsubr (&Sset_window_configuration);
   defsubr (&Scurrent_window_configuration);
   defsubr (&Ssave_window_excursion);
-  defsubr (&Swindow_split_tree);
+  defsubr (&Swindow_tree);
   defsubr (&Sset_window_margins);
   defsubr (&Swindow_margins);
   defsubr (&Sset_window_fringes);
