@@ -654,6 +654,7 @@ If nil, computations on numbers always yield numbers where possible.")
 (defcalcmodevar calc-matrix-mode nil
   "If `matrix', variables are assumed to be matrix-valued.
 If a number, variables are assumed to be NxN matrices.
+If `square', variables are assumed to be square matrices of an unspecified size.
 If `scalar', variables are assumed to be scalar-valued.
 If nil, symbolic math routines make no assumptions about variables.")
 
@@ -1551,6 +1552,7 @@ See calc-keypad for details."
 		     (cond ((eq calc-matrix-mode 'matrix) "Matrix ")
 			   ((integerp calc-matrix-mode)
 			    (format "Matrix%d " calc-matrix-mode))
+			   ((eq calc-matrix-mode 'square) "SqMatrix ")
 			   ((eq calc-matrix-mode 'scalar) "Scalar ")
 			   (t ""))
 		     (if (eq calc-complex-mode 'polar) "Polar " "")
