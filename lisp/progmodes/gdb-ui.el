@@ -79,7 +79,6 @@
 
 (require 'gud)
 
-(defvar gdb-buffer-fringe-width)
 (defvar tool-bar-map)
 
 (defvar gdb-frame-address "main" "Initialization for Assembler buffer.")
@@ -104,7 +103,7 @@ and #define directives otherwise.")
 (defvar gdb-error "Non-nil when GDB is reporting an error.")
 (defvar gdb-macro-info nil
   "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
-(defvar gdb-fringe-width nil)
+(defvar gdb-buffer-fringe-width nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
