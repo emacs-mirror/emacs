@@ -1,3 +1,13 @@
+2005-10-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-e/mh-loaddefs.el: Removed. Now generated automatically.
+
+	* Makefile.in (AUTOGENEL): Added mh-e/mh-loaddefs.el.
+	(MH-E-SRC): Added. Used by mh-autoloads.
+	(mh-autoloads): Added. Builds mh-e/mh-loaddefs.el. Rebuilds if any
+	files in MH-E-SRC have been updated.
+	(compile, recompile, bootstrap): Depend on mh-autoloads.
+
 2005-10-07  Nick Roberts  <nickrob@snap.net.nz>
 	
 	* progmodes/gud.el (gud-menu-map): Only display un-intuitive
