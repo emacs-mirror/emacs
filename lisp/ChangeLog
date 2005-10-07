@@ -1,3 +1,19 @@
+2005-10-07  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-menu-open-all-flag): New option.
+	(recentf-digit-shortcut-command-name): New function.
+	(recentf--shortcuts-keymap): New variable.
+	(recentf-menu-shortcuts): New variable.
+	(recentf-make-menu-items): Initialize it.  Replace the "More..."
+	menu item by "All...", if `recentf-menu-open-all-flag' is non-nil.
+	(recentf-menu-value-shortcut): New function.
+	(recentf-make-menu-item): Use it.  No more in-lined.
+	(recentf-dialog-mode-map): Base on `recentf--shortcuts-keymap'.
+	(recentf-open-most-recent-file): Rename from
+	`recentf-open-file-with-key'.  Don't depend on key binding.
+	(recentf-mode-map): New variable.
+	(recentf-mode): Use it.
+
 2005-10-06  Bill Wohler  <wohler@newt.com>
 
 	* mh-e/mh-loaddefs.el: Removed. Now generated automatically.
