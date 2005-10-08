@@ -357,15 +357,13 @@ t means that there is no stack, and we are in display-file mode.")
     (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "D" 'gdb-var-delete)))
 
-
 (defvar gud-speedbar-menu-items
-  ;; Note to self.  Add expand, and turn off items when not available.
   '(["Jump to stack frame" speedbar-edit-line
-     (with-current-buffer gud-comint-buffer
-       (not (memq gud-minor-mode '(gdbmi gdba))))]
+     :visible (with-current-buffer gud-comint-buffer
+		(not (memq gud-minor-mode '(gdbmi gdba))))]
     ["Edit value" speedbar-edit-line
-     (with-current-buffer gud-comint-buffer
-       (memq gud-minor-mode '(gdbmi gdba)))]
+     :visible (with-current-buffer gud-comint-buffer
+		(memq gud-minor-mode '(gdbmi gdba)))]
     ["Delete expression" gdb-var-delete
      (with-current-buffer gud-comint-buffer
        (memq gud-minor-mode '(gdbmi gdba)))])
