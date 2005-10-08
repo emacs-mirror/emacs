@@ -1,3 +1,21 @@
+2005-10-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-known-square-matrixp): New function.
+	(math-pow-fancy): Check for matrices before distributing exponent
+	across products.
+
+	* calc/calc-keypd.el (calc-do-keypad): Widen keypad window for
+	fullscreen keypad. Suggested by Luc Teirlinck.
+	(calc-keypad-show-input): Add space for formatting.
+
+	* calc/calc-mode.el (calc-matrix-mode, math-get-modes-vec):
+	Add square matrix option.
+
+	* calc/calc-poly.el (math-expand-term): Check for matrices instead
+	of checking calc-matrix-mode when deciding how to expand.
+
+	* calc/calc.el (calc-set-mode-line): Add square matrix option.
+
 2005-10-08  Lars Hansen  <larsh@soem.dk>
 	* net/tramp.el (tramp-perl-directory-files-and-attributes): Add
 	error handling.
