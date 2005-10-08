@@ -1,3 +1,9 @@
+2005-10-08  Lars Hansen  <larsh@soem.dk>
+	* net/tramp.el (tramp-perl-directory-files-and-attributes): Add
+	error handling.
+	(tramp-handle-directory-files-and-attributes): Handle error perl
+	error message.
+
 2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.51.
