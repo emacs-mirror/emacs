@@ -1,4 +1,9 @@
-2005-10-07  Jay Belanger  <belanger@truman.edu>
+2005-10-08  Eric Hanchrow <offby1@blarg.net>
+
+	* textmodes/ispell.el (ispell-check-version):
+	Ignore hyphen, and all that follows, in aspell's version text.
+
+2005-10-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-arith.el (math-known-square-matrixp): New function.
 	(math-pow-fancy): Check for matrices before distributing exponent
@@ -97,10 +102,9 @@
 	* progmodes/gdb-ui.el (gdb-fringe-width -> gdb-buffer-fringe-width):
 	Typo.
 
-2005-10-06  Thien-Thi Nguyen  <ttn@gnu.org>
+2005-10-06  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr> (tiny change)
 
 	* play/zone.el (zone): Wrap body with save-window-excursion.
-	Suggested by Michael Cadilhac.
 
 2005-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
