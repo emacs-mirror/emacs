@@ -270,7 +270,37 @@ extern void menubar_selection_callback (FRAME_PTR, int);
 #define GC_FORE_COLOR(gc)	(&(gc)->fore_color)
 #define GC_BACK_COLOR(gc)	(&(gc)->back_color)
 #define GC_FONT(gc)		((gc)->xgcv.font)
+#define GC_CLIP_REGION(gc)	((gc)->clip_region)
 #define MAC_WINDOW_NORMAL_GC(w)	(((mac_output *) GetWRefCon (w))->normal_gc)
+
+static RgnHandle saved_port_clip_region = NULL;
+
+static void
+mac_begin_clip (region)
+     RgnHandle region;
+{
+  static RgnHandle new_region = NULL;
+
+  if (saved_port_clip_region == NULL)
+    saved_port_clip_region = NewRgn ();
+  if (new_region == NULL)
+    new_region = NewRgn ();
+
+  if (region)
+    {
+      GetClip (saved_port_clip_region);
+      SectRgn (saved_port_clip_region, region, new_region);
+      SetClip (new_region);
+    }
+}
+
+static void
+mac_end_clip (region)
+     RgnHandle region;
+{
+  if (region)
+    SetClip (saved_port_clip_region);
+}
 
 
 /* X display function emulation */
@@ -297,8 +327,10 @@ XDrawLine (display, w, gc, x1, y1, x2, y2)
 
   RGBForeColor (GC_FORE_COLOR (gc));
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   MoveTo (x1, y1);
   LineTo (x2, y2);
+  mac_end_clip (GC_CLIP_REGION (gc));
 }
 
 void
@@ -339,7 +371,9 @@ mac_erase_rectangle (w, gc, x, y, width, height)
   RGBBackColor (GC_BACK_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   EraseRect (&r);
+  mac_end_clip (GC_CLIP_REGION (gc));
 
   RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 }
@@ -406,6 +440,7 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
   RGBBackColor (GC_BACK_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
 #if TARGET_API_MAC_CARBON
   LockPortBits (GetWindowPort (w));
   CopyBits (&bitmap, GetPortBitMapForCopyBits (GetWindowPort (w)),
@@ -415,38 +450,9 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
   CopyBits (&bitmap, &(w->portBits), &(bitmap.bounds), &r,
 	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
+  mac_end_clip (GC_CLIP_REGION (gc));
 
   RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
-}
-
-
-/* Mac replacement for XSetClipRectangles.  */
-
-static void
-mac_set_clip_rectangle (display, w, r)
-     Display *display;
-     WindowPtr w;
-     Rect *r;
-{
-  SetPortWindowPort (w);
-
-  ClipRect (r);
-}
-
-
-/* Mac replacement for XSetClipMask.  */
-
-static void
-mac_reset_clipping (display, w)
-     Display *display;
-     WindowPtr w;
-{
-  Rect r;
-
-  SetPortWindowPort (w);
-
-  SetRect (&r, -32767, -32767, 32767, 32767);
-  ClipRect (&r);
 }
 
 
@@ -577,7 +583,9 @@ XFillRectangle (display, w, gc, x, y, width, height)
   RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   PaintRect (&r); /* using foreground color of gc */
+  mac_end_clip (GC_CLIP_REGION (gc));
 }
 
 
@@ -625,7 +633,9 @@ mac_draw_rectangle (display, w, gc, x, y, width, height)
   RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width + 1, y + height + 1);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   FrameRect (&r); /* using foreground color of gc */
+  mac_end_clip (GC_CLIP_REGION (gc));
 }
 
 
@@ -678,7 +688,7 @@ atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
 	kATSLineDisableAllLayoutOperations  | kATSLineUseDeviceMetrics
 #else
-	kATSLineIsDisplayOnly
+	kATSLineIsDisplayOnly | kATSLineFractDisable
 #endif
 	;
       ATSUAttributeValuePtr values[] = {&line_layout};
@@ -782,10 +792,12 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 	  if (NILP (Vmac_use_core_graphics))
 	    {
 #endif
+	      mac_begin_clip (GC_CLIP_REGION (gc));
 	      MoveTo (x, y);
 	      ATSUDrawText (text_layout,
 			    kATSUFromTextBeginning, kATSUToTextEnd,
 			    kATSUUseGrafPortPenLoc, kATSUUseGrafPortPenLoc);
+	      mac_end_clip (GC_CLIP_REGION (gc));
 #ifdef MAC_OSX
 	    }
 	  else
@@ -793,7 +805,6 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 	      CGrafPtr port;
 	      CGContextRef context;
 	      Rect rect;
-	      RgnHandle region = NewRgn ();
 	      float port_height;
 	      ATSUAttributeTag tags[] = {kATSUCGContextTag};
 	      ByteCount sizes[] = {sizeof (CGContextRef)};
@@ -803,16 +814,15 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 	      QDBeginCGContext (port, &context);
 	      GetPortBounds (port, &rect);
 	      port_height = rect.bottom - rect.top;
-	      GetClip (region);
-	      GetRegionBounds (region, &rect);
-	      /* XXX: This is not correct if the clip region is not a
-		 simple rectangle.  */
-	      CGContextClipToRect (context,
-				   CGRectMake (rect.left,
-					       port_height - rect.bottom,
-					       rect.right - rect.left,
-					       rect.bottom - rect.top));
-	      DisposeRgn (region);
+	      if (gc->n_clip_rects)
+		{
+		  CGContextTranslateCTM (context, 0, port_height);
+		  CGContextScaleCTM (context, 1, -1);
+		  CGContextClipToRects (context, gc->clip_rects,
+					gc->n_clip_rects);
+		  CGContextScaleCTM (context, 1, -1);
+		  CGContextTranslateCTM (context, 0, -port_height);
+		}
 	      CGContextSetRGBFillColor
 		(context,
 		 RED_FROM_ULONG (gc->xgcv.foreground) / 255.0,
@@ -843,8 +853,10 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
   TextFace (GC_FONT (gc)->mac_fontface);
   TextMode (mode);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   MoveTo (x, y);
   DrawText (buf, 0, nchars * bytes_per_char);
+  mac_end_clip (GC_CLIP_REGION (gc));
 #if USE_ATSUI
     }
 #endif
@@ -943,6 +955,7 @@ mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
   ForeColor (blackColor);
   BackColor (whiteColor);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   LockPixels (GetGWorldPixMap (src));
 #if TARGET_API_MAC_CARBON
   LockPortBits (GetWindowPort (dest));
@@ -955,6 +968,7 @@ mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
 	    &src_r, &dest_r, srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (src));
+  mac_end_clip (GC_CLIP_REGION (gc));
 
   RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (dest)));
 }
@@ -981,6 +995,7 @@ mac_copy_area_with_mask (display, src, mask, dest, gc, src_x, src_y,
   ForeColor (blackColor);
   BackColor (whiteColor);
 
+  mac_begin_clip (GC_CLIP_REGION (gc));
   LockPixels (GetGWorldPixMap (src));
   LockPixels (GetGWorldPixMap (mask));
 #if TARGET_API_MAC_CARBON
@@ -995,6 +1010,7 @@ mac_copy_area_with_mask (display, src, mask, dest, gc, src_x, src_y,
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (mask));
   UnlockPixels (GetGWorldPixMap (src));
+  mac_end_clip (GC_CLIP_REGION (gc));
 
   RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (dest)));
 }
@@ -1031,7 +1047,9 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
      color mapping in CopyBits.  Otherwise, it will be slow.  */
   ForeColor (blackColor);
   BackColor (whiteColor);
+  mac_begin_clip (GC_CLIP_REGION (gc));
   CopyBits (&(w->portBits), &(w->portBits), &src_r, &dest_r, srcCopy, 0);
+  mac_end_clip (GC_CLIP_REGION (gc));
 
   RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
 #endif /* not TARGET_API_MAC_CARBON */
@@ -1166,6 +1184,8 @@ XFreeGC (display, gc)
      Display *display;
      GC gc;
 {
+  if (gc->clip_region)
+    DisposeRgn (gc->clip_region);
   xfree (gc);
 }
 
@@ -1233,6 +1253,70 @@ XSetFont (display, gc, font)
      XFontStruct *font;
 {
   gc->xgcv.font = font;
+}
+
+
+/* Mac replacement for XSetClipRectangles.  */
+
+static void
+mac_set_clip_rectangles (display, gc, rectangles, n)
+     Display *display;
+     GC gc;
+     Rect *rectangles;
+     int n;
+{
+  int i;
+
+  if (n < 0 || n > MAX_CLIP_RECTS)
+    abort ();
+  if (n == 0)
+    {
+      if (gc->clip_region)
+	{
+	  DisposeRgn (gc->clip_region);
+	  gc->clip_region = NULL;
+	}
+    }
+  else
+    {
+      if (gc->clip_region == NULL)
+	gc->clip_region = NewRgn ();
+      RectRgn (gc->clip_region, rectangles);
+      if (n > 1)
+	{
+	  RgnHandle region = NewRgn ();
+
+	  for (i = 1; i < n; i++)
+	    {
+	      RectRgn (region, rectangles + i);
+	      UnionRgn (gc->clip_region, region, gc->clip_region);
+	    }
+	  DisposeRgn (region);
+	}
+    }
+#if defined (MAC_OSX) && USE_ATSUI
+  gc->n_clip_rects = n;
+
+  for (i = 0; i < n; i++)
+    {
+      Rect *rect = rectangles + i;
+
+      gc->clip_rects[i] = CGRectMake (rect->left, rect->top,
+				      rect->right - rect->left,
+				      rect->bottom - rect->top);
+    }
+#endif
+}
+
+
+/* Mac replacement for XSetClipMask.  */
+
+static INLINE void
+mac_reset_clip_rectangles (display, gc)
+     Display *display;
+     GC gc;
+{
+  mac_set_clip_rectangles (display, gc, NULL, 0);
 }
 
 
@@ -1647,7 +1731,7 @@ x_draw_fringe_bitmap (w, row, p)
       XSetForeground (display, face->gc, gcv.foreground);
     }
 
-  mac_reset_clipping (display, window);
+  mac_reset_clip_rectangles (display, gc);
 }
 
 
@@ -2122,9 +2206,11 @@ static INLINE void
 x_set_glyph_string_clipping (s)
      struct glyph_string *s;
 {
-  Rect r;
-  get_glyph_string_clip_rect (s, &r);
-  mac_set_clip_rectangle (s->display, s->window, &r);
+  Rect rects[MAX_CLIP_RECTS];
+  int n;
+
+  n = get_glyph_string_clip_rects (s, rects, MAX_CLIP_RECTS);
+  mac_set_clip_rectangles (s->display, s->gc, rects, n);
 }
 
 
@@ -2341,7 +2427,7 @@ x_draw_glyph_string_foreground (s)
 	{
 	  if (s->two_byte_p)
 	    XDrawImageString16 (s->display, s->window, s->gc, x,
-			        s->ybase - boff, s->char2b, s->nchars);
+				s->ybase - boff, s->char2b, s->nchars);
 	  else
 	    XDrawImageString (s->display, s->window, s->gc, x,
 			      s->ybase - boff, char1b, s->nchars);
@@ -2749,7 +2835,7 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
     gc = f->output_data.mac->white_relief.gc;
   else
     gc = f->output_data.mac->black_relief.gc;
-  mac_set_clip_rectangle (dpy, window, clip_rect);
+  mac_set_clip_rectangles (dpy, gc, clip_rect, 1);
 
   /* Top.  */
   if (top_p)
@@ -2764,13 +2850,12 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
       XDrawLine (dpy, window, gc,
 		 left_x + i, top_y + i, left_x + i, bottom_y - i);
 
-  mac_reset_clipping (dpy, window);
+  mac_reset_clip_rectangles (dpy, gc);
   if (raised_p)
     gc = f->output_data.mac->black_relief.gc;
   else
     gc = f->output_data.mac->white_relief.gc;
-  mac_set_clip_rectangle (dpy, window,
-			  clip_rect);
+  mac_set_clip_rectangles (dpy, gc, clip_rect, 1);
 
   /* Bottom.  */
   if (bot_p)
@@ -2785,7 +2870,7 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
       XDrawLine (dpy, window, gc,
 		 right_x - i, top_y + i + 1, right_x - i, bottom_y - i - 1);
 
-  mac_reset_clipping (dpy, window);
+  mac_reset_clip_rectangles (dpy, gc);
 }
 
 
@@ -2807,7 +2892,7 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 
   XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
   XSetForeground (s->display, s->gc, s->face->box_color);
-  mac_set_clip_rectangle (s->display, s->window, clip_rect);
+  mac_set_clip_rectangles (s->display, s->gc, clip_rect, 1);
 
   /* Top.  */
   XFillRectangle (s->display, s->window, s->gc,
@@ -2828,7 +2913,7 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
 		    right_x - width + 1, top_y, width, bottom_y - top_y + 1);
 
   XSetForeground (s->display, s->gc, xgcv.foreground);
-  mac_reset_clipping (s->display, s->window);
+  mac_reset_clip_rectangles (s->display, s->gc);
 }
 
 
@@ -3182,7 +3267,6 @@ x_draw_image_glyph_string (s)
       x_set_glyph_string_clipping (s);
       mac_copy_area (s->display, pixmap, s->window, s->gc,
 		     0, 0, s->background_width, s->height, s->x, s->y);
-      mac_reset_clipping (s->display, s->window);
       XFreePixmap (s->display, pixmap);
     }
   else
@@ -3234,7 +3318,7 @@ x_draw_stretch_glyph_string (s)
 	    gc = s->face->gc;
 
 	  get_glyph_string_clip_rect (s, &r);
-	  mac_set_clip_rectangle (s->display, s->window, &r);
+	  mac_set_clip_rectangles (s->display, gc, &r, 1);
 
 #if 0 /* MAC_TODO: stipple */
 	  if (s->face->stipple)
@@ -3247,8 +3331,6 @@ x_draw_stretch_glyph_string (s)
 	  else
 #endif /* MAC_TODO */
 	    mac_erase_rectangle (s->window, gc, x, y, w, h);
-
-	  mac_reset_clipping (s->display, s->window);
 	}
     }
   else if (!s->background_filled_p)
@@ -3397,7 +3479,7 @@ x_draw_glyph_string (s)
     }
 
   /* Reset clipping.  */
-  mac_reset_clipping (s->display, s->window);
+  mac_reset_clip_rectangles (s->display, s->gc);
 }
 
 /* Shift display to make room for inserted glyphs.   */
@@ -5270,7 +5352,7 @@ x_clip_to_row (w, row, area, gc)
   clip_rect.right = clip_rect.left + window_width;
   clip_rect.bottom = clip_rect.top + row->visible_height;
 
-  mac_set_clip_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), &clip_rect);
+  mac_set_clip_rectangles (FRAME_MAC_DISPLAY (f), gc, &clip_rect, 1);
 }
 
 
@@ -5313,7 +5395,7 @@ x_draw_hollow_cursor (w, row)
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   x_clip_to_row (w, row, TEXT_AREA, gc);
   mac_draw_rectangle (dpy, FRAME_MAC_WINDOW (f), gc, x, y, wd, h);
-  mac_reset_clipping (dpy, FRAME_MAC_WINDOW (f));
+  mac_reset_clip_rectangles (dpy, gc);
 }
 
 
@@ -5397,7 +5479,7 @@ x_draw_bar_cursor (w, row, width, kind)
 			cursor_glyph->pixel_width,
 			width);
 
-      mac_reset_clipping (dpy, FRAME_MAC_WINDOW (f));
+      mac_reset_clip_rectangles (dpy, gc);
     }
 }
 
@@ -7610,7 +7692,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
       ATSUFontFeatureType types[] = {kAllTypographicFeaturesType};
       ATSUFontFeatureSelector selectors[] = {kAllTypeFeaturesOffSelector};
       Lisp_Object font_id_cons;
-      
+
       font_id_cons = Fgethash (Fdowncase
 			       (make_unibyte_string (mfontname,
 						     strlen (mfontname))),
