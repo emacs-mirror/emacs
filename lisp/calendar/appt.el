@@ -3,7 +3,7 @@
 ;; Copyright (C) 1989, 1990, 1994, 1998, 2004  Free Software Foundation, Inc.
 
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
-;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 
 ;; This file is part of GNU Emacs.
