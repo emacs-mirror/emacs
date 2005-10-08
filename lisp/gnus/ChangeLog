@@ -1,3 +1,8 @@
+2005-05-09  Simon Josefsson  <jas@extundo.com>
+
+	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Fix PIN caching,
+	tiny patch from "Georg C. F. Greve" <greve@gnu.org>.
+
 2005-10-08  Simon Josefsson  <jas@extundo.com>
 
 	* pgg-def.el (top-level): Don't require custom, it is
