@@ -130,7 +130,7 @@ people who have checked it.
 SECTION             READERS
 -----------------------------
 man/abbrevs.texi    Chong Yidong    Joakim Verona
-man/anti.texi
+man/anti.texi       Chong Yidong
 man/basic.texi      "Luc Teirlinck"  Chong Yidong
 man/buffers.texi    "Luc Teirlinck"  Chong Yidong
 man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
@@ -151,7 +151,7 @@ man/indent.texi     "Luc Teirlinck"  Chong Yidong
 man/killing.texi    "Luc Teirlinck"  Chong Yidong
 man/kmacro.texi     "Luc Teirlinck"  Chong Yidong
 man/macos.texi
-man/maintaining.texi
+man/maintaining.texi Chong Yidong
 man/major.texi      "Luc Teirlinck"  Chong Yidong
 man/mark.texi       "Luc Teirlinck"  Chong Yidong
 man/mini.texi       "Luc Teirlinck"  Chong Yidong
@@ -182,7 +182,7 @@ SECTION                  READERS
 ----------------------------------
 lispref/abbrevs.texi     "Luc Teirlinck"   Chong Yidong
 lispref/advice.texi	 joakim@verona.se  Chong Yidong
-lispref/anti.texi
+lispref/anti.texi        Chong Yidong
 lispref/backups.texi     "Luc Teirlinck"   Chong Yidong
 lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/calendar.texi    Joakim Verona <joakim@verona.se>  Chong Yidong
