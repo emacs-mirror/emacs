@@ -1,3 +1,39 @@
+2005-10-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (MAX_CLIP_RECTS): New define.
+	(struct _XGC): New member clip_region.
+	(struct _XGC) [MAC_OSX && USE_ATSUI]: New members n_clip_rects and
+	clip_rects.
+
+	* macterm.c (GC_CLIP_REGION): New macro.
+	(saved_port_clip_region): New variable.
+	(mac_begin_clip, mac_end_clip): New functions.
+	(XDrawLine, mac_erase_rectangle, mac_draw_bitmap, XFillRectangle)
+	(mac_draw_rectangle, mac_draw_string_common, mac_copy_area)
+	(mac_copy_area_with_mask, mac_scroll_area): Use them.
+	(mac_set_clip_rectangle, mac_reset_clipping): Remove functions.
+	[USE_ATSUI] (atsu_get_text_layout_with_text_ptr)
+	[MAC_OS_X_VERSION_MAX_ALLOWED < 1020]: Specify kATSLineFractDisable.
+	(mac_draw_string_common) [MAC_OSX && USE_ATSUI]: Clip to clipping
+	rectangles stored in gc.
+	(XFreeGC): Dispose clipping region.
+	(mac_set_clip_rectangles, mac_reset_clip_rectangles): New functions.
+	(x_draw_fringe_bitmap, x_set_glyph_string_clipping)
+	(x_draw_relief_rect, x_draw_box_rect, x_draw_stretch_glyph_string)
+	(x_draw_glyph_string, x_clip_to_row, x_draw_hollow_cursor)
+	(x_draw_bar_cursor): Use them.
+	(x_set_glyph_string_clipping): Use get_glyph_string_clip_rects to
+	get multiple clipping rectangles.
+
+	* macterm.h (mac_term_init): Add types to extern.
+	(struct mac_output): Remove members mWP and pending_menu_activation.
+	Put members scroll_bar_foreground_pixel	and
+	scroll_bar_background_pixel in #if 0.
+	(FRAME_MAC_WINDOW, FRAME_X_WINDOW): Use window_desc.
+
+	* xfaces.c (x_create_gc, x_free_gc) [MAC_OS]: Add BLOCK_INPUT.
+	Add debug code.
+
 2005-10-08  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (window_tree, Fwindow_tree): Rename fns added 2005-10-04.
