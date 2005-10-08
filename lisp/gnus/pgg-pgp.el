@@ -149,14 +149,16 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 (defun pgg-pgp-decrypt-region (start end)
   "Decrypt the current region between START and END."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
+	 (key (pgg-pgp-lookup-key pgg-pgp-user-id 'encrypt))
 	 (passphrase
 	  (pgg-read-passphrase
-	   (format "PGP passphrase for %s: " pgg-pgp-user-id)
-	   (pgg-pgp-lookup-key pgg-pgp-user-id 'encrypt)))
+	   (format "PGP passphrase for %s: " pgg-pgp-user-id) key))
 	 (args
 	  '("+verbose=1" "+batchmode" "+language=us" "-f")))
     (pgg-pgp-process-region start end passphrase pgg-pgp-program args)
-    (pgg-process-when-success nil)))
+    (pgg-process-when-success
+      (if pgg-cache-passphrase
+	  (pgg-add-passphrase-cache key passphrase)))))
 
 (defun pgg-pgp-sign-region (start end &optional clearsign)
   "Make detached signature from text between START and END."

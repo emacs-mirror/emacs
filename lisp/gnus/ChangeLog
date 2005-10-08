@@ -1,3 +1,7 @@
+2005-01-21  Derek Atkins <warlord@MIT.EDU>  (tiny change)
+
+	* pgg-pgp.el (pgg-pgp-decrypt-region): Use passphrase cache.
+
 2005-10-08  Simon Josefsson  <jas@extundo.com>
 
 	* pgg-parse.el (top-level): Don't require custom, it is
