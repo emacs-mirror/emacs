@@ -1,3 +1,9 @@
+2005-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-keywords-re, f90-mode): Doc fix.
+	(f90-font-lock-keywords-2, f90-mode-abbrev-table): Add `double
+	precision'.
+
 2005-10-07  Romain Francoise  <romain@orebokech.com>
 
 	* ibuf-ext.el (ibuffer-do-shell-command-pipe)
