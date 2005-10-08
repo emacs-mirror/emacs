@@ -1,3 +1,20 @@
+2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.51.
+
+	* net/tramp.el (tramp-handle-set-visited-file-modtime)
+	(tramp-handle-insert-file-contents)
+	(tramp-handle-write-region): Insert special handling for
+	`last-coding-system-used' again, it still seems to be
+	necessary (unlike stated before).  Reported by Toshinori Sugita
+	<sugita@d-pad.co.jp>
+	(tramp-password-prompt-regexp): There might be other words before
+	trailing ":".  Reported by Kurt Steinkraus <kurt@steinkraus.us>.
+	(tramp-chunksize): Improve docstring.
+	(tramp-set-auto-save-file-modes): Octal integer code #o600 breaks
+	Emacs 20.  Use `tramp-octal-to-decimal' therefore.  Reported by
+	Christian Joergensen <bugs@razor.dk>.
+
 2005-10-07  Glenn Morris  <rgm@gnu.org>
 
 	* progmodes/f90.el (f90-keywords-re, f90-mode): Doc fix.
@@ -2521,7 +2538,7 @@
 
 	Sync with Tramp 2.0.50.
 
-	* tramp.el: Remove defvar of `last-coding-system-used' in the
+	* net/tramp.el: Remove defvar of `last-coding-system-used' in the
 	XEmacs case; not necessary anymore.
 	(tramp-user-regexp): Allow "@" as part of user name.
 	(tramp-handle-set-visited-file-modtime)
@@ -2562,7 +2579,7 @@
 	instead of octal character code ?\600.  The latter resulted in a
 	syntax error with XEmacs.
 
-	* tramp-smb.el: Remove defvar of `last-coding-system-used' in the
+	* net/tramp-smb.el: Remove defvar of `last-coding-system-used' in the
 	XEmacs case; not necessary anymore.
 	(tramp-smb-handle-write-region): No special handling for
 	`last-coding-system-used, because this is done in
@@ -7492,7 +7509,7 @@
 
 	Sync with Tramp 2.0.49.
 
-	* tramp.el (tramp-handle-dired-call-process)
+	* net/tramp.el (tramp-handle-dired-call-process)
 	(tramp-handle-insert-directory):`insert-buffer' cannot be used
 	because the contents of the Tramp buffer is changed before
 	insertion (`expand-file' and alike).
@@ -10241,7 +10258,7 @@
 
 	Sync with Tramp 2.0.48.
 
-	* tramp.el (all): Change all addresses to .gnu.org.
+	* net/tramp.el (all): Change all addresses to .gnu.org.
 	(tramp-append-tramp-buffers): New defun.
 	(tramp-bug): Apply `tramp-append-tramp-buffers' as post-hook.
 	Catch `dont-send' signal.
@@ -10251,7 +10268,7 @@
 	Kjetil Kjernsmo <kjetil@kjernsmo.net>.
 	Check for Emacs 21.3.50 removed.
 
-	* tramp-smb.el (all): Remove debug construct for
+	* net/tramp-smb.el (all): Remove debug construct for
 	`with-parsed-tramp-file-name'.
 	(tramp-smb-prompt): Prompt can contain spaces inside directory names.
 	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file):
@@ -12093,7 +12110,7 @@
 
 	Sync with Tramp 2.0.47.
 
-	* tramp.el (tramp-operation-not-permitted-regexp) New defcustom,
+	* net/tramp.el (tramp-operation-not-permitted-regexp) New defcustom,
 	catching keep-date problems in cp/scp operations.
 	(tramp-handle-copy-file): Don't call `set-file-modes'
 	unconditionally.  Specialized functions should know better what is
@@ -12112,7 +12129,7 @@
 	(tramp-file-name-for-operation): Mark `shell-command' as magic for
 	Emacs only.
 
-	* tramp-util.el (tramp-minor-mode): New minor mode.  Add it to
+	* net/tramp-util.el (tramp-minor-mode): New minor mode.  Add it to
 	`find-file-hooks' and `dired-mode-hook'.
 	(tramp-minor-mode-map): Respective map.  Add remapping for
 	`compile' and `recompile'.
@@ -12120,19 +12137,19 @@
 	(tramp-compile): Enable `tramp-minor-mode' and `compilation-mode'
 	in buffer "*Compilation*".  Call the commands asynchronously.
 
-	* tramp-vc.el (tramp-vc-do-command, tramp-vc-do-command-new)
+	* net/tramp-vc.el (tramp-vc-do-command, tramp-vc-do-command-new)
 	(tramp-vc-simple-command): Call `tramp-handle-shell-command' but
 	`shell-command', because it isn't magic in XEmacs.  Reported by
 	Adrian Aichner <adrian@xemacs.org>.
 
-	* tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry for
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry for
 	`substitute-in-file-name.
 	(tramp-smb-handle-substitute-in-file-name): New defun.
 	(tramp-smb-advice-PC-do-completion): Delete advice.
 
 2005-01-16  Kai Grossjohann  <kgrossjo@eu.uu.net>
 
-	* tramp.el (tramp-wait-for-output): Fix typo in echo processing.
+	* net/tramp.el (tramp-wait-for-output): Fix typo in echo processing.
 	Fix error in deleting region.
 
 2005-01-15  Richard M. Stallman  <rms@gnu.org>
