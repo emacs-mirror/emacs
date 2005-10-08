@@ -1,3 +1,10 @@
+2005-10-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.texi (Introduction): Describe new location of speedbar
+	on menubar.
+	(Basic Key Bindings): Remove descriptions of bindings that have
+	been removed.
+
 2005-10-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Add variables and
