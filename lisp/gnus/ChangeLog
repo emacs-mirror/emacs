@@ -1,3 +1,8 @@
+2005-10-08  Simon Josefsson  <jas@extundo.com>
+
+	* pgg-def.el (top-level): Don't require custom, it is
+	autoloaded.  (To sync with No Gnus.)
+
 2005-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-url.el (mm-url-predefined-programs): Add switches for curl.
