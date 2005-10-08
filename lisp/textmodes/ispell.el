@@ -821,6 +821,7 @@ Otherwise returns the library directory name, if that is defined."
         (let (case-fold-search)
           (setq ispell-really-aspell
 		(and (search-forward-regexp
+		      "(but really Aspell \\(.*?\\)\\(-[0-9]+\\)?)" nil t)
 		      "(but really Aspell \\(.*\\))" nil t)
 		     (progn
 		       (setq ispell-aspell-supports-utf8
