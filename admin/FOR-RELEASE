@@ -65,8 +65,6 @@ back burner waiting for a legal comment or an alternate implementation
 
 * BUGS
 
-* Pierre Albarede's Aug 30 bug report about C-v and long lines.
-
 ** Make a new interface for specifying window configurations
 so that we can fix bugs in balance-windows.
 
