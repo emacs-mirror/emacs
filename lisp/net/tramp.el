@@ -1617,8 +1617,8 @@ printf(
 on the remote file system.")
 
 (defconst tramp-perl-directory-files-and-attributes "\
-chdir($ARGV[0]);
-opendir(DIR,\".\");
+chdir($ARGV[0]) or printf(\"\\\"Cannot change to $ARGV[0]: $''!''\\\"\\n\"), exit();
+opendir(DIR,\".\") or printf(\"\\\"Cannot open directory $ARGV[0]: $''!''\\\"\\n\"), exit();
 @list = readdir(DIR);
 closedir(DIR);
 $n = scalar(@list);
@@ -2731,7 +2731,10 @@ of."
                                     (tramp-shell-quote-argument localname)
                                     (or id-format 'integer)))
         (tramp-wait-for-output)
-        (let* ((root (cons nil (read (current-buffer))))
+        (let* ((root (cons nil (let ((object (read (current-buffer))))
+                                 (when (stringp object)
+                                   (error object))
+                                 object)))
                (cell root))
           (while (cdr cell)
             (if (and match (not (string-match match (caadr cell))))
