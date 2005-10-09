@@ -1,3 +1,14 @@
+2005-10-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.el (speedbar-buffer-easymenu-definition): Add menu
+	separator.
+
+	* progmodes/gud.el (gud-last-speedbar-buffer): Remove.
+	(gud-install-speedbar-variables): Add GUD to speedbar "Displays"
+	list.
+	(gud-expansion-speedbar-buttons): New function.
+	(gud-speedbar-buttons): Check for gud-comint-buffer.
+
 2005-10-09  Bill Wohler  <wohler@newt.com>
 
 	* Makefile.in (updates): Added mh-loaddefs dependency.
