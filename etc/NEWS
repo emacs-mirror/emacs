@@ -176,6 +176,11 @@ disables the splash screen; see also the variable
 `inhibit-splash-screen').
 
 +++
+** The default is now to use an bitmap as the icon, so the command-line options
+--icon-type, -i has been replaced with options --no-bitmap-icon, -nb to turn
+the bitmap icon off.
+
++++
 ** New user option `inhibit-startup-buffer-menu'.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
