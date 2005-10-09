@@ -1,3 +1,7 @@
+2005-10-09  Daniel Brockman <daniel@brockman.se>
+
+	* cus-start.el (line-spacing): Add custom spec.
+
 2005-10-09  Romain Francoise  <romain@orebokech.com>
 
 	* textmodes/ispell.el (ispell-check-version): Fix last change.
