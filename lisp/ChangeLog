@@ -4,14 +4,13 @@
 	separator.
 
 	* progmodes/gud.el (gud-last-speedbar-buffer): Remove.
-	(gud-install-speedbar-variables): Add GUD to speedbar "Displays"
-	list.
+	(gud-install-speedbar-variables): Add GUD to speedbar "Displays" list.
 	(gud-expansion-speedbar-buttons): New function.
 	(gud-speedbar-buttons): Check for gud-comint-buffer.
 
 2005-10-09  Bill Wohler  <wohler@newt.com>
 
-	* Makefile.in (updates): Added mh-loaddefs dependency.
+	* Makefile.in (updates): Add mh-loaddefs dependency.
 
 2005-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -61,6 +60,7 @@
 	* calc/calc.el (calc-set-mode-line): Add square matrix option.
 
 2005-10-08  Lars Hansen  <larsh@soem.dk>
+
 	* net/tramp.el (tramp-perl-directory-files-and-attributes): Add
 	error handling.
 	(tramp-handle-directory-files-and-attributes): Handle error perl
