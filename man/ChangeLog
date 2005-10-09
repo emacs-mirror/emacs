@@ -1,3 +1,8 @@
+2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cmdargs.texi (Icons X): Removed options -i, -itype, --icon-type, 
+	added -nb, --no-bitmap-icon.
+
 2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.51.
