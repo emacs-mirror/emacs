@@ -1,5 +1,7 @@
 2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* term/x-win.el: Removed -i, --icon-type from comment.
+
 	* startup.el (command-line-x-option-alist): Removed options -i, 
 	-itype, --icon-type, added -nb, --no-bitmap-icon
 
