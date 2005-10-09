@@ -1,3 +1,10 @@
+2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* emacs.c (standard_args): Removed options -i, -itype, --icon-type, 
+	added -nb, --no-bitmap-icon.
+
+	* xfns.c (Fx_create_frame): Make bitmapIcon have default on.
+
 2005-10-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macgui.h (MAX_CLIP_RECTS): New define.
