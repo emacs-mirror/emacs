@@ -822,7 +822,6 @@ Otherwise returns the library directory name, if that is defined."
           (setq ispell-really-aspell
 		(and (search-forward-regexp
 		      "(but really Aspell \\(.*?\\)\\(-[0-9]+\\)?)" nil t)
-		      "(but really Aspell \\(.*\\))" nil t)
 		     (progn
 		       (setq ispell-aspell-supports-utf8
 			     (not (version< (match-string 1) "0.60")))

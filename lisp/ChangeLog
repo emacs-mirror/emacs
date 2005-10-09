@@ -1,8 +1,12 @@
+2005-10-09  Romain Francoise  <romain@orebokech.com>
+
+	* textmodes/ispell.el (ispell-check-version): Fix last change.
+
 2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* term/x-win.el: Removed -i, --icon-type from comment.
 
-	* startup.el (command-line-x-option-alist): Removed options -i, 
+	* startup.el (command-line-x-option-alist): Removed options -i,
 	-itype, --icon-type, added -nb, --no-bitmap-icon
 
 2005-10-09  Nick Roberts  <nickrob@snap.net.nz>
