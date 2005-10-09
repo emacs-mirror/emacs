@@ -48,7 +48,7 @@
 	across products.
 
 	* calc/calc-keypd.el (calc-do-keypad): Widen keypad window for
-	fullscreen keypad. Suggested by Luc Teirlinck.
+	fullscreen keypad.  Suggested by Luc Teirlinck.
 	(calc-keypad-show-input): Add space for formatting.
 
 	* calc/calc-mode.el (calc-matrix-mode, math-get-modes-vec):
@@ -63,19 +63,17 @@
 
 	* net/tramp.el (tramp-perl-directory-files-and-attributes): Add
 	error handling.
-	(tramp-handle-directory-files-and-attributes): Handle error perl
-	error message.
+	(tramp-handle-directory-files-and-attributes): Handle perl error msg.
 
 2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.51.
 
 	* net/tramp.el (tramp-handle-set-visited-file-modtime)
-	(tramp-handle-insert-file-contents)
-	(tramp-handle-write-region): Insert special handling for
-	`last-coding-system-used' again, it still seems to be
-	necessary (unlike stated before).  Reported by Toshinori Sugita
-	<sugita@d-pad.co.jp>
+	(tramp-handle-insert-file-contents, tramp-handle-write-region):
+	Insert special handling for `last-coding-system-used', again
+	it still seems to be necessary (unlike stated before).
+	Reported by Toshinori Sugita <sugita@d-pad.co.jp>.
 	(tramp-password-prompt-regexp): There might be other words before
 	trailing ":".  Reported by Kurt Steinkraus <kurt@steinkraus.us>.
 	(tramp-chunksize): Improve docstring.

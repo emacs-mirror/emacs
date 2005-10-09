@@ -4402,7 +4402,7 @@ If non-nil, that says to preserve the window's current margin, fringe,
 and scroll-bar settings.
 
 +++
-*** The new function `window-split-tree' returns a frame's window split tree.
+*** The new function `window-tree' returns a frame's window tree.
 
 +++
 ** Customizable fringe bitmaps
