@@ -1,3 +1,7 @@
+2005-10-09  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (updates): Added mh-loaddefs dependency.
+
 2005-10-09  Chong Yidong  <cyd@stupidchicken.com>
 
 	* speedbar.el (speedbar-file-key-map): Fix typo.

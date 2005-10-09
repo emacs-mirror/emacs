@@ -117,7 +117,7 @@ update-subdirs: doit
 	   $(srcdir)/update-subdirs $$file; \
 	done;
 
-updates: update-subdirs autoloads finder-data custom-deps
+updates: update-subdirs autoloads mh-autoloads finder-data custom-deps
 
 # Update the AUTHORS file.
 
