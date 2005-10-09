@@ -275,7 +275,6 @@ make_window ()
   XSETWINDOW (val, p);
   XSETFASTINT (p->last_point, 0);
   p->frozen_window_start_p = 0;
-  p->height_fixed_p = 0;
   p->last_cursor_off_p = p->cursor_off_p = 0;
   p->left_margin_cols = Qnil;
   p->right_margin_cols = Qnil;
@@ -2440,27 +2439,22 @@ window_fixed_size_p (w, width_p, check_siblings_p)
     }
   else if (BUFFERP (w->buffer))
     {
-      if (w->height_fixed_p && !width_p)
-	fixed_p = 1;
-      else
+      struct buffer *old = current_buffer;
+      Lisp_Object val;
+
+      current_buffer = XBUFFER (w->buffer);
+      val = find_symbol_value (Qwindow_size_fixed);
+      current_buffer = old;
+
+      fixed_p = 0;
+      if (!EQ (val, Qunbound))
 	{
-	  struct buffer *old = current_buffer;
-	  Lisp_Object val;
+	  fixed_p = !NILP (val);
 
-	  current_buffer = XBUFFER (w->buffer);
-	  val = find_symbol_value (Qwindow_size_fixed);
-	  current_buffer = old;
-
-	  fixed_p = 0;
-	  if (!EQ (val, Qunbound))
-	    {
-	      fixed_p = !NILP (val);
-
-	      if (fixed_p
-		  && ((EQ (val, Qheight) && width_p)
-		      || (EQ (val, Qwidth) && !width_p)))
-		fixed_p = 0;
-	    }
+	  if (fixed_p
+	      && ((EQ (val, Qheight) && width_p)
+		  || (EQ (val, Qwidth) && !width_p)))
+	    fixed_p = 0;
 	}
 
       /* Can't tell if this one is resizable without looking at
@@ -6233,6 +6227,85 @@ usage: (save-window-excursion BODY ...)  */)
   return unbind_to (count, val);
 }
 
+
+
+/***********************************************************************
+			    Window Split Tree
+ ***********************************************************************/
+
+static Lisp_Object
+window_split_tree (w)
+     struct window *w;
+{
+  Lisp_Object tail = Qnil;
+  Lisp_Object result = Qnil;
+
+  while (w)
+    {
+      Lisp_Object wn;
+
+      XSETWINDOW (wn, w);
+      if (!NILP (w->hchild))
+	wn = Fcons (Qnil, Fcons (Fwindow_edges (wn),
+				 window_split_tree (XWINDOW (w->hchild))));
+      else if (!NILP (w->vchild))
+	wn = Fcons (Qt, Fcons (Fwindow_edges (wn),
+			       window_split_tree (XWINDOW (w->vchild))));
+
+      if (NILP (result))
+	{
+	  result = tail = Fcons (wn, Qnil);
+	}
+      else
+	{
+	  XSETCDR (tail, Fcons (wn, Qnil));
+	  tail = XCDR (tail);
+	}
+
+      w = NILP (w->next) ? 0 : XWINDOW (w->next);
+    }
+
+  return result;
+}
+
+
+
+DEFUN ("window-split-tree", Fwindow_split_tree, Swindow_split_tree,
+       0, 1, 0,
+       doc: /* Return the window split tree for frame FRAME.
+
+The return value is a list of the form (ROOT MINI), where ROOT
+represents the window split tree of the frame's root window, and MINI
+is the frame's minibuffer window.
+
+If the root window is not split, ROOT is the root window itself.
+Otherwise, ROOT is a list (DIR EDGES W1 W2 ...) where DIR is nil for a
+horisontal split, and t for a vertical split, EDGES gives the combined
+size and position of the subwindows in the split, and the rest of the
+elements are the subwindows in the split.  Each of the subwindows may
+again be a window or a list representing a window split, and so on.
+EDGES is a list \(LEFT TOP RIGHT BOTTOM) as returned by `window-edges'.
+
+If FRAME is nil or omitted, return information on the currently
+selected frame.  */)
+     (frame)
+     Lisp_Object frame;
+{
+  Lisp_Object alist;
+  FRAME_PTR f;
+
+  if (NILP (frame))
+    frame = selected_frame;
+
+  CHECK_FRAME (frame);
+  f = XFRAME (frame);
+
+  if (!FRAME_LIVE_P (f))
+    return Qnil;
+
+  return window_split_tree (XWINDOW (FRAME_ROOT_WINDOW (f)));
+}
+
 
 /***********************************************************************
 			    Marginal Areas
@@ -7039,6 +7112,7 @@ The selected frame is the one whose configuration has changed.  */);
   defsubr (&Sset_window_configuration);
   defsubr (&Scurrent_window_configuration);
   defsubr (&Ssave_window_excursion);
+  defsubr (&Swindow_split_tree);
   defsubr (&Sset_window_margins);
   defsubr (&Swindow_margins);
   defsubr (&Sset_window_fringes);

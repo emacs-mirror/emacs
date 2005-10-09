@@ -1,9 +1,50 @@
+2005-09-30  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-refile-msg, mh-tool-bar-reply-from)
+	(mh-tool-bar-reply-to, mh-tool-bar-reply-all)
+	(mh-alias-grab-from-field, mh-pack-folder): Image files moved to
+	etc/images/mail so added "mail/" prefix.
+	(mh-reply): Ditto. Also renamed reply2.* to reply.*.
+	(mh-rescan-folder): Ditto. Renamed image file to refresh.* since
+	it can be used in the general sense. Does not have "mail/" 
+	prefix.
+
+2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
+
+	* mh-mime.el (mh-compose-forward, mh-mhn-compose-forw):
+	* mh-comp.el (mh-insert-letter):
+	* mh-utils.el (mh-prompt-for-folder):
+	Follow convention for reading with the minibuffer.
+
+2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-print.el (mh-ps-print-msg-show): Fix misplaced parenthesis in
+	previous change.
+
+2005-09-18  D Goel  <deego@gnufans.org>
+
+	* mh-alias.el (mh-alias-ali): Fix `message' call: first arg
+	should be a format spec.
+
+	* mh-print.el (mh-ps-spool-buffer, mh-ps-spool-a-msg)
+	(mh-ps-print-msg, mh-ps-print-msg-show): Ditto.
+
+	* mh-mime.el (mh-toggle-mh-decode-mime-flag): Ditto.
+
+	* mh-index.el (mh-index-sequenced-messages): Ditto.
+
+	* mh-e.el (mh-refile-or-write-again, mh-page-msg): Ditto.
+
+	* mh-junk.el (mh-junk-blacklist, mh-junk-whitelist)
+	(mh-spamassassin-blacklist, mh-spamassassin-whitelist): Ditto.
+
 2005-08-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* mh-customize.el: Do not use face-alias compatibility for
 	faces that did not appear in the previous Emacs release.
 
 2005-08-10  Lars Hansen  <larsh@soem.dk>
+
 	* mh-e.el: Add handler to desktop-buffer-mode-handlers.
 	(mh-restore-desktop-buffer): Remove autoload cookie.
 	(mh-folder-mode): Add autoload cookie.

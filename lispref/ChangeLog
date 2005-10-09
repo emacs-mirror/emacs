@@ -1,3 +1,44 @@
+2005-10-04  Kim F. Storm  <storm@cua.dk>
+
+	* windows.texi (Window Split Tree): New section describing
+	new function window-split-tree function.
+
+2005-10-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* display.texi (Fringe Size/Pos): Simplify and add detail.
+
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* minibuf.texi (High-Level Completion): Explain that the prompt
+	given to `read-buffer' should end with a colon and a space.
+	Update usage examples.
+
+2005-09-29  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Displaying Messages): Rename argument name
+	`string' to `format-string' in functions `message', `message-box',
+	`message-or-box'.
+
+2005-09-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* errors.texi (Standard Errors): Corrected xrefs.
+
+2005-09-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Defining Images): Updated documentation for
+	`image-load-path'.
+
+2005-09-17  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Images): Clean up previous change.
+
+2005-09-16  Romain Francoise  <romain@orebokech.com>
+
+	* elisp.texi: Specify GFDL version 1.2.
+
+	* doclicense.texi (GNU Free Documentation License): Update to
+	version 1.2.
+
 2005-09-15  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Defining Images): Document `image-load-path'.

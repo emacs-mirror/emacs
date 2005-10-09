@@ -2333,20 +2333,22 @@ If PROMPT (the prefix), prompt for a coding system to use."
 (autoload 'idna-to-unicode "idna")
 
 (defun article-decode-idna-rhs ()
-  "Decode IDNA strings in RHS in From:, To: and Cc: headers in current buffer."
+  "Decode IDNA strings in RHS in various headers in current buffer.
+The following headers are decoded: From:, To:, Cc:, Reply-To:,
+Mail-Reply-To: and Mail-Followup-To:."
   (when gnus-use-idna
     (save-restriction
       (let ((inhibit-point-motion-hooks t)
 	    (inhibit-read-only t))
 	(article-narrow-to-head)
 	(goto-char (point-min))
-	(while (re-search-forward "@.*\\(xn--[-A-Za-z0-9.]*\\)[ \t\n\r,>]" nil t)
+	(while (re-search-forward "@[^ \t\n\r,>]*\\(xn--[-A-Za-z0-9.]*\\)[ \t\n\r,>]" nil t)
 	  (let (ace unicode)
 	    (when (save-match-data
 		    (and (setq ace (match-string 1))
 			 (save-excursion
 			   (and (re-search-backward "^[^ \t]" nil t)
-				(looking-at "From\\|To\\|Cc")))
+				(looking-at "From\\|To\\|Cc\\|Reply-To\\|Mail-Reply-To\\|Mail-Followup-To")))
 			 (setq unicode (idna-to-unicode ace))))
 	      (unless (string= ace unicode)
 		(replace-match unicode nil nil nil 1)))))))))
@@ -3255,7 +3257,7 @@ This format is defined by the `gnus-article-time-format' variable."
 		      ((null split-name)
 		       (read-file-name
 			(concat prompt " (default "
-				(file-name-nondirectory default-name) ") ")
+				(file-name-nondirectory default-name) "): ")
 			(file-name-directory default-name)
 			default-name))
 		      ;; A single group name is returned.
@@ -3265,7 +3267,7 @@ This format is defined by the `gnus-article-time-format' variable."
 				      (symbol-value variable)))
 		       (read-file-name
 			(concat prompt " (default "
-				(file-name-nondirectory default-name) ") ")
+				(file-name-nondirectory default-name) "): ")
 			(file-name-directory default-name)
 			default-name))
 		      ;; A single split name was found
@@ -3278,7 +3280,7 @@ This format is defined by the `gnus-article-time-format' variable."
 					 ((file-exists-p name) name)
 					 (t gnus-article-save-directory))))
 			 (read-file-name
-			  (concat prompt " (default " name ") ")
+			  (concat prompt " (default " name "): ")
 			  dir name)))
 		      ;; A list of splits was found.
 		      (t
@@ -3289,7 +3291,7 @@ This format is defined by the `gnus-article-time-format' variable."
 			   (setq result
 				 (expand-file-name
 				  (read-file-name
-				   (concat prompt " (`M-p' for defaults) ")
+				   (concat prompt " (`M-p' for defaults): ")
 				   gnus-article-save-directory
 				   (car split-name))
 				  gnus-article-save-directory)))
@@ -3323,7 +3325,7 @@ This format is defined by the `gnus-article-time-format' variable."
 Optional argument FILENAME specifies file name.
 Directory to save to is default to `gnus-article-save-directory'."
   (setq filename (gnus-read-save-file-name
-		  "Save %s in rmail file:" filename
+		  "Save %s in rmail file" filename
 		  gnus-rmail-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-rmail))
   (gnus-eval-in-buffer-window gnus-save-article-buffer
@@ -3338,7 +3340,7 @@ Directory to save to is default to `gnus-article-save-directory'."
 Optional argument FILENAME specifies file name.
 Directory to save to is default to `gnus-article-save-directory'."
   (setq filename (gnus-read-save-file-name
-		  "Save %s in Unix mail file:" filename
+		  "Save %s in Unix mail file" filename
 		  gnus-mail-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-mail))
   (gnus-eval-in-buffer-window gnus-save-article-buffer
@@ -3357,7 +3359,7 @@ Directory to save to is default to `gnus-article-save-directory'."
 Optional argument FILENAME specifies file name.
 Directory to save to is default to `gnus-article-save-directory'."
   (setq filename (gnus-read-save-file-name
-		  "Save %s in file:" filename
+		  "Save %s in file" filename
 		  gnus-file-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-file))
   (gnus-eval-in-buffer-window gnus-save-article-buffer
@@ -3381,7 +3383,7 @@ The directory to save in defaults to `gnus-article-save-directory'."
 Optional argument FILENAME specifies file name.
 The directory to save in defaults to `gnus-article-save-directory'."
   (setq filename (gnus-read-save-file-name
-		  "Save %s body in file:" filename
+		  "Save %s body in file" filename
 		  gnus-file-save-name gnus-newsgroup-name
 		  gnus-current-headers 'gnus-newsgroup-last-file))
   (gnus-eval-in-buffer-window gnus-save-article-buffer
@@ -4761,6 +4763,8 @@ If displaying \"text/html\" is discouraged \(see
 
 (defun gnus-mime-display-part (handle)
   (cond
+   ;; Maybe a broken MIME message.
+   ((null handle))
    ;; Single part.
    ((not (stringp (car handle)))
     (gnus-mime-display-single handle))
@@ -4862,14 +4866,17 @@ If displaying \"text/html\" is discouraged \(see
 	      (forward-line -1)
 	      (setq beg (point)))
 	    (gnus-article-insert-newline)
-	    (mm-insert-inline handle
-			      (let ((charset
-				     (mail-content-type-get
-				      (mm-handle-type handle) 'charset)))
-				(if (eq charset 'gnus-decoded)
-				    (mm-get-part handle)
-				  (mm-decode-string (mm-get-part handle)
-						    charset))))
+	    (mm-insert-inline
+	     handle
+	     (let ((charset (mail-content-type-get (mm-handle-type handle)
+						   'charset)))
+	       (cond ((not charset)
+		      (mm-string-as-multibyte (mm-get-part handle)))
+		     ((eq charset 'gnus-decoded)
+		      (with-current-buffer (mm-handle-buffer handle)
+			(buffer-string)))
+		     (t
+		      (mm-decode-string (mm-get-part handle) charset)))))
 	    (goto-char (point-max))))
 	  ;; Do highlighting.
 	  (save-excursion

@@ -51,11 +51,13 @@ a non-nil value, TYPE is the image's type.")
 
 (defvar image-load-path
   (list (file-name-as-directory (expand-file-name "images" data-directory))
-	data-directory 'load-path)
+	'data-directory 'load-path)
   "List of locations in which to search for image files.
-If an element is a string, it defines a directory to search in.
-If an element is a variable symbol, the value of that variable is
-used as a list of directories to search.")
+If an element is a string, it defines a directory to search.
+If an element is a variable symbol whose value is a string, that
+value defines a directory to search.
+If an element is a variable symbol whose value is a list, the
+value is used as a list of directories to search.")
 
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
@@ -278,17 +280,24 @@ BUFFER nil or omitted means use the current buffer."
       (setq overlays (cdr overlays)))))
 
 (defun image-search-load-path (file path)
-  (let (found pathname)
+  (let (element found pathname)
     (while (and (not found) (consp path))
+      (setq element (car path))
       (cond
-       ((stringp (car path))
+       ((stringp element)
 	(setq found
 	      (file-readable-p
-	       (setq pathname (expand-file-name file (car path))))))
-       ((and (symbolp (car path)) (boundp (car path)))
-	(if (setq pathname (image-search-load-path
-			    file (symbol-value (car path))))
-	    (setq found t))))
+	       (setq pathname (expand-file-name file element)))))
+       ((and (symbolp element) (boundp element))
+	(setq element (symbol-value element))
+	(cond
+	 ((stringp element)
+	  (setq found
+		(file-readable-p
+		 (setq pathname (expand-file-name file element)))))
+	 ((consp element)
+	  (if (setq pathname (image-search-load-path file element))
+	      (setq found t))))))
       (setq path (cdr path)))
     (if found pathname)))
 

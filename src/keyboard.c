@@ -464,10 +464,6 @@ FILE *dribble;
 /* Nonzero if input is available.  */
 int input_pending;
 
-/* Non-zero means force key bindings update in parse_menu_item.  */
-
-int update_menu_bindings;
-
 extern char *pending_malloc_warning;
 
 /* Circular buffer for pre-read keyboard input.  */
@@ -5565,13 +5561,23 @@ make_lispy_event (event)
 		if (CONSP (down)
 		    && INTEGERP (XCAR (down)) && INTEGERP (XCDR (down)))
 		  {
-		    xdiff = XFASTINT (event->x) - XFASTINT (XCAR (down));
-		    ydiff = XFASTINT (event->y) - XFASTINT (XCDR (down));
+		    xdiff = XINT (event->x) - XINT (XCAR (down));
+		    ydiff = XINT (event->y) - XINT (XCDR (down));
 		  }
 
 		if (xdiff < double_click_fuzz && xdiff > - double_click_fuzz
-		    && ydiff < double_click_fuzz
-		    && ydiff > - double_click_fuzz)
+		    && ydiff < double_click_fuzz && ydiff > - double_click_fuzz
+		  /* Maybe the mouse has moved a lot, caused scrolling, and
+		     eventually ended up at the same screen position (but
+		     not buffer position) in which case it is a drag, not
+		     a click.  */
+		    /* FIXME: OTOH if the buffer position has changed
+		       because of a timer or process filter rather than
+		       because of mouse movement, it should be considered as
+		       a click.  But mouse-drag-region completely ignores
+		       this case and it hasn't caused any real problem, so
+		       it's probably OK to ignore it as well.  */
+		    && EQ (Fcar (Fcdr (start_pos)), Fcar (Fcdr (position))))
 		  /* Mouse hasn't moved (much).  */
 		  event->modifiers |= click_modifier;
 		else
@@ -7528,9 +7534,7 @@ parse_menu_item (item, notreal, inmenubar)
       else
 	def = AREF (item_properties, ITEM_PROPERTY_DEF);
 
-      if (!update_menu_bindings)
-	chkcache = 0;
-      else if (NILP (XCAR (cachelist))) /* Have no saved key.  */
+      if (NILP (XCAR (cachelist))) /* Have no saved key.  */
 	{
 	  if (newcache		/* Always check first time.  */
 	      /* Should we check everything when precomputing key
@@ -10946,11 +10950,6 @@ init_keyboard ()
   poll_suppress_count = 1;
   start_polling ();
 #endif
-
-#ifdef MAC_OSX
-  /* At least provide an escape route since C-g doesn't work.  */
-  signal (SIGINT, interrupt_signal);
-#endif
 }
 
 /* This type's only use is in syms_of_keyboard, to initialize the
@@ -11674,12 +11673,6 @@ The default value is nil, in which case, point adjustment are
 suppressed only after special commands that set
 `disable-point-adjustment' (which see) to non-nil.  */);
   Vglobal_disable_point_adjustment = Qnil;
-
-  DEFVAR_BOOL ("update-menu-bindings", &update_menu_bindings,
-	       doc: /* Non-nil means updating menu bindings is allowed.
-A value of nil means menu bindings should not be updated.
-Used during Emacs' startup.  */);
-  update_menu_bindings = 1;
 
   DEFVAR_LISP ("minibuffer-message-timeout", &Vminibuffer_message_timeout,
 	       doc: /* *How long to display an echo-area message when the minibuffer is active.

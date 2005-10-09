@@ -2991,12 +2991,12 @@ It will read a file name from the minibuffer when invoked."
   "Perform completion on file name preceding point."
   (interactive)
   (let* ((end (point))
-	 (beg (save-excursion
-		(skip-chars-backward "^ ")
-		(point)))
+	 (beg (widget-field-start widget))
 	 (pattern (buffer-substring beg end))
 	 (name-part (file-name-nondirectory pattern))
-	 (directory (file-name-directory pattern))
+	 ;; I think defaulting to root is right
+	 ;; because these really should be absolute file names.
+	 (directory (or (file-name-directory pattern) "/"))
 	 (completion (file-name-completion name-part directory)))
     (cond ((eq completion t))
 	  ((null completion)
@@ -3018,7 +3018,7 @@ It will read a file name from the minibuffer when invoked."
   (abbreviate-file-name
    (if unbound
        (read-file-name prompt)
-     (let ((prompt2 (format "%s (default %s) " prompt value))
+     (let ((prompt2 (format "%s (default %s): " prompt value))
 	   (dir (file-name-directory value))
 	   (file (file-name-nondirectory value))
 	   (must-match (widget-get widget :must-match)))
@@ -3031,7 +3031,7 @@ It will read a file name from the minibuffer when invoked."
 ;;;	 (file (file-name-nondirectory value))
 ;;;	 (menu-tag (widget-apply widget :menu-tag-get))
 ;;;	 (must-match (widget-get widget :must-match))
-;;;	 (answer (read-file-name (concat menu-tag ": (default `" value "') ")
+;;;	 (answer (read-file-name (concat menu-tag " (default " value "): ")
 ;;;				 dir nil must-match file)))
 ;;;    (widget-value-set widget (abbreviate-file-name answer))
 ;;;    (widget-setup)
@@ -3135,10 +3135,10 @@ It will read a directory name from the minibuffer when invoked."
   "Read coding-system from minibuffer."
   (if (widget-get widget :base-only)
       (intern
-       (completing-read (format "%s (default %s) " prompt value)
+       (completing-read (format "%s (default %s): " prompt value)
 			(mapcar #'list (coding-system-list t)) nil nil nil
 			coding-system-history))
-      (read-coding-system (format "%s (default %s) " prompt value) value)))
+      (read-coding-system (format "%s (default %s): " prompt value) value)))
 
 (defun widget-coding-system-action (widget &optional event)
   (let ((answer

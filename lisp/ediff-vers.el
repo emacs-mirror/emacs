@@ -299,7 +299,10 @@
 	  ((eq type 'MODIFIED)
 	   (ediff-buffers
 	    (find-file-noselect tmp-file)
-	    (find-file-noselect (cvs-fileinfo->full-path fileinfo))
+	    (if (featurep 'xemacs)
+		;; XEmacs doesn't seem to have cvs-fileinfo->full-name
+		(find-file-noselect (cvs-fileinfo->full-path fileinfo))
+	      (find-file-noselect (cvs-fileinfo->full-name fileinfo)))
 	    nil ; startup-hooks
 	    'ediff-revisions)))
     (if (stringp tmp-file) (delete-file tmp-file))

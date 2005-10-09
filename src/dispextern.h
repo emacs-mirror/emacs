@@ -2936,7 +2936,6 @@ EXFUN (Fdisplay_tty_type, 1);
 extern struct device *init_initial_device P_ ((void));
 extern struct device *init_tty P_ ((char *, char *, int));
 extern void delete_tty P_ ((struct device *));
-extern void fatal P_ ((/* char *, ... */));
 extern void cursor_to P_ ((struct frame *, int, int));
 extern int tty_capable_p P_ ((struct tty_display_info *, unsigned, unsigned long, unsigned long));
 extern void tty_set_terminal_modes P_ ((struct device *));

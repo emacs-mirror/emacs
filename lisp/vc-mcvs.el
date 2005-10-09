@@ -225,7 +225,7 @@ the Meta-CVS command (in that order)."
     ;; Make sure the `mcvs add' will not fire up the CVSEDITOR
     ;; to add a rule for the given file's extension.
     (when (and ext (not (assoc ext types)))
-      (let ((type (completing-read "Type to use [default]: "
+      (let ((type (completing-read "Type to use (default): "
 				   '("default" "name-only" "keep-old"
 				     "binary" "value-only")
 				   nil t nil nil "default")))

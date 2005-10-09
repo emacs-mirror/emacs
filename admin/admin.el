@@ -87,7 +87,36 @@ Root must be the root of an Emacs source tree."
 				(submatch (1+ (in "0-9."))))))
   (set-version-in-file root "lispref/elisp.texi" version
 		       (rx (and "EMACSVER" (1+ space)
-				(submatch (1+ (in "0-9.")))))))
+				(submatch (1+ (in "0-9."))))))
+  ;; nt/emacs.rc also contains the version number, but in an awkward
+  ;; format. It must contain four components, separated by commas, and
+  ;; in two places those commas are followed by space, in two other
+  ;; places they are not.
+  (let* ((version-components (append (split-string version "\\.")
+				    '("0" "0")))
+	 (comma-version
+	  (concat (car version-components) ","
+		  (cadr version-components) ","
+		  (cadr (cdr version-components)) "," 
+		  (cadr (cdr (cdr version-components)))))
+	 (comma-space-version
+	  (concat (car version-components) ", "
+		  (cadr version-components) ", "
+		  (cadr (cdr version-components)) ", " 
+		  (cadr (cdr (cdr version-components))))))
+    (set-version-in-file root "nt/emacs.rc" comma-version
+			 (rx (and "FILEVERSION" (1+ space)
+				  (submatch (1+ (in "0-9,"))))))
+    (set-version-in-file root "nt/emacs.rc" comma-version
+			 (rx (and "PRODUCTVERSION" (1+ space)
+				  (submatch (1+ (in "0-9,"))))))
+    (set-version-in-file root "nt/emacs.rc" comma-space-version
+			 (rx (and "\"FileVersion\"" (0+ space) ?, (0+ space)
+				  ?\" (submatch (1+ (in "0-9, "))) "\\0\"")))
+    (set-version-in-file root "nt/emacs.rc" comma-space-version
+			 (rx (and "\"ProductVersion\"" (0+ space) ?,
+				  (0+ space) ?\" (submatch (1+ (in "0-9, ")))
+				  "\\0\"")))))
 
 ;;; arch-tag: 4ea83636-2293-408b-884e-ad64f22a3bf5
 ;; admin.el ends here.

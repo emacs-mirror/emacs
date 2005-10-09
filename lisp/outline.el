@@ -685,7 +685,7 @@ This puts point at the start of the current subtree, and mark at the end."
       (outline-previous-visible-heading 1))
     (setq beg (point))
     (outline-end-of-subtree)
-    (push-mark (point))
+    (push-mark (point) nil t)
     (goto-char beg)))
 
 

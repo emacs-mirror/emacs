@@ -1,3 +1,111 @@
+2005-10-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.texi (GDB): Describe use of watch expressions.
+
+2005-10-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* frames.texi (Drag and Drop): Remove the x- from
+	x-dnd-open-file-other-window and xdnd-protocol-alist.
+
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* mini.texi (Minibuffer): The default value now appears before the
+	colon in minibuffer prompts.
+
+2005-09-28  Simon Josefsson  <jas@extundo.com>
+
+	* message.texi (IDNA): Fix.
+
+2005-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (NNTP): Remove nntp-buggy-select, nntp-read-timeout,
+	nntp-server-hook, and nntp-warn-about-losing-connection; fix
+	description of nntp-open-connection-function.
+	(Common Variables): Fix descriptions.
+
+2005-09-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Server Buffer Format): Document the %a format spec.
+
+2005-09-25  Richard M. Stallman  <rms@gnu.org>
+
+	* search.texi (Regexp Search): Doc search-whitespace-regexp.
+
+2005-09-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Mail): Fix gnus-confirm-mail-reply-to-news entry.
+
+2005-09-20  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* text.texi (Paragraphs): Correction about Paragraph-Indent Text mode.
+
+2005-09-23  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi Version 3.16
+
+2005-09-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.texi (Top): Update submenus from macos.texi.
+
+	* macos.texi: Change `Mac OS 8 or 9' to `Mac OS Classic'.
+	(Mac OS): Update feature support status.
+	(Mac Input): List supported input scripts.  Remove description
+	about `mac-keyboard-text-encoding'.  Mention mouse button
+	emulation and related variables.
+	(Mac International): Mention Central European and Cyrillic
+	support.  Now `keyboard-coding-system' is dynamically changed.
+	Add description about coding system for selection.  Add
+	description about language environment.
+	(Mac Environment Variables): Mention
+	`~/.MacOSX/environment.plist'.  Give example of command line
+	arguments.  Add Preferences support.
+	(Mac Directories): Explicitly state that this node is for Mac OS
+	Classic only.
+	(Mac Font Specs): Mention specification for scalable fonts.  List
+	supported charsets.  Add preferred way of creating fontsets.  Add
+	description about `mac-allow-anti-aliasing'.
+	(Mac Functions): Add descriptions about `mac-set-file-creator',
+	`mac-get-file-creator', `mac-set-file-type', `mac-get-file-type',
+	and `mac-get-preference'.
+
+2005-09-19  Miles Bader  <miles@gnu.org>
+
+	* newsticker.texi: Get rid of CVS keywords.
+
+2005-09-15  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Finding the Parent): Fix description of how Gnus
+	finds article.
+
+2005-09-14  Jari Aalto  <jari.aalto@cante.net>
+
+	* gnus.texi (Advanced Scoring Examples): New examples to teach how
+	to drop off non-answered articles.
+
+2005-09-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* makefile.w32-in (newsticker.dvi): Use parentheses instead of curly
+	braces (which are unsupported by NMAKE) for macro `srcdir'.
+
+2005-09-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (INFO_TARGETS, DVI_TARGETS): Add newsticker targets.
+	(../info/newsticker, newsticker.dvi): New targets.
+
+2005-09-17  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.texi: Replace @command with @code.  Replace @example
+	with @lisp.
+	(Top): Added explanations to menu items.
+	(GNU Free Documentation License): Removed.
+
+2005-09-16  Romain Francoise  <romain@orebokech.com>
+
+	Update all files to specify GFDL version 1.2.
+
+	* doclicense.texi (GNU Free Documentation License): Update to
+	version 1.2.
+
 2005-09-15  Richard M. Stallman  <rms@gnu.org>
 
 	* buffers.texi (List Buffers): Fix xref.
@@ -2817,8 +2925,8 @@
 
 2004-02-29  Juanma Barranquero  <lektu@terra.es>
 
-	* makefile.w32-in (mostlyclean, clean, maintainer-clean): Use
-	$(DEL) instead of rm, and ignore exit code.
+	* makefile.w32-in (mostlyclean, clean, maintainer-clean):
+	Use $(DEL) instead of rm, and ignore exit code.
 
 2004-02-29  Kai Grossjohann  <kgrossjo@eu.uu.net>
 

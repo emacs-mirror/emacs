@@ -1159,7 +1159,7 @@ surely saves the buffer with CODING-SYSTEM.  From a program, if you
 don't want to mark the buffer modified, specify t for NOMODIFY.
 If you know exactly what coding system you want to use,
 just set the variable `buffer-file-coding-system' directly."
-  (interactive "zCoding system for saving file (default, nil): \nP")
+  (interactive "zCoding system for saving file (default nil): \nP")
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
       (setq coding-system
@@ -1183,7 +1183,7 @@ do.  If FORCE is nil, get the unspecified aspect (or aspects) from the
 buffer's previous `buffer-file-coding-system' value (if it is
 specified there).  Otherwise, determine it from the file contents as
 usual for visiting a file."
-  (interactive "zCoding system for visited file (default, nil): \nP")
+  (interactive "zCoding system for visited file (default nil): \nP")
   (check-coding-system coding-system)
   (if (and coding-system buffer-file-coding-system (null force))
       (setq coding-system
@@ -1195,7 +1195,7 @@ usual for visiting a file."
   "Set coding system for decoding and encoding file names to CODING-SYSTEM.
 It actually just set the variable `file-name-coding-system' (which
 see) to CODING-SYSTEM."
-  (interactive "zCoding system for file names (default, nil): ")
+  (interactive "zCoding system for file names (default nil): ")
   (check-coding-system coding-system)
   (if (and coding-system
 	   (coding-system-get coding-system 'ascii-incompatible))
@@ -1223,7 +1223,7 @@ The setting has no effect on graphical displays."
 				 default-terminal-coding-system)
 			    default-terminal-coding-system)))
 	   (read-coding-system
-	    (format "Coding system for terminal display (default, %s): "
+	    (format "Coding system for terminal display (default %s): "
 		    default)
 	    default))))
   (if (and (not coding-system)
@@ -1255,7 +1255,7 @@ The setting has no effect on graphical displays."
 				 default-keyboard-coding-system)
 			    default-keyboard-coding-system)))
 	   (read-coding-system
-	    (format "Coding system for keyboard input (default, %s): "
+	    (format "Coding system for keyboard input (default %s): "
 		    default)
 	    default))))
   (if (and (not coding-system)
@@ -1328,7 +1328,7 @@ This setting is effective for the next communication only."
   (interactive
    (list (read-coding-system
 	  (if last-next-selection-coding-system
-	      (format "Coding system for the next X selection (default, %S): "
+	      (format "Coding system for the next X selection (default %S): "
 		      last-next-selection-coding-system)
 	    "Coding system for the next X selection: ")
 	  last-next-selection-coding-system)))

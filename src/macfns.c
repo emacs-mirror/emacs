@@ -94,6 +94,11 @@ Lisp_Object Qcancel_timer;
 
 extern Lisp_Object Vwindow_system_version;
 
+#if GLYPH_DEBUG
+int image_cache_refcount, dpyinfo_refcount;
+#endif
+
+
 #if 0 /* Use xstricmp instead.  */
 /* compare two strings ignoring case */
 
@@ -2527,6 +2532,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
       }
 
     /* Try out a font which we hope has bold and italic variations.  */
+#if USE_ATSUI
+    if (! STRINGP (font))
+      font = x_new_font (f, "-*-monaco-medium-r-normal--12-*-*-*-*-*-iso10646-1");
+#endif
     if (! STRINGP (font))
       font = x_new_font (f, "-ETL-fixed-medium-r-*--*-160-*-*-*-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
@@ -3335,6 +3344,10 @@ start_hourglass ()
   EMACS_TIME delay;
   int secs, usecs = 0;
 
+  /* Don't bother for ttys.  */
+  if (NILP (Vwindow_system))
+    return;
+
   cancel_hourglass ();
 
   if (INTEGERP (Vhourglass_delay)
@@ -3581,7 +3594,7 @@ x_create_tip_frame (dpyinfo, parms, text)
   FRAME_FONTSET (f)  = -1;
   f->icon_name = Qnil;
 
-#if 0 /* GLYPH_DEBUG TODO: image support.  */
+#if GLYPH_DEBUG
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
@@ -3625,6 +3638,10 @@ x_create_tip_frame (dpyinfo, parms, text)
       }
 
     /* Try out a font which we hope has bold and italic variations.  */
+#if USE_ATSUI
+    if (! STRINGP (font))
+      font = x_new_font (f, "-*-monaco-medium-r-normal--12-*-*-*-*-*-iso10646-1");
+#endif
     if (! STRINGP (font))
       font = x_new_font (f, "-ETL-fixed-medium-r-*--*-160-*-*-*-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
@@ -4145,6 +4162,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     options.optionFlags = kNavDefaultNavDlogOptions;
     options.optionFlags |= kNavAllFilesInPopup;  /* All files allowed */
     options.optionFlags |= kNavSelectAllReadableItem;
+    options.optionFlags &= ~kNavAllowMultipleFiles;
     if (!NILP(prompt))
       {
 	message = cfstring_create_with_string (prompt);

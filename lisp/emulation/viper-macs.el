@@ -118,7 +118,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
       (define-key viper-vi-intercept-map "\C-x)" 'viper-end-mapping-kbd-macro)
       (define-key viper-insert-intercept-map "\C-x)" 'viper-end-mapping-kbd-macro)
       (define-key viper-emacs-intercept-map "\C-x)" 'viper-end-mapping-kbd-macro)
-      (message "Mapping %S in %s state.  Hit `C-x )' to complete the mapping"
+      (message "Mapping %S in %s state.  Type macro definition followed by `C-x )'"
 	       (viper-display-macro macro-name)
 	       (if ins "Insert" "Vi")))
     ))
@@ -170,7 +170,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	      ((stringp macro-name)
 	       (setq macro-name (vconcat macro-name)))
 	      (t (setq macro-name (vconcat (prin1-to-string macro-name)))))
-      (message ":map%s <Name>" variant)(sit-for 2)
+      (message ":map%s <Macro Name>" variant)(sit-for 2)
       (while
 	  (not (member key
 		       '(?\C-m ?\n (control m) (control j) return linefeed)))
@@ -186,7 +186,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	       variant (if (> (length key-seq) 0)
 			   (prin1-to-string (viper-display-macro key-seq))
 			 "")))
-	(message message)
+	(message "%s" message)
 	(setq event (viper-read-key))
 	;;(setq event (viper-read-event))
 	(setq key
@@ -263,7 +263,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 			   (prin1-to-string
 			    (viper-display-macro key-seq))
 			 "")))
-	(message message)
+	(message "%s" message)
 	(setq event (viper-read-key))
 	;;(setq event (viper-read-event))
 	(setq key
@@ -442,7 +442,7 @@ If SCOPE is nil, the user is asked to specify the scope."
 		       scope)
 	       viper-custom-file-name))
 
-	  (message msg)
+	  (message "%s" msg)
 	  ))
 
     (setq new-elt

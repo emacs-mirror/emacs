@@ -82,11 +82,11 @@ def complete (text, namespace = None):
     except:
         print '_emacs_out ()'
 
-def ehelp (name):
-    """Get help on string NAME.
+def ehelp (name, g, l):
+    """Get help on string NAME using globals G and locals L.
     First try to eval name for, e.g. user definitions where we need
     the object.  Otherwise try the string form."""
-    try: help (eval (name))
+    try: help (eval (name, g, l))
     except: help (name)
 
 def eimport (mod, dir):

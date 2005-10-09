@@ -1922,7 +1922,7 @@ This button runs `mh-previous-undeleted-msg'")
     "Go to the next undeleted message\nThe button runs `mh-next-undeleted-msg'")
   (mh-delete-msg (folder) "close"
     "Mark this message for deletion\nThis button runs `mh-delete-msg'")
-  (mh-refile-msg (folder) "refile"
+  (mh-refile-msg (folder) "mail/refile"
     "Refile this message\nThis button runs `mh-refile-msg'")
   (mh-undo (folder) "undo" "Undo last operation\nThis button runs `undo'"
     (mh-outstanding-commands-p))
@@ -1933,19 +1933,19 @@ This button runs `mh-previous-undeleted-msg'")
     "Toggle tick mark\nThis button runs `mh-toggle-tick'")
   (mh-toggle-showing (folder) "show"
     "Toggle showing message\nThis button runs `mh-toggle-showing'")
-  (mh-tool-bar-reply-from (folder) "reply-from" "Reply to \"from\"")
-  (mh-tool-bar-reply-to (folder) "reply-to" "Reply to \"to\"")
-  (mh-tool-bar-reply-all (folder) "reply-all" "Reply to \"all\"")
-  (mh-reply (folder) "mail/reply2"
+  (mh-tool-bar-reply-from (folder) "mail/reply-from" "Reply to \"from\"")
+  (mh-tool-bar-reply-to (folder) "mail/reply-to" "Reply to \"to\"")
+  (mh-tool-bar-reply-all (folder) "mail/reply-all" "Reply to \"all\"")
+  (mh-reply (folder) "mail/reply"
     "Reply to this message\nThis button runs `mh-reply'")
-  (mh-alias-grab-from-field (folder) "alias"
+  (mh-alias-grab-from-field (folder) "mail/alias"
     "Grab From alias\nThis button runs `mh-alias-grab-from-field'"
     (and (mh-extract-from-header-value) (not (mh-alias-for-from-p))))
   (mh-send (folder) "mail_compose"
     "Compose new message\nThis button runs `mh-send'")
-  (mh-rescan-folder (folder) "rescan"
+  (mh-rescan-folder (folder) "refresh"
     "Rescan this folder\nThis button runs `mh-rescan-folder'")
-  (mh-pack-folder (folder) "repack"
+  (mh-pack-folder (folder) "mail/repack"
     "Repack this folder\nThis button runs `mh-pack-folder'")
   (mh-tool-bar-search (folder) "search"
     "Search\nThis button runs `mh-tool-bar-search-function'")

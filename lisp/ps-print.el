@@ -4663,7 +4663,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
        (let* ((name   (concat (file-name-nondirectory (or (buffer-file-name)
 							  (buffer-name)))
 			      ".ps"))
-	      (prompt (format "Save PostScript to file: (default %s) " name))
+	      (prompt (format "Save PostScript to file (default %s): " name))
 	      (res    (read-file-name prompt default-directory name nil)))
 	 (while (cond ((file-directory-p res)
 		       (ding)

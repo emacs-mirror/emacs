@@ -1,3 +1,15 @@
+2005-09-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL (NOTES): Update the list of versions of MacOS on which
+	Emacs should build.
+
+	* README: Remove a link to ftp://ftp.gnu.org/gnu/mac/emacs/ (which
+	does not exist).
+
+2005-09-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* inc/config.h: Sync with src/config.in.
+
 2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Emacs.app/Contents/Info.plist (mail-to, mail-selection): New

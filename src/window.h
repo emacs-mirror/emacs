@@ -290,11 +290,6 @@ struct window
        be changed during redisplay.  If point is not in the window,
        accept that.  */
     unsigned frozen_window_start_p : 1;
-
-    /* 1 means that this window's height is temporarily fixed.  Used
-       in resize_mini_window to precent resizing selected_window, if
-       possible.  */
-    unsigned height_fixed_p : 1;
 };
 
 /* 1 if W is a minibuffer window.  */

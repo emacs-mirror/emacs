@@ -3,7 +3,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Author: Bill Carpenter <bill@bubblegum.net>, <bill@carpenter.ORG>
+;; Author: Bill Carpenter <bill@carpenter.ORG>
 ;; Version: 8
 ;; Keywords: email, queue, mail, sendmail, message, spray, smtp, draft
 ;; X-URL: <URL:http://www.carpenter.org/feedmail/feedmail.html>
@@ -1943,7 +1943,7 @@ mapped to mostly alphanumerics for safety."
 	       (file-exists-p a-s-file-name)
 	       (delete-file a-s-file-name))))
     (if feedmail-queue-chatty
-	(progn (message (concat "FQM: Queued in " filename))
+	(progn (message "%s" (concat "FQM: Queued in " filename))
 	       (sit-for feedmail-queue-chatty-sit-for)))
     (if feedmail-queue-chatty
 	(progn

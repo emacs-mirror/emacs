@@ -1,3 +1,138 @@
+2005-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-url.el (mm-url-predefined-programs): Add switches for curl.
+
+	* gnus-util.el (gnus-remove-duplicates): Remove.
+
+	* nnmail.el (nnmail-article-group): Use mm-delete-duplicates
+	instead of gnus-remove-duplicates.
+
+	* message.el (message-remove-duplicates): Remove.
+	(message-idna-to-ascii-rhs-1): Use mm-delete-duplicates instead of
+	message-remove-duplicates.
+
+	* mm-util.el (mm-delete-duplicates): Use `delete-dups' if
+	available, else use implementation from `delete-dups'.
+
+2005-10-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* time-date.el: Autoload parse-time-string, XEmacs needs it.
+
+2005-09-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-decode.el (mm-inline-media-tests): Check presence of the diff-mode
+	function rather than the diff-mode.el package.
+	(mm-display-external): Use with-current-buffer.
+	(mm-viewer-completion-map, mm-viewer-completion-map):
+	Move initialization inside declaration.
+
+2005-09-28  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el: Remove useless autoloads.
+
+2005-09-28  Simon Josefsson  <jas@extundo.com>
+
+	* message.el (message-use-idna): Default to t.
+	(message-use-idna): Test whether encoding works too.  Doc fix.
+
+2005-09-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nntp.el (nntp-warn-about-losing-connection): Remove.
+
+2005-09-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-uu.el (mm-uu-emacs-sources-regexp): Make variable
+	customizable.  Change default value.
+	(mm-uu-diff-groups-regexp): Change default value.
+	(mm-uu-type-alist): Add doc string.
+	(mm-uu-configure): Add doc string.  Make it interactive.
+	(mm-uu-diff-groups-regexp): Fix missing quotes from previous commit.
+
+2005-09-27  Simon Josefsson  <jas@extundo.com>
+
+	* message.el (message-idna-to-ascii-rhs-1): Reformat.
+
+2005-09-27  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* message.el (message-remove-duplicates): New function.
+	Implementation borrowed from `gnus-remove-duplicates'.
+	(message-idna-to-ascii-rhs): Also encode idna addresses in
+	Reply-To:, Mail-Reply-To: and Mail-Followup-To:.
+	(message-idna-to-ascii-rhs-1): When `message-use-idna' is 'ask
+	only ask about the same idna domain once per header and also tell
+	in what header to replace the idna domain.
+
+	* gnus-art.el (article-decode-idna-rhs): Also decode idna
+	addresses in Reply-To:, Mail-Reply-To: and Mail-Followup-To:.
+	(article-decode-idna-rhs): Fix regexp so that all idna-address in
+	a header is decoded and not just the last one.
+
+2005-09-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-display-single): Don't modify text if it
+	has been decoded.
+
+	* mm-decode.el (mm-insert-part): Don't modify text if it has been
+	decoded.
+
+	* mm-view.el (mm-inline-text): Don't strip text props unless
+	decoding enriched or richtext parts.
+
+2005-09-25  Romain Francoise  <romain@orebokech.com>
+
+	* gnus-agent.el (gnus-agent-expire-group, gnus-agent-expire):
+	* gnus-start.el (gnus-subscribe-interactively):
+	* gnus-uu.el (gnus-uu-grab-articles):
+	End `yes-or-no-p' and `y-or-n-p' prompts with question mark and
+	space.
+
+2005-09-24  Emilio C. Lopes  <eclig@gmx.net>
+
+	* smime.el (smime-sign-buffer, smime-decrypt-buffer):
+	* mm-view.el (mm-view-pkcs7-decrypt):
+	* gnus-sum.el (gnus-summary-limit-to-extra)
+	(gnus-summary-respool-article, gnus-read-move-group-name):
+	* gnus-score.el (gnus-summary-increase-score):
+	* gnus-util.el (gnus-completing-read-with-default):
+	* gnus-art.el (gnus-read-save-file-name)
+	(gnus-summary-save-in-rmail, gnus-summary-save-in-mail)
+	(gnus-summary-save-in-file, gnus-summary-save-body-in-file):
+	* message.el (message-check-news-header-syntax):
+	Follow convention for reading with the minibuffer.
+
+2005-09-22  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam-report.el (spam-report-url-ping-plain):
+	Use gnus-extended-version as User-Agent.
+
+	* gnus-agent.el (gnus-agent-synchronize-flags): Explain why the
+	default value is nil.
+
+2005-09-20  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-agent.el (gnus-agent-synchronize-flags): Switch the
+	default to nil, to be able to use Gnus at all.  If the default
+	switches to something else, then the function should be fixed not
+	be exceedingly slow.
+
+2005-09-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-url.el (mm-url-decode-entities): Fix regexp.
+
+2005-09-18  Deepak Goel  <deego@gnufans.org>
+
+	* sieve.el (sieve-help): Fix `message' call: first arg should be a
+	format spec.
+
+2005-09-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-group-startup-message): Bind image-load-path.
+
+2005-09-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-display-part): Protect against broken
+	MIME messages.
+
 2005-09-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-sum.el (gnus-summary-edit-article-done): Remove text props
@@ -17,9 +152,9 @@
 2005-09-07  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* spam-report.el (spam-report-gmane): Make it work without
-	X-Report-Spam header.  Gmane now only provides Archived-At.  This
-	is only used if `spam-report-gmane-use-article-number' is nil.
-	(spam-report-gmane-spam-header): Removed.  Not used anymore.
+	X-Report-Spam header.  Gmane now only provides Archived-At.
+	This is only used if `spam-report-gmane-use-article-number' is nil.
+	(spam-report-gmane-spam-header): Remove.  Not used anymore.
 
 	* nnweb.el (nnweb-google-wash-article): Print a message if article
 	is not available.

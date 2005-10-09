@@ -51,10 +51,7 @@ extern void srandom P_ ((unsigned int));
 #include "blockinput.h"
 
 #ifdef MAC_OS8
-/* It is essential to include stdlib.h so that this file picks up
-   the correct definitions of rand, srand, and RAND_MAX.
-   Otherwise random numbers will not work correctly.  */
-#include <stdlib.h>
+#include <sys/param.h>
 
 #ifndef subprocesses
 /* Nonzero means delete a process right away if it exits (process.c).  */
@@ -257,7 +254,7 @@ void hft_reset P_ ((struct tty_display_info *));
 SIGMASKTYPE sigprocmask_set;
 
 
-#ifndef HAVE_GET_CURRENT_DIR_NAME
+#if !defined (HAVE_GET_CURRENT_DIR_NAME) || defined (BROKEN_GET_CURRENT_DIR_NAME)
 
 /* Return the current working directory.  Returns NULL on errors.
    Any other returned value must be freed with free. This is used

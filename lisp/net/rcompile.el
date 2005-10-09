@@ -138,7 +138,7 @@ See \\[compile]."
                     remote-compile-host)
              user (if remote-compile-prompt-for-user
                       (read-from-minibuffer (format
-                                             "Compile by user (default %s)"
+                                             "Compile by user (default %s): "
                                              (or remote-compile-user
                                                  (user-login-name)))
                                             "" nil nil

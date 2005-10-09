@@ -194,7 +194,7 @@ attribute names are returned. Default to `person'"
   "Check if the current LDAP server has a configured search base."
   (unless (or (eudc-ldap-get-host-parameter eudc-server 'base)
 	      ldap-default-base
-	      (null (y-or-n-p "No search base defined. Configure it now ?")))
+	      (null (y-or-n-p "No search base defined. Configure it now? ")))
     ;; If the server is not in ldap-host-parameters-alist we add it for the
     ;; user
     (if (null (assoc eudc-server ldap-host-parameters-alist))

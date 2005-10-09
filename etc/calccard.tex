@@ -59,8 +59,7 @@
 %  UUCP: mit-erl!gildea
 %  Internet: gildea@stop.mail-abuse.org
 
-\def\versionnumber{2.03}
-\def\versiondate{November 2001}
+\def\versionnumber{2.1}
 \def\year{2005}
 \def\version{v\versionnumber}
 
@@ -72,7 +71,7 @@
 \vskip 1ex plus 2 fill\begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
 \centerline{designed by Dave Gillespie and Stephen Gildea, \version}
-\centerline{for GNU Emacs Calc version \versionnumber\ (\versiondate)}
+\centerline{for GNU Emacs Calc version \versionnumber}
 
 Permission is granted to make and distribute copies of
 this card provided the copyright notice and this permission notice
@@ -274,7 +273,7 @@ MA 02110-1301, USA.
 
 \title{GNU Calc Reference Card}
 
-\centerline{(for version \versionnumber\ of \versiondate)}
+\centerline{(for version \versionnumber)}
 
 \section{Starting and Stopping}
 
@@ -307,7 +306,7 @@ The \kbd{h} prefix key is Calc's analogue of \kbd{C-h} in Emacs.
 \key{redo last operation}{D}
 \key{recall last arguments}{M-RET}
 \key{edit top of stack}{`}
-\wkey{reset Calc to default state}{\mhash 0 {\rm (zero)}}
+\wkey{reset Calc to initial state}{\mhash 0 {\rm (zero)}}
 
 \section{Transferring Data}
 
@@ -558,7 +557,7 @@ Variable names are single digits or whole words.
 
 \key{``Big'' display mode}{d B}
 \key{C, Pascal, FORTRAN modes}{d C\, d P\, d F}
-\key{\TeX, eqn modes}{d T\, d E}
+\key{\TeX, La\TeX, eqn modes}{d T\, d L\, d E}
 \key{Unformatted mode}{d U}
 \key{Normal language mode}{d N}
 
@@ -652,7 +651,6 @@ Variable names are single digits or whole words.
 \key{repeat {\it n} times, break from loop}{Z <\, Z >\, Z /}
 \key{``for'' loop: start, end; body, step}{Z (\, Z )}
 \key{save, restore mode settings}{Z `\, Z '}
-\key{display message during macro}{Z =}
 \key{query user during macro}{Z \#}
 \key{put finished macro on a key}{Z K}
 

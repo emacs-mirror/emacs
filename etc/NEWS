@@ -2556,14 +2556,19 @@ The recent file list is now automatically cleanup when recentf mode is
 enabled.  The new option `recentf-auto-cleanup' controls when to do
 automatic cleanup.
 
+The ten most recent files can be quickly opened by using the shortcut
+keys 1 to 9, and 0, when the recent list is displayed in a buffer via
+the `recentf-open-files', or `recentf-open-more-files' commands.
+
 The `recentf-keep' option replaces `recentf-keep-non-readable-files-p'
 and provides a more general mechanism to customize which file names to
 keep in the recent list.
 
-With the more advanced option: `recentf-filename-handler', you can
-specify a function that transforms filenames handled by recentf.  For
-example, if set to `file-truename', the same file will not be in the
-recent list with different symbolic links.
+With the more advanced option `recentf-filename-handlers', you can
+specify functions that successively transform recent file names.  For
+example, if set to `file-truename' plus `abbreviate-file-name', the
+same file will not be in the recent list with different symbolic
+links, and the file name will be abbreviated.
 
 To follow naming convention, `recentf-menu-append-commands-flag'
 replaces the misnamed option `recentf-menu-append-commands-p'.  The
@@ -3694,6 +3699,12 @@ If the variable is itself nil, then `frame-or-buffer-changed-p' uses,
 for compatibility, an internal variable which exists only for this
 purpose.
 
++++
+*** The function `read-buffer' follows the convention for reading from
+the minibuffer with a default value: if DEF is non-nil, the minibuffer
+prompt provided in PROMPT is edited to show the default value provided
+in DEF before the terminal colon and space.
+
 ** Local variables lists:
 
 +++
@@ -4340,6 +4351,9 @@ buffer.
 
 If non-nil, that says to preserve the window's current margin, fringe,
 and scroll-bar settings.
+
++++
+*** The new function `window-split-tree' returns a frame's window split tree.
 
 +++
 ** Customizable fringe bitmaps

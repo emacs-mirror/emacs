@@ -441,7 +441,7 @@ worked today, ignoring the time worked on previous days."
 		      "remaining" "over")
 		  (timeclock-when-to-leave-string show-seconds today-only)))
     (if (interactive-p)
-	(message status)
+	(message "%s" status)
       status)))
 
 ;;;###autoload
@@ -512,7 +512,7 @@ See `timeclock-relative' for more information about the meaning of
 		 (timeclock-workday-remaining today-only)
 		 show-seconds t)))
     (if (interactive-p)
-	(message string)
+	(message "%s" string)
       string)))
 
 (defsubst timeclock-workday-elapsed ()
@@ -534,7 +534,7 @@ non-nil, the amount returned will be relative to past time worked."
   (let ((string (timeclock-seconds-to-string (timeclock-workday-elapsed)
 					     show-seconds)))
     (if (interactive-p)
-	(message string)
+	(message "%s" string)
       string)))
 
 (defsubst timeclock-time-to-seconds (time)
@@ -579,7 +579,7 @@ relative only to the time worked today, and not to past time."
 	      (format-time-string "%-I:%M:%S %p" then)
 	    (format-time-string "%-I:%M %p" then))))
     (if (interactive-p)
-	(message string)
+	(message "%s" string)
       string)))
 
 ;;; Internal Functions:
@@ -599,7 +599,7 @@ relative only to the time worked today, and not to past time."
 (defun timeclock-ask-for-project ()
   "Ask the user for the project they are clocking into."
   (timeclock-completing-read
-   (format "Clock into which project (default \"%s\"): "
+   (format "Clock into which project (default %s): "
 	   (or timeclock-last-project
 	       (car timeclock-project-list)))
    (mapcar 'list timeclock-project-list)

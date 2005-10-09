@@ -1,10 +1,9 @@
 ;;; reftex-global.el --- operations on entire documents with RefTeX
-
-;; Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.28
+;; Version: VERSIONTAG
 
 ;; This file is part of GNU Emacs.
 
@@ -31,9 +30,6 @@
 (provide 'reftex-global)
 (require 'reftex)
 ;;;
-
-(defvar isearch-next-buffer-function)
-(defvar TeX-master)
 
 (defun reftex-create-tags-file ()
   "Create TAGS file by running `etags' on the current document.
@@ -103,6 +99,10 @@ No active TAGS table is required."
     (tags-query-replace from to (or delimited current-prefix-arg)
                         (list 'reftex-all-document-files))))
 
+(eval-when-compile
+  (defvar TeX-master)
+  (defvar isearch-next-buffer-function))
+
 (defun reftex-find-duplicate-labels ()
   "Produce a list of all duplicate labels in the document."
 
@@ -140,7 +140,7 @@ No active TAGS table is required."
     (set (make-local-variable 'TeX-master) master)
     (erase-buffer)
     (insert "                MULTIPLE LABELS IN CURRENT DOCUMENT:\n")
-    (insert
+    (insert 
      " Move point to label and type `r' to run a query-replace on the label\n"
      " and its references.  Type `q' to exit this buffer.\n\n")
     (insert " LABEL               FILE\n")
@@ -198,8 +198,8 @@ one with the `xr' package."
            (not (yes-or-no-p "Replacing all simple labels in multiple files is risky.  Continue? ")))
       (error "Abort"))
   ;; Make the translation list
-  (let* ((re-core (concat "\\("
-                          (mapconcat 'cdr reftex-typekey-to-prefix-alist "\\|")
+  (let* ((re-core (concat "\\(" 
+                          (mapconcat 'cdr reftex-typekey-to-prefix-alist "\\|") 
                           "\\)"))
          (label-re (concat "\\`" re-core "\\([0-9]+\\)\\'"))
          (search-re (concat "[{,]\\(" re-core "\\([0-9]+\\)\\)[,}]"))
@@ -232,11 +232,11 @@ one with the `xr' package."
     (reftex-save-all-document-buffers)
 
     ;; First test to check for erros
-    (setq n (reftex-translate
+    (setq n (reftex-translate 
              files search-re translate-alist error-fmt 'test))
 
     ;; Now the real thing.
-    (if (yes-or-no-p
+    (if (yes-or-no-p 
          (format "Replace %d items at %d places in %d files? "
                  (length translate-alist) n (length files)))
         (progn
@@ -254,9 +254,9 @@ one with the `xr' package."
 
 (defun reftex-translate (files search-re translate-alist error-fmt test)
   ;; In FILES, look for SEARCH-RE and replace match 1 of it with
-  ;; its association in TRANSLATE-ALSIT.
+  ;; its association in TRANSLATE-ALSIT.  
   ;; If we do not find an association and TEST is non-nil, query
-  ;; to ignore the problematic string.
+  ;; to ignore the problematic string.  
   ;; If TEST is nil, it is ignored without query.
   ;; Return the number of replacements.
   (let ((n 0) file label match-data buf macro pos cell)
@@ -282,7 +282,7 @@ one with the `xr' package."
                          (or (looking-at "\\\\ref")
                              (looking-at "\\\\[a-zA-Z]*ref\\(range\\)?[^a-zA-Z]")
                              (looking-at "\\\\ref[a-zA-Z]*[^a-zA-Z]")
-                             (looking-at (format
+                             (looking-at (format 
                                           reftex-find-label-regexp-format
                                           (regexp-quote label)))))
                 ;; OK, we should replace it.
@@ -345,7 +345,7 @@ Also checks if buffers visiting the files are in read-only mode."
 
 (defun reftex-isearch-wrap-function ()
   (if (not isearch-word)
-      (switch-to-buffer
+      (switch-to-buffer 
        (funcall isearch-next-buffer-function (current-buffer) t)))
   (goto-char (if isearch-forward (point-min) (point-max))))
 
@@ -431,7 +431,7 @@ With no argument, this command toggles
 `reftex-isearch-minor-mode' on iff ARG is positive."
   (interactive "P")
   (let ((old-reftex-isearch-minor-mode reftex-isearch-minor-mode))
-    (setq reftex-isearch-minor-mode
+    (setq reftex-isearch-minor-mode 
 	  (not (or (and (null arg) reftex-isearch-minor-mode)
 		   (<= (prefix-numeric-value arg) 0))))
     (unless (eq reftex-isearch-minor-mode old-reftex-isearch-minor-mode)
@@ -462,7 +462,7 @@ With no argument, this command toggles
     ;; Force modeline redisplay.
     (set-buffer-modified-p (buffer-modified-p))))
 
-(add-minor-mode 'reftex-isearch-minor-mode "/I" nil nil
+(add-minor-mode 'reftex-isearch-minor-mode "/I" nil nil 
 		'reftex-isearch-minor-mode)
 
 ;;; arch-tag: 2dbf7633-92c8-4340-8656-7aa019d0f80d

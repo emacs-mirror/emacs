@@ -515,7 +515,7 @@ Entries are (SYMBOL EXPR DOC-STRING TEMP-TYPE BASE-UNITS).")
   (interactive "P")
   (and n (setq math-units-table-buffer-valid nil))
   (math-build-units-table-buffer t)
-  (message (substitute-command-keys "Type \\[calc] to return to the Calculator")))
+  (message "%s" (substitute-command-keys "Type \\[calc] to return to the Calculator")))
 
 (defun calc-define-unit (uname desc)
   (interactive "SDefine unit name: \nsDescription: ")

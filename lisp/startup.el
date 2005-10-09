@@ -1459,7 +1459,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 
 (defun display-startup-echo-area-message ()
   (let ((resize-mini-windows t))
-    (message (startup-echo-area-message))))
+    (message "%s" (startup-echo-area-message))))
 
 
 (defun display-splash-screen ()

@@ -118,10 +118,10 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/wait.h>
 #endif
 
+#include "lisp.h"
 #include "systime.h"
 #include "systty.h"
 
-#include "lisp.h"
 #include "window.h"
 #include "buffer.h"
 #include "charset.h"
@@ -187,7 +187,6 @@ extern Lisp_Object QCfilter;
 
 #include "syswait.h"
 
-extern void set_waiting_for_input P_ ((EMACS_TIME *));
 extern char *get_operating_system_release ();
 
 #ifndef USE_CRT_DLL
@@ -1793,6 +1792,12 @@ create_process (process, new_argv, current_dir)
 #endif
       if (forkin < 0)
 	report_file_error ("Opening pty", Qnil);
+#if defined (RTU) || defined (UNIPLUS) || defined (DONT_REOPEN_PTY)
+      /* In the case that vfork is defined as fork, the parent process
+	 (Emacs) may send some data before the child process completes
+	 tty options setup.  So we setup tty before forking.  */
+      child_setup_tty (forkout);
+#endif /* RTU or UNIPLUS or DONT_REOPEN_PTY */
 #else
       forkin = forkout = -1;
 #endif /* not USG, or USG_SUBTTY_WORKS */
@@ -2077,8 +2082,10 @@ create_process (process, new_argv, current_dir)
 #endif /* SIGCHLD */
 #endif /* !POSIX_SIGNALS */
 
+#if !defined (RTU) && !defined (UNIPLUS) && !defined (DONT_REOPEN_PTY)
 	if (pty_flag)
 	  child_setup_tty (xforkout);
+#endif /* not RTU and not UNIPLUS and not DONT_REOPEN_PTY */
 #ifdef WINDOWSNT
 	pid = child_setup (xforkin, xforkout, xforkout,
 			   new_argv, 1, current_dir);

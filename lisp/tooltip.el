@@ -113,7 +113,8 @@ position to pop up the tooltip."
     (t
      :inherit variable-pitch))
   "Face for tooltips."
-  :group 'tooltip)
+  :group 'tooltip
+  :group 'basic-faces)
 
 (defcustom tooltip-use-echo-area nil
   "Use the echo area instead of tooltip frames for help and GUD tooltips."

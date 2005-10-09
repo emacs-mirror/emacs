@@ -64,7 +64,7 @@
   '((wget "wget" "--user-agent=mm-url" "-q" "-O" "-")
     (w3m  "w3m" "-dump_source")
     (lynx "lynx" "-source")
-    (curl "curl" "--silent")))
+    (curl "curl" "--silent" "--user-agent mm-url" "--location")))
 
 (defcustom mm-url-program
   (cond
@@ -365,7 +365,7 @@ If FOLLOW-REFRESH is non-nil, redirect refresh url in META."
 (defun mm-url-decode-entities ()
   "Decode all HTML entities."
   (goto-char (point-min))
-  (while (re-search-forward "&\\(#[0-9]+\\|[a-z]+\\);" nil t)
+  (while (re-search-forward "&\\(#[0-9]+\\|[a-z]+[0-9]*\\);" nil t)
     (let ((elem (if (eq (aref (match-string 1) 0) ?\#)
 			(let ((c
 			       (string-to-number (substring

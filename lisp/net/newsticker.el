@@ -10,7 +10,6 @@
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS
 ;; Time-stamp:  "26. August 2005, 16:33:46 (ulf)"
-;; CVS-Version: $Id: newsticker.el,v 1.3 2005/09/13 08:47:44 lektu Exp $
 
 (defconst newsticker-version "1.8" "Version number of newsticker.el.")
 
@@ -27,9 +26,8 @@
 ;; General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; if not, write to the Free Software
-;; Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
-;; USA
+;; along with this program; if not, write to the Free Software Foundation,
+;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 ;; ======================================================================
 ;;; Commentary:
@@ -3429,7 +3427,7 @@ there is another message displayed or the minibuffer is active."
         (setq newsticker--item-position 0))
       (setq newsticker--prev-message
             (nth newsticker--item-position newsticker--item-list))
-      (message newsticker--prev-message))))
+      (message "%s" newsticker--prev-message))))
 
 (defun newsticker--display-scroll ()
   "Called from the display timer.
@@ -3465,7 +3463,7 @@ there is another message displayed or the minibuffer is active."
             (setq subtext (substring subtext 0 t-width))
             (setq t-width (1- t-width))))
         ;; show the ticker text and save current position
-        (message subtext)
+        (message "%s" subtext)
         (setq newsticker--prev-message subtext)
         (setq newsticker--item-position (1+ i))
         (when (>= newsticker--item-position l)

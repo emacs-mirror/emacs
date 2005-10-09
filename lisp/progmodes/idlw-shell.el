@@ -2263,7 +2263,7 @@ overlays."
     (idlwave-shell-display-line 
      (nth idlwave-shell-calling-stack-index stack) nil
      (unless idlwave-shell-electric-debug-mode 'no-debug)) 
-    (message (or message 
+    (message "%s" (or message 
 		 (format "In routine %s (stack level %d)"
 			 idlwave-shell-calling-stack-routine
 			 (- idlwave-shell-calling-stack-index))))))
@@ -2462,7 +2462,7 @@ the problem with not being able to set the breakpoint."
               (beep)
               (y-or-n-p 
                (concat "Okay to recompile file "
-                       (idlwave-shell-bp-get bp 'file) " ")))
+                       (idlwave-shell-bp-get bp 'file) "? ")))
             ;; Recompile
             (progn
               ;; Clean up before retrying

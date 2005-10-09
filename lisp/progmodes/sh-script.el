@@ -2572,9 +2572,9 @@ If INFO is supplied it is used, else it is calculated from current line."
   (if (numberp blinkpos)
       (save-excursion
 	(goto-char blinkpos)
-	(message msg)
+	(if msg (message "%s" msg) (message nil))
 	(sit-for blink-matching-delay))
-    (message msg)))
+    (if msg (message "%s" msg) (message nil))))
 
 (defun sh-show-indent (arg)
   "Show the how the currently line would be indented.
@@ -2591,7 +2591,7 @@ we are indenting relative to, if applicable."
 	 (curr-indent (current-indentation))
 	 val msg)
     (if (stringp var)
-	(message (setq msg var))
+	(message "%s" (setq msg var))
       (setq val (sh-calculate-indent info))
 
       (if (eq curr-indent val)
@@ -2610,8 +2610,8 @@ we are indenting relative to, if applicable."
 	  (if (and info (listp (car info))
 		   (eq (car (car info)) t))
 	      (sh-blink (nth 1 (car info))  msg)
-	    (message msg)))
-      (message msg))
+	    (message "%s" msg)))
+      (message "%s" msg))
     ))
 
 (defun sh-set-indent ()
@@ -2624,7 +2624,7 @@ for a new value for it."
 	 (var (sh-get-indent-var-for-line info))
 	 val old-val indent-val)
     (if (stringp var)
-	(message (format "Cannot set indent - %s" var))
+	(message "Cannot set indent - %s" var)
       (setq old-val (symbol-value var))
       (setq val (sh-read-variable var))
       (condition-case nil
@@ -2675,7 +2675,7 @@ unless optional argument ARG (the prefix when interactive) is non-nil."
 	   (curr-indent (current-indentation)))
       (cond
        ((stringp var)
-	(message (format "Cannot learn line - %s" var)))
+	(message "Cannot learn line - %s" var))
        ((eq var 'sh-indent-comment)
 	;; This is arbitrary...
 	;; - if curr-indent is 0, set to curr-indent

@@ -2875,9 +2875,11 @@ Usually the separator is \".\", but it can be any other string.")
 
 
 (defvar version-regexp-alist
-  '(("^a\\(lpha\\)?$"   . -3)
-    ("^b\\(eta\\)?$"    . -2)
-    ("^\\(pre\\|rc\\)$" . -1))
+  '(("^[-_+]?a\\(lpha\\)?$"   . -3)
+    ("^[-_+]$" . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
+    ("^[-_+]cvs$" . -3)	; treat "1.2.3-CVS" as alpha release
+    ("^[-_+]?b\\(eta\\)?$"    . -2)
+    ("^[-_+]?\\(pre\\|rc\\)$" . -1))
   "*Specify association between non-numeric version part and a priority.
 
 This association is used to handle version string like \"1.0pre2\",
@@ -2900,6 +2902,9 @@ Each element has the following form:
 Where:
 
 REGEXP		regexp used to match non-numeric part of a version string.
+		It should begin with a `^' anchor and end with a `$' to
+		prevent false hits.  Letter-case is ignored while matching
+		REGEXP.
 
 PRIORITY	negative integer which indicate the non-numeric priority.")
 
@@ -2916,9 +2921,12 @@ The version syntax is given by the following EBNF:
    SEPARATOR ::= `version-separator' (which see)
 	       | `version-regexp-alist' (which see).
 
+The NUMBER part is optional if SEPARATOR is a match for an element
+in `version-regexp-alist'.
+
 As an example of valid version syntax:
 
-   1.0pre2   1.0.7.5   22.8beta3   0.9alpha1
+   1.0pre2   1.0.7.5   22.8beta3   0.9alpha1   6.9.30Beta
 
 As an example of invalid version syntax:
 
@@ -2941,7 +2949,7 @@ See documentation for `version-separator' and `version-regexp-alist'."
       (error "Invalid version string: '%s'" ver))
   (save-match-data
     (let ((i 0)
-	  case-fold-search		; ignore case in matching
+	  (case-fold-search t)		; ignore case in matching
 	  lst s al)
       (while (and (setq s (string-match "[0-9]+" ver i))
 		  (= s i))

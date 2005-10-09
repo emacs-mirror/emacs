@@ -738,7 +738,7 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	  (save-window-excursion
 	    (set-window-configuration strokes-window-configuration)
 	    (when prompt
-	      (message prompt)
+	      (message "%s" prompt)
 	      (setq event (read-event))
 	      (or (strokes-button-press-event-p event)
 		  (error "You must draw with the mouse")))
@@ -769,7 +769,7 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	      (bury-buffer))))
       ;; Otherwise, don't use strokes buffer and read stroke silently
       (when prompt
-	(message prompt)
+	(message "%s" prompt)
 	(setq event (read-event))
 	(or (strokes-button-press-event-p event)
 	    (error "You must draw with the mouse")))
@@ -799,7 +799,7 @@ Optional EVENT is acceptable as the starting event of the stroke."
 	    (grid-locs nil))
 	(if prompt
 	    (while (not (strokes-button-press-event-p event))
-	      (message prompt)
+	      (message "%s" prompt)
 	      (setq event (read-event))))
 	(unwind-protect
 	    (track-mouse

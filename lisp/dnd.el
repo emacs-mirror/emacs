@@ -179,7 +179,7 @@ TEXT is the text as a string, WINDOW is the window where the drop happened."
 	  (not (windowp window)))
       (progn
 	(kill-new text)
-	(message
+	(message "%s"
 	 (substitute-command-keys
 	  "The dropped text can be accessed with \\[yank]")))
     (insert text))

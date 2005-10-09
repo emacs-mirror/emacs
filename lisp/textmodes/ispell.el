@@ -719,6 +719,12 @@ LANGUAGE.aff file \(e.g., english.aff\).")
 
 (defvar ispell-really-aspell nil) ; Non-nil if aspell extensions should be used
 
+(defvar ispell-aspell-supports-utf8 nil
+  "Non-nil means to try to automatically find aspell dictionaries.
+This is set to t in ispell-check-version for aspell >= 0.60.
+
+Earlier aspell versions do not consistently support UTF-8.  Handling
+this would require some extra guessing in `ispell-aspell-find-dictionary'.")
 
 
 
@@ -782,7 +788,7 @@ Otherwise returns the library directory name, if that is defined."
 								 (point))
 				 ", "
 				 ispell-version))
-	    (message result))
+	    (message "%s" result))
 	;; return library directory.
 	(if (re-search-forward "LIBDIR = \\\"\\([^ \t\n]*\\)\\\"" nil t)
 	    (setq result (buffer-substring (match-beginning 1) (match-end 1)))))
@@ -814,9 +820,11 @@ Otherwise returns the library directory name, if that is defined."
         (goto-char (point-min))
         (let (case-fold-search)
           (setq ispell-really-aspell
-		(and (search-forward-regexp "(but really Aspell \\(.*\\))" nil t)
-		     (if (version< (match-string 1) "0.60")
-			 (error "aspell version 0.60 or greater is required")
+		(and (search-forward-regexp
+		      "(but really Aspell \\(.*\\))" nil t)
+		     (progn
+		       (setq ispell-aspell-supports-utf8
+			     (not (version< (match-string 1) "0.60")))
 		       t)))))
       (kill-buffer (current-buffer)))
     result))
@@ -872,9 +880,18 @@ and added as a submenu of the \"Edit\" menu.")
 (defvar ispell-have-aspell-dictionaries nil
   "Non-nil if we have queried Aspell for dictionaries at least once.")
 
+(defun ispell-maybe-find-aspell-dictionaries ()
+  "Find Aspell's dictionaries, unless already done."
+  (when (and (not ispell-have-aspell-dictionaries)
+	     (condition-case ()
+		 (progn (ispell-check-version) t)
+	       (error nil))
+	     ispell-really-aspell
+	     ispell-aspell-supports-utf8)
+    (ispell-find-aspell-dictionaries)))
+
 (defun ispell-find-aspell-dictionaries ()
   "Find Aspell's dictionaries, and record in `ispell-dictionary-alist'."
-  (interactive)
   (unless ispell-really-aspell
     (error "This function only works with aspell"))
   (let ((dictionaries
@@ -968,12 +985,7 @@ Assumes that value contains no whitespace."
   "Returns a list of valid dictionaries.
 The variable `ispell-library-directory' defines the library location."
   ;; If Ispell is really Aspell, query it for the dictionary list.
-  (when (and (not ispell-have-aspell-dictionaries)
-	     (condition-case ()
-		 (progn (ispell-check-version) t)
-	       (error nil))
-	     ispell-really-aspell)
-    (ispell-find-aspell-dictionaries))
+  (ispell-maybe-find-aspell-dictionaries)
   (let ((dicts (append ispell-local-dictionary-alist ispell-dictionary-alist))
 	(dict-list (cons "default" nil))
 	name load-dict)
@@ -1545,6 +1557,7 @@ quit          spell session exited."
   (interactive (list ispell-following-word ispell-quietly current-prefix-arg))
   (if continue
       (ispell-continue)
+    (ispell-maybe-find-aspell-dictionaries)
     (ispell-accept-buffer-local-defs)	; use the correct dictionary
     (let ((cursor-location (point))	; retain cursor location
 	  (word (ispell-get-word following))
@@ -2378,7 +2391,7 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
     (substring output 2))		; return root word
    ((equal 0 (string-match "[\ra-zA-Z]" output))
     (ding)				; error message from ispell!
-    (message (concat "Ispell error: " output))
+    (message "Ispell error: %s" output)
     (sit-for 5)
     nil)
    (t					; need to process &, ?, and #'s
@@ -2603,6 +2616,7 @@ a new one will be started when needed."
 Return nil if spell session is quit,
  otherwise returns shift offset amount for last line processed."
   (interactive "r")			; Don't flag errors on read-only bufs.
+  (ispell-maybe-find-aspell-dictionaries)
   (if (not recheckp)
       (ispell-accept-buffer-local-defs)) ; set up dictionary, local words, etc.
   (let ((skip-region-start (make-marker))

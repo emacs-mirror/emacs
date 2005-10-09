@@ -1892,12 +1892,154 @@ created."
   "The standard faces of Emacs."
   :group 'faces)
 
-
 (defface default
   '((t nil))
   "Basic default face."
   :group 'basic-faces)
 
+(defface bold
+  '((t :weight bold))
+  "Basic bold face."
+  :group 'basic-faces)
+
+(defface italic
+  '((((supports :slant italic))
+     :slant italic)
+    (((supports :underline t))
+     :underline t)
+    (t
+     ;; default to italic, even it doesn't appear to be supported,
+     ;; because in some cases the display engine will do it's own
+     ;; workaround (to `dim' on ttys)
+     :slant italic))
+  "Basic italic face."
+  :group 'basic-faces)
+
+(defface bold-italic
+  '((t :weight bold :slant italic))
+  "Basic bold-italic face."
+  :group 'basic-faces)
+
+(defface underline
+  '((((supports :underline t))
+     :underline t)
+    (((supports :weight bold))
+     :weight bold)
+    (t :underline t))
+  "Basic underlined face."
+  :group 'basic-faces)
+
+(defface fixed-pitch
+  '((t :family "courier"))
+  "The basic fixed-pitch face."
+  :group 'basic-faces)
+
+(defface variable-pitch
+  '((t :family "helv"))
+  "The basic variable-pitch face."
+  :group 'basic-faces)
+
+(defface shadow
+  '((((class color grayscale) (min-colors 88) (background light))
+     :foreground "grey50")
+    (((class color grayscale) (min-colors 88) (background dark))
+     :foreground "grey70")
+    (((class color) (min-colors 8) (background light))
+     :foreground "green")
+    (((class color) (min-colors 8) (background dark))
+     :foreground "yellow"))
+  "Basic face for shadowed text."
+  :group 'basic-faces
+  :version "22.1")
+
+(defface highlight
+  '((((class color) (min-colors 88) (background light))
+     :background "darkseagreen2")
+    (((class color) (min-colors 88) (background dark))
+     :background "darkolivegreen")
+    (((class color) (min-colors 16) (background light))
+     :background "darkseagreen2")
+    (((class color) (min-colors 16) (background dark))
+     :background "darkolivegreen")
+    (((class color) (min-colors 8))
+     :background "green" :foreground "black")
+    (t :inverse-video t))
+  "Basic face for highlighting."
+  :group 'basic-faces)
+
+(defface mode-line-highlight
+  '((((class color) (min-colors 88))
+     :box (:line-width 2 :color "grey40" :style released-button))
+    (t
+     :inherit highlight))
+  "Basic mode line face for highlighting."
+  :version "22.1"
+  :group 'modeline
+  :group 'basic-faces)
+
+(defface region
+  '((((class color) (min-colors 88) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 88) (background light))
+     :background "lightgoldenrod2")
+    (((class color) (min-colors 16) (background dark))
+     :background "blue3")
+    (((class color) (min-colors 16) (background light))
+     :background "lightgoldenrod2")
+    (((class color) (min-colors 8))
+     :background "blue" :foreground "white")
+    (((type tty) (class mono))
+     :inverse-video t)
+    (t :background "gray"))
+  "Basic face for highlighting the region."
+  :version "21.1"
+  :group 'basic-faces)
+
+(defface secondary-selection
+  '((((class color) (min-colors 88) (background light))
+     :background "yellow1")
+    (((class color) (min-colors 88) (background dark))
+     :background "SkyBlue4")
+    (((class color) (min-colors 16) (background light))
+     :background "yellow")
+    (((class color) (min-colors 16) (background dark))
+     :background "SkyBlue4")
+    (((class color) (min-colors 8))
+     :background "cyan" :foreground "black")
+    (t :inverse-video t))
+  "Basic face for displaying the secondary selection."
+  :group 'basic-faces)
+
+(defface trailing-whitespace
+  '((((class color) (background light))
+     :background "red1")
+    (((class color) (background dark))
+     :background "red1")
+    (t :inverse-video t))
+  "Basic face for highlighting trailing whitespace."
+  :version "21.1"
+  :group 'whitespace		; like `show-trailing-whitespace'
+  :group 'basic-faces)
+
+(defface escape-glyph
+  '((((background dark)) :foreground "cyan")
+    ;; See the comment in minibuffer-prompt for
+    ;; the reason not to use blue on MS-DOS.
+    (((type pc)) :foreground "magenta")
+    ;; red4 is too dark, but some say blue is too loud.
+    ;; brown seems to work ok. -- rms.
+    (t :foreground "brown"))
+  "Face for characters displayed as ^-sequences or \-sequences."
+  :group 'basic-faces
+  :version "22.1")
+
+(defface nobreak-space
+  '((((class color) (min-colors 88)) :inherit escape-glyph :underline t)
+    (((class color) (min-colors 8)) :background "magenta")
+    (t :inverse-video t))
+  "Face for displaying nobreak space."
+  :group 'basic-faces
+  :version "22.1")
 
 (defface mode-line
   '((((class color) (min-colors 88))
@@ -1922,23 +2064,6 @@ created."
      :box (:line-width -1 :color "grey40" :style nil)
      :foreground "grey80" :background "grey30"))
   "Basic mode line face for non-selected windows."
-  :version "22.1"
-  :group 'modeline
-  :group 'basic-faces)
-
-(defface mode-line-highlight
-  '((((class color) (min-colors 88))
-     :box (:line-width 2 :color "grey40" :style released-button))
-    (t
-     :inherit highlight))
-  "Basic mode line face for highlighting."
-  :version "22.1"
-  :group 'modeline
-  :group 'basic-faces)
-
-(defface vertical-border
-  '((((type tty)) :inherit mode-line-inactive))
-  "Face used for vertical window dividers on ttys."
   :version "22.1"
   :group 'modeline
   :group 'basic-faces)
@@ -1983,19 +2108,12 @@ created."
   :version "21.1"
   :group 'basic-faces)
 
-
-(defface tool-bar
-  '((default
-     :box (:line-width 1 :style released-button)
-     :foreground "black")
-    (((type x w32 mac) (class color))
-     :background "grey75")
-    (((type x) (class mono))
-     :background "grey"))
-  "Basic tool-bar face."
-  :version "21.1"
+(defface vertical-border
+  '((((type tty)) :inherit mode-line-inactive))
+  "Face used for vertical window dividers on ttys."
+  :version "22.1"
+  :group 'modeline
   :group 'basic-faces)
-
 
 (defface minibuffer-prompt
   '((((background dark)) :foreground "cyan")
@@ -2013,25 +2131,6 @@ used to display the prompt text."
 (setq minibuffer-prompt-properties
       (append minibuffer-prompt-properties (list 'face 'minibuffer-prompt)))
 
-(defface region
-  '((((class color) (min-colors 88) (background dark))
-     :background "blue3")
-    (((class color) (min-colors 88) (background light))
-     :background "lightgoldenrod2")
-    (((class color) (min-colors 16) (background dark))
-     :background "blue3")
-    (((class color) (min-colors 16) (background light))
-     :background "lightgoldenrod2")
-    (((class color) (min-colors 8))
-     :background "blue" :foreground "white")
-    (((type tty) (class mono))
-     :inverse-video t)
-    (t :background "gray"))
-  "Basic face for highlighting the region."
-  :version "21.1"
-  :group 'basic-faces)
-
-
 (defface fringe
   '((((class color) (background light))
      :background "grey95")
@@ -2044,33 +2143,17 @@ used to display the prompt text."
   :group 'frames
   :group 'basic-faces)
 
-
 (defface scroll-bar '()
   "Basic face for the scroll bar colors under X."
   :version "21.1"
   :group 'frames
   :group 'basic-faces)
 
-
-(defface menu
-  '((((type tty))
-     :inverse-video t)
-    (((type x-toolkit))
-     )
-    (t
-     :inverse-video t))
-  "Basic face for the font and colors of the menu bar and popup menus."
-  :version "21.1"
-  :group 'menu
-  :group 'basic-faces)
-
-
 (defface border '()
   "Basic face for the frame border under X."
   :version "21.1"
   :group 'frames
   :group 'basic-faces)
-
 
 (defface cursor '()
   "Basic face for the cursor color under X.
@@ -2087,125 +2170,29 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'mouse
   :group 'basic-faces)
 
-
-(defface bold '((t :weight bold))
-  "Basic bold face."
-  :group 'basic-faces)
-
-
-(defface italic
-  '((((supports :slant italic))
-     :slant italic)
-    (((supports :underline t))
-     :underline t)
-    (t
-     ;; default to italic, even it doesn't appear to be supported,
-     ;; because in some cases the display engine will do it's own
-     ;; workaround (to `dim' on ttys)
-     :slant italic))
-  "Basic italic face."
-  :group 'basic-faces)
-
-
-(defface bold-italic '((t :weight bold :slant italic))
-  "Basic bold-italic face."
-  :group 'basic-faces)
-
-
-(defface underline '((((supports :underline t))
-		      :underline t)
-		     (((supports :weight bold))
-		      :weight bold)
-		     (t :underline t))
-  "Basic underlined face."
-  :group 'basic-faces)
-
-
-(defface highlight
-  '((((class color) (min-colors 88) (background light))
-     :background "darkseagreen2")
-    (((class color) (min-colors 88) (background dark))
-     :background "darkolivegreen")
-    (((class color) (min-colors 16) (background light))
-     :background "darkseagreen2")
-    (((class color) (min-colors 16) (background dark))
-     :background "darkolivegreen")
-    (((class color) (min-colors 8))
-     :background "green" :foreground "black")
-    (t :inverse-video t))
-  "Basic face for highlighting."
-  :group 'basic-faces)
-
-
-(defface secondary-selection
-  '((((class color) (min-colors 88) (background light))
-     :background "yellow1")
-    (((class color) (min-colors 88) (background dark))
-     :background "SkyBlue4")
-    (((class color) (min-colors 16) (background light))
-     :background "yellow")
-    (((class color) (min-colors 16) (background dark))
-     :background "SkyBlue4")
-    (((class color) (min-colors 8))
-     :background "cyan" :foreground "black")
-    (t :inverse-video t))
-  "Basic face for displaying the secondary selection."
-  :group 'basic-faces)
-
-
-(defface fixed-pitch '((t :family "courier"))
-  "The basic fixed-pitch face."
-  :group 'basic-faces)
-
-
-(defface variable-pitch '((t :family "helv"))
-  "The basic variable-pitch face."
-  :group 'basic-faces)
-
-
-(defface trailing-whitespace
-  '((((class color) (background light))
-     :background "red1")
-    (((class color) (background dark))
-     :background "red1")
-    (t :inverse-video t))
-  "Basic face for highlighting trailing whitespace."
+(defface tool-bar
+  '((default
+     :box (:line-width 1 :style released-button)
+     :foreground "black")
+    (((type x w32 mac) (class color))
+     :background "grey75")
+    (((type x) (class mono))
+     :background "grey"))
+  "Basic tool-bar face."
   :version "21.1"
-  :group 'whitespace		; like `show-trailing-whitespace'
   :group 'basic-faces)
 
-(defface escape-glyph
-  '((((background dark)) :foreground "cyan")
-    ;; See the comment in minibuffer-prompt for
-    ;; the reason not to use blue on MS-DOS.
-    (((type pc)) :foreground "magenta")
-    ;; red4 is too dark, but some say blue is too loud.
-    ;; brown seems to work ok. -- rms.
-    (t :foreground "brown"))
-  "Face for characters displayed as ^-sequences or \-sequences."
-  :group 'basic-faces
-  :version "22.1")
-
-(defface nobreak-space
-  '((((class color) (min-colors 88)) :inherit escape-glyph :underline t)
-    (((class color) (min-colors 8)) :background "magenta")
-    (t :inverse-video t))
-  "Face for displaying nobreak space."
-  :group 'basic-faces
-  :version "22.1")
-
-(defface shadow
-  '((((class color grayscale) (min-colors 88) (background light))
-     :foreground "grey50")
-    (((class color grayscale) (min-colors 88) (background dark))
-     :foreground "grey70")
-    (((class color) (min-colors 8) (background light))
-     :foreground "green")
-    (((class color) (min-colors 8) (background dark))
-     :foreground "yellow"))
-  "Basic face for shadowed text."
-  :group 'basic-faces
-  :version "22.1")
+(defface menu
+  '((((type tty))
+     :inverse-video t)
+    (((type x-toolkit))
+     )
+    (t
+     :inverse-video t))
+  "Basic face for the font and colors of the menu bar and popup menus."
+  :version "21.1"
+  :group 'menu
+  :group 'basic-faces)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

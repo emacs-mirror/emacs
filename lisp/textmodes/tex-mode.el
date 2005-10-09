@@ -472,7 +472,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	   (arg "{\\(\\(?:[^{}\\]+\\|\\\\.\\|{[^}]*}\\)+\\)"))
       (list
        ;; font-lock-syntactic-keywords causes the \ of \end{verbatim} to be
-       ;; highlighted as tex-verbatim-face.  Let's undo that.
+       ;; highlighted as tex-verbatim face.  Let's undo that.
        ;; This is ugly and brittle :-(  --Stef
        '("^\\(\\\\\\)end" (1 (get-text-property (match-end 1) 'face) t))
        ;; display $$ math $$
@@ -509,7 +509,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 
 (defun tex-font-lock-append-prop (prop)
   (unless (memq (get-text-property (match-end 1) 'face)
-		'(font-lock-comment-face tex-verbatim-face))
+		'(font-lock-comment-face tex-verbatim))
     prop))
 
 (defconst tex-font-lock-keywords-2
@@ -583,7 +583,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (defun tex-font-lock-suscript (pos)
   (unless (or (memq (get-text-property pos 'face)
 		    '(font-lock-constant-face font-lock-builtin-face
-		      font-lock-comment-face tex-verbatim-face))
+		      font-lock-comment-face tex-verbatim))
 	      ;; Check for backslash quoting
 	      (let ((odd nil)
 		    (pos pos))
@@ -631,7 +631,10 @@ An alternative value is \" . \", if you use a font with a narrow period."
       (,(concat "^\\(\\\\\\)end *{" verbs "}\\(.?\\)") (1 "|") (3 "<"))
       ;; ("^\\(\\\\\\)begin *{comment}" 1 "< b")
       ;; ("^\\\\end *{comment}.*\\(\n\\)" 1 "> b")
-      ("\\\\verb\\**\\([^a-z@*]\\)" 1 "\""))))
+      ("\\\\verb\\**\\([^a-z@*]\\)"
+       ;; Do it last, because it uses syntax-ppss which needs the
+       ;; syntax-table properties of previous entries.
+       1 (tex-font-lock-verb (match-end 1))))))
 
 (defun tex-font-lock-unfontify-region (beg end)
   (font-lock-default-unfontify-region beg end)
@@ -670,22 +673,38 @@ An alternative value is \" . \", if you use a font with a narrow period."
 (put 'tex-verbatim-face 'face-alias 'tex-verbatim)
 (defvar tex-verbatim-face 'tex-verbatim)
 
+(defun tex-font-lock-verb (end)
+  "Place syntax-table properties on the \verb construct.
+END is the position of the first delimiter after \verb."
+  (unless (nth 8 (syntax-ppss end))
+    ;; Do nothing if the \verb construct is itself inside a comment or
+    ;; verbatim env.
+    (save-excursion
+      ;; Let's find the end and mark it.
+      ;; We used to do it inside tex-font-lock-syntactic-face-function, but
+      ;; this leads to funny effects when jumping to the end of the buffer,
+      ;; because font-lock applies font-lock-syntactic-keywords to the whole
+      ;; preceding text but font-lock-syntactic-face-function only to the
+      ;; actually displayed text.
+      (goto-char end)
+      (let ((char (char-before)))
+        (skip-chars-forward (string ?^ char)) ;; Use `end' ?
+        (when (eq (char-syntax (preceding-char)) ?/)
+          (put-text-property (1- (point)) (point) 'syntax-table '(1)))
+        (unless (eobp)
+          (put-text-property (point) (1+ (point)) 'syntax-table '(7))
+          ;; Cause the rest of the buffer to be re-fontified.
+          ;; (remove-text-properties (1+ (point)) (point-max) '(fontified))
+          )))
+    "\""))
+
 ;; Use string syntax but math face for $...$.
 (defun tex-font-lock-syntactic-face-function (state)
   (let ((char (nth 3 state)))
     (cond
      ((not char) font-lock-comment-face)
      ((eq char ?$) tex-math-face)
-     (t
-      (when (char-valid-p char)
-	;; This is a \verb?...? construct.  Let's find the end and mark it.
-	(save-excursion
-	  (skip-chars-forward (string ?^ char)) ;; Use `end' ?
-	  (when (eq (char-syntax (preceding-char)) ?/)
-	    (put-text-property (1- (point)) (point) 'syntax-table '(1)))
-	  (unless (eobp)
-	    (put-text-property (point) (1+ (point)) 'syntax-table '(7)))))
-      tex-verbatim-face))))
+     (t tex-verbatim-face))))
 
 
 (defun tex-define-common-keys (keymap)
@@ -1109,7 +1128,7 @@ Inserts the value of `tex-open-quote' (normally ``) or `tex-close-quote'
 inserts \" characters."
   (interactive "*P")
   (if (or arg (memq (char-syntax (preceding-char)) '(?/ ?\\))
-	  (eq (get-text-property (point) 'face) tex-verbatim-face)
+	  (eq (get-text-property (point) 'face) 'tex-verbatim)
 	  (save-excursion
 	    (backward-char (length tex-open-quote))
 	    (when (or (looking-at (regexp-quote tex-open-quote))
@@ -2341,7 +2360,7 @@ Runs the shell command defined by `tex-show-queue-command'."
 
 (defun latex-indent (&optional arg)
   (if (and (eq (get-text-property (line-beginning-position) 'face)
-	       tex-verbatim-face))
+	       'tex-verbatim))
       'noindent
     (with-syntax-table tex-latex-indent-syntax-table
       ;; TODO: Rather than ignore $, we should try to be more clever about it.

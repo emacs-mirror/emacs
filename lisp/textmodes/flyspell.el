@@ -169,11 +169,12 @@ command was not the very same command."
 
 (defcustom flyspell-incorrect-hook nil
   "*List of functions to be called when incorrect words are encountered.
-Each function is given three arguments: the beginning and the end
-of the incorrect region.  The third is either the symbol 'doublon' or the list
+Each function is given three arguments.  The first two
+arguments are the beginning and the end of the incorrect region.
+The third is either the symbol `doublon' or the list
 of possible corrections as returned by `ispell-parse-output'.
 
-If any of the functions return non-Nil, the word is not highlighted as
+If any of the functions return non-nil, the word is not highlighted as
 incorrect."
   :group 'flyspell
   :version "21.1"
@@ -535,6 +536,7 @@ in your .emacs file.
 ;*---------------------------------------------------------------------*/
 (defun flyspell-mode-on ()
   "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead."
+  (ispell-maybe-find-aspell-dictionaries)
   (setq ispell-highlight-face 'flyspell-incorrect)
   ;; local dictionaries setup
   (or ispell-local-dictionary ispell-dictionary
@@ -566,7 +568,7 @@ in your .emacs file.
 	   (interactive-p))
       (let ((binding (where-is-internal 'flyspell-auto-correct-word
 					nil 'non-ascii)))
-	(message
+	(message "%s"
 	 (if binding
 	     (format "Welcome to flyspell. Use %s or Mouse-2 to correct words."
 		     (key-description binding))
@@ -942,7 +944,7 @@ Mostly we check word delimiters."
 			    (sort (car (cdr (cdr poss))) 'string<)
 			  (car (cdr (cdr poss)))))))
     (if flyspell-issue-message-flag
-	(message (format "mispelling `%s'  %S" word replacements)))))
+	(message "mispelling `%s'  %S" word replacements))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-word-search-backward ...                                */
@@ -1086,11 +1088,13 @@ Mostly we check word delimiters."
 					      word
 					      (+ end
 						 flyspell-duplicate-distance))))))
+			      ;; This is a misspelled word which occurs
+			      ;; twice within flyspell-duplicate-distance.
 			      (setq flyspell-word-cache-result nil)
 			      (if flyspell-highlight-flag
 				  (flyspell-highlight-duplicate-region
 				   start end poss)
-				(message (format "duplicate `%s'" word)))
+				(message "duplicate `%s'" word))
 			      nil)
 			     (t
 			      (setq flyspell-word-cache-result nil)
@@ -1559,7 +1563,11 @@ for the overlay."
 ;*    flyspell-highlight-incorrect-region ...                          */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-highlight-incorrect-region (beg end poss)
-  "Set up an overlay on a misspelled word, in the buffer from BEG to END."
+  "Set up an overlay on a misspelled word, in the buffer from BEG to END.
+POSS is usually a list of possible spelling/correction lists,
+as returned by `ispell-parse-output'.
+It can also be the symbol `doublon', in the case where the word
+is itself incorrect, but suspiciously repeated."
   (let ((inhibit-read-only t))
     (unless (run-hook-with-args-until-success
 	     'flyspell-incorrect-hook beg end poss)
@@ -1592,8 +1600,9 @@ for the overlay."
 ;*    flyspell-highlight-duplicate-region ...                          */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-highlight-duplicate-region (beg end poss)
-  "Set up an overlay on a duplicated word, in the buffer from BEG to END.
-??? What does POSS mean?"
+  "Set up an overlay on a duplicate misspelled word, in the buffer from BEG to END.
+POSS is a list of possible spelling/correction lists,
+as returned by `ispell-parse-output'."
   (let ((inhibit-read-only t))
     (unless (run-hook-with-args-until-success
 	     'flyspell-incorrect-hook beg end poss)
@@ -1679,7 +1688,7 @@ misspelled words backwards."
       (setq pos (cdr pos)))
     (if (fboundp 'display-message)
 	(display-message 'no-log string)
-      (message string))))
+      (message "%s" string))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-abbrev-table ...                                        */

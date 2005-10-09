@@ -768,14 +768,14 @@ The following commands are accepted by the client:
 	       ((or isearch-mode (minibufferp))
 		nil)
 	       ((and frame (null buffers))
-		(message (substitute-command-keys
-			  "When done with this frame, type \\[delete-frame]")))
+		(message "%s" (substitute-command-keys
+			       "When done with this frame, type \\[delete-frame]")))
 	       ((not (null buffers))
 		(server-switch-buffer (car buffers))
 		(run-hooks 'server-switch-hook)
 		(unless nowait
-		  (message (substitute-command-keys
-			    "When done with a buffer, type \\[server-edit]"))))))))
+		  (message "%s" (substitute-command-keys
+				 "When done with a buffer, type \\[server-edit]"))))))))
 
 	;; Save for later any partial line that remains.
 	(when (> (length string) 0)

@@ -662,7 +662,7 @@ read/written by MS-DOS software, or for display on the MS-DOS terminal."
   (interactive
    (let ((completion-ignore-case t)
 	 (candidates (cp-supported-codepages)))
-     (list (completing-read "Setup DOS Codepage: (default 437) " candidates
+     (list (completing-read "Setup DOS Codepage (default 437): " candidates
 			    nil t nil nil "437"))))
   (let* ((cp (format "cp%s" codepage))
 	 (cp-defined (intern-soft cp)))

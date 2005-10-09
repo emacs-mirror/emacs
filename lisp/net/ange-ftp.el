@@ -1298,6 +1298,8 @@ only return the directory part of FILE."
       (setq file
 	    (if (file-name-absolute-p temp)
 		temp
+	      ;; Wouldn't `expand-file-name' be better than `concat' ?
+	      ;; It would fail when `a/b/..' != `a', tho.  --Stef
 	      (concat (file-name-directory file) temp)))))
   file)
 
@@ -1385,12 +1387,12 @@ only return the directory part of FILE."
 	  (if (or ange-ftp-disable-netrc-security-check
 		  (and (eq (nth 2 attr) (user-uid)) ; Same uids.
 		       (string-match ".r..------" (nth 8 attr))))
-	      (save-excursion
+	      (with-current-buffer
 		;; we are cheating a bit here.  I'm trying to do the equivalent
 		;; of find-file on the .netrc file, but then nuke it afterwards.
 		;; with the bit of logic below we should be able to have
 		;; encrypted .netrc files.
-		(set-buffer (generate-new-buffer "*ftp-.netrc*"))
+                  (generate-new-buffer "*ftp-.netrc*")
 		(ange-ftp-real-insert-file-contents file)
 		(setq buffer-file-name file)
 		(setq default-directory (file-name-directory file))
@@ -1511,7 +1513,7 @@ then kill the related ftp process."
       (setq buffer (current-buffer))
     (setq buffer (get-buffer buffer)))
   (let ((file (or (buffer-file-name buffer)
-		  (save-excursion (set-buffer buffer) default-directory))))
+		  (with-current-buffer buffer default-directory))))
     (if file
 	(let ((parsed (ange-ftp-ftp-name (expand-file-name file))))
 	  (if parsed
@@ -1592,8 +1594,7 @@ good, skip, fatal, or unknown."
     (if proc
 	(let ((buf (process-buffer proc)))
 	  (if buf
-	      (save-excursion
-		(set-buffer buf)
+	      (with-current-buffer buf
 		(setq ange-ftp-xfer-size
 		      ;; For very large files, BYTES can be a float.
 		      (if (integerp bytes)
@@ -1763,8 +1764,7 @@ good, skip, fatal, or unknown."
 
 (defun ange-ftp-gwp-filter (proc str)
   (comint-output-filter proc str)
-  (save-excursion
-    (set-buffer (process-buffer proc))
+  (with-current-buffer (process-buffer proc)
     ;; Replace STR by the result of the comint processing.
     (setq str (buffer-substring comint-last-output-start (process-mark proc))))
   (cond ((string-match "login: *$" str)
@@ -1800,8 +1800,7 @@ good, skip, fatal, or unknown."
     (set-process-query-on-exit-flag proc nil)
     (set-process-sentinel proc 'ange-ftp-gwp-sentinel)
     (set-process-filter proc 'ange-ftp-gwp-filter)
-    (save-excursion
-      (set-buffer (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
       (goto-char (point-max))
       (set-marker (process-mark proc) (point)))
     (setq ange-ftp-gwp-running t
@@ -1907,8 +1906,7 @@ been queued with no result.  CONT will still be called, however."
 				   ange-ftp-nslookup-program host)))
 	    (res host))
 	(set-process-query-on-exit-flag proc nil)
-	(save-excursion
-	  (set-buffer (process-buffer proc))
+	(with-current-buffer (process-buffer proc)
 	  (while (memq (process-status proc) '(run open))
 	    (accept-process-output proc))
 	  (goto-char (point-min))
@@ -1947,8 +1945,7 @@ on the gateway machine to do the ftp instead."
 	  ;; Copy this so we don't alter it permanently.
 	  (process-environment (copy-tree process-environment))
 	  (buffer (get-buffer-create name)))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(internal-ange-ftp-mode))
       ;; This tells GNU ftp not to output any fancy escape sequences.
       (setenv "TERM" "dumb")
@@ -1960,8 +1957,7 @@ on the gateway machine to do the ftp instead."
 					    ange-ftp-gateway-host)
 				      args))))
 	(setq proc (apply 'start-process name name args))))
-    (save-excursion
-      (set-buffer (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
       (goto-char (point-max))
       (set-marker (process-mark proc) (point)))
     (set-process-query-on-exit-flag proc nil)
@@ -2127,8 +2123,7 @@ suffix of the form #PORT to specify a non-default port"
 
 (defun ange-ftp-guess-hash-mark-size (proc)
   (if ange-ftp-send-hash
-      (save-excursion
-	(set-buffer (process-buffer proc))
+      (with-current-buffer (process-buffer proc)
 	(let* ((status (ange-ftp-raw-send-cmd proc "hash"))
 	       (line (cdr status)))
 	  (save-match-data
@@ -2308,6 +2303,14 @@ and NOWAIT."
 	   (not (string-match "R" cmd3))
 	   (setq cmd1 (concat cmd1 ".")))
 
+      ;; Using "ls -flags foo" has several problems:
+      ;; - if foo is a symlink, we may get a single line showing the symlink
+      ;;   rather than the listing of the directory it points to.
+      ;; - if "foo" has spaces, the parsing of the command may be done wrong.
+      ;; - some version of netbsd's ftpd only accept a single argument after
+      ;;   `ls', which can either be the directory or the flags.
+      ;; So to work around those problems, we use "cd foo; ls -flags".
+
       ;; If the dir name contains a space, some ftp servers will
       ;; refuse to list it.  We instead change directory to the
       ;; directory in question and ls ".".
@@ -2324,14 +2327,14 @@ and NOWAIT."
 	;; This works around a misfeature of some versions of netbsd ftpd
 	;; where `ls' can only take one argument: either one set of flags
 	;; or a file/directory name.
-	;; FIXME: if we're trying to `ls' a single file, this fails since we
+	;; If we're trying to `ls' a single file, this fails since we
 	;; can't cd to a file.  We can't fix this problem here, tho, because
 	;; at this point we don't know whether the argument is a file or
-	;; a directory.  Such an `ls' is only every used (apparently) from
+	;; a directory.  Such an `ls' is only ever used (apparently) from
 	;; `insert-directory' when the `full-directory-p' argument is nil
 	;; (which seems to only be used by dired when updating its display
-	;; after operating on a set of files).  We should change
-	;; ange-ftp-insert-directory so that this case is handled by getting
+	;; after operating on a set of files).  So we've changed
+	;; `ange-ftp-insert-directory' such that in this case it gets
 	;; a full listing of the directory and extracting the line
 	;; corresponding to the requested file.
 	(unless (equal cmd1 ".")
@@ -2606,9 +2609,8 @@ away in the internal cache."
 				       (format "Listing %s"
 					       (ange-ftp-abbreviate-filename
 						ange-ftp-this-file)))))
-		    (save-excursion
-		      (set-buffer (get-buffer-create
-				   ange-ftp-data-buffer-name))
+		    (with-current-buffer (get-buffer-create
+                                          ange-ftp-data-buffer-name)
 		      (erase-buffer)
 		      (if (ange-ftp-real-file-readable-p temp)
 			  (ange-ftp-real-insert-file-contents temp)
@@ -3022,8 +3024,7 @@ this also returns nil."
   (let ((result (ange-ftp-send-cmd host user '(type "binary"))))
     (if (not (car result))
 	(ange-ftp-error host user (concat "BINARY failed: " (cdr result)))
-      (save-excursion
-	(set-buffer (process-buffer (ange-ftp-get-process host user)))
+      (with-current-buffer (process-buffer (ange-ftp-get-process host user))
 	(and ange-ftp-binary-hash-mark-size
 	     (setq ange-ftp-hash-mark-unit
 		   (ash ange-ftp-binary-hash-mark-size -4)))))))
@@ -3033,8 +3034,7 @@ this also returns nil."
   (let ((result (ange-ftp-send-cmd host user '(type "ascii"))))
     (if (not (car result))
 	(ange-ftp-error host user (concat "ASCII failed: " (cdr result)))
-      (save-excursion
-	(set-buffer (process-buffer (ange-ftp-get-process host user)))
+      (with-current-buffer (process-buffer (ange-ftp-get-process host user))
 	(and ange-ftp-ascii-hash-mark-size
 	     (setq ange-ftp-hash-mark-unit
 		   (ash ange-ftp-ascii-hash-mark-size -4)))))))
@@ -3174,7 +3174,7 @@ logged in as user USER and cd'd to directory DIR."
 	 (ange-ftp-real-file-name-directory n))))))
 
 (defun ange-ftp-expand-file-name (name &optional default)
-  "Documented as original."
+  "Documented as `expand-file-name'."
   (save-match-data
     (setq default (or default default-directory))
     (cond ((eq (string-to-char name) ?~)
@@ -3289,7 +3289,7 @@ system TYPE.")
 		    ;; cleanup forms
 		    (setq coding-system-used last-coding-system-used)
 		    (setq buffer-file-name filename)
-		    (set-buffer-modified-p mod-p)))
+		    (restore-buffer-modified-p mod-p)))
 		(if binary
 		    (ange-ftp-set-binary-mode host user))
 
@@ -3448,7 +3448,9 @@ system TYPE.")
       (let ((file-ent (ange-ftp-get-file-entry
 		       (ange-ftp-file-name-as-directory name))))
 	(if (stringp file-ent)
-	    (file-directory-p
+	    ;; Calling file-directory-p doesn't work because ange-ftp
+	    ;; is temporarily disabled for this operation.
+	    (ange-ftp-file-directory-p
 	     (ange-ftp-expand-symlink file-ent
 				      (file-name-directory
 				       (directory-file-name name))))
@@ -3640,8 +3642,7 @@ Value is (0 0) if the modification time cannot be determined."
 ;;       (set (make-local-variable 'copy-cont) cont))))
 ;;
 ;; (defun ange-ftp-copy-file-locally-sentinel (proc status)
-;;   (save-excursion
-;;     (set-buffer (process-buffer proc))
+;;   (with-current-buffer (process-buffer proc)
 ;;     (let ((cont copy-cont)
 ;; 	  (result (buffer-string)))
 ;;       (unwind-protect
@@ -4476,21 +4477,38 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;; `ange-ftp-ls' handles this.
 
 (defun ange-ftp-insert-directory (file switches &optional wildcard full)
-  (let ((parsed (ange-ftp-ftp-name (expand-file-name file)))
-	tem)
-    (if parsed
-	(if (and (not wildcard)
-		 (setq tem (file-symlink-p (directory-file-name file))))
-	    (ange-ftp-insert-directory
-	     (ange-ftp-expand-symlink
-	      tem (file-name-directory (directory-file-name file)))
-	     switches wildcard full)
-	  (insert
-	   (if wildcard
-	       (let ((default-directory (file-name-directory file)))
-		 (ange-ftp-ls (file-name-nondirectory file) switches nil nil t))
-	     (ange-ftp-ls file switches full))))
-      (ange-ftp-real-insert-directory file switches wildcard full))))
+  (if (not (ange-ftp-ftp-name (expand-file-name file)))
+      (ange-ftp-real-insert-directory file switches wildcard full)
+    ;; We used to follow symlinks on `file' here.  Apparently it was done
+    ;; because some FTP servers react to "ls foo" by listing the symlink foo
+    ;; rather than the directory it points to.  Now that ange-ftp-ls uses
+    ;; "cd foo; ls" instead, this is not necesssary any more.
+    (insert
+     (cond
+      (wildcard
+       (let ((default-directory (file-name-directory file)))
+         (ange-ftp-ls (file-name-nondirectory file) switches nil nil t)))
+      (full
+       (ange-ftp-ls file switches 'parse))
+      (t
+       ;; If `full' is nil we're going to do `ls' for a single file.
+       ;; Problem is that for various reasons, ange-ftp-ls needs to cd and
+       ;; then do an ls of current dir, which obviously won't work if we
+       ;; want to ls a file.  So instead, we get a full listing of the
+       ;; parent directory and extract the line corresponding to `file'.
+       (when (string-match "d\\'" switches)
+         ;; Remove "d" which dired added to `switches'.
+         (setq switches (substring switches 0 (match-beginning 0))))
+       (let* ((dirlist (ange-ftp-ls (or (file-name-directory file) ".")
+                                    switches nil))
+              (filename (file-name-nondirectory (directory-file-name file)))
+              (case-fold-search nil))
+         ;; FIXME: This presumes a particular output format, which is
+         ;; basically Unix.
+         (if (string-match (concat "^.+[^ ] " (regexp-quote filename)
+                                   "\\( -> .*\\)?[@/*=]?\n") dirlist)
+             (match-string 0 dirlist)
+           "")))))))
 
 (defun ange-ftp-dired-uncache (dir)
   (if (ange-ftp-ftp-name (expand-file-name dir))
@@ -4502,10 +4520,8 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 (defun ange-ftp-file-name-sans-versions (file keep-backup-version)
   (let* ((short (ange-ftp-abbreviate-filename file))
 	 (parsed (ange-ftp-ftp-name short))
-	 func)
-    (if parsed
-	(setq func (cdr (assq (ange-ftp-host-type (car parsed))
-			      ange-ftp-sans-version-alist))))
+	 (func (if parsed (cdr (assq (ange-ftp-host-type (car parsed))
+                                     ange-ftp-sans-version-alist)))))
     (if func (funcall func file keep-backup-version)
       (ange-ftp-real-file-name-sans-versions file keep-backup-version))))
 
@@ -4649,10 +4665,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;		       target marker-char buffer overwrite-query
 ;;		       overwrite-backup-query failures skipped
 ;;		       success-count total)
-;;  (let ((old-buf (current-buffer)))
-;;    (unwind-protect
-;;	(progn
-;;	  (set-buffer buffer)
+;;  (with-current-buffer buffer
 ;;	  (if (null fn-list)
 ;;	      (ange-ftp-dcf-3 failures operation total skipped
 ;;			      success-count buffer)
@@ -4724,8 +4737,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;				     overwrite-query
 ;;				     overwrite-backup-query
 ;;				     failures skipped success-count
-;;				     total))))))))
-;;      (set-buffer old-buf))))
+;;				     total)))))))))
 
 ;;(defun ange-ftp-dcf-2 (result line err
 ;;			      file-creator operation fn-list
@@ -4739,10 +4751,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;			      overwrite-backup-query
 ;;			      failures skipped success-count
 ;;			      total)
-;;  (let ((old-buf (current-buffer)))
-;;    (unwind-protect
-;;	(progn
-;;	  (set-buffer buffer)
+;;  (with-current-buffer buffer
 ;;	  (if (or err (not result))
 ;;	      (progn
 ;;		(setq failures (cons (dired-make-relative from) failures))
@@ -4765,15 +4774,11 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;			  overwrite-query
 ;;			  overwrite-backup-query
 ;;			  failures skipped success-count
-;;			  total))
-;;      (set-buffer old-buf))))
+;;			  total)))
 
 ;;(defun ange-ftp-dcf-3 (failures operation total skipped success-count
 ;;				buffer)
-;;  (let ((old-buf (current-buffer)))
-;;    (unwind-protect
-;;	(progn
-;;	  (set-buffer buffer)
+;;  (with-current-buffer buffer
 ;;	  (cond
 ;;	   (failures
 ;;	    (dired-log-summary
@@ -4788,8 +4793,7 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 ;;	   (t
 ;;	    (message "%s: %s file%s."
 ;;		     operation success-count (dired-plural-s success-count))))
-;;	  (dired-move-to-filename))
-;;      (set-buffer old-buf))))
+;;	  (dired-move-to-filename)))
 
 ;;;; -----------------------------------------------
 ;;;; Unix Descriptive Listing (dl) Support

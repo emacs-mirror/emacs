@@ -22,7 +22,7 @@ derived from the name of the command that the argument is for.  The
 prompt normally ends with a colon.
 
 @cindex default argument
-  Sometimes a @dfn{default argument} appears in parentheses after the
+  Sometimes a @dfn{default argument} appears in parentheses before the
 colon; it too is part of the prompt.  The default will be used as the
 argument value if you enter an empty argument (that is, just type
 @key{RET}).  For example, commands that read buffer names always show a

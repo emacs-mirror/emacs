@@ -1,7 +1,66 @@
+2005-10-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* TODO: Clarify the local variables entry.
+
+2005-09-30  Bill Wohler  <wohler@newt.com>
+
+	Moved MH-E image files from toolbar and mail directories into
+	etc/images.
+
+	* images/mail: New directory.
+
+	* images/mail/reply.*: Moved here from lisp/mail/reply2*.
+
+	* images/mail/alias.*, images/mail/refile.*, images/mail/repack.*:
+	* images/mail/reply*: Moved here from lisp/toolbar.
+
+	* images/execute.*, images/highlight.*, images/mh-logo.xpm:
+	* images/page-down.*, images/show.*, images/widen.*: Moved here
+	from lisp/toolbar.
+
+	* images/refresh.*: Moved here from lisp/toolbar/rescan.*.
+	Use GNOME 2.10's refresh icon.
+
+	* images/README: New file that indicates which icons came from
+	GNOME (see lisp/toolbar/README).
+
+2005-09-30  Romain Francoise  <romain@orebokech.com>
+
+	* NEWS: Mention changes to `read-buffer'.
+
+2005-09-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/ezimage: New directory.
+
+	* images/ezimage/*.xpm: Add images used by speedbar.el.
+
+2005-09-30  David Ponce  <david@dponce.com>
+
+	* NEWS: Update recentf changes.
+
+2005-09-28  Simon Josefsson  <jas@extundo.com>
+
+	* GNUS-NEWS: Fix IDNA notes.
+
+2005-09-27  Jay Belanger <belanger@truman.edu>
+
+	* calccard.tex: Update `versionnumber', remove `versiondate'.
+	(Error Recovery): Refer to "initial state" rather than "default state".
+	(Algebra): Mention LaTeX language mode.
+	(Programming): Delete reference to "Z =".
+
+2005-09-24  Steven Huwig  <steven_h@acm.org>  (tiny change)
+
+	* emacs.py (ehelp): Add g and l to arg list, and use them in the
+	call to `help'.
+
+2005-09-17  Romain Francoise  <romain@orebokech.com>
+
+	* gfdl.1: Update to version 1.2.  Delete UC macro.
+
 2005-09-15  Kenichi Handa  <handa@m17n.org>
 
-	* PROBLEMS: Fix the paragraph describing the limitation of
-	UTF-8/16/7.
+	* PROBLEMS: Fix the paragraph describing the limitation of UTF-8/16/7.
 
 2005-09-14  Romain Francoise  <romain@orebokech.com>
 
@@ -103,12 +162,11 @@
 2005-07-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* PROBLEMS (Fedora Core 4 GNU/Linux: Segfault during dumping):
-	Added it again.
+	Add it again.
 
 2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
 
-	* NEWS: Added an entry for Org-mode, and a change entry for
-	reftex-mode.
+	* NEWS: Add an entry for Org-mode, and a change entry for reftex-mode.
 
 2005-06-28  Richard M. Stallman  <rms@gnu.org>
 

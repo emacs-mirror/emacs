@@ -59,9 +59,9 @@ extern int x_alloc_lighter_color_for_widget __P ((Widget, Display*, Colormap,
 						  unsigned long *,
 						  double, int));
 extern int x_catch_errors __P ((Display*));
-extern int x_uncatch_errors __P ((Display*, int));
+extern void x_uncatch_errors P_ ((Display *, int));
 extern int x_had_errors_p __P ((Display*));
-extern int x_clear_errors __P ((Display*));
+extern void x_clear_errors __P ((Display*));
 extern unsigned long x_copy_dpy_color __P ((Display *, Colormap,
 					    unsigned long));
 
@@ -2138,6 +2138,7 @@ static widget_value *
 find_next_selectable (mw, item, skip_titles)
      XlwMenuWidget mw;
      widget_value *item;
+     int skip_titles;
 {
   widget_value *current = item;
   enum menu_separator separator;
@@ -2174,6 +2175,7 @@ static widget_value *
 find_prev_selectable (mw, item, skip_titles)
      XlwMenuWidget mw;
      widget_value *item;
+     int skip_titles;
 {
   widget_value *current = item;
   widget_value *prev = item;

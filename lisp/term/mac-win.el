@@ -1111,8 +1111,8 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
   "Coding system derived from the system script code.")
 
 (defun mac-add-charset-info (xlfd-charset mac-text-encoding)
-  "Function to add character sets to display with Mac fonts.
-Creates entries in `mac-charset-info-alist'.
+  "Add a character set to display with Mac fonts.
+Create an entry in `mac-charset-info-alist'.
 XLFD-CHARSET is a string which will appear in the XLFD font name
 to identify the character set.  MAC-TEXT-ENCODING is the
 correspoinding TextEncodingBase value."
@@ -1133,6 +1133,7 @@ correspoinding TextEncodingBase value."
 (mac-add-charset-info "mac-symbol" 33)
 (mac-add-charset-info "adobe-fontspecific" 33) ; for X-Symbol
 (mac-add-charset-info "mac-dingbats" 34)
+(mac-add-charset-info "iso10646-1" 126) ; for ATSUI
 
 
 ;;;; Keyboard layout/language change events
@@ -1715,9 +1716,21 @@ It returns a name of the created fontset."
 
 ;; Setup the default fontset.
 (setup-default-fontset)
-;; Add Mac-encoding fonts unless ETL fonts are installed.
-(unless (x-list-fonts "*-iso8859-1")
-  (fontset-add-mac-fonts "fontset-default"))
+(cond ((x-list-fonts "*-iso10646-1")
+       ;; Use ATSUI (if available) for the following charsets.
+       (dolist
+	   (charset '(latin-iso8859-1
+		      latin-iso8859-2 latin-iso8859-3 latin-iso8859-4
+		      thai-tis620 greek-iso8859-7 arabic-iso8859-6
+		      hebrew-iso8859-8 cyrillic-iso8859-5
+		      latin-iso8859-9 latin-iso8859-15 latin-iso8859-14
+		      japanese-jisx0212 chinese-sisheng ipa
+		      vietnamese-viscii-lower vietnamese-viscii-upper
+		      lao ethiopic tibetan))
+	 (set-fontset-font nil charset '(nil . "iso10646-1"))))
+      ((null (x-list-fonts "*-iso8859-1"))
+       ;; Add Mac-encoding fonts unless ETL fonts are installed.
+       (fontset-add-mac-fonts "fontset-default")))
 
 ;; Create a fontset that uses mac-roman font.  With this fontset,
 ;; characters decoded from mac-roman encoding (ascii, latin-iso8859-1,

@@ -367,7 +367,7 @@ to invocation.")
 		   (ediff-unique-buffer-name "*ediff-merge" "*")))
 	    (save-excursion
 	      (set-buffer buffer-C)
-	      (insert-buffer buf)
+	      (insert-buffer-substring buf)
 	      (funcall (ediff-with-current-buffer buf major-mode))
 	      (widen) ; merge buffer is always widened
 	      (add-hook 'local-write-file-hooks 'ediff-set-merge-mode nil t)
@@ -2075,7 +2075,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
 	  (ediff-clear-fine-differences n))
       ;; Make sure that the message about saving and how to restore is seen
       ;; by the user
-      (message messg))
+      (message "%s" messg))
     ))
 
 ;; Save Nth diff of buffer BUF-TYPE \(A, B, or C\).
@@ -2111,7 +2111,7 @@ ARG is a prefix argument.  If nil, copy the current difference region."
     (if this-buf-n-th-diff-saved
 	(if (yes-or-no-p
 	     (format
-	      "You've previously copied diff region %d to buffer %S.  Confirm "
+	      "You've previously copied diff region %d to buffer %S.  Confirm? "
 	      (1+ n) buf-type))
 	    t
 	  (error "Quit"))
@@ -2219,18 +2219,18 @@ a regular expression typed in by the user."
 	    regexp-A
 	    (read-string
 	     (format
-	      "Ignore A-regions matching this regexp (default \"%s\"): "
+	      "Ignore A-regions matching this regexp (default %s): "
 	      ediff-regexp-hide-A))
 	    regexp-B
 	    (read-string
 	     (format
-	      "Ignore B-regions matching this regexp (default \"%s\"): "
+	      "Ignore B-regions matching this regexp (default %s): "
 	      ediff-regexp-hide-B)))
       (if ediff-3way-comparison-job
 	  (setq regexp-C
 		(read-string
 		 (format
-		  "Ignore C-regions matching this regexp (default \"%s\"): "
+		  "Ignore C-regions matching this regexp (default %s): "
 		  ediff-regexp-hide-C))))
       (if (eq ediff-hide-regexp-connective 'and)
 	  (setq msg-connective "BOTH"
@@ -2258,18 +2258,18 @@ a regular expression typed in by the user."
 	    regexp-A
 	    (read-string
 	     (format
-	      "Focus on A-regions matching this regexp (default \"%s\"): "
+	      "Focus on A-regions matching this regexp (default %s): "
 	      ediff-regexp-focus-A))
 	    regexp-B
 	    (read-string
 	     (format
-	      "Focus on B-regions matching this regexp (default \"%s\"): "
+	      "Focus on B-regions matching this regexp (default %s): "
 	      ediff-regexp-focus-B)))
       (if ediff-3way-comparison-job
 	  (setq regexp-C
 		(read-string
 		 (format
-		  "Focus on C-regions matching this regexp (default \"%s\"): "
+		  "Focus on C-regions matching this regexp (default %s): "
 		  ediff-regexp-focus-C))))
       (if (eq ediff-focus-regexp-connective 'and)
 	  (setq msg-connective "BOTH"
@@ -2720,7 +2720,7 @@ only if this merge job is part of a group, i.e., was invoked from within
 	     (format "Another buffer is visiting file %s. Too dangerous to save the merge buffer"
 		     file)))
 	(beep)
-	(message warn-message)
+	(message "%s" warn-message)
 	(with-output-to-temp-buffer ediff-msg-buffer
 	  (princ "\n\n")
 	  (princ warn-message)
@@ -3286,7 +3286,7 @@ Hit \\[ediff-recenter] to reset the windows afterward."
 	    (princ warn-message)
 	    (princ "\n\n"))
 	  (if (y-or-n-p
-	       (message warn-message))
+	       (message "%s" warn-message))
 	      (with-current-buffer buff
 		(save-buffer)
 		(kill-buffer (current-buffer)))

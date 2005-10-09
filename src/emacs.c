@@ -149,7 +149,7 @@ void *malloc_state_ptr;
 /* From glibc, a routine that returns a copy of the malloc internal state.  */
 extern void *malloc_get_state ();
 /* From glibc, a routine that overwrites the malloc internal state.  */
-extern void malloc_set_state ();
+extern int malloc_set_state ();
 /* Non-zero if the MALLOC_CHECK_ enviroment variable was set while
    dumping.  Used to work around a bug in glibc's malloc.  */
 int malloc_using_checking;
@@ -1002,7 +1002,7 @@ main (argc, argv
       && !getrlimit (RLIMIT_STACK, &rlim))
     {
       long newlim;
-      extern int re_max_failures;
+      extern size_t re_max_failures;
       /* Approximate the amount regex.c needs per unit of re_max_failures.  */
       int ratio = 20 * sizeof (char *);
       /* Then add 33% to cover the size of the smaller stacks that regex.c

@@ -2315,10 +2315,10 @@ non-nil then the function will accept the folder +, which means all folders
 when used in searching."
   (if (null default)
       (setq default ""))
-  (let* ((default-string (cond (default-string (format "[%s] " default-string))
+  (let* ((default-string (cond (default-string (format " (default %s)" default-string))
                                ((equal "" default) "")
-                               (t (format "[%s] " default))))
-         (prompt (format "%s folder: %s" prompt default-string))
+                               (t (format " (default %s)" default))))
+         (prompt (format "%s folder%s: " prompt default-string))
          (mh-current-folder-name mh-current-folder)
          read-name folder-name)
     (while (and (setq read-name (mh-folder-completing-read

@@ -430,7 +430,7 @@
   (calc-wrapper
    (or var (setq var (calc-read-var-name
 		      (if calc-last-edited-variable
-			  (format "Edit: (default %s) "
+			  (format "Edit (default %s): "
 				  (calc-var-name calc-last-edited-variable))
 			"Edit: "))))
    (or var (setq var calc-last-edited-variable))
@@ -587,7 +587,7 @@
 (defun calc-permanent-variable (&optional var)
   (interactive)
   (calc-wrapper
-   (or var (setq var (calc-read-var-name "Save variable (default=all): ")))
+   (or var (setq var (calc-read-var-name "Save variable (default all): ")))
    (let (calc-pv-pos)
      (and var (or (and (boundp var) (symbol-value var))
 		  (error "No such variable")))

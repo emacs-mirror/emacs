@@ -1480,7 +1480,9 @@ tty_color_name (f, idx)
 
 
 /* Return non-zero if COLOR_NAME is a shade of gray (or white or
-   black) on frame F.  The algorithm is taken from 20.2 faces.el.  */
+   black) on frame F.
+
+   The criterion implemented here is not a terribly sophisticated one.  */
 
 static int
 face_color_gray_p (f, color_name)
@@ -1491,12 +1493,15 @@ face_color_gray_p (f, color_name)
   int gray_p;
 
   if (defined_color (f, color_name, &color, 0))
-    gray_p = ((abs (color.red - color.green)
-	       < max (color.red, color.green) / 20)
-	      && (abs (color.green - color.blue)
-		  < max (color.green, color.blue) / 20)
-	      && (abs (color.blue - color.red)
-		  < max (color.blue, color.red) / 20));
+    gray_p = (/* Any color sufficiently close to black counts as grey.  */
+	      (color.red < 5000 && color.green < 5000 && color.blue < 5000)
+	      ||
+	      ((abs (color.red - color.green)
+		< max (color.red, color.green) / 20)
+	       && (abs (color.green - color.blue)
+		   < max (color.green, color.blue) / 20)
+	       && (abs (color.blue - color.red)
+		   < max (color.blue, color.red) / 20)));
   else
     gray_p = 0;
 
@@ -5827,6 +5832,7 @@ lookup_derived_face (f, symbol, c, face_id, signal_p)
      Lisp_Object symbol;
      int c;
      int face_id;
+     int signal_p;
 {
   Lisp_Object attrs[LFACE_VECTOR_SIZE];
   Lisp_Object symbol_attrs[LFACE_VECTOR_SIZE];

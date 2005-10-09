@@ -720,6 +720,7 @@ determined by DEFINITION.  */)
      (symbol, definition, docstring)
      register Lisp_Object symbol, definition, docstring;
 {
+  CHECK_SYMBOL (symbol);
   if (CONSP (XSYMBOL (symbol)->function)
       && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
     LOADHIST_ATTACH (Fcons (Qt, symbol));

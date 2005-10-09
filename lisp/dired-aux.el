@@ -59,10 +59,10 @@ With prefix arg, prompt for second argument SWITCHES,
 		      (save-excursion (goto-char (mark t))
 				      (dired-get-filename t t)))))
      (require 'diff)
-     (list (read-file-name (format "Diff %s with: %s"
+     (list (read-file-name (format "Diff %s with%s: "
 				   (dired-get-filename t)
 				   (if default
-				       (concat "(default " default ") ")
+				       (concat " (default " default ")")
 				     ""))
 			   (if default
 			       (dired-current-directory)
@@ -845,7 +845,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
 	       (apply 'message qprompt qs-args)
 	       (setq char (set qs-var (read-char))))
 	     ;; Display the question with the answer.
-	     (message (concat (apply 'format qprompt qs-args)
+	     (message "%s" (concat (apply 'format qprompt qs-args)
 			      (char-to-string char)))
 	     (memq (cdr elt) '(t y yes)))))))
 
@@ -1126,8 +1126,8 @@ Special value `always' suppresses confirmation."
 	     (setq backup (car (find-backup-file-name to)))
 	     (or (eq 'always dired-backup-overwrite)
 		 (dired-query 'overwrite-backup-query
-			      (format "Make backup for existing file `%s'? "
-				      to))))
+			      "Make backup for existing file `%s'? "
+			      to)))
 	(progn
 	  (rename-file to backup 0)	; confirm overwrite of old backup
 	  (dired-relist-entry backup)))))
@@ -1147,7 +1147,7 @@ Special value `always' suppresses confirmation."
     (if (and recursive
 	     (eq t (car attrs))
 	     (or (eq recursive 'always)
-		 (yes-or-no-p (format "Recursive copies of %s " from))))
+		 (yes-or-no-p (format "Recursive copies of %s? " from))))
 	;; This is a directory.
 	(let ((files (directory-files from nil dired-re-no-dot)))
 	  (if (eq recursive 'top) (setq recursive 'always)) ; Don't ask any more.

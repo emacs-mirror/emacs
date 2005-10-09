@@ -1138,11 +1138,14 @@ DEFUN ("read-buffer", Fread_buffer, Sread_buffer, 1, 3, 0,
 Prompt with PROMPT.
 Optional second arg DEF is value to return if user enters an empty line.
 If optional third arg REQUIRE-MATCH is non-nil,
- only existing buffer names are allowed.  */)
+ only existing buffer names are allowed.
+The argument PROMPT should be a string ending with a colon and a space.  */)
      (prompt, def, require_match)
      Lisp_Object prompt, def, require_match;
 {
   Lisp_Object args[4];
+  unsigned char *s;
+  int len;
 
   if (BUFFERP (def))
     def = XBUFFER (def)->name;
@@ -1151,7 +1154,26 @@ If optional third arg REQUIRE-MATCH is non-nil,
     {
       if (!NILP (def))
 	{
-	  args[0] = build_string ("%s(default %s) ");
+	  /* A default value was provided: we must change PROMPT,
+	     editing the default value in before the colon.  To achieve
+	     this, we replace PROMPT with a substring that doesn't
+	     contain the terminal space and colon (if present).  They
+	     are then added back using Fformat.  */
+
+	  if (STRINGP (prompt))
+	    {
+	      s = SDATA (prompt);
+	      len = strlen (s);
+	      if (len >= 2 && s[len - 2] == ':' && s[len - 1] == ' ')
+		len = len - 2;
+	      else if (len >= 1 && (s[len - 1] == ':' || s[len - 1] == ' '))
+		len--;
+
+	      prompt = make_specified_string (s, -1, len,
+					      STRING_MULTIBYTE (prompt));
+	    }
+
+	  args[0] = build_string ("%s (default %s): ");
 	  args[1] = prompt;
 	  args[2] = def;
 	  prompt = Fformat (3, args);

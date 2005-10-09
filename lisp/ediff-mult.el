@@ -1314,7 +1314,7 @@ Useful commands:
 	 (if otherfile
 	     (or (file-exists-p otherfile)
 		 (if (y-or-n-p
-		      (format "Copy %s to %s ? " file-abs otherfile))
+		      (format "Copy %s to %s? " file-abs otherfile))
 		     (let* ((file-diff-record (assoc file-tail dir-diff-list))
 			    (new-mem-code
 			     (* (cdr file-diff-record) file-mem-code)))

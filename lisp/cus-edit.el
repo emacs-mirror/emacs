@@ -495,7 +495,7 @@ Return a list suitable for use in `interactive'."
 	 val)
      (setq val (completing-read
 		(if (and (symbolp v) (custom-variable-p v))
-		    (format "Customize option: (default %s) " v)
+		    (format "Customize option (default %s): " v)
 		  "Customize option: ")
 		obarray 'custom-variable-p t))
      (list (if (equal val "")
@@ -670,7 +670,7 @@ If `last', order groups after non-groups."
   :type 'boolean
   :group 'custom-browse)
 
-(defcustom custom-buffer-sort-alphabetically t
+(defcustom custom-buffer-sort-alphabetically nil
   "If non-nil, sort members of each customization group alphabetically."
   :type 'boolean
   :group 'custom-buffer)
@@ -967,7 +967,7 @@ then prompt for the MODE to customize."
 (defun customize-group (group)
   "Customize GROUP, which must be a customization group."
   (interactive (list (let ((completion-ignore-case t))
-		       (completing-read "Customize group: (default emacs) "
+		       (completing-read "Customize group (default emacs): "
 					obarray
 					(lambda (symbol)
 					  (or (get symbol 'custom-loads)
@@ -990,7 +990,7 @@ then prompt for the MODE to customize."
 (defun customize-group-other-window (group)
   "Customize GROUP, which must be a customization group."
   (interactive (list (let ((completion-ignore-case t))
-		       (completing-read "Customize group: (default emacs) "
+		       (completing-read "Customize group (default emacs): "
 					obarray
 					(lambda (symbol)
 					  (or (get symbol 'custom-loads)

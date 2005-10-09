@@ -45,9 +45,9 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/param.h>
 #include <stdio.h>
 
+#include "lisp.h"
 #include "systime.h"
 #include "sysselect.h"
-#include "lisp.h"
 #include "frame.h"
 #include "termhooks.h"
 #include "termopts.h"

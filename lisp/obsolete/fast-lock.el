@@ -226,10 +226,10 @@
               (progn
                 (when temp-message
                   (setq current-message (current-message))
-                  (message temp-message))
+                  (message "%s" temp-message))
                 ,@body)
            (when temp-message
-             (message current-message))))))
+             (message "%s" current-message))))))
  ;;
  ;; We use this for compatibility with a future Emacs.
  (or (fboundp 'defcustom)

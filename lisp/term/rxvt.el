@@ -40,12 +40,13 @@
   (define-key rxvt-function-map "\e[B" [down])
   (define-key rxvt-function-map "\e[C" [right])
   (define-key rxvt-function-map "\e[D" [left])
-  (define-key rxvt-function-map "\e[7~" [home])
   (define-key rxvt-function-map "\e[2~" [insert])
   (define-key rxvt-function-map "\e[3~" [delete])
   (define-key rxvt-function-map "\e[4~" [select])
   (define-key rxvt-function-map "\e[5~" [prior])
   (define-key rxvt-function-map "\e[6~" [next])
+  (define-key rxvt-function-map "\e[7~" [home])
+  (define-key rxvt-function-map "\e[8~" [end])
   (define-key rxvt-function-map "\e[11~" [f1])
   (define-key rxvt-function-map "\e[12~" [f2])
   (define-key rxvt-function-map "\e[13~" [f3])
@@ -110,8 +111,8 @@
   (define-key rxvt-function-map "\e[3$" [S-delete])
   (define-key rxvt-function-map "\e[5$" [S-prior])
   (define-key rxvt-function-map "\e[6$" [S-next])
-  (define-key rxvt-function-map "\e[8$" [S-end])
   (define-key rxvt-function-map "\e[7$" [S-home])
+  (define-key rxvt-function-map "\e[8$" [S-end])
   (define-key rxvt-function-map "\e[d" [S-left])
   (define-key rxvt-function-map "\e[c" [S-right])
   (define-key rxvt-function-map "\e[a" [S-up])
@@ -128,7 +129,7 @@
     ;; a PC-style keyboard these keys correspond to
     ;; MODIFIER-FUNCTION_KEY, where modifier is S-, C-, C-S-.  The
     ;; code here subsitutes the corresponding defintions in
-    ;; function-key-map. This substitution is needed because if a key
+    ;; function-key-map.  This substitution is needed because if a key
     ;; definition if found in function-key-map, there are no further
     ;; lookups in other keymaps.
     (let ((m (terminal-local-value 'local-function-key-map nil)))
@@ -142,7 +143,7 @@
       (substitute-key-definition [f18] [S-f8] m)
       (substitute-key-definition [f19] [S-f9] m)
       (substitute-key-definition [f20] [S-f10] m)
-      
+
       (substitute-key-definition [f23] [C-f1] m)
       (substitute-key-definition [f24] [C-f2] m)
       (substitute-key-definition [f25] [C-f3] m)
@@ -189,8 +190,8 @@
     ("blue"           4 (  0   0 205))	; blue3
     ("magenta"        5 (205   0 205))	; magenta3
     ("cyan"           6 (  0 205 205))	; cyan3
-    ("white"          7 (250 235 215))	; AntiqueWhite
-    ("brightblack"    8 ( 64  64  64))	; gray25
+    ("white"          7 (229 229 229))	; gray90
+    ("brightblack"    8 ( 77  77  77))	; gray30
     ("brightred"      9 (255   0   0))	; red
     ("brightgreen"   10 (  0 255   0))	; green
     ("brightyellow"  11 (255 255   0))	; yellow
@@ -223,6 +224,67 @@ for the currently selected frame."
       (setq colors (cdr colors)
 	    color (car colors)
 	    ncolors (1- ncolors)))
+    (when (> ncolors 0)
+      (cond
+       ((= ncolors 240)			; 256-color rxvt
+	;; 216 non-gray colors first
+	(let ((r 0) (g 0) (b 0))
+	  (while (> ncolors 24)
+	    ;; This and other formulae taken from 256colres.pl and
+	    ;; 88colres.pl in the xterm distribution.
+	    (tty-color-define (format "color-%d" (- 256 ncolors))
+			      (- 256 ncolors)
+			      (mapcar 'rxvt-rgb-convert-to-16bit
+				      (list (round (* r 42.5))
+					    (round (* g 42.5))
+					    (round (* b 42.5)))))
+	    (setq b (1+ b))
+	    (if (> b 5)
+		(setq g (1+ g)
+		      b 0))
+	    (if (> g 5)
+		(setq r (1+ r)
+		      g 0))
+	    (setq ncolors (1- ncolors))))
+	;; Now the 24 gray colors
+	(while (> ncolors 0)
+	  (setq color (rxvt-rgb-convert-to-16bit (+ 8 (* (- 24 ncolors) 10))))
+	  (tty-color-define (format "color-%d" (- 256 ncolors))
+			    (- 256 ncolors)
+			    (list color color color))
+	  (setq ncolors (1- ncolors))))
+       
+       ((= ncolors 72) ; rxvt-unicode
+	;; 64 non-gray colors
+	(let ((levels '(0 139 205 255))
+	      (r 0) (g 0) (b 0))
+	  (while (> ncolors 8)
+	    (tty-color-define (format "color-%d" (- 88 ncolors))
+			      (- 88 ncolors)
+			      (mapcar 'rxvt-rgb-convert-to-16bit
+				      (list (nth r levels)
+					    (nth g levels)
+					    (nth b levels))))
+	    (setq b (1+ b))
+	    (if (> b 3)
+		(setq g (1+ g)
+		      b 0))
+	    (if (> g 3)
+		(setq r (1+ r)
+		      g 0))
+	    (setq ncolors (1- ncolors))))
+	;; Now the 8 gray colors
+	(while (> ncolors 0)
+	  (setq color (rxvt-rgb-convert-to-16bit
+		       (floor
+			(if (= ncolors 8)
+			    46.36363636
+			  (+ (* (- 8 ncolors) 23.18181818) 69.54545454)))))
+	  (tty-color-define (format "color-%d" (- 88 ncolors))
+			    (- 88 ncolors)
+			    (list color color color))
+	  (setq ncolors (1- ncolors))))
+       (t (error "Unsupported number of rxvt colors (%d)" (+ 16 ncolors)))))
     ;; Modifying color mappings means realized faces don't use the
     ;; right colors, so clear them.
     (clear-face-cache)))
@@ -250,5 +312,5 @@ for the currently selected frame."
 	  (setq default-frame-background-mode 'dark)))
     (frame-set-background-mode (selected-frame))))
 
-;;; arch-tag: 20cf2fb6-6318-4bab-9dbf-1d15048f2257
+;; arch-tag: 20cf2fb6-6318-4bab-9dbf-1d15048f2257
 ;;; rxvt.el ends here

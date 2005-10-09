@@ -648,7 +648,10 @@ add_sym (name, nested_in_class)
   h %= TABLE_SIZE;
 
   for (sym = class_table[h]; sym; sym = sym->next)
-    if (streq (name, sym->name) && sym->namesp == scope)
+    if (streq (name, sym->name)
+	&& ((!sym->namesp && !scope)
+	    || (sym->namesp && scope
+		&& streq (sym->namesp->name, scope->name))))
       break;
 
   if (sym == NULL)

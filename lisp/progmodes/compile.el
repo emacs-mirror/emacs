@@ -490,7 +490,7 @@ starting the compilation process.")
 (defface compilation-error
   '((t :inherit font-lock-warning-face))
   "Face used to highlight compiler errors."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defface compilation-warning
@@ -498,7 +498,7 @@ starting the compilation process.")
     (((class color)) (:foreground "cyan" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defface compilation-info
@@ -511,19 +511,19 @@ starting the compilation process.")
     (((class color)) (:foreground "green" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler information."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defface compilation-line-number
   '((t :inherit font-lock-variable-name-face))
   "Face for displaying line numbers in compiler messages."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defface compilation-column-number
   '((t :inherit font-lock-type-face))
   "Face for displaying column numbers in compiler messages."
-  :group 'font-lock-highlighting-faces
+  :group 'compilation
   :version "22.1")
 
 (defvar compilation-message-face 'underline
@@ -614,6 +614,7 @@ Faces `compilation-error-face', `compilation-warning-face',
 ;; This function is the central driver, called when font-locking to gather
 ;; all information needed to later jump to corresponding source code.
 ;; Return a property list with all meta information on this error location.
+
 (defun compilation-error-properties (file line end-line col end-col type fmt)
   (unless (< (next-single-property-change (match-beginning 0) 'directory nil (point))
 	     (point))
@@ -628,11 +629,22 @@ Faces `compilation-error-face', `compilation-warning-face',
 				    (get-text-property dir 'directory)))))
 	    (setq file (cons file (car dir)))))
       ;; This message didn't mention one, get it from previous
-      (setq file (previous-single-property-change (point) 'message)
-	    file (or (if file
-			 (car (nth 2 (car (or (get-text-property (1- file) 'message)
-					 (get-text-property file 'message))))))
-		     '("*unknown*"))))
+      (let ((prev-pos
+	     ;; Find the previous message.
+	     (previous-single-property-change (point) 'message)))
+	(if prev-pos
+	    ;; Get the file structure that belongs to it.
+	    (let* ((prev
+		    (or (get-text-property (1- prev-pos) 'message)
+			(get-text-property prev-pos 'message)))
+		   (prev-struct
+		    (car (nth 2 (car prev)))))
+	      ;; Construct FILE . DIR from that.
+	      (if prev-struct
+		  (setq file (cons (car prev-struct)
+				   (cadr prev-struct))))))
+	(unless file
+	  (setq file '("*unknown*")))))
     ;; All of these fields are optional, get them only if we have an index, and
     ;; it matched some part of the message.
     (and line
@@ -887,19 +899,20 @@ visible rather than the beginning."
   :group 'compilation)
 
 
-(defun compilation-buffer-name (mode-name name-function)
+(defun compilation-buffer-name (mode-name mode-command name-function)
   "Return the name of a compilation buffer to use.
 If NAME-FUNCTION is non-nil, call it with one argument MODE-NAME
 to determine the buffer name.
 Likewise if `compilation-buffer-name-function' is non-nil.
-If current buffer is in Compilation mode for the same mode name
+If current buffer is the mode MODE-COMMAND,
 return the name of the current buffer, so that it gets reused.
 Otherwise, construct a buffer name from MODE-NAME."
   (cond (name-function
 	 (funcall name-function mode-name))
 	(compilation-buffer-name-function
 	 (funcall compilation-buffer-name-function mode-name))
-	((eq major-mode (nth 1 compilation-arguments))
+	((and (eq mode-command major-mode)
+	      (eq major-mode (nth 1 compilation-arguments)))
 	 (buffer-name))
 	(t
 	 (concat "*" (downcase mode-name) "*"))))
@@ -948,7 +961,7 @@ Returns the compilation buffer created."
     (with-current-buffer
 	(setq outbuf
 	      (get-buffer-create
-	       (compilation-buffer-name name-of-mode name-function)))
+	       (compilation-buffer-name name-of-mode mode name-function)))
       (let ((comp-proc (get-buffer-process (current-buffer))))
 	(if comp-proc
 	    (if (or (not (eq (process-status comp-proc) 'run))
@@ -1540,7 +1553,7 @@ Use this command in a compilation log buffer.  Sets the mark at point there."
       (dired-other-window (car (get-text-property (point) 'directory)))
     (push-mark)
     (setq compilation-current-error (point))
-    (next-error 0)))
+    (next-error-internal)))
 
 ;; Return a compilation buffer.
 ;; If the current buffer is a compilation buffer, return it.
@@ -1778,7 +1791,7 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 				    marker)
 	    (let ((name (expand-file-name
 			 (read-file-name
-			  (format "Find this %s in: (default %s) "
+			  (format "Find this %s in (default %s): "
 				  compilation-error filename)
 			  spec-dir filename t))))
 	      (if (file-directory-p name)

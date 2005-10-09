@@ -197,7 +197,7 @@
   (if (and (server-getenv "COLORTERM")
 	   (string-match "\\`rxvt" (server-getenv "COLORTERM")))
       (progn
-	(eval-when-compile (load "term/rxvt"))
+	(eval-and-compile (load "term/rxvt"))
 	(terminal-init-rxvt))
 
     ;; The terminal-local stuff only need to be set up on the first

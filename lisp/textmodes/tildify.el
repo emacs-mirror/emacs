@@ -222,11 +222,11 @@ This function performs no refilling of the changed text."
 		      (if (> (point) (marker-position marker-end))
 			  (setq finish t))
 		    (message
-		     (format "End of environment not found: %s" end-env))
+		     "End of environment not found: %s" end-env)
 		    (setq finish t))))))
       ;; No ignored environments, tildify directly
       (tildify-tildify beg end ask)))
-  (message (format "%d spaces replaced." tildify-count)))
+  (message "%d spaces replaced." tildify-count))
 
 ;;;###autoload
 (defun tildify-buffer ()

@@ -3,6 +3,7 @@
 *.pdb
 .gdb_history
 Makefile
+makefile
 Makefile.c
 TAGS-LISP
 _gdbinit

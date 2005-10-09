@@ -1,3 +1,22 @@
+2005-09-27  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.c: Preliminary Forth support.
+	(prolog_pr): Cast strlen to int before comparison.
+	(LOOKING_AT, LOOKING_AT_NOCASE): Let the preprocessor check that
+	the second argument is indeed a literal string.
+	(main): In append mode, sort the tags file after writing it.
+
+2005-09-27  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* etags.c (longopts, print_help, main): The -a (--append) option
+	can be used in ctags also; for one, the Linux make file uses it.
+
+2005-09-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ebrowse.c (add_sym): Compare namespace names instead of
+	namespace objects.  This prevents the parser from incorrectly
+	treating classes whose superclass is in another namespace.
+
 2005-09-15  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (update-game-score.o): New target.

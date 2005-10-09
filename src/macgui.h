@@ -95,11 +95,15 @@ typedef GWorldPtr Pixmap;
 /* Emulate XCharStruct.  */
 typedef struct _XCharStruct
 {
-  int rbearing;
-  int lbearing;
-  int width;
-  int ascent;
-  int descent;
+  short	lbearing;		/* origin to left edge of raster */
+  short	rbearing;		/* origin to right edge of raster */
+  short	width;			/* advance to next char's origin */
+  short	ascent;			/* baseline to top edge of raster */
+  short	descent;		/* baseline to bottom edge of raster */
+#if 0
+  unsigned short attributes;	/* per char flags (not predefined) */
+#endif
+  unsigned valid_p : 1;
 } XCharStruct;
 
 #define STORE_XCHARSTRUCT(xcs, w, bds)			\
@@ -107,7 +111,8 @@ typedef struct _XCharStruct
    (xcs).lbearing = (bds).left,				\
    (xcs).rbearing = (bds).right,			\
    (xcs).ascent = -(bds).top,				\
-   (xcs).descent = (bds).bottom)
+   (xcs).descent = (bds).bottom,			\
+   (xcs).valid_p = 1)
 
 struct MacFontStruct {
   char *full_name;
@@ -120,19 +125,9 @@ struct MacFontStruct {
 #else
   short mac_scriptcode;  /* Mac OS script code for font used */
 #endif
-
-#if 0
-  SInt16 mFontNum;  /* font number of font used in this window */
-  short mScriptCode;  /* Mac OS script code for font used */
-  int mFontSize;  /* size of font */
-  Style mFontFace;  /* plain, bold, italics, etc. */
-  int mHeight;  /* height of one line of text in pixels */
-  int mWidth;  /* width of one character in pixels */
-  int mAscent;
-  int mDescent;
-  int mLeading;
-  char mTwoByte;  /* true for two-byte font */
-#endif /* 0 */
+#if USE_ATSUI
+  ATSUStyle mac_style;		/* NULL if QuickDraw Text is used */
+#endif
 
 /* from Xlib.h */
 #if 0

@@ -6751,8 +6751,9 @@ a non-nil value.  */);
 
 #ifdef HAVE_FSYNC
   DEFVAR_BOOL ("write-region-inhibit-fsync", &write_region_inhibit_fsync,
-	       doc: /* *Non-nil means don't call fsync after saving files.
-Enabling this variable may result in data loss!  */);
+	       doc: /* *Non-nil means don't call fsync in `write-region'.
+This variable affects calls to `write-region' as well as save commands.
+A non-nil value may result in data loss!  */);
   write_region_inhibit_fsync = 0;
 #endif
 

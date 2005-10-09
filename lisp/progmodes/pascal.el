@@ -1470,7 +1470,7 @@ The default is a name found in the buffer around point."
 		      default ""))
 	 (label (if (not (string= default ""))
 		    ;; Do completion with default
-		    (completing-read (concat "Label: (default " default ") ")
+		    (completing-read (concat "Label (default " default "): ")
 				     'pascal-comp-defun nil t "")
 		  ;; There is no default value. Complete without it
 		  (completing-read "Label: "

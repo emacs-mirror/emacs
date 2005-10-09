@@ -92,11 +92,11 @@
 	(setq args (cons (list "to" to) args))))
 
     (setq subject (cdr-safe (assoc "subject" args)))
-    (if (fboundp url-mail-command)
-	(if (eq url-mail-command 'compose-mail)
-	    (compose-mail nil nil nil 'new)
-	  (funcall url-mail-command))
-      (mail 'new))
+    (if (eq url-mail-command 'compose-mail)
+	(compose-mail nil nil nil 'new)
+      (if (eq url-mail-command 'mail)
+	  (mail 'new)
+	(funcall url-mail-command)))
     (while args
       (if (string= (caar args) "body")
 	  (progn

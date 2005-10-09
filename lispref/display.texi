@@ -208,9 +208,9 @@ explicitly.
   This section describes the functions for explicitly producing echo
 area messages.  Many other Emacs features display messages there, too.
 
-@defun message string &rest arguments
-This function displays a message in the echo area.  The
-argument @var{string} is similar to a C language @code{printf} control
+@defun message format-string &rest arguments
+This function displays a message in the echo area.  The argument
+@var{format-string} is similar to a C language @code{printf} format
 string.  See @code{format} in @ref{Formatting Strings}, for the details
 on the conversion specifications.  @code{message} returns the
 constructed string.
@@ -218,14 +218,15 @@ constructed string.
 In batch mode, @code{message} prints the message text on the standard
 error stream, followed by a newline.
 
-If @var{string}, or strings among the @var{arguments}, have @code{face}
-text properties, these affect the way the message is displayed.
+If @var{format-string}, or strings among the @var{arguments}, have
+@code{face} text properties, these affect the way the message is displayed.
 
 @c Emacs 19 feature
-If @var{string} is @code{nil}, @code{message} clears the echo area; if
-the echo area has been expanded automatically, this brings it back to
-its normal size.  If the minibuffer is active, this brings the
-minibuffer contents back onto the screen immediately.
+If @var{format-string} is @code{nil} or the empty string,
+@code{message} clears the echo area; if the echo area has been
+expanded automatically, this brings it back to its normal size.
+If the minibuffer is active, this brings the minibuffer contents back
+onto the screen immediately.
 
 @example
 @group
@@ -254,7 +255,7 @@ the execution of @var{body}.  It displays @var{message}, executes
 the previous echo area contents.
 @end defmac
 
-@defun message-or-box string &rest arguments
+@defun message-or-box format-string &rest arguments
 This function displays a message like @code{message}, but may display it
 in a dialog box instead of the echo area.  If this function is called in
 a command that was invoked using the mouse---more precisely, if
@@ -268,7 +269,7 @@ You can force use of the mouse or of the echo area by binding
 @code{last-nonmenu-event} to a suitable value around the call.
 @end defun
 
-@defun message-box string &rest arguments
+@defun message-box format-string &rest arguments
 This function displays a message like @code{message}, but uses a dialog
 box (or a pop-up menu) whenever that is possible.  If it is impossible
 to use a dialog box or pop-up menu, because the terminal does not
@@ -2729,23 +2730,25 @@ continuation, horizontal scrolling, and the overlay arrow.
 @node Fringe Size/Pos
 @subsection Fringe Size and Position
 
-  Here's how to control the position and width of the window fringes.
+  The following buffer-local variables control the position and width
+of the window fringes.
 
 @defvar fringes-outside-margins
-If the value is non-@code{nil}, the frames appear outside the display
-margins.  The fringes normally appear between the display margins and
-the window text.  It works to set @code{fringes-outside-margins}
-buffer-locally.  @xref{Display Margins}.
+The fringes normally appear between the display margins and the window
+text.  If the value is non-@code{nil}, they appear outside the display
+margins.  @xref{Display Margins}.
 @end defvar
 
 @defvar left-fringe-width
 This variable, if non-@code{nil}, specifies the width of the left
-fringe in pixels.
+fringe in pixels.  A value of @code{nil} means to use the left fringe
+width from the window's frame.
 @end defvar
 
 @defvar right-fringe-width
 This variable, if non-@code{nil}, specifies the width of the right
-fringe in pixels.
+fringe in pixels.  A value of @code{nil} means to use the right fringe
+width from the window's frame.
 @end defvar
 
   The values of these variables take effect when you display the
@@ -3952,20 +3955,22 @@ The image is looked for in @code{image-load-path}.
 @defvar image-load-path
 @tindex image-load-path
 This variable's value is a list of locations in which to search for
-image files.  If an element is a string, it is taken to be the name of
-a directory to search.  If an element is a variable symbol, the value
-of that variable is used as a list of directories to search.
+image files.  If an element is a string or a variable symbol whose
+value is a string, the string is taken to be the name of a directory
+to search.  If an element is a variable symbol whose value is a list,
+that is taken to be a list of directory names to search.
 
-The default is to search in @file{@code{data-directory}/images}, then
-in @code{data-directory}, and finally in the directories specified by
+The default is to search in the @file{images} subdirectory of the
+directory specified by @code{data-directory}, then the directory
+specified by @code{data-directory}, and finally in the directories in
 @code{load-path}.  Subdirectories are not automatically included in
 the search, so if you put an image file in a subdirectory, you have to
-supply the subdirectory name explicitly.  For example, if you put an
-image file @file{bar.xpm} in @file{@code{data-directory}/images/foo/},
-you should define the image as:
+supply the subdirectory name explicitly.  For example, to find the
+image @file{images/foo/bar.xpm} within @code{data-directory}, you
+should specify the image as follows:
 
 @example
-  (defimage foo-image '((:type xpm :file "foo/bar.xpm")))
+(defimage foo-image '((:type xpm :file "foo/bar.xpm")))
 @end example
 @end defvar
 

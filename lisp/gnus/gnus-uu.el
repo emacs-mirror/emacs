@@ -1294,7 +1294,7 @@ When called interactively, prompt for REGEXP."
 		       (not gnus-uu-be-dangerous)
 		       (or (eq gnus-uu-be-dangerous t)
 			   (gnus-y-or-n-p
-			    (format "Delete unsuccessfully decoded file %s"
+			    (format "Delete unsuccessfully decoded file %s? "
 				    result-file))))
 	      (delete-file result-file)))
 	  (when (memq 'begin process-state)

@@ -335,8 +335,8 @@ is slower."
 (defun gnus-completing-read-with-default (default prompt &rest args)
   ;; Like `completing-read', except that DEFAULT is the default argument.
   (let* ((prompt (if default
-		     (concat prompt " (default " default ") ")
-		   (concat prompt " ")))
+		     (concat prompt " (default " default "): ")
+		   (concat prompt ": ")))
 	 (answer (apply 'completing-read prompt args)))
     (if (or (null answer) (zerop (length answer)))
 	default
@@ -1036,14 +1036,6 @@ This function saves the current buffer."
        (save-excursion
 	 (set-buffer gnus-group-buffer)
 	 (eq major-mode 'gnus-group-mode))))
-
-(defun gnus-remove-duplicates (list)
-  (let (new)
-    (while list
-      (or (member (car list) new)
-	  (setq new (cons (car list) new)))
-      (setq list (cdr list)))
-    (nreverse new)))
 
 (defun gnus-remove-if (predicate list)
   "Return a copy of LIST with all items satisfying PREDICATE removed."

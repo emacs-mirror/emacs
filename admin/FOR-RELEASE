@@ -27,7 +27,24 @@ face name prefixes should be in it for good results.
 
 * NEW FEATURES
 
-** Update Speedbar.
+** Rework how the fringe "angle" bitmap at at bottom of buffer is
+shown to include an indication of whether the last line has a NL or not.
+[Assigned to KFS]
+
+** Rework how fringe bitmaps are defined and used.
+Currently, bitmap usage and bitmap appearence are "mixed-up" in a
+one-level representation.  It would be cleaner to split the
+representation into a two-level model where first level maps
+bitmap usage to a bitmap name, and second level maps bitmap name to
+a bitmap appearence.
+[Assigned to KFS]
+
+** Put a max-limit on the size of images, e.g. based on the display size.
+This is to avoid allocating insane amounts of memory due to bogus
+image size specifications.
+Note: rather than clipping images that are too big (this may be
+non-trivial to do correctly in all cases -- and thus non-trivial to
+test), it may be better just to avoid displaying such images for emacs 22.
 
 * FATAL ERRORS
 
@@ -48,59 +65,17 @@ back burner waiting for a legal comment or an alternate implementation
 
 * BUGS
 
-** Fix recognition of shell's `dirs' command.
+* Pierre Albarede's Aug 30 bug report about C-v and long lines.
 
-Is his change right?
-
-Date: Wed, 29 Jun 2005 18:21:28 -0500 (CDT)
-From: kevin.gal@verizon.net
-
-When I use tcsh (which echoes command input) in a shell buffer,
-entering "M-x dirs" fails because it mistakens the echoed "dirs"
-string as the directory string to use as input when changing the
-buffers default directory.  The attached gziped patch file contains a
-fix.  The patch also binds the "dirs" command to "\e\C-m" in
-shell-mode-map (previously unbound) to make it easy to invoke.
-Finally, a test has been added to see if "shell-dirstack-query" is
-non-nil.  If so, it is not overwritten.
-
-To enable the fix, the user must set comint-process-echoes to t.
+** Make a new interface for specifying window configurations
+so that we can fix bugs in balance-windows.
 
 ** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
 excesive CPU on some Windows environments.  Usages of 50% and 100%
 CPU time have been observed on different Window XP configurations.
-
-** Bug in ebrowse
-
-Date: Fri, 27 May 2005 17:35:48 +0200
-From: Markus Gritsch <gritsch@iue.tuwien.ac.at>
-
-the C++ header file which led to the problematic BROWSE file reads
-
-namespace test {
-     class Base
-     {
-     };
-
-     class B : public Base
-     {
-     };
-}
-
-class A : public test::Base
-{
-};
-
-The *Tree* is then displayed as
-
-   *Globals*
-   test
-   test::Base
-     test::B
-
-The class A seems to be missing.
+Seems to be a problem in sys_select in w32proc.c.
 
 * DOCUMENTATION
 
@@ -221,7 +196,7 @@ lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi     Chong Yidong
 lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
 lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
-lispref/errors.texi      "Luc Teirlinck"
+lispref/errors.texi      "Luc Teirlinck"   Chong Yidong
 lispref/eval.texi        "Luc Teirlinck"   Chong Yidong
 lispref/files.texi       "Luc Teirlinck"   Chong Yidong
 lispref/frames.texi      "Luc Teirlinck"   Chong Yidong
@@ -236,7 +211,7 @@ lispref/lists.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/loading.texi     "Luc Teirlinck"   Chong Yidong
 lispref/locals.texi      Chong Yidong
 lispref/macros.texi      "Luc Teirlinck"   Chong Yidong
-lispref/maps.texi
+lispref/maps.texi        Chong Yidong
 lispref/markers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/minibuf.texi     "Luc Teirlinck"   Chong Yidong
 lispref/modes.texi	 Chong Yidong

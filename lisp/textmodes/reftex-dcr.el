@@ -1,10 +1,9 @@
 ;;; reftex-dcr.el --- viewing cross references and citations with RefTeX
-
-;; Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.28
+;; Version: VERSIONTAG
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -268,7 +267,7 @@ With argument, actually select the window showing the cross reference."
   ;; Display crossref info in echo area.
   (cond
    ((null docstruct)
-    (message (substitute-command-keys (format reftex-no-info-message "ref"))))
+    (message "%s" (substitute-command-keys (format reftex-no-info-message "ref"))))
    ((null entry)
     (message "ref: unknown label: %s" label))
    (t
@@ -301,7 +300,7 @@ With argument, actually select the window showing the cross reference."
               (error
                (if (and files (= (length all-files) (length files)))
                    (message "cite: no such database entry: %s" key)
-                 (message (substitute-command-keys 
+                 (message "%s" (substitute-command-keys 
                            (format reftex-no-info-message "cite"))))
                nil)))
       (when entry

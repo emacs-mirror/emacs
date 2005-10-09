@@ -367,9 +367,9 @@
 	(goto-char (point-max))))
     (save-restriction
       (narrow-to-region b (point))
-      (set-text-properties (point-min) (point-max) nil)
       (when (or (equal type "enriched")
 		(equal type "richtext"))
+	(set-text-properties (point-min) (point-max) nil)
 	(ignore-errors
 	  (enriched-decode (point-min) (point-max))))
       (mm-handle-set-undisplayer
@@ -576,9 +576,10 @@
        (cadar smime-keys)
      (smime-get-key-by-email
       (gnus-completing-read-maybe-default
-       (concat "Decipher using which key? "
-	       (if smime-keys (concat "(default " (caar smime-keys) ") ")
-		 ""))
+       (concat "Decipher using key"
+	       (if smime-keys
+		   (concat " (default " (caar smime-keys) "): ")
+		 ": "))
        smime-keys nil nil nil nil (car-safe (car-safe smime-keys))))))
   (goto-char (point-min))
   (while (search-forward "\r\n" nil t)
