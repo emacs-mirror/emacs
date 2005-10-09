@@ -1,3 +1,9 @@
+2005-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Speedbar): Add information on keybindings,
+	dismissing the speedbar, and buffer display mode.  Link to
+	speedbar manual.
+
 2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cmdargs.texi (Icons X): Removed options -i, -itype, --icon-type, 
