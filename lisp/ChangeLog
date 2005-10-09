@@ -1,3 +1,8 @@
+2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line-x-option-alist): Removed options -i, 
+	-itype, --icon-type, added -nb, --no-bitmap-icon
+
 2005-10-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-menu-items): Use :visible
