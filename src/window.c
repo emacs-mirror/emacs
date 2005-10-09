@@ -1029,7 +1029,8 @@ if it isn't already recorded.  */)
 
   if (! NILP (update)
       && ! (! NILP (w->window_end_valid)
-	    && XFASTINT (w->last_modified) >= MODIFF))
+	    && XFASTINT (w->last_modified) >= MODIFF)
+      && !noninteractive)
     {
       struct text_pos startp;
       struct it it;

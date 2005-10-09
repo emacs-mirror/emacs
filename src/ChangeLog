@@ -1,6 +1,10 @@
+2005-10-09  Romain Francoise  <romain@orebokech.com>
+
+	* window.c (Fwindow_end): Don't try to redisplay if non-interactive.
+
 2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* emacs.c (standard_args): Removed options -i, -itype, --icon-type, 
+	* emacs.c (standard_args): Removed options -i, -itype, --icon-type,
 	added -nb, --no-bitmap-icon.
 
 	* xfns.c (Fx_create_frame): Make bitmapIcon have default on.
