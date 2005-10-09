@@ -1,3 +1,7 @@
+2005-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* speedbar.el (speedbar-file-key-map): Fix typo.
+
 2005-10-09  Daniel Brockman <daniel@brockman.se>
 
 	* cus-start.el (line-spacing): Add custom spec.
