@@ -218,13 +218,6 @@ then
     echo "${bogosities}"
   fi
   rm -f /tmp/el /tmp/elc
-
-  ### Check for .el files that would overflow the 14-char limit if compiled.
-  long=`find lisp leim -name '[a-zA-Z0-9]??????????*.el' -print`
-  if [ "$long" != "" ]; then
-    echo "The following .el file names are too long:"
-    echo "$long"
-  fi
 fi
 
 ### Make sure configure is newer than configure.in.
