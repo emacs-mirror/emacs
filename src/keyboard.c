@@ -5096,6 +5096,7 @@ make_lispy_position (f, x, y, time)
 	  posn = (part == ON_LEFT_FRINGE) ? Qleft_fringe : Qright_fringe;
 	  rx = 0;
 	  dx = wx;
+	  wx = (part == ON_LEFT_FRINGE) ? 0 : window_box_width (w, TEXT_AREA);
 	  if (part == ON_RIGHT_FRINGE)
 	    dx -= (window_box_width (w, LEFT_MARGIN_AREA)
 		   + window_box_width (w, TEXT_AREA)
