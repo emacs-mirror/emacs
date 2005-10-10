@@ -1,3 +1,8 @@
+2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Workflow states): Documented that change in keywords
+	becomes active only after restart of Emacs.
+
 2005-10-09  Richard M. Stallman  <rms@gnu.org>
 
 	* frames.texi (Speedbar): Clarify the text.
