@@ -173,28 +173,28 @@ See Info node `(emacs)GDB Graphical Interface' for a more
 detailed description of this mode.
 
 
----------------------------------------------------------------------
-                               GDB Toolbar
----------------------------------------------------------------------
- GUD buffer (I/O of GDB)          | Locals buffer
-                                  |
-                                  |
-                                  |
----------------------------------------------------------------------
- Source buffer                    | Input/Output (of inferior) buffer
-                                  | (comint-mode)
-                                  |
-                                  |
-                                  |
-                                  |
-                                  |
-                                  |
----------------------------------------------------------------------
- Stack buffer                     | Breakpoints buffer
- RET      gdb-frames-select       | SPC    gdb-toggle-breakpoint
-                                  | RET    gdb-goto-breakpoint
-                                  |   d    gdb-delete-breakpoint
----------------------------------------------------------------------"
++--------------------------------------------------------------+
+|                           GDB Toolbar                        |
++-------------------------------+------------------------------+
+| GUD buffer (I/O of GDB)       | Locals buffer                |
+|                               |                              |
+|                               |                              |
+|                               |                              |
++-------------------------------+------------------------------+
+| Source buffer                 | I/O buffer (of inferior)     |
+|                               | (comint-mode)                |
+|                               |                              |
+|                               |                              |
+|                               |                              |
+|                               |                              |
+|                               |                              |
+|                               |                              |
++-------------------------------+------------------------------+
+| Stack buffer                  | Breakpoints buffer           |
+| RET      gdb-frames-select    | SPC    gdb-toggle-breakpoint |
+|                               | RET    gdb-goto-breakpoint   |
+|                               | d      gdb-delete-breakpoint |
++-------------------------------+------------------------------+"
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
@@ -1192,12 +1192,13 @@ happens to be appropriate."
      (let ((buf (gdb-get-buffer ',buf-key)))
        (and buf
 	    (with-current-buffer buf
-	      (let ((p (window-point (get-buffer-window buf 0)))
+	      (let* ((window (get-buffer-window buf 0))
+		     (p (window-point window))
 		    (buffer-read-only nil))
 		(erase-buffer)
 		(insert-buffer-substring (gdb-get-create-buffer
 					  'gdb-partial-output-buffer))
-		(set-window-point (get-buffer-window buf 0) p)))))
+		(set-window-point window p)))))
      ;; put customisation here
      (,custom-defun)))
 
@@ -2125,13 +2126,15 @@ corresponding to the mode line clicked."
       (while (re-search-forward "\\s-*{.*\n" nil t)
 	(replace-match " (array);\n" nil nil))))
   (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
-    (and buf (with-current-buffer buf
-	       (let ((p (window-point (get-buffer-window buf 0)))
+    (and buf
+	 (with-current-buffer buf
+	      (let* ((window (get-buffer-window buf 0))
+		     (p (window-point window))
 		     (buffer-read-only nil))
 		 (erase-buffer)
 		 (insert-buffer-substring (gdb-get-create-buffer
 					   'gdb-partial-output-buffer))
-		(set-window-point (get-buffer-window buf 0) p)))))
+		(set-window-point window p)))))
   (run-hooks 'gdb-info-locals-hook))
 
 (defun gdb-info-locals-custom ()
@@ -2528,10 +2531,10 @@ BUFFER nil or omitted means use the current buffer."
       (when (< left-margin-width 2)
 	(save-current-buffer
 	  (setq left-margin-width 2)
-	  (if (get-buffer-window (current-buffer) 0)
+	  (let ((window (get-buffer-window (current-buffer) 0)))
+	    (if window
 	      (set-window-margins
-	       (get-buffer-window (current-buffer) 0)
-	       left-margin-width right-margin-width))))
+	       window left-margin-width right-margin-width)))))
       (gdb-put-string
        (propertize putstring
 		   'face (if enabled 'breakpoint-enabled 'breakpoint-disabled))
@@ -2543,10 +2546,10 @@ BUFFER nil or omitted means use the current buffer."
       (remove-images start end))
   (when remove-margin
     (setq left-margin-width 0)
-    (if (get-buffer-window (current-buffer) 0)
-	(set-window-margins
-	 (get-buffer-window (current-buffer) 0)
-	 left-margin-width right-margin-width))))
+    (let ((window (get-buffer-window (current-buffer) 0)))
+      (if window
+	  (set-window-margins
+	   window left-margin-width right-margin-width)))))
 
 
 ;;
