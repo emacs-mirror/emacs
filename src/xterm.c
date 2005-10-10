@@ -3647,14 +3647,18 @@ glyph_rect (f, x, y, rect)
   Lisp_Object window;
   struct window *w;
   struct glyph_row *r, *end_row;
+  enum window_part part;
 
-  window = window_from_coordinates (f, x, y, 0, &x, &y, 0);
+  window = window_from_coordinates (f, x, y, &part, &x, &y, 0);
   if (NILP (window))
     return 0;
 
   w = XWINDOW (window);
   r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
   end_row = r + w->current_matrix->nrows - 1;
+
+  if (part != ON_TEXT)
+    return 0;
 
   for (; r < end_row && r->enabled_p; ++r)
     {
