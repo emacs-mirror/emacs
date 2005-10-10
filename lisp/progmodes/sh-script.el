@@ -3392,16 +3392,20 @@ t means to return a list of all possible completions of STRING.
   "Insert code to setup temporary file handling.  See `sh-feature'."
   (bash sh-append ksh88)
   (csh (file-name-nondirectory (buffer-file-name))
-       "set tmp = /tmp/" str ".$$" \n
+       "set tmp = `mktemp /tmp/" str ".XXXXXX`" \n
        "onintr exit" \n _
        (and (goto-char (point-max))
 	    (not (bolp))
 	    ?\n)
        "exit:\n"
        "rm $tmp* >&/dev/null" > \n)
+  ;; The change to use mktemp here has not been tested;
+  ;; I don't know es syntax, so I had to guess.
+  ;; If you try it, or if you know es syntax and can check it,
+  ;; please tell me whether it needs any change.  --rms.
   (es (file-name-nondirectory (buffer-file-name))
-      > "local( signals = $signals sighup sigint; tmp = /tmp/" str
-      ".$pid ) {" \n
+      > "local( signals = $signals sighup sigint; tmp = `mktemp /tmp/" str
+      ".XXXXXX` ) {" \n
       > "catch @ e {" \n
       > "rm $tmp^* >[2]/dev/null" \n
       "throw $e" \n
@@ -3411,11 +3415,15 @@ t means to return a list of all possible completions of STRING.
       ?\} > \n)
   (ksh88 sh-modify sh
 	 7 "EXIT")
+  ;; The change to use mktemp here has not been tested;
+  ;; I don't know rc syntax, so I had to guess.
+  ;; If you try it, or if you know rc syntax and can check it,
+  ;; please tell me whether it needs any change.  --rms.
   (rc (file-name-nondirectory (buffer-file-name))
-      > "tmp = /tmp/" str ".$pid" \n
+      > "tmp = `mktemp /tmp/" str ".XXXXXX`" \n
       "fn sigexit { rm $tmp^* >[2]/dev/null }" \n)
   (sh (file-name-nondirectory (buffer-file-name))
-      > "TMP=${TMPDIR:-/tmp}/" str ".$$" \n
+      > "TMP=`mktemp ${TMPDIR:-/tmp}/" str ".XXXXXX`" \n
       "trap \"rm $TMP* 2>/dev/null\" " ?0 \n))
 
 
