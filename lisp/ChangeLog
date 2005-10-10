@@ -1,3 +1,9 @@
+2005-10-09  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-external-point-words): Simplify
+	logic, and don't try to check for consecutive appearances of one
+	incorrect word.
+
 2005-10-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* speedbar.el (speedbar-buffer-easymenu-definition): Add menu
