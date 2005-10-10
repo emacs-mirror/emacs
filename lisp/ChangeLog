@@ -1,3 +1,15 @@
+2005-10-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-install-speedbar-variables): Add more
+	bindings.
+	(gud-speedbar-buttons): Preserve point if possible.
+	(gud-sentinel): Restore previous speedbar display type.
+
+	* progmodes/gdb-ui.el (gdba): Improve diagram.
+	(def-gdb-auto-update-handler, gdb-info-locals-handler)
+	(gdb-put-breakpoint-icon, gdb-remove-breakpoint-icons): Call
+	get-buffer-window once.
+
 2005-10-10  Andreas Schwab  <schwab@suse.de>
 
 	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Adjust match

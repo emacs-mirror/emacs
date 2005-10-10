@@ -1,3 +1,9 @@
+2005-10-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB User Interface Layout): Improve diagram.
+	(Watch Expressions): Explain how to make speedbar global.
+	(Other GDB User Interface Buffers): Make references more precise.
+
 2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Workflow states): Documented that change in keywords
