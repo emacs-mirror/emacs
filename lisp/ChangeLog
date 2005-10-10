@@ -1,5 +1,8 @@
 2005-10-09  Richard M. Stallman  <rms@gnu.org>
 
+	* font-lock.el (font-lock-syntactic-keywords)
+	(font-lock-keywords): Doc fixes.
+
 	* textmodes/flyspell.el (flyspell-external-point-words): Simplify
 	logic, and don't try to check for consecutive appearances of one
 	incorrect word.
