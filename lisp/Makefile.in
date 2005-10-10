@@ -240,9 +240,9 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH-E-SRC)
 	$(EMACS) $(EMACSOPT) \
 	   -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name \"mh-e/mh-loaddefs.el\"))" \
+	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
 	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads mh-e
+	   -f batch-update-autoloads $(lisp)/mh-e
 	echo "" >> $@
 	echo "(provide 'mh-loaddefs)" >> $@
 	echo ";;; Local Variables:" >> $@
