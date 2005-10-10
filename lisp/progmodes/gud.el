@@ -352,6 +352,9 @@ t means that there is no stack, and we are in display-file mode.")
     (define-key gud-speedbar-key-map "j" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "e" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)
+    (define-key gud-speedbar-key-map " " 'speedbar-toggle-line-expansion)
+    (define-key gud-speedbar-key-map "[" 'speedbar-expand-line-descendants)
+    (define-key gud-speedbar-key-map "]" 'speedbar-contract-line-descendants)
     (define-key gud-speedbar-key-map "D" 'gdb-var-delete))
 
   (speedbar-add-expansion-list '("GUD" gud-speedbar-menu-items
@@ -389,7 +392,9 @@ required by the caller."
 	     gud-comint-buffer
 	     ;; gud-comint-buffer might be killed
 	     (buffer-name gud-comint-buffer))
-    (let ((minor-mode (with-current-buffer buffer gud-minor-mode)))
+    (let* ((minor-mode (with-current-buffer buffer gud-minor-mode))
+	  (window (get-buffer-window (current-buffer) 0))
+	  (p (window-point window)))
       (cond
        ((memq minor-mode '(gdbmi gdba))
 	(when (or gdb-var-changed
@@ -454,7 +459,8 @@ required by the caller."
 			'gud-gdb-goto-stackframe)
 		       (t (error "Should never be here")))
 		 frame t))))
-	    (setq gud-last-speedbar-stackframe gud-last-last-frame)))))))
+	    (setq gud-last-speedbar-stackframe gud-last-last-frame))))
+      (set-window-point window p))))
 
 
 ;; ======================================================================
@@ -2569,6 +2575,9 @@ It is saved for when this flag is not set.")
 	 ;; Stop displaying an arrow in a source file.
 	 (setq gud-overlay-arrow-position nil)
 	 (set-process-buffer proc nil)
+	 (if (featurep 'speedbar)
+	     (speedbar-change-initial-expansion-list
+	      speedbar-previously-used-expansion-list-name))
 	 (if (memq gud-minor-mode-type '(gdbmi gdba))
 	     (gdb-reset)
 	   (gud-reset)))
