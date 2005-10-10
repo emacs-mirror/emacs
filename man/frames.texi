@@ -555,30 +555,27 @@ always associated with a specific frame, called its @dfn{attached
 frame}; all speedbar operations act on that frame.
 
   Type @kbd{M-x speedbar} to create the speedbar and associate it with
-the current frame.  To dismiss the speedbar, select it and type
-@kbd{q} or @kbd{M-x speedbar}.  (You can also delete the speedbar
-frame like any other Emacs frame.)  You can then attach the speedbar
-to a different frame by typing @kbd{M-x speedbar} in that frame.
-@c ??? If the speedbar is active, and I type M-x speedbar in another
-@c frame, does that attach the speedbar to that other frame?
-@c If not, it should!  -- rms
+the current frame.  To dismiss the speedbar, type @kbd{M-x speedbar}
+again, or select the speedbar and type @kbd{q}.  (You can also delete
+the speedbar frame like any other Emacs frame.)  If you wish to
+associate the speedbar with a different frame, dismiss it and call
+@kbd{M-x speedbar} from that frame.
 
-@c ??? When you visit a file in this way, does it appear
-in the selected window?  In a new window in the same frame? -- rms
   The speedbar can operate in various modes.  Its default mode is
 @dfn{File Display} mode, which shows the files in the current
 directory of the selected window of the attached frame, one file per
-line.  Clicking on a file name visits that file in the attached frame,
-and clicking on a directory name shows that directory in the speedbar
-(@pxref{Mouse References}).  Each line also has a box, @samp{[+]} or
-@samp{<+>}, that you can click on to @dfn{expand} the contents of that
-item.  Expanding a directory adds the contents of that directory to
-the speedbar display, underneath the directory's own line.  Expanding
-an ordinary file adds a list of the tags in that file to the speedbar
-display; you can click on a tag name to jump to that tag in the
-attached frame.  When a file or directory is expanded, the @samp{[+]}
-changes to @samp{[-]}; you can click on that box to @dfn{contract} the
-item, hiding its contents.
+line.  Clicking on a file name visits that file in the selected window
+of the attached frame, and clicking on a directory name shows that
+directory in the speedbar (@pxref{Mouse References}).  Each line also
+has a box, @samp{[+]} or @samp{<+>}, that you can click on to
+@dfn{expand} the contents of that item.  Expanding a directory adds
+the contents of that directory to the speedbar display, underneath the
+directory's own line.  Expanding an ordinary file adds a list of the
+tags in that file to the speedbar display; you can click on a tag name
+to jump to that tag in the selected window of the attached frame.
+When a file or directory is expanded, the @samp{[+]} changes to
+@samp{[-]}; you can click on that box to @dfn{contract} the item,
+hiding its contents.
 
   You navigate through the speedbar using the keyboard, too.  Typing
 @kbd{RET} while point is on a line in the speedbar is equivalent to

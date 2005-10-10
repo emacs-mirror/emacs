@@ -1,3 +1,7 @@
+2005-10-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Speedbar): A couple more clarifications.
+
 2005-10-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB User Interface Layout): Improve diagram.
