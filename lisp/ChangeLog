@@ -1,5 +1,8 @@
 2005-10-10  Andreas Schwab  <schwab@suse.de>
 
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Adjust match
+	number.  Reported by Karl Chen <quarl@cs.berkeley.edu>.
+
 	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Fix for building
 	outside source directory.
 
