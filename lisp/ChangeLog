@@ -1,3 +1,8 @@
+2005-10-10  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/flyspell.el (flyspell-check-word-p):
+	If unread-command-events is non-empty, don't call sit-for.
+
 2005-10-09  Richard M. Stallman  <rms@gnu.org>
 
 	* font-lock.el (font-lock-syntactic-keywords)
