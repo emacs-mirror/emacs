@@ -6279,7 +6279,7 @@ is the frame's minibuffer window.
 
 If the root window is not split, ROOT is the root window itself.
 Otherwise, ROOT is a list (DIR EDGES W1 W2 ...) where DIR is nil for a
-horisontal split, and t for a vertical split, EDGES gives the combined
+horizontal split, and t for a vertical split, EDGES gives the combined
 size and position of the subwindows in the split, and the rest of the
 elements are the subwindows in the split.  Each of the subwindows may
 again be a window or a list representing a window split, and so on.
