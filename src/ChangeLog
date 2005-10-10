@@ -1,3 +1,10 @@
+2005-10-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.c (Fredirect_frame_focus): Fix typos in docstring.
+	(next_frame, prev_frame, set_term_frame_name): Make static.
+
+	* window.c (Fwindow_tree): Fix spelling.
+
 2005-10-09  Romain Francoise  <romain@orebokech.com>
 
 	* window.c (Fwindow_end): Don't try to redisplay if non-interactive.
@@ -219,9 +226,9 @@
 
 	* systime.h (get_operating_system_release): ... here.
 
-	* xterm.c (set_vertical_scroll_bar): Move prototype ...
-	(handle_one_xevent): Refer to union field to match the type
-	required by the function definition.
+	* xterm.c (handle_one_xevent): Refer to union field to match the
+	type required by the function definition.
+	(set_vertical_scroll_bar): Move prototype ...
 
 	* xterm.h: ... here.
 
