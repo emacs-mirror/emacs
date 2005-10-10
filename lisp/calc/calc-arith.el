@@ -239,6 +239,7 @@
     (real number)
     (number)
     (scalar)
+    (sqmatrix matrix vector)
     (matrix vector)
     (vector)
     (const)))
@@ -306,16 +307,9 @@
        (not (math-known-scalarp a t))))
 
 (defun math-known-square-matrixp (a)
-  (if (eq (car-safe a) '^)
-      (math-known-square-matrixp (nth 1 a))
-    (and (math-known-matrixp a)
-         (or (math-square-matrixp a)
-             (and (or
-                   (integerp calc-matrix-mode)
-                   (eq calc-matrix-mode 'square))
-                  (eq (car-safe a) 'var)
-                  (not (math-const-var a)))))))
-                  
+  (and (math-known-matrixp a)
+       (math-check-known-square-matrixp a)))
+
 ;;; Try to prove that A is a scalar (i.e., a non-vector).
 (defun math-check-known-scalarp (a)
   (cond ((Math-objectp a) t)
@@ -334,8 +328,17 @@
 	 (let ((decl (if (eq (car a) 'var)
 			 (or (assq (nth 2 a) math-decls-cache)
 			     math-decls-all)
-		       (assq (car a) math-decls-cache))))
-	   (memq 'scalar (nth 1 decl))))))
+		       (assq (car a) math-decls-cache)))
+               val)
+           (cond
+            ((memq 'scalar (nth 1 decl))
+             t)
+            ((and (eq (car a) 'var)
+                  (boundp (nth 2 a))
+                  (setq val (symbol-value (nth 2 a))))
+             (math-check-known-scalarp val))
+            (t
+             nil))))))
 
 ;;; Try to prove that A is *not* a scalar.
 (defun math-check-known-matrixp (a)
@@ -353,9 +356,46 @@
 	 (let ((decl (if (eq (car a) 'var)
 			 (or (assq (nth 2 a) math-decls-cache)
 			     math-decls-all)
-		       (assq (car a) math-decls-cache))))
-	   (memq 'vector (nth 1 decl))))))
+		       (assq (car a) math-decls-cache)))
+               val)
+           (cond
+            ((memq 'matrix (nth 1 decl))
+             t)
+            ((and (eq (car a) 'var)
+                  (boundp (nth 2 a))
+                  (setq val (symbol-value (nth 2 a))))
+             (math-check-known-matrixp val))
+            (t
+             nil))))))
 
+;;; Given that A is a matrix, try to prove that it is a square matrix.
+(defun math-check-known-square-matrixp (a)
+  (cond ((math-square-matrixp a)
+         t)
+        ((eq (car-safe a) '^)
+         (math-check-known-square-matrixp (nth 1 a)))
+        (t
+         (let ((decl (if (eq (car a) 'var)
+                         (or (assq (nth 2 a) math-decls-cache)
+                             math-decls-all)
+                       (assq (car a) math-decls-cache)))
+               val)
+           (cond
+            ((memq 'sqmatrix (nth 1 decl))
+             t)
+            ((memq 'matrix (nth 1 decl))
+             nil)
+            ((and (eq (car a) 'var)
+                  (boundp (nth 2 a))
+                  (setq val (symbol-value (nth 2 a))))
+             (math-check-known-square-matrixp val))
+            ((and (or
+                   (integerp calc-matrix-mode)
+                   (eq calc-matrix-mode 'sqmatrix))
+                  (eq (car-safe a) 'var))
+             t)
+            (t
+             nil))))))
 
 ;;; Try to prove that A is a real (i.e., not complex).
 (defun math-known-realp (a)
