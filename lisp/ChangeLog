@@ -1,14 +1,37 @@
+2005-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/etags.el (select-tags-table-mode): Don't use
+	selective-display.
+	(tags-select-tags-table): Pass `button' to the action function.
+	(select-tags-table): Place the side-info on button properties rather
+	than in hidden text.  Abbreviate file names.
+	(select-tags-table-mode-map): Inherit rather than copy buttom-map.
+	(select-tags-table-select): Add `button' argument.
+	Get side-info from the button property rather than from hidden text.
+
 2005-10-11  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gud-install-speedbar-variables): Add more
-	bindings.
+	* progmodes/gud.el (gud-install-speedbar-variables): Add more bindings.
 	(gud-speedbar-buttons): Preserve point if possible.
 	(gud-sentinel): Restore previous speedbar display type.
 
 	* progmodes/gdb-ui.el (gdba): Improve diagram.
 	(def-gdb-auto-update-handler, gdb-info-locals-handler)
-	(gdb-put-breakpoint-icon, gdb-remove-breakpoint-icons): Call
-	get-buffer-window once.
+	(gdb-put-breakpoint-icon, gdb-remove-breakpoint-icons):
+	Call get-buffer-window once.
+
+2005-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/pascal.el (pascal-mode-map): Move init into declaration.
+	(pascal-mode-syntax-table): Make (* *) markers same class as { ... }.
+	(pascal-indent-command): Remove unused var `ind'.
+	(pascal-indent-case): Remove unused var `oldpos'.
+	(pascal-outline-map): Don't inherit from pascal-mode-map anymore,
+	since it's now used as a proper minor mode map.
+	(pascal-outline): Rename to pascal-outline-mode.
+	(pascal-outline-mode): Use define-minor-mode.
+	(pascal-outline-mode, pascal-outline-change): Use overlays rather than
+	selective-display.
 
 2005-10-10  Andreas Schwab  <schwab@suse.de>
 
@@ -37,9 +60,9 @@
 	* font-lock.el (font-lock-syntactic-keywords)
 	(font-lock-keywords): Doc fixes.
 
-	* textmodes/flyspell.el (flyspell-external-point-words): Simplify
-	logic, and don't try to check for consecutive appearances of one
-	incorrect word.
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Simplify logic, and don't try to check for consecutive appearances
+	of one incorrect word.
 
 2005-10-10  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -71,13 +94,17 @@
 
 	* term/x-win.el: Removed -i, --icon-type from comment.
 
-	* startup.el (command-line-x-option-alist): Removed options -i,
+	* startup.el (command-line-x-option-alist): Remove options -i,
 	-itype, --icon-type, added -nb, --no-bitmap-icon
 
 2005-10-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-menu-items): Use :visible
 	instead of :active.
+
+2005-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/appt.el (appt-check): Use diary-selective-display var.
 
 2005-10-08  Eric Hanchrow  <offby1@blarg.net>
 
@@ -104,8 +131,8 @@
 
 2005-10-08  Lars Hansen  <larsh@soem.dk>
 
-	* net/tramp.el (tramp-perl-directory-files-and-attributes): Add
-	error handling.
+	* net/tramp.el (tramp-perl-directory-files-and-attributes):
+	Add error handling.
 	(tramp-handle-directory-files-and-attributes): Handle perl error msg.
 
 2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
@@ -168,9 +195,9 @@
 
 	* mh-e/mh-loaddefs.el: Removed. Now generated automatically.
 
-	* Makefile.in (AUTOGENEL): Added mh-e/mh-loaddefs.el.
-	(MH-E-SRC): Added. Used by mh-autoloads.
-	(mh-autoloads): Added. Builds mh-e/mh-loaddefs.el. Rebuilds if any
+	* Makefile.in (AUTOGENEL): Add mh-e/mh-loaddefs.el.
+	(MH-E-SRC): New.  Used by mh-autoloads.
+	(mh-autoloads): New.  Builds mh-e/mh-loaddefs.el.  Rebuilds if any
 	files in MH-E-SRC have been updated.
 	(compile, recompile, bootstrap): Depend on mh-autoloads.
 
