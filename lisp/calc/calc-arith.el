@@ -383,8 +383,6 @@
            (cond
             ((memq 'sqmatrix (nth 1 decl))
              t)
-            ((memq 'matrix (nth 1 decl))
-             nil)
             ((and (eq (car a) 'var)
                   (boundp (nth 2 a))
                   (setq val (symbol-value (nth 2 a))))
@@ -394,6 +392,8 @@
                    (eq calc-matrix-mode 'sqmatrix))
                   (eq (car-safe a) 'var))
              t)
+            ((memq 'matrix (nth 1 decl))
+             nil)
             (t
              nil))))))
 
