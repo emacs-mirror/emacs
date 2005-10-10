@@ -1,15 +1,13 @@
 2005-10-10  Jason Rumney  <jasonr@gnu.org>
 
 	* xterm.c (remember_mouse_glyph): New function.
-	(note_mouse_movement): Use it to remember the current glyph if
-	changed.
+	(note_mouse_movement): Use it to remember the current glyph if changed.
 	(XTmouse_position): Fix calculation of fake glyph under mouse.
-	Move code to calculate glyph under mouse into
-	remember_mouse_glyph.
+	Move code to calculate glyph under mouse into remember_mouse_glyph.
 
 2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* emacs.c (USAGE3, standard_args): -nb => -nbi
+	* emacs.c (USAGE3, standard_args): -nb => -nbi.
 
 2005-10-10  Juanma Barranquero  <lekktu@gmail.com>
 
@@ -24,8 +22,8 @@
 
 2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* emacs.c (standard_args): Removed options -i, -itype, --icon-type,
-	added -nb, --no-bitmap-icon.
+	* emacs.c (standard_args): Remove options -i, -itype, --icon-type.
+	Add options -nb, --no-bitmap-icon.
 
 	* xfns.c (Fx_create_frame): Make bitmapIcon have default on.
 
