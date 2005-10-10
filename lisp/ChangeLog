@@ -23,7 +23,7 @@
 	* textmodes/org.el: (org-mode-map): Explicit definition of `C-c
 	C-x' as a prefix.
 	(orgtbl-mode-map): Full keymap instead of sparse, because all
-	`self-insert-command' keys are redifined in this map.
+	`self-insert-command' keys are redefined in this map.
 	(org-export-as-html): Specify charset for HTML file, by taking it
 	from the coding system.
 
@@ -59,7 +59,7 @@
 
 	* speedbar.el (speedbar-file-key-map): Fix typo.
 
-2005-10-09  Daniel Brockman <daniel@brockman.se>
+2005-10-09  Daniel Brockman  <daniel@brockman.se>
 
 	* cus-start.el (line-spacing): Add custom spec.
 
@@ -79,7 +79,7 @@
 	* progmodes/gud.el (gud-speedbar-menu-items): Use :visible
 	instead of :active.
 
-2005-10-08  Eric Hanchrow <offby1@blarg.net>
+2005-10-08  Eric Hanchrow  <offby1@blarg.net>
 
 	* textmodes/ispell.el (ispell-check-version):
 	Ignore hyphen, and all that follows, in aspell's version text.
