@@ -177,7 +177,7 @@ disables the splash screen; see also the variable
 
 +++
 ** The default is now to use an bitmap as the icon, so the command-line options
---icon-type, -i has been replaced with options --no-bitmap-icon, -nb to turn
+--icon-type, -i has been replaced with options --no-bitmap-icon, -nbi to turn
 the bitmap icon off.
 
 +++

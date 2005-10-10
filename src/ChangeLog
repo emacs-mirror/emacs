@@ -1,3 +1,7 @@
+2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* emacs.c (USAGE3, standard_args): -nb => -nbi
+
 2005-10-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* frame.c (Fredirect_frame_focus): Fix typos in docstring.

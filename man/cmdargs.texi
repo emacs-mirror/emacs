@@ -1173,8 +1173,8 @@ If you have many clients running at once, you can avoid cluttering up
 the screen by iconifying most of the clients.
 
 @table @samp
-@item -nb
-@opindex -nb
+@item -nbi
+@opindex -nbi
 @itemx --no-bitmap-icon
 @opindex --no-bitmap-icon
 @cindex Emacs icon, a gnu

@@ -311,7 +311,7 @@ Display options:\n\
 --fullscreen, -fs               make first frame fullscreen\n\
 --fullwidth, -fw                make the first frame wide as the screen\n\
 --geometry, -g GEOMETRY         window geometry\n\
---no-bitmap-icon, -nb           do not use picture of gnu for Emacs icon\n\
+--no-bitmap-icon, -nbi          do not use picture of gnu for Emacs icon\n\
 --iconic                        start Emacs in iconified state\n\
 --internal-border, -ib WIDTH    width between text and main border\n\
 --line-spacing, -lsp PIXELS     additional space to put between lines\n\
@@ -1828,7 +1828,7 @@ struct standard_args standard_args[] =
   { "-u", "--user", 30, 1 },
   { "-user", 0, 30, 1 },
   { "-debug-init", "--debug-init", 20, 0 },
-  { "-nb", "--no-bitmap-icon", 15, 0 },
+  { "-nbi", "--no-bitmap-icon", 15, 0 },
   { "-iconic", "--iconic", 15, 0 },
   { "-D", "--basic-display", 12, 0},
   { "-basic-display", 0, 12, 0},

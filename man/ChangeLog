@@ -1,3 +1,7 @@
+2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cmdargs.texi (Icons X): -nb => -nbi
+
 2005-10-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* frames.texi (Speedbar): A couple more clarifications.
