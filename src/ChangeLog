@@ -1,3 +1,8 @@
+2005-10-11  Kim F. Storm  <storm@cua.dk>
+
+	* keyboard.c (make_lispy_position): Fix buffer position calculation for
+	mouse click or movement in fringe.
+
 2005-10-10  Jason Rumney  <jasonr@gnu.org>
 
 	* xterm.c (remember_mouse_glyph): New function.
