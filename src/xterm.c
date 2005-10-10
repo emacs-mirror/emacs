@@ -3582,6 +3582,8 @@ construct_mouse_click (result, event, f)
 static XMotionEvent last_mouse_motion_event;
 static Lisp_Object last_mouse_motion_frame;
 
+static void remember_mouse_glyph P_ ((struct frame *, int, int));
+
 static void
 note_mouse_movement (frame, event)
      FRAME_PTR frame;
@@ -3607,6 +3609,8 @@ note_mouse_movement (frame, event)
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, event->x, event->y);
+      /* Remember which glyph we're now on.  */
+      remember_mouse_glyph (frame, event->x, event->y);
     }
 }
 
@@ -3674,6 +3678,44 @@ glyph_rect (f, x, y, rect)
     }
 
   return 0;
+}
+
+
+/* Remember which glyph the mouse is over.
+ */
+static void
+remember_mouse_glyph (f1, win_x, win_y)
+     FRAME_PTR f1;
+     int win_x, win_y;
+{
+  int width, height, gx, gy;
+
+  /* Try getting the rectangle of the actual glyph.  */
+  if (!glyph_rect (f1, win_x, win_y, &last_mouse_glyph))
+    {
+      /* If there is no glyph under the mouse, then we divide the screen
+	 into a grid of the smallest glyph in the frame, and use that
+	 as our "glyph".  */
+      width = FRAME_SMALLEST_CHAR_WIDTH (f1);
+      height = FRAME_SMALLEST_FONT_HEIGHT (f1);
+      gx = win_x;
+      gy = win_y;
+
+      /* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
+	 round down even for negative values.  */
+      if (gx < 0)
+	gx -= width - 1;
+      if (gy < 0)
+	gy -= height - 1;
+
+      gx = gx / width * width;
+      gy = gy / width * width;
+
+      last_mouse_glyph.width  = width;
+      last_mouse_glyph.height = height;
+      last_mouse_glyph.x = gx;
+      last_mouse_glyph.y = gy;
+    }
 }
 
 
@@ -3863,32 +3905,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
-	    int width, height, gx, gy;
-	    XRectangle rect;
-
-	    if (glyph_rect (f1, win_x, win_y, &rect))
-	      last_mouse_glyph = rect;
-	    else
-	      {
-		width = FRAME_SMALLEST_CHAR_WIDTH (f1);
-		height = FRAME_SMALLEST_FONT_HEIGHT (f1);
-		gx = win_x;
-		gy = win_y;
-
-		/* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
-		   round down even for negative values.  */
-		if (gx < 0)
-		  gx -= width - 1;
-		if (gy < 0)
-		  gy -= height - 1;
-		gx = (gx + width - 1) / width * width;
-		gy = (gy + height - 1) / height * height;
-
-		last_mouse_glyph.width  = width;
-		last_mouse_glyph.height = height;
-		last_mouse_glyph.x = gx;
-		last_mouse_glyph.y = gy;
-	      }
+	    remember_mouse_glyph (f1, win_x, win_y);
 
 	    *bar_window = Qnil;
 	    *part = 0;
