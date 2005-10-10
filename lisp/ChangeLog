@@ -1,3 +1,8 @@
+2005-10-10  Richard M. Stallman  <rms@gnu.org>
+
+	* net/newsticker.el (newsticker-start, newsticker-show-news):
+	Add autoload cookies.
+
 2005-10-10  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>
 
 	* progmodes/sh-script.el (sh-tmp-file): Use mktemp.
