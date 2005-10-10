@@ -772,7 +772,8 @@ Mostly we check word delimiters."
      ((get this-command 'flyspell-delayed)
       ;; the current command is not delayed, that
       ;; is that we must check the word now
-      (sit-for flyspell-delay))
+      (and (not unread-command-events)
+	   (sit-for flyspell-delay)))
      (t t)))
    (t t)))
 
