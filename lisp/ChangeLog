@@ -1,3 +1,18 @@
+2005-10-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-check-known-scalarp)
+	(math-check-known-matrixp): Check the values of arguments that are
+	variables.
+	(math-check-known-square-matrixp): New function.
+	(math-known-square-matrixp): Use math-check-known-square-matrixp.
+	(math-super-types): Add sqmatrix type.
+
+	* calc/calc-mode.el (calc-matrix-mode, math-get-modes-vec): Change the
+	mode name `square' to 'sqmatrix'.
+
+	* calc/calc.el (calc-matrix-mode, calc-set-mode-line): Change the
+	mode name `square' to 'sqmatrix'.
+
 2005-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/etags.el (select-tags-table-mode): Don't use
