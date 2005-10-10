@@ -1,5 +1,7 @@
 2005-10-11  Kim F. Storm  <storm@cua.dk>
 
+	* xterm.c (glyph_rect): Return 0 if position is outside text area.
+
 	* keyboard.c (make_lispy_position): Fix buffer position calculation for
 	mouse click or movement in fringe.
 
