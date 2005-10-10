@@ -1,3 +1,12 @@
+2005-10-10  Jason Rumney  <jasonr@gnu.org>
+
+	* xterm.c (remember_mouse_glyph): New function.
+	(note_mouse_movement): Use it to remember the current glyph if
+	changed.
+	(XTmouse_position): Fix calculation of fake glyph under mouse.
+	Move code to calculate glyph under mouse into
+	remember_mouse_glyph.
+
 2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* emacs.c (USAGE3, standard_args): -nb => -nbi
