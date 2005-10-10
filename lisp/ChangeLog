@@ -1,3 +1,8 @@
+2005-10-10  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Fix for building
+	outside source directory.
+
 2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-mode-map): Explicit definition of `C-c
