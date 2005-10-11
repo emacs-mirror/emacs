@@ -1,6 +1,6 @@
 ;;; appt.el --- appointment notification functions
 
-;; Copyright (C) 1989, 1990, 1994, 1998, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1990, 1994, 1998, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Neil Mager <neilm@juliet.ll.mit.edu>
 ;; Maintainer: Glenn Morris <rgm@gnu.org>
@@ -337,13 +337,13 @@ displayed in a window:
                                  diary-hook
                                (cons 'appt-make-list diary-hook))))
                         (diary))
-                    (let ((diary-display-hook 'appt-make-list)
-                          (d-buff (find-buffer-visiting
-                                   (substitute-in-file-name diary-file)))
-                          selective)
-                      (if d-buff        ; diary buffer exists
-                          (with-current-buffer d-buff
-                            (setq selective selective-display)))
+                    (let* ((diary-display-hook 'appt-make-list)
+                           (d-buff (find-buffer-visiting
+                                    (substitute-in-file-name diary-file)))
+                           (selective
+                            (if d-buff        ; Diary buffer exists.
+                                (with-current-buffer d-buff
+                                  diary-selective-display))))
                       (diary)
                       ;; If the diary buffer existed before this command,
                       ;; restore its display state. Otherwise, kill it.
