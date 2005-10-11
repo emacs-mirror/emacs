@@ -29,11 +29,13 @@ Peer documents:
 
 OVERVIEW
 
-Logically, the MPS library provides various EXPORTS (see mps.h), and requires various IMPORTS (mpslib.h*).
+The MPS library provides the various functions etc that constitute the mps.h interface.  These are normally declared to the linker as EXPORTS.  
 
-However, any DLL (on Windows) must state, for each import, the *filename* of the DLL that will provide that import.  When building the MPS DLL, we do not know the filename of the DLL that will provide the mpslib.h imports ("MyApp.exe"? "languageruntime.dll"?).  Corollary: the MPS DLL must require no imports.
+The MPS library also requires various functions to be provided to it by the client: these are called 'plinth functions'.  They are specified in mpslib.h (and for telemetry builds, also mpsio.h).  These are normally declared to the linker as IMPORTS.  
 
-(*: telemetry builds also require mpsio.h)
+However, any DLL (on Windows) must state, for each linker-import, the *filename* of the DLL that will provide that import.  When building the MPS DLL, we do not know the filename of the DLL that will provide the plinth functions.  It could be "MyApp.exe", "languageruntime.dll", or anything else.  Corollary: the MPS DLL must require no linker-imports.  
+
+The client must provide the required mpslib.h functions in another way.  The client calls mps_lib_callback_register() once for each mpslib.h function, passing a function pointer to the client code that implements that function.  
 
 
 DLL INTERFACE
@@ -42,7 +44,14 @@ The MPS DLL (mpsdy.dll) provides the same exports as the MPS statically-linked l
 
 Exports are linked automatically by the operating system.  (For example, client code simply calls mps_arena_create(), etc).  
 
-Instead of imports, the client must 'manually' provide the mpslib.h functions to the MPS, by calling mps_lib_callback_register(name, function-pointer) one-by-one for each mpslib.h function.  The client must do this 'soon after linking': register all callbacks before calling any mps.h function, or behaviour is undefined (will try to assert, as long as you have at least registered mps_lib_assert_fail!).
+The client must 'manually' provide the mpslib.h functions to the MPS, by calling mps_lib_callback_register(name, function-pointer) one-by-one for each mpslib.h function.  The interface (see mpslibcb.h) is:
+
+  typedef void (*mps_lib_function_t)(void);
+  int mps_lib_callback_register(const char *name, mps_lib_function_t f);
+
+Where: "name" specifies the name of the MPS plinth function that the client is providing.  The name is the same as the C identifier used in mpslib.h, EG, "mps_lib_assert_fail".  "f" is a pointer to the function cast to the one-type-fits-all mps_lib_function_t type.  Even though "f" is cast to mps_lib_function_t it must point to a function of the correct type (as specified by the declaration in mpslib.h); the MPS is unlikely to have any way of checking (though of course we reserve the right to check).
+
+The client must do this 'soon after linking': all callbacks must be registered before calling any mps.h function, or behaviour is undefined.  (The MPS will not even be able to assert until at least mps_lib_assert_fail() has been registered).
 
 Once the client registers its mpslib functions, they may be called by the MPS at various times, just as for the statically-linked version of the MPS.  
 
