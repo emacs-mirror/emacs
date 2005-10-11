@@ -110,7 +110,7 @@
 
 	* macterm.h (mac_term_init): Add types to extern.
 	(struct mac_output): Remove members mWP and pending_menu_activation.
-	Put members scroll_bar_foreground_pixel	and
+	Put members scroll_bar_foreground_pixel and
 	scroll_bar_background_pixel in #if 0.
 	(FRAME_MAC_WINDOW, FRAME_X_WINDOW): Use window_desc.
 
@@ -149,11 +149,11 @@
 	(get_glyph_string_clip_rect): Use get_glyph_string_clip_rects.
 	(fill_composite_glyph_string, fill_glyph_string, draw_glyphs):
 	Rename argument OVERLAPS_P to OVERLAPS.  All uses in macros changed.
-	(x_fix_overlapping_area): Add OVERLAPS arg.  Pass it to	draw_glyphs.
+	(x_fix_overlapping_area): Add OVERLAPS arg.  Pass it to draw_glyphs.
 	(draw_phys_cursor_glyph): Set width of erased cursor to use it for
 	calculating clipping rectangles later.  Call x_fix_overlapping_area
 	with new OVERLAPS arg to draw only erased cursor area.
-	(expose_overlaps): Call x_fix_overlapping_area with new	OVERLAPS arg
+	(expose_overlaps): Call x_fix_overlapping_area with new OVERLAPS arg
 	to draw overlaps in both preceding and succeeding rows.
 
 	* xterm.c, w32term.c, macterm.c: Rename member for_overlaps_p in
