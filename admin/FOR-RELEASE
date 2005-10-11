@@ -53,16 +53,6 @@ test), it may be better just to avoid displaying such images for emacs 22.
 ** Investigate reported crashes related to using an
 invalid pointer from string_free_list.
 
-** Emacs on Windows crashes reading JPEG images from files.
-
-The problem is caused by the Emacs executable and the image library
-having multiple, incompatible copies of the run-time code, which can
-happen when mixing a MSVC build of Emacs with a MinGW build of the
-jpeg library (or the other way around).  The fix is straightforward
-and has already been posted on the developers' list, but it is on the
-back burner waiting for a legal comment or an alternate implementation
-(around 30 lines of code).
-
 * BUGS
 
 ** Make a new interface for specifying window configurations
