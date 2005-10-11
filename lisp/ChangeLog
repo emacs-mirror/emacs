@@ -1,3 +1,7 @@
+2005-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/appt.el (appt-check): Use diary-selective-display var.
+
 2005-10-10  Richard M. Stallman  <rms@gnu.org>
 
 	* net/newsticker.el (newsticker-start, newsticker-show-news):
@@ -129,10 +133,6 @@
 
 	* progmodes/gud.el (gud-speedbar-menu-items): Use :visible
 	instead of :active.
-
-2005-10-08  Stefan Monnier  <monnier@iro.umontreal.ca>
-
-	* calendar/appt.el (appt-check): Use diary-selective-display var.
 
 2005-10-08  Eric Hanchrow  <offby1@blarg.net>
 
