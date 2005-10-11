@@ -1,3 +1,26 @@
+2005-10-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (PER_CHAR_METRIC): Remove unused macro.
+	(fm_font_family_alist): New variable.
+	(syms_of_macterm): Initialize and staticpro it.
+	(decode_mac_font_name): Replace '-' in family name with '_' if it
+	occurs just once.  Lower family name.
+	(parse_x_font_name): Rename from x_font_name_to_mac_font_name.
+	All uses changed.  Remove argument MF and code conversion for it.
+	Add argument SIZE.  Rename argument MF_DECODED to FAMILY, and CS
+	to CHARSET.  Parse font size.  Lower family name.  Return integer
+	value for status of parsing.
+	(init_font_name_table) [USE_ATSUI]: Use decode_mac_font_name.
+	Don't use Fdowncase because family name is already lowered by
+	decode_mac_font_name.
+	(init_font_name_table): Always call decode_mac_font_name.  Add
+	pair of family name and its reference to fm_font_family_alist.
+	(mac_clear_font_name_table): Clear fm_font_family_alist.
+	(XLoadQueryFont): Move font size parsing part to parse_x_font_name.
+	Lookup fm_font_family_alist to get font family reference.
+	(XLoadQueryFont) [USE_ATSUI]: Don't use Fdowncase because family
+	name is already lowered by parse_x_font_name.
+
 2005-10-11  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (glyph_rect): Return 0 if position is outside text area.
@@ -52,7 +75,7 @@
 	[MAC_OS_X_VERSION_MAX_ALLOWED < 1020]: Specify kATSLineFractDisable.
 	(mac_draw_string_common) [MAC_OSX && USE_ATSUI]: Clip to clipping
 	rectangles stored in gc.
-	(XFreeGC): Dispose clipping region.
+	(XFreeGC): Dispose of clipping region.
 	(mac_set_clip_rectangles, mac_reset_clip_rectangles): New functions.
 	(x_draw_fringe_bitmap, x_set_glyph_string_clipping)
 	(x_draw_relief_rect, x_draw_box_rect, x_draw_stretch_glyph_string)
@@ -3772,7 +3795,7 @@
 	[TARGET_API_MAC_CARBON] (Fx_file_dialog): Use MAXPATHLEN for size
 	of filename string.  Set event callback function when creating
 	dialog boxes.  Add code conversions for filenames.  Don't dispose
-	apple event descriptor record if failed to create it.
+	of apple event descriptor record if failed to create it.
 
 	* macterm.c: Include sys/param.h.
 	[USE_CARBON_EVENTS] (mac_handle_window_event): Add handler for
@@ -6879,7 +6902,8 @@
 	(x_scroll_bar_handle_click): Set `(PORTION . WHOLE)' part in a
 	scroll-bar click event.
 	(mac_define_frame_cursor): Change the pointer shape.
-	(x_free_frame_resources): Reset tip_window to NULL when it is disposed.
+	(x_free_frame_resources): Reset tip_window to NULL when it is
+	disposed of.
 	[!TARGET_API_MAC_CARBON] (arrow_cursor): New variable.
 	[!TARGET_API_MAC_CARBON] (do_init_managers): Initialize arrow_cursor.
 	(do_window_update): Don't do anything if the updated window is the
