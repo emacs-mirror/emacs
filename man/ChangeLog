@@ -1,3 +1,8 @@
+2005-10-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Integration): Mention using `a i' to compute definite
+	integrals.
+
 2005-10-11  Juri Linkov  <juri@jurta.org>
 
 	* info.texi: Rearrange nodes.

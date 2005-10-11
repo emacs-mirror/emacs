@@ -1,3 +1,8 @@
+2005-10-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcalg2.el (calc-integral): With an argument, compute the
+	definite integral.
+
 2005-10-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse.el (mouse-drag-region-1): Don't try to catch a
