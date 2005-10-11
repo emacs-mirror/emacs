@@ -3582,8 +3582,6 @@ construct_mouse_click (result, event, f)
 static XMotionEvent last_mouse_motion_event;
 static Lisp_Object last_mouse_motion_frame;
 
-static void remember_mouse_glyph P_ ((struct frame *, int, int));
-
 static void
 note_mouse_movement (frame, event)
      FRAME_PTR frame;
@@ -3610,7 +3608,7 @@ note_mouse_movement (frame, event)
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, event->x, event->y);
       /* Remember which glyph we're now on.  */
-      remember_mouse_glyph (frame, event->x, event->y);
+      remember_mouse_glyph (frame, event->x, event->y, &last_mouse_glyph);
     }
 }
 
@@ -3629,98 +3627,6 @@ redo_mouse_highlight ()
 			  last_mouse_motion_event.y);
 }
 
-
-static int glyph_rect P_ ((struct frame *f, int, int, XRectangle *));
-
-
-/* Try to determine frame pixel position and size of the glyph under
-   frame pixel coordinates X/Y on frame F .  Return the position and
-   size in *RECT.  Value is non-zero if we could compute these
-   values.  */
-
-static int
-glyph_rect (f, x, y, rect)
-     struct frame *f;
-     int x, y;
-     XRectangle *rect;
-{
-  Lisp_Object window;
-  struct window *w;
-  struct glyph_row *r, *end_row;
-  enum window_part part;
-
-  window = window_from_coordinates (f, x, y, &part, &x, &y, 0);
-  if (NILP (window))
-    return 0;
-
-  w = XWINDOW (window);
-  r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  end_row = r + w->current_matrix->nrows - 1;
-
-  if (part != ON_TEXT)
-    return 0;
-
-  for (; r < end_row && r->enabled_p; ++r)
-    {
-      if (r->y >= y)
-	{
-	  struct glyph *g = r->glyphs[TEXT_AREA];
-	  struct glyph *end = g + r->used[TEXT_AREA];
-	  int gx = r->x;
-	  while (g < end && gx < x)
-	    gx += g->pixel_width, ++g;
-	  if (g < end)
-	    {
-	      rect->width = g->pixel_width;
-	      rect->height = r->height;
-	      rect->x = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-	      rect->y = WINDOW_TO_FRAME_PIXEL_Y (w, r->y);
-	      return 1;
-	    }
-	  break;
-	}
-    }
-
-  return 0;
-}
-
-
-/* Remember which glyph the mouse is over.
- */
-static void
-remember_mouse_glyph (f1, win_x, win_y)
-     FRAME_PTR f1;
-     int win_x, win_y;
-{
-  int width, height, gx, gy;
-
-  /* Try getting the rectangle of the actual glyph.  */
-  if (!glyph_rect (f1, win_x, win_y, &last_mouse_glyph))
-    {
-      /* If there is no glyph under the mouse, then we divide the screen
-	 into a grid of the smallest glyph in the frame, and use that
-	 as our "glyph".  */
-      width = FRAME_SMALLEST_CHAR_WIDTH (f1);
-      height = FRAME_SMALLEST_FONT_HEIGHT (f1);
-      gx = win_x;
-      gy = win_y;
-
-      /* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
-	 round down even for negative values.  */
-      if (gx < 0)
-	gx -= width - 1;
-      if (gy < 0)
-	gy -= height - 1;
-
-      gx = gx / width * width;
-      gy = gy / width * width;
-
-      last_mouse_glyph.width  = width;
-      last_mouse_glyph.height = height;
-      last_mouse_glyph.x = gx;
-      last_mouse_glyph.y = gy;
-    }
-}
 
 
 /* Return the current position of the mouse.
@@ -3909,7 +3815,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
-	    remember_mouse_glyph (f1, win_x, win_y);
+	    remember_mouse_glyph (f1, win_x, win_y, &last_mouse_glyph);
 
 	    *bar_window = Qnil;
 	    *part = 0;
