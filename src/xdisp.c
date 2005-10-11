@@ -2027,6 +2027,181 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
   return WINDOW_TO_FRAME_PIXEL_Y (w, y);
 }
 
+/*
+ * Remember which glyph the mouse is over.
+ */
+
+void
+remember_mouse_glyph (f, gx, gy, rect)
+     struct frame *f;
+     int gx, gy;
+     NativeRectangle *rect;
+{
+  Lisp_Object window;
+  struct window *w;
+  struct glyph_row *r, *gr, *end_row;
+  enum window_part part;
+  enum glyph_row_area area;
+  int x, y, width, height;
+
+  /* Try to determine frame pixel position and size of the glyph under
+     frame pixel coordinates X/Y on frame F.  */
+
+  window = window_from_coordinates (f, gx, gy, &part, &x, &y, 0);
+  if (NILP (window))
+    {
+      width = FRAME_SMALLEST_CHAR_WIDTH (f);
+      height = FRAME_SMALLEST_FONT_HEIGHT (f);
+      goto virtual_glyph;
+    }
+
+  w = XWINDOW (window);
+  width = WINDOW_FRAME_COLUMN_WIDTH (w);
+  height = WINDOW_FRAME_LINE_HEIGHT (w);
+
+  r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  end_row = r + w->current_matrix->nrows - 1;
+
+  if (w->pseudo_window_p)
+    {
+      area = TEXT_AREA;
+      part = ON_MODE_LINE; /* Don't adjust margin. */
+      goto text_glyph;
+    }
+
+  switch (part)
+    {
+    case ON_LEFT_MARGIN:
+      area = LEFT_MARGIN_AREA;
+      goto text_glyph;
+
+    case ON_RIGHT_MARGIN:
+      area = RIGHT_MARGIN_AREA;
+      goto text_glyph;
+
+    case ON_TEXT:
+    case ON_MODE_LINE:
+    case ON_HEADER_LINE:
+      area = TEXT_AREA;
+
+    text_glyph:
+      gr = 0; gy = 0;
+      for (; r < end_row && r->enabled_p; ++r)
+	if (r->y + r->height > y)
+	  {
+	    gr = r; gy = r->y;
+	    break;
+	  }
+
+      if (gr && gy <= y)
+	{
+	  struct glyph *g = gr->glyphs[area];
+	  struct glyph *end = g + gr->used[area];
+
+	  height = gr->height;
+	  for (gx = gr->x; g < end; gx += g->pixel_width, ++g)
+	    if (gx + g->pixel_width > x)
+	      break;
+
+	  if (g < end)
+	    width = g->pixel_width;
+	  else
+	    {
+	      /* Use nominal char spacing at end of line.  */
+	      x -= gx;
+	      gx += (x / width) * width;
+	    }
+
+	  if (part != ON_MODE_LINE && part != ON_HEADER_LINE)
+	    gx += window_box_left_offset (w, area);
+	}
+      else
+	{
+	  /* Use nominal line height at end of window.  */
+	  gx = (x / width) * width;
+	  y -= gy;
+	  gy += (y / height) * height;
+	}
+      break;
+
+    case ON_LEFT_FRINGE:
+      gx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+	    ? WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w)
+	    : window_box_right_offset (w, LEFT_MARGIN_AREA));
+      width = WINDOW_LEFT_FRINGE_WIDTH (w);
+      goto row_glyph;
+
+    case ON_RIGHT_FRINGE:
+      gx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+	    ? window_box_right_offset (w, RIGHT_MARGIN_AREA)
+	    : window_box_right_offset (w, TEXT_AREA));
+      width = WINDOW_RIGHT_FRINGE_WIDTH (w);
+      goto row_glyph;
+
+    case ON_SCROLL_BAR:
+      gx = (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
+	    ? 0
+	    : (window_box_right_offset (w, RIGHT_MARGIN_AREA)
+	       + (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+		  ? WINDOW_RIGHT_FRINGE_WIDTH (w)
+		  : 0)));
+      width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
+
+    row_glyph:
+      gr = 0, gy = 0;
+      for (; r < end_row && r->enabled_p; ++r)
+	if (r->y + r->height > y)
+	  {
+	    gr = r; gy = r->y;
+	    break;
+	  }
+
+      if (gr && gy <= y)
+	height = gr->height;
+      else
+	{
+	  /* Use nominal line height at end of window.  */
+	  y -= gy;
+	  gy += (y / height) * height;
+	}
+      break;
+
+    default:
+      ;
+    virtual_glyph:
+      /* If there is no glyph under the mouse, then we divide the screen
+	 into a grid of the smallest glyph in the frame, and use that
+	 as our "glyph".  */
+
+      /* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
+	 round down even for negative values.  */
+      if (gx < 0)
+	gx -= width - 1;
+      if (gy < 0)
+	gy -= height - 1;
+
+      gx = (gx / width) * width;
+      gy = (gy / height) * height;
+
+      goto store_rect;
+    }
+
+  gx += WINDOW_LEFT_EDGE_X (w);
+  gy += WINDOW_TOP_EDGE_Y (w);
+
+ store_rect:
+  STORE_NATIVE_RECT (*rect, gx, gy, width, height);
+
+  /* Visible feedback for debugging.  */
+#if 0
+#if HAVE_X_WINDOWS
+  XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  f->output_data.x->normal_gc,
+		  gx, gy, width, height);
+#endif
+#endif
+}
+
 
 #endif /* HAVE_WINDOW_SYSTEM */
 
