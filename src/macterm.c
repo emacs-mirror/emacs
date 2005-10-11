@@ -4190,6 +4190,8 @@ note_mouse_movement (frame, pos)
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, pos->h, pos->v);
+      /* Remember which glyph we're now on.  */
+      remember_mouse_glyph (frame, pos->h, pos->v, &last_mouse_glyph);
     }
 }
 
@@ -4197,9 +4199,6 @@ note_mouse_movement (frame, pos)
 /************************************************************************
 			      Mouse Face
  ************************************************************************/
-
-static int glyph_rect P_ ((struct frame *f, int, int, Rect *));
-
 
 /* MAC TODO:  This should be called from somewhere (or removed)  ++KFS */
 
@@ -4211,110 +4210,6 @@ redo_mouse_highlight ()
     note_mouse_highlight (XFRAME (last_mouse_motion_frame),
 			  last_mouse_motion_position.h,
 			  last_mouse_motion_position.v);
-}
-
-
-/* Try to determine frame pixel position and size of the glyph under
-   frame pixel coordinates X/Y on frame F .  Return the position and
-   size in *RECT.  Value is non-zero if we could compute these
-   values.  */
-
-static int
-glyph_rect (f, x, y, rect)
-     struct frame *f;
-     int x, y;
-     Rect *rect;
-{
-  Lisp_Object window;
-
-  window = window_from_coordinates (f, x, y, 0, &x, &y, 0);
-
-  if (!NILP (window))
-    {
-      struct window *w = XWINDOW (window);
-      struct glyph_row *r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-      struct glyph_row *end = r + w->current_matrix->nrows - 1;
-
-      for (; r < end && r->enabled_p; ++r)
-	if (r->y <= y && r->y + r->height > y)
-	  {
-	    /* Found the row at y.  */
-	    struct glyph *g = r->glyphs[TEXT_AREA];
-	    struct glyph *end = g + r->used[TEXT_AREA];
-	    int gx;
-
-	    rect->top = WINDOW_TO_FRAME_PIXEL_Y (w, r->y);
-	    rect->bottom = rect->top + r->height;
-
-	    if (x < r->x)
-	      {
-		/* x is to the left of the first glyph in the row.  */
-		/* Shouldn't this be a pixel value?
-		   WINDOW_LEFT_EDGE_X (w) seems to be the right value.
-		   ++KFS */
-		rect->left = WINDOW_LEFT_EDGE_COL (w);
-		rect->right = WINDOW_TO_FRAME_PIXEL_X (w, r->x);
-		return 1;
-	      }
-
-	    for (gx = r->x; g < end; gx += g->pixel_width, ++g)
-	      if (gx <= x && gx + g->pixel_width > x)
-		{
-		  /* x is on a glyph.  */
-		  rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-		  rect->right = rect->left + g->pixel_width;
-		  return 1;
-		}
-
-	    /* x is to the right of the last glyph in the row.  */
-	    rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-	    /* Shouldn't this be a pixel value?
-	       WINDOW_RIGHT_EDGE_X (w) seems to be the right value.
-	       ++KFS */
-	    rect->right = WINDOW_RIGHT_EDGE_COL (w);
-	    return 1;
-	  }
-    }
-
-  /* The y is not on any row.  */
-  return 0;
-}
-
-/* MAC TODO:  This should be called from somewhere (or removed)  ++KFS */
-
-/* Record the position of the mouse in last_mouse_glyph.  */
-static void
-remember_mouse_glyph (f1, gx, gy)
-     struct frame * f1;
-     int gx, gy;
-{
-  if (!glyph_rect (f1, gx, gy, &last_mouse_glyph))
-    {
-      int width = FRAME_SMALLEST_CHAR_WIDTH (f1);
-      int height = FRAME_SMALLEST_FONT_HEIGHT (f1);
-
-      /* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
-	 round down even for negative values.  */
-      if (gx < 0)
-	gx -= width - 1;
-      if (gy < 0)
-	gy -= height - 1;
-#if 0
-      /* This was the original code from XTmouse_position, but it seems
-	 to give the position of the glyph diagonally next to the one
-	 the mouse is over.  */
-      gx = (gx + width - 1) / width * width;
-      gy = (gy + height - 1) / height * height;
-#else
-      gx = gx / width * width;
-      gy = gy / height * height;
-#endif
-
-      last_mouse_glyph.left = gx;
-      last_mouse_glyph.top = gy;
-      last_mouse_glyph.right  = gx + width;
-      last_mouse_glyph.bottom = gy + height;
-    }
 }
 
 
@@ -4333,18 +4228,18 @@ mac_focus_frame (dpyinfo)
 
 
 /* Return the current position of the mouse.
-   *fp should be a frame which indicates which display to ask about.
+   *FP should be a frame which indicates which display to ask about.
 
-   If the mouse movement started in a scroll bar, set *fp, *bar_window,
-   and *part to the frame, window, and scroll bar part that the mouse
-   is over.  Set *x and *y to the portion and whole of the mouse's
+   If the mouse movement started in a scroll bar, set *FP, *BAR_WINDOW,
+   and *PART to the frame, window, and scroll bar part that the mouse
+   is over.  Set *X and *Y to the portion and whole of the mouse's
    position on the scroll bar.
 
-   If the mouse movement started elsewhere, set *fp to the frame the
-   mouse is on, *bar_window to nil, and *x and *y to the character cell
+   If the mouse movement started elsewhere, set *FP to the frame the
+   mouse is on, *BAR_WINDOW to nil, and *X and *Y to the character cell
    the mouse is over.
 
-   Set *time to the server time-stamp for the time at which the mouse
+   Set *TIME to the server time-stamp for the time at which the mouse
    was at this position.
 
    Don't store anything if we don't have a valid set of values to report.
@@ -4361,11 +4256,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
      Lisp_Object *x, *y;
      unsigned long *time;
 {
-  Point mouse_pos;
-  int ignore1, ignore2;
-  struct frame *f = mac_focus_frame (FRAME_MAC_DISPLAY_INFO (*fp));
-  WindowPtr wp = FRAME_MAC_WINDOW (f);
-  Lisp_Object frame, tail;
+  FRAME_PTR f1;
 
   BLOCK_INPUT;
 
@@ -4373,25 +4264,43 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
     x_scroll_bar_report_motion (fp, bar_window, part, x, y, time);
   else
     {
+      Lisp_Object frame, tail;
+
       /* Clear the mouse-moved flag for every frame on this display.  */
       FOR_EACH_FRAME (tail, frame)
-        XFRAME (frame)->mouse_moved = 0;
+	XFRAME (frame)->mouse_moved = 0;
 
       last_mouse_scroll_bar = Qnil;
 
-      SetPortWindowPort (wp);
+      if (FRAME_MAC_DISPLAY_INFO (*fp)->grabbed && last_mouse_frame
+	  && FRAME_LIVE_P (last_mouse_frame))
+	f1 = last_mouse_frame;
+      else
+	f1 = mac_focus_frame (FRAME_MAC_DISPLAY_INFO (*fp));
 
-      GetMouse (&mouse_pos);
+      if (f1)
+	{
+	  /* Ok, we found a frame.  Store all the values.
+	     last_mouse_glyph is a rectangle used to reduce the
+	     generation of mouse events.  To not miss any motion
+	     events, we must divide the frame into rectangles of the
+	     size of the smallest character that could be displayed
+	     on it, i.e. into the same rectangles that matrices on
+	     the frame are divided into.  */
+	  Point mouse_pos;
 
-      pixel_to_glyph_coords (f, mouse_pos.h, mouse_pos.v, &ignore1, &ignore2,
-                             &last_mouse_glyph, insist);
+	  SetPortWindowPort (FRAME_MAC_WINDOW (f1));
+	  GetMouse (&mouse_pos);
+	  remember_mouse_glyph (f1, mouse_pos.h, mouse_pos.v,
+				&last_mouse_glyph);
 
-      *bar_window = Qnil;
-      *part = scroll_bar_handle;
-      *fp = f;
-      XSETINT (*x, mouse_pos.h);
-      XSETINT (*y, mouse_pos.v);
-      *time = last_mouse_movement_time;
+	  *bar_window = Qnil;
+	  *part = 0;
+	  *fp = f1;
+	  XSETINT (*x, mouse_pos.h);
+	  XSETINT (*y, mouse_pos.v);
+	  *time = last_mouse_movement_time;
+	}
     }
 
   UNBLOCK_INPUT;
