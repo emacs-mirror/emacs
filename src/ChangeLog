@@ -1,3 +1,19 @@
+2005-10-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (fn_jpeg_stdio_src): Don't define it.
+	(init_jpeg_functions): Don't initialize `fn_jpeg_stdio_src'.
+	(our_common_init_source): Rename from `our_init_source'.
+	(our_common_term_source): Rename from `our_term_source'.
+	(our_memory_fill_input_buffer): Rename from
+	`our_fill_input_buffer'.
+	(our_memory_skip_input_data): Rename from `our_skip_input_data'.
+	(jpeg_memory_src): Use the new names.
+	(struct jpeg_stdio_mgr): New struct.
+	(JPEG_STDIO_BUFFER_SIZE): New constant.
+	(our_stdio_fill_input_buffer, our_stdio_skip_input_data)
+	(jpeg_file_src): New functions.
+	(jpeg_load): Use `jpeg_file_src' instead of `fn_jpeg_stdio_src'.
+
 2005-10-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (PER_CHAR_METRIC): Remove unused macro.
@@ -1620,7 +1636,7 @@
 2005-06-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* macmenu.c (cleanup_popup_menu): New function.
-	(Fx_popup_menu): unwind protect cleanup_popup_menu in case
+	(Fx_popup_menu): Unwind protect cleanup_popup_menu in case
 	mac_menu_show Quit:s.
 	(mac_menu_show): Quit on cancel if not popped up on click (i.e.
 	a dialog).
@@ -16922,7 +16938,7 @@
 	* w32.c (sys_getpeername, fcntl): New functions.
 	(_sys_read_ahead): Temporarily block on non-blocking sockets.
 
-	* w32proc.c: include sys/file.h.
+	* w32proc.c: Include sys/file.h.
 
 2002-05-03  Colin Walters  <walters@verbum.org>
 
