@@ -23506,11 +23506,11 @@ argument once).
 @tindex integ
 The @kbd{a i} (@code{calc-integral}) [@code{integ}] command computes the
 indefinite integral of the expression on the top of the stack with
-respect to a variable.  The integrator is not guaranteed to work for
-all integrable functions, but it is able to integrate several large
-classes of formulas.  In particular, any polynomial or rational function
-(a polynomial divided by a polynomial) is acceptable.  (Rational functions
-don't have to be in explicit quotient form, however; 
+respect to a prompted-for variable.  The integrator is not guaranteed to
+work for all integrable functions, but it is able to integrate several
+large classes of formulas.  In particular, any polynomial or rational
+function (a polynomial divided by a polynomial) is acceptable.
+(Rational functions don't have to be in explicit quotient form, however; 
 @texline @math{x/(1+x^{-2})}
 @infoline @expr{x/(1+x^-2)}
 is not strictly a quotient of polynomials, but it is equivalent to
@@ -23518,6 +23518,11 @@ is not strictly a quotient of polynomials, but it is equivalent to
 @expr{x} and @expr{x^2} may appear in rational functions being
 integrated.  Finally, rational functions involving trigonometric or
 hyperbolic functions can be integrated.
+
+With an argument (@kbd{C-u a i}), this command will compute the definite
+integral of the expression on top of the stack.  In this case, the
+command will again prompt for an integration variable, then prompt for a
+lower limit and an upper limit.
 
 @ifinfo
 If you use the @code{integ} function directly in an algebraic formula,
