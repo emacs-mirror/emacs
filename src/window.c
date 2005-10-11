@@ -742,9 +742,9 @@ coordinates_in_window (w, x, y)
 	      ? (*x < right_x - WINDOW_RIGHT_FRINGE_WIDTH (w))
 	      : (*x >= right_x - rmargin_width)))
 	{
-	  *x -= right_x;
-	  if (!WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
-	    *x -= WINDOW_RIGHT_FRINGE_WIDTH (w);
+	  *x -= right_x - rmargin_width;
+	  if (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
+	    *x += WINDOW_RIGHT_FRINGE_WIDTH (w);
 	  *y -= top_y;
 	  return ON_RIGHT_MARGIN;
 	}
@@ -756,7 +756,7 @@ coordinates_in_window (w, x, y)
     }
 
   /* Everything special ruled out - must be on text area */
-  *x -= left_x + WINDOW_LEFT_FRINGE_WIDTH (w);
+  *x -= text_left;
   *y -= top_y;
   return ON_TEXT;
 }
