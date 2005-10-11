@@ -1,7 +1,11 @@
+2005-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (coordinates_in_window): Fix x position for ON_RIGHT_MARGIN.
+	Fix x position for ON_TEXT when left margin width > 0.
+
 2005-10-11  Kim F. Storm  <storm@cua.dk>
 
-	* window.c (coordinates_in_window): Fix returned y position when
-	ON_SCROLL_BAR.
+	* window.c (coordinates_in_window): Fix y position for ON_SCROLL_BAR.
 
 	* keyboard.c (make_lispy_position): Fix buffer calculations for
 	mouse click or movement in right fringe and the margins.
