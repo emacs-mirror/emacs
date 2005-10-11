@@ -682,7 +682,10 @@ coordinates_in_window (w, x, y)
 
   /* Outside any interesting column?  */
   if (*x < left_x || *x > right_x)
-    return ON_SCROLL_BAR;
+    {
+      *y -= top_y;
+      return ON_SCROLL_BAR;
+    }
 
   lmargin_width = window_box_width (w, LEFT_MARGIN_AREA);
   rmargin_width = window_box_width (w, RIGHT_MARGIN_AREA);
