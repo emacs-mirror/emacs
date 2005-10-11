@@ -1,3 +1,10 @@
+2005-10-11  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-mode-menu): Delete menu item "Edit".
+	(Info-mode): Delete description of Info-edit from docstring,
+	and rearrange descriptions of Info commands in the order
+	they are documented in the Info manual.
+
 2005-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/appt.el (appt-check): Use diary-selective-display var.

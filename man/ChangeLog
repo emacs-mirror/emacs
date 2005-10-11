@@ -1,3 +1,21 @@
+2005-10-11  Juri Linkov  <juri@jurta.org>
+
+	* info.texi: Rearrange nodes.
+	(Top): Update menu.  Change ref `Info for Experts' to
+	`Advanced Info Commands'.
+	(Getting Started): Fix description of manual's parts.
+	(Help-Int): Change xref `Info Search' to `Search Index', and
+	`Expert Info' to `Advanced'.
+	(Advanced): Move node one level up.
+	(Search Text, Search Index): New nodes split out from `Info Search'.
+	(Go to node, Choose menu subtopic, Create Info buffer): New nodes
+	split out from `Advanced'.
+	(Advanced, Emacs Info Variables): De-document editing an Info file
+	in Info.
+	(Emacs Info Variables): Move node from `Expert Info' to `Advanced'.
+	(Creating an Info File): Delete node and move its text to
+	`Expert Info'.
+
 2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cmdargs.texi (Icons X): -nb => -nbi
