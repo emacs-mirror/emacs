@@ -1,5 +1,25 @@
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (remember_mouse_glyph): New generic version based on
+	glyph_rect and remember_mouse_glyph from xterm.c enhanced to
+	properly handle all different window areas.
+
+	* dispextern.h (remember_mouse_glyph): Add prototype.
+
+	* xterm.c (glyph_rect, remember_mouse_glyph): Remove X versions.
+	(note_mouse_movement, XTmouse_position): Use generic
+	remember_mouse_glyph, add last_mouse_glyph arg.
+
+	* w32term.c (note_mouse_movement): Fix last_mouse_glyph check.
+	(glyph_rect, remember_mouse_glyph): Remove w32 specific versions.
+	(note_mouse_movement, w32_mouse_position): Use generic
+	remember_mouse_glyph, add last_mouse_glyph arg.
+
+	* macterm.c (note_mouse_movement): Add call to remember_mouse_glyph.
+	(glyph_rect, remember_mouse_glyph): Remove mac specific versions.
+	(XTmouse_position): Adapt to use generic remember_mouse_glyph
+	instead of pixel_to_glyph_coords.
+
 	* window.c (coordinates_in_window): Fix x position for ON_RIGHT_MARGIN.
 	Fix x position for ON_TEXT when left margin width > 0.
 
