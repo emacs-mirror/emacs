@@ -1,3 +1,11 @@
+2005-10-11  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (coordinates_in_window): Fix returned y position when
+	ON_SCROLL_BAR.
+
+	* keyboard.c (make_lispy_position): Fix buffer calculations for
+	mouse click or movement in right fringe and the margins.
+
 2005-10-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (fn_jpeg_stdio_src): Don't define it.
