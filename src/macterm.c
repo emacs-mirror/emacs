@@ -1766,19 +1766,6 @@ static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
 static int mac_encode_char P_ ((int, XChar2b *, struct font_info *, int *));
 
 
-/* Return a pointer to per-char metric information in FONT of a
-   character pointed by B which is a pointer to an XChar2b.  */
-
-#define PER_CHAR_METRIC(font, b)					   \
-  ((font)->per_char							   \
-   ? ((font)->per_char + (b)->byte2 - (font)->min_char_or_byte2		   \
-      + (((font)->min_byte1 || (font)->max_byte1)			   \
-	 ? (((b)->byte1 - (font)->min_byte1)				   \
-	    * ((font)->max_char_or_byte2 - (font)->min_char_or_byte2 + 1)) \
-	 : 0))								   \
-   : &((font)->max_bounds))
-
-
 /* Get metrics of character CHAR2B in FONT.  Value is null if CHAR2B
    is not contained in the font.  */
 
@@ -6843,7 +6830,13 @@ static char **font_name_table = NULL;
 static int font_name_table_size = 0;
 static int font_name_count = 0;
 
+/* Alist linking font family names to Font Manager font family
+   references (which can also be used as QuickDraw font IDs).  We use
+   an alist because hash tables are not ready when the terminal frame
+   for Mac OS Classic is created.  */
+static Lisp_Object fm_font_family_alist;
 #if USE_ATSUI
+/* Hash table linking font family names to ATSU font IDs.  */
 static Lisp_Object atsu_font_id_hash;
 #endif
 
@@ -6893,24 +6886,39 @@ decode_mac_font_name (name, size, coding_system)
   struct coding_system coding;
   char *buf, *p;
 
+  if (!NILP (coding_system) && !NILP (Fcoding_system_p (coding_system)))
+    {
+      for (p = name; *p; p++)
+	if (!isascii (*p) || iscntrl (*p))
+	  break;
+
+      if (*p)
+	{
+	  setup_coding_system (coding_system, &coding);
+	  coding.src_multibyte = 0;
+	  coding.dst_multibyte = 1;
+	  coding.mode |= CODING_MODE_LAST_BLOCK;
+	  coding.composing = COMPOSITION_DISABLED;
+	  buf = (char *) alloca (size);
+
+	  decode_coding (&coding, name, buf, strlen (name), size - 1);
+	  bcopy (buf, name, coding.produced);
+	  name[coding.produced] = '\0';
+	}
+    }
+
+  /* If there's just one occurrence of '-' in the family name, it is
+     replaced with '_'.  (More than one occurrence of '-' means a
+     "FOUNDRY-FAMILY-CHARSET"-style name.)  */
+  p = strchr (name, '-');
+  if (p && strchr (p + 1, '-') == NULL)
+    *p = '_';
+
   for (p = name; *p; p++)
-    if (!isascii (*p) || iscntrl (*p))
-      break;
-
-  if (*p == '\0'
-      || NILP (coding_system) || NILP (Fcoding_system_p (coding_system)))
-    return;
-
-  setup_coding_system (coding_system, &coding);
-  coding.src_multibyte = 0;
-  coding.dst_multibyte = 1;
-  coding.mode |= CODING_MODE_LAST_BLOCK;
-  coding.composing = COMPOSITION_DISABLED;
-  buf = (char *) alloca (size);
-
-  decode_coding (&coding, name, buf, strlen (name), size - 1);
-  bcopy (buf, name, coding.produced);
-  name[coding.produced] = '\0';
+    /* On Mac OS X 10.3, tolower also converts non-ASCII characters
+       for some locales.  */
+    if (isascii (*p))
+      *p = tolower (*p);
 }
 
 
@@ -6949,32 +6957,46 @@ mac_to_x_fontname (name, size, style, charset)
 }
 
 
-/* Convert an X font spec to the corresponding mac font name, which
-   can then be passed to GetFNum after conversion to a Pascal string.
-   For ordinary Mac fonts, this should just be their names, like
-   "monaco", "Taipei", etc.  Fonts converted from the GNU intlfonts
-   collection contain their charset designation in their names, like
-   "ETL-Fixed-iso8859-1", "ETL-Fixed-koi8-r", etc.  Both types of font
-   names are handled accordingly.  */
-static void
-x_font_name_to_mac_font_name (xf, mf, mf_decoded, style, cs)
-     char *xf, *mf, *mf_decoded;
+/* Parse fully-specified and instantiated X11 font spec XF, and store
+   the results to FAMILY, *SIZE, *STYLE, and CHARSET.  Return 1 if the
+   parsing succeeded, and 0 otherwise.  For FAMILY and CHARSET, the
+   caller must allocate at least 256 and 32 bytes respectively.  For
+   ordinary Mac fonts, the value stored to FAMILY should just be their
+   names, like "monaco", "Taipei", etc.  Fonts converted from the GNU
+   intlfonts collection contain their charset designation in their
+   names, like "ETL-Fixed-iso8859-1", "ETL-Fixed-koi8-r", etc.  Both
+   types of font names are handled accordingly.  */
+
+const int kDefaultFontSize = 12;
+
+static int
+parse_x_font_name (xf, family, size, style, charset)
+     char *xf, *family;
+     int *size;
      Style *style;
-     char *cs;
+     char *charset;
 {
-  Str31 foundry;
-  Str255 family;
-  char weight[20], slant[2], *p;
-  Lisp_Object charset_info, coding_system = Qnil;
-  struct coding_system coding;
+  Str31 foundry, weight;
+  int point_size, avgwidth;
+  char slant[2], *p;
 
-  strcpy (mf, "");
+  if (sscanf (xf, "-%31[^-]-%255[^-]-%31[^-]-%1[^-]-%*[^-]-%*[^-]-%d-%d-%*[^-]-%*[^-]-%*c-%d-%31s",
+              foundry, family, weight, slant, size,
+	      &point_size, &avgwidth, charset) != 8
+      && sscanf (xf, "-%31[^-]-%255[^-]-%31[^-]-%1[^-]-%*[^-]--%d-%d-%*[^-]-%*[^-]-%*c-%d-%31s",
+		 foundry, family, weight, slant, size,
+		 &point_size, &avgwidth, charset) != 8)
+    return 0;
 
-  if (sscanf (xf, "-%31[^-]-%255[^-]-%19[^-]-%1[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
-              foundry, family, weight, slant, cs) != 5 &&
-      sscanf (xf, "-%31[^-]-%255[^-]-%19[^-]-%1[^-]-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
-              foundry, family, weight, slant, cs) != 5)
-    return;
+  if (*size == 0)
+    {
+      if (point_size > 0)
+	*size = point_size / 10;
+      else if (avgwidth > 0)
+	*size = avgwidth / 10;
+    }
+  if (*size == 0)
+    *size = kDefaultFontSize;
 
   *style = normal;
   if (strcmp (weight, "bold") == 0)
@@ -6982,32 +7004,31 @@ x_font_name_to_mac_font_name (xf, mf, mf_decoded, style, cs)
   if (*slant == 'i')
     *style |= italic;
 
-  charset_info = Fassoc (build_string (cs), Vmac_charset_info_alist);
-  if (!NILP (charset_info))
+  if (NILP (Fassoc (build_string (charset), Vmac_charset_info_alist)))
     {
-      strcpy (mf_decoded, family);
-      coding_system = Fcar (Fcdr (Fcdr (charset_info)));
-    }
-  else
-    sprintf (mf_decoded, "%s-%s-%s", foundry, family, cs);
+      int foundry_len = strlen (foundry), family_len = strlen (family);
 
-  for (p = mf_decoded; *p; p++)
-    if (!isascii (*p) || iscntrl (*p))
-      break;
-
-  if (*p == '\0'
-      || NILP (coding_system) || NILP (Fcoding_system_p (coding_system)))
-    strcpy (mf, mf_decoded);
-  else
-    {
-      setup_coding_system (coding_system, &coding);
-      coding.src_multibyte = 1;
-      coding.dst_multibyte = 0;
-      coding.mode |= CODING_MODE_LAST_BLOCK;
-      encode_coding (&coding, mf_decoded, mf,
-		     strlen (mf_decoded), sizeof (Str255) - 1);
-      mf[coding.produced] = '\0';
+      if (foundry_len + family_len + strlen (charset) + 2 < sizeof (Str255))
+	{
+	  /* Like sprintf (family, "%s-%s-%s", foundry, family, charset),
+	     but take overlap into account.  */
+	  memmove (family + foundry_len + 1, family, family_len);
+	  memcpy (family, foundry, foundry_len);
+	  family[foundry_len] = '-';
+	  family[foundry_len + 1 + family_len] = '-';
+	  strcpy (family + foundry_len + 1 + family_len + 1, charset);
+	}
+      else
+	return 0;
     }
+
+  for (p = family; *p; p++)
+    /* On Mac OS X 10.3, tolower also converts non-ASCII characters
+       for some locales.  */
+    if (isascii (*p))
+      *p = tolower (*p);
+
+  return 1;
 }
 
 
@@ -7084,6 +7105,8 @@ init_font_name_table ()
 				    kFontMacintoshPlatform, kFontNoScript,
 				    kFontNoLanguage, name_len, name,
 				    NULL, NULL);
+	    if (err == noErr)
+	      decode_mac_font_name (name, name_len + 1, Qnil);
 	    if (err == noErr
 		&& *name != '.'
 		&& (prev_name == NULL
@@ -7099,7 +7122,7 @@ init_font_name_table ()
 							      bold, cs));
 		add_font_name_table_entry (mac_to_x_fontname (name, 0,
 							      italic | bold, cs));
-		Fputhash (Fdowncase (make_unibyte_string (name, name_len)),
+		Fputhash (make_unibyte_string (name, name_len),
 			  long_to_cons (font_ids[i]), atsu_font_id_hash);
 		xfree (prev_name);
 		prev_name = name;
@@ -7149,12 +7172,14 @@ init_font_name_table ()
       sc = GetTextEncodingBase (encoding);
       text_encoding_info = assq_no_quit (make_number (sc),
 					 text_encoding_info_alist);
-      if (!NILP (text_encoding_info))
-	decode_mac_font_name (name, sizeof (name),
-			      XCAR (XCDR (text_encoding_info)));
-      else
+      if (NILP (text_encoding_info))
 	text_encoding_info = assq_no_quit (make_number (kTextEncodingMacRoman),
 					   text_encoding_info_alist);
+      decode_mac_font_name (name, sizeof (name),
+			    XCAR (XCDR (text_encoding_info)));
+      fm_font_family_alist = Fcons (Fcons (build_string (name),
+					   make_number (ff)),
+				    fm_font_family_alist);
 
       /* Point the instance iterator at the current font family.  */
       if (FMResetFontFamilyInstanceIterator (ff, &ffii) != noErr)
@@ -7233,12 +7258,14 @@ init_font_name_table ()
       scriptcode = FontToScript (fontnum);
       text_encoding_info = assq_no_quit (make_number (scriptcode),
 					 text_encoding_info_alist);
-      if (!NILP (text_encoding_info))
-	decode_mac_font_name (name, sizeof (name),
-			      XCAR (XCDR (text_encoding_info)));
-      else
+      if (NILP (text_encoding_info))
 	text_encoding_info = assq_no_quit (make_number (smRoman),
 					   text_encoding_info_alist);
+      decode_mac_font_name (name, sizeof (name),
+			    XCAR (XCDR (text_encoding_info)));
+      fm_font_family_alist = Fcons (Fcons (build_string (name),
+					   make_number (fontnum)),
+				    fm_font_family_alist);
       do
 	{
 	  HLock (font_handle);
@@ -7294,6 +7321,7 @@ mac_clear_font_name_table ()
   xfree (font_name_table);
   font_name_table = NULL;
   font_name_table_size = font_name_count = 0;
+  fm_font_family_alist = Qnil;
 }
 
 
@@ -7602,9 +7630,6 @@ is_fully_specified_xlfd (char *p)
 }
 
 
-const int kDefaultFontSize = 12;
-
-
 /* XLoadQueryFont creates and returns an internal representation for a
    font in a MacFontStruct struct.  There is really no concept
    corresponding to "loading" a font on the Mac.  But we check its
@@ -7614,12 +7639,9 @@ const int kDefaultFontSize = 12;
 static MacFontStruct *
 XLoadQueryFont (Display *dpy, char *fontname)
 {
-  int i, size, point_size, avgwidth, is_two_byte_font, char_width;
+  int i, size, char_width;
   char *name;
-  GrafPtr port;
-  SInt16 old_fontnum, old_fontsize;
-  Style old_fontface;
-  Str255 mfontname, mfontname_decoded;
+  Str255 family;
   Str31 charset;
   SInt16 fontnum;
 #if USE_ATSUI
@@ -7633,10 +7655,6 @@ XLoadQueryFont (Display *dpy, char *fontname)
   short scriptcode;
 #endif
   MacFontStruct *font;
-  FontInfo the_fontinfo;
-#ifdef MAC_OSX
-  UInt32 old_flags, new_flags;
-#endif
 
   if (is_fully_specified_xlfd (fontname))
     name = fontname;
@@ -7650,32 +7668,9 @@ XLoadQueryFont (Display *dpy, char *fontname)
       name = SDATA (XCAR (matched_fonts));
     }
 
-  GetPort (&port);  /* save the current font number used */
-#if TARGET_API_MAC_CARBON
-  old_fontnum = GetPortTextFont (port);
-  old_fontsize = GetPortTextSize (port);
-  old_fontface = GetPortTextFace (port);
-#else
-  old_fontnum = port->txFont;
-  old_fontsize = port->txSize;
-  old_fontface = port->txFace;
-#endif
+  if (parse_x_font_name (name, family, &size, &fontface, charset) == 0)
+    return NULL;
 
-  if (sscanf (name, "-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]--%d-%d-%*[^-]-%*[^-]-%*c-%d-%*s", &size, &point_size, &avgwidth) != 3)
-    size = 0;
-  else
-    {
-      if (size == 0)
-	if (point_size > 0)
-	  size = point_size / 10;
-	else if (avgwidth > 0)
-	  size = avgwidth / 10;
-    }
-  if (size == 0)
-    size = kDefaultFontSize;
-
-  x_font_name_to_mac_font_name (name, mfontname, mfontname_decoded,
-				&fontface, charset);
 #if USE_ATSUI
   if (strcmp (charset, "iso10646-1") == 0) /* XXX */
     {
@@ -7693,9 +7688,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
       ATSUFontFeatureSelector selectors[] = {kAllTypeFeaturesOffSelector};
       Lisp_Object font_id_cons;
 
-      font_id_cons = Fgethash (Fdowncase
-			       (make_unibyte_string (mfontname,
-						     strlen (mfontname))),
+      font_id_cons = Fgethash (make_unibyte_string (family, strlen (family)),
 			       atsu_font_id_hash, Qnil);
       if (NILP (font_id_cons))
 	return NULL;
@@ -7716,24 +7709,21 @@ XLoadQueryFont (Display *dpy, char *fontname)
       scriptcode = kTextEncodingMacUnicode;
     }
   else
+#endif
     {
-#endif
-  c2pstr (mfontname);
+      Lisp_Object tmp = Fassoc (build_string (family), fm_font_family_alist);
+
+      if (NILP (tmp))
+	return NULL;
+      fontnum = XINT (XCDR (tmp));
 #if TARGET_API_MAC_CARBON
-  fontnum = FMGetFontFamilyFromName (mfontname);
-  if (fontnum == kInvalidFontFamily
-      || FMGetFontFamilyTextEncoding (fontnum, &encoding) != noErr)
-    return NULL;
-  scriptcode = GetTextEncodingBase (encoding);
+      if (FMGetFontFamilyTextEncoding (fontnum, &encoding) != noErr)
+	return NULL;
+      scriptcode = GetTextEncodingBase (encoding);
 #else
-  GetFNum (mfontname, &fontnum);
-  if (fontnum == 0)
-    return NULL;
-  scriptcode = FontToScript (fontnum);
+      scriptcode = FontToScript (fontnum);
 #endif
-#if USE_ATSUI
     }
-#endif
 
   font = (MacFontStruct *) xmalloc (sizeof (struct MacFontStruct));
 
@@ -7752,7 +7742,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
   if (scriptcode == smJapanese && strcmp (charset, "jisx0201.1976-0") == 0)
     font->mac_scriptcode = smRoman;
 
-  font->full_name = mac_to_x_fontname (mfontname_decoded, size, fontface, charset);
+  font->full_name = mac_to_x_fontname (family, size, fontface, charset);
 
 #if USE_ATSUI
   if (font->mac_style)
@@ -7837,130 +7827,149 @@ XLoadQueryFont (Display *dpy, char *fontname)
       font->max_char_or_byte2 = 0xff;
     }
   else
-    {
 #endif
-  is_two_byte_font = font->mac_scriptcode == smJapanese ||
-                     font->mac_scriptcode == smTradChinese ||
-                     font->mac_scriptcode == smSimpChinese ||
-                     font->mac_scriptcode == smKorean;
-
-  TextFont (fontnum);
-  TextSize (size);
-  TextFace (fontface);
-
-  GetFontInfo (&the_fontinfo);
-
-  font->ascent = the_fontinfo.ascent;
-  font->descent = the_fontinfo.descent;
-
-  if (is_two_byte_font)
     {
-      font->min_byte1 = 0xa1;
-      font->max_byte1 = 0xfe;
-      font->min_char_or_byte2 = 0xa1;
-      font->max_char_or_byte2 = 0xfe;
+      GrafPtr port;
+      SInt16 old_fontnum, old_fontsize;
+      Style old_fontface;
+      FontInfo the_fontinfo;
+      int is_two_byte_font;
 
-      /* Use the width of an "ideographic space" of that font because
-         the_fontinfo.widMax returns the wrong width for some fonts.  */
-      switch (font->mac_scriptcode)
-        {
-        case smJapanese:
-	  font->min_byte1 = 0x81;
-	  font->max_byte1 = 0xfc;
-	  font->min_char_or_byte2 = 0x40;
-	  font->max_char_or_byte2 = 0xfc;
-          char_width = StringWidth("\p\x81\x40");
-          break;
-        case smTradChinese:
-	  font->min_char_or_byte2 = 0x40;
-          char_width = StringWidth("\p\xa1\x40");
-          break;
-        case smSimpChinese:
-          char_width = StringWidth("\p\xa1\xa1");
-          break;
-        case smKorean:
-          char_width = StringWidth("\p\xa1\xa1");
-          break;
-        }
-    }
-  else
-    {
-      font->min_byte1 = font->max_byte1 = 0;
-      font->min_char_or_byte2 = 0x20;
-      font->max_char_or_byte2 = 0xff;
+      /* Save the current font number used.  */
+      GetPort (&port);
+#if TARGET_API_MAC_CARBON
+      old_fontnum = GetPortTextFont (port);
+      old_fontsize = GetPortTextSize (port);
+      old_fontface = GetPortTextFace (port);
+#else
+      old_fontnum = port->txFont;
+      old_fontsize = port->txSize;
+      old_fontface = port->txFace;
+#endif
 
-      /* Do this instead of use the_fontinfo.widMax, which incorrectly
-	 returns 15 for 12-point Monaco! */
-      char_width = CharWidth ('m');
-    }
+      TextFont (fontnum);
+      TextSize (size);
+      TextFace (fontface);
 
-  if (is_two_byte_font)
-    {
-      font->per_char = NULL;
+      GetFontInfo (&the_fontinfo);
 
-      if (fontface & italic)
-	font->max_bounds.rbearing = char_width + 1;
+      font->ascent = the_fontinfo.ascent;
+      font->descent = the_fontinfo.descent;
+
+      is_two_byte_font = (font->mac_scriptcode == smJapanese
+			  || font->mac_scriptcode == smTradChinese
+			  || font->mac_scriptcode == smSimpChinese
+			  || font->mac_scriptcode == smKorean);
+
+      if (is_two_byte_font)
+	{
+	  font->min_byte1 = 0xa1;
+	  font->max_byte1 = 0xfe;
+	  font->min_char_or_byte2 = 0xa1;
+	  font->max_char_or_byte2 = 0xfe;
+
+	  /* Use the width of an "ideographic space" of that font
+	     because the_fontinfo.widMax returns the wrong width for
+	     some fonts.  */
+	  switch (font->mac_scriptcode)
+	    {
+	    case smJapanese:
+	      font->min_byte1 = 0x81;
+	      font->max_byte1 = 0xfc;
+	      font->min_char_or_byte2 = 0x40;
+	      font->max_char_or_byte2 = 0xfc;
+	      char_width = StringWidth("\p\x81\x40");
+	      break;
+	    case smTradChinese:
+	      font->min_char_or_byte2 = 0x40;
+	      char_width = StringWidth("\p\xa1\x40");
+	      break;
+	    case smSimpChinese:
+	      char_width = StringWidth("\p\xa1\xa1");
+	      break;
+	    case smKorean:
+	      char_width = StringWidth("\p\xa1\xa1");
+	      break;
+	    }
+	}
       else
-	font->max_bounds.rbearing = char_width;
-      font->max_bounds.lbearing = 0;
-      font->max_bounds.width = char_width;
-      font->max_bounds.ascent = the_fontinfo.ascent;
-      font->max_bounds.descent = the_fontinfo.descent;
-
-      font->min_bounds = font->max_bounds;
-    }
-  else
-    {
-      int c, min_width, max_width;
-      Rect char_bounds, min_bounds, max_bounds;
-      char ch;
-
-      font->per_char = xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
-
-      min_width = max_width = char_width;
-      SetRect (&min_bounds, -32767, -32767, 32767, 32767);
-      SetRect (&max_bounds, 0, 0, 0, 0);
-      for (c = 0x20; c <= 0xff; c++)
 	{
-	  ch = c;
-	  char_width = CharWidth (ch);
-	  QDTextBounds (1, &ch, &char_bounds);
-	  STORE_XCHARSTRUCT (font->per_char[c - 0x20],
-			     char_width, char_bounds);
-	  /* Some Japanese fonts (in SJIS encoding) return 0 as the
-	     character width of 0x7f.  */
-	  if (char_width > 0)
-	    {
-	      min_width = min (min_width, char_width);
-	      max_width = max (max_width, char_width);
-	    }
-	  if (!EmptyRect (&char_bounds))
-	    {
-	      SetRect (&min_bounds,
-		       max (min_bounds.left, char_bounds.left),
-		       max (min_bounds.top, char_bounds.top),
-		       min (min_bounds.right, char_bounds.right),
-		       min (min_bounds.bottom, char_bounds.bottom));
-	      UnionRect (&max_bounds, &char_bounds, &max_bounds);
-	    }
+	  font->min_byte1 = font->max_byte1 = 0;
+	  font->min_char_or_byte2 = 0x20;
+	  font->max_char_or_byte2 = 0xff;
+
+	  /* Do this instead of use the_fontinfo.widMax, which
+	     incorrectly returns 15 for 12-point Monaco! */
+	  char_width = CharWidth ('m');
 	}
-      STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
-      STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
-      if (min_width == max_width
-	  && max_bounds.left >= 0 && max_bounds.right <= max_width)
+
+      if (is_two_byte_font)
 	{
-	  /* Fixed width and no overhangs.  */
-	  xfree (font->per_char);
 	  font->per_char = NULL;
-	}
-    }
 
-  TextFont (old_fontnum);  /* restore previous font number, size and face */
-  TextSize (old_fontsize);
-  TextFace (old_fontface);
-#if USE_ATSUI
-  }
-#endif
+	  if (fontface & italic)
+	    font->max_bounds.rbearing = char_width + 1;
+	  else
+	    font->max_bounds.rbearing = char_width;
+	  font->max_bounds.lbearing = 0;
+	  font->max_bounds.width = char_width;
+	  font->max_bounds.ascent = the_fontinfo.ascent;
+	  font->max_bounds.descent = the_fontinfo.descent;
+
+	  font->min_bounds = font->max_bounds;
+	}
+      else
+	{
+	  int c, min_width, max_width;
+	  Rect char_bounds, min_bounds, max_bounds;
+	  char ch;
+
+	  font->per_char = xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
+	  bzero (font->per_char, sizeof (XCharStruct) * (0xff - 0x20 + 1));
+
+	  min_width = max_width = char_width;
+	  SetRect (&min_bounds, -32767, -32767, 32767, 32767);
+	  SetRect (&max_bounds, 0, 0, 0, 0);
+	  for (c = 0x20; c <= 0xff; c++)
+	    {
+	      ch = c;
+	      char_width = CharWidth (ch);
+	      QDTextBounds (1, &ch, &char_bounds);
+	      STORE_XCHARSTRUCT (font->per_char[c - 0x20],
+				 char_width, char_bounds);
+	      /* Some Japanese fonts (in SJIS encoding) return 0 as
+		 the character width of 0x7f.  */
+	      if (char_width > 0)
+		{
+		  min_width = min (min_width, char_width);
+		  max_width = max (max_width, char_width);
+		}
+	      if (!EmptyRect (&char_bounds))
+		{
+		  SetRect (&min_bounds,
+			   max (min_bounds.left, char_bounds.left),
+			   max (min_bounds.top, char_bounds.top),
+			   min (min_bounds.right, char_bounds.right),
+			   min (min_bounds.bottom, char_bounds.bottom));
+		  UnionRect (&max_bounds, &char_bounds, &max_bounds);
+		}
+	    }
+	  STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
+	  STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
+	  if (min_width == max_width
+	      && max_bounds.left >= 0 && max_bounds.right <= max_width)
+	    {
+	      /* Fixed width and no overhangs.  */
+	      xfree (font->per_char);
+	      font->per_char = NULL;
+	    }
+	}
+
+      /* Restore previous font number, size and face.  */
+      TextFont (old_fontnum);
+      TextSize (old_fontsize);
+      TextFace (old_fontface);
+    }
 
   return font;
 }
@@ -10988,14 +10997,17 @@ syms_of_macterm ()
   staticpro (&Qreverse);
   Qreverse = intern ("reverse");
 
+  staticpro (&Qmac_ready_for_drag_n_drop);
+  Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
+
   staticpro (&x_display_name_list);
   x_display_name_list = Qnil;
 
   staticpro (&last_mouse_scroll_bar);
   last_mouse_scroll_bar = Qnil;
 
-  Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
-  staticpro (&Qmac_ready_for_drag_n_drop);
+  staticpro (&fm_font_family_alist);
+  fm_font_family_alist = Qnil;
 
 #if USE_ATSUI
   staticpro (&atsu_font_id_hash);
