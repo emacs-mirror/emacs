@@ -1,3 +1,8 @@
+2005-10-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-region-1): Don't try to catch a
+	double-click when doing follow-link (it's overridden anyway).
+
 2005-10-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/autoload.el (update-directory-autoloads): Doc fix.
