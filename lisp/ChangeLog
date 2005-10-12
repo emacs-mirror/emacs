@@ -1,7 +1,6 @@
-2005-10-12  Lars Hansen  <larsh@soem.dk>
+2005-10-12  Reiner Steib <Reiner.Steib@gmx.de>
 
 	* desktop.el (desktop-load-file): Do nothing when FUNCTION is nil.
-	Reported by Reiner Steib <Reiner.Steib@gmx.de>.
 
 2005-10-11  Sven Joachim  <svenjoac@gmx.de>
 
