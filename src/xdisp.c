@@ -2060,7 +2060,7 @@ remember_mouse_glyph (f, gx, gy, rect)
   height = WINDOW_FRAME_LINE_HEIGHT (w);
 
   r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  end_row = r + w->current_matrix->nrows - 1;
+  end_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
 
   if (w->pseudo_window_p)
     {
@@ -2079,20 +2079,28 @@ remember_mouse_glyph (f, gx, gy, rect)
       area = RIGHT_MARGIN_AREA;
       goto text_glyph;
 
-    case ON_TEXT:
-    case ON_MODE_LINE:
     case ON_HEADER_LINE:
+    case ON_MODE_LINE:
+      gr = (part == ON_HEADER_LINE
+	    ? MATRIX_HEADER_LINE_ROW (w->current_matrix)
+	    : MATRIX_MODE_LINE_ROW (w->current_matrix));
+      gy = gr->y;
+      area = TEXT_AREA;
+      goto text_glyph_row_found;
+
+    case ON_TEXT:
       area = TEXT_AREA;
 
     text_glyph:
       gr = 0; gy = 0;
-      for (; r < end_row && r->enabled_p; ++r)
+      for (; r <= end_row && r->enabled_p; ++r)
 	if (r->y + r->height > y)
 	  {
 	    gr = r; gy = r->y;
 	    break;
 	  }
 
+    text_glyph_row_found:
       if (gr && gy <= y)
 	{
 	  struct glyph *g = gr->glyphs[area];
@@ -2149,7 +2157,7 @@ remember_mouse_glyph (f, gx, gy, rect)
 
     row_glyph:
       gr = 0, gy = 0;
-      for (; r < end_row && r->enabled_p; ++r)
+      for (; r <= end_row && r->enabled_p; ++r)
 	if (r->y + r->height > y)
 	  {
 	    gr = r; gy = r->y;
