@@ -1,3 +1,7 @@
+2005-10-12  Romain Francoise  <romain@orebokech.com>
+
+	* buffer.c (init_buffer): Rename `rc' to `len' for clarity.
+
 2005-10-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xdisp.c (remember_mouse_glyph): Use MATRIX_BOTTOM_TEXT_ROW to

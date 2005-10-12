@@ -5114,7 +5114,7 @@ init_buffer ()
   char *pwd;
   struct stat dotstat, pwdstat;
   Lisp_Object temp;
-  int rc;
+  int len;
 
 #ifdef USE_MMAP_FOR_BUFFERS
  {
@@ -5141,13 +5141,13 @@ init_buffer ()
 #ifndef VMS
   /* Maybe this should really use some standard subroutine
      whose definition is filename syntax dependent.  */
-  rc = strlen (pwd);
-  if (!(IS_DIRECTORY_SEP (pwd[rc - 1])))
+  len = strlen (pwd);
+  if (!(IS_DIRECTORY_SEP (pwd[len - 1])))
     {
       /* Grow buffer to add directory separator and '\0'.  */
-      pwd = (char *) xrealloc (pwd, rc + 2);
-      pwd[rc] = DIRECTORY_SEP;
-      pwd[rc + 1] = '\0';
+      pwd = (char *) xrealloc (pwd, len + 2);
+      pwd[len] = DIRECTORY_SEP;
+      pwd[len + 1] = '\0';
     }
 #endif /* not VMS */
 
