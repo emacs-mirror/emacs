@@ -1250,7 +1250,13 @@ This is an internal function used to turn off the splash screen after
 the user caused an input event by hitting a key or clicking with the
 mouse."
   (interactive)
-  (push last-command-event unread-command-events)
+  (if (and (consp last-command-event)
+	   (eq (posn-window (event-start last-command-event))
+	       (selected-window)))
+      ;; This is a mouse-down event in the spash screen window.
+      ;; Ignore it and consume the corresponding mouse-up event.
+      (read-event)
+    (push last-command-event unread-command-events))
   (throw 'exit nil))
 
 
