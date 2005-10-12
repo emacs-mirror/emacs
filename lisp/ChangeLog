@@ -1,3 +1,7 @@
+2005-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line-x-option-alist): -nb => -nbi
+
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* startup.el (fancy-splash-default-action): Discard mouse click in
