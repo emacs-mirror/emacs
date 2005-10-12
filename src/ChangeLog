@@ -1,3 +1,7 @@
+2005-10-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c, w32term.c, macterm.c (note_mouse_movement): Undo last change.
+
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (handle_one_xevent): Clear last_mouse_glyph on mouse up/down.
