@@ -1,3 +1,10 @@
+2005-10-12  Bill Wohler  <wohler@newt.com>
+
+	* makefile.w32-in (MH-E-SRC): New. Used by mh-autoloads.
+	(mh-autoloads): New. Builds mh-e/mh-loaddefs.el. Rebuilds if any
+	files in MH-E-SRC have been updated.
+	(updates, compile, recompile, bootstrap): Depend on mh-autoloads.
+
 2005-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/mixal-mode.el (mixal-operation-codes): Remove.

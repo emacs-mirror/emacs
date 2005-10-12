@@ -176,7 +176,7 @@ update-subdirs-SH: doit
 	   $(srcdir)/update-subdirs $$file; \
 	done;
 
-updates: update-subdirs autoloads finder-data custom-deps
+updates: update-subdirs autoloads mh-autoloads finder-data custom-deps
 
 # Update the AUTHORS file.
 
@@ -207,7 +207,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 # compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile: subdirs.el compile-$(SHELLTYPE) doit
+compile: subdirs.el mh-autoloads compile-$(SHELLTYPE) doit
 
 compile-CMD:
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
@@ -282,8 +282,46 @@ compile-after-backup: backup-compiled-files compile-always
 # Note that this doesn't create .elc files.  It only recompiles if an
 # .elc is present.
 
-recompile: doit
+recompile: mh-autoloads doit
 	$(emacs) -f batch-byte-recompile-directory $(lisp)
+
+# Update MH-E internal autoloads. These are not to be confused with
+# the autoloads for the MH-E entry points, which are already in
+# loaddefs.el.
+MH-E-SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
+	$(lisp)/mh-e/mh-comp.el $(lisp)/mh-e/mh-customize.el	\
+	$(lisp)/mh-e/mh-e.el $(lisp)/mh-e/mh-funcs.el		\
+	$(lisp)/mh-e/mh-mime.el $(lisp)/mh-e/mh-pick.el		\
+	$(lisp)/mh-e/mh-print.el $(lisp)/mh-e/mh-inc.el		\
+	$(lisp)/mh-e/mh-init.el $(lisp)/mh-e/mh-index.el	\
+	$(lisp)/mh-e/mh-identity.el $(lisp)/mh-e/mh-junk.el	\
+	$(lisp)/mh-e/mh-seq.el $(lisp)/mh-e/mh-speed.el		\
+	$(lisp)/mh-e/mh-utils.el
+
+mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
+$(lisp)/mh-e/mh-loaddefs.el: $(MH-E-SRC)
+	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
+	echo ";;" >> $@
+	echo ";;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc." >> $@
+	echo ";;; Author: Bill Wohler <wohler@newt.com>" >> $@
+	echo ";;; Keywords: mail" >> $@
+	echo ";;; Commentary:" >> $@
+	echo ";;; Change Log:" >> $@
+	echo ";;; Code:" >> $@
+	$(EMACS) $(EMACSOPT) \
+	   -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(lisp)/mh-e
+	echo "" >> $@
+	echo "(provide 'mh-loaddefs)" >> $@
+	echo ";;; Local Variables:" >> $@
+	echo ";;; version-control: never" >> $@
+	echo ";;; no-byte-compile: t" >> $@
+	echo ";;; no-update-autoloads: t" >> $@
+	echo ";;; End:" >> $@
+	echo ";;; mh-loaddefs.el ends here" >> $@
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
@@ -316,7 +354,7 @@ bootstrap-clean-SH:
 # When done, remove bootstrap-emacs from ../bin, so that
 # it will not be mistaken for an installed binary.
 
-bootstrap: update-subdirs autoloads compile finder-data custom-deps
+bootstrap: update-subdirs autoloads mh-autoloads compile finder-data custom-deps
 	- $(DEL) $(EMACS)
 
 #
