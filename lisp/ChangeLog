@@ -1,3 +1,16 @@
+2005-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/mixal-mode.el (mixal-operation-codes): Remove.
+	(mixal-mode-syntax-table): Add \n as end-comment.
+	(mixal-operation-codes-alist): Immediately initialize to full value.
+	(mixal-add-operation-code): Remove.
+	(mixal-describe-operation-code): Make the arg non-optional.
+	Use the interactive spec instead.
+	Use mixal-operation-codes-alist rather than mixal-operation-codes.
+	(mixal-font-lock-keywords): Don't highlight comments here any more.
+	(mixal-font-lock-syntactic-keywords): New var.
+	(mixal-mode): Use it.  Fix comment-start-skip.
+
 2005-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line-x-option-alist): -nb => -nbi
@@ -11,6 +24,16 @@
 2005-10-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* desktop.el (desktop-load-file): Do nothing when FUNCTION is nil.
+
+2005-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/mixal-mode.el: Sync with version in the GNU MDK project.
+	Try to fix up minor layout issues like indentation, line break, etc...
+	(mixal-mode-syntax-table): Don't try to specify comment syntax,
+	because it doesn't work.
+	(mixal-operation-codes): Add some more codes.
+	(mixal-font-lock-keywords): Process comments here.
+	(mixal-mode): mixasm no longer needs -g option.
 
 2005-10-11  Sven Joachim  <svenjoac@gmx.de>
 
