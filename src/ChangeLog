@@ -7,6 +7,9 @@
 	* xdisp.c (remember_mouse_glyph): Use MATRIX_BOTTOM_TEXT_ROW to
 	get end of text rows.  Obtain header-line/mode-line rows directly.
 
+	* xterm.c, w32term.c, macterm.c (note_mouse_movement): Restore
+	help_echo_string if mouse is moved inside last_mouse_glyph.
+
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (remember_mouse_glyph): New generic version based on
