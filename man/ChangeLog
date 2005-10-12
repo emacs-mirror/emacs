@@ -1,3 +1,8 @@
+2005-10-12  Kenichi Handa  <handa@m17n.org>
+
+	* basic.texi (Position Info): Describe the case that Emacs shows
+	"part of display ...".
+
 2005-10-11  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Integration): Mention using `a i' to compute definite
