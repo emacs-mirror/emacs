@@ -4193,6 +4193,8 @@ note_mouse_movement (frame, pos)
       /* Remember which glyph we're now on.  */
       remember_mouse_glyph (frame, pos->h, pos->v, &last_mouse_glyph);
     }
+  else
+    help_echo_string = previous_help_echo_string;
 }
 
 

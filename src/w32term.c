@@ -3238,6 +3238,8 @@ note_mouse_movement (frame, msg)
 	 other times.  */
       remember_mouse_glyph (frame, mouse_x, mouse_y, &last_mouse_glyph);
     }
+  else
+    help_echo_string = previous_help_echo_string;
 }
 
 
