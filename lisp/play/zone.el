@@ -135,59 +135,60 @@ If the element is a function or a list of a function and a number,
 (defun zone ()
   "Zone out, completely."
   (interactive)
-  (let ((f (selected-frame))
-        (outbuf (get-buffer-create "*zone*"))
-        (text (buffer-substring (window-start) (window-end)))
-        (wp (1+ (- (window-point (selected-window))
-                   (window-start)))))
-    (put 'zone 'orig-buffer (current-buffer))
-    (put 'zone 'modeline-hidden-level 0)
-    (switch-to-buffer outbuf)
-    (setq mode-name "Zone")
-    (erase-buffer)
-    (setq buffer-undo-list t
-          truncate-lines t
-          tab-width (zone-orig tab-width)
-          line-spacing (zone-orig line-spacing))
-    (insert text)
-    (untabify (point-min) (point-max))
-    (set-window-start (selected-window) (point-min))
-    (set-window-point (selected-window) wp)
-    (sit-for 0 500)
-    (let ((pgm (elt zone-programs (random (length zone-programs))))
-          (ct (and f (frame-parameter f 'cursor-type)))
-          (restore (list '(kill-buffer outbuf))))
-      (when ct
-        (modify-frame-parameters f '((cursor-type . (bar . 0))))
-        (setq restore (cons '(modify-frame-parameters
-                              f (list (cons 'cursor-type ct)))
-                            restore)))
-      ;; Make `restore' a self-disabling one-shot thunk.
-      (setq restore `(lambda () ,@restore (setq restore nil)))
-      (condition-case nil
-          (progn
-            (message "Zoning... (%s)" pgm)
-            (garbage-collect)
-            ;; If some input is pending, zone says "sorry", which
-            ;; isn't nice; this might happen e.g. when they invoke the
-            ;; game by clicking the menu bar.  So discard any pending
-            ;; input before zoning out.
-            (if (input-pending-p)
-                (discard-input))
-            (zone-call pgm)
-            (message "Zoning...sorry"))
-        (error
-         (funcall restore)
-         (while (not (input-pending-p))
-           (message "We were zoning when we wrote %s..." pgm)
-           (sit-for 3)
-           (message "...here's hoping we didn't hose your buffer!")
-           (sit-for 3)))
-        (quit
-         (funcall restore)
-         (ding)
-         (message "Zoning...sorry")))
-      (when restore (funcall restore)))))
+  (save-window-excursion
+    (let ((f (selected-frame))
+          (outbuf (get-buffer-create "*zone*"))
+          (text (buffer-substring (window-start) (window-end)))
+          (wp (1+ (- (window-point (selected-window))
+                     (window-start)))))
+      (put 'zone 'orig-buffer (current-buffer))
+      (put 'zone 'modeline-hidden-level 0)
+      (switch-to-buffer outbuf)
+      (setq mode-name "Zone")
+      (erase-buffer)
+      (setq buffer-undo-list t
+            truncate-lines t
+            tab-width (zone-orig tab-width)
+            line-spacing (zone-orig line-spacing))
+      (insert text)
+      (untabify (point-min) (point-max))
+      (set-window-start (selected-window) (point-min))
+      (set-window-point (selected-window) wp)
+      (sit-for 0 500)
+      (let ((pgm (elt zone-programs (random (length zone-programs))))
+            (ct (and f (frame-parameter f 'cursor-type)))
+            (restore (list '(kill-buffer outbuf))))
+        (when ct
+          (modify-frame-parameters f '((cursor-type . (bar . 0))))
+          (setq restore (cons '(modify-frame-parameters
+                                f (list (cons 'cursor-type ct)))
+                              restore)))
+        ;; Make `restore' a self-disabling one-shot thunk.
+        (setq restore `(lambda () ,@restore (setq restore nil)))
+        (condition-case nil
+            (progn
+              (message "Zoning... (%s)" pgm)
+              (garbage-collect)
+              ;; If some input is pending, zone says "sorry", which
+              ;; isn't nice; this might happen e.g. when they invoke the
+              ;; game by clicking the menu bar.  So discard any pending
+              ;; input before zoning out.
+              (if (input-pending-p)
+                  (discard-input))
+              (zone-call pgm)
+              (message "Zoning...sorry"))
+          (error
+           (funcall restore)
+           (while (not (input-pending-p))
+             (message "We were zoning when we wrote %s..." pgm)
+             (sit-for 3)
+             (message "...here's hoping we didn't hose your buffer!")
+             (sit-for 3)))
+          (quit
+           (funcall restore)
+           (ding)
+           (message "Zoning...sorry")))
+        (when restore (funcall restore))))))
 
 ;;;; Zone when idle, or not.
 

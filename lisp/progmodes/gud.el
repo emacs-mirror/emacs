@@ -137,11 +137,15 @@ Used to grey out relevant togolbar icons.")
                   :enable (and (not gud-running)
 			       (memq gud-minor-mode '(gdbmi gdba gdb perldb))))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
-                  :enable (not gud-running))
+                  :enable (not gud-running)
+		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
+				     (window-fringes))))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
 		  :enable (memq gud-minor-mode '(gdbmi gdba gdb sdb xdb bashdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
-                  :enable (not gud-running))
+                  :enable (not gud-running)
+		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
+				     (window-fringes))))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
@@ -332,9 +336,6 @@ we're in the GUD buffer)."
 ;; speedbar support functions and variables.
 (eval-when-compile (require 'speedbar))	;For speedbar-with-attached-buffer.
 
-(defvar gud-last-speedbar-buffer nil
-  "The last GUD buffer used.")
-
 (defvar gud-last-speedbar-stackframe nil
   "Description of the currently displayed GUD stack.
 t means that there is no stack, and we are in display-file mode.")
@@ -351,17 +352,22 @@ t means that there is no stack, and we are in display-file mode.")
     (define-key gud-speedbar-key-map "j" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "e" 'speedbar-edit-line)
     (define-key gud-speedbar-key-map "\C-m" 'speedbar-edit-line)
-    (define-key gud-speedbar-key-map "D" 'gdb-var-delete)))
+    (define-key gud-speedbar-key-map " " 'speedbar-toggle-line-expansion)
+    (define-key gud-speedbar-key-map "[" 'speedbar-expand-line-descendants)
+    (define-key gud-speedbar-key-map "]" 'speedbar-contract-line-descendants)
+    (define-key gud-speedbar-key-map "D" 'gdb-var-delete))
 
+  (speedbar-add-expansion-list '("GUD" gud-speedbar-menu-items
+				 gud-speedbar-key-map
+				 gud-expansion-speedbar-buttons)))
 
 (defvar gud-speedbar-menu-items
-  ;; Note to self.  Add expand, and turn off items when not available.
   '(["Jump to stack frame" speedbar-edit-line
-     (with-current-buffer gud-comint-buffer
-       (not (memq gud-minor-mode '(gdbmi gdba))))]
+     :visible (with-current-buffer gud-comint-buffer
+		(not (memq gud-minor-mode '(gdbmi gdba))))]
     ["Edit value" speedbar-edit-line
-     (with-current-buffer gud-comint-buffer
-       (memq gud-minor-mode '(gdbmi gdba)))]
+     :visible (with-current-buffer gud-comint-buffer
+		(memq gud-minor-mode '(gdbmi gdba)))]
     ["Delete expression" gdb-var-delete
      (with-current-buffer gud-comint-buffer
        (memq gud-minor-mode '(gdbmi gdba)))])
@@ -372,89 +378,89 @@ t means that there is no stack, and we are in display-file mode.")
     (gud-install-speedbar-variables)
   (add-hook 'speedbar-load-hook 'gud-install-speedbar-variables))
 
+(defun gud-expansion-speedbar-buttons (directory zero)
+  "Wrapper for call to speedbar-add-expansion-list.   DIRECTORY and
+ZERO are not used, but are required by the caller."
+  (gud-speedbar-buttons gud-comint-buffer))
+
 (defun gud-speedbar-buttons (buffer)
   "Create a speedbar display based on the current state of GUD.
 If the GUD BUFFER is not running a supported debugger, then turn
-off the specialized speedbar mode."
-  (let ((minor-mode (with-current-buffer buffer gud-minor-mode)))
-    (cond
-     ((memq minor-mode '(gdbmi gdba))
-      (when (or gdb-var-changed
-		(not (save-excursion
-		       (goto-char (point-min))
-		       (let ((case-fold-search t))
-			 (looking-at "Watch Expressions:")))))
-	(erase-buffer)
-	(insert "Watch Expressions:\n")
-	(let ((var-list gdb-var-list))
-	  (while var-list
-	    (let* ((depth 0) (start 0) (char ?+)
-		   (var (car var-list)) (varnum (nth 1 var)))
-	      (while (string-match "\\." varnum start)
-		(setq depth (1+ depth)
-		      start (1+ (match-beginning 0))))
-	      (if (equal (nth 2 var) "0")
-		  (speedbar-make-tag-line 'bracket ?? nil nil
-					  (concat (car var) "\t" (nth 4 var))
-					  'gdb-edit-value
-					  nil
-					  (if (and (nth 5 var)
-						   gdb-show-changed-values)
-					      'font-lock-warning-face
-					    nil) depth)
-		(if (and (cadr var-list)
-			 (string-match varnum (cadr (cadr var-list))))
-		    (setq char ?-))
-		(speedbar-make-tag-line 'bracket char
-					'gdb-speedbar-expand-node varnum
-					(concat (car var) "\t" (nth 3 var))
-					nil nil nil depth)))
-	    (setq var-list (cdr var-list))))
-	(setq gdb-var-changed nil)))
-     (t (if (and (save-excursion
-		   (goto-char (point-min))
-		   (looking-at "Current Stack"))
-		 (equal gud-last-last-frame gud-last-speedbar-stackframe))
-	    nil
-	  (setq gud-last-speedbar-buffer buffer)
-	  (let ((gud-frame-list
-		 (cond ((eq minor-mode 'gdb)
-			(gud-gdb-get-stackframe buffer))
-		       ;; Add more debuggers here!
-		       (t (speedbar-remove-localized-speedbar-support buffer)
-			  nil))))
-	    (erase-buffer)
-	    (if (not gud-frame-list)
-		(insert "No Stack frames\n")
-	      (insert "Current Stack:\n"))
-	    (dolist (frame gud-frame-list)
-	      (insert (nth 1 frame) ":\n")
-	      (if (= (length frame) 2)
-		  (progn
-;	            (speedbar-insert-button "[?]"
-;				            'speedbar-button-face
-;				            nil nil nil t)
-		    (speedbar-insert-button (car frame)
-					     'speedbar-directory-face
-					     nil nil nil t))
-;	      (speedbar-insert-button "[+]"
-;				      'speedbar-button-face
-;				      'speedbar-highlight-face
-;				      'gud-gdb-get-scope-data
-;				      frame t)
-	      (speedbar-insert-button (car frame)
-				      'speedbar-file-face
-				      'speedbar-highlight-face
-				      (cond ((memq minor-mode '(gdbmi gdba gdb))
-					     'gud-gdb-goto-stackframe)
-					    (t (error "Should never be here")))
-					frame t)))
-;            (let ((selected-frame
-;	           (cond ((eq ff 'gud-gdb-find-file)
-;		          (gud-gdb-selected-frame-info buffer))
-;		         (t (error "Should never be here"))))))
-	    )
-	  (setq gud-last-speedbar-stackframe gud-last-last-frame))))))
+off the specialized speedbar mode.  BUFFER is not used, but are
+required by the caller."
+  (when (and (boundp 'gud-comint-buffer)
+	     gud-comint-buffer
+	     ;; gud-comint-buffer might be killed
+	     (buffer-name gud-comint-buffer))
+    (let* ((minor-mode (with-current-buffer buffer gud-minor-mode))
+	  (window (get-buffer-window (current-buffer) 0))
+	  (p (window-point window)))
+      (cond
+       ((memq minor-mode '(gdbmi gdba))
+	(when (or gdb-var-changed
+		  (not (save-excursion
+			 (goto-char (point-min))
+			 (let ((case-fold-search t))
+			   (looking-at "Watch Expressions:")))))
+	  (erase-buffer)
+	  (insert "Watch Expressions:\n")
+	  (let ((var-list gdb-var-list))
+	    (while var-list
+	      (let* ((depth 0) (start 0) (char ?+)
+		     (var (car var-list)) (varnum (nth 1 var)))
+		(while (string-match "\\." varnum start)
+		  (setq depth (1+ depth)
+			start (1+ (match-beginning 0))))
+		(if (equal (nth 2 var) "0")
+		    (speedbar-make-tag-line 'bracket ?? nil nil
+					    (concat (car var) "\t" (nth 4 var))
+					    'gdb-edit-value
+					    nil
+					    (if (and (nth 5 var)
+						     gdb-show-changed-values)
+						'font-lock-warning-face
+					      nil) depth)
+		  (if (and (cadr var-list)
+			   (string-match varnum (cadr (cadr var-list))))
+		      (setq char ?-))
+		  (speedbar-make-tag-line 'bracket char
+					  'gdb-speedbar-expand-node varnum
+					  (concat (car var) "\t" (nth 3 var))
+					  nil nil nil depth)))
+	      (setq var-list (cdr var-list))))
+	  (setq gdb-var-changed nil)))
+       (t (if (and (save-excursion
+		     (goto-char (point-min))
+		     (looking-at "Current Stack:"))
+		   (equal gud-last-last-frame gud-last-speedbar-stackframe))
+	      nil
+	    (let ((gud-frame-list
+	    (cond ((eq minor-mode 'gdb)
+		   (gud-gdb-get-stackframe buffer))
+		  ;; Add more debuggers here!
+		  (t (speedbar-remove-localized-speedbar-support buffer)
+		     nil))))
+	      (erase-buffer)
+	      (if (not gud-frame-list)
+		  (insert "No Stack frames\n")
+		(insert "Current Stack:\n"))
+	      (dolist (frame gud-frame-list)
+		(insert (nth 1 frame) ":\n")
+		(if (= (length frame) 2)
+		(progn
+		  (speedbar-insert-button (car frame)
+					  'speedbar-directory-face
+					  nil nil nil t))
+		(speedbar-insert-button
+		 (car frame)
+		 'speedbar-file-face
+		 'speedbar-highlight-face
+		 (cond ((memq minor-mode '(gdbmi gdba gdb))
+			'gud-gdb-goto-stackframe)
+		       (t (error "Should never be here")))
+		 frame t))))
+	    (setq gud-last-speedbar-stackframe gud-last-last-frame))))
+      (set-window-point window p))))
 
 
 ;; ======================================================================
@@ -2569,6 +2575,9 @@ It is saved for when this flag is not set.")
 	 ;; Stop displaying an arrow in a source file.
 	 (setq gud-overlay-arrow-position nil)
 	 (set-process-buffer proc nil)
+	 (if (featurep 'speedbar)
+	     (speedbar-change-initial-expansion-list
+	      speedbar-previously-used-expansion-list-name))
 	 (if (memq gud-minor-mode-type '(gdbmi gdba))
 	     (gdb-reset)
 	   (gud-reset)))

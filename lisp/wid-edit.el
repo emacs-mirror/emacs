@@ -58,6 +58,8 @@
 
 ;;; Code:
 
+(defvar widget)
+
 ;;; Compatibility.
 
 (defun widget-event-point (event)

@@ -6358,7 +6358,6 @@ DEF_IMGLIB_FN (jpeg_finish_decompress);
 DEF_IMGLIB_FN (jpeg_destroy_decompress);
 DEF_IMGLIB_FN (jpeg_read_header);
 DEF_IMGLIB_FN (jpeg_read_scanlines);
-DEF_IMGLIB_FN (jpeg_stdio_src);
 DEF_IMGLIB_FN (jpeg_std_error);
 DEF_IMGLIB_FN (jpeg_resync_to_restart);
 
@@ -6374,7 +6373,6 @@ init_jpeg_functions (Lisp_Object libraries)
   LOAD_IMGLIB_FN (library, jpeg_read_scanlines);
   LOAD_IMGLIB_FN (library, jpeg_start_decompress);
   LOAD_IMGLIB_FN (library, jpeg_read_header);
-  LOAD_IMGLIB_FN (library, jpeg_stdio_src);
   LOAD_IMGLIB_FN (library, jpeg_CreateDecompress);
   LOAD_IMGLIB_FN (library, jpeg_destroy_decompress);
   LOAD_IMGLIB_FN (library, jpeg_std_error);
@@ -6400,7 +6398,6 @@ jpeg_resync_to_restart_wrapper(cinfo, desired)
 #define fn_jpeg_destroy_decompress	jpeg_destroy_decompress
 #define fn_jpeg_read_header		jpeg_read_header
 #define fn_jpeg_read_scanlines		jpeg_read_scanlines
-#define fn_jpeg_stdio_src		jpeg_stdio_src
 #define fn_jpeg_std_error		jpeg_std_error
 #define jpeg_resync_to_restart_wrapper	jpeg_resync_to_restart
 
@@ -6427,7 +6424,17 @@ my_error_exit (cinfo)
    libjpeg.doc from the JPEG lib distribution.  */
 
 static void
-our_init_source (cinfo)
+our_common_init_source (cinfo)
+     j_decompress_ptr cinfo;
+{
+}
+
+
+/* Method to terminate data source.  Called by
+   jpeg_finish_decompress() after all data has been processed.  */
+
+static void
+our_common_term_source (cinfo)
      j_decompress_ptr cinfo;
 {
 }
@@ -6438,7 +6445,7 @@ our_init_source (cinfo)
    so this only adds a fake end of input marker at the end.  */
 
 static boolean
-our_fill_input_buffer (cinfo)
+our_memory_fill_input_buffer (cinfo)
      j_decompress_ptr cinfo;
 {
   /* Insert a fake EOI marker.  */
@@ -6458,7 +6465,7 @@ our_fill_input_buffer (cinfo)
    is the JPEG data source manager.  */
 
 static void
-our_skip_input_data (cinfo, num_bytes)
+our_memory_skip_input_data (cinfo, num_bytes)
      j_decompress_ptr cinfo;
      long num_bytes;
 {
@@ -6472,16 +6479,6 @@ our_skip_input_data (cinfo, num_bytes)
       src->bytes_in_buffer -= num_bytes;
       src->next_input_byte += num_bytes;
     }
-}
-
-
-/* Method to terminate data source.  Called by
-   jpeg_finish_decompress() after all data has been processed.  */
-
-static void
-our_term_source (cinfo)
-     j_decompress_ptr cinfo;
-{
 }
 
 
@@ -6508,13 +6505,127 @@ jpeg_memory_src (cinfo, data, len)
     }
 
   src = (struct jpeg_source_mgr *) cinfo->src;
-  src->init_source = our_init_source;
-  src->fill_input_buffer = our_fill_input_buffer;
-  src->skip_input_data = our_skip_input_data;
+  src->init_source = our_common_init_source;
+  src->fill_input_buffer = our_memory_fill_input_buffer;
+  src->skip_input_data = our_memory_skip_input_data;
   src->resync_to_restart = jpeg_resync_to_restart_wrapper; /* Use default method.  */
-  src->term_source = our_term_source;
+  src->term_source = our_common_term_source;
   src->bytes_in_buffer = len;
   src->next_input_byte = data;
+}
+
+
+struct jpeg_stdio_mgr
+{
+  struct jpeg_source_mgr mgr;
+  boolean finished;
+  FILE *file;
+  JOCTET *buffer;
+};
+
+
+/* Size of buffer to read JPEG from file.
+   Not too big, as we want to use alloc_small.  */
+#define JPEG_STDIO_BUFFER_SIZE 8192
+
+
+/* Fill input buffer method for JPEG data source manager.  Called
+   whenever more data is needed.  The data is read from a FILE *.  */
+
+static boolean
+our_stdio_fill_input_buffer (cinfo)
+     j_decompress_ptr cinfo;
+{
+  struct jpeg_stdio_mgr *src;
+
+  src = (struct jpeg_stdio_mgr *) cinfo->src;
+  if (!src->finished)
+    {
+      size_t bytes;
+
+      bytes = fread (src->buffer, 1, JPEG_STDIO_BUFFER_SIZE, src->file);
+      if (bytes > 0)
+        src->mgr.bytes_in_buffer = bytes;
+      else
+        {
+          WARNMS (cinfo, JWRN_JPEG_EOF);
+          src->finished = 1;
+          src->buffer[0] = (JOCTET) 0xFF;
+          src->buffer[1] = (JOCTET) JPEG_EOI;
+          src->mgr.bytes_in_buffer = 2;
+        }
+      src->mgr.next_input_byte = src->buffer;
+    }
+
+  return 1;
+}
+
+
+/* Method to skip over NUM_BYTES bytes in the image data.  CINFO->src
+   is the JPEG data source manager.  */
+
+static void
+our_stdio_skip_input_data (cinfo, num_bytes)
+     j_decompress_ptr cinfo;
+     long num_bytes;
+{
+  struct jpeg_stdio_mgr *src;
+  src = (struct jpeg_stdio_mgr *) cinfo->src;
+
+  while (num_bytes > 0 && !src->finished)
+    {
+      if (num_bytes <= src->mgr.bytes_in_buffer)
+        {
+          src->mgr.bytes_in_buffer -= num_bytes;
+          src->mgr.next_input_byte += num_bytes;
+          break;
+        }
+      else
+        {
+          num_bytes -= src->mgr.bytes_in_buffer;
+          src->mgr.bytes_in_buffer = 0;
+          src->mgr.next_input_byte = NULL;
+
+          our_stdio_fill_input_buffer (cinfo);
+        }
+    }
+}
+
+
+/* Set up the JPEG lib for reading an image from a FILE *.
+   CINFO is the decompression info structure created for
+   reading the image.  */
+
+static void
+jpeg_file_src (cinfo, fp)
+     j_decompress_ptr cinfo;
+     FILE *fp;
+{
+  struct jpeg_stdio_mgr *src;
+
+  if (cinfo->src != NULL)
+      src = (struct jpeg_stdio_mgr *) cinfo->src;
+  else
+    {
+      /* First time for this JPEG object?  */
+      cinfo->src = (struct jpeg_source_mgr *)
+        (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
+                                    sizeof (struct jpeg_stdio_mgr));
+      src = (struct jpeg_stdio_mgr *) cinfo->src;
+      src->buffer = (JOCTET *)
+          (*cinfo->mem->alloc_small) ((j_common_ptr) cinfo, JPOOL_PERMANENT,
+                                      JPEG_STDIO_BUFFER_SIZE);
+    }
+
+  src->file = fp;
+  src->finished = 0;
+  src->mgr.init_source = our_common_init_source;
+  src->mgr.fill_input_buffer = our_stdio_fill_input_buffer;
+  src->mgr.skip_input_data = our_stdio_skip_input_data;
+  src->mgr.resync_to_restart = jpeg_resync_to_restart_wrapper; /* Use default method.  */
+  src->mgr.term_source = our_common_term_source;
+  src->mgr.bytes_in_buffer = 0;
+  src->mgr.next_input_byte = NULL;
 }
 
 
@@ -6601,7 +6712,7 @@ jpeg_load (f, img)
   fn_jpeg_CreateDecompress (&cinfo, JPEG_LIB_VERSION, sizeof (cinfo));
 
   if (NILP (specified_data))
-    fn_jpeg_stdio_src (&cinfo, (FILE *) fp);
+    jpeg_file_src (&cinfo, (FILE *) fp);
   else
     jpeg_memory_src (&cinfo, SDATA (specified_data),
 		     SBYTES (specified_data));

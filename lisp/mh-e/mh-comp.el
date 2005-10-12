@@ -1,7 +1,7 @@
 ;;; mh-comp.el --- MH-E functions for composing messages
 
 ;; Copyright (C) 1993, 1995, 1997,
-;;  2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;;  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -979,11 +979,13 @@ When a message is composed, the hooks `text-mode-hook' and
            (setq data-begin (match-end 0))
            (setq field (match-string 1)))
          (setq data-begin (max point data-begin))
-         (if (and field (mh-letter-skipped-header-field-p field))
-             (set-match-data nil)
-           (set-match-data (list data-begin data-end data-begin data-end)))
          (goto-char (if (equal point data-end) (1+ data-end) data-end))
-         t)))
+         (cond ((and field (mh-letter-skipped-header-field-p field))
+                (set-match-data nil)
+                nil)
+               (t (set-match-data
+                   (list data-begin data-end data-begin data-end))
+                  t)))))
 
 (defun mh-letter-header-end ()
   "Find the end of the message header.
@@ -1243,8 +1245,12 @@ Return t if fields added; otherwise return nil."
                           (value (cdar entry-list)))
                       (cond
                        ((equal ":identity" field)
-                        (when (and (not mh-identity-local)
-                                   (assoc value mh-identity-list))
+                        (when ;;(and (not mh-identity-local)
+                            ;; Bug 1204506.  But do we need to be able
+                            ;;  to set an identity manually that won't be
+                            ;;  overridden by mh-insert-auto-fields?
+                                   (assoc value mh-identity-list)
+                                   ;;)
                           (mh-insert-identity value)))
                        (t
                         (mh-modify-header-field field value

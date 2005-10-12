@@ -772,7 +772,8 @@ Mostly we check word delimiters."
      ((get this-command 'flyspell-delayed)
       ;; the current command is not delayed, that
       ;; is that we must check the word now
-      (sit-for flyspell-delay))
+      (and (not unread-command-events)
+	   (sit-for flyspell-delay)))
      (t t)))
    (t t)))
 
@@ -1322,47 +1323,43 @@ Word syntax described by `flyspell-dictionary-alist' (which see)."
 ;*    flyspell-external-point-words ...                                */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-external-point-words ()
-  (let ((buffer flyspell-external-ispell-buffer))
-    (set-buffer buffer)
+  "Mark words from a buffer listing incorrect words in order of appearance.
+The list of incorrect words should be in `flyspell-external-ispell-buffer'.
+\(We finish by killing that buffer and setting the variable to nil.)
+The buffer to mark them in is `flyspell-large-region-buffer'."
+
+  (with-current-buffer flyspell-external-ispell-buffer
     (goto-char (point-min))
-    (let ((pword "")
-	  (pcount 1))
-      ;; now we are done with ispell, we have to find the word in
-      ;; the initial buffer
-      (while (< (point) (- (point-max) 1))
-	;; we have to fetch the incorrect word
-	(if (re-search-forward "\\([^\n]+\\)\n" (point-max) t)
-	    (let ((word (match-string 1)))
-	      (if (string= word pword)
-		  (setq pcount (1+ pcount))
-		(progn
-		  (setq pword word)
-		  (setq pcount 1)))
-	      (goto-char (match-end 0))
-	      (if flyspell-issue-message-flag
-		  (message "Spell Checking...%d%% [%s]"
-			   (* 100 (/ (float (point)) (point-max)))
-			   word))
-	      (set-buffer flyspell-large-region-buffer)
-	      (goto-char flyspell-large-region-beg)
-	      (let ((keep t)
-		    (n 0))
-		(while (and (or (< n pcount) keep)
-			    (search-forward word flyspell-large-region-end t))
-		  (progn
-		    (goto-char (- (point) 1))
-		    (setq n (1+ n))
-		    (setq keep (flyspell-word))))
-		(if (= n pcount)
-		    (setq flyspell-large-region-beg (point))))
-	      (set-buffer buffer))
-	  (goto-char (point-max)))))
+    ;; Loop over incorrect words.
+    (while (re-search-forward "\\([^\n]+\\)\n" (point-max) t)
+      ;; Bind WORD to the next one.
+      (let ((word (match-string 1)))
+	;; Here there used to be code to see if WORD is the same
+	;; as the previous iteration, and count the number of consecutive
+	;; identical words, and the loop below would search for that many.
+	;; That code seemed to be incorrect, and on principle, should
+	;; be unnecessary too. -- rms.
+	(if flyspell-issue-message-flag
+	    (message "Spell Checking...%d%% [%s]"
+		     (* 100 (/ (float (point)) (point-max)))
+		     word))
+	;; Search the other buffer for occurrences of this word,
+	;; and check them.  Stop when we find one that reports "incorrect".
+	;; (I don't understand the reason for that logic,
+	;; but I didn't want to change it. -- rms.)
+	(with-current-buffer flyspell-large-region-buffer
+	  (goto-char flyspell-large-region-beg)
+	  (let ((keep t))
+	    (while (and keep
+			(search-forward word flyspell-large-region-end t))
+	      (goto-char (- (point) 1))
+	      (setq keep (flyspell-word)))
+	    (setq flyspell-large-region-beg (point))))))
     ;; we are done
-    (if flyspell-issue-message-flag (message "Spell Checking completed."))
-    ;; ok, we are done with pointing out incorrect words, we just
-    ;; have to kill the temporary buffer
-    (kill-buffer flyspell-external-ispell-buffer)
-    (setq flyspell-external-ispell-buffer nil)))
+    (if flyspell-issue-message-flag (message "Spell Checking completed.")))
+  ;; Kill and forget the buffer with the list of incorrect words.
+  (kill-buffer flyspell-external-ispell-buffer)
+  (setq flyspell-external-ispell-buffer nil))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-large-region ...                                        */

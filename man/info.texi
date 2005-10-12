@@ -72,28 +72,28 @@ If you are new to the Info reader and want to learn how to use it,
 type the command @kbd{h} now.  It brings you to a programmed
 instruction sequence.
 
-To read about expert-level Info commands, type @kbd{n} twice.  This
-brings you to @cite{Info for Experts}, skipping over the `Getting
+To read about advanced Info commands, type @kbd{n} twice.  This
+brings you to @cite{Advanced Info Commands}, skipping over the `Getting
 Started' chapter.
 @end ifinfo
 @end ifnottex
 
 @menu
 * Getting Started::             Getting started using an Info reader.
+* Advanced::                    Advanced Info commands.
 * Expert Info::                 Info commands for experts.
-* Creating an Info File::       How to make your own Info file.
 * Index::                       An index of topics, commands, and variables.
 @end menu
 
-@node Getting Started, Expert Info, Top, Top
+@node Getting Started, Advanced, Top, Top
 @comment  node-name,  next,  previous,  up
 @chapter Getting Started
 
 This first part of this Info manual describes how to get around inside
 of Info.  The second part of the manual describes various advanced
-Info commands, and how to write an Info as distinct from a Texinfo
-file.  The third part briefly explains how to generate Info files from
-Texinfo files.
+Info commands.  The third part briefly explains how to generate Info
+files from Texinfo files, and describes how to write an Info as
+distinct from a Texinfo file.
 
 @ifnotinfo
 This manual is primarily designed for browsing with an Info reader
@@ -847,7 +847,7 @@ describes the topic you want.
   There is also a short-cut Info command, @kbd{i}, which does all of
 that for you.  It searches the index for a given topic (a string) and
 goes to the node which is listed in the index for that topic.
-@xref{Info Search}, for a full explanation.
+@xref{Search Index}, for a full explanation.
 
 @kindex l @r{(Info mode)}
 @findex Info-history-back
@@ -905,135 +905,31 @@ is @code{Info-top-node}.
 >> Now type @kbd{n} to see the last node of the course.
 @end format
 
-  @xref{Expert Info}, for more advanced Info features.
+  @xref{Advanced}, for more advanced Info features.
 
 @c If a menu appears at the end of this node, remove it.
 @c It is an accident of the menu updating command.
 
-@node Expert Info
-@chapter Info for Experts
+@node Advanced
+@chapter Advanced Info Commands
 
-  This chapter describes various Info commands for experts.  (If you
+  This chapter describes various advanced Info commands.  (If you
 are using a stand-alone Info reader, there are additional commands
 specific to it, which are documented in several chapters of @ref{Top,,
 GNU Info, info-stnd, GNU Info}.)
 
-  This chapter also explains how to write an Info as distinct from a
-Texinfo file.  (However, in most cases, writing a Texinfo file is
-better, since you can use it to make a printed manual or produce other
-formats, such as HTML and DocBook, as well as for generating Info
-files.)  @xref{Top,, Overview of Texinfo, texinfo, Texinfo: The GNU
-Documentation Format}.
-
 @menu
-* Advanced::             Advanced Info commands: g, e, and 1 - 9.
-* Info Search::          How to search Info documents for specific subjects.
-* Add::                  Describes how to add new nodes to the hierarchy.
-                           Also tells what nodes look like.
-* Menus::                How to add to or create menus in Info nodes.
-* Cross-refs::           How to add cross-references to Info nodes.
-* Tags::                 How to make tags tables for Info files.
-* Checking::             Checking an Info File.
+* Search Text::          How to search Info documents.
+* Search Index::         How to search the indices for specific subjects.
+* Go to node::           How to go to a node by name.
+* Choose menu subtopic:: How to choose a menu subtopic by its number.
+* Create Info buffer::   How to create a new Info buffer in Emacs.
 * Emacs Info Variables:: Variables modifying the behavior of Emacs Info.
 @end menu
 
-@node Advanced, Info Search,  , Expert Info
+@node Search Text, Search Index,  , Advanced
 @comment  node-name,  next,  previous,  up
-@section Advanced Info Commands
-
-Here are some more Info commands that make it easier to move around.
-
-@subheading @kbd{g} goes to a node by name
-
-@kindex g @r{(Info mode)}
-@findex Info-goto-node
-@cindex go to a node by name
-  If you know a node's name, you can go there by typing @kbd{g}, the
-name, and @key{RET}.  Thus, @kbd{gTop@key{RET}} would go to the node
-called @samp{Top} in this file.  (This is equivalent to @kbd{t}, see
-@ref{Help-Int}.)  @kbd{gAdvanced@key{RET}} would come back here.
-@kbd{g} in Emacs runs the command @code{Info-goto-node}.
-
-  Unlike @kbd{m}, @kbd{g} does not allow the use of abbreviations.
-But it does allow completion, so you can type @key{TAB} to complete a
-partial node name.
-
-@cindex go to another Info file
-  To go to a node in another file, you can include the file name in the
-node name by putting it at the front, in parentheses.  Thus,
-@kbd{g(dir)Top@key{RET}} would go to the Info Directory node, which is
-the node @samp{Top} in the Info file @file{dir}.  Likewise,
-@kbd{g(emacs)Top@key{RET}} goes to the top node of the Emacs manual.
-
-  The node name @samp{*} specifies the whole file.  So you can look at
-all of the current file by typing @kbd{g*@key{RET}} or all of any
-other file with @kbd{g(@var{filename})*@key{RET}}.
-
-@subheading @kbd{1}--@kbd{9} choose a menu subtopic by its number
-
-@kindex 1 @r{through} 9 @r{(Info mode)}
-@findex Info-nth-menu-item
-@cindex select @var{n}'th menu item
-  If you begrudge each character of type-in which your system requires,
-you might like to use the commands @kbd{1}, @kbd{2}, @kbd{3}, @kbd{4},
-@dots{}, @kbd{9}.  They are short for the @kbd{m} command together
-with a name of a menu subtopic.  @kbd{1} goes through the first item
-in the current node's menu; @kbd{2} goes through the second item, etc.
-In the stand-alone reader, @kbd{0} goes through the last menu item;
-this is so you need not count how many entries are there.  In Emacs,
-the digit keys run the command @code{Info-nth-menu-item}.
-
-  If your display supports multiple fonts, colors or underlining, and
-you are using Emacs' Info mode to read Info files, the third, sixth
-and ninth menu items have a @samp{*} that stands out, either in color
-or in some other attribute, such as underline; this makes it easy to
-see at a glance which number to use for an item.
-
-  Some terminals don't support either multiple fonts, colors or
-underlining.  If you need to actually count items, it is better to use
-@kbd{m} instead, and specify the name, or use @key{TAB} to quickly
-move between menu items.
-
-@subheading @kbd{e} makes Info document editable
-
-@kindex e @r{(Info mode)}
-@findex Info-edit
-@cindex edit Info document
-  The Info command @kbd{e} changes from Info mode to an ordinary
-Emacs editing mode, so that you can edit the text of the current node.
-Type @kbd{C-c C-c} to switch back to Info.  The @kbd{e} command is allowed
-only if the variable @code{Info-enable-edit} is non-@code{nil}.
-
-  The @kbd{e} command only works in Emacs, where it runs the command
-@code{Info-edit}.  The stand-alone Info reader doesn't allow you to
-edit the Info file, so typing @kbd{e} there goes to the end of the
-current node.
-
-@subheading @kbd{M-n} creates a new independent Info buffer in Emacs
-
-@kindex M-n @r{(Info mode)}
-@findex clone-buffer
-@cindex multiple Info buffers
-  If you are reading Info in Emacs, you can select a new independent
-Info buffer in the same window by typing @kbd{M-n}.  The new buffer
-starts out as an exact copy of the old one, but you will be able to
-move independently between nodes in the two buffers.  (In Info mode,
-@kbd{M-n} runs the Emacs command @code{clone-buffer}.)
-
-  In Emacs Info, you can also produce new Info buffers by giving a
-numeric prefix argument to the @kbd{m} and @kbd{g} commands.  @kbd{C-u
-m} and @kbd{C-u g} go to a new node in exactly the same way that
-@kbd{m} and @kbd{g} do, but they do so in a new Info buffer which they
-select in another window.
-
-  Another way to produce new Info buffers in Emacs is to use a numeric
-prefix argument for the @kbd{C-h i} command (@code{info}) which
-switches to the Info buffer with that number.  Thus, @kbd{C-u 2 C-h i}
-switches to the buffer @samp{*info*<2>}, creating it if necessary.
-
-@node Info Search, Add, Advanced, Expert Info
-@comment  node-name,  next,  previous,  up
-@section How to search Info documents for specific subjects
+@section How to search Info documents
 
 @cindex searching Info documents
 @cindex Info document as a reference
@@ -1046,8 +942,44 @@ read the entire manual before you start using the programs it
 describes.
 
   Info has powerful searching facilities that let you find things
-quickly.  You can search either the manual indices or its text.
+quickly.  You can search either the manual text or its indices.
 
+@kindex s @r{(Info mode)}
+@findex Info-search
+  The @kbd{s} command allows you to search a whole Info file for a string.
+It switches to the next node if and when that is necessary.  You
+type @kbd{s} followed by the string to search for, terminated by
+@key{RET}.  To search for the same string again, just @kbd{s} followed
+by @key{RET} will do.  The file's nodes are scanned in the order
+they are in the file, which has no necessary relationship to the
+order that they may be in the tree structure of menus and @samp{next}
+pointers.  But normally the two orders are not very different.  In any
+case, you can always look at the echo area to find out what node you have
+reached, if the header is not visible (this can happen, because @kbd{s}
+puts your cursor at the occurrence of the string, not at the beginning
+of the node).
+
+@kindex M-s @r{(Info mode)}
+  In Emacs, @kbd{Meta-s} is equivalent to @kbd{s}.  That is for
+compatibility with other GNU packages that use @kbd{M-s} for a similar
+kind of search command.  Both @kbd{s} and @kbd{M-s} run in Emacs the
+command @code{Info-search}.
+
+@kindex C-s @r{(Info mode)}
+@kindex C-r @r{(Info mode)}
+@findex isearch
+  Instead of using @kbd{s} in Emacs Info and in the stand-alone Info,
+you can use an incremental search started with @kbd{C-s} or @kbd{C-r}.
+It can search through multiple Info nodes.  @xref{Incremental Search,,,
+emacs, The GNU Emacs Manual}.  In Emacs, this behavior is enabled only
+if the variable @code{Info-isearch-search} is non-@code{nil}
+(@pxref{Emacs Info Variables}).
+
+@node Search Index, Go to node, Search Text, Advanced
+@comment  node-name,  next,  previous,  up
+@section How to search the indices for specific subjects
+
+@cindex searching Info indices
 @kindex i @r{(Info mode)}
 @findex Info-index
   Since most subjects related to what the manual describes should be
@@ -1093,38 +1025,207 @@ in the stand-alone reader.  It prompts for a string and then looks up
 that string in all the indices of all the Info documents installed on
 your system.
 
-@kindex s @r{(Info mode)}
-@findex Info-search
-  The @kbd{s} command allows you to search a whole file for a string.
-It switches to the next node if and when that is necessary.  You
-type @kbd{s} followed by the string to search for, terminated by
-@key{RET}.  To search for the same string again, just @kbd{s} followed
-by @key{RET} will do.  The file's nodes are scanned in the order
-they are in the file, which has no necessary relationship to the
-order that they may be in the tree structure of menus and @samp{next}
-pointers.  But normally the two orders are not very different.  In any
-case, you can always look at the echo area to find out what node you have
-reached, if the header is not visible (this can happen, because @kbd{s}
-puts your cursor at the occurrence of the string, not at the beginning
-of the node).
+@node Go to node, Choose menu subtopic, Search Index, Advanced
+@comment  node-name,  next,  previous,  up
+@section @kbd{g} goes to a node by name
 
-@kindex M-s @r{(Info mode)}
-  In Emacs, @kbd{Meta-s} is equivalent to @kbd{s}.  That is for
-compatibility with other GNU packages that use @kbd{M-s} for a similar
-kind of search command.  Both @kbd{s} and @kbd{M-s} run in Emacs the
-command @code{Info-search}.
+@kindex g @r{(Info mode)}
+@findex Info-goto-node
+@cindex go to a node by name
+  If you know a node's name, you can go there by typing @kbd{g}, the
+name, and @key{RET}.  Thus, @kbd{gTop@key{RET}} would go to the node
+called @samp{Top} in this file.  (This is equivalent to @kbd{t}, see
+@ref{Help-Int}.)  @kbd{gGo to node@key{RET}} would come back here.
+@kbd{g} in Emacs runs the command @code{Info-goto-node}.
 
-@kindex C-s @r{(Info mode)}
-@kindex C-r @r{(Info mode)}
-@findex isearch
-  Instead of using @kbd{s} in Emacs Info and in the stand-alone Info,
-you can use an incremental search started with @kbd{C-s} or @kbd{C-r}.
-It can search through multiple Info nodes.  @xref{Incremental Search,,,
-emacs, The GNU Emacs Manual}.  In Emacs, this behavior is enabled only
-if the variable @code{Info-isearch-search} is non-@code{nil}
-(@pxref{Emacs Info Variables}).
+  Unlike @kbd{m}, @kbd{g} does not allow the use of abbreviations.
+But it does allow completion, so you can type @key{TAB} to complete a
+partial node name.
 
-@node Add, Menus, Info Search, Expert Info
+@cindex go to another Info file
+  To go to a node in another file, you can include the file name in the
+node name by putting it at the front, in parentheses.  Thus,
+@kbd{g(dir)Top@key{RET}} would go to the Info Directory node, which is
+the node @samp{Top} in the Info file @file{dir}.  Likewise,
+@kbd{g(emacs)Top@key{RET}} goes to the top node of the Emacs manual.
+
+  The node name @samp{*} specifies the whole file.  So you can look at
+all of the current file by typing @kbd{g*@key{RET}} or all of any
+other file with @kbd{g(@var{filename})*@key{RET}}.
+
+@node Choose menu subtopic, Create Info buffer, Go to node, Advanced
+@comment  node-name,  next,  previous,  up
+@section @kbd{1}--@kbd{9} choose a menu subtopic by its number
+
+@kindex 1 @r{through} 9 @r{(Info mode)}
+@findex Info-nth-menu-item
+@cindex select @var{n}'th menu item
+  If you begrudge each character of type-in which your system requires,
+you might like to use the commands @kbd{1}, @kbd{2}, @kbd{3}, @kbd{4},
+@dots{}, @kbd{9}.  They are short for the @kbd{m} command together
+with a name of a menu subtopic.  @kbd{1} goes through the first item
+in the current node's menu; @kbd{2} goes through the second item, etc.
+In the stand-alone reader, @kbd{0} goes through the last menu item;
+this is so you need not count how many entries are there.  In Emacs,
+the digit keys run the command @code{Info-nth-menu-item}.
+
+  If your display supports multiple fonts, colors or underlining, and
+you are using Emacs' Info mode to read Info files, the third, sixth
+and ninth menu items have a @samp{*} that stands out, either in color
+or in some other attribute, such as underline; this makes it easy to
+see at a glance which number to use for an item.
+
+  Some terminals don't support either multiple fonts, colors or
+underlining.  If you need to actually count items, it is better to use
+@kbd{m} instead, and specify the name, or use @key{TAB} to quickly
+move between menu items.
+
+@node Create Info buffer, Emacs Info Variables, Choose menu subtopic, Advanced
+@comment  node-name,  next,  previous,  up
+@section @kbd{M-n} creates a new independent Info buffer in Emacs
+
+@kindex M-n @r{(Info mode)}
+@findex clone-buffer
+@cindex multiple Info buffers
+  If you are reading Info in Emacs, you can select a new independent
+Info buffer in the same window by typing @kbd{M-n}.  The new buffer
+starts out as an exact copy of the old one, but you will be able to
+move independently between nodes in the two buffers.  (In Info mode,
+@kbd{M-n} runs the Emacs command @code{clone-buffer}.)
+
+  In Emacs Info, you can also produce new Info buffers by giving a
+numeric prefix argument to the @kbd{m} and @kbd{g} commands.  @kbd{C-u
+m} and @kbd{C-u g} go to a new node in exactly the same way that
+@kbd{m} and @kbd{g} do, but they do so in a new Info buffer which they
+select in another window.
+
+  Another way to produce new Info buffers in Emacs is to use a numeric
+prefix argument for the @kbd{C-h i} command (@code{info}) which
+switches to the Info buffer with that number.  Thus, @kbd{C-u 2 C-h i}
+switches to the buffer @samp{*info*<2>}, creating it if necessary.
+
+@node Emacs Info Variables, , Create Info buffer, Advanced
+@comment  node-name,  next,  previous,  up
+@section Emacs Info-mode Variables
+
+The following variables may modify the behavior of Info-mode in Emacs;
+you may wish to set one or several of these variables interactively, or
+in your @file{~/.emacs} init file.  @xref{Examining, Examining and Setting
+Variables, Examining and Setting Variables, emacs, The GNU Emacs
+Manual}.  The stand-alone Info reader program has its own set of
+variables, described in @ref{Variables,, Manipulating Variables,
+info-stnd, GNU Info}.
+
+@vtable @code
+@item Info-directory-list
+The list of directories to search for Info files.  Each element is a
+string (directory name) or @code{nil} (try default directory).  If not
+initialized Info uses the environment variable @env{INFOPATH} to
+initialize it, or @code{Info-default-directory-list} if there is no
+@env{INFOPATH} variable in the environment.
+
+If you wish to customize the Info directory search list for both Emacs
+Info and stand-alone Info, it is best to set the @env{INFOPATH}
+environment variable, since that applies to both programs.
+
+@item Info-additional-directory-list
+A list of additional directories to search for Info documentation files.
+These directories are not searched for merging the @file{dir} file.
+
+@item Info-mode-hook
+Hooks run when @code{Info-mode} is called.  By default, it contains
+the hook @code{turn-on-font-lock} which enables highlighting of Info
+files.  You can change how the highlighting looks by customizing the
+faces @code{info-node}, @code{info-xref}, @code{info-xref-visited},
+@code{info-header-xref}, @code{info-header-node}, @code{info-menu-header},
+@code{info-menu-star}, and @code{info-title-@var{n}} (where @var{n}
+is the level of the section, a number between 1 and 4).  To customize
+a face, type @kbd{M-x customize-face @key{RET} @var{face} @key{RET}},
+where @var{face} is one of the face names listed here.
+
+@item Info-fontify-maximum-menu-size
+Maximum size of menu to fontify if @code{font-lock-mode} is non-@code{nil}.
+
+@item Info-fontify-visited-nodes
+If non-@code{nil}, menu items and cross-references pointing to visited
+nodes are displayed in the @code{info-xref-visited} face.
+
+@item Info-use-header-line
+If non-@code{nil}, Emacs puts in the Info buffer a header line showing
+the @samp{Next}, @samp{Prev}, and @samp{Up} links.  A header line does
+not scroll with the rest of the buffer, making these links always
+visible.
+
+@item Info-hide-note-references
+As explained in earlier nodes, the Emacs version of Info normally
+hides some text in menus and cross-references.  You can completely
+disable this feature, by setting this option to @code{nil}.  Setting
+it to a value that is neither @code{nil} nor @code{t} produces an
+intermediate behavior, hiding a limited amount of text, but showing
+all text that could potentially be useful.
+
+@item Info-scroll-prefer-subnodes
+If set to a non-@code{nil} value, @key{SPC} and @key{BACKSPACE} (or
+@key{DEL}) keys in a menu visit subnodes of the current node before
+scrolling to its end or beginning, respectively.  For example, if the
+node's menu appears on the screen, the next @key{SPC} moves to a
+subnode indicated by the following menu item.  Setting this option to
+@code{nil} results in behavior similar to the stand-alone Info reader
+program, which visits the first subnode from the menu only when you
+hit the end of the current node.  The default is @code{nil}.
+
+@item Info-isearch-search
+If non-@code{nil}, isearch in Info searches through multiple nodes.
+
+@item Info-enable-active-nodes
+When set to a non-@code{nil} value, allows Info to execute Lisp code
+associated with nodes.  The Lisp code is executed when the node is
+selected.  The Lisp code to be executed should follow the node
+delimiter (the @samp{DEL} character) and an @samp{execute: } tag, like
+this:
+
+@example
+^_execute: (message "This is an active node!")
+@end example
+@end vtable
+
+
+@node Expert Info
+@chapter Info for Experts
+
+  This chapter explains how to write an Info as distinct from a
+Texinfo file.  However, in most cases, writing a Texinfo file is
+better, since you can use it to make a printed manual or produce other
+formats, such as HTML and DocBook, as well as for generating Info
+files.
+
+@code{makeinfo} is a utility that converts a Texinfo file into an Info
+file; @code{texinfo-format-region} and @code{texinfo-format-buffer} are
+GNU Emacs functions that do the same.
+
+@xref{Top,, Overview of Texinfo, texinfo, Texinfo: The GNU
+Documentation Format}, to learn how to write a Texinfo file.
+
+@xref{Creating an Info File,,, texinfo, Texinfo: The GNU Documentation
+Format}, to learn how to create an Info file from a Texinfo file.
+
+@xref{Installing an Info File,,, texinfo, Texinfo: The GNU
+Documentation Format}, to learn how to install an Info file after you
+have created one.
+
+However, if you want to edit an Info file manually and install it manually,
+here is how.
+
+@menu
+* Add::                   Describes how to add new nodes to the hierarchy.
+                            Also tells what nodes look like.
+* Menus::                 How to add to or create menus in Info nodes.
+* Cross-refs::            How to add cross-references to Info nodes.
+* Tags::                  How to make tags tables for Info files.
+* Checking::              Checking an Info File.
+@end menu
+
+@node Add, Menus,  , Expert Info
 @comment  node-name,  next,  previous,  up
 @section Adding a new node to Info
 
@@ -1136,14 +1237,6 @@ Create some nodes, in some file, to document that topic.
 @item
 Put that topic in the menu in the directory.  @xref{Menus, Menu}.
 @end enumerate
-
-  Usually, the way to create the nodes is with Texinfo (@pxref{Top,,
-Overview of Texinfo, texinfo, Texinfo: The GNU Documentation Format});
-this has the advantage that you can also make a printed manual or HTML
-from them.  You would use the @samp{@@dircategory} and
-@samp{@@direntry} commands to put the manual into the Info directory.
-However, if you want to edit an Info file manually and install it
-manually, here is how.
 
 @cindex node delimiters
   The new node can live in an existing documentation file, or in a new
@@ -1324,7 +1417,7 @@ as new users should do when they learn a new package.
 something quickly in a manual---that is, when you need to use a manual
 as a reference rather than as a tutorial.  We urge you to learn
 these search commands as well.  If you want to do that now, follow this
-cross reference to @ref{Info Search}.
+cross reference to @ref{Advanced}.
 
 Yet another set of commands are meant for experienced users; you can
 find them by looking in the Directory node for documentation on Info.
@@ -1382,8 +1475,7 @@ the beginning of the node's header (ending just after the node name),
 a @samp{DEL} character, and the character position in the file of the
 beginning of the node.
 
-
-@node Checking, Emacs Info Variables, Tags, Expert Info
+@node Checking, , Tags, Expert Info
 @section Checking an Info File
 
 When creating an Info file, it is easy to forget the name of a node when
@@ -1401,112 +1493,6 @@ usually few.
 @findex Info-validate
 To check an Info file, do @kbd{M-x Info-validate} while looking at any
 node of the file with Emacs Info mode.
-
-@node Emacs Info Variables, , Checking, Expert Info
-@section Emacs Info-mode Variables
-
-The following variables may modify the behavior of Info-mode in Emacs;
-you may wish to set one or several of these variables interactively, or
-in your @file{~/.emacs} init file.  @xref{Examining, Examining and Setting
-Variables, Examining and Setting Variables, emacs, The GNU Emacs
-Manual}.  The stand-alone Info reader program has its own set of
-variables, described in @ref{Variables,, Manipulating Variables,
-info-stnd, GNU Info}.
-
-@vtable @code
-@item Info-directory-list
-The list of directories to search for Info files.  Each element is a
-string (directory name) or @code{nil} (try default directory).  If not
-initialized Info uses the environment variable @env{INFOPATH} to
-initialize it, or @code{Info-default-directory-list} if there is no
-@env{INFOPATH} variable in the environment.
-
-If you wish to customize the Info directory search list for both Emacs
-Info and stand-alone Info, it is best to set the @env{INFOPATH}
-environment variable, since that applies to both programs.
-
-@item Info-additional-directory-list
-A list of additional directories to search for Info documentation files.
-These directories are not searched for merging the @file{dir} file.
-
-@item Info-mode-hook
-Hooks run when @code{Info-mode} is called.  By default, it contains
-the hook @code{turn-on-font-lock} which enables highlighting of Info
-files.  You can change how the highlighting looks by customizing the
-faces @code{info-node}, @code{info-xref}, @code{info-xref-visited},
-@code{info-header-xref}, @code{info-header-node}, @code{info-menu-header},
-@code{info-menu-star}, and @code{info-title-@var{n}} (where @var{n}
-is the level of the section, a number between 1 and 4).  To customize
-a face, type @kbd{M-x customize-face @key{RET} @var{face} @key{RET}},
-where @var{face} is one of the face names listed here.
-
-@item Info-fontify-maximum-menu-size
-Maximum size of menu to fontify if @code{font-lock-mode} is non-@code{nil}.
-
-@item Info-fontify-visited-nodes
-If non-@code{nil}, menu items and cross-references pointing to visited
-nodes are displayed in the @code{info-xref-visited} face.
-
-@item Info-use-header-line
-If non-@code{nil}, Emacs puts in the Info buffer a header line showing
-the @samp{Next}, @samp{Prev}, and @samp{Up} links.  A header line does
-not scroll with the rest of the buffer, making these links always
-visible.
-
-@item Info-hide-note-references
-As explained in earlier nodes, the Emacs version of Info normally
-hides some text in menus and cross-references.  You can completely
-disable this feature, by setting this option to @code{nil}.  Setting
-it to a value that is neither @code{nil} nor @code{t} produces an
-intermediate behavior, hiding a limited amount of text, but showing
-all text that could potentially be useful.
-
-@item Info-scroll-prefer-subnodes
-If set to a non-@code{nil} value, @key{SPC} and @key{BACKSPACE} (or
-@key{DEL}) keys in a menu visit subnodes of the current node before
-scrolling to its end or beginning, respectively.  For example, if the
-node's menu appears on the screen, the next @key{SPC} moves to a
-subnode indicated by the following menu item.  Setting this option to
-@code{nil} results in behavior similar to the stand-alone Info reader
-program, which visits the first subnode from the menu only when you
-hit the end of the current node.  The default is @code{nil}.
-
-@item Info-isearch-search
-If non-@code{nil}, isearch in Info searches through multiple nodes.
-
-@item Info-enable-active-nodes
-When set to a non-@code{nil} value, allows Info to execute Lisp code
-associated with nodes.  The Lisp code is executed when the node is
-selected.  The Lisp code to be executed should follow the node
-delimiter (the @samp{DEL} character) and an @samp{execute: } tag, like
-this:
-
-@example
-^_execute: (message "This is an active node!")
-@end example
-
-@item Info-enable-edit
-Set to @code{nil}, disables the @samp{e} (@code{Info-edit}) command.  A
-non-@code{nil} value enables it.  @xref{Add, Edit}.
-@end vtable
-
-
-@node Creating an Info File
-@chapter Creating an Info File from a Texinfo File
-
-@code{makeinfo} is a utility that converts a Texinfo file into an Info
-file; @code{texinfo-format-region} and @code{texinfo-format-buffer} are
-GNU Emacs functions that do the same.
-
-@xref{Top,, Overview of Texinfo, texinfo, Texinfo: The GNU
-Documentation Format}, to learn how to write a Texinfo file.
-
-@xref{Creating an Info File,,, texinfo, Texinfo: The GNU Documentation
-Format}, to learn how to create an Info file from a Texinfo file.
-
-@xref{Installing an Info File,,, texinfo, Texinfo: The GNU
-Documentation Format}, to learn how to install an Info file after you
-have created one.
 
 @node Index
 @unnumbered Index

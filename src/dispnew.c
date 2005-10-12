@@ -3960,6 +3960,7 @@ update_single_window (w, force_p)
     }
 }
 
+#ifdef HAVE_WINDOW_SYSTEM
 
 /* Redraw lines from the current matrix of window W that are
    overlapped by other rows.  YB is bottom-most y-position in W.  */
@@ -4036,29 +4037,41 @@ redraw_overlapping_rows (w, yb)
 
       if (row->overlapping_p && i > 0 && bottom_y < yb)
 	{
-	  if (row->used[LEFT_MARGIN_AREA])
-	    rif->fix_overlapping_area (w, row, LEFT_MARGIN_AREA);
+	  int overlaps = 0;
 
-	  if (row->used[TEXT_AREA])
-	    rif->fix_overlapping_area (w, row, TEXT_AREA);
+	  if (MATRIX_ROW_OVERLAPS_PRED_P (row)
+	      && !MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p)
+	    overlaps |= OVERLAPS_PRED;
+	  if (MATRIX_ROW_OVERLAPS_SUCC_P (row)
+	      && !MATRIX_ROW (w->current_matrix, i + 1)->overlapped_p)
+	    overlaps |= OVERLAPS_SUCC;
 
-	  if (row->used[RIGHT_MARGIN_AREA])
-	    rif->fix_overlapping_area (w, row, RIGHT_MARGIN_AREA);
+	  if (overlaps)
+	    {
+	      if (row->used[LEFT_MARGIN_AREA])
+		rif->fix_overlapping_area (w, row, LEFT_MARGIN_AREA, overlaps);
 
-	  /* Record in neighbour rows that ROW overwrites part of their
-	     display.  */
-	  if (row->phys_ascent > row->ascent && i > 0)
-	    MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p = 1;
-	  if ((row->phys_height - row->phys_ascent
-	       > row->height - row->ascent)
-	      && bottom_y < yb)
-	    MATRIX_ROW (w->current_matrix, i + 1)->overlapped_p = 1;
+	      if (row->used[TEXT_AREA])
+		rif->fix_overlapping_area (w, row, TEXT_AREA, overlaps);
+
+	      if (row->used[RIGHT_MARGIN_AREA])
+		rif->fix_overlapping_area (w, row, RIGHT_MARGIN_AREA, overlaps);
+
+	      /* Record in neighbour rows that ROW overwrites part of
+		 their display.  */
+	      if (overlaps & OVERLAPS_PRED)
+		MATRIX_ROW (w->current_matrix, i - 1)->overlapped_p = 1;
+	      if (overlaps & OVERLAPS_SUCC)
+		MATRIX_ROW (w->current_matrix, i + 1)->overlapped_p = 1;
+	    }
 	}
 
       if (bottom_y >= yb)
 	break;
     }
 }
+
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 #ifdef GLYPH_DEBUG
@@ -4220,11 +4233,13 @@ update_window (w, force_p)
       /* Fix the appearance of overlapping/overlapped rows.  */
       if (!paused_p && !w->pseudo_window_p)
 	{
+#ifdef HAVE_WINDOW_SYSTEM
 	  if (changed_p && rif->fix_overlapping_area)
 	    {
 	      redraw_overlapped_rows (w, yb);
 	      redraw_overlapping_rows (w, yb);
 	    }
+#endif
 
 	  /* Make cursor visible at cursor position of W.  */
 	  set_window_cursor_after_update (w);

@@ -33,7 +33,8 @@
   "Return a string based on FORMAT and SPECIFICATION.
 FORMAT is a string containing `format'-like specs like \"bash %u %k\",
 while SPECIFICATION is an alist mapping from format spec characters
-to values."
+to values.  Any text properties on a %-spec itself are propagated to
+the text that it generates."
   (with-temp-buffer
     (insert format)
     (goto-char (point-min))
@@ -47,10 +48,17 @@ to values."
 	(let* ((num (match-string 1))
 	       (spec (string-to-char (match-string 2)))
 	       (val (cdr (assq spec specification))))
-	  (delete-region (1- (match-beginning 0)) (match-end 0))
 	  (unless val
 	    (error "Invalid format character: %s" spec))
-	  (insert (format (concat "%" num "s") val))))
+	  ;; Pad result to desired length.
+          (let ((text (format (concat "%" num "s") val)))
+	    ;; Insert first, to preserve text properties.
+            (insert-and-inherit text)
+            ;; Delete the specifier body.
+            (delete-region (+ (match-beginning 0) (length text))
+                           (+ (match-end 0) (length text)))
+            ;; Delete the percent sign.
+            (delete-region (1- (match-beginning 0)) (match-beginning 0)))))
        ;; Signal an error on bogus format strings.
        (t
 	(error "Invalid format string"))))

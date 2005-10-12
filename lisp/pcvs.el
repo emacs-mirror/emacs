@@ -647,34 +647,38 @@ This is responsible for parsing the output from the cvs update when
 it is finished."
   (when (memq (process-status proc) '(signal exit))
     (let ((cvs-postproc (process-get proc 'cvs-postprocess))
-	  (cvs-buf (process-get proc 'cvs-buffer)))
+	  (cvs-buf (process-get proc 'cvs-buffer))
+          (procbuf (process-buffer proc)))
+      (unless (buffer-live-p cvs-buf) (setq cvs-buf nil))
+      (unless (buffer-live-p procbuf) (setq procbuf nil))
       ;; Since the buffer and mode line will show that the
       ;; process is dead, we can delete it now.  Otherwise it
       ;; will stay around until M-x list-processes.
       (process-put proc 'postprocess nil)
       (delete-process proc)
       ;; Don't do anything if the main buffer doesn't exist any more.
-      (when (buffer-live-p cvs-buf)
+      (when cvs-buf
 	(with-current-buffer cvs-buf
 	  (cvs-update-header (process-get proc 'cvs-header) nil)
 	  (setq cvs-mode-line-process (symbol-name (process-status proc)))
 	  (force-mode-line-update)
 	  (when cvs-postproc
-	    (if (null (buffer-live-p (process-buffer proc)))
+	    (if (null procbuf)
 		;;(set-process-buffer proc nil)
 		(error "cvs' process buffer was killed")
-	      (with-current-buffer (process-buffer proc)
-		;; do the postprocessing like parsing and such
-		(save-excursion (eval cvs-postproc))
-		;; check whether something is left
-		(unless (get-buffer-process (current-buffer))
-		  ;; IIRC, we enable undo again once the process is finished
-		  ;; for cases where the output was inserted in *vc-diff* or
-		  ;; in a file-like buffer.  --Stef
-		  (buffer-enable-undo)
-		  (with-current-buffer cvs-buffer
-		    (message "CVS process has completed in %s"
-			     (buffer-name))))))))))))
+	      (with-current-buffer procbuf
+		;; Do the postprocessing like parsing and such.
+		(save-excursion (eval cvs-postproc)))))))
+      ;; Check whether something is left.
+      (when (and procbuf (not (get-buffer-process procbuf)))
+        (with-current-buffer procbuf
+          ;; IIRC, we enable undo again once the process is finished
+          ;; for cases where the output was inserted in *vc-diff* or
+          ;; in a file-like buffer.  --Stef
+          (buffer-enable-undo)
+          (with-current-buffer (or cvs-buf (current-buffer))
+            (message "CVS process has completed in %s"
+                     (buffer-name))))))))
 
 (defun cvs-parse-process (dcd &optional subdir old-fis)
   "Parse the output of a cvs process.

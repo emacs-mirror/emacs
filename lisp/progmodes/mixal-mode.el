@@ -17,8 +17,8 @@
 ;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 ;; MA 02110-1301 USA
 
-;; Author: Pieter E.J. Pareit <pieter.pareit@skynet.be>
-;; Maintainer: Pieter E.J. Pareit <pieter.pareit@skynet.be>
+;; Author: Pieter E.J. Pareit <pieter.pareit@gmail.com>
+;; Maintainer: Pieter E.J. Pareit <pieter.pareit@gmail.com>
 ;; Created: 09 Nov 2002
 ;; Version: 0.1
 ;; Keywords: Knuth mix mixal asm mixvm "The Art Of Computer Programming"
@@ -27,17 +27,17 @@
 ;; Major mode for the mix asm language.
 ;; The mix asm language is described in "The Art Of Computer Programming".
 ;;
-;; For optimal use, also use GNU MDK. Compiling needs mixasm, running
-;; and debugging needs mixvm and mixvm.el from GNU MDK. You can get
+;; For optimal use, also use GNU MDK.  Compiling needs mixasm, running
+;; and debugging needs mixvm and mixvm.el from GNU MDK.  You can get
 ;; GNU MDK from `https://savannah.gnu.org/projects/mdk/' and
 ;; `ftp://ftp.gnu.org/pub/gnu/mdk'.
 ;;
 ;; To use this mode, place the following in your .emacs file:
 ;; `(load-file "/PATH-TO-FILE/mixal-mode.el")'.
 ;; When you load a file with the extension .mixal the mode will be started
-;; automatic. If you want to start the mode manual, use `M-x mixal-mode'.
-;; Font locking will work, the behavior of tabs is the same as emacs
-;; default behavior. You can compile a source file with `C-c c' you can
+;; automatic.  If you want to start the mode manual, use `M-x mixal-mode'.
+;; Font locking will work, the behavior of tabs is the same as Emacs's
+;; default behavior.  You can compile a source file with `C-c c' you can
 ;; run a compiled file with `C-c r' or run it in debug mode with `C-c d'.
 ;; You can get more information about a particular operation code by using
 ;; mixal-describe-operation-code or `C-h o'.
@@ -45,6 +45,15 @@
 ;; Have fun.
 
 ;;; History:
+;; Version 0.3:
+;; 08/10/05: sync mdk and emacs cvs
+;;           from emacs: compile-command and require-final-newline
+;;           from mdk:   see version 0.2
+;;           correct my email address
+;; Version 0.2:
+;; 06/04/05: mixasm no longer needs -g option
+;;           fontlocking of comments works in all? cases now
+;;           added some more mixal-operation-codes
 ;; Version 0.1:
 ;; Version 0.1.1:
 ;; 22/11/02: bugfix in fontlocking, needed to add a '-' to the regex.
@@ -54,7 +63,6 @@
 ;; 09/11/02: started mixal-mode.
 
 ;;; Code:
-
 (defvar compile-command)
 
 ;;; Key map
@@ -66,13 +74,13 @@
     (define-key map "\C-ho" 'mixal-describe-operation-code)
     map)
   "Keymap for `mixal-mode'.")
-; (makunbound 'mixal-mode-map)
+;; (makunbound 'mixal-mode-map)
 
 ;;; Syntax table
 (defvar mixal-mode-syntax-table
   (let ((st (make-syntax-table)))
-    (modify-syntax-entry ?* "<" st)
-    (modify-syntax-entry ?\n ">" st)
+    ;; (modify-syntax-entry ?* "<" st)    we need to do a bit more to make
+    ;; (modify-syntax-entry ?\n ">" st)    fontlocking for comments work
     st)
   "Syntax table for `dot-mode'.")
 
@@ -97,6 +105,7 @@ value.")
     "LD4" "LD5" "LD6" "LDX" "LDAN" "LD1N" "LD2N" "LD3N" "LD4N" "LD5N" "LD6N"
     "LDXN" "STA" "ST1" "ST2" "ST3" "ST4" "ST5" "ST6" "STX" "STJ" "STZ" "JBUS"
     "IOC" "IN" "OUT" "JRAD" "JMP" "JSJ" "JOV" "JNOV"
+    "JL" "JE" "JG" "JGE" "JNE" "JLE"
     "JAN" "J1N" "J2N" "J3N" "J4N" "J5N" "J6N" "JXN"
     "JAZ" "J1Z" "J2Z" "J3Z" "J4Z" "J5Z" "J6Z" "JXZ"
     "JAP" "J1P" "J2P" "J3P" "J4P" "J5P" "J6P" "JXP"
@@ -109,11 +118,11 @@ value.")
     "INCX" "DECX" "ENTX" "ENNX" "CMPA" "FCMP" "CMP1" "CMP2" "CMP3" "CMP4"
     "CMP5" "CMP6" "CMPX")
   "List of possible operation codes as strings.")
-; (makunbound 'mixal-operation-codes)
+;; (makunbound 'mixal-operation-codes)
 
 (defvar mixal-assembly-pseudoinstructions
   '("ORIG" "EQU" "CON" "ALF" "END")
-  "List of possible assembly pseudoinstructions")
+  "List of possible assembly pseudoinstructions.")
 
 ;;; Font-locking:
 (defvar mixal-font-lock-keywords
@@ -124,10 +133,13 @@ value.")
     (,(regexp-opt
        mixal-assembly-pseudoinstructions 'words)
      . mixal-font-lock-assembly-pseudoinstruction-face)
-    ("^[A-Z0-9a-z]*[ \t]+[A-Z0-9a-z]+[ \t]+[\\-A-Z0-9a-z,():]*[\t]+\\(.*\\)$"
-     (1 font-lock-comment-face)))
+    ("^[A-Z0-9a-z]*[ \t]+[A-ZO-9a-z]+[ \t]+\\(=.*=\\).*$"
+     (1 font-lock-constant-face))
+    ("^[A-Z0-9a-z]*[ \t]+[A-Z0-9a-z]+[ \t]+[A-Z0-9a-z,():+-\\*=\" ]*\t+\\(.*\\)$"
+     (1 font-lock-comment-face))
+    ("^\\*.*$" . font-lock-comment-face))
   "Keyword highlighting specification for `mixal-mode'.")
-; (makunbound 'mixal-font-lock-keywords)
+;; (makunbound 'mixal-font-lock-keywords)
 
 ;;;; Compilation
 ;; Output from mixasm is compatible with default behavior of emacs,
@@ -139,19 +151,24 @@ value.")
 ;;;; Describe
 (defvar mixal-operation-codes-alist '()
   "Alist that contains all the possible operation codes for mix.
-Each elt has the form (OP-CODE GROUP FULL-NAME C-BYTE F-BYTE DESCRIPTION EXECUTION-TIME)
-Where OP-CODE is the text of the opcode as an symbol, FULL-NAME is the human readable name
-as a string, C-BYTE is the operation code telling what operation is to be performed, F-BYTE holds
-an modification of the operation code which can be a symbol or a number, DESCRIPTION contains
-an string with a description about the operation code and EXECUTION-TIME holds info
-about the time it takes, number or string.")
-; (makunbound 'mixal-operation-codes-alist)
+Each elt has the form
+  (OP-CODE GROUP FULL-NAME C-BYTE F-BYTE DESCRIPTION EXECUTION-TIME)
+Where OP-CODE is the text of the opcode as an symbol,
+FULL-NAME is the human readable name as a string,
+C-BYTE is the operation code telling what operation is to be performed,
+F-BYTE holds a modification of the operation code which can be a symbol
+  or a number,
+DESCRIPTION contains an string with a description about the operation code and
+EXECUTION-TIME holds info about the time it takes, number or string.")
+;; (makunbound 'mixal-operation-codes-alist)
 
-(defun mixal-add-operation-code (op-code group full-name C-byte F-byte description execution-time)
-  "Add an operation code to the list that contains information about possible op code's."
-  (setq mixal-operation-codes-alist (cons (list op-code group full-name C-byte F-byte
-						description execution-time)
-					  mixal-operation-codes-alist )))
+(defun mixal-add-operation-code (op-code group full-name C-byte F-byte
+                                         description execution-time)
+  "Add an operation code to `mixal-operation-codes-alist'."
+  (setq mixal-operation-codes-alist
+        (cons (list op-code group full-name C-byte F-byte
+                    description execution-time)
+              mixal-operation-codes-alist)))
 
 ;; now add each operation code
 
@@ -1250,7 +1267,8 @@ The converted character representation is stored in rAX."
 (defun mixal-describe-operation-code (&optional op-code)
   "Display the full documentation of OP-CODE."
   (interactive)
-  ;; we like to provide completition and history, so do it ourself (interactive "?bla")?
+  ;; We like to provide completion and history, so do it ourself
+  ;; (interactive "?bla")?
   (unless op-code
     (let* ((completion-ignore-case t)
 	   ;; we already have a list, but it is not in the right format
@@ -1282,13 +1300,14 @@ The converted character representation is stored in rAX."
 
 ;;;; Running
 (defun mixal-run ()
-  "Run's mixal file in current buffer, assumes that file has been compiled"
+  "Run mixal file in current buffer, assumes that file has been compiled."
   (interactive)
   (mixvm (concat "mixvm -r -t -d "
 		 (file-name-sans-extension (buffer-file-name)))))
 
 (defun mixal-debug ()
-  "Starts mixvm for debugging, assumes that file has been compiled with debugging support"
+  "Start mixvm for debugging.
+Assumes that file has been compiled with debugging support."
   (interactive)
   (mixvm (concat "mixvm "
 		 (file-name-sans-extension (buffer-file-name)))))
@@ -1300,9 +1319,9 @@ The converted character representation is stored in rAX."
   (set (make-local-variable 'comment-start) "*")
   (set (make-local-variable 'comment-start-skip) "*")
   (set (make-local-variable 'font-lock-defaults) '(mixal-font-lock-keywords))
-; might add an indent function in the future
-;  (set (make-local-variable 'indent-line-function) 'mixal-indent-line)
-  (set (make-local-variable 'compile-command) (concat "mixasm -g "
+  ;; might add an indent function in the future
+  ;;  (set (make-local-variable 'indent-line-function) 'mixal-indent-line)
+  (set (make-local-variable 'compile-command) (concat "mixasm "
 						      buffer-file-name))
   ;; mixasm will do strange when there is no final newline,
   ;; so let Emacs ensure that it is always there
@@ -1314,5 +1333,5 @@ The converted character representation is stored in rAX."
 
 (provide 'mixal-mode)
 
-;;; arch-tag: be7c128a-bf61-4951-a90e-9398267ce3f3
+;; arch-tag: be7c128a-bf61-4951-a90e-9398267ce3f3
 ;;; mixal-mode.el ends here

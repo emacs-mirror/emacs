@@ -4,7 +4,7 @@
 ;; Free Software Foundation, Inc.
 
 ;; Author: Torbj\"orn Einarsson <Torbjorn.Einarsson@era.ericsson.se>
-;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: fortran, f90, languages
 
 ;; This file is part of GNU Emacs.
@@ -276,7 +276,7 @@ The options are 'downcase-word, 'upcase-word, 'capitalize-word and nil."
 		"target" "then" "type" "use" "where" "while" "write"
 		;; F95 keywords.
 		"elemental" "pure") 'words)
-  "Regexp for F90 keywords.")
+  "Regexp used by the function `f90-change-keywords'.")
 
 (defconst f90-keywords-level-3-re
   (regexp-opt
@@ -370,7 +370,8 @@ subroutine\\)\\|use\\|call\\)\\>[ \t]*\\(\\sw+\\)?"
    (list
     ;; Variable declarations (avoid the real function call).
     '("^[ \t0-9]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\\|\
-logical\\|type[ \t]*(\\sw+)\\)\\(.*::\\|[ \t]*(.*)\\)?\\([^&!\n]*\\)"
+logical\\|double[ \t]*precision\\|*type[ \t]*(\\sw+)\\)\
+\\(.*::\\|[ \t]*(.*)\\)?\\([^&!\n]*\\)"
       (1 font-lock-type-face t) (4 font-lock-variable-name-face t))
     ;; do, if, select, where, and forall constructs.
     '("\\<\\(end[ \t]*\\(do\\|if\\|select\\|forall\\|where\\)\\)\\>\
@@ -381,7 +382,7 @@ do\\([ \t]*while\\)?\\|select[ \t]*case\\|where\\|forall\\)\\)\\>"
       (2 font-lock-constant-face nil t) (3 font-lock-keyword-face))
     ;; Implicit declaration.
     '("\\<\\(implicit\\)[ \t]*\\(real\\|integer\\|c\\(haracter\\|omplex\\)\
-\\|logical\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
+\\|logical\\|double[ \t]*precision\\|type[ \t]*(\\sw+)\\|none\\)[ \t]*"
       (1 font-lock-keyword-face) (2 font-lock-type-face))
     '("\\<\\(namelist\\|common\\)[ \t]*\/\\(\\sw+\\)?\/"
       (1 font-lock-keyword-face) (2 font-lock-constant-face nil t))
@@ -698,6 +699,7 @@ Used in the F90 entry in `hs-special-modes-alist'.")
        ("`de"  "deallocate"   )
        ("`df"  "define"       )
        ("`di"  "dimension"    )
+       ("`dp"  "double precision")
        ("`dw"  "do while"     )
        ("`el"  "else"         )
        ("`eli" "else if"      )
@@ -796,8 +798,6 @@ Variables controlling indentation style and extra features:
   The possibilities are 'downcase-word, 'upcase-word, 'capitalize-word.
 `f90-leave-line-no'
   Do not left-justify line numbers (default nil).
-`f90-keywords-re'
-  List of keywords used for highlighting/upcase-keywords etc.
 
 Turning on F90 mode calls the value of the variable `f90-mode-hook'
 with no args, if that value is non-nil."

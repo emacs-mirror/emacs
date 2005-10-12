@@ -545,26 +545,53 @@ selects it, that variable should be @code{t}; if a click is necessary,
 the variable should be @code{nil}.
 
 @node Speedbar
-@section Making and Using a Speedbar Frame
+@section Speedbar Frames
 @cindex speedbar
 
-  An Emacs frame can have a @dfn{speedbar}, which is a vertical window
-that serves as a scrollable menu of files you could visit and tags
-within those files.  To create a speedbar, type @kbd{M-x speedbar}; this
-creates a speedbar window for the selected frame.  From then on, you can
-click on a file name in the speedbar to visit that file in the
-corresponding Emacs frame, or click on a tag name to jump to that tag in
-the Emacs frame.
+@cindex attached frame (of speedbar)
+  The @dfn{speedbar} is a special frame for conveniently navigating in
+or operating on another frame.  The speedbar, when it exists, is
+always associated with a specific frame, called its @dfn{attached
+frame}; all speedbar operations act on that frame.
 
-  Initially the speedbar lists the immediate contents of the current
-directory, one file per line.  Each line also has a box, @samp{[+]} or
-@samp{<+>}, that you can click on with @kbd{Mouse-2} to ``open up'' the
-contents of that item.  If the line names a directory, opening it adds
+  Type @kbd{M-x speedbar} to create the speedbar and associate it with
+the current frame.  To dismiss the speedbar, type @kbd{M-x speedbar}
+again, or select the speedbar and type @kbd{q}.  (You can also delete
+the speedbar frame like any other Emacs frame.)  If you wish to
+associate the speedbar with a different frame, dismiss it and call
+@kbd{M-x speedbar} from that frame.
+
+  The speedbar can operate in various modes.  Its default mode is
+@dfn{File Display} mode, which shows the files in the current
+directory of the selected window of the attached frame, one file per
+line.  Clicking on a file name visits that file in the selected window
+of the attached frame, and clicking on a directory name shows that
+directory in the speedbar (@pxref{Mouse References}).  Each line also
+has a box, @samp{[+]} or @samp{<+>}, that you can click on to
+@dfn{expand} the contents of that item.  Expanding a directory adds
 the contents of that directory to the speedbar display, underneath the
-directory's own line.  If the line lists an ordinary file, opening it up
-adds a list of the tags in that file to the speedbar display.  When a
-file is opened up, the @samp{[+]} changes to @samp{[-]}; you can click
-on that box to ``close up'' that file (hide its contents).
+directory's own line.  Expanding an ordinary file adds a list of the
+tags in that file to the speedbar display; you can click on a tag name
+to jump to that tag in the selected window of the attached frame.
+When a file or directory is expanded, the @samp{[+]} changes to
+@samp{[-]}; you can click on that box to @dfn{contract} the item,
+hiding its contents.
+
+  You navigate through the speedbar using the keyboard, too.  Typing
+@kbd{RET} while point is on a line in the speedbar is equivalent to
+clicking the item on the current line, and @kbd{SPC} expands or
+contracts the item.  @kbd{U} displays the parent directory of the
+current directory.  To copy, delete, or rename the file on the current
+line, type @kbd{C}, @kbd{D}, and @kbd{R} respectively.  To create a
+new directory, type @kbd{M}.
+
+  Another general-purpose speedbar mode is @dfn{Buffer Display} mode;
+in this mode, the speedbar displays a list of Emacs buffers.  To
+switch to this mode, type @kbd{b} in the speedbar.  To return to File
+Display mode, type @kbd{f}.  You can also change the display mode by
+clicking @kbd{mouse-3} anywhere in the speedbar window (or
+@kbd{mouse-1} on the mode-line) and selecting @samp{Displays} in the
+pop-up menu.
 
   Some major modes, including Rmail mode, Info, and GUD, have
 specialized ways of putting useful items into the speedbar for you to
@@ -572,10 +599,8 @@ select.  For example, in Rmail mode, the speedbar shows a list of Rmail
 files, and lets you move the current message to another Rmail file by
 clicking on its @samp{<M>} box.
 
-  A speedbar belongs to one Emacs frame, and always operates on that
-frame.  If you use multiple frames, you can make a speedbar for some or
-all of the frames; type @kbd{M-x speedbar} in any given frame to make a
-speedbar for it.
+  For more details on using and programming the speedbar, @xref{Top,
+Speedbar,,speedbar, Speedbar Manual}.
 
 @node Multiple Displays
 @section Multiple Displays

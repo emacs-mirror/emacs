@@ -1,3 +1,26 @@
+2005-10-09  Daniel Brockman <daniel@brockman.se>
+
+	* format-spec.el (format-spec): Propagate text properties of % spec.
+
+2005-01-21  Derek Atkins <warlord@MIT.EDU>  (tiny change)
+
+	* pgg-pgp.el (pgg-pgp-decrypt-region): Use passphrase cache.
+
+2005-10-08  Simon Josefsson  <jas@extundo.com>
+
+	* pgg-parse.el (top-level): Don't require custom, it is
+	autoloaded.  (To sync with No Gnus.)
+
+2005-05-09  Simon Josefsson  <jas@extundo.com>
+
+	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Fix PIN caching,
+	tiny patch from "Georg C. F. Greve" <greve@gnu.org>.
+
+2005-10-08  Simon Josefsson  <jas@extundo.com>
+
+	* pgg-def.el (top-level): Don't require custom, it is
+	autoloaded.  (To sync with No Gnus.)
+
 2005-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-url.el (mm-url-predefined-programs): Add switches for curl.

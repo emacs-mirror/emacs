@@ -39,8 +39,8 @@ Boston, MA 02110-1301, USA.  */
 #define BLACK_PIX_DEFAULT(f) RGB_TO_ULONG(0,0,0)
 #define WHITE_PIX_DEFAULT(f) RGB_TO_ULONG(255,255,255)
 
-#define FONT_WIDTH(f)   ((f)->max_bounds.width)
-#define FONT_HEIGHT(f)  ((f)->ascent + (f)->descent)
+#define FONT_WIDTH(f)	((f)->max_bounds.width)
+#define FONT_HEIGHT(f)	((f)->ascent + (f)->descent)
 #define FONT_BASE(f)    ((f)->ascent)
 #define FONT_DESCENT(f) ((f)->descent)
 
@@ -82,16 +82,8 @@ struct mac_display_info
   /* Whether the screen supports color */ 
   int color_p;
 
-#if 0
-  /* Number of bits per pixel on this screen.  */
-  int n_cbits;
-#endif
-
   /* Dimensions of this screen.  */
   int height, width;
-#if 0
-  int height_in,width_in;
-#endif
 
   /* Mask of things that cause the mouse to be grabbed.  */
   int grabbed;
@@ -111,32 +103,11 @@ struct mac_display_info
   /* Resource data base */
   XrmDatabase xrdb;
 
-#if 0
-  /* color palette information.  */
-  int has_palette;
-  struct w32_palette_entry * color_list;
-  unsigned num_colors;
-  HPALETTE palette;
-
-  /* deferred action flags checked when starting frame update.  */
-  int regen_palette;
-
-  /* Keystroke that has been faked by Emacs and will be ignored when
-     received; value is reset after key is received.  */
-  int faked_key;
-
-#endif
-
   /* A table of all the fonts we have already loaded.  */
   struct font_info *font_table;
 
   /* The current capacity of font_table.  */
   int font_table_size;
-
-  /* The number of fonts actually stored in the font table.
-     font_table[n] is used and valid iff 0 <= n < n_fonts. 0 <=
-     n_fonts <= font_table_size. and font_table[i].name != 0. */
-  int n_fonts;
 
   /* Minimum width over all characters in all fonts in font_table.  */
   int smallest_char_width;
@@ -148,7 +119,7 @@ struct mac_display_info
   GC scratch_cursor_gc;
 
   /* These variables describe the range of text currently shown in its
-     mouse-face, together with the window they apply to. As long as
+     mouse-face, together with the window they apply to.  As long as
      the mouse stays within this range, we need not redraw anything on
      its account.  Rows and columns are glyph matrix positions in
      MOUSE_FACE_WINDOW.  */
@@ -168,7 +139,6 @@ struct mac_display_info
   /* FRAME and X, Y position of mouse when last checked for
      highlighting.  X and Y can be negative or out of range for the frame.  */
   struct frame *mouse_face_mouse_frame;
-
   int mouse_face_mouse_x, mouse_face_mouse_y;
 
   /* Nonzero means defer mouse-motion highlighting.  */
@@ -180,6 +150,11 @@ struct mac_display_info
   int mouse_face_image_state;
 
   char *mac_id_name;
+
+  /* The number of fonts actually stored in the font table.
+     font_table[n] is used and valid iff 0 <= n < n_fonts.  0 <=
+     n_fonts <= font_table_size and font_table[i].name != 0.  */
+  int n_fonts;
 
   /* Pointer to bitmap records.  */
   struct mac_bitmap_record *bitmaps;
@@ -237,7 +212,7 @@ extern int unibyte_display_via_language_environment;
 extern struct x_display_info *x_display_info_for_display P_ ((Display *));
 extern struct x_display_info *x_display_info_for_name P_ ((Lisp_Object));
 
-extern struct mac_display_info *mac_term_init ();
+extern struct mac_display_info *mac_term_init P_ ((Lisp_Object, char *, char *));
 
 extern Lisp_Object x_list_fonts P_ ((struct frame *, Lisp_Object, int, int));
 extern struct font_info *x_get_font_info P_ ((struct frame *f, int));
@@ -262,32 +237,7 @@ struct mac_output {
   /* Menubar "widget" handle.  */
   int menubar_widget;
 
-  Window mWP;			/* pointer to QuickDraw window */
   FRAME_PTR mFP;		/* points back to the frame struct */
-
-#if 0
-  int mNumCols;			/* number of characters per column */
-  int mNumRows;			/* number of characters per row */
-  int mLineHeight;		/* height of one line of text in pixels */
-  int mCharWidth;		/* width of one character in pixels */
-  int mHomeX;			/* X pixel coordinate of lower left
-				   corner of character at (0, 0) */
-  int mHomeY;			/* Y pixel coordinate of lower left
-				   corner of character at (0, 0) */
-  int mHighlight;		/* current highlight state (0 = off). */
-  int mTermWinSize;		/* num of lines from top of window
-				   affected by ins_del_lines; set by
-				   set_terminal_window. */
-#endif /* 0 */
-
-#if 0
-  /* stuffs used by xfaces.c */
-  struct face **param_faces;
-  int n_param_faces;
-  struct face **computed_faces;
-  int n_computed_faces;
-  int size_computed_faces;
-#endif
 
   /* Here are the Graphics Contexts for the default font.  */
   GC normal_gc;				/* Normal video */
@@ -322,6 +272,7 @@ struct mac_output {
   unsigned long mouse_pixel;
   unsigned long cursor_foreground_pixel;
 
+#if 0
   /* Foreground color for scroll bars.  A value of -1 means use the
      default (black for non-toolkit scroll bars).  */
   unsigned long scroll_bar_foreground_pixel;
@@ -330,6 +281,7 @@ struct mac_output {
      default (background color of the frame for non-toolkit scroll
      bars).  */
   unsigned long scroll_bar_background_pixel;
+#endif
 
   /* Descriptor for the cursor in use for this window.  */
   Cursor text_cursor;
@@ -357,10 +309,6 @@ struct mac_output {
   ControlRef hourglass_control;
 #endif
 
-#if 0
-  DWORD dwStyle;
-#endif
-
   /* This is the Emacs structure for the display this frame is on.  */
   /* struct w32_display_info *display_info; */
 
@@ -376,10 +324,6 @@ struct mac_output {
 
   /* Nonzero means a menu command is being processed.  */
   char menu_command_in_progress;
-
-  /* Nonzero means menubar is about to become active, but should be
-     brought up to date first.  */
-  volatile char pending_menu_activation;
 
   /* Relief GCs, colors etc.  */
   struct relief
@@ -404,8 +348,8 @@ typedef struct mac_output mac_output;
 #define FRAME_X_OUTPUT(f) ((f)->output_data.mac)
 
 /* Return the Mac window used for displaying data in frame F.  */
-#define FRAME_MAC_WINDOW(f) ((f)->output_data.mac->mWP)
-#define FRAME_X_WINDOW(f) ((f)->output_data.mac->mWP)
+#define FRAME_MAC_WINDOW(f) ((f)->output_data.mac->window_desc)
+#define FRAME_X_WINDOW(f) ((f)->output_data.mac->window_desc)
 
 #define FRAME_FONT(f) ((f)->output_data.mac->font)
 #define FRAME_FONTSET(f) ((f)->output_data.mac->fontset)
@@ -528,7 +472,7 @@ struct scroll_bar {
 
 /* Return the inside width of a vertical scroll bar, given the outside
    width.  */
-#define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(f,width) \
+#define VERTICAL_SCROLL_BAR_INSIDE_WIDTH(f, width) \
   ((width) \
    - VERTICAL_SCROLL_BAR_LEFT_BORDER \
    - VERTICAL_SCROLL_BAR_RIGHT_BORDER \

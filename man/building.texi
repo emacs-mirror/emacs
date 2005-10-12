@@ -749,6 +749,8 @@ ignores any numeric argument.
 @node GDB Graphical Interface
 @subsection GDB Graphical Interface
 
+@findex gdb-mouse-set-clear-breakpoint
+@findex gdb-mouse-toggle-breakpoint
   By default, the command @code{gdb} starts GDB using a graphical
 interface where you view and control the program's data using Emacs
 windows.  You can still interact with GDB through the GUD buffer, but
@@ -799,18 +801,21 @@ If @code{gdb-many-windows} is non-@code{nil}, regardless of the value of
 @code{gdb-use-inferior-io-buffer} is @code{nil}.  In this case the
 source buffer occupies the full width of the frame.
 
-@multitable @columnfractions .5 .5
-@item GUD buffer (I/O of GDB)
-@tab Locals buffer
-@item
-@tab
-@item Source buffer
-@tab Input/Output (of inferior) buffer
-@item
-@tab
-@item Stack buffer
-@tab Breakpoints buffer
-@end multitable
+@example
++--------------------------------+--------------------------------+
+|                                |                                |
+|  GUD buffer (I/O of GDB)       |     Locals buffer              |
+|                                |                                |
+|--------------------------------+--------------------------------+
+|                                |                                |
+|  Source buffer                 |     I/O buffer (of inferior)   |
+|                                |                                |
+|--------------------------------+--------------------------------+
+|                                |                                |
+|  Stack buffer                  |     Breakpoints buffer         |
+|                                |                                |
++--------------------------------+--------------------------------+
+@end example
 
 To toggle this layout, do @kbd{M-x gdb-many-windows}.
 
@@ -820,12 +825,12 @@ re-compiling your program, then you can restore it with the command
 @code{gdb-restore-windows}.
 
 You may also choose which additional buffers you want to display,
-either in the same frame or a different one.  Select GDB-windows or
-GDB-Frames from the menu-bar under the heading GUD.  If the menu-bar
-is unavailable, type @code{M-x
+either in the same frame or a different one.  Select them from
+@samp{GUD->GDB-windows} or @samp{GUD->GDB-Frames} sub-menu
+respectively.  If the menu-bar is unavailable, type @code{M-x
 gdb-display-@var{buffertype}-buffer} or @code{M-x
-gdb-frame-@var{buffertype}-buffer} respectively, where @var{buffertype}
-is the relevant buffer type e.g breakpoints.
+gdb-frame-@var{buffertype}-buffer} respectively, where
+@var{buffertype} is the relevant buffer type e.g breakpoints.
 
 When you finish debugging then kill the GUD buffer with @kbd{C-x k},
 which will also kill all the buffers associated with the session.
@@ -854,7 +859,7 @@ relevant line.  This is red when the breakpoint is enabled and grey
 when it is disabled.  Text-only terminals correspondingly display
 a @samp{B} or @samp{b}.
 
-@item @kbd{d}
+@item d
 @kindex d @r{(GDB breakpoints buffer)}
 @findex gdb-delete-breakpoint
 Delete the breakpoint at the current line (@code{gdb-delete-breakpoint}).
@@ -872,19 +877,21 @@ the current line (@code{gdb-goto-breakpoint}).  Alternatively, click
 
 The stack buffer displays a @dfn{call stack}, with one line for each
 of the nested subroutine calls (@dfn{stack frames}) now active in the
-program.  @xref{Backtrace,,info stack, gdb, The GNU debugger}.
+program.  @xref{Backtrace,, Backtraces, gdb, The GNU debugger}.
 
-The selected frame is displayed in reverse contrast.  Move point to
-any frame in the stack and type @key{RET} to select it (@code{gdb-frames-select})
-and display the associated source in the source buffer. Alternatively,
-click @kbd{Mouse-2} to make the selected frame become the current one.
-If the locals buffer is displayed then its contents update to display
-the variables that are local to the new frame.
+@findex gdb-frames-select
+The selected frame number is displayed in reverse contrast.  Move
+point to any frame in the stack and type @key{RET} to select it
+(@code{gdb-frames-select}) and display the associated source in the
+source buffer.  Alternatively, click @kbd{Mouse-2} on a frame to
+select it.  If the locals buffer is displayed then its contents update
+to display the variables that are local to the new frame.
 
 @node Watch Expressions
 @subsubsection Watch Expressions
 @cindex Watching expressions in GDB
 
+@findex gud-watch
 If you want to see how a variable changes each time your program stops
 then place the cursor over the variable name and click on the watch
 icon in the tool bar (@code{gud-watch}).
@@ -894,34 +901,43 @@ types, such as arrays, structures and unions are represented in a tree
 format.  To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
 
-@kindex RET @r{(GDB speedbar)}
+By default, watch expressions only display in the speedbar when the
+GUD buffer is selected in the attached frame.  If you want your watch
+expressions to remain visible at all times then select the @samp{GUD}
+radio button on the @samp{Speedbar->Displays} sub-menu using
+@kbd{Mouse-3}.
+
 @findex gdb-var-delete
 With the cursor over the root expression of a complex data type, type
 @kbd{D} to delete it from the speedbar
 (@code{gdb-var-delete}).
 
+@kindex RET @r{(GDB speedbar)}
 @findex gdb-edit-value
 With the cursor over a simple data type or an element of a complex
 data type which holds a value, type @key{RET} or click @kbd{Mouse-2} to edit
 its value.  A prompt for a new value appears in the mini-buffer
 (@code{gdb-edit-value}).
 
+@vindex gdb-show-changed-values
 If you set the variable @code{gdb-show-changed-values} to
-non-@code{nil} (the default value), then Emacs will use
+non-@code{nil} (the default value), Emacs will use
 font-lock-warning-face to display values that have recently changed in
 the speedbar.
 
+@vindex gdb-use-colon-colon-notation
 If you set the variable @code{gdb-use-colon-colon-notation} to a
-non-@code{nil} value, then, in C, Emacs will use the
-FUNCTION::VARIABLE format to display variables in the speedbar.
-Since this does not work for variables defined in compound statements,
-the default value is @code{nil}.
+non-@code{nil} value then, in C, Emacs will use the
+@var{function}::@var{variable} format to display variables in the
+speedbar.  Since this does not work for variables defined in compound
+statements, the default value is @code{nil}.
 
 @node Other GDB User Interface Buffers
 @subsubsection Other Buffers
 
 @table @asis
 @item Input/Output Buffer
+@vindex gdb-use-inferior-io-buffer
 If the variable @code{gdb-use-inferior-io-buffer} is non-@code{nil},
 the executable program that is being debugged takes its input and
 displays its output here.  Some of the commands from shell mode are
@@ -929,16 +945,18 @@ available here.  @xref{Shell Mode}.
 
 @item Locals Buffer
 The locals buffer displays the values of local variables of the
-current frame for simple data types (@pxref{Frame Info,,, gdb, The GNU
-debugger}).
+current frame for simple data types (@pxref{Frame Info, Frame Info,
+Information on a frame, gdb, The GNU debugger}).
 
 Arrays and structures display their type only.  You must display them
 separately to examine their values.  @xref{Watch Expressions}.
 
 @item Registers Buffer
+@findex toggle-gdb-all-registers
 The registers buffer displays the values held by the registers
 (@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{SPC} to
-toggle the display of floating point registers.
+toggle the display of floating point registers
+(@code{toggle-gdb-all-registers}).
 
 @item Assembler Buffer
 The assembler buffer displays the current frame as machine code.  An
@@ -947,22 +965,23 @@ remove breakpoints as with the source buffer.  Breakpoint icons also
 appear in the fringe or margin.
 
 @item Threads Buffer
-
+@findex gdb-threads-select
 The threads buffer displays a summary of all threads currently in your
-program (@pxref{Threads,,, gdb, The GNU debugger}).  Move point to
-any thread in the list and press @key{RET} to make it become the
-current thread (@code{gdb-threads-select}) and display the associated
-source in the source buffer.  Alternatively, click @kbd{Mouse-2} to
-make the selected thread become the current one.
+program (@pxref{Threads, Threads, Debugging programs with multiple
+threads, gdb, The GNU debugger}).  Move point to any thread in the
+list and press @key{RET} to select it (@code{gdb-threads-select}) and
+display the associated source in the source buffer.  Alternatively,
+click @kbd{Mouse-2} on a thread to select it.  If the locals buffer is
+displayed then its contents update to display the variables that are
+local to the new thread.
 
 @item Memory Buffer
-
 The memory buffer allows the user to examine sections of program
-memory (@pxref{Memory,,, gdb, The GNU debugger}).  Click @kbd{Mouse-1}
-on the appropriate part of the header line to change the starting
-address or number of data items that the buffer displays.
-Click @kbd{Mouse-3} on the header line to select the display format
-or unit size for these data items.
+memory (@pxref{Memory, Memory, Examining memory, gdb, The GNU
+debugger}).  Click @kbd{Mouse-1} on the appropriate part of the header
+line to change the starting address or number of data items that the
+buffer displays.  Click @kbd{Mouse-3} on the header line to select the
+display format or unit size for these data items.
 
 @end table
 

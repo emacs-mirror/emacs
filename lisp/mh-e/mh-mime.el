@@ -69,25 +69,45 @@ Optional argument INLINE means make it an inline attachment."
     (call-interactively 'mh-mhn-compose-insertion)))
 
 ;;;###mh-autoload
-(defun mh-compose-forward (&optional description folder message)
+(defun mh-compose-forward (&optional description folder messages)
   "Add a MIME directive to forward a message, using mhn or gnus.
 If the variable `mh-compose-insertion' is set to 'mhn, then that will be used.
 If it is set to 'gnus, then that will be used instead.
 Optional argument DESCRIPTION is a description of the attachment.
 Optional argument FOLDER is the folder from which the forwarded message should
 come.
-Optional argument MESSAGE is the message to forward.
+Optional argument MESSAGES is the range of messages to forward.
 If any of the optional arguments are absent, they are prompted for."
-  (interactive (list
-                (read-string "Forw Content-description: ")
-                (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
-                (read-string (concat "Messages"
-                                     (if (numberp mh-sent-from-msg)
-                                         (format " (default %d): " mh-sent-from-msg)
-                                       ": ")))))
-  (if (equal mh-compose-insertion 'gnus)
-      (mh-mml-forward-message description folder message)
-    (mh-mhn-compose-forw description folder message)))
+  (interactive (let*
+                   ((description (read-string "Forw Content-description: "))
+                    (folder (mh-prompt-for-folder "Message from"
+                                                  mh-sent-from-folder nil))
+                    (messages (let ((default-message
+                                      (if (and (equal
+                                                folder mh-sent-from-folder)
+                                               (numberp mh-sent-from-msg))
+                                          mh-sent-from-msg
+                                        (nth 0 (mh-translate-range
+                                                folder "cur")))))
+                                (if default-message
+                                    (read-string
+                                     (format "Messages (default %d): "
+                                             default-message)
+                                     nil nil
+                                     (number-to-string default-message))
+                                  (read-string (format "Messages: "))))))
+                 (list description folder messages)))
+  (let
+      ((range))
+    (if (null messages)
+	(setq messages ""))
+    (setq range (mh-translate-range folder messages))
+    (if (null range)
+	(error "No messages in specified range"))
+    (dolist (message range)
+      (if (equal mh-compose-insertion 'gnus)
+	  (mh-mml-forward-message description folder (format "%s" message))
+	(mh-mhn-compose-forw description folder message)))))
 
 ;; To do:
 ;; paragraph code should not fill # lines if MIME enabled.

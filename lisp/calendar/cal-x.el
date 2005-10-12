@@ -4,7 +4,7 @@
 
 ;; Author: Michael Kifer <kifer@cs.sunysb.edu>
 ;;      Edward M. Reingold <reingold@cs.uiuc.edu>
-;; Maintainer: Glenn Morris <gmorris@ast.cam.ac.uk>
+;; Maintainer: Glenn Morris <rgm@gnu.org>
 ;; Keywords: calendar
 ;; Human-Keywords: calendar, dedicated frames, X Window System
 

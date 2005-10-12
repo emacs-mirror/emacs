@@ -53,19 +53,7 @@ test), it may be better just to avoid displaying such images for emacs 22.
 ** Investigate reported crashes related to using an
 invalid pointer from string_free_list.
 
-** Emacs on Windows crashes reading JPEG images from files.
-
-The problem is caused by the Emacs executable and the image library
-having multiple, incompatible copies of the run-time code, which can
-happen when mixing a MSVC build of Emacs with a MinGW build of the
-jpeg library (or the other way around).  The fix is straightforward
-and has already been posted on the developers' list, but it is on the
-back burner waiting for a legal comment or an alternate implementation
-(around 30 lines of code).
-
 * BUGS
-
-* Pierre Albarede's Aug 30 bug report about C-v and long lines.
 
 ** Make a new interface for specifying window configurations
 so that we can fix bugs in balance-windows.
@@ -132,7 +120,7 @@ people who have checked it.
 SECTION             READERS
 -----------------------------
 man/abbrevs.texi    Chong Yidong    Joakim Verona
-man/anti.texi
+man/anti.texi       Chong Yidong
 man/basic.texi      "Luc Teirlinck"  Chong Yidong
 man/buffers.texi    "Luc Teirlinck"  Chong Yidong
 man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
@@ -153,7 +141,7 @@ man/indent.texi     "Luc Teirlinck"  Chong Yidong
 man/killing.texi    "Luc Teirlinck"  Chong Yidong
 man/kmacro.texi     "Luc Teirlinck"  Chong Yidong
 man/macos.texi
-man/maintaining.texi
+man/maintaining.texi Chong Yidong
 man/major.texi      "Luc Teirlinck"  Chong Yidong
 man/mark.texi       "Luc Teirlinck"  Chong Yidong
 man/mini.texi       "Luc Teirlinck"  Chong Yidong
@@ -184,7 +172,7 @@ SECTION                  READERS
 ----------------------------------
 lispref/abbrevs.texi     "Luc Teirlinck"   Chong Yidong
 lispref/advice.texi	 joakim@verona.se  Chong Yidong
-lispref/anti.texi
+lispref/anti.texi        Chong Yidong
 lispref/backups.texi     "Luc Teirlinck"   Chong Yidong
 lispref/buffers.texi     "Luc Teirlinck"   Chong Yidong
 lispref/calendar.texi    Joakim Verona <joakim@verona.se>  Chong Yidong

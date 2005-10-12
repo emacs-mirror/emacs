@@ -103,6 +103,7 @@ and #define directives otherwise.")
 (defvar gdb-error "Non-nil when GDB is reporting an error.")
 (defvar gdb-macro-info nil
   "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
+(defvar gdb-buffer-fringe-width nil)
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -172,28 +173,28 @@ See Info node `(emacs)GDB Graphical Interface' for a more
 detailed description of this mode.
 
 
----------------------------------------------------------------------
-                               GDB Toolbar
----------------------------------------------------------------------
- GUD buffer (I/O of GDB)          | Locals buffer
-                                  |
-                                  |
-                                  |
----------------------------------------------------------------------
- Source buffer                    | Input/Output (of inferior) buffer
-                                  | (comint-mode)
-                                  |
-                                  |
-                                  |
-                                  |
-                                  |
-                                  |
----------------------------------------------------------------------
- Stack buffer                     | Breakpoints buffer
- RET      gdb-frames-select       | SPC    gdb-toggle-breakpoint
-                                  | RET    gdb-goto-breakpoint
-                                  |   d    gdb-delete-breakpoint
----------------------------------------------------------------------"
++--------------------------------------------------------------+
+|                           GDB Toolbar                        |
++-------------------------------+------------------------------+
+| GUD buffer (I/O of GDB)       | Locals buffer                |
+|                               |                              |
+|                               |                              |
+|                               |                              |
++-------------------------------+------------------------------+
+| Source buffer                 | I/O buffer (of inferior)     |
+|                               | (comint-mode)                |
+|                               |                              |
+|                               |                              |
+|                               |                              |
+|                               |                              |
+|                               |                              |
+|                               |                              |
++-------------------------------+------------------------------+
+| Stack buffer                  | Breakpoints buffer           |
+| RET      gdb-frames-select    | SPC    gdb-toggle-breakpoint |
+|                               | RET    gdb-goto-breakpoint   |
+|                               | d      gdb-delete-breakpoint |
++-------------------------------+------------------------------+"
   ;;
   (interactive (list (gud-query-cmdline 'gdba)))
   ;;
@@ -377,7 +378,8 @@ Also display the main routine in the disassembly buffer if present."
 	gdb-location-alist nil
 	gdb-find-file-unhook nil
 	gdb-error nil
-	gdb-macro-info nil)
+	gdb-macro-info nil
+	gdb-buffer-fringe-width (car (window-fringes)))
   ;;
   (setq gdb-buffer-type 'gdba)
   ;;
@@ -1190,12 +1192,13 @@ happens to be appropriate."
      (let ((buf (gdb-get-buffer ',buf-key)))
        (and buf
 	    (with-current-buffer buf
-	      (let ((p (window-point (get-buffer-window buf 0)))
+	      (let* ((window (get-buffer-window buf 0))
+		     (p (window-point window))
 		    (buffer-read-only nil))
 		(erase-buffer)
 		(insert-buffer-substring (gdb-get-create-buffer
 					  'gdb-partial-output-buffer))
-		(set-window-point (get-buffer-window buf 0) p)))))
+		(set-window-point window p)))))
      ;; put customisation here
      (,custom-defun)))
 
@@ -1545,20 +1548,23 @@ static char *magick[] = {
 			       help-echo "mouse-2, RET: Select frame"))
 	  (goto-char bl)
 	  (when (looking-at "^#\\([0-9]+\\)")
-	    (if (equal (match-string 1) gdb-frame-number)
-		(put-text-property bl el 'face '(:inverse-video t))
-	      (when (re-search-forward " in \\([^ ]+\\) (" el t)
+	    (when (string-equal (match-string 1) gdb-frame-number)
+		(put-text-property bl (+ bl 4)
+				   'face '(:inverse-video t)))
+	    (when (re-search-forward
+		   (concat
+		    (if (string-equal (match-string 1) "0") "" " in ")
+		    "\\([^ ]+\\) (") el t)
+	      (put-text-property (match-beginning 1) (match-end 1)
+				 'face font-lock-function-name-face)
+	      (setq bl (match-end 0))
+	      (while (re-search-forward "<\\([^>]+\\)>" el t)
 		(put-text-property (match-beginning 1) (match-end 1)
-				   'face font-lock-function-name-face)
-		(setq bl (match-end 0))
-		(while (re-search-forward "<\\([^>]+\\)>" el t)
-		  (put-text-property (match-beginning 1) (match-end 1)
 				     'face font-lock-function-name-face))
-		(goto-char bl)
-		(while (re-search-forward "\\(\\(\\sw\\|[_.]\\)+\\)=" el t)
-		  (put-text-property (match-beginning 1) (match-end 1)
-				     'face font-lock-variable-name-face))
-		)))
+	      (goto-char bl)
+	      (while (re-search-forward "\\(\\(\\sw\\|[_.]\\)+\\)=" el t)
+		(put-text-property (match-beginning 1) (match-end 1)
+				   'face font-lock-variable-name-face))))
 	  (forward-line 1))))))
 
 (defun gdb-stack-buffer-name ()
@@ -1604,6 +1610,7 @@ static char *magick[] = {
 
 (defun gdb-get-frame-number ()
   (save-excursion
+    (end-of-line)
     (let* ((pos (re-search-backward "^#*\\([0-9]*\\)" nil t))
 	   (n (or (and pos (match-string-no-properties 1)) "0")))
       n)))
@@ -2119,13 +2126,15 @@ corresponding to the mode line clicked."
       (while (re-search-forward "\\s-*{.*\n" nil t)
 	(replace-match " (array);\n" nil nil))))
   (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
-    (and buf (with-current-buffer buf
-	       (let ((p (window-point (get-buffer-window buf 0)))
+    (and buf
+	 (with-current-buffer buf
+	      (let* ((window (get-buffer-window buf 0))
+		     (p (window-point window))
 		     (buffer-read-only nil))
 		 (erase-buffer)
 		 (insert-buffer-substring (gdb-get-create-buffer
 					   'gdb-partial-output-buffer))
-		(set-window-point (get-buffer-window buf 0) p)))))
+		(set-window-point window p)))))
   (run-hooks 'gdb-info-locals-hook))
 
 (defun gdb-info-locals-custom ()
@@ -2144,7 +2153,7 @@ corresponding to the mode line clicked."
       (1 font-lock-variable-name-face)
       (3 font-lock-keyword-face)
       (4 font-lock-type-face))
-    ;; var = (type) value 
+    ;; var = (type) value
     ( "\\(^\\(\\sw\\|[_.]\\)+\\) += +(\\(\\(\\sw\\|[_.]\\)+\\)"
       (1 font-lock-variable-name-face)
       (3 font-lock-type-face))
@@ -2470,7 +2479,8 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-put-breakpoint-icon (enabled bptno)
   (let ((start (- (line-beginning-position) 1))
 	(end (+ (line-end-position) 1))
-	(putstring (if enabled "B" "b")))
+	(putstring (if enabled "B" "b"))
+	(source-window (get-buffer-window (current-buffer) 0)))
     (add-text-properties
      0 1 '(help-echo "mouse-1: set/clear bkpt, mouse-3: enable/disable bkpt")
      putstring)
@@ -2480,7 +2490,9 @@ BUFFER nil or omitted means use the current buffer."
        0 1 `(gdb-bptno ,bptno gdb-enabled nil) putstring))
     (gdb-remove-breakpoint-icons start end)
     (if (display-images-p)
-	(if (>= (car (window-fringes)) 8)
+	(if (>= (or left-fringe-width
+		   (if source-window (car (window-fringes source-window)))
+		   gdb-buffer-fringe-width) 8)
 	    (gdb-put-string
 	     nil (1+ start)
 	     `(left-fringe breakpoint
@@ -2490,9 +2502,9 @@ BUFFER nil or omitted means use the current buffer."
 	  (when (< left-margin-width 2)
 	    (save-current-buffer
 	      (setq left-margin-width 2)
-	      (if (get-buffer-window (current-buffer) 0)
+	      (if source-window
 		  (set-window-margins
-		   (get-buffer-window (current-buffer) 0)
+		   source-window
 		   left-margin-width right-margin-width))))
 	  (put-image
 	   (if enabled
@@ -2519,10 +2531,10 @@ BUFFER nil or omitted means use the current buffer."
       (when (< left-margin-width 2)
 	(save-current-buffer
 	  (setq left-margin-width 2)
-	  (if (get-buffer-window (current-buffer) 0)
+	  (let ((window (get-buffer-window (current-buffer) 0)))
+	    (if window
 	      (set-window-margins
-	       (get-buffer-window (current-buffer) 0)
-	       left-margin-width right-margin-width))))
+	       window left-margin-width right-margin-width)))))
       (gdb-put-string
        (propertize putstring
 		   'face (if enabled 'breakpoint-enabled 'breakpoint-disabled))
@@ -2534,10 +2546,10 @@ BUFFER nil or omitted means use the current buffer."
       (remove-images start end))
   (when remove-margin
     (setq left-margin-width 0)
-    (if (get-buffer-window (current-buffer) 0)
-	(set-window-margins
-	 (get-buffer-window (current-buffer) 0)
-	 left-margin-width right-margin-width))))
+    (let ((window (get-buffer-window (current-buffer) 0)))
+      (if window
+	  (set-window-margins
+	   window left-margin-width right-margin-width)))))
 
 
 ;;
