@@ -1,3 +1,9 @@
+2005-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (fancy-splash-default-action): Discard mouse click in
+	the spash screen window, as it has no sensible meaning in the
+	next window to be selected.  Fixes error reported by Jan D.
+
 2005-10-12  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* desktop.el (desktop-load-file): Do nothing when FUNCTION is nil.

@@ -1,3 +1,7 @@
+2005-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent): Clear last_mouse_glyph on mouse up/down.
+
 2005-10-12  Romain Francoise  <romain@orebokech.com>
 
 	* buffer.c (init_buffer): Rename `rc' to `len' for clarity.
