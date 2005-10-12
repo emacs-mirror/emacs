@@ -1,3 +1,8 @@
+2005-10-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (remember_mouse_glyph): Use MATRIX_BOTTOM_TEXT_ROW to
+	get end of text rows.  Obtain header-line/mode-line rows directly.
+
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (remember_mouse_glyph): New generic version based on
