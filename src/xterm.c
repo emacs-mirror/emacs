@@ -6634,6 +6634,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         int tool_bar_p = 0;
 
         bzero (&compose_status, sizeof (compose_status));
+	bzero (&last_mouse_glyph, sizeof (last_mouse_glyph));
 
         if (dpyinfo->grabbed
             && last_mouse_frame
