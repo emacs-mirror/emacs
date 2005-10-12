@@ -636,10 +636,17 @@ Char: c (0143, 99, 0x63)  point=21044 of 26883(78%)  column 53
   The four values after @samp{Char:} describe the character that follows
 point, first by showing it and then by giving its character code in
 octal, decimal and hex.  For a non-@acronym{ASCII} multibyte character, these are
-followed by @samp{ext} and the character's representation, in hex, in
+followed by @samp{file} and the character's representation, in hex, in
 the buffer's coding system, if that coding system encodes the character
 safely and with a single byte (@pxref{Coding Systems}).  If the
-character's encoding is longer than one byte, Emacs shows @samp{ext ...}.
+character's encoding is longer than one byte, Emacs shows @samp{file ...}.
+
+  However, if the character displayed is in the range 0200 through
+0377 octal, there's a case that it actually represents an invalid
+UTF-8 byte.  Emacs represents such a byte in a buffer by a sequence of
+8-bit characters, but displays only the original invalid byte in octal
+form.  In such a case, Emacs shows @samp{part of display ...} instead
+of @samp{file}.
 
   @samp{point=} is followed by the position of point expressed as a character
 count.  The front of the buffer counts as position 1, one character later
