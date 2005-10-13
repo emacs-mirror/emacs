@@ -288,7 +288,7 @@ recompile: mh-autoloads doit
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in
 # loaddefs.el.
-MH-E-SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
+MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
 	$(lisp)/mh-e/mh-comp.el $(lisp)/mh-e/mh-customize.el	\
 	$(lisp)/mh-e/mh-e.el $(lisp)/mh-e/mh-funcs.el		\
 	$(lisp)/mh-e/mh-mime.el $(lisp)/mh-e/mh-pick.el		\
@@ -299,7 +299,7 @@ MH-E-SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
 	$(lisp)/mh-e/mh-utils.el
 
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
-$(lisp)/mh-e/mh-loaddefs.el: $(MH-E-SRC)
+$(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
 	echo ";;" >> $@
 	echo ";;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc." >> $@
