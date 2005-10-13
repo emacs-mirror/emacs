@@ -1348,7 +1348,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
   current_header_line_height = current_mode_line_height = -1;
 
   if (visible_p && XFASTINT (w->hscroll) > 0)
-    *x -= XFASTINT (w->hscroll);
+    *x -= XFASTINT (w->hscroll) * WINDOW_FRAME_COLUMN_WIDTH (w);
 
   return visible_p;
 }
@@ -2112,7 +2112,16 @@ remember_mouse_glyph (f, gx, gy, rect)
 	      break;
 
 	  if (g < end)
-	    width = g->pixel_width;
+	    {
+	      if (g->type == IMAGE_GLYPH)
+		{
+		  /* Don't remember when mouse is over image, as
+		     image may have hot-spots.  */
+		  STORE_NATIVE_RECT (*rect, 0, 0, 0, 0);
+		  return;
+		}
+	      width = g->pixel_width;
+	    }
 	  else
 	    {
 	      /* Use nominal char spacing at end of line.  */
