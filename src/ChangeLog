@@ -1,3 +1,8 @@
+2005-10-13  Andreas Schwab  <schwab@suse.de>
+
+	* sysdep.c (request_sigio, unrequest_sigio): Do nothing in
+	non-interactive mode.
+
 2005-10-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* xterm.c, w32term.c, macterm.c (note_mouse_movement): Undo last change.
