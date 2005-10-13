@@ -124,950 +124,951 @@ value.")
 (defvar mixal-operation-codes-alist
   ;; FIXME: the codes FADD, FSUB, FMUL, FDIV, JRAD, and FCMP were in
   ;; mixal-operation-codes but not here.  They should probably be added here.
-  `((LDA loading "load A" 8 field
-         "Put in rA the contents of cell no. M.
+  (eval-when-compile
+    `((LDA loading "load A" 8 field
+           "Put in rA the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
 zeros to make a word."
-         2)
+           2)
 
-    (LDX loading "load X" 15 field
-         "Put in rX the contents of cell no. M.
+      (LDX loading "load X" 15 field
+           "Put in rX the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
 zeros to make a word."
-         2)
+           2)
 
-    (LD1 loading "load I1" ,(+ 8 1) field
-         "Put in rI1 the contents of cell no. M.
+      (LD1 loading "load I1" ,(+ 8 1) field
+           "Put in rI1 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
 zeros to make a word. Index registers only have 2 bytes and a sign, Trying
 to set anything more that that will result in undefined behavior."
-         2)
+           2)
 
-    (LD2 loading "load I2" ,(+ 8 2) field
-         "Put in rI2 the contents of cell no. M.
+      (LD2 loading "load I2" ,(+ 8 2) field
+           "Put in rI2 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
 zeros to make a word. Index registers only have 2 bytes and a sign, Trying
 to set anything more that that will result in undefined behavior."
-         2)
+           2)
 
-    (LD3 loading "load I3" ,(+ 8 3) field
-         "Put in rI3 the contents of cell no. M.
+      (LD3 loading "load I3" ,(+ 8 3) field
+           "Put in rI3 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
 zeros to make a word. Index registers only have 2 bytes and a sign, Trying
 to set anything more that that will result in undefined behavior."
-         2)
+           2)
 
-    (LD4 loading "load I4" ,(+ 8 4) field
-         "Put in rI4 the contents of cell no. M.
+      (LD4 loading "load I4" ,(+ 8 4) field
+           "Put in rI4 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
 zeros to make a word. Index registers only have 2 bytes and a sign, Trying
 to set anything more that that will result in undefined behavior."
-         2)
+           2)
 
-    (LD5 loading "load I5" ,(+ 8 5) field
-         "Put in rI5 the contents of cell no. M.
+      (LD5 loading "load I5" ,(+ 8 5) field
+           "Put in rI5 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
 zeros to make a word. Index registers only have 2 bytes and a sign, Trying
 to set anything more that that will result in undefined behavior."
-         2)
+           2)
 
-    (LD6 loading "load I6" ,(+ 8 6) field
-         "Put in rI6 the contents of cell no. M.
+      (LD6 loading "load I6" ,(+ 8 6) field
+           "Put in rI6 the contents of cell no. M.
 Uses a + when there is no sign in subfield. Subfield is left padded with
 zeros to make a word. Index registers only have 2 bytes and a sign, Trying
 to set anything more that that will result in undefined behavior."
-         2)
+           2)
 
-    (LDAN loading "load A negative" 16 field
-          "Put in rA the contents of cell no. M, with opposite sign.
+      (LDAN loading "load A negative" 16 field
+            "Put in rA the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word."
-          2)
+            2)
 
-    (LDXN loading "load X negative" 23 field
-          "Put in rX the contents of cell no. M, with opposite sign.
+      (LDXN loading "load X negative" 23 field
+            "Put in rX the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word."
-          2)
+            2)
 
-    (LD1N loading "load I1 negative" ,(+ 16 1) field
-          "Put in rI1 the contents of cell no. M, with opposite sign.
+      (LD1N loading "load I1 negative" ,(+ 16 1) field
+            "Put in rI1 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
 have 2 bytes and a sign, Trying to set anything more that that will result
 in undefined behavior."
-          2)
+            2)
 
-    (LD2N loading "load I2 negative" ,(+ 16 2) field
-          "Put in rI2 the contents of cell no. M, with opposite sign.
+      (LD2N loading "load I2 negative" ,(+ 16 2) field
+            "Put in rI2 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
 have 2 bytes and a sign, Trying to set anything more that that will result
 in undefined behavior."
-          2)
+            2)
 
-    (LD3N loading "load I3 negative" ,(+ 16 3) field
-          "Put in rI3 the contents of cell no. M, with opposite sign.
+      (LD3N loading "load I3 negative" ,(+ 16 3) field
+            "Put in rI3 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
 have 2 bytes and a sign, Trying to set anything more that that will result
 in undefined behavior."
-          2)
+            2)
 
-    (LD4N loading "load I4 negative" ,(+ 16 4) field
-          "Put in rI4 the contents of cell no. M, with opposite sign.
+      (LD4N loading "load I4 negative" ,(+ 16 4) field
+            "Put in rI4 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
 have 2 bytes and a sign, Trying to set anything more that that will result
 in undefined behavior."
-          2)
+            2)
 
-    (LD5N loading "load I5 negative" ,(+ 16 5) field
-          "Put in rI5 the contents of cell no. M, with opposite sign.
+      (LD5N loading "load I5 negative" ,(+ 16 5) field
+            "Put in rI5 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
 have 2 bytes and a sign, Trying to set anything more that that will result
 in undefined behavior."
-          2)
+            2)
 
-    (LD6N loading "load I6 negative" ,(+ 16 6) field
-          "Put in rI6 the contents of cell no. M, with opposite sign.
+      (LD6N loading "load I6 negative" ,(+ 16 6) field
+            "Put in rI6 the contents of cell no. M, with opposite sign.
 Uses a + when there is no sign in subfield, otherwise use the opposite sign.
 Subfield is left padded with zeros to make a word. Index registers only
 have 2 bytes and a sign, Trying to set anything more that that will result
 in undefined behavior."
-          2)
+            2)
 
-    (STA storing "store A" 24 field
-         "Store in cell Nr. M the contents of rA.
+      (STA storing "store A" 24 field
+           "Store in cell Nr. M the contents of rA.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with bytes from a register. These
 bytes are taken beginning by the rightmost side of the register. The
 sign of the memory cell is not changed, unless it is part of the subfield."
-         2)
+           2)
 
-    (STX storing "store X" 31 field
-         "Store in cell Nr. M the contents of rX.
+      (STX storing "store X" 31 field
+           "Store in cell Nr. M the contents of rX.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with bytes from a register. These
 bytes are taken beginning by the rightmost side of the register. The
 sign of the memory cell is not changed, unless it is part of the subfield."
-         2)
+           2)
 
-    (ST1 storing "store I1" ,(+ 24 1) field
-         "Store in cell Nr. M the contents of rI1.
+      (ST1 storing "store I1" ,(+ 24 1) field
+           "Store in cell Nr. M the contents of rI1.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with bytes from a register. These
 bytes are taken beginning by the rightmost side of the register. The
 sign of the memory cell is not changed, unless it is part of the subfield.
 Because index registers only have 2 bytes and a sign, the rest of the bytes
 are assumed to be 0."
-         2)
+           2)
 
-    (ST2 storing "store I2" ,(+ 24 2) field
-         "Store in cell Nr. M the contents of rI2.
+      (ST2 storing "store I2" ,(+ 24 2) field
+           "Store in cell Nr. M the contents of rI2.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with bytes from a register. These
 bytes are taken beginning by the rightmost side of the register. The
 sign of the memory cell is not changed, unless it is part of the subfield.
 Because index registers only have 2 bytes and a sign, the rest of the bytes
 are assumed to be 0."
-         2)
+           2)
 
-    (ST3 storing "store I3" ,(+ 24 3) field
-         "Store in cell Nr. M the contents of rI3.
+      (ST3 storing "store I3" ,(+ 24 3) field
+           "Store in cell Nr. M the contents of rI3.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with bytes from a register. These
 bytes are taken beginning by the rightmost side of the register. The
 sign of the memory cell is not changed, unless it is part of the subfield.
 Because index registers only have 2 bytes and a sign, the rest of the bytes
 are assumed to be 0."
-         2)
+           2)
 
-    (ST4 storing "store I4" ,(+ 24 4) field
-         "Store in cell Nr. M the contents of rI4.
+      (ST4 storing "store I4" ,(+ 24 4) field
+           "Store in cell Nr. M the contents of rI4.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with bytes from a register. These
 bytes are taken beginning by the rightmost side of the register. The
 sign of the memory cell is not changed, unless it is part of the subfield.
 Because index registers only have 2 bytes and a sign, the rest of the bytes
 are assumed to be 0."
-         2)
+           2)
 
-    (ST5 storing "store I5" ,(+ 24 5) field
-         "Store in cell Nr. M the contents of rI5.
+      (ST5 storing "store I5" ,(+ 24 5) field
+           "Store in cell Nr. M the contents of rI5.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with bytes from a register. These
 bytes are taken beginning by the rightmost side of the register. The
 sign of the memory cell is not changed, unless it is part of the subfield.
 Because index registers only have 2 bytes and a sign, the rest of the bytes
 are assumed to be 0."
-         2)
+           2)
 
-    (ST6 storing "store I6" ,(+ 24 6) field
-         "Store in cell Nr. M the contents of rI6.
+      (ST6 storing "store I6" ,(+ 24 6) field
+           "Store in cell Nr. M the contents of rI6.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with bytes from a register. These
 bytes are taken beginning by the rightmost side of the register. The
 sign of the memory cell is not changed, unless it is part of the subfield.
 Because index registers only have 2 bytes and a sign, the rest of the bytes
 are assumed to be 0."
-         2)
+           2)
 
-    (STJ storing "store J" 32 field
-         "Store in cell Nr. M the contents of rJ.
+      (STJ storing "store J" 32 field
+           "Store in cell Nr. M the contents of rJ.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with bytes from a register. These
 bytes are taken beginning by the rightmost side of the register. The sign
 of rJ is always +, sign of the memory cell is not changed, unless it is
 part of the subfield. The default field for STJ is (0:2)."
-         2)
+           2)
 
-    (STZ storing "store zero" 33 field
-         "Store in cell Nr. M '+ 0'.
+      (STZ storing "store zero" 33 field
+           "Store in cell Nr. M '+ 0'.
 The modification of the operation code represents the subfield of the
 memory cell that is to be overwritten with zeros."
-         2)
+           2)
 
-    (ADD arithmetic "add" 1 field
-         "Add to A the contents of cell Nr. M.
+      (ADD arithmetic "add" 1 field
+           "Add to A the contents of cell Nr. M.
 Subfield is padded with zero to make a word.
 If the result is to large, the operation result modulo 1,073,741,823 (the
 maximum value storable in a MIX word) is stored in `rA', and the overflow
 toggle is set to TRUE."
-         2)
+           2)
 
-    (SUB arithmetic "subtract" 2 field
-         "Subtract to A the contents of cell Nr. M.
+      (SUB arithmetic "subtract" 2 field
+           "Subtract to A the contents of cell Nr. M.
 Subfield is padded with zero to make a word.
 If the result is to large, the operation result modulo 1,073,741,823 (the
 maximum value storable in a MIX word) is stored in `rA', and the overflow
 toggle is set to TRUE."
-         2)
+           2)
 
-    (MUL arithmetic "multiply" 3 field
-         "Multiplies the contents of cell Nr. M with A, result is 10 bytes and stored in rA and rX.
+      (MUL arithmetic "multiply" 3 field
+           "Multiplies the contents of cell Nr. M with A, result is 10 bytes and stored in rA and rX.
 The sign is + if the sign of rA and cell M where the same, otherwise, it is -"
-         10)
+           10)
 
-    (DIV arithmetic "divide" 4 field
-         "Both rA and rX are taken together and divided by cell Nr. M, quotient is placed in rA, remainder in rX.
+      (DIV arithmetic "divide" 4 field
+           "Both rA and rX are taken together and divided by cell Nr. M, quotient is placed in rA, remainder in rX.
 The sign is taken from rA, and after the divide the sign of rA is set to + when
 both the sign of rA and M where the same. Divide by zero and overflow of rA
 result in undefined behavior."
-         12)
+           12)
 
-    (ENTA address-transfer "enter A" 48
-          "Literal value is stored in rA.
+      (ENTA address-transfer "enter A" 48
+            "Literal value is stored in rA.
 Indexed, stores value of index in rA."
-          1)
+            1)
 
-    (ENTX address-transfer "enter X" 55
-          "Literal value is stored in rX.
+      (ENTX address-transfer "enter X" 55
+            "Literal value is stored in rX.
 Indexed, stores value of index in rX."
-          1)
+            1)
 
-    (ENT1 address-transfer "Enter rI1" ,(+ 48 1)
-          "Literal value is stored in rI1.
+      (ENT1 address-transfer "Enter rI1" ,(+ 48 1)
+            "Literal value is stored in rI1.
 Indexed, stores value of index in rI1."
-          1)
+            1)
 
-    (ENT2 address-transfer "Enter rI2" ,(+ 48 2)
-          "Literal value is stored in rI2.
+      (ENT2 address-transfer "Enter rI2" ,(+ 48 2)
+            "Literal value is stored in rI2.
 Indexed, stores value of index in rI2."
-          1)
+            1)
 
-    (ENT3 address-transfer "Enter rI3" ,(+ 48 3)
-          "Literal value is stored in rI3.
+      (ENT3 address-transfer "Enter rI3" ,(+ 48 3)
+            "Literal value is stored in rI3.
 Indexed, stores value of index in rI3."
-          1)
+            1)
 
-    (ENT4 address-transfer "Enter rI4" ,(+ 48 4)
-          "Literal value is stored in rI4.
+      (ENT4 address-transfer "Enter rI4" ,(+ 48 4)
+            "Literal value is stored in rI4.
 Indexed, stores value of index in rI4."
-          1)
+            1)
 
-    (ENT5 address-transfer "Enter rI5" ,(+ 48 5)
-          "Literal value is stored in rI5.
+      (ENT5 address-transfer "Enter rI5" ,(+ 48 5)
+            "Literal value is stored in rI5.
 Indexed, stores value of index in rI5."
-          1)
+            1)
 
-    (ENT6 address-transfer "Enter rI6" ,(+ 48 6)
-          "Literal value is stored in rI6.
+      (ENT6 address-transfer "Enter rI6" ,(+ 48 6)
+            "Literal value is stored in rI6.
 Indexed, stores value of index in rI6."
-          1)
+            1)
 
-    (ENNA address-transfer "enter negative A" 48
-          "Literal value is stored in rA with opposite sign.
+      (ENNA address-transfer "enter negative A" 48
+            "Literal value is stored in rA with opposite sign.
 Indexed, stores value of index in rA with opposite sign."
-          1)
+            1)
 
-    (ENNX address-transfer "enter negative X" 55
-          "Literal value is stored in rX with opposite sign.
+      (ENNX address-transfer "enter negative X" 55
+            "Literal value is stored in rX with opposite sign.
 Indexed, stores value of index in rX with opposite sign."
-          1)
+            1)
 
-    (ENN1 address-transfer "Enter negative rI1" ,(+ 48 1)
-          "Literal value is stored in rI1 with opposite sign.
+      (ENN1 address-transfer "Enter negative rI1" ,(+ 48 1)
+            "Literal value is stored in rI1 with opposite sign.
 Indexed, stores value of index in rI1 with opposite sign."
-          1)
+            1)
 
-    (ENN2 address-transfer "Enter negative rI2" ,(+ 48 2)
-          "Literal value is stored in rI2 with opposite sign.
+      (ENN2 address-transfer "Enter negative rI2" ,(+ 48 2)
+            "Literal value is stored in rI2 with opposite sign.
 Indexed, stores value of index in rI2 with opposite sign."
-          1)
+            1)
 
-    (ENN3 address-transfer "Enter negative rI3" ,(+ 48 3)
-          "Literal value is stored in rI3 with opposite sign.
+      (ENN3 address-transfer "Enter negative rI3" ,(+ 48 3)
+            "Literal value is stored in rI3 with opposite sign.
 Indexed, stores value of index in rI3 with opposite sign."
-          1)
+            1)
 
-    (ENN4 address-transfer "Enter negative rI4" ,(+ 48 4)
-          "Literal value is stored in rI4 with opposite sign.
+      (ENN4 address-transfer "Enter negative rI4" ,(+ 48 4)
+            "Literal value is stored in rI4 with opposite sign.
 Indexed, stores value of index in rI4 with opposite sign."
-          1)
+            1)
 
-    (ENN5 address-transfer "Enter negative rI5" ,(+ 48 5)
-          "Literal value is stored in rI5 with opposite sign.
+      (ENN5 address-transfer "Enter negative rI5" ,(+ 48 5)
+            "Literal value is stored in rI5 with opposite sign.
 Indexed, stores value of index in rI5 with opposite sign."
-          1)
+            1)
 
-    (ENN6 address-transfer "Enter negative rI6" ,(+ 48 6)
-          "Literal value is stored in rI6 with opposite sign.
+      (ENN6 address-transfer "Enter negative rI6" ,(+ 48 6)
+            "Literal value is stored in rI6 with opposite sign.
 Indexed, stores value of index in rI6 with opposite sign."
-          1)
+            1)
 
-    (INCA address-transfer "increase A" 48
-          "Increase register A with the literal value of M.
+      (INCA address-transfer "increase A" 48
+            "Increase register A with the literal value of M.
 On overflow the overflow toggle is set."
-          1)
+            1)
 
-    (INCX address-transfer "increase X" 55
-          "Increase register X with the literal value of M.
+      (INCX address-transfer "increase X" 55
+            "Increase register X with the literal value of M.
 On overflow the overflow toggle is set."
-          1)
+            1)
 
-    (INC1 address-transfer "increase I1" ,(+ 48 1)
-          "Increase register I1 with the literal value of M.
+      (INC1 address-transfer "increase I1" ,(+ 48 1)
+            "Increase register I1 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (INC2 address-transfer "increase I2" ,(+ 48 2)
-          "Increase register I2 with the literal value of M.
+      (INC2 address-transfer "increase I2" ,(+ 48 2)
+            "Increase register I2 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (INC3 address-transfer "increase I3" ,(+ 48 3)
-          "Increase register I3 with the literal value of M.
+      (INC3 address-transfer "increase I3" ,(+ 48 3)
+            "Increase register I3 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (INC4 address-transfer "increase I4" ,(+ 48 4)
-          "Increase register I4 with the literal value of M.
+      (INC4 address-transfer "increase I4" ,(+ 48 4)
+            "Increase register I4 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (INC5 address-transfer "increase I5" ,(+ 48 5)
-          "Increase register I5 with the literal value of M.
+      (INC5 address-transfer "increase I5" ,(+ 48 5)
+            "Increase register I5 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (INC6 address-transfer "increase I6" ,(+ 48 6)
-          "Increase register I6 with the literal value of M.
+      (INC6 address-transfer "increase I6" ,(+ 48 6)
+            "Increase register I6 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (DECA address-transfer "decrease A" 48
-          "Decrease register A with the literal value of M.
+      (DECA address-transfer "decrease A" 48
+            "Decrease register A with the literal value of M.
 On overflow the overflow toggle is set."
-          1)
+            1)
 
-    (DECX address-transfer "decrease X" 55
-          "Decrease register X with the literal value of M.
+      (DECX address-transfer "decrease X" 55
+            "Decrease register X with the literal value of M.
 On overflow the overflow toggle is set."
-          1)
+            1)
 
-    (DEC1 address-transfer "decrease I1" ,(+ 48 1)
-          "Decrease register I1 with the literal value of M.
+      (DEC1 address-transfer "decrease I1" ,(+ 48 1)
+            "Decrease register I1 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (DEC2 address-transfer "decrease I2" ,(+ 48 2)
-          "Decrease register I2 with the literal value of M.
+      (DEC2 address-transfer "decrease I2" ,(+ 48 2)
+            "Decrease register I2 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (DEC3 address-transfer "decrease I3" ,(+ 48 3)
-          "Decrease register I3 with the literal value of M.
+      (DEC3 address-transfer "decrease I3" ,(+ 48 3)
+            "Decrease register I3 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (DEC4 address-transfer "decrease I4" ,(+ 48 4)
-          "Decrease register I4 with the literal value of M.
+      (DEC4 address-transfer "decrease I4" ,(+ 48 4)
+            "Decrease register I4 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (DEC5 address-transfer "decrease I5" ,(+ 48 5)
-          "Decrease register I5 with the literal value of M.
+      (DEC5 address-transfer "decrease I5" ,(+ 48 5)
+            "Decrease register I5 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (DEC6 address-transfer "decrease I6" ,(+ 48 6)
-          "Decrease register I6 with the literal value of M.
+      (DEC6 address-transfer "decrease I6" ,(+ 48 6)
+            "Decrease register I6 with the literal value of M.
 The result is undefined when the result does not fit in
 2 bytes."
-          1)
+            1)
 
-    (CMPA comparison "compare A" 56 field
-          "Compare contents of A with contents of M.
+      (CMPA comparison "compare A" 56 field
+            "Compare contents of A with contents of M.
 The field specifier works on both fields. The comparison indicator
 is set to LESS, EQUAL or GREATER depending on the outcome."
-          2)
+            2)
 
 
-    (CMPX comparison "compare X" 63 field
-          "Compare contents of rX with contents of M.
+      (CMPX comparison "compare X" 63 field
+            "Compare contents of rX with contents of M.
 The field specifier works on both fields. The comparison indicator
 is set to LESS, EQUAL or GREATER depending on the outcome."
-          2)
+            2)
 
 
-    (CMP1 comparison "compare I1" ,(+ 56 1) field
-          "Compare contents of rI1 with contents of M.
+      (CMP1 comparison "compare I1" ,(+ 56 1) field
+            "Compare contents of rI1 with contents of M.
 The field specifier works on both fields. The comparison indicator
 is set to LESS, EQUAL or GREATER depending on the outcome. Bit 1,2 and 3
 have a value of 0."
-          2)
+            2)
 
 
-    (CMP2 comparison "compare I2" ,(+ 56 2) field
-          "Compare contents of rI2 with contents of M.
+      (CMP2 comparison "compare I2" ,(+ 56 2) field
+            "Compare contents of rI2 with contents of M.
 The field specifier works on both fields. The comparison indicator
 is set to LESS, EQUAL or GREATER depending on the outcome. Bit 1,2 and 3
 have a value of 0."
-          2)
+            2)
 
 
-    (CMP3 comparison "compare I3" ,(+ 56 3) field
-          "Compare contents of rI3 with contents of M.
+      (CMP3 comparison "compare I3" ,(+ 56 3) field
+            "Compare contents of rI3 with contents of M.
 The field specifier works on both fields. The comparison indicator
 is set to LESS, EQUAL or GREATER depending on the outcome. Bit 1,2 and 3
 have a value of 0."
-          2)
+            2)
 
 
-    (CMP4 comparison "compare I4" ,(+ 56 4) field
-          "Compare contents of rI4 with contents of M.
+      (CMP4 comparison "compare I4" ,(+ 56 4) field
+            "Compare contents of rI4 with contents of M.
 The field specifier works on both fields. The comparison indicator
 is set to LESS, EQUAL or GREATER depending on the outcome. Bit 1,2 and 3
 have a value of 0."
-          2)
+            2)
 
 
-    (CMP5 comparison "compare I5" ,(+ 56 5) field
-          "Compare contents of rI5 with contents of M.
+      (CMP5 comparison "compare I5" ,(+ 56 5) field
+            "Compare contents of rI5 with contents of M.
 The field specifier works on both fields. The comparison indicator
 is set to LESS, EQUAL or GREATER depending on the outcome. Bit 1,2 and 3
 have a value of 0."
-          2)
+            2)
 
 
-    (CMP6 comparison "compare I6" ,(+ 56 6) field
-          "Compare contents of rI6 with contents of M.
+      (CMP6 comparison "compare I6" ,(+ 56 6) field
+            "Compare contents of rI6 with contents of M.
 The field specifier works on both fields. The comparison indicator
 is set to LESS, EQUAL or GREATER depending on the outcome. Bit 1,2 and 3
 have a value of 0."
-          2)
+            2)
 
-    (JMP jump "jump" 39
-         "Unconditional jump.
+      (JMP jump "jump" 39
+           "Unconditional jump.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
-    (JSJ jump "jump, save J" 39
-         "Unconditional jump, but rJ is not modified."
-         1)
+      (JSJ jump "jump, save J" 39
+           "Unconditional jump, but rJ is not modified."
+           1)
 
-    (JOV jump "jump on overflow" 39
-         "Jump if OV is set (and turn it off).
+      (JOV jump "jump on overflow" 39
+           "Jump if OV is set (and turn it off).
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
-    (JNOV jump "Jump on no overflow" 39
-          "Jump if OV is not set (and turn it off).
+      (JNOV jump "Jump on no overflow" 39
+            "Jump if OV is not set (and turn it off).
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
-    (JL jump "Jump on less" 39
-        "Jump if '[CM] = L'.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-        1)
-
-
-    (JE jump "Jump on equal" 39
-        "Jump if '[CM] = E'.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-        1)
-
-
-    (JG jump "Jump on greater" 39
-        "Jump if '[CM] = G'.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-        1)
-
-
-    (JGE jump "Jump on not less" 39
-         "Jump if '[CM]' does not equal 'L'.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-         1)
-
-
-    (JNE jump "Jump on not equal" 39
-         "Jump if '[CM]' does not equal 'E'.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-         1)
-
-
-    (JLE jump "Jump on not greater" 39
-         "Jump if '[CM]' does not equal 'G'.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-         1)
-
-    (JAN jump "jump A negative" 40
-         "Jump if the content of rA is negative.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-         1)
-
-
-    (JAZ jump "jump A zero" 40
-         "Jump if the content of rA is zero.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-         1)
-
-
-    (JAP jump "jump A positive" 40
-         "Jump if the content of rA is positive.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-         1)
-
-
-    (JANN jump "jump A non-negative" 40
-          "Jump if the content of rA is non-negative.
+      (JL jump "Jump on less" 39
+          "Jump if '[CM] = L'.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
           1)
 
 
-    (JANZ jump "jump A non-zero" 40
-          "Jump if the content of rA is non-zero.
+      (JE jump "Jump on equal" 39
+          "Jump if '[CM] = E'.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
           1)
 
 
-    (JANP jump "jump A non-positive" 40
-          "Jump if the content of rA is non-positive.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-          1)
-
-    (JXN jump "jump X negative" 47
-         "Jump if the content of rX is negative.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-         1)
-
-
-    (JXZ jump "jump X zero" 47
-         "Jump if the content of rX is zero.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-         1)
-
-
-    (JXP jump "jump X positive" 47
-         "Jump if the content of rX is positive.
-Register J is set to the value of the next instruction that would have
-been executed when there was no jump."
-         1)
-
-
-    (JXNN jump "jump X non-negative" 47
-          "Jump if the content of rX is non-negative.
+      (JG jump "Jump on greater" 39
+          "Jump if '[CM] = G'.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
           1)
 
 
-    (JXNZ jump "jump X non-zero" 47
-          "Jump if the content of rX is non-zero.
+      (JGE jump "Jump on not less" 39
+           "Jump if '[CM]' does not equal 'L'.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+           1)
 
 
-    (JXNP jump "jump X non-positive" 47
-          "Jump if the content of rX is non-positive.
+      (JNE jump "Jump on not equal" 39
+           "Jump if '[CM]' does not equal 'E'.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+           1)
 
-    (J1N jump "jump I1 negative" ,(+ 40 1)
-         "Jump if the content of rI1 is negative.
+
+      (JLE jump "Jump on not greater" 39
+           "Jump if '[CM]' does not equal 'G'.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
-
-    (J1Z jump "jump I1 zero" ,(+ 40 1)
-         "Jump if the content of rI1 is zero.
+      (JAN jump "jump A negative" 40
+           "Jump if the content of rA is negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J1P jump "jump I1 positive" ,(+ 40 1)
-         "Jump if the content of rI1 is positive.
+      (JAZ jump "jump A zero" 40
+           "Jump if the content of rA is zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J1NN jump "jump I1 non-negative" ,(+ 40 1)
-          "Jump if the content of rI1 is non-negative.
+      (JAP jump "jump A positive" 40
+           "Jump if the content of rA is positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+           1)
 
 
-    (J1NZ jump "jump I1 non-zero" ,(+ 40 1)
-          "Jump if the content of rI1 is non-zero.
+      (JANN jump "jump A non-negative" 40
+            "Jump if the content of rA is non-negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J1NP jump "jump I1 non-positive" ,(+ 40 1)
-          "Jump if the content of rI1 is non-positive.
+      (JANZ jump "jump A non-zero" 40
+            "Jump if the content of rA is non-zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
-    (J2N jump "jump I2 negative" ,(+ 40 1)
-         "Jump if the content of rI2 is negative.
+
+      (JANP jump "jump A non-positive" 40
+            "Jump if the content of rA is non-positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+            1)
 
-
-    (J2Z jump "jump I2 zero" ,(+ 40 1)
-         "Jump if the content of rI2 is zero.
+      (JXN jump "jump X negative" 47
+           "Jump if the content of rX is negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J2P jump "jump I2 positive" ,(+ 40 1)
-         "Jump if the content of rI2 is positive.
+      (JXZ jump "jump X zero" 47
+           "Jump if the content of rX is zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J2NN jump "jump I2 non-negative" ,(+ 40 1)
-          "Jump if the content of rI2 is non-negative.
+      (JXP jump "jump X positive" 47
+           "Jump if the content of rX is positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+           1)
 
 
-    (J2NZ jump "jump I2 non-zero" ,(+ 40 1)
-          "Jump if the content of rI2 is non-zero.
+      (JXNN jump "jump X non-negative" 47
+            "Jump if the content of rX is non-negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J2NP jump "jump I2 non-positive" ,(+ 40 1)
-          "Jump if the content of rI2 is non-positive.
+      (JXNZ jump "jump X non-zero" 47
+            "Jump if the content of rX is non-zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J3N jump "jump I3 negative" ,(+ 40 1)
-         "Jump if the content of rI3 is negative.
+      (JXNP jump "jump X non-positive" 47
+            "Jump if the content of rX is non-positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+            1)
 
-
-    (J3Z jump "jump I3 zero" ,(+ 40 1)
-         "Jump if the content of rI3 is zero.
+      (J1N jump "jump I1 negative" ,(+ 40 1)
+           "Jump if the content of rI1 is negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J3P jump "jump I3 positive" ,(+ 40 1)
-         "Jump if the content of rI3 is positive.
+      (J1Z jump "jump I1 zero" ,(+ 40 1)
+           "Jump if the content of rI1 is zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J3NN jump "jump I3 non-negative" ,(+ 40 1)
-          "Jump if the content of rI3 is non-negative.
+      (J1P jump "jump I1 positive" ,(+ 40 1)
+           "Jump if the content of rI1 is positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+           1)
 
 
-    (J3NZ jump "jump I3 non-zero" ,(+ 40 1)
-          "Jump if the content of rI3 is non-zero.
+      (J1NN jump "jump I1 non-negative" ,(+ 40 1)
+            "Jump if the content of rI1 is non-negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J3NP jump "jump I3 non-positive" ,(+ 40 1)
-          "Jump if the content of rI3 is non-positive.
+      (J1NZ jump "jump I1 non-zero" ,(+ 40 1)
+            "Jump if the content of rI1 is non-zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J4N jump "jump I4 negative" ,(+ 40 1)
-         "Jump if the content of rI4 is negative.
+      (J1NP jump "jump I1 non-positive" ,(+ 40 1)
+            "Jump if the content of rI1 is non-positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+            1)
 
-
-    (J4Z jump "jump I4 zero" ,(+ 40 1)
-         "Jump if the content of rI4 is zero.
+      (J2N jump "jump I2 negative" ,(+ 40 1)
+           "Jump if the content of rI2 is negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J4P jump "jump I4 positive" ,(+ 40 1)
-         "Jump if the content of rI4 is positive.
+      (J2Z jump "jump I2 zero" ,(+ 40 1)
+           "Jump if the content of rI2 is zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J4NN jump "jump I4 non-negative" ,(+ 40 1)
-          "Jump if the content of rI4 is non-negative.
+      (J2P jump "jump I2 positive" ,(+ 40 1)
+           "Jump if the content of rI2 is positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+           1)
 
 
-    (J4NZ jump "jump I4 non-zero" ,(+ 40 1)
-          "Jump if the content of rI4 is non-zero.
+      (J2NN jump "jump I2 non-negative" ,(+ 40 1)
+            "Jump if the content of rI2 is non-negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J4NP jump "jump I4 non-positive" ,(+ 40 1)
-          "Jump if the content of rI4 is non-positive.
+      (J2NZ jump "jump I2 non-zero" ,(+ 40 1)
+            "Jump if the content of rI2 is non-zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J5N jump "jump I5 negative" ,(+ 40 1)
-         "Jump if the content of rI5 is negative.
+      (J2NP jump "jump I2 non-positive" ,(+ 40 1)
+            "Jump if the content of rI2 is non-positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+            1)
 
 
-    (J5Z jump "jump I5 zero" ,(+ 40 1)
-         "Jump if the content of rI5 is zero.
+      (J3N jump "jump I3 negative" ,(+ 40 1)
+           "Jump if the content of rI3 is negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J5P jump "jump I5 positive" ,(+ 40 1)
-         "Jump if the content of rI5 is positive.
+      (J3Z jump "jump I3 zero" ,(+ 40 1)
+           "Jump if the content of rI3 is zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J5NN jump "jump I5 non-negative" ,(+ 40 1)
-          "Jump if the content of rI5 is non-negative.
+      (J3P jump "jump I3 positive" ,(+ 40 1)
+           "Jump if the content of rI3 is positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+           1)
 
 
-    (J5NZ jump "jump I5 non-zero" ,(+ 40 1)
-          "Jump if the content of rI5 is non-zero.
+      (J3NN jump "jump I3 non-negative" ,(+ 40 1)
+            "Jump if the content of rI3 is non-negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J5NP jump "jump I5 non-positive" ,(+ 40 1)
-          "Jump if the content of rI5 is non-positive.
+      (J3NZ jump "jump I3 non-zero" ,(+ 40 1)
+            "Jump if the content of rI3 is non-zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J6N jump "jump I6 negative" ,(+ 40 1)
-         "Jump if the content of rI6 is negative.
+      (J3NP jump "jump I3 non-positive" ,(+ 40 1)
+            "Jump if the content of rI3 is non-positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+            1)
 
 
-    (J6Z jump "jump I6 zero" ,(+ 40 1)
-         "Jump if the content of rI6 is zero.
+      (J4N jump "jump I4 negative" ,(+ 40 1)
+           "Jump if the content of rI4 is negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J6P jump "jump I6 positive" ,(+ 40 1)
-         "Jump if the content of rI6 is positive.
+      (J4Z jump "jump I4 zero" ,(+ 40 1)
+           "Jump if the content of rI4 is zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-         1)
+           1)
 
 
-    (J6NN jump "jump I6 non-negative" ,(+ 40 1)
-          "Jump if the content of rI6 is non-negative.
+      (J4P jump "jump I4 positive" ,(+ 40 1)
+           "Jump if the content of rI4 is positive.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+           1)
 
 
-    (J6NZ jump "jump I6 non-zero" ,(+ 40 1)
-          "Jump if the content of rI6 is non-zero.
+      (J4NN jump "jump I4 non-negative" ,(+ 40 1)
+            "Jump if the content of rI4 is non-negative.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
 
-    (J6NP jump "jump I6 non-positive" ,(+ 40 1)
-          "Jump if the content of rI6 is non-positive.
+      (J4NZ jump "jump I4 non-zero" ,(+ 40 1)
+            "Jump if the content of rI4 is non-zero.
 Register J is set to the value of the next instruction that would have
 been executed when there was no jump."
-          1)
+            1)
 
-    (SLA miscellaneous "shift left A" 6
-         "Shift to A, M bytes left.
+
+      (J4NP jump "jump I4 non-positive" ,(+ 40 1)
+            "Jump if the content of rI4 is non-positive.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+            1)
+
+
+      (J5N jump "jump I5 negative" ,(+ 40 1)
+           "Jump if the content of rI5 is negative.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+           1)
+
+
+      (J5Z jump "jump I5 zero" ,(+ 40 1)
+           "Jump if the content of rI5 is zero.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+           1)
+
+
+      (J5P jump "jump I5 positive" ,(+ 40 1)
+           "Jump if the content of rI5 is positive.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+           1)
+
+
+      (J5NN jump "jump I5 non-negative" ,(+ 40 1)
+            "Jump if the content of rI5 is non-negative.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+            1)
+
+
+      (J5NZ jump "jump I5 non-zero" ,(+ 40 1)
+            "Jump if the content of rI5 is non-zero.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+            1)
+
+
+      (J5NP jump "jump I5 non-positive" ,(+ 40 1)
+            "Jump if the content of rI5 is non-positive.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+            1)
+
+
+      (J6N jump "jump I6 negative" ,(+ 40 1)
+           "Jump if the content of rI6 is negative.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+           1)
+
+
+      (J6Z jump "jump I6 zero" ,(+ 40 1)
+           "Jump if the content of rI6 is zero.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+           1)
+
+
+      (J6P jump "jump I6 positive" ,(+ 40 1)
+           "Jump if the content of rI6 is positive.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+           1)
+
+
+      (J6NN jump "jump I6 non-negative" ,(+ 40 1)
+            "Jump if the content of rI6 is non-negative.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+            1)
+
+
+      (J6NZ jump "jump I6 non-zero" ,(+ 40 1)
+            "Jump if the content of rI6 is non-zero.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+            1)
+
+
+      (J6NP jump "jump I6 non-positive" ,(+ 40 1)
+            "Jump if the content of rI6 is non-positive.
+Register J is set to the value of the next instruction that would have
+been executed when there was no jump."
+            1)
+
+      (SLA miscellaneous "shift left A" 6
+           "Shift to A, M bytes left.
 Hero's will be added to the right."
-         2)
+           2)
 
 
-    (SRA miscellaneous "shift right A" 6
-         "Shift to A, M bytes right.
+      (SRA miscellaneous "shift right A" 6
+           "Shift to A, M bytes right.
 Zeros will be added to the left."
-         2)
+           2)
 
 
-    (SLAX miscellaneous "shift left AX" 6
-          "Shift AX, M bytes left.
+      (SLAX miscellaneous "shift left AX" 6
+            "Shift AX, M bytes left.
 Zeros will be added to the right."
-          2)
+            2)
 
 
 
-    (SRAX miscellaneous "shift right AX" 6
-          "Shift AX, M bytes right.
+      (SRAX miscellaneous "shift right AX" 6
+            "Shift AX, M bytes right.
 Zeros will be added to the left."
-          2)
+            2)
 
 
-    (SLC miscellaneous "shift left AX circularly" 6
-         "Shift AX, M bytes left circularly.
+      (SLC miscellaneous "shift left AX circularly" 6
+           "Shift AX, M bytes left circularly.
 The bytes that fall off to the left will be added to the right."
-         2)
+           2)
 
 
-    (SRC miscellaneous "shift right AX circularly" 6
-         "Shift AX, M bytes right circularly.
+      (SRC miscellaneous "shift right AX circularly" 6
+           "Shift AX, M bytes right circularly.
 The bytes that fall off to the right will be added to the left."
-         2)
+           2)
 
-    (MOVE miscellaneous "move" 7 number
-          "Move MOD words from M to the location stored in rI1."
-          (+ 1 (* 2 number)))
+      (MOVE miscellaneous "move" 7 number
+            "Move MOD words from M to the location stored in rI1."
+            (+ 1 (* 2 number)))
 
-    (NOP miscellaneous "no operation" 0 ignored
-         "No operation, M and F are not used by the machine."
-         1)
+      (NOP miscellaneous "no operation" 0 ignored
+           "No operation, M and F are not used by the machine."
+           1)
 
-    (HLT miscellaneous "halt" 5
-         "Halt.
+      (HLT miscellaneous "halt" 5
+           "Halt.
 Stop instruction fetching."
-         1)
+           1)
 
-    (IN input-output "input" 36 unit
-        "Transfer a block of words from the specified unit to memory.
+      (IN input-output "input" 36 unit
+          "Transfer a block of words from the specified unit to memory.
 The transfer starts at address M."
-        1)
+          1)
 
-    (OUT input-output "output" 37 unit
-         "Transfer a block of words from memory.
+      (OUT input-output "output" 37 unit
+           "Transfer a block of words from memory.
 The transfer starts at address M to the specified unit."
-         1)
+           1)
 
-    (IOC input-output "input-output control" 35 unit
-         "Perform a control operation.
+      (IOC input-output "input-output control" 35 unit
+           "Perform a control operation.
 The control operation is given by M on the specified unit."
-         1)
+           1)
 
-    (JRED input-output "jump ready" 38 unit
-          "Jump to M if the specified unit is ready."
-          1)
+      (JRED input-output "jump ready" 38 unit
+            "Jump to M if the specified unit is ready."
+            1)
 
 
-    (JBUS input-output "jump busy" 34 unit
-          "Jump to M if the specified unit is busy."
-          1)
+      (JBUS input-output "jump busy" 34 unit
+            "Jump to M if the specified unit is busy."
+            1)
 
-    (NUM conversion "convert to numeric" 5
-         "Convert rAX to its numerical value and store it in rA.
+      (NUM conversion "convert to numeric" 5
+           "Convert rAX to its numerical value and store it in rA.
 the register rAX is assumed to contain a character representation of
 a number."
-         10)
+           10)
 
-    (CHAR conversion "convert to characters" 5
-          "Convert the number stored in rA to a character representation.
+      (CHAR conversion "convert to characters" 5
+            "Convert the number stored in rA to a character representation.
 The converted character representation is stored in rAX."
-          10))
+            10)))
 
   "Alist that contains all the possible operation codes for mix.
 Each elt has the form
