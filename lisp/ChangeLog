@@ -1,5 +1,8 @@
 2005-10-13  Kenichi Handa  <handa@m17n.org>
 
+	* international/utf-8.el (utf-8-compose): Display an invalid UTF-8
+	byte with `escape-glyph' face.
+
 	* international/fontset.el (ccl-encode-unicode-font): Lookup
 	utf-subst-table-for-encode, not ucs-mule-cjk-to-unicode.  Handle
 	the case that ucs-mule-to-mule-unicode translates a character to
