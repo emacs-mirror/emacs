@@ -52,7 +52,7 @@
 	(mixal-font-lock-keywords): Process comments here.
 	(mixal-mode): mixasm no longer needs -g option.
 
-2005-10-11  Sven Joachim  <svenjoac@gmx.de>
+2005-10-11  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
 
 	* progmodes/sh-script.el (sh-tmp-file):
 	Use mktemp -t.  Finish support for es and rc shells.
@@ -852,7 +852,7 @@
 	color rxvt terminals by using the code xterm.el used to use before
 	2005-04-09 in order to match the colors used by rxvt.
 
-2005-09-24  Emanuele Giaquinta <emanuele.giaquinta@gmail.com> (tiny change)
+2005-09-24  Emanuele Giaquinta <emanuele.giaquinta@gmail.com>  (tiny change)
 
 	* term/rxvt.el (rxvt-register-default-colors): Add support for 88
 	colors rxvt-unicode terminals by using the same code as xterm.el.
