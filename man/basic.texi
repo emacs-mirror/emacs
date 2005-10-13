@@ -642,11 +642,11 @@ safely and with a single byte (@pxref{Coding Systems}).  If the
 character's encoding is longer than one byte, Emacs shows @samp{file ...}.
 
   However, if the character displayed is in the range 0200 through
-0377 octal, there's a case that it actually represents an invalid
-UTF-8 byte.  Emacs represents such a byte in a buffer by a sequence of
-8-bit characters, but displays only the original invalid byte in octal
-form.  In such a case, Emacs shows @samp{part of display ...} instead
-of @samp{file}.
+0377 octal, it may actually stand for an invalid UTF-8 byte read from
+a file.  In Emacs, that byte is represented as a sequence of 8-bit
+characters, but all of them together display as the original invalid
+byte, in octal code.  In this case, @kbd{C-x =} shows @samp{part of
+display ...} instead of @samp{file}.
 
   @samp{point=} is followed by the position of point expressed as a character
 count.  The front of the buffer counts as position 1, one character later
