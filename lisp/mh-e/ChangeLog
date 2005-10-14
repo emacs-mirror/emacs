@@ -1,9 +1,19 @@
+2005-10-14  Bill Wohler	 <wohler@newt.com>
+
+	Released MH-E version 7.85.
+	  
+	* mh-e.el (Version, mh-version): Updated for release 7.85.
+	
 2005-10-14  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el, mh-funcs.el, mh-init.el, mh-mime.el, mh-pick.el:
 	* mh-seq.el, mh-utils.el: Ran mh-unit. Continued copyright lines
 	need to be indented. 
 	
+	* mh-e.el: mh-folder-tick-face had been renamed to mh-folder-tick
+	but the code that invoked the face had not been updated. Tick
+	highlighting working again.
+
 	* mh-seq.el (mh-non-seq-mode-line-annotation): Moved
 	make-variable-buffer-local call to top level to avoid warnings in
 	CVS Emacs.

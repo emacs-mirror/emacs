@@ -408,7 +408,7 @@ is done highlighting.")
                      (list (list ',func (list 1 '',face 'prepend t))))))))
 
 (mh-generate-sequence-font-lock mh-unseen-seq unseen bold)
-(mh-generate-sequence-font-lock mh-tick-seq tick mh-folder-tick-face)
+(mh-generate-sequence-font-lock mh-tick-seq tick mh-folder-tick)
 
 
 
