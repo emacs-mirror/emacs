@@ -33,6 +33,10 @@ Entry in the table at <http://info.ravenbrook.com/project/mps/version/>.
 __How to make a new version:__
 
 1. Make the branch:  p4 branch mps/version/A.BBB
+Description:
+  Branching master sources for version A.BBB.
+Always the whole of master:
+  //info.ravenbrook.com/project/mps/master/... //info.ravenbrook.com/project/mps/version/A.BBB/...
 
 2. p4 integrate -b mps/version/A.BBB
 
@@ -43,6 +47,16 @@ __How to make a new version:__
 [Note: it's better to do it this way -- do the integrate from the _implicit_ tip of the master, and then check back to see what happened -- because it's hard to get wrong.  Also, then the integrate has the changelevel origin+1.  Clashes with master submits could theoretically occur, and could be avoided by determining the origin first and specifying it to the initial integrate, but in practice this never happens.  RHSK]
 
 5. Update the table at <http://info.ravenbrook.com/project/mps/version/>.
+
+6. Edit Master->Version in documents that erroneously say "Master".  
+Always edit version/A.BBB/index.html, eg. (case-sensitive):
+  "of the Master version"  ->  "of Version A.BBB"
+  "Master"  ->  "Version A.BBB"
+Less importantly, edit various other files.  See change 30260.  
+
+7. Do an empty-integrate of these changes back on to the masters, so P4 thinks it's done and doesn't keep suggesting it:
+  p4 integrate -r -b mps/version/A.BBB <Files Edited Master->Version>
+  p4 resolve -ay <Files Edited Master->Version>
 
 END OF PROCEDURE
 
