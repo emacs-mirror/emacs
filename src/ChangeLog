@@ -1,3 +1,10 @@
+2005-10-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (note_mouse_movement, XTread_socket): Apply 2005-10-14
+	changes for xterm.c.
+
+	* w32term.c (note_mouse_movement, w32_read_socket): Likewise.
+
 2005-10-14  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (search_buffer): Give up BM search on case-fold-search
