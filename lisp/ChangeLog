@@ -1,3 +1,11 @@
+2005-10-14  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-track-opened-file)
+	(recentf-track-closed-file, recentf-update-menu)
+	(recentf-used-hooks, recentf-enabled-p): Move before dialog stuff.
+	(recentf-dialog-mode-map): Map follow-link to RET, so dialogs obey
+	mouse-1-click-follows-link.
+
 2005-10-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* toolbar/diropen.xpm, toolbar/diropen.pbm: New versions made from
