@@ -55,7 +55,7 @@ The client must do this 'soon after linking': all callbacks must be registered b
 
 Once the client registers its plinth functions, they may be called by the MPS at various times, just as for the statically-linked version of the MPS.  
 
-See mpslib.h for the list of plinth functions the client must register.  There is no way for the client to check that all required callbacks have been successfully registered.  [Should MPS provide a way for the client to check this?  Even linkers report unresolved symbols; surely we should set our sights at least that high. -RHSK]
+See mpslib.h for the list of plinth functions the client must register.  (Functions in mpsio.h do not need to be registered for normal builds, and the MPS DLL does not support them).  There is no way for the client to check that all required callbacks have been successfully registered.  [Should MPS provide a way for the client to check this?  Even linkers report unresolved symbols; surely we should set our sights at least that high. -RHSK]
 
 Scope of the DLL callback-register mechanism's state: currently, the DLL stores the function pointers passed to mps_lib_callback_register() in global static data.  When, whether, and how this is created, shared, and destroyed, is up to the operating system.  The function pointers in the static data are statically initialised to dummy functions.  The client does not need to do anything to the callback-register mechanism on shut-down: storage is reclaimed by the operating system automatically.
 
