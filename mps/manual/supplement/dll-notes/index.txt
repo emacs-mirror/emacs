@@ -127,6 +127,7 @@ A. REFERENCES
 B. DOCUMENT HISTORY
 
 2005-10-06  RHSK  Created based on <http://info.ravenbrook.com/mail/2005/10/05/14-25-04/0.txt>.
+2005-10-14  RHSK  Improve clarity of explanation.
 
 
 C. COPYRIGHT AND LICENSE
