@@ -4149,7 +4149,7 @@ x_get_keysym_name (keysym)
 static Point last_mouse_motion_position;
 static Lisp_Object last_mouse_motion_frame;
 
-static void
+static int
 note_mouse_movement (frame, pos)
      FRAME_PTR frame;
      Point *pos;
@@ -4180,19 +4180,23 @@ note_mouse_movement (frame, pos)
 	    rif->define_frame_cursor (frame,
 				      frame->output_data.mac->nontext_cursor);
 	}
+      return 1;
     }
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  else if (pos->h < last_mouse_glyph.left
-	   || pos->h >= last_mouse_glyph.right
-	   || pos->v < last_mouse_glyph.top
-	   || pos->v >= last_mouse_glyph.bottom)
+  if (pos->h < last_mouse_glyph.left
+      || pos->h >= last_mouse_glyph.right
+      || pos->v < last_mouse_glyph.top
+      || pos->v >= last_mouse_glyph.bottom)
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, pos->h, pos->v);
       /* Remember which glyph we're now on.  */
       remember_mouse_glyph (frame, pos->h, pos->v, &last_mouse_glyph);
+      return 1;
     }
+
+  return 0;
 }
 
 
@@ -10031,8 +10035,7 @@ XTread_socket (sd, expected, hold_quit)
 			  er.where.h + 1, er.where.v + 1);
 #endif
 	      previous_help_echo_string = help_echo_string;
-	      help_echo_string = help_echo_object = help_echo_window = Qnil;
-	      help_echo_pos = -1;
+	      help_echo_string = Qnil;
 
 	      if (dpyinfo->grabbed && last_mouse_frame
 		  && FRAME_LIVE_P (last_mouse_frame))
@@ -10091,7 +10094,8 @@ XTread_socket (sd, expected, hold_quit)
 
 			  last_window=window;
 			}
-		      note_mouse_movement (f, &mouse_pos);
+		      if (!note_mouse_movement (f, &mouse_pos))
+			help_echo_string = previous_help_echo_string;
 		    }
 		}
 
