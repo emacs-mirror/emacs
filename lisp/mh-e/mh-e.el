@@ -778,7 +778,7 @@ bottom of the current message."
         (if (mh-in-show-buffer (mh-show-buffer)
               (pos-visible-in-window-p (point-max)))
             (progn
-              (message 
+              (message
                "End of message (Type %s to read %s undeleted message)"
                (single-key-description last-input-event)
                (if (equal mh-next-direction 'backward)

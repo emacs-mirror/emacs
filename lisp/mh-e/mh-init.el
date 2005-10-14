@@ -311,7 +311,7 @@ by the variable `mh-variants'."
 (defun mh-image-load-path ()
   "Ensure that the MH-E images are accessible by `find-image'.
 Images for MH-E are found in ../../etc/images relative to the files in
-lisp/mh-e. If `image-load-path' exists (since Emacs 22), then the images
+`lisp/mh-e'. If `image-load-path' exists (since Emacs 22), then the images
 directory is added to it if isn't already there. Otherwise, the images
 directory is added to the `load-path' if it isn't already there."
   (let (mh-load-path mh-image-load-path)

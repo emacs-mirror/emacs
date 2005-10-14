@@ -1,5 +1,9 @@
 2005-10-14  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el, mh-funcs.el, mh-init.el, mh-mime.el, mh-pick.el:
+	* mh-seq.el, mh-utils.el: Ran mh-unit. Continued copyright lines
+	need to be indented. 
+	
 	* mh-seq.el (mh-non-seq-mode-line-annotation): Moved
 	make-variable-buffer-local call to top level to avoid warnings in
 	CVS Emacs.

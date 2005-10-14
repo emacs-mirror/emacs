@@ -1,7 +1,7 @@
 ;;; mh-pick.el --- make a search pattern and search for a message in MH-E
 
 ;; Copyright (C) 1993, 1995,
-;; 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
