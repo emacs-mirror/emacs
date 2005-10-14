@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.84+cvs
+;; Version: 7.85
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -98,7 +98,7 @@
 (defvar font-lock-auto-fontify)
 (defvar font-lock-defaults)
 
-(defconst mh-version "7.84+cvs" "Version number of MH-E.")
+(defconst mh-version "7.85" "Version number of MH-E.")
 
 (defvar mh-partial-folder-mode-line-annotation "select"
   "Annotation when displaying part of a folder.
