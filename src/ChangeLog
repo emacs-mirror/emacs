@@ -1,3 +1,12 @@
+2005-10-14  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (search_buffer): Give up BM search on case-fold-search
+	if one of a target character has a case-equivalence of different
+	charset even if that target charcter is an ASCII.
+
+	* casefiddle.c (casify_object): Fix for the case that case
+	conversion change the byte length.
+
 2005-10-14  Kim F. Storm  <storm@cua.dk>
 
 	* xterm.c (note_mouse_movement): Return 1 if mouse moved; 0 otherwise.
