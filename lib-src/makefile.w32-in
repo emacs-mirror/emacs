@@ -191,15 +191,6 @@ lisp1= \
 	$(lispsource)international/mule-conf.el \
 	$(lispsource)international/mule-cmds.elc \
 	$(lispsource)international/characters.elc \
-	$(lispsource)international/ucs-tables.elc \
-	$(lispsource)international/utf-8.elc \
-	$(lispsource)international/latin-1.el \
-	$(lispsource)international/latin-2.el \
-	$(lispsource)international/latin-3.el \
-	$(lispsource)international/latin-4.el \
-	$(lispsource)international/latin-5.el \
-	$(lispsource)international/latin-8.el \
-	$(lispsource)international/latin-9.el \
 	$(lispsource)case-table.elc
 
 lisp2 = \
