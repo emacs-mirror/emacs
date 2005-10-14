@@ -224,6 +224,8 @@ appears."
 ;; Avoid compiler warning
 (defvar tool-bar-map)
 
+(make-variable-buffer-local 'mh-non-seq-mode-line-annotation)
+
 ;;;###mh-autoload
 (defun mh-narrow-to-seq (sequence)
   "Restrict display of this folder to just messages in SEQUENCE.
@@ -243,7 +245,6 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
              (mh-notate-deleted-and-refiled)
              (mh-notate-cur)
              (when msg-at-cursor (mh-goto-msg msg-at-cursor t t))
-             (make-variable-buffer-local 'mh-non-seq-mode-line-annotation)
              (setq mh-non-seq-mode-line-annotation mh-mode-line-annotation)
              (setq mh-mode-line-annotation (symbol-name sequence))
              (mh-make-folder-mode-line)

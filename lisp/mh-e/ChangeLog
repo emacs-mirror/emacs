@@ -1,3 +1,12 @@
+2005-10-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-seq.el (mh-non-seq-mode-line-annotation): Moved
+	make-variable-buffer-local call to top level to avoid warnings in
+	CVS Emacs.
+
+	* mh-comp.el (mh-insert-letter): Replaced deprecated read-input
+	with read-string.
+
 2005-10-09  Bill Wohler  <wohler@newt.com>
 
 	* mh-init.el (mh-image-load-path): New function that adds the path
