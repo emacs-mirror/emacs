@@ -1,0 +1,4 @@
+2005-10-14  Zhang Wei <id.brep@gmail.com>  (tiny change)
+
+	* lib-src/makefile.w32-in (lisp1): Delete ucs-tables.elc,
+	utf-8.elc, and latin-*.el.
