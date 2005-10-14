@@ -958,12 +958,14 @@ at the same position."
         (mouse-move-drag-overlay mouse-drag-overlay start-point end-point click-count))
 
       (if (consp event)
-	  (let ((fun (key-binding (vector (car event)))))
+	  (let* ((fun (key-binding (vector (car event))))
+		 (do-multi-click   (and (> (event-click-count event) 0)
+					(functionp fun)
+					(not (eq fun 'mouse-set-point)))))
             ;; Run the binding of the terminating up-event, if possible.
-            ;; In the case of a multiple click, it gives the wrong results,
-	    ;; because it would fail to set up a region.
-	    (if (not (= (overlay-start mouse-drag-overlay)
-			(overlay-end mouse-drag-overlay)))
+	    (if (and (not (= (overlay-start mouse-drag-overlay)
+			     (overlay-end mouse-drag-overlay)))
+		     (not do-multi-click))
 		(let* ((stop-point
 			(if (numberp (posn-point (event-end event)))
 			    (posn-point (event-end event))
@@ -996,8 +998,12 @@ at the same position."
                     (and (mark t) mark-active
                          (eq buffer (current-buffer))
                          (mouse-set-region-1))))
-              (delete-overlay mouse-drag-overlay)
               ;; Run the binding of the terminating up-event.
+	      ;; If a multiple click is not bound to mouse-set-point,
+	      ;; cancel the effects of mouse-move-drag-overlay to
+	      ;; avoid producing wrong results.
+	      (if do-multi-click (goto-char start-point))
+              (delete-overlay mouse-drag-overlay)
               (when (and (functionp fun)
                          (= start-hscroll (window-hscroll start-window))
                          ;; Don't run the up-event handler if the

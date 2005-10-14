@@ -1,3 +1,8 @@
+2005-10-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-region-1): Handle the case where a
+	double-click event is bound to an arbitrary function.
+
 2005-10-14  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-track-opened-file)
