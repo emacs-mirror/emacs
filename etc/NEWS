@@ -251,6 +251,11 @@ disables the splash screen; see also the variable
 `inhibit-splash-screen').
 
 +++
+** The default is now to use an bitmap as the icon, so the command-line options
+--icon-type, -i has been replaced with options --no-bitmap-icon, -nbi to turn
+the bitmap icon off.
+
++++
 ** New user option `inhibit-startup-buffer-menu'.
 When loading many files, for instance with `emacs *', Emacs normally
 displays a buffer menu.  This option turns the buffer menu off.
@@ -2982,6 +2987,50 @@ from Outlook-format appointments in mail messages.  The variable
 `diary-outlook-formats' can be customized to recognize additional
 formats.
 
++++
+** Speedbar changes:
+
+*** Speedbar items can now be selected by clicking mouse-1, based on
+the `mouse-1-click-follows-link' mechanism.
+
+*** SPC and DEL are no longer bound to scroll up/down in the speedbar
+keymap.
+
+*** The new command `speedbar-toggle-line-expansion', bound to SPC,
+contracts or expands the line under the cursor.
+
+*** New command `speedbar-create-directory', bound to `M'.
+
+*** The new commands `speedbar-expand-line-descendants' and
+`speedbar-contract-line-descendants', bound to `[' and `]'
+respectively, expand and contract the line under cursor with all of
+its descendents.
+
+*** The new user option `speedbar-query-confirmation-method' controls
+how querying is performed for file operations.  A value of 'always
+means to always query before file operations; 'none-but-delete means
+to not query before any file operations, except before a file
+deletion.
+
+*** The new user option `speedbar-select-frame-method' specifies how
+to select a frame for displaying a file opened with the speedbar.  A
+value of 'attached means to use the attached frame (the frame that
+speedbar was started from.)  A number such as 1 or -1 means to pass
+that number to `other-frame'.
+
+*** The new user option `speedbar-use-tool-tips-flag', if non-nil,
+means to display tool-tips for speedbar items.
+
+*** The frame management code in speedbar.el has been split into a new
+`dframe' library.  Emacs Lisp code that makes use of the speedbar
+should use `dframe-attached-frame' instead of
+`speedbar-attached-frame', `dframe-timer' instead of `speedbar-timer',
+`dframe-close-frame' instead of `speedbar-close-frame', and
+`dframe-activity-change-focus-flag' instead of
+`speedbar-activity-change-focus-flag'.  The variables
+`speedbar-update-speed' and `speedbar-navigating-speed' are also
+obsolete; use `dframe-update-speed' instead.
+
 ---
 ** sql changes.
 
@@ -4428,7 +4477,7 @@ If non-nil, that says to preserve the window's current margin, fringe,
 and scroll-bar settings.
 
 +++
-*** The new function `window-split-tree' returns a frame's window split tree.
+*** The new function `window-tree' returns a frame's window tree.
 
 +++
 ** Customizable fringe bitmaps

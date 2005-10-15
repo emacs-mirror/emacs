@@ -901,7 +901,7 @@ DEFUN ("frame-list", Fframe_list, Sframe_list,
    If MINIBUF is 0, include all visible and iconified frames.
    Otherwise, include all frames.  */
 
-Lisp_Object
+static Lisp_Object
 next_frame (frame, minibuf)
      Lisp_Object frame;
      Lisp_Object minibuf;
@@ -978,7 +978,7 @@ next_frame (frame, minibuf)
    If MINIBUF is 0, include all visible and iconified frames.
    Otherwise, include all frames.  */
 
-Lisp_Object
+static Lisp_Object
 prev_frame (frame, minibuf)
      Lisp_Object frame;
      Lisp_Object minibuf;
@@ -1813,7 +1813,7 @@ Focus redirection is useful for temporarily redirecting keystrokes to
 a surrogate minibuffer frame when a frame doesn't have its own
 minibuffer window.
 
-A frame's focus redirection can be changed by select-frame.  If frame
+A frame's focus redirection can be changed by `select-frame'.  If frame
 FOO is selected, and then a different frame BAR is selected, any
 frames redirecting their focus to FOO are shifted to redirect their
 focus to BAR.  This allows focus redirection to work properly when the
@@ -1821,7 +1821,7 @@ user switches from one frame to another using `select-window'.
 
 This means that a frame whose focus is redirected to itself is treated
 differently from a frame whose focus is redirected to nil; the former
-is affected by select-frame, while the latter is not.
+is affected by `select-frame', while the latter is not.
 
 The redirection lasts until `redirect-frame-focus' is called to change it.  */)
      (frame, focus_frame)
@@ -1952,7 +1952,7 @@ frame_name_fnn_p (str, len)
 /* Set the name of the terminal frame.  Also used by MSDOS frames.
    Modeled after x_set_name which is used for WINDOW frames.  */
 
-void
+static void
 set_term_frame_name (f, name)
      struct frame *f;
      Lisp_Object name;

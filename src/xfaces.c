@@ -790,7 +790,10 @@ x_create_gc (f, mask, xgcv)
      XGCValues *xgcv;
 {
   GC gc;
+  BLOCK_INPUT;
   gc = XCreateGC (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f), mask, xgcv);
+  UNBLOCK_INPUT;
+  IF_DEBUG (++ngcs);
   return gc;
 }
 
@@ -799,7 +802,10 @@ x_free_gc (f, gc)
      struct frame *f;
      GC gc;
 {
+  BLOCK_INPUT;
+  IF_DEBUG (xassert (--ngcs >= 0));
   XFreeGC (FRAME_MAC_DISPLAY (f), gc);
+  UNBLOCK_INPUT;
 }
 
 #endif  /* MAC_OS */

@@ -1,3 +1,242 @@
+2005-10-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (note_mouse_movement, XTread_socket): Apply 2005-10-14
+	changes for xterm.c.
+
+	* w32term.c (note_mouse_movement, w32_read_socket): Likewise.
+
+2005-10-14  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (search_buffer): Give up BM search on case-fold-search
+	if one of a target character has a case-equivalence of different
+	charset even if that target charcter is an ASCII.
+
+	* casefiddle.c (casify_object): Fix for the case that case
+	conversion change the byte length.
+
+2005-10-14  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (note_mouse_movement): Return 1 if mouse moved; 0 otherwise.
+	(handle_one_xevent): Only clear help_echo_string; restore it if
+	note_mouse_movement didn't record any mouse movement.
+
+	* xdisp.c (pos_visible_p): Convert w->hscroll to pixels before use.
+	(remember_mouse_glyph): Clear RECT if mouse is over an image glyph.
+
+	* keyboard.c (make_lispy_position): Adjust wx for left margin if ON_TEXT.
+	(Fposn_at_x_y): Fix calculation of x coordinate.
+	(Fposn_at_point): Return nil if point is hscrolled out of view.
+
+2005-10-13  Andreas Schwab  <schwab@suse.de>
+
+	* sysdep.c (request_sigio, unrequest_sigio): Do nothing in
+	non-interactive mode.
+
+2005-10-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c, w32term.c, macterm.c (note_mouse_movement): Undo last change.
+
+2005-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent): Clear last_mouse_glyph on mouse up/down.
+
+2005-10-12  Romain Francoise  <romain@orebokech.com>
+
+	* buffer.c (init_buffer): Rename `rc' to `len' for clarity.
+
+2005-10-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (remember_mouse_glyph): Use MATRIX_BOTTOM_TEXT_ROW to
+	get end of text rows.  Obtain header-line/mode-line rows directly.
+
+	* xterm.c, w32term.c, macterm.c (note_mouse_movement): Restore
+	help_echo_string if mouse is moved inside last_mouse_glyph.
+
+2005-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (remember_mouse_glyph): New generic version based on
+	glyph_rect and remember_mouse_glyph from xterm.c enhanced to
+	properly handle all different window areas.
+
+	* dispextern.h (remember_mouse_glyph): Add prototype.
+
+	* xterm.c (glyph_rect, remember_mouse_glyph): Remove X versions.
+	(note_mouse_movement, XTmouse_position): Use generic
+	remember_mouse_glyph, add last_mouse_glyph arg.
+
+	* w32term.c (note_mouse_movement): Fix last_mouse_glyph check.
+	(glyph_rect, remember_mouse_glyph): Remove w32 specific versions.
+	(note_mouse_movement, w32_mouse_position): Use generic
+	remember_mouse_glyph, add last_mouse_glyph arg.
+
+	* macterm.c (note_mouse_movement): Add call to remember_mouse_glyph.
+	(glyph_rect, remember_mouse_glyph): Remove mac specific versions.
+	(XTmouse_position): Adapt to use generic remember_mouse_glyph
+	instead of pixel_to_glyph_coords.
+
+	* window.c (coordinates_in_window): Fix x position for ON_RIGHT_MARGIN.
+	Fix x position for ON_TEXT when left margin width > 0.
+
+2005-10-11  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (coordinates_in_window): Fix y position for ON_SCROLL_BAR.
+
+	* keyboard.c (make_lispy_position): Fix buffer calculations for
+	mouse click or movement in right fringe and the margins.
+
+2005-10-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (fn_jpeg_stdio_src): Don't define it.
+	(init_jpeg_functions): Don't initialize `fn_jpeg_stdio_src'.
+	(our_common_init_source): Rename from `our_init_source'.
+	(our_common_term_source): Rename from `our_term_source'.
+	(our_memory_fill_input_buffer): Rename from
+	`our_fill_input_buffer'.
+	(our_memory_skip_input_data): Rename from `our_skip_input_data'.
+	(jpeg_memory_src): Use the new names.
+	(struct jpeg_stdio_mgr): New struct.
+	(JPEG_STDIO_BUFFER_SIZE): New constant.
+	(our_stdio_fill_input_buffer, our_stdio_skip_input_data)
+	(jpeg_file_src): New functions.
+	(jpeg_load): Use `jpeg_file_src' instead of `fn_jpeg_stdio_src'.
+
+2005-10-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (PER_CHAR_METRIC): Remove unused macro.
+	(fm_font_family_alist): New variable.
+	(syms_of_macterm): Initialize and staticpro it.
+	(decode_mac_font_name): Replace '-' in family name with '_' if it
+	occurs just once.  Lower family name.
+	(parse_x_font_name): Rename from x_font_name_to_mac_font_name.
+	All uses changed.  Remove argument MF and code conversion for it.
+	Add argument SIZE.  Rename argument MF_DECODED to FAMILY, and CS
+	to CHARSET.  Parse font size.  Lower family name.  Return integer
+	value for status of parsing.
+	(init_font_name_table) [USE_ATSUI]: Use decode_mac_font_name.
+	Don't use Fdowncase because family name is already lowered by
+	decode_mac_font_name.
+	(init_font_name_table): Always call decode_mac_font_name.  Add
+	pair of family name and its reference to fm_font_family_alist.
+	(mac_clear_font_name_table): Clear fm_font_family_alist.
+	(XLoadQueryFont): Move font size parsing part to parse_x_font_name.
+	Lookup fm_font_family_alist to get font family reference.
+	(XLoadQueryFont) [USE_ATSUI]: Don't use Fdowncase because family
+	name is already lowered by parse_x_font_name.
+
+2005-10-11  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (glyph_rect): Return 0 if position is outside text area.
+
+	* keyboard.c (make_lispy_position): Fix buffer position calculation for
+	mouse click or movement in fringe.
+
+2005-10-10  Jason Rumney  <jasonr@gnu.org>
+
+	* xterm.c (remember_mouse_glyph): New function.
+	(note_mouse_movement): Use it to remember the current glyph if changed.
+	(XTmouse_position): Fix calculation of fake glyph under mouse.
+	Move code to calculate glyph under mouse into remember_mouse_glyph.
+
+2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* emacs.c (USAGE3, standard_args): -nb => -nbi.
+
+2005-10-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* frame.c (Fredirect_frame_focus): Fix typos in docstring.
+	(next_frame, prev_frame, set_term_frame_name): Make static.
+
+	* window.c (Fwindow_tree): Fix spelling.
+
+2005-10-09  Romain Francoise  <romain@orebokech.com>
+
+	* window.c (Fwindow_end): Don't try to redisplay if non-interactive.
+
+2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* emacs.c (standard_args): Remove options -i, -itype, --icon-type.
+	Add options -nb, --no-bitmap-icon.
+
+	* xfns.c (Fx_create_frame): Make bitmapIcon have default on.
+
+2005-10-08  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (MAX_CLIP_RECTS): New define.
+	(struct _XGC): New member clip_region.
+	(struct _XGC) [MAC_OSX && USE_ATSUI]: New members n_clip_rects and
+	clip_rects.
+
+	* macterm.c (GC_CLIP_REGION): New macro.
+	(saved_port_clip_region): New variable.
+	(mac_begin_clip, mac_end_clip): New functions.
+	(XDrawLine, mac_erase_rectangle, mac_draw_bitmap, XFillRectangle)
+	(mac_draw_rectangle, mac_draw_string_common, mac_copy_area)
+	(mac_copy_area_with_mask, mac_scroll_area): Use them.
+	(mac_set_clip_rectangle, mac_reset_clipping): Remove functions.
+	[USE_ATSUI] (atsu_get_text_layout_with_text_ptr)
+	[MAC_OS_X_VERSION_MAX_ALLOWED < 1020]: Specify kATSLineFractDisable.
+	(mac_draw_string_common) [MAC_OSX && USE_ATSUI]: Clip to clipping
+	rectangles stored in gc.
+	(XFreeGC): Dispose of clipping region.
+	(mac_set_clip_rectangles, mac_reset_clip_rectangles): New functions.
+	(x_draw_fringe_bitmap, x_set_glyph_string_clipping)
+	(x_draw_relief_rect, x_draw_box_rect, x_draw_stretch_glyph_string)
+	(x_draw_glyph_string, x_clip_to_row, x_draw_hollow_cursor)
+	(x_draw_bar_cursor): Use them.
+	(x_set_glyph_string_clipping): Use get_glyph_string_clip_rects to
+	get multiple clipping rectangles.
+
+	* macterm.h (mac_term_init): Add types to extern.
+	(struct mac_output): Remove members mWP and pending_menu_activation.
+	Put members scroll_bar_foreground_pixel and
+	scroll_bar_background_pixel in #if 0.
+	(FRAME_MAC_WINDOW, FRAME_X_WINDOW): Use window_desc.
+
+	* xfaces.c (x_create_gc, x_free_gc) [MAC_OS]: Add BLOCK_INPUT.
+	Add debug code.
+
+2005-10-08  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (window_tree, Fwindow_tree): Rename fns added 2005-10-04.
+
+2005-10-07  Kim F. Storm  <storm@cua.dk>
+
+	* dispnew.c (redraw_overlapped_rows, redraw_overlapping_rows)
+	[!HAVE_WINDOW_SYSTEM]: Don't declare them...
+	(update_window) [!HAVE_WINDOW_SYSTEM]: ...and don't call them.
+
+2005-10-07  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* dispextern.h (struct glyph_string): Rename member for_overlaps_p
+	to for_overlaps.  Now occupy 3 bits.
+	(OVERLAPS_PRED, OVERLAPS_SUCC, OVERLAPS_BOTH)
+	(OVERLAPS_ERASED_CURSOR): New defines.
+	(struct redisplay_interface): Add new OVERLAPS arg to member
+	fix_overlapping_area.
+	(x_fix_overlapping_area): Add new OVERLAPS arg.
+	(get_glyph_string_clip_rects): Add extern.
+
+	* dispnew.c (redraw_overlapping_rows): Call
+	rif->fix_overlapping_area with new OVERLAPS arg as redrawn part.
+
+	* xdisp.c: Rename member for_overlaps_p in struct glyph_string to
+	for_overlaps.
+	(get_glyph_string_clip_rects): New function created from
+	get_glyph_string_clip_rect.  Set clipping rectangles according to the
+	value of for_overlaps.  Enable to store multiple clipping rectangles.
+	(get_glyph_string_clip_rect): Use get_glyph_string_clip_rects.
+	(fill_composite_glyph_string, fill_glyph_string, draw_glyphs):
+	Rename argument OVERLAPS_P to OVERLAPS.  All uses in macros changed.
+	(x_fix_overlapping_area): Add OVERLAPS arg.  Pass it to draw_glyphs.
+	(draw_phys_cursor_glyph): Set width of erased cursor to use it for
+	calculating clipping rectangles later.  Call x_fix_overlapping_area
+	with new OVERLAPS arg to draw only erased cursor area.
+	(expose_overlaps): Call x_fix_overlapping_area with new OVERLAPS arg
+	to draw overlaps in both preceding and succeeding rows.
+
+	* xterm.c, w32term.c, macterm.c: Rename member for_overlaps_p in
+	struct glyph_string to for_overlaps.
+
 2005-10-04  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (window_split_tree): New function.
@@ -130,9 +369,9 @@
 
 	* systime.h (get_operating_system_release): ... here.
 
-	* xterm.c (set_vertical_scroll_bar): Move prototype ...
-	(handle_one_xevent): Refer to union field to match the type
-	required by the function definition.
+	* xterm.c (handle_one_xevent): Refer to union field to match the
+	type required by the function definition.
+	(set_vertical_scroll_bar): Move prototype ...
 
 	* xterm.h: ... here.
 
@@ -1483,7 +1722,7 @@
 2005-06-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* macmenu.c (cleanup_popup_menu): New function.
-	(Fx_popup_menu): unwind protect cleanup_popup_menu in case
+	(Fx_popup_menu): Unwind protect cleanup_popup_menu in case
 	mac_menu_show Quit:s.
 	(mac_menu_show): Quit on cancel if not popped up on click (i.e.
 	a dialog).
@@ -3658,7 +3897,7 @@
 	[TARGET_API_MAC_CARBON] (Fx_file_dialog): Use MAXPATHLEN for size
 	of filename string.  Set event callback function when creating
 	dialog boxes.  Add code conversions for filenames.  Don't dispose
-	apple event descriptor record if failed to create it.
+	of apple event descriptor record if failed to create it.
 
 	* macterm.c: Include sys/param.h.
 	[USE_CARBON_EVENTS] (mac_handle_window_event): Add handler for
@@ -6760,7 +6999,8 @@
 	(x_scroll_bar_handle_click): Set `(PORTION . WHOLE)' part in a
 	scroll-bar click event.
 	(mac_define_frame_cursor): Change the pointer shape.
-	(x_free_frame_resources): Reset tip_window to NULL when it is disposed.
+	(x_free_frame_resources): Reset tip_window to NULL when it is
+	disposed of.
 	[!TARGET_API_MAC_CARBON] (arrow_cursor): New variable.
 	[!TARGET_API_MAC_CARBON] (do_init_managers): Initialize arrow_cursor.
 	(do_window_update): Don't do anything if the updated window is the
@@ -16779,7 +17019,7 @@
 	* w32.c (sys_getpeername, fcntl): New functions.
 	(_sys_read_ahead): Temporarily block on non-blocking sockets.
 
-	* w32proc.c: include sys/file.h.
+	* w32proc.c: Include sys/file.h.
 
 2002-05-03  Colin Walters  <walters@verbum.org>
 

@@ -1,4 +1,4 @@
-;;; newsticker.el --- A Newsticker for Emacs.
+;;; newsticker.el --- A news-ticker for Emacs.
 
 ;; Copyright (C) 2003, 2004, 2005  Free Software Foundation, Inc.
 
@@ -9,11 +9,6 @@
 ;; URL:         http://www.nongnu.org/newsticker
 ;; Created:     17. June 2003
 ;; Keywords:    News, RSS
-;; Time-stamp:  "26. August 2005, 16:33:46 (ulf)"
-
-(defconst newsticker-version "1.8" "Version number of newsticker.el.")
-
-;; ======================================================================
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -29,7 +24,10 @@
 ;; along with this program; if not, write to the Free Software Foundation,
 ;; Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
+(defconst newsticker-version "1.8" "Version number of newsticker.el.")
+
 ;; ======================================================================
+
 ;;; Commentary:
 
 ;; Overview
@@ -62,29 +60,14 @@
 
 ;; Requirements
 ;; ------------
-;; Newsticker can be used with GNU Emacs version 21.1 or later as well as
-;; XEmacs. It requires an XML-parser (`xml.el') which is part of GNU
+;; Newsticker can be used with Emacs version 21.1 or later as well as
+;; XEmacs. It requires an XML-parser (`xml.el') which is part of
 ;; Emacs. If you are using XEmacs you want to get the `net-utils' package
 ;; which contains `xml.el' for XEmacs.
 
 ;; Newsticker requires a program which can retrieve files via http and
 ;; prints them to stdout. By default Newsticker will use wget for this
 ;; task.
-
-;; Installation
-;; ------------
-;; Place Newsticker in a directory where Emacs can find it. Add the
-;; following line to your Emacs startup file (`~/.emacs').
-;;   (add-to-list 'load-path "/path/to/newsticker/")
-;;   (autoload 'newsticker-start "newsticker" "Emacs Newsticker" t)
-;;   (autoload 'newsticker-show-news "newsticker" "Emacs Newsticker" t)
-
-;; Newsticker-mode supports imenu. It allows for navigating with the help
-;; of a menu. In order to use this feature you should also add the
-;; following.
-;;   (add-hook 'newsticker-mode-hook 'imenu-add-menubar-index)
-
-;; That's it.
 
 ;; Usage
 ;; -----
@@ -151,7 +134,10 @@
 ;; such a tool from slightly attenuating your Editor's responsiveness every
 ;; once in a while.
 
-;; Byte-compiling newsticker.el is recommended.
+;; Newsticker-mode supports imenu. It allows for navigating with the help
+;; of a menu. In order to use this feature you should also add the
+;; following.
+;;   (add-hook 'newsticker-mode-hook 'imenu-add-menubar-index)
 
 ;; ======================================================================
 ;;; History:
@@ -204,7 +190,7 @@
 ;;       for sending patch.
 ;;     * Renamed invisible buffers ` *wget-newsticker-<feed>*' to
 ;;       ` *newsticker-wget-<feed>*'.
-;;     * Tested with GNU Emacs versions 21.3 and 22.0 and XEmacs 21.something.
+;;     * Tested with Emacs versions 21.3 and 22.0 and XEmacs 21.something.
 
 ;; 1.6 * Support for (some) optional RSS elements: guid, dc:date. See
 ;;       `newsticker-show-all-rss-elements' `newsticker-extra-face'.
@@ -2307,6 +2293,7 @@ static char * visit_xpm[] = {
 ;;; User fun
 ;; ======================================================================
 
+;;;###autoload
 (defun newsticker-start (&optional do-not-complain-if-running)
   "Start the newsticker.
 Start the timers for display and retrieval.  If the newsticker, i.e. the
@@ -2395,6 +2382,7 @@ if newsticker has been running."
     (setq newsticker--display-timer nil)))
 
 ;; the functions we need for retrieval and display
+;;;###autoload
 (defun newsticker-show-news ()
   "Switch to newsticker buffer.  You may want to bind this to a key."
   (interactive)

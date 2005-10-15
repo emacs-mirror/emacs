@@ -100,13 +100,13 @@
   (if (and pgg-cache-passphrase
 	   (progn
 	     (goto-char (point-min))
-	     (re-search-forward "^\\[GNUPG:] GOOD_PASSPHRASE\\>" nil t)))
+	     (re-search-forward "^\\[GNUPG:] \\(GOOD_PASSPHRASE\\>\\)\\|\\(SIG_CREATED\\)" nil t)))
       (pgg-add-passphrase-cache
        (or key
 	   (progn
 	     (goto-char (point-min))
 	     (if (re-search-forward
-		  "^\\[GNUPG:] NEED_PASSPHRASE \\w+ ?\\w*" nil t)
+		  "^\\[GNUPG:] NEED_PASSPHRASE\\(_PIN\\)? \\w+ ?\\w*" nil t)
 		 (substring (match-string 0) -8))))
        passphrase)))
 

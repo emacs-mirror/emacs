@@ -119,7 +119,7 @@ update-subdirs: doit
 	   $(srcdir)/update-subdirs $$file; \
 	done;
 
-updates: update-subdirs autoloads finder-data custom-deps
+updates: update-subdirs autoloads mh-autoloads finder-data custom-deps
 
 # Update the AUTHORS file.
 
@@ -242,9 +242,9 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH-E-SRC)
 	$(EMACS) $(EMACSOPT) \
 	   -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file (expand-file-name \"mh-e/mh-loaddefs.el\"))" \
+	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
 	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads mh-e
+	   -f batch-update-autoloads $(lisp)/mh-e
 	echo "" >> $@
 	echo "(provide 'mh-loaddefs)" >> $@
 	echo ";;; Local Variables:" >> $@

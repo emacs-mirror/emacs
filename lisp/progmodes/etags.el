@@ -1887,7 +1887,7 @@ directory specification."
 ;; XXX Kludge interface.
 
 (define-button-type 'tags-select-tags-table
-  'action (lambda (button) (select-tags-table-select))
+  'action 'select-tags-table-select
   'help-echo "RET, t or mouse-2: select tags table")
 
 ;; XXX If a file is in multiple tables, selection may get the wrong one.
@@ -1904,30 +1904,27 @@ see the doc of that variable if you want to add names to the list."
 	(desired-point nil)
 	b)
     (when tags-table-list
-	  (setq desired-point (point-marker))
-	  (setq b (point))
-	  (princ tags-table-list (current-buffer))
-	  (make-text-button b (point) 'type 'tags-select-tags-table)
-	  (insert "\C-m")
-	  (prin1 (car tags-table-list) (current-buffer)) ;invisible
+      (setq desired-point (point-marker))
+      (setq b (point))
+      (princ (mapcar 'abbreviate-file-name tags-table-list) (current-buffer))
+      (make-text-button b (point) 'type 'tags-select-tags-table
+                        'etags-table (car tags-table-list))
       (insert "\n"))
     (while set-list
       (unless (eq (car set-list) tags-table-list)
 	(setq b (point))
-	(princ (car set-list) (current-buffer))
-	(make-text-button b (point) 'type 'tags-select-tags-table)
-	(insert "\C-m")
-	(prin1 (car (car set-list)) (current-buffer)) ;invisible
+	(princ (mapcar 'abbreviate-file-name (car set-list)) (current-buffer))
+	(make-text-button b (point) 'type 'tags-select-tags-table
+                          'etags-table (car (car set-list)))
 	(insert "\n"))
       (setq set-list (cdr set-list)))
     (when tags-file-name
-	  (or desired-point
-	      (setq desired-point (point-marker)))
-	  (setq b (point))
-	  (insert tags-file-name)
-	  (make-text-button b (point) 'type 'tags-select-tags-table)
-	  (insert "\C-m")
-	  (prin1 tags-file-name (current-buffer)) ;invisible
+      (or desired-point
+          (setq desired-point (point-marker)))
+      (setq b (point))
+      (insert (abbreviate-file-name tags-file-name))
+      (make-text-button b (point) 'type 'tags-select-tags-table
+                        'etags-table tags-file-name)
       (insert "\n"))
     (setq set-list (delete tags-file-name
 			   (apply 'nconc (cons (copy-sequence tags-table-list)
@@ -1935,10 +1932,9 @@ see the doc of that variable if you want to add names to the list."
 						       tags-table-set-list)))))
     (while set-list
       (setq b (point))
-      (insert (car set-list))
-      (make-text-button b (point) 'type 'tags-select-tags-table)
-      (insert "\C-m")
-      (prin1 (car set-list) (current-buffer)) ;invisible
+      (insert (abbreviate-file-name (car set-list)))
+      (make-text-button b (point) 'type 'tags-select-tags-table
+                          'etags-table (car set-list))
       (insert "\n")
       (setq set-list (delete (car set-list) set-list)))
     (goto-char (point-min))
@@ -1951,7 +1947,8 @@ see the doc of that variable if you want to add names to the list."
   (select-tags-table-mode))
 
 (defvar select-tags-table-mode-map
-  (let ((map (copy-keymap button-buffer-map)))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map button-buffer-map)
     (define-key map "t" 'push-button)
     (define-key map " " 'next-line)
     (define-key map "\^?" 'previous-line)
@@ -1960,24 +1957,17 @@ see the doc of that variable if you want to add names to the list."
     (define-key map "q" 'select-tags-table-quit)
     map))
 
-(defun select-tags-table-mode ()
+(define-derived-mode select-tags-table-mode fundamental-mode "Select Tags Table"
   "Major mode for choosing a current tags table among those already loaded.
 
 \\{select-tags-table-mode-map}"
-  (interactive)
-  (kill-all-local-variables)
-  (setq buffer-read-only t
-	major-mode 'select-tags-table-mode
-	mode-name "Select Tags Table")
-  (use-local-map select-tags-table-mode-map)
-  (setq selective-display t
-	selective-display-ellipses nil))
+  (setq buffer-read-only t))
 
-(defun select-tags-table-select ()
+(defun select-tags-table-select (button)
   "Select the tags table named on this line."
-  (interactive)
-  (search-forward "\C-m")
-  (let ((name (read (current-buffer))))
+  (interactive (list (or (button-at (line-beginning-position))
+                         (error "No tags table on current line"))))
+  (let ((name (button-get button 'etags-table)))
     (visit-tags-table name)
     (select-tags-table-quit)
     (message "Tags table now %s" name)))
@@ -2043,5 +2033,5 @@ for \\[find-tag] (which see)."
 
 (provide 'etags)
 
-;;; arch-tag: b897c2b5-08f3-4837-b2d3-0e7d6db1b63e
+;; arch-tag: b897c2b5-08f3-4837-b2d3-0e7d6db1b63e
 ;;; etags.el ends here

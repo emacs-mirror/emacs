@@ -3150,8 +3150,6 @@ if point is in a menu item description, follow that menu item."
      :help "Look for another occurrence of previous item"]
     ["Lookup a string in all indices..." info-apropos
      :help "Look for a string in the indices of all manuals"])
-   ["Edit" Info-edit :help "Edit contents of this node"
-    :active Info-enable-edit]
    ["Copy Node Name" Info-copy-current-node-name
     :help "Copy the name of the current node into the kill ring"]
    ["Clone Info buffer" clone-buffer
@@ -3290,18 +3288,17 @@ Selecting other nodes:
 \\[Info-menu]	Pick menu item specified by name (or abbreviation).
 	  Picking a menu item causes another node to be selected.
 \\[Info-directory]	Go to the Info directory node.
+\\[Info-top-node]	Go to the Top node of this file.
+\\[Info-final-node]	Go to the final node in this file.
+\\[Info-backward-node]	Go backward one node, considering all nodes as forming one sequence.
+\\[Info-forward-node]	Go forward one node, considering all nodes as forming one sequence.
+\\[Info-next-reference]	Move cursor to next cross-reference or menu item.
+\\[Info-prev-reference]	Move cursor to previous cross-reference or menu item.
 \\[Info-follow-reference]	Follow a cross reference.  Reads name of reference.
 \\[Info-history-back]	Move back in history to the last node you were at.
 \\[Info-history-forward]	Move forward in history to the node you returned from after using \\[Info-history-back].
 \\[Info-history]	Go to menu of visited nodes.
 \\[Info-toc]	Go to table of contents of the current Info file.
-\\[Info-top-node]	Go to the Top node of this file.
-\\[Info-final-node]	Go to the final node in this file.
-\\[Info-backward-node]	Go backward one node, considering all nodes as forming one sequence.
-\\[Info-forward-node]	Go forward one node, considering all nodes as forming one sequence.
-\\[Info-index]	Look up a topic in this file's Index and move to that node.
-\\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
-\\[info-apropos]	Look for a string in the indices of all manuals.
 
 Moving within a node:
 \\[Info-scroll-up]	Normally, scroll forward a full screen.
@@ -3315,22 +3312,22 @@ Moving within a node:
 \\[beginning-of-buffer]	Go to beginning of node.
 
 Advanced commands:
-\\[Info-copy-current-node-name]	Put name of current Info node in the kill ring.
-\\[clone-buffer]	Select a new cloned Info buffer in another window.
-\\[Info-edit]	Edit contents of selected node.
-1 .. 9	Pick first ... ninth item in node's menu.
-	  Every third `*' is highlighted to help pick the right number.
-\\[Info-goto-node]	Move to node specified by name.
-	  You may include a filename as well, as (FILENAME)NODENAME.
-\\[universal-argument] \\[info]	Move to new Info file with completion.
-\\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>.
 \\[Info-search]	Search through this Info file for specified regexp,
 	  and select the node in which the next occurrence is found.
 \\[Info-search-case-sensitively]	Search through this Info file for specified regexp case-sensitively.
 \\[Info-search-next]	Search for another occurrence of regexp
 	  from a previous \\<Info-mode-map>\\[Info-search] command.
-\\[Info-next-reference]	Move cursor to next cross-reference or menu item.
-\\[Info-prev-reference]	Move cursor to previous cross-reference or menu item."
+\\[Info-index]	Look up a topic in this file's Index and move to that node.
+\\[Info-index-next]	(comma) Move to the next match from a previous \\<Info-mode-map>\\[Info-index] command.
+\\[info-apropos]	Look for a string in the indices of all manuals.
+\\[Info-goto-node]	Move to node specified by name.
+	  You may include a filename as well, as (FILENAME)NODENAME.
+1 .. 9	Pick first ... ninth item in node's menu.
+	  Every third `*' is highlighted to help pick the right number.
+\\[Info-copy-current-node-name]	Put name of current Info node in the kill ring.
+\\[clone-buffer]	Select a new cloned Info buffer in another window.
+\\[universal-argument] \\[info]	Move to new Info file with completion.
+\\[universal-argument] N \\[info]	Select Info buffer with prefix number in the name *info*<N>."
   (kill-all-local-variables)
   (setq major-mode 'Info-mode)
   (setq mode-name "Info")
@@ -3669,23 +3666,23 @@ the variable `Info-file-list-for-emacs'."
                                   ((equal tag "Up") Info-up-link-keymap))))))
         (when Info-use-header-line
           (goto-char (point-min))
-          (let ((header-end (line-end-position))
-                header)
-            ;; If we find neither Next: nor Prev: link, show the entire
-            ;; node header.  Otherwise, don't show the File: and Node:
-            ;; parts, to avoid wasting precious space on information that
-            ;; is available in the mode line.
-            (if (re-search-forward
-                 "\\(next\\|up\\|prev[ious]*\\): "
-                 header-end t)
-                (progn
-                  (goto-char (match-beginning 1))
-                  (setq header (buffer-substring (point) header-end)))
-              (if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*" header-end t)
-                  (setq header
+          (let* ((header-end (line-end-position))
+                 (header
+                  ;; If we find neither Next: nor Prev: link, show the entire
+                  ;; node header.  Otherwise, don't show the File: and Node:
+                  ;; parts, to avoid wasting precious space on information that
+                  ;; is available in the mode line.
+                  (if (re-search-forward
+                       "\\(next\\|up\\|prev[ious]*\\): "
+                       header-end t)
+                      (progn
+                        (goto-char (match-beginning 1))
+                        (buffer-substring (point) header-end))
+                    (if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*"
+                                           header-end t)
                         (concat "No next, prev or up links  --  "
-                                (buffer-substring (point) header-end)))
-                (setq header (buffer-substring (point) header-end))))
+                                (buffer-substring (point) header-end))
+                      (buffer-substring (point) header-end)))))
             (put-text-property (point-min) (1+ (point-min))
                                'header-line
 			       (replace-regexp-in-string
@@ -3701,9 +3698,15 @@ the variable `Info-file-list-for-emacs'."
 
       ;; Fontify titles
       (goto-char (point-min))
-      (when not-fontified-p
-        (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*\\*+\\|==+\\|--+\\|\\.\\.+\\)$"
-                                  nil t)
+      (when (and font-lock-mode not-fontified-p)
+        (while (and (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*\\*+\\|==+\\|--+\\|\\.\\.+\\)$"
+                                       nil t)
+                    ;; Only consider it as an underlined title if the ASCII
+                    ;; underline has the same size as the text.  A typical
+                    ;; counter example is when a continuation "..." is alone
+                    ;; on a line.
+                    (= (- (match-end 1) (match-beginning 1))
+                       (- (match-end 2) (match-beginning 2))))
           (let* ((c (preceding-char))
                  (face
                   (cond ((= c ?*) 'info-title-1)

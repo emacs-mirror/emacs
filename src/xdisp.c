@@ -1351,7 +1351,7 @@ pos_visible_p (w, charpos, x, y, rtop, rbot, exact_mode_line_heights_p)
   current_header_line_height = current_mode_line_height = -1;
 
   if (visible_p && XFASTINT (w->hscroll) > 0)
-    *x -= XFASTINT (w->hscroll);
+    *x -= XFASTINT (w->hscroll) * WINDOW_FRAME_COLUMN_WIDTH (w);
 
   return visible_p;
 }
@@ -1771,14 +1771,19 @@ frame_to_window_pixel_xy (w, x, y)
 }
 
 /* EXPORT:
-   Return in *R the clipping rectangle for glyph string S.  */
+   Return in RECTS[] at most N clipping rectangles for glyph string S.
+   Return the number of stored rectangles.  */
 
-void
-get_glyph_string_clip_rect (s, nr)
+int
+get_glyph_string_clip_rects (s, rects, n)
      struct glyph_string *s;
-     NativeRectangle *nr;
+     NativeRectangle *rects;
+     int n;
 {
   XRectangle r;
+
+  if (n <= 0)
+    return 0;
 
   if (s->row->full_width_p)
     {
@@ -1822,10 +1827,27 @@ get_glyph_string_clip_rect (s, nr)
   /* If S draws overlapping rows, it's sufficient to use the top and
      bottom of the window for clipping because this glyph string
      intentionally draws over other lines.  */
-  if (s->for_overlaps_p)
+  if (s->for_overlaps)
     {
       r.y = WINDOW_HEADER_LINE_HEIGHT (s->w);
       r.height = window_text_bottom_y (s->w) - r.y;
+
+      /* Alas, the above simple strategy does not work for the
+	 environments with anti-aliased text: if the same text is
+	 drawn onto the same place multiple times, it gets thicker.
+	 If the overlap we are processing is for the erased cursor, we
+	 take the intersection with the rectagle of the cursor.  */
+      if (s->for_overlaps & OVERLAPS_ERASED_CURSOR)
+	{
+	  XRectangle rc, r_save = r;
+
+	  rc.x = WINDOW_TEXT_TO_FRAME_PIXEL_X (s->w, s->w->phys_cursor.x);
+	  rc.y = s->w->phys_cursor.y;
+	  rc.width = s->w->phys_cursor_width;
+	  rc.height = s->w->phys_cursor_height;
+
+	  x_intersect_rectangles (&r_save, &rc, &r);
+	}
     }
   else
     {
@@ -1884,11 +1906,71 @@ get_glyph_string_clip_rect (s, nr)
 	}
     }
 
+  if ((s->for_overlaps & OVERLAPS_BOTH) == 0
+      || (s->for_overlaps & OVERLAPS_BOTH) == OVERLAPS_BOTH && n == 1)
+    {
 #ifdef CONVERT_FROM_XRECT
-  CONVERT_FROM_XRECT (r, *nr);
+      CONVERT_FROM_XRECT (r, *rects);
 #else
-  *nr = r;
+      *rects = r;
 #endif
+      return 1;
+    }
+  else
+    {
+      /* If we are processing overlapping and allowed to return
+	 multiple clipping rectangles, we exclude the row of the glyph
+	 string from the clipping rectangle.  This is to avoid drawing
+	 the same text on the environment with anti-aliasing.  */
+#ifdef CONVERT_FROM_XRECT
+      XRectangle rs[2];
+#else
+      XRectangle *rs = rects;
+#endif
+      int i = 0, row_y = WINDOW_TO_FRAME_PIXEL_Y (s->w, s->row->y);
+
+      if (s->for_overlaps & OVERLAPS_PRED)
+	{
+	  rs[i] = r;
+	  if (r.y + r.height > row_y)
+	    if (r.y < row_y)
+	      rs[i].height = row_y - r.y;
+	    else
+	      rs[i].height = 0;
+	  i++;
+	}
+      if (s->for_overlaps & OVERLAPS_SUCC)
+	{
+	  rs[i] = r;
+	  if (r.y < row_y + s->row->visible_height)
+	    if (r.y + r.height > row_y + s->row->visible_height)
+	      {
+		rs[i].y = row_y + s->row->visible_height;
+		rs[i].height = r.y + r.height - rs[i].y;
+	      }
+	    else
+	      rs[i].height = 0;
+	  i++;
+	}
+
+      n = i;
+#ifdef CONVERT_FROM_XRECT
+      for (i = 0; i < n; i++)
+	CONVERT_FROM_XRECT (rs[i], rects[i]);
+#endif
+      return n;
+    }
+}
+
+/* EXPORT:
+   Return in *NR the clipping rectangle for glyph string S.  */
+
+void
+get_glyph_string_clip_rect (s, nr)
+     struct glyph_string *s;
+     NativeRectangle *nr;
+{
+  get_glyph_string_clip_rects (s, nr, 1);
 }
 
 
@@ -1946,6 +2028,198 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
 
   *heightp = h - 1;
   return WINDOW_TO_FRAME_PIXEL_Y (w, y);
+}
+
+/*
+ * Remember which glyph the mouse is over.
+ */
+
+void
+remember_mouse_glyph (f, gx, gy, rect)
+     struct frame *f;
+     int gx, gy;
+     NativeRectangle *rect;
+{
+  Lisp_Object window;
+  struct window *w;
+  struct glyph_row *r, *gr, *end_row;
+  enum window_part part;
+  enum glyph_row_area area;
+  int x, y, width, height;
+
+  /* Try to determine frame pixel position and size of the glyph under
+     frame pixel coordinates X/Y on frame F.  */
+
+  window = window_from_coordinates (f, gx, gy, &part, &x, &y, 0);
+  if (NILP (window))
+    {
+      width = FRAME_SMALLEST_CHAR_WIDTH (f);
+      height = FRAME_SMALLEST_FONT_HEIGHT (f);
+      goto virtual_glyph;
+    }
+
+  w = XWINDOW (window);
+  width = WINDOW_FRAME_COLUMN_WIDTH (w);
+  height = WINDOW_FRAME_LINE_HEIGHT (w);
+
+  r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
+  end_row = MATRIX_BOTTOM_TEXT_ROW (w->current_matrix, w);
+
+  if (w->pseudo_window_p)
+    {
+      area = TEXT_AREA;
+      part = ON_MODE_LINE; /* Don't adjust margin. */
+      goto text_glyph;
+    }
+
+  switch (part)
+    {
+    case ON_LEFT_MARGIN:
+      area = LEFT_MARGIN_AREA;
+      goto text_glyph;
+
+    case ON_RIGHT_MARGIN:
+      area = RIGHT_MARGIN_AREA;
+      goto text_glyph;
+
+    case ON_HEADER_LINE:
+    case ON_MODE_LINE:
+      gr = (part == ON_HEADER_LINE
+	    ? MATRIX_HEADER_LINE_ROW (w->current_matrix)
+	    : MATRIX_MODE_LINE_ROW (w->current_matrix));
+      gy = gr->y;
+      area = TEXT_AREA;
+      goto text_glyph_row_found;
+
+    case ON_TEXT:
+      area = TEXT_AREA;
+
+    text_glyph:
+      gr = 0; gy = 0;
+      for (; r <= end_row && r->enabled_p; ++r)
+	if (r->y + r->height > y)
+	  {
+	    gr = r; gy = r->y;
+	    break;
+	  }
+
+    text_glyph_row_found:
+      if (gr && gy <= y)
+	{
+	  struct glyph *g = gr->glyphs[area];
+	  struct glyph *end = g + gr->used[area];
+
+	  height = gr->height;
+	  for (gx = gr->x; g < end; gx += g->pixel_width, ++g)
+	    if (gx + g->pixel_width > x)
+	      break;
+
+	  if (g < end)
+	    {
+	      if (g->type == IMAGE_GLYPH)
+		{
+		  /* Don't remember when mouse is over image, as
+		     image may have hot-spots.  */
+		  STORE_NATIVE_RECT (*rect, 0, 0, 0, 0);
+		  return;
+		}
+	      width = g->pixel_width;
+	    }
+	  else
+	    {
+	      /* Use nominal char spacing at end of line.  */
+	      x -= gx;
+	      gx += (x / width) * width;
+	    }
+
+	  if (part != ON_MODE_LINE && part != ON_HEADER_LINE)
+	    gx += window_box_left_offset (w, area);
+	}
+      else
+	{
+	  /* Use nominal line height at end of window.  */
+	  gx = (x / width) * width;
+	  y -= gy;
+	  gy += (y / height) * height;
+	}
+      break;
+
+    case ON_LEFT_FRINGE:
+      gx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+	    ? WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w)
+	    : window_box_right_offset (w, LEFT_MARGIN_AREA));
+      width = WINDOW_LEFT_FRINGE_WIDTH (w);
+      goto row_glyph;
+
+    case ON_RIGHT_FRINGE:
+      gx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+	    ? window_box_right_offset (w, RIGHT_MARGIN_AREA)
+	    : window_box_right_offset (w, TEXT_AREA));
+      width = WINDOW_RIGHT_FRINGE_WIDTH (w);
+      goto row_glyph;
+
+    case ON_SCROLL_BAR:
+      gx = (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_LEFT (w)
+	    ? 0
+	    : (window_box_right_offset (w, RIGHT_MARGIN_AREA)
+	       + (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+		  ? WINDOW_RIGHT_FRINGE_WIDTH (w)
+		  : 0)));
+      width = WINDOW_SCROLL_BAR_AREA_WIDTH (w);
+
+    row_glyph:
+      gr = 0, gy = 0;
+      for (; r <= end_row && r->enabled_p; ++r)
+	if (r->y + r->height > y)
+	  {
+	    gr = r; gy = r->y;
+	    break;
+	  }
+
+      if (gr && gy <= y)
+	height = gr->height;
+      else
+	{
+	  /* Use nominal line height at end of window.  */
+	  y -= gy;
+	  gy += (y / height) * height;
+	}
+      break;
+
+    default:
+      ;
+    virtual_glyph:
+      /* If there is no glyph under the mouse, then we divide the screen
+	 into a grid of the smallest glyph in the frame, and use that
+	 as our "glyph".  */
+
+      /* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
+	 round down even for negative values.  */
+      if (gx < 0)
+	gx -= width - 1;
+      if (gy < 0)
+	gy -= height - 1;
+
+      gx = (gx / width) * width;
+      gy = (gy / height) * height;
+
+      goto store_rect;
+    }
+
+  gx += WINDOW_LEFT_EDGE_X (w);
+  gy += WINDOW_TOP_EDGE_Y (w);
+
+ store_rect:
+  STORE_NATIVE_RECT (*rect, gx, gy, width, height);
+
+  /* Visible feedback for debugging.  */
+#if 0
+#if HAVE_X_WINDOWS
+  XDrawRectangle (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+		  f->output_data.x->normal_gc,
+		  gx, gy, width, height);
+#endif
+#endif
 }
 
 
@@ -18122,22 +18396,23 @@ get_glyph_face_and_encoding (f, glyph, char2b, two_byte_p)
 
    FACES is an array of faces for all components of this composition.
    S->gidx is the index of the first component for S.
-   OVERLAPS_P non-zero means S should draw the foreground only, and
-   use its physical height for clipping.
+
+   OVERLAPS non-zero means S should draw the foreground only, and use
+   its physical height for clipping.  See also draw_glyphs.
 
    Value is the index of a component not in S.  */
 
 static int
-fill_composite_glyph_string (s, faces, overlaps_p)
+fill_composite_glyph_string (s, faces, overlaps)
      struct glyph_string *s;
      struct face **faces;
-     int overlaps_p;
+     int overlaps;
 {
   int i;
 
   xassert (s);
 
-  s->for_overlaps_p = overlaps_p;
+  s->for_overlaps = overlaps;
 
   s->face = faces[s->gidx];
   s->font = s->face->font;
@@ -18181,16 +18456,16 @@ fill_composite_glyph_string (s, faces, overlaps_p)
 
    FACE_ID is the face id of the string.  START is the index of the
    first glyph to consider, END is the index of the last + 1.
-   OVERLAPS_P non-zero means S should draw the foreground only, and
-   use its physical height for clipping.
+   OVERLAPS non-zero means S should draw the foreground only, and use
+   its physical height for clipping.  See also draw_glyphs.
 
    Value is the index of the first glyph not in S.  */
 
 static int
-fill_glyph_string (s, face_id, start, end, overlaps_p)
+fill_glyph_string (s, face_id, start, end, overlaps)
      struct glyph_string *s;
      int face_id;
-     int start, end, overlaps_p;
+     int start, end, overlaps;
 {
   struct glyph *glyph, *last;
   int voffset;
@@ -18200,7 +18475,7 @@ fill_glyph_string (s, face_id, start, end, overlaps_p)
   xassert (s->nchars == 0);
   xassert (start >= 0 && end > start);
 
-  s->for_overlaps_p = overlaps_p,
+  s->for_overlaps = overlaps,
   glyph = s->row->glyphs[s->area] + start;
   last = s->row->glyphs[s->area] + end;
   voffset = glyph->voffset;
@@ -18676,7 +18951,7 @@ compute_overhangs_and_x (s, x, backward_p)
 	 INIT_GLYPH_STRING (s, char2b, w, row, area, START, HL);	   \
 	 append_glyph_string (&HEAD, &TAIL, s);				   \
 	 s->x = (X);							   \
-	 START = fill_glyph_string (s, face_id, START, END, overlaps_p);   \
+	 START = fill_glyph_string (s, face_id, START, END, overlaps);   \
        }								   \
      while (0)
 
@@ -18729,7 +19004,7 @@ compute_overhangs_and_x (s, x, backward_p)
 	if (n == 0)							  \
 	  first_s = s;							  \
 									  \
-	n = fill_composite_glyph_string (s, faces, overlaps_p);		  \
+	n = fill_composite_glyph_string (s, faces, overlaps);		  \
       }									  \
     									  \
     ++START;								  \
@@ -18801,20 +19076,26 @@ compute_overhangs_and_x (s, x, backward_p)
    DRAW_IMAGE_SUNKEN	draw an image with a sunken relief around it
    DRAW_IMAGE_RAISED	draw an image with a raised relief around it
 
-   If OVERLAPS_P is non-zero, draw only the foreground of characters
-   and clip to the physical height of ROW.
+   If OVERLAPS is non-zero, draw only the foreground of characters and
+   clip to the physical height of ROW.  Non-zero value also defines
+   the overlapping part to be drawn:
+
+   OVERLAPS_PRED		overlap with preceding rows
+   OVERLAPS_SUCC		overlap with succeeding rows
+   OVERLAPS_BOTH		overlap with both preceding/succeeding rows
+   OVERLAPS_ERASED_CURSOR	overlap with erased cursor area
 
    Value is the x-position reached, relative to AREA of W.  */
 
 static int
-draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
+draw_glyphs (w, x, row, area, start, end, hl, overlaps)
      struct window *w;
      int x;
      struct glyph_row *row;
      enum glyph_row_area area;
      EMACS_INT start, end;
      enum draw_glyphs_face hl;
-     int overlaps_p;
+     int overlaps;
 {
   struct glyph_string *head, *tail;
   struct glyph_string *s;
@@ -18863,7 +19144,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
   /* If there are any glyphs with lbearing < 0 or rbearing > width in
      the row, redraw some glyphs in front or following the glyph
      strings built above.  */
-  if (head && !overlaps_p && row->contains_overlapping_glyphs_p)
+  if (head && !overlaps && row->contains_overlapping_glyphs_p)
     {
       int dummy_x = 0;
       struct glyph_string *h, *t;
@@ -18956,7 +19237,7 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
       /* When drawing overlapping rows, only the glyph strings'
 	 foreground is drawn, which doesn't erase a cursor
 	 completely. */
-      && !overlaps_p)
+      && !overlaps)
     {
       int x0 = clip_head ? clip_head->x : (head ? head->x : x);
       int x1 = (clip_tail ? clip_tail->x + clip_tail->background_width
@@ -20729,13 +21010,15 @@ notice_overwritten_cursor (w, area, x0, x1, y0, y1)
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* EXPORT for RIF:
-   Fix the display of area AREA of overlapping row ROW in window W.  */
+   Fix the display of area AREA of overlapping row ROW in window W
+   with respect to the overlapping part OVERLAPS.  */
 
 void
-x_fix_overlapping_area (w, row, area)
+x_fix_overlapping_area (w, row, area, overlaps)
      struct window *w;
      struct glyph_row *row;
      enum glyph_row_area area;
+     int overlaps;
 {
   int i, x;
 
@@ -20758,7 +21041,7 @@ x_fix_overlapping_area (w, row, area)
 
 	  draw_glyphs (w, start_x, row, area,
 		       start, i,
-		       DRAW_NORMAL_TEXT, 1);
+		       DRAW_NORMAL_TEXT, overlaps);
 	}
       else
 	{
@@ -20800,13 +21083,17 @@ draw_phys_cursor_glyph (w, row, hl)
 	 are redrawn.  */
       else if (hl == DRAW_NORMAL_TEXT && row->overlapped_p)
 	{
+	  w->phys_cursor_width = x1 - w->phys_cursor.x;
+
 	  if (row > w->current_matrix->rows
 	      && MATRIX_ROW_OVERLAPS_SUCC_P (row - 1))
-	    x_fix_overlapping_area (w, row - 1, TEXT_AREA);
+	    x_fix_overlapping_area (w, row - 1, TEXT_AREA,
+				    OVERLAPS_ERASED_CURSOR);
 
 	  if (MATRIX_ROW_BOTTOM_Y (row) < window_text_bottom_y (w)
 	      && MATRIX_ROW_OVERLAPS_PRED_P (row + 1))
-	    x_fix_overlapping_area (w, row + 1, TEXT_AREA);
+	    x_fix_overlapping_area (w, row + 1, TEXT_AREA,
+				    OVERLAPS_ERASED_CURSOR);
 	}
     }
 }
@@ -22597,13 +22884,13 @@ expose_overlaps (w, first_overlapping_row, last_overlapping_row)
 	xassert (row->enabled_p && !row->mode_line_p);
 
 	if (row->used[LEFT_MARGIN_AREA])
-	  x_fix_overlapping_area (w, row, LEFT_MARGIN_AREA);
+	  x_fix_overlapping_area (w, row, LEFT_MARGIN_AREA, OVERLAPS_BOTH);
 
 	if (row->used[TEXT_AREA])
-	  x_fix_overlapping_area (w, row, TEXT_AREA);
+	  x_fix_overlapping_area (w, row, TEXT_AREA, OVERLAPS_BOTH);
 
 	if (row->used[RIGHT_MARGIN_AREA])
-	  x_fix_overlapping_area (w, row, RIGHT_MARGIN_AREA);
+	  x_fix_overlapping_area (w, row, RIGHT_MARGIN_AREA, OVERLAPS_BOTH);
       }
 }
 

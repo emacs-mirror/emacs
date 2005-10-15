@@ -1012,7 +1012,7 @@ reset_sigio ()
 void
 request_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
 #ifdef SIGWINCH
@@ -1026,7 +1026,7 @@ request_sigio ()
 void
 unrequest_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
 #ifdef SIGWINCH
@@ -1044,7 +1044,7 @@ request_sigio ()
 {
   int on = 1;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   ioctl (input_fd, FIOASYNC, &on);
@@ -1056,7 +1056,7 @@ unrequest_sigio ()
 {
   int off = 0;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   ioctl (input_fd, FIOASYNC, &off);
@@ -1075,7 +1075,7 @@ request_sigio ()
   int on = 1;
   sigset_t st;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   sigemptyset (&st);
@@ -1090,7 +1090,7 @@ unrequest_sigio ()
 {
   int off = 0;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   ioctl (input_fd, FIOASYNC, &off);
@@ -1103,7 +1103,7 @@ unrequest_sigio ()
 void
 request_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   croak ("request_sigio");
@@ -1112,7 +1112,7 @@ request_sigio ()
 void
 unrequest_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   croak ("unrequest_sigio");
@@ -2235,12 +2235,16 @@ reset_sigio ()
 void
 request_sigio ()
 {
+  if (noninteractive)
+    return;
   croak ("request sigio");
 }
 
 void
 unrequest_sigio ()
 {
+  if (noninteractive)
+    return;
   croak ("unrequest sigio");
 }
 
@@ -2775,6 +2779,8 @@ reset_sigio ()
 void
 request_sigio ()
 {
+  if (noninteractive)
+    return;
   sigrelse (SIGTINT);
 
   interrupts_deferred = 0;
@@ -2783,6 +2789,8 @@ request_sigio ()
 void
 unrequest_sigio ()
 {
+  if (noninteractive)
+    return;
   sighold (SIGTINT);
 
   interrupts_deferred = 1;

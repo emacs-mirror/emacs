@@ -1305,7 +1305,7 @@ x_draw_glyph_string_foreground (s)
 	 XDrawImageString is usually faster than XDrawString.)  Always
 	 use XDrawImageString when drawing the cursor so that there is
 	 no chance that characters under a box cursor are invisible.  */
-      if (s->for_overlaps_p
+      if (s->for_overlaps
 	  || (s->background_filled_p && s->hl != DRAW_CURSOR))
 	{
 	  /* Draw characters with 16-bit or 8-bit functions.  */
@@ -2610,7 +2610,7 @@ x_draw_glyph_string (s)
   /* If S draws into the background of its successor, draw the
      background of the successor first so that S can draw into it.
      This makes S->next use XDrawString instead of XDrawImageString.  */
-  if (s->next && s->right_overhang && !s->for_overlaps_p)
+  if (s->next && s->right_overhang && !s->for_overlaps)
     {
       xassert (s->next->img == NULL);
       x_set_glyph_string_gc (s->next);
@@ -2623,7 +2623,7 @@ x_draw_glyph_string (s)
 
   /* Draw relief (if any) in advance for char/composition so that the
      glyph string can be drawn over it.  */
-  if (!s->for_overlaps_p
+  if (!s->for_overlaps
       && s->face->box != FACE_NO_BOX
       && (s->first_glyph->type == CHAR_GLYPH
 	  || s->first_glyph->type == COMPOSITE_GLYPH))
@@ -2649,7 +2649,7 @@ x_draw_glyph_string (s)
       break;
 
     case CHAR_GLYPH:
-      if (s->for_overlaps_p)
+      if (s->for_overlaps)
 	s->background_filled_p = 1;
       else
 	x_draw_glyph_string_background (s, 0);
@@ -2657,7 +2657,7 @@ x_draw_glyph_string (s)
       break;
 
     case COMPOSITE_GLYPH:
-      if (s->for_overlaps_p || s->gidx > 0)
+      if (s->for_overlaps || s->gidx > 0)
 	s->background_filled_p = 1;
       else
 	x_draw_glyph_string_background (s, 1);
@@ -2668,7 +2668,7 @@ x_draw_glyph_string (s)
       abort ();
     }
 
-  if (!s->for_overlaps_p)
+  if (!s->for_overlaps)
     {
       /* Draw underline.  */
       if (s->face->underline_p)
@@ -3588,7 +3588,7 @@ construct_mouse_click (result, event, f)
 static XMotionEvent last_mouse_motion_event;
 static Lisp_Object last_mouse_motion_frame;
 
-static void
+static int
 note_mouse_movement (frame, event)
      FRAME_PTR frame;
      XMotionEvent *event;
@@ -3602,10 +3602,11 @@ note_mouse_movement (frame, event)
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, -1, -1);
+      return 1;
     }
 
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  else if (event->x < last_mouse_glyph.x
+  if (event->x < last_mouse_glyph.x
 	   || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
 	   || event->y < last_mouse_glyph.y
 	   || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
@@ -3613,7 +3614,12 @@ note_mouse_movement (frame, event)
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, event->x, event->y);
+      /* Remember which glyph we're now on.  */
+      remember_mouse_glyph (frame, event->x, event->y, &last_mouse_glyph);
+      return 1;
     }
+
+  return 0;
 }
 
 
@@ -3631,56 +3637,6 @@ redo_mouse_highlight ()
 			  last_mouse_motion_event.y);
 }
 
-
-static int glyph_rect P_ ((struct frame *f, int, int, XRectangle *));
-
-
-/* Try to determine frame pixel position and size of the glyph under
-   frame pixel coordinates X/Y on frame F .  Return the position and
-   size in *RECT.  Value is non-zero if we could compute these
-   values.  */
-
-static int
-glyph_rect (f, x, y, rect)
-     struct frame *f;
-     int x, y;
-     XRectangle *rect;
-{
-  Lisp_Object window;
-  struct window *w;
-  struct glyph_row *r, *end_row;
-
-  window = window_from_coordinates (f, x, y, 0, &x, &y, 0);
-  if (NILP (window))
-    return 0;
-
-  w = XWINDOW (window);
-  r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-  end_row = r + w->current_matrix->nrows - 1;
-
-  for (; r < end_row && r->enabled_p; ++r)
-    {
-      if (r->y >= y)
-	{
-	  struct glyph *g = r->glyphs[TEXT_AREA];
-	  struct glyph *end = g + r->used[TEXT_AREA];
-	  int gx = r->x;
-	  while (g < end && gx < x)
-	    gx += g->pixel_width, ++g;
-	  if (g < end)
-	    {
-	      rect->width = g->pixel_width;
-	      rect->height = r->height;
-	      rect->x = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-	      rect->y = WINDOW_TO_FRAME_PIXEL_Y (w, r->y);
-	      return 1;
-	    }
-	  break;
-	}
-    }
-
-  return 0;
-}
 
 
 /* Return the current position of the mouse.
@@ -3869,32 +3825,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	       on it, i.e. into the same rectangles that matrices on
 	       the frame are divided into.  */
 
-	    int width, height, gx, gy;
-	    XRectangle rect;
-
-	    if (glyph_rect (f1, win_x, win_y, &rect))
-	      last_mouse_glyph = rect;
-	    else
-	      {
-		width = FRAME_SMALLEST_CHAR_WIDTH (f1);
-		height = FRAME_SMALLEST_FONT_HEIGHT (f1);
-		gx = win_x;
-		gy = win_y;
-
-		/* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
-		   round down even for negative values.  */
-		if (gx < 0)
-		  gx -= width - 1;
-		if (gy < 0)
-		  gy -= height - 1;
-		gx = (gx + width - 1) / width * width;
-		gy = (gy + height - 1) / height * height;
-
-		last_mouse_glyph.width  = width;
-		last_mouse_glyph.height = height;
-		last_mouse_glyph.x = gx;
-		last_mouse_glyph.y = gy;
-	      }
+	    remember_mouse_glyph (f1, win_x, win_y, &last_mouse_glyph);
 
 	    *bar_window = Qnil;
 	    *part = 0;
@@ -6571,8 +6502,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
     case MotionNotify:
       {
         previous_help_echo_string = help_echo_string;
-        help_echo_string = help_echo_object = help_echo_window = Qnil;
-        help_echo_pos = -1;
+        help_echo_string = Qnil;
 
         if (dpyinfo->grabbed && last_mouse_frame
             && FRAME_LIVE_P (last_mouse_frame))
@@ -6611,7 +6541,8 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
 
                 last_window=window;
               }
-            note_mouse_movement (f, &event.xmotion);
+            if (!note_mouse_movement (f, &event.xmotion))
+	      help_echo_string = previous_help_echo_string;
           }
         else
           {
@@ -6720,6 +6651,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         int tool_bar_p = 0;
 
         bzero (&compose_status, sizeof (compose_status));
+	bzero (&last_mouse_glyph, sizeof (last_mouse_glyph));
 
         if (dpyinfo->grabbed
             && last_mouse_frame

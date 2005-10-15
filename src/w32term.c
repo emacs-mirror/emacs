@@ -1718,7 +1718,7 @@ x_draw_glyph_string_foreground (s)
   else
     x = s->x;
 
-  if (s->for_overlaps_p || (s->background_filled_p && s->hl != DRAW_CURSOR))
+  if (s->for_overlaps || (s->background_filled_p && s->hl != DRAW_CURSOR))
     SetBkMode (s->hdc, TRANSPARENT);
   else
     SetBkMode (s->hdc, OPAQUE);
@@ -2599,7 +2599,7 @@ x_draw_glyph_string (s)
   /* If S draws into the background of its successor, draw the
      background of the successor first so that S can draw into it.
      This makes S->next use XDrawString instead of XDrawImageString.  */
-  if (s->next && s->right_overhang && !s->for_overlaps_p)
+  if (s->next && s->right_overhang && !s->for_overlaps)
     {
       xassert (s->next->img == NULL);
       x_set_glyph_string_gc (s->next);
@@ -2612,7 +2612,7 @@ x_draw_glyph_string (s)
 
   /* Draw relief (if any) in advance for char/composition so that the
      glyph string can be drawn over it.  */
-  if (!s->for_overlaps_p
+  if (!s->for_overlaps
       && s->face->box != FACE_NO_BOX
       && (s->first_glyph->type == CHAR_GLYPH
 	  || s->first_glyph->type == COMPOSITE_GLYPH))
@@ -2638,7 +2638,7 @@ x_draw_glyph_string (s)
       break;
 
     case CHAR_GLYPH:
-      if (s->for_overlaps_p)
+      if (s->for_overlaps)
 	s->background_filled_p = 1;
       else
         x_draw_glyph_string_background (s, 0);
@@ -2646,7 +2646,7 @@ x_draw_glyph_string (s)
       break;
 
     case COMPOSITE_GLYPH:
-      if (s->for_overlaps_p || s->gidx > 0)
+      if (s->for_overlaps || s->gidx > 0)
 	s->background_filled_p = 1;
       else
 	x_draw_glyph_string_background (s, 1);
@@ -2657,7 +2657,7 @@ x_draw_glyph_string (s)
       abort ();
     }
 
-  if (!s->for_overlaps_p)
+  if (!s->for_overlaps)
     {
       /* Draw underline.  */
       if (s->face->underline_p
@@ -3355,9 +3355,7 @@ construct_drag_n_drop (result, msg, f)
 static MSG last_mouse_motion_event;
 static Lisp_Object last_mouse_motion_frame;
 
-static void remember_mouse_glyph P_ ((struct frame *, int, int));
-
-static void
+static int
 note_mouse_movement (frame, msg)
      FRAME_PTR frame;
      MSG *msg;
@@ -3374,13 +3372,14 @@ note_mouse_movement (frame, msg)
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, -1, -1);
+      return 1;
     }
 
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  else if (mouse_x < last_mouse_glyph.left
-	   || mouse_x > last_mouse_glyph.right
-	   || mouse_y < last_mouse_glyph.top
-	   || mouse_y > last_mouse_glyph.bottom)
+  if (mouse_x < last_mouse_glyph.left
+      || mouse_x >= last_mouse_glyph.right
+      || mouse_y < last_mouse_glyph.top
+      || mouse_y >= last_mouse_glyph.bottom)
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
@@ -3389,8 +3388,11 @@ note_mouse_movement (frame, msg)
 	 gets called when mouse tracking is enabled but we also need
 	 to keep track of the mouse for help_echo and highlighting at
 	 other times.  */
-      remember_mouse_glyph (frame, mouse_x, mouse_y);
+      remember_mouse_glyph (frame, mouse_x, mouse_y, &last_mouse_glyph);
+      return 1;
     }
+
+  return 0;
 }
 
 
@@ -3401,8 +3403,6 @@ note_mouse_movement (frame, msg)
 static struct scroll_bar *x_window_to_scroll_bar ();
 static void x_scroll_bar_report_motion ();
 static void x_check_fullscreen P_ ((struct frame *));
-static int glyph_rect P_ ((struct frame *f, int, int, RECT *));
-
 
 static void
 redo_mouse_highlight ()
@@ -3421,108 +3421,6 @@ w32_define_cursor (window, cursor)
 {
   PostMessage (window, WM_EMACS_SETCURSOR, (WPARAM) cursor, 0);
 }
-
-/* Try to determine frame pixel position and size of the glyph under
-   frame pixel coordinates X/Y on frame F .  Return the position and
-   size in *RECT.  Value is non-zero if we could compute these
-   values.  */
-
-static int
-glyph_rect (f, x, y, rect)
-     struct frame *f;
-     int x, y;
-     RECT *rect;
-{
-  Lisp_Object window;
-
-  window = window_from_coordinates (f, x, y, 0, &x, &y, 0);
-
-  if (!NILP (window))
-    {
-      struct window *w = XWINDOW (window);
-      struct glyph_row *r = MATRIX_FIRST_TEXT_ROW (w->current_matrix);
-      struct glyph_row *end = r + w->current_matrix->nrows - 1;
-
-      for (; r < end && r->enabled_p; ++r)
-	if (r->y <= y && r->y + r->height > y)
-	  {
-	    /* Found the row at y.  */
-	    struct glyph *g = r->glyphs[TEXT_AREA];
-	    struct glyph *end = g + r->used[TEXT_AREA];
-	    int gx;
-
-	    rect->top = WINDOW_TO_FRAME_PIXEL_Y (w, r->y);
-	    rect->bottom = rect->top + r->height;
-
-	    if (x < r->x)
-	      {
-		/* x is to the left of the first glyph in the row.  */
-		/* Shouldn't this be a pixel value?
-		   WINDOW_LEFT_EDGE_X (w) seems to be the right value.
-		   ++KFS */
-		rect->left = WINDOW_LEFT_EDGE_COL (w);
-		rect->right = WINDOW_TO_FRAME_PIXEL_X (w, r->x);
-		return 1;
-	      }
-
-	    for (gx = r->x; g < end; gx += g->pixel_width, ++g)
-	      if (gx <= x && gx + g->pixel_width > x)
-		{
-		  /* x is on a glyph.  */
-		  rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-		  rect->right = rect->left + g->pixel_width;
-		  return 1;
-		}
-
-	    /* x is to the right of the last glyph in the row.  */
-	    rect->left = WINDOW_TO_FRAME_PIXEL_X (w, gx);
-	    /* Shouldn't this be a pixel value?
-	       WINDOW_RIGHT_EDGE_X (w) seems to be the right value.
-	       ++KFS */
-	    rect->right = WINDOW_RIGHT_EDGE_COL (w);
-	    return 1;
-	  }
-    }
-
-  /* The y is not on any row.  */
-  return 0;
-}
-
-/* Record the position of the mouse in last_mouse_glyph.  */
-static void
-remember_mouse_glyph (f1, gx, gy)
-     struct frame * f1;
-     int gx, gy;
-{
-  if (!glyph_rect (f1, gx, gy, &last_mouse_glyph))
-    {
-      int width = FRAME_SMALLEST_CHAR_WIDTH (f1);
-      int height = FRAME_SMALLEST_FONT_HEIGHT (f1);
-
-      /* Arrange for the division in FRAME_PIXEL_X_TO_COL etc. to
-	 round down even for negative values.  */
-      if (gx < 0)
-	gx -= width - 1;
-      if (gy < 0)
-	gy -= height - 1;
-#if 0
-      /* This was the original code from XTmouse_position, but it seems
-	 to give the position of the glyph diagonally next to the one
-	 the mouse is over.  */
-      gx = (gx + width - 1) / width * width;
-      gy = (gy + height - 1) / height * height;
-#else
-      gx = gx / width * width;
-      gy = gy / height * height;
-#endif
-
-      last_mouse_glyph.left = gx;
-      last_mouse_glyph.top = gy;
-      last_mouse_glyph.right  = gx + width;
-      last_mouse_glyph.bottom = gy + height;
-    }
-}
-
 /* Return the current position of the mouse.
    *fp should be a frame which indicates which display to ask about.
 
@@ -3625,7 +3523,7 @@ w32_mouse_position (fp, insist, bar_window, part, x, y, time)
 				   || insist);
 #else
 	    ScreenToClient (FRAME_W32_WINDOW (f1), &pt);
-	    remember_mouse_glyph (f1, pt.x, pt.y);
+	    remember_mouse_glyph (f1, pt.x, pt.y, &last_mouse_glyph);
 #endif
 
 	    *bar_window = Qnil;
@@ -4571,6 +4469,7 @@ w32_read_socket (sd, expected, hold_quit)
 	  }
 
           previous_help_echo_string = help_echo_string;
+	  help_echo_string = Qnil;
 
 	  if (dpyinfo->grabbed && last_mouse_frame
 	      && FRAME_LIVE_P (last_mouse_frame))
@@ -4609,7 +4508,8 @@ w32_read_socket (sd, expected, hold_quit)
 
 		  last_window=window;
 		}
-	      note_mouse_movement (f, &msg.msg);
+	      if (!note_mouse_movement (f, &msg.msg))
+		help_echo_string = previous_help_echo_string;
 	    }
 	  else
             {

@@ -1,3 +1,8 @@
+2005-10-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* FOR-RELEASE (FATAL ERRORS): Remove item about JPEG
+	libraries on Windows (Done).
+
 2005-10-01  Jason Rumney  <jasonr@gnu.org>
 
 	* admin.el (set-version): Set version numbers in nt/emacs.rc.

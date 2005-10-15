@@ -1173,12 +1173,12 @@ If you have many clients running at once, you can avoid cluttering up
 the screen by iconifying most of the clients.
 
 @table @samp
-@item -i
-@opindex -i
-@itemx --icon-type
-@opindex --icon-type
+@item -nbi
+@opindex -nbi
+@itemx --no-bitmap-icon
+@opindex --no-bitmap-icon
 @cindex Emacs icon, a gnu
-Use a picture of a gnu as the Emacs icon.
+Do not use a picture of a gnu as the Emacs icon.
 
 @item -iconic
 @opindex --iconic
@@ -1187,8 +1187,8 @@ Use a picture of a gnu as the Emacs icon.
 Start Emacs in iconified state.
 @end table
 
-  The @samp{-i} or @samp{--icon-type} option tells Emacs to use an icon
-window containing a picture of the GNU gnu.  If omitted, Emacs lets the
+  By default Emacs uses an icon window containing a picture of the GNU gnu.
+The @samp{-nbi} or @samp{--no-bitmap-icon} option tells Emacs to let the
 window manager choose what sort of icon to use---usually just a small
 rectangle containing the frame's title.
 

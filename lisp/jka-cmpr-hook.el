@@ -281,7 +281,7 @@ Returns the new status of auto compression (non-nil means on)."
 ;;; in order to decide when to call it.
 
 (put 'jka-compr-handler 'safe-magic t)
-(put 'jka-compr-handler 'operations '(jka-compr-byte-compiler-base-file-name
+(put 'jka-compr-handler 'operations '(byte-compiler-base-file-name
 				      write-region insert-file-contents
 				      file-local-copy load))
 

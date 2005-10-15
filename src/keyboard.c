@@ -5053,7 +5053,11 @@ make_lispy_position (f, x, y, time)
       XSETINT (*x, wx);
       XSETINT (*y, wy);
 
-      if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
+      if (part == ON_TEXT)
+	{
+	  wx += WINDOW_LEFT_MARGIN_WIDTH (w);
+	}
+      else if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
 	{
 	  /* Mode line or header line.  Look for a string under
 	     the mouse that may have a `local-map' property.  */
@@ -5089,20 +5093,37 @@ make_lispy_position (f, x, y, time)
 					 &object, &dx, &dy, &width, &height);
 	  if (STRINGP (string))
 	    string_info = Fcons (string, make_number (charpos));
+	  if (part == ON_LEFT_MARGIN)
+	    wx = 0;
+	  else
+	    wx = window_box_right_offset (w, TEXT_AREA) - 1;
 	}
-      else if (part == ON_LEFT_FRINGE || part == ON_RIGHT_FRINGE)
+      else if (part == ON_LEFT_FRINGE)
 	{
-	  posn = (part == ON_LEFT_FRINGE) ? Qleft_fringe : Qright_fringe;
+	  posn = Qleft_fringe;
 	  rx = 0;
 	  dx = wx;
-	  if (part == ON_RIGHT_FRINGE)
-	    dx -= (window_box_width (w, LEFT_MARGIN_AREA)
-		   + window_box_width (w, TEXT_AREA)
-		   + (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
-		      ? window_box_width (w, RIGHT_MARGIN_AREA)
-		      : 0));
-	  else if (!WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w))
-	    dx -= window_box_width (w, LEFT_MARGIN_AREA);
+	  wx = (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+		? 0
+		: window_box_width (w, LEFT_MARGIN_AREA));
+	  dx -= wx;
+	}
+      else if (part == ON_RIGHT_FRINGE)
+	{
+	  posn = Qright_fringe;
+	  rx = 0;
+	  dx = wx;
+	  wx = (window_box_width (w, LEFT_MARGIN_AREA)
+		+ window_box_width (w, TEXT_AREA)
+		+ (WINDOW_HAS_FRINGES_OUTSIDE_MARGINS (w)
+		   ? window_box_width (w, RIGHT_MARGIN_AREA)
+		   : 0));
+	  dx -= wx;
+	}
+      else
+	{
+	  /* Note: We have no special posn for part == ON_SCROLL_BAR.  */
+	  wx = max (WINDOW_LEFT_MARGIN_WIDTH (w), wx);
 	}
 
       if (textpos < 0)
@@ -5111,7 +5132,6 @@ make_lispy_position (f, x, y, time)
 	  struct display_pos p;
 	  int dx2, dy2;
 	  int width2, height2;
-	  wx = max (WINDOW_LEFT_MARGIN_WIDTH (w), wx);
 	  string2 = buffer_posn_from_coords (w, &wx, &wy, &p,
 					     &object2, &dx2, &dy2,
 					     &width2, &height2);
@@ -10574,11 +10594,11 @@ The `posn-' functions access elements of such lists.  */)
       CHECK_LIVE_WINDOW (frame_or_window);
 
       w = XWINDOW (frame_or_window);
-      XSETINT (x, (WINDOW_TO_FRAME_PIXEL_X (w, XINT (x))
+      XSETINT (x, (XINT (x)
+		   + WINDOW_LEFT_EDGE_X (w)
 		   + (NILP (whole)
 		      ? window_box_left_offset (w, TEXT_AREA)
-		      : - (WINDOW_LEFT_SCROLL_BAR_COLS (w)
-			   * WINDOW_FRAME_COLUMN_WIDTH (w)))));
+		      : 0)));
       XSETINT (y, WINDOW_TO_FRAME_PIXEL_Y (w, XINT (y)));
       frame_or_window = w->frame;
     }
@@ -10604,9 +10624,21 @@ The `posn-' functions access elements of such lists.  */)
 {
   Lisp_Object tem;
 
+  if (NILP (window))
+    window = selected_window;
+
   tem = Fpos_visible_in_window_p (pos, window, Qt);
   if (!NILP (tem))
-    tem = Fposn_at_x_y (XCAR (tem), XCAR (XCDR (tem)), window, Qnil);
+    {
+      Lisp_Object x = XCAR (tem);
+      Lisp_Object y = XCAR (XCDR (tem));
+
+      /* Point invisible due to hscrolling?  */
+      if (XINT (x) < 0)
+	return Qnil;
+      tem = Fposn_at_x_y (x, y, window, Qnil);
+    }
+
   return tem;
 }
 

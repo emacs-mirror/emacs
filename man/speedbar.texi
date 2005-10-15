@@ -90,13 +90,13 @@ on.  @xref{Basic Navigation}.
 @chapter Introduction
 @cindex introduction
 
-To start using speedbar use the command @kbd{M-x speedbar RET} or select
-it from the Tools menu in versions of Emacs with speedbar installed by
-default.  This command will open a new frame to summarize the local
-files.  On X Window systems or on MS-Windows, speedbar's frame is twenty
-characters wide, and will mimic the height of the frame from which it
-was started.  It positions itself to the left or right of the frame you
-started it from.
+To start using speedbar use the command @kbd{M-x speedbar RET} or
+select it from the @samp{Options->Show/Hide} sub-menu.  This command
+will open a new frame to summarize the local files.  On X Window
+systems or on MS-Windows, speedbar's frame is twenty characters wide,
+and will mimic the height of the frame from which it was started.  It
+positions itself to the left or right of the frame you started it
+from.
 
 To use speedbar effectively, it is important to understand its
 relationship with the frame you started it from.  This frame is the
@@ -141,9 +141,6 @@ to use.
 These key bindings are common across all modes:
 
 @table @kbd
-@item delete, SPC
-@cindex scrolling in speedbar
-Scroll up and down one page.
 @item Q
 @cindex quitting speedbar
 Quit speedbar, and kill the frame.

@@ -1,3 +1,107 @@
+2005-10-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Document Server Internals): Addition.
+
+2005-10-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (A note on namespaces): Fix RFC reference.
+
+2005-10-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Fix key description.
+
+2005-10-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi: Emacs/w3 -> Emacs/W3.
+	(Browsing the Web): Fix description.
+	(Web Searches): Ditto.
+	(Customizing W3): Ditto.
+
+2005-10-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Maildir): Clarify expire-age and expire-group.
+
+2005-10-13  Kenichi Handa  <handa@m17n.org>
+
+	* basic.texi (Position Info): Fix previous change.
+
+2005-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cmdargs.texi (Icons X): Fix typo.
+
+2005-10-12  Kenichi Handa  <handa@m17n.org>
+
+	* basic.texi (Position Info): Describe the case that Emacs shows
+	"part of display ...".
+
+2005-10-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Integration): Mention using `a i' to compute definite
+	integrals.
+
+2005-10-11  Juri Linkov  <juri@jurta.org>
+
+	* info.texi: Rearrange nodes.
+	(Top): Update menu.  Change ref `Info for Experts' to
+	`Advanced Info Commands'.
+	(Getting Started): Fix description of manual's parts.
+	(Help-Int): Change xref `Info Search' to `Search Index', and
+	`Expert Info' to `Advanced'.
+	(Advanced): Move node one level up.
+	(Search Text, Search Index): New nodes split out from `Info Search'.
+	(Go to node, Choose menu subtopic, Create Info buffer): New nodes
+	split out from `Advanced'.
+	(Advanced, Emacs Info Variables): De-document editing an Info file
+	in Info.
+	(Emacs Info Variables): Move node from `Expert Info' to `Advanced'.
+	(Creating an Info File): Delete node and move its text to
+	`Expert Info'.
+
+2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cmdargs.texi (Icons X): -nb => -nbi
+
+2005-10-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Speedbar): A couple more clarifications.
+
+2005-10-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB User Interface Layout): Improve diagram.
+	(Watch Expressions): Explain how to make speedbar global.
+	(Other GDB User Interface Buffers): Make references more precise.
+
+2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Workflow states): Documented that change in keywords
+	becomes active only after restart of Emacs.
+
+2005-10-09  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Speedbar): Clarify the text.
+
+2005-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* frames.texi (Speedbar): Add information on keybindings,
+	dismissing the speedbar, and buffer display mode.  Link to
+	speedbar manual.
+
+2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cmdargs.texi (Icons X): Removed options -i, -itype, --icon-type, 
+	added -nb, --no-bitmap-icon.
+
+2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.51.
+
+2005-10-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.texi (Introduction): Describe new location of speedbar
+	on menubar.
+	(Basic Key Bindings): Remove descriptions of bindings that have
+	been removed.
+
 2005-10-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Add variables and

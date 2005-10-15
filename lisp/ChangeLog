@@ -1,25 +1,363 @@
+2005-10-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlinges-search-function)
+	(longlines-search-forward, longlines-search-backward): New
+	functions.
+	(longlines-mode): Set isearch-search-fun-function to
+	longlinges-search-function.
+
+	* mouse.el (mouse-drag-region-1): Handle the case where a
+	double-click event is bound to an arbitrary function.
+
+2005-10-14  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-track-opened-file)
+	(recentf-track-closed-file, recentf-update-menu)
+	(recentf-used-hooks, recentf-enabled-p): Move before dialog stuff.
+	(recentf-dialog-mode-map): Map follow-link to RET, so dialogs obey
+	mouse-1-click-follows-link.
+
+2005-10-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* toolbar/diropen.xpm, toolbar/diropen.pbm: New versions made from
+	Gnome file-manager.png.  Suggested by
+	Joachim Nilsson <joachim.nilsson@vmlinux.org>.
+
+	* toolbar/README: Add diropen.xpm.
+
+2005-10-13  Bill Wohler  <wohler@newt.com>
+
+	* makefile.w32-in (MH_E_SRC): Rename from MH-E-SRC per NMAKE
+	restrictions.  Suggested by David Robinow <drobinow@gmail.com>.
+
+2005-10-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/mixal-mode.el (mixal-operation-codes-alist):
+	Don't waste the byte-compiler's time on constant data.
+
+2005-10-13  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-8.el (utf-8-compose): Display an invalid UTF-8
+	byte with `escape-glyph' face.
+
+	* international/fontset.el (ccl-encode-unicode-font):
+	Lookup utf-subst-table-for-encode, not ucs-mule-cjk-to-unicode.
+	Handle the case that ucs-mule-to-mule-unicode translates a character to
+	ASCII (usually for IPA characters).
+
+2005-10-12  Bill Wohler  <wohler@newt.com>
+
+	* makefile.w32-in (MH-E-SRC): New. Used by mh-autoloads.
+	(mh-autoloads): New. Builds mh-e/mh-loaddefs.el. Rebuilds if any
+	files in MH-E-SRC have been updated.
+	(updates, compile, recompile, bootstrap): Depend on mh-autoloads.
+
+2005-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/mixal-mode.el (mixal-operation-codes): Remove.
+	(mixal-mode-syntax-table): Add \n as end-comment.
+	(mixal-operation-codes-alist): Immediately initialize to full value.
+	(mixal-add-operation-code): Remove.
+	(mixal-describe-operation-code): Make the arg non-optional.
+	Use the interactive spec instead.
+	Use mixal-operation-codes-alist rather than mixal-operation-codes.
+	(mixal-font-lock-keywords): Don't highlight comments here any more.
+	(mixal-font-lock-syntactic-keywords): New var.
+	(mixal-mode): Use it.  Fix comment-start-skip.
+
+2005-10-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line-x-option-alist): -nb => -nbi
+
+2005-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (fancy-splash-default-action): Discard mouse click in
+	the spash screen window, as it has no sensible meaning in the
+	next window to be selected.  Fixes error reported by Jan D.
+
+2005-10-12  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* desktop.el (desktop-load-file): Do nothing when FUNCTION is nil.
+
+2005-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/mixal-mode.el: Sync with version in the GNU MDK project.
+	Try to fix up minor layout issues like indentation, line break, etc...
+	(mixal-mode-syntax-table): Don't try to specify comment syntax,
+	because it doesn't work.
+	(mixal-operation-codes): Add some more codes.
+	(mixal-font-lock-keywords): Process comments here.
+	(mixal-mode): mixasm no longer needs -g option.
+
+2005-10-11  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* progmodes/sh-script.el (sh-tmp-file):
+	Use mktemp -t.  Finish support for es and rc shells.
+
+2005-10-11  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcalg2.el (calc-integral): With an argument, compute the
+	definite integral.
+
+2005-10-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse.el (mouse-drag-region-1): Don't try to catch a
+	double-click when doing follow-link (it's overridden anyway).
+
+2005-10-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/autoload.el (update-directory-autoloads): Doc fix.
+	(autoload-print-form-outbuf): Add docstring.
+
+2005-10-11  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-mode-menu): Delete menu item "Edit".
+	(Info-mode): Delete description of Info-edit from docstring,
+	and rearrange descriptions of Info commands in the order
+	they are documented in the Info manual.
+
+2005-10-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/appt.el (appt-check): Use diary-selective-display var.
+
+2005-10-10  Richard M. Stallman  <rms@gnu.org>
+
+	* net/newsticker.el (newsticker-start, newsticker-show-news):
+	Add autoload cookies.
+
+2005-10-10  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>
+
+	* progmodes/sh-script.el (sh-tmp-file): Use mktemp.
+
+2005-10-10  Karl Chen  <quarl@cs.berkeley.edu>
+
+	* jka-cmpr-hook.el (jka-compr-handler): Fix typo in `operations' prop.
+
+2005-10-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-check-known-scalarp)
+	(math-check-known-matrixp): Check the values of arguments that are
+	variables.
+	(math-check-known-square-matrixp): New function.
+	(math-known-square-matrixp): Use math-check-known-square-matrixp.
+	(math-super-types): Add sqmatrix type.
+
+	* calc/calc-mode.el (calc-matrix-mode, math-get-modes-vec): Change the
+	mode name `square' to 'sqmatrix'.
+
+	* calc/calc.el (calc-matrix-mode, calc-set-mode-line): Change the
+	mode name `square' to 'sqmatrix'.
+
+2005-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/etags.el (select-tags-table-mode): Don't use
+	selective-display.
+	(tags-select-tags-table): Pass `button' to the action function.
+	(select-tags-table): Place the side-info on button properties rather
+	than in hidden text.  Abbreviate file names.
+	(select-tags-table-mode-map): Inherit rather than copy buttom-map.
+	(select-tags-table-select): Add `button' argument.
+	Get side-info from the button property rather than from hidden text.
+
+2005-10-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-install-speedbar-variables): Add more bindings.
+	(gud-speedbar-buttons): Preserve point if possible.
+	(gud-sentinel): Restore previous speedbar display type.
+
+	* progmodes/gdb-ui.el (gdba): Improve diagram.
+	(def-gdb-auto-update-handler, gdb-info-locals-handler)
+	(gdb-put-breakpoint-icon, gdb-remove-breakpoint-icons):
+	Call get-buffer-window once.
+
+2005-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/pascal.el (pascal-mode-map): Move init into declaration.
+	(pascal-mode-syntax-table): Make (* *) markers same class as { ... }.
+	(pascal-indent-command): Remove unused var `ind'.
+	(pascal-indent-case): Remove unused var `oldpos'.
+	(pascal-outline-map): Don't inherit from pascal-mode-map anymore,
+	since it's now used as a proper minor mode map.
+	(pascal-outline): Rename to pascal-outline-mode.
+	(pascal-outline-mode): Use define-minor-mode.
+	(pascal-outline-mode, pascal-outline-change): Use overlays rather than
+	selective-display.
+
+2005-10-10  Andreas Schwab  <schwab@suse.de>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Adjust match
+	number.  Reported by Karl Chen <quarl@cs.berkeley.edu>.
+
+	* Makefile.in ($(lisp)/mh-e/mh-loaddefs.el): Fix for building
+	outside source directory.
+
+2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-mode-map): Explicit definition of `C-c
+	C-x' as a prefix.
+	(orgtbl-mode-map): Full keymap instead of sparse, because all
+	`self-insert-command' keys are redefined in this map.
+	(org-export-as-html): Specify charset for HTML file, by taking it
+	from the coding system.
+
+2005-10-10  Kenichi Handa  <handa@m17n.org>
+
+	* textmodes/flyspell.el (flyspell-check-word-p):
+	If unread-command-events is non-empty, don't call sit-for.
+
+2005-10-09  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-syntactic-keywords)
+	(font-lock-keywords): Doc fixes.
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Simplify logic, and don't try to check for consecutive appearances
+	of one incorrect word.
+
+2005-10-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* speedbar.el (speedbar-buffer-easymenu-definition): Add menu
+	separator.
+
+	* progmodes/gud.el (gud-last-speedbar-buffer): Remove.
+	(gud-install-speedbar-variables): Add GUD to speedbar "Displays" list.
+	(gud-expansion-speedbar-buttons): New function.
+	(gud-speedbar-buttons): Check for gud-comint-buffer.
+
+2005-10-09  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (updates): Add mh-loaddefs dependency.
+
+2005-10-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* speedbar.el (speedbar-file-key-map): Fix typo.
+
+2005-10-09  Daniel Brockman  <daniel@brockman.se>
+
+	* cus-start.el (line-spacing): Add custom spec.
+
+2005-10-09  Romain Francoise  <romain@orebokech.com>
+
+	* textmodes/ispell.el (ispell-check-version): Fix last change.
+
+2005-10-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* term/x-win.el: Remove -i, --icon-type from comment.
+
+	* startup.el (command-line-x-option-alist): Remove options -i,
+	-itype, --icon-type, added -nb, --no-bitmap-icon
+
+2005-10-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-menu-items): Use :visible
+	instead of :active.
+
+2005-10-08  Eric Hanchrow  <offby1@blarg.net>
+
+	* textmodes/ispell.el (ispell-check-version):
+	Ignore hyphen, and all that follows, in aspell's version text.
+
+2005-10-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-arith.el (math-known-square-matrixp): New function.
+	(math-pow-fancy): Check for matrices before distributing exponent
+	across products.
+
+	* calc/calc-keypd.el (calc-do-keypad): Widen keypad window for
+	fullscreen keypad.  Suggested by Luc Teirlinck.
+	(calc-keypad-show-input): Add space for formatting.
+
+	* calc/calc-mode.el (calc-matrix-mode, math-get-modes-vec):
+	Add square matrix option.
+
+	* calc/calc-poly.el (math-expand-term): Check for matrices instead
+	of checking calc-matrix-mode when deciding how to expand.
+
+	* calc/calc.el (calc-set-mode-line): Add square matrix option.
+
+2005-10-08  Lars Hansen  <larsh@soem.dk>
+
+	* net/tramp.el (tramp-perl-directory-files-and-attributes):
+	Add error handling.
+	(tramp-handle-directory-files-and-attributes): Handle perl error msg.
+
+2005-10-08  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.51.
+
+	* net/tramp.el (tramp-handle-set-visited-file-modtime)
+	(tramp-handle-insert-file-contents, tramp-handle-write-region):
+	Insert special handling for `last-coding-system-used', again
+	it still seems to be necessary (unlike stated before).
+	Reported by Toshinori Sugita <sugita@d-pad.co.jp>.
+	(tramp-password-prompt-regexp): There might be other words before
+	trailing ":".  Reported by Kurt Steinkraus <kurt@steinkraus.us>.
+	(tramp-chunksize): Improve docstring.
+	(tramp-set-auto-save-file-modes): Octal integer code #o600 breaks
+	Emacs 20.  Use `tramp-octal-to-decimal' therefore.  Reported by
+	Christian Joergensen <bugs@razor.dk>.
+
+2005-10-07  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/f90.el (f90-keywords-re, f90-mode): Doc fix.
+	(f90-font-lock-keywords-2, f90-mode-abbrev-table): Add `double
+	precision'.
+
+2005-10-07  Romain Francoise  <romain@orebokech.com>
+
+	* ibuf-ext.el (ibuffer-do-shell-command-pipe)
+	(ibuffer-do-shell-command-pipe-replace)
+	(ibuffer-do-shell-command-file, ibuffer-do-eval)
+	(ibuffer-do-view-and-eval, ibuffer-do-rename-uniquely)
+	(ibuffer-do-revert, ibuffer-do-replace-regexp)
+	(ibuffer-do-query-replace, ibuffer-do-query-replace-regexp)
+	(ibuffer-do-print, ibuffer-filter-by-mode, ibuffer-filter-by-used-mode)
+	(ibuffer-filter-by-name, ibuffer-filter-by-filename)
+	(ibuffer-filter-by-size-gt, ibuffer-filter-by-size-lt)
+	(ibuffer-filter-by-content, ibuffer-filter-by-predicate
+	(ibuffer-do-sort-by-major-mode, ibuffer-do-sort-by-mode-name)
+	(ibuffer-do-sort-by-alphabetic, ibuffer-do-sort-by-size):
+	Autoload file sans suffix.
+
+	* emulation/cua-base.el (cua-toggle-global-mark): Likewise.
+
+2005-10-07  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-menu-open-all-flag): New option.
+	(recentf-digit-shortcut-command-name): New function.
+	(recentf--shortcuts-keymap): New variable.
+	(recentf-menu-shortcuts): New variable.
+	(recentf-make-menu-items): Initialize it.  Replace the "More..."
+	menu item by "All...", if `recentf-menu-open-all-flag' is non-nil.
+	(recentf-menu-value-shortcut): New function.
+	(recentf-make-menu-item): Use it.  No more in-lined.
+	(recentf-dialog-mode-map): Base on `recentf--shortcuts-keymap'.
+	(recentf-open-most-recent-file): Rename from
+	`recentf-open-file-with-key'.  Don't depend on key binding.
+	(recentf-mode-map): New variable.
+	(recentf-mode): Use it.
+
 2005-10-06  Bill Wohler  <wohler@newt.com>
 
-	* mh-e/mh-loaddefs.el: Removed. Now generated automatically.
+	* mh-e/mh-loaddefs.el: Remove.  Now generated automatically.
 
-	* Makefile.in (AUTOGENEL): Added mh-e/mh-loaddefs.el.
-	(MH-E-SRC): Added. Used by mh-autoloads.
-	(mh-autoloads): Added. Builds mh-e/mh-loaddefs.el. Rebuilds if any
+	* Makefile.in (AUTOGENEL): Add mh-e/mh-loaddefs.el.
+	(MH-E-SRC): New.  Used by mh-autoloads.
+	(mh-autoloads): New.  Builds mh-e/mh-loaddefs.el.  Rebuilds if any
 	files in MH-E-SRC have been updated.
 	(compile, recompile, bootstrap): Depend on mh-autoloads.
 
 2005-10-07  Nick Roberts  <nickrob@snap.net.nz>
-	
+
 	* progmodes/gud.el (gud-menu-map): Only display un-intuitive
 	gud-break and gud-remove icons when the fringe is not available.
 
 	* progmodes/gdb-ui.el (gdb-fringe-width -> gdb-buffer-fringe-width):
 	Typo.
 
-2005-10-06  Thien-Thi Nguyen  <ttn@gnu.org>
+2005-10-06  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>  (tiny change)
 
 	* play/zone.el (zone): Wrap body with save-window-excursion.
-	Suggested by Michael Cadilhac.
 
 2005-10-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -551,7 +889,7 @@
 	color rxvt terminals by using the code xterm.el used to use before
 	2005-04-09 in order to match the colors used by rxvt.
 
-2005-09-24  Emanuele Giaquinta <emanuele.giaquinta@gmail.com> (tiny change)
+2005-09-24  Emanuele Giaquinta <emanuele.giaquinta@gmail.com>  (tiny change)
 
 	* term/rxvt.el (rxvt-register-default-colors): Add support for 88
 	colors rxvt-unicode terminals by using the same code as xterm.el.
@@ -2481,7 +2819,7 @@
 
 	Sync with Tramp 2.0.50.
 
-	* tramp.el: Remove defvar of `last-coding-system-used' in the
+	* net/tramp.el: Remove defvar of `last-coding-system-used' in the
 	XEmacs case; not necessary anymore.
 	(tramp-user-regexp): Allow "@" as part of user name.
 	(tramp-handle-set-visited-file-modtime)
@@ -2522,7 +2860,7 @@
 	instead of octal character code ?\600.  The latter resulted in a
 	syntax error with XEmacs.
 
-	* tramp-smb.el: Remove defvar of `last-coding-system-used' in the
+	* net/tramp-smb.el: Remove defvar of `last-coding-system-used' in the
 	XEmacs case; not necessary anymore.
 	(tramp-smb-handle-write-region): No special handling for
 	`last-coding-system-used, because this is done in
@@ -5678,8 +6016,8 @@
 
 	* log-view.el (log-view-file, log-view-message): Remove "-face"
 	suffix from face names.
-	(log-view-file-face, log-view-message-face): New
-	backward-compatibility aliases for renamed faces.
+	(log-view-file-face, log-view-message-face):
+	New backward-compatibility aliases for renamed faces.
 	(log-view-file-face, log-view-message-face): Use renamed log-view
 	faces.
 
@@ -5699,8 +6037,8 @@
 	(ruler-mode-margins-face, ruler-mode-fringes-face)
 	(ruler-mode-column-number-face, ruler-mode-fill-column-face)
 	(ruler-mode-comment-column-face, ruler-mode-goal-column-face)
-	(ruler-mode-tab-stop-face, ruler-mode-current-column-face): New
-	backward-compatibility aliases for renamed faces.
+	(ruler-mode-tab-stop-face, ruler-mode-current-column-face):
+	New backward-compatibility aliases for renamed faces.
 	(ruler-mode-pad, ruler-mode-margins, ruler-mode-fringes)
 	(ruler-mode-column-number, ruler-mode-fill-column)
 	(ruler-mode-comment-column, ruler-mode-goal-column)
@@ -5823,8 +6161,7 @@
 	* comint.el (comint-check-proc, make-comint-in-buffer)
 	(comint-source-default): Doc fixes.
 
-	* term.el (term-send-string): Improve argument/docstring
-	consistency.
+	* term.el (term-send-string): Improve argument/docstring consistency.
 
 2005-06-09  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -5941,12 +6278,11 @@
 	XEmacs code.
 	(flyspell-word): Minor simplification.
 	(flyspell-math-tex-command-p): Quieten the byte-compiler.
-	(flyspell-external-point-words): Remove unused vars `size' and
-	`start'.
-	(flyspell-do-correct): Rename from flyspell-xemacs-correct.  Merge
-	the corresponding Emacs code.
-	(flyspell-correct-word, flyspell-xemacs-popup): Use
-	flyspell-do-correct.
+	(flyspell-external-point-words): Remove unused vars `size' and `start'.
+	(flyspell-do-correct): Rename from flyspell-xemacs-correct.
+	Merge the corresponding Emacs code.
+	(flyspell-correct-word, flyspell-xemacs-popup):
+	Use flyspell-do-correct.
 
 	* emacs-lisp/debug.el (debug): Don't bury the buffer unless it's in
 	a dedicated window.
@@ -5985,8 +6321,7 @@
 	Add a completion-base-size-function property.
 
 	* simple.el (completion-setup-function): Look for
-	completion-base-size-function property of
-	minibuffer-completion-table.
+	completion-base-size-function property of minibuffer-completion-table.
 
 	* files.el (locate-file-completion): Doc fix.
 
@@ -7437,7 +7772,7 @@
 
 	Sync with Tramp 2.0.49.
 
-	* tramp.el (tramp-handle-dired-call-process)
+	* net/tramp.el (tramp-handle-dired-call-process)
 	(tramp-handle-insert-directory):`insert-buffer' cannot be used
 	because the contents of the Tramp buffer is changed before
 	insertion (`expand-file' and alike).
@@ -10186,7 +10521,7 @@
 
 	Sync with Tramp 2.0.48.
 
-	* tramp.el (all): Change all addresses to .gnu.org.
+	* net/tramp.el (all): Change all addresses to .gnu.org.
 	(tramp-append-tramp-buffers): New defun.
 	(tramp-bug): Apply `tramp-append-tramp-buffers' as post-hook.
 	Catch `dont-send' signal.
@@ -10196,7 +10531,7 @@
 	Kjetil Kjernsmo <kjetil@kjernsmo.net>.
 	Check for Emacs 21.3.50 removed.
 
-	* tramp-smb.el (all): Remove debug construct for
+	* net/tramp-smb.el (all): Remove debug construct for
 	`with-parsed-tramp-file-name'.
 	(tramp-smb-prompt): Prompt can contain spaces inside directory names.
 	(tramp-smb-handle-delete-directory, tramp-smb-handle-delete-file):
@@ -12038,7 +12373,7 @@
 
 	Sync with Tramp 2.0.47.
 
-	* tramp.el (tramp-operation-not-permitted-regexp) New defcustom,
+	* net/tramp.el (tramp-operation-not-permitted-regexp) New defcustom,
 	catching keep-date problems in cp/scp operations.
 	(tramp-handle-copy-file): Don't call `set-file-modes'
 	unconditionally.  Specialized functions should know better what is
@@ -12057,7 +12392,7 @@
 	(tramp-file-name-for-operation): Mark `shell-command' as magic for
 	Emacs only.
 
-	* tramp-util.el (tramp-minor-mode): New minor mode.  Add it to
+	* net/tramp-util.el (tramp-minor-mode): New minor mode.  Add it to
 	`find-file-hooks' and `dired-mode-hook'.
 	(tramp-minor-mode-map): Respective map.  Add remapping for
 	`compile' and `recompile'.
@@ -12065,19 +12400,19 @@
 	(tramp-compile): Enable `tramp-minor-mode' and `compilation-mode'
 	in buffer "*Compilation*".  Call the commands asynchronously.
 
-	* tramp-vc.el (tramp-vc-do-command, tramp-vc-do-command-new)
+	* net/tramp-vc.el (tramp-vc-do-command, tramp-vc-do-command-new)
 	(tramp-vc-simple-command): Call `tramp-handle-shell-command' but
 	`shell-command', because it isn't magic in XEmacs.  Reported by
 	Adrian Aichner <adrian@xemacs.org>.
 
-	* tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry for
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry for
 	`substitute-in-file-name.
 	(tramp-smb-handle-substitute-in-file-name): New defun.
 	(tramp-smb-advice-PC-do-completion): Delete advice.
 
 2005-01-16  Kai Grossjohann  <kgrossjo@eu.uu.net>
 
-	* tramp.el (tramp-wait-for-output): Fix typo in echo processing.
+	* net/tramp.el (tramp-wait-for-output): Fix typo in echo processing.
 	Fix error in deleting region.
 
 2005-01-15  Richard M. Stallman  <rms@gnu.org>
