@@ -1,3 +1,9 @@
+2005-10-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tool-bar-map): Rename the images
+	appropriately (gud/next, gud/nexti, gud/step, gud/stepi).
+	(gud-sentinel): Use speedbar-frame to check for speedbar.
+
 2005-10-15  Richard M. Stallman  <rms@gnu.org>
 
 	* savehist.el (savehist-history-variables): New file.

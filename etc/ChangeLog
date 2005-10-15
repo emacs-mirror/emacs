@@ -1,3 +1,12 @@
+2005-10-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* images/gud/n.pbm, images/gud/n.xpm
+	* images/gud/ni.xpm, images/gud/ni.xpm
+	* images/gud/s.xpm, images/gud/s.xpm
+	* images/gud/si.xpm, images/gud/si.xpm: Rename to
+	next.*, nexti.*, step.*, and stepi.* , respectively, as the
+	file-name no longer clashes on 8+3 filesystems.
+
 2005-10-14  Bill Wohler	 <wohler@newt.com>
 
 	* etc/images/gud/break.*: Moved here from toolbar/gud-break.*.
