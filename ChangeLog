@@ -1,3 +1,7 @@
+2005-10-15  Bill Wohler  <wohler@newt.com>
+
+	* make-dist: Create and populate etc/images/gud.
+
 2005-10-08  Richard M. Stallman  <rms@gnu.org>
 
 	* make-dist (tempparent): Don't check for 14-char file name limit.
