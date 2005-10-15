@@ -1,5 +1,23 @@
 2005-10-14  Bill Wohler	 <wohler@newt.com>
 
+	* etc/images/gud/break.*: Moved here from toolbar/gud-break.*.
+	* etc/images/gud/cont.*: Moved here from toolbar/gud-cont.*.
+	* etc/images/gud/down.*: Moved here from toolbar/gud-down.*.
+	* etc/images/gud/finish.*: Moved here from toolbar/gud-finish.*.
+	* etc/images/gud/ni.*: Moved here from toolbar/gud-ni.*.
+	* etc/images/gud/n.*: Moved here from toolbar/gud-n.*.
+	* etc/images/gud/print.*: Moved here from toolbar/gud-print.*.
+	* etc/images/gud/pstar.*: Moved here from toolbar/gud-pstar.*.
+	* etc/images/gud/remove.*: Moved here from toolbar/gud-remove.*.
+	* etc/images/gud/run.*: Moved here from toolbar/gud-run.*.
+	* etc/images/gud/si.*: Moved here from toolbar/gud-si.*.
+	* etc/images/gud/s.*: Moved here from toolbar/gud-s.*.
+	* etc/images/gud/until.*: Moved here from toolbar/gud-until.*.
+	* etc/images/gud/up.*: Moved here from toolbar/gud-up.*.
+	* etc/images/gud/watch.*: Moved here from toolbar/gud-watch.*.
+
+2005-10-14  Bill Wohler	 <wohler@newt.com>
+
 	Released MH-E version 7.85.
 	  
 	* NEWS, MH-E-NEWS: Updated for release 7.85.
