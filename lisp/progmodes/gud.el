@@ -5,7 +5,7 @@
 ;; Keywords: unix, tools
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1998, 2000, 2001, 2002, 2003,
-;; 2004, 2005 Free Software Foundation, Inc.
+;;  2004, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -197,24 +197,24 @@ Used to grey out relevant togolbar icons.")
 (defvar gud-tool-bar-map
   (if (display-graphic-p)
       (let ((map (make-sparse-keymap)))
-	(dolist (x '((gud-break . "gud-break")
-		     (gud-remove . "gud-remove")
-		     (gud-print . "gud-print")
-		     (gud-pstar . "gud-pstar")
-		     (gud-watch . "gud-watch")
-		     (gud-cont . "gud-cont")
-		     (gud-until . "gud-until")
-		     (gud-finish . "gud-finish")
-		     (gud-run . "gud-run")
+	(dolist (x '((gud-break . "gud/break")
+		     (gud-remove . "gud/remove")
+		     (gud-print . "gud/print")
+		     (gud-pstar . "gud/pstar")
+		     (gud-watch . "gud/watch")
+		     (gud-cont . "gud/cont")
+		     (gud-until . "gud/until")
+		     (gud-finish . "gud/finish")
+		     (gud-run . "gud/run")
 		     ;; gud-s, gud-si etc. instead of gud-step,
 		     ;; gud-stepi, to avoid file-name clashes on DOS
 		     ;; 8+3 filesystems.
-		     (gud-next . "gud-n")
-		     (gud-step . "gud-s")
-		     (gud-nexti . "gud-ni")
-		     (gud-stepi . "gud-si")
-		     (gud-up . "gud-up")
-		     (gud-down . "gud-down")
+		     (gud-next . "gud/n")
+		     (gud-step . "gud/s")
+		     (gud-nexti . "gud/ni")
+		     (gud-stepi . "gud/si")
+		     (gud-up . "gud/up")
+		     (gud-down . "gud/down")
 		     (gud-goto-info . "info"))
 		   map)
 	  (tool-bar-local-item-from-menu

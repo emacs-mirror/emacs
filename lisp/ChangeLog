@@ -1,3 +1,24 @@
+2005-10-14  Bill Wohler  <wohler@newt.com>
+
+	* toolbar/gud-break.*: Moved to etc/images/gud/break.*.
+	* toolbar/gud-cont.*: Moved to etc/images/gud/cont.*.
+	* toolbar/gud-down.*: Moved to etc/images/gud/down.*.
+	* toolbar/gud-finish.*: Moved to etc/images/gud/finish.*.
+	* toolbar/gud-ni.*: Moved to etc/images/gud/ni.*.
+	* toolbar/gud-n.*: Moved to etc/images/gud/n.*.
+	* toolbar/gud-print.*: Moved to etc/images/gud/print.*.
+	* toolbar/gud-pstar.*: Moved to etc/images/gud/pstar.*.
+	* toolbar/gud-remove.*: Moved to etc/images/gud/remove.*.
+	* toolbar/gud-run.*: Moved to etc/images/gud/run.*.
+	* toolbar/gud-si.*: Moved to etc/images/gud/si.*.
+	* toolbar/gud-s.*: Moved to etc/images/gud/s.*.
+	* toolbar/gud-until.*: Moved to etc/images/gud/until.*.
+	* toolbar/gud-up.*: Moved to etc/images/gud/up.*.
+	* toolbar/gud-watch.*: Moved to etc/images/gud/watch.*.
+
+	* progmodes/gud.el (gud-tool-bar-map): Renamed the images
+	appropriately (for example, gud-break to gud/break).
+
 2005-10-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlinges-search-function)
