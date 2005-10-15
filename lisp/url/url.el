@@ -30,16 +30,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-;; Don't require CL at runtime if we can avoid it (Emacs 21).
-;; Otherwise we need it for hashing functions.  `puthash' was never
-;; defined in the Emacs 20 cl.el for some reason.
-(if (fboundp 'puthash)
-    nil					; internal or CL is loaded
-  (defalias 'puthash 'cl-puthash)
-  (autoload 'cl-puthash "cl")
-  (autoload 'gethash "cl")
-  (autoload 'maphash "cl")
-  (autoload 'make-hash-table "cl"))
 
 (eval-when-compile
   (require 'mm-decode)
