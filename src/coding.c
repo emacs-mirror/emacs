@@ -6208,7 +6208,9 @@ decode_coding (coding)
 	    {
 	      int c = *src++;
 
-	      coding->charbuf[coding->charbuf_used++] = (c & 0x80 ? - c : c);
+	      if (c & 0x80)
+		c = BYTE8_TO_CHAR (c);
+	      coding->charbuf[coding->charbuf_used++] = c;
 	    }
 	  produce_chars (coding, Qnil, 1);
 	}
