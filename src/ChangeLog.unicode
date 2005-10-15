@@ -1,3 +1,7 @@
+2005-10-15  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (decode_coding): Fix handling of invalid bytes.
+
 2005-10-06  Kenichi Handa  <handa@m17n.org>
 
 	* xterm.c (handle_one_xevent): Handle keysyms directly mapped to
