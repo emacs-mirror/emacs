@@ -1,3 +1,13 @@
+2005-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-edit-log-files): New var.
+	(cvs-mode-edit-log): New arg `file'.
+	(cvs-edit-log-minor-wrap): Don't set the ignore-marks property.
+	Instead force the use of the original file and nothing else.
+	(cvs-edit-log-filelist): Don't use the cvs-mode-* function unless
+	the cvs-minor-wrap-function is set.
+	(cvs-do-edit-log): Obey the vars set in cvs-edit-log-minor-wrap.
+
 2005-10-14  Bill Wohler  <wohler@newt.com>
 
 	* toolbar/gud-break.*: Moved to etc/images/gud/break.*.
