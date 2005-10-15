@@ -1,3 +1,7 @@
+2005-10-15  Richard M. Stallman  <rms@gnu.org>
+
+	* misc.texi (Saving Emacs Sessions): Mention savehist library.
+
 2005-10-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (Document Server Internals): Addition.

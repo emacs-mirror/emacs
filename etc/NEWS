@@ -1498,6 +1498,9 @@ corresponding articles in a web browser.  Its documentation is in a
 separate manual.
 
 +++
+** savehist saves minibuffer histories between sessions.
+
++++
 ** Filesets are collections of files.  You can define a fileset in
 various ways, such as based on a directory tree or based on
 program files that include other program files.

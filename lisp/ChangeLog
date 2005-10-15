@@ -1,3 +1,12 @@
+2005-10-15  Richard M. Stallman  <rms@gnu.org>
+
+	* savehist.el (savehist-history-variables): New file.
+
+2005-10-14  Karl Chen  <quarl@cs.berkeley.edu>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Fix
+	bug in \bf fontification.
+
 2005-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-edit-log-files): New var.

@@ -237,6 +237,11 @@
 	* xterm.c, w32term.c, macterm.c: Rename member for_overlaps_p in
 	struct glyph_string to for_overlaps.
 
+2005-10-04  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (refill_memory_reserve): Conditionalize the body,
+	not the function's existence.
+
 2005-10-04  Kim F. Storm  <storm@cua.dk>
 
 	* window.c (window_split_tree): New function.
