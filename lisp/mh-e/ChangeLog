@@ -1,3 +1,7 @@
+2005-10-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Added +cvs to version.
+
 2005-10-14  Bill Wohler	 <wohler@newt.com>
 
 	Released MH-E version 7.85.
