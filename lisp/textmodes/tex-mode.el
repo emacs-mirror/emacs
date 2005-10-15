@@ -576,7 +576,7 @@ An alternative value is \" . \", if you use a font with a narrow period."
 	      2 '(tex-font-lock-append-prop 'italic) 'append)
 	;; This is separate from the previous one because of cases like
 	;; {\em foo {\bf bar} bla} where both match.
-	(list (concat "\\\\\\(bf\\(series\\)?\\)\\>" args)
+	(list (concat "\\\\\\(bf\\(?:series\\)?\\)\\>" args)
 	      3 '(tex-font-lock-append-prop 'bold) 'append)))))
    "Gaudy expressions to highlight in TeX modes.")
 
