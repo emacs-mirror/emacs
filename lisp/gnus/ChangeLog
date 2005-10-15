@@ -21,6 +21,11 @@
 	* pgg-def.el (top-level): Don't require custom, it is
 	autoloaded.  (To sync with No Gnus.)
 
+2005-10-04  David Hansen  <david.hansen@gmx.net>
+
+	* nnrss.el (nnrss-request-article): Add support for the comments tag.
+	(nnrss-check-group): Ditto.
+
 2005-10-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-url.el (mm-url-predefined-programs): Add switches for curl.
