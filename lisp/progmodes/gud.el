@@ -209,10 +209,10 @@ Used to grey out relevant togolbar icons.")
 		     ;; gud-s, gud-si etc. instead of gud-step,
 		     ;; gud-stepi, to avoid file-name clashes on DOS
 		     ;; 8+3 filesystems.
-		     (gud-next . "gud/n")
-		     (gud-step . "gud/s")
-		     (gud-nexti . "gud/ni")
-		     (gud-stepi . "gud/si")
+		     (gud-next . "gud/next")
+		     (gud-step . "gud/step")
+		     (gud-nexti . "gud/nexti")
+		     (gud-stepi . "gud/stepi")
 		     (gud-up . "gud/up")
 		     (gud-down . "gud/down")
 		     (gud-goto-info . "info"))
@@ -2575,7 +2575,8 @@ It is saved for when this flag is not set.")
 	 ;; Stop displaying an arrow in a source file.
 	 (setq gud-overlay-arrow-position nil)
 	 (set-process-buffer proc nil)
-	 (if (featurep 'speedbar)
+	 (if (and (boundp 'speedbar-frame)
+		  (string-equal speedbar-initial-expansion-list-name "GUD"))
 	     (speedbar-change-initial-expansion-list
 	      speedbar-previously-used-expansion-list-name))
 	 (if (memq gud-minor-mode-type '(gdbmi gdba))
