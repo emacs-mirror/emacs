@@ -3847,17 +3847,15 @@ the variable `Info-file-list-for-emacs'."
               (paragraph-separate ".*\\.[ \t]*\n[ \t]\\|[ \t]*[-*]\\|[ \t\f]*$")
               (adaptive-fill-mode nil))
           (goto-char (point-max))
-          (while paragraph-markers
-            (let ((m (car paragraph-markers)))
-              (setq paragraph-markers (cdr paragraph-markers))
-              (when (< m (point))
-                (goto-char m)
-                (beginning-of-line)
-                (let ((beg (point)))
-                  (when (zerop (forward-paragraph))
-                    (fill-individual-paragraphs beg (point) nil nil)
-                    (goto-char beg))))
-              (set-marker m nil)))))
+          (dolist (m paragraph-markers)
+            (when (< m (point))
+              (goto-char m)
+              (beginning-of-line)
+              (let ((beg (point)))
+                (when (zerop (forward-paragraph))
+                  (fill-individual-paragraphs beg (point) nil nil)
+                  (goto-char beg))))
+            (set-marker m nil))))
 
       ;; Fontify menu items
       (goto-char (point-min))
@@ -3889,33 +3887,32 @@ the variable `Info-file-list-for-emacs'."
 			       "mouse-2: go to this node")
 		  'mouse-face 'highlight)))
 	      (when (or not-fontified-p fontify-visited-p)
-		(add-text-properties
+		(put-text-property
 		 (match-beginning 1) (match-end 1)
-		 (list
-		  'font-lock-face
-		  ;; Display visited menu items in a different face
-		  (if (and Info-fontify-visited-nodes
-			   (save-match-data
-			     (let ((node (if (equal (match-string 3) "")
-					     (match-string 1)
-					   (match-string 3)))
-				   (file (file-name-nondirectory Info-current-file))
-				   (hl Info-history-list)
-				   res)
-			       (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
-				   (setq file (file-name-nondirectory
-					       (match-string 1 node))
-					 node (if (equal (match-string 2 node) "")
-						  "Top"
-						(match-string 2 node))))
-			       (while hl
-				 (if (and (string-equal node (nth 1 (car hl)))
-					  (string-equal file
-							(file-name-nondirectory
-							 (nth 0 (car hl)))))
-				     (setq res (car hl) hl nil)
-				   (setq hl (cdr hl))))
-			       res))) 'info-xref-visited 'info-xref))))
+                 'font-lock-face
+                 ;; Display visited menu items in a different face
+                 (if (and Info-fontify-visited-nodes
+                          (save-match-data
+                            (let ((node (if (equal (match-string 3) "")
+                                            (match-string 1)
+                                          (match-string 3)))
+                                  (file (file-name-nondirectory Info-current-file))
+                                  (hl Info-history-list)
+                                  res)
+                              (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
+                                  (setq file (file-name-nondirectory
+                                              (match-string 1 node))
+                                        node (if (equal (match-string 2 node) "")
+                                                 "Top"
+                                               (match-string 2 node))))
+                              (while hl
+                                (if (and (string-equal node (nth 1 (car hl)))
+                                         (string-equal file
+                                                       (file-name-nondirectory
+                                                        (nth 0 (car hl)))))
+                                    (setq res (car hl) hl nil)
+                                  (setq hl (cdr hl))))
+                              res))) 'info-xref-visited 'info-xref)))
 	      (when (and not-fontified-p (memq Info-hide-note-references '(t hide)))
 		(put-text-property (match-beginning 2) (1- (match-end 6))
 				   'invisible t)
