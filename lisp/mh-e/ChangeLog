@@ -1,3 +1,11 @@
+2005-10-16  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-init.el (mh-image-load-path): Remove use of pushnew since it
+	causes a compiler warning.
+
+	* mh-utils.el (mh-display-msg): Do MIME cleanup before inserting
+	the message to be viewed (closes SF #1306141).
+
 2005-10-16  Masatake YAMATO  <jet@gyve.org>
 
 	* mh-comp.el (mh-complete-word): Pass the common

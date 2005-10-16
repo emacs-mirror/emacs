@@ -337,7 +337,8 @@ directory is added to the `load-path' if it isn't already there."
              (error "Can not find image directory %s"
                     mh-image-load-path))
             ((boundp 'image-load-path)
-             (pushnew mh-image-load-path image-load-path))
+             (unless (member mh-image-load-path image-load-path)
+               (push mh-image-load-path image-load-path)))
             ((not (member mh-image-load-path load-path))
              (push mh-image-load-path load-path))))
     (setq mh-image-load-path-called-flag t)))

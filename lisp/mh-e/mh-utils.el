@@ -1718,6 +1718,8 @@ Sets the current buffer to the show buffer."
       (cond ((not (equal msg-filename buffer-file-name))
              (mh-unvisit-file)
              (setq buffer-read-only nil)
+             ;; Cleanup old mime handles
+             (mh-mime-cleanup)
              (erase-buffer)
              ;; Changing contents, so this hook needs to be reinitialized.
              ;; pgp.el uses this.
@@ -1729,8 +1731,6 @@ Sets the current buffer to the show buffer."
                                              (list "-form" formfile))
                                          msg-filename)
                (insert-file-contents-literally msg-filename))
-             ;; Cleanup old mime handles
-             (mh-mime-cleanup)
              ;; Use mm to display buffer
              (when (and mh-decode-mime-flag (not formfile))
                (mh-add-missing-mime-version-header)
