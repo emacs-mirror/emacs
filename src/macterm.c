@@ -271,7 +271,7 @@ extern void menubar_selection_callback (FRAME_PTR, int);
 #define GC_BACK_COLOR(gc)	(&(gc)->back_color)
 #define GC_FONT(gc)		((gc)->xgcv.font)
 #define GC_CLIP_REGION(gc)	((gc)->clip_region)
-#define MAC_WINDOW_NORMAL_GC(w)	(((mac_output *) GetWRefCon (w))->normal_gc)
+#define FRAME_NORMAL_GC(f)	((f)->output_data.mac->normal_gc)
 
 static RgnHandle saved_port_clip_region = NULL;
 
@@ -317,13 +317,12 @@ XFreePixmap (display, pixmap)
 /* Mac version of XDrawLine.  */
 
 static void
-XDrawLine (display, w, gc, x1, y1, x2, y2)
-     Display *display;
-     WindowPtr w;
+mac_draw_line (f, gc, x1, y1, x2, y2)
+     struct frame *f;
      GC gc;
      int x1, y1, x2, y2;
 {
-  SetPortWindowPort (w);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
 
@@ -358,15 +357,15 @@ mac_draw_line_to_pixmap (display, p, gc, x1, y1, x2, y2)
 
 
 static void
-mac_erase_rectangle (w, gc, x, y, width, height)
-     WindowPtr w;
+mac_erase_rectangle (f, gc, x, y, width, height)
+     struct frame *f;
      GC gc;
      int x, y;
      unsigned int width, height;
 {
   Rect r;
 
-  SetPortWindowPort (w);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBBackColor (GC_BACK_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
@@ -375,43 +374,40 @@ mac_erase_rectangle (w, gc, x, y, width, height)
   EraseRect (&r);
   mac_end_clip (GC_CLIP_REGION (gc));
 
-  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
 
 
 /* Mac version of XClearArea.  */
 
 void
-XClearArea (display, w, x, y, width, height, exposures)
-     Display *display;
-     WindowPtr w;
+mac_clear_area (f, x, y, width, height)
+     struct frame *f;
      int x, y;
      unsigned int width, height;
-     int exposures;
 {
-  mac_erase_rectangle (w, MAC_WINDOW_NORMAL_GC (w), x, y, width, height);
+  mac_erase_rectangle (f, FRAME_NORMAL_GC (f), x, y, width, height);
 }
 
 /* Mac version of XClearWindow.  */
 
 static void
-XClearWindow (display, w)
-     Display *display;
-     WindowPtr w;
+mac_clear_window (f)
+     struct frame *f;
 {
-  SetPortWindowPort (w);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
-  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 
 #if TARGET_API_MAC_CARBON
   {
     Rect r;
 
-    GetWindowPortBounds (w, &r);
+    GetWindowPortBounds (FRAME_MAC_WINDOW (f), &r);
     EraseRect (&r);
   }
 #else /* not TARGET_API_MAC_CARBON */
-  EraseRect (&(w->portRect));
+  EraseRect (&(FRAME_MAC_WINDOW (f)->portRect));
 #endif /* not TARGET_API_MAC_CARBON */
 }
 
@@ -419,9 +415,8 @@ XClearWindow (display, w)
 /* Mac replacement for XCopyArea.  */
 
 static void
-mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
-     Display *display;
-     WindowPtr w;
+mac_draw_bitmap (f, gc, x, y, width, height, bits, overlay_p)
+     struct frame *f;
      GC gc;
      int x, y, width, height;
      unsigned short *bits;
@@ -434,7 +429,7 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
   bitmap.baseAddr = (char *)bits;
   SetRect (&(bitmap.bounds), 0, 0, width, height);
 
-  SetPortWindowPort (w);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
   RGBBackColor (GC_BACK_COLOR (gc));
@@ -442,17 +437,22 @@ mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
 
   mac_begin_clip (GC_CLIP_REGION (gc));
 #if TARGET_API_MAC_CARBON
-  LockPortBits (GetWindowPort (w));
-  CopyBits (&bitmap, GetPortBitMapForCopyBits (GetWindowPort (w)),
-	    &(bitmap.bounds), &r, overlay_p ? srcOr : srcCopy, 0);
-  UnlockPortBits (GetWindowPort (w));
+  {
+    CGrafPtr port;
+
+    GetPort (&port);
+    LockPortBits (port);
+    CopyBits (&bitmap, GetPortBitMapForCopyBits (port),
+	      &(bitmap.bounds), &r, overlay_p ? srcOr : srcCopy, 0);
+    UnlockPortBits (port);
+  }
 #else /* not TARGET_API_MAC_CARBON */
-  CopyBits (&bitmap, &(w->portBits), &(bitmap.bounds), &r,
+  CopyBits (&bitmap, &(FRAME_MAC_WINDOW (f)->portBits), &(bitmap.bounds), &r,
 	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
   mac_end_clip (GC_CLIP_REGION (gc));
 
-  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
 
 
@@ -569,16 +569,15 @@ XCreatePixmapFromBitmapData (display, w, data, width, height, fg, bg, depth)
 /* Mac replacement for XFillRectangle.  */
 
 static void
-XFillRectangle (display, w, gc, x, y, width, height)
-     Display *display;
-     WindowPtr w;
+mac_fill_rectangle (f, gc, x, y, width, height)
+     struct frame *f;
      GC gc;
      int x, y;
      unsigned int width, height;
 {
   Rect r;
 
-  SetPortWindowPort (w);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width, y + height);
@@ -587,48 +586,20 @@ XFillRectangle (display, w, gc, x, y, width, height)
   PaintRect (&r); /* using foreground color of gc */
   mac_end_clip (GC_CLIP_REGION (gc));
 }
-
-
-#if 0 /* TODO: figure out if we need to do this on Mac.  */
-static void
-mac_fill_rectangle_to_pixmap (display, p, gc, x, y, width, height)
-     Display *display;
-     Pixmap p;
-     GC gc;
-     int x, y;
-     unsigned int width, height;
-{
-  CGrafPtr old_port;
-  GDHandle old_gdh;
-  Rect r;
-
-  GetGWorld (&old_port, &old_gdh);
-  SetGWorld (p, NULL);
-  RGBForeColor (GC_FORE_COLOR (gc));
-  SetRect (&r, x, y, x + width, y + height);
-
-  LockPixels (GetGWorldPixMap (p));
-  PaintRect (&r); /* using foreground color of gc */
-  UnlockPixels (GetGWorldPixMap (p));
-
-  SetGWorld (old_port, old_gdh);
-}
-#endif
 
 
 /* Mac replacement for XDrawRectangle: dest is a window.  */
 
 static void
-mac_draw_rectangle (display, w, gc, x, y, width, height)
-     Display *display;
-     WindowPtr w;
+mac_draw_rectangle (f, gc, x, y, width, height)
+     struct frame *f;
      GC gc;
      int x, y;
      unsigned int width, height;
 {
   Rect r;
 
-  SetPortWindowPort (w);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
   SetRect (&r, x, y, x + width + 1, y + height + 1);
@@ -637,35 +608,6 @@ mac_draw_rectangle (display, w, gc, x, y, width, height)
   FrameRect (&r); /* using foreground color of gc */
   mac_end_clip (GC_CLIP_REGION (gc));
 }
-
-
-#if 0 /* TODO: figure out if we need to do this on Mac.  */
-/* Mac replacement for XDrawRectangle: dest is a Pixmap.  */
-
-static void
-mac_draw_rectangle_to_pixmap (display, p, gc, x, y, width, height)
-     Display *display;
-     Pixmap p;
-     GC gc;
-     int x, y;
-     unsigned int width, height;
-{
-  CGrafPtr old_port;
-  GDHandle old_gdh;
-  Rect r;
-
-  GetGWorld (&old_port, &old_gdh);
-  SetGWorld (p, NULL);
-  RGBForeColor (GC_FORE_COLOR (gc));
-  SetRect (&r, x, y, x + width + 1, y + height + 1);
-
-  LockPixels (GetGWorldPixMap (p));
-  FrameRect (&r); /* using foreground color of gc */
-  UnlockPixels (GetGWorldPixMap (p));
-
-  SetGWorld (old_port, old_gdh);
-}
-#endif
 
 
 #if USE_ATSUI
@@ -724,16 +666,16 @@ atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
 }
 #endif
 
+
 static void
-mac_invert_rectangle (display, w, x, y, width, height)
-     Display *display;
-     WindowPtr w;
+mac_invert_rectangle (f, x, y, width, height)
+     struct frame *f;
      int x, y;
      unsigned int width, height;
 {
   Rect r;
 
-  SetPortWindowPort (w);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   SetRect (&r, x, y, x + width, y + height);
 
@@ -742,10 +684,8 @@ mac_invert_rectangle (display, w, x, y, width, height)
 
 
 static void
-mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
-			bytes_per_char)
-     Display *display;
-     WindowPtr w;
+mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
+     struct frame *f;
      GC gc;
      int x, y;
      char *buf;
@@ -759,7 +699,7 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
   }
 #endif
 
-  SetPortWindowPort (w);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   RGBForeColor (GC_FORE_COLOR (gc));
   if (mode != srcOr)
@@ -804,16 +744,13 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 	    {
 	      CGrafPtr port;
 	      CGContextRef context;
-	      Rect rect;
-	      float port_height;
+	      float port_height = FRAME_PIXEL_HEIGHT (f);
 	      ATSUAttributeTag tags[] = {kATSUCGContextTag};
 	      ByteCount sizes[] = {sizeof (CGContextRef)};
 	      ATSUAttributeValuePtr values[] = {&context};
 
 	      GetPort (&port);
 	      QDBeginCGContext (port, &context);
-	      GetPortBounds (port, &rect);
-	      port_height = rect.bottom - rect.top;
 	      if (gc->n_clip_rects)
 		{
 		  CGContextTranslateCTM (context, 0, port_height);
@@ -862,7 +799,7 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 #endif
 
   if (mode != srcOr)
-    RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
+    RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   if (!NILP(Vmac_use_core_graphics))
     SwapQDTextFlags(savedFlags);
@@ -873,73 +810,65 @@ mac_draw_string_common (display, w, gc, x, y, buf, nchars, mode,
 /* Mac replacement for XDrawString.  */
 
 static void
-XDrawString (display, w, gc, x, y, buf, nchars)
-     Display *display;
-     WindowPtr w;
+mac_draw_string (f, gc, x, y, buf, nchars)
+     struct frame *f;
      GC gc;
      int x, y;
      char *buf;
      int nchars;
 {
-  mac_draw_string_common (display, w, gc, x, y, buf, nchars, srcOr, 1);
+  mac_draw_string_common (f, gc, x, y, buf, nchars, srcOr, 1);
 }
 
 
 /* Mac replacement for XDrawString16. */
 
 static void
-XDrawString16 (display, w, gc, x, y, buf, nchars)
-     Display *display;
-     WindowPtr w;
+mac_draw_string_16 (f, gc, x, y, buf, nchars)
+     struct frame *f;
      GC gc;
      int x, y;
      XChar2b *buf;
      int nchars;
 {
-  mac_draw_string_common (display, w, gc, x, y, (char *) buf, nchars, srcOr,
-			  2);
+  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, srcOr, 2);
 }
 
 
 /* Mac replacement for XDrawImageString.  */
 
 static void
-XDrawImageString (display, w, gc, x, y, buf, nchars)
-     Display *display;
-     WindowPtr w;
+mac_draw_image_string (f, gc, x, y, buf, nchars)
+     struct frame *f;
      GC gc;
      int x, y;
      char *buf;
      int nchars;
 {
-  mac_draw_string_common (display, w, gc, x, y, buf, nchars, srcCopy, 1);
+  mac_draw_string_common (f, gc, x, y, buf, nchars, srcCopy, 1);
 }
 
 
 /* Mac replacement for XDrawString16.  */
 
 static void
-XDrawImageString16 (display, w, gc, x, y, buf, nchars)
-     Display *display;
-     WindowPtr w;
+mac_draw_image_string_16 (f, gc, x, y, buf, nchars)
+     struct frame *f;
      GC gc;
      int x, y;
      XChar2b *buf;
      int nchars;
 {
-  mac_draw_string_common (display, w, gc, x, y, (char *) buf, nchars, srcCopy,
-			  2);
+  mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, srcCopy, 2);
 }
 
 
 /* Mac replacement for XCopyArea: dest must be window.  */
 
 static void
-mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
-	       dest_y)
-     Display *display;
+mac_copy_area (src, f, gc, src_x, src_y, width, height, dest_x, dest_y)
      Pixmap src;
-     WindowPtr dest;
+     struct frame *f;
      GC gc;
      int src_x, src_y;
      unsigned int width, height;
@@ -947,7 +876,7 @@ mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
 {
   Rect src_r, dest_r;
 
-  SetPortWindowPort (dest);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
   SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
@@ -958,28 +887,32 @@ mac_copy_area (display, src, dest, gc, src_x, src_y, width, height, dest_x,
   mac_begin_clip (GC_CLIP_REGION (gc));
   LockPixels (GetGWorldPixMap (src));
 #if TARGET_API_MAC_CARBON
-  LockPortBits (GetWindowPort (dest));
-  CopyBits (GetPortBitMapForCopyBits (src),
-	    GetPortBitMapForCopyBits (GetWindowPort (dest)),
-	    &src_r, &dest_r, srcCopy, 0);
-  UnlockPortBits (GetWindowPort (dest));
+  {
+    CGrafPtr port;
+
+    GetPort (&port);
+    LockPortBits (port);
+    CopyBits (GetPortBitMapForCopyBits (src),
+	      GetPortBitMapForCopyBits (port),
+	      &src_r, &dest_r, srcCopy, 0);
+    UnlockPortBits (port);
+  }
 #else /* not TARGET_API_MAC_CARBON */
-  CopyBits (&(((GrafPtr)src)->portBits), &(dest->portBits),
+  CopyBits (&(((GrafPtr)src)->portBits), &(FRAME_MAC_WINDOW (f)->portBits),
 	    &src_r, &dest_r, srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (src));
   mac_end_clip (GC_CLIP_REGION (gc));
 
-  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (dest)));
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
 
 
 static void
-mac_copy_area_with_mask (display, src, mask, dest, gc, src_x, src_y,
+mac_copy_area_with_mask (src, mask, f, gc, src_x, src_y,
 			 width, height, dest_x, dest_y)
-     Display *display;
      Pixmap src, mask;
-     WindowPtr dest;
+     struct frame *f;
      GC gc;
      int src_x, src_y;
      unsigned int width, height;
@@ -987,7 +920,7 @@ mac_copy_area_with_mask (display, src, mask, dest, gc, src_x, src_y,
 {
   Rect src_r, dest_r;
 
-  SetPortWindowPort (dest);
+  SetPortWindowPort (FRAME_MAC_WINDOW (f));
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
   SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
@@ -999,29 +932,33 @@ mac_copy_area_with_mask (display, src, mask, dest, gc, src_x, src_y,
   LockPixels (GetGWorldPixMap (src));
   LockPixels (GetGWorldPixMap (mask));
 #if TARGET_API_MAC_CARBON
-  LockPortBits (GetWindowPort (dest));
-  CopyMask (GetPortBitMapForCopyBits (src), GetPortBitMapForCopyBits (mask),
-	    GetPortBitMapForCopyBits (GetWindowPort (dest)),
-	    &src_r, &src_r, &dest_r);
-  UnlockPortBits (GetWindowPort (dest));
+  {
+    CGrafPtr port;
+
+    GetPort (&port);
+    LockPortBits (port);
+    CopyMask (GetPortBitMapForCopyBits (src), GetPortBitMapForCopyBits (mask),
+	      GetPortBitMapForCopyBits (port),
+	      &src_r, &src_r, &dest_r);
+    UnlockPortBits (port);
+  }
 #else /* not TARGET_API_MAC_CARBON */
   CopyMask (&(((GrafPtr)src)->portBits), &(((GrafPtr)mask)->portBits),
-	    &(dest->portBits), &src_r, &src_r, &dest_r);
+	    &(FRAME_MAC_WINDOW (f)->portBits), &src_r, &src_r, &dest_r);
 #endif /* not TARGET_API_MAC_CARBON */
   UnlockPixels (GetGWorldPixMap (mask));
   UnlockPixels (GetGWorldPixMap (src));
   mac_end_clip (GC_CLIP_REGION (gc));
 
-  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (dest)));
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 }
 
 
 /* Mac replacement for XCopyArea: used only for scrolling.  */
 
 static void
-mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
-     Display *display;
-     WindowPtr w;
+mac_scroll_area (f, gc, src_x, src_y, width, height, dest_x, dest_y)
+     struct frame *f;
      GC gc;
      int src_x, src_y;
      unsigned int width, height;
@@ -1032,11 +969,13 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
   RgnHandle dummy = NewRgn ();	/* For avoiding update events.  */
 
   SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
-  ScrollWindowRect (w, &src_r, dest_x - src_x, dest_y - src_y,
+  ScrollWindowRect (FRAME_MAC_WINDOW (f),
+		    &src_r, dest_x - src_x, dest_y - src_y,
 		    kScrollWindowNoOptions, dummy);
   DisposeRgn (dummy);
 #else /* not TARGET_API_MAC_CARBON */
   Rect src_r, dest_r;
+  WindowPtr w = FRAME_MAC_WINDOW (f);
 
   SetPort (w);
 
@@ -1051,91 +990,9 @@ mac_scroll_area (display, w, gc, src_x, src_y, width, height, dest_x, dest_y)
   CopyBits (&(w->portBits), &(w->portBits), &src_r, &dest_r, srcCopy, 0);
   mac_end_clip (GC_CLIP_REGION (gc));
 
-  RGBBackColor (GC_BACK_COLOR (MAC_WINDOW_NORMAL_GC (w)));
+  RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 #endif /* not TARGET_API_MAC_CARBON */
 }
-
-
-#if 0 /* TODO: figure out if we need to do this on Mac.  */
-/* Mac replacement for XCopyArea: dest must be Pixmap.  */
-
-static void
-mac_copy_area_to_pixmap (display, src, dest, gc, src_x, src_y, width, height,
-                     dest_x, dest_y)
-     Display *display;
-     Pixmap src, dest;
-     GC gc;
-     int src_x, src_y;
-     unsigned int width, height;
-     int dest_x, dest_y;
-{
-  CGrafPtr old_port;
-  GDHandle old_gdh;
-  Rect src_r, dest_r;
-
-  GetGWorld (&old_port, &old_gdh);
-  SetGWorld (dest, NULL);
-  ForeColor (blackColor);
-  BackColor (whiteColor);
-
-  SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
-  SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
-
-  LockPixels (GetGWorldPixMap (src));
-  LockPixels (GetGWorldPixMap (dest));
-#if TARGET_API_MAC_CARBON
-  CopyBits (GetPortBitMapForCopyBits (src), GetPortBitMapForCopyBits (dest),
-	    &src_r, &dest_r, srcCopy, 0);
-#else /* not TARGET_API_MAC_CARBON */
-  CopyBits (&(((GrafPtr)src)->portBits), &(((GrafPtr)dest)->portBits),
-	    &src_r, &dest_r, srcCopy, 0);
-#endif /* not TARGET_API_MAC_CARBON */
-  UnlockPixels (GetGWorldPixMap (dest));
-  UnlockPixels (GetGWorldPixMap (src));
-
-  SetGWorld (old_port, old_gdh);
-}
-
-
-static void
-mac_copy_area_with_mask_to_pixmap (display, src, mask, dest, gc, src_x, src_y,
-				   width, height, dest_x, dest_y)
-     Display *display;
-     Pixmap src, mask, dest;
-     GC gc;
-     int src_x, src_y;
-     unsigned int width, height;
-     int dest_x, dest_y;
-{
-  CGrafPtr old_port;
-  GDHandle old_gdh;
-  Rect src_r, dest_r;
-
-  GetGWorld (&old_port, &old_gdh);
-  SetGWorld (dest, NULL);
-  ForeColor (blackColor);
-  BackColor (whiteColor);
-
-  SetRect (&src_r, src_x, src_y, src_x + width, src_y + height);
-  SetRect (&dest_r, dest_x, dest_y, dest_x + width, dest_y + height);
-
-  LockPixels (GetGWorldPixMap (src));
-  LockPixels (GetGWorldPixMap (mask));
-  LockPixels (GetGWorldPixMap (dest));
-#if TARGET_API_MAC_CARBON
-  CopyMask (GetPortBitMapForCopyBits (src), GetPortBitMapForCopyBits (mask),
-	    GetPortBitMapForCopyBits (dest), &src_r, &src_r, &dest_r);
-#else /* not TARGET_API_MAC_CARBON */
-  CopyMask (&(((GrafPtr)src)->portBits), &(((GrafPtr)mask)->portBits),
-	    &(((GrafPtr)dest)->portBits), &src_r, &src_r, &dest_r);
-#endif /* not TARGET_API_MAC_CARBON */
-  UnlockPixels (GetGWorldPixMap (dest));
-  UnlockPixels (GetGWorldPixMap (mask));
-  UnlockPixels (GetGWorldPixMap (src));
-
-  SetGWorld (old_port, old_gdh);
-}
-#endif
 
 
 /* Mac replacement for XChangeGC.  */
@@ -1509,8 +1366,7 @@ mac_draw_vertical_window_border (w, x, y0, y1)
     XSetForeground (FRAME_MAC_DISPLAY (f), f->output_data.mac->normal_gc,
 		    face->foreground);
 
-  XDrawLine (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-	     f->output_data.mac->normal_gc, x, y0, x, y1);
+  mac_draw_line (f, f->output_data.mac->normal_gc, x, y0, x, y1);
 }
 
 /* End update of window W (which is equal to updated_window).
@@ -1649,11 +1505,8 @@ x_after_update_window_line (desired_row)
 	y -= width;
 
       BLOCK_INPUT;
-      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		  0, y, width, height, 0);
-      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		  FRAME_PIXEL_WIDTH (f) - width, y,
-		  width, height, 0);
+      mac_clear_area (f, 0, y, width, height);
+      mac_clear_area (f, FRAME_PIXEL_WIDTH (f) - width, y, width, height);
       UNBLOCK_INPUT;
     }
 }
@@ -1672,8 +1525,6 @@ x_draw_fringe_bitmap (w, row, p)
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   Display *display = FRAME_MAC_DISPLAY (f);
-  WindowPtr window = FRAME_MAC_WINDOW (f);
-  GC gc = f->output_data.mac->normal_gc;
   struct face *face = p->face;
   int rowY;
 
@@ -1687,12 +1538,12 @@ x_draw_fringe_bitmap (w, row, p)
       int oldVH = row->visible_height;
       row->visible_height = p->h;
       row->y -= rowY - p->y;
-      x_clip_to_row (w, row, -1, gc);
+      x_clip_to_row (w, row, -1, face->gc);
       row->y = oldY;
       row->visible_height = oldVH;
     }
   else
-    x_clip_to_row (w, row, -1, gc);
+    x_clip_to_row (w, row, -1, face->gc);
 
   if (p->bx >= 0 && !p->overlay_p)
     {
@@ -1707,7 +1558,7 @@ x_draw_fringe_bitmap (w, row, p)
 	XSetForeground (FRAME_X_DISPLAY (f), face->gc, face->background);
 #endif
 
-      mac_erase_rectangle (window, face->gc, p->bx, p->by, p->nx, p->ny);
+      mac_erase_rectangle (f, face->gc, p->bx, p->by, p->nx, p->ny);
 
 #if 0  /* MAC_TODO: stipple */
       if (!face->stipple)
@@ -1726,12 +1577,12 @@ x_draw_fringe_bitmap (w, row, p)
 		       ? (p->overlay_p ? face->background
 			  : f->output_data.mac->cursor_pixel)
 		       : face->foreground));
-      mac_draw_bitmap (display, window, face->gc, p->x, p->y,
+      mac_draw_bitmap (f, face->gc, p->x, p->y,
 		       p->wd, p->h, bits, p->overlay_p);
       XSetForeground (display, face->gc, gcv.foreground);
     }
 
-  mac_reset_clip_rectangles (display, gc);
+  mac_reset_clip_rectangles (display, face->gc);
 }
 
 
@@ -2282,7 +2133,7 @@ x_clear_glyph_string_rect (s, x, y, w, h)
      struct glyph_string *s;
      int x, y, w, h;
 {
-  mac_erase_rectangle (s->window, s->gc, x, y, w, h);
+  mac_erase_rectangle (s->f, s->gc, x, y, w, h);
 }
 
 
@@ -2364,9 +2215,8 @@ x_draw_glyph_string_foreground (s)
       for (i = 0; i < s->nchars; ++i)
 	{
 	  struct glyph *g = s->first_glyph + i;
-	  mac_draw_rectangle (s->display, s->window,
-			    s->gc, x, s->y, g->pixel_width - 1,
-			    s->height - 1);
+	  mac_draw_rectangle (s->f, s->gc, x, s->y,
+			      g->pixel_width - 1, s->height - 1);
 	  x += g->pixel_width;
 	}
     }
@@ -2403,21 +2253,21 @@ x_draw_glyph_string_foreground (s)
 	      || GC_FONT (s->gc)->mac_style
 #endif
 	      )
-	    XDrawString16 (s->display, s->window, s->gc, x,
-			   s->ybase - boff, s->char2b, s->nchars);
+	    mac_draw_string_16 (s->f, s->gc, x,	s->ybase - boff,
+				s->char2b, s->nchars);
 	  else
-	    XDrawString (s->display, s->window, s->gc, x,
-			 s->ybase - boff, char1b, s->nchars);
+	    mac_draw_string (s->f, s->gc, x, s->ybase - boff,
+			     char1b, s->nchars);
 	}
 #if defined (MAC_OS8) && !USE_ATSUI
       else
 	{
 	  if (s->two_byte_p)
-	    XDrawImageString16 (s->display, s->window, s->gc, x,
-				s->ybase - boff, s->char2b, s->nchars);
+	    mac_draw_image_string_16 (s->f, s->gc, x, s->ybase - boff,
+				      s->char2b, s->nchars);
 	  else
-	    XDrawImageString (s->display, s->window, s->gc, x,
-			      s->ybase - boff, char1b, s->nchars);
+	    mac_draw_image_string (s->f, s->gc, x, s->ybase - boff,
+				   char1b, s->nchars);
 	}
 #endif
     }
@@ -2449,16 +2299,16 @@ x_draw_composite_glyph_string_foreground (s)
   if (s->font_not_found_p)
     {
       if (s->gidx == 0)
-	mac_draw_rectangle (s->display, s->window, s->gc, x, s->y,
-			  s->width - 1, s->height - 1);
+	mac_draw_rectangle (s->f, s->gc, x, s->y,
+			    s->width - 1, s->height - 1);
     }
   else
     {
       for (i = 0; i < s->nchars; i++, ++s->gidx)
-	XDrawString16 (s->display, s->window, s->gc,
-		       x + s->cmp->offsets[s->gidx * 2],
-		       s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
-		       s->char2b + i, 1);
+	mac_draw_string_16 (s->f, s->gc,
+			    x + s->cmp->offsets[s->gidx * 2],
+			    s->ybase - s->cmp->offsets[s->gidx * 2 + 1],
+			    s->char2b + i, 1);
     }
 }
 
@@ -2814,7 +2664,6 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
      Rect *clip_rect;
 {
   Display *dpy = FRAME_MAC_DISPLAY (f);
-  Window window = FRAME_MAC_WINDOW (f);
   int i;
   GC gc;
 
@@ -2827,15 +2676,15 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   /* Top.  */
   if (top_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (dpy, window, gc,
-		 left_x + i * left_p, top_y + i,
-		 right_x - i * right_p, top_y + i);
+      mac_draw_line (f, gc,
+		     left_x + i * left_p, top_y + i,
+		     right_x - i * right_p, top_y + i);
 
   /* Left.  */
   if (left_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (dpy, window, gc,
-		 left_x + i, top_y + i, left_x + i, bottom_y - i);
+      mac_draw_line (f, gc,
+		     left_x + i, top_y + i, left_x + i, bottom_y - i);
 
   mac_reset_clip_rectangles (dpy, gc);
   if (raised_p)
@@ -2847,15 +2696,15 @@ x_draw_relief_rect (f, left_x, top_y, right_x, bottom_y, width,
   /* Bottom.  */
   if (bot_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (dpy, window, gc,
-		 left_x + i * left_p, bottom_y - i,
-		 right_x - i * right_p, bottom_y - i);
+      mac_draw_line (f, gc,
+		     left_x + i * left_p, bottom_y - i,
+		     right_x - i * right_p, bottom_y - i);
 
   /* Right.  */
   if (right_p)
     for (i = 0; i < width; ++i)
-      XDrawLine (dpy, window, gc,
-		 right_x - i, top_y + i + 1, right_x - i, bottom_y - i - 1);
+      mac_draw_line (f, gc,
+		     right_x - i, top_y + i + 1, right_x - i, bottom_y - i - 1);
 
   mac_reset_clip_rectangles (dpy, gc);
 }
@@ -2882,22 +2731,22 @@ x_draw_box_rect (s, left_x, top_y, right_x, bottom_y, width,
   mac_set_clip_rectangles (s->display, s->gc, clip_rect, 1);
 
   /* Top.  */
-  XFillRectangle (s->display, s->window, s->gc,
-		  left_x, top_y, right_x - left_x + 1, width);
+  mac_fill_rectangle (s->f, s->gc, left_x, top_y,
+		      right_x - left_x + 1, width);
 
   /* Left.  */
   if (left_p)
-    XFillRectangle (s->display, s->window, s->gc,
-		    left_x, top_y, width, bottom_y - top_y + 1);
+    mac_fill_rectangle (s->f, s->gc, left_x, top_y,
+			width, bottom_y - top_y + 1);
 
   /* Bottom.  */
-  XFillRectangle (s->display, s->window, s->gc,
-		  left_x, bottom_y - width + 1, right_x - left_x + 1, width);
+  mac_fill_rectangle (s->f, s->gc, left_x, bottom_y - width + 1,
+		      right_x - left_x + 1, width);
 
   /* Right.  */
   if (right_p)
-    XFillRectangle (s->display, s->window, s->gc,
-		    right_x - width + 1, top_y, width, bottom_y - top_y + 1);
+    mac_fill_rectangle (s->f, s->gc, right_x - width + 1,
+			top_y, width, bottom_y - top_y + 1);
 
   XSetForeground (s->display, s->gc, xgcv.foreground);
   mac_reset_clip_rectangles (s->display, s->gc);
@@ -2984,13 +2833,13 @@ x_draw_image_foreground (s)
       x_set_glyph_string_clipping (s);
 
       if (s->img->mask)
-	mac_copy_area_with_mask (s->display, s->img->pixmap, s->img->mask,
-				 s->window, s->gc, s->slice.x, s->slice.y,
+	mac_copy_area_with_mask (s->img->pixmap, s->img->mask,
+				 s->f, s->gc, s->slice.x, s->slice.y,
 				 s->slice.width, s->slice.height, x, y);
       else
 	{
-	  mac_copy_area (s->display, s->img->pixmap,
-			 s->window, s->gc, s->slice.x, s->slice.y,
+	  mac_copy_area (s->img->pixmap,
+			 s->f, s->gc, s->slice.x, s->slice.y,
 			 s->slice.width, s->slice.height, x, y);
 
 	  /* When the image has a mask, we can expect that at
@@ -3003,8 +2852,7 @@ x_draw_image_foreground (s)
 	    {
 	      int r = s->img->relief;
 	      if (r < 0) r = -r;
-	      mac_draw_rectangle (s->display, s->window, s->gc,
-				  x - r, y - r,
+	      mac_draw_rectangle (s->f, s->gc, x - r, y - r,
 				  s->slice.width + r*2 - 1,
 				  s->slice.height + r*2 - 1);
 	    }
@@ -3012,7 +2860,7 @@ x_draw_image_foreground (s)
     }
   else
     /* Draw a rectangle if image could not be loaded.  */
-    mac_draw_rectangle (s->display, s->window, s->gc, x, y,
+    mac_draw_rectangle (s->f, s->gc, x, y,
 			s->slice.width - 1, s->slice.height - 1);
 }
 
@@ -3068,70 +2916,6 @@ x_draw_image_relief (s)
 		      s->slice.x + s->slice.width == s->img->width,
 		      &r);
 }
-
-
-#if 0 /* TODO: figure out if we need to do this on Mac.  */
-/* Draw the foreground of image glyph string S to PIXMAP.  */
-
-static void
-x_draw_image_foreground_1 (s, pixmap)
-     struct glyph_string *s;
-     Pixmap pixmap;
-{
-  int x = 0;
-  int y = s->ybase - s->y - image_ascent (s->img, s->face, &s->slice);
-
-  /* If first glyph of S has a left box line, start drawing it to the
-     right of that line.  */
-  if (s->face->box != FACE_NO_BOX
-      && s->first_glyph->left_box_line_p
-      && s->slice.x == 0)
-    x += abs (s->face->box_line_width);
-
-  /* If there is a margin around the image, adjust x- and y-position
-     by that margin.  */
-  if (s->slice.x == 0)
-    x += s->img->hmargin;
-  if (s->slice.y == 0)
-    y += s->img->vmargin;
-
-  if (s->img->pixmap)
-    {
-      if (s->img->mask)
-	mac_copy_area_with_mask_to_pixmap (s->display, s->img->pixmap,
-					   s->img->mask, pixmap, s->gc,
-					   s->slice.x, s->slice.y,
-					   s->slice.width, s->slice.height,
-					   x, y);
-      else
-	{
-	  mac_copy_area_to_pixmap (s->display, s->img->pixmap, pixmap, s->gc,
-				   s->slice.x, s->slice.y,
-				   s->slice.width, s->slice.height,
-				   x, y);
-
-	  /* When the image has a mask, we can expect that at
-	     least part of a mouse highlight or a block cursor will
-	     be visible.  If the image doesn't have a mask, make
-	     a block cursor visible by drawing a rectangle around
-	     the image.  I believe it's looking better if we do
-	     nothing here for mouse-face.  */
-	  if (s->hl == DRAW_CURSOR)
-	    {
-	      int r = s->img->relief;
-	      if (r < 0) r = -r;
-	      mac_draw_rectangle (s->display, s->window, s->gc, x - r, y - r,
-				  s->slice.width + r*2 - 1,
-				  s->slice.height + r*2 - 1);
-	    }
-	}
-    }
-  else
-    /* Draw a rectangle if image could not be loaded.  */
-    mac_draw_rectangle_to_pixmap (s->display, pixmap, s->gc, x, y,
-				  s->slice.width - 1, s->slice.height - 1);
-}
-#endif
 
 
 /* Draw part of the background of glyph string S.  X, Y, W, and H
@@ -3203,62 +2987,13 @@ x_draw_image_glyph_string (s)
       if (s->slice.y == 0)
 	y += box_line_vwidth;
 
-#if 0 /* TODO: figure out if we need to do this on Mac.  */
-      if (s->img->mask)
-	{
-	  /* Create a pixmap as large as the glyph string.  Fill it
-	     with the background color.  Copy the image to it, using
-	     its mask.  Copy the temporary pixmap to the display.  */
-	  int depth = one_mac_display_info.n_planes;
-
-	  /* Create a pixmap as large as the glyph string.  */
- 	  pixmap = XCreatePixmap (s->display, s->window,
-				  s->background_width,
-				  s->height, depth);
-
-	  /* Fill the pixmap with the background color/stipple.  */
-#if 0 /* TODO: stipple */
-	  if (s->stippled_p)
-	    {
-	      /* Fill background with a stipple pattern.  */
-	      XSetFillStyle (s->display, s->gc, FillOpaqueStippled);
-	      XFillRectangle (s->display, pixmap, s->gc,
-			      0, 0, s->background_width, s->height);
-	      XSetFillStyle (s->display, s->gc, FillSolid);
-	    }
-	  else
-#endif
-	    {
-	      XGCValues xgcv;
-	      XGetGCValues (s->display, s->gc, GCForeground | GCBackground,
-			    &xgcv);
-	      XSetForeground (s->display, s->gc, xgcv.background);
-	      mac_fill_rectangle_to_pixmap (s->display, pixmap, s->gc,
-					    0, 0, s->background_width,
-					    s->height);
-	      XSetForeground (s->display, s->gc, xgcv.foreground);
-	    }
-	}
-      else
-#endif
-	x_draw_glyph_string_bg_rect (s, x, y, s->background_width, height);
+      x_draw_glyph_string_bg_rect (s, x, y, s->background_width, height);
 
       s->background_filled_p = 1;
     }
 
   /* Draw the foreground.  */
-#if 0 /* TODO: figure out if we need to do this on Mac.  */
-  if (pixmap != 0)
-    {
-      x_draw_image_foreground_1 (s, pixmap);
-      x_set_glyph_string_clipping (s);
-      mac_copy_area (s->display, pixmap, s->window, s->gc,
-		     0, 0, s->background_width, s->height, s->x, s->y);
-      XFreePixmap (s->display, pixmap);
-    }
-  else
-#endif
-    x_draw_image_foreground (s);
+  x_draw_image_foreground (s);
 
   /* If we must draw a relief around the image, do it.  */
   if (s->img->relief
@@ -3317,7 +3052,7 @@ x_draw_stretch_glyph_string (s)
 	    }
 	  else
 #endif /* MAC_TODO */
-	    mac_erase_rectangle (s->window, gc, x, y, w, h);
+	    mac_erase_rectangle (s->f, gc, x, y, w, h);
 	}
     }
   else if (!s->background_filled_p)
@@ -3408,15 +3143,15 @@ x_draw_glyph_string (s)
           unsigned long dy = s->height - h;
 
 	  if (s->face->underline_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			    s->width, h);
+	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				s->width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->underline_color);
-	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			      s->width, h);
+	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				  s->width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -3427,15 +3162,15 @@ x_draw_glyph_string (s)
 	  unsigned long dy = 0, h = 1;
 
 	  if (s->face->overline_color_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			    s->width, h);
+	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				s->width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->overline_color);
-	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			      s->width, h);
+	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				  s->width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -3447,15 +3182,15 @@ x_draw_glyph_string (s)
 	  unsigned long dy = (s->height - h) / 2;
 
 	  if (s->face->strike_through_color_defaulted_p)
-	    XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			    s->width, h);
+	    mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				s->width, h);
 	  else
 	    {
 	      XGCValues xgcv;
 	      XGetGCValues (s->display, s->gc, GCForeground, &xgcv);
 	      XSetForeground (s->display, s->gc, s->face->strike_through_color);
-	      XFillRectangle (s->display, s->window, s->gc, s->x, s->y + dy,
-			      s->width, h);
+	      mac_fill_rectangle (s->f, s->gc, s->x, s->y + dy,
+				  s->width, h);
 	      XSetForeground (s->display, s->gc, xgcv.foreground);
 	    }
 	}
@@ -3476,8 +3211,7 @@ mac_shift_glyphs_for_insert (f, x, y, width, height, shift_by)
      struct frame *f;
      int x, y, width, height, shift_by;
 {
-  mac_scroll_area (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		   f->output_data.mac->normal_gc,
+  mac_scroll_area (f, f->output_data.mac->normal_gc,
 		   x, y, width, height,
 		   x + shift_by, y);
 }
@@ -3515,7 +3249,7 @@ x_clear_frame ()
   /* We don't set the output cursor here because there will always
      follow an explicit cursor_to.  */
   BLOCK_INPUT;
-  XClearWindow (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
+  mac_clear_window (f);
 
   /* We have to clear the scroll bars, too.  If we have changed
      colors or something like that, then they should be notified.  */
@@ -3605,21 +3339,18 @@ XTflash (f)
   /* If window is tall, flash top and bottom line.  */
   if (height > 3 * FRAME_LINE_HEIGHT (f))
     {
-      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-			    flash_left,
+      mac_invert_rectangle (f, flash_left,
 			    (FRAME_INTERNAL_BORDER_WIDTH (f)
 			     + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
 			    width, flash_height);
-      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-			    flash_left,
+      mac_invert_rectangle (f, flash_left,
 			    (height - flash_height
 			     - FRAME_INTERNAL_BORDER_WIDTH (f)),
 			    width, flash_height);
     }
   else
     /* If it is short, flash it all.  */
-    mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-			  flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+    mac_invert_rectangle (f, flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
 			  width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
 
   x_flush (f);
@@ -3659,21 +3390,18 @@ XTflash (f)
   /* If window is tall, flash top and bottom line.  */
   if (height > 3 * FRAME_LINE_HEIGHT (f))
     {
-      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-			    flash_left,
+      mac_invert_rectangle (f, flash_left,
 			    (FRAME_INTERNAL_BORDER_WIDTH (f)
 			     + FRAME_TOOL_BAR_LINES (f) * FRAME_LINE_HEIGHT (f)),
 			    width, flash_height);
-      mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-			    flash_left,
+      mac_invert_rectangle (f, flash_left,
 			    (height - flash_height
 			     - FRAME_INTERNAL_BORDER_WIDTH (f)),
 			    width, flash_height);
     }
   else
     /* If it is short, flash it all.  */
-    mac_invert_rectangle (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-			  flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
+    mac_invert_rectangle (f, flash_left, FRAME_INTERNAL_BORDER_WIDTH (f),
 			  width, height - 2 * FRAME_INTERNAL_BORDER_WIDTH (f));
 
   x_flush (f);
@@ -3778,11 +3506,10 @@ x_scroll_run (w, run)
   updated_window = w;
   x_clear_cursor (w);
 
-  mac_scroll_area (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-	         f->output_data.mac->normal_gc,
-	         x, from_y,
-	         width, height,
-	         x, to_y);
+  mac_scroll_area (f, f->output_data.mac->normal_gc,
+		   x, from_y,
+		   width, height,
+		   x, to_y);
 
   UNBLOCK_INPUT;
 }
@@ -4829,8 +4556,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   if (NILP (w->vertical_scroll_bar))
     {
       BLOCK_INPUT;
-      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		  left, top, width, height, 0);
+      mac_clear_area (f, left, top, width, height);
       UNBLOCK_INPUT;
       bar = x_scroll_bar_create (w, top, sb_left, sb_width, height, disp_top,
 				 disp_height);
@@ -4854,14 +4580,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	{
 	  /* Since toolkit scroll bars are smaller than the space reserved
 	     for them on the frame, we have to clear "under" them.  */
-	  XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		      left, top, width, height, 0);
-
-#if 0
-          if (sb_left + sb_width >= FRAME_PIXEL_WIDTH (f))
-            XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		        sb_left - 1, top, 1, height, 0);
-#endif
+	  mac_clear_area (f, left, top, width, height);
 
           HideControl (ch);
           MoveControl (ch, sb_left + VERTICAL_SCROLL_BAR_WIDTH_TRIM, disp_top);
@@ -5294,7 +5013,7 @@ x_draw_hollow_cursor (w, row)
 
   /* Set clipping, draw the rectangle, and reset clipping again.  */
   x_clip_to_row (w, row, TEXT_AREA, gc);
-  mac_draw_rectangle (dpy, FRAME_MAC_WINDOW (f), gc, x, y, wd, h);
+  mac_draw_rectangle (f, gc, x, y, wd, h);
   mac_reset_clip_rectangles (dpy, gc);
 }
 
@@ -5367,17 +5086,17 @@ x_draw_bar_cursor (w, row, width, kind)
       x_clip_to_row (w, row, TEXT_AREA, gc);
 
       if (kind == BAR_CURSOR)
-	XFillRectangle (dpy, window, gc,
-			WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
-			WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
-			width, row->height);
+	mac_fill_rectangle (f, gc,
+			    WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+			    WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y),
+			    width, row->height);
       else
-	XFillRectangle (dpy, window, gc,
-			WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
-			WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
-						 row->height - width),
-			cursor_glyph->pixel_width,
-			width);
+	mac_fill_rectangle (f, gc,
+			    WINDOW_TEXT_TO_FRAME_PIXEL_X (w, w->phys_cursor.x),
+			    WINDOW_TO_FRAME_PIXEL_Y (w, w->phys_cursor.y +
+						     row->height - width),
+			    cursor_glyph->pixel_width,
+			    width);
 
       mac_reset_clip_rectangles (dpy, gc);
     }
@@ -5402,8 +5121,7 @@ mac_clear_frame_area (f, x, y, width, height)
      struct frame *f;
      int x, y, width, height;
 {
-  XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-	      x, y, width, height, 0);
+  mac_clear_area (f, x, y, width, height);
 }
 
 
