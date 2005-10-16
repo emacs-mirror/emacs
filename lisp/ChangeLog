@@ -53,7 +53,7 @@
 
 2005-10-15  Richard M. Stallman  <rms@gnu.org>
 
-	* savehist.el (savehist-history-variables): New file.
+	* savehist.el: New file.
 
 2005-10-14  Karl Chen  <quarl@cs.berkeley.edu>
 
