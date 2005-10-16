@@ -1897,7 +1897,6 @@ where,
                             for y in letter-docs
                             collect `(const :tag ,y ,x)))))))
 
-(mh-image-load-path)
 (mh-tool-bar-define
     ((:folder mh-inc-folder mh-mime-save-parts mh-previous-undeleted-msg
               mh-page-msg  mh-next-undeleted-msg mh-delete-msg mh-refile-msg

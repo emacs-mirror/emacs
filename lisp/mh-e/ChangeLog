@@ -1,3 +1,15 @@
+2005-10-15  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-init.el (mh-image-load-path-called-flag): New variable which
+	is used by mh-image-load-path so that it runs only once.
+	(mh-image-load-path): Modified so that it gets run only once. Also
+	flatten out heavily nested if statements to make it clearer.
+
+	* mh-e.el (mh-folder-mode): Call mh-image-load-path to allow Emacs
+	to find images used in the toolbar.
+
+	* mh-customize.el (:folder): Remove call to mh-image-load-path.
+
 2005-10-14  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (Version, mh-version): Added +cvs to version.

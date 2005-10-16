@@ -1561,6 +1561,7 @@ messages in that region.
 
 \\{mh-folder-mode-map}"
 
+  (mh-image-load-path)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mh-folder-font-lock-keywords t))
   (make-local-variable 'desktop-save-buffer)

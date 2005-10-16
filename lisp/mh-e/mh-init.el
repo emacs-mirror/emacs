@@ -307,6 +307,9 @@ by the variable `mh-variants'."
 ;;; to error have been changed to calls to message, and code following was
 ;;; inserted as an else clause. This is not robust, so if you can fix this,
 ;;; please do!
+
+(defvar mh-image-load-path-called-flag nil)
+
 ;;;###mh-autoload
 (defun mh-image-load-path ()
   "Ensure that the MH-E images are accessible by `find-image'.
@@ -314,36 +317,30 @@ Images for MH-E are found in ../../etc/images relative to the files in
 `lisp/mh-e'. If `image-load-path' exists (since Emacs 22), then the images
 directory is added to it if isn't already there. Otherwise, the images
 directory is added to the `load-path' if it isn't already there."
-  (let (mh-load-path mh-image-load-path)
-    ;; First, find mh-e in the load-path.
-    (let ((path load-path))
-      (while path
-        (let* ((directory (directory-file-name (car path))))
-          (setq mh-load-path
-                (if (and (equal (file-name-nondirectory directory) "mh-e")
-                         (file-exists-p directory))
-                    directory
-                  nil))
-          (setq path (if mh-load-path nil (cdr path)))))
-      (if (not mh-load-path)
-          ;; This message be error; there shouldn't be an else. Blame compiler.
-          (message "Can not find mh-e in load-path (OK when compiling)")
-        ;; Create the image path associated with this mh-e directory.
-        (setq mh-image-load-path (expand-file-name
-                                  (concat (file-name-directory mh-load-path)
-                                          "../etc/images")))))
-    (if (or (not mh-image-load-path)
-            (not (file-exists-p mh-image-load-path)))
-        ;; This message be error; there shouldn't be an else. Blame compiler.
-        (message "Can not find image directory %s (OK when compiling)"
-                 mh-image-load-path)
-      ;; If image-load-path exists, and the image path isn't there add it.
-      (if (boundp 'image-load-path)
-          (if (not (member mh-image-load-path image-load-path))
-              (push mh-image-load-path image-load-path))
-        ;; Otherwise, if the image path isn't in the load-path, add it there.
-        (if (not (member mh-image-load-path load-path))
-            (push mh-image-load-path load-path))))))
+  (message "mh-image-load-path called") ;XXX: for debugging
+  (unless mh-image-load-path-called-flag
+    (let (mh-load-path mh-image-load-path)
+      ;; First, find mh-e in the load-path.
+      (setq mh-load-path
+            (loop for dir in load-path
+                  for dir-name = (directory-file-name dir)
+                  when (and (equal (file-name-nondirectory dir-name) "mh-e")
+                            (file-exists-p dir-name))
+                  return dir-name))
+      (if mh-load-path
+          (setq mh-image-load-path
+                (expand-file-name (concat (file-name-directory mh-load-path)
+                                          "../etc/images")))
+        (error "Can not find mh-e in load-path"))
+      (cond ((or (not mh-image-load-path)
+                 (not (file-exists-p mh-image-load-path)))
+             (error "Can not find image directory %s"
+                    mh-image-load-path))
+            ((boundp 'image-load-path)
+             (pushnew mh-image-load-path image-load-path))
+            ((not (member mh-image-load-path load-path))
+             (push mh-image-load-path load-path))))
+    (setq mh-image-load-path-called-flag t)))
 
 (provide 'mh-init)
 
