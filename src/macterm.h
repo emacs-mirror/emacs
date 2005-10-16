@@ -562,6 +562,8 @@ extern void XSetBackground P_ ((Display *, GC, unsigned long));
 extern void XSetWindowBackground P_ ((Display *, WindowPtr, unsigned long));
 extern void mac_draw_line_to_pixmap P_ ((Display *, Pixmap, GC, int, int,
 					 int, int));
+extern void mac_clear_area P_ ((struct frame *, int, int,
+				unsigned int, unsigned int));
 extern void mac_unload_font P_ ((struct mac_display_info *, XFontStruct *));
 extern OSErr install_window_handler P_ ((WindowPtr));
 extern void remove_window_handler P_ ((WindowPtr));
