@@ -45,7 +45,6 @@
 ;;; Code:
 
 (require 'custom)
-(require 'cl)
 
 ;; User variables
 
@@ -139,9 +138,7 @@ the user's privacy."
   :type 'integer
   :group 'savehist)
 
-(defconst savehist-xemacs (string-match "XEmacs" emacs-version))
-
-(defvar savehist-coding-system (if savehist-xemacs 'iso-2022-8 'utf-8)
+(defvar savehist-coding-system (if (coding-system-p 'utf-8) 'utf-8 'iso-2022-8)
   "The coding system savehist uses for saving the minibuffer history.
 Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")
@@ -152,9 +149,9 @@ unwise, unless you know what you are doing.")
 
 (defvar savehist-last-checksum nil)
 
-;; Coding system without conversion, only used for calculating and
-;; comparing checksums.
-(defconst savehist-no-conversion (if savehist-xemacs 'binary 'no-conversion))
+(defconst savehist-no-conversion (if (featurep 'xemacs) 'binary 'no-conversion)
+  ;; FIXME: Why not use savehist-coding-system?
+  "Coding system without conversion, only used for calculating checksums.")
 
 ;; Functions
 
@@ -176,12 +173,12 @@ other time."
     ;; executes in under 5 ms on my system.
     (unless savehist-timer
       (setq savehist-timer
-	    (if savehist-xemacs
+	    (if (fboundp 'start-itimer)
 		(start-itimer
 		 "savehist" 'savehist-autosave savehist-autosave-interval
 		 savehist-autosave-interval)
-	      (run-with-timer savehist-autosave-interval savehist-autosave-interval
-			      'savehist-autosave)))))
+	      (run-with-idle-timer savehist-autosave-interval savehist-autosave-interval
+                                   'savehist-autosave)))))
   ;; Don't set coding-system-for-read here.  We rely on autodetection
   ;; and the coding cookie to convey that information.  That way, if
   ;; the user changes the value of savehist-coding-system, we can
@@ -237,13 +234,14 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
   (cond
    ((listp value)
     (when (and savehist-length (> (length value) savehist-length))
-      (setq value (subseq value 0 savehist-length)))
-    (delete-if-not #'savehist-printable value))
+      (setq value (copy-sequence value))
+      (setcdr (nthcdr savehist-length value) nil))
+    (delq nil (mapcar (lambda (x) (if (savehist-printable x) x)) value)))
    ((savehist-printable value) value)
    (t nil)))
 
 (defun savehist-printable (value)
-  "Returns non-nil if VALUE is printable."
+  "Return non-nil if VALUE is printable."
   ;; Quick response for oft-encountered types known to be printable.
   (cond
    ((stringp value))
