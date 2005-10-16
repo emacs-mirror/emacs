@@ -1,3 +1,8 @@
+2005-10-16  David Reitter <david.reitter@gmail.com>
+
+	* mail/sendmail.el (send-mail-function): Use mailclient-send-it
+	as default on darwin and windows systems.
+
 2005-10-16  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
 
 	* arc-mode.el (archive-zip-extract): Doc fix.
