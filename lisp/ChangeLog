@@ -1,5 +1,26 @@
 2005-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* savehist.el: Don't require CL at runtime.
+	(savehist-xemacs): Remove.
+	(savehist-coding-system): Use utf-8 if available, regardless of religion.
+	(savehist-no-conversion): Use (featurep 'xemacs).
+	(savehist-load): Check existence of start-itimer rather than XEmacs.
+	Use an idle timer.
+	(savehist-process-for-saving): Replace use of CL funs `subseq' and
+	`delete-if-not'.
+
+2005-10-16  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* savehist.el: Newer version.
+	(savehist-autosave-interval, savehist-coding-system, savehist-timer)
+	(savehist-last-checksum, savehist-no-conversion): New vars.
+	(savehist-autosave, savehist-process-for-saving, savehist-printable):
+	New functions.
+	(savehist-load, savehist-save): Use them.
+	(savehist-delimit): Remove.
+
+2005-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* progmodes/compile.el (compilation-goto-locus): Display the
 	compilation buffer first and the source buffer second, in case they're
 	in overlapping frames.  Don't raise the compilation frame if it was the
@@ -73,8 +94,8 @@
 
 2005-10-14  Karl Chen  <quarl@cs.berkeley.edu>
 
-	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Fix
-	bug in \bf fontification.
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2):
+	Fix bug in \bf fontification.
 
 2005-10-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
