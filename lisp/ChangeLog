@@ -1,3 +1,19 @@
+2005-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/compile.el (compilation-goto-locus): Display the
+	compilation buffer first and the source buffer second, in case they're
+	in overlapping frames.  Don't raise the compilation frame if it was the
+	selected window upon entry.  Pass the `other-window' arg to
+	pop-to-buffer.
+
+	* info.el (Info-fontify-node): Use dolist.
+	Change add-text-properties to put-text-property.
+
+2005-10-16  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-font-lock-url): Catch when point past
+	bound of search.
+
 2005-10-16  Masatake YAMATO  <jet@gyve.org>
 
 	* dabbrev.el (dabbrev-completion): Pass the common
@@ -137,6 +153,11 @@
 	Lookup utf-subst-table-for-encode, not ucs-mule-cjk-to-unicode.
 	Handle the case that ucs-mule-to-mule-unicode translates a character to
 	ASCII (usually for IPA characters).
+
+2005-10-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-fontify-node): Don't be fooled by a lone "...".
+	Don't hide the underline of titles if font-lock-mode is disabled.
 
 2005-10-12  Bill Wohler  <wohler@newt.com>
 
@@ -10183,8 +10204,8 @@
 	minibuffer-with-setup-hook (which breaks turning on/off
 	file-name-shadow-mode while in the prompt).
 
-	* complete.el (PC-read-include-file-name-internal): Use
-	test-completion.
+	* complete.el (PC-read-include-file-name-internal):
+	Use test-completion.
 
 2005-03-28  Luc Teirlinck  <teirllm@auburn.edu>
 
