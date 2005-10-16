@@ -264,4 +264,5 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 
 (provide 'savehist)
 
+;; arch-tag: b3ce47f4-c5ad-4ebc-ad02-73aba705cf9f
 ;;; savehist.el ends here
