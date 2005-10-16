@@ -2662,6 +2662,7 @@ begins at the beginning of a line.  We use this function for font-locking."
         field bounds start end found)
     (bibtex-beginning-of-field)
     (while (and (not found)
+                (<= (point) bound)
 		(prog1 (re-search-forward bibtex-font-lock-url-regexp bound t)
 		  (setq field (match-string-no-properties 1)))
 		(setq bounds (bibtex-parse-field-text))
