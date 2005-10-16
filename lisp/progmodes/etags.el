@@ -2015,7 +2015,8 @@ for \\[find-tag] (which see)."
 	   (message "Making completion list...")
 	   (with-output-to-temp-buffer "*Completions*"
 	     (display-completion-list
-	      (all-completions pattern 'tags-complete-tag nil)))
+	      (all-completions pattern 'tags-complete-tag nil)
+	      pattern))
 	   (message "Making completion list...%s" "done")))))
 
 (dolist (x '("^No tags table in use; use .* to select one$"

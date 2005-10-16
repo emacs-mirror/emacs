@@ -1,3 +1,8 @@
+2005-10-16  Masatake YAMATO  <jet@gyve.org>
+
+	* message.el (message-expand-group): Pass the common
+	prefix substring of completion to `display-completion-list'.
+
 2005-10-09  Daniel Brockman <daniel@brockman.se>
 
 	* format-spec.el (format-spec): Propagate text properties of % spec.

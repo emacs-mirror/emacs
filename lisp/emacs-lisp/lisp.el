@@ -586,7 +586,7 @@ considered."
 			 (setq list (cdr list)))
 		       (setq list (nreverse new))))
 		 (with-output-to-temp-buffer "*Completions*"
-		   (display-completion-list list)))
+		   (display-completion-list list pattern)))
 	       (message "Making completion list...%s" "done")))))))
 
 ;;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e

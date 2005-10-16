@@ -3012,7 +3012,8 @@ It will read a file name from the minibuffer when invoked."
 	   (with-output-to-temp-buffer "*Completions*"
 	     (display-completion-list
 	      (sort (file-name-all-completions name-part directory)
-		    'string<)))
+		    'string<)
+	      name-part))
 	   (message "Making completion list...%s" "done")))))
 
 (defun widget-file-prompt-value (widget prompt value unbound)
@@ -3571,7 +3572,8 @@ example:
 	  (t
 	   (message "Making completion list...")
 	   (with-output-to-temp-buffer "*Completions*"
-	     (display-completion-list (all-completions prefix list nil)))
+	     (display-completion-list (all-completions prefix list nil)
+				      prefix))
 	   (message "Making completion list...done")))))
 
 (defun widget-color-sample-face-get (widget)

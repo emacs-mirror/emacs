@@ -1650,7 +1650,8 @@ Any match found replaces the text from BEGIN to END."
           ((stringp completion)
            (if (equal word completion)
                (with-output-to-temp-buffer completions-buffer
-                 (display-completion-list (all-completions word choices)))
+                 (display-completion-list (all-completions word choices)
+                                          word))
              (ignore-errors
                (kill-buffer completions-buffer))
              (delete-region begin end)

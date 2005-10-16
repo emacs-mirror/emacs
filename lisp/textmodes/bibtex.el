@@ -2522,7 +2522,8 @@ of a word, all strings are listed.  Return completion."
            (message "Making completion list...")
            (with-output-to-temp-buffer "*Completions*"
              (display-completion-list (all-completions part-of-word
-                                                       completions)))
+                                                       completions)
+				      part-of-word))
            (message "Making completion list...done")
            ;; return value is handled by choose-completion-string-functions
            nil))))

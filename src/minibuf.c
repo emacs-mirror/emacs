@@ -2351,7 +2351,7 @@ Return nil if there is no valid completion, else t.  */)
 }
 
 DEFUN ("display-completion-list", Fdisplay_completion_list, Sdisplay_completion_list,
-       1, 1, 0,
+       1, 2, 0,
        doc: /* Display the list of completions, COMPLETIONS, using `standard-output'.
 Each element may be just a symbol or string
 or may be a list of two strings to be printed as if concatenated.
@@ -2361,14 +2361,23 @@ alternative, the second serves as annotation.
 The actual completion alternatives, as inserted, are given `mouse-face'
 properties of `highlight'.
 At the end, this runs the normal hook `completion-setup-hook'.
-It can find the completion buffer in `standard-output'.  */)
-     (completions)
+It can find the completion buffer in `standard-output'.  
+The optional second arg COMMON-SUBSTRING is a string. 
+It is used to put faces, `completions-first-difference` and
+`completions-common-part' on the completion bufffer. The
+`completions-common-part' face is put on the common substring
+specified by COMMON-SUBSTRING. If COMMON-SUBSTRING is nil,
+the faces are not put. 
+Internally, COMMON-SUBSTRING is bound to `completion-common-substring' 
+during running `completion-setup-hook'. */)
+     (completions, common_substring)
      Lisp_Object completions;
+     Lisp_Object common_substring;
 {
   Lisp_Object tail, elt;
   register int i;
   int column = 0;
-  struct gcpro gcpro1, gcpro2;
+  struct gcpro gcpro1, gcpro2, gcpro3;
   struct buffer *old = current_buffer;
   int first = 1;
 
@@ -2377,7 +2386,7 @@ It can find the completion buffer in `standard-output'.  */)
      except for ELT.  ELT can be pointing to a string
      when terpri or Findent_to calls a change hook.  */
   elt = Qnil;
-  GCPRO2 (completions, elt);
+  GCPRO3 (completions, elt, common_substring);
 
   if (BUFFERP (Vstandard_output))
     set_buffer_internal (XBUFFER (Vstandard_output));
@@ -2526,13 +2535,20 @@ It can find the completion buffer in `standard-output'.  */)
 	}
     }
 
-  UNGCPRO;
-
   if (BUFFERP (Vstandard_output))
     set_buffer_internal (old);
 
   if (!NILP (Vrun_hooks))
-    call1 (Vrun_hooks, intern ("completion-setup-hook"));
+    {
+      int count1 = SPECPDL_INDEX ();
+
+      specbind (intern ("completion-common-substring"), common_substring);
+      call1 (Vrun_hooks, intern ("completion-setup-hook"));
+      
+      unbind_to (count1, Qnil);
+    }
+
+  UNGCPRO;
 
   return Qnil;
 }

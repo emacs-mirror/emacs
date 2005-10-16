@@ -1,3 +1,44 @@
+2005-10-16  Masatake YAMATO  <jet@gyve.org>
+
+	* dabbrev.el (dabbrev-completion): Pass the common
+	prefix substring of completion to `display-completion-list'.
+
+	* filecache.el (file-cache-minibuffer-complete)
+	(file-cache-complete): Ditto.
+
+	* tempo.el (tempo-display-completions): Ditto.
+
+	* wid-edit.el (widget-file-complete, widget-color-complete): Ditto.
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Ditto.
+
+	* eshell/em-hist.el (eshell-list-history): Ditto.
+
+	* mail/mailabbrev.el (mail-abbrev-complete-alias): Ditto.
+
+	* mail/mailalias.el (mail-complete): Ditto.
+
+	* progmodes/etags.el (complete-tag): Ditto.
+
+	* progmodes/make-mode.el (makefile-complete): Ditto.
+
+	* progmodes/meta-mode.el (meta-complete-symbol): Ditto.
+
+	* progmodes/octave-mod.el (octave-complete-symbol): Ditto.
+
+	* progmodes/pascal.el (pascal-complete-word)
+	(pascal-show-completions): Ditto.
+
+	* progmodes/python.el (python-complete-symbol): Ditto.
+
+	* textmodes/bibtex.el (bibtex-complete-internal): Ditto.
+
+	* textmodes/org.el (org-complete): Ditto.
+
+	* simple.el (completion-common-substring): New variable.
+	(completion-setup-function): Use `completion-common-substring'
+	to put faces.
+
 2005-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Apply 2005-10-09 change for term/x-win.el.

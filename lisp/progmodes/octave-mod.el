@@ -1252,7 +1252,7 @@ variables."
 	     ;; Taken from comint.el
 	     (message "Making completion list...")
 	     (with-output-to-temp-buffer "*Completions*"
-	       (display-completion-list list))
+	       (display-completion-list list string))
 	     (message "Hit space to flush")
 	     (let (key first)
 	       (if (save-excursion

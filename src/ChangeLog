@@ -1,3 +1,9 @@
+2005-10-16  Masatake YAMATO  <jet@gyve.org>
+
+	* minibuf.c (Fdisplay_completion_list): Add new optional
+	argument COMMON_SUBSTRING. Bind `completion-common-substring' 
+	to the optional argument during running `completion-setup-hook'.
+
 2005-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c [TARGET_API_MAC_CARBON] (get_cfstring_encoding_from_lisp):

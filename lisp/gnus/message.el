@@ -6691,7 +6691,7 @@ those headers."
 	  (let ((buffer-read-only nil))
 	    (erase-buffer)
 	    (let ((standard-output (current-buffer)))
-	      (display-completion-list (sort completions 'string<)))
+	      (display-completion-list (sort completions 'string<) string))
 	    (goto-char (point-min))
 	    (delete-region (point) (progn (forward-line 3) (point))))))))))
 
