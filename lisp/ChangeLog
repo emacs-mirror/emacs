@@ -1,3 +1,9 @@
+2005-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Apply 2005-10-09 change for term/x-win.el.
+	(x-get-selection, mac-select-convert-to-string): Convert from/to
+	UTF-16 clipboard data as in native byte order, no BOM.
+
 2005-10-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-tool-bar-map): Rename the images

@@ -1,3 +1,33 @@
+2005-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [TARGET_API_MAC_CARBON] (get_cfstring_encoding_from_lisp):
+	Allow nil as argument.
+	 [TARGET_API_MAC_CARBON] (Fmac_code_convert_string): Regard nil
+	for encoding arguments as UTF-16 in native byte order, no BOM.
+
+	* macfns.c (Fx_create_frame): Add debugging code.
+	(Fx_show_tip): Set frame pixel width and height.
+
+	* macterm.c (MAC_WINDOW_NORMAL_GC): Remove macro.
+	(FRAME_NORMAL_GC): New macro.
+	(mac_draw_line, mac_clear_area, mac_clear_window)
+	(mac_fill_rectangle, mac_draw_string, mac_draw_string_16)
+	(mac_draw_image_string, mac_draw_image_string_16): Rename from
+	XDrawLine, XClearArea, XClearWindow, XFillRectangle, XDrawString,
+	XDrawString16, XDrawImageString, and XDrawImageString16, respectively.
+	All uses changed.
+	(mac_draw_line, mac_erase_rectangle, mac_clear_area)
+	(mac_clear_window, mac_draw_bitmap, mac_draw_rectangle)
+	(mac_invert_rectangle, mac_draw_string_common, mac_draw_string)
+	(mac_draw_string_16, mac_draw_image_string)
+	(mac_draw_image_string_16, mac_copy_area, mac_copy_area_with_mask)
+	(mac_scroll_area): Drawing functions now take frame as destination.
+	All uses changed.
+	(mac_draw_string_common): Get port height with FRAME_PIXEL_HEIGHT.
+	(x_draw_fringe_bitmap): Set clipping area in face->gc.
+
+	* macterm.h (mac_clear_area): Add extern.
+
 2005-10-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (note_mouse_movement, XTread_socket): Apply 2005-10-14
@@ -193,7 +223,7 @@
 	(FRAME_MAC_WINDOW, FRAME_X_WINDOW): Use window_desc.
 
 	* xfaces.c (x_create_gc, x_free_gc) [MAC_OS]: Add BLOCK_INPUT.
-	Add debug code.
+	Add debugging code.
 
 2005-10-08  Kim F. Storm  <storm@cua.dk>
 
@@ -283,7 +313,7 @@
 	* keyboard.c (init_keyboard) [MAC_OSX]: Don't install SIGINT handler.
 
 	* macfns.c (start_hourglass): Apply 2005-05-07 change for xfns.c.
-	(x_create_tip_frame) [GLYPH_DEBUG]: Uncomment debug code.
+	(x_create_tip_frame) [GLYPH_DEBUG]: Uncomment debugging code.
 	(Fx_create_frame, x_create_tip_frame) [USE_ATSUI]:
 	Try ATSUI-compatible 12pt Monaco font first.
 
