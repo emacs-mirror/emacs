@@ -1,3 +1,8 @@
+2005-10-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-search-forward)
+	(longlines-search-backward): Match any number of spaces.
+
 2005-10-16  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* diff-mode.el (diff-mode): Doc fix.
