@@ -226,6 +226,10 @@ no further processing).  URL is either a string or a parsed URL."
 
 (defun url-mm-url (url)
   "Retrieve URL and pass to the appropriate viewing application."
+  ;; These requires could advantageously be moved to url-mm-callback or
+  ;; turned into autoloads, but I suspect that it would introduce some bugs
+  ;; because loading those files from a process sentinel or filter may
+  ;; result in some undesirable carner cases.
   (require 'mm-decode)
   (require 'mm-view)
   (url-retrieve url 'url-mm-callback nil))
