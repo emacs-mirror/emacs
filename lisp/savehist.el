@@ -1,10 +1,10 @@
-;;; savehist.el --- Save minibuffer history
+;;; savehist.el --- Save minibuffer history.
 
-;; Copyright (c) 1997 Free Software Foundation
+;; Copyright (C) 1997, 2005 Free Software Foundation
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Keywords: minibuffer
-;; Version: 0.4
+;; Version: 7
 
 ;; This file is part of GNU Emacs.
 
@@ -25,8 +25,9 @@
 
 ;;; Commentary:
 
-;; This package provides the feature of saving minibuffer
-;; history to an external file after exit.  When Emacs is about the exit,
+;; Many editors (e.g. Vim) have the feature of saving minibuffer
+;; history to an external file after exit.  This package provides the
+;; same feature in Emacs.  When Emacs is about the exit,
 ;; `savehist-save' will dump the contents of various minibuffer
 ;; histories (as determined by `savehist-history-variables') to a save
 ;; file (`~/.emacs-history' by default).  Although the package was
@@ -40,15 +41,17 @@
 
 ;; Be sure to have `savehist.el' in a directory that is in your
 ;; load-path, and byte-compile it.
-
+
 ;;; Code:
+
+(require 'custom)
+(require 'cl)
 
 ;; User variables
 
 (defgroup savehist nil
   "Save minibuffer history."
   :group 'minibuffer)
-
 
 (defcustom savehist-history-variables
   '(
@@ -87,6 +90,7 @@
 
     ;; Info, lookup, and bookmark historys
     Info-minibuffer-history
+    Info-search-history
     Manual-page-minibuffer-history
 
     ;; Emacs-specific:
@@ -98,8 +102,11 @@ only if it is bound and has a non-nil value.  Thus it is safe to
 specify a superset of the variables a user is expected to want to
 save.
 
-Default value contains minibuffer history variables used by Emacs, XEmacs, 
-and Viper (uh-oh)."
+Default value contains minibuffer history variables used by Emacs, XEmacs,
+and Viper (uh-oh).  Note that, if you customize this variable, you
+can lose the benefit of future versions of Emacs adding new values to
+the list.  Because of that it might be more useful to add values using
+`add-to-list'."
   :type '(repeat (symbol :tag "Variable"))
   :group 'savehist)
 
@@ -118,12 +125,36 @@ If set to nil, the length is unlimited."
 		 (const :tag "Unlimited" nil))
   :group 'savehist)
 
-(defcustom savehist-modes 384
+(defcustom savehist-modes #o600
   "*Default permissions of the history file.
-This is decimal, not octal.  The default is 384 (0600 in octal)."
+This is decimal, not octal.  The default is 384 (0600 in octal).
+Set to nil to use the default permissions that Emacs uses, typically
+mandated by umask.  The default is a bit more restrictive to protect
+the user's privacy."
   :type 'integer
   :group 'savehist)
 
+(defcustom savehist-autosave-interval (* 5 60)
+  "*The interval during which savehist should autosave the history buffer."
+  :type 'integer
+  :group 'savehist)
+
+(defconst savehist-xemacs (string-match "XEmacs" emacs-version))
+
+(defvar savehist-coding-system (if savehist-xemacs 'iso-2022-8 'utf-8)
+  "The coding system savehist uses for saving the minibuffer history.
+Changing this value while Emacs is running is supported, but considered
+unwise, unless you know what you are doing.")
+
+;; Internal variables.
+
+(defvar savehist-timer nil)
+
+(defvar savehist-last-checksum nil)
+
+;; Coding system without conversion, only used for calculating and
+;; comparing checksums.
+(defconst savehist-no-conversion (if savehist-xemacs 'binary 'no-conversion))
 
 ;; Functions
 
@@ -131,64 +162,107 @@ This is decimal, not octal.  The default is 384 (0600 in octal)."
 (defun savehist-load (&optional no-hook)
   "Load the minibuffer histories from `savehist-file'.
 Unless NO-HOOK is specified, the function will also add the save function
-to `kill-emacs-hook', thus ensuring that the minibuffer contents will be
-saved before leaving Emacs.
+to `kill-emacs-hook' and on a timer, ensuring that the minibuffer contents
+will be saved before leaving Emacs.
 
 This function should be normally used from your Emacs init file.  Since it
 removes your current minibuffer histories, it is unwise to call it at any
 other time."
   (interactive "P")
   (unless no-hook
-    (add-hook 'kill-emacs-hook 'savehist-save))
-  (load savehist-file t))
+    (add-hook 'kill-emacs-hook 'savehist-autosave)
+    ;; Install an invocation of savehist-autosave on a timer.  This
+    ;; should not cause a noticeable delay -- savehist-autosave
+    ;; executes in under 5 ms on my system.
+    (unless savehist-timer
+      (setq savehist-timer
+	    (if savehist-xemacs
+		(start-itimer
+		 "savehist" 'savehist-autosave savehist-autosave-interval
+		 savehist-autosave-interval)
+	      (run-with-timer savehist-autosave-interval savehist-autosave-interval
+			      'savehist-autosave)))))
+  ;; Don't set coding-system-for-read here.  We rely on autodetection
+  ;; and the coding cookie to convey that information.  That way, if
+  ;; the user changes the value of savehist-coding-system, we can
+  ;; still correctly load the old file.
+  (load savehist-file t (not (interactive-p))))
 
 ;;;###autoload
-(defun savehist-save ()
+(defun savehist-save (&optional auto-save)
   "Save the histories from `savehist-history-variables' to `savehist-file'.
-A variable will be saved if it is bound and non-nil."
+Unbound symbols referenced in `savehist-history-variables' are ignored.
+If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
+ and don't save the buffer if they are the same."
   (interactive)
-  (save-excursion
-    ;; Is it wise to junk `find-file-hooks' just like that?  How else
-    ;; should I avoid font-lock et al.?
-    (let ((find-file-hooks nil)
-	  (buffer-exists-p (get-file-buffer savehist-file)))
-      (set-buffer (find-file-noselect savehist-file))
-      (unwind-protect
-	  (progn
-	    (erase-buffer)
-	    (insert
-	     ";; -*- emacs-lisp -*-\n"
-	     ";; Minibuffer history file.\n\n"
-	     ";; This file is automatically generated by `savehist-save'"
-	     " or when\n"
-	     ";; exiting Emacs.\n"
-	     ";; Do not edit.  Unless you really want to, that is.\n\n")
-	    (let ((print-length nil)
-		  (print-string-length nil)
-		  (print-level nil)
-		  (print-readably t))
-	      (dolist (sym savehist-history-variables)
-		(when (and (boundp sym)
-			   (symbol-value sym))
-		  (prin1
-		   `(setq ,sym (quote ,(savehist-delimit (symbol-value sym)
-							 savehist-length)))
-		   (current-buffer))
-		  (insert ?\n))))
-	    (save-buffer)
-	    (set-file-modes savehist-file savehist-modes))
-	(or buffer-exists-p
-	    (kill-buffer (current-buffer)))))))
+  (with-temp-buffer
+    (insert
+     (format ";; -*- mode: emacs-lisp; coding: %s -*-\n" savehist-coding-system)
+     ";; Minibuffer history file, automatically generated by `savehist'.\n\n")
+    (let ((print-length nil)
+	  (print-string-length nil)
+	  (print-level nil)
+	  (print-readably t)
+	  (print-quoted t))
+      (dolist (sym savehist-history-variables)
+	(when (boundp sym)
+	  (let ((value (savehist-process-for-saving (symbol-value sym))))
+	    (prin1 `(setq ,sym ',value) (current-buffer))
+	    (insert ?\n)))))
+    ;; If autosaving, avoid writing if nothing has changed since the
+    ;; last write.
+    (let ((checksum (md5 (current-buffer) nil nil savehist-no-conversion)))
+      (unless (and auto-save (equal checksum savehist-last-checksum))
+	;; Set file-precious-flag when saving the buffer because we
+	;; don't want a half-finished write ruining the entire
+	;; history.  (Remember that this is run from a timer and from
+	;; kill-emacs-hook.)
+	(let ((file-precious-flag t)
+	      (coding-system-for-write savehist-coding-system))
+	  (write-region (point-min) (point-max) savehist-file nil
+			(unless (interactive-p) 'quiet)))
+	(when savehist-modes
+	  (set-file-modes savehist-file savehist-modes))
+	(setq savehist-last-checksum checksum)))))
 
-;; If ARG is a list with less than N elements, return it, else return
-;; its subsequence of N elements.  If N is nil or ARG is not a list,
-;; always return ARG.
-(defun savehist-delimit (arg n)
-  (if (and n
-	   (listp arg)
-	   (> (length arg) n))
-      (subseq arg 0 n)
-    arg))
+(defun savehist-autosave ()
+  "Save the minibuffer history if it has been modified since the last save."
+  (savehist-save t))
+
+(defun savehist-process-for-saving (value)
+  ;; Process VALUE for saving to file.  If it is a list, retain only
+  ;; the first `savehist-length' values and prune non-printable ones.
+  ;; If VALUE is not a list, return it as-is if it is printable and
+  ;; nil otherwise.
+  (cond
+   ((listp value)
+    (when (and savehist-length (> (length value) savehist-length))
+      (setq value (subseq value 0 savehist-length)))
+    (delete-if-not #'savehist-printable value))
+   ((savehist-printable value) value)
+   (t nil)))
+
+(defun savehist-printable (value)
+  "Returns non-nil if VALUE is printable."
+  ;; Quick response for oft-encountered types known to be printable.
+  (cond
+   ((stringp value))
+   ((numberp value))
+   ((symbolp value))
+   (t
+    ;; For others, check explicitly.
+    (condition-case nil
+	(let ((print-readably t)
+	      (print-level nil)
+	      (chars ()))
+	  ;; Print the value into a string...
+	  (prin1 value (lambda (char) (push char chars)))
+	  ;; ...and attempt to read it.
+	  (read (apply #'string (nreverse chars)))
+	  ;; The attempt worked: the object is printable.
+	  t)
+      ;; The attempt failed: the object is not printable.
+      (error nil)))))
 
 (provide 'savehist)
 
