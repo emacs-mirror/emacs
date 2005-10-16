@@ -54,7 +54,7 @@
 
 With the default setting, an ordinary Mouse-1 click on a link
 performs the same action as Mouse-2 on that link, while a longer
-Mouse-1 click \(hold down the Mouse-1 button for more than 350
+Mouse-1 click \(hold down the Mouse-1 button for more than 450
 milliseconds) performs the original Mouse-1 binding \(which
 typically sets point where you click the mouse).
 
@@ -78,7 +78,7 @@ packages.  See `mouse-on-link-p' for details."
   :version "22.1"
   :type '(choice (const :tag "Disabled" nil)
 		 (const :tag "Double click" double)
-                 (number :tag "Single click time limit" :value 350)
+                 (number :tag "Single click time limit" :value 450)
                  (other :tag "Single click" t))
   :group 'mouse)
 

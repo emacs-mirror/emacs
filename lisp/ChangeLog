@@ -1,3 +1,7 @@
+2005-10-16  Romain Francoise  <romain@orebokech.com>
+
+	* mouse.el (mouse-1-click-follows-link): Doc fix.
+
 2005-10-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* savehist.el: Don't require CL at runtime.
