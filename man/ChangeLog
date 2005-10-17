@@ -1,3 +1,13 @@
+2005-10-17  Juri Linkov  <juri@jurta.org>
+
+	* info.texi (Getting Started, Search Index, Expert Info):
+	Fix wording.
+	(Search Text): Replace `echo area' with `mode line'.
+	(Search Index): Both `i' and `,' find all index entries.
+	Replace example `C-f' with `C-l' (which exists in index of Info
+	manual) and delete spaces in its keyboard input sequence.
+	Delete unnecessary explanations about literal characters.
+
 2005-10-16  Richard M. Stallman  <rms@gnu.org>
 
 	* building.texi (Compilation Mode, Compilation): Clarified.
@@ -81,7 +91,7 @@
 
 2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Workflow states): Documented that change in keywords
+	* org.texi (Workflow states): Documented that change in keywords
 	becomes active only after restart of Emacs.
 
 2005-10-09  Richard M. Stallman  <rms@gnu.org>

@@ -1,3 +1,23 @@
+2005-10-17  Juri Linkov  <juri@jurta.org>
+
+	* buffers.texi (Current Buffer):
+	* commands.texi (Event Input Misc):
+	* compile.texi (Eval During Compile, Compiler Errors):
+	* customize.texi (Group Definitions):
+	* display.texi (Progress, Defining Faces):
+	* files.texi (Writing to Files):
+	* modes.texi (Mode Hooks, Defining Minor Modes):
+	* streams.texi (Output Functions):
+	* syntax.texi (Syntax Table Functions):
+	* text.texi (Change Hooks):
+	Replace `...' with `@dots{}' in `@defmac' and `@defspec'.
+
+	* commands.texi (Quitting): Replace arg `forms' with `body' in
+	`with-local-quit'.
+
+	* positions.texi (Excursions): Replace arg `forms' with `body' in
+	`save-excursion'.
+
 2005-10-08  Kim F. Storm  <storm@cua.dk>
 
 	* windows.texi (Window Tree): Rename window-split-tree to window-tree.
