@@ -1,3 +1,10 @@
+2005-10-17  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Quitting): Minor clarification.
+
+	* processes.texi (Sentinels): Clarify about output and quitting.
+	(Filter Functions): Mention with-local-quit.
+
 2005-10-17  Juri Linkov  <juri@jurta.org>
 
 	* buffers.texi (Current Buffer):

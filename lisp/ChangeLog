@@ -1,3 +1,7 @@
+2005-10-17  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Undo prev change.
+
 2005-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jit-lock.el (jit-lock-fontify-now):
