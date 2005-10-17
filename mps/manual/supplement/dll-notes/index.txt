@@ -16,7 +16,7 @@ CONTENTS
 
 INTRODUCTION
 
-This document helps you write code that uses the DLL version of the MPS (that is: the MPS packaged as a dynamically-linked library).  
+This document helps you write MPS client code that uses the dynamically-linked (DLL) version of the MPS.  
 
 Readership: developers using the MPS, and developers of the MPS.  Confidential: no.  Status: rough notes, informally peer-reviewed.  Author: RHSK.
 
@@ -29,20 +29,22 @@ Peer documents:
 
 OVERVIEW
 
-The MPS library provides the various functions etc that constitute the mps.h interface.  These are normally declared to the linker as EXPORTS.  
+The MPS provides the various functions etc that constitute the mps.h interface.  These are normally declared to the linker as EXPORTS.  
 
-The MPS library also requires various functions to be provided to it by the client: these are called 'plinth functions'.  They are specified in mpslib.h (and for telemetry builds, also mpsio.h).  These are normally declared to the linker as IMPORTS.  
+The MPS also requires various functions to be provided to it by the client: these are called 'plinth functions'.  They are specified in mpslib.h (and for telemetry builds, also mpsio.h).  These are normally declared to the linker as IMPORTS.  
 
 However, any DLL (on Windows) must state, for each linker-import, the *filename* of the DLL that will provide that import.  When building the MPS DLL, we do not know the filename of the DLL that will provide the plinth functions.  It could be "MyApp.exe", "languageruntime.dll", or anything else.  Corollary: the MPS DLL must require no linker-imports.  
 
 The client must provide the required plinth functions in another way.  The client calls mps_lib_callback_register() once for each plinth function, passing a function pointer to the client code that implements that function.  
 
+Even if "the client" is made up of several DLLs, it only needs to register each plinth function once.  Usually this job is done at startup by the 'main' DLL in the client.  The other DLLs in the client do not need to be aware of the mpslib interface, and do not need to register any mpslib callbacks.  
+
 
 DLL INTERFACE
 
-The MPS DLL (mpsdy.dll) provides the same exports as the MPS statically-linked library (mps.lib), plus one extra: "mps_lib_callback_register()".  It requires no imports.
+The MPS DLL (mpsdy.dll) provides the same linker-exports as the MPS statically-linked library (mps.lib), plus one extra: "mps_lib_callback_register()".  It requires no linker-imports.  
 
-Exports are linked automatically by the operating system.  (For example, client code simply calls mps_pool_create(), etc).  
+Exports are linked automatically by the operating system.  Client code simply calls mps_pool_create(), etc.  
 
 The client must 'manually' provide the plinth functions to the MPS, by calling mps_lib_callback_register(name, function-pointer) one-by-one for each plinth function.  The interface (see mpslibcb.h) is:
 
@@ -128,6 +130,7 @@ B. DOCUMENT HISTORY
 
 2005-10-06  RHSK  Created based on <http://info.ravenbrook.com/mail/2005/10/05/14-25-04/0.txt>.
 2005-10-14  RHSK  Improve clarity of explanation.
+2005-10-17  RHSK  Clarity: register only once, eg. from 'main' DLL.
 
 
 C. COPYRIGHT AND LICENSE
