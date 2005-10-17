@@ -4245,8 +4245,19 @@ The format is suitable for use with `easy-menu-define'."
     (define-key map "u" 'Custom-goto-parent)
     (define-key map "n" 'widget-forward)
     (define-key map "p" 'widget-backward)
+    (define-key map [mouse-1] 'Custom-move-and-invoke)
     map)
   "Keymap for `custom-mode'.")
+
+(defun Custom-move-and-invoke (event)
+  "Move to where you click, and if it is an active field, invoke it."
+  (interactive "e")
+  (mouse-set-point event)
+  (if (widget-event-point event)
+      (let* ((pos (widget-event-point event))
+	     (button (get-char-property pos 'button)))
+	(if button
+	    (widget-button-click event)))))
 
 (easy-menu-define Custom-mode-menu
     custom-mode-map
