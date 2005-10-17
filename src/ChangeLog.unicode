@@ -1,3 +1,12 @@
+2005-10-17  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (search_buffer): Give up BM search on case-fold-search
+	if one of a target character has a case-equivalence of different
+	byte length even if that target charcter is an ASCII.
+	(simple_search): Fix culculation of byte length of matched text.
+	(boyer_moore): Fix handling of case-equivalent multibyte
+	characters.
+
 2005-10-15  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (decode_coding): Fix handling of invalid bytes.
