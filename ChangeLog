@@ -1,3 +1,7 @@
+2005-10-17  Bill Wohler  <wohler@newt.com>
+
+	* make-dist: Create and populate etc/images/low-color.
+
 2005-10-15  Bill Wohler  <wohler@newt.com>
 
 	* make-dist: Create and populate etc/images/gud.

@@ -91,7 +91,6 @@ WINS=\
 	progmodes \
 	term \
 	textmodes \
-	toolbar \
 	url
 
 doit:

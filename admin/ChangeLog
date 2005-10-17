@@ -1,3 +1,8 @@
+2005-10-17  Bill Wohler  <wohler@newt.com>
+
+	* FOR-RELEASE (DOCUMENTATION): Removed lisp/toolbar from list
+	since it's gone. Also marked mh-e as done.
+
 2005-10-11  Juanma Barranquero  <lekktu@gmail.com>
 
 	* FOR-RELEASE (FATAL ERRORS): Remove item about JPEG

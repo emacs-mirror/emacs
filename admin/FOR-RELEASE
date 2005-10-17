@@ -89,14 +89,13 @@ lisp/gnus		done		ttn
 lisp/international	done		Kenichi Handa
 lisp/language		done		Kenichi Handa
 lisp/mail		done		ttn
-lisp/mh-e		working		Bill Wohler
+lisp/mh-e		done		Bill Wohler
 lisp/net		done		ttn
 lisp/obsolete		done		ttn
 lisp/play		done		ttn
 lisp/progmodes		done		Nick Roberts
 lisp/term		done		ttn
 lisp/textmodes		done		ttn
-lisp/toolbar		done		ttn
 lisp/url		done		ttn
 lispintro		done		ttn
 lispref			done		ttn

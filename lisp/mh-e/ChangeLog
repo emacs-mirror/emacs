@@ -1,3 +1,11 @@
+2005-10-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-folder-tool-bar-map): Renamed image file
+	left_arrow to left-arrow, right_arrow to right-arrow, mail_compose
+	to mail/compose, fld_open to fld-open.
+	(mh-letter-tool-bar-map): Renamed image file mail_send to
+	mail/send.
+
 2005-10-16  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-display-completion-list-compat): New macro which

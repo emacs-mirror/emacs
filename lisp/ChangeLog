@@ -1,3 +1,66 @@
+2005-10-17  Bill Wohler  <wohler@newt.com>
+
+	Moved all remaining images from lisp/toolbar to etc/images, moved
+	lisp/toolbar/tool-bar to lisp and "deleted" lisp/toolbar. The low
+	resolution images were placed in their own directory (low-color).
+
+	* toolbar/attach.*, toolbar/cancel.*, toolbar/close.*,
+	* toolbar/copy.*, toolbar/cut.*, toolbar/diropen.*, toolbar/exit.*:
+	* toolbar/help.*, toolbar/home.*, toolbar/index.*, toolbar/info.*:
+	* toolbar/mail.*, toolbar/new.*, toolbar/open.*, toolbar/paste.*:
+	* toolbar/preferences.*, toolbar/print.*, toolbar/save.*:
+	* toolbar/saveas.*, toolbar/search.*, toolbar/search-replace.*:
+	* toolbar/spell.*, toolbar/undo.*: Moved to etc/images.
+
+	* toolbar/lc-copy.*: Moved to etc/images/low-color/copy.*.
+	* toolbar/lc-cut.*: Moved to etc/images/low-color/cut.*.
+	* toolbar/lc-help.*: Moved to etc/images/low-color/help.*.
+	* toolbar/lc-home.*: Moved to etc/images/low-color/home.*.
+	* toolbar/lc-index.*: Moved to etc/images/low-color/index.*.
+	* toolbar/lc-new.*: Moved to etc/images/low-color/new.*.
+	* toolbar/lc-open.*: Moved to etc/images/low-color/open.*.
+	* toolbar/lc-paste.*: Moved to etc/images/low-color/paste.*.
+	* toolbar/lc-preferences.*: Moved to
+	etc/images/low-color/preferences.*.
+	* toolbar/lc-print.*: Moved to etc/images/low-color/print.*.
+	* toolbar/lc-save.*: Moved to etc/images/low-color/save.*.
+	* toolbar/lc-saveas.*: Moved to etc/images/low-color/saveas.*.
+	* toolbar/lc-search.*: Moved to etc/images/low-color/search.*.
+	* toolbar/lc-spell.*: Moved to etc/images/low-color/spell.*.
+	* toolbar/lc-undo.*: Moved to etc/images/low-color/undo.*.
+
+	To conform with convention, the underscore (_) in the following
+	image names were replaced with dash (-) or (/) as appropriate.
+
+	* toolbar/back_arrow.*: Moved to etc/images/back-arrow.*.
+	* toolbar/fld_open.*: Moved to etc/images/fld-open.*.
+	* toolbar/fwd_arrow.*: Moved to etc/images/fwd-arrow.*.
+	* toolbar/jump_to.*: Moved to etc/images/jump-to.*.
+	* toolbar/left_arrow.*: Moved to etc/images/left-arrow.*.
+	* toolbar/right_arrow.*: Moved to etc/images/right-arrow.*.
+	* toolbar/up_arrow.*: Moved to etc/images/up-arrow.*.
+	* toolbar/lc-back_arrow.*.: Moved to etc/images/low-color/back-arrow.*.
+	* toolbar/lc-fwd_arrow.*.: Moved to etc/images/low-color/fwd-arrow.*.
+	* toolbar/lc-jump_to.*: Moved to etc/images/low-color/jump-to.*.
+	* toolbar/lc-left_arrow.*.: Moved to etc/images/low-color/left-arrow.*.
+	* toolbar/lc-right_arrow.*.: Moved to
+	etc/images/low-color/right-arrow.*.
+	* toolbar/lc-up_arrow.*: Moved to etc/images/low-color/up-arrow.*.
+	* toolbar/mail_compose.*.: Moved to etc/images/mail/compose.*.
+	* toolbar/mail_send.*: Moved to etc/images/mail/send.*.
+
+	* info.el (info-tool-bar-map): Replaced underscores in image names
+	with dashes.
+
+	* makefile.w32-in (WINS): Removed toolbar.
+
+	* menu-bar.el: Replaced toolbar/tool-bar.el with tool-bar.el in
+	comment.
+
+	* tool-bar.el: Moved to lisp from toolbar. Now that
+	toolbar is empty, it should be deleted when folks run "cvs up
+	-P".
+
 2005-10-18  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-store (calc-store-into): Get the proper variable name

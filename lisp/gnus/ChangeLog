@@ -1,3 +1,8 @@
+2005-10-15  Bill Wohler  <wohler@newt.com>
+
+	* message.el (message-tool-bar-map): Renamed image file from
+	mail_send to mail/send.
+
 2005-10-16  Masatake YAMATO  <jet@gyve.org>
 
 	* message.el (message-expand-group): Pass the common
