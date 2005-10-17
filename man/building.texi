@@ -223,14 +223,6 @@ leading context in the window before the current message.  If it is
 scroll.  If there is no left fringe, no arrow is displayed and a value
 of @code{nil} means display the message at the top of the window.
 
-  You don't have to be in the compilation buffer in order to use
-@code{next-error}.  If one window on the selected frame can be the
-target of the @code{next-error} call, it is used.  Else, if a buffer
-previously had @code{next-error} called on it, it is used.  Else,
-if the current buffer can be the target of @code{next-error}, it is
-used.  Else, all the buffers Emacs manages are tried for
-@code{next-error} support.
-
   If you're not in the compilation buffer when you run
 @code{next-error}, Emacs will look for a buffer that contains error
 messages.  First, it looks for one displayed in the selected frame,
@@ -907,12 +899,6 @@ Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree
 format.  To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
-
-By default, watch expressions only display in the speedbar when the
-GUD buffer is selected in the attached frame.  If you want your watch
-expressions to remain visible at all times then select the @samp{GUD}
-radio button on the @samp{Speedbar->Displays} sub-menu using
-@kbd{Mouse-3}.
 
 @findex gdb-var-delete
 With the cursor over the root expression of a complex data type, type
