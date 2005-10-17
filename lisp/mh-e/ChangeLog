@@ -1,5 +1,11 @@
 2005-10-16  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-display-completion-list-compat): New macro which
+	calls `display-completion-list' correctly in older environments.
+	Versions of Emacs prior to version 22 lacked a COMMON-SUBSTRING
+	argument.
+	(mh-complete-word): Use it.
+
 	* mh-init.el (mh-image-load-path): Use locate-library to find
 	MH-E. This simplified the code a lot. Flattened out nested
 	statements even more.

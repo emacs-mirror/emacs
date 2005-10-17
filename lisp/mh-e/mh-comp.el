@@ -1633,6 +1633,16 @@ This is useful in breaking up paragraphs in replies."
 
 (mh-do-in-xemacs (defvar mail-abbrevs))
 
+(defmacro mh-display-completion-list-compat (word choices)
+  "Completes WORD from CHOICES using `display-completion-list'.
+Calls `display-completion-list' correctly in older environments.
+Versions of Emacs prior to version 22 lacked a COMMON-SUBSTRING argument
+which is used to highlight the next possible character you can enter
+in the current list of completions."
+  (if (>= emacs-major-version 22)
+      `(display-completion-list (all-completions ,word ,choices) ,word)
+    `(display-completion-list (all-completions ,word ,choices))))
+
 ;;;###mh-autoload
 (defun mh-complete-word (word choices begin end)
   "Complete WORD at from CHOICES.
@@ -1650,8 +1660,7 @@ Any match found replaces the text from BEGIN to END."
           ((stringp completion)
            (if (equal word completion)
                (with-output-to-temp-buffer completions-buffer
-                 (display-completion-list (all-completions word choices)
-                                          word))
+                 (mh-display-completion-list-compat word choices))
              (ignore-errors
                (kill-buffer completions-buffer))
              (delete-region begin end)
