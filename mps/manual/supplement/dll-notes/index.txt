@@ -24,7 +24,7 @@ Background: The MPS ships in two versions: the static-library version (packaged 
 
 Peer documents:
   <http://info.ravenbrook.com/project/mps/master/readme.txt>
-  <http://info.ravenbrook.com/project/mps/manual/reference/>
+  <http://info.ravenbrook.com/project/mps/master/manual/reference/>
 
 
 OVERVIEW
