@@ -351,12 +351,9 @@ Defaults to the whole buffer.  END can be out of bounds."
 
            ;; Make sure the contextual refontification doesn't re-refontify
            ;; what's already been refontified.
-           (when jit-lock-context-unfontify-pos
-             (if (and (< jit-lock-context-unfontify-pos next)
            (when (and jit-lock-context-unfontify-pos
                       (< jit-lock-context-unfontify-pos next)
                       (>= jit-lock-context-unfontify-pos start))
-                 (setq jit-lock-context-unfontify-pos next)))
              (setq jit-lock-context-unfontify-pos next))
 
 	   ;; Fontify the chunk, and mark it as fontified.
