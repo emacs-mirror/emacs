@@ -849,6 +849,7 @@ button end points."
     (define-key map "\t" 'widget-forward)
     (define-key map [(shift tab)] 'widget-backward)
     (define-key map [backtab] 'widget-backward)
+    (define-key map [mouse-1] 'widget-move-and-invoke)
     (define-key map [down-mouse-2] 'widget-button-click)
     (define-key map "\C-m" 'widget-button-press)
     map)
@@ -901,6 +902,14 @@ Recommended as a parent keymap for modes using widgets.")
 ;; backward-compatibility alias
 (put 'widget-button-pressed-face 'face-alias 'widget-button-pressed)
 
+(defun widget-move-and-invoke (event)
+  "Move to where you click, and if it is an active field, invoke it."
+  (interactive "e")
+  (mouse-set-point event)
+  (let ((pos (widget-event-point event)))
+    (if (and pos (get-char-property pos 'button))
+	(widget-button-click event))))
+	
 (defun widget-button-click (event)
   "Invoke the button that the mouse is pointing at."
   (interactive "e")
