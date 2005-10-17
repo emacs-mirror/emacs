@@ -6,7 +6,8 @@ Richard Kistruck, Ravenbrook Limited, 2005-02-02
 CONTENTS
 
   1. Introduction
-  2. Mac OS X
+  2. Unix
+  2.1. Mac OS X
   3. Windows
   A. References
   B. Document history
@@ -27,7 +28,19 @@ easy to modify such that it builds on many more.
 This document is not confidential.
 
 
-2. MAC OS X
+2. UNIX
+
+Note that the first build in a clean directory will produce warnings 
+because the dependency files (*.d) do not yet exist.  The warnings look 
+like this:
+  comm.gmk:533: xcppgc/hi/mpsi.d: No such file or directory
+The warnings are normal and do not indicate a problem.  After the 
+warning is emitted, the build-system makes the dependency file. 
+Subsequent builds in the non-clean directory see these dependency files 
+and do not emit the warning.
+
+
+2.1. MAC OS X
 
 2005-02-02
 Building on early releases of Mac OS X (DP3? 10.1?) required various 
