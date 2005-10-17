@@ -1,3 +1,12 @@
+2005-10-17  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-completion-mode): New defvar.  Used in
+	`tramp-completion-mode' for checking if we are in completion mode.
+	(tramp-completion-handle-file-name-all-completions): Reorder code
+	in order to complete for file names only in case there are no
+	method/user/host completions.  This is necessary for cooperation
+	with ido.  Reported by Kim F. Storm  <storm@cua.dk>.
+
 2005-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-search-forward)
