@@ -1,3 +1,8 @@
+2005-10-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store (calc-store-into): Get the proper variable name
+	to display in message.
+
 2005-10-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler): Make watch
