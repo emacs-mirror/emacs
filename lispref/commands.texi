@@ -2434,7 +2434,7 @@ The alias @code{last-input-char} exists for compatibility with
 Emacs version 18.
 @end defvar
 
-@defmac while-no-input body...
+@defmac while-no-input body@dots{}
 This construct runs the @var{body} forms and returns the value of the
 last one---but only if no input arrives.  If any input arrives during
 the execution of the @var{body} forms, it aborts them (working much
@@ -2658,23 +2658,23 @@ is set to a value other than @code{nil}.  If @code{inhibit-quit} is
 non-@code{nil}, then @code{quit-flag} has no special effect.
 @end defvar
 
-@defmac with-local-quit forms@dots{}
-This macro executes @var{forms} in sequence, but allows quitting, at
+@defmac with-local-quit body@dots{}
+This macro executes @var{body} forms in sequence, but allows quitting, at
 least locally, within @var{body} even if @code{inhibit-quit} was
 non-@code{nil} outside this construct.  It returns the value of the
-last form in @var{forms}, unless exited by quitting, in which case
+last form in @var{body}, unless exited by quitting, in which case
 it returns @code{nil}.
 
 If @code{inhibit-quit} is @code{nil} on entry to @code{with-local-quit},
-it only executes the @var{forms}, and setting @code{quit-flag} causes
+it only executes the @var{body}, and setting @code{quit-flag} causes
 a normal quit.  However, if @code{inhibit-quit} is non-@code{nil} so
 that ordinary quitting is delayed, a non-@code{nil} @code{quit-flag}
 triggers a special kind of local quit.  This ends the execution of
-@var{forms} and exits the @code{with-local-quit} form with
+@var{body} and exits the @code{with-local-quit} body with
 @code{quit-flag} still non-@code{nil}, so that another (ordinary) quit
 will happen as soon as that is allowed.  If @code{quit-flag} is
-already non-@code{nil} at the beginning of @var{forms}, the local quit
-happens immediately and they don't execute at all.
+already non-@code{nil} at the beginning of @var{body}, the local quit
+happens immediately and the body doesn't execute at all.
 
 This macro is mainly useful in functions that can be called from
 timers, @code{pre-command-hook}, @code{post-command-hook} and other
