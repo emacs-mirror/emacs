@@ -1141,9 +1141,9 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
       unsigned char *patbuf;
       int multibyte = !NILP (current_buffer->enable_multibyte_characters);
       unsigned char *base_pat = SDATA (string);
-      /* Set to nozero if we find a non-ASCII char that need
-	 translation.  */
-      int char_base = 0;
+      /* Set to positive if we find a non-ASCII char that need
+	 translation.  Otherwise set to zero later.  */
+      int char_base = -1;
       int boyer_moore_ok = 1;
 
       /* MULTIBYTE says whether the text to be searched is multibyte.
@@ -1234,37 +1234,46 @@ search_buffer (string, pos, pos_byte, lim, lim_byte, n,
 		    {
 		      /* Check if all equivalents belong to the same
 			 group of characters.  Note that the check of C
-			 itself is done by the last iteration.  Note
-			 also that we don't have to check ASCII
-			 characters because boyer-moore search can
-			 always handle their translation.  */
-		      while (1)
+			 itself is done by the last iteration.  */
+		      int this_char_base = -1;
+
+		      while (boyer_moore_ok)
 			{
-			  if (! ASCII_BYTE_P (inverse))
+			  if (ASCII_BYTE_P (inverse))
 			    {
-			      if (CHAR_BYTE8_P (inverse))
+			      if (this_char_base > 0)
+				boyer_moore_ok = 0;
+			      else
 				{
-				  /* Boyer-moore search can't handle a
-				     translation of an eight-bit
-				     character.  */
-				  boyer_moore_ok = 0;
-				  break;
-				}
-			      else if (char_base == 0)
-				char_base = inverse & ~0x3F;
-			      else if ((inverse & ~0x3F)
-				       != char_base)
-				{
-				  boyer_moore_ok = 0;
-				  break;
+				  this_char_base = 0;
+				  if (char_base < 0)
+				    char_base = this_char_base;
 				}
 			    }
+			  else if (CHAR_BYTE8_P (inverse))
+			    /* Boyer-moore search can't handle a
+			       translation of an eight-bit
+			       character.  */
+			    boyer_moore_ok = 0;
+			  else if (this_char_base < 0)
+			    {
+			      this_char_base = inverse & ~0x3F;
+			      if (char_base < 0)
+				char_base = this_char_base;
+			      else if (char_base > 0
+				       && this_char_base != char_base)
+				boyer_moore_ok = 0;
+			    }
+			  else if ((inverse & ~0x3F) != this_char_base)
+			    boyer_moore_ok = 0;
 			  if (c == inverse)
 			    break;
 			  TRANSLATE (inverse, inverse_trt, inverse);
 			}
 		    }
 		}
+	      if (char_base < 0)
+		char_base = 0;
 
 	      /* Store this character into the translated pattern.  */
 	      bcopy (str, pat, charlen);
@@ -1333,6 +1342,9 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 {
   int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
   int forward = n > 0;
+  /* Number of buffer bytes matched.  Note that this may be different
+     from len_byte in a multibyte buffer.  */
+  int match_byte;
 
   if (lim > pos && multibyte)
     while (n > 0)
@@ -1372,8 +1384,9 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
 	    if (this_len == 0)
 	      {
+		match_byte = this_pos_byte - pos_byte;
 		pos += len;
-		pos_byte += len_byte;
+		pos_byte += match_byte;
 		break;
 	      }
 
@@ -1410,6 +1423,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
 	    if (this_len == 0)
 	      {
+		match_byte = len;
 		pos += len;
 		break;
 	      }
@@ -1435,6 +1449,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    if (pos - len < lim)
 	      goto stop;
 	    this_pos_byte = CHAR_TO_BYTE (this_pos);
+	    match_byte = pos_byte - this_pos_byte;
 
 	    while (this_len > 0)
 	      {
@@ -1460,7 +1475,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 	    if (this_len == 0)
 	      {
 		pos -= len;
-		pos_byte -= len_byte;
+		pos_byte -= match_byte;
 		break;
 	      }
 
@@ -1496,6 +1511,7 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
 
 	    if (this_len == 0)
 	      {
+		match_byte = len;
 		pos -= len;
 		break;
 	      }
@@ -1510,9 +1526,9 @@ simple_search (n, pat, len, len_byte, trt, pos, pos_byte, lim, lim_byte)
   if (n == 0)
     {
       if (forward)
-	set_search_regs ((multibyte ? pos_byte : pos) - len_byte, len_byte);
+	set_search_regs ((multibyte ? pos_byte : pos) - match_byte, match_byte);
       else
-	set_search_regs (multibyte ? pos_byte : pos, len_byte);
+	set_search_regs (multibyte ? pos_byte : pos, match_byte);
 
       return pos;
     }
@@ -1561,7 +1577,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 
   unsigned char simple_translate[0400];
   /* These are set to the preceding bytes of a byte to be translated
-     if charset_base is nonzero.  As the maximum byte length of a
+     if char_base is nonzero.  As the maximum byte length of a
      multibyte character is 5, we have to check at most four previous
      bytes.  */
   int translate_prev_byte1 = 0;
@@ -1662,22 +1678,31 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	i = infinity;
       if (! NILP (trt))
 	{
-	  /* If the byte currently looking at is a head of a character
-	     to check case-equivalents, set CH to that character.  An
-	     ASCII character and a non-ASCII character matching with
-	     CHAR_BASE are to be checked.  */
+	  /* If the byte currently looking at is the last of a
+	     character to check case-equivalents, set CH to that
+	     character.  An ASCII character and a non-ASCII character
+	     matching with CHAR_BASE are to be checked.  */
 	  int ch = -1;
 
 	  if (ASCII_BYTE_P (*ptr) || ! multibyte)
 	    ch = *ptr;
-	  else if (char_base && CHAR_HEAD_P (*ptr))
+	  else if (char_base
+		   && (pat_end - ptr) == 1 || CHAR_HEAD_P (ptr[1]))
 	    {
-	      ch = STRING_CHAR (ptr, pat_end - ptr);
+	      unsigned char *charstart = ptr - 1;
+
+	      while (! (CHAR_HEAD_P (*charstart)))
+		charstart--;
+	      ch = STRING_CHAR (charstart, ptr - charstart + 1);
 	      if (char_base != (ch & ~0x3F))
 		ch = -1;
 	    }
 
-	  j = *ptr;
+	  if (ch > 0400)
+	    j = (ch & 0x3F) | 0200;
+	  else
+	    j = *ptr;
+
 	  if (i == infinity)
 	    stride_for_teases = BM_tab[j];
 
@@ -1687,17 +1712,13 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	  if (ch >= 0)
 	    {
 	      int starting_ch = ch;
-	      int starting_j;
+	      int starting_j = j;
 
-	      if (ch > 0400)
-		starting_j = (ch & ~0x3F) | 0200;
-	      else
-		starting_j = ch;
 	      while (1)
 		{
 		  TRANSLATE (ch, inverse_trt, ch);
 		  if (ch > 0400)
-		    j = (ch & ~0x3F) | 0200;
+		    j = (ch & 0x3F) | 0200;
 		  else
 		    j = ch;
 
