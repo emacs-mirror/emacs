@@ -300,6 +300,17 @@ MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
 
 mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
 $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
+	$(MAKE) $(MFLAGS) pre-mh-loaddefs.el-$(SHELLTYPE)
+	cp pre-mh-loaddefs.el-$(SHELLTYPE) $@
+	rm re-mh-loaddefs.el-$(SHELLTYPE)
+	$(EMACS) $(EMACSOPT) \
+	   -l autoload \
+	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
+	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
+	   --eval "(setq make-backup-files nil)" \
+	   -f batch-update-autoloads $(lisp)/mh-e
+
+pre-mh-loaddefs.el-SH:
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
 	echo ";;" >> $@
 	echo ";;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc." >> $@
@@ -308,12 +319,6 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	echo ";;; Commentary:" >> $@
 	echo ";;; Change Log:" >> $@
 	echo ";;; Code:" >> $@
-	$(EMACS) $(EMACSOPT) \
-	   -l autoload \
-	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
-	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/mh-e
 	echo "" >> $@
 	echo "(provide 'mh-loaddefs)" >> $@
 	echo ";;; Local Variables:" >> $@
@@ -322,6 +327,24 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	echo ";;; no-update-autoloads: t" >> $@
 	echo ";;; End:" >> $@
 	echo ";;; mh-loaddefs.el ends here" >> $@
+
+pre-mh-loaddefs.el-CMD:
+	echo ;;; mh-loaddefs.el --- automatically extracted autoloads> $@
+	echo ;;>> $@
+	echo ;;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.>> $@
+	echo ;;; Author: Bill Wohler (wohler@newt.com)>> $@
+	echo ;;; Keywords: mail>> $@
+	echo ;;; Commentary:>> $@
+	echo ;;; Change Log:>> $@
+	echo ;;; Code:>> $@
+	echo.>> $@
+	echo (provide 'mh-loaddefs)>> $@
+	echo ;;; Local Variables:>> $@
+	echo ;;; version-control: never>> $@
+	echo ;;; no-byte-compile: t>> $@
+	echo ;;; no-update-autoloads: t>> $@
+	echo ;;; End:>> $@
+	echo ;;; mh-loaddefs.el ends here>> $@
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
