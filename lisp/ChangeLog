@@ -1,3 +1,18 @@
+2005-10-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler): Make watch
+	expressions display in speedbar for all buffers when debugging.
+	(gdb-speedbar-expand-node): Ensure node contraction is always
+	updated.
+
+	* speedbar.el (speedbar-set-mode-line-format): Indent properly.
+	(speedbar-insert-button, speedbar-make-button): 
+	Use add-text-properties.
+	(speedbar-update-localized-contents)
+	(speedbar-update-directory-contents)
+	(speedbar-update-special-contents): Use dolist.
+	(speedbar-buffer-easymenu-definition): Add a menu separator.
+
 2005-10-17  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.w32-in (pre-mh-loaddefs.el-SH, pre-mh-loaddefs.el-CMD):
