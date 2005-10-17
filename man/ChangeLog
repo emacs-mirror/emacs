@@ -1,3 +1,7 @@
+2005-10-16  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Compilation Mode, Compilation): Clarified.
+
 2005-10-15  Richard M. Stallman  <rms@gnu.org>
 
 	* misc.texi (Saving Emacs Sessions): Mention savehist library.
