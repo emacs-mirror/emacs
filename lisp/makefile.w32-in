@@ -96,9 +96,9 @@ WINS=\
 
 doit:
 
-cus-load.el:
+$(lisp)/cus-load.el:
 	touch $@
-custom-deps: cus-load.el doit
+custom-deps: $(lisp)/cus-load.el doit
 	@echo Directories: $(WINS)
 	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hook nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
 
@@ -106,7 +106,7 @@ finder-data: doit
 	@echo Directories: $(WINS)
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $(lisp) $(WINS)
 
-loaddefs.el:
+$(lisp)/loaddefs.el:
 	$(MAKE) $(MFLAGS) loaddefs.el-$(SHELLTYPE)
 	cp loaddefs.el-$(SHELLTYPE) $@
 	rm loaddefs.el-$(SHELLTYPE)
@@ -139,7 +139,7 @@ loaddefs.el-CMD:
 	echo (autoload 'define-derived-mode "derived")>> $@
 	echo (autoload 'encoded-kbd-mode "encoded-kb")>> $@
 	echo (defvar cvs-global-menu nil)>> $@
-	echo ;;; >> $@
+	echo.>> $@
 	echo ;;; Local Variables:>> $@
 	echo ;;; version-control: never>> $@
 	echo ;;; no-byte-compile: t>> $@
@@ -147,7 +147,7 @@ loaddefs.el-CMD:
 	echo ;;; End:>> $@
 	echo ;;; loaddefs.el ends here>> $@
 
-autoloads: loaddefs.el doit
+autoloads: $(lisp)/loaddefs.el doit
 	@echo Directories: $(WINS)
 	$(emacs) -l autoload \
 		--eval $(ARGQUOTE)(setq find-file-hook nil \
@@ -156,19 +156,19 @@ autoloads: loaddefs.el doit
 			  $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) \
 		-f batch-update-autoloads $(lisp) $(WINS)
 
-subdirs.el:
+$(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 
 # Need separate version for sh and native cmd.exe
 update-subdirs: update-subdirs-$(SHELLTYPE)
 
 update-subdirs-CMD: doit
-	echo ;; -*- no-byte-compile: t -*->subdirs.el
-	echo ;; In load-path, after this directory should come>> subdirs.el
-	echo ;; certain of its subdirectories.  Here we specify them.>> subdirs.el
-	echo (normal-top-level-add-to-load-path $(SQUOTE)(>> subdirs.el
-	@for %%d in ($(WINS)) do if not (%%d)==(term) echo "%%d">> subdirs.el
-	echo ))>> subdirs.el
+	echo ;; -*- no-byte-compile: t -*-> $(lisp)/subdirs.el
+	echo ;; In load-path, after this directory should come>> $(lisp)/subdirs.el
+	echo ;; certain of its subdirectories.  Here we specify them.>> $(lisp)/subdirs.el
+	echo (normal-top-level-add-to-load-path $(SQUOTE)(>> $(lisp)/subdirs.el
+	@for %%d in ($(WINS)) do if not (%%d)==(term) echo "%%d">> $(lisp)/subdirs.el
+	echo ))>> $(lisp)/subdirs.el
 
 update-subdirs-SH: doit
 	$(srcdir)/update-subdirs $(lisp); \
@@ -207,7 +207,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 # compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile: subdirs.el mh-autoloads compile-$(SHELLTYPE) doit
+compile: $(lisp)/subdirs.el mh-autoloads compile-$(SHELLTYPE) doit
 
 compile-CMD:
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
@@ -236,7 +236,7 @@ compile-SH:
 # unconditionally.  Some files don't actually get compiled because they
 # set the local variable no-byte-compile.
 
-compile-always: subdirs.el compile-always-$(SHELLTYPE) doit
+compile-always: $(lisp)/subdirs.el compile-always-$(SHELLTYPE) doit
 
 compile-always-CMD:
 #	-for %%f in ($(lisp) $(WINS)) do for %%g in (%%f\*.elc) do @attrib -r %%g
@@ -302,7 +302,7 @@ mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
 $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	$(MAKE) $(MFLAGS) pre-mh-loaddefs.el-$(SHELLTYPE)
 	cp pre-mh-loaddefs.el-$(SHELLTYPE) $@
-	rm re-mh-loaddefs.el-$(SHELLTYPE)
+	rm pre-mh-loaddefs.el-$(SHELLTYPE)
 	$(EMACS) $(EMACSOPT) \
 	   -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
@@ -360,7 +360,7 @@ pre-mh-loaddefs.el-CMD:
 # sources only.
 
 # Need separate version for sh and native cmd.exe
-bootstrap-clean: bootstrap-clean-$(SHELLTYPE) loaddefs.el
+bootstrap-clean: bootstrap-clean-$(SHELLTYPE) $(lisp)/loaddefs.el
 
 bootstrap-clean-CMD:
 #	if exist $(EMACS) $(MAKE) $(MFLAGS) autoloads
