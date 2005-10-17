@@ -23,8 +23,8 @@ Readership: developers using the MPS, and developers of the MPS.  Confidential: 
 Background: The MPS ships in two versions: the static-library version (packaged as a statically-linked library, that is: a .lib file), and the DLL version (a dynamically-linked library).  To use the DLL version, extra steps are required; this document describes them.  
 
 Peer documents:
-  <http://info.ravenbrook.com/project/mps/master/readme.txt>
-  <http://info.ravenbrook.com/project/mps/master/manual/reference/>
+  <http://www.ravenbrook.com/project/mps/master/readme.txt>
+  <http://www.ravenbrook.com/project/mps/master/manual/reference/>
 
 
 OVERVIEW
