@@ -403,7 +403,7 @@ never print it, there are many good reasons for this not to happen.
 Secondly, ``done'' is more explicit.
 @end defun
 
-@defmac dotimes-with-progress-reporter (var count [result]) message body...
+@defmac dotimes-with-progress-reporter (var count [result]) message body@dots{}
 This is a convenience macro that works the same way as @code{dotimes}
 does, but also reports loop progress using the functions described
 above.  It allows you to save some typing.
@@ -1721,7 +1721,7 @@ kind of customization item (@pxref{Customization}) which the user can
 customize using the Customization buffer (@pxref{Easy Customization,,,
 emacs, The GNU Emacs Manual}).
 
-@defmac defface face spec doc [keyword value]...
+@defmac defface face spec doc [keyword value]@dots{}
 This declares @var{face} as a customizable face that defaults
 according to @var{spec}.  You should not quote the symbol @var{face},
 and it should not end in @samp{-face} (that would be redundant).  The
