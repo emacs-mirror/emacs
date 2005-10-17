@@ -2677,8 +2677,9 @@ already non-@code{nil} at the beginning of @var{body}, the local quit
 happens immediately and the body doesn't execute at all.
 
 This macro is mainly useful in functions that can be called from
-timers, @code{pre-command-hook}, @code{post-command-hook} and other
-places where @code{inhibit-quit} is normally bound to @code{t}.
+timers, process filters, process sentinels, @code{pre-command-hook},
+@code{post-command-hook}, and other places where @code{inhibit-quit} is
+normally bound to @code{t}.
 @end defmac
 
 @deffn Command keyboard-quit
