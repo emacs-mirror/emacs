@@ -1,3 +1,8 @@
+2005-10-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jit-lock.el (jit-lock-fontify-now):
+	Move jit-lock-context-unfontify-pos to avoid wasted work.
+
 2005-10-17  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp.el (tramp-completion-mode): New defvar.  Used in
@@ -33,7 +38,7 @@
 
 	* savehist.el: Don't require CL at runtime.
 	(savehist-xemacs): Remove.
-	(savehist-coding-system): Use utf-8 if available, regardless of religion.
+	(savehist-coding-system): Use utf-8 if present, regardless of religion.
 	(savehist-no-conversion): Use (featurep 'xemacs).
 	(savehist-load): Check existence of start-itimer rather than XEmacs.
 	Use an idle timer.
@@ -156,14 +161,13 @@
 	* toolbar/gud-up.*: Moved to etc/images/gud/up.*.
 	* toolbar/gud-watch.*: Moved to etc/images/gud/watch.*.
 
-	* progmodes/gud.el (gud-tool-bar-map): Renamed the images
+	* progmodes/gud.el (gud-tool-bar-map): Rename the images
 	appropriately (for example, gud-break to gud/break).
 
 2005-10-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlinges-search-function)
-	(longlines-search-forward, longlines-search-backward): New
-	functions.
+	(longlines-search-forward, longlines-search-backward): New functions.
 	(longlines-mode): Set isearch-search-fun-function to
 	longlinges-search-function.
 
