@@ -15,8 +15,9 @@
 
 2005-10-17  Jason Rumney  <jasonr@gnu.org>
 
-	* makefile.w32-in (pre-mh-loaddefs.el-SH, pre-mh-loaddefs.el-CMD):
-	New targets for shell specific generation of mh-autoloads.
+	* makefile.w32-in: Use $(lisp) consistently.
+	(pre-mh-loaddefs.el-SH, pre-mh-loaddefs.el-CMD): New targets
+	for shell specific generation of mh-autoloads.
 
 2005-10-17  Richard M. Stallman  <rms@gnu.org>
 
