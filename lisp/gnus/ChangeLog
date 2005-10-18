@@ -1,3 +1,9 @@
+2005-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-cus.el (gnus-custom-map): New variable.  Bind mouse-1 to
+	widget-move-and-invoke.
+	(gnus-custom-mode): Use gnus-custom-map.
+
 2005-10-15  Bill Wohler  <wohler@newt.com>
 
 	* message.el (message-tool-bar-map): Renamed image file from
