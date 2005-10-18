@@ -4,7 +4,7 @@
 
 2005-10-18  Masatake YAMATO  <jet@gyve.org>
 
-	Install to the CVS repository what I forgot to install in my 
+	Install to the CVS repository what I forgot to install in my
 	2005-10-16 changes.
 
 	* progmodes/python.el (python-complete-symbol): Pass the common
@@ -15,17 +15,17 @@
 2005-10-18  Masatake YAMATO  <jet@gyve.org>
 
 	Fix a bug reported by Sven Joachim <sven_joachim@web.de>.
-	
+
 	* woman.el (WoMan-xref-man-page): New button type derived
 	from `Man-abstract-xref-man-page'.
-	(woman-mode): Pass `WoMan-xref-man-page' to 
-	`Man-highlight-references'.
+	(woman-mode): Pass `WoMan-xref-man-page' to `Man-highlight-references'.
 
 	* man.el (Man-abstract-xref-man-page): New button type.
 	(Man-xref-man-page): Make it derived from `Man-abstract-xref-man-page'.
-	(Man-highlight-references): Add new optiolnal argument `xref-man-type'. 
+	(Man-highlight-references): Add new optional argument `xref-man-type'.
 
 2005-10-18  Nick Roberts  <nickrob@snap.net.nz>
+
 	* progmodes/gud.el (gud-menu-map): Correct condition for fringe.
 
 2005-10-17  Chong Yidong  <cyd@stupidchicken.com>
@@ -112,7 +112,7 @@
 	updated.
 
 	* speedbar.el (speedbar-set-mode-line-format): Indent properly.
-	(speedbar-insert-button, speedbar-make-button): 
+	(speedbar-insert-button, speedbar-make-button):
 	Use add-text-properties.
 	(speedbar-update-localized-contents)
 	(speedbar-update-directory-contents)
@@ -141,7 +141,7 @@
 	(tramp-completion-handle-file-name-all-completions): Reorder code
 	in order to complete for file names only in case there are no
 	method/user/host completions.  This is necessary for cooperation
-	with ido.  Reported by Kim F. Storm  <storm@cua.dk>.
+	with ido.  Reported by Kim F. Storm <storm@cua.dk>.
 
 2005-10-16  Chong Yidong  <cyd@stupidchicken.com>
 
