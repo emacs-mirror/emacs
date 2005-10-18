@@ -1,3 +1,10 @@
+2005-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/conf-mode.el: Don't use font-lock-defaults-alist.
+	Various docstring and line-width fixups.
+	(conf-mode): Use cond.
+	Set font-lock-defaults.  Don't set comment-use-syntax.
+
 2005-10-18  David Ponce  <david@dponce.com>
 
 	* tree-widget.el (tree-widget-button-click): New function.
