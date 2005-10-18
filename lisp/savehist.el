@@ -173,7 +173,7 @@ other time."
     ;; executes in under 5 ms on my system.
     (unless savehist-timer
       (setq savehist-timer
-	    (if (fboundp 'start-itimer)
+	    (if (featurep 'xemacs)
 		(start-itimer
 		 "savehist" 'savehist-autosave savehist-autosave-interval
 		 savehist-autosave-interval)
@@ -234,8 +234,10 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
   (cond
    ((listp value)
     (when (and savehist-length (> (length value) savehist-length))
+      ;; This should be: (setq value (subseq value 0 savehist-length))
       (setq value (copy-sequence value))
       (setcdr (nthcdr savehist-length value) nil))
+    ;; And this should be (remove-if-not #'savehist-printable value)
     (delq nil (mapcar (lambda (x) (if (savehist-printable x) x)) value)))
    ((savehist-printable value) value)
    (t nil)))
