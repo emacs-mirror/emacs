@@ -1,3 +1,9 @@
+2005-10-17  Peter S Galbraith  <psg@debian.org>
+
+	* mh-identity.el (mh-identity-field-handler): Use
+	`assoc-ignore-case' to compare against header field for mixed-case
+	"From:".
+
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-folder-tool-bar-map): Renamed image file
