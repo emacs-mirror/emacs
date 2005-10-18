@@ -1,5 +1,17 @@
-2005-10-18  Nick Roberts  <nickrob@snap.net.nz>
+2005-10-18  Masatake YAMATO  <jet@gyve.org>
 
+	Fix a bug reported by Sven Joachim <sven_joachim@web.de>.
+	
+	* woman.el (WoMan-xref-man-page): New button type derived
+	from `Man-abstract-xref-man-page'.
+	(woman-mode): Pass `WoMan-xref-man-page' to 
+	`Man-highlight-references'.
+
+	* man.el (Man-abstract-xref-man-page): New button type.
+	(Man-xref-man-page): Make it derived from `Man-abstract-xref-man-page'.
+	(Man-highlight-references): Add new optiolnal argument `xref-man-type'. 
+
+2005-10-18  Nick Roberts  <nickrob@snap.net.nz>
 	* progmodes/gud.el (gud-menu-map): Correct condition for fringe.
 
 2005-10-17  Chong Yidong  <cyd@stupidchicken.com>
