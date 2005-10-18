@@ -1945,7 +1945,7 @@ mac_encode_char (c, char2b, font_info, charset, two_byte_p)
 	  ccl->reg[2] = XCHAR2B_BYTE2 (char2b);
 	}
 
-      ccl_driver (ccl, NULL, NULL, 0, 0, NULL);
+      ccl_driver (ccl, NULL, NULL, 0, 0, Qnil);
 
       /* We assume that MSBs are appropriately set/reset by CCL
 	 program.  */
@@ -1967,16 +1967,13 @@ mac_encode_char (c, char2b, font_info, charset, two_byte_p)
       if (enc == 1 || enc == 3)
 	char2b->byte2 |= 0x80;
 
-      /*
       if (enc == 4)
-        {
-          int sjis1, sjis2;
+	{
+	  int code = (char2b->byte1 << 8) | char2b->byte2;
 
-          ENCODE_SJIS (char2b->byte1, char2b->byte2, sjis1, sjis2);
-          char2b->byte1 = sjis1;
-          char2b->byte2 = sjis2;
-        }
-      */
+	  JIS_TO_SJIS (code);
+	  STORE_XCHAR2B (char2b, (code >> 8), (code & 0xFF));
+	}
     }
 
   if (two_byte_p)
@@ -5604,11 +5601,17 @@ x_new_font (f, fontname)
 
   return build_string (fontp->full_name);
 }
+
+/* Give frame F the fontset named FONTSETNAME as its default fontset,
+   and return the full name of that fontset.  FONTSETNAME may be a
+   wildcard pattern; in that case, we choose some fontset that fits
+   the pattern.  FONTSETNAME may be a font name for ASCII characters;
+   in that case, we create a fontset from that font name.
 
-/* Give frame F the fontset named FONTSETNAME as its default font, and
-   return the full name of that fontset.  FONTSETNAME may be a wildcard
-   pattern; in that case, we choose some fontset that fits the pattern.
-   The return value shows which fontset we chose.  */
+   The return value shows which fontset we chose.
+   If FONTSETNAME specifies the default fontset, return Qt.
+   If an ASCII font in the specified fontset can't be loaded, return
+   Qnil.  */
 
 Lisp_Object
 x_new_fontset (f, fontsetname)
@@ -6823,19 +6826,16 @@ decode_mac_font_name (name, size, coding_system)
 
       if (*p)
 	{
-#if 0
-/* MAC_TODO: Fix encoding system... */
 	  setup_coding_system (coding_system, &coding);
 	  coding.src_multibyte = 0;
 	  coding.dst_multibyte = 1;
 	  coding.mode |= CODING_MODE_LAST_BLOCK;
-	  coding.composing = COMPOSITION_DISABLED;
-	  buf = (char *) alloca (size);
+	  coding.dst_bytes = size;
+	  coding.destination = (unsigned char *) alloca (coding.dst_bytes);
 
-	  decode_coding (&coding, name, buf, strlen (name), size - 1);
-	  bcopy (buf, name, coding.produced);
-	  name[coding.produced] = '\0';
-#endif
+	  decode_coding_c_string (&coding, name, strlen (name), Qnil);
+	  bcopy (coding.destination, name, min (coding.produced, size));
+	  name[min (coding.produced, size)] = '\0';
 	}
     }
 
@@ -8000,6 +8000,7 @@ x_load_font (f, fontname, size)
     bzero (fontp, sizeof (*fontp));
     fontp->font = font;
     fontp->font_idx = i;
+    fontp->charset = -1;	/* fs_load_font sets it.  */
     fontp->name = (char *) xmalloc (strlen (fontname) + 1);
     bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
@@ -8045,22 +8046,20 @@ x_load_font (f, fontname, size)
 	fontp->height = max_height;
     }
 
-#if 0 /* MAC_TODO: fill these out with more reasonably values */
-
     /* MAC_TODO: The script encoding is irrelevant in unicode? */
     /* The slot `encoding' specifies how to map a character
        code-points (0x20..0x7F or 0x2020..0x7F7F) of each charset to
        the font code-points (0:0x20..0x7F, 1:0xA0..0xFF), or
        (0:0x2020..0x7F7F, 1:0xA0A0..0xFFFF, 3:0x20A0..0x7FFF,
        2:0xA020..0xFF7F).  For the moment, we don't know which charset
-       uses this font.  So, we set information in fontp->encoding[1]
+       uses this font.  So, we set information in fontp->encoding_type
        which is never used by any charset.  If mapping can't be
        decided, set FONT_ENCODING_NOT_DECIDED.  */
     if (font->mac_scriptcode == smJapanese)
-      fontp->encoding[1] = 4;
+      fontp->encoding_type = 4;
     else
       {
-        fontp->encoding[1]
+        fontp->encoding_type
            = (font->max_byte1 == 0
 	      /* 1-byte font */
 	      ? (font->min_char_or_byte2 < 0x80
@@ -8084,6 +8083,7 @@ x_load_font (f, fontname, size)
 	            : 1)));		/* 0xA0A0..0xFFFF */
       }
 
+#if 0 /* MAC_TODO: fill these out with more reasonably values */
     fontp->baseline_offset
       = (XGetFontProperty (font, dpyinfo->Xatom_MULE_BASELINE_OFFSET, &value)
 	 ? (long) value : 0);
