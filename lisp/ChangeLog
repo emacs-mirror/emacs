@@ -1,3 +1,7 @@
+2005-10-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mouse.el (mouse-set-region): Don't do sit-for on a mac frame.
+
 2005-10-18  Masatake YAMATO  <jet@gyve.org>
 
 	Install to the CVS repository what I forgot to install in my 
