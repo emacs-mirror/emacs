@@ -1,3 +1,7 @@
+2005-10-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Correct condition for fringe.
+
 2005-10-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (Custom-move-and-invoke): Deleted.
