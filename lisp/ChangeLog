@@ -1,3 +1,7 @@
+2005-10-18  Romain Francoise  <romain@orebokech.com>
+
+	* ffap.el (find-file-at-point): Doc fix.
+
 2005-10-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mouse.el (mouse-set-region): Don't do sit-for on a mac frame.
