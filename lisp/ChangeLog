@@ -1,3 +1,8 @@
+2005-10-18  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-button-click): New function.
+	(tree-widget-button-keymap): Use it.
+
 2005-10-18  Romain Francoise  <romain@orebokech.com>
 
 	* bookmark.el (bookmark-insert-location, bookmark-bmenu-list)
