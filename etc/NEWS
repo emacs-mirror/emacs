@@ -673,6 +673,12 @@ same uses the face `completions-first-difference'.  By default,
 parts less visible than normal, so that the rest of the differing
 parts is, by contrast, slightly highlighted.
 
+Above fontification is always done when listing completions is
+triggered at minibuffer. If you want to fontify completions whose
+listing is triggered at the other normal buffer, you have to pass
+the common prefix of completions to `display-completion-list' as
+its second argument.
+
 +++
 *** File-name completion can now ignore specified directories.
 If an element of the list in `completion-ignored-extensions' ends in a
