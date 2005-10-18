@@ -1,5 +1,15 @@
 2005-10-18  Masatake YAMATO  <jet@gyve.org>
 
+	Install to the CVS repository what I forgot to install in my 
+	2005-10-16 changes.
+
+	* progmodes/python.el (python-complete-symbol): Pass the common
+	prefix substring of completion to `display-completion-list'.
+
+	* textmodes/org.el (org-complete): Ditto.
+
+2005-10-18  Masatake YAMATO  <jet@gyve.org>
+
 	Fix a bug reported by Sven Joachim <sven_joachim@web.de>.
 	
 	* woman.el (WoMan-xref-man-page): New button type derived
@@ -219,11 +229,8 @@
 	* progmodes/pascal.el (pascal-complete-word)
 	(pascal-show-completions): Ditto.
 
-	* progmodes/python.el (python-complete-symbol): Ditto.
 
 	* textmodes/bibtex.el (bibtex-complete-internal): Ditto.
-
-	* textmodes/org.el (org-complete): Ditto.
 
 	* simple.el (completion-common-substring): New variable.
 	(completion-setup-function): Use `completion-common-substring'
