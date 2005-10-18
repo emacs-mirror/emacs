@@ -3910,10 +3910,7 @@ note_mouse_movement (frame, pos)
       return 1;
     }
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (pos->h < last_mouse_glyph.left
-      || pos->h >= last_mouse_glyph.right
-      || pos->v < last_mouse_glyph.top
-      || pos->v >= last_mouse_glyph.bottom)
+  if (!PtInRect (*pos, &last_mouse_glyph))
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
@@ -9521,7 +9518,8 @@ XTread_socket (sd, expected, hold_quit)
 		  }
 	      }
 
-	    if (er.what != mouseDown && part_code != inContent)
+	    if (er.what != mouseDown &&
+		(part_code != inContent	|| dpyinfo->grabbed == 0))
 	      break;
 
 	    switch (part_code)
@@ -9644,12 +9642,6 @@ XTread_socket (sd, expected, hold_quit)
 		      {
 			dpyinfo->grabbed |= (1 << inev.code);
 			last_mouse_frame = f;
-			/* Ignore any mouse motion that happened
-			   before this event; any subsequent
-			   mouse-movement Emacs events should reflect
-			   only motion after the ButtonPress.  */
-			if (f != 0)
-			  f->mouse_moved = 0;
 
 			if (!tool_bar_p)
 			  last_tool_bar_item = -1;
@@ -9664,6 +9656,13 @@ XTread_socket (sd, expected, hold_quit)
 			else
 			  dpyinfo->grabbed &= ~(1 << inev.code);
 		      }
+
+		    /* Ignore any mouse motion that happened before
+		       this event; any subsequent mouse-movement Emacs
+		       events should reflect only motion after the
+		       ButtonPress.  */
+		    if (f != 0)
+		      f->mouse_moved = 0;
 
 #ifdef USE_TOOLKIT_SCROLL_BARS
 		    if (inev.kind == MOUSE_CLICK_EVENT)
