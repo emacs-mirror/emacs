@@ -434,16 +434,25 @@ Return the image found, or nil if not found."
 
 ;;; Widgets
 ;;
+(defun tree-widget-button-click (event)
+  "Move to the position clicked on, and if it is a button, invoke it.
+EVENT is the mouse event received."
+  (interactive "e")
+  (mouse-set-point event)
+  (let ((pos (widget-event-point event)))
+    (if (get-char-property pos 'button)
+        (widget-button-click event))))
+
 (defvar tree-widget-button-keymap
   (let ((km (make-sparse-keymap)))
     (if (boundp 'widget-button-keymap)
         ;; XEmacs
         (progn
           (set-keymap-parent km widget-button-keymap)
-          (define-key km [button1] 'widget-button-click))
+          (define-key km [button1] 'tree-widget-button-click))
       ;; Emacs
       (set-keymap-parent km widget-keymap)
-      (define-key km [down-mouse-1] 'widget-button-click))
+      (define-key km [down-mouse-1] 'tree-widget-button-click))
     km)
   "Keymap used inside node buttons.
 Handle mouse button 1 click on buttons.")
