@@ -1,3 +1,11 @@
+2005-10-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (Custom-move-and-invoke): Deleted.
+	(custom-mode-map): Bind mouse-1 to widget-move-and-invoke.
+
+	* wid-edit.el (widget-move-and-invoke): New function, from
+	Custom-move-and-invoke.
+
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
 	Moved all remaining images from lisp/toolbar to etc/images, moved

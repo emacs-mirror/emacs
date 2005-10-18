@@ -660,6 +660,16 @@ button is pressed or inactive, respectively.  These are currently ignored."
 			    tag 'mouse-face widget-button-pressed-face)))
     (insert tag)))
 
+(defun widget-move-and-invoke (event)
+  "Move to where you click, and if it is an active field, invoke it."
+  (interactive "e")
+  (mouse-set-point event)
+  (if (widget-event-point event)
+      (let* ((pos (widget-event-point event))
+	     (button (get-char-property pos 'button)))
+	(if button
+	    (widget-button-click event)))))
+
 ;;; Buttons.
 
 (defgroup widget-button nil
