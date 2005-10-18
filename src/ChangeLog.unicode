@@ -1,3 +1,12 @@
+2005-10-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_encode_char): Call ccl_driver with the last arg
+	Qnil.  Use JIS_TO_SJIS instead of ENCODE_SJIS.
+	(decode_mac_font_name): Use decode_coding_c_string instead of
+	decode_coding.
+	(x_load_font): Initialize fontp->fontset to -1.  Set
+	fontp->encoding_type.
+
 2005-10-17  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (search_buffer): Give up BM search on case-fold-search

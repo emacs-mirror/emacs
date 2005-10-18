@@ -1,3 +1,8 @@
+2005-10-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Delete the code to create a fontset from the X
+	resource "Font".
+
 2005-07-29  Naoto Takahashi  <ntakahas@m17n.org>
 
 	* international/robin.el (robin-define-package): Be sure to call
