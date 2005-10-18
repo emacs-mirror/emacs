@@ -1180,6 +1180,7 @@ minibuffer history list `bookmark-history'."
 						"[^ \t]")
 					       (1+ (point)))
 			       '(mouse-face highlight
+				 follow-link t
 				 help-echo "mouse-2: go to this bookmark"))))))
 
 ;;;###autoload
@@ -1571,6 +1572,7 @@ deletion, or > if it is flagged for displaying."
 						     "[^ \t]")
 						    (1+ (point)))
 				    '(mouse-face highlight
+				      follow-link t
 				      help-echo "mouse-2: go to this bookmark")))
 	   (insert "\n")
 	   )))
@@ -1700,6 +1702,7 @@ Optional argument SHOW means show them unconditionally."
 							    "[^ \t]")
 							   (1+ (point)))
 					   '(mouse-face highlight
+					     follow-link t
 					     help-echo
 					     "mouse-2: go to this bookmark"))))
                 (setq bookmark-bmenu-hidden-bookmarks
