@@ -1,3 +1,15 @@
+2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (Vmax_image_size): New variable.
+	(check_image_size): New function.
+	(xbm_read_bitmap_data, pbm_load, png_load, jpeg_load, tiff_load)
+	(gif_load, gs_load): Use it.
+	(lookup_image): Try loading again if previous load failed.
+	(xbm_read_bitmap_data): Add a new argument, a pointer to the frame
+	to display in, NULL if none.
+	(xbm_load_image, xbm_file_p): Pass xbm_read_bitmap_data the new
+	argument.
+
 2005-10-18  Richard M. Stallman  <rms@gnu.org>
 
 	* search.c (Fstring_match): Doc fix.

@@ -1099,7 +1099,10 @@ or omitted means use the selected frame.  */)
 
 static struct image *make_image P_ ((Lisp_Object spec, unsigned hash));
 static void free_image P_ ((struct frame *f, struct image *img));
+static int check_image_size P_ ((struct frame *f, int width, int height));
 
+#define MAX_IMAGE_SIZE 6.0
+Lisp_Object Vmax_image_size;
 
 /* Allocate and return a new image structure for image specification
    SPEC.  SPEC has a hash value of HASH.  */
@@ -1151,6 +1154,27 @@ free_image (f, img)
     }
 }
 
+/* Return 1 if the given widths and heights are valid for display;
+   otherwise, return 0. */
+
+int
+check_image_size (f, width, height)
+     struct frame *f;
+     int width;
+     int height;
+{
+  if (width <= 0 || height <=0)
+    return 0;
+
+  if (FLOATP (Vmax_image_size) && f
+      && ((width > (int)(XFLOAT_DATA (Vmax_image_size)
+  			 * FRAME_PIXEL_WIDTH (f)))
+  	  || (height > (int)(XFLOAT_DATA (Vmax_image_size)
+  			     * FRAME_PIXEL_HEIGHT (f)))))
+    return 0;
+
+  return 1;
+}
 
 /* Prepare image IMG for display on frame F.  Must be called before
    drawing an image.  */
@@ -1707,6 +1731,12 @@ lookup_image (f, spec)
   for (img = c->buckets[i]; img; img = img->next)
     if (img->hash == hash && !NILP (Fequal (img->spec, spec)))
       break;
+
+  if (img && img->load_failed_p)
+    {
+      free_image (f, img);
+      img = NULL;
+    }
 
   /* If not found, create a new image and cache it.  */
   if (img == NULL)
@@ -2551,7 +2581,8 @@ static int xbm_load P_ ((struct frame *f, struct image *img));
 static int xbm_load_image P_ ((struct frame *f, struct image *img,
 			       unsigned char *, unsigned char *));
 static int xbm_image_p P_ ((Lisp_Object object));
-static int xbm_read_bitmap_data P_ ((unsigned char *, unsigned char *,
+static int xbm_read_bitmap_data P_ ((struct frame *f,
+				     unsigned char *, unsigned char *,
 				     int *, int *, unsigned char **));
 static int xbm_file_p P_ ((Lisp_Object));
 
@@ -2939,7 +2970,8 @@ Create_Pixmap_From_Bitmap_Data(f, img, data, fg, bg, non_default_colors)
    CONTENTS looks like an in-memory XBM file.  */
 
 static int
-xbm_read_bitmap_data (contents, end, width, height, data)
+xbm_read_bitmap_data (f, contents, end, width, height, data)
+     struct frame *f;
      unsigned char *contents, *end;
      int *width, *height;
      unsigned char **data;
@@ -2992,7 +3024,7 @@ xbm_read_bitmap_data (contents, end, width, height, data)
       expect (XBM_TK_NUMBER);
     }
 
-  if (*width < 0 || *height < 0)
+  if (!check_image_size (f, *width, *height))
     goto failure;
   else if (data == NULL)
     goto success;
@@ -3096,7 +3128,7 @@ xbm_load_image (f, img, contents, end)
   unsigned char *data;
   int success_p = 0;
 
-  rc = xbm_read_bitmap_data (contents, end, &img->width, &img->height, &data);
+  rc = xbm_read_bitmap_data (f, contents, end, &img->width, &img->height, &data);
   if (rc)
     {
       unsigned long foreground = FRAME_FOREGROUND_PIXEL (f);
@@ -3150,7 +3182,7 @@ xbm_file_p (data)
 {
   int w, h;
   return (STRINGP (data)
-	  && xbm_read_bitmap_data (SDATA (data),
+	  && xbm_read_bitmap_data (NULL, SDATA (data),
 				   (SDATA (data)
 				    + SBYTES (data)),
 				   &w, &h, NULL));
@@ -5465,8 +5497,7 @@ pbm_load (f, img)
 	max_color_idx = 255;
     }
 
-  if (width < 0
-      || height < 0
+  if (!check_image_size (f, width, height)
       || (type != PBM_MONO && max_color_idx < 0))
     goto error;
 
@@ -5965,6 +5996,9 @@ png_load (f, img)
   fn_png_read_info (png_ptr, info_ptr);
   fn_png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
 		   &interlace_type, NULL, NULL);
+
+  if (!check_image_size (f, width, height))
+    goto error;
 
   /* If image contains simply transparency data, we prefer to
      construct a clipping mask.  */
@@ -6726,6 +6760,12 @@ jpeg_load (f, img)
   width = img->width = cinfo.output_width;
   height = img->height = cinfo.output_height;
 
+  if (!check_image_size (f, width, height))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      longjmp (mgr.setjmp_buffer, 2);
+    }
+
   /* Create X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     longjmp (mgr.setjmp_buffer, 2);
@@ -7155,6 +7195,14 @@ tiff_load (f, img)
      of width x height 32-bit values.  */
   fn_TIFFGetField (tiff, TIFFTAG_IMAGEWIDTH, &width);
   fn_TIFFGetField (tiff, TIFFTAG_IMAGELENGTH, &height);
+
+  if (!check_image_size (f, width, height))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      UNGCPRO;
+      return 0;
+    }
+
   buf = (uint32 *) xmalloc (width * height * sizeof *buf);
 
   rc = fn_TIFFReadRGBAImage (tiff, width, height, buf, 0);
@@ -7459,6 +7507,15 @@ gif_load (f, img)
 	}
     }
 
+  /* Before reading entire contents, check the declared image size. */
+  if (!check_image_size (f, gif->SWidth, gif->SHeight))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      fn_DGifCloseFile (gif);
+      UNGCPRO;
+      return 0;
+    }
+
   /* Read entire contents.  */
   rc = fn_DGifSlurp (gif);
   if (rc == GIF_ERROR)
@@ -7491,6 +7548,14 @@ gif_load (f, img)
   height = img->height = max (gif->SHeight,
 			      max (gif->Image.Top + gif->Image.Height,
 				   image_top + image_height));
+
+  if (!check_image_size (f, width, height))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      fn_DGifCloseFile (gif);
+      UNGCPRO;
+      return 0;
+    }
 
   /* Create the X image and pixmap.  */
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
@@ -7944,6 +8009,12 @@ gs_load (f, img)
   in_height = XFASTINT (pt_height) / 72.0;
   img->height = in_height * FRAME_X_DISPLAY_INFO (f)->resy;
 
+  if (!check_image_size (f, img->width, img->height))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      return 0;
+    }
+
   /* Create the pixmap.  */
   xassert (img->pixmap == NO_PIXMAP);
 
@@ -8216,6 +8287,15 @@ support the image type.  Types 'pbm and 'xbm don't need to be
 listed; they're always supported.  */);
   Vimage_library_alist = Qnil;
   Fput (intern ("image-library-alist"), Qrisky_local_variable, Qt);
+
+  DEFVAR_LISP ("max-image-size", &Vmax_image_size,
+    doc: /* Maximum size of an image, relative to the selected frame.
+
+This is a floating point number that is multiplied by the width and
+height of the selected frame, to give the maximum width and height for
+images.  Emacs will not load an image into memory if its width or
+height exceeds this limit. */);
+  Vmax_image_size = make_float (MAX_IMAGE_SIZE);
 
   Vimage_type_cache = Qnil;
   staticpro (&Vimage_type_cache);
