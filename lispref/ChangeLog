@@ -1,3 +1,7 @@
+2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Showing Images): Document max-image-size.
+
 2005-10-17  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Quitting): Minor clarification.
