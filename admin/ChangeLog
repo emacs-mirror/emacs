@@ -1,3 +1,7 @@
+2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* FOR-RELEASE (New features): max-image-size implemented.
+
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
 	* FOR-RELEASE (DOCUMENTATION): Removed lisp/toolbar from list
