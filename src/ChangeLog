@@ -1,3 +1,7 @@
+2005-10-19  Romain Francoise  <romain@orebokech.com>
+
+	* emacs.c (main): Update copyright year.
+
 2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (Vmax_image_size): New variable.
@@ -7169,8 +7173,6 @@
 	and the alist pairs too.
 
 	* casefiddle.c (casify_object): Return OBJ unchanged if not real char.
-
-	* emacs.c (main): Update copyright year.
 
 	* fileio.c (Fread_file_name): Expand DIR if not absolute.
 
