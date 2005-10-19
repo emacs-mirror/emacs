@@ -48,9 +48,6 @@ invalid pointer from string_free_list.
 
 * BUGS
 
-** Make a new interface for specifying window configurations
-so that we can fix bugs in balance-windows.
-
 ** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
