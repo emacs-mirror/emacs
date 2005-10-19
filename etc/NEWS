@@ -4689,6 +4689,15 @@ explicitly; for example, if an image is put in etc/images/foo/bar.xpm:
 
   (defimage foo-image '((:type xpm :file "foo/bar.xpm")))
 
++++
+*** The new variable `max-image-size' defines the maximum size of an
+image, relative to the selected frame, that Emacs will load.
+
+This is a floating point number that is multiplied by the width and
+height of the selected frame (in pixels), to give the maximum image
+width and height.  Emacs will not load an image into memory if it is
+larger than this.
+
 ** Mouse pointer features:
 
 +++ (lispref)

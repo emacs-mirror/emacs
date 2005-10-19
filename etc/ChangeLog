@@ -1,3 +1,7 @@
+2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* NEWS: New variable `max-image-size'.
+
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
 	Moved all remaining images from lisp/toolbar to etc/images. The
