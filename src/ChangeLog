@@ -1,3 +1,9 @@
+2005-10-19  Kim F. Storm  <storm@cua.dk>
+
+	* image.c (check_image_size): Handle integer Vmax_image_size value
+	directly as max pixel value.  Use default frame size for null frame.
+	(syms_of_image) <max-image-size>: Describe integer value.
+
 2005-10-19  Romain Francoise  <romain@orebokech.com>
 
 	* emacs.c (main): Update copyright year.
@@ -28,7 +34,7 @@
 2005-10-16  Masatake YAMATO  <jet@gyve.org>
 
 	* minibuf.c (Fdisplay_completion_list): Add new optional
-	argument COMMON_SUBSTRING. Bind `completion-common-substring' 
+	argument COMMON_SUBSTRING. Bind `completion-common-substring'
 	to the optional argument during running `completion-setup-hook'.
 
 2005-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>

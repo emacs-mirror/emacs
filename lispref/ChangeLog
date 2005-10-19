@@ -1,3 +1,7 @@
+2005-10-19  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Showing Images): Add max-image-size integer value.
+
 2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Showing Images): Document max-image-size.

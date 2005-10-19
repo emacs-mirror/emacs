@@ -1,3 +1,12 @@
+2005-10-20  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-is-tramp-root): Simplify regexp matching tramp root.
+	(ido-set-current-directory): Don't add / after final @.
+	(ido-file-name-all-completions-1): Adapt to fixed tramp completion.
+	Explicitly handle ange-ftp completion oddities.
+	(ido-make-file-list): Don't rotate list at tramp root to avoid
+	triggering tramp file handler for expand-file-name via get-file-buffer.
+
 2005-10-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-units.el (math-standard-units): Add units, adjust
