@@ -1163,17 +1163,29 @@ check_image_size (f, width, height)
      int width;
      int height;
 {
-  if (width <= 0 || height <=0)
+  int w, h;
+
+  if (width <= 0 || height <= 0)
     return 0;
 
-  if (FLOATP (Vmax_image_size) && f
-      && ((width > (int)(XFLOAT_DATA (Vmax_image_size)
-  			 * FRAME_PIXEL_WIDTH (f)))
-  	  || (height > (int)(XFLOAT_DATA (Vmax_image_size)
-  			     * FRAME_PIXEL_HEIGHT (f)))))
-    return 0;
+  if (INTEGERP (Vmax_image_size))
+    w = h = XINT (Vmax_image_size);
+  else if (FLOATP (Vmax_image_size))
+    {
+      if (f != NULL)
+	{
+	  w = FRAME_PIXEL_WIDTH (f);
+	  h = FRAME_PIXEL_HEIGHT (f);
+	}
+      else
+	w = h = 1024;  /* Arbitrary size for unknown frame. */
+      w = (int) (XFLOAT_DATA (Vmax_image_size) * w);
+      h = (int) (XFLOAT_DATA (Vmax_image_size) * h);
+    }
+  else
+    return 1;
 
-  return 1;
+  return (width <= w && height <= h);
 }
 
 /* Prepare image IMG for display on frame F.  Must be called before
@@ -8289,12 +8301,15 @@ listed; they're always supported.  */);
   Fput (intern ("image-library-alist"), Qrisky_local_variable, Qt);
 
   DEFVAR_LISP ("max-image-size", &Vmax_image_size,
-    doc: /* Maximum size of an image, relative to the selected frame.
+    doc: /* Maximum size of images.
+Emacs will not load an image into memory if its pixel width or
+pixel height exceeds this limit.
 
-This is a floating point number that is multiplied by the width and
-height of the selected frame, to give the maximum width and height for
-images.  Emacs will not load an image into memory if its width or
-height exceeds this limit. */);
+If the value is an integer, it directly specifies the maximum
+image height and width, measured in pixels.  If it is a floating
+point number, it specifies the maximum image height and width
+as a ratio to the frame height and width.  If the value is
+non-numeric, there is no explicit limit on the size of images.  */);
   Vmax_image_size = make_float (MAX_IMAGE_SIZE);
 
   Vimage_type_cache = Qnil;
