@@ -128,7 +128,7 @@ This is normally copied from `default-directory' when Emacs starts.")
     ("-bg" 1 x-handle-switch background-color)
     ("-background" 1 x-handle-switch background-color)
     ("-ms" 1 x-handle-switch mouse-color)
-    ("-nb" 0 x-handle-switch icon-type nil)
+    ("-nbi" 0 x-handle-switch icon-type nil)
     ("-iconic" 0 x-handle-iconic)
     ("-xrm" 1 x-handle-xrm-switch)
     ("-cr" 1 x-handle-switch cursor-color)
@@ -1232,7 +1232,13 @@ This is an internal function used to turn off the splash screen after
 the user caused an input event by hitting a key or clicking with the
 mouse."
   (interactive)
-  (push last-command-event unread-command-events)
+  (if (and (consp last-command-event)
+	   (eq (posn-window (event-start last-command-event))
+	       (selected-window)))
+      ;; This is a mouse-down event in the spash screen window.
+      ;; Ignore it and consume the corresponding mouse-up event.
+      (read-event)
+    (push last-command-event unread-command-events))
   (throw 'exit nil))
 
 

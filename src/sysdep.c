@@ -1032,6 +1032,7 @@ reset_sigio (fd)
 
 #ifdef FASYNC		/* F_SETFL does not imply existence of FASYNC */
 /* XXX Uhm, FASYNC is not used anymore here. */
+/* XXX Yeah, but you need it for SIGIO, don't you? */
 
 void
 request_sigio ()
@@ -1039,7 +1040,7 @@ request_sigio ()
   /* XXX read_socket_hook is not global anymore.  Is blocking SIGIO
      bad under X? */
 #if 0
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 #endif
 
@@ -1057,7 +1058,7 @@ unrequest_sigio (void)
   /* XXX read_socket_hook is not global anymore.  Is blocking SIGIO
      bad under X? */
 #if 0
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 #endif
   
@@ -1076,7 +1077,7 @@ request_sigio ()
 {
   int on = 1;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   /* XXX CURTTY() is bogus here. */
@@ -1089,7 +1090,7 @@ unrequest_sigio ()
 {
   int off = 0;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   /* XXX CURTTY() is bogus here. */
@@ -1109,7 +1110,7 @@ request_sigio ()
   int on = 1;
   sigset_t st;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   sigemptyset (&st);
@@ -1124,7 +1125,7 @@ unrequest_sigio ()
 {
   int off = 0;
 
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   ioctl (0, FIOASYNC, &off);  /* XXX This fails for multiple ttys. */
@@ -1137,7 +1138,7 @@ unrequest_sigio ()
 void
 request_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   croak ("request_sigio");
@@ -1146,7 +1147,7 @@ request_sigio ()
 void
 unrequest_sigio ()
 {
-  if (read_socket_hook)
+  if (noninteractive || read_socket_hook)
     return;
 
   croak ("unrequest_sigio");
@@ -2335,12 +2336,16 @@ reset_sigio (fd)
 void
 request_sigio ()
 {
+  if (noninteractive)
+    return;
   croak ("request sigio");
 }
 
 void
 unrequest_sigio ()
 {
+  if (noninteractive)
+    return;
   croak ("unrequest sigio");
 }
 
@@ -2884,6 +2889,8 @@ reset_sigio (fd)
 void
 request_sigio ()
 {
+  if (noninteractive)
+    return;
   sigrelse (SIGTINT);
 
   interrupts_deferred = 0;
@@ -2892,6 +2899,8 @@ request_sigio ()
 void
 unrequest_sigio ()
 {
+  if (noninteractive)
+    return;
   sighold (SIGTINT);
 
   interrupts_deferred = 1;

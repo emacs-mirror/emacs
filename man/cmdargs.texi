@@ -1188,7 +1188,7 @@ Start Emacs in iconified state.
 @end table
 
   By default Emacs uses an icon window containing a picture of the GNU gnu.
-The @samp{-np} or @samp{--no-bitmap-icon} option tells Emacs to let the
+The @samp{-nbi} or @samp{--no-bitmap-icon} option tells Emacs to let the
 window manager choose what sort of icon to use---usually just a small
 rectangle containing the frame's title.
 

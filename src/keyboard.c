@@ -5108,7 +5108,11 @@ make_lispy_position (f, x, y, time)
       XSETINT (*x, wx);
       XSETINT (*y, wy);
 
-      if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
+      if (part == ON_TEXT)
+	{
+	  wx += WINDOW_LEFT_MARGIN_WIDTH (w);
+	}
+      else if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
 	{
 	  /* Mode line or header line.  Look for a string under
 	     the mouse that may have a `local-map' property.  */
@@ -10779,11 +10783,11 @@ The `posn-' functions access elements of such lists.  */)
       CHECK_LIVE_WINDOW (frame_or_window);
 
       w = XWINDOW (frame_or_window);
-      XSETINT (x, (WINDOW_TO_FRAME_PIXEL_X (w, XINT (x))
+      XSETINT (x, (XINT (x)
+		   + WINDOW_LEFT_EDGE_X (w)
 		   + (NILP (whole)
 		      ? window_box_left_offset (w, TEXT_AREA)
-		      : - (WINDOW_LEFT_SCROLL_BAR_COLS (w)
-			   * WINDOW_FRAME_COLUMN_WIDTH (w)))));
+		      : 0)));
       XSETINT (y, WINDOW_TO_FRAME_PIXEL_Y (w, XINT (y)));
       frame_or_window = w->frame;
     }
@@ -10809,9 +10813,21 @@ The `posn-' functions access elements of such lists.  */)
 {
   Lisp_Object tem;
 
+  if (NILP (window))
+    window = selected_window;
+
   tem = Fpos_visible_in_window_p (pos, window, Qt);
   if (!NILP (tem))
-    tem = Fposn_at_x_y (XCAR (tem), XCAR (XCDR (tem)), window, Qnil);
+    {
+      Lisp_Object x = XCAR (tem);
+      Lisp_Object y = XCAR (XCDR (tem));
+
+      /* Point invisible due to hscrolling?  */
+      if (XINT (x) < 0)
+	return Qnil;
+      tem = Fposn_at_x_y (x, y, window, Qnil);
+    }
+
   return tem;
 }
 

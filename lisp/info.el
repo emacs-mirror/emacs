@@ -3666,23 +3666,23 @@ the variable `Info-file-list-for-emacs'."
                                   ((equal tag "Up") Info-up-link-keymap))))))
         (when Info-use-header-line
           (goto-char (point-min))
-          (let ((header-end (line-end-position))
-                header)
-            ;; If we find neither Next: nor Prev: link, show the entire
-            ;; node header.  Otherwise, don't show the File: and Node:
-            ;; parts, to avoid wasting precious space on information that
-            ;; is available in the mode line.
-            (if (re-search-forward
-                 "\\(next\\|up\\|prev[ious]*\\): "
-                 header-end t)
-                (progn
-                  (goto-char (match-beginning 1))
-                  (setq header (buffer-substring (point) header-end)))
-              (if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*" header-end t)
-                  (setq header
+          (let* ((header-end (line-end-position))
+                 (header
+                  ;; If we find neither Next: nor Prev: link, show the entire
+                  ;; node header.  Otherwise, don't show the File: and Node:
+                  ;; parts, to avoid wasting precious space on information that
+                  ;; is available in the mode line.
+                  (if (re-search-forward
+                       "\\(next\\|up\\|prev[ious]*\\): "
+                       header-end t)
+                      (progn
+                        (goto-char (match-beginning 1))
+                        (buffer-substring (point) header-end))
+                    (if (re-search-forward "node:[ \t]*[^ \t]+[ \t]*"
+                                           header-end t)
                         (concat "No next, prev or up links  --  "
-                                (buffer-substring (point) header-end)))
-                (setq header (buffer-substring (point) header-end))))
+                                (buffer-substring (point) header-end))
+                      (buffer-substring (point) header-end)))))
             (put-text-property (point-min) (1+ (point-min))
                                'header-line
 			       (replace-regexp-in-string
@@ -3698,9 +3698,15 @@ the variable `Info-file-list-for-emacs'."
 
       ;; Fontify titles
       (goto-char (point-min))
-      (when not-fontified-p
-        (while (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*\\*+\\|==+\\|--+\\|\\.\\.+\\)$"
-                                  nil t)
+      (when (and font-lock-mode not-fontified-p)
+        (while (and (re-search-forward "\n\\([^ \t\n].+\\)\n\\(\\*\\*+\\|==+\\|--+\\|\\.\\.+\\)$"
+                                       nil t)
+                    ;; Only consider it as an underlined title if the ASCII
+                    ;; underline has the same size as the text.  A typical
+                    ;; counter example is when a continuation "..." is alone
+                    ;; on a line.
+                    (= (- (match-end 1) (match-beginning 1))
+                       (- (match-end 2) (match-beginning 2))))
           (let* ((c (preceding-char))
                  (face
                   (cond ((= c ?*) 'info-title-1)

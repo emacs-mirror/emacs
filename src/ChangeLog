@@ -1,3 +1,41 @@
+2005-10-14  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (note_mouse_movement): Return 1 if mouse moved; 0 otherwise.
+	(handle_one_xevent): Only clear help_echo_string; restore it if
+	note_mouse_movement didn't record any mouse movement.
+
+	* xdisp.c (pos_visible_p): Convert w->hscroll to pixels before use.
+	(remember_mouse_glyph): Clear RECT if mouse is over an image glyph.
+
+	* keyboard.c (make_lispy_position): Adjust wx for left margin if ON_TEXT.
+	(Fposn_at_x_y): Fix calculation of x coordinate.
+	(Fposn_at_point): Return nil if point is hscrolled out of view.
+
+2005-10-13  Andreas Schwab  <schwab@suse.de>
+
+	* sysdep.c (request_sigio, unrequest_sigio): Do nothing in
+	non-interactive mode.
+
+2005-10-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xterm.c, w32term.c, macterm.c (note_mouse_movement): Undo last change.
+
+2005-10-12  Kim F. Storm  <storm@cua.dk>
+
+	* xterm.c (handle_one_xevent): Clear last_mouse_glyph on mouse up/down.
+
+2005-10-12  Romain Francoise  <romain@orebokech.com>
+
+	* buffer.c (init_buffer): Rename `rc' to `len' for clarity.
+
+2005-10-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* xdisp.c (remember_mouse_glyph): Use MATRIX_BOTTOM_TEXT_ROW to
+	get end of text rows.  Obtain header-line/mode-line rows directly.
+
+	* xterm.c, w32term.c, macterm.c (note_mouse_movement): Restore
+	help_echo_string if mouse is moved inside last_mouse_glyph.
+
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (remember_mouse_glyph): New generic version based on
