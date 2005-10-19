@@ -1,3 +1,7 @@
+2005-10-18  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (Fstring_match): Doc fix.
+
 2005-10-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (note_mouse_movement): Use PtInRect.
