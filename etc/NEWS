@@ -673,6 +673,12 @@ same uses the face `completions-first-difference'.  By default,
 parts less visible than normal, so that the rest of the differing
 parts is, by contrast, slightly highlighted.
 
+Above fontification is always done when listing completions is
+triggered at minibuffer. If you want to fontify completions whose
+listing is triggered at the other normal buffer, you have to pass
+the common prefix of completions to `display-completion-list' as
+its second argument.
+
 +++
 *** File-name completion can now ignore specified directories.
 If an element of the list in `completion-ignored-extensions' ends in a
@@ -1496,6 +1502,9 @@ Newsticker asynchronously retrieves headlines (RSS) from a list of news
 sites, prepares these headlines for reading, and allows for loading the
 corresponding articles in a web browser.  Its documentation is in a
 separate manual.
+
++++
+** savehist saves minibuffer histories between sessions.
 
 +++
 ** Filesets are collections of files.  You can define a fileset in
@@ -2850,7 +2859,7 @@ See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 ---
 ** MH-E changes.
 
-Upgraded to MH-E version 7.84. There have been major changes since
+Upgraded to MH-E version 7.85. There have been major changes since
 version 5.0.2; see MH-E-NEWS for details.
 
 ** Calendar changes:

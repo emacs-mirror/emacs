@@ -120,7 +120,10 @@ nil means let mailer mail back a message to report errors."
 
 ;; Useful to set in site-init.el
 ;;;###autoload
-(defcustom send-mail-function 'sendmail-send-it
+(defcustom send-mail-function 
+  (if (and window-system (memq system-type '(darwin windows-nt)))
+      'mailclient-send-it
+    'sendmail-send-it)
   "Function to call to send the current buffer as mail.
 The headers should be delimited by a line which is
 not a valid RFC822 header or continuation line,

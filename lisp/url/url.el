@@ -30,16 +30,6 @@
 ;;; Code:
 
 (eval-when-compile (require 'cl))
-;; Don't require CL at runtime if we can avoid it (Emacs 21).
-;; Otherwise we need it for hashing functions.  `puthash' was never
-;; defined in the Emacs 20 cl.el for some reason.
-(if (fboundp 'puthash)
-    nil					; internal or CL is loaded
-  (defalias 'puthash 'cl-puthash)
-  (autoload 'cl-puthash "cl")
-  (autoload 'gethash "cl")
-  (autoload 'maphash "cl")
-  (autoload 'make-hash-table "cl"))
 
 (eval-when-compile
   (require 'mm-decode)
@@ -236,6 +226,10 @@ no further processing).  URL is either a string or a parsed URL."
 
 (defun url-mm-url (url)
   "Retrieve URL and pass to the appropriate viewing application."
+  ;; These requires could advantageously be moved to url-mm-callback or
+  ;; turned into autoloads, but I suspect that it would introduce some bugs
+  ;; because loading those files from a process sentinel or filter may
+  ;; result in some undesirable carner cases.
   (require 'mm-decode)
   (require 'mm-view)
   (url-retrieve url 'url-mm-callback nil))

@@ -300,50 +300,30 @@ by the variable `mh-variants'."
                     (add-to-list 'mh-variants variant)))))
       mh-variants)))
 
-;;; XXX The two calls to message in this function should really be calls to
-;;; error. However, when this function is compiled via the top-level call in
-;;; mh-customize.el, it is actually called, and in a compile environment, the
-;;; errors are triggered which botches the compile. As a workaround, the calls
-;;; to error have been changed to calls to message, and code following was
-;;; inserted as an else clause. This is not robust, so if you can fix this,
-;;; please do!
+(defvar mh-image-load-path-called-flag nil)
+
 ;;;###mh-autoload
 (defun mh-image-load-path ()
   "Ensure that the MH-E images are accessible by `find-image'.
 Images for MH-E are found in ../../etc/images relative to the files in
-lisp/mh-e. If `image-load-path' exists (since Emacs 22), then the images
+`lisp/mh-e'. If `image-load-path' exists (since Emacs 22), then the images
 directory is added to it if isn't already there. Otherwise, the images
 directory is added to the `load-path' if it isn't already there."
-  (let (mh-load-path mh-image-load-path)
-    ;; First, find mh-e in the load-path.
-    (let ((path load-path))
-      (while path
-        (let* ((directory (directory-file-name (car path))))
-          (setq mh-load-path
-                (if (and (equal (file-name-nondirectory directory) "mh-e")
-                         (file-exists-p directory))
-                    directory
-                  nil))
-          (setq path (if mh-load-path nil (cdr path)))))
-      (if (not mh-load-path)
-          ;; This message be error; there shouldn't be an else. Blame compiler.
-          (message "Can not find mh-e in load-path (OK when compiling)")
-        ;; Create the image path associated with this mh-e directory.
-        (setq mh-image-load-path (expand-file-name
-                                  (concat (file-name-directory mh-load-path)
-                                          "../etc/images")))))
-    (if (or (not mh-image-load-path)
-            (not (file-exists-p mh-image-load-path)))
-        ;; This message be error; there shouldn't be an else. Blame compiler.
-        (message "Can not find image directory %s (OK when compiling)"
-                 mh-image-load-path)
-      ;; If image-load-path exists, and the image path isn't there add it.
+  (unless mh-image-load-path-called-flag
+    (let (mh-library-name mh-image-load-path)
+      ;; First, find mh-e in the load-path.
+      (setq mh-library-name (locate-library "mh-e"))
+      (if (not mh-library-name)
+        (error "Can not find MH-E in load-path"))
+      (setq mh-image-load-path
+            (expand-file-name (concat (file-name-directory mh-library-name)
+                                      "../../etc/images")))
+      (if (not (file-exists-p mh-image-load-path))
+          (error "Can not find image directory %s" mh-image-load-path))
       (if (boundp 'image-load-path)
-          (if (not (member mh-image-load-path image-load-path))
-              (push mh-image-load-path image-load-path))
-        ;; Otherwise, if the image path isn't in the load-path, add it there.
-        (if (not (member mh-image-load-path load-path))
-            (push mh-image-load-path load-path))))))
+          (add-to-list 'image-load-path mh-image-load-path)
+        (add-to-list 'load-path mh-image-load-path)))
+    (setq mh-image-load-path-called-flag t)))
 
 (provide 'mh-init)
 

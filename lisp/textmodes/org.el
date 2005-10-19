@@ -2844,7 +2844,7 @@ At all other locations, this simply calls `ispell-complete-word'."
 	     (message "Making completion list...")
 	     (let ((list (sort (all-completions pattern table) 'string<)))
 	       (with-output-to-temp-buffer "*Completions*"
-		 (display-completion-list list)))
+		 (display-completion-list list pattern)))
 	     (message "Making completion list...%s" "done"))))))
 
 ;;; Comments, TODO and DEADLINE

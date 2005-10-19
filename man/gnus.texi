@@ -683,7 +683,7 @@ Browsing the Web
 * Ultimate::                    The Ultimate Bulletin Board systems.
 * Web Archive::                 Reading mailing list archived on web.
 * RSS::                         Reading RDF site summary.
-* Customizing w3::              Doing stuff to Emacs/w3 from Gnus.
+* Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 
 @acronym{IMAP}
 
@@ -8569,8 +8569,8 @@ Customization, emacs-mime, The Emacs MIME Manual}) to convert the
 can use include:
 
 @table @code
-@item w3
-Use Emacs/w3.
+@item W3
+Use Emacs/W3.
 
 @item w3m
 Use @uref{http://emacs-w3m.namazu.org/, emacs-w3m}.
@@ -15093,8 +15093,9 @@ An integer specifying the minimum age, in seconds, of an article
 before it will be expired, or the symbol @code{never} to specify that
 articles should never be expired.  If this parameter is not set,
 @code{nnmaildir} falls back to the usual
-@code{nnmail-expiry-wait}(@code{-function}) variables (overrideable by
-the @code{expiry-wait}(@code{-function}) group parameters.  If you
+@code{nnmail-expiry-wait}(@code{-function}) variables (the
+@code{expiry-wait} group parameter overrides @code{nnmail-expiry-wait}
+and makes @code{nnmail-expiry-wait-function} ineffective).  If you
 wanted a value of 3 days, you could use something like @code{[(* 3 24
 60 60)]}; @code{nnmaildir} will evaluate the form and use the result.
 An article's age is measured starting from the article file's
@@ -15117,8 +15118,8 @@ the parameter belongs to, then the article is not expired at all.  If
 you use the vector form, the first element is evaluated once for each
 article.  So that form can refer to
 @code{nnmaildir-article-file-name}, etc., to decide where to put the
-article.  @emph{If this parameter is not set, @code{nnmaildir} does
-not fall back to the @code{expiry-target} group parameter or the
+article.  @emph{Even if this parameter is not set, @code{nnmaildir}
+does not fall back to the @code{expiry-target} group parameter or the
 @code{nnmail-expiry-target} variable.}
 
 @item read-only
@@ -15534,10 +15535,11 @@ interfaces to these sources.
 * Ultimate::                    The Ultimate Bulletin Board systems.
 * Web Archive::                 Reading mailing list archived on web.
 * RSS::                         Reading RDF site summary.
-* Customizing w3::              Doing stuff to Emacs/w3 from Gnus.
+* Customizing W3::              Doing stuff to Emacs/W3 from Gnus.
 @end menu
 
-All the web sources require Emacs/w3 and the url library to work.
+All the web sources require Emacs/W3 and the url library or those
+alternatives to work.
 
 The main caveat with all these web sources is that they probably won't
 work for a very long time.  Gleaning information from the @acronym{HTML} data
@@ -15624,8 +15626,9 @@ make money off of advertisements, not to provide services to the
 community.  Since @code{nnweb} washes the ads off all the articles, one
 might think that the providers might be somewhat miffed.  We'll see.
 
-You must have the @code{url} and @code{w3} package installed to be able
-to use @code{nnweb}.
+You must have the @code{url} and @code{W3} package or those alternatives
+(try @code{customize-group} on the @samp{mm-url} variable group)
+installed to be able to use @code{nnweb}.
 
 Virtual server variables:
 
@@ -15845,9 +15848,9 @@ system because @acronym{RSS} uses UTF-8 for encoding non-@acronym{ASCII}
 text by default.  It is also used by default for non-@acronym{ASCII}
 group names.
 
-@kindex G R (Summary)
-Use @kbd{G R} from the summary buffer to subscribe to a feed---you will
-be prompted for the location, the title and the description of the feed.
+@kindex G R (Group)
+Use @kbd{G R} from the group buffer to subscribe to a feed---you will be
+prompted for the location, the title and the description of the feed.
 The title, which allows any characters, will be used for the group name
 and the name of the group data file.  The description can be omitted.
 
@@ -15940,18 +15943,19 @@ summary buffer.
 (add-to-list 'nnmail-extra-headers nnrss-url-field)
 @end lisp
 
-@node Customizing w3
-@subsection Customizing w3
-@cindex w3
+@node Customizing W3
+@subsection Customizing W3
+@cindex W3
 @cindex html
 @cindex url
 @cindex Netscape
 
-Gnus uses the url library to fetch web pages and Emacs/w3 to display web
-pages.  Emacs/w3 is documented in its own manual, but there are some
-things that may be more relevant for Gnus users.
+Gnus uses the url library to fetch web pages and Emacs/W3 (or those
+alternatives) to display web pages.  Emacs/W3 is documented in its own
+manual, but there are some things that may be more relevant for Gnus
+users.
 
-For instance, a common question is how to make Emacs/w3 follow links
+For instance, a common question is how to make Emacs/W3 follow links
 using the @code{browse-url} functions (which will call some external web
 browser like Netscape).  Here's one way:
 
@@ -15966,7 +15970,7 @@ browser like Netscape).  Here's one way:
         (w3-fetch-orig url target)))))
 @end lisp
 
-Put that in your @file{.emacs} file, and hitting links in w3-rendered
+Put that in your @file{.emacs} file, and hitting links in W3-rendered
 @acronym{HTML} in the Gnus article buffers will use @code{browse-url} to
 follow the link.
 
@@ -16559,7 +16563,7 @@ delete them.
 @cindex namespaces
 
 The @acronym{IMAP} protocol has a concept called namespaces, described
-by the following text in the RFC:
+by the following text in the RFC2060:
 
 @display
 5.1.2.  Mailbox Namespace Naming Convention
@@ -16891,34 +16895,48 @@ totally ignored.
 
 @item article-begin
 This setting has to be present in all document type definitions.  It
-says what the beginning of each article looks like.
+says what the beginning of each article looks like.  To do more
+complicated things that cannot be dealt with a simple regexp, you can
+use @code{article-begin-function} instead of this.
+
+@item article-begin-function
+If present, this should be a function that moves point to the beginning
+of each article.  This setting overrides @code{article-begin}.
+
+@item head-begin
+If present, this should be a regexp that matches the head of the
+article.  To do more complicated things that cannot be dealt with a
+simple regexp, you can use @code{head-begin-function} instead of this.
 
 @item head-begin-function
 If present, this should be a function that moves point to the head of
-the article.
+the article.  This setting overrides @code{head-begin}.
 
-@item nndoc-head-begin
-If present, this should be a regexp that matches the head of the
-article.
-
-@item nndoc-head-end
+@item head-end
 This should match the end of the head of the article.  It defaults to
 @samp{^$}---the empty line.
 
-@item body-begin-function
-If present, this function should move point to the beginning of the body
-of the article.
-
 @item body-begin
 This should match the beginning of the body of the article.  It defaults
-to @samp{^\n}.
+to @samp{^\n}.  To do more complicated things that cannot be dealt with
+a simple regexp, you can use @code{body-begin-function} instead of this.
+
+@item body-begin-function
+If present, this function should move point to the beginning of the body
+of the article.  This setting overrides @code{body-begin}.
+
+@item body-end
+If present, this should match the end of the body of the article.  To do
+more complicated things that cannot be dealt with a simple regexp, you
+can use @code{body-end-function} instead of this.
 
 @item body-end-function
 If present, this function should move point to the end of the body of
-the article.
+the article.  This setting overrides @code{body-end}.
 
-@item body-end
-If present, this should match the end of the body of the article.
+@item file-begin
+If present, this should match the beginning of the file.  All text
+before this regexp will be totally ignored.
 
 @item file-end
 If present, this should match the end of the file.  All text after this
@@ -16948,6 +16966,19 @@ If present, this function is called to generate a head that Gnus can
 understand.  It is called with the article number as a parameter, and is
 expected to generate a nice head for the article in question.  It is
 called when requesting the headers of all articles.
+
+@item generate-article-function
+If present, this function is called to generate an entire article that
+Gnus can understand.  It is called with the article number as a
+parameter when requesting all articles.
+
+@item dissection-function
+If present, this function is called to dissect a document by itself,
+overriding @code{first-article}, @code{article-begin},
+@code{article-begin-function}, @code{head-begin},
+@code{head-begin-function}, @code{head-end}, @code{body-begin},
+@code{body-begin-function}, @code{body-end}, @code{body-end-function},
+@code{file-begin}, and @code{file-end}.
 
 @end table
 
@@ -24388,7 +24419,7 @@ XEmacs is distributed as a collection of packages.  You should install
 whatever packages the Gnus XEmacs package requires.  The current
 requirements are @samp{gnus}, @samp{mail-lib}, @samp{xemacs-base},
 @samp{eterm}, @samp{sh-script}, @samp{net-utils}, @samp{os-utils},
-@samp{dired}, @samp{mh-e}, @samp{sieve}, @samp{ps-print}, @samp{w3},
+@samp{dired}, @samp{mh-e}, @samp{sieve}, @samp{ps-print}, @samp{W3},
 @samp{pgg}, @samp{mailcrypt}, @samp{ecrypto}, and @samp{sasl}.
 
 

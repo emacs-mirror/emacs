@@ -1745,8 +1745,7 @@ x_set_tool_bar_lines (f, value, oldval)
       int y = nlines * FRAME_LINE_HEIGHT (f);
 
       BLOCK_INPUT;
-      XClearArea (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f),
-		    0, y, width, height, 0);
+      mac_clear_area (f, 0, y, width, height);
       UNBLOCK_INPUT;
 
       if (WINDOWP (f->tool_bar_window))
@@ -2439,7 +2438,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
   frame = Qnil;
   GCPRO4 (parms, parent, name, frame);
   tem = mac_get_arg (parms, Qminibuffer, "minibuffer", "Minibuffer",
-                     RES_TYPE_SYMBOL);
+		     RES_TYPE_SYMBOL);
   if (EQ (tem, Qnone) || NILP (tem))
     f = make_frame_without_minibuffer (Qnil, kb, display);
   else if (EQ (tem, Qonly))
@@ -2480,7 +2479,11 @@ This function is an internal primitive--use `make-frame' instead.  */)
   if (! STRINGP (f->icon_name))
     f->icon_name = Qnil;
 
-/*  FRAME_W32_DISPLAY_INFO (f) = dpyinfo; */
+/*   FRAME_MAC_DISPLAY_INFO (f) = dpyinfo; */
+#if GLYPH_DEBUG
+  image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
+  dpyinfo_refcount = dpyinfo->reference_count;
+#endif /* GLYPH_DEBUG */
 #ifdef MULTI_KBOARD
   FRAME_KBOARD (f) = kb;
 #endif
@@ -2606,9 +2609,10 @@ This function is an internal primitive--use `make-frame' instead.  */)
   x_default_parameter (f, parms, Qmenu_bar_lines, make_number (1),
 		       "menuBar", "MenuBar", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qtool_bar_lines, make_number (1),
-                       "toolBar", "ToolBar", RES_TYPE_NUMBER);
+		       "toolBar", "ToolBar", RES_TYPE_NUMBER);
   x_default_parameter (f, parms, Qbuffer_predicate, Qnil,
-		       "bufferPredicate", "BufferPredicate", RES_TYPE_SYMBOL);
+		       "bufferPredicate", "BufferPredicate",
+		       RES_TYPE_SYMBOL);
   x_default_parameter (f, parms, Qtitle, Qnil,
 		       "title", "Title", RES_TYPE_STRING);
   x_default_parameter (f, parms, Qfullscreen, Qnil,
@@ -3593,7 +3597,7 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   FRAME_FONTSET (f)  = -1;
   f->icon_name = Qnil;
-
+/*   FRAME_X_DISPLAY_INFO (f) = dpyinfo; */
 #if GLYPH_DEBUG
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
@@ -4046,6 +4050,9 @@ Text larger than the specified size is clipped.  */)
   ShowWindow (FRAME_MAC_WINDOW (f));
   BringToFront (FRAME_MAC_WINDOW (f));
   UNBLOCK_INPUT;
+
+  FRAME_PIXEL_WIDTH (f) = width;
+  FRAME_PIXEL_HEIGHT (f) = height;
 
   /* Draw into the window.  */
   w->must_be_updated_p = 1;

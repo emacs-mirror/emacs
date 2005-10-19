@@ -4848,10 +4848,13 @@ Called from `temp-buffer-show-hook'."
   "Normal hook run at the end of setting up a completion list buffer.
 When this hook is run, the current buffer is the one in which the
 command to display the completion list buffer was run.
-The completion list buffer is available as the value of `standard-output'.")
+The completion list buffer is available as the value of `standard-output'.
+The common prefix substring for completion may be available as the 
+value of `completion-common-substring'. See also `display-completion-list'.")
 
-;; This function goes in completion-setup-hook, so that it is called
-;; after the text of the completion list buffer is written.
+
+;; Variables and faces used in `completion-setup-function'.
+
 (defface completions-first-difference
   '((t (:inherit bold)))
   "Face put on the first uncommon character in completions in *Completions* buffer."
@@ -4871,6 +4874,17 @@ of the differing parts is, by contrast, slightly highlighted."
 (defvar completion-root-regexp "^/"
   "Regexp to use in `completion-setup-function' to find the root directory.")
 
+(defvar completion-common-substring nil
+  "Common prefix substring to use in `completion-setup-function' to put faces.
+The value is set by `display-completion-list' during running `completion-setup-hook'.
+
+To put faces, `completions-first-difference' and `completions-common-part' 
+into \"*Completions*\* buffer, the common prefix substring in completions is
+needed as a hint. (Minibuffer is a special case. The content of minibuffer itself 
+is the substring.)")
+
+;; This function goes in completion-setup-hook, so that it is called
+;; after the text of the completion list buffer is written.
 (defun completion-setup-function ()
   (let ((mainbuf (current-buffer))
 	(mbuf-contents (minibuffer-contents)))
@@ -4909,9 +4923,11 @@ of the differing parts is, by contrast, slightly highlighted."
 		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
 	      (setq completion-base-size 0))))
       ;; Put faces on first uncommon characters and common parts.
-      (when completion-base-size
+      (when (or completion-base-size completion-common-substring)
 	(let* ((common-string-length
-		(- (length mbuf-contents) completion-base-size))
+		(if completion-base-size
+		    (- (length mbuf-contents) completion-base-size)
+		  (length completion-common-substring)))
 	       (element-start (next-single-property-change
 			       (point-min)
 			       'mouse-face))

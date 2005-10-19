@@ -1175,12 +1175,14 @@ minibuffer history list `bookmark-history'."
     (prog1
 	(insert (bookmark-location bookmark)) ; *Return this line*
       (if (and (display-color-p) (display-mouse-p))
-	  (add-text-properties start
-			       (save-excursion (re-search-backward
-						"[^ \t]")
+	  (add-text-properties
+	   start
+	   (save-excursion (re-search-backward
+			    "[^ \t]")
 					       (1+ (point)))
-			       '(mouse-face highlight
-				 help-echo "mouse-2: go to this bookmark"))))))
+	   '(mouse-face highlight
+	     follow-link t
+	     help-echo "mouse-2: go to this bookmark in other window"))))))
 
 ;;;###autoload
 (defalias 'bookmark-locate 'bookmark-insert-location)
@@ -1566,12 +1568,14 @@ deletion, or > if it is flagged for displaying."
 	 (let ((start (point)))
 	   (insert (bookmark-name-from-full-record full-record))
 	   (if (and (display-color-p) (display-mouse-p))
-	       (add-text-properties start
-				    (save-excursion (re-search-backward
-						     "[^ \t]")
-						    (1+ (point)))
-				    '(mouse-face highlight
-				      help-echo "mouse-2: go to this bookmark")))
+	       (add-text-properties
+		start
+		(save-excursion (re-search-backward
+				 "[^ \t]")
+				(1+ (point)))
+		'(mouse-face highlight
+		  follow-link t
+		  help-echo "mouse-2: go to this bookmark in other window")))
 	   (insert "\n")
 	   )))
      bookmark-alist))
@@ -1695,13 +1699,15 @@ Optional argument SHOW means show them unconditionally."
 		(let ((start (point)))
 		  (insert (car bookmark-bmenu-hidden-bookmarks))
 		  (if (and (display-color-p) (display-mouse-p))
-		      (add-text-properties start
-					   (save-excursion (re-search-backward
-							    "[^ \t]")
-							   (1+ (point)))
-					   '(mouse-face highlight
-					     help-echo
-					     "mouse-2: go to this bookmark"))))
+		      (add-text-properties
+		       start
+		       (save-excursion (re-search-backward
+					"[^ \t]")
+				       (1+ (point)))
+		       '(mouse-face highlight
+			 follow-link t
+			 help-echo
+			 "mouse-2: go to this bookmark in other window"))))
                 (setq bookmark-bmenu-hidden-bookmarks
                       (cdr bookmark-bmenu-hidden-bookmarks))
                 (forward-line 1))))))))

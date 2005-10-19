@@ -97,7 +97,7 @@ PROPS are additional items to add to the menu item specification.  See
 Info node `(elisp)Tool Bar'.  Items are added from left to right.
 
 ICON is the base name of a file containing the image to use.  The
-function will first try to use lc-ICON.xpm if display-color-cells
+function will first try to use low-color/ICON.xpm if display-color-cells
 is less or equal to 256, then ICON.xpm, then ICON.pbm, and finally
 ICON.xbm, using `find-image'.
 
@@ -114,7 +114,7 @@ PROPS are additional items to add to the menu item specification.  See
 Info node `(elisp)Tool Bar'.  Items are added from left to right.
 
 ICON is the base name of a file containing the image to use.  The
-function will first try to use lc-ICON.xpm if display-color-cells
+function will first try to use low-color/ICON.xpm if display-color-cells
 is less or equal to 256, then ICON.xpm, then ICON.pbm, and finally
 ICON.xbm, using `find-image'."
   (let* ((fg (face-attribute 'tool-bar :foreground))
@@ -124,9 +124,12 @@ ICON.xbm, using `find-image'."
 	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
 	 (xpm-lo-spec (if (> (display-color-cells) 256)
 			  nil
-			(list :type 'xpm :file (concat "lc-" icon ".xpm"))))
-	 (pbm-spec (append (list :type 'pbm :file (concat icon ".pbm")) colors))
-	 (xbm-spec (append (list :type 'xbm :file (concat icon ".xbm")) colors))
+			(list :type 'xpm :file
+                              (concat "low-color/" icon ".xpm"))))
+	 (pbm-spec (append (list :type 'pbm :file
+                                 (concat icon ".pbm")) colors))
+	 (xbm-spec (append (list :type 'xbm :file
+                                 (concat icon ".xbm")) colors))
 	 (image (find-image
 		(if (display-color-p)
 		    (list xpm-lo-spec xpm-spec pbm-spec xbm-spec)
@@ -175,9 +178,12 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
 	 (xpm-spec (list :type 'xpm :file (concat icon ".xpm")))
 	 (xpm-lo-spec (if (> (display-color-cells) 256)
 			  nil
-			(list :type 'xpm :file (concat "lc-" icon ".xpm"))))
-	 (pbm-spec (append (list :type 'pbm :file (concat icon ".pbm")) colors))
-	 (xbm-spec (append (list :type 'xbm :file (concat icon ".xbm")) colors))
+			(list :type 'xpm :file
+                              (concat "low-color/" icon ".xpm"))))
+	 (pbm-spec (append (list :type 'pbm :file
+                                 (concat icon ".pbm")) colors))
+	 (xbm-spec (append (list :type 'xbm :file
+                                 (concat icon ".xbm")) colors))
 	 (spec (if (display-color-p)
 		   (list xpm-lo-spec xpm-spec pbm-spec xbm-spec)
 		 (list pbm-spec xbm-spec xpm-lo-spec xpm-spec)))
@@ -255,7 +261,7 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
 
   ;; There's no icon appropriate for News and we need a command rather
   ;; than a lambda for Read Mail.
-  ;;(tool-bar-add-item-from-menu 'compose-mail "mail_compose")
+  ;;(tool-bar-add-item-from-menu 'compose-mail "mail/compose")
 
   (tool-bar-add-item-from-menu 'print-buffer "print")
   (tool-bar-add-item "preferences" 'customize 'customize

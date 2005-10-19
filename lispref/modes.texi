@@ -1154,7 +1154,7 @@ Instead, it arranges for the next call to @code{run-mode-hooks} to run
 @var{hookvars}.
 @end defun
 
-@defmac delay-mode-hooks body...
+@defmac delay-mode-hooks body@dots{}
 This macro executes @var{body} like @code{progn}, but all calls to
 @code{run-mode-hooks} inside @var{body} delay running their hooks.
 They will be run by the first call to @code{run-mode-hooks} after exit
@@ -1364,7 +1364,7 @@ characters are reserved for major modes.)
   The macro @code{define-minor-mode} offers a convenient way of
 implementing a mode in one self-contained definition.
 
-@defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args... body...
+@defmac define-minor-mode mode doc [init-value [lighter [keymap]]] keyword-args@dots{} body@dots{}
 @tindex define-minor-mode
 This macro defines a new minor mode whose name is @var{mode} (a
 symbol).  It defines a command named @var{mode} to toggle the minor
@@ -1492,7 +1492,7 @@ See the command \\[hungry-electric-delete]."
  :group 'hunger)
 @end smallexample
 
-@defmac define-global-minor-mode global-mode mode turn-on keyword-args...
+@defmac define-global-minor-mode global-mode mode turn-on keyword-args@dots{}
 This defines a global minor mode named @var{global-mode} whose meaning
 is to enable the buffer-local minor mode @var{mode} in every buffer.
 To turn on the minor mode in a buffer, it uses the function

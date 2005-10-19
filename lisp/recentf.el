@@ -985,59 +985,6 @@ unchanged."
                             t)))))
     l))
 
-;;; Common dialog stuff
-;;
-(defun recentf-cancel-dialog (&rest ignore)
-  "Cancel the current dialog.
-IGNORE arguments."
-  (interactive)
-  (kill-buffer (current-buffer))
-  (message "Dialog canceled"))
-
-(defun recentf-dialog-goto-first (widget-type)
-  "Move the cursor to the first WIDGET-TYPE in current dialog.
-Go to the beginning of buffer if not found."
-  (goto-char (point-min))
-  (condition-case nil
-      (let (done)
-        (widget-move 1)
-        (while (not done)
-          (if (eq widget-type (widget-type (widget-at (point))))
-              (setq done t)
-            (widget-move 1))))
-    (goto-char (point-min))))
-
-(defvar recentf-dialog-mode-map
-  (let ((km (copy-keymap recentf--shortcuts-keymap)))
-    (set-keymap-parent km widget-keymap)
-    (define-key km "q" 'recentf-cancel-dialog)
-    (define-key km [down-mouse-1] 'widget-button-click)
-    km)
-  "Keymap used in recentf dialogs.")
-
-(define-derived-mode recentf-dialog-mode nil "recentf-dialog"
-  "Major mode of recentf dialogs.
-
-\\{recentf-dialog-mode-map}"
-  :syntax-table nil
-  :abbrev-table nil
-  (setq truncate-lines t))
-
-(defmacro recentf-dialog (name &rest forms)
-  "Show a dialog buffer with NAME, setup with FORMS."
-  (declare (indent 1) (debug t))
-  `(with-current-buffer (get-buffer-create ,name)
-    ;; Cleanup buffer
-    (let ((inhibit-read-only t)
-          (ol (overlay-lists)))
-      (mapc 'delete-overlay (car ol))
-      (mapc 'delete-overlay (cdr ol))
-      (erase-buffer))
-    (recentf-dialog-mode)
-    ,@forms
-    (widget-setup)
-    (switch-to-buffer (current-buffer))))
-
 ;;; Hooks
 ;;
 (defun recentf-track-opened-file ()
@@ -1086,6 +1033,59 @@ That is, remove a non kept file from the recent list."
 ;;; Commands
 ;;
 
+;;; Common dialog stuff
+;;
+(defun recentf-cancel-dialog (&rest ignore)
+  "Cancel the current dialog.
+IGNORE arguments."
+  (interactive)
+  (kill-buffer (current-buffer))
+  (message "Dialog canceled"))
+
+(defun recentf-dialog-goto-first (widget-type)
+  "Move the cursor to the first WIDGET-TYPE in current dialog.
+Go to the beginning of buffer if not found."
+  (goto-char (point-min))
+  (condition-case nil
+      (let (done)
+        (widget-move 1)
+        (while (not done)
+          (if (eq widget-type (widget-type (widget-at (point))))
+              (setq done t)
+            (widget-move 1))))
+    (goto-char (point-min))))
+
+(defvar recentf-dialog-mode-map
+  (let ((km (copy-keymap recentf--shortcuts-keymap)))
+    (set-keymap-parent km widget-keymap)
+    (define-key km "q" 'recentf-cancel-dialog)
+    (define-key km [follow-link] "\C-m")
+    km)
+  "Keymap used in recentf dialogs.")
+
+(define-derived-mode recentf-dialog-mode nil "recentf-dialog"
+  "Major mode of recentf dialogs.
+
+\\{recentf-dialog-mode-map}"
+  :syntax-table nil
+  :abbrev-table nil
+  (setq truncate-lines t))
+
+(defmacro recentf-dialog (name &rest forms)
+  "Show a dialog buffer with NAME, setup with FORMS."
+  (declare (indent 1) (debug t))
+  `(with-current-buffer (get-buffer-create ,name)
+    ;; Cleanup buffer
+    (let ((inhibit-read-only t)
+          (ol (overlay-lists)))
+      (mapc 'delete-overlay (car ol))
+      (mapc 'delete-overlay (cdr ol))
+      (erase-buffer))
+    (recentf-dialog-mode)
+    ,@forms
+    (widget-setup)
+    (switch-to-buffer (current-buffer))))
+
 ;;; Edit list dialog
 ;;
 (defvar recentf-edit-list nil)
@@ -1140,7 +1140,7 @@ Click on Cancel or type `q' to cancel.\n")
      :notify 'recentf-cancel-dialog
      "Cancel")
     (recentf-dialog-goto-first 'checkbox)))
-
+
 ;;; Open file dialog
 ;;
 (defun recentf-open-files-action (widget &rest ignore)
@@ -1252,7 +1252,7 @@ Optional argument N must be a valid digit number.  It defaults to 1.
     (when recentf--files-with-key
       (kill-buffer (current-buffer)))
     (funcall recentf-menu-action file)))
-
+
 ;;; Save/load/cleanup the recent list
 ;;
 (defconst recentf-save-file-header
@@ -1316,7 +1316,9 @@ That is, remove duplicates, non-kept, and excluded files."
         (message "File %s removed from the recentf list" f)))
     (message "Cleaning up the recentf list...done (%d removed)" n)
     (setq recentf-list (nreverse newlist))))
-
+
+;;; The minor mode
+;;
 (defvar recentf-mode-map (make-sparse-keymap)
   "Keymap to use in recentf mode.")
 

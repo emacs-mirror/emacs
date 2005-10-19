@@ -1,3 +1,81 @@
+2005-10-17  Peter S Galbraith  <psg@debian.org>
+
+	* mh-identity.el (mh-identity-field-handler): Use
+	`assoc-ignore-case' to compare against header field for mixed-case
+	"From:".
+
+2005-10-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-folder-tool-bar-map): Renamed image file
+	left_arrow to left-arrow, right_arrow to right-arrow, mail_compose
+	to mail/compose, fld_open to fld-open.
+	(mh-letter-tool-bar-map): Renamed image file mail_send to
+	mail/send.
+
+2005-10-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-display-completion-list-compat): New macro which
+	calls `display-completion-list' correctly in older environments.
+	Versions of Emacs prior to version 22 lacked a COMMON-SUBSTRING
+	argument.
+	(mh-complete-word): Use it.
+
+	* mh-init.el (mh-image-load-path): Use locate-library to find
+	MH-E. This simplified the code a lot. Flattened out nested
+	statements even more.
+
+2005-10-16  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-init.el (mh-image-load-path): Remove use of pushnew since it
+	causes a compiler warning.
+
+	* mh-utils.el (mh-display-msg): Do MIME cleanup before inserting
+	the message to be viewed (closes SF #1306141).
+
+2005-10-16  Masatake YAMATO  <jet@gyve.org>
+
+	* mh-comp.el (mh-complete-word): Pass the common
+	prefix substring of completion to `display-completion-list'.
+
+2005-10-15  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-init.el (mh-image-load-path-called-flag): New variable which
+	is used by mh-image-load-path so that it runs only once.
+	(mh-image-load-path): Modified so that it gets run only once. Also
+	flatten out heavily nested if statements to make it clearer.
+
+	* mh-e.el (mh-folder-mode): Call mh-image-load-path to allow Emacs
+	to find images used in the toolbar.
+
+	* mh-customize.el (:folder): Remove call to mh-image-load-path.
+
+2005-10-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Added +cvs to version.
+
+2005-10-14  Bill Wohler	 <wohler@newt.com>
+
+	Released MH-E version 7.85.
+	  
+	* mh-e.el (Version, mh-version): Updated for release 7.85.
+	
+2005-10-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el, mh-funcs.el, mh-init.el, mh-mime.el, mh-pick.el:
+	* mh-seq.el, mh-utils.el: Ran mh-unit. Continued copyright lines
+	need to be indented. 
+	
+	* mh-e.el: mh-folder-tick-face had been renamed to mh-folder-tick
+	but the code that invoked the face had not been updated. Tick
+	highlighting working again.
+
+	* mh-seq.el (mh-non-seq-mode-line-annotation): Moved
+	make-variable-buffer-local call to top level to avoid warnings in
+	CVS Emacs.
+
+	* mh-comp.el (mh-insert-letter): Replaced deprecated read-input
+	with read-string.
+
 2005-10-09  Bill Wohler  <wohler@newt.com>
 
 	* mh-init.el (mh-image-load-path): New function that adds the path

@@ -349,6 +349,13 @@ Defaults to the whole buffer.  END can be out of bounds."
 	   (goto-char next)  (setq next (line-beginning-position 2))
 	   (goto-char start) (setq start (line-beginning-position))
 
+           ;; Make sure the contextual refontification doesn't re-refontify
+           ;; what's already been refontified.
+           (when (and jit-lock-context-unfontify-pos
+                      (< jit-lock-context-unfontify-pos next)
+                      (>= jit-lock-context-unfontify-pos start))
+             (setq jit-lock-context-unfontify-pos next))
+
 	   ;; Fontify the chunk, and mark it as fontified.
 	   ;; We mark it first, to make sure that we don't indefinitely
 	   ;; re-execute this fontification if an error occurs.
@@ -566,9 +573,14 @@ will take place when text is fontified stealthily."
       ;; Mark the change for deferred contextual refontification.
       (when jit-lock-context-unfontify-pos
 	(setq jit-lock-context-unfontify-pos
+              ;; Here we use `start' because nothing guarantees that the
+              ;; text between start and end will be otherwise refontified:
+              ;; usually it will be refontified by virtue of being
+              ;; displayed, but if it's outside of any displayed area in the
+              ;; buffer, only jit-lock-context-* will re-fontify it.
 	      (min jit-lock-context-unfontify-pos start))))))
 
 (provide 'jit-lock)
 
-;;; arch-tag: 56b5de6e-f581-453b-bb97-49c39372ff9e
+;; arch-tag: 56b5de6e-f581-453b-bb97-49c39372ff9e
 ;;; jit-lock.el ends here

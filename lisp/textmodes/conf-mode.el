@@ -86,7 +86,7 @@ not align (only setting space according to `conf-assignment-space')."
     (define-key map "\C-c'" 'conf-quote-normal)
     (define-key map "\C-c\C-a" 'conf-align-assignments)
     map)
-  "Local keymap for conf-mode buffers.")
+  "Local keymap for `conf-mode' buffers.")
 
 (defvar conf-mode-syntax-table
   (let ((table (make-syntax-table)))
@@ -99,7 +99,7 @@ not align (only setting space according to `conf-assignment-space')."
     (modify-syntax-entry ?\n ">" table)
     (modify-syntax-entry ?\r ">" table)
     table)
-  "Syntax table in use in Windows style conf-mode buffers.")
+  "Syntax table in use in Windows style `conf-mode' buffers.")
 
 (defvar conf-unix-mode-syntax-table
   (let ((table (make-syntax-table conf-mode-syntax-table)))
@@ -107,7 +107,7 @@ not align (only setting space according to `conf-assignment-space')."
     ;; override
     (modify-syntax-entry ?\; "." table)
     table)
-  "Syntax table in use in Unix style conf-mode buffers.")
+  "Syntax table in use in Unix style `conf-mode' buffers.")
 
 (defvar conf-javaprop-mode-syntax-table
   (let ((table (make-syntax-table conf-unix-mode-syntax-table)))
@@ -124,7 +124,7 @@ not align (only setting space according to `conf-assignment-space')."
     (modify-syntax-entry ?\' "." table)
     (modify-syntax-entry ?\; "." table)
     table)
-  "Syntax table in use in PPD conf-mode buffers.")
+  "Syntax table in use in PPD `conf-mode' buffers.")
 
 (defvar conf-xdefaults-mode-syntax-table
   (let ((table (make-syntax-table conf-mode-syntax-table)))
@@ -132,7 +132,7 @@ not align (only setting space according to `conf-assignment-space')."
     ;; override
     (modify-syntax-entry ?\; "." table)
     table)
-  "Syntax table in use in Xdefaults style conf-mode buffers.")
+  "Syntax table in use in Xdefaults style `conf-mode' buffers.")
 
 
 (defvar conf-font-lock-keywords
@@ -144,7 +144,7 @@ not align (only setting space according to `conf-assignment-space')."
      (2 'font-lock-constant-face nil t))
     ;; section { ... } (do this last because some assign ...{...)
     ("^[ \t]*\\([^=:\n]+?\\)[ \t\n]*{[^{}]*?$" 1 'font-lock-type-face prepend))
-  "Keywords to hilight in Conf mode")
+  "Keywords to hilight in Conf mode.")
 
 (defvar conf-javaprop-font-lock-keywords
   '(;; var=val
@@ -156,7 +156,7 @@ not align (only setting space according to `conf-assignment-space')."
      (5 'font-lock-variable-name-face nil t)
      (6 'font-lock-constant-face nil t)
      (7 'font-lock-variable-name-face nil t)))
-  "Keywords to hilight in Conf Java Properties mode")
+  "Keywords to hilight in Conf Java Properties mode.")
 
 (defvar conf-space-keywords-alist
   '(("\\`/etc/gpm/" . "key\\|name\\|foreground\\|background\\|border\\|head")
@@ -188,7 +188,7 @@ This variable is best set in the file local variables, or through
 		'(1 'font-lock-keyword-face)
 		'(2 'font-lock-variable-name-face))
 	  '("^[ \t]*\\([^\000- ]+\\)" 1 'font-lock-variable-name-face)))
-  "Keywords to hilight in Conf Space mode")
+  "Keywords to hilight in Conf Space mode.")
 
 (defvar conf-colon-font-lock-keywords
   `(;; [section] (do this first because it may look like a parameter)
@@ -198,7 +198,7 @@ This variable is best set in the file local variables, or through
      (1 'font-lock-variable-name-face))
     ;; section { ... } (do this last because some assign ...{...)
     ("^[ \t]*\\([^:\n]+\\)[ \t\n]*{[^{}]*?$" 1 'font-lock-type-face prepend))
-  "Keywords to hilight in Conf Colon mode")
+  "Keywords to hilight in Conf Colon mode.")
 
 (defvar conf-assignment-sign ?=
   "What sign is used for assignments.")
@@ -231,12 +231,15 @@ whitespace.")
 	    (if (>= arg 0)
 		(progn
 		  (indent-to-column arg)
-		  (or (not conf-assignment-space) (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))
-		  (insert conf-assignment-sign (if (and conf-assignment-space (not (eolp))) ?\s "")))
+		  (or (not conf-assignment-space)
+                      (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))
+		  (insert conf-assignment-sign
+                          (if (and conf-assignment-space (not (eolp))) ?\s "")))
 	      (insert (if conf-assignment-space ?\s "") conf-assignment-sign)
 	      (unless (eolp)
 		(indent-to-column (- arg))
-		(or (not conf-assignment-space) (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))))
+		(or (not conf-assignment-space)
+                    (memq (char-before (point)) '(?\s ?\t)) (insert ?\s))))
 	  (unless (eolp)
 	    (if (>= (current-column) (abs arg))
 		(insert ?\s)
@@ -255,8 +258,10 @@ both, i.e. quotes delimit strings, except when they are
 unbalanced, but hey...)"
   (interactive "P")
   (let ((table (copy-syntax-table (syntax-table))))
-    (if (or (not arg) (= (prefix-numeric-value arg) 1)) (modify-syntax-entry ?\' "." table))
-    (if (or (not arg) (= (prefix-numeric-value arg) 2)) (modify-syntax-entry ?\" "." table))
+    (if (or (not arg) (= (prefix-numeric-value arg) 1))
+        (modify-syntax-entry ?\' "." table))
+    (if (or (not arg) (= (prefix-numeric-value arg) 2))
+        (modify-syntax-entry ?\" "." table))
     (set-syntax-table table)
     (and (boundp 'font-lock-mode)
 	 font-lock-mode
@@ -326,25 +331,25 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 		  ((looking-at ".*{"))		; nop
 		  ((setq space (1+ space))))
 	    (forward-line)))
-	(if (> jp (max unix win 3))
-	    (conf-javaprop-mode)
-	  (if (> colon (max equal space))
-	      (conf-colon-mode)
-	    (if (> space (max equal colon))
-		(conf-space-mode)
-	      (if (or (> win unix)
-		      (and (= win unix) (eq system-type 'windows-nt)))
-		  (conf-windows-mode)
-		(conf-unix-mode))))))
+	(cond
+         ((> jp (max unix win 3)) (conf-javaprop-mode))
+         ((> colon (max equal space)) (conf-colon-mode))
+         ((> space (max equal colon)) (conf-space-mode))
+         ((or (> win unix) (and (= win unix) (eq system-type 'windows-nt)))
+          (conf-windows-mode))
+         (t (conf-unix-mode))))
     (kill-all-local-variables)
     (use-local-map conf-mode-map)
 
     (setq major-mode 'conf-mode
 	  mode-name name)
+    (set (make-local-variable 'font-lock-defaults)
+         '(conf-font-lock-keywords nil t nil nil))
     (set (make-local-variable 'comment-start) comment)
     (set (make-local-variable 'comment-start-skip)
 	 (concat (regexp-quote comment-start) "+\\s *"))
-    (set (make-local-variable 'comment-use-syntax) t)
+    ;; Let newcomment.el decide this for himself.
+    ;; (set (make-local-variable 'comment-use-syntax) t)
     (set (make-local-variable 'parse-sexp-ignore-comments) t)
     (set (make-local-variable 'outline-regexp)
 	 "[ \t]*\\(?:\\[\\|.+[ \t\n]*{\\)")
@@ -368,7 +373,7 @@ See also `conf-space-mode', `conf-colon-mode', `conf-javaprop-mode',
 Comments start with `#'.
 For details see `conf-mode'.  Example:
 
-# Conf mode font-locks this right on Unix and with C-c C-u
+# Conf mode font-locks this right on Unix and with \\[conf-unix-mode]
 
 \[Desktop Entry]
 	 Encoding=UTF-8
@@ -384,7 +389,7 @@ For details see `conf-mode'.  Example:
 Comments start with `;'.
 For details see `conf-mode'.  Example:
 
-; Conf mode font-locks this right on Windows and with C-c C-w
+; Conf mode font-locks this right on Windows and with \\[conf-windows-mode]
 
 \[ExtShellFolderViews]
 Default={5984FFE0-28D4-11CF-AE66-08002B2E1262}
@@ -407,7 +412,7 @@ Comments start with `#' but are also recognized with `//' or
 between `/*' and `*/'.
 For details see `conf-mode'.  Example:
 
-# Conf mode font-locks this right with C-c C-j (Java properties)
+# Conf mode font-locks this right with \\[conf-javaprop-mode] (Java properties)
 // another kind of comment
 /* yet another */
 
@@ -441,7 +446,7 @@ KEYWORDS, or any non-nil non-string for no keywords.
 
 For details see `conf-mode'.  Example:
 
-# Conf mode font-locks this right with C-c C-s (space separated)
+# Conf mode font-locks this right with \\[conf-space-mode] (space separated)
 
 image/jpeg			jpeg jpg jpe
 image/png			png
@@ -495,7 +500,7 @@ add /dev/mixer		desktop"
 \"Assignments\" are with `:'.
 For details see `conf-mode'.  Example:
 
-# Conf mode font-locks this right with C-c C-c (colon)
+# Conf mode font-locks this right with \\[conf-colon-mode] (colon)
 
 <Multi_key> <exclam> <exclam>		: \"\\241\"	exclamdown
 <Multi_key> <c> <slash>			: \"\\242\"	cent"
@@ -524,7 +529,7 @@ For details see `conf-mode'.  Example:
 Comments start with `*%' and \"assignments\" are with `:'.
 For details see `conf-mode'.  Example:
 
-*% Conf mode font-locks this right with C-c C-p (PPD)
+*% Conf mode font-locks this right with \\[conf-ppd-mode] (PPD)
 
 *DefaultTransfer: Null
 *Transfer Null.Inverse: \"{ 1 exch sub }\""
@@ -539,21 +544,12 @@ For details see `conf-mode'.  Example:
 Comments start with `!' and \"assignments\" are with `:'.
 For details see `conf-mode'.  Example:
 
-! Conf mode font-locks this right with C-c C-x (.Xdefaults)
+! Conf mode font-locks this right with \\[conf-xdefaults-mode] (.Xdefaults)
 
 *background:			gray99
 *foreground:			black"
   (interactive)
   (conf-colon-mode "!" conf-xdefaults-mode-syntax-table "Conf[Xdefaults]"))
-
-
-;; font lock support
-(if (boundp 'font-lock-defaults-alist)
-    (add-to-list
-     'font-lock-defaults-alist
-     (cons 'conf-mode
-	   (list 'conf-font-lock-keywords nil t nil nil))))
-
 
 (provide 'conf-mode)
 

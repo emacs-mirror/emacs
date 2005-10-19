@@ -1,3 +1,7 @@
+2005-10-15  Richard M. Stallman  <rms@gnu.org>
+
+	* url.el: Don't try to autoload hash table functions.
+
 2005-10-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-http.el (url-http-create-request): Avoid incorrect implicit

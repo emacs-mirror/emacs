@@ -6,7 +6,7 @@
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.84+cvs
+;; Version: 7.85+cvs
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -98,7 +98,7 @@
 (defvar font-lock-auto-fontify)
 (defvar font-lock-defaults)
 
-(defconst mh-version "7.84+cvs" "Version number of MH-E.")
+(defconst mh-version "7.85+cvs" "Version number of MH-E.")
 
 (defvar mh-partial-folder-mode-line-annotation "select"
   "Annotation when displaying part of a folder.
@@ -408,7 +408,7 @@ is done highlighting.")
                      (list (list ',func (list 1 '',face 'prepend t))))))))
 
 (mh-generate-sequence-font-lock mh-unseen-seq unseen bold)
-(mh-generate-sequence-font-lock mh-tick-seq tick mh-folder-tick-face)
+(mh-generate-sequence-font-lock mh-tick-seq tick mh-folder-tick)
 
 
 
@@ -778,7 +778,7 @@ bottom of the current message."
         (if (mh-in-show-buffer (mh-show-buffer)
               (pos-visible-in-window-p (point-max)))
             (progn
-              (message 
+              (message
                "End of message (Type %s to read %s undeleted message)"
                (single-key-description last-input-event)
                (if (equal mh-next-direction 'backward)
@@ -1561,6 +1561,7 @@ messages in that region.
 
 \\{mh-folder-mode-map}"
 
+  (mh-image-load-path)
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mh-folder-font-lock-keywords t))
   (make-local-variable 'desktop-save-buffer)

@@ -1482,11 +1482,16 @@ The POSTPROC specified there (typically `log-edit') is then called,
 	 (point))))))
 
 (defvar cvs-edit-log-revision)
-(defun cvs-mode-edit-log (rev &optional text)
+(defvar cvs-edit-log-files) (put 'cvs-edit-log-files 'permanent-local t)
+(defun cvs-mode-edit-log (file rev &optional text)
   "Edit the log message at point.
 This is best called from a `log-view-mode' buffer."
   (interactive
    (list
+    (or (cvs-mode! (lambda ()
+                     (car (cvs-mode-files nil nil
+                                          :read-only t :file t :noquery t))))
+        (read-string "File name: "))
     (or (cvs-mode! (lambda () (cvs-prefix-get 'cvs-branch-prefix)))
 	(read-string "Revision to edit: "))
     (cvs-edit-log-text-at-point)))
@@ -1498,26 +1503,38 @@ This is best called from a `log-view-mode' buffer."
   (let ((buf (cvs-temp-buffer "message" 'normal 'nosetup))
 	(setupfun (or (nth 2 (cdr (assoc "message" cvs-buffer-name-alist)))
 		      'log-edit)))
+    (with-current-buffer buf
+      ;; Set the filename before, so log-edit can correctly setup its
+      ;; log-edit-initial-files variable.
+      (set (make-local-variable 'cvs-edit-log-files) (list file)))
     (funcall setupfun 'cvs-do-edit-log nil 'cvs-edit-log-filelist buf)
     (when text (erase-buffer) (insert text))
     (set (make-local-variable 'cvs-edit-log-revision) rev)
-    (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-edit-log-minor-wrap)
+    (set (make-local-variable 'cvs-minor-wrap-function)
+         'cvs-edit-log-minor-wrap)
     ;; (run-hooks 'cvs-mode-commit-hook)
     ))
 
 (defun cvs-edit-log-minor-wrap (buf f)
-  (let ((cvs-ignore-marks-modif (cvs-mode-mark-get-modif "commit")))
+  (let ((cvs-branch-prefix (with-current-buffer buf cvs-edit-log-revision))
+        (cvs-minor-current-files
+         (with-current-buffer buf cvs-edit-log-files))
+        ;; FIXME:  I need to force because the fileinfos are UNKNOWN
+        (cvs-force-command "/F"))
     (funcall f)))
 
 (defun cvs-edit-log-filelist ()
-  (cvs-mode-files nil nil :read-only t :file t :noquery t))
+  (if cvs-minor-wrap-function
+      (cvs-mode-files nil nil :read-only t :file t :noquery t)
+    cvs-edit-log-files))
 
 (defun cvs-do-edit-log (rev)
   "Do the actual commit, using the current buffer as the log message."
   (interactive (list cvs-edit-log-revision))
   (let ((msg (buffer-substring-no-properties (point-min) (point-max))))
-    (cvs-mode!)
-    (cvs-mode-do "admin" (list (concat "-m" rev ":" msg)) nil)))
+    (cvs-mode!
+     (lambda ()
+       (cvs-mode-do "admin" (list (concat "-m" rev ":" msg)) nil)))))
 
 
 ;;;;

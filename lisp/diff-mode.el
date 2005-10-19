@@ -967,7 +967,7 @@ If you edit the buffer manually, diff-mode will try to update the hunk
 headers for you on-the-fly.
 
 You can also switch between context diff and unified diff with \\[diff-context->unified],
-or vice versa with \\[diff-unified->context] and you can also revert the direction of
+or vice versa with \\[diff-unified->context] and you can also reverse the direction of
 a diff with \\[diff-reverse-direction]."
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)

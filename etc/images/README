@@ -1,5 +1,17 @@
+All of the following icons are not part of Emacs, but distributed and
+used by Emacs.
+
+The following icons are from GTK+ 2.x:
+
+    close.xpm copy.xpm cut.xpm help.xpm home.xpm
+    index.xpm jump-to.xpm left-arrow.xpm new.xpm open.xpm
+    paste.xpm preferences.xpm print.xpm right-arrow.xpm save.xpm
+    saveas.xpm search.xpm spell.xpm undo.xpm up-arrow.xpm
+
+    back-arrow.xpm and fwd-arrow.xpm are slightly modified undo and redo.
+
+    diropen.xpm is file-manager.png from Gnome hicolor theme.
+
 The following icons are from GNOME 2.10:
 
     refresh.pbm, refresh.xpm
-
-They are not part of Emacs, but distributed and used by Emacs.

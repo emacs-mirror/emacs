@@ -1,3 +1,96 @@
+2005-10-17  Bill Wohler  <wohler@newt.com>
+
+	Moved all remaining images from lisp/toolbar to etc/images. The
+	low resolution images were placed in their own directory (low-color).
+
+	* images/attach.*, images/cancel.*, images/close.*:
+	* images/copy.*, images/cut.*, images/diropen.*:
+	* images/exit.*, images/help.*, images/home.*:
+	* images/index.*, images/info.*, images/mail.*:
+	* images/new.*, images/open.*, images/paste.*:
+	* images/preferences.*, images/print.*, images/save.*:
+	* images/saveas.*, images/search.*:
+	* images/search-replace.*, images/spell.*:
+	* images/undo.*: Moved here from lisp/toolbar.
+
+	* images/low-color/copy.*: Moved here from lisp/toolbar/lc-copy.*.
+	* images/low-color/cut.*: Moved here from lisp/toolbar/lc-cut.*.
+	* images/low-color/help.*: Moved here from lisp/toolbar/lc-help.*.
+	* images/low-color/home.*: Moved here from lisp/toolbar/lc-home.*.
+	* images/low-color/index.*: Moved here from lisp/toolbar/lc-index.*.
+	* images/low-color/new.*: Moved here from lisp/toolbar/lc-new.*.
+	* images/low-color/open.*: Moved here from lisp/toolbar/lc-open.*.
+	* images/low-color/paste.*: Moved here from lisp/toolbar/lc-paste.*.
+	* images/low-color/preferences.*: Moved here from
+	lisp/toolbar/lc-preferences.*.
+	* images/low-color/print.*: Moved here from lisp/toolbar/lc-print.*.
+	* images/low-color/save.*: Moved here from lisp/toolbar/lc-save.*.
+	* images/low-color/saveas.*: Moved here from lisp/toolbar/lc-saveas.*.
+	* images/low-color/search.*: Moved here from lisp/toolbar/lc-search.*.
+	* images/low-color/spell.*: Moved here from lisp/toolbar/lc-spell.*.
+	* images/low-color/undo.*: Moved here from lisp/toolbar/lc-undo.*.
+
+	To conform with convention, the underscore (_) in the following
+	image names were replaced with dash (-) or (/) as appropriate.
+
+	* images/back-arrow.*: Moved here from lisp/toolbar/back_arrow.*.
+	* images/fld-open.*: Moved here from lisp/toolbar/fld_open.*.
+	* images/fwd-arrow.*: Moved here from lisp/toolbar/fwd_arrow.*.
+	* images/jump-to.*: Moved here from lisp/toolbar/jump_to.*.
+	* images/left-arrow.*: Moved here from lisp/toolbar/left_arrow.*.
+	* images/right-arrow.*: Moved here from lisp/toolbar/right_arrow.*.
+	* images/up-arrow.*: Moved here from lisp/toolbar/up_arrow.*.
+	* images/low-color/back-arrow.*: Moved here from
+	lisp/toolbar/lc-back_arrow.*. 
+	* images/low-color/fwd-arrow.*: Moved here from
+	lisp/toolbar/lc-fwd_arrow.*.
+	* images/low-color/jump-to.*: Moved here from
+	lisp/toolbar/lc-jump_to.*.
+	* images/low-color/left-arrow.*: Moved here from
+	lisp/toolbar/lc-left_arrow.*. 
+	* images/low-color/right-arrow.*: Moved here from
+	lisp/toolbar/lc-right_arrow.*. 
+	* images/low-color/up-arrow.*: Moved here from
+	lisp/toolbar/lc-up_arrow.*.
+	* images/mail/compose.*: Moved here from lisp/toolbar/mail_compose.*. 
+	* images/mail/send.*: Moved here from lisp/toolbar/mail_send.*.
+
+	* images/README: Incorporated the content of lisp/toolbar/README
+	now that all of the images are here.
+
+2005-10-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* images/gud/n.pbm, images/gud/n.xpm
+	* images/gud/ni.xpm, images/gud/ni.xpm
+	* images/gud/s.xpm, images/gud/s.xpm
+	* images/gud/si.xpm, images/gud/si.xpm: Rename to
+	next.*, nexti.*, step.*, and stepi.* , respectively, as the
+	file-name no longer clashes on 8+3 filesystems.
+
+2005-10-14  Bill Wohler	 <wohler@newt.com>
+
+	* images/gud/break.*: Moved here from toolbar/gud-break.*.
+	* images/gud/cont.*: Moved here from toolbar/gud-cont.*.
+	* images/gud/down.*: Moved here from toolbar/gud-down.*.
+	* images/gud/finish.*: Moved here from toolbar/gud-finish.*.
+	* images/gud/ni.*: Moved here from toolbar/gud-ni.*.
+	* images/gud/n.*: Moved here from toolbar/gud-n.*.
+	* images/gud/print.*: Moved here from toolbar/gud-print.*.
+	* images/gud/pstar.*: Moved here from toolbar/gud-pstar.*.
+	* images/gud/remove.*: Moved here from toolbar/gud-remove.*.
+	* images/gud/run.*: Moved here from toolbar/gud-run.*.
+	* images/gud/si.*: Moved here from toolbar/gud-si.*.
+	* images/gud/s.*: Moved here from toolbar/gud-s.*.
+	* images/gud/until.*: Moved here from toolbar/gud-until.*.
+	* images/gud/up.*: Moved here from toolbar/gud-up.*.
+	* images/gud/watch.*: Moved here from toolbar/gud-watch.*.
+
+2005-10-14  Bill Wohler	 <wohler@newt.com>
+
+	Released MH-E version 7.85.
+	  
+	* NEWS, MH-E-NEWS: Updated for release 7.85.
+
 2005-10-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* NEWS: -nb => -nbi
@@ -17,7 +110,7 @@
 2005-09-30  Bill Wohler  <wohler@newt.com>
 
 	Moved MH-E image files from toolbar and mail directories into
-	etc/images.
+	images.
 
 	* images/mail: New directory.
 

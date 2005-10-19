@@ -119,7 +119,7 @@ keyword.
 
   The way to declare new customization groups is with @code{defgroup}.
 
-@defmac defgroup group members doc [keyword value]...
+@defmac defgroup group members doc [keyword value]@dots{}
 Declare @var{group} as a customization group containing @var{members}.
 Do not quote the symbol @var{group}.  The argument @var{doc} specifies
 the documentation string for the group.  It should not start with a

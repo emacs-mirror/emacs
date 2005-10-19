@@ -109,6 +109,8 @@ are indicated with a symbol."
         (add-to-list 'buffer-file-format 'longlines)
         (add-hook 'change-major-mode-hook 'longlines-mode-off nil t)
         (make-local-variable 'buffer-substring-filters)
+	(set (make-local-variable 'isearch-search-fun-function)
+	     'longlinges-search-function)
         (add-to-list 'buffer-substring-filters 'longlines-encode-string)
         (when longlines-wrap-follows-window-size
           (set (make-local-variable 'fill-column)
@@ -148,6 +150,7 @@ are indicated with a symbol."
                  'longlines-window-change-function t)
     (when longlines-wrap-follows-window-size
       (kill-local-variable 'fill-column))
+    (kill-local-variable 'isearch-search-fun-function)
     (kill-local-variable 'require-final-newline)
     (kill-local-variable 'buffer-substring-filters)
     (kill-local-variable 'use-hard-newlines)))
@@ -380,6 +383,27 @@ This is called by `window-size-change-functions'."
     (let ((mod (buffer-modified-p)))
       (longlines-wrap-region (point-min) (point-max))
       (set-buffer-modified-p mod))))
+
+;; Isearch
+
+(defun longlinges-search-function ()
+  (cond
+   (isearch-word
+    (if isearch-forward 'word-search-forward 'word-search-backward))
+   (isearch-regexp
+    (if isearch-forward 're-search-forward 're-search-backward))
+   (t
+    (if isearch-forward
+	'longlines-search-forward
+      'longlines-search-backward))))
+
+(defun longlines-search-forward (string &optional bound noerror count)
+  (let ((search-spaces-regexp "[ \n]+"))
+    (re-search-forward (regexp-quote string) bound noerror count)))
+
+(defun longlines-search-backward (string &optional bound noerror count)
+  (let ((search-spaces-regexp "[ \n]+"))
+    (re-search-backward (regexp-quote string) bound noerror count)))
 
 ;; Loading and saving
 

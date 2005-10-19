@@ -660,6 +660,16 @@ button is pressed or inactive, respectively.  These are currently ignored."
 			    tag 'mouse-face widget-button-pressed-face)))
     (insert tag)))
 
+(defun widget-move-and-invoke (event)
+  "Move to where you click, and if it is an active field, invoke it."
+  (interactive "e")
+  (mouse-set-point event)
+  (if (widget-event-point event)
+      (let* ((pos (widget-event-point event))
+	     (button (get-char-property pos 'button)))
+	(if button
+	    (widget-button-click event)))))
+
 ;;; Buttons.
 
 (defgroup widget-button nil
@@ -3012,7 +3022,8 @@ It will read a file name from the minibuffer when invoked."
 	   (with-output-to-temp-buffer "*Completions*"
 	     (display-completion-list
 	      (sort (file-name-all-completions name-part directory)
-		    'string<)))
+		    'string<)
+	      name-part))
 	   (message "Making completion list...%s" "done")))))
 
 (defun widget-file-prompt-value (widget prompt value unbound)
@@ -3571,7 +3582,8 @@ example:
 	  (t
 	   (message "Making completion list...")
 	   (with-output-to-temp-buffer "*Completions*"
-	     (display-completion-list (all-completions prefix list nil)))
+	     (display-completion-list (all-completions prefix list nil)
+				      prefix))
 	   (message "Making completion list...done")))))
 
 (defun widget-color-sample-face-get (widget)

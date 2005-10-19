@@ -1,7 +1,7 @@
 ;;; mh-utils.el --- MH-E code needed for both sending and reading
 
 ;; Copyright (C) 1993, 1995, 1997,
-;; 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -1718,6 +1718,8 @@ Sets the current buffer to the show buffer."
       (cond ((not (equal msg-filename buffer-file-name))
              (mh-unvisit-file)
              (setq buffer-read-only nil)
+             ;; Cleanup old mime handles
+             (mh-mime-cleanup)
              (erase-buffer)
              ;; Changing contents, so this hook needs to be reinitialized.
              ;; pgp.el uses this.
@@ -1729,8 +1731,6 @@ Sets the current buffer to the show buffer."
                                              (list "-form" formfile))
                                          msg-filename)
                (insert-file-contents-literally msg-filename))
-             ;; Cleanup old mime handles
-             (mh-mime-cleanup)
              ;; Use mm to display buffer
              (when (and mh-decode-mime-flag (not formfile))
                (mh-add-missing-mime-version-header)
