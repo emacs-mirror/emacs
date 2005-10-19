@@ -198,6 +198,13 @@ following in your `.emacs' file:
   :group 'bookmark)
 
 
+(defface bookmark-menu-heading
+  '((t (:inherit font-lock-type-face)))
+  "Face used to highlight the heading in bookmark menu buffers."
+  :group 'bookmark
+  :version "22.1")
+
+
 ;;; No user-serviceable parts beyond this point.
 
 ;; Is it XEmacs?
@@ -210,12 +217,6 @@ following in your `.emacs' file:
 
 ;; suggested for lucid compatibility by david hughes:
 (or (fboundp 'frame-height)  (defalias 'frame-height 'screen-height))
-
-;; This variable is probably obsolete now...
-(or (boundp 'baud-rate)
-    ;; some random value higher than 9600
-    (setq baud-rate 19200))
-
 
 
 ;;; Keymap stuff:
@@ -1555,6 +1556,8 @@ deletion, or > if it is flagged for displaying."
   (let ((inhibit-read-only t))
     (erase-buffer)
     (insert "% Bookmark\n- --------\n")
+    (add-text-properties (point-min) (point)
+			 '(font-lock-face bookmark-menu-heading))
     (bookmark-maybe-sort-alist)
     (mapcar
      (lambda (full-record)

@@ -1,3 +1,9 @@
+2005-10-19  Romain Francoise  <romain@orebokech.com>
+
+	* bookmark.el (bookmark-menu-heading): New face.
+	(bookmark-bmenu-list): Use it.
+	Don't fiddle with `baud-rate' at top-level.
+
 2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.el (create-image, find-image): Mention max-image-size in
