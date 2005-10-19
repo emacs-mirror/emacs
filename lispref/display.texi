@@ -4061,10 +4061,14 @@ Focus}).
 @defvar max-image-size
 @tindex max-image-size
 This variable is used to define the maximum size of image that Emacs
-will load.  If its value is a floating point number, that number is
-multiplied by the width and height of the selected frame, in pixels,
-to give the maximum image width and height.  Emacs will refuse to load
-and display any image that is larger than this.
+will load.  Emacs will refuse to load (and display) any image that is
+larger than this limit.
+
+If the value is an integer, it directly specifies the maximum
+image height and width, measured in pixels.  If it is a floating
+point number, it specifies the maximum image height and width
+as a ratio to the frame height and width.  If the value is
+non-numeric, there is no explicit limit on the size of images.
 
 The purpose of this variable is to prevent unreasonably large images
 from accidentally being loaded into Emacs.  It only takes effect the
