@@ -135,7 +135,9 @@ use its file extension as image type.
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 Optional PROPS are additional image attributes to assign to the image,
 like, e.g. `:mask MASK'.
-Value is the image created, or nil if images of type TYPE are not supported."
+Value is the image created, or nil if images of type TYPE are not supported.
+
+Images should not be larger than specified by `max-image-size'."
   (when (and (not data-p) (not (stringp file-or-data)))
     (error "Invalid image file name `%s'" file-or-data))
   (cond ((null data-p)
@@ -317,7 +319,9 @@ is supported, and FILE exists, is used to construct the image
 specification to be returned.  Return nil if no specification is
 satisfied.
 
-The image is looked for in `image-load-path'."
+The image is looked for in `image-load-path'.
+
+Image files should not be larger than specified by `max-image-size'."
   (let (image)
     (while (and specs (null image))
       (let* ((spec (car specs))
