@@ -1,3 +1,9 @@
+2005-10-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el (math-standard-units): Add units, adjust
+	symbols and update values.
+	(math-unit-prefixes):  Add more prefixes.
+
 2005-10-19  Romain Francoise  <romain@orebokech.com>
 
 	* bookmark.el (bookmark-menu-heading): New face.
@@ -128,7 +134,7 @@
 
 2005-10-18  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-store (calc-store-into): Get the proper variable name
+	* calc/calc-store.el (calc-store-into): Get the proper variable name
 	to display in message.
 
 2005-10-18  Nick Roberts  <nickrob@snap.net.nz>
