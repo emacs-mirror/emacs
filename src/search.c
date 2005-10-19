@@ -429,7 +429,7 @@ string_match_1 (regexp, string, start, posix)
 
 DEFUN ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
        doc: /* Return index of start of first match for REGEXP in STRING, or nil.
-Matching ignores case `case-fold-search' is non-nil.
+Matching ignores case if `case-fold-search' is non-nil.
 If third arg START is non-nil, start search at that index in STRING.
 For index of first char beyond the match, do (match-end 0).
 `match-end' and `match-beginning' also give indices of substrings
