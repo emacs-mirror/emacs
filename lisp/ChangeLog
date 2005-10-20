@@ -1,3 +1,7 @@
+2005-10-20  Romain Francoise  <romain@orebokech.com>
+
+	* font-core.el (font-lock-mode): Doc fix.
+
 2005-10-20  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-is-tramp-root): Simplify regexp matching tramp root.
