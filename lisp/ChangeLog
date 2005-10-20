@@ -1,3 +1,8 @@
+2005-10-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-date-regexp): Handle also the case no
+	group id is given.
+
 2005-10-20  Romain Francoise  <romain@orebokech.com>
 
 	* net/rcirc.el (with-rcirc-process-buffer): Move above its first user.
