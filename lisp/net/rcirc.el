@@ -3,7 +3,6 @@
 ;; Copyright (C) 2005 Free Software Foundation, Inc.
 
 ;; Author: Ryan Yeske
-;; X-RCS: $Id: rcirc.el,v 1.288 2005/10/18 06:47:23 rcyeske Exp $
 ;; URL: http://www.nongnu.org/rcirc
 ;; Keywords: comm
 
@@ -33,9 +32,6 @@
 ;; discussion forums called channels, but also allows one-to-one
 ;; communication.
 
-;; Place this file in your `load-path' and add
-;; (autoload 'rcirc "rcirc.el" "Connect to IRC." t)
-;; to your .emacs
 ;; Open a new irc connection with:
 ;; M-x irc RET
 
@@ -171,7 +167,7 @@ use `rcirc-update-prompt' after changing this variable.")
   "Return rcirc version string.
 If optional argument HERE is non-nil, insert string at point."
   (interactive "P")
-  (let ((version "rcirc.el 0.9 $Revision: 1.288 $"))
+  (let ((version "rcirc.el 0.9 $Revision: 1.1 $"))
     (if here
 	(insert version)
       (if (interactive-p)
