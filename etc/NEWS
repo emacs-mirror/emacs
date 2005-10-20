@@ -1794,6 +1794,28 @@ boundaries during scrolling.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
+** Changes in Allout
+
+*** Topic cryptography added, enabling easy gpg topic encryption and
+decryption.  Per-topic basis enables interspersing encrypted-text and
+clear-text within a single file to your hearts content, using symmetric
+and/or public key modes.  Time-limited key caching, user-provided
+symmetric key hinting and consistency verification, auto-encryption of
+pending topics on save, and more, make it easy to use encryption in
+powerful ways.
+
+*** many substantial fixes and refinements, including:
+
+   - repaired inhibition of inadvertant edits to concealed text
+   - repaired retention of topic body hanging indent upon topic depth shifts
+   - prevent "containment discontinuities" where a topic is shifted deeper
+     than the offspring-depth of its' container
+   - easy to adopt the distinctive bullet of a topic in a topic created
+     relative to it, or select a new one, or use the common topic bullet
+   - plain bullets, by default, now alternate between only two characters
+     ('.' and ','), yielding less cluttered outlines.
+   - many internal fixes.
+
 ** The variable `woman-topic-at-point' was renamed
 to `woman-use-topic-at-point' and behaves differently: if this
 variable is non-nil, the `woman' command uses the word at point
