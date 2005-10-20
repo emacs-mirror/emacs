@@ -167,7 +167,7 @@ use `rcirc-update-prompt' after changing this variable.")
   "Return rcirc version string.
 If optional argument HERE is non-nil, insert string at point."
   (interactive "P")
-  (let ((version "rcirc.el 0.9 $Revision: 1.2 $"))
+  (let ((version "rcirc.el 0.9 $Revision: 1.3 $"))
     (if here
 	(insert version)
       (if (interactive-p)
@@ -1715,4 +1715,6 @@ Passwords are read from `rcirc-authinfo-file-name' (which see)."
 
 
 (provide 'rcirc)
+
+;; arch-tag: b471b7e8-6b5a-4399-b2c6-a3c78dfc8ffb
 ;;; rcirc.el ends here
