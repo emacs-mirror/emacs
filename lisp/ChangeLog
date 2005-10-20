@@ -1,3 +1,7 @@
+2005-10-20  Richard M. Stallman  <rms@gnu.org>
+
+	* net/rcirc.el: New file.
+
 2005-10-20  Bryan Henderson  <bryanh@giraffe-data.com>  (tiny change)
 
 	* term.el (term-term-name): Initialize to "eterm-color".

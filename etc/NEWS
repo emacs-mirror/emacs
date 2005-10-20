@@ -1500,6 +1500,18 @@ colors as on X.
 
 * New Modes and Packages in Emacs 22.1
 
+** Rcirc is now part of the Emacs distribution.
+
+Rcirc is an Internet relay chat (IRC) client.  It supports
+simultaneous connections to multiple IRC servers.  Each discussion
+takes place in its own buffer.  For each connection you can join
+several channels (many-to-many) and participate in private
+(one-to-one) chats.  Both channel and private chats are contained in
+separate buffers.
+
+To start an IRC session, type M-x irc, and follow the prompts for
+server, port, nick and initial channels.
+
 ---
 ** Newsticker is now part of the Emacs distribution.
 
