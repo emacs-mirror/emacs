@@ -1,3 +1,7 @@
+2005-10-20  Andreas Schwab  <schwab@suse.de>
+
+	* minibuf.c (Fdisplay_completion_list): Doc fix.
+
 2005-10-19  Kim F. Storm  <storm@cua.dk>
 
 	* image.c (check_image_size): Handle integer Vmax_image_size value
