@@ -306,6 +306,7 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	   -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
 	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
+	   --eval "(setq find-file-suppress-same-file-warnings t)" \
 	   --eval "(setq make-backup-files nil)" \
 	   -f batch-update-autoloads $(lisp)/mh-e
 
