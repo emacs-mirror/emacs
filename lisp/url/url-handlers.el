@@ -246,19 +246,8 @@ accessible."
 (url-handlers-create-wrapper file-writable-p (url))
 (url-handlers-create-wrapper file-directory-p (url))
 (url-handlers-create-wrapper file-executable-p (url))
-
-(if (featurep 'xemacs)
-    (progn
-      ;; XEmacs specific prototypes
-      (url-handlers-create-wrapper
-       directory-files (url &optional full match nosort files-only))
-      (url-handlers-create-wrapper
-       file-truename (url &optional default)))
-  ;; Emacs specific prototypes
-  (url-handlers-create-wrapper
-   directory-files (url &optional full match nosort))
-  (url-handlers-create-wrapper
-   file-truename (url &optional counter prev-dirs)))
+(url-handlers-create-wrapper directory-files (url &optional full match nosort))
+(url-handlers-create-wrapper file-truename (url &optional counter prev-dirs))
 
 (add-hook 'find-file-hook 'url-handlers-set-buffer-mode)
 
