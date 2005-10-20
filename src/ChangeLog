@@ -1,3 +1,24 @@
+2005-10-20  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (clone_per_buffer_values): Remove unused var tem.
+	(init_buffer): Remove unused vars dotstat, pwdstat.
+
+	* ccl.c (check_ccl_update): Remove unused var vp.
+
+	* fileio.c (auto_save_error): Call SAFE_FREE.
+
+	* fns.c (Fchar_table_range): Remove unused var i.
+
+	* minibuf.c (display_completion_list_1): New wrapper function
+	for Fdisplay_completion_list.
+	(Fminibuffer_completion_help): Use it.
+
+	* term.c (encode_terminal_code): Remove unused var src_start.
+
+	* window.c (Fwindow_tree): Remove unused var alist.
+
+	* xterm.c (x_calc_absolute_position): Remove unused vars win_x, win_y.
+
 2005-10-20  Aubrey Jaffer  <agj@alum.mit.edu>  (tiny change)
 
 	* unexelf.c (unexec): Fix calls to `fatal' with less than 3
