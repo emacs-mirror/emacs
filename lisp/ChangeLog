@@ -1,3 +1,7 @@
+2005-10-20  Bryan Henderson  <bryanh@giraffe-data.com>  (tiny change)
+
+	* term.el (term-term-name): Initialize to "eterm-color".
+
 2005-10-20  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	Update allout.el to a new version.
