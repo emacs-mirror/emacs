@@ -702,7 +702,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 #if MAP_ANON == 0
   mmap_fd = open ("/dev/zero", O_RDONLY);
   if (mmap_fd < 0)
-    fatal ("Can't open /dev/zero for reading: errno %d\n", errno);
+    fatal ("Can't open /dev/zero for reading: errno %d\n", errno, 0);
 #endif
 
   /* We cannot use malloc here because that may use sbrk.  If it does,
@@ -713,7 +713,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   old_base = mmap (NULL, old_file_size, PROT_READ | PROT_WRITE,
 		   MAP_ANON | MAP_PRIVATE, mmap_fd, 0);
   if (old_base == MAP_FAILED)
-    fatal ("Can't allocate buffer for %s\n", old_name);
+    fatal ("Can't allocate buffer for %s\n", old_name, 0);
 
   if (read (old_file, old_base, stat_buf.st_size) != stat_buf.st_size)
     fatal ("Didn't read all of %s: errno %d\n", old_name, errno);
@@ -802,7 +802,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   new_base = mmap (NULL, new_file_size, PROT_READ | PROT_WRITE,
 		   MAP_ANON | MAP_PRIVATE, mmap_fd, 0);
   if (new_base == MAP_FAILED)
-    fatal ("Can't allocate buffer for %s\n", old_name);
+    fatal ("Can't allocate buffer for %s\n", old_name, 0);
 
   new_file_h = (ElfW(Ehdr) *) new_base;
   new_program_h = (ElfW(Phdr) *) ((byte *) new_base + old_file_h->e_phoff);
@@ -1079,7 +1079,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  && old_mdebug_index != -1)
         {
 	  int diff = NEW_SECTION_H(nn).sh_offset
-	 	- OLD_SECTION_H(old_mdebug_index).sh_offset;
+		- OLD_SECTION_H(old_mdebug_index).sh_offset;
 	  HDRR *phdr = (HDRR *)(NEW_SECTION_H (nn).sh_offset + new_base);
 
 	  if (diff)
@@ -1257,9 +1257,13 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   /* Write out new_file, and free the buffers.  */
 
   if (write (new_file, new_base, new_file_size) != new_file_size)
+#ifndef emacs
+    fatal ("Didn't write %d bytes: errno %d\n",
+	   new_file_size, errno);
+#else
     fatal ("Didn't write %d bytes to %s: errno %d\n",
 	   new_file_size, new_base, errno);
-
+#endif
   munmap (old_base, old_file_size);
   munmap (new_base, new_file_size);
 
