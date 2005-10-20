@@ -108,6 +108,8 @@
 
 2005-10-20  Romain Francoise  <romain@orebokech.com>
 
+	* replace.el (occur-engine): Add follow-link property.
+
 	* font-core.el (font-lock-mode): Doc fix.
 
 2005-10-20  Kim F. Storm  <storm@cua.dk>
