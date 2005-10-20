@@ -1,3 +1,11 @@
+2005-10-20  Jari Aalto  <jari.aalto@cante.net>
+
+	* mail/sendmail.el (mail-setup-hook, mail-aliases)
+	(mail-yank-prefix, mail-indentation-spaces, mail-yank-hooks)
+	(mail-citation-prefix-regexp, mail-signature-file)
+	(mail-default-headers, mail-bury-selects-summary)
+	(mail-send-nonascii): Add autoload cookies.
+
 2005-10-20  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
 
 	* frame.el (blink-cursor-mode): Add `mac' to the list of
