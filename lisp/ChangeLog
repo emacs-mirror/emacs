@@ -1,3 +1,9 @@
+2005-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(lisp)/mh-e/mh-loaddefs.el): Bind
+	find-file-suppress-same-file-warnings to t, to avoid warnings due
+	to different drive letter case in D:/foo/bar.el vs d:/foo/bar.el.
+
 2005-10-20  Romain Francoise  <romain@orebokech.com>
 
 	* font-core.el (font-lock-mode): Doc fix.
