@@ -2364,7 +2364,7 @@ At the end, this runs the normal hook `completion-setup-hook'.
 It can find the completion buffer in `standard-output'.  
 The optional second arg COMMON-SUBSTRING is a string. 
 It is used to put faces, `completions-first-difference` and
-`completions-common-part' on the completion bufffer. The
+`completions-common-part' on the completion buffer. The
 `completions-common-part' face is put on the common substring
 specified by COMMON-SUBSTRING. If COMMON-SUBSTRING is nil,
 the faces are not put. 
