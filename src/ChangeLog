@@ -1,3 +1,7 @@
+2005-10-20  Olli Savia  <ops@iki.fi>  (tiny change)
+
+	* syssignal.h [__Lynx__]: Undef SIGPOLL along with SIGIO.
+
 2005-10-20  Andreas Schwab  <schwab@suse.de>
 
 	* minibuf.c (Fdisplay_completion_list): Doc fix.
