@@ -167,7 +167,7 @@ use `rcirc-update-prompt' after changing this variable.")
   "Return rcirc version string.
 If optional argument HERE is non-nil, insert string at point."
   (interactive "P")
-  (let ((version "rcirc.el 0.9 $Revision: 1.1 $"))
+  (let ((version "rcirc.el 0.9 $Revision: 1.2 $"))
     (if here
 	(insert version)
       (if (interactive-p)
@@ -554,6 +554,11 @@ If buffer is nil, return the target of the current buffer."
 
   (run-hooks 'rcirc-mode-hook))
 
+(defmacro with-rcirc-process-buffer (process &rest body)
+  (declare (indent 1) (debug t))
+  `(with-current-buffer (process-buffer ,process)
+     ,@body))
+
 (defun rcirc-update-prompt ()
   "Reset the prompt string in the current buffer."
   (let ((inhibit-read-only t)
@@ -776,11 +781,6 @@ Used for displaying messages that don't have an explicit destination."
   "Set the last working buffer for PROCESS to BUFFER."
   (with-current-buffer (process-buffer process)
     (setq rcirc-last-buffer buffer)))
-
-(defmacro with-rcirc-process-buffer (process &rest body)
-  (declare (indent 1) (debug t))
-  `(with-current-buffer (process-buffer ,process)
-     ,@body))
 
 (defun rcirc-format-response-string (process sender response target text)
   (concat (when rcirc-time-format

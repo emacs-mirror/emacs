@@ -112,6 +112,9 @@
 
 2005-10-20  Romain Francoise  <romain@orebokech.com>
 
+	* net/rcirc.el (with-rcirc-process-buffer): Move above its first
+	user.
+
 	* replace.el (occur-engine): Add follow-link property.
 
 	* font-core.el (font-lock-mode): Doc fix.
