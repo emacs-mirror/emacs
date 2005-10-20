@@ -113,6 +113,11 @@ much pure storage it will approximately need.
 contents of buffers from a core dump and save them to files easily, should
 emacs crash.
 
+---
+** The Emacs terminal emulation in term.el uses a different terminfo name.
+The Emacs terminal emulation in term.el now uses "eterm-color" as its
+terminfo name, since term.el now supports color.
+
 
 * Startup Changes in Emacs 22.1
 
