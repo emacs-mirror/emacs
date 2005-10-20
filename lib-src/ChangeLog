@@ -1,3 +1,8 @@
+2005-10-06  Olli Savia  <ops@iki.fi>  (tiny change)
+
+	* etags.c: Undef STDIN if defined.  (LynxOS defines it in system
+	header files.)
+
 2005-09-27  Francesco Potort,Al(B  <pot@gnu.org>
 
 	* etags.c: Preliminary Forth support.
