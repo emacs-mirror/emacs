@@ -1,3 +1,8 @@
+2005-10-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/org.el (org-level-color-stars-only): Fix typo in doc
+	string.
+
 2005-10-20  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(lisp)/mh-e/mh-loaddefs.el): Bind

@@ -777,7 +777,7 @@ as possible."
 (defcustom org-level-color-stars-only nil
   "Non-nil means fontify only the stars in each headline.
 When nil, the entire headline is fontified.
-After changin this, requires restart of Emacs to become effective."
+After changing this, requires restart of Emacs to become effective."
   :group 'org-structure
   :type 'boolean)
 
