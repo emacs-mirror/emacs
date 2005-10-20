@@ -1,3 +1,8 @@
+2005-10-20  Aubrey Jaffer  <agj@alum.mit.edu>  (tiny change)
+
+	* unexelf.c (unexec): Fix calls to `fatal' with less than 3
+	arguments.
+
 2005-10-20  Olli Savia  <ops@iki.fi>  (tiny change)
 
 	* syssignal.h [__Lynx__]: Undef SIGPOLL along with SIGIO.

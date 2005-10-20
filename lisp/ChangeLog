@@ -1,3 +1,83 @@
+2005-10-20  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	Update allout.el to a new version.
+	* allout.el: Add autoloads of crypt++ and mailcrypt routines, all
+	for encryption functionality.
+	allout customization subgroup now positioned in `outlines' group
+	instead of prior `editing' group.
+	(allout-encrypt-string, allout-encryption-produce-work-buffer)
+	(allout-encrypted-topic-p, allout-encrypted-text-type)
+	(allout-mc-activate-passwd, allout-create-encryption-key-verifier)
+	(allout-situate-encryption-key-verifier)
+	(allout-get-encryption-key-verifier, allout-verify-key)
+	(allout-next-topic-pending-encryption)
+	(allout-encrypt-decrypted, allout-encrypted-type-prefix): New
+	functions.
+	(outline-topic-encryption-bullet, outline-default-encryption-scheme)
+	(outline-key-verifier-handling, outline-key-hint-handling)
+	(outline-encrypt-unencrypted-on-saves): New defcustoms.
+	(allout-file-key-verifier-string, allout-encryption-scheme)
+	(allout-key-verifier-string, allout-key-hint-string)
+	(allout-after-save-decrypt): New variables.
+	(allout-write-file-hook-handler, allout-auto-save-hook-handler)
+	(allout-after-saves-handler): New hook functions.
+	(allout-post-command-business): Do allout-after-save-decrypt.
+	(allout-enable-file-variable-adjustment): Custom var to enable
+	mechanism for adding and adjusting settings of Emacs file variables.
+	(allout-adjust-file-variable, allout-file-vars-section-data): New
+	functions, implement the mechanism.
+	(outlineify-sticky): Use the file vars mechanism.
+	(allout-inhibit-protection, allout-during-write-cue)
+	(allout-override-protect, allout-before-change-protect): Removed.
+	(allout-flag-region, allout-open-topic): Revised to adjust
+	read-only text.
+	(allout-open-line-not-read-only): Added to facilitate read-only
+	text based protection.
+	(allout-kill-line): Revised to adjust read-only text, clue the
+	user about the inhibition.
+	(allout-unprotected): Robustified with an unwind-protect.
+	(allout-shift-in, allout-shift-out): Disallow manually shifting a
+	topic deeper than the offspring depth of the previous topic -
+	avoiding confusing "containment discontinuities".
+	(allout-reindent-bodies): Fixed retention of body relative hanging
+	indent during promotion of collapsed bodies.
+	(allout-open-topic): Made it easy to open new topic with same
+	bullet as current topic - topic creation functions provided with
+	any universal argument provokes now prompt for bullet, defaulting
+	to the bullet of the previous topic.
+	(allout-plain-bullets-string, allout-distinctive-bullets-string):
+	Plain bullet alternates '.' period and ',' comma only.  All other
+	bullets are relegated to special status (but customizable).
+	(allout-end-of-entry): Renamed from 'allout-end-of-current-entry
+	since it actually operates w.r.t. most immediately containing
+	entry, visible or not.
+	(allout-hide-current-entry, allout-show-current-entry): Use the
+	revised version.
+	(allout-old-expose-topic): Solidify deprecation.
+	(allout-end-of-subtree): Added, so we can span concealed as well
+	as visible topics.
+	(allout-end-of-current-subtree): Use `allout-end-of-subtree'.
+	(allout-end-of-current-heading): Tweaked to just respect the first
+	line.
+	(allout-get-body-text): Added.
+	(allout-ascend-to-depth, allout-ascend): Position at end of prefix
+	when invoked interactively.
+	(allout-up-current-level): Use `interactive-p'.
+	(allout-mode, allout-init): Miscellaneous docstring and
+	operational refinements, as well as hookups of new encryption stuff.
+	(allout-beginning-of-current-entry): Now works as advertised.
+	(allout-end-of-current-entry): Relieved of superfluous
+	allout-show-entry.
+	(allout-isearch-rectification): Refine condition for isearching
+	(allout-isearch-abort, allout-enwrap-isearch).
+	(allout-flag-region, my-region-active-p): Relocated some macros.
+	(allout-title): Fallback title is '(buffer-name)', not
+	non-existing '(current-buffer-name)'.
+	(subst-char-in-string): Define if absent (for some XEmacs versions).
+	Corrected commentary 'keywords' to legitimate ones.
+	Updated comentary author info (using my current email address,
+	obscurified).
+
 2005-10-20  Jari Aalto  <jari.aalto@cante.net>
 
 	* mail/sendmail.el (mail-setup-hook, mail-aliases)
