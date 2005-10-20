@@ -1,4 +1,4 @@
-2005-10-06  Olli Savia  <ops@iki.fi>  (tiny change)
+2005-10-20  Olli Savia  <ops@iki.fi>  (tiny change)
 
 	* etags.c: Undef STDIN if defined.  (LynxOS defines it in system
 	header files.)
