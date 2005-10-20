@@ -38,7 +38,7 @@
 	* configure.in (AC_CHECK_FUNCS): Check for get_current_dir_name.
 	* configure: Regenerated.
 
-2005-09-09  Eli Zaretskii  <eliz@fencepost.gnu.org>
+2005-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.in <lynxsos*>: Support for LynxOS on PPC.
 	* configure: Regenerated.
