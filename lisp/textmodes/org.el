@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.17
+;; Version: 3.18
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -80,6 +80,10 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.18
+;;    - Export of calendar information in the standard iCalendar format.
+;;    - Some bug fixes.
+;;
 ;; Version 3.17
 ;;    - HTML export specifies character set depending on coding-system.
 ;;
@@ -213,7 +217,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.17"
+(defvar org-version "3.18"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -1489,6 +1493,23 @@ Otherwise the buffer will just be saved to a file and stay hidden."
 Otherwise, the buffer will just be saved to a file and stay hidden."
   :group 'org-export
   :type 'boolean)
+
+(defcustom org-combined-agenda-icalendar-file "~/org.ics"
+  "The file name for the iCalendar file covering all agenda files.
+This file is created with the command \\[org-export-icalendar-all-agenda-files]."
+  :group 'org-export
+  :type 'file)
+
+(defcustom org-icalendar-include-todo nil
+  "Non-nil means, export to iCalendar files should also cover TODO items."
+  :group 'org-export
+  :type 'boolean)
+
+;; FIXME: not yet used.
+(defcustom org-icalendar-combined-name "OrgMode"
+  "Calendar name for the combined iCalendar representing all agenda files."
+  :group 'org-export
+  :type 'string)
 
 (defgroup org-faces nil
   "Faces for highlighting in Org-mode."
@@ -3179,7 +3200,8 @@ used to insert the time stamp into the buffer to include the time."
 	;; Copied (with modifications) from planner.el by John Wiegley
 	(save-excursion
 	  (save-window-excursion
-	    (calendar)
+	    (let ((view-diary-entries-initially nil))
+	      (calendar))
 	    (calendar-forward-day (- (time-to-days default-time)
 				     (calendar-absolute-from-gregorian
 				      (calendar-current-date))))
@@ -3523,7 +3545,8 @@ A prefix ARG can be used force the current date."
 	      (d2 (time-to-days
 		   (org-time-string-to-time (match-string 1)))))
 	  (setq diff (- d2 d1))))
-    (calendar)
+    (let ((view-diary-entries-initially nil))
+      (calendar))
     (calendar-goto-today)
     (if (and diff (not arg)) (calendar-forward-day diff))))
 
@@ -3628,7 +3651,7 @@ The following commands are available:
 (define-key org-agenda-mode-map [?\C-c ?\C-x (down)] 'org-agenda-priority-down)
 (define-key org-agenda-mode-map [(right)] 'org-agenda-later)
 (define-key org-agenda-mode-map [(left)] 'org-agenda-earlier)
-
+(define-key org-agenda-mode-map "\C-c\C-x\C-c" 'org-export-icalendar-combine-agenda-files)
 (defvar org-agenda-keymap (copy-keymap org-agenda-mode-map)
   "Local keymap for agenda entries from Org-mode.")
 
@@ -3681,6 +3704,7 @@ The following commands are available:
      ["Sunrise/Sunset" org-agenda-sunrise-sunset t]
      ["Holidays" org-agenda-holidays t]
      ["Convert" org-agenda-convert-date t])
+    ["Create iCalendar file" org-export-icalendar-combine-agenda-files t]
     "--"
     ["Quit" org-agenda-quit t]
     ["Exit and Release Buffers" org-agenda-exit t]
@@ -4253,6 +4277,9 @@ Optional argument FILE means, use this file instead of the current."
 
 (defun org-file-menu-entry (file)
   (vector file (list 'find-file file) t))
+;; FIXME: Maybe removed a buffer visited through the menu from
+;; org-agenda-new-buffers, so that the buffer will not be removed
+;; when exiting the agenda????
 
 (defun org-get-all-dates (beg end &optional no-ranges force-today)
   "Return a list of all relevant day numbers from BEG to END buffer positions.
@@ -5222,7 +5249,8 @@ argument, latitude and longitude will be prompted for."
   (let* ((day (or (get-text-property (point) 'day)
 		  (error "Don't know which date to open in calendar")))
 	 (date (calendar-gregorian-from-absolute day)))
-    (calendar)
+    (let ((view-diary-entries-initially nil))
+      (calendar))
     (calendar-goto-date date)))
 
 (defun org-calendar-goto-agenda ()
@@ -8031,10 +8059,10 @@ to execute outside of tables."
 	 "--"
 	 ["Insert Hline" org-table-insert-hline :active (org-at-table-p) :keys "C-c -"])
 	("Rectangle"
-	 ["Copy Rectangle" org-copy-special :active (org-at-table-p) :keys "C-c C-x M-w"]
-	 ["Cut Rectangle" org-cut-special :active (org-at-table-p) :keys "C-c C-x C-w"]
-	 ["Paste Rectangle" org-paste-special :active (org-at-table-p) :keys "C-c C-x C-y"]
-	 ["Fill Rectangle" org-table-wrap-region :active (org-at-table-p) :keys "C-c C-q"])
+	 ["Copy Rectangle" org-copy-special :active (org-at-table-p)]
+	 ["Cut Rectangle" org-cut-special :active (org-at-table-p)]
+	 ["Paste Rectangle" org-paste-special :active (org-at-table-p)]
+	 ["Fill Rectangle" org-table-wrap-region :active (org-at-table-p)])
 	"--"
 	["Set Column Formula" org-table-eval-formula :active (org-at-table-p) :keys "C-c ="]
 	["Set Named Field Formula" (org-table-eval-formula '(4)) :active (org-at-table-p) :keys "C-u C-c ="]
@@ -8834,6 +8862,8 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	 (coding-system (and (fboundp 'coding-system-get)
 			     (boundp 'buffer-file-coding-system)
 			     buffer-file-coding-system))
+	 (coding-system-for-write (or coding-system coding-system-for-write))
+	 (save-buffer-coding-system (or coding-system save-buffer-coding-system))
 	 (charset (and coding-system
 		       (coding-system-get coding-system 'mime-charset)))
 	 table-open type
@@ -9066,6 +9096,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	(if org-export-html-with-timestamp
 	    (insert org-export-html-html-helper-timestamp))
 	(insert "</body>\n</html>\n")
+	(debug)
 	(normal-mode)
 	(save-buffer)
 	(goto-char (point-min)))))
@@ -9409,6 +9440,172 @@ When LEVEL is non-nil, increase section numbers on that level."
     string))
 
 
+
+
+
+(defun org-export-icalendar-this-file ()
+  "Export current file as an iCalendar file.
+The iCalendar file will be located in the same directory as the Org-mode
+file, but with extension `.ics'."
+  (interactive)
+  (org-export-icalendar nil (buffer-file-name)))
+
+;;;###autoload
+(defun org-export-icalendar-all-agenda-files ()
+  "Export all files in `org-agenda-files' to iCalendar .ics files.
+Each iCalendar file will be located in the same directory as the Org-mode
+file, but with extension `.ics'."
+  (interactive)
+  (apply 'org-export-icalendar nil org-agenda-files))
+
+;;;###autoload
+(defun org-export-icalendar-combine-agenda-files ()
+  "Export all files in `org-agenda-files' to a single combined iCalendar file.
+The file is stored under the name `org-combined-agenda-icalendar-file'."
+  (interactive)
+  (apply 'org-export-icalendar t org-agenda-files))
+
+(defun org-export-icalendar (combine &rest files)
+  "Create iCalendar files for all elements of FILES.
+If COMBINE is non-nil, combine all calendar entries into a single large
+file and store it under the name `org-combined-agenda-icalendar-file'."
+  (save-excursion
+    (let* (file ical-file ical-buffer category started org-agenda-new-buffers)
+      (when combine
+	(setq ical-file org-combined-agenda-icalendar-file
+	      ical-buffer (org-get-agenda-file-buffer ical-file))
+	(set-buffer ical-buffer) (erase-buffer))
+      (while (setq file (pop files))
+	(catch 'nextfile
+	  (org-check-agenda-file file)
+	  (unless combine
+	    (setq ical-file (concat (file-name-sans-extension file) ".ics"))
+	    (setq ical-buffer (org-get-agenda-file-buffer ical-file))
+	    (set-buffer ical-buffer) (erase-buffer))
+	  (set-buffer (org-get-agenda-file-buffer file))
+	  (setq category (or org-category
+			     (file-name-sans-extension
+			      (file-name-nondirectory (buffer-file-name)))))
+	  (if (symbolp category) (setq category (symbol-name category)))
+	  (let ((standard-output ical-buffer))
+	    (if combine
+		(and (not started) (setq started t)
+		     (org-start-icalendar-file "OrgMode"))
+	      (org-start-icalendar-file category))
+	    (org-print-icalendar-entries combine category)
+	    (when (or (and combine (not files)) (not combine))
+	      (org-finish-icalendar-file)
+	      (set-buffer ical-buffer)
+	      (save-buffer)
+	      (run-hooks 'org-after-save-iCalendar-file-hook)))))
+      (org-release-buffers org-agenda-new-buffers))))
+
+(defvar org-after-save-iCalendar-file-hook nil
+  "Hook run after an iCalendar file has been saved.
+The iCalendar buffer is still current when this hook is run.
+A good way to use this is to tell a desktop calenndar application to re-read
+the iCalendar file.")
+
+(defun org-print-icalendar-entries (&optional combine category)
+  "Print iCalendar entries for the current Org-mode file to `standard-output'.
+When COMBINE is non nil, add the category to each line."
+  (let ((re2 (concat "--?-?\\(" org-ts-regexp "\\)"))
+	(dts (org-ical-ts-to-string
+	      (format-time-string (cdr org-time-stamp-formats) (current-time))
+	      "DTSTART"))
+	hd ts ts2 state (inc t) pos scheduledp deadlinep donep tmp pri)
+    (save-excursion
+      (goto-char (point-min))
+      (while (re-search-forward org-ts-regexp nil t)
+	(setq pos (match-beginning 0)
+	      ts (match-string 0)
+	      inc t
+	      hd (org-get-heading))
+	(if (looking-at re2)
+	    (progn
+	      (goto-char (match-end 0))
+	      (setq ts2 (match-string 1) inc nil))
+	  (setq ts2 ts
+		tmp (buffer-substring (max (point-min)
+					     (- pos org-ds-keyword-length))
+				      pos)
+		deadlinep (string-match org-deadline-regexp tmp)
+		scheduledp (string-match org-scheduled-regexp tmp)
+		donep (org-entry-is-done-p)))
+	(if (or (string-match org-tr-regexp hd)
+		(string-match org-ts-regexp hd))
+	    (setq hd (replace-match "" t t hd)))		
+	(if combine
+	    (setq hd (concat hd " (category " category ")")))
+	(if deadlinep (setq hd (concat "DL: " hd " This is a deadline")))
+	(if scheduledp (setq hd (concat "S: " hd " Scheduled for this date")))
+	(princ (format "BEGIN:VEVENT
+%s
+%s
+SUMMARY:%s
+END:VEVENT\n"
+		       (org-ical-ts-to-string ts "DTSTART")
+		       (org-ical-ts-to-string ts2 "DTEND" inc)
+		       hd)))
+      (when org-icalendar-include-todo
+	(goto-char (point-min))
+	(while (re-search-forward org-todo-line-regexp nil t)
+	  (setq state (match-string 1))
+	  (unless (equal state org-done-string)
+	    (setq hd (match-string 3))
+	    (if (string-match org-priority-regexp hd)
+		(setq pri (string-to-char (match-string 2 hd))
+		      hd (concat (substring hd 0 (match-beginning 1))
+				 (substring hd (- (match-end 1)))))
+	      (setq pri org-default-priority))
+	    (setq pri (floor (1+ (* 8. (/ (float (- org-lowest-priority pri))
+					  (- org-lowest-priority ?A))))))
+
+	    (princ (format "BEGIN:VTODO
+%s
+SUMMARY:%s
+SEQUENCE:1
+PRIORITY:%d
+END:VTODO\n"
+			   dts hd pri))))))))
+
+(defun org-start-icalendar-file (name)
+  "Start an iCalendar file by inserting the header."
+  (let ((user user-full-name)
+	(calname "something")
+	(name (or name "unknown"))
+	(timezone "FIXME"))
+    (princ
+     (format "BEGIN:VCALENDAR
+VERSION:2.0
+X-WR-CALNAME:%s
+PRODID:-//%s//Emacs with Org-mode//EN
+X-WR-TIMEZONE:Europe/Amsterdam
+CALSCALE:GREGORIAN\n" name user timezone))))
+
+(defun org-finish-icalendar-file ()
+  "Finish an iCalendar file by inserting the END statement."
+  (princ "END:VCALENDAR\n"))
+
+(defun org-ical-ts-to-string (s keyword &optional inc)
+  "Take a time string S and convert it to iCalendar format.
+KEYWORD is added in front, to make a complete line like DTSTART....
+When INC is non-nil, increase the hour by two (if time string contains
+a time), or the day by one (if it does not contain a time)."
+  (let ((t1 (org-parse-time-string s 'nodefault))
+	t2 fmt have-time time)
+    (if (and (car t1) (nth 1 t1) (nth 2 t1))
+	(setq t2 t1 have-time t)
+      (setq t2 (org-parse-time-string s)))
+    (let ((s (car t2))   (mi (nth 1 t2)) (h (nth 2 t2))
+	  (d (nth 3 t2)) (m  (nth 4 t2)) (y (nth 5 t2)))
+      (when inc
+	(if have-time (setq h (+ 2 h)) (setq d (1+ d))))
+      (setq time (encode-time s mi h d m y)))
+    (setq fmt (if have-time ":%Y%m%dT%H%M%S" ";VALUE=DATE:%Y%m%d"))
+    (concat keyword (format-time-string fmt time))))
+
+
 ;;; Key bindings
 
 ;; - Bindings in Org-mode map are currently
@@ -9510,9 +9707,13 @@ When LEVEL is non-nil, increase section numbers on that level."
 (define-key org-mode-map "\C-c\C-x\C-a"   'org-export-as-ascii)
 (define-key org-mode-map "\C-c\C-xv"      'org-export-copy-visible)
 (define-key org-mode-map "\C-c\C-x\C-v"   'org-export-copy-visible)
-;; OPML support is only planned
+;; OPML support is only an option for the future
 ;(define-key org-mode-map "\C-c\C-xo"      'org-export-as-opml)
 ;(define-key org-mode-map "\C-c\C-x\C-o"   'org-export-as-opml)
+(define-key org-mode-map "\C-c\C-xi"      'org-export-icalendar-this-file)
+(define-key org-mode-map "\C-c\C-x\C-i"   'org-export-icalendar-all-agenda-files)
+(define-key org-mode-map "\C-c\C-xc"      'org-export-icalendar-combine-agenda-files)
+(define-key org-mode-map "\C-c\C-x\C-c"   'org-export-icalendar-combine-agenda-files)
 (define-key org-mode-map "\C-c\C-xt"      'org-insert-export-options-template)
 (define-key org-mode-map "\C-c:"          'org-toggle-fixed-width-section)
 (define-key org-mode-map "\C-c\C-xh"      'org-export-as-html)
@@ -9944,6 +10145,11 @@ See the individual commands for more information."
      ["HTML"  org-export-as-html t]
      ["HTML and Open" org-export-as-html-and-open t]
 ;     ["OPML" org-export-as-opml nil]
+     "--"
+     ["iCalendar this file" org-export-icalendar-this-file t]
+     ["iCalendar all agenda files" org-export-icalendar-all-agenda-files
+      :active t :keys "C-c C-x C-i"]
+     ["iCalendar combined" org-export-icalendar-combine-agenda-files t]
      "--"
      ["Option Template" org-insert-export-options-template t]
      ["Toggle Fixed Width" org-toggle-fixed-width-section t])
