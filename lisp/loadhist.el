@@ -53,24 +53,23 @@ a buffer with no associated file, or an `eval-region', return nil."
     (car (feature-symbols feature))))
 
 (defun file-loadhist-lookup (file)
-  "Return the `load-history' element for FILE."
+  "Return the `load-history' element for FILE.
+FILE can be a file name, or a library name.
+A library name is equivalent to the file name that `load-library' would load."
   ;; First look for FILE as given.
   (let ((symbols (assoc file load-history)))
     ;; Try converting a library name to an absolute file name.
     (and (null symbols)
-	 (let ((absname (find-library-name file)))
-	   (if (not (equal absname file))
-	       (setq symbols (cdr (assoc absname load-history))))))
-    ;; Try converting an absolute file name to a library name.
-    (and (null symbols) (string-match "[.]el\\'" file)
-	 (let ((libname (file-name-nondirectory file)))
-	   (string-match "[.]el\\'" libname)
-	   (setq libname (substring libname 0 (match-beginning 0)))
-	   (setq symbols (cdr (assoc libname load-history)))))
+	 (let ((absname 
+		(locate-file file load-path load-suffixes)))
+	   (and absname (not (equal absname file))
+		(setq symbols (cdr (assoc absname load-history))))))
     symbols))
 
 (defun file-provides (file)
-  "Return the list of features provided by FILE."
+  "Return the list of features provided by FILE as it was loaded.
+FILE can be a file name, or a library name.
+A library name is equivalent to the file name that `load-library' would load."
   (let ((symbols (file-loadhist-lookup file))
 	provides)
     (mapc (lambda (x)
@@ -80,7 +79,9 @@ a buffer with no associated file, or an `eval-region', return nil."
     provides))
 
 (defun file-requires (file)
-  "Return the list of features required by FILE."
+  "Return the list of features required by FILE as it was loaded.
+FILE can be a file name, or a library name.
+A library name is equivalent to the file name that `load-library' would load."
   (let ((symbols (file-loadhist-lookup file))
 	requires)
     (mapc (lambda (x)
@@ -98,7 +99,9 @@ a buffer with no associated file, or an `eval-region', return nil."
 
 (defun file-dependents (file)
   "Return the list of loaded libraries that depend on FILE.
-This can include FILE itself."
+This can include FILE itself.
+FILE can be a file name, or a library name.
+A library name is equivalent to the file name that `load-library' would load."
   (let ((provides (file-provides file))
 	(dependents nil))
     (dolist (x load-history dependents)
