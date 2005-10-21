@@ -1,3 +1,16 @@
+2005-10-22  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (image-type-header-regexps): Rename from image-type-regexps.
+	Change users.
+	(image-type-file-name-regexps): New defconst.
+	(image-type-from-data): Simplify loop.
+	(image-type-from-buffer): New defun.
+	(image-type-from-file-header): Use it instead of image-type-from-data.
+	Use image-search-load-path instead of only looking in data-directory.
+	(image-type-from-file-name): New defun.
+	(image-search-load-path): Make PATH arg optional, default to image-load-path.
+	Change `pathname' to `filename'.
+
 2005-10-21  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/texinfo.el (texinfo-mode): Set sentence-end-base.
