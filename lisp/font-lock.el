@@ -1048,8 +1048,7 @@ a very meaningful entity to highlight.")
           (setq beg (line-beginning-position (- 1 font-lock-lines-before)))
 	  ;; check to see if we should expand the beg/end area for
 	  ;; proper multiline matches
-	  (when (and font-lock-multiline
-		     (> beg (point-min))
+	  (when (and (> beg (point-min))
 		     (get-text-property (1- beg) 'font-lock-multiline))
 	    ;; We are just after or in a multiline match.
 	    (setq beg (or (previous-single-property-change
@@ -1057,10 +1056,9 @@ a very meaningful entity to highlight.")
 			  (point-min)))
 	    (goto-char beg)
 	    (setq beg (line-beginning-position)))
-	  (when font-lock-multiline
-	    (setq end (or (text-property-any end (point-max)
-					     'font-lock-multiline nil)
-			  (point-max))))
+          (setq end (or (text-property-any end (point-max)
+                                           'font-lock-multiline nil)
+                        (point-max)))
 	  (goto-char end)
 	  ;; Round up to a whole line.
           (unless (bolp) (setq end (line-beginning-position 2)))

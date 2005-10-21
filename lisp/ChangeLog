@@ -1,3 +1,8 @@
+2005-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-default-fontify-region): Check the multiline
+	property independently from the font-lock-multiline variable.
+
 2005-10-21  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/find-func.el (find-library-name): Doc fix.
