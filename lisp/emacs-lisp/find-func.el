@@ -141,7 +141,7 @@ See the functions `find-function' and `find-variable'."
       (unless (string-match "elc" suffix) (push suffix suffixes)))))
 
 (defun find-library-name (library)
-  "Return the full name of the elisp source of LIBRARY."
+  "Return the absolute file name of the Lisp source of LIBRARY."
   ;; If the library is byte-compiled, try to find a source library by
   ;; the same name.
   (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
