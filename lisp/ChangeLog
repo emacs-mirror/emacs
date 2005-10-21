@@ -1,3 +1,15 @@
+2005-10-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-face.el (custom-declare-face): Make face from X resources
+	also on Mac.
+
+	* disp-table.el (standard-display-g1, standard-display-graphic):
+	Refuse to use string glyphs also on Mac.
+	(standard-display-european): Don't set terminal coding system also
+	on Mac.
+
+	* frame.el (display-screens): Use x-display-screens also on Mac.
+
 2005-10-21  Romain Francoise  <romain@orebokech.com>
 
 	* net/rcirc.el: Now part of GNU Emacs.  Update FSF's address.
