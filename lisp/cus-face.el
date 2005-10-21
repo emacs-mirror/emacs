@@ -47,7 +47,7 @@
 	  (dolist (frame (frame-list))
 	    (face-spec-set face value frame)))
 	;; When making a face after frames already exist
-	(if (memq window-system '(x w32))
+	(if (memq window-system '(x w32 mac))
 	    (make-face-x-resource-internal face))))
     ;; Don't record SPEC until we see it causes no errors.
     (put face 'face-defface-spec spec)
