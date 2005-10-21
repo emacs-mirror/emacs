@@ -1,3 +1,10 @@
+2005-10-21  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/texinfo.el (texinfo-mode): Set sentence-end-base.
+
+	* textmodes/paragraphs.el (sentence-end-base): New variable.
+	(sentence-end): Use sentence-end-base.
+
 2005-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-default-fontify-region): Check the multiline
