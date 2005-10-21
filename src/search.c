@@ -1709,7 +1709,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	  if (ASCII_BYTE_P (*ptr) || ! multibyte)
 	    ch = *ptr;
 	  else if (charset_base
-		   && (pat_end - ptr) == 1 || CHAR_HEAD_P (ptr[1]))
+		   && ((pat_end - ptr) == 1 || CHAR_HEAD_P (ptr[1])))
 	    {
 	      unsigned char *charstart = ptr - 1;
 
