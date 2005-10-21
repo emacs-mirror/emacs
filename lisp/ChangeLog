@@ -1,3 +1,21 @@
+2005-10-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-combined-agenda-icalendar-file)
+	(org-icalendar-include-todo, org-icalendar-combined-name): New
+	options.
+	(org-export-icalendar-this-file)
+	(org-export-icalendar-all-agenda-files)
+	(org-export-icalendar-combine-agenda-files): New commands.
+	(org-export-icalendar, org-print-icalendar-entries)
+	(org-start-icalendar-file, org-finish-icalendar-file)
+	(org-ical-ts-to-string): New functions.
+	(org-read-date, org-goto-calendar)
+	(org-agenda-goto-calendar): Inhibit displaying diary entries by
+	call to `calendar'.
+	(orgtbl-setup): Removed the :keys arguments from the menu
+	description.
+	(org-after-save-iCalendar-file-hook): New variable.
+
 2005-10-21  Kenichi Handa  <handa@m17n.org>
 
 	* language/vietnamese.el (tcvn-5712): Make it an alias of
