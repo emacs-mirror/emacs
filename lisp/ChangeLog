@@ -1,3 +1,24 @@
+2005-10-21  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/etags.el (tags-table-mode): New function.
+	(tags-verify-table): Replace initialize-new-tags-table with
+	tags-table-mode.
+
+	* desktop.el (desktop-buffers-not-to-save): Remove TAGS from the
+	default value.
+	(desktop-modes-not-to-save): Add tags-table-mode to the
+	default value.
+
+	* info.el (Info-index-next): Add total number of index
+	alternatives to the message.
+
+	* textmodes/fill.el (fill-nobreak-p): Fix first two rules to skip
+	backward only space (instead of space and period) before looking
+	at sentence end.
+
+	* simple.el (set-variable): Use user-variable-p instead of symbolp.
+	Add the old variable value as 4th default-value arg of read-string.
+
 2005-10-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* cus-face.el (custom-declare-face): Make face from X resources
