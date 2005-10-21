@@ -4572,10 +4572,10 @@ in the definition is used to check that VALUE is valid.
 With a prefix argument, set VARIABLE to VALUE buffer-locally."
   (interactive
    (let* ((default-var (variable-at-point))
-          (var (if (symbolp default-var)
-			(read-variable (format "Set variable (default %s): " default-var)
-				       default-var)
-		      (read-variable "Set variable: ")))
+          (var (if (user-variable-p default-var)
+		   (read-variable (format "Set variable (default %s): " default-var)
+				  default-var)
+		 (read-variable "Set variable: ")))
 	  (minibuffer-help-form '(describe-variable var))
 	  (prop (get var 'variable-interactive))
           (obsolete (car (get var 'byte-obsolete-variable)))
@@ -4600,7 +4600,8 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
                                             arg))
                    (read
                     (read-string prompt nil
-                                 'set-variable-value-history))))))
+                                 'set-variable-value-history
+				 (format "%S" (symbol-value var))))))))
      (list var val current-prefix-arg)))
 
   (and (custom-variable-p variable)
