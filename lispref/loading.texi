@@ -736,23 +736,21 @@ If @var{type} is @code{nil}, then any kind of definition is
 acceptable.  If @var{type} is @code{defun} or @code{defvar}, that
 specifies function definition only or variable definition only.
 
-The value is the file name as it was specified to @code{load}:
-either an absolute file name, or a library name
-(with no directory name and no @samp{.el} or @samp{.elc} at the end).
-It can also be @code{nil}, if the definition is not associated with any file.
+The value is normally an absolute file name.  It can also be
+@code{nil}, if the definition is not associated with any file.
 @end defun
 
   The basis for @code{symbol-file} is the data in the variable
 @code{load-history}.
 
 @defvar load-history
-This variable's value is an alist connecting library names with the
+This variable's value is an alist connecting library file names with the
 names of functions and variables they define, the features they provide,
 and the features they require.
 
 Each element is a list and describes one library.  The @sc{car} of the
-list is the name of the library, as a string.  The rest of the list
-elements have these forms:
+list is the absolute file name of the library, as a string.  The rest
+of the list elements have these forms:
 
 @table @code
 @item @var{var}
