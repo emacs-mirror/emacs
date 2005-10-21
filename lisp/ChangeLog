@@ -1,3 +1,7 @@
+2005-10-21  Romain Francoise  <romain@orebokech.com>
+
+	* net/rcirc.el: Now part of GNU Emacs.  Update FSF's address.
+
 2005-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords): Make $@

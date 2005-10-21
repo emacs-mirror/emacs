@@ -6,7 +6,7 @@
 ;; URL: http://www.nongnu.org/rcirc
 ;; Keywords: comm
 
-;; This file is not currently part of GNU Emacs.
+;; This file is part of GNU Emacs.
 
 ;; This file is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -19,9 +19,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.	If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -167,7 +167,7 @@ use `rcirc-update-prompt' after changing this variable.")
   "Return rcirc version string.
 If optional argument HERE is non-nil, insert string at point."
   (interactive "P")
-  (let ((version "rcirc.el 0.9 $Revision: 1.3 $"))
+  (let ((version "rcirc.el 0.9 $Revision: 1.4 $"))
     (if here
 	(insert version)
       (if (interactive-p)
