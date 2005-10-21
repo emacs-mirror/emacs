@@ -1,3 +1,8 @@
+2005-10-21  Richard M. Stallman  <rms@gnu.org>
+
+	* loading.texi (Where Defined): load-history contains abs file names.
+	symbol-file returns abs file names.
+
 2005-10-19  Kim F. Storm  <storm@cua.dk>
 
 	* display.texi (Showing Images): Add max-image-size integer value.
