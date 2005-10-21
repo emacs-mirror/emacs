@@ -1,3 +1,8 @@
+2005-10-21  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (boyer_moore): Surround the '||' part of expression in
+	`if' condition by parentheses explicitly.
+
 2005-10-20  Kim F. Storm  <storm@cua.dk>
 
 	* buffer.c (clone_per_buffer_values): Remove unused var tem.
