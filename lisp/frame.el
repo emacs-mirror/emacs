@@ -1053,9 +1053,9 @@ frame's display)."
   "Return the number of screens associated with DISPLAY."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32))
+     ((memq frame-type '(x w32 mac))
       (x-display-screens display))
-     (t	;; FIXME: is this correct for the Mac?
+     (t
       1))))
 
 (defun display-pixel-height (&optional display)
