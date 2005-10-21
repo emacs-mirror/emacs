@@ -274,6 +274,14 @@ One argument, the tag info returned by `snarf-tag-function'.")
   (run-hook-with-args-until-success 'tags-table-format-functions))
 
 ;;;###autoload
+(defun tags-table-mode ()
+  "Major mode for tags table file buffers."
+  (interactive)
+  (setq major-mode 'tags-table-mode)
+  (setq mode-name "Tags Table")
+  (initialize-new-tags-table))
+
+;;;###autoload
 (defun visit-tags-table (file &optional local)
   "Tell tags commands to use tags table file FILE.
 FILE should be the name of a file created with the `etags' program.
@@ -415,7 +423,7 @@ Returns non-nil iff it is a valid table."
       ;; having changed since we last used it.
       (let (win)
 	(set-buffer (get-file-buffer file))
-	(setq win (or verify-tags-table-function (initialize-new-tags-table)))
+	(setq win (or verify-tags-table-function (tags-table-mode)))
 	(if (or (verify-visited-file-modtime (current-buffer))
 		;; Decide whether to revert the file.
 		;; revert-without-query can say to revert
@@ -434,7 +442,7 @@ Returns non-nil iff it is a valid table."
 	    (and verify-tags-table-function
 		 (funcall verify-tags-table-function))
 	  (revert-buffer t t)
-	  (initialize-new-tags-table)))
+	  (tags-table-mode)))
     (and (file-exists-p file)
 	 (progn
 	   (set-buffer (find-file-noselect file))
@@ -446,7 +454,7 @@ Returns non-nil iff it is a valid table."
 		     (setcar tail buffer-file-name))
 		 (if (eq file tags-file-name)
 		     (setq tags-file-name buffer-file-name))))
-	   (initialize-new-tags-table)))))
+	   (tags-table-mode)))))
 
 ;; Subroutine of visit-tags-table-buffer.  Search the current tags tables
 ;; for one that has tags for THIS-FILE (or that includes a table that
