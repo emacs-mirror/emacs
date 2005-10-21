@@ -89,7 +89,7 @@ point (where the PPSS is equivalent to nil).")
     ;; assumed nil state at BEG may not be valid any more.
     (if (<= beg (or (car (nth 10 syntax-ppss-last))
                     (nth 9 syntax-ppss-last)
-                    (nth 2 syntax-ppss-last)
+                    (nth 3 syntax-ppss-last)
                     0))
 	(setq syntax-ppss-last nil)
       (setcar syntax-ppss-last nil)))
