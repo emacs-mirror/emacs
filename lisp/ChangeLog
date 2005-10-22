@@ -1,3 +1,12 @@
+2005-10-22  Richard M. Stallman  <rms@gnu.org>
+
+	* image.el (image-load-path): Use eval-at-startup to initialize.
+
+	* subr.el (eval-at-startup): New macro.
+
+	* subr.el: Much rearrangement of functions and division
+	into pages.  No code changes.
+
 2005-10-22  Kenichi Handa  <handa@m17n.org>
 
 	* tar-mode.el (tar-extract): Be sure to call
