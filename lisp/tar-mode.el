@@ -735,7 +735,9 @@ appear on disk when you save the tar-file's buffer."
 			     (and set-auto-coding-function
 				  (save-excursion
 				    (funcall set-auto-coding-function
-					     name (- (point-max) (point)))))))
+					     name (- (point-max) (point)))))
+			     (car (find-operation-coding-system
+				   'insert-file-contents name t))))
 			(multibyte enable-multibyte-characters)
 			(detected (detect-coding-region
 				   (point-min)
@@ -747,13 +749,7 @@ appear on disk when you save the tar-file's buffer."
 					  coding
 					  (coding-system-eol-type detected))))
 		      (setq coding
-			    (or (find-new-buffer-file-coding-system detected)
-				(let ((file-coding
-				       (find-operation-coding-system
-					'insert-file-contents buffer-file-name)))
-				  (if (consp file-coding)
-				      (setq file-coding (car file-coding))
-				    file-coding)))))
+			    (find-new-buffer-file-coding-system detected)))
 		    (if (or (eq coding 'no-conversion)
 			    (eq (coding-system-type coding) 5))
 			(setq multibyte (set-buffer-multibyte nil)))
