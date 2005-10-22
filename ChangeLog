@@ -1,3 +1,7 @@
+2005-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL.CVS: Add mh-autoloads to the partial rebuild procedure.
+
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
 	* make-dist: Create and populate etc/images/low-color.
