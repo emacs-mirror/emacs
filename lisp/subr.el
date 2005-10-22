@@ -37,7 +37,7 @@ Each element of this list holds the arguments to one call to `defcustom'.")
 	(cons arguments custom-declare-variable-list)))
 
 
-;;;; Lisp language features.
+;;;; Basic Lisp macros.
 
 (defalias 'not 'null)
 
@@ -144,6 +144,59 @@ the return value (nil if RESULT is omitted).
 Treated as a declaration when used at the right place in a
 `defmacro' form.  \(See Info anchor `(elisp)Definition of declare'.)"
   nil)
+
+;;;; Basic Lisp functions.
+
+(defun ignore (&rest ignore)
+  "Do nothing and return nil.
+This function accepts any number of arguments, but ignores them."
+  (interactive)
+  nil)
+
+(defun error (&rest args)
+  "Signal an error, making error message by passing all args to `format'.
+In Emacs, the convention is that error messages start with a capital
+letter but *do not* end with a period.  Please follow this convention
+for the sake of consistency."
+  (while t
+    (signal 'error (list (apply 'format args)))))
+
+;; We put this here instead of in frame.el so that it's defined even on
+;; systems where frame.el isn't loaded.
+(defun frame-configuration-p (object)
+  "Return non-nil if OBJECT seems to be a frame configuration.
+Any list whose car is `frame-configuration' is assumed to be a frame
+configuration."
+  (and (consp object)
+       (eq (car object) 'frame-configuration)))
+
+(defun functionp (object)
+  "Non-nil if OBJECT is any kind of function or a special form.
+Also non-nil if OBJECT is a symbol and its function definition is
+\(recursively) a function or special form.  This does not include
+macros."
+  (or (and (symbolp object) (fboundp object)
+	   (condition-case nil
+	       (setq object (indirect-function object))
+	     (error nil))
+	   (eq (car-safe object) 'autoload)
+	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
+      (subrp object) (byte-code-function-p object)
+      (eq (car-safe object) 'lambda)))
+
+;; This should probably be written in C (i.e., without using `walk-windows').
+(defun get-buffer-window-list (buffer &optional minibuf frame)
+  "Return list of all windows displaying BUFFER, or nil if none.
+BUFFER can be a buffer or a buffer name.
+See `walk-windows' for the meaning of MINIBUF and FRAME."
+  (let ((buffer (if (bufferp buffer) buffer (get-buffer buffer))) windows)
+    (walk-windows (function (lambda (window)
+			      (if (eq (window-buffer window) buffer)
+				  (setq windows (cons window windows)))))
+		  minibuf frame)
+    windows))
+
+;;;; List functions.
 
 (defsubst caar (x)
   "Return the car of the car of X."
@@ -240,23 +293,6 @@ of course, also replace TO with a slightly larger value
                 next (+ from (* n inc)))))
       (nreverse seq))))
 
-(defun remove (elt seq)
-  "Return a copy of SEQ with all occurrences of ELT removed.
-SEQ must be a list, vector, or string.  The comparison is done with `equal'."
-  (if (nlistp seq)
-      ;; If SEQ isn't a list, there's no need to copy SEQ because
-      ;; `delete' will return a new object.
-      (delete elt seq)
-    (delete elt (copy-sequence seq))))
-
-(defun remq (elt list)
-  "Return LIST with all occurrences of ELT removed.
-The comparison is done with `eq'.  Contrary to `delq', this does not use
-side-effects, and the argument LIST is not modified."
-  (if (memq elt list)
-      (delq elt (copy-sequence list))
-    list))
-
 (defun copy-tree (tree &optional vecp)
   "Make a copy of TREE.
 If TREE is a cons cell, this recursively copies both its car and its cdr.
@@ -277,6 +313,8 @@ argument VECP, this copies vectors as well as conses."
 	    (aset tree i (copy-tree (aref tree i) vecp)))
 	  tree)
       tree)))
+
+;;;; Various list-search functions.
 
 (defun assoc-default (key alist &optional test default)
   "Find object KEY in a pseudo-alist ALIST.
@@ -321,15 +359,67 @@ Non-strings in LIST are ignored."
     (setq list (cdr list)))
   list)
 
+(defun assq-delete-all (key alist)
+  "Delete from ALIST all elements whose car is `eq' to KEY.
+Return the modified alist.
+Elements of ALIST that are not conses are ignored."
+  (while (and (consp (car alist))
+	      (eq (car (car alist)) key))
+    (setq alist (cdr alist)))
+  (let ((tail alist) tail-cdr)
+    (while (setq tail-cdr (cdr tail))
+      (if (and (consp (car tail-cdr))
+	       (eq (car (car tail-cdr)) key))
+	  (setcdr tail (cdr tail-cdr))
+	(setq tail tail-cdr))))
+  alist)
+
+(defun rassq-delete-all (value alist)
+  "Delete from ALIST all elements whose cdr is `eq' to VALUE.
+Return the modified alist.
+Elements of ALIST that are not conses are ignored."
+  (while (and (consp (car alist))
+	      (eq (cdr (car alist)) value))
+    (setq alist (cdr alist)))
+  (let ((tail alist) tail-cdr)
+    (while (setq tail-cdr (cdr tail))
+      (if (and (consp (car tail-cdr))
+	       (eq (cdr (car tail-cdr)) value))
+	  (setcdr tail (cdr tail-cdr))
+	(setq tail tail-cdr))))
+  alist)
+
+(defun remove (elt seq)
+  "Return a copy of SEQ with all occurrences of ELT removed.
+SEQ must be a list, vector, or string.  The comparison is done with `equal'."
+  (if (nlistp seq)
+      ;; If SEQ isn't a list, there's no need to copy SEQ because
+      ;; `delete' will return a new object.
+      (delete elt seq)
+    (delete elt (copy-sequence seq))))
+
+(defun remq (elt list)
+  "Return LIST with all occurrences of ELT removed.
+The comparison is done with `eq'.  Contrary to `delq', this does not use
+side-effects, and the argument LIST is not modified."
+  (if (memq elt list)
+      (delq elt (copy-sequence list))
+    list))
 
 ;;;; Keymap support.
+
+(defmacro kbd (keys)
+  "Convert KEYS to the internal Emacs key representation.
+KEYS should be a string constant in the format used for
+saving keyboard macros (see `edmacro-mode')."
+  (read-kbd-macro keys))
 
 (defun undefined ()
   (interactive)
   (ding))
 
-;Prevent the \{...} documentation construct
-;from mentioning keys that run this command.
+;; Prevent the \{...} documentation construct
+;; from mentioning keys that run this command.
 (put 'undefined 'suppress-keymap t)
 
 (defun suppress-keymap (map &optional nodigits)
@@ -345,6 +435,136 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 	(while (<= loop ?9)
 	  (define-key map (char-to-string loop) 'digit-argument)
 	  (setq loop (1+ loop))))))
+
+(defun define-key-after (keymap key definition &optional after)
+  "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
+This is like `define-key' except that the binding for KEY is placed
+just after the binding for the event AFTER, instead of at the beginning
+of the map.  Note that AFTER must be an event type (like KEY), NOT a command
+\(like DEFINITION).
+
+If AFTER is t or omitted, the new binding goes at the end of the keymap.
+AFTER should be a single event type--a symbol or a character, not a sequence.
+
+Bindings are always added before any inherited map.
+
+The order of bindings in a keymap matters when it is used as a menu."
+  (unless after (setq after t))
+  (or (keymapp keymap)
+      (signal 'wrong-type-argument (list 'keymapp keymap)))
+  (setq key
+	(if (<= (length key) 1) (aref key 0)
+	  (setq keymap (lookup-key keymap
+				   (apply 'vector
+					  (butlast (mapcar 'identity key)))))
+	  (aref key (1- (length key)))))
+  (let ((tail keymap) done inserted)
+    (while (and (not done) tail)
+      ;; Delete any earlier bindings for the same key.
+      (if (eq (car-safe (car (cdr tail))) key)
+	  (setcdr tail (cdr (cdr tail))))
+      ;; If we hit an included map, go down that one.
+      (if (keymapp (car tail)) (setq tail (car tail)))
+      ;; When we reach AFTER's binding, insert the new binding after.
+      ;; If we reach an inherited keymap, insert just before that.
+      ;; If we reach the end of this keymap, insert at the end.
+      (if (or (and (eq (car-safe (car tail)) after)
+		   (not (eq after t)))
+	      (eq (car (cdr tail)) 'keymap)
+	      (null (cdr tail)))
+	  (progn
+	    ;; Stop the scan only if we find a parent keymap.
+	    ;; Keep going past the inserted element
+	    ;; so we can delete any duplications that come later.
+	    (if (eq (car (cdr tail)) 'keymap)
+		(setq done t))
+	    ;; Don't insert more than once.
+	    (or inserted
+		(setcdr tail (cons (cons key definition) (cdr tail))))
+	    (setq inserted t)))
+      (setq tail (cdr tail)))))
+
+(defun map-keymap-internal (function keymap &optional sort-first)
+  "Implement `map-keymap' with sorting.
+Don't call this function; it is for internal use only."
+  (if sort-first
+      (let (list)
+	(map-keymap (lambda (a b) (push (cons a b) list))
+		    keymap)
+	(setq list (sort list
+			 (lambda (a b)
+			   (setq a (car a) b (car b))
+			   (if (integerp a)
+			       (if (integerp b) (< a b)
+				 t)
+			     (if (integerp b) t
+			       (string< a b))))))
+	(dolist (p list)
+	  (funcall function (car p) (cdr p))))
+    (map-keymap function keymap)))
+
+(put 'keyboard-translate-table 'char-table-extra-slots 0)
+
+(defun keyboard-translate (from to)
+  "Translate character FROM to TO at a low level.
+This function creates a `keyboard-translate-table' if necessary
+and then modifies one entry in it."
+  (or (char-table-p keyboard-translate-table)
+      (setq keyboard-translate-table
+	    (make-char-table 'keyboard-translate-table nil)))
+  (aset keyboard-translate-table from to))
+
+;;;; Key binding commands.
+
+(defun global-set-key (key command)
+  "Give KEY a global binding as COMMAND.
+COMMAND is the command definition to use; usually it is
+a symbol naming an interactively-callable function.
+KEY is a key sequence; noninteractively, it is a string or vector
+of characters or event types, and non-ASCII characters with codes
+above 127 (such as ISO Latin-1) can be included if you use a vector.
+
+Note that if KEY has a local binding in the current buffer,
+that local binding will continue to shadow any global binding
+that you make with this function."
+  (interactive "KSet key globally: \nCSet key %s to command: ")
+  (or (vectorp key) (stringp key)
+      (signal 'wrong-type-argument (list 'arrayp key)))
+  (define-key (current-global-map) key command))
+
+(defun local-set-key (key command)
+  "Give KEY a local binding as COMMAND.
+COMMAND is the command definition to use; usually it is
+a symbol naming an interactively-callable function.
+KEY is a key sequence; noninteractively, it is a string or vector
+of characters or event types, and non-ASCII characters with codes
+above 127 (such as ISO Latin-1) can be included if you use a vector.
+
+The binding goes in the current buffer's local map,
+which in most cases is shared with all other buffers in the same major mode."
+  (interactive "KSet key locally: \nCSet key %s locally to command: ")
+  (let ((map (current-local-map)))
+    (or map
+	(use-local-map (setq map (make-sparse-keymap))))
+    (or (vectorp key) (stringp key)
+	(signal 'wrong-type-argument (list 'arrayp key)))
+    (define-key map key command)))
+
+(defun global-unset-key (key)
+  "Remove global binding of KEY.
+KEY is a string or vector representing a sequence of keystrokes."
+  (interactive "kUnset key globally: ")
+  (global-set-key key nil))
+
+(defun local-unset-key (key)
+  "Remove local binding of KEY.
+KEY is a string or vector representing a sequence of keystrokes."
+  (interactive "kUnset key locally: ")
+  (if (current-local-map)
+      (local-set-key key nil))
+  nil)
+
+;;;; substitute-key-definition and its subroutines.
 
 (defvar key-substitution-in-progress nil
  "Used internally by `substitute-key-definition'.")
@@ -415,90 +635,6 @@ For most uses, it is simpler and safer to use command remappping like this:
 	       (not (memq inner-def key-substitution-in-progress)))
 	  ;; If this one isn't being scanned already, scan it now.
 	  (substitute-key-definition olddef newdef keymap inner-def prefix)))))
-
-(defun define-key-after (keymap key definition &optional after)
-  "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
-This is like `define-key' except that the binding for KEY is placed
-just after the binding for the event AFTER, instead of at the beginning
-of the map.  Note that AFTER must be an event type (like KEY), NOT a command
-\(like DEFINITION).
-
-If AFTER is t or omitted, the new binding goes at the end of the keymap.
-AFTER should be a single event type--a symbol or a character, not a sequence.
-
-Bindings are always added before any inherited map.
-
-The order of bindings in a keymap matters when it is used as a menu."
-  (unless after (setq after t))
-  (or (keymapp keymap)
-      (signal 'wrong-type-argument (list 'keymapp keymap)))
-  (setq key
-	(if (<= (length key) 1) (aref key 0)
-	  (setq keymap (lookup-key keymap
-				   (apply 'vector
-					  (butlast (mapcar 'identity key)))))
-	  (aref key (1- (length key)))))
-  (let ((tail keymap) done inserted)
-    (while (and (not done) tail)
-      ;; Delete any earlier bindings for the same key.
-      (if (eq (car-safe (car (cdr tail))) key)
-	  (setcdr tail (cdr (cdr tail))))
-      ;; If we hit an included map, go down that one.
-      (if (keymapp (car tail)) (setq tail (car tail)))
-      ;; When we reach AFTER's binding, insert the new binding after.
-      ;; If we reach an inherited keymap, insert just before that.
-      ;; If we reach the end of this keymap, insert at the end.
-      (if (or (and (eq (car-safe (car tail)) after)
-		   (not (eq after t)))
-	      (eq (car (cdr tail)) 'keymap)
-	      (null (cdr tail)))
-	  (progn
-	    ;; Stop the scan only if we find a parent keymap.
-	    ;; Keep going past the inserted element
-	    ;; so we can delete any duplications that come later.
-	    (if (eq (car (cdr tail)) 'keymap)
-		(setq done t))
-	    ;; Don't insert more than once.
-	    (or inserted
-		(setcdr tail (cons (cons key definition) (cdr tail))))
-	    (setq inserted t)))
-      (setq tail (cdr tail)))))
-
-(defun map-keymap-internal (function keymap &optional sort-first)
-  "Implement `map-keymap' with sorting.
-Don't call this function; it is for internal use only."
-  (if sort-first
-      (let (list)
-	(map-keymap (lambda (a b) (push (cons a b) list))
-		    keymap)
-	(setq list (sort list
-			 (lambda (a b)
-			   (setq a (car a) b (car b))
-			   (if (integerp a)
-			       (if (integerp b) (< a b)
-				 t)
-			     (if (integerp b) t
-			       (string< a b))))))
-	(dolist (p list)
-	  (funcall function (car p) (cdr p))))
-    (map-keymap function keymap)))
-
-(defmacro kbd (keys)
-  "Convert KEYS to the internal Emacs key representation.
-KEYS should be a string constant in the format used for
-saving keyboard macros (see `edmacro-mode')."
-  (read-kbd-macro keys))
-
-(put 'keyboard-translate-table 'char-table-extra-slots 0)
-
-(defun keyboard-translate (from to)
-  "Translate character FROM to TO at a low level.
-This function creates a `keyboard-translate-table' if necessary
-and then modifies one entry in it."
-  (or (char-table-p keyboard-translate-table)
-      (setq keyboard-translate-table
-	    (make-char-table 'keyboard-translate-table nil)))
-  (aset keyboard-translate-table from to))
 
 
 ;;;; The global keymap tree.
@@ -642,6 +778,8 @@ The `posn-' functions access elements of such lists."
   "Return the multi-click count of EVENT, a click or drag event.
 The return value is a positive integer."
   (if (and (consp event) (integerp (nth 2 event))) (nth 2 event) 1))
+
+;;;; Extracting fields of the positions in an event.
 
 (defsubst posn-window (position)
   "Return the window in POSITION.
@@ -831,6 +969,8 @@ is converted into a string by expressing it in decimal."
 (defalias 'point-at-eol 'line-end-position)
 (defalias 'point-at-bol 'line-beginning-position)
 
+(defalias 'user-original-login-name 'user-login-name)
+
 
 ;;;; Hook manipulation functions.
 
@@ -991,7 +1131,143 @@ The return value is the new value of LIST-VAR."
 			    (if (and oa ob)
 				(< oa ob)
 			      oa)))))))
+
+;;;; Mode hooks.
 
+(defvar delay-mode-hooks nil
+  "If non-nil, `run-mode-hooks' should delay running the hooks.")
+(defvar delayed-mode-hooks nil
+  "List of delayed mode hooks waiting to be run.")
+(make-variable-buffer-local 'delayed-mode-hooks)
+(put 'delay-mode-hooks 'permanent-local t)
+
+(defvar after-change-major-mode-hook nil
+  "Normal hook run at the very end of major mode functions.")
+
+(defun run-mode-hooks (&rest hooks)
+  "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
+Execution is delayed if `delay-mode-hooks' is non-nil.
+If `delay-mode-hooks' is nil, run `after-change-major-mode-hook'
+after running the mode hooks.
+Major mode functions should use this."
+  (if delay-mode-hooks
+      ;; Delaying case.
+      (dolist (hook hooks)
+	(push hook delayed-mode-hooks))
+    ;; Normal case, just run the hook as before plus any delayed hooks.
+    (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
+    (setq delayed-mode-hooks nil)
+    (apply 'run-hooks hooks)
+    (run-hooks 'after-change-major-mode-hook)))
+
+(defmacro delay-mode-hooks (&rest body)
+  "Execute BODY, but delay any `run-mode-hooks'.
+These hooks will be executed by the first following call to
+`run-mode-hooks' that occurs outside any `delayed-mode-hooks' form.
+Only affects hooks run in the current buffer."
+  (declare (debug t) (indent 0))
+  `(progn
+     (make-local-variable 'delay-mode-hooks)
+     (let ((delay-mode-hooks t))
+       ,@body)))
+
+;; PUBLIC: find if the current mode derives from another.
+
+(defun derived-mode-p (&rest modes)
+  "Non-nil if the current major mode is derived from one of MODES.
+Uses the `derived-mode-parent' property of the symbol to trace backwards."
+  (let ((parent major-mode))
+    (while (and (not (memq parent modes))
+		(setq parent (get parent 'derived-mode-parent))))
+    parent))
+
+;;;; Minor modes.
+
+;; If a minor mode is not defined with define-minor-mode,
+;; add it here explicitly.
+;; isearch-mode is deliberately excluded, since you should
+;; not call it yourself.
+(defvar minor-mode-list '(auto-save-mode auto-fill-mode abbrev-mode
+					 overwrite-mode view-mode
+                                         hs-minor-mode)
+  "List of all minor mode functions.")
+
+(defun add-minor-mode (toggle name &optional keymap after toggle-fun)
+  "Register a new minor mode.
+
+This is an XEmacs-compatibility function.  Use `define-minor-mode' instead.
+
+TOGGLE is a symbol which is the name of a buffer-local variable that
+is toggled on or off to say whether the minor mode is active or not.
+
+NAME specifies what will appear in the mode line when the minor mode
+is active.  NAME should be either a string starting with a space, or a
+symbol whose value is such a string.
+
+Optional KEYMAP is the keymap for the minor mode that will be added
+to `minor-mode-map-alist'.
+
+Optional AFTER specifies that TOGGLE should be added after AFTER
+in `minor-mode-alist'.
+
+Optional TOGGLE-FUN is an interactive function to toggle the mode.
+It defaults to (and should by convention be) TOGGLE.
+
+If TOGGLE has a non-nil `:included' property, an entry for the mode is
+included in the mode-line minor mode menu.
+If TOGGLE has a `:menu-tag', that is used for the menu item's label."
+  (unless (memq toggle minor-mode-list)
+    (push toggle minor-mode-list))
+
+  (unless toggle-fun (setq toggle-fun toggle))
+  (unless (eq toggle-fun toggle)
+    (put toggle :minor-mode-function toggle-fun))
+  ;; Add the name to the minor-mode-alist.
+  (when name
+    (let ((existing (assq toggle minor-mode-alist)))
+      (if existing
+	  (setcdr existing (list name))
+	(let ((tail minor-mode-alist) found)
+	  (while (and tail (not found))
+	    (if (eq after (caar tail))
+		(setq found tail)
+	      (setq tail (cdr tail))))
+	  (if found
+	      (let ((rest (cdr found)))
+		(setcdr found nil)
+		(nconc found (list (list toggle name)) rest))
+	    (setq minor-mode-alist (cons (list toggle name)
+					 minor-mode-alist)))))))
+  ;; Add the toggle to the minor-modes menu if requested.
+  (when (get toggle :included)
+    (define-key mode-line-mode-menu
+      (vector toggle)
+      (list 'menu-item
+	    (concat
+	     (or (get toggle :menu-tag)
+		 (if (stringp name) name (symbol-name toggle)))
+	     (let ((mode-name (if (symbolp name) (symbol-value name))))
+	       (if (and (stringp mode-name) (string-match "[^ ]+" mode-name))
+		   (concat " (" (match-string 0 mode-name) ")"))))
+	    toggle-fun
+	    :button (cons :toggle toggle))))
+
+  ;; Add the map to the minor-mode-map-alist.
+  (when keymap
+    (let ((existing (assq toggle minor-mode-map-alist)))
+      (if existing
+	  (setcdr existing keymap)
+	(let ((tail minor-mode-map-alist) found)
+	  (while (and tail (not found))
+	    (if (eq after (caar tail))
+		(setq found tail)
+	      (setq tail (cdr tail))))
+	  (if found
+	      (let ((rest (cdr found)))
+		(setcdr found nil)
+		(nconc found (list (cons toggle keymap)) rest))
+	    (setq minor-mode-map-alist (cons (cons toggle keymap)
+					     minor-mode-map-alist))))))))
 
 ;;; Load history
 
@@ -1080,7 +1356,9 @@ This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
   (eval-after-load file (read)))
 
-;;; open-network-stream is a wrapper around make-network-process.
+;;;; Process stuff.
+
+;; open-network-stream is a wrapper around make-network-process.
 
 (when (featurep 'make-network-process)
   (defun open-network-stream (name buffer host service)
@@ -1380,6 +1658,8 @@ This finishes the change group by reverting all of its changes."
 	;; Revert the undo info to what it was when we grabbed the state.
 	(setq buffer-undo-list elt)))))
 
+;;;; Display-related functions.
+
 ;; For compatibility.
 (defalias 'redraw-modeline 'force-mode-line-update)
 
@@ -1517,34 +1797,122 @@ mode.")
 This variable is meaningful on MS-DOG and Windows NT.
 On those systems, it is automatically local in every buffer.
 On other systems, this variable is normally always nil.")
+
+;;;; Misc. useful functions.
 
-;; This should probably be written in C (i.e., without using `walk-windows').
-(defun get-buffer-window-list (buffer &optional minibuf frame)
-  "Return list of all windows displaying BUFFER, or nil if none.
-BUFFER can be a buffer or a buffer name.
-See `walk-windows' for the meaning of MINIBUF and FRAME."
-  (let ((buffer (if (bufferp buffer) buffer (get-buffer buffer))) windows)
-    (walk-windows (function (lambda (window)
-			      (if (eq (window-buffer window) buffer)
-				  (setq windows (cons window windows)))))
-		  minibuf frame)
-    windows))
+(defun find-tag-default ()
+  "Determine default tag to search for, based on text at point.
+If there is no plausible default, return nil."
+  (save-excursion
+    (while (looking-at "\\sw\\|\\s_")
+      (forward-char 1))
+    (if (or (re-search-backward "\\sw\\|\\s_"
+				(save-excursion (beginning-of-line) (point))
+				t)
+	    (re-search-forward "\\(\\sw\\|\\s_\\)+"
+			       (save-excursion (end-of-line) (point))
+			       t))
+	(progn
+	  (goto-char (match-end 0))
+	  (condition-case nil
+	      (buffer-substring-no-properties
+	       (point)
+	       (progn (forward-sexp -1)
+		      (while (looking-at "\\s'")
+			(forward-char 1))
+		      (point)))
+	    (error nil)))
+      nil)))
 
-(defun ignore (&rest ignore)
-  "Do nothing and return nil.
-This function accepts any number of arguments, but ignores them."
-  (interactive)
-  nil)
+(defun play-sound (sound)
+  "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
+The following keywords are recognized:
 
-(defun error (&rest args)
-  "Signal an error, making error message by passing all args to `format'.
-In Emacs, the convention is that error messages start with a capital
-letter but *do not* end with a period.  Please follow this convention
-for the sake of consistency."
-  (while t
-    (signal 'error (list (apply 'format args)))))
+  :file FILE - read sound data from FILE.  If FILE isn't an
+absolute file name, it is searched in `data-directory'.
 
-(defalias 'user-original-login-name 'user-login-name)
+  :data DATA - read sound data from string DATA.
+
+Exactly one of :file or :data must be present.
+
+  :volume VOL - set volume to VOL.  VOL must an integer in the
+range 0..100 or a float in the range 0..1.0.  If not specified,
+don't change the volume setting of the sound device.
+
+  :device DEVICE - play sound on DEVICE.  If not specified,
+a system-dependent default device name is used."
+  (if (fboundp 'play-sound-internal)
+      (play-sound-internal sound)
+    (error "This Emacs binary lacks sound support")))
+
+(defun make-temp-file (prefix &optional dir-flag suffix)
+  "Create a temporary file.
+The returned file name (created by appending some random characters at the end
+of PREFIX, and expanding against `temporary-file-directory' if necessary),
+is guaranteed to point to a newly created empty file.
+You can then use `write-region' to write new data into the file.
+
+If DIR-FLAG is non-nil, create a new empty directory instead of a file.
+
+If SUFFIX is non-nil, add that at the end of the file name."
+  (let ((umask (default-file-modes))
+	file)
+    (unwind-protect
+	(progn
+	  ;; Create temp files with strict access rights.  It's easy to
+	  ;; loosen them later, whereas it's impossible to close the
+	  ;; time-window of loose permissions otherwise.
+	  (set-default-file-modes ?\700)
+	  (while (condition-case ()
+		     (progn
+		       (setq file
+			     (make-temp-name
+			      (expand-file-name prefix temporary-file-directory)))
+		       (if suffix
+			   (setq file (concat file suffix)))
+		       (if dir-flag
+			   (make-directory file)
+			 (write-region "" nil file nil 'silent nil 'excl))
+		       nil)
+		   (file-already-exists t))
+	    ;; the file was somehow created by someone else between
+	    ;; `make-temp-name' and `write-region', let's try again.
+	    nil)
+	  file)
+      ;; Reset the umask.
+      (set-default-file-modes umask))))
+
+(defun shell-quote-argument (argument)
+  "Quote an argument for passing as argument to an inferior shell."
+  (if (eq system-type 'ms-dos)
+      ;; Quote using double quotes, but escape any existing quotes in
+      ;; the argument with backslashes.
+      (let ((result "")
+	    (start 0)
+	    end)
+	(if (or (null (string-match "[^\"]" argument))
+		(< (match-end 0) (length argument)))
+	    (while (string-match "[\"]" argument start)
+	      (setq end (match-beginning 0)
+		    result (concat result (substring argument start end)
+				   "\\" (substring argument end (1+ end)))
+		    start (1+ end))))
+	(concat "\"" result (substring argument start) "\""))
+    (if (eq system-type 'windows-nt)
+	(concat "\"" argument "\"")
+      (if (equal argument "")
+	  "''"
+	;; Quote everything except POSIX filename characters.
+	;; This should be safe enough even for really weird shells.
+	(let ((result "") (start 0) end)
+	  (while (string-match "[^-0-9a-zA-Z_./]" argument start)
+	    (setq end (match-beginning 0)
+		  result (concat result (substring argument start end)
+				 "\\" (substring argument end (1+ end)))
+		  start (1+ end)))
+	  (concat result (substring argument start)))))))
+
+;;;; Support for yanking and text properties.
 
 (defvar yank-excluded-properties)
 
@@ -1650,7 +2018,7 @@ Strip text properties from the inserted text according to
     (remove-yank-excluded-properties opoint (point))))
 
 
-;; Synchronous shell commands.
+;;;; Synchronous shell commands.
 
 (defun start-process-shell-command (name buffer &rest args)
   "Start a program in a subprocess.  Return the process object for it.
@@ -1706,6 +2074,8 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again."
 		  shell-command-switch
 		  (mapconcat 'identity (cons command args) " ")))))
 
+;;;; Lisp macros to do various things temporarily.
+
 (defmacro with-current-buffer (buffer &rest body)
   "Execute the forms in BODY with BUFFER as the current buffer.
 The value returned is the value of the last form in BODY.
@@ -1858,96 +2228,8 @@ in BODY."
        (let ((combine-after-change-calls t))
 	 . ,body)
      (combine-after-change-execute)))
-
-
-(defvar delay-mode-hooks nil
-  "If non-nil, `run-mode-hooks' should delay running the hooks.")
-(defvar delayed-mode-hooks nil
-  "List of delayed mode hooks waiting to be run.")
-(make-variable-buffer-local 'delayed-mode-hooks)
-(put 'delay-mode-hooks 'permanent-local t)
-
-(defvar after-change-major-mode-hook nil
-  "Normal hook run at the very end of major mode functions.")
-
-(defun run-mode-hooks (&rest hooks)
-  "Run mode hooks `delayed-mode-hooks' and HOOKS, or delay HOOKS.
-Execution is delayed if `delay-mode-hooks' is non-nil.
-If `delay-mode-hooks' is nil, run `after-change-major-mode-hook'
-after running the mode hooks.
-Major mode functions should use this."
-  (if delay-mode-hooks
-      ;; Delaying case.
-      (dolist (hook hooks)
-	(push hook delayed-mode-hooks))
-    ;; Normal case, just run the hook as before plus any delayed hooks.
-    (setq hooks (nconc (nreverse delayed-mode-hooks) hooks))
-    (setq delayed-mode-hooks nil)
-    (apply 'run-hooks hooks)
-    (run-hooks 'after-change-major-mode-hook)))
-
-(defmacro delay-mode-hooks (&rest body)
-  "Execute BODY, but delay any `run-mode-hooks'.
-These hooks will be executed by the first following call to
-`run-mode-hooks' that occurs outside any `delayed-mode-hooks' form.
-Only affects hooks run in the current buffer."
-  (declare (debug t) (indent 0))
-  `(progn
-     (make-local-variable 'delay-mode-hooks)
-     (let ((delay-mode-hooks t))
-       ,@body)))
-
-;; PUBLIC: find if the current mode derives from another.
-
-(defun derived-mode-p (&rest modes)
-  "Non-nil if the current major mode is derived from one of MODES.
-Uses the `derived-mode-parent' property of the symbol to trace backwards."
-  (let ((parent major-mode))
-    (while (and (not (memq parent modes))
-		(setq parent (get parent 'derived-mode-parent))))
-    parent))
-
-(defun find-tag-default ()
-  "Determine default tag to search for, based on text at point.
-If there is no plausible default, return nil."
-  (save-excursion
-    (while (looking-at "\\sw\\|\\s_")
-      (forward-char 1))
-    (if (or (re-search-backward "\\sw\\|\\s_"
-				(save-excursion (beginning-of-line) (point))
-				t)
-	    (re-search-forward "\\(\\sw\\|\\s_\\)+"
-			       (save-excursion (end-of-line) (point))
-			       t))
-	(progn
-	  (goto-char (match-end 0))
-	  (condition-case nil
-	      (buffer-substring-no-properties
-	       (point)
-	       (progn (forward-sexp -1)
-		      (while (looking-at "\\s'")
-			(forward-char 1))
-		      (point)))
-	    (error nil)))
-      nil)))
-
-(defmacro with-syntax-table (table &rest body)
-  "Evaluate BODY with syntax table of current buffer set to TABLE.
-The syntax table of the current buffer is saved, BODY is evaluated, and the
-saved table is restored, even in case of an abnormal exit.
-Value is what BODY returns."
-  (declare (debug t))
-  (let ((old-table (make-symbol "table"))
-	(old-buffer (make-symbol "buffer")))
-    `(let ((,old-table (syntax-table))
-	   (,old-buffer (current-buffer)))
-       (unwind-protect
-	   (progn
-	     (set-syntax-table ,table)
-	     ,@body)
-	 (save-current-buffer
-	   (set-buffer ,old-buffer)
-	   (set-syntax-table ,old-table))))))
+
+;;;; Constructing completion tables.
 
 (defmacro dynamic-completion-table (fun)
   "Use function FUN as a dynamic completion table.
@@ -2007,7 +2289,7 @@ A and B should not be costly (or side-effecting) expressions."
        (or (test-completion string ,a predicate)
 	   (test-completion string ,b predicate))))))
 
-;;; Matching and substitution
+;;; Matching and match data.
 
 (defvar save-match-data-internal)
 
@@ -2082,6 +2364,47 @@ of a match for REGEXP."
 	    (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
     (not (null pos))))
 
+(defun subregexp-context-p (regexp pos &optional start)
+  "Return non-nil if POS is in a normal subregexp context in REGEXP.
+A subregexp context is one where a sub-regexp can appear.
+A non-subregexp context is for example within brackets, or within a
+repetition bounds operator `\\=\\{...\\}', or right after a `\\'.
+If START is non-nil, it should be a position in REGEXP, smaller
+than POS, and known to be in a subregexp context."
+  ;; Here's one possible implementation, with the great benefit that it
+  ;; reuses the regexp-matcher's own parser, so it understands all the
+  ;; details of the syntax.  A disadvantage is that it needs to match the
+  ;; error string.
+  (condition-case err
+      (progn
+        (string-match (substring regexp (or start 0) pos) "")
+        t)
+    (invalid-regexp
+     (not (member (cadr err) '("Unmatched [ or [^"
+                               "Unmatched \\{"
+                               "Trailing backslash")))))
+  ;; An alternative implementation:
+  ;; (defconst re-context-re
+  ;;   (let* ((harmless-ch "[^\\[]")
+  ;;          (harmless-esc "\\\\[^{]")
+  ;;          (class-harmless-ch "[^][]")
+  ;;          (class-lb-harmless "[^]:]")
+  ;;          (class-lb-colon-maybe-charclass ":\\([a-z]+:]\\)?")
+  ;;          (class-lb (concat "\\[\\(" class-lb-harmless
+  ;;                            "\\|" class-lb-colon-maybe-charclass "\\)"))
+  ;;          (class
+  ;;           (concat "\\[^?]?"
+  ;;                   "\\(" class-harmless-ch
+  ;;                   "\\|" class-lb "\\)*"
+  ;;                   "\\[?]"))     ; special handling for bare [ at end of re
+  ;;          (braces "\\\\{[0-9,]+\\\\}"))
+  ;;     (concat "\\`\\(" harmless-ch "\\|" harmless-esc
+  ;;             "\\|" class "\\|" braces "\\)*\\'"))
+  ;;   "Matches any prefix that corresponds to a normal subregexp context.")
+  ;; (string-match re-context-re (substring regexp (or start 0) pos))
+  )
+
+;;;; split-string
 
 (defconst split-string-default-separators "[ \f\t\n\r\v]+"
   "The default value of separators for `split-string'.
@@ -2142,6 +2465,8 @@ Modifies the match data; use `save-match-data' if necessary."
 	      (cons (substring string start)
 		    list)))
     (nreverse list)))
+
+;;;; Replacement in strings.
 
 (defun subst-char-in-string (fromchar tochar string &optional inplace)
   "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
@@ -2211,76 +2536,42 @@ and replace a sub-expression, e.g.
       ;; Reconstruct a string from the pieces.
       (setq matches (cons (substring string start l) matches)) ; leftover
       (apply #'concat (nreverse matches)))))
-
-(defun subregexp-context-p (regexp pos &optional start)
-  "Return non-nil if POS is in a normal subregexp context in REGEXP.
-A subregexp context is one where a sub-regexp can appear.
-A non-subregexp context is for example within brackets, or within a
-repetition bounds operator `\\=\\{...\\}', or right after a `\\'.
-If START is non-nil, it should be a position in REGEXP, smaller
-than POS, and known to be in a subregexp context."
-  ;; Here's one possible implementation, with the great benefit that it
-  ;; reuses the regexp-matcher's own parser, so it understands all the
-  ;; details of the syntax.  A disadvantage is that it needs to match the
-  ;; error string.
-  (condition-case err
-      (progn
-        (string-match (substring regexp (or start 0) pos) "")
-        t)
-    (invalid-regexp
-     (not (member (cadr err) '("Unmatched [ or [^"
-                               "Unmatched \\{"
-                               "Trailing backslash")))))
-  ;; An alternative implementation:
-  ;; (defconst re-context-re
-  ;;   (let* ((harmless-ch "[^\\[]")
-  ;;          (harmless-esc "\\\\[^{]")
-  ;;          (class-harmless-ch "[^][]")
-  ;;          (class-lb-harmless "[^]:]")
-  ;;          (class-lb-colon-maybe-charclass ":\\([a-z]+:]\\)?")
-  ;;          (class-lb (concat "\\[\\(" class-lb-harmless
-  ;;                            "\\|" class-lb-colon-maybe-charclass "\\)"))
-  ;;          (class
-  ;;           (concat "\\[^?]?"
-  ;;                   "\\(" class-harmless-ch
-  ;;                   "\\|" class-lb "\\)*"
-  ;;                   "\\[?]"))     ; special handling for bare [ at end of re
-  ;;          (braces "\\\\{[0-9,]+\\\\}"))
-  ;;     (concat "\\`\\(" harmless-ch "\\|" harmless-esc
-  ;;             "\\|" class "\\|" braces "\\)*\\'"))
-  ;;   "Matches any prefix that corresponds to a normal subregexp context.")
-  ;; (string-match re-context-re (substring regexp (or start 0) pos))
-  )
 
-(defun shell-quote-argument (argument)
-  "Quote an argument for passing as argument to an inferior shell."
-  (if (eq system-type 'ms-dos)
-      ;; Quote using double quotes, but escape any existing quotes in
-      ;; the argument with backslashes.
-      (let ((result "")
-	    (start 0)
-	    end)
-	(if (or (null (string-match "[^\"]" argument))
-		(< (match-end 0) (length argument)))
-	    (while (string-match "[\"]" argument start)
-	      (setq end (match-beginning 0)
-		    result (concat result (substring argument start end)
-				   "\\" (substring argument end (1+ end)))
-		    start (1+ end))))
-	(concat "\"" result (substring argument start) "\""))
-    (if (eq system-type 'windows-nt)
-	(concat "\"" argument "\"")
-      (if (equal argument "")
-	  "''"
-	;; Quote everything except POSIX filename characters.
-	;; This should be safe enough even for really weird shells.
-	(let ((result "") (start 0) end)
-	  (while (string-match "[^-0-9a-zA-Z_./]" argument start)
-	    (setq end (match-beginning 0)
-		  result (concat result (substring argument start end)
-				 "\\" (substring argument end (1+ end)))
-		  start (1+ end)))
-	  (concat result (substring argument start)))))))
+;;;; invisibility specs
+
+(defun add-to-invisibility-spec (element)
+  "Add ELEMENT to `buffer-invisibility-spec'.
+See documentation for `buffer-invisibility-spec' for the kind of elements
+that can be added."
+  (if (eq buffer-invisibility-spec t)
+      (setq buffer-invisibility-spec (list t)))
+  (setq buffer-invisibility-spec
+	(cons element buffer-invisibility-spec)))
+
+(defun remove-from-invisibility-spec (element)
+  "Remove ELEMENT from `buffer-invisibility-spec'."
+  (if (consp buffer-invisibility-spec)
+    (setq buffer-invisibility-spec (delete element buffer-invisibility-spec))))
+
+;;;; Syntax tables.
+
+(defmacro with-syntax-table (table &rest body)
+  "Evaluate BODY with syntax table of current buffer set to TABLE.
+The syntax table of the current buffer is saved, BODY is evaluated, and the
+saved table is restored, even in case of an abnormal exit.
+Value is what BODY returns."
+  (declare (debug t))
+  (let ((old-table (make-symbol "table"))
+	(old-buffer (make-symbol "buffer")))
+    `(let ((,old-table (syntax-table))
+	   (,old-buffer (current-buffer)))
+       (unwind-protect
+	   (progn
+	     (set-syntax-table ,table)
+	     ,@body)
+	 (save-current-buffer
+	   (set-buffer ,old-buffer)
+	   (set-syntax-table ,old-table))))))
 
 (defun make-syntax-table (&optional oldtable)
   "Return a new syntax table.
@@ -2303,247 +2594,8 @@ If POS is outside the buffer's accessible portion, return nil."
   "Return the syntax class part of the syntax descriptor SYNTAX.
 If SYNTAX is nil, return nil."
   (and syntax (logand (car syntax) 65535)))
-
-(defun add-to-invisibility-spec (element)
-  "Add ELEMENT to `buffer-invisibility-spec'.
-See documentation for `buffer-invisibility-spec' for the kind of elements
-that can be added."
-  (if (eq buffer-invisibility-spec t)
-      (setq buffer-invisibility-spec (list t)))
-  (setq buffer-invisibility-spec
-	(cons element buffer-invisibility-spec)))
-
-(defun remove-from-invisibility-spec (element)
-  "Remove ELEMENT from `buffer-invisibility-spec'."
-  (if (consp buffer-invisibility-spec)
-    (setq buffer-invisibility-spec (delete element buffer-invisibility-spec))))
 
-(defun global-set-key (key command)
-  "Give KEY a global binding as COMMAND.
-COMMAND is the command definition to use; usually it is
-a symbol naming an interactively-callable function.
-KEY is a key sequence; noninteractively, it is a string or vector
-of characters or event types, and non-ASCII characters with codes
-above 127 (such as ISO Latin-1) can be included if you use a vector.
-
-Note that if KEY has a local binding in the current buffer,
-that local binding will continue to shadow any global binding
-that you make with this function."
-  (interactive "KSet key globally: \nCSet key %s to command: ")
-  (or (vectorp key) (stringp key)
-      (signal 'wrong-type-argument (list 'arrayp key)))
-  (define-key (current-global-map) key command))
-
-(defun local-set-key (key command)
-  "Give KEY a local binding as COMMAND.
-COMMAND is the command definition to use; usually it is
-a symbol naming an interactively-callable function.
-KEY is a key sequence; noninteractively, it is a string or vector
-of characters or event types, and non-ASCII characters with codes
-above 127 (such as ISO Latin-1) can be included if you use a vector.
-
-The binding goes in the current buffer's local map,
-which in most cases is shared with all other buffers in the same major mode."
-  (interactive "KSet key locally: \nCSet key %s locally to command: ")
-  (let ((map (current-local-map)))
-    (or map
-	(use-local-map (setq map (make-sparse-keymap))))
-    (or (vectorp key) (stringp key)
-	(signal 'wrong-type-argument (list 'arrayp key)))
-    (define-key map key command)))
-
-(defun global-unset-key (key)
-  "Remove global binding of KEY.
-KEY is a string or vector representing a sequence of keystrokes."
-  (interactive "kUnset key globally: ")
-  (global-set-key key nil))
-
-(defun local-unset-key (key)
-  "Remove local binding of KEY.
-KEY is a string or vector representing a sequence of keystrokes."
-  (interactive "kUnset key locally: ")
-  (if (current-local-map)
-      (local-set-key key nil))
-  nil)
-
-;; We put this here instead of in frame.el so that it's defined even on
-;; systems where frame.el isn't loaded.
-(defun frame-configuration-p (object)
-  "Return non-nil if OBJECT seems to be a frame configuration.
-Any list whose car is `frame-configuration' is assumed to be a frame
-configuration."
-  (and (consp object)
-       (eq (car object) 'frame-configuration)))
-
-(defun functionp (object)
-  "Non-nil if OBJECT is any kind of function or a special form.
-Also non-nil if OBJECT is a symbol and its function definition is
-\(recursively) a function or special form.  This does not include
-macros."
-  (or (and (symbolp object) (fboundp object)
-	   (condition-case nil
-	       (setq object (indirect-function object))
-	     (error nil))
-	   (eq (car-safe object) 'autoload)
-	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
-      (subrp object) (byte-code-function-p object)
-      (eq (car-safe object) 'lambda)))
-
-(defun assq-delete-all (key alist)
-  "Delete from ALIST all elements whose car is `eq' to KEY.
-Return the modified alist.
-Elements of ALIST that are not conses are ignored."
-  (while (and (consp (car alist))
-	      (eq (car (car alist)) key))
-    (setq alist (cdr alist)))
-  (let ((tail alist) tail-cdr)
-    (while (setq tail-cdr (cdr tail))
-      (if (and (consp (car tail-cdr))
-	       (eq (car (car tail-cdr)) key))
-	  (setcdr tail (cdr tail-cdr))
-	(setq tail tail-cdr))))
-  alist)
-
-(defun rassq-delete-all (value alist)
-  "Delete from ALIST all elements whose cdr is `eq' to VALUE.
-Return the modified alist.
-Elements of ALIST that are not conses are ignored."
-  (while (and (consp (car alist))
-	      (eq (cdr (car alist)) value))
-    (setq alist (cdr alist)))
-  (let ((tail alist) tail-cdr)
-    (while (setq tail-cdr (cdr tail))
-      (if (and (consp (car tail-cdr))
-	       (eq (cdr (car tail-cdr)) value))
-	  (setcdr tail (cdr tail-cdr))
-	(setq tail tail-cdr))))
-  alist)
-
-(defun make-temp-file (prefix &optional dir-flag suffix)
-  "Create a temporary file.
-The returned file name (created by appending some random characters at the end
-of PREFIX, and expanding against `temporary-file-directory' if necessary),
-is guaranteed to point to a newly created empty file.
-You can then use `write-region' to write new data into the file.
-
-If DIR-FLAG is non-nil, create a new empty directory instead of a file.
-
-If SUFFIX is non-nil, add that at the end of the file name."
-  (let ((umask (default-file-modes))
-	file)
-    (unwind-protect
-	(progn
-	  ;; Create temp files with strict access rights.  It's easy to
-	  ;; loosen them later, whereas it's impossible to close the
-	  ;; time-window of loose permissions otherwise.
-	  (set-default-file-modes ?\700)
-	  (while (condition-case ()
-		     (progn
-		       (setq file
-			     (make-temp-name
-			      (expand-file-name prefix temporary-file-directory)))
-		       (if suffix
-			   (setq file (concat file suffix)))
-		       (if dir-flag
-			   (make-directory file)
-			 (write-region "" nil file nil 'silent nil 'excl))
-		       nil)
-		   (file-already-exists t))
-	    ;; the file was somehow created by someone else between
-	    ;; `make-temp-name' and `write-region', let's try again.
-	    nil)
-	  file)
-      ;; Reset the umask.
-      (set-default-file-modes umask))))
-
-
-;; If a minor mode is not defined with define-minor-mode,
-;; add it here explicitly.
-;; isearch-mode is deliberately excluded, since you should
-;; not call it yourself.
-(defvar minor-mode-list '(auto-save-mode auto-fill-mode abbrev-mode
-					 overwrite-mode view-mode
-                                         hs-minor-mode)
-  "List of all minor mode functions.")
-
-(defun add-minor-mode (toggle name &optional keymap after toggle-fun)
-  "Register a new minor mode.
-
-This is an XEmacs-compatibility function.  Use `define-minor-mode' instead.
-
-TOGGLE is a symbol which is the name of a buffer-local variable that
-is toggled on or off to say whether the minor mode is active or not.
-
-NAME specifies what will appear in the mode line when the minor mode
-is active.  NAME should be either a string starting with a space, or a
-symbol whose value is such a string.
-
-Optional KEYMAP is the keymap for the minor mode that will be added
-to `minor-mode-map-alist'.
-
-Optional AFTER specifies that TOGGLE should be added after AFTER
-in `minor-mode-alist'.
-
-Optional TOGGLE-FUN is an interactive function to toggle the mode.
-It defaults to (and should by convention be) TOGGLE.
-
-If TOGGLE has a non-nil `:included' property, an entry for the mode is
-included in the mode-line minor mode menu.
-If TOGGLE has a `:menu-tag', that is used for the menu item's label."
-  (unless (memq toggle minor-mode-list)
-    (push toggle minor-mode-list))
-
-  (unless toggle-fun (setq toggle-fun toggle))
-  (unless (eq toggle-fun toggle)
-    (put toggle :minor-mode-function toggle-fun))
-  ;; Add the name to the minor-mode-alist.
-  (when name
-    (let ((existing (assq toggle minor-mode-alist)))
-      (if existing
-	  (setcdr existing (list name))
-	(let ((tail minor-mode-alist) found)
-	  (while (and tail (not found))
-	    (if (eq after (caar tail))
-		(setq found tail)
-	      (setq tail (cdr tail))))
-	  (if found
-	      (let ((rest (cdr found)))
-		(setcdr found nil)
-		(nconc found (list (list toggle name)) rest))
-	    (setq minor-mode-alist (cons (list toggle name)
-					 minor-mode-alist)))))))
-  ;; Add the toggle to the minor-modes menu if requested.
-  (when (get toggle :included)
-    (define-key mode-line-mode-menu
-      (vector toggle)
-      (list 'menu-item
-	    (concat
-	     (or (get toggle :menu-tag)
-		 (if (stringp name) name (symbol-name toggle)))
-	     (let ((mode-name (if (symbolp name) (symbol-value name))))
-	       (if (and (stringp mode-name) (string-match "[^ ]+" mode-name))
-		   (concat " (" (match-string 0 mode-name) ")"))))
-	    toggle-fun
-	    :button (cons :toggle toggle))))
-
-  ;; Add the map to the minor-mode-map-alist.
-  (when keymap
-    (let ((existing (assq toggle minor-mode-map-alist)))
-      (if existing
-	  (setcdr existing keymap)
-	(let ((tail minor-mode-map-alist) found)
-	  (while (and tail (not found))
-	    (if (eq after (caar tail))
-		(setq found tail)
-	      (setq tail (cdr tail))))
-	  (if found
-	      (let ((rest (cdr found)))
-		(setcdr found nil)
-		(nconc found (list (cons toggle keymap)) rest))
-	    (setq minor-mode-map-alist (cons (cons toggle keymap)
-					     minor-mode-map-alist))))))))
-
-;; Clones ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Text clones
 
 (defun text-clone-maintain (ol1 after beg end &optional len)
   "Propagate the changes made under the overlay OL1 to the other clones.
@@ -2637,27 +2689,11 @@ clone should be incorporated in the clone."
     ;;(overlay-put ol2 'face 'underline)
     (overlay-put ol2 'evaporate t)
     (overlay-put ol2 'text-clones dups)))
+
+;;;; Mail user agents.
 
-(defun play-sound (sound)
-  "SOUND is a list of the form `(sound KEYWORD VALUE...)'.
-The following keywords are recognized:
-
-  :file FILE - read sound data from FILE.  If FILE isn't an
-absolute file name, it is searched in `data-directory'.
-
-  :data DATA - read sound data from string DATA.
-
-Exactly one of :file or :data must be present.
-
-  :volume VOL - set volume to VOL.  VOL must an integer in the
-range 0..100 or a float in the range 0..1.0.  If not specified,
-don't change the volume setting of the sound device.
-
-  :device DEVICE - play sound on DEVICE.  If not specified,
-a system-dependent default device name is used."
-  (if (fboundp 'play-sound-internal)
-      (play-sound-internal sound)
-    (error "This Emacs binary lacks sound support")))
+;; Here we include just enough for other packages to be able
+;; to define them.
 
 (defun define-mail-user-agent (symbol composefunc sendfunc
 				      &optional abortfunc hookvar)
@@ -2693,8 +2729,8 @@ The properties used on SYMBOL are `composefunc', `sendfunc',
   (put symbol 'sendfunc sendfunc)
   (put symbol 'abortfunc (or abortfunc 'kill-buffer))
   (put symbol 'hookvar (or hookvar 'mail-send-hook)))
-
-;; Standardized progress reporting
+
+;;;; Progress reporters.
 
 ;; Progress reporter has the following structure:
 ;;
@@ -2851,7 +2887,7 @@ convenience wrapper around `make-progress-reporter' and friends.
        nil ,@(cdr (cdr spec)))))
 
 
-;;;; Compare Version Strings
+;;;; Comparing version strings.
 
 (defvar version-separator "."
   "*Specify the string used to separate the version elements.
