@@ -1,8 +1,14 @@
+2005-10-22  Romain Francoise  <romain@orebokech.com>
+
+	* subr.el (eval-after-load): Convert library name to an absolute
+	file name using locate-library, since load-history no longer has
+	library names in it.
+
 2005-10-22  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (make-temp-file): Moved from subr.el.
 	* subr.el (make-temp-file): Moved to files.el.
-	
+
 	* window.el (get-buffer-window-list): Moved from subr.el.
 	* subr.el (get-buffer-window-list): Moved to window.el.
 
