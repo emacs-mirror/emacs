@@ -1,5 +1,7 @@
 2005-10-22  Romain Francoise  <romain@orebokech.com>
 
+	* savehist.el (savehist-history-variables): Add `grep-find-history'.
+
 	* subr.el (eval-after-load): Convert library name to an absolute
 	file name using locate-library, since load-history no longer has
 	library names in it.
