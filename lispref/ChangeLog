@@ -1,3 +1,7 @@
+2005-10-22  Richard M. Stallman  <rms@gnu.org>
+
+	* internals.texi (Building Emacs): Document eval-at-startup.
+
 2005-10-21  Richard M. Stallman  <rms@gnu.org>
 
 	* loading.texi (Where Defined): load-history contains abs file names.

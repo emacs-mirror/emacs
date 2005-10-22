@@ -1,5 +1,11 @@
 2005-10-22  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (make-temp-file): Moved from subr.el.
+	* subr.el (make-temp-file): Moved to files.el.
+	
+	* window.el (get-buffer-window-list): Moved from subr.el.
+	* subr.el (get-buffer-window-list): Moved to window.el.
+
 	* image.el (image-load-path): Use eval-at-startup to initialize.
 
 	* subr.el (eval-at-startup): New macro.

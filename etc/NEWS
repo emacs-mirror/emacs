@@ -3475,6 +3475,7 @@ It returns nil if the given Lisp form can't possibly do anything
 dangerous; otherwise it returns a reason why the form might be unsafe
 (calls unknown function, alters global variable, etc).
 
++++
 *** New macro `eval-at-startup' specifies expressions to
 evaluate when Emacs starts up.  If this is done after startup,
 it evaluates those expressions immediately.
