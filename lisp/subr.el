@@ -183,18 +183,6 @@ macros."
 	   (not (car-safe (cdr-safe (cdr-safe (cdr-safe (cdr-safe object)))))))
       (subrp object) (byte-code-function-p object)
       (eq (car-safe object) 'lambda)))
-
-;; This should probably be written in C (i.e., without using `walk-windows').
-(defun get-buffer-window-list (buffer &optional minibuf frame)
-  "Return list of all windows displaying BUFFER, or nil if none.
-BUFFER can be a buffer or a buffer name.
-See `walk-windows' for the meaning of MINIBUF and FRAME."
-  (let ((buffer (if (bufferp buffer) buffer (get-buffer buffer))) windows)
-    (walk-windows (function (lambda (window)
-			      (if (eq (window-buffer window) buffer)
-				  (setq windows (cons window windows)))))
-		  minibuf frame)
-    windows))
 
 ;;;; List functions.
 
@@ -1860,43 +1848,6 @@ a system-dependent default device name is used."
   (if (fboundp 'play-sound-internal)
       (play-sound-internal sound)
     (error "This Emacs binary lacks sound support")))
-
-(defun make-temp-file (prefix &optional dir-flag suffix)
-  "Create a temporary file.
-The returned file name (created by appending some random characters at the end
-of PREFIX, and expanding against `temporary-file-directory' if necessary),
-is guaranteed to point to a newly created empty file.
-You can then use `write-region' to write new data into the file.
-
-If DIR-FLAG is non-nil, create a new empty directory instead of a file.
-
-If SUFFIX is non-nil, add that at the end of the file name."
-  (let ((umask (default-file-modes))
-	file)
-    (unwind-protect
-	(progn
-	  ;; Create temp files with strict access rights.  It's easy to
-	  ;; loosen them later, whereas it's impossible to close the
-	  ;; time-window of loose permissions otherwise.
-	  (set-default-file-modes ?\700)
-	  (while (condition-case ()
-		     (progn
-		       (setq file
-			     (make-temp-name
-			      (expand-file-name prefix temporary-file-directory)))
-		       (if suffix
-			   (setq file (concat file suffix)))
-		       (if dir-flag
-			   (make-directory file)
-			 (write-region "" nil file nil 'silent nil 'excl))
-		       nil)
-		   (file-already-exists t))
-	    ;; the file was somehow created by someone else between
-	    ;; `make-temp-name' and `write-region', let's try again.
-	    nil)
-	  file)
-      ;; Reset the umask.
-      (set-default-file-modes umask))))
 
 (defun shell-quote-argument (argument)
   "Quote an argument for passing as argument to an inferior shell."
