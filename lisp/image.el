@@ -64,15 +64,18 @@ When the name of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE.")
 
 
-(defvar image-load-path
-  (list (file-name-as-directory (expand-file-name "images" data-directory))
-	'data-directory 'load-path)
+(defvar image-load-path nil
   "List of locations in which to search for image files.
 If an element is a string, it defines a directory to search.
 If an element is a variable symbol whose value is a string, that
 value defines a directory to search.
 If an element is a variable symbol whose value is a list, the
 value is used as a list of directories to search.")
+
+(eval-at-startup
+ (setq image-load-path
+       (list (file-name-as-directory (expand-file-name "images" data-directory))
+	     'data-directory 'load-path)))
 
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
