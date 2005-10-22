@@ -55,6 +55,13 @@ excesive CPU on some Windows environments.  Usages of 50% and 100%
 CPU time have been observed on different Window XP configurations.
 Seems to be a problem in sys_select in w32proc.c.
 
+** Chinese characters display quadruple width on Windows.
+
+This was caused by the change to w32fns.c on 2005-01-03, but that is
+required to fix another bug. See "[Bug] Unusual wide Chinese fonts on
+w32 (again)" and "Problem with chinese gbk fonts on w32" in
+emacs-devel list.
+
 * DOCUMENTATION
 
 ** Update man/info.texi.
