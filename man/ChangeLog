@@ -1,3 +1,7 @@
+2005-10-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Document Groups): Remove duplicate item.
+
 2005-10-21  Juri Linkov  <juri@jurta.org>
 
 	* custom.texi (Examining): Mention accessing the old variable

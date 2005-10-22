@@ -1,3 +1,37 @@
+2005-10-20  Hiroshi Fujishima  <hiroshi.fujishima@gmail.com>  (tiny change)
+
+	* mail-source.el (mail-source-fetch-pop): Require pop3.
+	(mail-source-check-pop): Ditto.
+
+2005-10-20  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-decode-encoded-words): Fix the handling of
+	errors.
+
+2005-10-19  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-treat-strip-trailing-blank-lines)
+	(gnus-treat-strip-leading-blank-lines): Improve doc string.
+
+	* message.el (message-tool-bar-local-item-from-menu): Fix comment.
+
+2005-10-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-allow-incomplete-encoded-text): New variable.
+	(rfc2047-charset-to-coding-system): New function.
+	(rfc2047-decode-encoded-words): New function.
+	(rfc2047-decode-region): Use them.
+	(rfc2047-decode-cte): Remove.
+	(rfc2047-parse-and-decode): Remove.
+	(rfc2047-decode): Remove.
+
+2005-10-15  Kenichi Handa  <handa@m17n.org>
+
+	* rfc2047.el (rfc2047-decode-cte): New function.
+	(rfc2047-decode-region): Change the way to decode successive
+	encoded-words: decode B- or Q-encoding in each encoded-word,
+	concatenate them, and decode it as charset.
+
 2005-10-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* gnus-cus.el (gnus-custom-map): New variable.  Bind mouse-1 to

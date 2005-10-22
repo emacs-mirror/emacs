@@ -6565,9 +6565,8 @@ which specify the range to operate on."
 
 (defun message-tool-bar-local-item-from-menu (command icon in-map &optional from-map &rest props)
   ;; We need to make tool bar entries in local keymaps with
-  ;; `tool-bar-local-item-from-menu' in Emacs > 21.3
+  ;; `tool-bar-local-item-from-menu' in Emacs >= 22
   (if (fboundp 'tool-bar-local-item-from-menu)
-      ;; This is for Emacs 21.3
       (tool-bar-local-item-from-menu command icon in-map from-map props)
     (tool-bar-add-item-from-menu command icon from-map props)))
 

@@ -740,6 +740,7 @@ Pass INFO on to CALLBACK."
 	      (funcall function mail-source-crash-box))
 	     ;; The default is to use pop3.el.
 	     (t
+	      (require 'pop3)
 	      (let ((pop3-password password)
 		    (pop3-maildrop user)
 		    (pop3-mailhost server)
@@ -801,6 +802,7 @@ Pass INFO on to CALLBACK."
 	     (function)
 	     ;; The default is to use pop3.el.
 	     (t
+	      (require 'pop3)
 	      (let ((pop3-password password)
 		    (pop3-maildrop user)
 		    (pop3-mailhost server)
