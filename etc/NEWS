@@ -1823,15 +1823,16 @@ powerful ways.
 
 *** many substantial fixes and refinements, including:
 
-   - repaired inhibition of inadvertant edits to concealed text
+   - repaired inhibition of inadvertent edits to concealed text
    - repaired retention of topic body hanging indent upon topic depth shifts
    - prevent "containment discontinuities" where a topic is shifted deeper
-     than the offspring-depth of its' container
+     than the offspring-depth of its container
    - easy to adopt the distinctive bullet of a topic in a topic created
      relative to it, or select a new one, or use the common topic bullet
    - plain bullets, by default, now alternate between only two characters
-     ('.' and ','), yielding less cluttered outlines.
-   - many internal fixes.
+     ('.' and ','), yielding less cluttered outlines
+   - many internal fixes
+   - version number incremented to 2.1
 
 ** The variable `woman-topic-at-point' was renamed
 to `woman-use-topic-at-point' and behaves differently: if this
