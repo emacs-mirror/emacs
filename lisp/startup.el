@@ -756,8 +756,9 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; Can't do this init in defcustom because the relevant variables
   ;; are not set.
   (custom-reevaluate-setting 'blink-cursor-mode)
-  (custom-reevaluate-setting 'normal-erase-is-backspace)
   (custom-reevaluate-setting 'tooltip-mode)
+
+  (normal-erase-is-backspace-setup-frame)
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.

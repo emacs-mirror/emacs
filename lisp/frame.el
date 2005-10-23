@@ -676,6 +676,7 @@ setup is for focus to follow the pointer."
       (error "Don't know how to create a frame on window system %s" w))
     (run-hooks 'before-make-frame-hook)
     (setq frame (funcall frame-creation-function (append parameters (cdr (assq w window-system-default-frame-alist)))))
+    (normal-erase-is-backspace-setup-frame frame)
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 
@@ -1450,12 +1451,22 @@ TERMINAL can be a terminal id, a frame, or nil (meaning the
 selected frame's terminal)."
   (cdr (assq (terminal-id terminal) terminal-parameter-alist)))
 
+(defun terminal-parameter-p (terminal parameter)
+  "Return non-nil if PARAMETER is a terminal parameter on TERMINAL.
+
+The actual value returned in that case is a cell (PARAMETER . VALUE),
+where VALUE is the current value of PARAMETER.
+
+TERMINAL can be a terminal id, a frame, or nil (meaning the
+selected frame's terminal)."
+  (assq parameter (cdr (assq (terminal-id terminal) terminal-parameter-alist))))
+
 (defun terminal-parameter (terminal parameter)
   "Return TERMINAL's value for parameter PARAMETER.
 
 TERMINAL can be a terminal id, a frame, or nil (meaning the
 selected frame's terminal)."
-  (cdr (assq parameter (cdr (assq (terminal-id terminal) terminal-parameter-alist)))))
+  (cdr (terminal-parameter-p terminal parameter)))
 
 (defun set-terminal-parameter (terminal parameter value)
   "Set TERMINAL's value for parameter PARAMETER to VALUE.
