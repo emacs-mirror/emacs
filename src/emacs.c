@@ -786,7 +786,7 @@ void (*__malloc_initialize_hook) () = malloc_initialize_hook;
 
 
 #define REPORT_EMACS_BUG_ADDRESS "bug-gnu-emacs@gnu.org"
-#define REPORT_EMACS_BUG_PRETEST_ADDRESS "emacs-pretest-bug@gnu.org"
+#define REPORT_EMACS_BUG_PRETEST_ADDRESS "multi-tty@lists.fnord.hu"
 
 /* This function is used to determine an address to which bug report should
    be sent.  */
