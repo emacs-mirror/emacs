@@ -1,3 +1,33 @@
+2005-10-23  Richard M. Stallman  <rms@gnu.org>
+
+	* tooltip.el (tooltip-x-offset, tooltip-y-offset): Change defaults.
+	Eliminate nil as possible value.
+	(tooltip-hide-delay): Reduce internal-border-width.
+
+	* menu-bar.el (menu-bar-file-menu) <dired>: Change help-echo string.
+	(menu-bar-file-menu) <new-file>: Likewise.
+
+	* simple.el (line-move-finish): Ignore fields computing LINE-END.
+
+	* international/mule.el (load-with-code-conversion): 
+	Pass full file name to `eval-buffer' unless preloading.
+
+	* textmodes/flyspell.el (flyspell-large-region):
+	Call ispell-check-version.
+
+	* textmodes/ispell.el (ispell-local-dictionary-overridden): 
+	Fix the make-variable-buffer-local call that was supposed
+	to be for this variable.
+	(ispell-aspell-supports-utf8): Doc fix.
+	(ispell-find-aspell-dictionaries): Preserve elements of
+	ispell-dictionary-alist for dictionaries that aspell doesn't report.
+	(ispell-aspell-find-dictionary): Return nil on error.
+
+	* play/doctor.el (doctor-doc): Don't say "psychiatrist".
+	(doctor-symptoms): Likewise.
+
+	* add-log.el (add-log-current-defun): Clean up handling of DEFUNs.
+
 2005-10-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-button, custom-button-pressed): New vars.
@@ -107,6 +137,8 @@
 	library names in it.
 
 2005-10-22  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/ispell.el (ispell-local-dictionary-overridden): 
 
 	* files.el (make-temp-file): Moved from subr.el.
 	* subr.el (make-temp-file): Moved to files.el.
