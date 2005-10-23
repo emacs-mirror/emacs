@@ -768,7 +768,7 @@ If the click is in the echo area, display the `*Messages*' buffer."
 	(save-excursion
 	  ;; Swallow the up-event.
 	  (read-event)
-	  (set-buffer "*Messages*")
+	  (set-buffer (get-buffer-create "*Messages*"))
 	  (goto-char (point-max))
 	  (display-buffer (current-buffer)))
       ;; Give temporary modes such as isearch a chance to turn off.

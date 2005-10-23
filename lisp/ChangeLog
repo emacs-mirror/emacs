@@ -1,10 +1,15 @@
+2005-10-23  MIYOSHI Masanori  <miyoshi@meadowy.org>  (tiny change)
+
+	* mouse.el (mouse-drag-region): If the *Messages* buffer doesn't
+	exist, create it.
+
 2005-10-23  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el: Increment version number to 2.1, and use a literal
-	rather than RCS $Id$.  Remove autoloads for mailcrypt and crypt++.
+	rather than RCS $Id $.  Remove autoloads for mailcrypt and crypt++.
 	Require pgg, pgg-gpg during compilation.
 	(allout-version): Increment version number to 2.1, and use a literal
-	rather than RCS $Id$.
+	rather than RCS $Id $.
 	(allout-default-encryption-scheme): Removed.
 	(allout-passphrase-verifier-handling): Renamed from
 	allout-key-verifier-handling.
