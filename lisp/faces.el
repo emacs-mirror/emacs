@@ -1297,6 +1297,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      ;; The next 4 sexps are copied from describe-function-1
 	      ;; and simplified.
 	      (setq file-name (symbol-file f 'defface))
+	      (setq file-name (describe-simplify-lib-file-name file-name))
 	      (when file-name
 		(princ "Defined in `")
 		(princ file-name)
