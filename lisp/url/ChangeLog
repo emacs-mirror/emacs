@@ -1,3 +1,12 @@
+2005-10-20  CHENG Gao  <chenggao@gmail.com>  (tiny change)
+
+	* url-nfs.el (top level): 
+	* url-handlers.el (directory-files): 
+	* url-file.el (top level):
+	* url-dired.el (url-dired-minor-mode-map): 
+	* url-http.el (url-http-chunked-encoding-after-change-function):
+	Remove XEmacs support.
+
 2005-10-15  Richard M. Stallman  <rms@gnu.org>
 
 	* url.el: Don't try to autoload hash table functions.

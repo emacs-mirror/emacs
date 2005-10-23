@@ -670,6 +670,11 @@ If optional fourth arg NOSUFFIX is non-nil, don't try adding
 If optional fifth arg MUST-SUFFIX is non-nil, insist on
  the suffix `.elc' or `.el'; don't accept just FILE unless
  it ends in one of those suffixes or includes a directory name.
+
+Loading a file records its definitions, and its `provide' and
+`require' calls, in an element of `load-history' whose
+car is the file name loaded.  See `load-history'.
+
 Return t if file exists.  */)
      (file, noerror, nomessage, nosuffix, must_suffix)
      Lisp_Object file, noerror, nomessage, nosuffix, must_suffix;
@@ -678,7 +683,7 @@ Return t if file exists.  */)
   register int fd = -1;
   int count = SPECPDL_INDEX ();
   Lisp_Object temp;
-  struct gcpro gcpro1;
+  struct gcpro gcpro1, gcpro2;
   Lisp_Object found, efound;
   /* 1 means we printed the ".el is newer" message.  */
   int newer = 0;
@@ -725,7 +730,8 @@ Return t if file exists.  */)
       int size = SBYTES (file);
       Lisp_Object tmp[2];
 
-      GCPRO1 (file);
+      found = Qnil;
+      GCPRO2 (file, found);
 
       if (! NILP (must_suffix))
 	{
@@ -812,6 +818,8 @@ Return t if file exists.  */)
 	  struct stat s1, s2;
 	  int result;
 
+	  GCPRO2 (file, found);
+
 	  if (!safe_to_load_p (fd))
 	    {
 	      safe_p = 0;
@@ -828,7 +836,6 @@ Return t if file exists.  */)
 
 	  compiled = 1;
 
-	  GCPRO1 (efound);
 	  efound = ENCODE_FILE (found);
 
 #ifdef DOS_NT
@@ -838,7 +845,6 @@ Return t if file exists.  */)
 	  SSET (efound, SBYTES (efound) - 1, 0);
 	  result = stat ((char *)SDATA (efound), &s2);
 	  SSET (efound, SBYTES (efound) - 1, 'c');
-	  UNGCPRO;
 
 	  if (result >= 0 && (unsigned) s1.st_mtime < (unsigned) s2.st_mtime)
 	    {
@@ -848,12 +854,13 @@ Return t if file exists.  */)
 	      /* If we won't print another message, mention this anyway.  */
 	      if (!NILP (nomessage))
 		{
-		  Lisp_Object file;
-		  file = Fsubstring (found, make_number (0), make_number (-1));
+		  Lisp_Object msg_file;
+		  msg_file = Fsubstring (found, make_number (0), make_number (-1));
 		  message_with_string ("Source file `%s' newer than byte-compiled file",
-				       file, 1);
+				       msg_file, 1);
 		}
 	    }
+	  UNGCPRO;
 	}
     }
   else
@@ -872,12 +879,12 @@ Return t if file exists.  */)
 	}
     }
 
+  GCPRO2 (file, found);
+
 #ifdef WINDOWSNT
   emacs_close (fd);
-  GCPRO1 (efound);
   efound = ENCODE_FILE (found);
   stream = fopen ((char *) SDATA (efound), fmode);
-  UNGCPRO;
 #else  /* not WINDOWSNT */
   stream = fdopen (fd, fmode);
 #endif /* not WINDOWSNT */
@@ -904,7 +911,6 @@ Return t if file exists.  */)
 	message_with_string ("Loading %s...", file, 1);
     }
 
-  GCPRO1 (file);
   record_unwind_protect (load_unwind, make_save_value (stream, 0));
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
@@ -912,8 +918,8 @@ Return t if file exists.  */)
   load_descriptor_list
     = Fcons (make_number (fileno (stream)), load_descriptor_list);
   load_in_progress++;
-  readevalloop (Qget_file_char, stream, file, Feval,
-		0, Qnil, Qnil, Qnil, Qnil);
+  readevalloop (Qget_file_char, stream, (! NILP (Vpurify_flag) ? file : found),
+		Feval, 0, Qnil, Qnil, Qnil, Qnil);
   unbind_to (count, Qnil);
 
   /* Run any load-hooks for this file.  */
@@ -3880,7 +3886,7 @@ when the corresponding call to `provide' is made.  */);
   Vafter_load_alist = Qnil;
 
   DEFVAR_LISP ("load-history", &Vload_history,
-	       doc: /* Alist mapping source file names to symbols and features.
+	       doc: /* Alist mapping file names to symbols and features.
 Each alist element is a list that starts with a file name,
 except for one element (optional) that starts with nil and describes
 definitions evaluated from buffers not visiting files.
@@ -3889,7 +3895,10 @@ and cons cells of the form `(provide . FEATURE)', `(require . FEATURE)',
 `(defun . FUNCTION)', `(autoload . SYMBOL)', and `(t . SYMBOL)'.
 An element `(t . SYMBOL)' precedes an entry `(defun . FUNCTION)',
 and means that SYMBOL was an autoload before this file redefined it
-as a function.  */);
+as a function.
+
+For a preloaded file, the file name recorded is relative to the main Lisp
+directory.  These names are converted to absolute by `file-loadhist-lookup'.  */);
   Vload_history = Qnil;
 
   DEFVAR_LISP ("load-file-name", &Vload_file_name,

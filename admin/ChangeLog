@@ -1,3 +1,8 @@
+2005-10-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* FOR-RELEASE (New features): max-image-size implemented.
+	(Bugs): split-window done, by Kim F. Storm.
+
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
 	* FOR-RELEASE (DOCUMENTATION): Removed lisp/toolbar from list

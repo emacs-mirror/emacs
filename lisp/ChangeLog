@@ -1,4 +1,284 @@
+2005-10-22  Kenichi Handa  <handa@m17n.org>
+
+	* tar-mode.el (tar-extract): Be sure to call
+	find-operation-coding-system if set-auto-coding doesn't find a
+	coding system.
+
+2005-10-22  Kim F. Storm  <storm@cua.dk>
+
+	* image.el (image-type-header-regexps): Rename from image-type-regexps.
+	Change users.
+	(image-type-file-name-regexps): New defconst.
+	(image-type-from-data): Simplify loop.
+	(image-type-from-buffer): New defun.
+	(image-type-from-file-header): Use it instead of image-type-from-data.
+	Use image-search-load-path instead of only looking in data-directory.
+	(image-type-from-file-name): New defun.
+	(image-search-load-path): Make PATH arg optional, default to image-load-path.
+	Change `pathname' to `filename'.
+
+2005-10-21  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/texinfo.el (texinfo-mode): Set sentence-end-base.
+
+	* textmodes/paragraphs.el (sentence-end-base): New variable.
+	(sentence-end): Use sentence-end-base.
+
+2005-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-default-fontify-region): Check the multiline
+	property independently from the font-lock-multiline variable.
+
+2005-10-21  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/find-func.el (find-library-name): Doc fix.
+
+	* startup.el (command-line): Convert library names
+	in `load-history' to absolute file names.
+
+	* subr.el (symbol-file): Doc fix.
+
+	* loadhist.el (file-loadhist-lookup): Call locate-library
+	instead of find-library-name.  Don't try converting
+	abs file names to library names, since load-history no longer
+	has library names in it.
+	(file-dependents, file-provides, file-requires): Doc fixes.
+
+2005-10-21  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/etags.el (tags-table-mode): New function.
+	(tags-verify-table): Replace initialize-new-tags-table with
+	tags-table-mode.
+
+	* desktop.el (desktop-buffers-not-to-save): Remove TAGS from the
+	default value.
+	(desktop-modes-not-to-save): Add tags-table-mode to the
+	default value.
+
+	* info.el (Info-index-next): Add total number of index
+	alternatives to the message.
+
+	* textmodes/fill.el (fill-nobreak-p): Fix first two rules to skip
+	backward only space (instead of space and period) before looking
+	at sentence end.
+
+	* simple.el (set-variable): Use user-variable-p instead of symbolp.
+	Add the old variable value as 4th default-value arg of read-string.
+
+2005-10-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-face.el (custom-declare-face): Make face from X resources
+	also on Mac.
+
+	* disp-table.el (standard-display-g1, standard-display-graphic):
+	Refuse to use string glyphs also on Mac.
+	(standard-display-european): Don't set terminal coding system also
+	on Mac.
+
+	* frame.el (display-screens): Use x-display-screens also on Mac.
+
+2005-10-21  Romain Francoise  <romain@orebokech.com>
+
+	* net/rcirc.el: Now part of GNU Emacs.  Update FSF's address.
+
+2005-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords): Make $@
+	and $? into sexps.
+
+	* font-lock.el (font-lock-compile-keywords): Add a help-echo to the
+	warning face on open-paren-in-column-0.
+
+	* emacs-lisp/syntax.el (syntax-ppss-flush-cache): Fix corner
+	boundary case.  Fix typo.
+	Suggested by Martin Rudalics <rudalics@gmx.at>.
+
+2005-10-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-combined-agenda-icalendar-file)
+	(org-icalendar-include-todo, org-icalendar-combined-name): New options.
+	(org-export-icalendar-this-file)
+	(org-export-icalendar-all-agenda-files)
+	(org-export-icalendar-combine-agenda-files): New commands.
+	(org-export-icalendar, org-print-icalendar-entries)
+	(org-start-icalendar-file, org-finish-icalendar-file)
+	(org-ical-ts-to-string): New functions.
+	(org-read-date, org-goto-calendar)
+	(org-agenda-goto-calendar): Inhibit displaying diary entries by
+	call to `calendar'.
+	(orgtbl-setup): Remove the :keys arguments from the menu description.
+	(org-after-save-iCalendar-file-hook): New variable.
+
+2005-10-21  Kenichi Handa  <handa@m17n.org>
+
+	* language/vietnamese.el (tcvn-5712): Make it an alias of
+	vietnamese-tcvn coding-system.
+
+2005-10-20  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/ange-ftp.el (ange-ftp-date-regexp): Handle also the case no
+	group id is given.
+
+2005-10-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-escaped-line-re): New var.
+	(sh-here-doc-open-re, sh-font-lock-close-heredoc): Use it.
+	(sh-font-lock-open-heredoc): Try to properly handle heredoc starters
+	whose line is either continued or ends with a comment.
+
+2005-10-20  Romain Francoise  <romain@orebokech.com>
+
+	* net/rcirc.el (with-rcirc-process-buffer): Move above its first user.
+
+	* replace.el (occur-engine): Add follow-link property.
+
+	* font-core.el (font-lock-mode): Doc fix.
+
+2005-10-20  Richard M. Stallman  <rms@gnu.org>
+
+	* net/rcirc.el: New file.
+
+2005-10-20  Bryan Henderson  <bryanh@giraffe-data.com>  (tiny change)
+
+	* term.el (term-term-name): Initialize to "eterm-color".
+
+2005-10-20  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Add autoloads of crypt++ and mailcrypt routines, all
+	for encryption functionality.
+	Move allout customization subgroup from `editing' to `outlines' group.
+	Fix commentary 'keywords' to legitimate ones.
+	Update author info (using my current email address, obscurified).
+	(allout-encrypt-string, allout-encryption-produce-work-buffer)
+	(allout-encrypted-topic-p, allout-encrypted-text-type)
+	(allout-mc-activate-passwd, allout-create-encryption-key-verifier)
+	(allout-situate-encryption-key-verifier)
+	(allout-get-encryption-key-verifier, allout-verify-key)
+	(allout-next-topic-pending-encryption)
+	(allout-encrypt-decrypted, allout-encrypted-type-prefix): New funcs.
+	(outline-topic-encryption-bullet, outline-default-encryption-scheme)
+	(outline-key-verifier-handling, outline-key-hint-handling)
+	(outline-encrypt-unencrypted-on-saves): New defcustoms.
+	(allout-file-key-verifier-string, allout-encryption-scheme)
+	(allout-key-verifier-string, allout-key-hint-string)
+	(allout-after-save-decrypt): New variables.
+	(allout-write-file-hook-handler, allout-auto-save-hook-handler)
+	(allout-after-saves-handler): New hook functions.
+	(allout-post-command-business): Do allout-after-save-decrypt.
+	(allout-enable-file-variable-adjustment): Custom var to enable
+	mechanism for adding and adjusting settings of Emacs file variables.
+	(allout-adjust-file-variable, allout-file-vars-section-data):
+	New functions, implement the mechanism.
+	(outlineify-sticky): Use the file vars mechanism.
+	(allout-inhibit-protection, allout-during-write-cue)
+	(allout-override-protect, allout-before-change-protect): Remove.
+	(allout-flag-region, allout-open-topic): Adjust	read-only text.
+	(allout-open-line-not-read-only): Add to facilitate read-only
+	text based protection.
+	(allout-kill-line): Revise to adjust read-only text, clue the
+	user about the inhibition.
+	(allout-unprotected): Use unwind-protect.
+	(allout-shift-in, allout-shift-out): Disallow manually shifting a
+	topic deeper than the offspring depth of the previous topic -
+	avoiding confusing "containment discontinuities".
+	(allout-reindent-bodies): Fix retention of body relative hanging
+	indent during promotion of collapsed bodies.
+	(allout-open-topic): Make it easy to open new topic with same
+	bullet as current topic - topic creation functions provided with
+	any universal argument provokes now prompt for bullet, defaulting
+	to the bullet of the previous topic.
+	(allout-plain-bullets-string, allout-distinctive-bullets-string):
+	Plain bullet alternates '.' period and ',' comma only.  All other
+	bullets are relegated to special status (but customizable).
+	(allout-end-of-entry): Rename from 'allout-end-of-current-entry
+	since it actually operates w.r.t. most immediately containing
+	entry, visible or not.
+	(allout-hide-current-entry, allout-show-current-entry): Use the
+	revised version.
+	(allout-old-expose-topic): Solidify deprecation.
+	(allout-end-of-subtree): Add so we can span concealed as well
+	as visible topics.
+	(allout-end-of-current-subtree): Use `allout-end-of-subtree'.
+	(allout-end-of-current-heading): Tweak to just respect the first line.
+	(allout-get-body-text): Add.
+	(allout-ascend-to-depth, allout-ascend): Position at end of prefix
+	when invoked interactively.
+	(allout-up-current-level): Use `interactive-p'.
+	(allout-mode, allout-init): Miscellaneous docstring and
+	operational refinements, as well as hookups of new encryption stuff.
+	(allout-beginning-of-current-entry): Now works as advertised.
+	(allout-end-of-current-entry): Remove of superfluous allout-show-entry.
+	(allout-isearch-rectification): Refine condition for isearching.
+	(allout-isearch-abort, allout-enwrap-isearch)
+	(allout-flag-region, my-region-active-p): Relocate some macros.
+	(allout-title): Fallback title is '(buffer-name)', not
+	non-existing '(current-buffer-name)'.
+	(subst-char-in-string): Define if absent (for some XEmacs versions).
+
+2005-10-20  Jari Aalto  <jari.aalto@cante.net>
+
+	* mail/sendmail.el (mail-setup-hook, mail-aliases)
+	(mail-yank-prefix, mail-indentation-spaces, mail-yank-hooks)
+	(mail-citation-prefix-regexp, mail-signature-file)
+	(mail-default-headers, mail-bury-selects-summary)
+	(mail-send-nonascii): Add autoload cookies.
+
+2005-10-20  Emanuele Giaquinta  <emanuele.giaquinta@gmail.com>  (tiny change)
+
+	* frame.el (blink-cursor-mode): Add `mac' to the list of
+	window-system's that support blinking cursor.
+
+2005-10-20  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* textmodes/org.el (org-level-color-stars-only): Fix typo in docstring.
+
+2005-10-20  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(lisp)/mh-e/mh-loaddefs.el):
+	Bind find-file-suppress-same-file-warnings to t, to avoid warnings due
+	to different drive letter case in D:/foo/bar.el vs d:/foo/bar.el.
+
+2005-10-20  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-is-tramp-root): Simplify regexp matching tramp root.
+	(ido-set-current-directory): Don't add / after final @.
+	(ido-file-name-all-completions-1): Adapt to fixed tramp completion.
+	Explicitly handle ange-ftp completion oddities.
+	(ido-make-file-list): Don't rotate list at tramp root to avoid
+	triggering tramp file handler for expand-file-name via get-file-buffer.
+
+2005-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (eval-expression-print-format): Put the char-string
+	inside the parenthesis, like the other alternative notations.
+	(kill-new): Use push.
+	(copy-to-buffer): Use with-current-buffer.
+	(completion-setup-function): Simplify.
+	(minibuffer-local-must-match-map): Don't add redundant bindings which
+	are already present in its parent (minibuffer-local-completion-map).
+
+	* savehist.el (savehist-coding-system): Revert to checking XEmacs.
+
+2005-10-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el (math-standard-units): Add units, adjust
+	symbols and update values.
+	(math-unit-prefixes):  Add more prefixes.
+
+2005-10-19  Romain Francoise  <romain@orebokech.com>
+
+	* bookmark.el (bookmark-menu-heading): New face.
+	(bookmark-bmenu-list): Use it.
+	Don't fiddle with `baud-rate' at top-level.
+
+2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.el (create-image, find-image): Mention max-image-size in
+	docstring.
+
 2005-10-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* savehist.el (savehist-load): Revert to checking XEmacs.
 
 	* textmodes/conf-mode.el: Don't use font-lock-defaults-alist.
 	Various docstring and line-width fixups.
@@ -117,15 +397,14 @@
 
 2005-10-18  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-store (calc-store-into): Get the proper variable name
+	* calc/calc-store.el (calc-store-into): Get the proper variable name
 	to display in message.
 
 2005-10-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler): Make watch
 	expressions display in speedbar for all buffers when debugging.
-	(gdb-speedbar-expand-node): Ensure node contraction is always
-	updated.
+	(gdb-speedbar-expand-node): Ensure node contraction is always updated.
 
 	* speedbar.el (speedbar-set-mode-line-format): Indent properly.
 	(speedbar-insert-button, speedbar-make-button):
@@ -248,7 +527,6 @@
 
 	* progmodes/pascal.el (pascal-complete-word)
 	(pascal-show-completions): Ditto.
-
 
 	* textmodes/bibtex.el (bibtex-complete-internal): Ditto.
 

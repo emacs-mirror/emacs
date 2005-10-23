@@ -159,23 +159,32 @@ to obtain the value of this variable."
   :group 'paragraphs
   :type '(choice regexp (const :tag "Use default value" nil)))
 
+(defcustom sentence-end-base "[.?!][]\"'\xd0c9\x5397d)}]*"
+  "*Regexp matching the basic end of a sentence, not including following space."
+  :group 'paragraphs
+  :type 'string
+  :version "22.1")
+
 (defun sentence-end ()
   "Return the regexp describing the end of a sentence.
 
 This function returns either the value of the variable `sentence-end'
 if it is non-nil, or the default value constructed from the
-variables `sentence-end-double-space', `sentence-end-without-period'
-and `sentence-end-without-space'.  The default value specifies
-that in order to be recognized as the end of a sentence, the
-ending period, question mark, or exclamation point must be
-followed by two spaces, unless it's inside some sort of quotes or
-parenthesis.  See Info node `(elisp)Standard Regexps'."
+variables `sentence-end-base', `sentence-end-double-space',
+`sentence-end-without-period' and `sentence-end-without-space'.
+
+The default value specifies that in order to be recognized as the
+end of a sentence, the ending period, question mark, or exclamation point
+must be followed by two spaces, with perhaps some closing delimiters
+in between.  See Info node `(elisp)Standard Regexps'."
   (or sentence-end
       (concat (if sentence-end-without-period "\\w  \\|")
-              "\\([.?!][]\"'\xd0c9\x5397d)}]*"
+	      "\\("
+	      sentence-end-base
               (if sentence-end-double-space
                   "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
-              "\\|[" sentence-end-without-space "]+\\)"
+              "\\|[" sentence-end-without-space "]+"
+	      "\\)"
               "[ \t\n]*")))
 
 (defcustom page-delimiter "^\014"

@@ -429,7 +429,7 @@ string_match_1 (regexp, string, start, posix)
 
 DEFUN ("string-match", Fstring_match, Sstring_match, 2, 3, 0,
        doc: /* Return index of start of first match for REGEXP in STRING, or nil.
-Case is ignored if `case-fold-search' is non-nil in the current buffer.
+Matching ignores case if `case-fold-search' is non-nil.
 If third arg START is non-nil, start search at that index in STRING.
 For index of first char beyond the match, do (match-end 0).
 `match-end' and `match-beginning' also give indices of substrings
@@ -1709,7 +1709,7 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	  if (ASCII_BYTE_P (*ptr) || ! multibyte)
 	    ch = *ptr;
 	  else if (charset_base
-		   && (pat_end - ptr) == 1 || CHAR_HEAD_P (ptr[1]))
+		   && ((pat_end - ptr) == 1 || CHAR_HEAD_P (ptr[1])))
 	    {
 	      unsigned char *charstart = ptr - 1;
 

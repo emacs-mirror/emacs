@@ -1,3 +1,13 @@
+2005-10-21  Juri Linkov  <juri@jurta.org>
+
+	* custom.texi (Examining): Mention accessing the old variable
+	value via M-n in set-variable.
+
+2005-10-21  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Summary): Mention iCalendar support.
+	(Exporting): Document iCalendar support.
+
 2005-10-18  Romain Francoise  <romain@orebokech.com>
 
 	* files.texi (Version Systems): Capitalize GNU.

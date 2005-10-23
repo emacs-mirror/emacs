@@ -2367,14 +2367,14 @@ alternative, the second serves as annotation.
 The actual completion alternatives, as inserted, are given `mouse-face'
 properties of `highlight'.
 At the end, this runs the normal hook `completion-setup-hook'.
-It can find the completion buffer in `standard-output'.  
-The optional second arg COMMON-SUBSTRING is a string. 
+It can find the completion buffer in `standard-output'.
+The optional second arg COMMON-SUBSTRING is a string.
 It is used to put faces, `completions-first-difference` and
-`completions-common-part' on the completion bufffer. The
+`completions-common-part' on the completion buffer. The
 `completions-common-part' face is put on the common substring
 specified by COMMON-SUBSTRING. If COMMON-SUBSTRING is nil,
-the faces are not put. 
-Internally, COMMON-SUBSTRING is bound to `completion-common-substring' 
+the faces are not put.
+Internally, COMMON-SUBSTRING is bound to `completion-common-substring'
 during running `completion-setup-hook'. */)
      (completions, common_substring)
      Lisp_Object completions;
@@ -2550,13 +2550,21 @@ during running `completion-setup-hook'. */)
 
       specbind (intern ("completion-common-substring"), common_substring);
       call1 (Vrun_hooks, intern ("completion-setup-hook"));
-      
+
       unbind_to (count1, Qnil);
     }
 
   UNGCPRO;
 
   return Qnil;
+}
+
+
+static Lisp_Object
+display_completion_list_1 (list)
+     Lisp_Object list;
+{
+  return Fdisplay_completion_list (list, Qnil);
 }
 
 DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_completion_help,
@@ -2580,7 +2588,7 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
     }
   else
     internal_with_output_to_temp_buffer ("*Completions*",
-					 Fdisplay_completion_list,
+					 display_completion_list_1,
 					 Fsort (completions, Qstring_lessp));
   return Qnil;
 }

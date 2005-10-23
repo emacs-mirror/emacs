@@ -14639,7 +14639,7 @@
 	* font-lock.el (font-lock-defaults, font-lock-defaults-alist)
 	(font-lock-multiline, font-lock-fontified, font-lock-mode)
 	(turn-on-font-lock, font-lock-add-keywords, global-font-lock-mode)
-	(font-lock-global-modes): Moved to font-core.el.
+	(font-lock-global-modes): Move to font-core.el.
 	(font-lock-set-defaults-1): Partially moved to font-core.el.
 
 	* font-core.el: New file, with functions taken from font-lock.el.

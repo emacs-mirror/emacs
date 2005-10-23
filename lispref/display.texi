@@ -4058,6 +4058,25 @@ font).  @var{frame} is the frame on which the image will be displayed.
 Focus}).
 @end defun
 
+@defvar max-image-size
+@tindex max-image-size
+This variable is used to define the maximum size of image that Emacs
+will load.  Emacs will refuse to load (and display) any image that is
+larger than this limit.
+
+If the value is an integer, it directly specifies the maximum
+image height and width, measured in pixels.  If it is a floating
+point number, it specifies the maximum image height and width
+as a ratio to the frame height and width.  If the value is
+non-numeric, there is no explicit limit on the size of images.
+
+The purpose of this variable is to prevent unreasonably large images
+from accidentally being loaded into Emacs.  It only takes effect the
+first time an image is loaded.  Once an image is placed in the image
+cache, it can always be displayed, even if the value of
+@var{max-image-size} is subsequently changed (@pxref{Image Cache}).
+@end defvar
+
 @node Image Cache
 @subsection Image Cache
 

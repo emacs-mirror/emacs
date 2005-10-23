@@ -1,3 +1,76 @@
+2005-10-21  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (Fload): Simplify gcpro structure.
+	Gcpro FOUND as well as FILE, but not EFOUND.
+	Unless preloading, record FOUND instead of FILE in Vload_history.
+	Rename repeat local FILE to MSG_FILE.
+	(syms_of_lread) <load-history>: Doc fix.
+
+2005-10-21  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (boyer_moore): Surround the '||' part of expression in
+	`if' condition by parentheses explicitly.
+
+2005-10-20  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (clone_per_buffer_values): Remove unused var tem.
+	(init_buffer): Remove unused vars dotstat, pwdstat.
+
+	* ccl.c (check_ccl_update): Remove unused var vp.
+
+	* fileio.c (auto_save_error): Call SAFE_FREE.
+
+	* fns.c (Fchar_table_range): Remove unused var i.
+
+	* minibuf.c (display_completion_list_1): New wrapper function
+	for Fdisplay_completion_list.
+	(Fminibuffer_completion_help): Use it.
+
+	* term.c (encode_terminal_code): Remove unused var src_start.
+
+	* window.c (Fwindow_tree): Remove unused var alist.
+
+	* xterm.c (x_calc_absolute_position): Remove unused vars win_x, win_y.
+
+2005-10-20  Aubrey Jaffer  <agj@alum.mit.edu>  (tiny change)
+
+	* unexelf.c (unexec): Fix calls to `fatal' with less than 3
+	arguments.
+
+2005-10-20  Olli Savia  <ops@iki.fi>  (tiny change)
+
+	* syssignal.h [__Lynx__]: Undef SIGPOLL along with SIGIO.
+
+2005-10-20  Andreas Schwab  <schwab@suse.de>
+
+	* minibuf.c (Fdisplay_completion_list): Doc fix.
+
+2005-10-19  Kim F. Storm  <storm@cua.dk>
+
+	* image.c (check_image_size): Handle integer Vmax_image_size value
+	directly as max pixel value.  Use default frame size for null frame.
+	(syms_of_image) <max-image-size>: Describe integer value.
+
+2005-10-19  Romain Francoise  <romain@orebokech.com>
+
+	* emacs.c (main): Update copyright year.
+
+2005-10-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (Vmax_image_size): New variable.
+	(check_image_size): New function.
+	(xbm_read_bitmap_data, pbm_load, png_load, jpeg_load, tiff_load)
+	(gif_load, gs_load): Use it.
+	(lookup_image): Try loading again if previous load failed.
+	(xbm_read_bitmap_data): Add a new argument, a pointer to the frame
+	to display in, NULL if none.
+	(xbm_load_image, xbm_file_p): Pass xbm_read_bitmap_data the new
+	argument.
+
+2005-10-18  Richard M. Stallman  <rms@gnu.org>
+
+	* search.c (Fstring_match): Doc fix.
+
 2005-10-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (note_mouse_movement): Use PtInRect.
@@ -8,7 +81,7 @@
 2005-10-16  Masatake YAMATO  <jet@gyve.org>
 
 	* minibuf.c (Fdisplay_completion_list): Add new optional
-	argument COMMON_SUBSTRING. Bind `completion-common-substring' 
+	argument COMMON_SUBSTRING. Bind `completion-common-substring'
 	to the optional argument during running `completion-setup-hook'.
 
 2005-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>

@@ -266,6 +266,7 @@
    (valid-codes (0 . 255))))
 
 (define-coding-system-alias 'tcvn 'vietnamese-tcvn)
+(define-coding-system-alias 'tcvn-5712 'vietnamese-tcvn)
 
 ;; (make-coding-system
 ;;  'vietnamese-vps 4 ?p

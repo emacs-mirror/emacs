@@ -1048,8 +1048,7 @@ a very meaningful entity to highlight.")
           (setq beg (line-beginning-position (- 1 font-lock-lines-before)))
 	  ;; check to see if we should expand the beg/end area for
 	  ;; proper multiline matches
-	  (when (and font-lock-multiline
-		     (> beg (point-min))
+	  (when (and (> beg (point-min))
 		     (get-text-property (1- beg) 'font-lock-multiline))
 	    ;; We are just after or in a multiline match.
 	    (setq beg (or (previous-single-property-change
@@ -1057,10 +1056,9 @@ a very meaningful entity to highlight.")
 			  (point-min)))
 	    (goto-char beg)
 	    (setq beg (line-beginning-position)))
-	  (when font-lock-multiline
-	    (setq end (or (text-property-any end (point-max)
-					     'font-lock-multiline nil)
-			  (point-max))))
+          (setq end (or (text-property-any end (point-max)
+                                           'font-lock-multiline nil)
+                        (point-max)))
 	  (goto-char end)
 	  ;; Round up to a whole line.
           (unless (bolp) (setq end (line-beginning-position 2)))
@@ -1184,35 +1182,35 @@ Optional argument OBJECT is the string or buffer containing the text."
 
 ;; For completeness: this is to `remove-text-properties' as `put-text-property'
 ;; is to `add-text-properties', etc.
-;(defun remove-text-property (start end property &optional object)
-;  "Remove a property from text from START to END.
-;Argument PROPERTY is the property to remove.
-;Optional argument OBJECT is the string or buffer containing the text.
-;Return t if the property was actually removed, nil otherwise."
-;  (remove-text-properties start end (list property) object))
+;;(defun remove-text-property (start end property &optional object)
+;;  "Remove a property from text from START to END.
+;;Argument PROPERTY is the property to remove.
+;;Optional argument OBJECT is the string or buffer containing the text.
+;;Return t if the property was actually removed, nil otherwise."
+;;  (remove-text-properties start end (list property) object))
 
 ;; For consistency: maybe this should be called `remove-single-property' like
 ;; `next-single-property-change' (not `next-single-text-property-change'), etc.
-;(defun remove-single-text-property (start end prop value &optional object)
-;  "Remove a specific property value from text from START to END.
-;Arguments PROP and VALUE specify the property and value to remove.  The
-;resulting property values are not equal to VALUE nor lists containing VALUE.
-;Optional argument OBJECT is the string or buffer containing the text."
-;  (let ((start (text-property-not-all start end prop nil object)) next prev)
-;    (while start
-;      (setq next (next-single-property-change start prop object end)
-;	    prev (get-text-property start prop object))
-;      (cond ((and (symbolp prev) (eq value prev))
-;	     (remove-text-property start next prop object))
-;	    ((and (listp prev) (memq value prev))
-;	     (let ((new (delq value prev)))
-;	       (cond ((null new)
-;		      (remove-text-property start next prop object))
-;		     ((= (length new) 1)
-;		      (put-text-property start next prop (car new) object))
-;		     (t
-;		      (put-text-property start next prop new object))))))
-;      (setq start (text-property-not-all next end prop nil object)))))
+;;(defun remove-single-text-property (start end prop value &optional object)
+;;  "Remove a specific property value from text from START to END.
+;;Arguments PROP and VALUE specify the property and value to remove.  The
+;;resulting property values are not equal to VALUE nor lists containing VALUE.
+;;Optional argument OBJECT is the string or buffer containing the text."
+;;  (let ((start (text-property-not-all start end prop nil object)) next prev)
+;;    (while start
+;;      (setq next (next-single-property-change start prop object end)
+;;	    prev (get-text-property start prop object))
+;;      (cond ((and (symbolp prev) (eq value prev))
+;;	     (remove-text-property start next prop object))
+;;	    ((and (listp prev) (memq value prev))
+;;	     (let ((new (delq value prev)))
+;;	       (cond ((null new)
+;;		      (remove-text-property start next prop object))
+;;		     ((= (length new) 1)
+;;		      (put-text-property start next prop (car new) object))
+;;		     (t
+;;		      (put-text-property start next prop new object))))))
+;;      (setq start (text-property-not-all next end prop nil object)))))
 
 ;;; End of Additional text property functions.
 
@@ -1534,7 +1532,8 @@ If REGEXP is non-nil, it means these keywords are used for
 		   (if (memq (get-text-property (match-beginning 0) 'face)
 			     '(font-lock-string-face font-lock-doc-face
 			       font-lock-comment-face))
-		       font-lock-warning-face)
+		       (list 'face font-lock-warning-face
+                             'help-echo "Looks like a toplevel defun: escape the parenthesis"))
 		   prepend)))))
     keywords))
 
@@ -1602,7 +1601,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (let* ((defaults (or font-lock-defaults
 			 (cdr (assq major-mode
 				    (with-no-warnings
-				     font-lock-defaults-alist)))))
+                                      font-lock-defaults-alist)))))
 	   (keywords
 	    (font-lock-choose-keywords (nth 0 defaults)
 				       (font-lock-value-in-major-mode font-lock-maximum-decoration)))
@@ -1854,95 +1853,95 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;; buttons and when they are on or off needs tweaking.  I have assumed that the
 ;; mechanism is via `menu-toggle' and `menu-selected' symbol properties.  sm.
 
-;;;;###autoload
-;(progn
-;  ;; Make the Font Lock menu.
-;  (defvar font-lock-menu (make-sparse-keymap "Syntax Highlighting"))
-;  ;; Add the menu items in reverse order.
-;  (define-key font-lock-menu [fontify-less]
-;    '("Less In Current Buffer" . font-lock-fontify-less))
-;  (define-key font-lock-menu [fontify-more]
-;    '("More In Current Buffer" . font-lock-fontify-more))
-;  (define-key font-lock-menu [font-lock-sep]
-;    '("--"))
-;  (define-key font-lock-menu [font-lock-mode]
-;    '("In Current Buffer" . font-lock-mode))
-;  (define-key font-lock-menu [global-font-lock-mode]
-;    '("In All Buffers" . global-font-lock-mode)))
-;
-;;;;###autoload
-;(progn
-;  ;; We put the appropriate `menu-enable' etc. symbol property values on when
-;  ;; font-lock.el is loaded, so we don't need to autoload the three variables.
-;  (put 'global-font-lock-mode 'menu-toggle t)
-;  (put 'font-lock-mode 'menu-toggle t)
-;  (put 'font-lock-fontify-more 'menu-enable '(identity))
-;  (put 'font-lock-fontify-less 'menu-enable '(identity)))
-;
-; ;; Put the appropriate symbol property values on now.  See above.
-;(put 'global-font-lock-mode 'menu-selected 'global-font-lock-mode)
-;(put 'font-lock-mode 'menu-selected 'font-lock-mode)
-;(put 'font-lock-fontify-more 'menu-enable '(nth 2 font-lock-fontify-level))
-;(put 'font-lock-fontify-less 'menu-enable '(nth 1 font-lock-fontify-level))
-;
-;(defvar font-lock-fontify-level nil)	; For less/more fontification.
-;
-;(defun font-lock-fontify-level (level)
-;  (let ((font-lock-maximum-decoration level))
-;    (when font-lock-mode
-;      (font-lock-mode))
-;    (font-lock-mode)
-;    (when font-lock-verbose
-;      (message "Fontifying %s... level %d" (buffer-name) level))))
-;
-;(defun font-lock-fontify-less ()
-;  "Fontify the current buffer with less decoration.
-;See `font-lock-maximum-decoration'."
-;  (interactive)
-;  ;; Check in case we get called interactively.
-;  (if (nth 1 font-lock-fontify-level)
-;      (font-lock-fontify-level (1- (car font-lock-fontify-level)))
-;    (error "No less decoration")))
-;
-;(defun font-lock-fontify-more ()
-;  "Fontify the current buffer with more decoration.
-;See `font-lock-maximum-decoration'."
-;  (interactive)
-;  ;; Check in case we get called interactively.
-;  (if (nth 2 font-lock-fontify-level)
-;      (font-lock-fontify-level (1+ (car font-lock-fontify-level)))
-;    (error "No more decoration")))
-;
-; ;; This should be called by `font-lock-set-defaults'.
-;(defun font-lock-set-menu ()
-;  ;; Activate less/more fontification entries if there are multiple levels for
-;  ;; the current buffer.  Sets `font-lock-fontify-level' to be of the form
-;  ;; (CURRENT-LEVEL IS-LOWER-LEVEL-P IS-HIGHER-LEVEL-P) for menu activation.
-;  (let ((keywords (or (nth 0 font-lock-defaults)
-;		      (nth 1 (assq major-mode font-lock-defaults-alist))))
-;	(level (font-lock-value-in-major-mode font-lock-maximum-decoration)))
-;    (make-local-variable 'font-lock-fontify-level)
-;    (if (or (symbolp keywords) (= (length keywords) 1))
-;	(font-lock-unset-menu)
-;      (cond ((eq level t)
-;	     (setq level (1- (length keywords))))
-;	    ((or (null level) (zerop level))
-;	     ;; The default level is usually, but not necessarily, level 1.
-;	     (setq level (- (length keywords)
-;			    (length (member (eval (car keywords))
-;					    (mapcar 'eval (cdr keywords))))))))
-;      (setq font-lock-fontify-level (list level (> level 1)
-;					  (< level (1- (length keywords))))))))
-;
-; ;; This should be called by `font-lock-unset-defaults'.
-;(defun font-lock-unset-menu ()
-;  ;; Deactivate less/more fontification entries.
-;  (setq font-lock-fontify-level nil))
+;;;;;###autoload
+;;(progn
+;;  ;; Make the Font Lock menu.
+;;  (defvar font-lock-menu (make-sparse-keymap "Syntax Highlighting"))
+;;  ;; Add the menu items in reverse order.
+;;  (define-key font-lock-menu [fontify-less]
+;;    '("Less In Current Buffer" . font-lock-fontify-less))
+;;  (define-key font-lock-menu [fontify-more]
+;;    '("More In Current Buffer" . font-lock-fontify-more))
+;;  (define-key font-lock-menu [font-lock-sep]
+;;    '("--"))
+;;  (define-key font-lock-menu [font-lock-mode]
+;;    '("In Current Buffer" . font-lock-mode))
+;;  (define-key font-lock-menu [global-font-lock-mode]
+;;    '("In All Buffers" . global-font-lock-mode)))
+;;
+;;;;;###autoload
+;;(progn
+;;  ;; We put the appropriate `menu-enable' etc. symbol property values on when
+;;  ;; font-lock.el is loaded, so we don't need to autoload the three variables.
+;;  (put 'global-font-lock-mode 'menu-toggle t)
+;;  (put 'font-lock-mode 'menu-toggle t)
+;;  (put 'font-lock-fontify-more 'menu-enable '(identity))
+;;  (put 'font-lock-fontify-less 'menu-enable '(identity)))
+;;
+;; ;; Put the appropriate symbol property values on now.  See above.
+;;(put 'global-font-lock-mode 'menu-selected 'global-font-lock-mode)
+;;(put 'font-lock-mode 'menu-selected 'font-lock-mode)
+;;(put 'font-lock-fontify-more 'menu-enable '(nth 2 font-lock-fontify-level))
+;;(put 'font-lock-fontify-less 'menu-enable '(nth 1 font-lock-fontify-level))
+;;
+;;(defvar font-lock-fontify-level nil)	; For less/more fontification.
+;;
+;;(defun font-lock-fontify-level (level)
+;;  (let ((font-lock-maximum-decoration level))
+;;    (when font-lock-mode
+;;      (font-lock-mode))
+;;    (font-lock-mode)
+;;    (when font-lock-verbose
+;;      (message "Fontifying %s... level %d" (buffer-name) level))))
+;;
+;;(defun font-lock-fontify-less ()
+;;  "Fontify the current buffer with less decoration.
+;;See `font-lock-maximum-decoration'."
+;;  (interactive)
+;;  ;; Check in case we get called interactively.
+;;  (if (nth 1 font-lock-fontify-level)
+;;      (font-lock-fontify-level (1- (car font-lock-fontify-level)))
+;;    (error "No less decoration")))
+;;
+;;(defun font-lock-fontify-more ()
+;;  "Fontify the current buffer with more decoration.
+;;See `font-lock-maximum-decoration'."
+;;  (interactive)
+;;  ;; Check in case we get called interactively.
+;;  (if (nth 2 font-lock-fontify-level)
+;;      (font-lock-fontify-level (1+ (car font-lock-fontify-level)))
+;;    (error "No more decoration")))
+;;
+;; ;; This should be called by `font-lock-set-defaults'.
+;;(defun font-lock-set-menu ()
+;;  ;; Activate less/more fontification entries if there are multiple levels for
+;;  ;; the current buffer.  Sets `font-lock-fontify-level' to be of the form
+;;  ;; (CURRENT-LEVEL IS-LOWER-LEVEL-P IS-HIGHER-LEVEL-P) for menu activation.
+;;  (let ((keywords (or (nth 0 font-lock-defaults)
+;;		      (nth 1 (assq major-mode font-lock-defaults-alist))))
+;;	(level (font-lock-value-in-major-mode font-lock-maximum-decoration)))
+;;    (make-local-variable 'font-lock-fontify-level)
+;;    (if (or (symbolp keywords) (= (length keywords) 1))
+;;	(font-lock-unset-menu)
+;;      (cond ((eq level t)
+;;	     (setq level (1- (length keywords))))
+;;	    ((or (null level) (zerop level))
+;;	     ;; The default level is usually, but not necessarily, level 1.
+;;	     (setq level (- (length keywords)
+;;			    (length (member (eval (car keywords))
+;;					    (mapcar 'eval (cdr keywords))))))))
+;;      (setq font-lock-fontify-level (list level (> level 1)
+;;					  (< level (1- (length keywords))))))))
+;;
+;; ;; This should be called by `font-lock-unset-defaults'.
+;;(defun font-lock-unset-menu ()
+;;  ;; Deactivate less/more fontification entries.
+;;  (setq font-lock-fontify-level nil))
 
 ;;; End of Menu support.
 
 ;;; Various regexp information shared by several modes.
-; ;; Information specific to a single mode should go in its load library.
+;; ;; Information specific to a single mode should go in its load library.
 
 ;; Font Lock support for C, C++, Objective-C and Java modes is now in
 ;; cc-fonts.el (and required by cc-mode.el).  However, the below function

@@ -8103,7 +8103,6 @@ void
 x_calc_absolute_position (f)
      struct frame *f;
 {
-  int win_x = 0, win_y = 0;
   int flags = f->size_hint_flags;
 
   /* We have nothing to do if the current position

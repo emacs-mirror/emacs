@@ -647,6 +647,17 @@ opening the first frame (e.g. open a connection to an X server).")
 
   (set-locale-environment nil)
 
+  ;; Convert preloaded file names to absolute.
+  (setq load-history
+	(mapcar (lambda (elt)
+		  (if (and (stringp (car elt))
+			   (not (file-name-absolute-p (car elt))))
+		      (cons (locate-file (car elt) load-path
+					 load-suffixes)
+			    (cdr elt))
+		    elt))
+		load-history))
+
   ;; Convert the arguments to Emacs internal representation.
   (let ((args (cdr command-line-args)))
     (while args

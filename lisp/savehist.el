@@ -138,7 +138,12 @@ the user's privacy."
   :type 'integer
   :group 'savehist)
 
-(defvar savehist-coding-system (if (coding-system-p 'utf-8) 'utf-8 'iso-2022-8)
+(defvar savehist-coding-system
+  ;; UTF-8 is usually preferable to ISO-2022-8 when available, but under
+  ;; XEmacs, UTF-8 is provided by external packages, and may not always be
+  ;; available, so even if it currently is available, we prefer not to
+  ;; use is.
+  (if (featurep 'xemacs) 'iso-2022-8 'utf-8)
   "The coding system savehist uses for saving the minibuffer history.
 Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")

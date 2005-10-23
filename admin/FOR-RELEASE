@@ -39,13 +39,6 @@ bitmap usage to a bitmap name, and second level maps bitmap name to
 a bitmap appearence.
 [Assigned to KFS]
 
-** Put a max-limit on the size of images, e.g. based on the display size.
-This is to avoid allocating insane amounts of memory due to bogus
-image size specifications.
-Note: rather than clipping images that are too big (this may be
-non-trivial to do correctly in all cases -- and thus non-trivial to
-test), it may be better just to avoid displaying such images for emacs 22.
-
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
@@ -54,9 +47,6 @@ test), it may be better just to avoid displaying such images for emacs 22.
 invalid pointer from string_free_list.
 
 * BUGS
-
-** Make a new interface for specifying window configurations
-so that we can fix bugs in balance-windows.
 
 ** TCP server processes do not work on Windows.
 

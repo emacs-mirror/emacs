@@ -1393,7 +1393,7 @@ The main purpose is to get rid of the local keymap."
 
 ;;; Name to use for TERM.
 ;;; Using "emacs" loses, because bash disables editing if TERM == emacs.
-(defvar term-term-name "eterm")
+(defvar term-term-name "eterm-color")
 ; Format string, usage:
 ; (format term-termcap-string emacs-term-name "TERMCAP=" 24 80)
 (defvar term-termcap-format

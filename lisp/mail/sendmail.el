@@ -185,6 +185,7 @@ This file need not actually exist."
   :type '(choice (const nil) file)
   :group 'sendmail)
 
+;;;###autoload
 (defcustom mail-setup-hook nil
   "Normal hook, run each time a new outgoing mail message is initialized.
 The function `mail-setup' runs this hook."
@@ -192,6 +193,7 @@ The function `mail-setup' runs this hook."
   :options '(fortune-to-signature spook mail-abbrevs-setup)
   :group 'sendmail)
 
+;;;###autoload
 (defvar mail-aliases t
   "Alist of mail address aliases,
 or t meaning should be initialized from your mail aliases file.
@@ -203,17 +205,20 @@ The alias definitions in the file have this form:
 (defvar mail-alias-modtime nil
   "The modification time of your mail alias file when it was last examined.")
 
+;;;###autoload
 (defcustom mail-yank-prefix nil
   "*Prefix insert on lines of yanked message being replied to.
 nil means use indentation."
   :type '(choice (const nil) string)
   :group 'sendmail)
 
+;;;###autoload
 (defcustom mail-indentation-spaces 3
   "*Number of spaces to insert at the beginning of each cited line.
 Used by `mail-yank-original' via `mail-indent-citation'."
   :type 'integer
   :group 'sendmail)
+
 (defvar mail-yank-hooks nil
   "Obsolete hook for modifying a citation just inserted in the mail buffer.
 Each hook function can find the citation between (point) and (mark t).
@@ -242,6 +247,7 @@ instead of no action."
 This enables the hook functions to see the whole message header
 regardless of what part of it (if any) is included in the cited text.")
 
+;;;###autoload
 (defcustom mail-citation-prefix-regexp "[ \t]*[-a-z0-9A-Z]*>+[ \t]*\\|[ \t]*"
   "*Regular expression to match a citation prefix plus whitespace.
 It should match whatever sort of citation prefixes you want to handle,
@@ -281,6 +287,7 @@ and should insert whatever you want to insert."
   :group 'sendmail)
 (put 'mail-signature 'risky-local-variable t)
 
+;;;###autoload
 (defcustom mail-signature-file "~/.signature"
   "*File containing the text inserted at end of mail buffer."
   :type 'file
@@ -301,6 +308,7 @@ This directory is used for auto-save files of mail buffers."
 (put 'mail-reply-action 'permanent-local t)
 (put 'mail-send-actions 'permanent-local t)
 
+;;;###autoload
 (defcustom mail-default-headers nil
   "*A string containing header lines, to be inserted in outgoing messages.
 It is inserted before you edit the message,
@@ -308,6 +316,7 @@ so you can edit or delete these lines."
   :type '(choice (const nil) string)
   :group 'sendmail)
 
+;;;###autoload
 (defcustom mail-bury-selects-summary t
   "*If non-nil, try to show RMAIL summary buffer after returning from mail.
 The functions \\[mail-send-on-exit] or \\[mail-dont-send] select
@@ -316,6 +325,7 @@ is non-nil."
   :type 'boolean
   :group 'sendmail)
 
+;;;###autoload
 (defcustom mail-send-nonascii 'mime
   "*Specify whether to allow sending non-ASCII characters in mail.
 If t, that means do allow it.  nil means don't allow it.
