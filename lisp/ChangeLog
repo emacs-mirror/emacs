@@ -1,3 +1,11 @@
+2005-10-23  Lars Hansen <larsh@soem.dk>
+	* emacs-lisp/bytecomp.el (byte-compile-lambda): Add parameter
+	add-lambda.
+	(byte-compile-file-form-defmumble, byte-compile-defun)
+	(byte-compile-defmacro): Use it.
+	(byte-compile-form): Don't call byte-compile-set-symbol-position
+	when a byte-compile handler is called.
+
 2005-10-22  Romain Francoise  <romain@orebokech.com>
 
 	* savehist.el (savehist-history-variables): Add `grep-find-history'.
