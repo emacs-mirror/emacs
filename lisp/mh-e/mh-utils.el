@@ -175,8 +175,8 @@ Use `mh-signature-separator-regexp' when searching for a separator.")
 (defvar mh-globals-hash (make-hash-table)
   "Keeps track of MIME data on a per buffer basis.")
 
-(defvar mh-gnus-pgp-support-flag (not (not (locate-library "mml2015")))
-  "Non-nil means installed Gnus has PGP support.")
+(defvar mh-pgp-support-flag (not (not (locate-library "mml2015")))
+  "Non-nil means PGP support is available.")
 
 (defvar mh-mm-inline-media-tests
   `(("image/jpeg"
@@ -410,10 +410,10 @@ Argument LIMIT limits search."
 
 (defun mh-show-font-lock-fontify-region (beg end loudly)
   "Limit font-lock in `mh-show-mode' to the header.
-Used when `mh-highlight-citation-p' is set to gnus, leaving the body to be
-dealt with by gnus highlighting. The region between BEG and END is
-given over to be fontified and LOUDLY controls if a user sees a
-message about the fontification operation."
+Used when `mh-highlight-citation-p' is set to \"'gnus\", leaving the body to
+be dealt with by gnus highlighting. The region between BEG and END is given
+over to be fontified and LOUDLY controls if a user sees a message about the
+fontification operation."
   (let ((header-end (mh-mail-header-end)))
     (cond
      ((and (< beg header-end)(< end header-end))
@@ -432,7 +432,7 @@ message about the fontification operation."
         (require 'gnus-cite))))
 
 (defun mh-gnus-article-highlight-citation ()
-  "Highlight cited text in current buffer using gnus."
+  "Highlight cited text in current buffer using Gnus."
   (interactive)
   ;; Requiring gnus-cite should have been sufficient. However for Emacs21.1,
   ;; recursive-load-depth-limit is only 10, so an error occurs. Also it may be

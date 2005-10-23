@@ -56,26 +56,26 @@ BODY."
       `(defmacro ,function ,arg-list ,@body))))
 (put 'mh-defmacro-compat 'lisp-indent-function 'defun)
 
-;; Copy of original function from gnus-util.el
+;; Copy of original function from gnus-util.el.
 (mh-defun-compat gnus-local-map-property (map)
   "Return a list suitable for a text property list specifying keymap MAP."
   (cond (mh-xemacs-flag (list 'keymap map))
         ((>= emacs-major-version 21) (list 'keymap map))
         (t (list 'local-map map))))
 
-;; Copy of original function from mm-decode.el
+;; Copy of original function from mm-decode.el.
 (mh-defun-compat mm-merge-handles (handles1 handles2)
   (append (if (listp (car handles1)) handles1 (list handles1))
           (if (listp (car handles2)) handles2 (list handles2))))
 
-;; Copy of function from mm-decode.el
+;; Copy of function from mm-decode.el.
 (mh-defun-compat mm-set-handle-multipart-parameter (handle parameter value)
   ;; HANDLE could be a CTL.
   (if handle
       (put-text-property 0 (length (car handle)) parameter value
                          (car handle))))
 
-;; Copy of function from mm-view.el
+;; Copy of function from mm-view.el.
 (mh-defun-compat mm-inline-text-vcard (handle)
   (let (buffer-read-only)
     (mm-insert-inline
@@ -89,15 +89,15 @@ BODY."
 				      'vcard-standard-filter))))))))
 
 ;; Function from mm-decode.el used in PGP messages. Just define it with older
-;; gnus to avoid compiler warning.
+;; Gnus to avoid compiler warning.
 (mh-defun-compat mm-possibly-verify-or-decrypt (parts ctl)
   nil)
 
-;; Copy of original macro is in mm-decode.el
+;; Copy of original macro is in mm-decode.el.
 (mh-defmacro-compat mm-handle-multipart-ctl-parameter (handle parameter)
   `(get-text-property 0 ,parameter (car ,handle)))
 
-;; Copy of original function in mm-decode.el
+;; Copy of original function in mm-decode.el.
 (mh-defun-compat mm-readable-p (handle)
   "Say whether the content of HANDLE is readable."
   (and (< (with-current-buffer (mm-handle-buffer handle)
@@ -107,7 +107,7 @@ BODY."
          (and (eq (mm-body-7-or-8) '7bit)
               (not (mm-long-lines-p 76))))))
 
-;; Copy of original function in mm-bodies.el
+;; Copy of original function in mm-bodies.el.
 (mh-defun-compat mm-long-lines-p (length)
   "Say whether any of the lines in the buffer is longer than LENGTH."
   (save-excursion
@@ -126,10 +126,25 @@ BODY."
   nil)
 
 (mh-defun-compat mm-destroy-parts (list)
-  "Older emacs don't have this function."
+  "Older versions of Emacs don't have this function."
   nil)
 
-;;; This is mm-save-part from gnus 5.10 since that function in emacs21.2 is
+;; Copy of original function in mml.el.
+(mh-defun-compat mml-minibuffer-read-disposition (type &optional default)
+  (unless default (setq default
+                        (if (and (string-match "\\`text/" type)
+                                 (not (string-match "\\`text/rtf\\'" type)))
+                            "inline"
+                          "attachment")))
+  (let ((disposition (completing-read
+                      (format "Disposition (default %s): " default)
+                      '(("attachment") ("inline") (""))
+                      nil t nil nil default)))
+    (if (not (equal disposition ""))
+	disposition
+      default)))
+
+;;; This is mm-save-part from Gnus 5.10 since that function in emacs21.2 is
 ;;; buggy (the args to read-file-name are incorrect). When all supported
 ;;; versions of Emacs come with at least Gnus 5.10, we can delete this
 ;;; function and rename calls to mh-mm-save-part to mm-save-part.
@@ -152,7 +167,7 @@ BODY."
          (mm-save-part-to-file handle file))))
 
 (defun mh-mm-text-html-renderer ()
-  "Find the renderer gnus is using to display text/html MIME parts."
+  "Find the renderer Gnus is using to display text/html MIME parts."
   (or (and (boundp 'mm-inline-text-html-renderer) mm-inline-text-html-renderer)
       (and (boundp 'mm-text-html-renderer) mm-text-html-renderer)))
 
