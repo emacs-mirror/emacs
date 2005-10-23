@@ -47,6 +47,7 @@
 (autoload 'gnus-eval-format "gnus-spec")
 (autoload 'gnus-get-buffer-create "gnus")
 (autoload 'message-options-set-recipient "message")
+(autoload 'mm-uu-dissect "mm-uu")
 (autoload 'mml-attach-file "mml")
 (autoload 'mml-insert-empty-tag "mml")
 (autoload 'mml-minibuffer-read-description "mml")
