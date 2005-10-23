@@ -3599,15 +3599,16 @@ note_mouse_movement (frame, event)
       return 1;
     }
 
+  note_mouse_highlight (frame, event->x, event->y);
+
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
   if (event->x < last_mouse_glyph.x
-	   || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
-	   || event->y < last_mouse_glyph.y
-	   || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
+      || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
+      || event->y < last_mouse_glyph.y
+      || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
-      note_mouse_highlight (frame, event->x, event->y);
       /* Remember which glyph we're now on.  */
       remember_mouse_glyph (frame, event->x, event->y, &last_mouse_glyph);
       return 1;
