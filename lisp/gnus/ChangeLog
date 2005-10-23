@@ -1,3 +1,8 @@
+2005-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnus-sum.el (gnus-summary-from-or-to-or-newsgroups): Handle case
+	where gnus-ignored-from-address is an empty string.
+
 2005-10-20  Hiroshi Fujishima  <hiroshi.fujishima@gmail.com>  (tiny change)
 
 	* mail-source.el (mail-source-fetch-pop): Require pop3.

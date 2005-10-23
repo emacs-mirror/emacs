@@ -3304,6 +3304,7 @@ buffer that was in action when the last article was fetched."
 			 gnus-newsgroup-ignored-charsets)))
     (or
      (and gnus-ignored-from-addresses
+	  (not (string= gnus-ignored-from-addresses ""))
 	  (string-match gnus-ignored-from-addresses gnus-tmp-from)
 	  (let ((extra-headers (mail-header-extra header))
 		to
