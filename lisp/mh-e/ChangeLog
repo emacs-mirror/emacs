@@ -1,3 +1,31 @@
+2005-10-23  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-identity.el (mh-assoc-ignore-case): New macro that uses
+	assoc-string (if the function is available) and falls back on
+	assoc-ignore-case if assoc-string is not found.
+	(mh-identity-field-handler): Use mh-assoc-ignore-case since
+	assoc-ignore-case is a obsolete function in Emacs 22.
+
+	* mh-e.el (mh-folder-buttons-init-flag): New variable that keeps
+	track of whether the tool-bar in mh-folder-mode has been
+	initialized yet.
+	(mh-folder-mode): Initialize the tool-bar for folders the first
+	time we get into mh-letter-mode.
+
+	* mh-customize.el (mh-buffer-exists-p): New function which tests
+	presence of buffers of a given mode.
+	(mh-tool-bar-define): New functions
+	mh-tool-bar-folder-buttons-init and
+	mh-tool-bar-letter-buttons-init are defined. These functions are
+	used to create the tool-bar from the corresponding customizable
+	variables.
+
+	* mh-comp.el (mh-letter-buttons-init-flag): New variable that
+	keeps track of whether the tool-bar in mh-letter-mode has been
+	initialized yet.
+	(mh-letter-mode): Initialize the tool-bar for drafts the first
+	time we get into mh-letter-mode.
+
 2005-10-23  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-letter-menu): Rename

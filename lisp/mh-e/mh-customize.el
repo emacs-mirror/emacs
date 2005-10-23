@@ -1673,6 +1673,14 @@ and the default-toolbar."
                   (const :tag "Don't use a toolbar" nil))
     :group 'mh-toolbar))
 
+(defun mh-buffer-exists-p (mode)
+  "Test whether a buffer with major mode MODE is present."
+  (loop for buf in (buffer-list)
+        when (save-excursion
+               (set-buffer buf)
+               (eq major-mode mode))
+        return t))
+
 (defmacro mh-tool-bar-define (defaults &rest buttons)
   "Define a tool bar for MH-E.
 DEFAULTS is the list of buttons that are present by default. It is a list of
@@ -1804,33 +1812,42 @@ where,
        (defvar mh-letter-tool-bar-map nil)
        ;; GNU Emacs tool bar specific code
        (mh-do-in-gnu-emacs
+         ;; Tool bar initialization functions
+         (defun mh-tool-bar-folder-buttons-init ()
+           (when (mh-buffer-exists-p 'mh-folder-mode)
+             (mh-image-load-path)
+             (setq mh-folder-tool-bar-map
+                   (let ((tool-bar-map (make-sparse-keymap)))
+                     ,@(nreverse folder-button-setter)
+                     tool-bar-map))
+             (setq mh-show-tool-bar-map
+                   (let ((tool-bar-map (make-sparse-keymap)))
+                     ,@(nreverse show-button-setter)
+                     tool-bar-map))
+             (setq mh-show-seq-tool-bar-map
+                   (let ((tool-bar-map (copy-keymap mh-show-tool-bar-map)))
+                     ,@(nreverse show-seq-button-setter)
+                     tool-bar-map))
+             (setq mh-folder-seq-tool-bar-map
+                   (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
+                     ,@(nreverse sequence-button-setter)
+                     tool-bar-map))))
+         (defun mh-tool-bar-letter-buttons-init ()
+           (when (mh-buffer-exists-p 'mh-letter-mode)
+             (mh-image-load-path)
+             (setq mh-letter-tool-bar-map
+                   (let ((tool-bar-map (make-sparse-keymap)))
+                     ,@(nreverse letter-button-setter)
+                     tool-bar-map))))
          ;; Custom setter functions
          (defun mh-tool-bar-folder-buttons-set (symbol value)
            "Construct toolbar for `mh-folder-mode' and `mh-show-mode'."
            (set-default symbol value)
-           (setq mh-folder-tool-bar-map
-                 (let ((tool-bar-map (make-sparse-keymap)))
-                   ,@(nreverse folder-button-setter)
-                   tool-bar-map))
-           (setq mh-show-tool-bar-map
-                 (let ((tool-bar-map (make-sparse-keymap)))
-                   ,@(nreverse show-button-setter)
-                   tool-bar-map))
-           (setq mh-show-seq-tool-bar-map
-                 (let ((tool-bar-map (copy-keymap mh-show-tool-bar-map)))
-                   ,@(nreverse show-seq-button-setter)
-                   tool-bar-map))
-           (setq mh-folder-seq-tool-bar-map
-                 (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
-                   ,@(nreverse sequence-button-setter)
-                   tool-bar-map)))
+           (mh-tool-bar-folder-buttons-init))
          (defun mh-tool-bar-letter-buttons-set (symbol value)
            "Construct toolbar for `mh-letter-mode'."
            (set-default symbol value)
-           (setq mh-letter-tool-bar-map
-                 (let ((tool-bar-map (make-sparse-keymap)))
-                   ,@(nreverse letter-button-setter)
-                   tool-bar-map))))
+           (mh-tool-bar-letter-buttons-init)))
        ;; XEmacs specific code
        (mh-do-in-xemacs
          (defvar mh-toolbar-folder-vector-map

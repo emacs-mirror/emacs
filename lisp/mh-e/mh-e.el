@@ -1507,6 +1507,8 @@ is used in previous versions and XEmacs."
            (not (member 'mh-folder-mode which-func-modes)))
   (push 'mh-folder-mode which-func-modes))
 
+(defvar mh-folder-buttons-init-flag nil)
+
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (define-derived-mode mh-folder-mode fundamental-mode "MH-Folder"
@@ -1560,8 +1562,10 @@ MH-Folder buffer, then the MH-E command will perform the operation on all
 messages in that region.
 
 \\{mh-folder-mode-map}"
-
-  (mh-image-load-path)
+  (mh-do-in-gnu-emacs
+   (unless mh-folder-buttons-init-flag
+     (mh-tool-bar-folder-buttons-init)
+     (setq mh-folder-buttons-init-flag t)))
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mh-folder-font-lock-keywords t))
   (make-local-variable 'desktop-save-buffer)

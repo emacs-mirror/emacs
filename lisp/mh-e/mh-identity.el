@@ -118,13 +118,20 @@ Return t if anything is deleted."
 (defvar mh-identity-signature-end nil
   "Marker for the end of a signature inserted by `mh-insert-identity'.")
 
+(defmacro mh-assoc-ignore-case (key alist)
+  "Compatibility macro for emacs versions that lack `assoc-string'.
+Check if KEY is present in ALIST while ignoring case to do the comparison."
+  (if (fboundp 'assoc-string)
+      `(assoc-string ,key ,alist t)
+    `(assoc-ignore-case ,key ,alist)))
+
 (defun mh-identity-field-handler (field)
   "Return the handler for header FIELD or nil if none set.
 The field name is downcased. If the FIELD begins with the character
 `:', then it must have a special handler defined in
 `mh-identity-handlers', else return an error since it is not a valid
 header field."
-  (or (cdr (assoc-ignore-case field mh-identity-handlers))
+  (or (cdr (mh-assoc-ignore-case field mh-identity-handlers))
       (and (eq (aref field 0) ?:)
            (error "Field %s - unknown mh-identity-handler" field))
       (cdr (assoc ":default" mh-identity-handlers))

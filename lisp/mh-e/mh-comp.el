@@ -871,6 +871,8 @@ work better in MH-Letter mode."
   (defvar tool-bar-mode)
   (defvar tool-bar-map))
 
+(defvar mh-letter-buttons-init-flag nil)
+
 ;;;###autoload
 (define-derived-mode mh-letter-mode text-mode "MH-Letter"
   "Mode for composing letters in MH-E.\\<mh-letter-mode-map>
@@ -897,6 +899,10 @@ When a message is composed, the hooks `text-mode-hook' and
   (make-local-variable 'mh-previous-window-config)
   (make-local-variable 'mh-sent-from-folder)
   (make-local-variable 'mh-sent-from-msg)
+  (mh-do-in-gnu-emacs
+   (unless mh-letter-buttons-init-flag
+     (mh-tool-bar-letter-buttons-init)
+     (setq mh-letter-buttons-init-flag t)))
   ;; Set the local value of mh-mail-header-separator according to what is
   ;; present in the buffer...
   (set (make-local-variable 'mh-mail-header-separator)
