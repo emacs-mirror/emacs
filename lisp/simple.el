@@ -3541,10 +3541,11 @@ Outline mode sets this."
 	     ;; Compute the end of the line
 	     ;; ignoring effectively invisible newlines.
 	     (save-excursion
-	       (end-of-line)
+	       ;; Like end-of-line but ignores fields.
+	       (skip-chars-forward "^\n")
 	       (while (and (not (eobp)) (line-move-invisible-p (point)))
 		 (goto-char (next-char-property-change (point)))
-		 (end-of-line))
+		 (skip-chars-forward "^\n"))
 	       (point))))
 
 	;; Move to the desired column.
