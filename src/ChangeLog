@@ -21,8 +21,7 @@
 
 2005-10-21  Kenichi Handa  <handa@m17n.org>
 
-	* search.c (boyer_moore): Surround the '||' part of expression in
-	`if' condition by parentheses explicitly.
+	* search.c (boyer_moore): Add parens to fix and/or precedence bug.
 
 2005-10-20  Kim F. Storm  <storm@cua.dk>
 

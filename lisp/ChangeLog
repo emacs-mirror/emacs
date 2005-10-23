@@ -18,13 +18,13 @@
 
 	* simple.el (line-move-finish): Ignore fields computing LINE-END.
 
-	* international/mule.el (load-with-code-conversion): 
+	* international/mule.el (load-with-code-conversion):
 	Pass full file name to `eval-buffer' unless preloading.
 
 	* textmodes/flyspell.el (flyspell-large-region):
 	Call ispell-check-version.
 
-	* textmodes/ispell.el (ispell-local-dictionary-overridden): 
+	* textmodes/ispell.el (ispell-local-dictionary-overridden):
 	Fix the make-variable-buffer-local call that was supposed
 	to be for this variable.
 	(ispell-aspell-supports-utf8): Doc fix.
@@ -86,52 +86,41 @@
 
 2005-10-23  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el: Increment version number to 2.1, and use a literal
-	rather than RCS $Id $.  Remove autoloads for mailcrypt and crypt++.
+	* allout.el: Remove autoloads for mailcrypt and crypt++.
 	Require pgg, pgg-gpg during compilation.
 	(allout-version): Increment version number to 2.1, and use a literal
-	rather than RCS $Id $.
-	(allout-default-encryption-scheme): Removed.
-	(allout-passphrase-verifier-handling): Renamed from
-	allout-key-verifier-handling.
-	(allout-passphrase-verifier-string): Renamed from
-	allout-key-verifier-string.
-	(allout-file-passphrase-verifier-string): Renamed from
-	allout-file-key-verifier-string.
-	(allout-enable-file-variable-adjustment): Simplified.
-	(allout-passphrase-hint-handling): Renamed from
-	allout-key-hint-handling and simplified.
-	(allout-passphrase-hint-string): Renamed from
-	allout-key-hint-string.
+	rather than RCS Id.
+	(allout-default-encryption-scheme): Remove.
+	(allout-passphrase-verifier-handling)
+	(allout-passphrase-verifier-string)
+	(allout-file-passphrase-verifier-string)
+	(allout-passphrase-hint-string): Rename -key- to -passphrase-.
+	(allout-passphrase-hint-handling): Rename and simplify.
 	(allout-init): Use `find-file-hook' if available, otherwise
 	`find-file-hooks'.
 	(allout-mode): Use `write-file-functions' if available, otherwise
 	`local-write-file-hooks' and, instead of making auto-save-hook
 	buffer local, make the write-file-hook activity contingent to
 	allout-mode.
-	(allout-mode): Use key-binding substitution placeholders in the
-	docstring.
+	(allout-mode): Use key-binding substitution in the docstring.
 	(allout-kill-line): Spell-out kill ring data structure mutation
 	instead of using byte-compiler-complaint-provoking `pop'.
 	(allout-insert-listified): Use `insert' rather than `insert-string'
-	(allout-toggle-current-subtree-encryption): Updated docstring,
-	adjust to new gpp-based encryption, use new
-	`allout-encrypted-topic-p'.
+	(allout-toggle-current-subtree-encryption): Update docstring, adjust
+	to new gpp-based encryption, use new `allout-encrypted-topic-p'.
 	(allout-encrypt-string): Totally revamped vis new underlying
 	encryption facilities.
-	(allout-mc-activate-passwd): Removed.
+	(allout-mc-activate-passwd): Remove.
 	(allout-obtain-passphrase): New, more or less replaces
 	allout-mc-activate-passwd.
 	(allout-encrypted-key-info): More or less replaces
 	allout-encrypted-text-type.
 	(outlineify-sticky, outlinify-sticky): Add autoload cookie.
-	(my-mark-marker): Use `(featurep 'xemacs)' to distinguish between
-	Emacs and XEmacs.
+	(my-mark-marker): Use `(featurep 'xemacs)'.
 
 2005-10-23  Lars Hansen <larsh@soem.dk>
 
-	* emacs-lisp/bytecomp.el (byte-compile-lambda): Add parameter
-	add-lambda.
+	* emacs-lisp/bytecomp.el (byte-compile-lambda): New arg add-lambda.
 	(byte-compile-file-form-defmumble, byte-compile-defun)
 	(byte-compile-defmacro): Use it.
 	(byte-compile-form): Don't call byte-compile-set-symbol-position
@@ -147,7 +136,7 @@
 
 2005-10-22  Richard M. Stallman  <rms@gnu.org>
 
-	* textmodes/ispell.el (ispell-local-dictionary-overridden): 
+	* textmodes/ispell.el (ispell-local-dictionary-overridden):
 
 	* files.el (make-temp-file): Moved from subr.el.
 	* subr.el (make-temp-file): Moved to files.el.
