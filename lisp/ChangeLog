@@ -1,4 +1,49 @@
+2005-10-23  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Increment version number to 2.1, and use a literal
+	rather than RCS $Id$.  Remove autoloads for mailcrypt and crypt++.
+	Require pgg, pgg-gpg during compilation.
+	(allout-version): Increment version number to 2.1, and use a literal
+	rather than RCS $Id$.
+	(allout-default-encryption-scheme): Removed.
+	(allout-passphrase-verifier-handling): Renamed from
+	allout-key-verifier-handling.
+	(allout-passphrase-verifier-string): Renamed from
+	allout-key-verifier-string.
+	(allout-file-passphrase-verifier-string): Renamed from
+	allout-file-key-verifier-string.
+	(allout-enable-file-variable-adjustment): Simplified.
+	(allout-passphrase-hint-handling): Renamed from
+	allout-key-hint-handling and simplified.
+	(allout-passphrase-hint-string): Renamed from
+	allout-key-hint-string.
+	(allout-init): Use `find-file-hook' if available, otherwise
+	`find-file-hooks'.
+	(allout-mode): Use `write-file-functions' if available, otherwise
+	`local-write-file-hooks' and, instead of making auto-save-hook
+	buffer local, make the write-file-hook activity contingent to
+	allout-mode.
+	(allout-mode): Use key-binding substitution placeholders in the
+	docstring.
+	(allout-kill-line): Spell-out kill ring data structure mutation
+	instead of using byte-compiler-complaint-provoking `pop'.
+	(allout-insert-listified): Use `insert' rather than `insert-string'
+	(allout-toggle-current-subtree-encryption): Updated docstring,
+	adjust to new gpp-based encryption, use new
+	`allout-encrypted-topic-p'.
+	(allout-encrypt-string): Totally revamped vis new underlying
+	encryption facilities.
+	(allout-mc-activate-passwd): Removed.
+	(allout-obtain-passphrase): New, more or less replaces
+	allout-mc-activate-passwd.
+	(allout-encrypted-key-info): More or less replaces
+	allout-encrypted-text-type.
+	(outlineify-sticky, outlinify-sticky): Add autoload cookie.
+	(my-mark-marker): Use `(featurep 'xemacs)' to distinguish between
+	Emacs and XEmacs.
+
 2005-10-23  Lars Hansen <larsh@soem.dk>
+
 	* emacs-lisp/bytecomp.el (byte-compile-lambda): Add parameter
 	add-lambda.
 	(byte-compile-file-form-defmumble, byte-compile-defun)
