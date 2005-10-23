@@ -134,6 +134,14 @@ various structure fields. Lookup `defstruct' for more details."
            (load (format "%s.el" (ad-get-arg 0)) t t))
       ad-do-it))
 
+(defmacro mh-assoc-ignore-case (key alist)
+  "Check if KEY is present in ALIST while ignoring case to do the comparison.
+Compatibility macro for Emacs versions that lack `assoc-string', introduced in
+Emacs 22."
+  (if (fboundp 'assoc-string)
+      `(assoc-string ,key ,alist t)
+    `(assoc-ignore-case ,key ,alist)))
+
 (provide 'mh-acros)
 
 ;;; Local Variables:

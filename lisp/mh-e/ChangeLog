@@ -1,3 +1,17 @@
+2005-10-23  Bill Wohler  <wohler@newt.com>
+
+	* mh-identity.el (mh-assoc-ignore-case): Merge with version in
+	mh-alias.el and move to mh-acros.el
+
+	* mh-alias.el (mh-assoc-ignore-case): Merge with version in
+	mh-identity.el and move to mh-acros.el
+
+	* mh-acros.el (mh-assoc-ignore-case): Merge of function from
+	mh-identity.el and mh-alias.el.
+
+	* mh-mime.el: Autoload mm-uu for mm-uu-dissect to avoid compiler
+	warning in Emacs 22.
+
 2005-10-23  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-identity.el (mh-assoc-ignore-case): New macro that uses
