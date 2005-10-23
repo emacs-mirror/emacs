@@ -6,6 +6,7 @@
 ;; Author: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Maintainer: Ken Manheimer <ken dot manheimer at gmail dot com>
 ;; Created: Dec 1991 - first release to usenet
+;; Version: 2.1
 ;; Keywords: outlines wp languages
 
 ;; This file is part of GNU Emacs.
@@ -45,9 +46,10 @@
 ;;    formatted as an outline - do ESC-x eval-current-buffer in allout.el
 ;;    to try it out.)
 ;;  - configurable per-file initial exposure settings
-;;  - symmetric-key and key-pair topic encryption, plus reliable key
-;;    verification and user-supplied hint maintenance.  (see
-;;    allout-toggle-current-subtree-encryption docstring.)
+;;  - symmetric-key and key-pair topic encryption, plus symmetric passphrase
+;;    mnemonic support, with verification against an established passphrase
+;;    (using a stashed encrypted dummy string) and user-supplied hint
+;;    maintenance.  (see allout-toggle-current-subtree-encryption docstring.)
 ;;  - automatic topic-number maintenance
 ;;  - "hot-spot" operation, for single-keystroke maneuvering and
 ;;    exposure control (see the allout-mode docstring)
@@ -79,17 +81,10 @@
 
 ;;;_* Dependency autoloads
 (eval-when-compile 'cl)                 ; otherwise, flet compilation fouls
-(autoload 'crypt-encrypt-buffer "crypt++")
-(setq-default crypt-encryption-type 'gpg)
-
-(autoload 'mc-encrypt "mailcrypt"
-  "*Encrypt the current buffer")
-(autoload 'mc-activate-passwd "mailcrypt"
-  "Activate the passphrase matching ID, using PROMPT for a prompt.
-Return the passphrase.  If PROMPT is nil, only return value if cached.")
-(autoload 'mc-gpg-process-region "mc-gpg")
-(autoload 'mc-dectivate-passwd "mailcrypt"
-  "*Deactivate the passphrase cache.")
+(eval-when-compile (progn (require 'pgg)
+                          (require 'pgg-gpg)))
+(autoload 'pgg-gpg-symmetric-key-p "pgg-gpg"
+  "True if decoded armor MESSAGE-KEYS has symmetric encryption indicator.")
 
 ;;;_* USER CUSTOMIZATION VARIABLES:
 (defgroup allout nil
@@ -428,55 +423,30 @@ formatted copy."
   "*Bullet signifying encryption of the entry's body."
   :type '(choice (const nil) string)
   :group 'allout)
-;;;_  = allout-default-encryption-scheme
-(defcustom allout-default-encryption-scheme 'mc-scheme-gpg
-  "*Default allout outline topic encryption mode.
-
-See mailcrypt variable `mc-schemes' and mailcrypt docs for encryption schemes."
-  :type 'symbol
-  :group 'allout)
-;;;_  = allout-key-verifier-handling
-(defcustom allout-key-verifier-handling 'situate
-  "*Dictate outline encryption key verifier handling.
-
-The key verifier is string associated with a file that is encrypted with
-the file's current symmetric encryption key.  It is used, if present, to
-confirm that the key entered by the user is the same as the established
-one, or explicitly presenting the user with the choice to go with a
-new key when a difference is encountered.
-
-The range of values are:
-
- situate - include key verifier string as text in the file's local-vars
-           section
- transient - establish the value as a variable in the file's buffer, but
-             don't preserve it as a file variable.
- disabled - don't establish or do verification.
+;;;_  = allout-passphrase-verifier-handling
+(defcustom allout-passphrase-verifier-handling t
+  "*Enable use of symmetric encryption passphrase verifier if non-nil.
 
 See the docstring for the `allout-enable-file-variable-adjustment'
 variable for details about allout ajustment of file variables."
-  :type '(choice (const situate)
-                 (const transient)
-                 (const disabled))
+  :type 'boolean
   :group 'allout)
-(make-variable-buffer-local 'allout-key-verifier-handling)
-;;;_  = allout-key-hint-handling
-(defcustom allout-key-hint-handling 'always
-  "*Dictate outline encryption key reminder handling:
+(make-variable-buffer-local 'allout-passphrase-verifier-handling)
+;;;_  = allout-passphrase-hint-handling
+(defcustom allout-passphrase-hint-handling 'always
+  "*Dictate outline encryption passphrase reminder handling:
 
  always - always show reminder when prompting
- needed - show reminder on key entry failure
- manage - never present reminder, but still manage a file-var entry for it
- disabled - don't even manage the file variable entry
+ needed - show reminder on passphrase entry failure
+ disabled - never present or adjust reminder
 
 See the docstring for the `allout-enable-file-variable-adjustment'
 variable for details about allout ajustment of file variables."
   :type '(choice (const always)
                  (const needed)
-                 (const manage)
                  (const disabled))
   :group 'allout)
-(make-variable-buffer-local 'allout-key-hint-handling)
+(make-variable-buffer-local 'allout-passphrase-hint-handling)
 ;;;_  = allout-encrypt-unencrypted-on-saves
 (defcustom allout-encrypt-unencrypted-on-saves 'except-current
   "*When saving, should topics pending encryption be encrypted?
@@ -494,14 +464,14 @@ mostly covers both deliberate file writes and auto-saves.
  - All except current topic: skip the topic currently being edited, even if
        it's pending encryption.  This may expose the current topic on the
        file sytem, but avoids the nuisance of prompts for the encryption
-       key in the middle of editing for, eg, autosaves.
+       passphrase in the middle of editing for, eg, autosaves.
        This mode is used for auto-saves for both this option and \"Yes\".
  - No: leave it to the user to encrypt any unencrypted topics.
 
 For practical reasons, auto-saves always use the 'except-current policy
-when auto-encryption is enabled.  \(Otherwise, spurious key prompts and
-unavoidable timing collisions are too disruptive.)  If security for a file
-requires that even the current topic is never auto-saved in the clear,
+when auto-encryption is enabled.  \(Otherwise, spurious passphrase prompts
+and unavoidable timing collisions are too disruptive.)  If security for a
+file requires that even the current topic is never auto-saved in the clear,
 disable auto-saves for that file."
 
   :type '(choice (const :tag "Yes" t)
@@ -606,7 +576,7 @@ those that do not have the variable `comment-start' set.  A value of
 
 ;;;_  = allout-enable-file-variable-adjustment
 (defcustom allout-enable-file-variable-adjustment t
-  "*If non-nil, some allout outline actions can edit Emacs file variables text.
+  "*If non-nil, some allout outline actions edit Emacs local file var text.
 
 This can range from changes to existing entries, addition of new ones,
 and creation of a new local variables section when necessary.
@@ -626,14 +596,8 @@ details."
 ;;;_ #1 Internal Outline Formatting and Configuration
 ;;;_  : Version
 ;;;_   = allout-version
-(defvar allout-version
-  (let ((rcs-rev "$Revision: 1.68 $"))
-    (condition-case err
-	(save-match-data
-	  (string-match "Revision: \\([0-9]+\\.[0-9]+\\)" rcs-rev)
-	  (substring rcs-rev (match-beginning 1) (match-end 1)))
-      ('error rcs-rev)))
-  "Revision number of currently loaded outline package.  \(allout.el)")
+(defvar allout-version "2.1"
+  "Version of currently loaded outline package.  \(allout.el)")
 ;;;_   > allout-version
 (defun allout-version (&optional here)
   "Return string describing the loaded outline version."
@@ -1027,45 +991,38 @@ the way that `before-change-functions' and undo interact.")
   "Horrible hack used to prevent invalid multiple triggering of outline
 mode from prop-line file-var activation.  Used by `allout-mode' function
 to track repeats.")
-;;;_   = allout-file-key-verifier-string
-(defvar allout-file-key-verifier-string nil
-  "Name for use as a file variable for verifying encryption key across
-sessions.")
-(make-variable-buffer-local 'allout-file-key-verifier-string)
-;;;_   = allout-encryption-scheme
-(defvar allout-encryption-scheme nil
-  "*Allout outline topic encryption scheme pending for the current buffer.
+;;;_   = allout-file-passphrase-verifier-string
+(defvar allout-file-passphrase-verifier-string nil
+  "Name for use as a file variable for verifying encryption passphrase
+across sessions.")
+(make-variable-buffer-local 'allout-file-passphrase-verifier-string)
+;;;_   = allout-passphrase-verifier-string
+(defvar allout-passphrase-verifier-string nil
+  "Setting used to test solicited encryption passphrases against the one
+already associated with a file.
 
-Intended as a file-specific (buffer local) setting, it defaults to the
-value of allout-default-encryption-scheme if nil.")
-(make-variable-buffer-local 'allout-encryption-scheme)
-;;;_   = allout-key-verifier-string
-(defvar allout-key-verifier-string nil
-  "Setting used to test solicited encryption keys against that already
-associated with a file.
-
-It consists of an encrypted random string useful only to verify that a key
-entered by the user is effective for decryption.  The key itself is \*not*
-recorded in the file anywhere, and the encrypted contents are random binary
-characters to avoid exposing greater susceptibility to search attacks.
+It consists of an encrypted random string useful only to verify that a
+passphrase entered by the user is effective for decryption.  The passphrase
+itself is \*not* recorded in the file anywhere, and the encrypted contents
+are random binary characters to avoid exposing greater susceptibility to
+search attacks.
 
 The verifier string is retained as an Emacs file variable, as well as in
 the emacs buffer state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
-(make-variable-buffer-local 'allout-key-verifier-string)
-(setq-default allout-key-verifier-string nil)
-;;;_   = allout-key-hint-string
-(defvar allout-key-hint-string ""
-  "Variable used to retain a reminder string for a file's encryption key.
+(make-variable-buffer-local 'allout-passphrase-verifier-string)
+;;;_   = allout-passphrase-hint-string
+(defvar allout-passphrase-hint-string ""
+  "Variable used to retain reminder string for file's encryption passphrase.
 
-See the description of `allout-key-hint-handling' for details about how
+See the description of `allout-passphrase-hint-handling' for details about how
 the reminder is deployed.
 
 The hint is retained as an Emacs file variable, as well as in the emacs buffer
 state, if file variable adjustments are enabled.  See
 `allout-enable-file-variable-adjustment' for details about that.")
-(make-variable-buffer-local 'allout-key-hint-string)
-(setq-default allout-key-hint-string "")
+(make-variable-buffer-local 'allout-passphrase-hint-string)
+(setq-default allout-passphrase-hint-string "")
 ;;;_   = allout-after-save-decrypt
 (defvar allout-after-save-decrypt nil
   "Internal variable, is nil or has the value of two points:
@@ -1080,7 +1037,8 @@ was encrypted automatically as part of a file write or autosave.")
 (defun allout-write-file-hook-handler ()
   "Implement `allout-encrypt-unencrypted-on-saves' policy for file writes."
 
-  (if (or (not (boundp 'allout-encrypt-unencrypted-on-saves))
+  (if (or (not (allout-mode-p))
+          (not (boundp 'allout-encrypt-unencrypted-on-saves))
           (not allout-encrypt-unencrypted-on-saves))
       nil
     (let ((except-mark (and (equal allout-encrypt-unencrypted-on-saves
@@ -1105,7 +1063,7 @@ was encrypted automatically as part of a file write or autosave.")
 (defun allout-auto-save-hook-handler ()
   "Implement `allout-encrypt-unencrypted-on-saves' policy for auto saves."
 
-  (if  allout-encrypt-unencrypted-on-saves
+  (if (and (allout-mode-p) allout-encrypt-unencrypted-on-saves)
       ;; Always implement 'except-current policy when enabled.
       (let ((allout-encrypt-unencrypted-on-saves 'except-current))
         (allout-write-file-hook-handler))))
@@ -1190,18 +1148,22 @@ the following two lines in your Emacs init file:
   (let
       ;; convenience aliases, for consistent ref to respective vars:
       ((hook 'allout-find-file-hook)
+       (find-file-hook-var-name (if (boundp 'find-file-hook)
+                                    'find-file-hook
+                                  'find-file-hooks))
        (curr-mode 'allout-auto-activation))
 
     (cond ((not mode)
-	   (setq find-file-hooks (delq hook find-file-hooks))
+	   (set find-file-hook-var-name
+                (delq hook (symbol-value find-file-hook-var-name)))
 	   (if (interactive-p)
 	       (message "Allout outline mode auto-activation inhibited.")))
 	  ((eq mode 'report)
-	   (if (not (memq hook find-file-hooks))
+	   (if (not (memq hook (symbol-value find-file-hook-var-name)))
 	       (allout-init nil)
 	     ;; Just punt and use the reports from each of the modes:
 	     (allout-init (symbol-value curr-mode))))
-	  (t (add-hook 'find-file-hooks hook)
+	  (t (add-hook find-file-hook-var-name hook)
 	     (set curr-mode		; `set', not `setq'!
 		  (cond ((eq mode 'activate)
 			 (message
@@ -1233,6 +1195,7 @@ the following two lines in your Emacs init file:
       (easy-menu-add cur))))
 ;;;_  > allout-mode (&optional toggle)
 ;;;_   : Defun:
+;;;###autoload
 (defun allout-mode (&optional toggle)
 ;;;_    . Doc string:
   "Toggle minor mode for controlling exposure and editing of text outlines.
@@ -1271,53 +1234,53 @@ The bindings are dictated by the `allout-keybindings-list' and
 
 	Navigation:				   Exposure Control:
 	----------                                 ----------------
-C-c C-n allout-next-visible-heading     | C-c C-h allout-hide-current-subtree
-C-c C-p allout-previous-visible-heading | C-c C-i allout-show-children
-C-c C-u allout-up-current-level         | C-c C-s allout-show-current-subtree
-C-c C-f allout-forward-current-level    | C-c C-o allout-show-current-entry
-C-c C-b allout-backward-current-level   | ^U C-c C-s allout-show-all
-C-c C-e allout-end-of-entry             |	   allout-hide-current-leaves
-C-c C-a allout-beginning-of-current-entry, alternately, goes to hot-spot
+\\[allout-next-visible-heading] allout-next-visible-heading     | \\[allout-hide-current-subtree] allout-hide-current-subtree
+\\[allout-previous-visible-heading] allout-previous-visible-heading | \\[allout-show-children] allout-show-children
+\\[allout-up-current-level] allout-up-current-level         | \\[allout-show-current-subtree] allout-show-current-subtree
+\\[allout-forward-current-level] allout-forward-current-level    | \\[allout-show-current-entry] allout-show-current-entry
+\\[allout-backward-current-level] allout-backward-current-level   | \\[allout-show-all] allout-show-all
+\\[allout-end-of-entry] allout-end-of-entry
+\\[allout-beginning-of-current-entry,] allout-beginning-of-current-entry, alternately, goes to hot-spot
 
 	Topic Header Production:
 	-----------------------
-C-c<SP>	allout-open-sibtopic	Create a new sibling after current topic.
-C-c .	allout-open-subtopic	... an offspring of current topic.
-C-c ,	allout-open-supertopic	... a sibling of the current topic's parent.
+\\[allout-open-sibtopic]  allout-open-sibtopic	Create a new sibling after current topic.
+\\[allout-open-subtopic]  allout-open-subtopic	... an offspring of current topic.
+\\[allout-open-supertopic]  allout-open-supertopic	... a sibling of the current topic's parent.
 
 	Topic Level and Prefix Adjustment:
 	---------------------------------
-C-c >	allout-shift-in	Shift current topic and all offspring deeper.
-C-c <	allout-shift-out	... less deep.
-C-c<CR>	allout-rebullet-topic	Reconcile bullets of topic and its offspring
+\\[allout-shift-in]  allout-shift-in	Shift current topic and all offspring deeper.
+\\[allout-shift-out]  allout-shift-out	... less deep.
+\\[allout-rebullet-current-heading]  allout-rebullet-current-heading Prompt for alternate bullet for
+					 current topic.
+\\[allout-rebullet-topic]	allout-rebullet-topic	Reconcile bullets of topic and its offspring
 				- distinctive bullets are not changed, others
 				  alternated according to nesting depth.
-C-c b	allout-rebullet-current-heading Prompt for alternate bullet for
-					 current topic.
-C-c #	allout-number-siblings	Number bullets of topic and siblings - the
+\\[allout-number-siblings]  allout-number-siblings	Number bullets of topic and siblings - the
 				offspring are not affected.  With repeat
 				count, revoke numbering.
 
 	Topic-oriented Killing and Yanking:
 	----------------------------------
-C-c C-k	allout-kill-topic	Kill current topic, including offspring.
-C-k	allout-kill-line	Like kill-line, but reconciles numbering, etc.
-C-y	allout-yank		Yank, adjusting depth of yanked topic to
+\\[allout-kill-topic]     allout-kill-topic	Kill current topic, including offspring.
+\\[allout-kill-line]     allout-kill-line	Like kill-line, but reconciles numbering, etc.
+\\[allout-yank]     allout-yank		Yank, adjusting depth of yanked topic to
 				depth of heading if yanking into bare topic
 				heading (ie, prefix sans text).
-M-y	allout-yank-pop	Is to allout-yank as yank-pop is to yank
+\\[allout-yank-pop]     allout-yank-pop	Is to allout-yank as yank-pop is to yank
 
 	Misc commands:
 	-------------
 M-x outlineify-sticky		Activate outline mode for current buffer,
 				and establish a default file-var setting
 				for `allout-layout'.
-C-c C-SPC allout-mark-topic
-C-c = c	allout-copy-exposed-to-buffer
+\\[allout-mark-topic]     allout-mark-topic
+\\[allout-copy-exposed-to-buffer]     allout-copy-exposed-to-buffer
 				Duplicate outline, sans concealed text, to
 				buffer with name derived from derived from that
 				of current buffer - \"*BUFFERNAME exposed*\".
-C-c = p	allout-flatten-exposed-to-buffer
+\\[allout-flatten-exposed-to-buffer]     allout-flatten-exposed-to-buffer
 				Like above 'copy-exposed', but convert topic
 				prefixes to section.subsection... numeric
 				format.
@@ -1327,12 +1290,12 @@ ESC ESC (allout-init t)	Setup Emacs session for outline mode
                   Encrypted Entries
 
 Outline mode supports easily togglable gpg encryption of topics, with
-niceities like support for symmetric and key-pair modes, key timeout, key
-consistency checking, user-provided hinting for symmetric key mode, and
-auto-encryption of topics pending encryption on save.  The aim is to enable
-reliable topic privacy while preventing accidents like neglected
-encryption, encryption with a mistaken key, forgetting which key was used,
-and other practical pitfalls.
+niceties like support for symmetric and key-pair modes, passphrase timeout,
+passphrase consistency checking, user-provided hinting for symmetric key
+mode, and auto-encryption of topics pending encryption on save.  The aim is
+to enable reliable topic privacy while preventing accidents like neglected
+encryption, encryption with a mistaken passphrase, forgetting which
+passphrase was used, and other practical pitfalls.
 
 See the `allout-toggle-current-subtree-encryption' function and
 `allout-encrypt-unencrypted-on-saves' customization variable for details.
@@ -1450,6 +1413,9 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
 	 ;; allout-mode already called once during this complex command?
 	 (same-complex-command (eq allout-v18/19-file-var-hack
 				  (car command-history)))
+         (write-file-hook-var-name (if (boundp 'write-file-functions)
+                                       'write-file-functions
+                                     'local-write-file-hooks))
 	 do-layout
 	 )
 
@@ -1500,9 +1466,9 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
       (allout-resumptions 'selective-display)
       (if (and (boundp 'before-change-functions) before-change-functions)
 	  (allout-resumptions 'before-change-functions))
-      (setq local-write-file-hooks
+      (set write-file-hook-var-name
 	   (delq 'allout-write-file-hook-handler
-		 local-write-file-hooks))
+                 (symbol-value write-file-hook-var-name)))
       (setq auto-save-hook
 	   (delq 'allout-auto-save-hook-handler
 		 auto-save-hook))
@@ -1563,8 +1529,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
       (allout-resumptions 'selective-display '(t))
       (add-hook 'pre-command-hook 'allout-pre-command-business)
       (add-hook 'post-command-hook 'allout-post-command-business)
-      (add-hook 'local-write-file-hooks 'allout-write-file-hook-handler)
-      (make-variable-buffer-local 'auto-save-hook)
+      (add-hook write-file-hook-var-name 'allout-write-file-hook-handler)
       (add-hook 'auto-save-hook 'allout-auto-save-hook-handler)
 				       ; Custom auto-fill func, to support
 				       ; respect for topic headline,
@@ -2501,8 +2466,9 @@ return to regular interpretation of self-insert characters."
 			       last-command-char)
 			      ;; Only xemacs has characterp.
 			      ((and (fboundp 'characterp)
-				    (characterp last-command-char))
-			       (char-to-int last-command-char))
+				    (apply 'characterp
+                                           (list last-command-char)))
+			       (apply 'char-to-int (list last-command-char)))
 			      (t 0)))
 	       mapped-binding)
 	  (if (zerop this-key-num)
@@ -3506,7 +3472,9 @@ depth, however."
        ;; ensure prior kill-ring leader is properly restored:
        (if (eq leading-kill-ring-entry (cadr kill-ring))
            ;; Aborted kill got pushed on front - ditch it:
-           (pop kill-ring)
+           (let ((got (car kill-ring)))
+             (setq kill-ring (cdr kill-ring))
+             got)
          ;; Aborted kill got appended to prior - resurrect prior:
          (setcar kill-ring leading-kill-ring-entry))
        ;; make last-command skip this failed command, so kill-appending
@@ -4608,7 +4576,7 @@ If `bullet-plus' is specified, it is inserted just after the entire prefix."
     (while text
       (insert (car text))
       (if (setq text (cdr text))
-	  (insert-string "\n")))
+	  (insert "\n")))
     (insert "\n")))
 ;;;_   > allout-copy-exposed-to-buffer (&optional arg tobuf format)
 (defun allout-copy-exposed-to-buffer (&optional arg tobuf format)
@@ -4881,11 +4849,15 @@ With repeat count, copy the exposed portions of entire buffer."
     (goto-char start-pt)))
 
 ;;;_ #8 Encryption
-;;;_  > allout-toggle-current-subtree-encryption (&optional fetch-key)
-(defun allout-toggle-current-subtree-encryption (&optional fetch-key)
-  "Encrypt clear text or decrypt encoded contents of a topic.
+;;;_  > allout-toggle-current-subtree-encryption (&optional fetch-pass)
+(defun allout-toggle-current-subtree-encryption (&optional fetch-pass)
+  "Encrypt clear text or decrypt encoded topic contents \(body and subtopics.)
 
-Contents includes body and subtopics.
+Optional FETCH-PASS universal argument provokes key-pair encryption with
+single universal argument.  With doubled universal argument \(value = 16),
+it forces prompting for the passphrase regardless of availability from the
+passphrase cache.  With no universal argument, the appropriate passphrase
+for the is obtained from the cache, if available, else from the user.
 
 Currently only GnuPG encryption is supported.
 
@@ -4897,67 +4869,52 @@ the default, use a single \(x4) universal argument for keypair mode.
 
 Encrypted topic's bullet is set to a `~' to signal that the contents of the
 topic \(body and subtopics, but not heading) is pending encryption or
-encrypted.  An `*' asterisk immediately after the bullet signals that the
-body is encrypted, its absence means it's meant to be encrypted but is not
-- it's \"disclosed\".  When a file with disclosed topics is saved, the user
-prompted for an ok to \(symmetric-key) encrypt the disclosed topics.  NOTE
-WELL that you must explicitly \(re)encrypt key-pair encrypted topics if you
-want them to continue to be in key-pair mode.
+encrypted.  `*' asterisk immediately after the bullet signals that the body
+is encrypted, its' absence means the topic is meant to be encrypted but is
+not.  When a file with topics pending encryption is saved, topics pending
+encryption are encrypted.  See allout-encrypt-unencrypted-on-saves for
+auto-encryption specifics.
+
+\**NOTE WELL** that automatic encryption that happens during saves will
+default to symmetric encryption - you must manually \(re)encrypt key-pair
+encrypted topics if you want them to continue to use the key-pair cipher.
 
 Level-1 topics, with prefix consisting solely of an `*' asterisk, cannot be
 encrypted.  If you want to encrypt the contents of a top-level topic, use
 \\[allout-shift-in] to increase its depth.
 
-Failed transformation does not change the an entry being encrypted -
-instead, the key is re-solicited and the transformation is retried.
-\\[keyboard-quit] to abort.
+  Passphrase Caching
 
-Decryption does symmetric or key-pair key mode depending on how the text
-was encrypted.  The encryption key is solicited if not currently available
-from the key cache from a recent prior encryption action.
+The encryption passphrase is solicited if not currently available in the
+passphrase cache from a recent encryption action.
 
-Optional FETCH-KEY universal argument is used for two purposes - to provoke
-key-pair instead of symmetric encryption, or to provoke clearing of the key
-cache so keys are freshly fetched.
+The solicited passphrase is retained for reuse in a buffer-specific cache
+for some set period of time \(default, 60 seconds), after which the string
+is nulled.  The passphrase cache timeout is customized by setting
+`pgg-passphrase-cache-expiry'.
 
- - Without any universal arguments, then the appropriate key for the is
-   obtained from the cache, if available, else from the user.
+  Symmetric Passphrase Hinting and Verification
 
- - If FETCH-KEY is the result of one universal argument - ie, equal to 4 -
-   then key-pair encryption is used.
+If the file previously had no associated passphrase, or had a different
+passphrase than specified, the user is prompted to repeat the new one for
+corroboration.  A random string encrypted by the new passphrase is set on
+the buffer-specific variable `allout-passphrase-verifier-string', for
+confirmation of the passphrase when next obtained, before encrypting or
+decrypting anything with it.  This helps avoid mistakenly shifting between
+keys.
 
- - With repeated universal argument - equal to 16 - then the key cache is
-   cleared before any encryption transformations, to force prompting of the
-   user for the key.
+If allout customization var `allout-passphrase-verifier-handling' is
+non-nil, an entry for `allout-passphrase-verifier-string' and its value is
+added to an Emacs 'local variables' section at the end of the file, which
+is created if necessary.  That setting is for retention of the passphrase
+verifier across emacs sessions.
 
-The solicited key is retained for reuse in a buffer-specific cache for some
-set period of time \(default, 60 seconds), after which the string is
-nulled.  `mailcrypt' provides the key caching functionality.  You can
-adjust the key cache timeout by ajdusting the setting of the elisp variable
-`mc-passwd-timeout'.
-
-If the file previously had no associated key, or had a different key than
-specified, the user is prompted to repeat the new one for corroboration.  A
-random string encrypted by the new key is set on the buffer-specific
-variable `allout-key-verifier-string', for confirmation of the key when
-next obtained, before encrypting or decrypting anything with it.  This
-helps avoid mistakenly shifting between keys.
-
-If allout customization var `allout-key-verifier-handling' is non-nil, an
-entry for `allout-key-verifier-string' and its value is added to an Emacs
-'local variables' section at the end of the file, which is created if
-necessary.  That setting is for retention of the key verifier across emacs
-sessions.
-
-Similarly, `allout-key-hint-string' stores a user-provided reminder about
-their key, and `allout-key-hint-handling' specifies when the hint is
-presented, or if key hints are disabled.  If enabled \(see the
-`allout-key-hint-handling' docstring for details), the hint string is
-stored in the local-variables section of the file, and solicited whenever
-the key is changed."
-
-;;; This routine handles allout-specific business, dispatching
-;;; encryption-specific business to allout-encrypt-string.
+Similarly, `allout-passphrase-hint-string' stores a user-provided reminder
+about their passphrase, and `allout-passphrase-hint-handling' specifies
+when the hint is presented, or if passphrase hints are disabled.  If
+enabled \(see the `allout-passphrase-hint-handling' docstring for details),
+the hint string is stored in the local-variables section of the file, and
+solicited whenever the passphrase is changed."
 
   (interactive "P")
   (save-excursion
@@ -4967,17 +4924,13 @@ the key is changed."
         (error (concat "Cannot encrypt or decrypt level 1 topics -"
                        " shift it in to make it encryptable")))
 
-    (if (and fetch-key
-             (not (equal fetch-key '(4))))
-        (mc-deactivate-passwd))
-
     (let* ((allout-buffer (current-buffer))
            ;; Asses location:
            (after-bullet-pos (point))
            (was-encrypted
             (progn (if (= (point-max) after-bullet-pos)
                        (error "no body to encrypt"))
-                   (looking-at "\\*")))
+                   (allout-encrypted-topic-p)))
            (was-collapsed (if (not (re-search-forward "[\n\r]" nil t))
                               nil
                             (backward-char 1)
@@ -4993,20 +4946,22 @@ the key is changed."
                              (error "No topic contents to %scrypt"
                                     (if was-encrypted "de" "en"))))
            ;; Assess key parameters:
-           (key-type (or
+           (key-info (or
                       ;; detect the type by which it is already encrypted
                       (and was-encrypted
-                           (allout-encrypted-text-type subject-text))
-                      (and (member fetch-key '(4 (4)))
-                           (yes-or-no-p "Use key-pair encryption instead? ")
-                           'keypair)
-                      'symmetric))
-           (fetch-key (and fetch-key (not (member fetch-key '(16 (16))))))
+                           (allout-encrypted-key-info subject-text))
+                      (and (member fetch-pass '(4 (4)))
+                           '(keypair nil))
+                      '(symmetric nil)))
+           (for-key-type (car key-info))
+           (for-key-identity (cadr key-info))
+           (fetch-pass (and fetch-pass (member fetch-pass '(16 (16)))))
            result-text)
 
       (setq result-text
             (allout-encrypt-string subject-text was-encrypted
-                                    (current-buffer) key-type fetch-key))
+                                    (current-buffer)
+                                    for-key-type for-key-identity fetch-pass))
 
        ;; Replace the subtree with the processed product.
       (allout-unprotected
@@ -5040,251 +4995,285 @@ the key is changed."
       )
     )
   )
-;;;_  > allout-encrypt-string (text decrypt allout-buffer key-type rekey
-;;;                                  &optional retried verifying)
-(defun allout-encrypt-string (text decrypt allout-buffer key-type rekey
-                                    &optional retried verifying)
-  "Encrypt or decrypt a string TEXT using KEY.
+;;;_  > allout-encrypt-string (text decrypt allout-buffer key-type for-key
+;;;                                  fetch-pass &optional retried verifying
+;;;                                  passphrase)
+(defun allout-encrypt-string (text decrypt allout-buffer key-type for-key
+                                       fetch-pass &optional retried verifying
+                                       passphrase)
+  "Encrypt or decrypt message TEXT.
 
-If optional DECRYPT is true (default false), then decrypt instead of
-encrypt.
+If DECRYPT is true (default false), then decrypt instead of encrypt.
 
-Optional REKEY (default false) provokes clearing of the key cache to force
-fresh prompting for the key.
+FETCH-PASS (default false) forces fresh prompting for the passphrase.
 
-Optional RETRIED is for internal use - conveys the number of failed keys have
-been solicited in sequence leading to this current call.
+KEY-TYPE indicates whether to use a 'symmetric or 'keypair cipher.
 
-Optional VERIFYING is for internal use, signifying processing of text
-solely for verification of the cached key.
+FOR-KEY is human readable identification of the first of the user's
+eligible secret keys a keypair decryption targets, or else nil.
+
+Optional RETRIED is for internal use - conveys the number of failed keys
+that have been solicited in sequence leading to this current call.
+
+Optional PASSPHRASE enables explicit delivery of the decryption passphrase,
+for verification purposes.
 
 Returns the resulting string, or nil if the transformation fails."
 
-  ;; Ensure that we have an alternate handle on the real mc-activate-passwd:
-  (if (not (fboundp 'real-mc-activate-passwd))
-      ;; Force loads of the primary mailcrypt packages, so flet below holds.
-      (progn (require 'mailcrypt)
-             (load "mc-toplev")
-             (fset 'real-mc-activate-passwd
-                   (symbol-function 'mc-activate-passwd))))
+  (require 'pgg)
 
-  (if (and rekey (not verifying)) (mc-deactivate-passwd))
+  (let* ((scheme (upcase
+                  (format "%s" (or pgg-scheme pgg-default-scheme "GPG"))))
+         (for-key (and (equal key-type 'keypair)
+                       (or for-key
+                           (split-string (read-string
+                                          (format "%s message recipients: "
+                                                  scheme))
+                                         "[ \t,]+"))))
+         (target-prompt-id (if (equal key-type 'keypair)
+                               (if (= (length for-key) 1)
+                                   (car for-key) for-key)
+                             (buffer-name allout-buffer)))
+         (target-cache-id (format "%s-%s"
+                                  key-type
+                                  (if (equal key-type 'keypair)
+                                      target-prompt-id
+                                    (or (buffer-file-name allout-buffer)
+                                        target-prompt-id))))
+         (comment "Processed by allout driving pgg")
+         work-buffer result result-text status)
 
-  (catch 'encryption-failed
-    (save-excursion
+    (if (and fetch-pass (not passphrase))
+        ;; Force later fetch by evicting passphrase from the cache.
+        (pgg-remove-passphrase-from-cache target-cache-id t))
 
-      (let* ((mc-default-scheme (or allout-encryption-scheme
-                                    allout-default-encryption-scheme))
-             (id (format "%s-%s" key-type
-                         (or (buffer-file-name allout-buffer)
-                             (buffer-name allout-buffer))))
-             (cached (real-mc-activate-passwd id nil))
-             (comment "Processed by allout driving mailcrypt")
-             key work-buffer result result-text encryption-process-status)
+    (catch 'encryption-failed
 
-        (unwind-protect
+        ;; Obtain the passphrase if we don't already have one and we're not
+        ;; doing a keypair encryption:
+        (if (not (or passphrase
+                     (and (equal key-type 'keypair)
+                          (not decrypt))))
 
-            ;; Interject our mc-activate-passwd wrapper:
-            (flet ((mc-activate-passwd (id &optional prompt)
-                                       (allout-mc-activate-passwd id prompt)))
+            (setq passphrase (allout-obtain-passphrase for-key
+                                                       target-cache-id
+                                                       target-prompt-id
+                                                       key-type
+                                                       allout-buffer
+                                                       retried fetch-pass)))
+        (with-temp-buffer
 
-              (setq work-buffer
-                    (set-buffer (allout-encryption-produce-work-buffer text)))
+          (insert (subst-char-in-string ?\r ?\n text))
 
-              (cond
+          (cond
 
-               ;; symmetric:
-               ((equal key-type 'symmetric)
-                (setq key (if verifying
-                              (real-mc-activate-passwd id nil)
-                            (allout-mc-activate-passwd id)))
-                (setq encryption-process-status
-                      (crypt-encrypt-buffer key decrypt))
-                (if (zerop encryption-process-status)
-                    t
-                  (if verifying
-                      (throw 'encryption-failed nil)
-                    (mc-deactivate-passwd)
-                    (error "Symmetric-key encryption failed (%s) - wrong key?"
-                           encryption-process-status))))
+           ;; symmetric:
+           ((equal key-type 'symmetric)
+            (setq status
+                  (if decrypt
 
-               ;; encrypt 'keypair:
-               ((not decrypt)
-                (condition-case result
-                    (mailcrypt-encrypt 1)
-                  (error (mc-deactivate-passwd)
-                         (error "encryption failed: %s"
-                                (cadr result)))))
+                      (pgg-decrypt (point-min) (point-max) passphrase)
 
-               ;; decrypt 'keypair:
-               (t (condition-case result
-                      (mc-decrypt)
-                    (error (mc-deactivate-passwd)
-                           (error "decryption failed: %s"
-                                  (cadr result))))))
+                    (pgg-encrypt-symmetric (point-min) (point-max)
+                                           passphrase)))
 
-              (setq result-text (if (or (equal key-type 'keypair)
-                                        (not decrypt))
-                                    (buffer-substring 1 (1- (point-max)))
-                                  (buffer-string)))
-              ;; validate result - non-empty
-              (cond ((not result-text)
-                     (if verifying
-                         nil
-                       ;; Transformation was fruitless - retry with new key.
-                       (mc-deactivate-passwd)
-                       (allout-encrypt-string text allout-buffer decrypt nil
-                                               (if retried (1+ retried) 1)
-                                               verifying)))
+            (if status
+                (pgg-situate-output (point-min) (point-max))
+              ;; failed - handle passphrase caching
+              (if verifying
+                  (throw 'encryption-failed nil)
+                (pgg-remove-passphrase-from-cache target-cache-id t)
+                (error "Symmetric-cipher encryption failed - %s"
+                       "try again with different passphrase."))))
 
-                    ;; Barf if encryption yields extraordinary control chars:
-                    ((and (not decrypt)
-                          (string-match "[\C-a\C-k\C-o-\C-z\C-@]" result-text))
-                     (error (concat "encryption produced unusable"
-                                    " non-armored text - reconfigure!")))
+           ;; encrypt 'keypair:
+           ((not decrypt)
 
-                    ;; valid result and just verifying or non-symmetric:
-                    ((or verifying (not (equal key-type 'symmetric)))
-                     result-text)
+            (setq status
 
-                    ;; valid result and regular symmetric - situate validator:
-                    (t
-                     ;; valid result and verifier needs to be situated in
-                     ;; allout-buffer:
-                     (set-buffer allout-buffer)
-                     (if (and (or rekey (not cached))
-                              (not (allout-verify-key key allout-buffer)))
-                         (allout-situate-encryption-key-verifier key id))
-                     result-text)
-                    )
-              )
+                  (pgg-encrypt for-key
+                               nil (point-min) (point-max) passphrase))
 
-          ;; unwind-protect emergence:
-          (if work-buffer
-              (kill-buffer work-buffer))
+            (if status
+                (pgg-situate-output (point-min) (point-max))
+              (error (pgg-remove-passphrase-from-cache target-cache-id t)
+                     (error "encryption failed"))))
+
+           ;; decrypt 'keypair:
+           (t
+
+            (setq status
+                  (pgg-decrypt (point-min) (point-max) passphrase))
+
+            (if status
+                (pgg-situate-output (point-min) (point-max))
+              (error (pgg-remove-passphrase-from-cache target-cache-id t)
+                     (error "decryption failed"))))
+           )
+
+          (setq result-text
+                (buffer-substring 1 (- (point-max) (if decrypt 0 1))))
+
+          ;; validate result - non-empty
+          (cond ((not result-text)
+                 (if verifying
+                     nil
+                   ;; transform was fruitless, retry w/new passphrase.
+                   (pgg-remove-passphrase-from-cache target-cache-id t)
+                   (allout-encrypt-string text allout-buffer decrypt nil
+                                          (if retried (1+ retried) 1)
+                                          passphrase)))
+
+                ;; Barf if encryption yields extraordinary control chars:
+                ((and (not decrypt)
+                      (string-match "[\C-a\C-k\C-o-\C-z\C-@]"
+                                    result-text))
+                 (error (concat "encryption produced unusable"
+                                " non-armored text - reconfigure!")))
+
+                ;; valid result and just verifying or non-symmetric:
+                ((or verifying (not (equal key-type 'symmetric)))
+                 (if (or verifying decrypt)
+                     (pgg-add-passphrase-to-cache target-cache-id
+                                                  passphrase t))
+                 result-text)
+
+                ;; valid result and regular symmetric - "register"
+                ;; passphrase with mnemonic aids/cache.
+                (t
+                 (set-buffer allout-buffer)
+                 (if passphrase
+                     (pgg-add-passphrase-to-cache target-cache-id
+                                                  passphrase t))
+                 (allout-update-passphrase-mnemonic-aids for-key passphrase
+                                                         allout-buffer)
+                 result-text)
+                )
           )
         )
-      )
     )
   )
-;;;_  > allout-mc-activate-passwd (id &optional prompt)
-(defun allout-mc-activate-passwd (id &optional prompt)
-  "Substituted for mc-activate-passwd during allout outline encryption.
+;;;_  > allout-obtain-passphrase (for-key cache-id prompt-id key-type
+;;;                                       allout-buffer retried fetch-pass)
+(defun allout-obtain-passphrase (for-key cache-id prompt-id key-type 
+                                         allout-buffer retried fetch-pass)
+  "Obtain passphrase for a key from the cache or else from the user.
 
-We add key-verification to vanilla mc-activate-passwd.
+When obtaining from the user, symmetric-cipher passphrases are verified
+against either, if available and enabled, a random string that was
+encrypted against the passphrase, or else against repeated entry by the
+user for corroboration.
 
-We depend in some cases on values of the following allout-encrypt-string
-internal or prevailing variables:
-  - key-type - 'symmetric or 'keypair
-  - id - id associated with current key in key cache
-  - allout-buffer - where subject text resides
-  - retried - number of current attempts to obtain this key
-  - rekey - user asked to present a new key - needs to be confirmed"
+FOR-KEY is the key for which the passphrase is being obtained.
 
-;;  - if we're doing non-symmetric key, just do normal mc-activate-passwd
-;;  - otherwise, if we are have a cached version of the key, then assume
-;;    it's verified and return it
-;;  - otherwise, prompt for a key, and:
-;;    - if we have a key verifier \(a string value which should decrypt
-;;      against a symmetric key), validate against the verifier
-;;      - if successful, return the verified key
-;;      - if unsuccessful:
-;;        - offer to use the new key
-;;          - if accepted, do confirm process
-;;          - if refused, try again until we get a correctly spelled one or the
-;;            user quits
-;;    - if no key verifier, resolicit the key to get corroboration and return
-;;      the corroborated key if spelled identically, or error if not.
+CACHE-ID is the cache id of the key for the passphrase.
+
+PROMPT-ID is the id for use when prompting the user.
+
+KEY-TYPE is either 'symmetric or 'keypair.
+
+ALLOUT-BUFFER is the buffer containing the entry being en/decrypted.
+
+RETRIED is the number of this attempt to obtain this passphrase.
+
+FETCH-PASS causes the passphrase to be solicited from the user, regardless
+of the availability of a cached copy."
 
   (if (not (equal key-type 'symmetric))
-      ;; do regular mc-activate-passwd on non-symmetric key
-      (real-mc-activate-passwd id prompt)
+      ;; do regular passphrase read on non-symmetric passphrase:
+      (pgg-read-passphrase (format "%s passphrase%s: "
+                                   (upcase (format "%s" (or pgg-scheme
+                                                            pgg-default-scheme
+                                                            "GPG")))
+                                     (if prompt-id
+                                         (format " for %s" prompt-id)
+                                       ""))
+                           cache-id t)
 
     ;; Symmetric hereon:
 
     (save-excursion
       (set-buffer allout-buffer)
-      (let* ((hint (if (and (not (string= allout-key-hint-string ""))
-                            (or (equal allout-key-hint-handling 'always)
-                                (and (equal allout-key-hint-handling 'needed)
+      (let* ((hint (if (and (not (string= allout-passphrase-hint-string ""))
+                            (or (equal allout-passphrase-hint-handling 'always)
+                                (and (equal allout-passphrase-hint-handling
+                                            'needed)
                                      retried)))
-                       (format " [%s]" allout-key-hint-string)
+                       (format " [%s]" allout-passphrase-hint-string)
                      ""))
              (retry-message (if retried (format " (%s retry)" retried) ""))
-             (prompt-sans-hint (format "'%s' symmetric key%s: "
-                                       (buffer-name allout-buffer)
-                                       retry-message))
-             (full-prompt (format "'%s' symmetric key%s%s: "
-                                  (buffer-name allout-buffer)
-                                  hint retry-message))
+             (prompt-sans-hint (format "'%s' symmetric passphrase%s: "
+                                       prompt-id retry-message))
+             (full-prompt (format "'%s' symmetric passphrase%s%s: "
+                                  prompt-id hint retry-message))
              (prompt full-prompt)
-             (verifier-string (allout-get-encryption-key-verifier))
-             ;; force retention of cached passwords for five minutes while
-             ;; we're in this particular routine:
-             (mc-passwd-timeout 300)
-             (cached (real-mc-activate-passwd id nil))
-             (got (or cached (real-mc-activate-passwd id full-prompt)))
+             (verifier-string (allout-get-encryption-passphrase-verifier))
+
+             (cached (and (not fetch-pass)
+                          (pgg-read-passphrase-from-cache cache-id t)))
+             (got-pass (or cached
+                           (pgg-read-passphrase full-prompt cache-id t)))
+
              confirmation)
 
-        (if (not got)
+        (if (not got-pass)
             nil
 
-          ;; Duplicate our handle on the key so it's not clobbered by
+          ;; Duplicate our handle on the passphrase so it's not clobbered by
           ;; deactivate-passwd memory clearing:
-          (setq got (format "%s" got))
+          (setq got-pass (format "%s" got-pass))
 
           (cond (verifier-string
-                 (if (and (not (allout-encrypt-string
-                                verifier-string 'decrypt allout-buffer
-                                'symmetric nil 0 'verifying))
+                 (save-window-excursion
+                   (if (allout-encrypt-string verifier-string 'decrypt
+                                              allout-buffer 'symmetric
+                                              for-key nil 0 'verifying
+                                              got-pass)
+                       (setq confirmation (format "%s" got-pass))))
+
+                 (if (and (not confirmation)
                           (if (yes-or-no-p
-                               (concat "Key differs from established"
+                               (concat "Passphrase differs from established"
                                        " - use new one instead? "))
                               ;; deactivate password for subsequent
                               ;; confirmation:
-                              (progn (mc-deactivate-passwd)
-                                     (setq prompt prompt-sans-hint)
-                                     nil)
+                              (progn
+                                (pgg-remove-passphrase-from-cache cache-id t)
+                                (setq prompt prompt-sans-hint)
+                                nil)
                             t))
-                     (progn (mc-deactivate-passwd)
-                            (error "Wrong key."))))
-                ;; Force confirmation by repetition for new key:
-                ((or rekey (not cached)) (mc-deactivate-passwd))))
-        ;; we have a key and it's either verified and cached.
-        ;; confirmation vs new input - doing mc-activate-passwd will do the
+                     (progn (pgg-remove-passphrase-from-cache cache-id t)
+                            (error "Wrong passphrase."))))
+                ;; No verifier string - force confirmation by repetition of
+                ;; (new) passphrase:
+                ((or fetch-pass (not cached))
+                 (pgg-remove-passphrase-from-cache cache-id t))))
+        ;; confirmation vs new input - doing pgg-read-passphrase will do the
         ;; right thing, in either case:
-        (setq confirmation
-              (real-mc-activate-passwd id (concat prompt
-                                                  " ... confirm spelling: ")))
+        (if (not confirmation)
+            (setq confirmation
+                  (pgg-read-passphrase (concat prompt
+                                               " ... confirm spelling: ")
+                                       cache-id t)))
         (prog1
-            (if (equal got confirmation)
+            (if (equal got-pass confirmation)
                 confirmation
               (if (yes-or-no-p (concat "spelling of original and"
                                        " confirmation differ - retry? "))
                   (progn (setq retried (if retried (1+ retried) 1))
-                         (mc-deactivate-passwd)
+                         (pgg-remove-passphrase-from-cache cache-id t)
                          ;; recurse to this routine:
-                         (mc-activate-passwd id prompt-sans-hint))
-                (mc-deactivate-passwd)
+                         (pgg-read-passphrase prompt-sans-hint cache-id t))
+                (pgg-remove-passphrase-from-cache cache-id t)
                 (error "Confirmation failed.")))
           ;; reduce opportunity for memory cherry-picking by zeroing duplicate:
-          (dotimes (i (length got))
-            (aset got i 0))
+          (dotimes (i (length got-pass))
+            (aset got-pass i 0))
           )
         )
       )
     )
   )
-;;;_  > allout-encryption-produce-work-buffer (text)
-(defun allout-encryption-produce-work-buffer (text)
-  "Establish a new buffer filled with TEXT, for outline encrypion processing.
-
-TEXT is massaged so outline collapsing, if any, is removed."
-  (let ((work-buffer (generate-new-buffer " *allout encryption*")))
-    (save-excursion
-      (set-buffer work-buffer)
-      (insert (subst-char-in-string ?\r ?\n text)))
-    work-buffer))
 ;;;_  > allout-encrypted-topic-p ()
 (defun allout-encrypted-topic-p ()
   "True if the current topic is encryptable and encrypted."
@@ -5295,96 +5284,128 @@ TEXT is massaged so outline collapsing, if any, is removed."
          (looking-at "\\*"))
     )
   )
-;;;_  > allout-encrypted-text-type (text)
-;;; XXX gpg-specific, not generic!
-(defun allout-encrypted-text-type (text)
-  "For gpg encrypted text, return 'symmetric or 'keypair."
+;;;_  > allout-encrypted-key-info (text)
+;; XXX gpg-specific, alas
+(defun allout-encrypted-key-info (text)
+  "Return a pair of the key type and identity of a recipient's secret key.
 
-  ;; Ensure mc-gpg-path has a value:
-  (if (not (boundp 'mc-gpg-path))
-      (load-library "mc-gpg"))
+The key type is one of 'symmetric or 'keypair.
 
+if 'keypair, and some of the user's secret keys are among those for which
+the message was encoded, return the identity of the first.  otherwise,
+return nil for the second item of the pair.
+
+An error is raised if the text is not encrypted."
+  (require 'pgg-parse)
   (save-excursion
-    (let* ((work-buffer (set-buffer
-                         (allout-encryption-produce-work-buffer text)))
-           (result (mc-gpg-process-region (point-min) (point-max)
-                                          nil mc-gpg-path
-                                          '("--batch" "--decrypt")
-                                          'mc-gpg-decrypt-parser
-                                          work-buffer nil)))
-      (cond ((equal (nth 0 result) 'symmetric)
-             'symmetric)
-            ((equal (nth 0 result) t)
-             'keypair)
-            (t (error "Unrecognized/unsupported encryption type %S"
-                      (nth 0 result))))
+    (with-temp-buffer
+      (insert (subst-char-in-string ?\r ?\n text))
+      (let* ((parsed-armor (pgg-parse-armor-region (point-min) (point-max)))
+             (type (if (pgg-gpg-symmetric-key-p parsed-armor)
+                       'symmetric
+                     'keypair))
+             secret-keys first-secret-key for-key-owner)
+        (if (equal type 'keypair)
+            (setq secret-keys (pgg-gpg-lookup-all-secret-keys)
+                  first-secret-key (pgg-gpg-select-matching-key parsed-armor
+                                                                secret-keys)
+                  for-key-owner (and first-secret-key
+                                     (pgg-gpg-lookup-key-owner
+                                      first-secret-key))))
+        (list type (pgg-gpg-key-id-from-key-owner for-key-owner))
+        )
       )
     )
   )
-;;;_  > allout-create-encryption-key-verifier (key id)
-(defun allout-create-encryption-key-verifier (key id)
-  "Encrypt a random message for later validation of symmetric key."
+;;;_  > allout-create-encryption-passphrase-verifier (passphrase)
+(defun allout-create-encryption-passphrase-verifier (passphrase)
+  "Encrypt random message for later validation of symmetric key's passphrase."
   ;; use 20 random ascii characters, across the entire ascii range.
   (random t)
   (let ((spew (make-string 20 ?\0)))
     (dotimes (i (length spew))
       (aset spew i (1+ (random 254))))
-    (allout-encrypt-string spew nil nil 'symmetric nil nil t))
+    (allout-encrypt-string spew nil (current-buffer) 'symmetric
+                           nil nil 0 passphrase))
   )
-;;;_  > allout-situate-encryption-key-verifier (key id)
-(defun allout-situate-encryption-key-verifier (key id)
-  "Establish key verifier string on file variable.
+;;;_  > allout-update-passphrase-mnemonic-aids (for-key passphrase
+;;;                                                     outline-buffer) 
+(defun allout-update-passphrase-mnemonic-aids (for-key passphrase
+                                                       outline-buffer)
+  "Update passphrase verifier and hint strings if necessary.
 
-We also prompt for and situate a new reminder, if reminders are enabled.
+See `allout-passphrase-verifier-string' and `allout-passphrase-hint-string'
+settings.
 
-We massage the string to simplify programmatic adjustment.  File variable
-is `allout-file-key-verifier-string'."
-  (let ((verifier-string
-         ;; Collapse to a single line and enclose in string quotes:
-         (subst-char-in-string ?\n ?\C-a
-                               (allout-create-encryption-key-verifier
-                                key id)))
-        (reminder (if (not (equal allout-key-hint-handling 'disabled))
-                      (read-from-minibuffer
-                       "Key hint to jog your memory next time: "
-                       allout-key-hint-string))))
-    (setq allout-key-verifier-string verifier-string)
-    (allout-adjust-file-variable "allout-key-verifier-string"
-                                  verifier-string)
-    (cond ((equal allout-key-hint-handling 'disabled)
-           nil)
-          ((not (string= reminder allout-key-hint-string))
-           (setq allout-key-hint-string reminder)
-           (allout-adjust-file-variable "allout-key-hint-string"
-                                         reminder)))
+PASSPHRASE is the passphrase being mnemonicized
+
+OUTLINE-BUFFER is the buffer of the outline being adjusted.
+
+These are used to help the user keep track of the passphrase they use for
+symmetric encryption in the file.
+
+Behavior is governed by `allout-passphrase-verifier-handling',
+`allout-passphrase-hint-handling', and also, controlling whether the values
+are preserved on Emacs local file variables,
+`allout-enable-file-variable-adjustment'."
+
+  ;; If passphrase doesn't agree with current verifier:
+  ;;   - adjust the verifier
+  ;;   - if passphrase hint handling is enabled, adjust the passphrase hint
+  ;;   - if file var settings are enabled, adjust the file vars
+
+  (let* ((new-verifier-needed (not (allout-verify-passphrase
+                                    for-key passphrase outline-buffer)))
+         (new-verifier-string
+          (if new-verifier-needed
+              ;; Collapse to a single line and enclose in string quotes:
+              (subst-char-in-string
+               ?\n ?\C-a (allout-create-encryption-passphrase-verifier
+                          passphrase))))
+         new-hint)
+    (when new-verifier-string
+      ;; do the passphrase hint first, since it's interactive
+      (when (and allout-passphrase-hint-handling
+                 (not (equal allout-passphrase-hint-handling 'disabled)))
+        (setq new-hint
+              (read-from-minibuffer "Passphrase hint to jog your memory: "
+                                    allout-passphrase-hint-string))
+        (when (not (string= new-hint allout-passphrase-hint-string))
+          (setq allout-passphrase-hint-string new-hint)
+          (allout-adjust-file-variable "allout-passphrase-hint-string"
+                                       allout-passphrase-hint-string)))
+      (when allout-passphrase-verifier-handling
+        (setq allout-passphrase-verifier-string new-verifier-string)
+        (allout-adjust-file-variable "allout-passphrase-verifier-string"
+                                     allout-passphrase-verifier-string))
+      )
     )
   )
-;;;_  > allout-get-encryption-key-verifier ()
-(defun allout-get-encryption-key-verifier ()
-  "Return the text of the encrypt key verifier, unmassaged, or nil if none.
+;;;_  > allout-get-encryption-passphrase-verifier ()
+(defun allout-get-encryption-passphrase-verifier ()
+  "Return text of the encrypt passphrase verifier, unmassaged, or nil if none.
 
-Derived from value of `allout-file-key-verifier-string'."
+Derived from value of `allout-file-passphrase-verifier-string'."
 
-  (let ((verifier-string (and (boundp 'allout-key-verifier-string)
-                              allout-key-verifier-string)))
+  (let ((verifier-string (and (boundp 'allout-passphrase-verifier-string)
+                              allout-passphrase-verifier-string)))
     (if verifier-string
         ;; Return it uncollapsed
-        (subst-char-in-string ?\C-a ?\n verifier-string)
-      nil)
+        (subst-char-in-string ?\C-a ?\n verifier-string))
    )
   )
-;;;_  > allout-verify-key (key)
-(defun allout-verify-key (key allout-buffer)
-  "True if key successfully decrypts key verifier, nil otherwise.
+;;;_  > allout-verify-passphrase (key passphrase allout-buffer)
+(defun allout-verify-passphrase (key passphrase allout-buffer)
+  "True if passphrase successfully decrypts verifier, nil otherwise.
 
-\"Otherwise\" includes absence of key verifier."
+\"Otherwise\" includes absence of passphrase verifier."
   (save-excursion
     (set-buffer allout-buffer)
-    (and (boundp 'allout-key-verifier-string)
-         allout-key-verifier-string
-         (allout-encrypt-string (allout-get-encryption-key-verifier)
+    (and (boundp 'allout-passphrase-verifier-string)
+         allout-passphrase-verifier-string
+         (allout-encrypt-string (allout-get-encryption-passphrase-verifier)
                                  'decrypt allout-buffer 'symmetric
-                                 nil nil 'verifying)
+                                 key nil 0 'verifying passphrase)
          t)))
 ;;;_  > allout-next-topic-pending-encryption (&optional except-mark)
 (defun allout-next-topic-pending-encryption (&optional except-mark)
@@ -5500,7 +5521,9 @@ save.  See `allout-encrypt-unencrypted-on-saves' for more info."
   (exchange-point-and-mark))
 ;;;_  > outlineify-sticky ()
 ;; outlinify-sticky is correct spelling; provide this alias for sticklers:
+;;;###autoload
 (defalias 'outlinify-sticky 'outlineify-sticky)
+;;;###autoload
 (defun outlineify-sticky (&optional arg)
   "Activate outline mode and establish file var so it is started subsequently.
 
@@ -5699,15 +5722,14 @@ Unless optional argument INPLACE is non-nil, return a new string."
           (if (eq (aref newstr i) fromchar)
               (aset newstr i tochar)))
         newstr)))
-
 ;;;_  : my-mark-marker to accommodate divergent emacsen:
 (defun my-mark-marker (&optional force buffer)
   "Accommodate the different signature for `mark-marker' across Emacsen.
 
 XEmacs takes two optional args, while mainline GNU Emacs does not,
 so pass them along when appropriate."
-  (if (string-match " XEmacs " emacs-version)
-      (mark-marker force buffer)
+  (if (featurep 'xemacs)
+      (apply 'mark-marker force buffer)
     (mark-marker)))
 
 ;;;_ #10 Under development
