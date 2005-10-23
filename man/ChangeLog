@@ -1,3 +1,9 @@
+2005-10-23  Lars Hansen  <larsh@soem.dk>
+
+	* dired-x.texi (Miscellaneous Commands): Replace
+	dired-do-relative-symlink by dired-do-relsymlink and
+	dired-do-relative-symlink-regexp by dired-do-relsymlink-regexp.
+
 2005-10-23  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Predefined Units): Use `alpha' for the fine structure
