@@ -1,3 +1,9 @@
+2005-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* faq.texi (Bugs and problems): Replace
+	`dired-move-to-filename-regexp' by
+	`directory-listing-before-filename-regexp'.
+
 2005-10-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* newsticker.texi (UPDATED): Set value.

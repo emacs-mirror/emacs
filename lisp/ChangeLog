@@ -1,3 +1,19 @@
+2005-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (directory-listing-before-filename-regexp): New
+	defvar.  Replaces `dired-move-to-filename-regexp' from dired.el.
+
+	* dired.el (dired-move-to-filename-regexp): Removed.  All
+	occurences replaced by `directory-listing-before-filename-regexp'.
+
+	* dired-x.el, locate.el, vc.el: Replace
+	`dired-move-to-filename-regexp' by
+	`directory-listing-before-filename-regexp'.  In vc.el it is
+	overwritten locally; maybe this can be handled in files.el too.
+
+	* net/ange-ftp.el (ange-ftp-date-regexp): Removed.  All occurences
+	replaced by `directory-listing-before-filename-regexp'.
+
 2005-10-23  Andreas Schwab  <schwab@suse.de>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Add eval-at-startup

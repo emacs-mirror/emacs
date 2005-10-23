@@ -1517,7 +1517,7 @@ to mark all zero length files."
               ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
               (setq uid (buffer-substring (+ (point) 1)
 					  (progn (forward-word 1) (point))))
-              (re-search-forward dired-move-to-filename-regexp)
+              (re-search-forward directory-listing-before-filename-regexp)
               (goto-char (match-beginning 1))
               (forward-char -1)
               (setq size (string-to-number (buffer-substring (save-excursion
