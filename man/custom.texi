@@ -2008,7 +2008,10 @@ loaded.
 finds this file via the standard search path for Lisp libraries.
 Emacs loads this library before it loads your init file.  To inhibit
 loading of this library, use the option @samp{--no-site-file}.
-@xref{Initial Options}.
+@xref{Initial Options}.  We recommend against using
+@file{site-start.el} for changes that some users may not like.  It is
+better to put them in @file{default.el}, so that users can more easily
+override them.
 
   You can place @file{default.el} and @file{site-start.el} in any of
 the directories which Emacs searches for Lisp libraries.  The variable
