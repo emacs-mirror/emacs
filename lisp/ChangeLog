@@ -1,3 +1,15 @@
+2005-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-button, custom-button-pressed): New vars.
+	(custom-raised-buttons): Add :set spec.
+	(custom-button-unraised, custom-button-pressed-unraised): New
+	faces, so that custom-raised-buttons actually does something.
+	(custom-mode): Use custom-button and custom-button-pressed.
+
+	* wid-edit.el (widget-specify-button): Don't ignore
+	widget-mouse-face on graphic terminals.
+	(widget-move-and-invoke): Cleanup.
+
 2005-10-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* whitespace.el (whitespace-cleanup): Doc fix.

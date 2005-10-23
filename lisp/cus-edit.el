@@ -1377,13 +1377,27 @@ This button will have a menu with all three reset operations."
   (interactive)
   (quit-window custom-buffer-done-kill))
 
+(defvar custom-button nil
+  "Face used for buttons in customization buffers.")
+
+(defvar custom-button-pressed nil
+  "Face used for pressed buttons in customization buffers.")
+
 (defcustom custom-raised-buttons (not (equal (face-valid-attribute-values :box)
 					     '(("unspecified" . unspecified))))
   "If non-nil, indicate active buttons in a `raised-button' style.
 Otherwise use brackets."
   :type 'boolean
   :version "21.1"
-  :group 'custom-buffer)
+  :group 'custom-buffer
+  :set (lambda (variable value)
+	 (custom-set-default variable value)
+	 (setq custom-button
+	       (if value 'custom-button 'custom-button-unraised))
+	 (setq custom-button-pressed
+	       (if value
+		   'custom-button-pressed
+		 'custom-button-pressed-unraised))))
 
 (defun custom-buffer-create-internal (options &optional description)
   (custom-mode)
@@ -1896,11 +1910,26 @@ and `face'."
 	   :background "lightgrey" :foreground "black"))
     (t
      nil))
-  "Face used for buttons in customization buffers."
+  "Face for custom buffer buttons if `custom-raised-buttons' is non-nil."
   :version "21.1"
   :group 'custom-faces)
 ;; backward-compatibility alias
 (put 'custom-button-face 'face-alias 'custom-button)
+
+(defface custom-button-unraised
+  '((((min-colors 88)
+      (class color) (background light)) :foreground "blue1" :underline t)
+    (((class color) (background light)) :foreground "blue" :underline t)
+    (((min-colors 88)
+      (class color) (background dark)) :foreground "cyan1" :underline t)
+    (((class color) (background dark)) :foreground "cyan" :underline t)
+    (t :underline t))
+  "Face for custom buffer buttons if `custom-raised-buttons' is nil."
+  :version "22.1"
+  :group 'custom-faces)
+
+(setq custom-button
+      (if custom-raised-buttons 'custom-button 'custom-button-unraised))
 
 (defface custom-button-pressed
   '((((type x w32 mac) (class color))
@@ -1908,11 +1937,24 @@ and `face'."
 	   :background "lightgrey" :foreground "black"))
     (t
      (:inverse-video t)))
-  "Face used for buttons in customization buffers."
+  "Face for pressed custom buttons if `custom-raised-buttons' is non-nil."
   :version "21.1"
   :group 'custom-faces)
 ;; backward-compatibility alias
 (put 'custom-button-pressed-face 'face-alias 'custom-button-pressed)
+
+(defface custom-button-pressed-unraised
+  '((default :inherit custom-button-unraised)
+    (((class color) (background light)) :foreground "magenta4")
+    (((class color) (background dark)) :foreground "violet"))
+  "Face for pressed custom buttons if `custom-raised-buttons' is nil."
+  :version "22.1"
+  :group 'custom-faces)
+
+(setq custom-button-pressed
+  (if custom-raised-buttons
+      'custom-button-pressed
+    'custom-button-pressed-unraised))
 
 (defface custom-documentation nil
   "Face used for documentation strings in customization buffers."
@@ -4311,10 +4353,11 @@ if that value is non-nil."
   (make-local-variable 'widget-documentation-face)
   (setq widget-documentation-face 'custom-documentation)
   (make-local-variable 'widget-button-face)
-  (setq widget-button-face 'custom-button)
-  (set (make-local-variable 'widget-button-pressed-face) 'custom-button-pressed)
-  (set (make-local-variable 'widget-mouse-face)
-       'custom-button-pressed)		; buttons `depress' when moused
+  (setq widget-button-face custom-button)
+  (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
+  (if custom-raised-buttons
+      (set (make-local-variable 'widget-mouse-face) custom-button))
+
   ;; When possible, use relief for buttons, not bracketing.  This test
   ;; may not be optimal.
   (when custom-raised-buttons
