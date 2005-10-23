@@ -1,3 +1,8 @@
+2005-10-23  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Predefined Units): Use `alpha' for the fine structure
+	constant.
+
 2005-10-23  Michael Albinus  <michael.albinus@gmx.de>
 
 	* faq.texi (Bugs and problems): Replace
