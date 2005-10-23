@@ -1376,6 +1376,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
     ;; this is done, we can start checking...
     (if flyspell-issue-message-flag (message "Checking region..."))
     (set-buffer curbuf)
+    (ispell-check-version)
     (let ((c (apply 'call-process-region beg
 		    end
 		    ispell-program-name
