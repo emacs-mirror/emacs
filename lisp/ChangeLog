@@ -1,3 +1,7 @@
+2005-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* thumbs.el (thumbs-image-type): Add .pbm.
+
 2005-10-23  Richard M. Stallman  <rms@gnu.org>
 
 	* help-fns.el (describe-simplify-lib-file-name): New function.
