@@ -28019,7 +28019,7 @@ the @kbd{u g} command gets the definition of one of these constants
 in its normal terms, and @kbd{u b} expresses the definition in base
 units.
 
-Two units, @code{pi} and @code{fsc} (the fine structure constant,
+Two units, @code{pi} and @code{alpha} (the fine structure constant,
 approximately @mathit{1/137}) are dimensionless.  The units simplification
 commands simply treat these names as equivalent to their corresponding
 values.  However you can, for example, use @kbd{u c} to convert a pure
