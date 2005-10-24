@@ -350,10 +350,9 @@ Also display the main routine in the disassembly buffer if present."
   (define-key gud-minor-mode-map [left-fringe mouse-1]
     'gdb-mouse-set-clear-breakpoint)
   (define-key gud-minor-mode-map [left-margin mouse-3]
-    'gdb-mouse-toggle-breakpoint)
-;  Currently only works in margin.
-;  (define-key gud-minor-mode-map [left-fringe mouse-3]
-;    'gdb-mouse-toggle-breakpoint)
+    'gdb-mouse-toggle-breakpoint-margin)
+  (define-key gud-minor-mode-map [left-fringe mouse-3]
+    'gdb-mouse-toggle-breakpoint-fringe)
 
   (setq comint-input-sender 'gdb-send)
   ;;
@@ -1400,8 +1399,8 @@ static char *magick[] = {
 		(gud-remove nil)
 	      (gud-break nil)))))))
 
-(defun gdb-mouse-toggle-breakpoint (event)
-  "Enable/disable breakpoint in left fringe/margin with mouse click."
+(defun gdb-mouse-toggle-breakpoint-margin (event)
+  "Enable/disable breakpoint in left margin with mouse click."
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
@@ -1419,7 +1418,33 @@ static char *magick[] = {
 				 0 'gdb-enabled (car (posn-string posn)))
 				"disable "
 			      "enable ")
-			    bptno "\n")) 'ignore))))))))
+			    bptno "\n"))
+		  'ignore))))))))
+
+(defun gdb-mouse-toggle-breakpoint-fringe (event)
+  "Enable/disable breakpoint in left fringe with mouse click."
+  (interactive "e")
+  (mouse-minibuffer-check event)
+  (let* ((posn (event-end event))
+	 (pos (posn-point posn))
+	 obj)
+    (when (numberp pos)
+      (with-selected-window (posn-window posn)
+	(save-excursion
+	  (set-buffer (window-buffer (selected-window)))
+	  (goto-char pos)
+	  (dolist (overlay (overlays-in pos pos))
+	    (when (overlay-get overlay 'put-break)
+	      (setq obj (overlay-get overlay 'before-string))))
+	  (when (stringp obj)
+	    (gdb-enqueue-input
+	     (list
+	      (concat
+	       (if (get-text-property 0 'gdb-enabled obj)
+		   "disable "
+		 "enable ")
+	       (get-text-property 0 'gdb-bptno obj) "\n")
+	      'ignore))))))))
 
 (defun gdb-breakpoints-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -2456,7 +2481,7 @@ of the current session."
 	(error (setq gdb-find-file-unhook t)))))
 
 ;;from put-image
-(defun gdb-put-string (putstring pos &optional dprop)
+(defun gdb-put-string (putstring pos &optional dprop &rest sprops)
   "Put string PUTSTRING in front of POS in the current buffer.
 PUTSTRING is displayed by putting an overlay into the current buffer with a
 `before-string' string that has a `display' property whose value is
@@ -2467,7 +2492,9 @@ PUTSTRING."
     (let ((overlay (make-overlay pos pos buffer))
 	  (prop (or dprop
 		    (list (list 'margin 'left-margin) putstring))))
-      (put-text-property 0 (length string) 'display prop string)
+      (put-text-property 0 1 'display prop string)
+      (if sprops
+	  (add-text-properties 0 1 sprops string))
       (overlay-put overlay 'put-break t)
       (overlay-put overlay 'before-string string))))
 
@@ -2490,21 +2517,24 @@ BUFFER nil or omitted means use the current buffer."
     (add-text-properties
      0 1 '(help-echo "mouse-1: set/clear bkpt, mouse-3: enable/disable bkpt")
      putstring)
-    (if enabled (add-text-properties
-		 0 1 `(gdb-bptno ,bptno gdb-enabled t) putstring)
+    (if enabled
+	(add-text-properties
+	 0 1 `(gdb-bptno ,bptno gdb-enabled t) putstring)
       (add-text-properties
        0 1 `(gdb-bptno ,bptno gdb-enabled nil) putstring))
     (gdb-remove-breakpoint-icons start end)
     (if (display-images-p)
 	(if (>= (or left-fringe-width
-		   (if source-window (car (window-fringes source-window)))
-		   gdb-buffer-fringe-width) 8)
+		    (if source-window (car (window-fringes source-window)))
+		    gdb-buffer-fringe-width) 8)
 	    (gdb-put-string
 	     nil (1+ start)
 	     `(left-fringe breakpoint
 			   ,(if enabled
 				'breakpoint-enabled
-			      'breakpoint-disabled)))
+			      'breakpoint-disabled))
+	     'gdb-bptno bptno
+	     'gdb-enabled enabled)
 	  (when (< left-margin-width 2)
 	    (save-current-buffer
 	      (setq left-margin-width 2)
