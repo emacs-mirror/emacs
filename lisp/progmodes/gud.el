@@ -2530,7 +2530,7 @@ It is saved for when this flag is not set.")
 	      (save-restriction
 		(widen)
 		(if (marker-buffer gud-delete-prompt-marker)
-		    (progn
+		    (let ((inhibit-read-only t))
 		      (delete-region (process-mark proc)
 				     gud-delete-prompt-marker)
 		      (set-marker gud-delete-prompt-marker nil)))
