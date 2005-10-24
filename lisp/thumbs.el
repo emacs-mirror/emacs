@@ -339,6 +339,7 @@ Or, alternatively, a SIZE may be specified."
   (cond ((string-match ".*\\.jpe?g\\'" img) 'jpeg)
 	((string-match ".*\\.xpm\\'" img) 'xpm)
 	((string-match ".*\\.xbm\\'" img) 'xbm)
+	((string-match ".*\\.pbm\\'" img) 'pbm)
 	((string-match ".*\\.gif\\'" img) 'gif)
 	((string-match ".*\\.bmp\\'" img) 'bmp)
 	((string-match ".*\\.png\\'" img) 'png)
