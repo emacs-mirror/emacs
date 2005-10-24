@@ -1,5 +1,13 @@
 2005-10-24  Kim F. Storm  <storm@cua.dk>
 
+	* xterm.c: Undo 2005-10-23 change.
+	(last_mouse_glyph_frame): New var.
+	(note_mouse_movement): Say mouse moved if current frame differs
+	from last_mouse_glyph_frame, and update last_mouse_glyph_frame.
+	(XTmouse_position): Set last_mouse_glyph_frame.
+	(handle_one_xevent): Clear last_mouse_glyph_frame [instead of
+	last_mouse_glyph] on mouse up/down event.
+
 	* editfns.c (Fcompare_buffer_substrings): Fix last change.
 
 2005-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
