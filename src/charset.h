@@ -129,6 +129,9 @@ extern int charset_katakana_jisx0201; /* JISX0201.Kana (Japanese Katakana) */
 extern int charset_latin_jisx0201; /* JISX0201.Roman (Japanese Roman) */
 extern int charset_big5_1;	/* Big5 Level 1 (Chinese Traditional) */
 extern int charset_big5_2;	/* Big5 Level 2 (Chinese Traditional) */
+extern int charset_mule_unicode_0100_24ff;
+extern int charset_mule_unicode_2500_33ff;
+extern int charset_mule_unicode_e000_ffff;
 
 /* Check if CH is an ASCII character or a base leading-code.
    Nowadays, any byte can be the first byte of a character in a
