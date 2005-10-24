@@ -50,6 +50,8 @@ The return value of this function is not used."
 	     (put macro 'lisp-indent-function (car (cdr d))))
 	    ((and (consp d) (eq (car d) 'debug))
 	     (put macro 'edebug-form-spec (car (cdr d))))
+	    ((and (consp d) (eq (car d) 'doc-string))
+	     (put macro 'doc-string-elt (car (cdr d))))
 	    (t
 	     (message "Unknown declaration %s" d))))))
 
