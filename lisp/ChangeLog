@@ -1,3 +1,8 @@
+2005-10-25  Masatake YAMATO  <jet@gyve.org>
+
+	* simple.el (completion-common-substring): Use `completion-common-substring'
+	prior to `completion-base-size'.
+
 2005-10-24  Kenichi Handa  <handa@m17n.org>
 
 	* international/utf-7.el (utf-7): Add autoload cookie.
