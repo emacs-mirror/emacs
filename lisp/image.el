@@ -430,10 +430,11 @@ Example:
 
    (defimage test-image ((:type xpm :file \"~/test1.xpm\")
                          (:type xbm :file \"~/test1.xbm\")))"
+  (declare (doc-string 3))
   `(defvar ,symbol (find-image ',specs) ,doc))
 
 
 (provide 'image)
 
-;;; arch-tag: 8e76a07b-eb48-4f3e-a7a0-1a7ba9f096b3
+;; arch-tag: 8e76a07b-eb48-4f3e-a7a0-1a7ba9f096b3
 ;;; image.el ends here
