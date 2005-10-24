@@ -1,3 +1,14 @@
+2005-10-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* INSTALL: Replace `Mac OS 8/9' with `Mac OS Classic'.  Add
+	`FIXME' to descriptions about Metrowerks CodeWarrior.  Remove
+	obsolete description about 512MB limit and icon on Mac OS Classic.
+	Add description about flags for experimental features.
+
+	* README: Replace `Mac OS 8/9' with `Mac OS Classic'.  Add `FIXME'
+	to descriptions about Metrowerks CodeWarrior.  Remove obsolete
+	descriptions about C-g and supported image types.
+
 2005-10-20  Bryan D. O'Connor  <bryan@lunch.org>  (tiny change)
 
 	* make-package: Add a --compressed-dist option to compress info
