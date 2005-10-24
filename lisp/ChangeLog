@@ -1,5 +1,9 @@
 2005-10-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* makefile.w32-in (autoloads): Use "." instead of $(lisp) in the
+	list of directories passed to batch-update-autoloads.  Add "." to
+	the list of the echoed directories.
+
 	* pgg-def.el:
 	* pgg-gpg.el:
 	* pgg-parse.el:
