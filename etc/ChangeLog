@@ -1,3 +1,8 @@
+2005-10-23  Richard M. Stallman  <rms@gnu.org>
+
+	* e/eterm-color.ti (el1): Capability deleted,
+	since term.el doesn't implement it.
+
 2005-10-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm-color.ti: Change the terminal name to eterm-color.
