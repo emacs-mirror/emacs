@@ -1,5 +1,7 @@
 2005-10-24  Kenichi Handa  <handa@m17n.org>
 
+	* international/utf-7.el (utf-7): Add autoload cookie.
+
 	* term/x-win.el: Register more Cyrillic characters in x-keysym-table.
 
 2005-10-24  Eli Zaretskii  <eliz@gnu.org>
