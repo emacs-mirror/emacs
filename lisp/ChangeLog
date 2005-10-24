@@ -1,3 +1,11 @@
+2005-10-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-filter): Bind inhibit-read-only to t
+	in case comint-prompt-read-only is set to t.
+
+	* progmodes/gdb-ui.el (gdb-send): Bind inhibit-read-only to t
+	in case comint-prompt-read-only is set to t.
+
 2005-10-24  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-version): Increase to 0.13. Now
