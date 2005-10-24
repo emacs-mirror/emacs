@@ -2474,7 +2474,7 @@ determines whether case is significant or ignored.  */)
   register struct buffer *bp1, *bp2;
   register Lisp_Object trt
     = (!NILP (current_buffer->case_fold_search)
-       ? XCHAR_TABLE (current_buffer->case_canon_table) : Qnil);
+       ? current_buffer->case_canon_table : Qnil);
   int chars = 0;
   int i1, i2, i1_byte, i2_byte;
 
