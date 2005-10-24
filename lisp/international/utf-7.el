@@ -36,6 +36,7 @@
 
 ;;; Code:
 
+;;;###autoload(autoload-coding-system 'utf-7 '(require 'utf-7))
 (make-coding-system
  'utf-7 0 ?U
  "UTF-7 encoding of Unicode (RFC 2152)"
