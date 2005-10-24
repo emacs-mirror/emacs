@@ -249,6 +249,7 @@ static unsigned long ignore_next_mouse_click_timeout;
 /* Where the mouse was last time we reported a mouse event.  */
 
 static XRectangle last_mouse_glyph;
+static FRAME_PTR last_mouse_glyph_frame;
 static Lisp_Object last_mouse_press_frame;
 
 /* The scroll bar in which the last X motion event occurred.
@@ -3596,21 +3597,24 @@ note_mouse_movement (frame, event)
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, -1, -1);
+      last_mouse_glyph_frame = 0;
       return 1;
     }
 
-  note_mouse_highlight (frame, event->x, event->y);
 
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (event->x < last_mouse_glyph.x
+  if (frame != last_mouse_glyph_frame
+      || event->x < last_mouse_glyph.x
       || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
       || event->y < last_mouse_glyph.y
       || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
+      note_mouse_highlight (frame, event->x, event->y);
       /* Remember which glyph we're now on.  */
       remember_mouse_glyph (frame, event->x, event->y, &last_mouse_glyph);
+      last_mouse_glyph_frame = frame;
       return 1;
     }
 
@@ -3821,6 +3825,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	       the frame are divided into.  */
 
 	    remember_mouse_glyph (f1, win_x, win_y, &last_mouse_glyph);
+	    last_mouse_glyph_frame = f1;
 
 	    *bar_window = Qnil;
 	    *part = 0;
@@ -6658,7 +6663,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         int tool_bar_p = 0;
 
         bzero (&compose_status, sizeof (compose_status));
-	bzero (&last_mouse_glyph, sizeof (last_mouse_glyph));
+	last_mouse_glyph_frame = 0;
 
         if (dpyinfo->grabbed
             && last_mouse_frame
