@@ -2472,9 +2472,9 @@ determines whether case is significant or ignored.  */)
 {
   register int begp1, endp1, begp2, endp2, temp;
   register struct buffer *bp1, *bp2;
-  register Lisp_Object *trt
+  register Lisp_Object trt
     = (!NILP (current_buffer->case_fold_search)
-       ? XCHAR_TABLE (current_buffer->case_canon_table)->contents : 0);
+       ? XCHAR_TABLE (current_buffer->case_canon_table) : Qnil);
   int chars = 0;
   int i1, i2, i1_byte, i2_byte;
 
@@ -2593,10 +2593,10 @@ determines whether case is significant or ignored.  */)
 	  i2++;
 	}
 
-      if (trt)
+      if (!NILP (trt))
 	{
-	  c1 = XINT (trt[c1]);
-	  c2 = XINT (trt[c2]);
+	  c1 = CHAR_TABLE_TRANSLATE (trt, c1);
+	  c2 = CHAR_TABLE_TRANSLATE (trt, c2);
 	}
       if (c1 < c2)
 	return make_number (- 1 - chars);
