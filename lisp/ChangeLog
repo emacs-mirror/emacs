@@ -4,6 +4,10 @@
 
 2005-10-23  Richard M. Stallman  <rms@gnu.org>
 
+	* faces.el (inhibit-face-set-after-frame-default): New variable.
+	(set-face-attribute): Bind it.
+	(face-set-after-frame-default): Test it.
+
 	* help-fns.el (describe-simplify-lib-file-name): New function.
 	(describe-function-1, describe-variable): Use it.
 
