@@ -1,3 +1,14 @@
+2005-10-25  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (gdb-ann3): Bind mouse-3 in left fringe
+	to gdb-mouse-toggle-breakpoint-fringe.
+	(gdb-mouse-toggle-breakpoint-margin): Rename from
+	gdb-mouse-toggle-breakpoint. Fix doc.
+	(gdb-mouse-toggle-breakpoint-fringe): New defun.
+	(gdb-put-string): Add optional SPROPS arg.  Add props to string.
+	(gdb-put-breakpoint-icon): Add gdb-bptno and gdb-enabled
+	string properties also for fringe breakpoint bitmaps.
+
 2005-10-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-start-icalendar-file): Fixed format form.
