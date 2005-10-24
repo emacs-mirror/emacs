@@ -59,6 +59,9 @@
 
 2005-10-24  Romain Francoise  <romain@orebokech.com>
 
+	* server.el (server-sentinel): Set query-on-exit flag to nil on
+	new client processes (it isn't inherited from the server process).
+
 	* replace.el (occur-engine): Rearrange text properties.
 
 2005-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
