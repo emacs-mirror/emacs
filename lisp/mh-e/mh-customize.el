@@ -946,9 +946,11 @@ is added to the yanked region."
 ;;; Ranges (:group 'mh-ranges)
 
 (defcustom mh-interpret-number-as-range-flag t
-  "Non-nil means interpret a number as a range.
-If the variable is non-nil, and you use an integer, N, when asked for a
-range to scan, then MH-E uses the range \"last:N\"."
+  "On means interpret a number as a range.
+Since one of the most frequent ranges used is \"last:N\", MH-E will interpret
+input such as \"200\" as \"last:200\" if this option is on (which is the
+default). If you need to scan just the message 200, then use the range
+\"200:200\"."
   :type 'boolean
   :group 'mh-ranges)
 

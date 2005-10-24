@@ -1,5 +1,8 @@
 2005-10-23  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el (mh-interpret-number-as-range-flag): Sync
+	docstring with manual.
+
 	* mh-identity.el (mh-assoc-ignore-case): Merge with version in
 	mh-alias.el and move to mh-acros.el
 
