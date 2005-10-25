@@ -754,14 +754,17 @@ ignores any numeric argument.
 interface where you view and control the program's data using Emacs
 windows.  You can still interact with GDB through the GUD buffer, but
 the point of this mode is that you can do it through menus and clicks,
-without needing to know GDB commands. For example, you can click
-@kbd{Mouse-1} on a line of the source buffer, in the fringe or display
-margin, to set a breakpoint there.  If a breakpoint already exists on
-that line, this action will remove it
-(@code{gdb-mouse-set-clear-breakpoint}). Where Emacs uses the margin
-to display breakpoints, it is also possible to enable or disable them
-when you click @kbd{Mouse-3} there
-(@code{gdb-mouse-toggle-breakpoint}).
+without needing to know GDB commands.  For example, you can click
+@kbd{Mouse-1} in the fringe or display margin of a source buffer to
+set a breakpoint there and, on a graphical display, a red bullet will
+appear.  If a breakpoint already exists on that line, this action will
+remove it (@code{gdb-mouse-set-clear-breakpoint}).  You can also
+enable or disable a breakpoint by clicking @kbd{Mouse-3} on the
+bullet.  If you drag the debugger arrow in the fringe with
+@kbd{Mouse-1}, execution will continue to where you release the button
+(@code{gdb-mouse-until}).  Alternatively, you can click @kbd{Mouse-2}
+at some point in the fringe of this buffer and execution will advance
+to there.
 
 @vindex gud-gdb-command-name
 @findex gdba
