@@ -678,7 +678,9 @@ you can relist single subdirs using \\[dired-do-redisplay]."
   ;; decent subdir headerline:
   (goto-char (point-min))
   (or (looking-at dired-subdir-regexp)
-      (dired-insert-headerline default-directory))
+      (insert "  " 
+	      (directory-file-name (file-name-directory default-directory))
+	      ":\n"))
   (dired-mode dirname (or switches dired-listing-switches))
   (setq mode-name "Virtual Dired"
         revert-buffer-function 'dired-virtual-revert)
