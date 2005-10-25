@@ -1,3 +1,9 @@
+2005-10-25  Romain Francoise  <romain@orebokech.com>
+
+	* emacs-lisp/find-func.el (find-library-name): Also strip
+	extension if library name ends in .el, to take advantage of
+	`find-library-suffixes'.
+
 2005-10-25  Richard M. Stallman  <rms@gnu.org>
 
 	* menu-bar.el (menu-bar-help-menu): Say which kind of therapist.
