@@ -51,11 +51,11 @@
 ;; 		   2   H 4       H
 ;;
 ;; Rays which enter and exit are numbered.  You can see that rays 1 & 5 pass
-;; thru the box undisturbed. Ray 2 is deflected by the northwesternmost
+;; thru the box undisturbed.  Ray 2 is deflected by the northwesternmost
 ;; ball.  Likewise rays 3 and 4. Rays which hit balls and are absorbed are
 ;; marked with H.  The bottom of the left and the right of the bottom hit
 ;; the southeastern ball directly.  Rays may also hit balls after being
-;; reflected. Consider the H on the bottom next to the 4.  It bounces off
+;; reflected.  Consider the H on the bottom next to the 4.  It bounces off
 ;; the NW-ern most ball and hits the central ball.  A ray shot from above
 ;; the right side 5 would hit the SE-ern most ball.  The R beneath the 5
 ;; is because the ball is returned instantly.  It is not allowed into
@@ -68,8 +68,6 @@
 ;; `x' is an incorrect guess of yours; `o' is the true location of a ball.
 
 ;;; Code:
-
-(defvar blackbox-mode-map nil "")
 
 (defvar bb-board nil
   "Blackbox board.")
@@ -93,22 +91,24 @@
 ;; blackbox-specific bindings in blackbox-mode-map.  This is so that
 ;; users who prefer non-default key bindings for cursor motion don't
 ;; lose that when they play Blackbox.
-(defun blackbox-redefine-key (oldfun newfun)
+(defun blackbox-redefine-key (map oldfun newfun)
   "Redefine keys that run the function OLDFUN to run NEWFUN instead."
-  (define-key blackbox-mode-map (vector 'remap oldfun) newfun))
+  (define-key map (vector 'remap oldfun) newfun))
 
-(unless blackbox-mode-map
-  (setq blackbox-mode-map (make-keymap))
-  (suppress-keymap blackbox-mode-map t)
-  (blackbox-redefine-key 'backward-char 'bb-left)
-  (blackbox-redefine-key 'forward-char 'bb-right)
-  (blackbox-redefine-key 'previous-line 'bb-up)
-  (blackbox-redefine-key 'next-line 'bb-down)
-  (blackbox-redefine-key 'move-end-of-line 'bb-eol)
-  (blackbox-redefine-key 'move-beginning-of-line 'bb-bol)
-  (define-key blackbox-mode-map " " 'bb-romp)
-  (define-key blackbox-mode-map [insert] 'bb-romp)
-  (blackbox-redefine-key 'newline 'bb-done))
+
+(defvar blackbox-mode-map 
+  (let ((map (make-keymap)))
+    (suppress-keymap map t)
+    (blackbox-redefine-key map 'backward-char 'bb-left)
+    (blackbox-redefine-key map 'forward-char 'bb-right)
+    (blackbox-redefine-key map 'previous-line 'bb-up)
+    (blackbox-redefine-key map 'next-line 'bb-down)
+    (blackbox-redefine-key map 'move-end-of-line 'bb-eol)
+    (blackbox-redefine-key map 'move-beginning-of-line 'bb-bol)
+    (define-key map " " 'bb-romp)
+    (define-key map [insert] 'bb-romp)
+    (blackbox-redefine-key map 'newline 'bb-done)
+    map))
 
 ;; Blackbox mode is suitable only for specially formatted data.
 (put 'blackbox-mode 'mode-class 'special)
@@ -434,5 +434,5 @@ a reflection."
 
 (provide 'blackbox)
 
-;;; arch-tag: 6c474c62-5617-4b10-9b44-ac430168c0e2
+;; arch-tag: 6c474c62-5617-4b10-9b44-ac430168c0e2
 ;;; blackbox.el ends here

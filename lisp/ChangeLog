@@ -1,3 +1,11 @@
+2005-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* play/blackbox.el (blackbox-mode-map): Move init into declaration.
+	(blackbox-redefine-key): Add argument `map'.
+
+	* jit-lock.el (jit-lock-fontify-now): Be careful not to skip multiline
+	regions when moving the jit-lock-context-unfontify-pos boundary.
+
 2005-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* net/browse-url.el (browse-url-of-buffer): Add ".html" to
