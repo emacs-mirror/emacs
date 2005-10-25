@@ -1342,7 +1342,7 @@ key, a click, or a menu-item"))
 	      :help "Display manual section that describes a key"))
 
 (define-key menu-bar-help-menu [eliza]
-  '(menu-item "Emacs Therapist" doctor
+  '(menu-item "Emacs Psychotherapist" doctor
 	      :help "Our doctor will help you feel better"))
 (define-key menu-bar-help-menu [sep4]
   '("--"))
