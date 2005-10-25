@@ -1,3 +1,8 @@
+2005-10-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Remove narrowing before
+	performing the initial decoding or final encoding.
+
 2005-10-25  Romain Francoise  <romain@orebokech.com>
 
 	* emacs-lisp/find-func.el (find-library-name): Also strip
