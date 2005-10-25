@@ -1,3 +1,8 @@
+2005-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/browse-url.el (browse-url-of-buffer): Add ".html" to
+	filename.
+
 2005-10-25  Masatake YAMATO  <jet@gyve.org>
 
 	* dired-x.el (dired-virtual): Don't use `dired-insert-headerline'.
