@@ -2571,7 +2571,7 @@ _ACEOF
     machine=intel386
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
-      *-darwin )                opsys=darwin
+      *-darwin* )               opsys=darwin
                                 CPP="${CC-cc} -E -no-cpp-precomp"
  				;;
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
@@ -2629,12 +2629,6 @@ _ACEOF
     machine=powermac opsys=darwin
     # Define CPP as follows to make autoconf work correctly.
     CPP="${CC-cc} -E -no-cpp-precomp"
-    # Use fink packages if available.
-    if test -d /sw/include && test -d /sw/lib; then
-	GCC_TEST_OPTIONS="-I/sw/include -L/sw/lib"
-        CPP="${CPP} ${GCC_TEST_OPTIONS}"
-	NON_GCC_TEST_OPTIONS=${GCC_TEST_OPTIONS}
-    fi
   ;;
 
   ## AMD x86-64 Linux-based GNU system

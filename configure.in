@@ -1089,7 +1089,7 @@ dnl see the `changequote' comment above.
     machine=intel386
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
-      *-darwin )                opsys=darwin
+      *-darwin* )               opsys=darwin
                                 CPP="${CC-cc} -E -no-cpp-precomp"
  				;;
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
