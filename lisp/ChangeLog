@@ -1,3 +1,9 @@
+2005-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-translate-key): If the input
+	method is deterministic and failed to handle the last key, restart
+	the key handling loop from an appropriate key.
+
 2005-10-25  Michael Albinus  <michael.albinus@gmx.de>
 
 	* vc.el (vc-dired-mode): Extend comment for binding of
