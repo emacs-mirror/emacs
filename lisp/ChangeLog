@@ -340,8 +340,6 @@
 
 2005-10-22  Richard M. Stallman  <rms@gnu.org>
 
-	* textmodes/ispell.el (ispell-local-dictionary-overridden):
-
 	* files.el (make-temp-file): Move from subr.el.
 	* subr.el (make-temp-file): Move to files.el.
 
