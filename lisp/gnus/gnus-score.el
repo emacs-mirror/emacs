@@ -221,13 +221,22 @@ This variable allows the same syntax as `gnus-home-score-file'."
 		 (function :value fun)))
 
 (defcustom gnus-default-adaptive-score-alist
-  '((gnus-kill-file-mark)
+  `((gnus-kill-file-mark)
     (gnus-unread-mark)
-    (gnus-read-mark (from 3) (subject 30))
-    (gnus-catchup-mark (subject -10))
-    (gnus-killed-mark (from -1) (subject -20))
-    (gnus-del-mark (from -2) (subject -15)))
-  "*Alist of marks and scores."
+    (gnus-read-mark
+     (from , (+ 2 gnus-score-decay-constant))
+     (subject , (+ 27 gnus-score-decay-constant)))
+    (gnus-catchup-mark
+     (subject , (+ -7 (* -1 gnus-score-decay-constant))))
+    (gnus-killed-mark
+     (from , (- -1 gnus-score-decay-constant))
+     (subject , (+ -17 (* -1 gnus-score-decay-constant))))
+    (gnus-del-mark
+     (from , (- -1 gnus-score-decay-constant))
+     (subject , (+ -12 (* -1 gnus-score-decay-constant)))))
+  "Alist of marks and scores.
+If you use score decays, you might want to set values higher than
+`gnus-score-decay-constant'."
   :group 'gnus-score-adapt
   :type '(repeat (cons (symbol :tag "Mark")
 		       (repeat (list (choice :tag "Header"

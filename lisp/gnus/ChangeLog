@@ -12,6 +12,22 @@
 	* gnus-sum.el (gnus-ignored-from-addresses): Handle case where
 	user-mail-name is an empty string.
 
+2005-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-score.el (gnus-default-adaptive-score-alist): Set defaults
+	depending on gnus-score-decay-constant.
+
+2005-10-25  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* nnslashdot.el (nnslashdot-request-article)
+	(nnslashdot-retrieve-headers-1): Update to new HTML.
+
+2005-10-23  Simon Josefsson  <jas@extundo.com>
+
+	* imap.el (imap-gssapi-program): Align command line parameters
+	with latest GNU SASL.
+	(imap-gssapi-open): Ignore 'Trying ...' messages from GNU SASL.
+
 2005-10-20  Hiroshi Fujishima  <hiroshi.fujishima@gmail.com>  (tiny change)
 
 	* mail-source.el (mail-source-fetch-pop): Require pop3.
