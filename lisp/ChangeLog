@@ -1,3 +1,7 @@
+2005-10-25  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-help-menu): Say which kind of therapist.
+
 2005-10-25  Juri Linkov  <juri@jurta.org>
 
 	* textmodes/texinfo.el (texinfo-mode): Change charset of one
