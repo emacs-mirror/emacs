@@ -1,3 +1,9 @@
+2005-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries): Prevent infloop when
+	diary does not end in a newline.  Do not assume a blank line at
+	the start of the diary file.
+
 2005-10-25  Kenichi Handa  <handa@m17n.org>
 
 	* international/quail.el (quail-translate-key): If the input
