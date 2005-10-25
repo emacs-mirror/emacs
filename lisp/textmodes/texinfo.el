@@ -595,7 +595,7 @@ value of `texinfo-mode-hook'."
   (setq paragraph-start (concat "\b\\|@[a-zA-Z]*[ \n]\\|" paragraph-start))
   (make-local-variable 'sentence-end-base)
   (setq sentence-end-base
-	"\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'$,1r}r}(B)}]*")
+	"\\(@\\(end\\)?dots{}\\|[.?!]\\)[]\"'$B!I$,1r}(B)}]*")
   (make-local-variable 'adaptive-fill-mode)
   (setq adaptive-fill-mode nil)
   (make-local-variable 'fill-column)
