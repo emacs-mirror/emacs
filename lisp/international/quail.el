@@ -1720,6 +1720,20 @@ sequence counting from the head."
 	     ;; And, we can terminate the current translation.
 	     t)
 
+	    ((quail-deterministic)
+	     ;; No way to handle the last character in this context.
+	     ;; Commit the longest successfully translated characters, and
+	     ;; handle the remaining characters in a new loop.
+	     (setq def nil)
+	     (while (and (not def) (> len 1))
+	       (setq len (1- len))
+	       (setq def (quail-map-definition
+			  (quail-lookup-key quail-current-key len))))
+	     (if def (setq quail-current-str
+			   (quail-get-current-str len def))
+	       (setq quail-current-str (aref quail-current-key 0)))
+	     len)
+
 	    (t
 	     ;; No way to handle the last character in this context.
 	     (setq def (quail-map-definition
