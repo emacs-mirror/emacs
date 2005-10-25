@@ -1,3 +1,9 @@
+2005-10-25  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>  (tiny change)
+
+	* play/blackbox.el (blackbox-redefine-key): New function.
+	(blackbox-mode-map): Use it to remap existing bindings for cursor
+	motion instead of binding literal keys.
+
 2005-10-25  Glenn Morris  <rgm@gnu.org>
 
 	* calendar/diary-lib.el (diary-list-entries): Prevent infloop when
