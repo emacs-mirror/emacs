@@ -1,3 +1,7 @@
+2005-10-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (w32_to_x_font): Avoid forcing font widths.
+
 2005-10-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c [MAC_OS] (image_load_qt_1): Check image size.
