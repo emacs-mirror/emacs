@@ -1,3 +1,9 @@
+2005-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/texinfo.el (texinfo-mode):
+	* textmodes/paragraphs.el (sentence-end-base): Use real chars, so as
+	not to unnecessarily expose emacs-mule's internal char codes.
+
 2005-10-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-put-breakpoint-icon): Correct help-echo.
@@ -25,7 +31,7 @@
 
 2005-10-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-start-icalendar-file): Fixed format form.
+	* textmodes/org.el (org-start-icalendar-file): Fix format form.
 
 2005-10-25  Masatake YAMATO  <jet@gyve.org>
 
