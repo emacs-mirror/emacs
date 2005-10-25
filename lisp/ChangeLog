@@ -1,8 +1,9 @@
 2005-10-25  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-put-breakpoint-icon): Correct
-	help-echo.  Display hand pointer and help-echo on disabled icon
-	too.
+	* progmodes/gdb-ui.el (gdb-put-breakpoint-icon): Correct help-echo.
+	Display hand pointer and help-echo on disabled icon too.
+	(gdb-mouse-until): New function.
+	(gdb-ann3): Bind it to mouse-2 and drag-mouse-1 in left fringe.
 
 2005-10-24  Chong Yidong  <cyd@stupidchicken.com>
 
