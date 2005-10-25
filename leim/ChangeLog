@@ -1,3 +1,8 @@
+2005-10-25  Juri Linkov  <juri@jurta.org>
+
+	* quail/cyrillic.el ("cyrillic-translit"): Set 4th arg `guidance'
+	to t for this multi-key input method.
+
 2005-10-24  Kenichi Handa  <handa@m17n.org>
 
 	* quail/uni-input.el (ucs-input-activate): Don't add
