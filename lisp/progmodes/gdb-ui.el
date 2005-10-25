@@ -349,6 +349,10 @@ Also display the main routine in the disassembly buffer if present."
     'gdb-mouse-set-clear-breakpoint)
   (define-key gud-minor-mode-map [left-fringe mouse-1]
     'gdb-mouse-set-clear-breakpoint)
+  (define-key gud-minor-mode-map [left-fringe mouse-2]
+    'gdb-mouse-until)
+  (define-key gud-minor-mode-map [left-fringe drag-mouse-1]
+    'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-margin mouse-3]
     'gdb-mouse-toggle-breakpoint-margin)
   (define-key gud-minor-mode-map [left-fringe mouse-3]
@@ -395,6 +399,21 @@ Also display the main routine in the disassembly buffer if present."
   ;;
   (gdb-set-gud-minor-mode-existing-buffers)
   (run-hooks 'gdba-mode-hook))
+
+(defun gdb-mouse-until (event)
+  "Execute source lines by dragging the overlay arrow (fringe) with the mouse."
+  (interactive "e")
+  (if gud-overlay-arrow-position
+	(let ((start (event-start event))
+	      (end  (event-end event))
+	      (buffer (marker-buffer gud-overlay-arrow-position)) (line))
+	  (if (equal buffer (window-buffer (posn-window end)))
+	      (with-current-buffer buffer
+		(when (or (equal start end)
+			  (equal (posn-point start)
+				 (marker-position gud-overlay-arrow-position)))
+		  (setq line (line-number-at-pos (posn-point end)))
+		  (gud-call (concat "until " (number-to-string line)))))))))
 
 (defcustom gdb-use-colon-colon-notation nil
   "If non-nil use FUN::VAR format to display variables in the speedbar."
