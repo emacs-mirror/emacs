@@ -2064,6 +2064,9 @@ There is a special command, `*l', to mark all files currently locked."
   ;; The following is slightly modified from files.el,
   ;; because file lines look a bit different in vc-dired-mode
   ;; (the column before the date does not end in a digit).
+  ;; albinus: It should be done in the original declaration.  Problem
+  ;; is the optional empty state-info; otherwise ")" would be good
+  ;; enough as delimeter.
   (set (make-local-variable 'directory-listing-before-filename-regexp)
   (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
          ;; In some locales, month abbreviations are as short as 2 letters,

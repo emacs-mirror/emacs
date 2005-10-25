@@ -1,3 +1,8 @@
+2005-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc.el (vc-dired-mode): Extend comment for binding of
+	`directory-listing-before-filename-regexp'.
+
 2005-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/texinfo.el (texinfo-mode):
