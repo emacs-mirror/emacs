@@ -89,23 +89,26 @@
 (defvar bb-balls-placed nil
   "List of already placed balls.")
 
+;; This is used below to remap existing bindings for cursor motion to
+;; blackbox-specific bindings in blackbox-mode-map.  This is so that
+;; users who prefer non-default key bindings for cursor motion don't
+;; lose that when they play Blackbox.
+(defun blackbox-redefine-key (oldfun newfun)
+  "Redefine keys that run the function OLDFUN to run NEWFUN instead."
+  (define-key blackbox-mode-map (vector 'remap oldfun) newfun))
+
 (unless blackbox-mode-map
   (setq blackbox-mode-map (make-keymap))
   (suppress-keymap blackbox-mode-map t)
-  (define-key blackbox-mode-map "\C-f" 'bb-right)
-  (define-key blackbox-mode-map [right] 'bb-right)
-  (define-key blackbox-mode-map "\C-b" 'bb-left)
-  (define-key blackbox-mode-map [left] 'bb-left)
-  (define-key blackbox-mode-map "\C-p" 'bb-up)
-  (define-key blackbox-mode-map [up] 'bb-up)
-  (define-key blackbox-mode-map "\C-n" 'bb-down)
-  (define-key blackbox-mode-map [down] 'bb-down)
-  (define-key blackbox-mode-map "\C-e" 'bb-eol)
-  (define-key blackbox-mode-map "\C-a" 'bb-bol)
+  (blackbox-redefine-key 'backward-char 'bb-left)
+  (blackbox-redefine-key 'forward-char 'bb-right)
+  (blackbox-redefine-key 'previous-line 'bb-up)
+  (blackbox-redefine-key 'next-line 'bb-down)
+  (blackbox-redefine-key 'move-end-of-line 'bb-eol)
+  (blackbox-redefine-key 'move-beginning-of-line 'bb-bol)
   (define-key blackbox-mode-map " " 'bb-romp)
   (define-key blackbox-mode-map [insert] 'bb-romp)
-  (define-key blackbox-mode-map "\C-m" 'bb-done)
-  (define-key blackbox-mode-map [kp-enter] 'bb-done))
+  (blackbox-redefine-key 'newline 'bb-done))
 
 ;; Blackbox mode is suitable only for specially formatted data.
 (put 'blackbox-mode 'mode-class 'special)
