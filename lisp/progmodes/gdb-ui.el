@@ -2515,7 +2515,7 @@ BUFFER nil or omitted means use the current buffer."
 	(putstring (if enabled "B" "b"))
 	(source-window (get-buffer-window (current-buffer) 0)))
     (add-text-properties
-     0 1 '(help-echo "mouse-1: set/clear bkpt, mouse-3: enable/disable bkpt")
+     0 1 '(help-echo "mouse-1: clear bkpt, mouse-3: enable/disable bkpt")
      putstring)
     (if enabled
 	(add-text-properties
@@ -2557,10 +2557,10 @@ BUFFER nil or omitted means use the current buffer."
 		       (find-image `((:type xpm :data
 					    ,breakpoint-xpm-data
 					    :conversion disabled
-					    :ascent 100)
+					    :ascent 100 :pointer hand)
 				     (:type pbm :data
 					    ,breakpoint-disabled-pbm-data
-					    :ascent 100))))))
+					    :ascent 100 :pointer hand))))))
 	   (+ start 1)
 	   putstring
 	   'left-margin))
