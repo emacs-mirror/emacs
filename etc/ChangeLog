@@ -1,3 +1,7 @@
+2005-10-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* images/gud/until.xpm: Colour correction.
+
 2005-10-23  Richard M. Stallman  <rms@gnu.org>
 
 	* e/eterm-color.ti (el1): Capability deleted,
