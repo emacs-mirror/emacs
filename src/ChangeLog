@@ -1,3 +1,25 @@
+2005-10-25  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OS] (image_load_qt_1): Check image size.
+	Use GraphicsImportGetImageDescription instead of
+	GraphicsImportGetNaturalBounds.
+	[MAC_OSX] (image_load_quartz2d): Check image size.
+	[MAC_OS] (xpm_load_image): Likewise.
+
+	* macterm.c (last_mouse_glyph_frame): New var.
+	(note_mouse_movement): Say mouse moved if current frame differs
+	from last_mouse_glyph_frame, and update last_mouse_glyph_frame.
+	(XTmouse_position): Set last_mouse_glyph_frame.
+	(XTread_socket): Clear last_mouse_glyph_frame on mouse up/down event.
+	(mac_draw_string_common) [MAC_OSX && WORDS_BIG_ENDIAN]: Fix typo.
+	Use EndianU16_BtoN.
+	(mac_draw_string_common) [MAC_OSX]: Don't use ATSUClearLayoutControls.
+	(x_per_char_metric, XLoadQueryFont)
+	[MAC_OS_X_VERSION_MAX_ALLOWED < 1020]: Use device origins to get
+	glyph bounds.
+	(mac_to_x_fontname, mac_do_list_fonts)
+	(mac_initialize_display_info): Change screen resolutions to 72dpi.
+
 2005-10-25  Masatake YAMATO  <jet@gyve.org>
 
 	* minibuf.c (Fdisplay_completion_list): Small doc fix.
