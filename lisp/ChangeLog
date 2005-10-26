@@ -1,3 +1,7 @@
+2005-10-26  Romain Francoise  <romain@orebokech.com>
+
+	* smerge-mode.el: Add 'tools' to file keywords.
+
 2005-10-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Only display gud-until icon
