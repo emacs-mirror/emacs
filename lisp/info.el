@@ -3736,20 +3736,18 @@ the variable `Info-file-list-for-emacs'."
                   ;; *Note is often used where *note should have been
                   (goto-char start)
                   (skip-syntax-backward " ")
+		  (when (memq (char-before) '(?\( ?\[ ?\{))
+		    ;; Check whether the paren is preceded by
+		    ;; an end of sentence
+		    (skip-syntax-backward " ("))
                   (setq other-tag
                         (cond ((memq (char-before) '(nil ?\. ?! ??))
                                "See ")
-                              ((memq (char-before) '(?\, ?\; ?\: ?-))
-                               "see ")
-                              ((memq (char-before) '(?\( ?\[ ?\{))
-                               ;; Check whether the paren is preceded by
-                               ;; an end of sentence
-                               (skip-syntax-backward " (")
-                               (if (memq (char-before) '(nil ?\. ?! ??))
-                                   "See "
-                                 "see "))
-                              ((save-match-data (looking-at "\n\n"))
-                               "See "))))
+			      ((save-match-data
+				 (save-excursion
+				   (search-forward "\n\n" start t)))
+			       "See ")
+			      (t "see "))))
                 (goto-char next)
                 (add-text-properties
                  (match-beginning 1)
