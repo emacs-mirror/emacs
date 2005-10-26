@@ -1,3 +1,18 @@
+2005-10-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Only display gud-until icon
+	when the fringe is not available.
+
+	* progmodes/gdb-ui.el (def-gdb-auto-updated-buffer)
+	(def-gdb-auto-update-trigger): Simplify construction.
+	(gdb-locals-buffer): Use def-gdb-auto-update-trigger instead of
+	def-gdb-auto-updated-buffer as gdb-info-locals-handler is
+	defined explicitly.
+	(gdb-assembler-buffer): Use def-gdb-auto-update-handler instead of
+	def-gdb-auto-updated-buffer as gdb-invalidate-assembler is
+	defined explicitly.
+	(gdb-info-locals-custom): Remove as it's a no-op.
+
 2005-10-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-mode): Remove narrowing before
