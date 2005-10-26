@@ -1200,7 +1200,7 @@ happens to be appropriate."
 (defmacro def-gdb-auto-update-trigger (name demand-predicate gdb-command
 					    output-handler)
   `(defun ,name (&optional ignored)
-     (if (and (,demand-predicate)
+     (if (and ,demand-predicate
 	      (not (member ',name
 			   gdb-pending-triggers)))
 	 (progn
@@ -1232,7 +1232,7 @@ happens to be appropriate."
   `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ;; The demand predicate:
-       (lambda () (gdb-get-buffer ',buffer-key))
+       (gdb-get-buffer ',buffer-key)
        ,gdb-command
        ,output-handler-name)
      (def-gdb-auto-update-handler ,output-handler-name
@@ -2153,11 +2153,10 @@ corresponding to the mode line clicked."
 		      'gdb-locals-buffer-name
 		      'gdb-locals-mode)
 
-(def-gdb-auto-updated-buffer gdb-locals-buffer
-  gdb-invalidate-locals
+(def-gdb-auto-update-trigger gdb-invalidate-locals
+  (gdb-get-buffer 'gdb-locals-buffer)
   "server info locals\n"
-  gdb-info-locals-handler
-  gdb-info-locals-custom)
+  gdb-info-locals-handler)
 
 ;; Abbreviate for arrays and structures.
 ;; These can be expanded using gud-display.
@@ -2186,9 +2185,6 @@ corresponding to the mode line clicked."
 					   'gdb-partial-output-buffer))
 		(set-window-point window p)))))
   (run-hooks 'gdb-info-locals-hook))
-
-(defun gdb-info-locals-custom ()
-  nil)
 
 (defvar gdb-locals-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2614,12 +2610,9 @@ BUFFER nil or omitted means use the current buffer."
 		      'gdb-assembler-buffer-name
 		      'gdb-assembler-mode)
 
-(def-gdb-auto-updated-buffer gdb-assembler-buffer
+(def-gdb-auto-update-handler gdb-assembler-handler
   gdb-invalidate-assembler
-  (concat gdb-server-prefix "disassemble "
-	  (if (member gdb-frame-address '(nil "main")) nil "0x")
-	  gdb-frame-address "\n")
-  gdb-assembler-handler
+  gdb-assembler-buffer
   gdb-assembler-custom)
 
 (defun gdb-assembler-custom ()
