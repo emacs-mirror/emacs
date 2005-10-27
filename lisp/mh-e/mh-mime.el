@@ -429,7 +429,7 @@ you can build a consistency check into the message by setting
 `mh-mh-to-mime-args' to \"-check\". The recipient of your message can then run
 \"mhbuild -check\" on the message--\"mhbuild\" (\"mhn\") will complain if the
 message has been corrupted on the way. This command only consults this option
-when given a prefix argument.
+when given a prefix argument EXTRA-ARGS.
 
 The value of `mh-mh-to-mime-hook' is a list of functions to be called after
 the message has been formatted.
@@ -582,7 +582,7 @@ number."
 (defun mh-mml-attach-file (&optional disposition)
   "Add a tag to insert a MIME message part from a file.
 You are prompted for the filename containing the object, the media type if it
-cannot be determined automatically, a content description and the disposition
+cannot be determined automatically, a content description and the DISPOSITION
 of the attachment.
 
 This is basically `mml-attach-file' from Gnus, modified such that a prefix
@@ -637,7 +637,7 @@ The argument IGNORE is not used."
 A proper multipart message is created for you when you send the message. Use
 the \\[mh-mml-unsecure-message] command to remove this tag. Use a prefix
 argument METHOD to be prompted for one of the possible security methods
-(see `mh-mml-method-default')."
+\(see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
   (mh-secure-message method "sign" mh-identity-pgg-default-user-id))
 
@@ -647,7 +647,7 @@ argument METHOD to be prompted for one of the possible security methods
 A proper multipart message is created for you when you send the message. Use
 the \\[mh-mml-unsecure-message] command to remove this tag. Use a prefix
 argument METHOD to be prompted for one of the possible security methods
-(see `mh-mml-method-default')."
+\(see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
   (mh-secure-message method "encrypt" mh-identity-pgg-default-user-id))
 
@@ -657,7 +657,7 @@ argument METHOD to be prompted for one of the possible security methods
 A proper multipart message is created for you when you send the message. Use
 the \\[mh-mml-unsecure-message] command to remove this tag. Use a prefix
 argument METHOD to be prompted for one of the possible security methods
-(see `mh-mml-method-default')."
+\(see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
   (mh-secure-message method "signencrypt" mh-identity-pgg-default-user-id))
 

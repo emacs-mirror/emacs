@@ -763,12 +763,12 @@ installed and you want to use BogoFilter, then you can set this option to
 ;;; Editing a Draft (:group 'mh-letter)
 
 (defcustom mh-compose-insertion (if (locate-library "mml") 'mml 'mh)
-  "Type of tags used when composing MIME messages. In addition to MH-style
-directives, MH-E also supports MML (MIME Meta Language) tags. (see Info node
-`(emacs-mime)Composing'). This option can be used to choose between them. By
-default, this option is set to \"MML\" if it is supported since it provides a
-lot more functionality. This option can also be set to \"MH\" if MH-style
-directives are preferred."
+  "Type of tags used when composing MIME messages.
+In addition to MH-style directives, MH-E also supports MML (MIME Meta
+Language) tags. (see Info node `(emacs-mime)Composing'). This option can be
+used to choose between them. By default, this option is set to \"MML\" if it
+is supported since it provides a lot more functionality. This option can also
+be set to \"MH\" if MH-style directives are preferred."
   :type '(choice (const :tag "MML" mml)
                  (const :tag "MH"  mh))
   :group 'mh-letter)
@@ -887,7 +887,7 @@ header field.
 
 The \"X-Face:\" header field, which is a low-resolution, black and white
 image, can be generated using the \"compface\"
-(ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z) command. The
+\(ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z) command. The
 \"Online X-Face Converter\" (http://www.dairiki.org/xface/) is a useful
 resource for quick conversion of images into \"X-Face:\" header fields.
 
