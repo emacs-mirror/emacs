@@ -29,10 +29,6 @@ face name prefixes should be in it for good results.
 
 ** Change .emacs.d/.emacs to .emacs.d/emacs.
 
-** Rework how the fringe "angle" bitmap at at bottom of buffer is
-shown to include an indication of whether the last line has a NL or not.
-[Assigned to KFS]
-
 ** Rework how fringe bitmaps are defined and used.
 Currently, bitmap usage and bitmap appearence are "mixed-up" in a
 one-level representation.  It would be cleaner to split the

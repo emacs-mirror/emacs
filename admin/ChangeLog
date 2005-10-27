@@ -1,3 +1,7 @@
+2005-10-27  Chong Yidong  <cyd@stupidchicken.com>
+
+	* FOR-RELEASE: Fringe angle bitmap at eob fixed.
+
 2005-10-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* FOR-RELEASE (New features): max-image-size implemented.
