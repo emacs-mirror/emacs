@@ -1,3 +1,8 @@
+2005-10-27  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* international/mule-cmds.el (locale-language-names):  Add entries
+	for zh_CN.GB2312, zh_CN.GBK, and zh_CN.GB18030.
+
 2005-10-24  Kenichi Handa  <handa@etlken>
 
 	* international/utf-7.el: Delete the definition of utf-7.
