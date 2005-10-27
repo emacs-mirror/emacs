@@ -1,3 +1,9 @@
+2005-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* e/eterm-color.ti (el1): Undo 2005-10-23 change. 
+	Add some comments on how to update this file. Add ri 
+	capability that has long been supported by term.el.
+
 2005-10-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* images/gud/until.xpm: Colour correction.
