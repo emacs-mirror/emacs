@@ -1,3 +1,7 @@
+2005-10-27  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el: Change Maintainer field.
+
 2005-10-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-mode): Bind after-change-functions to
