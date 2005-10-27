@@ -1,5 +1,7 @@
 2005-10-27  Romain Francoise  <romain@orebokech.com>
 
+	* replace.el (occur-engine): Include colon in mouse-face highlight.
+
 	* dired-x.el: Change Maintainer field.
 
 2005-10-26  Chong Yidong  <cyd@stupidchicken.com>
