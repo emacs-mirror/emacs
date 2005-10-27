@@ -2281,14 +2281,13 @@ This language name is used if the locale is not listed in
      ("koi8-?r" . koi8-r)
      ("koi8-?u" . koi8-u)
      ("tcvn" . tcvn)
+     ("big5[-_]?hkscs" . big5-hkscs)
      ("big5" . big5)
      ("euc-?tw" . euc-tw)
-     ;; We don't support GBK, but as it is upper compatible with
-     ;; GB-2312, we setup the default coding system to gb2312.
-     ("gbk" . gb2312)
-     ;; We don't support BIG5-HKSCS, but as it is upper compatible with
-     ;; BIG5, we setup the default coding system to big5.
-     ("big5hkscs" . big5)
+     ("euc-?cn" .euc-cn)
+     ("gb2312" . gb2312)
+     ("gbk" . gbk)
+     ("gb18030" . gb18030)
      ("ja.*[._]euc" . japanese-iso-8bit)
      ("ja.*[._]jis7" . iso-2022-jp)
      ("ja.*[._]pck" . japanese-shift-jis)
