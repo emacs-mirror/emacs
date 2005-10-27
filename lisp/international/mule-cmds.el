@@ -2208,12 +2208,13 @@ of `buffer-file-coding-system' set by this function."
     ; yo Yoruba
     ; za Zhuang
     ("zh_HK" . "Chinese-Big5")
+    ; zh_HK/BIG5-HKSCS \
     ("zh_TW" . "Chinese-Big5")
+    ("zh_CN.GB2312" "Chinese-GB")
+    ("zh_CN.GBK" "Chinese-GBK")
+    ("zh_CN.GB18030" "Chinese-GB18030")
     ("zh_CN" . "Chinese-GB")
     ("zh" . "Chinese-GB")
-    ; zh_CN.GB18030/GB18030 \
-    ; zh_CN.GBK/GBK \
-    ; zh_HK/BIG5-HKSCS \
     ("zu" . "Latin-1") ; Zulu
 
     ;; ISO standard locales
