@@ -6,7 +6,7 @@
 ;;             Alex Schroeder <alex@gnu.org>
 ;;             Chong Yidong <cyd@stupidchicken.com>
 ;; Maintainer: Chong Yidong <cyd@stupidchicken.com>
-;; Keywords: convenience
+;; Keywords: convenience, wp
 
 ;; This file is part of GNU Emacs.
 
@@ -119,6 +119,7 @@ are indicated with a symbol."
                     'longlines-window-change-function nil t))
         (let ((buffer-undo-list t)
               (inhibit-read-only t)
+	      (after-change-functions nil)
               (mod (buffer-modified-p)))
           ;; Turning off undo is OK since (spaces + newlines) is
           ;; conserved, except for a corner case in
@@ -142,6 +143,7 @@ are indicated with a symbol."
     (if longlines-showing
         (longlines-unshow-hard-newlines))
     (let ((buffer-undo-list t)
+	  (after-change-functions nil)
           (inhibit-read-only t))
       (save-restriction
 	(widen)
