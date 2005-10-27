@@ -1,3 +1,21 @@
+2005-10-27  Kenichi Handa  <handa@m17n.org>
+
+	* coding.h (DECODE_SYSTEM): Fix argument name; name->str.
+
+2005-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* charset.h (charset_mule_unicode_0100_24ff)
+	(charset_mule_unicode_2500_33ff, charset_mule_unicode_e000_ffff):
+	Extern them.
+
+	* charset.c (charset_mule_unicode_0100_24ff)
+	(charset_mule_unicode_2500_33ff, charset_mule_unicode_e000_ffff):
+	New variables.
+	(Fsetup_special_charsets): Initialize them.
+
+	* xterm.c (handle_one_xevent): Handle keysyms directly mapped to
+	supported Unicode characters.
+
 2005-10-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_to_x_font): Avoid forcing font widths.
