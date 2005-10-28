@@ -1,3 +1,11 @@
+2005-10-28  Bill Wohler  <wohler@newt.com>
+
+	* help-mode.el (help-url): New button type. Calls browse-url.
+	(help-xref-url-regexp): New regexp to recognize URLs in docstring.
+	Similar to Info nodes: URL `url'.
+	(help-make-xrefs): Create help-url buttons for
+	help-xref-url-regexp matches.
+
 2005-10-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tool-bar.el (tool-bar-add-item-from-menu)

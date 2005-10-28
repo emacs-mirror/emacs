@@ -126,7 +126,12 @@ The format is (FUNCTION ARGS...).")
 (define-button-type 'help-info
   :supertype 'help-xref
   'help-function #'info
-  'help-echo (purecopy"mouse-2, RET: read this Info node"))
+  'help-echo (purecopy "mouse-2, RET: read this Info node"))
+
+(define-button-type 'help-url
+  :supertype 'help-xref
+  'help-function #'browse-url
+  'help-echo (purecopy "mouse-2, RET: view this URL in a browser"))
 
 (define-button-type 'help-customize-variable
   :supertype 'help-xref
@@ -257,6 +262,10 @@ when help commands related to multilingual environment (e.g.,
   (purecopy "\\<[Ii]nfo[ \t\n]+\\(node\\|anchor\\)[ \t\n]+`\\([^']+\\)'")
   "Regexp matching doc string references to an Info node.")
 
+(defconst help-xref-url-regexp
+  (purecopy "\\<[Uu][Rr][Ll][ \t\n]+`\\([^']+\\)'")
+  "Regexp matching doc string references to a URL.")
+
 ;;;###autoload
 (defun help-setup-xref (item interactive-p)
   "Invoked from commands using the \"*Help*\" buffer to install some xref info.
@@ -338,6 +347,11 @@ that."
 		      (unless (string-match "^([^)]+)" data)
 			(setq data (concat "(emacs)" data))))
 		    (help-xref-button 2 'help-info data))))
+              ;; URLs
+              (save-excursion
+                (while (re-search-forward help-xref-url-regexp nil t)
+                  (let ((data (match-string 1)))
+		    (help-xref-button 1 'help-url data))))
 	      ;; Mule related keywords.  Do this before trying
 	      ;; `help-xref-symbol-regexp' because some of Mule
 	      ;; keywords have variable or function definitions.
