@@ -731,6 +731,8 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (and command-line-args
          (setcdr command-line-args args)))
 
+  (run-hooks 'before-init-hook)
+
   ;; Under X Window, this creates the X frame and deletes the terminal frame.
   (when (fboundp 'frame-initialize)
     (frame-initialize))
@@ -788,8 +790,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	(old-font-list-limit font-list-limit)
 	(old-face-ignored-fonts face-ignored-fonts))
 
-    (run-hooks 'before-init-hook)
-
     ;; Run the site-start library if it exists.  The point of this file is
     ;; that it is run before .emacs.  There is no point in doing this after
     ;; .emacs; that is useless.
@@ -801,12 +801,18 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (setq inhibit-startup-message nil)
 
     ;; Warn for invalid user name.
-    (and init-file-user
-	 (not (file-directory-p (expand-file-name (concat "~" init-file-user))))
-	 (display-warning 'initialization
-			  (format "User %s has no home directory"
-				  init-file-user)
-			  :error))
+    (when init-file-user
+      (if (string-match "[~/:\n]" init-file-user)
+	  (display-warning 'initialization
+			   (format "Invalid user name %s"
+				   init-file-user)
+			   :error)
+	(if (file-directory-p (expand-file-name (concat "~" init-file-user)))
+	    nil
+	  (display-warning 'initialization
+			   (format "User %s has no home directory"
+				   init-file-user)
+			   :error))))
 
     ;; Load that user's init file, or the default one, or none.
     (let (debug-on-error-from-init-file
