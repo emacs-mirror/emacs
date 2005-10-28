@@ -1598,13 +1598,21 @@ Quail map for the sequence."
   (or (and (consp def) (aref (cdr def) (car (car def))))
       def
       (and (> len 1)
-	   (let ((str (quail-get-current-str
-		       (1- len)
-		       (quail-map-definition (quail-lookup-key
-					      quail-current-key (1- len))))))
+	   (let* ((str (quail-get-current-str
+			(1- len)
+			(quail-map-definition (quail-lookup-key
+					       quail-current-key (1- len)))))
+		  (substr1 (substring quail-current-key (1- len) len))
+		  (str1 (and (quail-deterministic)
+			     (quail-get-current-str
+			      1
+			      (quail-map-definition (quail-lookup-key
+						     substr1 1))))))
 	     (if str
 		 (concat (if (stringp str) str (char-to-string str))
-			 (substring quail-current-key (1- len) len)))))))
+			 (if str1
+			     (if (stringp str1) str1 (char-to-string str1))
+			   substr1)))))))
 
 (defvar quail-guidance-translations-starting-column 20)
 
