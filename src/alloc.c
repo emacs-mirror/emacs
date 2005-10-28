@@ -215,7 +215,7 @@ static int total_free_floats, total_floats;
 /* Points to memory space allocated as "spare", to be freed if we run
    out of memory.  */
 
-static char *spare_memory;
+char *spare_memory;
 
 /* Amount of spare memory to keep in reserve.  */
 
@@ -805,6 +805,12 @@ xfree (block)
   BLOCK_INPUT;
   free (block);
   UNBLOCK_INPUT;
+
+#ifndef SYSTEM_MALLOC
+  /* Refill the spare memory if we can.  */
+  if (spare_memory == 0)
+    refill_memory_reserve ();
+#endif
 }
 
 
