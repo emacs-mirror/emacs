@@ -17192,6 +17192,19 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 	return decode_mode_spec_buf;
       }
 
+    case 'e':
+#ifndef SYSTEM_MALLOC
+      {
+	extern char *spare_memory;
+	if (spare_memory)
+	  return "";
+	else
+	  return "!MEM FULL! ";
+      }
+#else
+      return "";
+#endif
+
     case 'F':
       /* %F displays the frame name.  */
       if (!NILP (f->title))
