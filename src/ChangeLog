@@ -1,3 +1,7 @@
+2005-10-28  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Incremented to 1130000.
+
 2005-10-28  Richard M. Stallman  <rms@gnu.org>
 
 	* xfns.c (syms_of_xfns): Provide `x' as feature.
@@ -10,7 +14,7 @@
 	* alloc.c (spare_memory): No longer static.
 	(xfree) [!SYSTEM_MALLOC]: Call refill_memory_reserve.
 
-	* puresize.h (BASE_PURESIZE): Incremented to 112000.
+	* puresize.h (BASE_PURESIZE): Incremented to 1120000.
 
 2005-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
