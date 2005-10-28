@@ -476,7 +476,9 @@ hyperlinks for variables without variable documentation, unless
 preceded by one of the words `variable' or `option'.  It now makes
 hyperlinks to Info anchors (or nodes) if the anchor (or node) name is
 enclosed in single quotes and preceded by `info anchor' or `Info
-anchor' (in addition to earlier `info node' and `Info node').
+anchor' (in addition to earlier `info node' and `Info node'). In
+addition, it now makes hyperlinks to URLs as well if the URL is
+enclosed in single quotes and preceded by `URL'.
 
 +++
 *** The new command `describe-char' (C-u C-x =) pops up a buffer with

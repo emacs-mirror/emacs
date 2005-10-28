@@ -1,3 +1,7 @@
+2005-10-28  Bill Wohler  <wohler@newt.com>
+
+	* NEWS: Help mode now creates hyperlinks for URLs.
+
 2005-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm-color.ti (el1): Undo 2005-10-23 change. 
