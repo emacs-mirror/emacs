@@ -1,3 +1,8 @@
+2005-10-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Predefined Units): Fix the symbol for a TeX points,
+	mention other TeX-related units.
+
 2005-10-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Describe

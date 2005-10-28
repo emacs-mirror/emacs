@@ -1,3 +1,19 @@
+2005-10-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el: Add functions to autoloads.
+	(math-identity-matrix-p, math-ident-row-p): New functions.
+
+	* calc/calc-arith.el (calc-mul-symb-fancy): Add checks for
+	multiplication by an identity matrix; don't turn multiplication by
+	an inverse matrix into division.
+	(math-div-symbol-fancy):  Replace division by matrices with
+	multiplication by inverse.
+
+	* calc/calc-misc.el (calcFunc-inv): Check for symbolic matrices.
+
+	* calc/calc-alg.el (calcFunc-writeoutpower, math-write-out-power)
+	(calc-writeoutpower): New functions.
+
 2005-10-27  Romain Francoise  <romain@orebokech.com>
 
 	* replace.el (occur-engine): Include colon in mouse-face highlight.
