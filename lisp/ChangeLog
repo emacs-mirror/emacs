@@ -1,3 +1,8 @@
+2005-10-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tool-bar.el (tool-bar-add-item-from-menu)
+	(tool-bar-local-item-from-menu): Fix doc strings.
+
 2005-10-28  Romain Francoise  <romain@orebokech.com>
 
 	* ldefs-boot.el: Update.
