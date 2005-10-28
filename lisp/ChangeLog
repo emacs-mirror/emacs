@@ -1,3 +1,8 @@
+2005-10-28  Romain Francoise  <romain@orebokech.com>
+
+	* subr.el (locate-library): Move from help-fns.el.
+	* help-fns.el (locate-library): Move to subr.el.
+
 2005-10-28  Richard M. Stallman  <rms@gnu.org>
 
 	* net/tramp.el (tramp-completion-mode): defvar moved up.
@@ -20,7 +25,7 @@
 	* textmodes/flyspell.el (flyspell-large-region): Pass -t if Tex file.
 	(flyspell-external-point-words): Error if misspelled word is not found.
 	Set flyspell-large-region-beg at end of word.
-	
+
 2005-10-28  Andreas Schwab  <schwab@suse.de>
 
 	* view.el (View-revert-buffer-scroll-page-forward): Use
