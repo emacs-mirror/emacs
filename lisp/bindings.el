@@ -291,6 +291,7 @@ Keymap to display on minor modes.")
        (dashes (propertize "--" 'help-echo help-echo)))
   (setq-default mode-line-format
     (list
+     "%e"
      (propertize "-" 'help-echo help-echo)
      'mode-line-mule-info
      'mode-line-modified
