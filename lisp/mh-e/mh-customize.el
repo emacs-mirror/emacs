@@ -885,14 +885,16 @@ If the file starts with either of the strings \"X-Face:\", \"Face:\" or
 Otherwise it is assumed that the file contains the value of the \"X-Face:\"
 header field.
 
-The \"X-Face:\" header field, which is a low-resolution, black and white
-image, can be generated using the \"compface\"
-\(ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z) command. The
-\"Online X-Face Converter\" (http://www.dairiki.org/xface/) is a useful
-resource for quick conversion of images into \"X-Face:\" header fields.
+The \"X-Face:\" header field, which is a low-resolution, black
+and white image, can be generated using the \"compface\" command
+\(see URL `ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z').
+The \"Online X-Face Converter\" is a useful resource for quick
+conversion of images into \"X-Face:\" header fields (see URL
+`http://www.dairiki.org/xface/').
 
-Use the \"make-face\" (http://quimby.gnus.org/circus/face/make-face) script to
-convert a JPEG image to the higher resolution, color, \"Face:\" header field.
+Use the \"make-face\" script to convert a JPEG image to the
+higher resolution, color, \"Face:\" header field (see URL
+`http://quimby.gnus.org/circus/face/make-face').
 
 The URL of any image can be used for the \"X-Image-URL:\" field and no
 processing of the image is required.
@@ -984,7 +986,7 @@ format file that you want MH-E to use but not MH, you can set this option to
 
 If you change the format of the scan lines you'll need to tell MH-E how to
 parse the new format. As you will see, quite a lot of variables are involved
-to do that. Use \"M-x apropos RET mh-scan.*regexp\" to obtain a list of these
+to do that. Use \"\\[apropos] RET mh-scan.*regexp\" to obtain a list of these
 variables. You may also have to call `mh-set-cmd-note' to modify `mh-cmd-note'
 with the column for your notations if you turn off
 `mh-adaptive-cmd-note-flag'. However, you will need to set the `mh-cmd-note'
@@ -1515,20 +1517,19 @@ This feature will be turned on by default if your system supports it.
 
 The first header field used, if present, is the Gnus-specific `Face:' field.
 The `Face:' field appeared in GNU Emacs 21 and XEmacs. For more information,
-see http://quimby.gnus.org/circus/face/. Next is the traditional `X-Face:'
-header field. The display of this field requires the `uncompface' program
-which can be obtained from
-ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z. Recent versions of
-XEmacs have internal support for `X-Face:' images. If your version of XEmacs
-does not, then you'll need both `uncompface' and the x-face package which is
-available at ftp://ftp.jpl.org/pub/elisp/.
+see URL `http://quimby.gnus.org/circus/face/'. Next is the traditional
+`X-Face:' header field. The display of this field requires the `uncompface'
+program (see URL `ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z').
+Recent versions of XEmacs have internal support for `X-Face:' images. If your
+version of XEmacs does not, then you'll need both `uncompface' and the x-face
+package (see URL `ftp://ftp.jpl.org/pub/elisp/').
 
 Finally, MH-E will display images referenced by the `X-Image-URL:' header
 field if neither the `Face:' nor the `X-Face:' fields are present. The display
-of the images requires `wget' (available from
-http://www.gnu.org/software/wget/wget.html), `fetch', or `curl' to fetch the
-image and the `convert' program from the ImageMagick suite, available from
-http://www.imagemagick.org/. Of the three header fields this is the most
+of the images requires `wget' (see URL
+`http://www.gnu.org/software/wget/wget.html'), `fetch', or `curl' to fetch the
+image and the `convert' program from the ImageMagick suite (see URL
+`http://www.imagemagick.org/'). Of the three header fields this is the most
 efficient in terms of network usage since the image doesn't need to be
 transmitted with every single mail.
 
@@ -2034,9 +2035,9 @@ can find the citation between point and mark and it should leave point and
 mark around the modified citation text for the next hook function. The
 standard prefix `mh-ins-buf-prefix' is not added if this hook is set.
 
-For example, if you use the hook function trivial-cite
-\(http://shasta.cs.uiuc.edu/~lrclause/tc.html) (which is NOT part of Emacs),
-set `mh-yank-behavior' to \"Body and Header\"."
+For example, if you use the hook function trivial-cite (which is NOT part of
+Emacs), set `mh-yank-behavior' to \"Body and Header\" (see URL
+`http://shasta.cs.uiuc.edu/~lrclause/tc.html')."
   :type 'hook
   :options '(trivial-cite)
   :group 'mh-hooks

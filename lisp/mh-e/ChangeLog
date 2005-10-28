@@ -1,3 +1,12 @@
+2005-10-28  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-x-face-file, mh-show-use-xface-flag)
+	(mail-citation-hook): Quote URLs in docstrings and precede with
+	`URL'. The former will suppress checkdoc warnings, the latter will
+	turn them into hyperlinks in Emacs 22 (I just added the code
+	to do that today).
+	(mh-scan-format-file): Checkdoc fix.
+
 2005-10-27  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-adaptive-cmd-note-flag)
