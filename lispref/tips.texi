@@ -774,6 +774,14 @@ file name defaults to @samp{emacs}.  For example,
 See Info node `Font Lock' and Info node `(elisp)Font Lock Basics'.
 @end smallexample
 
+Finally, to create a hyperlink to URLs, write the URL in single
+quotes, preceded by @samp{URL}. For example,
+
+@smallexample
+The home page for the GNU project has more information (see URL
+`http://www.gnu.org/').
+@end smallexample
+
 @item
 Don't write key sequences directly in documentation strings.  Instead,
 use the @samp{\\[@dots{}]} construct to stand for them.  For example,

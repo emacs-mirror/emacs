@@ -1,3 +1,8 @@
+2005-10-28  Bill Wohler  <wohler@newt.com>
+
+	* tips.texi (Documentation Tips): Help mode now creates hyperlinks
+	for URLs.
+
 2005-10-28  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Completion Commands): Clean up prev change.
