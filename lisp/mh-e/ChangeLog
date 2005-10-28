@@ -1,5 +1,28 @@
 2005-10-27  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el (mh-adaptive-cmd-note-flag)
+	(mh-scan-format-file, mh-scan-prog): Sync docstrings with manual.
+
+	* mh-e.el (mh-scan-format-mh, mh-note-deleted, mh-note-refiled)
+	(mh-note-cur, mh-scan-good-msg-regexp)
+	(mh-scan-deleted-msg-regexp, mh-scan-refiled-msg-regexp)
+	(mh-scan-valid-regexp, mh-scan-cur-msg-number-regexp)
+	(mh-scan-date-regexp, mh-scan-rcpt-regexp, mh-scan-body-regexp)
+	(mh-scan-subject-regexp, mh-scan-format-regexp)
+	(mh-folder-font-lock-keywords, mh-set-cmd-note): Sync docstrings
+	with manual.
+
+	* mh-funcs.el (mh-note-copied): Sync docstrings with manual.
+
+	* mh-utils.el (mh-goto-msg): Use mh-scan-msg-search-regexp instead
+	of hard-coded string.
+	(mh-mail-header-separator, mh-signature-separator-regexp): Use
+	"regular expression" in docstring instead of regexp.
+	(mh-scan-msg-number-regexp)
+	(mh-scan-msg-overflow-regexp, mh-scan-msg-format-regexp)
+	(mh-scan-msg-format-string, mh-scan-msg-search-regexp)
+	(mh-cmd-note): Sync docstrings with manual.
+
 	* mh-comp.el (mh-insert-signature, mh-insert-auto-fields):
 	Checkdoc fixes.
 

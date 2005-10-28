@@ -959,38 +959,48 @@ default). If you need to scan just the message 200, then use the range
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
 (defcustom mh-adaptive-cmd-note-flag t
-  "*Non-nil means that the message number width is determined dynamically.
-This is done once when a folder is first opened by running scan on the last
-message of the folder. The message number for the last message is extracted
-and its width calculated. This width is used when calling `mh-set-cmd-note'.
+  "*On means that the message number width is determined dynamically.
+If you've created your own format to handle long message numbers, you'll be
+pleased to know you no longer need it since MH-E adapts its internal format
+based upon the largest message number if this option is on (the default).
 
-If you prefer fixed-width message numbers, set this variable to nil and call
-`mh-set-cmd-note' with the width specified by the scan format in
-`mh-scan-format-file'. For example, the default width is 4, so you would use
-\"(mh-set-cmd-note 4)\" if `mh-scan-format-file' were nil."
+If you prefer fixed-width message numbers, turn off this option and call
+`mh-set-cmd-note' with the width specified by your format file (see
+`mh-scan-format-file'). For example, the default width is 4, so you would use
+\"(mh-set-cmd-note 4)\"."
   :type 'boolean
   :group 'mh-scan-line-formats)
 
 (defcustom mh-scan-format-file t
   "Specifies the format file to pass to the scan program.
-If t, the format string will be taken from the either `mh-scan-format-mh'
-or `mh-scan-format-nmh' depending on whether MH or nmh is in use.
-If nil, the default scan output will be used.
 
-If you customize the scan format, you may need to modify a few variables
-containing regexps that MH-E uses to identify specific portions of the output.
-Use `M-x apropos RET mh-scan.*regexp' to obtain a list of these variables. You
-may also have to call `mh-set-cmd-note' with the width of your message
-numbers. See also `mh-adaptive-cmd-note-flag'."
+The default setting for this option is \"Use MH-E scan Format\". This means
+that the format string will be taken from the either `mh-scan-format-mh' or
+`mh-scan-format-nmh' depending on whether MH or nmh (or GNU mailutils) is in
+use. You can also set this option to \"Use Default scan Format\" to get the
+same output as you would get if you ran \"scan\" from the shell. If you have a
+format file that you want MH-E to use but not MH, you can set this option to
+\"Specify a scan Format File\" and enter the name of your format file.
+
+If you change the format of the scan lines you'll need to tell MH-E how to
+parse the new format. As you will see, quite a lot of variables are involved
+to do that. Use \"M-x apropos RET mh-scan.*regexp\" to obtain a list of these
+variables. You may also have to call `mh-set-cmd-note' to modify `mh-cmd-note'
+with the column for your notations if you turn off
+`mh-adaptive-cmd-note-flag'. However, you will need to set the `mh-cmd-note'
+variable manually with `setq' if `mh-scan-format-file' is set to anything
+other than \"Use MH-E scan Format\"."
   :type '(choice (const :tag "Use MH-E scan Format" t)
                  (const :tag "Use Default scan Format" nil)
                  (file  :tag "Specify a scan Format File"))
   :group 'mh-scan-line-formats)
 
 (defcustom mh-scan-prog "scan"
-  "*Program to run to generate one-line-per-message listing of a folder.
-Normally \"scan\" or a file name linked to scan.  This file is searched
-for relative to the `mh-progs' directory unless it is an absolute pathname."
+  "*Program used to scan messages.
+The name of the program that generates a listing of one line per message is
+held in this option. Unless this variable contains an absolute pathname, it is
+assumed to be in the `mh-progs' directory. You may link another program to
+`scan' (see \"mh-profile(5)\") to produce a different type of listing."
   :type 'string
   :group 'mh-scan-line-formats)
 (make-variable-buffer-local 'mh-scan-prog)
