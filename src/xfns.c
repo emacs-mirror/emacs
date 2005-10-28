@@ -5741,6 +5741,8 @@ chooser is used instead.  To turn off all file dialogs set the
 variable `use-file-dialog'.  */);
   x_use_old_gtk_file_dialog = 0;
 
+  Fprovide (intern ("x"), Qnil);
+
 #ifdef USE_X_TOOLKIT
   Fprovide (intern ("x-toolkit"), Qnil);
 #ifdef USE_MOTIF
