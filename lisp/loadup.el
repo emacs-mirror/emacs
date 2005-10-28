@@ -133,9 +133,7 @@
 (load "term/tty-colors")
 (load "font-core")
 
-(if (fboundp 'frame-face-alist)
-    (progn
-      (load "facemenu")))
+(load "facemenu")
 (if (fboundp 'track-mouse)
     (progn
       (load "mouse")
@@ -164,6 +162,18 @@
       (load "vmsproc")))
 (load "abbrev")
 (load "buff-menu")
+
+(if (fboundp 'x-create-frame)
+    (progn
+      (load "image")
+      (load "international/fontset")
+      (load "dnd")
+      (load "mwheel")
+      (load "tool-bar")))
+(if (featurep 'x)
+    (load "x-dnd"))
+(message "%s" (garbage-collect))
+
 (if (eq system-type 'vax-vms)
     (progn
       (load "vms-patch")))
@@ -195,6 +205,7 @@
 (load "jka-cmpr-hook")
 (load "ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))
+
 (message "%s" (garbage-collect))
 
 ;If you want additional libraries to be preloaded and their
