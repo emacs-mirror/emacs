@@ -1,3 +1,8 @@
+2005-10-28  Andreas Schwab  <schwab@suse.de>
+
+	* view.el (View-revert-buffer-scroll-page-forward): Use
+	view-page-size-default.
+
 2005-10-28  Juri Linkov  <juri@jurta.org>
 
 	* international/quail.el (quail-get-current-str): Translate last
