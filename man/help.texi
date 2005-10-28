@@ -32,8 +32,8 @@ support @key{F1}.)
 
   Most help buffers use a special major mode, Help mode, which lets you
 scroll conveniently with @key{SPC} and @key{DEL}.  It also offers
-hyperlinks to further help regarding cross-referenced names, Info nodes,
-customization buffers and the like.  @xref{Help Mode}.
+hyperlinks to URLs and further help regarding cross-referenced names, Info
+nodes, customization buffers and the like.  @xref{Help Mode}.
 
 @cindex searching documentation efficiently
 @cindex looking for a subject in documentation

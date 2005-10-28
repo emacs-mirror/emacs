@@ -1,3 +1,7 @@
+2005-10-28  Bill Wohler  <wohler@newt.com>
+
+	* help.texi (Help): Help mode now creates hyperlinks for URLs.
+
 2005-10-28  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Visiting): Explain how to enter ? in a file name.
