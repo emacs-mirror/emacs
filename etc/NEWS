@@ -280,6 +280,14 @@ special treatment in `dired-do-shell-command'.
 * Editing Changes in Emacs 22.1
 
 +++
+** !MEM FULL! at the start of the mode line indicates that Emacs
+cannot get any more memory for Lisp data.  This often means it could
+crash soon if you do things that use more memory.  On most systems,
+killing buffers will get out of this state.  If killing buffers does
+not make !MEM FULL! disappear, you should save your work and start
+a new Emacs.
+
++++
 ** The max size of buffers and integers has been doubled.
 On 32bit machines, it is now 256M (i.e. 268435455).
 

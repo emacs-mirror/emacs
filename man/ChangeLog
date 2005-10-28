@@ -1,3 +1,9 @@
+2005-10-28  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Visiting): Explain how to enter ? in a file name.
+
+	* trouble.texi (Memory Full): Mention !MEM FULL! in mode line.
+
 2005-10-27  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Predefined Units): Fix the symbol for a TeX points,

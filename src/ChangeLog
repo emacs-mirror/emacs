@@ -1,3 +1,17 @@
+2005-10-28  Richard M. Stallman  <rms@gnu.org>
+
+	* xfns.c (syms_of_xfns): Provide `x' as feature.
+
+	* xdisp.c (decode_mode_spec): Define %e to indicate memory full.
+
+	* editfns.c (Fformat): Don't include string padding
+	between info[n].start and info[n].end.
+
+	* alloc.c (spare_memory): No longer static.
+	(xfree) [!SYSTEM_MALLOC]: Call refill_memory_reserve.
+
+	* puresize.h (BASE_PURESIZE): Incremented to 112000.
+
 2005-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* data.c (Fmake_variable_frame_local): Add clarification to

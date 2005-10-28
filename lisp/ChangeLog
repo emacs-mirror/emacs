@@ -8,7 +8,7 @@
 
 	* files.el (find-file-noselect): Use %d to format large file size.
 
-	* bindings.el (help-echo): Add %e.
+	* bindings.el (mode-line-format): Add %e.
 
 	* loadup.el ("facemenu"): Load unconditionally.
 	("image", "international/fontset", "dnd", "mwheel", "tool-bar"):
