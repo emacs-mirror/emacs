@@ -4369,6 +4369,9 @@ necessary anymore."
 
 ;;; File name handler functions for completion mode
 
+(defvar tramp-completion-mode nil
+  "If non-nil, we are in file name completion mode.")
+
 ;; Necessary because `tramp-file-name-regexp-unified' and
 ;; `tramp-completion-file-name-regexp-unified' aren't different.
 ;; If nil, `tramp-completion-run-real-handler' is called (i.e. forwarding to
@@ -4434,9 +4437,6 @@ necessary anymore."
   "Like `file-name-nondirectory' but aware of TRAMP files."
   (substring
    file (length (tramp-completion-handle-file-name-directory file))))
-
-(defvar tramp-completion-mode nil
-  "If non-nil, we are in file name completion mode.")
 
 ;; Method, host name and user name completion.
 ;; `tramp-completion-dissect-file-name' returns a list of
