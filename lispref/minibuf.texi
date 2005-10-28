@@ -960,12 +960,12 @@ which is printed as if the strings were concatenated.  The first of
 the two strings is the actual completion, the second string serves as
 annotation.
 
-@var{common-substring} represents a string common prefix between all 
-completions.  @var{common-substring} is used to put faces on 
-@samp{*Completions*} to enhance visual feedback of the buffer; 
-@code{display-completion-list} use faces to highlight what all completions 
-have in common and where they begin to differ.  @var{common-substring}
-specifies the common part.
+The argument @var{common-substring} is the prefix that is common to
+all the completions.  With normal Emacs completion, it is usually the
+same as the string that was completed.  @code{display-completion-list}
+uses this to highlight text in the completion list for better visual
+feedback.  This is not needed in the minibuffer; for minibuffer
+completion, you can pass @code{nil}.
 
 This function is called by @code{minibuffer-completion-help}.  The 
 most common way to use it is together with
