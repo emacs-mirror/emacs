@@ -1,5 +1,7 @@
 2005-10-28  Romain Francoise  <romain@orebokech.com>
 
+	* ldefs-boot.el: Update.
+
 	* subr.el (locate-library): Move from help-fns.el.
 	* help-fns.el (locate-library): Move to subr.el.
 
