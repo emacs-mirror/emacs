@@ -1,3 +1,8 @@
+2005-10-28  Juri Linkov  <juri@jurta.org>
+
+	* international/quail.el (quail-get-current-str): Translate last
+	raw character for deterministic input methods.
+
 2005-10-27  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-ext.el: Add functions to autoloads.

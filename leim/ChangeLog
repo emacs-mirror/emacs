@@ -1,3 +1,9 @@
+2005-10-28  Juri Linkov  <juri@jurta.org>
+
+	* quail/symbol-ksc.el: Add missing characters from 1st pos of
+	every table of [korean-ksc5601], and swap incorrectly ordered
+	characters at pos 91 and 90.
+
 2005-10-26  Torsten Bronger  <bronger@physik.rwth-aachen.de>  (tiny change)
 
 	* quail/latin-ltx.el ("TeX"): Change "\," mapping to U+202F (not
