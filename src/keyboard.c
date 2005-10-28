@@ -415,9 +415,6 @@ Lisp_Object Vecho_keystrokes;
 /* Form to evaluate (if non-nil) when Emacs is started.  */
 Lisp_Object Vtop_level;
 
-/* User-supplied table to translate input characters.  */
-Lisp_Object Vkeyboard_translate_table;
-
 /* If non-nil, this implements the current input method.  */
 Lisp_Object Vinput_method_function;
 Lisp_Object Qinput_method_function;
@@ -3009,15 +3006,15 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       if (XINT (c) == -1)
 	goto exit;
 
-      if ((STRINGP (Vkeyboard_translate_table)
-	   && SCHARS (Vkeyboard_translate_table) > (unsigned) XFASTINT (c))
-	  || (VECTORP (Vkeyboard_translate_table)
-	      && XVECTOR (Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
-	  || (CHAR_TABLE_P (Vkeyboard_translate_table)
+      if ((STRINGP (current_kboard->Vkeyboard_translate_table)
+	   && SCHARS (current_kboard->Vkeyboard_translate_table) > (unsigned) XFASTINT (c))
+	  || (VECTORP (current_kboard->Vkeyboard_translate_table)
+	      && XVECTOR (current_kboard->Vkeyboard_translate_table)->size > (unsigned) XFASTINT (c))
+	  || (CHAR_TABLE_P (current_kboard->Vkeyboard_translate_table)
 	      && CHAR_VALID_P (XINT (c), 0)))
 	{
 	  Lisp_Object d;
-	  d = Faref (Vkeyboard_translate_table, c);
+	  d = Faref (current_kboard->Vkeyboard_translate_table, c);
 	  /* nil in keyboard-translate-table means no translation.  */
 	  if (!NILP (d))
 	    c = d;
@@ -10842,6 +10839,7 @@ init_kboard (kb)
   kb->Voverriding_terminal_local_map = Qnil;
   kb->Vlast_command = Qnil;
   kb->Vreal_last_command = Qnil;
+  kb->Vkeyboard_translate_table = Qnil;
   kb->Vprefix_arg = Qnil;
   kb->Vlast_prefix_arg = Qnil;
   kb->kbd_queue = Qnil;
@@ -11437,8 +11435,8 @@ for that character after that prefix key.  */);
 Useful to set before you dump a modified Emacs.  */);
   Vtop_level = Qnil;
 
-  DEFVAR_LISP ("keyboard-translate-table", &Vkeyboard_translate_table,
-	       doc: /* Translate table for keyboard input, or nil.
+  DEFVAR_KBOARD ("keyboard-translate-table", Vkeyboard_translate_table,
+                 doc: /* Translate table for local keyboard input, or nil.
 If non-nil, the value should be a char-table.  Each character read
 from the keyboard is looked up in this char-table.  If the value found
 there is non-nil, then it is used instead of the actual input character.
@@ -11448,8 +11446,10 @@ If it is a string or vector of length N, character codes N and up are left
 untranslated.  In a vector, an element which is nil means "no translation".
 
 This is applied to the characters supplied to input methods, not their
-output.  See also `translation-table-for-input'.  */);
-  Vkeyboard_translate_table = Qnil;
+output.  See also `translation-table-for-input'.
+
+`local-keyboard-translate-table' has a separate binding for each
+terminal.  See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
 	       doc: /* Non-nil means to always spawn a subshell instead of suspending.

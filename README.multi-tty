@@ -486,8 +486,6 @@ THINGS TO DO
    `last-command', but SELECTED_FRAME()->display->kboard to get the
    value of `function-key-map'.
 
-** I think keyboard-translate-table should be made terminal-local.
-
 ** The single-keyboard mode of MULTI_KBOARD is extremely confusing
    sometimes; Emacs does not respond to stimuli from other keyboards.
    At least a beep or a message would be important, if the single-mode
@@ -627,6 +625,8 @@ THINGS TO DO
    useful.  (Update: Look again. X unconditionally enables this, maybe
    that's why raw terminal support is broken again.  I really do need
    to understand input.)
+
+** flow-ctrl.el must be updated.
 
 ** Fix stuff_char for multi-tty.  Doesn't seem to be of high priority.
 
@@ -1256,6 +1256,10 @@ DIARY OF CHANGES
    because of this.)
 
    (Fixed in patch-427.)
+
+-- I think keyboard-translate-table should be made terminal-local.
+
+   (Done in patch-431.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 

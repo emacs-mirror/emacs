@@ -5370,7 +5370,6 @@ See also `normal-erase-is-backspace'."
 	 (t
 	  (if (terminal-parameter nil 'normal-erase-is-backspace)
 	      (progn
-		;; XXX This should be terminal-local -- lorentey
 		(keyboard-translate ?\C-h ?\C-?)
 		(keyboard-translate ?\C-? ?\C-d))
 	    (keyboard-translate ?\C-h ?\C-h)

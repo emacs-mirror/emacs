@@ -2812,11 +2812,11 @@ You type        Translation\n\
   outbuf = Fcurrent_buffer ();
 
   /* Report on alternates for keys.  */
-  if (STRINGP (Vkeyboard_translate_table) && !NILP (prefix))
+  if (STRINGP (current_kboard->Vkeyboard_translate_table) && !NILP (prefix))
     {
       int c;
-      const unsigned char *translate = SDATA (Vkeyboard_translate_table);
-      int translate_len = SCHARS (Vkeyboard_translate_table);
+      const unsigned char *translate = SDATA (current_kboard->Vkeyboard_translate_table);
+      int translate_len = SCHARS (current_kboard->Vkeyboard_translate_table);
 
       for (c = 0; c < translate_len; c++)
 	if (translate[c] != c)
@@ -2839,7 +2839,7 @@ You type        Translation\n\
 	    insert ("\n", 1);
 
 	    /* Insert calls signal_after_change which may GC. */
-	    translate = SDATA (Vkeyboard_translate_table);
+	    translate = SDATA (current_kboard->Vkeyboard_translate_table);
 	  }
 
       insert ("\n", 1);

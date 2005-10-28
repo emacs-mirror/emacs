@@ -81,6 +81,9 @@ struct kboard
        other commands.  */
     Lisp_Object Vreal_last_command;
 
+    /* User-supplied table to translate input characters through.  */
+    Lisp_Object Vkeyboard_translate_table;
+    
     /* The prefix argument for the next command, in raw form.  */
     Lisp_Object Vprefix_arg;
 
@@ -302,8 +305,6 @@ struct input_event;
 extern Lisp_Object parse_modifiers P_ ((Lisp_Object));
 extern Lisp_Object reorder_modifiers P_ ((Lisp_Object));
 extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
-/* User-supplied string to translate input characters through.  */
-extern Lisp_Object Vkeyboard_translate_table;
 
 /* Parent keymap of terminal-local function-key-map instances.  */
 extern Lisp_Object Vfunction_key_map;
