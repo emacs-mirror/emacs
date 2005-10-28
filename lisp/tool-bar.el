@@ -41,7 +41,9 @@
 
 ;;; Code:
 
-;;;###autoload
+;; The autoload cookie doesn't work when preloading.
+;; Deleting it means invoking this command won't work
+;; when you are on a tty.  I hope that won't cause too much trouble -- rms.
 (define-minor-mode tool-bar-mode
   "Toggle use of the tool bar.
 With numeric ARG, display the tool bar if and only if ARG is positive.
