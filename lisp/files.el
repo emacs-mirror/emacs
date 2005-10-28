@@ -1414,7 +1414,7 @@ the various files."
 		   (not (or buf nowarn))
 		   (> (nth 7 attributes) large-file-warning-threshold)
 		   (not (y-or-n-p
-			 (format "File %s is large (%sMB), really open? "
+			 (format "File %s is large (%dMB), really open? "
 				 (file-name-nondirectory filename)
 				   (/ (nth 7 attributes) 1048576)))))
 	  (error "Aborted"))
