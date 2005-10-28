@@ -1,5 +1,8 @@
 2005-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
+	* data.c (Fmake_variable_frame_local): Add clarification to
+	docstring.
+
 	* fringe.c (update_window_fringes): Handle case where buffer ends
 	with a newline.
 
