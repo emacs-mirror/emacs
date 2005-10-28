@@ -1,7 +1,9 @@
 2005-10-27  Bill Wohler  <wohler@newt.com>
 
-	* mh-customize.el (mh-compose-insertion, mh-x-face-file): Checkdoc
-	fixes.
+	* mh-comp.el (mh-insert-signature, mh-insert-auto-fields):
+	Checkdoc fixes.
+
+	* mh-customize.el (mh-compose-insertion, mh-x-face-file): Ditto.
 	
 	* mh-mime.el (mh-mh-to-mime, mh-mml-attach-file) 
 	(mh-mml-secure-message-sign, mh-mml-secure-message-encrypt) 

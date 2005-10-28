@@ -1089,7 +1089,7 @@ This command inserts your signature at the current cursor location.
 
 By default, the text of your signature is taken from the file
 \"~/.signature\". You can read from other sources by changing the option
-`mh-signature-file-name'.
+`mh-signature-file-name' or passing in a signature FILE.
 
 A signature separator (\"-- \") will be added if the signature block does not
 contain one and `mh-signature-separator-flag' is on.
@@ -1232,7 +1232,7 @@ The versions of MH-E, Emacs, and MH are shown."
 
 ;;;###mh-autoload
 (defun mh-insert-auto-fields (&optional non-interactive)
-  "Insert custom fields if recipient matches `mh-auto-fields-list'.
+  "Insert custom fields if recipient is found in `mh-auto-fields-list'.
 Sets buffer-local `mh-insert-auto-fields-done-local' when done and inserted
 something.  If NON-INTERACTIVE is non-nil, do not be verbose and only
 attempt matches if `mh-insert-auto-fields-done-local' is nil.
