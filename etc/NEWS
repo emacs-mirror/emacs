@@ -3358,6 +3358,10 @@ the command `undefined'.  (In earlier Emacs versions, it used
 
 ---
 ** Support for Mocklisp has been removed.
+
++++
+** The variable `memory-full' now remains t until
+there is no longer a shortage of memory.
 
 * Lisp Changes in Emacs 22.1
 

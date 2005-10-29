@@ -11,6 +11,7 @@
 	Don't bother munging text props on a null string.
 	Delete obsolete elts from mode_line_proptrans_alist.
 	(decode_mode_spec): Test Vmemory_full, not spare_memory.
+	(Fformat_mode_line): Clear mode_line_proptrans_alist after saving.
 
 	* lisp.h (memory_full_cons_threshold): Declared.
 	(internal_lisp_condition_case): Declared.

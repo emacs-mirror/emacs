@@ -1,3 +1,20 @@
+2005-10-29  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (occur-mode-mouse-goto): Always go to other window.
+	(occur-mode-goto-occurrence): Always switch in same window.
+
+	* simple.el (undo): Display message at end, not at start.
+
+	* emacs-lisp/timer.el (timer-activate, timer-activate-when-idle):
+	New arg REUSE-CELL.
+	(cancel-timer-internal): New function.
+	(timer-event-handler): Use cancel-timer-internal,
+	and pass the cell it returns to timer-activate...
+
+	* jit-lock.el (jit-lock-function, jit-lock-stealth-fontify)
+	(jit-lock-deferred-fontify, jit-lock-context-fontify)
+	(jit-lock-after-change): Test memory-full.
+
 2005-10-29  Roland Winkler  <roland.winkler@physik.uni-erlangen.de>
 
 	* textmodes/conf-mode.el (conf-assignment-sign)
