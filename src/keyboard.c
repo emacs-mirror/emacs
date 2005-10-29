@@ -11780,6 +11780,7 @@ mark_kboards ()
       mark_object (kb->Voverriding_terminal_local_map);
       mark_object (kb->Vlast_command);
       mark_object (kb->Vreal_last_command);
+      mark_object (kb->Vkeyboard_translate_table);
       mark_object (kb->Vprefix_arg);
       mark_object (kb->Vlast_prefix_arg);
       mark_object (kb->kbd_queue);
