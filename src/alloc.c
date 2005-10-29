@@ -182,6 +182,11 @@ EMACS_INT gc_relative_threshold;
 
 static Lisp_Object Vgc_cons_percentage;
 
+/* Minimum number of bytes of consing since GC before next GC,
+   when memory is full.  */
+
+EMACS_INT memory_full_cons_threshold;
+
 /* Nonzero during GC.  */
 
 int gc_in_progress;
@@ -213,11 +218,12 @@ static int total_free_conses, total_free_markers, total_free_symbols;
 static int total_free_floats, total_floats;
 
 /* Points to memory space allocated as "spare", to be freed if we run
-   out of memory.  */
+   out of memory.  We keep one large block, four cons-blocks, and
+   two string blocks.  */
 
-char *spare_memory;
+char *spare_memory[7];
 
-/* Amount of spare memory to keep in reserve.  */
+/* Amount of spare memory to keep in large reserve block.  */
 
 #define SPARE_MEMORY (1 << 14)
 
@@ -350,6 +356,9 @@ enum mem_type
   MEM_TYPE_WINDOW
 };
 
+static POINTER_TYPE *lisp_align_malloc P_ ((size_t, enum mem_type));
+static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
+
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
 
 #if GC_MARK_STACK == GC_USE_GCPROS_CHECK_ZOMBIES
@@ -449,6 +458,8 @@ static void mem_rotate_right P_ ((struct mem_node *));
 static void mem_delete P_ ((struct mem_node *));
 static void mem_delete_fixup P_ ((struct mem_node *));
 static INLINE struct mem_node *mem_find P_ ((void *));
+void refill_memory_reserve ();
+
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
 static void check_gcpros P_ ((void));
@@ -514,53 +525,6 @@ display_malloc_warning ()
 #else
 #  define BYTES_USED _bytes_used
 #endif
-
-
-/* Called if malloc returns zero.  */
-
-void
-memory_full ()
-{
-  Vmemory_full = Qt;
-
-#ifndef SYSTEM_MALLOC
-  bytes_used_when_full = BYTES_USED;
-#endif
-
-  /* The first time we get here, free the spare memory.  */
-  if (spare_memory)
-    {
-      free (spare_memory);
-      spare_memory = 0;
-    }
-
-  /* This used to call error, but if we've run out of memory, we could
-     get infinite recursion trying to build the string.  */
-  while (1)
-    Fsignal (Qnil, Vmemory_signal_data);
-}
-
-DEFUN ("memory-full-p", Fmemory_full_p, Smemory_full_p, 0, 0, 0,
-       doc: /* t if memory is nearly full, nil otherwise.  */)
-  ()
-{
-  return (spare_memory ? Qnil : Qt);
-}
-
-/* If we released our reserve (due to running out of memory),
-   and we have a fair amount free once again,
-   try to set aside another reserve in case we run out once more.
-
-   This is called when a relocatable block is freed in ralloc.c.  */
-
-void
-refill_memory_reserve ()
-{
-#ifndef SYSTEM_MALLOC
-  if (spare_memory == 0)
-    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
-#endif
-}
 
 /* Called if we can't allocate relocatable space for a buffer.  */
 
@@ -577,8 +541,6 @@ buffer_memory_full ()
 #ifndef REL_ALLOC
   memory_full ();
 #endif
-
-  Vmemory_full = Qt;
 
   /* This used to call error, but if we've run out of memory, we could
      get infinite recursion trying to build the string.  */
@@ -805,12 +767,9 @@ xfree (block)
   BLOCK_INPUT;
   free (block);
   UNBLOCK_INPUT;
-
-#ifndef SYSTEM_MALLOC
-  /* Refill the spare memory if we can.  */
-  if (spare_memory == 0)
-    refill_memory_reserve ();
-#endif
+  /* We don't call refill_memory_reserve here
+     because that duplicates doing so in emacs_blocked_free
+     and the criterion should go there.  */
 }
 
 
@@ -1184,6 +1143,8 @@ emacs_blocked_free (ptr, ptr2)
      void *ptr;
      const void *ptr2;
 {
+  EMACS_INT bytes_used_now;
+
   BLOCK_INPUT_ALLOC;
 
 #ifdef GC_MALLOC_CHECK
@@ -1212,14 +1173,15 @@ emacs_blocked_free (ptr, ptr2)
   /* If we released our reserve (due to running out of memory),
      and we have a fair amount free once again,
      try to set aside another reserve in case we run out once more.  */
-  if (spare_memory == 0
+  if (! NILP (Vmemory_full)
       /* Verify there is enough space that even with the malloc
 	 hysteresis this call won't run out again.
 	 The code here is correct as long as SPARE_MEMORY
 	 is substantially larger than the block size malloc uses.  */
       && (bytes_used_when_full
-	  > BYTES_USED + max (malloc_hysteresis, 4) * SPARE_MEMORY))
-    spare_memory = (char *) malloc ((size_t) SPARE_MEMORY);
+	  > ((bytes_used_now = BYTES_USED)
+	     + max (malloc_hysteresis, 4) * SPARE_MEMORY))
+    refill_memory_reserve ();
 
   __free_hook = emacs_blocked_free;
   UNBLOCK_INPUT_ALLOC;
@@ -3384,6 +3346,83 @@ make_event_array (nargs, args)
 }
 
 
+
+/************************************************************************
+			   Memory Full Handling
+ ************************************************************************/
+
+
+/* Called if malloc returns zero.  */
+
+void
+memory_full ()
+{
+  int i;
+
+  Vmemory_full = Qt;
+
+  memory_full_cons_threshold = sizeof (struct cons_block);
+
+  /* The first time we get here, free the spare memory.  */
+  for (i = 0; i < sizeof (spare_memory) / sizeof (char *); i++)
+    if (spare_memory[i])
+      {
+	if (i == 0)
+	  free (spare_memory[i]);
+	else if (i >= 1 && i <= 4)
+	  lisp_align_free (spare_memory[i]);
+	else
+	  lisp_free (spare_memory[i]);
+	spare_memory[i] = 0;
+      }
+
+  /* Record the space now used.  When it decreases substantially,
+     we can refill the memory reserve.  */
+#ifndef SYSTEM_MALLOC
+  bytes_used_when_full = BYTES_USED;
+#endif
+
+  /* This used to call error, but if we've run out of memory, we could
+     get infinite recursion trying to build the string.  */
+  while (1)
+    Fsignal (Qnil, Vmemory_signal_data);
+}
+
+/* If we released our reserve (due to running out of memory),
+   and we have a fair amount free once again,
+   try to set aside another reserve in case we run out once more.
+
+   This is called when a relocatable block is freed in ralloc.c,
+   and also directly from this file, in case we're not using ralloc.c.  */
+
+void
+refill_memory_reserve ()
+{
+#ifndef SYSTEM_MALLOC
+  if (spare_memory[0] == 0)
+    spare_memory[0] = (char *) malloc ((size_t) SPARE_MEMORY);
+  if (spare_memory[1] == 0)
+    spare_memory[1] = (char *) lisp_align_malloc (sizeof (struct cons_block),
+						  MEM_TYPE_CONS);
+  if (spare_memory[2] == 0)
+    spare_memory[2] = (char *) lisp_align_malloc (sizeof (struct cons_block),
+						  MEM_TYPE_CONS);
+  if (spare_memory[3] == 0)
+    spare_memory[3] = (char *) lisp_align_malloc (sizeof (struct cons_block),
+						  MEM_TYPE_CONS);
+  if (spare_memory[4] == 0)
+    spare_memory[4] = (char *) lisp_align_malloc (sizeof (struct cons_block),
+						  MEM_TYPE_CONS);
+  if (spare_memory[5] == 0)
+    spare_memory[5] = (char *) lisp_malloc (sizeof (struct string_block),
+					    MEM_TYPE_STRING);
+  if (spare_memory[6] == 0)
+    spare_memory[6] = (char *) lisp_malloc (sizeof (struct string_block),
+					    MEM_TYPE_STRING);
+  if (spare_memory[0] && spare_memory[1] && spare_memory[5])
+    Vmemory_full = Qnil;
+#endif
+}
 
 /************************************************************************
 			   C Stack Marking
@@ -6012,7 +6051,7 @@ init_alloc_once ()
   malloc_hysteresis = 0;
 #endif
 
-  spare_memory = (char *) malloc (SPARE_MEMORY);
+  refill_memory_reserve ();
 
   ignore_warnings = 0;
   gcprolist = 0;
@@ -6113,7 +6152,7 @@ This means that certain objects should be allocated in shared (pure) space.  */)
 	     build_string ("Memory exhausted--use M-x save-some-buffers then exit and restart Emacs"));
 
   DEFVAR_LISP ("memory-full", &Vmemory_full,
-	       doc: /* Non-nil means we are handling a memory-full error.  */);
+	       doc: /* Non-nil means Emacs cannot get much more Lisp memory.  */);
   Vmemory_full = Qnil;
 
   staticpro (&Qgc_cons_threshold);
@@ -6128,7 +6167,6 @@ The time is in seconds as a floating point value.  */);
   DEFVAR_INT ("gcs-done", &gcs_done,
 	      doc: /* Accumulated number of garbage collections done.  */);
 
-  defsubr (&Smemory_full_p);
   defsubr (&Scons);
   defsubr (&Slist);
   defsubr (&Svector);
