@@ -1441,8 +1441,6 @@ command_loop_1 ()
 	safe_run_hooks (Qdeferred_action_function);
     }
 
-  Vmemory_full = Qnil;
-
   /* Do this after running Vpost_command_hook, for consistency.  */
   current_kboard->Vlast_command = Vthis_command;
   current_kboard->Vreal_last_command = real_this_command;
