@@ -1344,7 +1344,8 @@ as an argument limits undo to changes within the current region."
   ;; and will get another error.  To begin undoing the undos,
   ;; you must type some other command.
   (let ((modified (buffer-modified-p))
-	(recent-save (recent-auto-save-p)))
+	(recent-save (recent-auto-save-p))
+	message)
     ;; If we get an error in undo-start,
     ;; the next command should not be a "consecutive undo".
     ;; So set `this-command' to something other than `undo'.
@@ -1373,9 +1374,9 @@ as an argument limits undo to changes within the current region."
     ;; so, ask the user whether she wants to skip the redo/undo pair.
     (let ((equiv (gethash pending-undo-list undo-equiv-table)))
       (or (eq (selected-window) (minibuffer-window))
-	  (message (if undo-in-region
-		       (if equiv "Redo in region!" "Undo in region!")
-		     (if equiv "Redo!" "Undo!"))))
+	  (setq message (if undo-in-region
+			    (if equiv "Redo in region!" "Undo in region!")
+			  (if equiv "Redo!" "Undo!"))))
       (when (and (consp equiv) undo-no-redo)
 	;; The equiv entry might point to another redo record if we have done
 	;; undo-redo-undo-redo-... so skip to the very last equiv.
@@ -1417,7 +1418,10 @@ as an argument limits undo to changes within the current region."
     ;; Record what the current undo list says,
     ;; so the next command can tell if the buffer was modified in between.
     (and modified (not (buffer-modified-p))
-	 (delete-auto-save-file-if-necessary recent-save))))
+	 (delete-auto-save-file-if-necessary recent-save))
+    ;; Display a message announcing success.
+    (if message
+	(message message))))
 
 (defun buffer-disable-undo (&optional buffer)
   "Make BUFFER stop keeping undo information.
