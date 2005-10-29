@@ -1180,7 +1180,7 @@ emacs_blocked_free (ptr, ptr2)
 	 is substantially larger than the block size malloc uses.  */
       && (bytes_used_when_full
 	  > ((bytes_used_now = BYTES_USED)
-	     + max (malloc_hysteresis, 4) * SPARE_MEMORY))
+	     + max (malloc_hysteresis, 4) * SPARE_MEMORY)))
     refill_memory_reserve ();
 
   __free_hook = emacs_blocked_free;

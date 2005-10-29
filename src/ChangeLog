@@ -1,3 +1,7 @@
+2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* alloc.c (emacs_blocked_free): Fix typo.
+
 2005-10-29  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (handle_fontified_prop): Do nothing if memory full.
