@@ -1,3 +1,7 @@
+2005-10-29  Romain Francoise  <romain@orebokech.com>
+
+	* help-fns.el (describe-simplify-lib-file-name): Fix regexp.
+
 2005-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* pgg-gpg.el

@@ -291,7 +291,7 @@ face (according to `face-differs-from-default-p')."
 	;; Now convert that back to a file name and see if we get
 	;; the original one.  If so, they are equivalent.
 	(if (equal file (locate-file libname load-path '("")))
-	    (if (string-match "[.]elc?\\'" libname)
+	    (if (string-match "[.]elc\\'" libname)
 		(substring libname 0 -1)
 	      libname)
 	  file))))
