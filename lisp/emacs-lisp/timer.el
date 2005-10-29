@@ -161,8 +161,11 @@ fire repeatedly that many seconds apart."
   (aset timer 6 args)
   timer)
 
-(defun timer-activate (timer &optional triggered-p)
-  "Put TIMER on the list of active timers."
+(defun timer-activate (timer &optional triggered-p reuse-cell)
+  "Put TIMER on the list of active timers.
+
+REUSE-CELL, if non-nil, is a cons cell to reuse instead
+of allocating a new one."
   (if (and (timerp timer)
 	   (integerp (aref timer 1))
 	   (integerp (aref timer 2))
@@ -180,20 +183,28 @@ fire repeatedly that many seconds apart."
 			     (> (aref timer 3) (aref (car timers) 3)))))
 	  (setq last timers
 		timers (cdr timers)))
+	(if reuse-cell
+	    (progn
+	      (setcar reuse-cell timer)
+	      (setcdr reuse-cell timers))
+	  (setq reuse-cell (cons timer timers)))
 	;; Insert new timer after last which possibly means in front of queue.
 	(if last
-	    (setcdr last (cons timer timers))
-	  (setq timer-list (cons timer timers)))
+	    (setcdr last reuse-cell)
+	  (setq timer-list reuse-cell))
 	(aset timer 0 triggered-p)
 	(aset timer 7 nil)
 	nil)
     (error "Invalid or uninitialized timer")))
 
-(defun timer-activate-when-idle (timer &optional dont-wait)
+(defun timer-activate-when-idle (timer &optional dont-wait reuse-cell)
   "Arrange to activate TIMER whenever Emacs is next idle.
 If optional argument DONT-WAIT is non-nil, then enable the
 timer to activate immediately, or at the right time, if Emacs
-is already idle."
+is already idle.
+
+REUSE-CELL, if non-nil, is a cons cell to reuse instead
+of allocating a new one."
   (if (and (timerp timer)
 	   (integerp (aref timer 1))
 	   (integerp (aref timer 2))
@@ -211,10 +222,15 @@ is already idle."
 			     (> (aref timer 3) (aref (car timers) 3)))))
 	  (setq last timers
 		timers (cdr timers)))
+	(if reuse-cell
+	    (progn
+	      (setcar reuse-cell timer)
+	      (setcdr reuse-cell timers))
+	  (setq reuse-cell (cons timer timers)))
 	;; Insert new timer after last which possibly means in front of queue.
 	(if last
-	    (setcdr last (cons timer timers))
-	  (setq timer-idle-list (cons timer timers)))
+	    (setcdr last reuse-cell)
+	  (setq timer-idle-list reuse-cell))
 	(aset timer 0 (not dont-wait))
 	(aset timer 7 t)
 	nil)
@@ -230,6 +246,18 @@ is already idle."
   (setq timer-list (delq timer timer-list))
   (setq timer-idle-list (delq timer timer-idle-list))
   nil)
+
+;; Remove TIMER from the list of active timers or idle timers.
+;; Only to be used in this file.  It returns the cons cell
+;; that was removed from the list.
+(defun cancel-timer-internal (timer)
+  (let ((cell1 (memq timer timer-list))
+	(cell2 (memq timer timer-idle-list)))
+    (if cell1
+	(setq timer-list (delq timer timer-list)))
+    (if cell2
+	(setq timer-idle-list (delq timer timer-idle-list)))
+    (or cell1 cell2)))
 
 ;;;###autoload
 (defun cancel-function-timers (function)
@@ -270,13 +298,13 @@ This function is called, by name, directly by the C code."
   (setq timer-event-last timer)
   (let ((inhibit-quit t))
     (if (timerp timer)
-	(let (retrigger)
-	  ;; Delete from queue.
-	  (cancel-timer timer)
+	(let (retrigger cell)
+	  ;; Delete from queue.  Record the cons cell that was used.
+	  (setq cell (cancel-timer-internal timer))
 	  ;; Re-schedule if requested.
 	  (if (aref timer 4)
 	      (if (aref timer 7)
-		  (timer-activate-when-idle timer)
+		  (timer-activate-when-idle timer nil cell)
 		(timer-inc-time timer (aref timer 4) 0)
 		;; If real time has jumped forward,
 		;; perhaps because Emacs was suspended for a long time,
@@ -287,7 +315,7 @@ This function is called, by name, directly by the C code."
 				      (aref timer 4))))
 		      (if (> repeats timer-max-repeats)
 			  (timer-inc-time timer (* (aref timer 4) repeats)))))
-		(timer-activate timer t)
+		(timer-activate timer t cell)
 		(setq retrigger t)))
 	  ;; Run handler.
 	  ;; We do this after rescheduling so that the handler function
