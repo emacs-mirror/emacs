@@ -1,3 +1,76 @@
+2005-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-gpg.el
+	(pgg-gpg-select-matching-key): Fixed: look at the right part of
+	the decoded armor to find the key-identifier.
+	(pgg-gpg-lookup-key-owner): New function to return the
+	human-readable identifier of a key owner.
+	(pgg-gpg-lookup-id-from-key-owner): Make it easy to identify the
+	key itself.
+	(pgg-gpg-decrypt-region): Prompt with the key owner (rather than
+	the key value) if we have a key and can match it against a secret
+	key.  Also, added a note pointing out fact that the prompt only
+	indicates the first matching key.
+
+	* pgg.el (pgg-decrypt): Passing along 'passphrase' in call to
+	pgg-decrypt-region.
+	(pgg-pending-timers): A new hash for tracking the passphrase cache
+	timers, so that new ones supercede old ones.
+	(pgg-add-passphrase-to-cache): Renamed from
+	`pgg-add-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when new ones are added.
+	(pgg-remove-passphrase-from-cache): Renamed from
+	`pgg-remove-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when their keys are
+	removed from the cache.
+	(pgg-cancel-timer): In Emacs, an alias for cancel-timer; in
+	XEmacs, an indirection to delete-itimer.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase): Extracted
+	pgg-read-passphrase-from-cache from pgg-read-passphrase so users
+	can only check cache without risk of prompting.  Corrected bug in
+	notruncate behavior.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase)
+	(pgg-add-passphrase-cache, pgg-remove-passphrase-cache): Added
+	informative docstrings.
+	(pgg-decrypt): Convey provided passphrase in subordinate call to
+	pgg-decrypt-region.
+
+2005-10-20  Ken Manheimer <ken.manheimer+emacs@gmail.com>
+
+	* pgg.el (pgg-encrypt-region, pgg-encrypt-symmetric-region)
+	(pgg-encrypt-symmetric, pgg-encrypt, pgg-decrypt-region)
+	(pgg-decrypt, pgg-sign-region, pgg-sign): Add optional
+	'passphrase' argument, so the passphrase can be managed externally
+	and then passed in to the system.
+
+	* pgg.el (pgg-read-passphrase, pgg-add-passphrase-cache)
+	(pgg-remove-passphrase-cache): Add optional 'notruncate' argument,
+	so the passphrase cache can be used reliably with identifiers
+	besides a pgp packet's key id.
+
+	* pgg-gpg.el (pgg-pgp-encrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+
+	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Add optional
+	'notruncate' argument, so the passphrase cache can be used
+	reliably with identifiers besides a pgp packet's key id.
+
+2005-10-29  Sascha Wilde  <swilde@sha-bang.de>
+
+	* pgg-gpg.el (pgg-gpg-encrypt-symmetric-region): New function for
+	symmetric encryption.
+	(pgg-gpg-symmetric-key-p): New function to check for an symmetric
+	encrypted session key.
+	(pgg-gpg-decrypt-region): When decrypting a symmetric encrypted
+	message ask for the passphrase in a proper way.
+
+	* pgg.el (pgg-encrypt-symmetric, pgg-encrypt-symmetric-region):
+	New user commands for symmetric encryption.
+
 2005-10-28  Bill Wohler  <wohler@newt.com>
 
 	* help-mode.el (help-url): New button type. Calls browse-url.

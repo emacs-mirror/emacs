@@ -1,3 +1,10 @@
+2005-10-29  Sascha Wilde  <wilde@sha-bang.de>
+
+	* pgg.texi (How to use): Update the example to add autoload of
+	pgg-encrypt-symmetric-region.
+	(User Commands): Document pgg-encrypt-symmetric-region.
+	(Backend methods): Document pgg-scheme-encrypt-symmetric-region.
+
 2005-10-28  Bill Wohler  <wohler@newt.com>
 
 	* help.texi (Help): Help mode now creates hyperlinks for URLs.
