@@ -891,7 +891,18 @@ do_symval_forwarding (valcontents)
 
       case Lisp_Misc_Kboard_Objfwd:
 	offset = XKBOARD_OBJFWD (valcontents)->offset;
-	return *(Lisp_Object *)(offset + (char *)current_kboard);
+        /* We used to simply use current_kboard here, but from Lisp
+           code, it's value is often unexpected.  It seems nicer to
+           allow constructions like this to work as intuitively expected:
+
+           	(with-selected-frame frame
+                   (define-key local-function-map "\eOP" [f1]))
+
+           On the other hand, this affects the semantics of
+           last-command and real-last-command, and people may rely on
+           that.  I took a quick look at the Lisp codebase, and I
+           don't think anything will break.  --lorentey  */
+	return *(Lisp_Object *)(offset + (char *)FRAME_KBOARD (SELECTED_FRAME ()));
       }
   return valcontents;
 }
@@ -979,7 +990,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 
 	case Lisp_Misc_Kboard_Objfwd:
 	  {
-	    char *base = (char *) current_kboard;
+	    char *base = (char *) FRAME_KBOARD (SELECTED_FRAME ());
 	    char *p = base + XKBOARD_OBJFWD (valcontents)->offset;
 	    *(Lisp_Object *) p = newval;
 	  }
@@ -1125,7 +1136,7 @@ find_symbol_value (symbol)
 
 	case Lisp_Misc_Kboard_Objfwd:
 	  return *(Lisp_Object *)(XKBOARD_OBJFWD (valcontents)->offset
-				  + (char *)current_kboard);
+				  + (char *)FRAME_KBOARD (SELECTED_FRAME ()));
 	}
     }
 
@@ -1878,6 +1889,9 @@ If the current binding is global (the default), the value is nil.  */)
   return Qnil;
 }
 
+/* This code is disabled now that we use the selected frame to return
+   keyboard-local-values. */
+#if 0
 extern struct device *get_device P_ ((Lisp_Object display, int));
 
 DEFUN ("terminal-local-value", Fterminal_local_value, Sterminal_local_value, 2, 2, 0,
@@ -1918,6 +1932,7 @@ selected frame's display device).  */)
   pop_kboard ();
   return result;
 }
+#endif
 
 /* Find the function at the end of a chain of symbol function indirections.  */
 
@@ -3369,8 +3384,10 @@ syms_of_data ()
   defsubr (&Slocal_variable_p);
   defsubr (&Slocal_variable_if_set_p);
   defsubr (&Svariable_binding_locus);
+#if 0                           /* XXX Remove this. --lorentey */
   defsubr (&Sterminal_local_value);
   defsubr (&Sset_terminal_local_value);
+#endif
   defsubr (&Saref);
   defsubr (&Saset);
   defsubr (&Snumber_to_string);

@@ -495,10 +495,9 @@ saving keyboard macros (see `edmacro-mode')."
   "Translate character FROM to TO at a low level.
 This function creates a `keyboard-translate-table' if necessary
 and then modifies one entry in it."
-  (let (tbl (terminal-local-value 'keyboard-translate-table))
-    (or (char-table-p tbl)
-	(setq tbl (make-char-table 'keyboard-translate-table nil)))
-    (aset tbl from to)))
+  (or (char-table-p keyboard-translate-table)
+      (setq keyboard-translate-table (make-char-table 'keyboard-translate-table nil)))
+    (aset keyboard-translate-table from to))
 
 
 ;;;; The global keymap tree.
@@ -1170,8 +1169,7 @@ any other non-digit terminates the character code and is then used as input."))
       ;; or C-q C-x might not return immediately since ESC or C-x might be
       ;; bound to some prefix in function-key-map or key-translation-map.
       (setq translated char)
-      (let ((translation (lookup-key (terminal-local-value 'local-function-key-map nil)
-				     (vector char))))
+      (let ((translation (lookup-key local-function-key-map (vector char))))
 	(if (arrayp translation)
 	    (setq translated (aref translation 0))))
       (cond ((null translated))

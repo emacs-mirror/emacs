@@ -36,7 +36,7 @@
   ;; Swap ^H and DEL
   (aset the-table ?\177 ?\^h)
   (aset the-table ?\^h ?\177)
-  (setq (terminal-local-value 'keyboard-translate-table) the-table))
+  (setq keyboard-translate-table the-table))
 
 ;;; arch-tag: 67cf7009-e23e-421c-9648-078e7277297c
 ;;; keyswap.el ends here

@@ -5337,26 +5337,25 @@ See also `normal-erase-is-backspace'."
 
   (cond ((or (memq window-system '(x w32 mac pc))
 	     (memq system-type '(ms-dos windows-nt)))
-	 (let* ((lfkm (terminal-local-value 'local-function-key-map nil))
-		(bindings
+	 (let* ((bindings
 		 `(([C-delete] [C-backspace])
 		   ([M-delete] [M-backspace])
 		   ([C-M-delete] [C-M-backspace])
 		   (,esc-map
 		    [C-delete] [C-backspace])))
-		(old-state (lookup-key lfkm [delete])))
+		(old-state (lookup-key local-function-key-map [delete])))
 
 	   (if (terminal-parameter nil 'normal-erase-is-backspace)
 	       (progn
-		 (define-key lfkm [delete] [?\C-d])
-		 (define-key lfkm [kp-delete] [?\C-d])
-		 (define-key lfkm [backspace] [?\C-?]))
-	     (define-key lfkm [delete] [?\C-?])
-	     (define-key lfkm [kp-delete] [?\C-?])
-	     (define-key lfkm [backspace] [?\C-?]))
+		 (define-key local-function-key-map [delete] [?\C-d])
+		 (define-key local-function-key-map [kp-delete] [?\C-d])
+		 (define-key local-function-key-map [backspace] [?\C-?]))
+	     (define-key local-function-key-map [delete] [?\C-?])
+	     (define-key local-function-key-map [kp-delete] [?\C-?])
+	     (define-key local-function-key-map [backspace] [?\C-?]))
 
 	   ;; Maybe swap bindings of C-delete and C-backspace, etc.
-	   (unless (equal old-state (lookup-key lfkm [delete]))
+	   (unless (equal old-state (lookup-key local-function-key-map [delete]))
 	     (dolist (binding bindings)
 	       (let ((map global-map))
 		 (when (keymapp (car binding))

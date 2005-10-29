@@ -260,9 +260,9 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
     (when frame
       (with-selected-frame frame
 	;; Remove any previous encoded-kb keymap from key-translation-map.
-	(let ((m (terminal-local-value 'local-key-translation-map frame)))
+	(let ((m local-key-translation-map))
 	  (if (equal (keymap-prompt m) "encoded-kb")
-	      (set-terminal-local-value 'local-key-translation-map frame (keymap-parent m))
+	      (setq local-key-translation-map (keymap-parent m))
 	    (while (keymap-parent m)
 	      (if (equal (keymap-prompt (keymap-parent m)) "encoded-kb")
 		  (set-keymap-parent m (keymap-parent (keymap-parent m))))
@@ -274,8 +274,8 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 		  (keymap (make-sparse-keymap "encoded-kb"))
 		  (cim (current-input-mode))
 		  result)
-	      (set-keymap-parent keymap (terminal-local-value 'local-key-translation-map frame))
-	      (set-terminal-local-value 'local-key-translation-map frame keymap)
+	      (set-keymap-parent keymap local-key-translation-map)
+	      (setq local-key-translation-map keymap)
 	      (unless (terminal-parameter nil 'encoded-kbd-saved-input-mode)
 		(set-terminal-parameter nil 'encoded-kbd-saved-input-mode cim))
 	      (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
@@ -287,7 +287,7 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 		     (nth 1 cim)
 		     'use-8th-bit
 		     (nth 3 cim)))
-		(set-terminal-local-value nil 'encoded-kbd-saved-input-mode nil)
+		(set-terminal-parameter nil 'encoded-kbd-saved-input-mode nil)
 		(error "Unsupported coding system in Encoded-kbd mode: %S"
 		       coding)))
 	  ;; We are turning off Encoded-kbd mode.

@@ -40,9 +40,9 @@
 
 (defun terminal-init-wyse50 ()
   "Terminal initialization function for wyse50."
-  (define-key (terminal-local-value 'local-function-key-map nil) "\C-a" (make-keymap))
+  (define-key local-function-key-map "\C-a" (make-keymap))
   (mapcar (function (lambda (key-definition)
-		      (define-key (terminal-local-value 'local-function-key-map nil)
+		      (define-key local-function-key-map
 			(car key-definition) (nth 1 key-definition))))
 	  '(
 	    ;; These might be set up by termcap and terminfo

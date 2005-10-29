@@ -30,14 +30,14 @@
 
 (defun terminal-init-tvi970 ()
   "Terminal initialization function for tvi970."
-  (or (lookup-key (terminal-local-value 'local-function-key-map nil) "\e[")
-      (define-key (terminal-local-value 'local-function-key-map nil) "\e[" (make-keymap)))
-  ;; (or (lookup-key (terminal-local-value 'local-function-key-map nil) "\eO")
-  ;;    (define-key (terminal-local-value 'local-function-key-map nil) "\eO" (make-keymap)))
+  (or (lookup-key local-function-key-map "\e[")
+      (define-key local-function-key-map "\e[" (make-keymap)))
+  ;; (or (lookup-key local-function-key-map "\eO")
+  ;;    (define-key local-function-key-map "\eO" (make-keymap)))
 
   ;; Miscellaneous keys
   (mapcar (function (lambda (key-binding)
-		      (define-key (terminal-local-value 'local-function-key-map nil)
+		      (define-key local-function-key-map
 			(car key-binding) (nth 1 key-binding))))
 	  '(
 	    ;; These are set up by termcap or terminfo
@@ -86,17 +86,17 @@
   ;; The numeric keypad keys.
   (let ((i 0))
     (while (< i 10)
-      (define-key (terminal-local-value 'local-function-key-map nil)
+      (define-key local-function-key-map
 	(format "\eO%c" (+ i ?p))
 	(vector (intern (format "kp-%d" i))))
       (setq i (1+ i))))
   ;; The numbered function keys.
   (let ((i 0))
     (while (< i 16)
-      (define-key (terminal-local-value 'local-function-key-map nil)
+      (define-key local-function-key-map
 	(format "\e?%c" (+ i ?a))
 	(vector (intern (format "f%d" (1+ i)))))
-      (define-key (terminal-local-value 'local-function-key-map nil)
+      (define-key local-function-key-map
 	(format "\e?%c" (+ i ?A))
 	(vector (intern (format "S-f%d" (1+ i)))))
       (setq i (1+ i))))
