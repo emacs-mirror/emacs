@@ -1,5 +1,39 @@
 2005-10-28  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-annotate-msg): Use new variable
+	mh-scan-field-destination-offset rather than hard-coding 1.
+
+	* mh-customize.el (mh-interpret-number-as-range-flag): Add * to
+	docstring.
+	(mh-adaptive-cmd-note-flag-check, mh-scan-format-file-check): New
+	functions to check input for mh-adaptive-cmd-note-flag and
+	mh-scan-format-file respectively.
+	(mh-adaptive-cmd-note-flag, mh-scan-format-file): Docstring fixes,
+	add :set.
+
+	* mh-e.el: (mh-scan-field-destination-offset): New variable. The
+	destination is the -, t, b, c, or n character for Replied, To, cc,
+	Bcc, or Newsgroups respectively.
+	(mh-make-folder, mh-regenerate-headers, mh-generate-new-cmd-note)
+	Call new function mh-msg-num-width-to-column to make leap between
+	width and column more explicit.
+	(mh-msg-num-width-to-column): New function that steals logic from
+	old mh-set-cmd-note. Also, throw error if mh-scan-format-file
+	isn't t since we can't adapt the scan lines in this case.
+	(mh-set-cmd-note): Now just simply sets mh-cmd-note which will
+	make the documentation more clear.
+	(mh-generate-new-cmd-note): Docstring fix--mh-cmd-note is a
+	column, not a width.
+	(mh-add-sequence-notation, mh-remove-sequence-notation): Use new
+	variable mh-scan-field-destination-offset rather than hard-coding
+	1. 
+
+	* mh-utils.el (mh-cmd-note) Synced docstring with manual.
+	(mh-notate): Use new variable mh-scan-field-destination-offset
+	rather than hard-coding 1.
+	(mh-message-number-width): Rename to mh-msg-num-width to be
+	consistent with mh-get-msg-num and mh-msg-num-width-to-column.
+
 	* mh-customize.el (mh-x-face-file, mh-show-use-xface-flag)
 	(mail-citation-hook): Quote URLs in docstrings and precede with
 	`URL'. The former will suppress checkdoc warnings, the latter will

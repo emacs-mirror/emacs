@@ -948,7 +948,7 @@ is added to the yanked region."
 ;;; Ranges (:group 'mh-ranges)
 
 (defcustom mh-interpret-number-as-range-flag t
-  "On means interpret a number as a range.
+  "*On means interpret a number as a range.
 Since one of the most frequent ranges used is \"last:N\", MH-E will interpret
 input such as \"200\" as \"last:200\" if this option is on (which is the
 default). If you need to scan just the message 200, then use the range
@@ -960,18 +960,44 @@ default). If you need to scan just the message 200, then use the range
 
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
+;;; Forward definition to avoid compiler and runtime error.
+(defvar mh-scan-format-file t)
+
+(defun mh-adaptive-cmd-note-flag-check (symbol value)
+  "Check if desired setting is legal.
+Throw an error if user tries to turn on `mh-adaptive-cmd-note-flag' when
+`mh-scan-format-file' isn't t. Otherwise, set SYMBOL to VALUE."
+  (if (and value
+           (not (eq mh-scan-format-file t)))
+      (error "%s %s" "Can't turn on unless mh-scan-format-file"
+             "is set to \"Use MH-E scan Format\"")
+    (set-default symbol value)))
+
+(defun mh-scan-format-file-check (symbol value)
+  "Check if desired setting is legal.
+Throw an error if user tries to set `mh-scan-format-file' to anything but t
+when `mh-adaptive-cmd-note-flag' is on. Otherwise, set SYMBOL to VALUE."
+  (if (and (not (eq value t))
+           (eq mh-adaptive-cmd-note-flag t))
+      (error "%s %s" "You must turn off mh-adaptive-cmd-note-flag"
+             "unless you use \"Use MH-E scan Format\"")
+    (set-default symbol value)))
+
 (defcustom mh-adaptive-cmd-note-flag t
   "*On means that the message number width is determined dynamically.
 If you've created your own format to handle long message numbers, you'll be
 pleased to know you no longer need it since MH-E adapts its internal format
 based upon the largest message number if this option is on (the default).
+This option may only be turned on when `mh-scan-format-file' is set to \"Use
+MH-E scan Format\".
 
 If you prefer fixed-width message numbers, turn off this option and call
-`mh-set-cmd-note' with the width specified by your format file (see
-`mh-scan-format-file'). For example, the default width is 4, so you would use
-\"(mh-set-cmd-note 4)\"."
+`mh-set-cmd-note' with the width specified by your format file
+\(see `mh-scan-format-file'). For example, the default width is 4, so you would
+use \"(mh-set-cmd-note 4)\"."
   :type 'boolean
-  :group 'mh-scan-line-formats)
+  :group 'mh-scan-line-formats
+  :set 'mh-adaptive-cmd-note-flag-check)
 
 (defcustom mh-scan-format-file t
   "Specifies the format file to pass to the scan program.
@@ -979,7 +1005,10 @@ If you prefer fixed-width message numbers, turn off this option and call
 The default setting for this option is \"Use MH-E scan Format\". This means
 that the format string will be taken from the either `mh-scan-format-mh' or
 `mh-scan-format-nmh' depending on whether MH or nmh (or GNU mailutils) is in
-use. You can also set this option to \"Use Default scan Format\" to get the
+use. This setting also enables you to turn on the `mh-adaptive-cmd-note-flag'
+option.
+
+You can also set this option to \"Use Default scan Format\" to get the
 same output as you would get if you ran \"scan\" from the shell. If you have a
 format file that you want MH-E to use but not MH, you can set this option to
 \"Specify a scan Format File\" and enter the name of your format file.
@@ -987,15 +1016,13 @@ format file that you want MH-E to use but not MH, you can set this option to
 If you change the format of the scan lines you'll need to tell MH-E how to
 parse the new format. As you will see, quite a lot of variables are involved
 to do that. Use \"\\[apropos] RET mh-scan.*regexp\" to obtain a list of these
-variables. You may also have to call `mh-set-cmd-note' to modify `mh-cmd-note'
-with the column for your notations if you turn off
-`mh-adaptive-cmd-note-flag'. However, you will need to set the `mh-cmd-note'
-variable manually with `setq' if `mh-scan-format-file' is set to anything
-other than \"Use MH-E scan Format\"."
+variables. You will also have to call `mh-set-cmd-note' if your notations are
+not in column 4 (columns in Emacs start with 0)."
   :type '(choice (const :tag "Use MH-E scan Format" t)
                  (const :tag "Use Default scan Format" nil)
                  (file  :tag "Specify a scan Format File"))
-  :group 'mh-scan-line-formats)
+  :group 'mh-scan-line-formats
+  :set 'mh-scan-format-file-check)
 
 (defcustom mh-scan-prog "scan"
   "*Program used to scan messages.

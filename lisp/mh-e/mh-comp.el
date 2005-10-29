@@ -698,7 +698,8 @@ MSG can be a message number, a list of message numbers, or a sequence."
     (cond ((get-buffer buffer)          ; Buffer may be deleted
            (set-buffer buffer)
            (mh-iterate-on-range nil msg
-             (mh-notate nil note (1+ mh-cmd-note)))))))
+             (mh-notate nil note
+                        (+ mh-cmd-note mh-scan-field-destination-offset)))))))
 
 (defun mh-insert-fields (&rest name-values)
   "Insert the NAME-VALUES pairs in the current buffer.

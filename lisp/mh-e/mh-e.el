@@ -114,7 +114,7 @@ The string is displayed after the folder's name.  nil for no annotation.")
 ;; The following scan formats are passed to the scan program if the setting of
 ;; `mh-scan-format-file' is t. They are identical except the later one makes
 ;; use of the nmh `decode' function to decode RFC 2047 encodings. If you just
-;; want to change the width of the msg number, use the `mh-set-cmd-note'
+;; want to change the column of the notations, use the `mh-set-cmd-note'
 ;; function.
 
 (defvar mh-scan-format-mh
@@ -337,6 +337,10 @@ originator, or a \"To: address\" for outgoing e-mail messages.")
 (defvar mh-scan-from-mbox-sep-width 2
   "Number of columns consumed by whitespace after from-mbox in `mh-scan-format'.
 This column will only ever have spaces in it.")
+
+(defvar mh-scan-field-destination-offset
+  (+ mh-scan-cmd-note-width)
+  "The offset from the `mh-cmd-note' for the destination column.")
 
 (defvar mh-scan-field-from-start-offset
   (+ mh-scan-cmd-note-width
@@ -1402,7 +1406,7 @@ Make it the current folder."
   (setq buffer-read-only nil)
   (erase-buffer)
   (if mh-adaptive-cmd-note-flag
-      (mh-set-cmd-note (mh-message-number-width name)))
+      (mh-set-cmd-note (mh-msg-num-width-to-column (mh-msg-num-width name))))
   (setq buffer-read-only t)
   (mh-folder-mode)
   (mh-set-folder-modified-p nil)
@@ -1719,20 +1723,24 @@ Return in the folder's buffer."
   (when (mh-outstanding-commands-p)
     (mh-notate-deleted-and-refiled)))
 
-(defun mh-set-cmd-note (width)
-  "Set `mh-cmd-note' to WIDTH (minimum of 2).
+(defun mh-msg-num-width-to-column (width)
+  "Return the column for notations given message number WIDTH.
+Note that columns in Emacs start with 0.
 
-If `mh-scan-format-file' is set to \"Use Default scan Format\" or \"Specify a
-scan Format File\", then this function will NOT update `mh-cmd-note'. In these
-cases, the user should change `mh-cmd-note' with `setq' if necessary.
+If `mh-scan-format-file' is set to \"Use MH-E scan Format\" this means that
+either `mh-scan-format-mh' or `mh-scan-format-nmh' are in use. This function
+therefore assumes that the first column is empty (to provide room for the
+cursor), the following WIDTH columns contain the message number, and the
+column for notations comes after that."
+  (if (eq mh-scan-format-file t)
+      (max (1+ width) 2)
+    (error "%s %s" "Can't call mh-msg-num-width-to-column"
+           "when mh-scan-format-file is not t")))
 
+(defun mh-set-cmd-note (column)
+  "Set `mh-cmd-note' to COLUMN.
 Note that columns in Emacs start with 0."
-  ;; Add one to the width to always have whitespace in column zero.
-  (setq width (max (1+ width) 2))
-  (if (and (equal mh-scan-format-file t)
-           (not (eq mh-cmd-note width)))
-      (setq mh-cmd-note width))
-  mh-cmd-note)
+  (setq mh-cmd-note column))
 
 (defun mh-regenerate-headers (range &optional update)
   "Scan folder over range RANGE.
@@ -1747,7 +1755,8 @@ If UPDATE, append the scan lines, otherwise replace."
           (goto-char (point-max))
         (delete-region (point-min) (point-max))
         (if mh-adaptive-cmd-note-flag
-            (mh-set-cmd-note (mh-message-number-width folder))))
+            (mh-set-cmd-note (mh-msg-num-width-to-column (mh-msg-num-width
+                                                          folder)))))
       (setq scan-start (point))
       (apply #'mh-exec-cmd-output
              mh-scan-prog nil
@@ -1781,9 +1790,9 @@ If UPDATE, append the scan lines, otherwise replace."
 After doing an `mh-get-new-mail' operation in this FOLDER, at least
 one line that looks like a truncated message number was found.
 
-Remove the text added by the last `mh-inc' command. It should be the
-messages cur-last. Call `mh-set-cmd-note' with the widest message number
-in FOLDER.
+Remove the text added by the last `mh-inc' command. It should be the messages
+cur-last. Call `mh-set-cmd-note', adjusting the notation column with the width
+of the largest message number in FOLDER.
 
 Reformat the message number width on each line in the buffer and trim
 the line length to fit in the window.
@@ -1800,7 +1809,7 @@ line now with no message truncation."
       (delete-char (- (point-max) (point)))
       ;; Update the current buffer to reflect the new mh-cmd-note
       ;; value needed to display messages.
-      (mh-set-cmd-note (mh-message-number-width folder))
+      (mh-set-cmd-note (mh-msg-num-width-to-column (mh-msg-num-width folder)))
       (setq mh-cmd-note-fmt (concat "%" (format "%d" mh-cmd-note) "d"))
       ;; Cleanup the messages that are in the buffer right now
       (goto-char (point-min))
@@ -1958,11 +1967,12 @@ turned on."
             (mh-notate nil nil mh-cmd-note)
             (when font-lock-mode
               (font-lock-fontify-region (point) (line-end-position))))
-        (forward-char (1+ mh-cmd-note))
+        (forward-char (+ mh-cmd-note mh-scan-field-destination-offset))
         (let ((stack (gethash msg mh-sequence-notation-history)))
           (setf (gethash msg mh-sequence-notation-history)
                 (cons (char-after) stack)))
-        (mh-notate nil mh-note-seq (1+ mh-cmd-note))))))
+        (mh-notate nil mh-note-seq
+                   (+ mh-cmd-note mh-scan-field-destination-offset))))))
 
 (defun mh-remove-sequence-notation (msg internal-seq-flag &optional all)
   "Remove sequence notation from the MSG on the current line.
@@ -1981,7 +1991,7 @@ If ALL is non-nil, then all sequence marks on the scan line are removed."
         (when stack
           (save-excursion
             (beginning-of-line)
-            (forward-char (1+ mh-cmd-note))
+            (forward-char (+ mh-cmd-note mh-scan-field-destination-offset))
             (delete-char 1)
             (insert (car stack))))
         (setf (gethash msg mh-sequence-notation-history) (cdr stack))))))
