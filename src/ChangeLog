@@ -1,3 +1,41 @@
+2005-10-29  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (handle_fontified_prop): Do nothing if memory full.
+	(format_mode_line_unwind_data): New arg SAVE_PROPTRANS
+	controls whether to save and restore mode_line_proptrans_alist.
+	Callers changed.
+	(unwind_format_mode_line): Work with that feature.
+	(redisplay_internal): Don't call prepare_menu_bars if memory full.
+	(move_elt_to_front): New function.
+	(display_mode_element): Use move_elt_to_front.
+	Don't bother munging text props on a null string.
+	Delete obsolete elts from mode_line_proptrans_alist.
+	(decode_mode_spec): Test Vmemory_full, not spare_memory.
+
+	* lisp.h (memory_full_cons_threshold): Declared.
+	(internal_lisp_condition_case): Declared.
+
+	* alloc.c (syms_of_alloc) <memory-full>: Doc fix.
+	(Fmemory_full_p): Function deleted.
+	(syms_of_alloc): Don't defsubr it.
+	(memory_full_cons_threshold): New variable.
+	(spare_memory): Now a vector of 7 elts.
+	(buffer_memory_full): Don't set Vmemory_full here.
+	(xfree): Don't try to refill here.
+	(emacs_blocked_free): Record BYTES_USED in local var.
+	(memory_full): Now free all the slots in spare_memory.
+	(refill_memory_reserve): Allocate each slot in spare_memory.
+	(init_alloc_once): Call refill_memory_reserve.
+
+	* keyboard.c (command_loop_1): Don't set Vmemory_full here.
+
+	* eval.c (internal_lisp_condition_case): New function.
+	(Fcondition_case): Use internal_lisp_condition_case.
+	(Feval): Test Vmemory_full and memory_full_cons_threshold.
+	(Ffuncall): Likewise.
+
+	* bytecode.c (Fbyte_code): Use internal_lisp_condition_case.
+
 2005-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.c (Fparse_partial_sexp): Fix docstring.
