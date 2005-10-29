@@ -16858,8 +16858,11 @@ are the selected window and the window's buffer).  */)
   if (XBUFFER (buffer) != current_buffer)
     old_buffer = current_buffer;
 
+  /* Save things including mode_line_proptrans_alist,
+     and set that to nil so that we don't alter the outer value.  */
   record_unwind_protect (unwind_format_mode_line,
 			 format_mode_line_unwind_data (old_buffer, 1));
+  mode_line_proptrans_alist = Qnil;
 
   if (old_buffer)
     set_buffer_internal_1 (XBUFFER (buffer));
