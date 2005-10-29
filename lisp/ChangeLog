@@ -1,12 +1,23 @@
+2005-10-29  Roland Winkler  <roland.winkler@physik.uni-erlangen.de>
+
+	* textmodes/conf-mode.el (conf-assignment-sign)
+	(conf-assignment-regexp): Fix docstrings.
+	(conf-mode-initialize): New function.
+	(conf-mode): Remove optional args.  Use delay-mode-hooks to
+	recognize recursive calls.
+	(conf-unix-mode, conf-windows-mode, conf-javaprop-mode)
+	(conf-space-mode, conf-colon-mode, conf-ppd-mode)
+	(conf-xdefaults-mode): Use define-derived-mode and
+	conf-mode-initialize.
+
 2005-10-29  Romain Francoise  <romain@orebokech.com>
 
 	* help-fns.el (describe-simplify-lib-file-name): Fix regexp.
 
 2005-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* pgg-gpg.el
-	(pgg-gpg-select-matching-key): Fixed: look at the right part of
-	the decoded armor to find the key-identifier.
+	* pgg-gpg.el (pgg-gpg-select-matching-key): Fix: look at the right
+	part of the decoded armor to find the key-identifier.
 	(pgg-gpg-lookup-key-owner): New function to return the
 	human-readable identifier of a key owner.
 	(pgg-gpg-lookup-id-from-key-owner): Make it easy to identify the
@@ -20,22 +31,22 @@
 	pgg-decrypt-region.
 	(pgg-pending-timers): A new hash for tracking the passphrase cache
 	timers, so that new ones supercede old ones.
-	(pgg-add-passphrase-to-cache): Renamed from
+	(pgg-add-passphrase-to-cache): Rename from
 	`pgg-add-passphrase-cache' to reduce confusion (all callers
 	changed).  Modified to cancel old timers when new ones are added.
-	(pgg-remove-passphrase-from-cache): Renamed from
+	(pgg-remove-passphrase-from-cache): Rename from
 	`pgg-remove-passphrase-cache' to reduce confusion (all callers
 	changed).  Modified to cancel old timers when their keys are
 	removed from the cache.
 	(pgg-cancel-timer): In Emacs, an alias for cancel-timer; in
 	XEmacs, an indirection to delete-itimer.
-	(pgg-read-passphrase-from-cache, pgg-read-passphrase): Extracted
-	pgg-read-passphrase-from-cache from pgg-read-passphrase so users
-	can only check cache without risk of prompting.  Corrected bug in
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase):
+	Extract pgg-read-passphrase-from-cache from pgg-read-passphrase so
+	users can only check cache without risk of prompting.  Correct bug in
 	notruncate behavior.
 	(pgg-read-passphrase-from-cache, pgg-read-passphrase)
-	(pgg-add-passphrase-cache, pgg-remove-passphrase-cache): Added
-	informative docstrings.
+	(pgg-add-passphrase-cache, pgg-remove-passphrase-cache):
+	Add informative docstrings.
 	(pgg-decrypt): Convey provided passphrase in subordinate call to
 	pgg-decrypt-region.
 
@@ -120,8 +131,8 @@
 
 2005-10-28  Andreas Schwab  <schwab@suse.de>
 
-	* view.el (View-revert-buffer-scroll-page-forward): Use
-	view-page-size-default.
+	* view.el (View-revert-buffer-scroll-page-forward):
+	Use view-page-size-default.
 
 2005-10-28  Juri Linkov  <juri@jurta.org>
 
@@ -215,8 +226,7 @@
 
 2005-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* net/browse-url.el (browse-url-of-buffer): Add ".html" to
-	filename.
+	* net/browse-url.el (browse-url-of-buffer): Add ".html" to filename.
 
 2005-10-25  Masatake YAMATO  <jet@gyve.org>
 
