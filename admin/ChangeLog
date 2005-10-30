@@ -1,3 +1,7 @@
+2005-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* FOR-RELEASE: Init file change implemented.
+
 2005-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
 	* FOR-RELEASE: Fringe angle bitmap at eob fixed.

@@ -27,8 +27,6 @@ face name prefixes should be in it for good results.
 
 * NEW FEATURES
 
-** Change .emacs.d/.emacs to .emacs.d/emacs.
-
 ** Rework how fringe bitmaps are defined and used.
 Currently, bitmap usage and bitmap appearence are "mixed-up" in a
 one-level representation.  It would be cleaner to split the
