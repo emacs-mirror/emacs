@@ -1,8 +1,16 @@
+2005-10-30  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (BYTES_USED): Use uordblks, not arena.
+	(bytes_used_when_reconsidered): New variable.
+	(emacs_blocked_free): Set that.
+
 2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* alloc.c (emacs_blocked_free): Fix typo.
 
 2005-10-29  Richard M. Stallman  <rms@gnu.org>
+
+	* data.c (Fmake_variable_frame_local): Doc fix.
 
 	* xdisp.c (handle_fontified_prop): Do nothing if memory full.
 	(format_mode_line_unwind_data): New arg SAVE_PROPTRANS
