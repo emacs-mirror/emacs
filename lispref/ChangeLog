@@ -1,3 +1,7 @@
+2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* os.texi (Init File): Document ~/.emacs.d/init.el.
+
 2005-10-29  Richard M. Stallman  <rms@gnu.org>
 
 	* internals.texi (Garbage Collection): Document memory-full.
