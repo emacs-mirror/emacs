@@ -138,6 +138,8 @@ static pthread_mutex_t alloc_mutex;
 
 static __malloc_size_t bytes_used_when_full;
 
+static __malloc_size_t bytes_used_when_reconsidered;
+
 /* Mark, unmark, query mark bit of a Lisp string.  S must be a pointer
    to a struct Lisp_String.  */
 
@@ -521,7 +523,7 @@ display_malloc_warning ()
 
 
 #ifdef DOUG_LEA_MALLOC
-#  define BYTES_USED (mallinfo ().arena)
+#  define BYTES_USED (mallinfo ().uordblks)
 #else
 #  define BYTES_USED _bytes_used
 #endif
@@ -1179,7 +1181,7 @@ emacs_blocked_free (ptr, ptr2)
 	 The code here is correct as long as SPARE_MEMORY
 	 is substantially larger than the block size malloc uses.  */
       && (bytes_used_when_full
-	  > ((bytes_used_now = BYTES_USED)
+	  > ((bytes_used_when_reconsidered = BYTES_USED)
 	     + max (malloc_hysteresis, 4) * SPARE_MEMORY)))
     refill_memory_reserve ();
 
