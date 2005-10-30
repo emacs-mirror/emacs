@@ -15679,7 +15679,9 @@ display_line (it)
 			produce_special_glyphs (it, IT_CONTINUATION);
 		      row->continued_p = 1;
 
+		      it->current_x = x_before;
 		      it->continuation_lines_width += x;
+		      extend_face_to_end_of_line (it);
 
 		      if (nglyphs > 1 && i > 0)
 			{
@@ -16214,7 +16216,7 @@ move_elt_to_front (elt, list)
   while (CONSP (tail))
     {
       tem = XCAR (tail);
-      
+
       if (EQ (elt, tem))
 	{
 	  /* Splice out the link TAIL.  */
@@ -18778,19 +18780,15 @@ set_glyph_string_background_width (s, start, last_x)
 {
   /* If the face of this glyph string has to be drawn to the end of
      the drawing area, set S->extends_to_end_of_line_p.  */
-  struct face *default_face = FACE_FROM_ID (s->f, DEFAULT_FACE_ID);
 
   if (start == s->row->used[s->area]
       && s->area == TEXT_AREA
-      && ((s->hl == DRAW_NORMAL_TEXT
-	   && (s->row->fill_line_p
-	       || s->face->background != default_face->background
-	       || s->face->stipple != default_face->stipple
-	       || s->row->mouse_face_p))
-	  || s->hl == DRAW_MOUSE_FACE
-	  || ((s->hl == DRAW_IMAGE_RAISED || s->hl == DRAW_IMAGE_SUNKEN)
-	      && s->row->fill_line_p)))
-      s->extends_to_end_of_line_p = 1;
+      && ((s->row->fill_line_p
+	   && (s->hl == DRAW_NORMAL_TEXT
+	       || s->hl == DRAW_IMAGE_RAISED
+	       || s->hl == DRAW_IMAGE_SUNKEN))
+	  || s->hl == DRAW_MOUSE_FACE))
+    s->extends_to_end_of_line_p = 1;
 
   /* If S extends its face to the end of the line, set its
      background_width to the distance to the right edge of the drawing
