@@ -192,8 +192,9 @@ displays a buffer menu.  This option turns the buffer menu off.
 
 +++
 ** Init file changes
-You can now put the init files .emacs and .emacs_SHELL under
-~/.emacs.d or directly under ~.  Emacs will find them in either place.
+If the init file ~/.emacs does not exist, Emacs will try
+~/.emacs.d/init.el or ~/.emacs.d/init.elc.  You can also put the shell
+init file .emacs_SHELL under ~/.emacs.d.
 
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
