@@ -1,3 +1,9 @@
+2005-10-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Don't reference
+	gdb-mouse-set-clear-breakpoint.  Explain gdb-mouse-until
+	ust stay in same frame.
+
 2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.texi (Init File): Document ~/.emacs.d/init.el.
