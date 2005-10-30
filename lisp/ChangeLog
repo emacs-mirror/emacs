@@ -1,3 +1,13 @@
+2005-10-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-tooltip-print-1): Fix regexp.
+	(gdb-registers-font-lock-keywords): Delete.
+	(gdb-registers-mode): Don't fontify.
+	(gdb-info-registers-custom): Use text properties instead as, in
+	future, changed register values will use font-lock-warning-face.
+	(gdb-local-font-lock-keywords): Rename to...
+	(gdb-locals-font-lock-keywords): ...for consistency.
+
 2005-10-30  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc.el (vc-switch-backend): Better error message if the buffer is
