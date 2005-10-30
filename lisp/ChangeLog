@@ -3,6 +3,8 @@
 	* vc.el (vc-switch-backend): Better error message if the buffer is
 	not visiting a file under version control.
 
+	* vc-cvs.el (vc-cvs-delete-file): Commit the file after removing it.
+	
 2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line): Use ~/.emacs.d/init.el instead of
