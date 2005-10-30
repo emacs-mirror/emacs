@@ -1,3 +1,10 @@
+2005-10-30  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_line): Restore it->current_x and call
+	extend_face_to_end_of_line when last glyph doesn't fit on line.
+	(set_glyph_string_background_width): Remove specific tests  here
+	to see if face background should extend to end of line.  Simplify.
+
 2005-10-30  Richard M. Stallman  <rms@gnu.org>
 
 	* alloc.c (BYTES_USED): Use uordblks, not arena.
