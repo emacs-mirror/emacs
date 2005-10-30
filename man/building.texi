@@ -758,10 +758,10 @@ without needing to know GDB commands.  For example, you can click
 @kbd{Mouse-1} in the fringe or display margin of a source buffer to
 set a breakpoint there and, on a graphical display, a red bullet will
 appear.  If a breakpoint already exists on that line, this action will
-remove it (@code{gdb-mouse-set-clear-breakpoint}).  You can also
-enable or disable a breakpoint by clicking @kbd{Mouse-3} on the
-bullet.  If you drag the debugger arrow in the fringe with
-@kbd{Mouse-1}, execution will continue to where you release the button
+remove it.  You can also enable or disable a breakpoint by clicking
+@kbd{Mouse-3} on the bullet.  If you drag the debugger arrow in the
+fringe with @kbd{Mouse-1}, execution will continue to the line where
+you release the button, provided it is still in the same frame
 (@code{gdb-mouse-until}).  Alternatively, you can click @kbd{Mouse-2}
 at some point in the fringe of this buffer and execution will advance
 to there.
