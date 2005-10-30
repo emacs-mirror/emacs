@@ -1,3 +1,10 @@
+2005-10-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-chunksize): Escape parentheses in docstring
+	starting at beginning of line.  Fontification is messed up when
+	`open-paren-in-column-0-is-defun-start' set to t.  Reported
+	by John Paul Wallington <jpw@pobox.com>.
+
 2005-10-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* comint.el (comint-send-input): Call `comint-update-fence' when

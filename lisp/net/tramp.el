@@ -1358,6 +1358,9 @@ autocorrect\" to the remote host."
   (when (and (not (featurep 'xemacs))
 	     (memq system-type '(hpux)))
     500)
+;; Parentheses in docstring starting at beginning of line are escaped.
+;; Fontification is messed up when
+;; `open-paren-in-column-0-is-defun-start' set to t.
   "*If non-nil, chunksize for sending input to local process.
 It is necessary only on systems which have a buggy `process-send-string'
 implementation.  The necessity, whether this variable must be set, can be
@@ -1392,7 +1395,7 @@ checked via the following code:
         (sit-for 30))))
 
 In the Emacs normally running Tramp, evaluate the above code
-(replace \"xxx\" and \"yyy\" by the remote user and host name,
+\(replace \"xxx\" and \"yyy\" by the remote user and host name,
 respectively).  You can do this, for example, by pasting it into
 the `*scratch*' buffer and then hitting C-j with the cursor after the
 last closing parenthesis.  Note that it works only if you have configured
@@ -1409,7 +1412,7 @@ in the third line of the code.
 
 When it is necessary to set `tramp-chunksize', you might consider to
 use an out-of-the-band method (like \"scp\") instead of an internal one
-(like \"ssh\"), because setting `tramp-chunksize' to non-nil decreases
+\(like \"ssh\"), because setting `tramp-chunksize' to non-nil decreases
 performance.
 
 Please raise a bug report via \"M-x tramp-bug\" if your system needs
