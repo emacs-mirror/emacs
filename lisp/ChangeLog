@@ -1,3 +1,8 @@
+2005-10-30  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-switch-backend): Better error message if the buffer is
+	not visiting a file under version control.
+
 2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line): Use ~/.emacs.d/init.el instead of
