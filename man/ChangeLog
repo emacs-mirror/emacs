@@ -1,3 +1,9 @@
+2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Init File): Document ~/.emacs.d/init.el.
+
+	* anti.texi (Antinews): Likewise.
+
 2005-10-29  Sascha Wilde  <wilde@sha-bang.de>
 
 	* pgg.texi (How to use): Update the example to add autoload of
