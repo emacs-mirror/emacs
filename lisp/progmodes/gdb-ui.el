@@ -50,6 +50,9 @@
 ;; still under development and is part of a process to migrate Emacs from
 ;; annotations to GDB/MI.
 ;;
+;; This mode SHOULD WORK WITH GDB 5.0 ONWARDS but you will NEED GDB 6.0
+;; ONWARDS TO USE WATCH EXPRESSIONS.
+;;
 ;; Windows Platforms:
 ;;
 ;; If you are using Emacs and GDB on Windows you will need to flush the buffer
@@ -277,7 +280,7 @@ Also display the main routine in the disassembly buffer if present."
   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (if (search-forward "expands to: " nil t)
-	(unless (looking-at "\\S+.*(.*).*")
+	(unless (looking-at "\\S-+.*(.*).*")
 	  (gdb-enqueue-input
 	   (list  (concat gdb-server-prefix "print " expr "\n")
 		  'gdb-tooltip-print))))))
@@ -1777,7 +1780,18 @@ static char *magick[] = {
   gdb-info-registers-handler
   gdb-info-registers-custom)
 
-(defun gdb-info-registers-custom ())
+(defun gdb-info-registers-custom ()
+  (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+    (save-excursion
+      (let ((buffer-read-only nil)
+	    bl)
+	(goto-char (point-min))
+	(while (< (point) (point-max))
+	  (setq bl (line-beginning-position))
+	  (when (looking-at "^[^ ]+")
+	    (put-text-property bl (match-end 0)
+			       'face font-lock-variable-name-face))
+	  (forward-line 1))))))
 
 (defvar gdb-registers-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1785,12 +1799,6 @@ static char *magick[] = {
     (define-key map " " 'toggle-gdb-all-registers)
     (define-key map "q" 'kill-this-buffer)
      map))
-
-(defvar gdb-registers-font-lock-keywords
-  '(
-    ("^[^ ]+" . font-lock-variable-name-face)
-    )
-  "Font lock keywords used in `gdb-registers-mode'.")
 
 (defun gdb-registers-mode ()
   "Major mode for gdb registers.
@@ -1801,8 +1809,6 @@ static char *magick[] = {
   (setq mode-name "Registers:")
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
-  (set (make-local-variable 'font-lock-defaults)
-       '(gdb-registers-font-lock-keywords))
   (run-mode-hooks 'gdb-registers-mode-hook)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
       'gdb-invalidate-registers
@@ -2160,7 +2166,7 @@ corresponding to the mode line clicked."
 
 ;; Abbreviate for arrays and structures.
 ;; These can be expanded using gud-display.
-(defun gdb-info-locals-handler nil
+(defun gdb-info-locals-handler ()
   (setq gdb-pending-triggers (delq 'gdb-invalidate-locals
 				  gdb-pending-triggers))
   (let ((buf (gdb-get-buffer 'gdb-partial-output-buffer)))
@@ -2192,7 +2198,7 @@ corresponding to the mode line clicked."
     (define-key map "q" 'kill-this-buffer)
      map))
 
-(defvar gdb-local-font-lock-keywords
+(defvar gdb-locals-font-lock-keywords
   '(
     ;; var = (struct struct_tag) value
     ( "\\(^\\(\\sw\\|[_.]\\)+\\) += +(\\(struct\\) \\(\\(\\sw\\|[_.]\\)+\\)"
@@ -2219,7 +2225,7 @@ corresponding to the mode line clicked."
   (setq buffer-read-only t)
   (use-local-map gdb-locals-mode-map)
   (set (make-local-variable 'font-lock-defaults)
-       '(gdb-local-font-lock-keywords))
+       '(gdb-locals-font-lock-keywords))
   (run-mode-hooks 'gdb-locals-mode-hook)
   (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
       'gdb-invalidate-locals
