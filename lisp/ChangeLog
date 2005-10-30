@@ -1,3 +1,9 @@
+2005-10-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-send-input): Call `comint-update-fence' when
+	`comint-process-echoes' and `comint-prompt-read-only' are both
+	non-nil, to avoid leftover read-only newline.
+
 2005-10-30  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-external-point-words):
@@ -25,7 +31,7 @@
 	not visiting a file under version control.
 
 	* vc-cvs.el (vc-cvs-delete-file): Commit the file after removing it.
-	
+
 2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* startup.el (command-line): Use ~/.emacs.d/init.el instead of
