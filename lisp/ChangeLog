@@ -1,3 +1,8 @@
+2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Use ~/.emacs.d/init.el instead of
+	~/.emacs.d/.emacs.
+
 2005-10-29  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (occur-mode-mouse-goto): Always go to other window.

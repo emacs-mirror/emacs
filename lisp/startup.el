@@ -850,14 +850,12 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
 		      (when (eq user-init-file t)
 			;; If we did not find ~/.emacs, try
-			;; ~/.emacs.d/.emacs.
+			;; ~/.emacs.d/init.el.
 			(let ((otherfile
 			       (expand-file-name
-				(file-name-nondirectory user-init-file-1)
+				"init"
 				(file-name-as-directory
-				 (expand-file-name
-				  ".emacs.d"
-				  (file-name-directory user-init-file-1))))))
+				 (concat "~" init-file-user "/.emacs.d")))))
 			  (load otherfile t t)
 
 			  ;; If we did not find the user's init file,
