@@ -1,3 +1,14 @@
+2005-10-30  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Detect when WORD can't be checked properly because
+	flyspell-get-word finds just part of it, and move on.
+
+	* textmodes/ispell.el (ispell-dictionary-alist-5): Add . as
+	boundarychar for Polish.
+	(ispell-dictionary-alist-4): Add . as boundarychar for Italian.
+	(ispell-dictionary-alist-3): Add . and @ as boundarychars for French.
+
 2005-10-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-tooltip-print-1): Fix regexp.

@@ -44,7 +44,8 @@ invalid pointer from string_free_list.
 
 * BUGS
 
-** VC bug report from Peter Milliken on Sep 21 (emacs-pretest-bug).
+** Clean up the confusion about what `unspecified' means
+in the face defaults for new frames.
 
 ** TCP server processes do not work on Windows.
 
