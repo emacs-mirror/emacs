@@ -2,7 +2,7 @@
 
 	* building.texi (GDB Graphical Interface): Don't reference
 	gdb-mouse-set-clear-breakpoint.  Explain gdb-mouse-until
-	ust stay in same frame.
+	must stay in same frame.
 
 2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
 
