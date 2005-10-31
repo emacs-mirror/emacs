@@ -3084,7 +3084,7 @@ support them, this command is not defined.
 @pindex gzip
 
   Emacs automatically uncompresses compressed files when you visit
-them, and automatically recompress them if you alter them and save
+them, and automatically recompresses them if you alter them and save
 them.  Emacs recognizes compressed files by their file names.  File
 names ending in @samp{.gz} indicate a file compressed with
 @code{gzip}.  Other endings indicate other compression programs.
