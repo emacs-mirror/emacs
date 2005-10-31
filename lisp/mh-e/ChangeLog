@@ -1,5 +1,9 @@
 2005-10-30  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (mh-scan-good-msg-regexp, mh-scan-deleted-msg-regexp) 
+	(mh-scan-refiled-msg-regexp, mh-scan-cur-msg-number-regexp): Sync
+	docstrings with manual.
+
 	* mh-customize.el (mh-compose-space-does-completion-flag)
 	(mh-signature-separator-flag, mh-interpret-number-as-range-flag)
 	(mh-adaptive-cmd-note-flag): Use "Non-nil means" instead of "On

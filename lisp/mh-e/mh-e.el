@@ -184,24 +184,30 @@ See also `mh-scan-cur-msg-number-regexp'.")
 It must match from the beginning of the line. Note that the default setting of
 `mh-folder-font-lock-keywords' expects this expression to contain at least one
 parenthesized expression which matches the message number as in the default of
-\"^\\\\( *[0-9]+\\\\)[^D^0-9]\". This regular expression should be correct as
-it is needed by non-fontifying functions.")
+\"^\\\\( *[0-9]+\\\\)[^D^0-9]\". This expression includes the leading space
+within the parenthesis since it looks better to highlight it as well. This
+regular expression should be correct as it is needed by non-fontifying
+functions.")
 
 (defvar mh-scan-deleted-msg-regexp "^\\( *[0-9]+\\)D"
   "This regular expression matches deleted messages.
 It must match from the beginning of the line. Note that the default setting of
 `mh-folder-font-lock-keywords' expects this expression to contain at least one
 parenthesized expression which matches the message number as in the default of
-\"^\\\\( *[0-9]+\\\\)D\". This regular expression should be correct as it is
-needed by non-fontifying functions. See also `mh-note-deleted'.")
+\"^\\\\( *[0-9]+\\\\)D\". This expression includes the leading space within
+the parenthesis since it looks better to highlight it as well. This regular
+expression should be correct as it is needed by non-fontifying functions. See
+also `mh-note-deleted'.")
 
 (defvar mh-scan-refiled-msg-regexp  "^\\( *[0-9]+\\)\\^"
   "This regular expression matches refiled messages.
 It must match from the beginning of the line. Note that the default setting of
 `mh-folder-font-lock-keywords' expects this expression to contain at least one
 parenthesized expression which matches the message number as in the default of
-\"^\\\\( *[0-9]+\\\\)\\\\^\". This regular expression should be correct as it
-is needed by non-fontifying functions. See also `mh-note-refiled'.")
+\"^\\\\( *[0-9]+\\\\)\\\\^\". This expression includes the leading space
+within the parenthesis since it looks better to highlight it as well. This
+regular expression should be correct as it is needed by non-fontifying
+functions. See also `mh-note-refiled'.")
 
 (defvar mh-scan-valid-regexp "^ *[0-9]"
   "This regular expression describes a valid scan line.
@@ -213,8 +219,10 @@ This is used to eliminate error messages that are occasionally produced by
 It must match from the beginning of the line. Note that the default setting of
 `mh-folder-font-lock-keywords' expects this expression to contain at least one
 parenthesized expression which matches the message number as in the default of
-\"^\\\\( *[0-9]+\\\\+\\\\).*\". This regular expression should be correct as
-it is needed by non-fontifying functions. See also `mh-note-cur'.")
+\"^\\\\( *[0-9]+\\\\+\\\\).*\". This expression includes the leading space and
+current message marker \"+\" within the parenthesis since it looks better to
+highlight these items as well. This regular expression should be correct as it
+is needed by non-fontifying functions. See also `mh-note-cur'.")
 
 (defvar mh-scan-date-regexp "\\([0-9][0-9]/[0-9][0-9]\\)"
   "This regular expression matches a valid date.
