@@ -214,12 +214,6 @@ detailed description of this mode.
   :group 'gud
   :version "22.1")
 
-(defcustom gdb-use-inferior-io-buffer nil
-  "Non-nil means display output from the inferior in a separate buffer."
-  :type 'boolean
-  :group 'gud
-  :version "22.1")
-
 (defcustom gdb-cpp-define-alist-program "gcc -E -dM -"
   "Shell command for generating a list of defined macros in a source file.
 This list is used to display the #define directive associated
@@ -244,6 +238,29 @@ Also display the main routine in the disassembly buffer if present."
   :type 'boolean
   :group 'gud
   :version "22.1")
+
+
+(defcustom gdb-use-inferior-io-buffer nil
+  "Non-nil means display output from the inferior in a separate buffer."
+  :type 'boolean
+  :group 'gud
+  :version "22.1")
+
+(defun gdb-use-inferior-io-buffer (arg)
+  "Toggle separate IO for inferior.
+With arg, use separate IO iff arg is positive."
+  (interactive "P")
+  (setq gdb-use-inferior-io-buffer
+	(if (null arg)
+	    (not gdb-use-inferior-io-buffer)
+	  (> (prefix-numeric-value arg) 0)))
+  (if (and gud-comint-buffer
+	   (buffer-name gud-comint-buffer))
+      (condition-case nil
+	  (if gdb-use-inferior-io-buffer
+	      (gdb-restore-windows)
+	    (kill-buffer (gdb-inferior-io-name)))
+	(error nil))))
 
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
 
@@ -2315,11 +2332,9 @@ corresponding to the mode line clicked."
   (define-key gud-menu-map [ui]
     `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb-use-inferior-io]
-    ;; See defadvice below.
-    (menu-bar-make-toggle toggle-gdb-use-inferior-io-buffer
-			  gdb-use-inferior-io-buffer
-     "Separate inferior IO" "Use separate IO %s"
-     "Toggle separate IO for inferior."))
+  '(menu-item "Separate inferior IO" gdb-use-inferior-io-buffer
+	      :help "Toggle separate IO for inferior."
+	      :button (:toggle . gdb-use-inferior-io-buffer)))
   (define-key menu [gdb-many-windows]
   '(menu-item "Display Other Windows" gdb-many-windows
 	      :help "Toggle display of locals, stack and breakpoint information"
@@ -2327,11 +2342,6 @@ corresponding to the mode line clicked."
   (define-key menu [gdb-restore-windows]
   '(menu-item "Restore Window Layout" gdb-restore-windows
 	      :help "Restore standard layout for debug session.")))
-
-;; This function is defined above through a macro.
-(defadvice toggle-gdb-use-inferior-io-buffer (after gdb-kill-io-buffer activate)
-  (unless gdb-use-inferior-io-buffer
-    (kill-buffer (gdb-inferior-io-name))))
 
 (defun gdb-frame-gdb-buffer ()
   "Display GUD buffer in a new frame."
@@ -2392,7 +2402,8 @@ of the inferior.  Non-nil means display the layout shown for
   :version "22.1")
 
 (defun gdb-many-windows (arg)
-  "Toggle the number of windows in the basic arrangement."
+  "Toggle the number of windows in the basic arrangement.
+With arg, display additional buffers iff arg is positive."
   (interactive "P")
   (setq gdb-many-windows
 	(if (null arg)
