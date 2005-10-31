@@ -1,3 +1,14 @@
+2005-10-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-many-windows): Leave window configuration
+	intact if there is no gud-comint-buffer.
+
+2005-10-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/gud.el (gud-filter): Use comint-update-fence to delete
+	old prompt comint-prompt-read-only is t and GDB commands are
+	issued from tool bar etc.
+
 2005-10-31  Masatake YAMATO  <jet@gyve.org>
 
 	* vc.el (vc-directory-exclusion-list): Add "{arch}".
