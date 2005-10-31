@@ -2536,6 +2536,7 @@ It is saved for when this flag is not set.")
 		    (let ((inhibit-read-only t))
 		      (delete-region (process-mark proc)
 				     gud-delete-prompt-marker)
+		      (comint-update-fence)
 		      (set-marker gud-delete-prompt-marker nil)))
 		;; Save the process output, checking for source file markers.
 		(setq output (gud-marker-filter string))
