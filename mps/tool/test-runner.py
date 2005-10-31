@@ -10,6 +10,13 @@
 #What do we test?
 #Not much -- this procedure is for a quick test before shipping, principally to make sure that the build isn't crock in some way.  
 
+#How to run the test:
+#You need python (eg. 2.3).  Cd to where you would type w3build.bat.  
+#Type ..\tool\test-runner.py
+#Each test should report "Conclusion:  Failed to find any defects."
+#Also check full log placed in file a1.txt.
+
+
 import os
 testout = "./a1.txt"
 
@@ -21,7 +28,7 @@ def runtest(test, variety, testout):
   os.system("echo --- %s (%s) ---" % (test, variety) )
   os.system("echo --- %s (%s) --- >>%s" % (test, variety, testout) )
   os.system("nmake /f w3i3mv.nmk VARIETY=%s %s.exe >>%s" % (variety, test, testout) )
-  os.system("./w3i3mv/%s/%s.exe >>%s" % (variety, test, testout) )
+  os.system(".\w3i3mv\%s\%s.exe >>%s" % (variety, test, testout) )
 
 def runtestlist( lTest, lVariety, testout ):
   # clear testout
