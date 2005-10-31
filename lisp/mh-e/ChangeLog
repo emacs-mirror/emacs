@@ -1,3 +1,14 @@
+2005-10-30  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-compose-space-does-completion-flag)
+	(mh-signature-separator-flag, mh-interpret-number-as-range-flag)
+	(mh-adaptive-cmd-note-flag): Use "Non-nil means" instead of "On
+	means" to remain checkdoc clean and consistent with Emacs. I
+	raised this issue with the Emacs developers and Stallman agrees
+	that "On means" should be allowed in custom docstrings but that
+	this change requires thought and should wait until after the Emacs
+	22 release.
+
 2005-10-28  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-annotate-msg): Use new variable

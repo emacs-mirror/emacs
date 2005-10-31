@@ -781,12 +781,12 @@ be set to \"MH\" if MH-style directives are preferred."
   :group 'mh-letter)
 
 (defcustom mh-compose-space-does-completion-flag nil
-  "*On means \\<mh-letter-mode-map>\\[mh-letter-complete-or-space] does completion in message header."
+  "*Non-nil means \\<mh-letter-mode-map>\\[mh-letter-complete-or-space] does completion in message header."
   :type 'boolean
   :group 'mh-letter)
 
 (defcustom mh-delete-yanked-msg-window-flag nil
-  "*On means delete any window displaying the message.
+  "*Non-nil means delete any window displaying the message.
 This deletes the window containing the original message after yanking it with
 \\<mh-letter-mode-map>\\[mh-yank-cur-msg] to make more room on your screen for
 your reply."
@@ -869,7 +869,7 @@ option."
   :group 'mh-letter)
 
 (defcustom mh-signature-separator-flag t
-  "*On means a signature separator should be inserted.
+  "*Non-nil means a signature separator should be inserted.
 It is not recommended that you change this option since various mail user
 agents, including MH-E, use the separator to present the signature
 differently, and to suppress the signature when replying or yanking a letter
@@ -948,7 +948,7 @@ is added to the yanked region."
 ;;; Ranges (:group 'mh-ranges)
 
 (defcustom mh-interpret-number-as-range-flag t
-  "*On means interpret a number as a range.
+  "*Non-nil means interpret a number as a range.
 Since one of the most frequent ranges used is \"last:N\", MH-E will interpret
 input such as \"200\" as \"last:200\" if this option is on (which is the
 default). If you need to scan just the message 200, then use the range
@@ -984,7 +984,7 @@ when `mh-adaptive-cmd-note-flag' is on. Otherwise, set SYMBOL to VALUE."
     (set-default symbol value)))
 
 (defcustom mh-adaptive-cmd-note-flag t
-  "*On means that the message number width is determined dynamically.
+  "*Non-nil means that the message number width is determined dynamically.
 If you've created your own format to handle long message numbers, you'll be
 pleased to know you no longer need it since MH-E adapts its internal format
 based upon the largest message number if this option is on (the default).
