@@ -1,3 +1,7 @@
+2005-10-30  Bill Wohler  <wohler@newt.com>
+
+	* help.texi (Help Mode): URLs viewed with browse-url.
+
 2005-10-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Don't reference
