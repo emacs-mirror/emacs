@@ -1,3 +1,7 @@
+2005-10-31  Romain Francoise  <romain@orebokech.com>
+
+	* help-fns.el (describe-simplify-lib-file-name): Add autoload cookie.
+
 2005-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* loadup.el: Load emacs-lisp/syntax, font-lock and jit-lock so

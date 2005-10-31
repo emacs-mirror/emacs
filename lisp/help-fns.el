@@ -283,6 +283,7 @@ face (according to `face-differs-from-default-p')."
   ;; Return value is like the one from help-split-fundoc, but highlighted
   (cons usage doc))
 
+;;;###autoload
 (defun describe-simplify-lib-file-name (file)
   "Simplify a library name FILE to a relative name, and make it a source file."
   (if file
