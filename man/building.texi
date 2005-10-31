@@ -936,8 +936,11 @@ statements, the default value is @code{nil}.
 @vindex gdb-use-inferior-io-buffer
 If the variable @code{gdb-use-inferior-io-buffer} is non-@code{nil},
 the executable program that is being debugged takes its input and
-displays its output here.  Some of the commands from shell mode are
-available here.  @xref{Shell Mode}.
+displays its output here, otherwise it uses the GUD buffer.  To toggle
+the use of this buffer, do @kbd{M-x gdb-use-inferior-io-buffer}.
+
+Some of the commands from shell mode are available here.  @xref{Shell
+Mode}.
 
 @item Locals Buffer
 The locals buffer displays the values of local variables of the
