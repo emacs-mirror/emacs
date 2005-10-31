@@ -5,7 +5,7 @@
 * RELEASE2_1 in config.h. This may also be necessary with un-updated
 * official releases of 2.1
 
-   Copyright (C) 1986, 2002, 2005 Free Software Foundation, Inc.
+   Copyright (C) 1986, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
