@@ -1,3 +1,7 @@
+2005-10-31  Masatake YAMATO  <jet@gyve.org>
+
+	* vc.el (vc-directory-exclusion-list): Add "{arch}".
+
 2005-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* thumbs.el (thumbs-thumbsdir): Default to ~/.emacs.d/thumbs.
