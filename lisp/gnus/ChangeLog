@@ -1,3 +1,23 @@
+2005-10-27  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* flow-fill.el (fill-flowed-encode-tests): Restore trailing
+	whitespace removed in revision 7.8.  Use concatenated string to
+	protect trailing whitespace.
+
+2005-10-27  Jouni K Seppanen <jks@iki.fi>  (tiny change)
+
+	* nnimap.el (nnimap-search-uids-not-since-is-evil): Add variable.
+	(nnimap-request-expire-articles): Use it to avoid sending 'UID
+	SEARCH UID ... NOT SINCE' queries, for inefficient servers like
+	Courier IMAP ("some version from 2004").  Mostly based on similar
+	code in the same function.
+
+2005-10-26  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-display-completion-list): New function.
+	(message-expand-group): Use it; make sure the Completions buffer
+	is modifiable.
+
 2005-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* imap.el (imap-open): Handle case where buffer is a buffer

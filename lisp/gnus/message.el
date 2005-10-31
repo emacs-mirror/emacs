@@ -6652,6 +6652,17 @@ those headers."
 		 (lookup-key global-map "\t")
 		 'indent-relative))))
 
+(eval-and-compile
+  (condition-case nil
+      (with-temp-buffer
+	(let ((standard-output (current-buffer)))
+	  (eval '(display-completion-list nil "")))
+	(defalias 'message-display-completion-list 'display-completion-list))
+    (error ;; Don't use `wrong-number-of-arguments' here because of XEmacs.
+     (defun message-display-completion-list (completions &optional ignore)
+       "Display the list of completions, COMPLETIONS, using `standard-output'."
+       (display-completion-list completions)))))
+
 (defun message-expand-group ()
   "Expand the group name under point."
   (let* ((b (save-excursion
@@ -6690,7 +6701,9 @@ those headers."
 	  (let ((buffer-read-only nil))
 	    (erase-buffer)
 	    (let ((standard-output (current-buffer)))
-	      (display-completion-list (sort completions 'string<) string))
+	      (message-display-completion-list (sort completions 'string<)
+					       string))
+	    (setq buffer-read-only nil)
 	    (goto-char (point-min))
 	    (delete-region (point) (progn (forward-line 3) (point))))))))))
 
