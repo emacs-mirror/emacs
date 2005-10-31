@@ -1,3 +1,8 @@
+2005-10-31  Romain Francoise  <romain@orebokech.com>
+
+	* macfns.c: Update copyright year.
+	* m/gould.h: Likewise.
+
 2005-10-30  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (display_line): Restore it->current_x and call
