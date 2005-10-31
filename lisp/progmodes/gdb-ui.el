@@ -2398,9 +2398,11 @@ of the inferior.  Non-nil means display the layout shown for
 	(if (null arg)
 	    (not gdb-many-windows)
 	  (> (prefix-numeric-value arg) 0)))
-  (condition-case nil
-      (gdb-restore-windows)
-    (error nil)))
+  (if (and gud-comint-buffer
+	   (buffer-name gud-comint-buffer))
+      (condition-case nil
+	  (gdb-restore-windows)
+	(error nil))))
 
 (defun gdb-restore-windows ()
   "Restore the basic arrangement of windows used by gdba.
