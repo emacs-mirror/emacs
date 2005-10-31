@@ -1,3 +1,7 @@
+2005-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1170000.
+
 2005-10-31  Romain Francoise  <romain@orebokech.com>
 
 	* macfns.c: Update copyright year.

@@ -1,3 +1,16 @@
+2005-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* loadup.el: Load emacs-lisp/syntax, font-lock and jit-lock so
+	that global-font-lock-mode can be enabled by default.
+
+	* font-lock.el (font-lock-keywords, font-lock-mode-internal)
+	(font-lock-add-keywords, font-lock-remove-keywords)
+	(font-lock-fontify-buffer): Remove autoload cookies.
+
+	* jit-lock.el (jit-lock-register): Likewise.
+
+	* emacs-lisp/syntax.el (syntax-ppss): Likewise.
+
 2005-10-31  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-many-windows): Leave window configuration

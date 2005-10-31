@@ -264,7 +264,6 @@ the variable `jit-lock-stealth-nice'."
 	 (remove-hook 'after-change-functions 'jit-lock-after-change t)
 	 (remove-hook 'fontification-functions 'jit-lock-function))))
 
-;;;###autoload
 (defun jit-lock-register (fun &optional contextual)
   "Register FUN as a fontification function to be called in this buffer.
 FUN will be called with two arguments START and END indicating the region

@@ -340,7 +340,6 @@ This can be an \"!\" or the \"n\" in \"ifndef\".")
 
 ;; Fontification variables:
 
-;;;###autoload
 (defvar font-lock-keywords nil
   "A list of the keywords to highlight.
 There are two kinds of values: user-level, and compiled.
@@ -630,7 +629,6 @@ Major/minor modes can set this variable if they know which option applies.")
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.
 
-;;;###autoload
 (defun font-lock-mode-internal (arg)
   ;; Turn on Font Lock mode.
   (when arg
@@ -652,7 +650,6 @@ Major/minor modes can set this variable if they know which option applies.")
     (font-lock-unfontify-buffer)
     (font-lock-turn-off-thing-lock)))
 
-;;;###autoload
 (defun font-lock-add-keywords (mode keywords &optional append)
   "Add highlighting KEYWORDS for MODE.
 
@@ -771,7 +768,6 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 ;;      is added and removed several times.
 ;;
 ;; (II) The keywords are removed from the current buffer.
-;;;###autoload
 (defun font-lock-remove-keywords (mode keywords)
   "Remove highlighting KEYWORDS for MODE.
 
@@ -981,7 +977,6 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; directives correctly and cleanly.  (It is the same problem as fontifying
 ;; multi-line strings and comments; regexps are not appropriate for the job.)
 
-;;;###autoload
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way the function `font-lock-mode' would."
   (interactive)

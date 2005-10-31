@@ -132,6 +132,9 @@
 (load "frame")
 (load "term/tty-colors")
 (load "font-core")
+(load "emacs-lisp/syntax")
+(load "font-lock")
+(load "jit-lock")
 
 (load "facemenu")
 (if (fboundp 'track-mouse)
