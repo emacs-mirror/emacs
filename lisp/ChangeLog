@@ -1,3 +1,9 @@
+2005-11-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer): New function.
+	(menu, toggle-gdb-use-inferior-io-buffer): Get rid of defadvice.
+	(gdb-many-windows): Doc fix.
+
 2005-10-31  Romain Francoise  <romain@orebokech.com>
 
 	* help-fns.el (describe-simplify-lib-file-name): Add autoload cookie.
