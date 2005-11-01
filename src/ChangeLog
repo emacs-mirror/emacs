@@ -1,3 +1,12 @@
+2005-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (window_loop): For LRU and LARGEST, let the `mini' argument
+	determine whether to consider dedicated windows as well.
+	(Fget_lru_window, Fget_largest_window): Add `dedicated' argument.
+	(Fdisplay_buffer): Do consider dedicated windows in those cases where
+	we will split the window rather than reuse it.
+	Don't try to use windows on other displays.
+
 2005-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* puresize.h (BASE_PURESIZE): Increment to 1170000.

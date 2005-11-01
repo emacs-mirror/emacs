@@ -2000,7 +2000,7 @@ window_loop (type, obj, mini, frames)
 	    if (!NILP (obj) && !WINDOW_FULL_WIDTH_P (w))
 	      break;
 	    /* Ignore dedicated windows and minibuffers.  */
-	    if (MINI_WINDOW_P (w) || EQ (w->dedicated, Qt))
+	    if (MINI_WINDOW_P (w) || (!mini && EQ (w->dedicated, Qt)))
 	      break;
 	    if (NILP (best_window)
 		|| (XFASTINT (XWINDOW (best_window)->use_time)
@@ -2053,7 +2053,7 @@ window_loop (type, obj, mini, frames)
 	  case GET_LARGEST_WINDOW:
 	    {
 	      /* Ignore dedicated windows and minibuffers.  */
-	      if (MINI_WINDOW_P (w) || EQ (w->dedicated, Qt))
+	      if (MINI_WINDOW_P (w) || (!mini && EQ (w->dedicated, Qt)))
 		break;
 
 	      if (NILP (best_window))
@@ -2147,43 +2147,43 @@ check_all_windows ()
   window_loop (CHECK_ALL_WINDOWS, Qnil, 1, Qt);
 }
 
-DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 1, 0,
+DEFUN ("get-lru-window", Fget_lru_window, Sget_lru_window, 0, 2, 0,
        doc: /* Return the window least recently selected or used for display.
 Return a full-width window if possible.
 A minibuffer window is never a candidate.
-A dedicated window is never a candidate, so if all windows are dedicated,
-the value is nil.
+A dedicated window is never a candidate, unless DEDICATED is non-nil,
+  so if all windows are dedicated, the value is nil.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
 If FRAME is nil, search only the selected frame.
 If FRAME is a frame, search only that frame.  */)
-     (frame)
-     Lisp_Object frame;
+  (frame, dedicated)
+     Lisp_Object frame, dedicated;
 {
   register Lisp_Object w;
   /* First try for a window that is full-width */
-  w = window_loop (GET_LRU_WINDOW, Qt, 0, frame);
+  w = window_loop (GET_LRU_WINDOW, Qt, !NILP (dedicated), frame);
   if (!NILP (w) && !EQ (w, selected_window))
     return w;
   /* If none of them, try the rest */
-  return window_loop (GET_LRU_WINDOW, Qnil, 0, frame);
+  return window_loop (GET_LRU_WINDOW, Qnil, !NILP (dedicated), frame);
 }
 
-DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 1, 0,
+DEFUN ("get-largest-window", Fget_largest_window, Sget_largest_window, 0, 2, 0,
        doc: /* Return the largest window in area.
 A minibuffer window is never a candidate.
-A dedicated window is never a candidate, so if all windows are dedicated,
-the value is nil.
+A dedicated window is never a candidate unless DEDICATED is non-nil,
+  so if all windows are dedicated, the value is nil.
 If optional argument FRAME is `visible', search all visible frames.
 If FRAME is 0, search all visible and iconified frames.
 If FRAME is t, search all frames.
 If FRAME is nil, search only the selected frame.
 If FRAME is a frame, search only that frame.  */)
-     (frame)
-     Lisp_Object frame;
+    (frame, dedicated)
+     Lisp_Object frame, dedicated;
 {
-  return window_loop (GET_LARGEST_WINDOW, Qnil, 0,
+  return window_loop (GET_LARGEST_WINDOW, Qnil, !NILP (dedicated),
 		      frame);
 }
 
@@ -3503,15 +3503,17 @@ displayed.  */)
       if (FRAME_NO_SPLIT_P (NILP (frames) ? f : last_nonminibuf_frame))
 	{
 	  /* Try visible frames first.  */
-	  window = Fget_largest_window (Qvisible);
+	  window = Fget_largest_window (Qvisible, Qt);
 	  /* If that didn't work, try iconified frames.  */
 	  if (NILP (window))
-	    window = Fget_largest_window (make_number (0));
+	    window = Fget_largest_window (make_number (0), Qt);
+#if 0     /* Don't try windows on other displays.  */
 	  if (NILP (window))
-	    window = Fget_largest_window (Qt);
+	    window = Fget_largest_window (Qt, Qt);
+#endif
 	}
       else
-	window = Fget_largest_window (frames);
+	window = Fget_largest_window (frames, Qt);
 
       /* If we got a tall enough full-width window that can be split,
 	 split it.  */
@@ -3524,7 +3526,7 @@ displayed.  */)
 	{
 	  Lisp_Object upper, lower, other;
 
-	  window = Fget_lru_window (frames);
+	  window = Fget_lru_window (frames, Qt);
 	  /* If the LRU window is selected, and big enough,
 	     and can be split, split it.  */
 	  if (!NILP (window)
@@ -3539,17 +3541,19 @@ displayed.  */)
 	  if (NILP (window))
 	    window = Fget_buffer_window (buffer, Qvisible);
 	  if (NILP (window))
-	    window = Fget_largest_window (Qvisible);
+	    window = Fget_largest_window (Qvisible, Qnil);
 	  /* If that didn't work, try iconified frames.  */
 	  if (NILP (window))
 	    window = Fget_buffer_window (buffer, make_number (0));
 	  if (NILP (window))
-	    window = Fget_largest_window (make_number (0));
-	  /* Try invisible frames.  */
+	    window = Fget_largest_window (make_number (0), Qnil);
+
+#if 0     /* Don't try frames on other displays.  */
 	  if (NILP (window))
 	    window = Fget_buffer_window (buffer, Qt);
 	  if (NILP (window))
-	    window = Fget_largest_window (Qt);
+	    window = Fget_largest_window (Qt, Qnil);
+#endif
 	  /* As a last resort, make a new frame.  */
 	  if (NILP (window))
 	    window = Fframe_selected_window (call0 (Vpop_up_frame_function));
@@ -3576,7 +3580,7 @@ displayed.  */)
 	}
     }
   else
-    window = Fget_lru_window (Qnil);
+    window = Fget_lru_window (Qnil, Qnil);
 
   Fset_window_buffer (window, buffer, Qnil);
   return display_buffer_1 (window);
