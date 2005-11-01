@@ -118,6 +118,9 @@ emacs crash.
 The Emacs terminal emulation in term.el now uses "eterm-color" as its
 terminfo name, since term.el now supports color.
 
+---
+** Emacs Lisp source files are compressed by default if `gzip' is available.
+
 
 * Startup Changes in Emacs 22.1
 
