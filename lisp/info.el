@@ -1961,7 +1961,9 @@ If SAME-FILE is non-nil, do not move to a different Info file."
               (if (and (string-equal file curr-file)
                        (string-equal node curr-node))
                   (setq p (point)))
-              (insert "* " node ": (" (file-name-nondirectory file)
+              (insert "* " node ": ("
+		      (propertize (or (file-name-directory file) "") 'invisible t)
+		      (file-name-nondirectory file)
                       ")" node ".\n"))
             (setq hl (cdr hl))))))
     (Info-find-node "history" "Top")
@@ -3662,7 +3664,7 @@ the variable `Info-file-list-for-emacs'."
                  (nend (match-end 2))
                  (tbeg (match-beginning 1))
                  (tag (match-string 1)))
-            (if (string-equal tag "Node")
+            (if (string-equal (downcase tag) "node")
                 (put-text-property nbeg nend 'font-lock-face 'info-header-node)
               (put-text-property nbeg nend 'font-lock-face 'info-header-xref)
               (put-text-property tbeg nend 'mouse-face 'highlight)
@@ -3673,11 +3675,12 @@ the variable `Info-file-list-for-emacs'."
               ;; Always set up the text property keymap.
               ;; It will either be used in the buffer
               ;; or copied in the header line.
-              (put-text-property tbeg nend 'keymap
-                                 (cond
-                                  ((equal tag "Prev") Info-prev-link-keymap)
-                                  ((equal tag "Next") Info-next-link-keymap)
-                                  ((equal tag "Up") Info-up-link-keymap))))))
+              (put-text-property
+	       tbeg nend 'keymap
+	       (cond
+		((string-equal (downcase tag) "prev") Info-prev-link-keymap)
+		((string-equal (downcase tag) "next") Info-next-link-keymap)
+		((string-equal (downcase tag) "up"  ) Info-up-link-keymap))))))
         (when Info-use-header-line
           (goto-char (point-min))
           (let* ((header-end (line-end-position))
