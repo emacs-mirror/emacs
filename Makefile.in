@@ -223,6 +223,9 @@ INSTALL_INFO = @INSTALL_INFO@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
 
+# We use gzip to compress installed .el files.
+GZIP = @GZIP@
+
 # ============================= Targets ==============================
 
 # Program name transformation.
@@ -473,6 +476,14 @@ install-arch-indep: mkdir info
 	   (cd lisp; tar -chf - *.el *.elc) \
 	     |(cd ${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
 	   (cd ${lispdir}; find . -exec chown $${LOGNAME:-$$USERNAME} {} ';') ; \
+	else true; fi
+	-unset CDPATH; \
+	if [ -n "${GZIP}" ]; \
+	then \
+	   echo "Compressing *.el ..." ; \
+	   (cd ${lispdir}; for f in `find . -name "*.elc" -print`; do \
+		${GZIP} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	    done) \
 	else true; fi
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \

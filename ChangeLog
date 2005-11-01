@@ -1,7 +1,14 @@
+2005-11-01  Romain Francoise  <romain@orebokech.com>
+
+	* configure.in: Check for gzip.
+	* configure: Regenerate.
+
+	* Makefile.in (install): Compress source files.
+
 2005-10-24  Steven Tamm  <steventamm@mac.com>
 
-	* configure.in: Fix darwin386 configuration issue
-	* configure: Regenerate
+	* configure.in: Fix darwin386 configuration issue.
+	* configure: Regenerate.
 
 2005-10-22  Eli Zaretskii  <eliz@gnu.org>
 
