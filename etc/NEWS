@@ -1533,7 +1533,7 @@ separate manual.
 
 +++
 ** savehist saves minibuffer histories between sessions.
-To use this feature, put (savehist-load) in your `.emacs' file.
+To use this feature, turn on savehist-mode in your `.emacs' file.
 
 +++
 ** Filesets are collections of files.  You can define a fileset in
