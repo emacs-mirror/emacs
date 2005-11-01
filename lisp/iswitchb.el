@@ -559,7 +559,7 @@ variable `iswitchb-mode'."
     (define-key map "\C-j" 'iswitchb-select-buffer-text)
     (define-key map "\C-t" 'iswitchb-toggle-regexp)
     (define-key map "\C-x\C-f" 'iswitchb-find-file)
-    ;;(define-key map "\C-a" 'iswitchb-toggle-ignore)
+    (define-key map "\C-a" 'iswitchb-toggle-ignore)
     (define-key map "\C-c" 'iswitchb-toggle-case)
     (define-key map "\C-k" 'iswitchb-kill-buffer)
     (define-key map "\C-m" 'iswitchb-exit-minibuffer)
