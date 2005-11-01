@@ -1,3 +1,11 @@
+2005-11-02  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/ld-script.el (ld-script-builtins): Add
+	more words: "DATA_SEGMENT_ALIGN", "DATA_SEGMENT_END", 
+	"DATA_SEGMENT_RELRO_END", "LENGTH", "ORIGIN", and
+	"SEGMENT_START".
+	(auto-mode-alist): Accept .ld, .lds, ld.in and .lds.in.
+
 2005-11-01  Romain Francoise  <romain@orebokech.com>
 
 	* vc-sccs.el: Update copyright year.
