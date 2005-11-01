@@ -3722,8 +3722,8 @@ the variable `Info-file-list-for-emacs'."
                     ;; underline has the same size as the text.  A typical
                     ;; counter example is when a continuation "..." is alone
                     ;; on a line.
-                    (= (- (match-end 1) (match-beginning 1))
-                       (- (match-end 2) (match-beginning 2))))
+                    (= (string-width (match-string 1))
+                       (string-width (match-string 2))))
           (let* ((c (preceding-char))
                  (face
                   (cond ((= c ?*) 'info-title-1)
