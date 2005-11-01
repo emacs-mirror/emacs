@@ -1,5 +1,13 @@
 2005-11-01  John Wiegley  <johnw@newartisans.com>
 
+	* net/eudcb-mab.el (eudc-mab-query-internal): Added backend
+	support for OS/X's AddressBook, by calling out to the open source
+	program "contacts" (installable through Fink).
+
+	* net/eudc.el (eudc-expand-inline): If the
+	`eudc-multiple-match-handling-method' is set to `all', delete the
+	query string before inserting the query result.
+
 	* eshell/em-ls.el (eshell-do-ls): Added no-op support for --dired
 	flag, to prevent Eshell from using the system ls when
 	`eshell-ls-insert-directory' is in used.
