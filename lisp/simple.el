@@ -993,8 +993,8 @@ display the result of expression evaluation."
                      (memq this-command '(eval-last-sexp eval-print-last-sexp)))
                  (prin1-char value))))
         (if char-string
-            (format " (0%o, 0x%x) = %s" value value char-string)
-          (format " (0%o, 0x%x)" value value)))))
+            (format " (#o%o, #x%x, %s)" value value char-string)
+          (format " (#o%o, #x%x)" value value)))))
 
 ;; We define this, rather than making `eval' interactive,
 ;; for the sake of completion of names like eval-region, eval-current-buffer.
@@ -2393,7 +2393,7 @@ argument should still be a \"useful\" string for such uses."
       (menu-bar-update-yank-menu string (and replace (car kill-ring))))
   (if (and replace kill-ring)
       (setcar kill-ring string)
-    (setq kill-ring (cons string kill-ring))
+    (push string kill-ring)
     (if (> (length kill-ring) kill-ring-max)
 	(setcdr (nthcdr (1- kill-ring-max) kill-ring) nil)))
   (setq kill-ring-yank-pointer kill-ring)
@@ -3003,8 +3003,7 @@ BUFFER (or buffer name), START and END.
 START and END specify the portion of the current buffer to be copied."
   (interactive "BCopy to buffer: \nr")
   (let ((oldbuf (current-buffer)))
-    (save-excursion
-      (set-buffer (get-buffer-create buffer))
+    (with-current-buffer (get-buffer-create buffer)
       (barf-if-buffer-read-only)
       (erase-buffer)
       (save-excursion
@@ -4888,8 +4887,9 @@ is the substring.)")
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
 (defun completion-setup-function ()
-  (let ((mainbuf (current-buffer))
-	(mbuf-contents (minibuffer-contents)))
+  (let* ((mainbuf (current-buffer))
+         (mbuf-contents (minibuffer-contents))
+         (common-string-length (length mbuf-contents)))
     ;; When reading a file name in the minibuffer,
     ;; set default-directory in the minibuffer
     ;; so it will get copied into the completion list buffer.
@@ -4901,12 +4901,11 @@ is the substring.)")
     ;; FIXME: This still doesn't work if the text to be completed
     ;; starts with a `-'.
     (when (and partial-completion-mode (not (eobp)))
-      (setq mbuf-contents
-	    (substring mbuf-contents 0 (- (point) (point-max)))))
+      (setq common-string-length
+            (- common-string-length (- (point) (point-max)))))
     (with-current-buffer standard-output
       (completion-list-mode)
-      (make-local-variable 'completion-reference-buffer)
-      (setq completion-reference-buffer mainbuf)
+      (set (make-local-variable 'completion-reference-buffer) mainbuf)
       (if minibuffer-completing-file-name
 	  ;; For file name completion,
 	  ;; use the number of chars before the start of the
@@ -4926,29 +4925,25 @@ is the substring.)")
 	      (setq completion-base-size 0))))
       ;; Put faces on first uncommon characters and common parts.
       (when (or completion-common-substring completion-base-size)
-	(let* ((common-string-length
+        (setq common-string-length
 		(if completion-common-substring
 		    (length completion-common-substring)
-		  (- (length mbuf-contents) completion-base-size)))
-	       (element-start (next-single-property-change
-			       (point-min)
-			       'mouse-face))
-	       (element-common-end
-		(and element-start
-		     (+ (or element-start nil) common-string-length)))
-	       (maxp (point-max)))
-	  (while (and element-start (< element-common-end maxp))
+                  (- common-string-length completion-base-size)))
+	(let ((element-start (point-min))
+              (maxp (point-max))
+              element-common-end)
+	  (while (and (setq element-start
+                            (next-single-property-change
+                             element-start 'mouse-face))
+                      (< (setq element-common-end
+                               (+ element-start common-string-length))
+                         maxp))
 	    (when (and (get-char-property element-start 'mouse-face)
 		       (get-char-property element-common-end 'mouse-face))
 	      (put-text-property element-start element-common-end
 				 'font-lock-face 'completions-common-part)
 	      (put-text-property element-common-end (1+ element-common-end)
-				 'font-lock-face 'completions-first-difference))
-	    (setq element-start (next-single-property-change
-				 element-start
-				 'mouse-face))
-	    (if element-start
-		(setq element-common-end  (+ element-start common-string-length))))))
+				 'font-lock-face 'completions-first-difference)))))
       ;; Insert help string.
       (goto-char (point-min))
       (if (display-mouse-p)
@@ -4960,14 +4955,8 @@ select the completion near point.\n\n")))))
 
 (add-hook 'completion-setup-hook 'completion-setup-function)
 
-(define-key minibuffer-local-completion-map [prior]
-  'switch-to-completions)
-(define-key minibuffer-local-must-match-map [prior]
-  'switch-to-completions)
-(define-key minibuffer-local-completion-map "\M-v"
-  'switch-to-completions)
-(define-key minibuffer-local-must-match-map "\M-v"
-  'switch-to-completions)
+(define-key minibuffer-local-completion-map [prior] 'switch-to-completions)
+(define-key minibuffer-local-completion-map "\M-v"  'switch-to-completions)
 
 (defun switch-to-completions ()
   "Select the completion list window."
