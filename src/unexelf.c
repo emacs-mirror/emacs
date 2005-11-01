@@ -682,7 +682,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   ElfW(Addr) new_data2_addr;
 
   int n, nn;
-  int old_bss_index, old_sbss_index;
+  int old_bss_index, old_sbss_index, old_plt_index;
   int old_data_index, new_data2_index;
   int old_mdebug_index;
   struct stat stat_buf;
@@ -740,14 +740,33 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   old_sbss_index = find_section (".sbss", old_section_names,
 				 old_name, old_file_h, old_section_h, 1);
   if (old_sbss_index != -1)
-    if (OLD_SECTION_H (old_sbss_index).sh_type == SHT_PROGBITS)
+    if (OLD_SECTION_H (old_sbss_index).sh_type != SHT_NOBITS)
       old_sbss_index = -1;
 
-  if (old_sbss_index == -1)
+  /* PowerPC64 has .plt in the BSS section.  */
+  old_plt_index = find_section (".plt", old_section_names,
+				old_name, old_file_h, old_section_h, 1);
+  if (old_plt_index != -1)
+    if (OLD_SECTION_H (old_plt_index).sh_type != SHT_NOBITS)
+      old_plt_index = -1;
+
+  if (old_sbss_index == -1 && old_plt_index == -1)
     {
       old_bss_addr = OLD_SECTION_H (old_bss_index).sh_addr;
       old_bss_size = OLD_SECTION_H (old_bss_index).sh_size;
       new_data2_index = old_bss_index;
+    }
+  else if (old_plt_index != -1
+	   && (old_sbss_index == -1
+	       || (OLD_SECTION_H (old_sbss_index).sh_addr
+		   > OLD_SECTION_H (old_plt_index).sh_addr)))
+    {
+      old_bss_addr = OLD_SECTION_H (old_plt_index).sh_addr;
+      old_bss_size = OLD_SECTION_H (old_bss_index).sh_size
+	+ OLD_SECTION_H (old_plt_index).sh_size;
+      if (old_sbss_index != -1)
+	old_bss_size += OLD_SECTION_H (old_sbss_index).sh_size;
+      new_data2_index = old_plt_index;
     }
   else
     {
@@ -934,7 +953,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       if (n == old_bss_index
 	  /* The new bss and sbss section's size is zero, and its file offset
 	     and virtual address should be off by NEW_DATA2_SIZE.  */
-	  || n == old_sbss_index
+	  || n == old_sbss_index || n == old_plt_index
 	  )
 	{
 	  /* NN should be `old_s?bss_index + 1' at this point. */
