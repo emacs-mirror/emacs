@@ -1,5 +1,11 @@
 2005-11-01  John Wiegley  <johnw@newartisans.com>
 
+	* iswitchb.el (iswitchb-define-mode-map): Re-enabled the
+	toggle-ignore keybinding (C-a).  The author said it had been
+	disabled much earlier due to a possible incompatibility, but after
+	many months of usage I have encountered no problems (and it is a
+	rather useful option, especially for switching to " *temp*").
+
 	* net/eudcb-mab.el (eudc-mab-query-internal): Added backend
 	support for OS/X's AddressBook, by calling out to the open source
 	program "contacts" (installable through Fink).
