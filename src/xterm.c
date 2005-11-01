@@ -248,6 +248,7 @@ static unsigned long ignore_next_mouse_click_timeout;
 /* Where the mouse was last time we reported a mouse event.  */
 
 static XRectangle last_mouse_glyph;
+static FRAME_PTR last_mouse_glyph_frame;
 static Lisp_Object last_mouse_press_frame;
 
 /* The scroll bar in which the last X motion event occurred.
@@ -3602,20 +3603,24 @@ note_mouse_movement (frame, event)
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, -1, -1);
+      last_mouse_glyph_frame = 0;
       return 1;
     }
 
+
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (event->x < last_mouse_glyph.x
-	   || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
-	   || event->y < last_mouse_glyph.y
-	   || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
+  if (frame != last_mouse_glyph_frame
+      || event->x < last_mouse_glyph.x
+      || event->x >= last_mouse_glyph.x + last_mouse_glyph.width
+      || event->y < last_mouse_glyph.y
+      || event->y >= last_mouse_glyph.y + last_mouse_glyph.height)
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, event->x, event->y);
       /* Remember which glyph we're now on.  */
       remember_mouse_glyph (frame, event->x, event->y, &last_mouse_glyph);
+      last_mouse_glyph_frame = frame;
       return 1;
     }
 
@@ -3827,6 +3832,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	       the frame are divided into.  */
 
 	    remember_mouse_glyph (f1, win_x, win_y, &last_mouse_glyph);
+	    last_mouse_glyph_frame = f1;
 
 	    *bar_window = Qnil;
 	    *part = 0;
@@ -6245,12 +6251,33 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
  	    {
  	      inev.ie.kind = ASCII_KEYSTROKE_EVENT;
  	      inev.ie.code = keysym;
- 	      goto done_keysym;
- 	    }
- 
- 	  /* Now non-ASCII.  */
- 	  if (HASH_TABLE_P (Vx_keysym_table)
- 	      && (NATNUMP (c = Fgethash (make_number (keysym),
+	      goto done_keysym;
+	    }
+
+	  /* Keysyms directly mapped to supported Unicode characters.  */
+	  if ((keysym >= 0x01000100 && keysym <= 0x010033ff)
+	      || (keysym >= 0x0100e000 && keysym <= 0x0100ffff))
+	    {
+	      int code, charset_id, c1, c2;
+
+	      if (keysym < 0x01002500)
+		charset_id = charset_mule_unicode_0100_24ff,
+		  code = (keysym & 0xFFFF) - 0x100;
+	      else if (keysym < 0x0100e000)
+		charset_id = charset_mule_unicode_2500_33ff,
+		  code = (keysym & 0xFFFF) - 0x2500;
+	      else
+		charset_id = charset_mule_unicode_e000_ffff,
+		  code = (keysym & 0xFFFF) - 0xe000;
+	      c1 = (code / 96) + 32, c2 = (code % 96) + 32;
+	      inev.ie.kind = MULTIBYTE_CHAR_KEYSTROKE_EVENT;
+	      inev.ie.code = MAKE_CHAR (charset_id, c1, c2);
+	      goto done_keysym;
+	    }
+
+	  /* Now non-ASCII.  */
+	  if (HASH_TABLE_P (Vx_keysym_table)
+	      && (NATNUMP (c = Fgethash (make_number (keysym),
  					 Vx_keysym_table,
  					 Qnil))))
  	    {
@@ -6649,7 +6676,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
         int tool_bar_p = 0;
 
         bzero (&compose_status, sizeof (compose_status));
-	bzero (&last_mouse_glyph, sizeof (last_mouse_glyph));
+	last_mouse_glyph_frame = 0;
 
         if (dpyinfo->grabbed
             && last_mouse_frame

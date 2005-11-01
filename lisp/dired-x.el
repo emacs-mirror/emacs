@@ -2,7 +2,7 @@
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 ;;	Lawrence R. Dodd <dodd@roebling.poly.edu>
-;; Maintainer: nobody (want to volunteer?)
+;; Maintainer: Romain Francoise <rfrancoise@gnu.org>
 ;; Version: 2.37+
 ;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
@@ -678,7 +678,9 @@ you can relist single subdirs using \\[dired-do-redisplay]."
   ;; decent subdir headerline:
   (goto-char (point-min))
   (or (looking-at dired-subdir-regexp)
-      (dired-insert-headerline default-directory))
+      (insert "  " 
+	      (directory-file-name (file-name-directory default-directory))
+	      ":\n"))
   (dired-mode dirname (or switches dired-listing-switches))
   (setq mode-name "Virtual Dired"
         revert-buffer-function 'dired-virtual-revert)
@@ -1517,7 +1519,7 @@ to mark all zero length files."
               ;; Karsten Wenger <kw@cis.uni-muenchen.de> fixed uid.
               (setq uid (buffer-substring (+ (point) 1)
 					  (progn (forward-word 1) (point))))
-              (re-search-forward dired-move-to-filename-regexp)
+              (re-search-forward directory-listing-before-filename-regexp)
               (goto-char (match-beginning 1))
               (forward-char -1)
               (setq size (string-to-number (buffer-substring (save-excursion
@@ -1716,5 +1718,5 @@ variables `dired-x-variable-list' in the message."
 ;; As Barry Warsaw would say: "This might be useful..."
 (provide 'dired-x)
 
-;;; arch-tag: 71a43ba2-7a00-4793-a028-0613dd7765ae
+;; arch-tag: 71a43ba2-7a00-4793-a028-0613dd7765ae
 ;;; dired-x.el ends here

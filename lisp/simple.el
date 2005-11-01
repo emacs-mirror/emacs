@@ -3545,10 +3545,11 @@ Outline mode sets this."
 	     ;; Compute the end of the line
 	     ;; ignoring effectively invisible newlines.
 	     (save-excursion
-	       (end-of-line)
+	       ;; Like end-of-line but ignores fields.
+	       (skip-chars-forward "^\n")
 	       (while (and (not (eobp)) (line-move-invisible-p (point)))
 		 (goto-char (next-char-property-change (point)))
-		 (end-of-line))
+		 (skip-chars-forward "^\n"))
 	       (point))))
 
 	;; Move to the desired column.
@@ -4924,11 +4925,11 @@ is the substring.)")
 		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
 	      (setq completion-base-size 0))))
       ;; Put faces on first uncommon characters and common parts.
-      (when (or completion-base-size completion-common-substring)
+      (when (or completion-common-substring completion-base-size)
 	(let* ((common-string-length
-		(if completion-base-size
-		    (- (length mbuf-contents) completion-base-size)
-		  (length completion-common-substring)))
+		(if completion-common-substring
+		    (length completion-common-substring)
+		  (- (length mbuf-contents) completion-base-size)))
 	       (element-start (next-single-property-change
 			       (point-min)
 			       'mouse-face))

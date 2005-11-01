@@ -826,31 +826,28 @@ Has a preference of looking backwards."
 		 ;; If the desired position is within the defun we found,
 		 ;; find the function name.
 		 (when (< location (point))
+		   ;; Move back over function body.
 		   (backward-sexp 1)
-		   (let (beg tem)
-
+		   (let (beg)
+		     ;; Skip back over typedefs and arglist.
+		     ;; Stop at the function definition itself
+		     ;; or at the line that follows end of function doc string.
 		     (forward-line -1)
-		     ;; Skip back over typedefs of arglist.
 		     (while (and (not (bobp))
-				 (looking-at "[ \t\n]"))
+				 (looking-at "[ \t\n]")
+				 (not (looking-back "[*]/)\n" (- (point) 4))))
 		       (forward-line -1))
-		     ;; See if this is using the DEFUN macro used in Emacs,
-		     ;; or the DEFUN macro used by the C library:
-		     (if (condition-case nil
-			     (and (save-excursion
-				    (end-of-line)
-				    (while (= (preceding-char) ?\\)
-				      (end-of-line 2))
-				    (backward-sexp 1)
-				    (beginning-of-line)
-				    (setq tem (point))
-				    (looking-at "DEFUN\\b"))
-				  (>= location tem))
-			   (error nil))
+		     ;; If we found a doc string, this must be the DEFUN macro
+		     ;; used in Emacs.  Move back to the DEFUN line.
+		     (when (looking-back "[*]/)\n" (- (point) 4))
+		       (backward-sexp 1)
+		       (beginning-of-line))
+		     ;; Is this a DEFUN construct?  And is LOCATION in it?
+		     (if (and (looking-at "DEFUN\\b")
+			      (>= location (point)))
                          ;; DEFUN ("file-name-directory", Ffile_name_directory, Sfile_name_directory, ...) ==> Ffile_name_directory
                          ;; DEFUN(POSIX::STREAM-LOCK, stream lockp &key BLOCK SHARED START LENGTH) ==> POSIX::STREAM-LOCK
 			 (progn
-			   (goto-char tem)
 			   (down-list 1)
 			   (when (= (char-after (point)) ?\")
                              (forward-sexp 1)
@@ -863,6 +860,7 @@ Has a preference of looking backwards."
                                    (skip-syntax-backward " ")
 				   (point))))
 		       (if (looking-at "^[+-]")
+			   ;; C++.
 			   (change-log-get-method-definition)
 			 ;; Ordinary C function syntax.
 			 (setq beg (point))

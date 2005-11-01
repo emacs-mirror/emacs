@@ -1,3 +1,21 @@
+2005-10-27  Masatake YAMATO  <jet@gyve.org>
+
+	* minibuf.texi (Completion Commands): 
+	Write about new optional argument for `display-completion-list'.
+	
+2005-10-23  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Overlay Arrow): Clarify about local bindings of
+	overlay-arrow-position.
+
+2005-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* internals.texi (Building Emacs): Fix last change.
+
+2005-10-22  Richard M. Stallman  <rms@gnu.org>
+
+	* internals.texi (Building Emacs): Document eval-at-startup.
+
 2005-10-21  Richard M. Stallman  <rms@gnu.org>
 
 	* loading.texi (Where Defined): load-history contains abs file names.

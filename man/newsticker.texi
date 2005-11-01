@@ -2,6 +2,7 @@
 @comment %**start of header
 @setfilename ../info/newsticker
 @set VERSION 1.8
+@set UPDATED October 2005
 @settitle Newsticker @value{VERSION}
 @syncodeindex vr cp
 @syncodeindex fn cp

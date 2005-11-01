@@ -842,16 +842,17 @@ BEG..END is the line where the file info is located."
   ;; line, the alignment if this line w.r.t the rest is messed up because
   ;; the fields of that one line will generally be smaller.
   ;;
-  ;; To work around this problem, we here add spaces to try and re-align the
-  ;; fields as needed.  Since this is purely aesthetic, it is of utmost
-  ;; importance that it doesn't mess up anything like
-  ;; `dired-move-to-filename'.  To this end, we limit ourselves to adding
-  ;; spaces only, and to only add them at places where there was already at
-  ;; least one space.  This way, as long as `dired-move-to-filename-regexp'
-  ;; always matches spaces with "*" or "+", we know we haven't made anything
-  ;; worse.  There is one spot where the exact number of spaces is
-  ;; important, which is just before the actual filename, so we refrain from
-  ;; adding spaces there (and within the filename as well, of course).
+  ;; To work around this problem, we here add spaces to try and
+  ;; re-align the fields as needed.  Since this is purely aesthetic,
+  ;; it is of utmost importance that it doesn't mess up anything like
+  ;; `dired-move-to-filename'.  To this end, we limit ourselves to
+  ;; adding spaces only, and to only add them at places where there
+  ;; was already at least one space.  This way, as long as
+  ;; `directory-listing-before-filename-regexp' always matches spaces
+  ;; with "*" or "+", we know we haven't made anything worse.  There
+  ;; is one spot where the exact number of spaces is important, which
+  ;; is just before the actual filename, so we refrain from adding
+  ;; spaces there (and within the filename as well, of course).
   (save-excursion
     (let (file file-col other other-col)
       ;; Check the there is indeed a file, and that there is anoter adjacent
@@ -953,7 +954,7 @@ If HDR is non-nil, insert a header line with the directory name."
 	(setq switches (concat "--dired " switches)))
     ;; We used to specify the C locale here, to force English month names;
     ;; but this should not be necessary any more,
-    ;; with the new value of dired-move-to-filename-regexp.
+    ;; with the new value of `directory-listing-before-filename-regexp'.
     (if file-list
 	(dolist (f file-list)
 	  (let ((beg (point)))
@@ -1837,50 +1838,6 @@ DIR must be a directory name, not a file name."
 
 ;;; Functions for finding the file name in a dired buffer line.
 
-(defvar dired-move-to-filename-regexp
-  (let* ((l "\\([A-Za-z]\\|[^\0-\177]\\)")
-	 (l-or-quote "\\([A-Za-z']\\|[^\0-\177]\\)")
-	 ;; In some locales, month abbreviations are as short as 2 letters,
-	 ;; and they can be followed by ".".
-	 ;; In Breton, a month name  can include a quote character.
-	 (month (concat l-or-quote l-or-quote "+\\.?"))
-	 (s " ")
-	 (yyyy "[0-9][0-9][0-9][0-9]")
-	 (dd "[ 0-3][0-9]")
-	 (HH:MM "[ 0-2][0-9][:.][0-5][0-9]")
-	 (seconds "[0-6][0-9]\\([.,][0-9]+\\)?")
-	 (zone "[-+][0-2][0-9][0-5][0-9]")
-	 (iso-mm-dd "[01][0-9]-[0-3][0-9]")
-	 (iso-time (concat HH:MM "\\(:" seconds "\\( ?" zone "\\)?\\)?"))
-	 (iso (concat "\\(\\(" yyyy "-\\)?" iso-mm-dd "[ T]" iso-time
-		      "\\|" yyyy "-" iso-mm-dd "\\)"))
-	 (western (concat "\\(" month s "+" dd "\\|" dd "\\.?" s month "\\)"
-			  s "+"
-			  "\\(" HH:MM "\\|" yyyy "\\)"))
-	 (western-comma (concat month s "+" dd "," s "+" yyyy))
-	 ;; Japanese MS-Windows ls-lisp has one-digit months, and
-	 ;; omits the Kanji characters after month and day-of-month.
-	 ;; On Mac OS X 10.3, the date format in East Asian locales is
-	 ;; day-of-month digits followed by month digits.
-	 (mm "[ 0-1]?[0-9]")
-	 (east-asian
-	  (concat "\\(" mm l "?" s dd l "?" s "+"
-		  "\\|" dd s mm s "+" "\\)"
-		  "\\(" HH:MM "\\|" yyyy l "?" "\\)")))
-	 ;; The "[0-9]" below requires the previous column to end in a digit.
-	 ;; This avoids recognizing `1 may 1997' as a date in the line:
-	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
-	 ;; The "[BkKMGTPEZY]?" below supports "ls -alh" output.
-	 ;; The ".*" below finds the last match if there are multiple matches.
-	 ;; This avoids recognizing `jservice  10  1024' as a date in the line:
-	 ;; drwxr-xr-x  3 jservice  10  1024 Jul  2  1997 esg-host
-    (concat ".*[0-9][BkKMGTPEZY]?" s
-	    "\\(" western "\\|" western-comma "\\|" east-asian "\\|" iso "\\)"
-	    s "+"))
-  "Regular expression to match up to the file name in a directory listing.
-The default value is designed to recognize dates and times
-regardless of the language.")
-
 (defvar dired-permission-flags-regexp
   "\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)[-r][-w]\\([^ ]\\)"
   "Regular expression to match the permission flags in `ls -l'.")
@@ -1898,12 +1855,12 @@ Return the position of the beginning of the filename, or nil if none found."
     (cond
      ((and change (< change eol))
       (goto-char change))
-     ((re-search-forward dired-move-to-filename-regexp eol t)
+     ((re-search-forward directory-listing-before-filename-regexp eol t)
       (goto-char (match-end 0)))
      ((re-search-forward dired-permission-flags-regexp eol t)
       ;; Ha!  There *is* a file.  Our regexp-from-hell just failed to find it.
       (if raise-error
-	  (error "Unrecognized line!  Check dired-move-to-filename-regexp"))
+	  (error "Unrecognized line!  Check directory-listing-before-filename-regexp"))
       (beginning-of-line)
       nil)
      (raise-error

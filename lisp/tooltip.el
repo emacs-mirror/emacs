@@ -65,37 +65,33 @@ Do so after `tooltip-short-delay'."
   :type 'number
   :group 'tooltip)
 
-(defcustom tooltip-x-offset nil
+(defcustom tooltip-x-offset 5
   "X offset, in pixels, for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
 be chosen so that the tooltip window doesn't contain the mouse
-when it pops up.  If the value is nil, the default offset is 5
-pixels.
+when it pops up.
 
 If `tooltip-frame-parameters' includes the `left' parameter,
 the value of `tooltip-x-offset' is ignored."
   :tag "X offset"
-  :type '(choice (const :tag "Default" nil)
-		 (integer :tag "Offset" :value 1))
+  :type 'integer
   :group 'tooltip)
 
-(defcustom tooltip-y-offset nil
+(defcustom tooltip-y-offset +40
   "Y offset, in pixels, for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
 be chosen so that the tooltip window doesn't contain the mouse
-when it pops up.  If the value is nil, the default offset is -10
-pixels.
+when it pops up.
 
 If `tooltip-frame-parameters' includes the `top' parameter,
 the value of `tooltip-y-offset' is ignored."
   :tag "Y offset"
-  :type '(choice (const :tag "Default" nil)
-		 (integer :tag "Offset" :value 1))
+  :type 'integer
   :group 'tooltip)
 
 (defcustom tooltip-frame-parameters
   '((name . "tooltip")
-    (internal-border-width . 5)
+    (internal-border-width . 2)
     (border-width . 1))
   "Frame parameters used for tooltips.
 

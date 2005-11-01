@@ -63,6 +63,9 @@ int charset_katakana_jisx0201;	/* JISX0201.Kana (Japanese Katakana) */
 int charset_latin_jisx0201;	/* JISX0201.Roman (Japanese Roman) */
 int charset_big5_1;		/* Big5 Level 1 (Chinese Traditional) */
 int charset_big5_2;		/* Big5 Level 2 (Chinese Traditional) */
+int charset_mule_unicode_0100_24ff;
+int charset_mule_unicode_2500_33ff;
+int charset_mule_unicode_e000_ffff;
 
 Lisp_Object Qcharset_table;
 
@@ -1688,6 +1691,12 @@ DEFUN ("setup-special-charsets", Fsetup_special_charsets,
   charset_latin_jisx0201 = charset_id_internal ("latin-jisx0201");
   charset_big5_1 = charset_id_internal ("chinese-big5-1");
   charset_big5_2 = charset_id_internal ("chinese-big5-2");
+  charset_mule_unicode_0100_24ff
+    = charset_id_internal ("mule-unicode-0100-24ff");
+  charset_mule_unicode_2500_33ff
+    = charset_id_internal ("mule-unicode-2500-33ff");
+  charset_mule_unicode_e000_ffff
+    = charset_id_internal ("mule-unicode-e000-ffff");
   return Qnil;
 }
 

@@ -2922,9 +2922,12 @@ otherwise appear.  Since the arrow is usually short, and the line
 usually begins with indentation, normally nothing significant is
 overwritten.
 
-The overlay string is displayed only in the buffer that this marker
-points into.  Thus, only one buffer can have an overlay arrow at any
-given time.
+The overlay-arrow string is displayed in any given buffer if the value
+of @code{overlay-arrow-position} in that buffer points into that
+buffer.  Thus, it works to can display multiple overlay arrow strings
+by creating buffer-local bindings of @code{overlay-arrow-position}.
+However, it is usually cleaner to use
+@code{overlay-arrow-variable-list} to achieve this result.
 @c !!! overlay-arrow-position: but the overlay string may remain in the display
 @c of some other buffer until an update is required.  This should be fixed
 @c now.  Is it?

@@ -646,8 +646,11 @@ loaded and the keystroke automatically re-typed."
 	    (or (math-with-extra-prec 2 (math-matrix-inv-raw m))
 		(math-reject-arg m "*Singular matrix"))
 	  (math-reject-arg m 'square-matrixp)))
-    (math-div 1 m)))
-
+    (if (and
+         (require 'calc-arith)
+         (math-known-matrixp m))
+        (math-pow m -1)
+      (math-div 1 m))))
 
 (defun math-do-working (msg arg)
   (or executing-kbd-macro

@@ -117,6 +117,18 @@ expect in an ordinary unmodified Emacs.  If you feel you must override
 normal features for your site, do it with @file{default.el}, so that
 users can override your changes if they wish.  @xref{Startup Summary}.
 
+  In a package that can be preloaded, it is sometimes useful to
+specify a computation to be done when Emacs subsequently starts up.
+For this, use @code{eval-at-startup}:
+
+@defmac eval-at-startup body@dots{}
+This evaluates the @var{body} forms, either immediately if running in
+an Emacs that has already started up, or later when Emacs does start
+up.  Since the value of the @var{body} forms is not necessarily
+available when the @code{eval-at-startup} form is run, that form
+always returns @code{nil}.
+@end defmac
+
 @defun dump-emacs to-file from-file
 @cindex unexec
 This function dumps the current state of Emacs into an executable file

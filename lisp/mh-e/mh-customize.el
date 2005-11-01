@@ -762,13 +762,15 @@ installed and you want to use BogoFilter, then you can set this option to
 
 ;;; Editing a Draft (:group 'mh-letter)
 
-(defcustom mh-compose-insertion (if (locate-library "mml") 'gnus 'mhn)
-  "Type of MIME message directives in messages.
-
-By default, this option is set to `Gnus' if it is supported. This option can
-also be set manually to `mhn' if mhn directives are preferred."
-  :type '(choice (const :tag "Gnus" gnus)
-                 (const :tag "mhn"  mhn))
+(defcustom mh-compose-insertion (if (locate-library "mml") 'mml 'mh)
+  "Type of tags used when composing MIME messages.
+In addition to MH-style directives, MH-E also supports MML (MIME Meta
+Language) tags. (see Info node `(emacs-mime)Composing'). This option can be
+used to choose between them. By default, this option is set to \"MML\" if it
+is supported since it provides a lot more functionality. This option can also
+be set to \"MH\" if MH-style directives are preferred."
+  :type '(choice (const :tag "MML" mml)
+                 (const :tag "MH"  mh))
   :group 'mh-letter)
 
 (defcustom mh-compose-skipped-header-fields
@@ -779,20 +781,24 @@ also be set manually to `mhn' if mhn directives are preferred."
   :group 'mh-letter)
 
 (defcustom mh-compose-space-does-completion-flag nil
-  "*Non-nil means that <SPC> does completion in message header."
+  "*On means \\<mh-letter-mode-map>\\[mh-letter-complete-or-space] does completion in message header."
   :type 'boolean
   :group 'mh-letter)
 
 (defcustom mh-delete-yanked-msg-window-flag nil
-  "*Non-nil means delete any window displaying the message.
-If this option is on, yanking the current message into a draft letter with
-\\<mh-letter-mode-map>\\[mh-yank-cur-msg] deletes any windows displaying the
-message."
+  "*On means delete any window displaying the message.
+This deletes the window containing the original message after yanking it with
+\\<mh-letter-mode-map>\\[mh-yank-cur-msg] to make more room on your screen for
+your reply."
   :type 'boolean
   :group 'mh-letter)
 
 (defcustom mh-extract-from-attribution-verb "wrote:"
-  "*Verb to use for attribution when a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg]."
+  "*Verb to use for attribution when a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
+The attribution consists of the sender's name and email address followed by
+the content of this option. This option can be set to \"wrote:\", \"a
+écrit:\", and \"schrieb:\". You can also use the \"Custom String\" menu item
+to enter your own verb."
   :type '(choice (const "wrote:")
                  (const "a écrit:")
                  (const "schrieb:")
@@ -800,28 +806,41 @@ message."
   :group 'mh-letter)
 
 (defcustom mh-ins-buf-prefix "> "
-  "*String to put before each non-blank line of a yanked or inserted message.
-Used when the message is inserted into an outgoing letter
-by \\<mh-letter-mode-map>\\[mh-insert-letter] or \\[mh-yank-cur-msg]."
+  "*String to put before each line of a yanked or inserted message.
+The prefix \"> \" is the default setting of this option. I suggest that you
+not modify this option since it is used by many mailers and news readers:
+messages are far easier to read if several included messages have all been
+indented by the same string."
   :type 'string
   :group 'mh-letter)
 
 (defcustom mh-letter-complete-function 'ispell-complete-word
   "*Function to call when completing outside of address or folder fields.
-By default, this is set to `ispell-complete-word'."
+In the body of the message, \\<mh-letter-mode-map>\\[mh-letter-complete] runs
+this function, which is set to \"ispell-complete-word\" by default."
   :type '(choice function (const nil))
   :group 'mh-letter)
 
 (defcustom mh-letter-fill-column 72
-  "*Fill column to use in `mh-letter-mode'.
-This is usually less than in other text modes because email messages get
-quoted by some prefix (sometimes many times) when they are replied to,
-and it's best to avoid quoted lines that span more than 80 columns."
+  "*Fill column to use in MH Letter mode.
+By default, this option is 72 to allow others to quote your message without
+line wrapping."
   :type 'integer
   :group 'mh-letter)
 
-(defcustom mh-mml-method-default (if mh-gnus-pgp-support-flag "pgpmime" "none")
-  "Default method to use in security directives."
+(defcustom mh-mml-method-default (if mh-pgp-support-flag "pgpmime" "none")
+  "Default method to use in security tags.
+This option is used to select between a variety of mail security mechanisms.
+The default is \"PGP (MIME)\" if it is supported\; otherwise, the default is
+\"None\". Other mechanisms include vanilla \"PGP\" and \"S/MIME\".
+
+The `pgg' customization group may have some settings which may interest you
+\(see Info node `(pgg)').
+
+In particular, I set the option `pgg-encrypt-for-me' to t so that all messages
+I encrypt are encrypted with my public key as well. If you keep a copy of all
+of your outgoing mail with a \"Fcc:\" header field, this setting is vital so
+that you can read the mail you write!"
   :type '(choice (const :tag "PGP (MIME)" "pgpmime")
                  (const :tag "PGP" "pgp")
                  (const :tag "S/MIME" "smime")
@@ -831,13 +850,13 @@ and it's best to avoid quoted lines that span more than 80 columns."
 (defcustom mh-signature-file-name "~/.signature"
   "*Source of user's signature.
 
-By default, the text of your signature is taken from the file `~/.signature'.
+By default, the text of your signature is taken from the file \"~/.signature\".
 You can read from other files by changing this option. This file may contain a
 vCard in which case an attachment is added with the vCard.
 
 This option may also be a symbol, in which case that function is called. You
 may not want a signature separator to be added for you; instead you may want
-to insert one yourself. Variables that you may find useful to do this include
+to insert one yourself. Options that you may find useful to do this include
 `mh-signature-separator' (when inserting a signature separator) and
 `mh-signature-separator-regexp' (for finding said separator). The function
 `mh-signature-separator-p', which reports t if the buffer contains a
@@ -850,7 +869,7 @@ option."
   :group 'mh-letter)
 
 (defcustom mh-signature-separator-flag t
-  "*Non-nil means a signature separator should be inserted.
+  "*On means a signature separator should be inserted.
 It is not recommended that you change this option since various mail user
 agents, including MH-E, use the separator to present the signature
 differently, and to suppress the signature when replying or yanking a letter
@@ -861,21 +880,21 @@ into a draft."
 (defcustom mh-x-face-file "~/.face"
   "*File containing face header field to insert in outgoing mail.
 
-If the file starts with either of the strings `X-Face:', `Face:' or
-`X-Image-URL:' then the contents are added to the message header verbatim.
-Otherwise it is assumed that the file contains the value of the `X-Face:'
+If the file starts with either of the strings \"X-Face:\", \"Face:\" or
+\"X-Image-URL:\" then the contents are added to the message header verbatim.
+Otherwise it is assumed that the file contains the value of the \"X-Face:\"
 header field.
 
-The `X-Face:' header field, which is a low-resolution, black and white image,
-can be generated using the `compface' command, which can be obtained from
-ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z. The \"Online
-X-Face Convertor\" at http://www.dairiki.org/xface/ is a useful resource for
-quick conversion of images into `X-Face:' header fields.
+The \"X-Face:\" header field, which is a low-resolution, black and white
+image, can be generated using the \"compface\"
+\(ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z) command. The
+\"Online X-Face Converter\" (http://www.dairiki.org/xface/) is a useful
+resource for quick conversion of images into \"X-Face:\" header fields.
 
-Use the `make-face' script (http://quimby.gnus.org/circus/face/make-face) to
-convert a JPEG image to the higher resolution, color, `Face:' header field.
+Use the \"make-face\" (http://quimby.gnus.org/circus/face/make-face) script to
+convert a JPEG image to the higher resolution, color, \"Face:\" header field.
 
-The URL of any image can be used for the `X-Image-URL:' field and no
+The URL of any image can be used for the \"X-Image-URL:\" field and no
 processing of the image is required.
 
 To prevent the setting of any of these header fields, either set
@@ -884,39 +903,34 @@ doesn't exist."
   :type 'file
   :group 'mh-letter)
 
-(defcustom mh-yank-from-start-of-msg 'attribution
+(defcustom mh-yank-behavior 'attribution
   "*Controls which part of a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
-If t, include the entire message, with full headers.  This is historically
-here for use with supercite, but is now deprecated in favor of the setting
-`supercite' below.
 
-If the symbol `body', then yank the message minus the header.
+To include the entire message, including the entire header, use \"Body and
+Header\". Use \"Body\" to yank just the body without the header. To yank only
+the portion of the message following the point, set this option to \"Below
+Point\".
 
-If the symbol `supercite', include the entire message, with full headers.
-This also causes the invocation of `sc-cite-original' without the setting
-of `mail-citation-hook', now deprecated practice.
+Choose \"Invoke supercite\" to pass the entire message and header through
+supercite.
 
-If the symbol `autosupercite', do as for `supercite' automatically when
-show buffer matches the message being replied-to.  When this option is used,
-the -noformat switch is passed to the repl program to override a -filter or
--format switch.
+If the \"Body With Attribution\" setting is used, then the message minus the
+header is yanked and a simple attribution line is added at the top using the
+value of the `mh-extract-from-attribution-verb' option. This is the default.
 
-If the symbol `attribution', then yank the message minus the header and add
-a simple attribution line at the top.
+If the \"Invoke supercite\" or \"Body With Attribution\" settings are used,
+the \"-noformat\" argument is passed to the \"repl\" program to override a
+\"-filter\" or \"-format\" argument. These settings also have
+\"Automatically\" variants that perform the action automatically when you
+reply so that you don't need to use \\[mh-yank-cur-msg] at all. Note that this
+automatic action is only performed if the show buffer matches the message
+being replied to. People who use the automatic variants tend to turn on the
+`mh-delete-yanked-msg-window-flag' option as well so that the show window is
+never displayed.
 
-If the symbol `autoattrib', do as for `attribution' automatically when show
-buffer matches the message being replied-to.  You can make sure this is
-always the case by setting `mh-reply-show-message-flag' to t (which is the
-default) and optionally `mh-delete-yanked-msg-window-flag' to t as well such
-that the show window is never displayed.  When the `autoattrib' option is
-used, the -noformat switch is passed to the repl program to override a
--filter or -format switch.
-
-If nil, yank only the portion of the message following the point.
-
-If the show buffer has a region, this variable is ignored unless its value is
-one of `attribution' or `autoattrib' in which case the attribution is added
-to the yanked region."
+If the show buffer has a region, the `mh-yank-behavior' option is ignored
+unless its value is one of Attribution variants in which case the attribution
+is added to the yanked region."
   :type '(choice (const :tag "Body and Header" t)
                  (const :tag "Body" body)
                  (const :tag "Below Point" nil)
@@ -932,9 +946,11 @@ to the yanked region."
 ;;; Ranges (:group 'mh-ranges)
 
 (defcustom mh-interpret-number-as-range-flag t
-  "Non-nil means interpret a number as a range.
-If the variable is non-nil, and you use an integer, N, when asked for a
-range to scan, then MH-E uses the range \"last:N\"."
+  "On means interpret a number as a range.
+Since one of the most frequent ranges used is \"last:N\", MH-E will interpret
+input such as \"200\" as \"last:200\" if this option is on (which is the
+default). If you need to scan just the message 200, then use the range
+\"200:200\"."
   :type 'boolean
   :group 'mh-ranges)
 
@@ -943,38 +959,48 @@ range to scan, then MH-E uses the range \"last:N\"."
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
 (defcustom mh-adaptive-cmd-note-flag t
-  "*Non-nil means that the message number width is determined dynamically.
-This is done once when a folder is first opened by running scan on the last
-message of the folder. The message number for the last message is extracted
-and its width calculated. This width is used when calling `mh-set-cmd-note'.
+  "*On means that the message number width is determined dynamically.
+If you've created your own format to handle long message numbers, you'll be
+pleased to know you no longer need it since MH-E adapts its internal format
+based upon the largest message number if this option is on (the default).
 
-If you prefer fixed-width message numbers, set this variable to nil and call
-`mh-set-cmd-note' with the width specified by the scan format in
-`mh-scan-format-file'. For example, the default width is 4, so you would use
-\"(mh-set-cmd-note 4)\" if `mh-scan-format-file' were nil."
+If you prefer fixed-width message numbers, turn off this option and call
+`mh-set-cmd-note' with the width specified by your format file (see
+`mh-scan-format-file'). For example, the default width is 4, so you would use
+\"(mh-set-cmd-note 4)\"."
   :type 'boolean
   :group 'mh-scan-line-formats)
 
 (defcustom mh-scan-format-file t
   "Specifies the format file to pass to the scan program.
-If t, the format string will be taken from the either `mh-scan-format-mh'
-or `mh-scan-format-nmh' depending on whether MH or nmh is in use.
-If nil, the default scan output will be used.
 
-If you customize the scan format, you may need to modify a few variables
-containing regexps that MH-E uses to identify specific portions of the output.
-Use `M-x apropos RET mh-scan.*regexp' to obtain a list of these variables. You
-may also have to call `mh-set-cmd-note' with the width of your message
-numbers. See also `mh-adaptive-cmd-note-flag'."
+The default setting for this option is \"Use MH-E scan Format\". This means
+that the format string will be taken from the either `mh-scan-format-mh' or
+`mh-scan-format-nmh' depending on whether MH or nmh (or GNU mailutils) is in
+use. You can also set this option to \"Use Default scan Format\" to get the
+same output as you would get if you ran \"scan\" from the shell. If you have a
+format file that you want MH-E to use but not MH, you can set this option to
+\"Specify a scan Format File\" and enter the name of your format file.
+
+If you change the format of the scan lines you'll need to tell MH-E how to
+parse the new format. As you will see, quite a lot of variables are involved
+to do that. Use \"M-x apropos RET mh-scan.*regexp\" to obtain a list of these
+variables. You may also have to call `mh-set-cmd-note' to modify `mh-cmd-note'
+with the column for your notations if you turn off
+`mh-adaptive-cmd-note-flag'. However, you will need to set the `mh-cmd-note'
+variable manually with `setq' if `mh-scan-format-file' is set to anything
+other than \"Use MH-E scan Format\"."
   :type '(choice (const :tag "Use MH-E scan Format" t)
                  (const :tag "Use Default scan Format" nil)
                  (file  :tag "Specify a scan Format File"))
   :group 'mh-scan-line-formats)
 
 (defcustom mh-scan-prog "scan"
-  "*Program to run to generate one-line-per-message listing of a folder.
-Normally \"scan\" or a file name linked to scan.  This file is searched
-for relative to the `mh-progs' directory unless it is an absolute pathname."
+  "*Program used to scan messages.
+The name of the program that generates a listing of one line per message is
+held in this option. Unless this variable contains an absolute pathname, it is
+assumed to be in the `mh-progs' directory. You may link another program to
+`scan' (see \"mh-profile(5)\") to produce a different type of listing."
   :type 'string
   :group 'mh-scan-line-formats)
 (make-variable-buffer-local 'mh-scan-prog)
@@ -1659,6 +1685,14 @@ and the default-toolbar."
                   (const :tag "Don't use a toolbar" nil))
     :group 'mh-toolbar))
 
+(defun mh-buffer-exists-p (mode)
+  "Test whether a buffer with major mode MODE is present."
+  (loop for buf in (buffer-list)
+        when (save-excursion
+               (set-buffer buf)
+               (eq major-mode mode))
+        return t))
+
 (defmacro mh-tool-bar-define (defaults &rest buttons)
   "Define a tool bar for MH-E.
 DEFAULTS is the list of buttons that are present by default. It is a list of
@@ -1790,33 +1824,42 @@ where,
        (defvar mh-letter-tool-bar-map nil)
        ;; GNU Emacs tool bar specific code
        (mh-do-in-gnu-emacs
+         ;; Tool bar initialization functions
+         (defun mh-tool-bar-folder-buttons-init ()
+           (when (mh-buffer-exists-p 'mh-folder-mode)
+             (mh-image-load-path)
+             (setq mh-folder-tool-bar-map
+                   (let ((tool-bar-map (make-sparse-keymap)))
+                     ,@(nreverse folder-button-setter)
+                     tool-bar-map))
+             (setq mh-show-tool-bar-map
+                   (let ((tool-bar-map (make-sparse-keymap)))
+                     ,@(nreverse show-button-setter)
+                     tool-bar-map))
+             (setq mh-show-seq-tool-bar-map
+                   (let ((tool-bar-map (copy-keymap mh-show-tool-bar-map)))
+                     ,@(nreverse show-seq-button-setter)
+                     tool-bar-map))
+             (setq mh-folder-seq-tool-bar-map
+                   (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
+                     ,@(nreverse sequence-button-setter)
+                     tool-bar-map))))
+         (defun mh-tool-bar-letter-buttons-init ()
+           (when (mh-buffer-exists-p 'mh-letter-mode)
+             (mh-image-load-path)
+             (setq mh-letter-tool-bar-map
+                   (let ((tool-bar-map (make-sparse-keymap)))
+                     ,@(nreverse letter-button-setter)
+                     tool-bar-map))))
          ;; Custom setter functions
          (defun mh-tool-bar-folder-buttons-set (symbol value)
            "Construct toolbar for `mh-folder-mode' and `mh-show-mode'."
            (set-default symbol value)
-           (setq mh-folder-tool-bar-map
-                 (let ((tool-bar-map (make-sparse-keymap)))
-                   ,@(nreverse folder-button-setter)
-                   tool-bar-map))
-           (setq mh-show-tool-bar-map
-                 (let ((tool-bar-map (make-sparse-keymap)))
-                   ,@(nreverse show-button-setter)
-                   tool-bar-map))
-           (setq mh-show-seq-tool-bar-map
-                 (let ((tool-bar-map (copy-keymap mh-show-tool-bar-map)))
-                   ,@(nreverse show-seq-button-setter)
-                   tool-bar-map))
-           (setq mh-folder-seq-tool-bar-map
-                 (let ((tool-bar-map (copy-keymap mh-folder-tool-bar-map)))
-                   ,@(nreverse sequence-button-setter)
-                   tool-bar-map)))
+           (mh-tool-bar-folder-buttons-init))
          (defun mh-tool-bar-letter-buttons-set (symbol value)
            "Construct toolbar for `mh-letter-mode'."
            (set-default symbol value)
-           (setq mh-letter-tool-bar-map
-                 (let ((tool-bar-map (make-sparse-keymap)))
-                   ,@(nreverse letter-button-setter)
-                   tool-bar-map))))
+           (mh-tool-bar-letter-buttons-init)))
        ;; XEmacs specific code
        (mh-do-in-xemacs
          (defvar mh-toolbar-folder-vector-map
@@ -1983,26 +2026,17 @@ This button runs `mh-previous-undeleted-msg'")
 
 (defcustom mail-citation-hook nil
   "*Hook for modifying a citation just inserted in the mail buffer.
-Each hook function can find the citation between point and mark.
-And each hook function should leave point and mark around the citation
-text as modified.
+You can gain full control over the appearance of the included text by setting
+this hook to a function that modifies it. This hook is ignored if the option
+`mh-yank-behavior' is set to one of the supercite flavors. Otherwise, this
+option controls how much of the message is passed to the hook. The function
+can find the citation between point and mark and it should leave point and
+mark around the modified citation text for the next hook function. The
+standard prefix `mh-ins-buf-prefix' is not added if this hook is set.
 
-If this hook is entirely empty (nil), the text of the message is inserted
-with `mh-ins-buf-prefix' prefixed to each line.
-
-See also the variable `mh-yank-from-start-of-msg', which controls how
-much of the message passed to the hook.
-
-This hook was historically provided to set up supercite.  You may now leave
-this nil and set up supercite by setting the variable
-`mh-yank-from-start-of-msg' to 'supercite or, for more automatic insertion,
-to 'autosupercite.
-
-The hook 'trivial-cite is NOT part of Emacs.  It is provided from tc.el,
-available here:
- http://shasta.cs.uiuc.edu/~lrclause/tc.html
-If you use it, customize `mh-yank-from-start-of-msg' to
- \"Entire message with headers\"."
+For example, if you use the hook function trivial-cite
+\(http://shasta.cs.uiuc.edu/~lrclause/tc.html) (which is NOT part of Emacs),
+set `mh-yank-behavior' to \"Body and Header\"."
   :type 'hook
   :options '(trivial-cite)
   :group 'mh-hooks
@@ -2022,8 +2056,11 @@ See also `mh-quit-hook'."
   :group 'mh-show)
 
 (defcustom mh-before-send-letter-hook nil
-  "Invoked at the beginning of the \\<mh-letter-mode-map>\\[mh-send-letter] command."
+  "Invoked at the beginning of the \\<mh-letter-mode-map>\\[mh-send-letter] command.
+For example, if you want to check your spelling in your message before
+sending, add the `ispell-message' function."
   :type 'hook
+  :options '(ispell-message)
   :group 'mh-hooks
   :group 'mh-letter)
 
@@ -2033,8 +2070,8 @@ See also `mh-quit-hook'."
   :group 'mh-hooks
   :group 'mh-show)
 
-(defcustom mh-edit-mhn-hook nil
-  "Invoked on the formatted letter by \\<mh-letter-mode-map>\\[mh-edit-mhn]."
+(defcustom mh-mh-to-mime-hook nil
+  "Invoked on the formatted letter by \\<mh-letter-mode-map>\\[mh-mh-to-mime]."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-letter)

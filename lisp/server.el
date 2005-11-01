@@ -308,6 +308,11 @@ message."
 
 (defun server-sentinel (proc msg)
   "The process sentinel for Emacs server connections."
+  ;; If this is a new client process, set the query-on-exit flag to nil
+  ;; for this process (it isn't inherited from the server process).
+  (when (and (eq (process-status proc) 'open)
+	     (process-query-on-exit-flag proc))
+    (set-process-query-on-exit-flag proc nil))
   (server-log (format "Status changed to %s: %s" (process-status proc) msg) proc)
   (server-delete-client proc))
 

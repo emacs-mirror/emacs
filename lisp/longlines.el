@@ -6,7 +6,7 @@
 ;;             Alex Schroeder <alex@gnu.org>
 ;;             Chong Yidong <cyd@stupidchicken.com>
 ;; Maintainer: Chong Yidong <cyd@stupidchicken.com>
-;; Keywords: convenience
+;; Keywords: convenience, wp
 
 ;; This file is part of GNU Emacs.
 
@@ -119,11 +119,14 @@ are indicated with a symbol."
                     'longlines-window-change-function nil t))
         (let ((buffer-undo-list t)
               (inhibit-read-only t)
+	      (after-change-functions nil)
               (mod (buffer-modified-p)))
           ;; Turning off undo is OK since (spaces + newlines) is
           ;; conserved, except for a corner case in
           ;; longlines-wrap-lines that we'll never encounter from here
-          (longlines-decode-region (point-min) (point-max))
+	  (save-restriction
+	    (widen)
+	    (longlines-decode-region (point-min) (point-max)))
           (longlines-wrap-region (point-min) (point-max))
           (set-buffer-modified-p mod))
         (when (and longlines-show-hard-newlines
@@ -140,8 +143,11 @@ are indicated with a symbol."
     (if longlines-showing
         (longlines-unshow-hard-newlines))
     (let ((buffer-undo-list t)
+	  (after-change-functions nil)
           (inhibit-read-only t))
-      (longlines-encode-region (point-min) (point-max)))
+      (save-restriction
+	(widen)
+	(longlines-encode-region (point-min) (point-max))))
     (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
     (remove-hook 'before-kill-functions 'longlines-encode-region t)
     (remove-hook 'after-change-functions 'longlines-after-change-function t)

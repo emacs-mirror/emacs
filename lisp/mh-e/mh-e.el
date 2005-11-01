@@ -131,7 +131,8 @@ The string is displayed after the folder's name.  nil for no annotation.")
    "%<(mymbox{from})%<{to}To:%14(friendly{to})%>%>"
    "%<(zero)%17(friendly{from})%>  "
    "%{subject}%<{body}<<%{body}%>")
-  "*Scan format string for MH, provided to the scan program via the -format arg.
+  "*Scan format string for MH.
+This string is passed to the scan program via the -format arg.
 This format is identical to the default except that additional hints for
 fontification have been added to the fifth column (remember that in Emacs, the
 first column is 0).
@@ -167,88 +168,106 @@ mailboxes of the current user, `c' if the Cc: field matches, `b' if the Bcc:
 field matches, and `n' if a non-empty Newsgroups: field is present.")
 
 (defvar mh-note-deleted ?D
-  "Deleted messages are marked by this character.
+  "Messages that have been deleted are marked by this character.
 See also `mh-scan-deleted-msg-regexp'.")
 
 (defvar mh-note-refiled ?^
-  "Refiled messages are marked by this character.
+  "Messages that have been refiled are marked by this character.
 See also `mh-scan-refiled-msg-regexp'.")
 
 (defvar mh-note-cur ?+
-  "The current message (in MH) is marked by this character.
+  "The current message (in MH, not in MH-E) is marked by this character.
 See also `mh-scan-cur-msg-number-regexp'.")
 
 (defvar mh-scan-good-msg-regexp  "^\\( *[0-9]+\\)[^D^0-9]"
-  "This regexp specifies the scan lines that are 'good' messages.
-Note that the default setting of `mh-folder-font-lock-keywords' expects this
-expression to contain at least one parenthesized expression which matches the
-message number as in the default of \"^\\\\( *[0-9]+\\\\)[^D^0-9]\".")
+  "This regular expression matches \"good\" messages.
+It must match from the beginning of the line. Note that the default setting of
+`mh-folder-font-lock-keywords' expects this expression to contain at least one
+parenthesized expression which matches the message number as in the default of
+\"^\\\\( *[0-9]+\\\\)[^D^0-9]\". This regular expression should be correct as
+it is needed by non-fontifying functions.")
 
 (defvar mh-scan-deleted-msg-regexp "^\\( *[0-9]+\\)D"
-  "This regexp matches deleted messages.
-Note that the default setting of `mh-folder-font-lock-keywords' expects this
-expression to contain at least one parenthesized expression which matches the
-message number as in the default of \"^\\\\( *[0-9]+\\\\)D\".
-See also `mh-note-deleted'.")
+  "This regular expression matches deleted messages.
+It must match from the beginning of the line. Note that the default setting of
+`mh-folder-font-lock-keywords' expects this expression to contain at least one
+parenthesized expression which matches the message number as in the default of
+\"^\\\\( *[0-9]+\\\\)D\". This regular expression should be correct as it is
+needed by non-fontifying functions. See also `mh-note-deleted'.")
 
 (defvar mh-scan-refiled-msg-regexp  "^\\( *[0-9]+\\)\\^"
-  "This regexp matches refiled messages.
-Note that the default setting of `mh-folder-font-lock-keywords' expects this
-expression to contain at least one parenthesized expression which matches the
-message number as in the default of \"^\\\\( *[0-9]+\\\\)\\\\^\".
-See also `mh-note-refiled'.")
+  "This regular expression matches refiled messages.
+It must match from the beginning of the line. Note that the default setting of
+`mh-folder-font-lock-keywords' expects this expression to contain at least one
+parenthesized expression which matches the message number as in the default of
+\"^\\\\( *[0-9]+\\\\)\\\\^\". This regular expression should be correct as it
+is needed by non-fontifying functions. See also `mh-note-refiled'.")
 
 (defvar mh-scan-valid-regexp "^ *[0-9]"
-  "This regexp matches scan lines for messages (not error messages).")
+  "This regular expression describes a valid scan line.
+This is used to eliminate error messages that are occasionally produced by
+\"inc\".")
 
 (defvar mh-scan-cur-msg-number-regexp "^\\( *[0-9]+\\+\\).*"
-  "This regexp matches the current message.
-Note that the default setting of `mh-folder-font-lock-keywords' expects this
-expression to contain at least one parenthesized expression which matches the
-message number as in the default of \"^\\\\( *[0-9]+\\\\+\\\\).*\". Don't
-disable this regexp as it's needed by non-fontifying functions.
-See also `mh-note-cur'.")
+  "This regular expression matches the current message.
+It must match from the beginning of the line. Note that the default setting of
+`mh-folder-font-lock-keywords' expects this expression to contain at least one
+parenthesized expression which matches the message number as in the default of
+\"^\\\\( *[0-9]+\\\\+\\\\).*\". This regular expression should be correct as
+it is needed by non-fontifying functions. See also `mh-note-cur'.")
 
 (defvar mh-scan-date-regexp "\\([0-9][0-9]/[0-9][0-9]\\)"
-  "This regexp matches a valid date.
-Note that the default setting of `mh-folder-font-lock-keywords' expects this
-expression to contain only one parenthesized expression which matches the date
-field as in the default of \"\\\\([0-9][0-9]/[0-9][0-9]\\\\)\"}.
-See also `mh-scan-format-regexp'.")
+  "This regular expression matches a valid date.
+It must not be anchored to the beginning or the end of the line. Note that the
+default setting of `mh-folder-font-lock-keywords' expects this expression to
+contain only one parenthesized expression which matches the date field as in
+the default of \"\\\\([0-9][0-9]/[0-9][0-9]\\\\)\"}. If this regular
+expression is not correct, the date will not be highlighted. See also
+`mh-scan-format-regexp'.")
 
 (defvar mh-scan-rcpt-regexp  "\\(To:\\)\\(..............\\)"
-  "This regexp specifies the recipient in messages you sent.
+  "This regular expression specifies the recipient in messages you sent.
 Note that the default setting of `mh-folder-font-lock-keywords'
 expects this expression to contain two parenthesized expressions. The
 first is expected to match the `To:' that the default scan format
 file generates. The second is expected to match the recipient's name
-as in the default of \"\\\\(To:\\\\)\\\\(..............\\\\)\".")
+as in the default of \"\\\\(To:\\\\)\\\\(..............\\\\)\". If this
+regular expression is not correct, the recipient will not be highlighted.")
 
 (defvar mh-scan-body-regexp "\\(<<\\([^\n]+\\)?\\)"
-  "This regexp matches the message body fragment displayed in scan lines.
+  "This regular expression matches the message body fragment.
 Note that the default setting of `mh-folder-font-lock-keywords' expects this
 expression to contain at least one parenthesized expression which matches the
-body text as in the default of \"\\\\(<<\\\\([^\\n]+\\\\)?\\\\)\".")
+body text as in the default of \"\\\\(<<\\\\([^\\n]+\\\\)?\\\\)\". If this
+regular expression is not correct, the body fragment will not be highlighted.")
 
 (defvar mh-scan-subject-regexp
   "^ *[0-9]+........[ ]*...................\\([Rr][Ee]\\(\\[[0-9]+\\]\\)?:\\s-*\\)*\\([^<\n]*\\)"
-  "This regexp matches the subject.
-Note that the default setting of `mh-folder-font-lock-keywords' expects this
-expression to contain at least three parenthesized expressions. The first is
-expected to match the `Re:' string, if any. The second matches an optional
-bracketed number after `Re:', such as in `Re[2]:' (and is thus a
-sub-expression of the first expression) and the third is expected to match
-the subject line itself as in the default of \"^ *[0-9]+........[ ]*...................\\\\([Rr][Ee]\\\\(\\\\\\=[[0-9]+\\\\]\\\\)?:\\\\s-*\\\\)*\\\\([^<\\n]*\\\\)\".")
+  "This regular expression matches the subject.
+It must match from the beginning of the line. Note that the default setting
+of `mh-folder-font-lock-keywords' expects this expression to contain at least
+three parenthesized expressions. The first is expected to match the `Re:'
+string, if any. The second matches an optional bracketed number after `Re:',
+such as in `Re[2]:' (and is thus a sub-expression of the first expression) and
+the third is expected to match the subject line itself as in the default of
+\(broken on multiple lines for readability):
+  ^ *[0-9]+........[ ]*...................
+  \\\\([Rr][Ee]\\\\(\\\\\\=[[0-9]+\\\\]\\\\)?:\\\\s-*\\\\)*
+  \\\\([^<\\n]*\\\\)
+This regular expression should be correct as it is needed by non-fontifying
+functions.")
 
 (defvar mh-scan-format-regexp
   (concat "\\([bct]\\)" mh-scan-date-regexp " *\\(..................\\)")
-  "This regexp matches the output of scan.
+  "This regular expression matches the output of scan.
 Note that the default setting of `mh-folder-font-lock-keywords' expects this
 expression to contain at least three parenthesized expressions. The first
-should match the fontification hint, the second is found in
-`mh-scan-date-regexp', and the third should match the user name as in the
-default of \"(concat \"\\\\([bct]\\\\)\" mh-scan-date-regexp
-                     \"*\\\\(..................\\\\)\")\".")
+should match the fontification hint (see `mh-scan-format-nmh'), the second is
+found in `mh-scan-date-regexp', and the third should match the user name as in
+the default of \"(concat \"\\\\([bct]\\\\)\" mh-scan-date-regexp
+                         \"*\\\\(..................\\\\)\")\".
+If this regular expression is not correct, the notation hints and the sender
+will not be highlighted.")
 
 
 
@@ -281,7 +300,7 @@ default of \"(concat \"\\\\([bct]\\\\)\" mh-scan-date-regexp
    (list mh-scan-format-regexp
          '(1 mh-folder-date-face)
          '(3 mh-folder-scan-format-face)))
-  "Regexp keywords used to fontify the MH-Folder buffer.")
+  "Keywords (regular expressions) used to fontify the MH-Folder buffer.")
 
 (defvar mh-scan-cmd-note-width 1
   "Number of columns consumed by the cmd-note field in `mh-scan-format'.
@@ -1507,6 +1526,8 @@ is used in previous versions and XEmacs."
            (not (member 'mh-folder-mode which-func-modes)))
   (push 'mh-folder-mode which-func-modes))
 
+(defvar mh-folder-buttons-init-flag nil)
+
 ;; Autoload cookie needed by desktop.el
 ;;;###autoload
 (define-derived-mode mh-folder-mode fundamental-mode "MH-Folder"
@@ -1560,8 +1581,10 @@ MH-Folder buffer, then the MH-E command will perform the operation on all
 messages in that region.
 
 \\{mh-folder-mode-map}"
-
-  (mh-image-load-path)
+  (mh-do-in-gnu-emacs
+   (unless mh-folder-buttons-init-flag
+     (mh-tool-bar-folder-buttons-init)
+     (setq mh-folder-buttons-init-flag t)))
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(mh-folder-font-lock-keywords t))
   (make-local-variable 'desktop-save-buffer)
@@ -1697,10 +1720,13 @@ Return in the folder's buffer."
     (mh-notate-deleted-and-refiled)))
 
 (defun mh-set-cmd-note (width)
-  "Set `mh-cmd-note' to WIDTH characters (minimum of 2).
+  "Set `mh-cmd-note' to WIDTH (minimum of 2).
 
-If `mh-scan-format-file' specifies nil or a filename, then this function
-will NOT update `mh-cmd-note'."
+If `mh-scan-format-file' is set to \"Use Default scan Format\" or \"Specify a
+scan Format File\", then this function will NOT update `mh-cmd-note'. In these
+cases, the user should change `mh-cmd-note' with `setq' if necessary.
+
+Note that columns in Emacs start with 0."
   ;; Add one to the width to always have whitespace in column zero.
   (setq width (max (1+ width) 2))
   (if (and (equal mh-scan-format-file t)

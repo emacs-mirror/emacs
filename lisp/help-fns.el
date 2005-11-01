@@ -311,6 +311,19 @@ face (according to `face-differs-from-default-p')."
   ;; Return value is like the one from help-split-fundoc, but highlighted
   (cons usage doc))
 
+(defun describe-simplify-lib-file-name (file)
+  "Simplify a library name FILE to a relative name, and make it a source file."
+  (if file
+      ;; Try converting the absolute file name to a library name.
+      (let ((libname (file-name-nondirectory file)))
+	;; Now convert that back to a file name and see if we get
+	;; the original one.  If so, they are equivalent.
+	(if (equal file (locate-file libname load-path '("")))
+	    (if (string-match "[.]elc?\\'" libname)
+		(substring libname 0 -1)
+	      libname)
+	  file))))
+
 ;;;###autoload
 (defun describe-function-1 (function)
   (let* ((def (if (symbolp function)
@@ -363,6 +376,7 @@ face (according to `face-differs-from-default-p')."
 	      (help-xref-button 1 'help-function def)))))
     (or file-name
 	(setq file-name (symbol-file function 'defun)))
+    (setq file-name (describe-simplify-lib-file-name file-name))
     (when (equal file-name "loaddefs.el")
       ;; Find the real def site of the preloaded function.
       ;; This is necessary only for defaliases.
@@ -537,6 +551,7 @@ it is displayed along with the global value."
 	    ;; change the format of the buffer's initial line in case
 	    ;; anything expects the current format.)
 	    (let ((file-name (symbol-file variable 'defvar)))
+	      (setq file-name (describe-simplify-lib-file-name file-name))
 	      (when (equal file-name "loaddefs.el")
 		;; Find the real def site of the preloaded variable.
 		(let ((location

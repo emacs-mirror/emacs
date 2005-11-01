@@ -33,7 +33,6 @@
   (autoload 'xw-defined-colors "x-win"))
 
 (defvar help-xref-stack-item)
-
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Font selection.
@@ -547,6 +546,9 @@ If FACE is a face-alias, get the documentation for the target face."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defvar inhibit-face-set-after-frame-default nil
+  "If non-nil, that tells `face-set-after-frame-default' to do nothing.")
+
 (defun set-face-attribute (face frame &rest args)
   "Set attributes of FACE on FRAME from ARGS.
 
@@ -677,9 +679,12 @@ like an underlying face would be, with higher priority than underlying faces."
     (if (memq where '(0 t))
 	(put (or (get face 'face-alias) face) 'face-modified t))
     (while args
-      (internal-set-lisp-face-attribute face (car args)
-					(purecopy (cadr args))
-					where)
+      ;; Don't recursively set the attributes from the frame's font param
+      ;; when we update the frame's font param fro the attributes.
+      (let ((inhibit-face-set-after-frame-default t))
+	(internal-set-lisp-face-attribute face (car args)
+					  (purecopy (cadr args))
+					  where))
       (setq args (cdr (cdr args))))))
 
 
@@ -1297,6 +1302,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      ;; The next 4 sexps are copied from describe-function-1
 	      ;; and simplified.
 	      (setq file-name (symbol-file f 'defface))
+	      (setq file-name (describe-simplify-lib-file-name file-name))
 	      (when file-name
 		(princ "Defined in `")
 		(princ file-name)
@@ -1738,23 +1744,23 @@ Value is the new frame created."
 	(delete-frame frame)))
     frame))
 
-
 (defun face-set-after-frame-default (frame)
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
-  (if (face-attribute 'default :font t)
-      (set-face-attribute 'default frame :font
-			  (face-attribute 'default :font t))
-    (set-face-attribute 'default frame :family
-			(face-attribute 'default :family t))
-    (set-face-attribute 'default frame :height
-			(face-attribute 'default :height t))
-    (set-face-attribute 'default frame :slant
-			(face-attribute 'default :slant t))
-    (set-face-attribute 'default frame :weight
-			(face-attribute 'default :weight t))
-    (set-face-attribute 'default frame :width
-			(face-attribute 'default :width t)))
+  (unless inhibit-face-set-after-frame-default
+    (if (face-attribute 'default :font t)
+	(set-face-attribute 'default frame :font
+			    (face-attribute 'default :font t))
+      (set-face-attribute 'default frame :family
+			  (face-attribute 'default :family t))
+      (set-face-attribute 'default frame :height
+			  (face-attribute 'default :height t))
+      (set-face-attribute 'default frame :slant
+			  (face-attribute 'default :slant t))
+      (set-face-attribute 'default frame :weight
+			  (face-attribute 'default :weight t))
+      (set-face-attribute 'default frame :width
+			  (face-attribute 'default :width t))))
   (dolist (face (face-list))
     ;; Don't let frame creation fail because of an invalid face spec.
     (condition-case ()

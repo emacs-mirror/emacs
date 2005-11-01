@@ -353,7 +353,12 @@ Defaults to the whole buffer.  END can be out of bounds."
            ;; what's already been refontified.
            (when (and jit-lock-context-unfontify-pos
                       (< jit-lock-context-unfontify-pos next)
-                      (>= jit-lock-context-unfontify-pos start))
+                      (>= jit-lock-context-unfontify-pos start)
+                      ;; Don't move boundary forward if we have to
+                      ;; refontify previous text.  Otherwise, we risk moving
+                      ;; it past the end of the multiline property and thus
+                      ;; forget about this multiline region altogether.
+                      (not (get-text-property start 'jit-lock-defer-multiline)))
              (setq jit-lock-context-unfontify-pos next))
 
 	   ;; Fontify the chunk, and mark it as fontified.

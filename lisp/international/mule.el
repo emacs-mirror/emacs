@@ -85,7 +85,9 @@ Return t if file exists."
 	      ;; Make `kill-buffer' quiet.
 	      (set-buffer-modified-p nil))
 	    ;; Have the original buffer current while we eval.
-	    (eval-buffer buffer nil file
+	    (eval-buffer buffer nil
+			 ;; This is compatible with what `load' does.
+			 (if purify-flag file fullname)
 			 ;; If this Emacs is running with --unibyte,
 			 ;; convert multibyte strings to unibyte
 			 ;; after reading them.

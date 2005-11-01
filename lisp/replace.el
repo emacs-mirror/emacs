@@ -1129,11 +1129,17 @@ See also `multi-occur'."
 				    (append
 				     (when prefix-face
 				       `(font-lock-face prefix-face))
-				     '(occur-prefix t)))
+				     `(occur-prefix t mouse-face (highlight)
+				       occur-target ,marker follow-link t
+				       help-echo "mouse-2: go to this occurrence")))
 			     ;; We don't put `mouse-face' on the newline,
 			     ;; because that loses.  And don't put it
 			     ;; on context lines to reduce flicker.
-			     (propertize curstring 'mouse-face 'highlight)
+			     (propertize curstring 'mouse-face (list 'highlight)
+					 'occur-target marker
+					 'follow-link t
+					 'help-echo
+					 "mouse-2: go to this occurrence")
 			     "\n"))
 			   (data
 			    (if (= nlines 0)
@@ -1154,11 +1160,7 @@ See also `multi-occur'."
 			(let ((beg (point))
 			      (end (progn (insert data) (point))))
 			  (unless (= nlines 0)
-			    (insert "-------\n"))
-			  (add-text-properties
-			   beg end
-			   `(occur-target ,marker follow-link t
-					  help-echo "mouse-2: go to this occurrence")))))
+			    (insert "-------\n")))))
 		    (goto-char endpt))
 		  (if endpt
 		      (progn

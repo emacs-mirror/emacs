@@ -97,8 +97,9 @@ A case table is a char-table which maps characters
 to their lower-case equivalents.  It also has three \"extra\" slots
 which may be additional char-tables or nil.
 These slots are called UPCASE, CANONICALIZE and EQUIVALENCES.
-UPCASE maps each character to its upper-case equivalent;
- if lower and upper case characters are in 1-1 correspondence,
+UPCASE maps each non-upper-case character to its upper-case equivalent.
+ (The value in UPCASE for an upper-case character is never used.)
+ If lower and upper case characters are in 1-1 correspondence,
  you may use nil and the upcase table will be deduced from DOWNCASE.
 CANONICALIZE maps each character to a canonical equivalent;
  any two characters that are related by case-conversion have the same

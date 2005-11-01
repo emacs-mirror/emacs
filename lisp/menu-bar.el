@@ -189,7 +189,7 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-file-menu [dired]
   '(menu-item "Open Directory..." dired
 	      :enable (menu-bar-non-minibuffer-window-p)
-	      :help "Read a directory, operate on its files"))
+	      :help "Read a directory, to operate on its files"))
 (define-key menu-bar-file-menu [open-file]
   '(menu-item "Open File..." find-file-existing
 	      :enable (menu-bar-non-minibuffer-window-p)
@@ -197,7 +197,7 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-file-menu [new-file]
   '(menu-item "Visit New File..." find-file
 	      :enable (menu-bar-non-minibuffer-window-p)
-	      :help "Read or create a file and edit it"))
+	      :help "Specify a new file's name, to edit the file"))
 
 
 ;; The "Edit" menu items
@@ -1342,7 +1342,7 @@ key, a click, or a menu-item"))
 	      :help "Display manual section that describes a key"))
 
 (define-key menu-bar-help-menu [eliza]
-  '(menu-item "Emacs Psychiatrist" doctor
+  '(menu-item "Emacs Psychotherapist" doctor
 	      :help "Our doctor will help you feel better"))
 (define-key menu-bar-help-menu [sep4]
   '("--"))

@@ -1,3 +1,211 @@
+2005-10-27  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-adaptive-cmd-note-flag)
+	(mh-scan-format-file, mh-scan-prog): Sync docstrings with manual.
+
+	* mh-e.el (mh-scan-format-mh, mh-note-deleted, mh-note-refiled)
+	(mh-note-cur, mh-scan-good-msg-regexp)
+	(mh-scan-deleted-msg-regexp, mh-scan-refiled-msg-regexp)
+	(mh-scan-valid-regexp, mh-scan-cur-msg-number-regexp)
+	(mh-scan-date-regexp, mh-scan-rcpt-regexp, mh-scan-body-regexp)
+	(mh-scan-subject-regexp, mh-scan-format-regexp)
+	(mh-folder-font-lock-keywords, mh-set-cmd-note): Sync docstrings
+	with manual.
+
+	* mh-funcs.el (mh-note-copied): Sync docstrings with manual.
+
+	* mh-utils.el (mh-goto-msg): Use mh-scan-msg-search-regexp instead
+	of hard-coded string.
+	(mh-mail-header-separator, mh-signature-separator-regexp): Use
+	"regular expression" in docstring instead of regexp.
+	(mh-scan-msg-number-regexp)
+	(mh-scan-msg-overflow-regexp, mh-scan-msg-format-regexp)
+	(mh-scan-msg-format-string, mh-scan-msg-search-regexp)
+	(mh-cmd-note): Sync docstrings with manual.
+
+	* mh-comp.el (mh-insert-signature, mh-insert-auto-fields):
+	Checkdoc fixes.
+
+	* mh-customize.el (mh-compose-insertion, mh-x-face-file): Ditto.
+	
+	* mh-mime.el (mh-mh-to-mime, mh-mml-attach-file) 
+	(mh-mml-secure-message-sign, mh-mml-secure-message-encrypt) 
+	(mh-mml-secure-message-signencrypt): Ditto
+
+2005-10-24  Bill Wohler  <wohler@newt.com>
+
+	* mh-gnus.el: Load mml.el in order to see if
+	mml-minibuffer-read-disposition is defined or not.
+
+	* mh-mime.el: Now that mh-gnus.el loads mml, we shouldn't need the
+	mml autoloads.
+
+2005-10-23  Miles Bader  <miles@gnu.org>
+
+	* .arch-inventory: New file.
+
+2005-10-23  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-interpret-number-as-range-flag): Sync
+	docstring with manual.
+
+	* mh-identity.el (mh-assoc-ignore-case): Merge with version in
+	mh-alias.el and move to mh-acros.el
+
+	* mh-alias.el (mh-assoc-ignore-case): Merge with version in
+	mh-identity.el and move to mh-acros.el
+
+	* mh-acros.el (mh-assoc-ignore-case): Merge of function from
+	mh-identity.el and mh-alias.el.
+
+	* mh-mime.el: Autoload mm-uu for mm-uu-dissect to avoid compiler
+	warning in Emacs 22.
+
+2005-10-23  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-identity.el (mh-assoc-ignore-case): New macro that uses
+	assoc-string (if the function is available) and falls back on
+	assoc-ignore-case if assoc-string is not found.
+	(mh-identity-field-handler): Use mh-assoc-ignore-case since
+	assoc-ignore-case is a obsolete function in Emacs 22.
+
+	* mh-e.el (mh-folder-buttons-init-flag): New variable that keeps
+	track of whether the tool-bar in mh-folder-mode has been
+	initialized yet.
+	(mh-folder-mode): Initialize the tool-bar for folders the first
+	time we get into mh-letter-mode.
+
+	* mh-customize.el (mh-buffer-exists-p): New function which tests
+	presence of buffers of a given mode.
+	(mh-tool-bar-define): New functions
+	mh-tool-bar-folder-buttons-init and
+	mh-tool-bar-letter-buttons-init are defined. These functions are
+	used to create the tool-bar from the corresponding customizable
+	variables.
+
+	* mh-comp.el (mh-letter-buttons-init-flag): New variable that
+	keeps track of whether the tool-bar in mh-letter-mode has been
+	initialized yet.
+	(mh-letter-mode): Initialize the tool-bar for drafts the first
+	time we get into mh-letter-mode.
+
+2005-10-23  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-letter-menu): Rename
+	mh-mhn-compose-external-compressed-tar to
+	mh-mh-compose-external-compressed-tar. Rename
+	mh-mhn-compose-anon-ftp to mh-mh-compose-anon-ftp. Rename
+	mh-edit-mhn to mh-mh-to-mime. Rename mh-mhn-directive-present-p to
+	mh-mh-directive-present-p. Rename mh-revert-mhn-edit to
+	mh-mh-to-mime-undo. Rename mh-gnus-pgp-support-flag to
+	mh-pgp-support-flag. Rename mh-compose-insertion value from 'mhn
+	to 'mh.
+	(mh-insert-signature): Rename mh-mhn-directive-present-p to
+	mh-mh-directive-present-p.
+	(mh-send-letter): Rename mh-mhn-directive-present-p to
+	mh-mh-directive-present-p. Rename mh-edit-mhn to mh-mh-to-mime.
+	(mh-letter-mode-map): Rename mh-edit-mhn to mh-mh-to-mime. Rename
+	mh-mhn-compose-anon-ftp to mh-mh-compose-anon-ftp. Rename
+	mh-mhn-compose-external-compressed-tar to
+	mh-mh-compose-external-compressed-tar. Rename mh-revert-mhn-edit
+	to mh-mh-to-mime-undo. Rename mh-mhn-compose-external-type to
+	mh-mh-compose-external-type. Rename mh-mhn-compose-anon-ftp to
+	mh-mh-compose-anon-ftp. Rename
+	mh-mhn-compose-external-compressed-tar to
+	mh-mh-compose-external-compressed-tar. Rename mh-revert-mhn-edit
+	to mh-mh-to-mime-undo. Rename mh-mhn-compose-external-type to
+	mh-mh-compose-external-type.
+	(mh-send-letter, mh-letter-mode-map): Rename mh-edit-mhn to
+	mh-mh-to-mime, mh-revert-mhn-edit to mh-mh-to-mime-undo.
+	(mh-reply, mh-yank-cur-msg, mh-insert-prefix-string): Rename
+	mh-yank-from-start-of-msg to mh-yank-behavior.
+	(mh-letter-mode, mh-to-field, mh-to-fcc, mh-insert-signature)
+	(mh-check-whom, mh-insert-auto-fields, mh-send-letter)
+	(mh-insert-letter, mh-yank-cur-msg, mh-insert-prefix-string)
+	(mh-fully-kill-draft, mh-open-line, mh-letter-complete)
+	(mh-letter-complete-or-space, mh-letter-confirm-address)
+	(mh-letter-next-header-field-or-indent)
+	(mh-letter-previous-header-field)
+	(mh-letter-toggle-header-field-display): Sync docstrings with
+	manual.
+
+	* mh-customize.el (mh-edit-mhn-hook): Rename to
+	mh-mh-to-mime-hook.
+	(mh-yank-from-start-of-msg): Rename to mh-yank-behavior.
+	(mh-compose-insertion): Rename values from 'gnus and 'mhn to 'mh
+	and user-visible values from mhn and Gnus to MH and MML.
+	(mh-before-send-letter-hook): Added 'ispell-message option.
+	(mh-mml-method-default): Rename mh-gnus-pgp-support-flag to
+	mh-pgp-support-flag.
+	(mh-compose-insertion, mh-compose-space-does-completion-flag)
+	(mh-delete-yanked-msg-window-flag)
+	(mh-extract-from-attribution-verb, mh-ins-buf-prefix)
+	(mh-letter-complete-function, mh-letter-fill-column)
+	(mh-mml-method-default, mh-signature-file-name)
+	(mh-signature-separator-flag, mh-x-face-file)
+	(mh-yank-behavior, mail-citation-hook)
+	(mh-before-send-letter-hook, mh-mh-to-mime-hook): Sync docstrings
+	with manual.
+
+	* mh-gnus.el (mml-minibuffer-read-disposition): New function
+	provided for Emacs 21 environments that lack it.
+
+	* mh-mime.el (mh-mml-query-cryptographic-method): Use default
+	prompt convention.
+	(mh-compose-forward): mh-mh-forward-message requires string arg.
+	(mh-minibuffer-read-type): New function.
+	(mh-mhn-args): Rename to mh-mh-to-mime-args.
+	(mh-mhn-compose-insertion): Rename to mh-mh-attach-file.
+	(mh-mhn-compose-forw): Rename to mh-mh-forward-message.
+	(mh-mhn-compose-type): Rename to mh-mh-compose-type.
+	(mh-mhn-compose-anon-ftp): Rename to mh-mh-compose-anon-ftp.
+	Rename mh-mhn-compose-external-type to
+	mh-mh-compose-external-type.
+	(mh-mhn-compose-external-compressed-tar): Rename to
+	mh-mh-compose-external-compressed-tar. Rename
+	mh-mhn-compose-external-type to mh-mh-compose-external-type.
+	(mh-mhn-compose-external-type): Rename to
+	mh-mh-compose-external-type.
+	(mh-edit-mhn): Rename to mh-mh-to-mime. Rename mh-mhn-args to
+	mh-mh-to-mime-args. Rename mh-edit-mhn-hook to mh-mh-to-mime-hook.
+	Use correct program in message.
+	(mh-mhn-directive-present-p): Rename to mh-mh-directive-present-p.
+	(mh-mml-directive-present-p): Rename to mh-mml-tag-present-p.
+	(mh-compose-forward, mh-mh-attach-file)
+	(mh-mh-compose-anon-ftp, mh-mh-compose-external-compressed-tar)
+	(mh-mh-compose-external-type, mh-mh-forward-message)
+	(mh-mml-attach-file): Use mml-minibuffer-read-description,
+	mh-minibuffer-read-type.
+	(mh-mime-content-types): Moved comment about only being used in
+	Emacs 20 to docstring.
+	(mh-mh-compose-external-type): Rename extra-param argument to
+	parameters.
+	(mh-mml-to-mime, mh-secure-message)
+	(mh-mml-unsecure-message, mh-mime-display-part)
+	(mh-mime-display-single): Rename mh-gnus-pgp-support-flag to
+	mh-pgp-support-flag.
+	(mh-compose-insertion): Rename mh-mhn-compose-insertion to
+	mh-mh-attach-file.
+	(mh-compose-forward): Rename mh-mhn-compose-forw to
+	mh-mh-forward-message.
+	(mh-mhn-compose-insertion): Rename mh-mhn-compose-type to
+	mh-mh-compose-type.
+	(mh-compose-insertion, mh-compose-forward, mh-mh-to-mime-args)
+	(mh-mh-attach-file, mh-mh-compose-type)
+	(mh-mh-compose-anon-ftp, mh-mh-compose-external-compressed-tar)
+	(mh-mh-compose-external-compressed-tar)
+	(mh-mh-compose-external-type, mh-mh-forward-message)
+	(mh-mh-to-mime, mh-mh-quote-unescaped-sharp,
+	(mh-mh-to-mime-undo, mh-mh-directive-present-p, mh-mml-to-mime)
+	(mh-mml-attach-file, mh-secure-message, mh-mml-unsecure-message)
+	(mh-mml-secure-message-sign, mh-mml-secure-message-encrypt)
+	(mh-mml-directive-present-p, mh-destroy-postponed-handles)
+	(mh-display-smileys, mh-display-emphasis, mh-mime-save-parts):
+	Sync docstrings with manual.
+
+	* mh-utils.el (mh-gnus-pgp-support-flag): Rename to
+	mh-pgp-support-flag.
+
 2005-10-17  Peter S Galbraith  <psg@debian.org>
 
 	* mh-identity.el (mh-identity-field-handler): Use

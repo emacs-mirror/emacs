@@ -1,3 +1,425 @@
+2005-10-28  Juri Linkov  <juri@jurta.org>
+
+	* international/quail.el (quail-get-current-str): Translate last
+	raw character for deterministic input methods.
+
+2005-10-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-ext.el: Add functions to autoloads.
+	(math-identity-matrix-p, math-ident-row-p): New functions.
+
+	* calc/calc-arith.el (calc-mul-symb-fancy): Add checks for
+	multiplication by an identity matrix; don't turn multiplication by
+	an inverse matrix into division.
+	(math-div-symbol-fancy):  Replace division by matrices with
+	multiplication by inverse.
+
+	* calc/calc-misc.el (calcFunc-inv): Check for symbolic matrices.
+
+	* calc/calc-alg.el (calcFunc-writeoutpower, math-write-out-power)
+	(calc-writeoutpower): New functions.
+
+2005-10-27  Romain Francoise  <romain@orebokech.com>
+
+	* replace.el (occur-engine): Include colon in mouse-face highlight.
+
+	* dired-x.el: Change Maintainer field.
+
+2005-10-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Bind after-change-functions to
+	nil during initial decoding and final encoding.
+
+2005-10-26  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-emulate-terminal, term-handle-colors-array)
+	(term-handle-ansi-escape): Specify the terminfo capabilities
+	implemented.
+
+2005-10-26  Richard M. Stallman  <rms@gnu.org>
+
+	* info.el (Info-fontify-node): Fix detection of sentence-break
+	before *Note.
+
+2005-10-26  Romain Francoise  <romain@orebokech.com>
+
+	* smerge-mode.el: Add `tools' to file keywords.
+
+2005-10-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Only display gud-until icon
+	when the fringe is not available.
+
+	* progmodes/gdb-ui.el (def-gdb-auto-updated-buffer)
+	(def-gdb-auto-update-trigger): Simplify construction.
+	(gdb-locals-buffer): Use def-gdb-auto-update-trigger instead of
+	def-gdb-auto-updated-buffer as gdb-info-locals-handler is
+	defined explicitly.
+	(gdb-assembler-buffer): Use def-gdb-auto-update-handler instead of
+	def-gdb-auto-updated-buffer as gdb-invalidate-assembler is
+	defined explicitly.
+	(gdb-info-locals-custom): Remove as it's a no-op.
+
+2005-10-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Remove narrowing before
+	performing the initial decoding or final encoding.
+
+2005-10-25  Romain Francoise  <romain@orebokech.com>
+
+	* emacs-lisp/find-func.el (find-library-name): Also strip
+	extension if library name ends in .el, to take advantage of
+	`find-library-suffixes'.
+
+2005-10-25  Richard M. Stallman  <rms@gnu.org>
+
+	* menu-bar.el (menu-bar-help-menu): Say which kind of therapist.
+
+2005-10-25  Juri Linkov  <juri@jurta.org>
+
+	* textmodes/texinfo.el (texinfo-mode): Change charset of one
+	quotation mark from [mule-unicode-0100-24ff] to [japanese-jisx0208].
+
+2005-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* play/blackbox.el (blackbox-mode-map): Move init into declaration.
+	(blackbox-redefine-key): Add argument `map'.
+
+	* jit-lock.el (jit-lock-fontify-now): Be careful not to skip multiline
+	regions when moving the jit-lock-context-unfontify-pos boundary.
+
+2005-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* net/browse-url.el (browse-url-of-buffer): Add ".html" to
+	filename.
+
+2005-10-25  Masatake YAMATO  <jet@gyve.org>
+
+	* dired-x.el (dired-virtual): Don't use `dired-insert-headerline'.
+
+2005-10-25  Michael Cadilhac  <michael.cadilhac-@t-lrde.epita.fr>  (tiny change)
+
+	* play/blackbox.el (blackbox-redefine-key): New function.
+	(blackbox-mode-map): Use it to remap existing bindings for cursor
+	motion instead of binding literal keys.
+
+2005-10-25  Glenn Morris  <rgm@gnu.org>
+
+	* calendar/diary-lib.el (diary-list-entries): Prevent infloop when
+	diary does not end in a newline.  Do not assume a blank line at
+	the start of the diary file.
+
+2005-10-25  Kenichi Handa  <handa@m17n.org>
+
+	* international/quail.el (quail-translate-key): If the input
+	method is deterministic and failed to handle the last key, restart
+	the key handling loop from an appropriate key.
+
+2005-10-25  Michael Albinus  <michael.albinus@gmx.de>
+
+	* vc.el (vc-dired-mode): Extend comment for binding of
+	`directory-listing-before-filename-regexp'.
+
+2005-10-25  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/texinfo.el (texinfo-mode):
+	* textmodes/paragraphs.el (sentence-end-base): Use real chars, so as
+	not to unnecessarily expose emacs-mule's internal char codes.
+
+2005-10-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-put-breakpoint-icon): Correct help-echo.
+	Display hand pointer and help-echo on disabled icon too.
+	(gdb-mouse-until): New function.
+	(gdb-ann3): Bind it to mouse-2 and drag-mouse-1 in left fringe.
+
+2005-10-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* menu-bar.el (menu-bar-help-menu): Rename "psychiatrist", in line
+	with 2005-10-23 change to doctor.el.
+
+	* finder.el (finder-mode-map): Add follow-link binding.
+
+2005-10-25  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gdb-ui.el (gdb-ann3): Bind mouse-3 in left fringe
+	to gdb-mouse-toggle-breakpoint-fringe.
+	(gdb-mouse-toggle-breakpoint-margin): Rename from
+	gdb-mouse-toggle-breakpoint. Fix doc.
+	(gdb-mouse-toggle-breakpoint-fringe): New defun.
+	(gdb-put-string): Add optional SPROPS arg.  Add props to string.
+	(gdb-put-breakpoint-icon): Add gdb-bptno and gdb-enabled
+	string properties also for fringe breakpoint bitmaps.
+
+2005-10-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-start-icalendar-file): Fix format form.
+
+2005-10-25  Masatake YAMATO  <jet@gyve.org>
+
+	* simple.el (completion-common-substring):
+	Use `completion-common-substring' prior to `completion-base-size'.
+
+2005-10-24  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* savehist.el: Require CL while compiling.
+	(savehist-history-variables): Remove.
+	(savehist-save-minibuffer-history, savehist-additional-variables)
+	(savehist-minibuffer-history-variables): New vars.
+	(savehist-save): Use them.
+	(savehist-uninstall, savehist-minibuffer-hook): New funs.
+	(savehist-install): New fun, extracted from savehist-load.
+	(savehist-load): Use them.
+
+2005-10-24  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (easy-mmode-define-global-mode): Don't add
+	a dummy doc-string-elt property.
+	(defalias, defvaralias, define-category): Add a docstring property.
+
+	* image.el (defimage):
+	* widget.el (define-widget):
+	* custom.el (defface, defcustom): Add `doc-string' declaration.
+
+	* emacs-lisp/advice.el (ad-make-advised-definition): Fix arg-order.
+	(defadvice): Add `doc-string' declaration.
+
+	* emacs-lisp/byte-run.el (macro-declaration-function):
+	Handle `doc-string' declarations.
+	(define-obsolete-function-alias, define-obsolete-variable-alias):
+	Add `doc-string' declaration.
+
+2005-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* international/utf-7.el (utf-7): Add autoload cookie.
+
+	* term/x-win.el: Register more Cyrillic characters in x-keysym-table.
+
+2005-10-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (autoloads): Use "." instead of $(lisp) in the
+	list of directories passed to batch-update-autoloads.  Add "." to
+	the list of the echoed directories.
+
+	* pgg-def.el:
+	* pgg-gpg.el:
+	* pgg-parse.el:
+	* pgg-pgp.el:
+	* pgg-pgp5.el:
+	* pgg.el: Moved here from the gnus subdirectory.
+
+2005-10-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-filter): Bind inhibit-read-only to t
+	in case comint-prompt-read-only is set to t.
+
+	* progmodes/gdb-ui.el (gdb-send): Bind inhibit-read-only to t
+	in case comint-prompt-read-only is set to t.
+
+2005-10-24  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Increase to 0.13.
+	Now a string.
+	(icalendar-import-format): Handle CLASS, STATUS, URL.
+	Rename `subject' to `summary'.
+	(icalendar-import-format-summary): Rename from
+	`icalendar-import-format-subject'.
+	(icalendar-import-format-url, icalendar-import-format-status)
+	(icalendar-import-format-class): New variables.
+	(icalendar--rris): Take variable argument list.
+	(icalendar--datestring-to-isodate): Remove unnecessary
+	calendar-style check when converting dates with explicit month names.
+	(icalendar-export-region): Change return type of conversion
+	subroutines.  Bury current buffer unless error occurred.
+	(icalendar--convert-to-ical)
+	(icalendar--parse-summary-and-rest): New functions.
+	(icalendar--convert-ordinary-to-ical)
+	(icalendar--convert-weekly-to-ical)
+	(icalendar--convert-yearly-to-ical)
+	(icalendar--convert-block-to-ical)
+	(icalendar--convert-cyclic-to-ical)
+	(icalendar--convert-anniversary-to-ical): Change return type.
+	Strip trailing blanks from subject.
+	(icalendar--convert-sexp-to-ical): Change return type.
+	Strip trailing blanks from subject.  Handle simple sexp
+	entries as generated by icalendar.el.
+	(icalendar--convert-float-to-ical)
+	(icalendar--convert-date-to-ical): Strip trailing blanks from subject.
+	(icalendar-import-file): Doc fix.
+	(icalendar--format-ical-event): Handle CLASS, STATUS, URL.
+	Correct call to icalendar--rris.
+	(icalendar--convert-ical-to-diary): Doc fix.  Rename `subject' to
+	`summary'.
+	(icalendar--add-diary-entry): Rename `subject' to `summary'.
+
+2005-10-24  Romain Francoise  <romain@orebokech.com>
+
+	* server.el (server-sentinel): Set query-on-exit flag to nil on
+	new client processes (it isn't inherited from the server process).
+
+	* replace.el (occur-engine): Rearrange text properties.
+
+2005-10-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-make-xrefs): Don't assume
+	case-fold-search is nil.
+	(debug-help-follow): Use help-xref-interned directly.
+
+2005-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* thumbs.el (thumbs-image-type): Add .pbm.
+
+2005-10-23  Richard M. Stallman  <rms@gnu.org>
+
+	* faces.el (inhibit-face-set-after-frame-default): New variable.
+	(set-face-attribute): Bind it.
+	(face-set-after-frame-default): Test it.
+
+	* help-fns.el (describe-simplify-lib-file-name): New function.
+	(describe-function-1, describe-variable): Use it.
+
+	* faces.el (describe-face): Use describe-simplify-lib-file-name.
+
+	* tooltip.el (tooltip-x-offset, tooltip-y-offset): Change defaults.
+	Eliminate nil as possible value.
+	(tooltip-hide-delay): Reduce internal-border-width.
+
+	* menu-bar.el (menu-bar-file-menu) <dired>: Change help-echo string.
+	(menu-bar-file-menu) <new-file>: Likewise.
+
+	* simple.el (line-move-finish): Ignore fields computing LINE-END.
+
+	* international/mule.el (load-with-code-conversion):
+	Pass full file name to `eval-buffer' unless preloading.
+
+	* textmodes/flyspell.el (flyspell-large-region):
+	Call ispell-check-version.
+
+	* textmodes/ispell.el (ispell-local-dictionary-overridden):
+	Fix the make-variable-buffer-local call that was supposed
+	to be for this variable.
+	(ispell-aspell-supports-utf8): Doc fix.
+	(ispell-find-aspell-dictionaries): Preserve elements of
+	ispell-dictionary-alist for dictionaries that aspell doesn't report.
+	(ispell-aspell-find-dictionary): Return nil on error.
+
+	* play/doctor.el (doctor-doc): Don't say "psychiatrist".
+	(doctor-symptoms): Likewise.
+
+	* add-log.el (add-log-current-defun): Clean up handling of DEFUNs.
+
+2005-10-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-button, custom-button-pressed): New vars.
+	(custom-raised-buttons): Add :set spec.
+	(custom-button-unraised, custom-button-pressed-unraised):
+	New faces, so that custom-raised-buttons actually does something.
+	(custom-mode): Use custom-button and custom-button-pressed.
+
+	* wid-edit.el (widget-specify-button): Don't ignore
+	widget-mouse-face on graphic terminals.
+	(widget-move-and-invoke): Cleanup.
+
+2005-10-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* whitespace.el (whitespace-cleanup): Doc fix.
+
+2005-10-23  Romain Francoise  <romain@orebokech.com>
+
+	* emulation/viper.el (viper-set-hooks): Quote forms passed to
+	`eval-after-load' to avoid evaluating their result.
+
+2005-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* files.el (directory-listing-before-filename-regexp):
+	New defvar.  Replaces `dired-move-to-filename-regexp' from dired.el.
+
+	* dired.el (dired-move-to-filename-regexp): Remove.
+	All occurences replaced by `directory-listing-before-filename-regexp'.
+
+	* dired-x.el, locate.el, vc.el:
+	Replace `dired-move-to-filename-regexp' by
+	`directory-listing-before-filename-regexp'.  In vc.el it is
+	overwritten locally; maybe this can be handled in files.el too.
+
+	* net/ange-ftp.el (ange-ftp-date-regexp): Remove.  All occurences
+	replaced by `directory-listing-before-filename-regexp'.
+
+2005-10-23  Andreas Schwab  <schwab@suse.de>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Add eval-at-startup
+	and eval-next-after-load.
+
+2005-10-23  MIYOSHI Masanori  <miyoshi@meadowy.org>  (tiny change)
+
+	* mouse.el (mouse-drag-region): If the *Messages* buffer doesn't
+	exist, create it.
+
+2005-10-23  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el: Remove autoloads for mailcrypt and crypt++.
+	Require pgg, pgg-gpg during compilation.
+	(allout-version): Increment version number to 2.1, and use a literal
+	rather than RCS Id.
+	(allout-default-encryption-scheme): Remove.
+	(allout-passphrase-verifier-handling)
+	(allout-passphrase-verifier-string)
+	(allout-file-passphrase-verifier-string)
+	(allout-passphrase-hint-string): Rename -key- to -passphrase-.
+	(allout-passphrase-hint-handling): Rename and simplify.
+	(allout-init): Use `find-file-hook' if available, otherwise
+	`find-file-hooks'.
+	(allout-mode): Use `write-file-functions' if available, otherwise
+	`local-write-file-hooks' and, instead of making auto-save-hook
+	buffer local, make the write-file-hook activity contingent to
+	allout-mode.
+	(allout-mode): Use key-binding substitution in the docstring.
+	(allout-kill-line): Spell-out kill ring data structure mutation
+	instead of using byte-compiler-complaint-provoking `pop'.
+	(allout-insert-listified): Use `insert' rather than `insert-string'
+	(allout-toggle-current-subtree-encryption): Update docstring, adjust
+	to new gpp-based encryption, use new `allout-encrypted-topic-p'.
+	(allout-encrypt-string): Totally revamped vis new underlying
+	encryption facilities.
+	(allout-mc-activate-passwd): Remove.
+	(allout-obtain-passphrase): New, more or less replaces
+	allout-mc-activate-passwd.
+	(allout-encrypted-key-info): More or less replaces
+	allout-encrypted-text-type.
+	(outlineify-sticky, outlinify-sticky): Add autoload cookie.
+	(my-mark-marker): Use `(featurep 'xemacs)'.
+
+2005-10-23  Lars Hansen <larsh@soem.dk>
+
+	* emacs-lisp/bytecomp.el (byte-compile-lambda): New arg add-lambda.
+	(byte-compile-file-form-defmumble, byte-compile-defun)
+	(byte-compile-defmacro): Use it.
+	(byte-compile-form): Don't call byte-compile-set-symbol-position
+	when a byte-compile handler is called.
+
+2005-10-22  Romain Francoise  <romain@orebokech.com>
+
+	* savehist.el (savehist-history-variables): Add `grep-find-history'.
+
+	* subr.el (eval-after-load): Convert library name to an absolute
+	file name using locate-library, since load-history no longer has
+	library names in it.
+
+2005-10-22  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (make-temp-file): Move from subr.el.
+	* subr.el (make-temp-file): Move to files.el.
+
+	* window.el (get-buffer-window-list): Move from subr.el.
+	* subr.el (get-buffer-window-list): Move to window.el.
+
+	* image.el (image-load-path): Use eval-at-startup to initialize.
+
+	* subr.el (eval-at-startup): New macro.
+
+	* subr.el: Much rearrangement of functions and division
+	into pages.  No code changes.
+
 2005-10-22  Kenichi Handa  <handa@m17n.org>
 
 	* tar-mode.el (tar-extract): Be sure to call
@@ -14,8 +436,8 @@
 	(image-type-from-file-header): Use it instead of image-type-from-data.
 	Use image-search-load-path instead of only looking in data-directory.
 	(image-type-from-file-name): New defun.
-	(image-search-load-path): Make PATH arg optional, default to image-load-path.
-	Change `pathname' to `filename'.
+	(image-search-load-path): Change `pathname' to `filename'.
+	Make PATH arg optional, default to image-load-path.
 
 2005-10-21  Richard M. Stallman  <rms@gnu.org>
 

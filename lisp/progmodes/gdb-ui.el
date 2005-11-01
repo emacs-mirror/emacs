@@ -349,11 +349,14 @@ Also display the main routine in the disassembly buffer if present."
     'gdb-mouse-set-clear-breakpoint)
   (define-key gud-minor-mode-map [left-fringe mouse-1]
     'gdb-mouse-set-clear-breakpoint)
+  (define-key gud-minor-mode-map [left-fringe mouse-2]
+    'gdb-mouse-until)
+  (define-key gud-minor-mode-map [left-fringe drag-mouse-1]
+    'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-margin mouse-3]
-    'gdb-mouse-toggle-breakpoint)
-;  Currently only works in margin.
-;  (define-key gud-minor-mode-map [left-fringe mouse-3]
-;    'gdb-mouse-toggle-breakpoint)
+    'gdb-mouse-toggle-breakpoint-margin)
+  (define-key gud-minor-mode-map [left-fringe mouse-3]
+    'gdb-mouse-toggle-breakpoint-fringe)
 
   (setq comint-input-sender 'gdb-send)
   ;;
@@ -396,6 +399,21 @@ Also display the main routine in the disassembly buffer if present."
   ;;
   (gdb-set-gud-minor-mode-existing-buffers)
   (run-hooks 'gdba-mode-hook))
+
+(defun gdb-mouse-until (event)
+  "Execute source lines by dragging the overlay arrow (fringe) with the mouse."
+  (interactive "e")
+  (if gud-overlay-arrow-position
+	(let ((start (event-start event))
+	      (end  (event-end event))
+	      (buffer (marker-buffer gud-overlay-arrow-position)) (line))
+	  (if (equal buffer (window-buffer (posn-window end)))
+	      (with-current-buffer buffer
+		(when (or (equal start end)
+			  (equal (posn-point start)
+				 (marker-position gud-overlay-arrow-position)))
+		  (setq line (line-number-at-pos (posn-point end)))
+		  (gud-call (concat "until " (number-to-string line)))))))))
 
 (defcustom gdb-use-colon-colon-notation nil
   "If non-nil use FUN::VAR format to display variables in the speedbar."
@@ -802,7 +820,8 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   "A comint send filter for gdb.
 This filter may simply queue input for a later time."
   (with-current-buffer gud-comint-buffer
-    (remove-text-properties (point-min) (point-max) '(face)))
+    (let ((inhibit-read-only t))
+      (remove-text-properties (point-min) (point-max) '(face))))
   (let ((item (concat string "\n")))
     (if gud-running
       (progn
@@ -1181,7 +1200,7 @@ happens to be appropriate."
 (defmacro def-gdb-auto-update-trigger (name demand-predicate gdb-command
 					    output-handler)
   `(defun ,name (&optional ignored)
-     (if (and (,demand-predicate)
+     (if (and ,demand-predicate
 	      (not (member ',name
 			   gdb-pending-triggers)))
 	 (progn
@@ -1213,7 +1232,7 @@ happens to be appropriate."
   `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ;; The demand predicate:
-       (lambda () (gdb-get-buffer ',buffer-key))
+       (gdb-get-buffer ',buffer-key)
        ,gdb-command
        ,output-handler-name)
      (def-gdb-auto-update-handler ,output-handler-name
@@ -1399,8 +1418,8 @@ static char *magick[] = {
 		(gud-remove nil)
 	      (gud-break nil)))))))
 
-(defun gdb-mouse-toggle-breakpoint (event)
-  "Enable/disable breakpoint in left fringe/margin with mouse click."
+(defun gdb-mouse-toggle-breakpoint-margin (event)
+  "Enable/disable breakpoint in left margin with mouse click."
   (interactive "e")
   (mouse-minibuffer-check event)
   (let ((posn (event-end event)))
@@ -1418,7 +1437,33 @@ static char *magick[] = {
 				 0 'gdb-enabled (car (posn-string posn)))
 				"disable "
 			      "enable ")
-			    bptno "\n")) 'ignore))))))))
+			    bptno "\n"))
+		  'ignore))))))))
+
+(defun gdb-mouse-toggle-breakpoint-fringe (event)
+  "Enable/disable breakpoint in left fringe with mouse click."
+  (interactive "e")
+  (mouse-minibuffer-check event)
+  (let* ((posn (event-end event))
+	 (pos (posn-point posn))
+	 obj)
+    (when (numberp pos)
+      (with-selected-window (posn-window posn)
+	(save-excursion
+	  (set-buffer (window-buffer (selected-window)))
+	  (goto-char pos)
+	  (dolist (overlay (overlays-in pos pos))
+	    (when (overlay-get overlay 'put-break)
+	      (setq obj (overlay-get overlay 'before-string))))
+	  (when (stringp obj)
+	    (gdb-enqueue-input
+	     (list
+	      (concat
+	       (if (get-text-property 0 'gdb-enabled obj)
+		   "disable "
+		 "enable ")
+	       (get-text-property 0 'gdb-bptno obj) "\n")
+	      'ignore))))))))
 
 (defun gdb-breakpoints-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -2108,11 +2153,10 @@ corresponding to the mode line clicked."
 		      'gdb-locals-buffer-name
 		      'gdb-locals-mode)
 
-(def-gdb-auto-updated-buffer gdb-locals-buffer
-  gdb-invalidate-locals
+(def-gdb-auto-update-trigger gdb-invalidate-locals
+  (gdb-get-buffer 'gdb-locals-buffer)
   "server info locals\n"
-  gdb-info-locals-handler
-  gdb-info-locals-custom)
+  gdb-info-locals-handler)
 
 ;; Abbreviate for arrays and structures.
 ;; These can be expanded using gud-display.
@@ -2141,9 +2185,6 @@ corresponding to the mode line clicked."
 					   'gdb-partial-output-buffer))
 		(set-window-point window p)))))
   (run-hooks 'gdb-info-locals-hook))
-
-(defun gdb-info-locals-custom ()
-  nil)
 
 (defvar gdb-locals-mode-map
   (let ((map (make-sparse-keymap)))
@@ -2455,7 +2496,7 @@ of the current session."
 	(error (setq gdb-find-file-unhook t)))))
 
 ;;from put-image
-(defun gdb-put-string (putstring pos &optional dprop)
+(defun gdb-put-string (putstring pos &optional dprop &rest sprops)
   "Put string PUTSTRING in front of POS in the current buffer.
 PUTSTRING is displayed by putting an overlay into the current buffer with a
 `before-string' string that has a `display' property whose value is
@@ -2466,7 +2507,9 @@ PUTSTRING."
     (let ((overlay (make-overlay pos pos buffer))
 	  (prop (or dprop
 		    (list (list 'margin 'left-margin) putstring))))
-      (put-text-property 0 (length string) 'display prop string)
+      (put-text-property 0 1 'display prop string)
+      (if sprops
+	  (add-text-properties 0 1 sprops string))
       (overlay-put overlay 'put-break t)
       (overlay-put overlay 'before-string string))))
 
@@ -2487,23 +2530,26 @@ BUFFER nil or omitted means use the current buffer."
 	(putstring (if enabled "B" "b"))
 	(source-window (get-buffer-window (current-buffer) 0)))
     (add-text-properties
-     0 1 '(help-echo "mouse-1: set/clear bkpt, mouse-3: enable/disable bkpt")
+     0 1 '(help-echo "mouse-1: clear bkpt, mouse-3: enable/disable bkpt")
      putstring)
-    (if enabled (add-text-properties
-		 0 1 `(gdb-bptno ,bptno gdb-enabled t) putstring)
+    (if enabled
+	(add-text-properties
+	 0 1 `(gdb-bptno ,bptno gdb-enabled t) putstring)
       (add-text-properties
        0 1 `(gdb-bptno ,bptno gdb-enabled nil) putstring))
     (gdb-remove-breakpoint-icons start end)
     (if (display-images-p)
 	(if (>= (or left-fringe-width
-		   (if source-window (car (window-fringes source-window)))
-		   gdb-buffer-fringe-width) 8)
+		    (if source-window (car (window-fringes source-window)))
+		    gdb-buffer-fringe-width) 8)
 	    (gdb-put-string
 	     nil (1+ start)
 	     `(left-fringe breakpoint
 			   ,(if enabled
 				'breakpoint-enabled
-			      'breakpoint-disabled)))
+			      'breakpoint-disabled))
+	     'gdb-bptno bptno
+	     'gdb-enabled enabled)
 	  (when (< left-margin-width 2)
 	    (save-current-buffer
 	      (setq left-margin-width 2)
@@ -2526,10 +2572,10 @@ BUFFER nil or omitted means use the current buffer."
 		       (find-image `((:type xpm :data
 					    ,breakpoint-xpm-data
 					    :conversion disabled
-					    :ascent 100)
+					    :ascent 100 :pointer hand)
 				     (:type pbm :data
 					    ,breakpoint-disabled-pbm-data
-					    :ascent 100))))))
+					    :ascent 100 :pointer hand))))))
 	   (+ start 1)
 	   putstring
 	   'left-margin))
@@ -2564,12 +2610,9 @@ BUFFER nil or omitted means use the current buffer."
 		      'gdb-assembler-buffer-name
 		      'gdb-assembler-mode)
 
-(def-gdb-auto-updated-buffer gdb-assembler-buffer
+(def-gdb-auto-update-handler gdb-assembler-handler
   gdb-invalidate-assembler
-  (concat gdb-server-prefix "disassemble "
-	  (if (member gdb-frame-address '(nil "main")) nil "0x")
-	  gdb-frame-address "\n")
-  gdb-assembler-handler
+  gdb-assembler-buffer
   gdb-assembler-custom)
 
 (defun gdb-assembler-custom ()

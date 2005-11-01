@@ -2291,6 +2291,7 @@ image_load_qt_1 (f, img, type, fss, dh)
   GraphicsImportComponent gi;
   Rect rect;
   int width, height;
+  ImageDescriptionHandle desc_handle;
   short draw_all_pixels;
   Lisp_Object specified_bg;
   XColor color;
@@ -2326,14 +2327,22 @@ image_load_qt_1 (f, img, type, fss, dh)
 	  goto error;
 	}
     }
-  err = GraphicsImportGetNaturalBounds (gi, &rect);
-  if (err != noErr)
+  err = GraphicsImportGetImageDescription (gi, &desc_handle);
+  if (err != noErr || desc_handle == NULL)
     {
       image_error ("Error reading `%s'", img->spec, Qnil);
       goto error;
     }
-  width = img->width = rect.right - rect.left;
-  height = img->height = rect.bottom - rect.top;
+  width = img->width = (*desc_handle)->width;
+  height = img->height = (*desc_handle)->height;
+  DisposeHandle ((Handle)desc_handle);
+
+  if (!check_image_size (f, width, height))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      goto error;
+    }
+
   err = GraphicsImportDoesDrawAllPixels (gi, &draw_all_pixels);
 #if 0
   /* Don't check the error code here.  It may have an undocumented
@@ -2535,6 +2544,15 @@ image_load_quartz2d (f, img, png_p)
       image_error ("Error reading image `%s'", img->spec, Qnil);
       return 0;
     }
+  width = img->width = CGImageGetWidth (image);
+  height = img->height = CGImageGetHeight (image);
+
+  if (!check_image_size (f, width, height))
+    {
+      UNGCPRO;
+      image_error ("Invalid image size", Qnil, Qnil);
+      return 0;
+    }
 
   if (png_p)
     {
@@ -2548,8 +2566,7 @@ image_load_quartz2d (f, img, png_p)
 	  color.blue = BLUE16_FROM_ULONG (color.pixel);
 	}
     }
-  width = img->width = CGImageGetWidth (image);
-  height = img->height = CGImageGetHeight (image);
+
   if (!x_create_x_image_and_pixmap (f, width, height, 0, &ximg, &img->pixmap))
     {
       CGImageRelease (image);
@@ -4190,6 +4207,13 @@ xpm_load_image (f, img, contents, end)
       || width <= 0 || height <= 0
       || num_colors <= 0 || chars_per_pixel <= 0)
     goto failure;
+
+  if (!check_image_size (f, width, height))
+    {
+      image_error ("Invalid image size", Qnil, Qnil);
+      goto failure;
+    }
+
   expect (',');
 
   XSETFRAME (frame, f);

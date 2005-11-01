@@ -165,6 +165,7 @@ struct frame *pending_autoraise_frame;
 /* Where the mouse was last time we reported a mouse event.  */
 
 static Rect last_mouse_glyph;
+static FRAME_PTR last_mouse_glyph_frame;
 
 /* The scroll bar in which the last X motion event occurred.
 
@@ -716,10 +717,10 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
 #ifndef WORDS_BIG_ENDIAN
       {
 	int i;
-	Unichar *text = (Unichar *)buf;
+	UniChar *text = (UniChar *)buf;
 
 	for (i = 0; i < nchars; i++)
-	  text[i] = buf[2*i] << 8 | buf[2*i+1];
+	  text[i] = EndianU16_BtoN (text[i]);
       }
 #endif
       err = atsu_get_text_layout_with_text_ptr ((ConstUniCharArrayPtr)buf,
@@ -773,11 +774,18 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
 		ATSUDrawText (text_layout,
 			      kATSUFromTextBeginning, kATSUToTextEnd,
 			      Long2Fix (x), Long2Fix (port_height - y));
-	      ATSUClearLayoutControls (text_layout,
-				       sizeof (tags) / sizeof (tags[0]),
-				       tags);
 	      CGContextSynchronize (context);
 	      QDEndCGContext (port, &context);
+#if 0
+	      /* This doesn't work on Mac OS X 10.1.  */
+	      ATSUClearLayoutControls (text_layout, 
+				       sizeof (tags) / sizeof (tags[0]),
+				       tags);
+#else
+	      ATSUSetLayoutControls (text_layout,
+				     sizeof (tags) / sizeof (tags[0]),
+				     tags, sizes, values);
+#endif
 	    }
 #endif
 	}
@@ -1666,8 +1674,12 @@ x_per_char_metric (font, char2b)
 	  if (err == noErr)
 	    err = ATSUGetGlyphBounds (text_layout, 0, 0,
 				      kATSUFromTextBeginning, kATSUToTextEnd,
-				      kATSUseFractionalOrigins, 1,
-				      &glyph_bounds, NULL);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+				      kATSUseFractionalOrigins,
+#else
+				      kATSUseDeviceOrigins,
+#endif
+				      1, &glyph_bounds, NULL);
 	  UNBLOCK_INPUT;
 	  if (err != noErr)
 	    pcm = NULL;
@@ -3910,13 +3922,15 @@ note_mouse_movement (frame, pos)
       return 1;
     }
   /* Has the mouse moved off the glyph it was on at the last sighting?  */
-  if (!PtInRect (*pos, &last_mouse_glyph))
+  if (frame != last_mouse_glyph_frame
+      || !PtInRect (*pos, &last_mouse_glyph))
     {
       frame->mouse_moved = 1;
       last_mouse_scroll_bar = Qnil;
       note_mouse_highlight (frame, pos->h, pos->v);
       /* Remember which glyph we're now on.  */
       remember_mouse_glyph (frame, pos->h, pos->v, &last_mouse_glyph);
+      last_mouse_glyph_frame = frame;
       return 1;
     }
 
@@ -4021,6 +4035,7 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 	  GetMouse (&mouse_pos);
 	  remember_mouse_glyph (f1, mouse_pos.h, mouse_pos.v,
 				&last_mouse_glyph);
+	  last_mouse_glyph_frame = f1;
 
 	  *bar_window = Qnil;
 	  *part = 0;
@@ -6572,7 +6587,7 @@ mac_to_x_fontname (name, size, style, charset)
 
   sprintf (xf, "%s-%c-normal--%d-%d-%d-%d-m-%d-%s",
 	   style & bold ? "bold" : "medium", style & italic ? 'i' : 'r',
-	   size, size * 10, size ? 75 : 0, size ? 75 : 0, size * 10, charset);
+	   size, size * 10, size ? 72 : 0, size ? 72 : 0, size * 10, charset);
 
   result = xmalloc (strlen (foundry) + strlen (family) + strlen (xf) + 3 + 1);
   sprintf (result, "-%s-%s-%s", foundry, family, xf);
@@ -7061,7 +7076,7 @@ mac_do_list_fonts (pattern, maxnames)
 	    continue;
 	  memcpy (scaled, font_name_table[i], former_len);
 	  sprintf (scaled + former_len,
-		   "-%d-%d-75-75-m-%d-%s",
+		   "-%d-%d-72-72-m-%d-%s",
 		   scl_val[XLFD_SCL_PIXEL_SIZE],
 		   scl_val[XLFD_SCL_POINT_SIZE],
 		   scl_val[XLFD_SCL_AVGWIDTH],
@@ -7409,8 +7424,12 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	  if (err == noErr)
 	    err = ATSUGetGlyphBounds (text_layout, 0, 0,
 				      kATSUFromTextBeginning, kATSUToTextEnd,
-				      kATSUseFractionalOrigins, 1,
-				      &glyph_bounds, NULL);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+				      kATSUseFractionalOrigins,
+#else
+				      kATSUseDeviceOrigins,
+#endif
+				      1, &glyph_bounds, NULL);
 	  if (err == noErr)
 	    {
 	      xassert (glyph_bounds.lowerRight.x - glyph_bounds.lowerLeft.x
@@ -9501,6 +9520,7 @@ XTread_socket (sd, expected, hold_quit)
 		!= eventNotHandledErr)
 	      break;
 #endif
+	    last_mouse_glyph_frame = 0;
 
 	    if (dpyinfo->grabbed && last_mouse_frame
 		&& FRAME_LIVE_P (last_mouse_frame))
@@ -10230,8 +10250,8 @@ mac_initialize_display_info ()
   main_device_handle = LMGetMainDevice();
 
   dpyinfo->reference_count = 0;
-  dpyinfo->resx = 75.0;
-  dpyinfo->resy = 75.0;
+  dpyinfo->resx = 72.0;
+  dpyinfo->resy = 72.0;
   dpyinfo->color_p = TestDeviceAttribute (main_device_handle, gdDevType);
 #ifdef MAC_OSX
   /* HasDepth returns true if it is possible to have a 32 bit display,

@@ -1199,33 +1199,34 @@ openp (path, str, suffixes, storeptr, predicate)
 
 /* Merge the list we've accumulated of globals from the current input source
    into the load_history variable.  The details depend on whether
-   the source has an associated file name or not. */
+   the source has an associated file name or not.
+
+   FILENAME is the file name that we are loading from.
+   ENTIRE is 1 if loading that entire file, 0 if evaluating part of it.  */
 
 static void
-build_load_history (stream, source)
-     FILE *stream;
-     Lisp_Object source;
+build_load_history (filename, entire)
+     Lisp_Object filename;
+     int entire;
 {
   register Lisp_Object tail, prev, newelt;
   register Lisp_Object tem, tem2;
-  register int foundit, loading;
-
-  loading = stream || !NARROWED;
+  register int foundit = 0;
 
   tail = Vload_history;
   prev = Qnil;
-  foundit = 0;
+
   while (CONSP (tail))
     {
       tem = XCAR (tail);
 
       /* Find the feature's previous assoc list... */
-      if (!NILP (Fequal (source, Fcar (tem))))
+      if (!NILP (Fequal (filename, Fcar (tem))))
 	{
 	  foundit = 1;
 
-	  /*  If we're loading, remove it. */
-	  if (loading)
+	  /*  If we're loading the entire file, remove old data. */
+	  if (entire)
 	    {
 	      if (NILP (prev))
 		Vload_history = XCDR (tail);
@@ -1257,10 +1258,10 @@ build_load_history (stream, source)
       QUIT;
     }
 
-  /* If we're loading, cons the new assoc onto the front of load-history,
-     the most-recently-loaded position.  Also do this if we didn't find
-     an existing member for the current source.  */
-  if (loading || !foundit)
+  /* If we're loading an entire file, cons the new assoc onto the
+     front of load-history, the most-recently-loaded position.  Also
+     do this if we didn't find an existing member for the file.  */
+  if (entire || !foundit)
     Vload_history = Fcons (Fnreverse (Vcurrent_load_list),
 			   Vload_history);
 }
@@ -1415,7 +1416,9 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
 	}
     }
 
-  build_load_history (stream, sourcename);
+  build_load_history (sourcename, 
+		      stream || (start == BEG && end == Z));
+
   UNGCPRO;
 
   unbind_to (count, Qnil);
@@ -3897,8 +3900,8 @@ An element `(t . SYMBOL)' precedes an entry `(defun . FUNCTION)',
 and means that SYMBOL was an autoload before this file redefined it
 as a function.
 
-For a preloaded file, the file name recorded is relative to the main Lisp
-directory.  These names are converted to absolute by `file-loadhist-lookup'.  */);
+During preloading, the file name recorded is relative to the main Lisp
+directory.  These file names are converted to absolute at startup.  */);
   Vload_history = Qnil;
 
   DEFVAR_LISP ("load-file-name", &Vload_file_name,

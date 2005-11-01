@@ -27,9 +27,7 @@ face name prefixes should be in it for good results.
 
 * NEW FEATURES
 
-** Rework how the fringe "angle" bitmap at at bottom of buffer is
-shown to include an indication of whether the last line has a NL or not.
-[Assigned to KFS]
+** Change .emacs.d/.emacs to .emacs.d/emacs.
 
 ** Rework how fringe bitmaps are defined and used.
 Currently, bitmap usage and bitmap appearence are "mixed-up" in a
@@ -47,6 +45,8 @@ a bitmap appearence.
 invalid pointer from string_free_list.
 
 * BUGS
+
+** VC bug report from Peter Milliken on Sep 21 (emacs-pretest-bug).
 
 ** TCP server processes do not work on Windows.
 

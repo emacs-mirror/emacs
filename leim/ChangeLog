@@ -1,3 +1,24 @@
+2005-10-28  Juri Linkov  <juri@jurta.org>
+
+	* quail/symbol-ksc.el: Add missing characters from 1st pos of
+	every table of [korean-ksc5601], and swap incorrectly ordered
+	characters at pos 91 and 90.
+
+2005-10-26  Torsten Bronger  <bronger@physik.rwth-aachen.de>  (tiny change)
+
+	* quail/latin-ltx.el ("TeX"): Change "\," mapping to U+202F (not
+	U+2006).  Add more mappings from TeX's textcomp package.
+
+2005-10-25  Juri Linkov  <juri@jurta.org>
+
+	* quail/cyrillic.el ("cyrillic-translit"): Set 4th arg `guidance'
+	to t for this multi-key input method.
+
+2005-10-24  Kenichi Handa  <handa@m17n.org>
+
+	* quail/uni-input.el (ucs-input-activate): Don't add
+	quail-kill-guidance-buf to kill-buffer-hook.
+
 2005-07-08  Kenichi Handa  <handa@m17n.org>
 
 	* quail/japanese.el (quail-japanese-kanji-kkc): Fix order of

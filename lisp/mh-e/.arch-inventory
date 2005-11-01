@@ -1,1 +1,4 @@
-precious ^mh-loaddefs\.el$
+# Auto-generated lisp files, which ignore
+precious ^(mh-loaddefs)\.el$
+
+# arch-tag: 03c1cf02-6c80-44af-b4ec-b41b53fbf8f2

@@ -9574,13 +9574,13 @@ END:VTODO\n"
   (let ((user user-full-name)
 	(calname "something")
 	(name (or name "unknown"))
-	(timezone "FIXME"))
+	(timezone "Europe/Amsterdam")) ;; FIXME:  How to get the real timezone?
     (princ
      (format "BEGIN:VCALENDAR
 VERSION:2.0
 X-WR-CALNAME:%s
 PRODID:-//%s//Emacs with Org-mode//EN
-X-WR-TIMEZONE:Europe/Amsterdam
+X-WR-TIMEZONE:Europe/%s
 CALSCALE:GREGORIAN\n" name user timezone))))
 
 (defun org-finish-icalendar-file ()

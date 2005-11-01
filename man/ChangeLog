@@ -1,3 +1,42 @@
+2005-10-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Predefined Units): Fix the symbol for a TeX points,
+	mention other TeX-related units.
+
+2005-10-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Describe
+	gdb-mouse-until.
+
+2005-10-23  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Init File): Recommend when to use site-start.el.
+
+2005-10-23  Lars Hansen  <larsh@soem.dk>
+
+	* dired-x.texi (Miscellaneous Commands): Replace
+	dired-do-relative-symlink by dired-do-relsymlink and
+	dired-do-relative-symlink-regexp by dired-do-relsymlink-regexp.
+
+2005-10-23  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Predefined Units): Use `alpha' for the fine structure
+	constant.
+
+2005-10-23  Michael Albinus  <michael.albinus@gmx.de>
+
+	* faq.texi (Bugs and problems): Replace
+	`dired-move-to-filename-regexp' by
+	`directory-listing-before-filename-regexp'.
+
+2005-10-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* newsticker.texi (UPDATED): Set value.
+
+2005-10-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Document Groups): Remove duplicate item.
+
 2005-10-21  Juri Linkov  <juri@jurta.org>
 
 	* custom.texi (Examining): Mention accessing the old variable

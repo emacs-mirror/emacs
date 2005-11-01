@@ -1,10 +1,10 @@
 ;;; savehist.el --- Save minibuffer history.
 
-;; Copyright (C) 1997, 2005 Free Software Foundation
+;; Copyright (C) 1997,2005 Free Software Foundation
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Keywords: minibuffer
-;; Version: 7
+;; Version: 9
 
 ;; This file is part of GNU Emacs.
 
@@ -27,24 +27,25 @@
 
 ;; Many editors (e.g. Vim) have the feature of saving minibuffer
 ;; history to an external file after exit.  This package provides the
-;; same feature in Emacs.  When Emacs is about the exit,
-;; `savehist-save' will dump the contents of various minibuffer
-;; histories (as determined by `savehist-history-variables') to a save
-;; file (`~/.emacs-history' by default).  Although the package was
-;; designed for saving the minibuffer histories, any variables can be
-;; saved that way.
+;; same feature in Emacs.  When set up, it saves recorded minibuffer
+;; histories to a file (`~/.emacs-history' by default).  Additional
+;; variables may be specified by customizing
+;; `savehist-additional-variables'.
 
 ;; To use savehist, put the following to `~/.emacs':
 ;;
 ;; (require 'savehist)
 ;; (savehist-load)
 
-;; Be sure to have `savehist.el' in a directory that is in your
-;; load-path, and byte-compile it.
+;; If you are using a version of Emacs that does not ship with this
+;; package, be sure to have `savehist.el' in a directory that is in
+;; your load-path, and to byte-compile it.
 
 ;;; Code:
 
 (require 'custom)
+(eval-when-compile
+  (require 'cl))
 
 ;; User variables
 
@@ -52,65 +53,25 @@
   "Save minibuffer history."
   :group 'minibuffer)
 
-(defcustom savehist-history-variables
-  '(
-    ;; Catch-all minibuffer history
-    minibuffer-history
-    ;; File-oriented commands
-    file-name-history
-    ;; Regexp-related reads
-    regexp-history
-    ;; Searches in minibuffer (via `M-r' and such)
-    minibuffer-history-search-history
-    ;; Query replace
-    query-replace-history
-    ;; eval-expression (`M-:')
-    read-expression-history
-    ;; shell-command (`M-!')
-    shell-command-history
-    ;; compile
-    compile-history
-    ;; find-tag (`M-.')
-    find-tag-history
-    ;; grep
-    grep-history
-    ;; Viper stuff
-    vip-ex-history vip-search-history
-    vip-replace1-history vip-replace2-history
-    vip-shell-history vip-search-history
+(defcustom savehist-save-minibuffer-history t
+  "If non-nil, save all recorded minibuffer histories."
+  :type 'boolean
+  :group 'savehist)
 
-    ;; XEmacs-specific:
-    ;; Buffer-related commands
-    buffer-history
-    ;; Reads of variables and functions
-    variable-history function-history
-    ;; Extended commands
-    read-command-history
+(defcustom savehist-additional-variables ()
+  "List of additional variables to save.
+Each element is a symbol whose value will be persisted across Emacs
+sessions that use savehist.  The contents of variables should be
+printable with the Lisp printer.  If the variable's value is a list,
+it will be trimmed to `savehist-length' elements.
 
-    ;; Info, lookup, and bookmark historys
-    Info-minibuffer-history
-    Info-search-history
-    Manual-page-minibuffer-history
-
-    ;; Emacs-specific:
-    ;; Extended commands
-    extended-command-history)
-  "*List of symbols to be saved.
-Every symbol should refer to a variable.  The variable will be saved
-only if it is bound and has a non-nil value.  Thus it is safe to
-specify a superset of the variables a user is expected to want to
-save.
-
-Default value contains minibuffer history variables used by Emacs, XEmacs,
-and Viper (uh-oh).  Note that, if you customize this variable, you
-can lose the benefit of future versions of Emacs adding new values to
-the list.  Because of that it might be more useful to add values using
-`add-to-list'."
+You don't need to add minibuffer history variables to this list.  All
+minibuffer histories will be saved automatically."
   :type '(repeat (symbol :tag "Variable"))
   :group 'savehist)
 
 (defcustom savehist-file "~/.emacs-history"
-  "*File name to save minibuffer history to.
+  "File name to save minibuffer history to.
 The minibuffer history is a series of Lisp expressions, which should be
 loaded using `savehist-load' from your .emacs.  See `savehist-load' for
 more details."
@@ -118,14 +79,15 @@ more details."
   :group 'savehist)
 
 (defcustom savehist-length 100
-  "*Maximum length of a minibuffer list.
-If set to nil, the length is unlimited."
+  "Maximum length of a minibuffer list.
+Minibuffer histories with more entries are trimmed when saved, the older
+entries being removed first.  If set to nil, the length is unlimited."
   :type '(choice integer
 		 (const :tag "Unlimited" nil))
   :group 'savehist)
 
 (defcustom savehist-modes #o600
-  "*Default permissions of the history file.
+  "Default permissions of the history file.
 This is decimal, not octal.  The default is 384 (0600 in octal).
 Set to nil to use the default permissions that Emacs uses, typically
 mandated by umask.  The default is a bit more restrictive to protect
@@ -134,7 +96,7 @@ the user's privacy."
   :group 'savehist)
 
 (defcustom savehist-autosave-interval (* 5 60)
-  "*The interval during which savehist should autosave the history buffer."
+  "The interval during which savehist should autosave the history buffer."
   :type 'integer
   :group 'savehist)
 
@@ -154,46 +116,65 @@ unwise, unless you know what you are doing.")
 
 (defvar savehist-last-checksum nil)
 
+(defvar savehist-minibuffer-history-variables nil)
+
 (defconst savehist-no-conversion (if (featurep 'xemacs) 'binary 'no-conversion)
-  ;; FIXME: Why not use savehist-coding-system?
-  "Coding system without conversion, only used for calculating checksums.")
+  "Coding system without conversion, only used for calculating checksums.
+It should be as discriminating as `savehist-coding-system' but faster.")
 
-;; Functions
+;; Functions.
+
+(defun savehist-install ()
+  "Hook savehist into Emacs.
+This will install `savehist-autosave' in `kill-emacs-hook' and on a timer.
+To undo this, call `savehist-uninstall'."
+  (add-hook 'minibuffer-setup-hook 'savehist-minibuffer-hook)
+  (add-hook 'kill-emacs-hook 'savehist-autosave)
+  ;; Install an invocation of savehist-autosave on a timer.  This
+  ;; should not cause noticeable delays for users -- savehist-autosave
+  ;; executes in under 5 ms on my system.
+  (unless savehist-timer
+    (setq savehist-timer
+	  (if (featurep 'xemacs)
+	      (start-itimer
+	       "savehist" 'savehist-autosave savehist-autosave-interval
+	       savehist-autosave-interval)
+	    (run-with-timer savehist-autosave-interval savehist-autosave-interval
+			    'savehist-autosave)))))
+
+(defun savehist-uninstall ()
+  "Undo installing savehist."
+  (remove-hook 'minibuffer-setup-hook 'savehist-minibuffer-hook)
+  (remove-hook 'kill-emacs-hook 'savehist-autosave)
+  (when savehist-timer
+    (if (featurep 'xemacs)
+	(delete-itimer savehist-timer)
+      (cancel-timer savehist-timer))
+    (setq savehist-timer nil)))
 
 ;;;###autoload
-(defun savehist-load (&optional no-hook)
+(defun savehist-load (&optional no-install)
   "Load the minibuffer histories from `savehist-file'.
-Unless NO-HOOK is specified, the function will also add the save function
-to `kill-emacs-hook' and on a timer, ensuring that the minibuffer contents
-will be saved before leaving Emacs.
+Unless NO-INSTALL is present and non-nil, the function will also install
+`savehist-autosave' in `kill-emacs-hook' and on a timer, ensuring that
+history is saved before leaving Emacs.
 
-This function should be normally used from your Emacs init file.  Since it
-removes your current minibuffer histories, it is unwise to call it at any
-other time."
+This function should be normally used from your Emacs init file.  Since
+it removes your current minibuffer histories, it is unwise to call it at
+any other time."
   (interactive "P")
-  (unless no-hook
-    (add-hook 'kill-emacs-hook 'savehist-autosave)
-    ;; Install an invocation of savehist-autosave on a timer.  This
-    ;; should not cause a noticeable delay -- savehist-autosave
-    ;; executes in under 5 ms on my system.
-    (unless savehist-timer
-      (setq savehist-timer
-	    (if (featurep 'xemacs)
-		(start-itimer
-		 "savehist" 'savehist-autosave savehist-autosave-interval
-		 savehist-autosave-interval)
-	      (run-with-idle-timer savehist-autosave-interval savehist-autosave-interval
-                                   'savehist-autosave)))))
   ;; Don't set coding-system-for-read here.  We rely on autodetection
   ;; and the coding cookie to convey that information.  That way, if
   ;; the user changes the value of savehist-coding-system, we can
   ;; still correctly load the old file.
-  (load savehist-file t (not (interactive-p))))
+  (load savehist-file t (not (interactive-p)))
+  (unless no-install
+    (savehist-install)))
 
 ;;;###autoload
 (defun savehist-save (&optional auto-save)
-  "Save the histories from `savehist-history-variables' to `savehist-file'.
-Unbound symbols referenced in `savehist-history-variables' are ignored.
+  "Save the values of minibuffer history variables.
+Unbound symbols referenced in `savehist-additional-variables' are ignored.
 If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
  and don't save the buffer if they are the same."
   (interactive)
@@ -205,8 +186,13 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	  (print-string-length nil)
 	  (print-level nil)
 	  (print-readably t)
-	  (print-quoted t))
-      (dolist (sym savehist-history-variables)
+	  (print-quoted t)
+	  (symbol-list (append
+			(and savehist-save-minibuffer-history
+			     (cons 'savehist-minibuffer-history-variables
+				   savehist-minibuffer-history-variables))
+			savehist-additional-variables)))
+      (dolist (sym symbol-list)
 	(when (boundp sym)
 	  (let ((value (savehist-process-for-saving (symbol-value sym))))
 	    (prin1 `(setq ,sym ',value) (current-buffer))
@@ -217,8 +203,9 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
       (unless (and auto-save (equal checksum savehist-last-checksum))
 	;; Set file-precious-flag when saving the buffer because we
 	;; don't want a half-finished write ruining the entire
-	;; history.  (Remember that this is run from a timer and from
-	;; kill-emacs-hook.)
+	;; history.  Remember that this is run from a timer and from
+	;; kill-emacs-hook, and also that multiple Emacs instances
+	;; could write to this file at once.
 	(let ((file-precious-flag t)
 	      (coding-system-for-write savehist-coding-system))
 	  (write-region (point-min) (point-max) savehist-file nil
@@ -268,6 +255,10 @@ If AUTO-SAVE is non-nil, compare the saved contents to the one last saved,
 	  t)
       ;; The attempt failed: the object is not printable.
       (error nil)))))
+
+(defun savehist-minibuffer-hook ()
+  (add-to-list 'savehist-minibuffer-history-variables
+               minibuffer-history-variable))
 
 (provide 'savehist)
 

@@ -1284,8 +1284,8 @@ read-only properties, if it is safe to do so.  This means that if any
 part of a prompt is deleted, then the entire prompt must be deleted
 and that all prompts must stay at the beginning of a line.  If this is
 not the case, then `comint-kill-region' behaves just like
-`kill-region' if read-only are involved: it copies the text to the
-kill-ring, but does not delete it.
+`kill-region' if read-only properties are involved: it copies the text
+to the kill-ring, but does not delete it.
 
 +++
 *** The new command `comint-insert-previous-argument' in comint-derived
@@ -1522,6 +1522,7 @@ separate manual.
 
 +++
 ** savehist saves minibuffer histories between sessions.
+To use this feature, put (savehist-load) in your `.emacs' file.
 
 +++
 ** Filesets are collections of files.  You can define a fileset in
@@ -1823,15 +1824,16 @@ powerful ways.
 
 *** many substantial fixes and refinements, including:
 
-   - repaired inhibition of inadvertant edits to concealed text
+   - repaired inhibition of inadvertent edits to concealed text
    - repaired retention of topic body hanging indent upon topic depth shifts
    - prevent "containment discontinuities" where a topic is shifted deeper
-     than the offspring-depth of its' container
+     than the offspring-depth of its container
    - easy to adopt the distinctive bullet of a topic in a topic created
      relative to it, or select a new one, or use the common topic bullet
    - plain bullets, by default, now alternate between only two characters
-     ('.' and ','), yielding less cluttered outlines.
-   - many internal fixes.
+     ('.' and ','), yielding less cluttered outlines
+   - many internal fixes
+   - version number incremented to 2.1
 
 ** The variable `woman-topic-at-point' was renamed
 to `woman-use-topic-at-point' and behaves differently: if this
@@ -3474,6 +3476,13 @@ This combines `defalias' and `make-obsolete'.
 It returns nil if the given Lisp form can't possibly do anything
 dangerous; otherwise it returns a reason why the form might be unsafe
 (calls unknown function, alters global variable, etc).
+
++++
+*** New macro `eval-at-startup' specifies expressions to
+evaluate when Emacs starts up.  If this is done after startup,
+it evaluates those expressions immediately.
+
+This is useful in packages that can be preloaded. 
 
 *** `list-faces-display' takes an optional argument, REGEXP.
 

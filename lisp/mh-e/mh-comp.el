@@ -350,8 +350,8 @@ See also `mh-send'."
              (mh-forwarded-letter-subject orig-from orig-subject)))
         (mh-insert-fields "Subject:" forw-subject)
         (goto-char (point-min))
-        ;; If using MML, translate mhn
-        (if (equal mh-compose-insertion 'gnus)
+        ;; If using MML, translate MH-style directive
+        (if (equal mh-compose-insertion 'mml)
             (save-excursion
               (goto-char (mh-mail-header-end))
               (while
@@ -527,8 +527,8 @@ See also `mh-send'."
                        (group-reply (if (mh-variant-p 'nmh 'mu-mh)
                                         '("-group" "-nocc" "me")
                                       '("-cc" "all" "-nocc" "me"))))
-                 (cond ((or (eq mh-yank-from-start-of-msg 'autosupercite)
-                            (eq mh-yank-from-start-of-msg 'autoattrib))
+                 (cond ((or (eq mh-yank-behavior 'autosupercite)
+                            (eq mh-yank-behavior 'autoattrib))
                         '("-noformat"))
                        (includep '("-filter" "mhl.reply"))
                        (t '())))
@@ -551,8 +551,8 @@ See also `mh-send'."
         (message "Composing a reply...done")
         (mh-compose-and-send-mail draft "" folder message to subject cc
                                   mh-note-repl "Replied:" config))
-      (when (and (or (eq 'autosupercite mh-yank-from-start-of-msg)
-                     (eq 'autoattrib mh-yank-from-start-of-msg))
+      (when (and (or (eq 'autosupercite mh-yank-behavior)
+                     (eq 'autoattrib mh-yank-behavior))
                  (eq (mh-show-buffer-message-number) mh-sent-from-msg))
         (undo-boundary)
         (mh-yank-cur-msg))
@@ -788,13 +788,13 @@ Returns t if found, nil if not."
     ["Insert Signature"         mh-insert-signature t]
     ("Encrypt/Sign Message"
      ["Sign Message"
-      mh-mml-secure-message-sign mh-gnus-pgp-support-flag]
+      mh-mml-secure-message-sign mh-pgp-support-flag]
      ["Encrypt Message"
-      mh-mml-secure-message-encrypt mh-gnus-pgp-support-flag]
+      mh-mml-secure-message-encrypt mh-pgp-support-flag]
      ["Sign+Encrypt Message"
-      mh-mml-secure-message-signencrypt mh-gnus-pgp-support-flag]
+      mh-mml-secure-message-signencrypt mh-pgp-support-flag]
      ["Disable Security"
-      mh-mml-unsecure-message mh-gnus-pgp-support-flag]
+      mh-mml-unsecure-message mh-pgp-support-flag]
      "--"
      "Security Method"
      ["PGP (MIME)" (setq mh-mml-method-default "pgpmime")
@@ -810,19 +810,19 @@ Returns t if found, nil if not."
      ["Save Method as Default"
       (customize-save-variable 'mh-mml-method-default mh-mml-method-default) t]
      )
-    ["Compose Insertion (MIME)..."      mh-compose-insertion t]
-    ["Compose Compressed tar (MIME)..."
-     mh-mhn-compose-external-compressed-tar t]
-    ["Compose Get File (MIME)..."       mh-mhn-compose-anon-ftp t]
-    ["Compose Forward (MIME)..."        mh-compose-forward t]
+    ["Compose Insertion..."      mh-compose-insertion t]
+    ["Compose Compressed tar (MH)..."
+     mh-mh-compose-external-compressed-tar t]
+    ["Compose Get File (MH)..."       mh-mh-compose-anon-ftp t]
+    ["Compose Forward..."        mh-compose-forward t]
     ;; The next two will have to be merged. But I also need to make sure the
-    ;; user can't mix directives of both types.
-    ["Pull in All Compositions (mhn)"
-     mh-edit-mhn (mh-mhn-directive-present-p)]
-    ["Pull in All Compositions (gnus)"
-     mh-mml-to-mime (mh-mml-directive-present-p)]
-    ["Revert to Non-MIME Edit (mhn)"
-     mh-revert-mhn-edit (equal mh-compose-insertion 'mhn)]
+    ;; user can't mix tags of both types.
+    ["Pull in All Compositions (MH)"
+     mh-mh-to-mime (mh-mh-directive-present-p)]
+    ["Pull in All Compositions (MML)"
+     mh-mml-to-mime (mh-mml-tag-present-p)]
+    ["Revert to Non-MIME Edit (MH)"
+     mh-mh-to-mime-undo (equal mh-compose-insertion 'mh)]
     ["Kill This Draft"          mh-fully-kill-draft t]))
 
 ;;; Help Messages
@@ -871,6 +871,8 @@ work better in MH-Letter mode."
   (defvar tool-bar-mode)
   (defvar tool-bar-map))
 
+(defvar mh-letter-buttons-init-flag nil)
+
 ;;;###autoload
 (define-derived-mode mh-letter-mode text-mode "MH-Letter"
   "Mode for composing letters in MH-E.\\<mh-letter-mode-map>
@@ -878,16 +880,13 @@ work better in MH-Letter mode."
 When you have finished composing, type \\[mh-send-letter] to send the message
 using the MH mail handling system.
 
-There are two types of MIME directives used by MH-E: Gnus and MH. The option
-`mh-compose-insertion' controls what type of directives are inserted by MH-E
-commands. These directives can be converted to MIME body parts by running
-\\[mh-edit-mhn] for mhn directives or \\[mh-mml-to-mime] for Gnus directives.
-This step is mandatory if these directives are added manually. If the
-directives are inserted with MH-E commands such as \\[mh-compose-insertion],
-the directives are expanded automatically when the letter is sent.
+There are two types of tags used by MH-E when composing MIME messages: MML and
+MH. The option `mh-compose-insertion' controls what type of tags are inserted
+by MH-E commands. These tags can be converted to MIME body parts by running
+\\[mh-mh-to-mime] for MH-style directives or \\[mh-mml-to-mime] for MML tags.
 
-Options that control this mode can be changed with
-\\[customize-group]; specify the \"mh-compose\" group.
+Options that control this mode can be changed with \\[customize-group];
+specify the \"mh-compose\" group.
 
 When a message is composed, the hooks `text-mode-hook' and
 `mh-letter-mode-hook' are run.
@@ -900,6 +899,10 @@ When a message is composed, the hooks `text-mode-hook' and
   (make-local-variable 'mh-previous-window-config)
   (make-local-variable 'mh-sent-from-folder)
   (make-local-variable 'mh-sent-from-msg)
+  (mh-do-in-gnu-emacs
+   (unless mh-letter-buttons-init-flag
+     (mh-tool-bar-letter-buttons-init)
+     (setq mh-letter-buttons-init-flag t)))
   ;; Set the local value of mh-mail-header-separator according to what is
   ;; present in the buffer...
   (set (make-local-variable 'mh-mail-header-separator)
@@ -1016,7 +1019,7 @@ Header is treated specially by inserting a tab before continuation lines."
 
 ;;;###mh-autoload
 (defun mh-to-field ()
-  "Move point to the end of a specified header field.
+  "Move to specified header field.
 The field is indicated by the previous keystroke (the last keystroke
 of the command) according to the list in the variable `mh-to-field-choices'.
 Create the field if it does not exist.  Set the mark to point before moving."
@@ -1047,8 +1050,9 @@ Create the field if it does not exist.  Set the mark to point before moving."
 
 ;;;###mh-autoload
 (defun mh-to-fcc (&optional folder)
-  "Insert an Fcc: FOLDER field in the current message.
-Prompt for the field name with a completion list of the current folders."
+  "Move to \"Fcc:\" header field.
+This command will prompt you for the FOLDER name in which to file a copy of
+the draft."
   (interactive)
   (or folder
       (setq folder (mh-prompt-for-folder
@@ -1080,23 +1084,33 @@ Prompt for the field name with a completion list of the current folders."
 
 ;;;###mh-autoload
 (defun mh-insert-signature (&optional file)
-  "Insert the signature specified by `mh-signature-file-name' or FILE at point.
-A signature separator (`-- ') will be added if the signature block does not
+  "Insert signature in message.
+This command inserts your signature at the current cursor location.
+
+By default, the text of your signature is taken from the file
+\"~/.signature\". You can read from other sources by changing the option
+`mh-signature-file-name' or passing in a signature FILE.
+
+A signature separator (\"-- \") will be added if the signature block does not
 contain one and `mh-signature-separator-flag' is on.
+
 The value of `mh-letter-insert-signature-hook' is a list of functions to be
-called, with no arguments, after the signature is inserted.
-The signature can also be inserted with `mh-identity-list'."
-(interactive)
+called, with no arguments, after the signature is inserted. These functions
+may access the actual name of the file or the function used to insert the
+signature with `mh-signature-file-name'.
+
+The signature can also be inserted using Identities (see `mh-identity-list')"
+  (interactive)
   (save-excursion
     (insert "\n")
     (let ((mh-signature-file-name (or file mh-signature-file-name))
-          (mh-mhn-p (mh-mhn-directive-present-p))
-          (mh-mml-p (mh-mml-directive-present-p)))
+          (mh-mh-p (mh-mh-directive-present-p))
+          (mh-mml-p (mh-mml-tag-present-p)))
       (save-restriction
         (narrow-to-region (point) (point))
         (cond
          ((mh-file-is-vcard-p mh-signature-file-name)
-          (if (equal mh-compose-insertion 'gnus)
+          (if (equal mh-compose-insertion 'mml)
               (insert "<#part type=\"text/x-vcard\" filename=\""
                       mh-signature-file-name
                       "\" disposition=inline description=VCard>\n<#/part>")
@@ -1105,7 +1119,7 @@ The signature can also be inserted with `mh-identity-list'."
                     "\" [VCard] " (expand-file-name mh-signature-file-name))))
          (t
           (cond
-           (mh-mhn-p
+           (mh-mh-p
             (insert "#\n" "Content-Description: Signature\n"))
            (mh-mml-p
             (mml-insert-tag 'part 'type "text/plain" 'disposition "inline"
@@ -1124,7 +1138,7 @@ The signature can also be inserted with `mh-identity-list'."
                    mh-signature-separator-flag
                    (> (point-max) (point-min))
                    (not (mh-signature-separator-p)))
-          (cond (mh-mhn-p
+          (cond (mh-mh-p
                  (forward-line 2))
                 (mh-mml-p
                  (forward-line 1)))
@@ -1135,7 +1149,10 @@ The signature can also be inserted with `mh-identity-list'."
 
 ;;;###mh-autoload
 (defun mh-check-whom ()
-  "Verify recipients of the current letter, showing expansion of any aliases."
+  "Verify recipients, showing expansion of any aliases.
+This command expands aliases so you can check the actual address(es) in the
+alias. A new buffer named \"*MH-E Recipients*\" is created with the output of
+\"whom\"."
   (interactive)
   (let ((file-name buffer-file-name))
     (save-buffer)
@@ -1215,7 +1232,7 @@ The versions of MH-E, Emacs, and MH are shown."
 
 ;;;###mh-autoload
 (defun mh-insert-auto-fields (&optional non-interactive)
-  "Insert custom fields if To or Cc match `mh-auto-fields-list'.
+  "Insert custom fields if recipient is found in `mh-auto-fields-list'.
 Sets buffer-local `mh-insert-auto-fields-done-local' when done and inserted
 something.  If NON-INTERACTIVE is non-nil, do not be verbose and only
 attempt matches if `mh-insert-auto-fields-done-local' is nil.
@@ -1348,12 +1365,17 @@ there."
 
 ;;;###mh-autoload
 (defun mh-send-letter (&optional arg)
-  "Send the draft letter in the current buffer.
-If optional prefix argument ARG is provided, monitor delivery.
-The value of `mh-before-send-letter-hook' is a list of functions to be called,
-with no arguments, before doing anything.
-Run `\\[mh-edit-mhn]' if mhn directives are present; otherwise
-run `\\[mh-mml-to-mime]' if mml directives are present."
+  "Save draft and send message.
+When you are all through editing a message, you send it with this command. You
+can give an argument ARG to monitor the first stage of the delivery\; this
+output can be found in a buffer called \"*MH-E Mail Delivery*\".
+
+The value of `mh-before-send-letter-hook' is a list of functions to be called
+at the beginning of this command. For example, if you want to check your
+spelling in your message before sending, add the `ispell-message' function.
+
+In case the MH \"send\" program is installed under a different name, use
+`mh-send-prog' to tell MH-E the name."
   (interactive "P")
   (run-hooks 'mh-before-send-letter-hook)
   (if (and (mh-insert-auto-fields t)
@@ -1361,9 +1383,9 @@ run `\\[mh-mml-to-mime]' if mml directives are present."
            (goto-char (point-min)))
       (if (not (y-or-n-p "Auto fields inserted, send? "))
           (error "Send aborted")))
-  (cond ((mh-mhn-directive-present-p)
-         (mh-edit-mhn))
-        ((or (mh-mml-directive-present-p) (not (mh-ascii-buffer-p)))
+  (cond ((mh-mh-directive-present-p)
+         (mh-mh-to-mime))
+        ((or (mh-mml-tag-present-p) (not (mh-ascii-buffer-p)))
          (mh-mml-to-mime)))
   (save-buffer)
   (message "Sending...")
@@ -1419,15 +1441,16 @@ run `\\[mh-mml-to-mime]' if mml directives are present."
 
 ;;;###mh-autoload
 (defun mh-insert-letter (folder message verbatim)
-  "Insert a message into the current letter.
-Removes the header fields according to the variable
-`mh-invisible-header-fields-compiled'.
-Prefixes each non-blank line with `mh-ins-buf-prefix', unless
-`mh-yank-from-start-of-msg' is set for supercite in which case supercite is
-used to format the message.
-Prompts for FOLDER and MESSAGE.  If prefix argument VERBATIM provided, do
-not indent and do not delete headers.  Leaves the mark before the letter
-and point after it."
+  "Insert a message.
+This command prompts you for the FOLDER and MESSAGE number and inserts the
+message, indented by `mh-ins-buf-prefix' (\"> \") unless `mh-yank-behavior' is
+set to one of the supercite flavors in which case supercite is used to format
+the message. Certain undesirable header fields (see
+`mh-invisible-header-fields-compiled') are removed before insertion.
+
+If given a prefix argument VERBATIM, the header is left intact, the message is
+not indented, and \"> \" is not inserted before each line. This command leaves
+the mark before the letter and point after it."
   (interactive
    (list (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
          (read-string (concat "Message number"
@@ -1468,13 +1491,25 @@ and point after it."
 ;;;###mh-autoload
 (defun mh-yank-cur-msg ()
   "Insert the current message into the draft buffer.
-Prefix each non-blank line in the message with the string in
-`mh-ins-buf-prefix'.  If a region is set in the message's buffer, then
-only the region will be inserted.  Otherwise, the entire message will
-be inserted if `mh-yank-from-start-of-msg' is non-nil.  If this variable
-is nil, the portion of the message following the point will be yanked.
-If `mh-delete-yanked-msg-window-flag' is non-nil, any window displaying the
-yanked message will be deleted."
+
+It is often useful to insert a snippet of text from a letter that someone
+mailed to provide some context for your reply. This command does this by
+adding an attribution, yanking a portion of text from the message to which
+you're replying, and inserting `mh-ins-buf-prefix' (`> ') before each line.
+
+The attribution consists of the sender's name and email address
+followed by the content of the `mh-extract-from-attribution-verb'
+option.
+
+You can also turn on the `mh-delete-yanked-msg-window-flag' option to delete
+the window containing the original message after yanking it to make more room
+on your screen for your reply.
+
+You can control how the message to which you are replying is yanked
+into your reply using `mh-yank-behavior'.
+
+If this isn't enough, you can gain full control over the appearance of the
+included text by setting `mail-citation-hook' to a function that modifies it."
   (interactive)
   (if (and mh-sent-from-folder
            (save-excursion (set-buffer mh-sent-from-folder) mh-show-buffer)
@@ -1491,9 +1526,9 @@ yanked message will be deleted."
                (yank-region (mh-mark-active-p nil))
                (mh-ins-str
                 (cond ((and yank-region
-                            (or (eq 'supercite mh-yank-from-start-of-msg)
-                                (eq 'autosupercite mh-yank-from-start-of-msg)
-                                (eq t mh-yank-from-start-of-msg)))
+                            (or (eq 'supercite mh-yank-behavior)
+                                (eq 'autosupercite mh-yank-behavior)
+                                (eq t mh-yank-behavior)))
                        ;; supercite needs the full header
                        (concat
                         (buffer-substring (point-min) (mh-mail-header-end))
@@ -1501,20 +1536,18 @@ yanked message will be deleted."
                         (buffer-substring (region-beginning) (region-end))))
                       (yank-region
                        (buffer-substring (region-beginning) (region-end)))
-                      ((or (eq 'body mh-yank-from-start-of-msg)
-                           (eq 'attribution
-                               mh-yank-from-start-of-msg)
-                           (eq 'autoattrib
-                               mh-yank-from-start-of-msg))
+                      ((or (eq 'body mh-yank-behavior)
+                           (eq 'attribution mh-yank-behavior)
+                           (eq 'autoattrib mh-yank-behavior))
                        (buffer-substring
                         (save-excursion
                           (goto-char (point-min))
                           (mh-goto-header-end 1)
                           (point))
                         (point-max)))
-                      ((or (eq 'supercite mh-yank-from-start-of-msg)
-                           (eq 'autosupercite mh-yank-from-start-of-msg)
-                           (eq t mh-yank-from-start-of-msg))
+                      ((or (eq 'supercite mh-yank-behavior)
+                           (eq 'autosupercite mh-yank-behavior)
+                           (eq t mh-yank-behavior))
                        (buffer-substring (point-min) (point-max)))
                       (t
                        (buffer-substring (point) (point-max))))))
@@ -1526,8 +1559,8 @@ yanked message will be deleted."
             (push-mark)                 ;Needed for sc-cite-original
             (goto-char (point-min))     ;Needed for sc-cite-original
             (mh-insert-prefix-string mh-ins-buf-prefix)
-            (when (or (eq 'attribution mh-yank-from-start-of-msg)
-                      (eq 'autoattrib mh-yank-from-start-of-msg))
+            (when (or (eq 'attribution mh-yank-behavior)
+                      (eq 'autoattrib mh-yank-behavior))
               (insert from-attr)
               (mh-identity-insert-attribution-verb nil)
               (insert "\n\n"))
@@ -1569,12 +1602,12 @@ yanked message will be deleted."
 
 (defun mh-insert-prefix-string (mh-ins-string)
   "Insert prefix string before each line in buffer.
-The inserted letter is cited using `sc-cite-original' if
-`mh-yank-from-start-of-msg' is one of 'supercite or 'autosupercite. Otherwise,
-simply insert MH-INS-STRING before each line."
+The inserted letter is cited using `sc-cite-original' if `mh-yank-behavior' is
+one of 'supercite or 'autosupercite. Otherwise, simply insert MH-INS-STRING
+before each line."
   (goto-char (point-min))
-  (cond ((or (eq mh-yank-from-start-of-msg 'supercite)
-             (eq mh-yank-from-start-of-msg 'autosupercite))
+  (cond ((or (eq mh-yank-behavior 'supercite)
+             (eq mh-yank-behavior 'autosupercite))
          (sc-cite-original))
         (mail-citation-hook
          (run-hooks 'mail-citation-hook))
@@ -1589,8 +1622,10 @@ simply insert MH-INS-STRING before each line."
 
 ;;;###mh-autoload
 (defun mh-fully-kill-draft ()
-  "Kill the draft message file and the draft message buffer.
-Use \\[kill-buffer] if you don't want to delete the draft message file."
+  "Quit editing and delete draft message.
+If for some reason you are not happy with the draft, you can use the this
+command to kill the draft buffer and delete the draft message. Use the
+\\[kill-buffer] command if you don't want to delete the draft message."
   (interactive)
   (if (y-or-n-p "Kill draft message? ")
       (let ((config mh-previous-window-config))
@@ -1618,8 +1653,10 @@ Use \\[kill-buffer] if you don't want to delete the draft message file."
 ;;;###mh-autoload
 (defun mh-open-line ()
   "Insert a newline and leave point after it.
-In addition, insert newline and quoting characters before text after point.
-This is useful in breaking up paragraphs in replies."
+This command is similar to the \\[open-line] command in that it inserts a
+newline after point. It differs in that it also inserts the right number of
+quoting characters and spaces so that the next line begins in the same column
+as it was. This is useful when breaking up paragraphs in replies."
   (interactive)
   (let ((column (current-column))
         (prefix (mh-current-fill-prefix)))
@@ -1707,10 +1744,12 @@ Any match found replaces the text from BEGIN to END."
 
 (defun mh-letter-complete (arg)
   "Perform completion on header field or word preceding point.
-If the field contains addresses (for example, `To:' or `Cc:') or folders (for
-example, `Fcc:') then this function will provide alias completion. Elsewhere,
-this function runs `mh-letter-complete-function' instead and passes the prefix
-ARG, if present."
+If the field contains addresses (for example, \"To:\" or \"Cc:\") or folders
+\(for example, \"Fcc:\") then this command will provide alias completion. In
+the body of the message, this command runs `mh-letter-complete-function'
+instead, which is set to \"'ispell-complete-word\" by default. This command
+takes a prefix argument ARG that is passed to the
+`mh-letter-complete-function'."
   (interactive "P")
   (let ((func nil))
     (cond ((not (mh-in-header-p))
@@ -1722,11 +1761,8 @@ ARG, if present."
 
 (defun mh-letter-complete-or-space (arg)
   "Perform completion or insert space.
-If `mh-compose-space-does-completion-flag' is nil (the default) a space is
-inserted.
-
-Otherwise, if point is in the message header and the preceding character is
-not whitespace then do completion. Otherwise insert a space character.
+Turn on the `mh-compose-space-does-completion-flag' option to use this command
+to perform completion in the header. Otherwise, a space is inserted.
 
 ARG is the number of spaces inserted."
   (interactive "p")
@@ -1744,7 +1780,10 @@ ARG is the number of spaces inserted."
           (t (self-insert-command arg)))))
 
 (defun mh-letter-confirm-address ()
-  "Flash alias expansion if `mh-alias-flash-on-comma' is non-nil."
+  "Flash alias expansion.
+Addresses are separated by a comma\; and when you press the comma, this
+command flashes the alias expansion in the minibuffer if
+`mh-alias-flash-on-comma' is turned on."
   (interactive)
   (cond ((not (mh-in-header-p)) (self-insert-command 1))
         ((eq (cdr (assoc (mh-letter-header-field-at-point)
@@ -1768,8 +1807,12 @@ name."
 ;;;###mh-autoload
 (defun mh-letter-next-header-field-or-indent (arg)
   "Move to next field or indent depending on point.
-In the message header, go to the next field. Elsewhere call
-`indent-relative' as usual with optional prefix ARG."
+Within the header of the message, this command moves between fields, but skips
+those fields listed in `mh-compose-skipped-header-fields'. After the last
+field, this command then moves point to the message body before cycling back
+to the first field. If point is already past the first line of the message
+body, then this command indents by calling `indent-relative' with the given
+prefix argument ARG."
   (interactive "P")
   (let ((header-end (save-excursion
                       (goto-char (mh-mail-header-end))
@@ -1801,7 +1844,10 @@ If we are at the last header field go to the start of the message body."
 ;;;###mh-autoload
 (defun mh-letter-previous-header-field ()
   "Cycle to the previous header field.
-If we are at the first header field go to the start of the message body."
+This command moves backwards between the fields and cycles to the body of the
+message after the first field. Unlike the
+\\[mh-letter-next-header-field-or-indent] command, it will always take point
+to the last field from anywhere in the body."
   (interactive)
   (let ((header-end (mh-mail-header-end)))
     (if (>= (point) header-end)
@@ -1851,11 +1897,11 @@ except that it is callable from a mouse button."
 
 (defun mh-letter-toggle-header-field-display (arg)
   "Toggle display of header field at point.
-If the header is long or spread over multiple lines then hiding it will show
-the first few characters and replace the rest with an ellipsis.
 
-If ARG is negative then header is hidden, if positive it is displayed. If ARG
-is the symbol `long' then keep at most the first 4 lines."
+Use this command to display ellipsed header fields. This command is a toggle
+so entering it again will hide the field. This command takes a prefix argument
+ARG: if negative then the field is hidden, if positive then the field is
+displayed."
   (interactive (list nil))
   (when (and (mh-in-header-p)
              (progn
@@ -1881,6 +1927,8 @@ is the symbol `long' then keep at most the first 4 lines."
                  (remove-text-properties begin end '(invisible nil))
                  (search-forward ":" (line-end-position) t)
                  (mh-letter-skip-leading-whitespace-in-header-field))
+                ;; XXX Redesign to make usable by user. Perhaps use a positive
+                ;; numeric prefix to make that many lines visible.
                 ((eq arg 'long)
                  (end-of-line 4)
                  (mh-letter-truncate-header-field end)
@@ -1939,7 +1987,7 @@ Otherwise return the empty string."
   "\C-c\C-^"            mh-insert-signature ;if no C-s
   "\C-c\C-c"            mh-send-letter
   "\C-c\C-d"            mh-insert-identity
-  "\C-c\C-e"            mh-edit-mhn
+  "\C-c\C-e"            mh-mh-to-mime
   "\C-c\C-f\C-b"        mh-to-field
   "\C-c\C-f\C-c"        mh-to-field
   "\C-c\C-f\C-d"        mh-to-field
@@ -1957,26 +2005,26 @@ Otherwise return the empty string."
   "\C-c\C-i"            mh-insert-letter
   "\C-c\C-m\C-e"        mh-mml-secure-message-encrypt
   "\C-c\C-m\C-f"        mh-compose-forward
-  "\C-c\C-m\C-g"        mh-mhn-compose-anon-ftp
+  "\C-c\C-m\C-g"        mh-mh-compose-anon-ftp
   "\C-c\C-m\C-i"        mh-compose-insertion
   "\C-c\C-m\C-m"        mh-mml-to-mime
   "\C-c\C-m\C-n"        mh-mml-unsecure-message
   "\C-c\C-m\C-s"        mh-mml-secure-message-sign
-  "\C-c\C-m\C-t"        mh-mhn-compose-external-compressed-tar
-  "\C-c\C-m\C-u"        mh-revert-mhn-edit
-  "\C-c\C-m\C-x"        mh-mhn-compose-external-type
+  "\C-c\C-m\C-t"        mh-mh-compose-external-compressed-tar
+  "\C-c\C-m\C-u"        mh-mh-to-mime-undo
+  "\C-c\C-m\C-x"        mh-mh-compose-external-type
   "\C-c\C-mee"          mh-mml-secure-message-encrypt
   "\C-c\C-mes"          mh-mml-secure-message-signencrypt
   "\C-c\C-mf"           mh-compose-forward
-  "\C-c\C-mg"           mh-mhn-compose-anon-ftp
+  "\C-c\C-mg"           mh-mh-compose-anon-ftp
   "\C-c\C-mi"           mh-compose-insertion
   "\C-c\C-mm"           mh-mml-to-mime
   "\C-c\C-mn"           mh-mml-unsecure-message
   "\C-c\C-mse"          mh-mml-secure-message-signencrypt
   "\C-c\C-mss"          mh-mml-secure-message-sign
-  "\C-c\C-mt"           mh-mhn-compose-external-compressed-tar
-  "\C-c\C-mu"           mh-revert-mhn-edit
-  "\C-c\C-mx"           mh-mhn-compose-external-type
+  "\C-c\C-mt"           mh-mh-compose-external-compressed-tar
+  "\C-c\C-mu"           mh-mh-to-mime-undo
+  "\C-c\C-mx"           mh-mh-compose-external-type
   "\C-c\C-o"            mh-open-line
   "\C-c\C-q"            mh-fully-kill-draft
   "\C-c\C-s"            mh-insert-signature

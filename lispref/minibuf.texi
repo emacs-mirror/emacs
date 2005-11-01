@@ -949,7 +949,7 @@ The list of completions is displayed as text in a buffer named
 @samp{*Completions*}.
 @end deffn
 
-@defun display-completion-list completions
+@defun display-completion-list completions &optional common-substring
 This function displays @var{completions} to the stream in
 @code{standard-output}, usually a buffer.  (@xref{Read and Print}, for more
 information about streams.)  The argument @var{completions} is normally
@@ -960,14 +960,22 @@ which is printed as if the strings were concatenated.  The first of
 the two strings is the actual completion, the second string serves as
 annotation.
 
-This function is called by @code{minibuffer-completion-help}.  The
+@var{common-substring} represents a string common prefix between all 
+completions.  @var{common-substring} is used to put faces on 
+@samp{*Completions*} to enhance visual feedback of the buffer; 
+@code{display-completion-list} use faces to highlight what all completions 
+have in common and where they begin to differ.  @var{common-substring}
+specifies the common part.
+
+This function is called by @code{minibuffer-completion-help}.  The 
 most common way to use it is together with
 @code{with-output-to-temp-buffer}, like this:
 
 @example
 (with-output-to-temp-buffer "*Completions*"
   (display-completion-list
-    (all-completions (buffer-string) my-alist)))
+    (all-completions (buffer-string) my-alist)
+    (buffer-string)))
 @end example
 @end defun
 

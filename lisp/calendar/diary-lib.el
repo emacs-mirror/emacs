@@ -439,10 +439,20 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                                  date-start temp)
                              (re-search-backward "\^M\\|\n\\|\\`")
                              (setq date-start (point))
-                             (re-search-forward "\^M\\|\n" nil t 2)
+                             ;; When selective display (rather than
+                             ;; overlays) was used, diary file used to
+                             ;; start in a blank line and end in a
+                             ;; newline. Now that neither of these
+                             ;; need be true, 'move handles the latter
+                             ;; and 1/2 kludge the former.
+                             (re-search-forward
+                              "\^M\\|\n" nil 'move
+                              (if (and (bobp) (not (looking-at "\^M\\|\n")))
+                                  1
+                                2))
                              (while (looking-at " \\|\^I")
-                               (re-search-forward "\^M\\|\n" nil t))
-                             (backward-char 1)
+                               (re-search-forward "\^M\\|\n" nil 'move))
+                             (unless (eobp) (backward-char 1))
                              (unless list-only
                                (remove-overlays date-start (point)
                                                 'invisible 'diary))
