@@ -448,7 +448,7 @@ name with @kbd{Mouse-1} or @kbd{Mouse-2}, or move point there and type
 @cindex viewing web pages in help
 @cindex web pages, viewing in help
 @findex browse-url
-  You can follow cross references to URLs (web pages) as well. When
+  You can follow cross references to URLs (web pages) as well.  When
 you follow a cross reference that is a URL, the @code{browse-url}
 command is used to view the web page in a browser of your choosing.
 @xref{Browse-URL}.

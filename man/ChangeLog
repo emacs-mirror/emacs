@@ -1,3 +1,7 @@
+2005-11-01  Bill Wohler  <wohler@newt.com>
+
+	* help.texi (Help Mode): Fix typo.
+
 2005-11-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Other GDB User Interface Buffers): Describe
