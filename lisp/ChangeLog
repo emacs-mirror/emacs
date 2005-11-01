@@ -1,3 +1,18 @@
+2005-11-01  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-ls.el (eshell-do-ls): Added no-op support for --dired
+	flag, to prevent Eshell from using the system ls when
+	`eshell-ls-insert-directory' is in used.
+	(eshell-ls-insert-directory): Disable font-lock in directory
+	buffer so that Eshell's own fontification is seen.  This broke
+	recently due to changes in font-lock, so this goes back to version
+	21 behavior.
+
+	* eshell/em-glob.el (eshell-extended-glob): Expand the "." path
+	before passing it down to `eshell-glob-entries'.  This is done
+	because special file-handlers will on trigger on ".", even if
+	`default-directory' is special.
+
 2005-11-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer): New function.
