@@ -1,3 +1,8 @@
+2005-11-02  Kim F. Storm  <storm@cua.dk>
+
+	* menu-bar.el (menu-bar-options-menu): Show "Shift Movement (CUA)"
+	item instead of "C-x/C-c/C-v (CUA)" if cua-enable-cua-keys is nil.
+
 2005-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* calendar/cal-menu.el (date, event): Don't declare as dynamic-var.

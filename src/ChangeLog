@@ -1,3 +1,9 @@
+2005-11-01  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (update_window_fringes): Undo 2005-10-27 change.
+	Instead, rotate the bottom angle bitmap 180 degrees to indicate
+	that the bottom row does not end in a newline.
+
 2005-11-01  Andreas Schwab  <schwab@suse.de>
 
 	* unexelf.c (unexec): Handle .plt section in BSS segment.
