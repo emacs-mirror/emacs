@@ -1,3 +1,8 @@
+2005-11-01  KOBAYASHI Yasuhiro <kobayays@otsukakj.co.jp>  (tiny change)
+
+	* info.el (Info-fontify-node): Use `string-width' for fontifying
+	underlined titles.
+
 2005-11-01  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-fontify-node): Downcase node header keywords Node,
