@@ -1,3 +1,16 @@
+2005-11-01  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-supports-index-cookies): New variable.
+	(Info-find-node-2): Check makeinfo version for index cookie support.
+	(Info-index-nodes): Search for nodes with index cookies only when
+	Info-file-supports-index-cookies is t.  Otherwise, search nodes
+	with "Index" in the node name.
+	(Info-index-node): Search index cookie in the current node only when
+	Info-file-supports-index-cookies is t.  Otherwise, check the word
+	"Index" in the node name.
+	(Info-find-emacs-command-nodes): Remove code that searches nodes
+	with "Index" node name in the top menu.
+
 2005-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/scheme.el (scheme-mode-variables): Use the default
