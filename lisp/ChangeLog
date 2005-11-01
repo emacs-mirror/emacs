@@ -1,12 +1,49 @@
+2005-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/scheme.el (scheme-mode-variables): Use the default
+	comment-indent-function.
+
+	* faces.el (face-attribute): Handle the case where a face inherits from
+	a non-existent face.
+
+	* simple.el (eval-expression-print-format): Use lisp-readable syntax
+	for octal and hexa output, and merge the char into the paren.
+	(kill-new): Use push.
+	(copy-to-buffer): Use with-current-buffer.
+	(completion-setup-function): Move code in loop to remove redundancy.
+	(minibuffer-local-must-match-map): Don't add bindings that duplicate
+	those inherited from minibuffer-local-completion-map.
+
+	* savehist.el (savehist-mode) <defcustom>:
+	Use custom-set-minor-mode if available.
+	(savehist-mode) <defun>: Run the minor mode hook, set the custom state
+	and emit a message if applicable.
+
+2005-11-01  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* savehist.el: Sync up to version 19.
+	(savehist-mode): New minor mode.
+	(savehist-file): Use ~/.emacs.d or ~/.xemacs if available.
+	(savehist-length): Remove (use history-length instead).
+	(savehist-file-modes): Rename from savehist-modes.
+	(savehist-save-hook, savehist-loaded): New vars.
+	(savehist-load): Use savehist-mode.  Try to smooth up transition from
+	old format to new format.
+	(savehist-install): Allow savehist-autosave-interval to be nil.
+	(savehist-save): Run the new hook.  Be more careful to only trim the
+	history variables.
+	(savehist-trim-history): New fun.  Replaces savehist-process-for-saving.
+	(savehist-printable): Print into a buffer rather than char-by-char.
+
 2005-11-01  John Wiegley  <johnw@newartisans.com>
 
-	* iswitchb.el (iswitchb-define-mode-map): Re-enabled the
+	* iswitchb.el (iswitchb-define-mode-map): Re-enable the
 	toggle-ignore keybinding (C-a).  The author said it had been
 	disabled much earlier due to a possible incompatibility, but after
 	many months of usage I have encountered no problems (and it is a
 	rather useful option, especially for switching to " *temp*").
 
-	* net/eudcb-mab.el (eudc-mab-query-internal): Added backend
+	* net/eudcb-mab.el (eudc-mab-query-internal): Add backend
 	support for OS/X's AddressBook, by calling out to the open source
 	program "contacts" (installable through Fink).
 
@@ -14,7 +51,7 @@
 	`eudc-multiple-match-handling-method' is set to `all', delete the
 	query string before inserting the query result.
 
-	* eshell/em-ls.el (eshell-do-ls): Added no-op support for --dired
+	* eshell/em-ls.el (eshell-do-ls): Add no-op support for --dired
 	flag, to prevent Eshell from using the system ls when
 	`eshell-ls-insert-directory' is in used.
 	(eshell-ls-insert-directory): Disable font-lock in directory
@@ -74,8 +111,8 @@
 
 	* net/tramp.el (tramp-chunksize): Escape parentheses in docstring
 	starting at beginning of line.  Fontification is messed up when
-	`open-paren-in-column-0-is-defun-start' set to t.  Reported
-	by John Paul Wallington <jpw@pobox.com>.
+	`open-paren-in-column-0-is-defun-start' set to t.
+	Reported by John Paul Wallington <jpw@pobox.com>.
 
 2005-10-30  Luc Teirlinck  <teirllm@auburn.edu>
 
