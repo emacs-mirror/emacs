@@ -1416,7 +1416,8 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
     }
 
   build_load_history (sourcename, 
-		      stream || (start == BEG && end == Z));
+		      stream || (INTEGERP (start) && INTEGERP (end)
+				 && XINT (start) == BEG && XINT (end) == Z));
 
   UNGCPRO;
 
