@@ -1,3 +1,11 @@
+2005-11-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-print.el (mh-ps-spool-buffer, mh-ps-spool-a-msg) 
+	(mh-ps-print-msg): Remove debugging messages.
+	(mh-ps-print-msg-show, mh-ps-print-msg-show) 
+	(mh-ps-print-toggle-color, mh-ps-print-toggle-mime): Remove period
+	after message per conventions.
+
 2005-10-30  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-scan-good-msg-regexp, mh-scan-deleted-msg-regexp) 

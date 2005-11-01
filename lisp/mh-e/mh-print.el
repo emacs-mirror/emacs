@@ -64,7 +64,6 @@ Sensible choices are the functions `ps-spool-buffer' and
 ;; XXX - Default print buffer is bogus
 (defun mh-ps-spool-buffer (buffer)
   "Send BUFFER to printer queue."
-  (message "mh-ps-spool-buffer %s" buffer)
   (save-excursion
     (set-buffer buffer)
     (let ((ps-print-color-p mh-ps-print-color-option)
@@ -85,8 +84,6 @@ Sensible choices are the functions `ps-spool-buffer' and
   "Print MSG.
 First the message is decoded in BUFFER before the results are sent to the
 printer."
-  (message "mh-ps-spool-a-msg msg %s buffer %s"
-		   msg buffer)
   (let ((mh-show-buffer mh-show-buffer)
 	(folder mh-current-folder)
         ;; The following is commented out because
@@ -113,8 +110,6 @@ printer."
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use."
   (interactive (list (mh-interactive-range "Print")))
-  (message "mh-ps-print-msg range %s keys %s"
-		    range (this-command-keys))
   (mh-iterate-on-range msg range
     (let ((buffer (get-buffer-create mh-temp-buffer)))
       (unwind-protect
@@ -152,8 +147,6 @@ interactive use."
 (defun mh-ps-print-msg-show (file)
   "Print current show buffer to FILE."
   (interactive (list (mh-ps-print-preprint current-prefix-arg)))
-  (message "mh-ps-print-msg-show file %s keys %s mh-show-buffer %s"
-		   file (this-command-keys) mh-show-buffer)
   (let ((msg (mh-get-msg-num t))
         (folder mh-current-folder)
         (show-buffer mh-show-buffer)
@@ -164,8 +157,8 @@ interactive use."
 	      (progn
 		(mh-ps-spool-buffer show-buffer)
 		(ps-despool file))
-	    (message "Current message is not being shown(1).")))
-      (message "Current message is not being shown(2)."))))
+	    (message "Current message is not being shown(1)")))
+      (message "Current message is not being shown(2)"))))
 
 ;;;###mh-autoload
 (defun mh-ps-print-toggle-faces ()
@@ -185,13 +178,13 @@ interactive use."
  (if (eq mh-ps-print-color-option nil)
      (progn
        (setq mh-ps-print-color-option 'black-white)
-       (message "Colors will be printed as black & white."))
+       (message "Colors will be printed as black & white"))
    (if (eq mh-ps-print-color-option 'black-white)
        (progn
 	 (setq mh-ps-print-color-option t)
-	 (message "Colors will be printed."))
+	 (message "Colors will be printed"))
      (setq mh-ps-print-color-option nil)
-     (message "Colors will not be printed."))))
+     (message "Colors will not be printed"))))
 
 ;;; XXX: Check option 3. Documentation doesn't sound right.
 ;;;###mh-autoload
@@ -205,13 +198,13 @@ The available settings are:
   (if (eq mh-ps-print-mime nil)
       (progn
         (setq mh-ps-print-mime t)
-        (message "Inline parts will be printed, attachments will not be printed."))
+        (message "Inline parts will be printed, attachments will not be printed"))
     (if (eq mh-ps-print-mime t)
         (progn
           (setq mh-ps-print-mime 1)
-          (message "Both Inline parts and attachments will be printed."))
+          (message "Both Inline parts and attachments will be printed"))
       (setq mh-ps-print-mime nil)
-      (message "Neither inline parts nor attachments will be printed."))))
+      (message "Neither inline parts nor attachments will be printed"))))
 
 ;;; Old non-PS based printing
 ;;;###mh-autoload
