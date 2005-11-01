@@ -761,9 +761,11 @@ maybe_bootstrap:
 	  exit 1;\
 	fi
 
-bootstrap: bootstrap-clean-before info bootstrap-build FRC
+bootstrap: bootstrap-clean-before FRC
+	$(MAKE) $(MFLAGS) info bootstrap-build
 
-bootfast: bootstrap-clean-before-fast info bootstrap-build FRC
+bootfast: bootstrap-clean-before-fast FRC
+	$(MAKE) $(MFLAGS) info bootstrap-build
 
 bootstrap-build: FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-prepare)
