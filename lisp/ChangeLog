@@ -1,5 +1,12 @@
 2005-11-01  Juri Linkov  <juri@jurta.org>
 
+	* info.el (Info-fontify-node): Downcase node header keywords Node,
+	Prev, Next, Up before comparison.
+	(Info-history): Insert absolute directory name, and put invisible
+	property on it.
+
+2005-11-01  Juri Linkov  <juri@jurta.org>
+
 	* info.el (Info-file-supports-index-cookies): New variable.
 	(Info-find-node-2): Check makeinfo version for index cookie support.
 	(Info-index-nodes): Search for nodes with index cookies only when
