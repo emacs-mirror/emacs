@@ -40,7 +40,7 @@
 ;; or with customize: `M-x customize-option RET savehist-mode RET'.
 ;;
 ;; You can also explicitly save history with `M-x savehist-save' and
-;; load it by loading the `savehist-file' with `M-x load'.
+;; load it by loading the `savehist-file' with `M-x load-file'.
 
 ;; If you are using a version of Emacs that does not ship with this
 ;; package, be sure to have `savehist.el' in a directory that is in
@@ -64,7 +64,9 @@
 Set this by calling the `savehist-mode' function or using the customize
 interface."
   :type 'boolean
-  :set (lambda (symbol value) (savehist-mode (or value 0)))
+  :set (if (fboundp 'custom-set-minor-mode)
+           'custom-set-minor-mode
+         (lambda (symbol value) (funcall symbol (or value 0))))
   :initialize 'custom-initialize-default
   :require 'savehist
   :group 'savehist)
@@ -128,12 +130,17 @@ If set to nil, disables timer-based autosaving."
   :group 'savehist)
 
 (defcustom savehist-save-hook nil
-  "Hook called by savehist-save before saving the variables.
+  "Hook called by `savehist-save' before saving the variables.
 You can use this hook to influence choice and content of variables to
 save."
   :type 'hook)
 
-(defvar savehist-coding-system (if (featurep 'xemacs) 'iso-2022-8 'utf-8)
+(defvar savehist-coding-system
+  ;; UTF-8 is usually preferable to ISO-2022-8 when available, but under
+  ;; XEmacs, UTF-8 is provided by external packages, and may not always be
+  ;; available, so even if it currently is available, we prefer not to
+  ;; use is.
+  (if (featurep 'xemacs) 'iso-2022-8 'utf-8)
   "The coding system savehist uses for saving the minibuffer history.
 Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")
@@ -150,14 +157,15 @@ The contents of this variable is built while Emacs is running, and saved
 along with minibuffer history.  You can change its value off
 `savehist-save-hook' to influence which variables are saved.")
 
-;; Coding system without any conversion, used for calculating an
-;; internal checksum.  Should be as fast as possible, ideally simply
-;; exposing the internal representation of buffer text.
-(defconst savehist-no-conversion (if (featurep 'xemacs) 'binary 'no-conversion))
+(defconst savehist-no-conversion (if (featurep 'xemacs) 'binary 'no-conversion)
+  "Coding system without conversion, used for calculating internal checksums.
+Should be as fast as possible, ideally simply exposing the internal
+representation of buffer text.")
 
-;; Whether the history has already been loaded.  This prevents
-;; toggling savehist-mode from destroying existing minibuffer history.
-(defvar savehist-loaded nil)
+(defvar savehist-loaded nil
+  "Whether the history has already been loaded.
+This prevents toggling `savehist-mode' from destroying existing
+minibuffer history.")
 
 (eval-when-compile
   (when (featurep 'xemacs)
@@ -201,7 +209,18 @@ which is probably undesirable."
 	 (setq savehist-mode nil)
 	 (savehist-uninstall)
 	 (signal (car errvar) (cdr errvar)))))
-    (savehist-install)))
+    (savehist-install))
+
+  ;; End with the usual minor-mode conventions normally provided
+  ;; transparently by define-minor-mode.
+  (run-hooks 'savehist-mode-hook)
+  (if (interactive-p)
+      (progn
+        (customize-mark-as-set 'savehist-mode)
+        (unless (current-message)
+          (message "Savehist mode %sabled" (if savehist-mode "en" "dis")))))
+  ;; Return the new setting.
+  savehist-mode)
 (add-minor-mode 'savehist-mode "")
 
 (defun savehist-load ()
