@@ -1,3 +1,8 @@
+2005-11-01  Romain Francoise  <romain@orebokech.com>
+
+	* vc-sccs.el: Update copyright year.
+	* ezimage.el: Likewise.
+
 2005-11-01  KOBAYASHI Yasuhiro <kobayays@otsukakj.co.jp>  (tiny change)
 
 	* info.el (Info-fontify-node): Use `string-width' for fontifying
