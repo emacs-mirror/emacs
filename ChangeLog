@@ -1,3 +1,8 @@
+2005-11-01  Andreas Schwab  <schwab@suse.de>
+
+	* Makefile.in (bootstrap): Fix dependencies for parallel build.
+	(bootfast): Likewise.
+
 2005-11-01  Romain Francoise  <romain@orebokech.com>
 
 	* configure.in: Check for gzip.

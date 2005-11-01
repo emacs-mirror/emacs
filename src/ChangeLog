@@ -1,3 +1,7 @@
+2005-11-01  Andreas Schwab  <schwab@suse.de>
+
+	* unexelf.c (unexec): Handle .plt section in BSS segment.
+
 2005-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (readevalloop): Yet another int/Lisp_Object mixup (YAILOM).
