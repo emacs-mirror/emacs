@@ -129,4 +129,5 @@ RETURN-ATTRS is a list of attributes to return, defaulting to
 
 (provide 'eudcb-mab)
 
+;; arch-tag: 4bef8e65-f109-47c7-91b9-8a6ea3ed7bb1
 ;;; eudcb-mab.el ends here
