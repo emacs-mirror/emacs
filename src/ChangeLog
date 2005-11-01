@@ -1,5 +1,7 @@
 2005-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* lread.c (readevalloop): Yet another int/Lisp_Object mixup (YAILOM).
+
 	* window.c (window_loop): For LRU and LARGEST, let the `mini' argument
 	determine whether to consider dedicated windows as well.
 	(Fget_lru_window, Fget_largest_window): Add `dedicated' argument.
@@ -262,7 +264,7 @@
 2005-10-16  Masatake YAMATO  <jet@gyve.org>
 
 	* minibuf.c (Fdisplay_completion_list): Add new optional
-	argument COMMON_SUBSTRING. Bind `completion-common-substring'
+	argument COMMON_SUBSTRING.  Bind `completion-common-substring'
 	to the optional argument during running `completion-setup-hook'.
 
 2005-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
