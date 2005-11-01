@@ -1,3 +1,7 @@
+2005-11-01  Romain Francoise  <romain@orebokech.com>
+
+	* Makefile.in (install): Compress source files.
+
 2005-10-28  Juri Linkov  <juri@jurta.org>
 
 	* quail/symbol-ksc.el: Add missing characters from 1st pos of

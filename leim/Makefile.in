@@ -37,6 +37,8 @@ srcdir=@srcdir@
 # Where to install LEIM files.
 INSTALLDIR=${datadir}/emacs/${version}/leim
 
+GZIP = @GZIP@
+
 # On Xenix and the IBM RS6000, double-dot gets screwed up.
 dot = .
 
@@ -237,6 +239,14 @@ install: all
 	  rm -f  ${INSTALLDIR}/.\#*       ${INSTALLDIR}/*/.\#* ; \
 	  rm -f  ${INSTALLDIR}/*~         ${INSTALLDIR}/*/*~ ; \
 	  rm -f  ${INSTALLDIR}/*.orig     ${INSTALLDIR}/*/*.orig ; \
+	else true; fi
+	-unset CDPATH; \
+	if [ -n "${GZIP}" ]; \
+	then \
+	   echo "Compressing *.el ..." ; \
+	   (cd ${INSTALLDIR}; for f in `find . -name "*.elc" -print`; do \
+		${GZIP} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+	    done) \
 	else true; fi
 	-chmod -R a+r ${INSTALLDIR}
 
