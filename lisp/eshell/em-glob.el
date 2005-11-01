@@ -254,8 +254,7 @@ the form:
 		 (file-name-absolute-p (car paths)))
 	    (eshell-glob-entries (file-name-as-directory (car paths))
 				 (cdr paths))
-	  (eshell-glob-entries (expand-file-name
-				(file-name-as-directory ".")) paths))
+	  (eshell-glob-entries (file-name-as-directory ".") paths))
       (if message-shown
 	  (message nil)))
     (or (and matches (nreverse matches))
