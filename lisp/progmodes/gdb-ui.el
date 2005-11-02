@@ -424,16 +424,28 @@ With arg, use separate IO iff arg is positive."
   "Execute source lines by dragging the overlay arrow (fringe) with the mouse."
   (interactive "e")
   (if gud-overlay-arrow-position
-	(let ((start (event-start event))
-	      (end  (event-end event))
-	      (buffer (marker-buffer gud-overlay-arrow-position)) (line))
-	  (if (equal buffer (window-buffer (posn-window end)))
-	      (with-current-buffer buffer
-		(when (or (equal start end)
-			  (equal (posn-point start)
-				 (marker-position gud-overlay-arrow-position)))
-		  (setq line (line-number-at-pos (posn-point end)))
-		  (gud-call (concat "until " (number-to-string line)))))))))
+      (let ((start (event-start event))
+	    (end  (event-end event))
+	    (buffer (marker-buffer gud-overlay-arrow-position)) (line))
+	(if (not (string-match "Machine" mode-name))
+	    (if (equal buffer (window-buffer (posn-window end)))
+		(with-current-buffer buffer
+		  (when (or (equal start end)
+			    (equal (posn-point start)
+				   (marker-position
+				    gud-overlay-arrow-position)))
+		    (setq line (line-number-at-pos (posn-point end)))
+		    (gud-call (concat "until " (number-to-string line))))))
+	  (if (equal (marker-buffer gdb-overlay-arrow-position)
+		     (window-buffer (posn-window end)))
+	      (when (or (equal start end)
+			(equal (posn-point start)
+			       (marker-position
+				gdb-overlay-arrow-position)))
+		(save-excursion
+		  (goto-line (line-number-at-pos (posn-point end)))
+		  (forward-char 2)
+		  (gud-call (concat "until *%a")))))))))
 
 (defcustom gdb-use-colon-colon-notation nil
   "If non-nil use FUN::VAR format to display variables in the speedbar."
@@ -1032,6 +1044,8 @@ being debugged and that the program is no longer running.  This
 function is used to change the focus of GUD tooltips to #define
 directives."
   (setq gdb-active-process nil)
+  (setq gud-overlay-arrow-position nil)
+  (setq gdb-overlay-arrow-position nil)
   (gdb-stopping ignored))
 
 (defun gdb-frame-begin (ignored)
@@ -1613,9 +1627,10 @@ static char *magick[] = {
 	(while (< (point) (point-max))
 	  (setq bl (line-beginning-position)
 		el (line-end-position))
-	  (add-text-properties bl el
-			     '(mouse-face highlight
-			       help-echo "mouse-2, RET: Select frame"))
+	  (unless (looking-at "No ")
+	    (add-text-properties bl el
+				 '(mouse-face highlight
+			           help-echo "mouse-2, RET: Select frame")))
 	  (goto-char bl)
 	  (when (looking-at "^#\\([0-9]+\\)")
 	    (when (string-equal (match-string 1) gdb-frame-number)
@@ -1712,9 +1727,10 @@ static char *magick[] = {
     (let ((buffer-read-only nil))
       (goto-char (point-min))
       (while (< (point) (point-max))
-	(add-text-properties (line-beginning-position) (line-end-position)
-			     '(mouse-face highlight
-			       help-echo "mouse-2, RET: select thread"))
+	(unless (looking-at "No ")
+	  (add-text-properties (line-beginning-position) (line-end-position)
+			       '(mouse-face highlight
+			         help-echo "mouse-2, RET: select thread")))
 	(forward-line 1)))))
 
 (defun gdb-threads-buffer-name ()
@@ -1806,8 +1822,9 @@ static char *magick[] = {
 	(while (< (point) (point-max))
 	  (setq bl (line-beginning-position))
 	  (when (looking-at "^[^ ]+")
-	    (put-text-property bl (match-end 0)
-			       'face font-lock-variable-name-face))
+	    (unless (string-equal (match-string 0) "The")
+	      (put-text-property bl (match-end 0)
+				 'face font-lock-variable-name-face)))
 	  (forward-line 1))))))
 
 (defvar gdb-registers-mode-map
