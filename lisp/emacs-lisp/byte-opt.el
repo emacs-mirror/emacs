@@ -1121,6 +1121,7 @@
 (put 'symbol-name 'byte-optimizer 'byte-optimize-pure-func)
 (put 'regexp-opt 'byte-optimizer 'byte-optimize-pure-func)
 (put 'regexp-quote 'byte-optimizer 'byte-optimize-pure-func)
+(put 'string-to-syntax 'byte-optimizer 'byte-optimize-pure-func)
 (defun byte-optimize-pure-func (form)
   "Do constant folding for pure functions.
 This assumes that the function will not have any side-effects and that
