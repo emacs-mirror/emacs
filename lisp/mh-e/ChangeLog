@@ -1,5 +1,21 @@
 2005-11-01  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-redist-full-contents) Convert defvar to
+	defcustom.
+	(mh-smail, mh-extract-rejected-mail, mh-forward, mh-redistribute)
+	(mh-reply, mh-send, mh-send-other-window)
+	(mh-fill-paragraph-function): Sync docstrings with manual.
+	(mh-edit-again, mh-extract-rejected-mail, mh-redistribute): Rename
+	msg argument to message (to make for a better docstring).
+
+	* mh-customize.el (mh-redist-full-contents-flag): Convert defvar
+	to defcustom.
+	(mh-compose-forward-as-mime-flag)
+	(mh-compose-letter-function, mh-forward-subject-format)
+	(mh-insert-x-mailer-flag, mh-reply-default-reply-to)
+	(mh-reply-show-message-flag, mh-letter-mode-hook): Sync docstrings
+	with manual.
+
 	* mh-print.el (mh-ps-spool-buffer, mh-ps-spool-a-msg) 
 	(mh-ps-print-msg): Remove debugging messages.
 	(mh-ps-print-msg-show, mh-ps-print-msg-show) 

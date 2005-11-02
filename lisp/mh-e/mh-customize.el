@@ -1039,13 +1039,26 @@ assumed to be in the `mh-progs' directory. You may link another program to
 ;;; Sending Mail (:group 'mh-sending-mail)
 
 (defcustom mh-compose-forward-as-mime-flag t
-  "Non-nil means that messages are forwarded as a MIME part."
+  "*Non-nil means that messages are forwarded as attachments.
+
+By default, this option is on which means that the forwarded messages are
+included as attachments. If you would prefer to forward your messages verbatim
+\(as text, inline), then turn off this option. Forwarding messages verbatim
+works well for short, textual messages, but your recipient won't be able to
+view any non-textual attachments that were in the forwarded message. Be aware
+that if you have \"forw: -mime\" in your MH profile, then forwarded messages
+will always be included as attachments regardless of the settings of this
+option."
   :type 'boolean
   :group 'mh-sending-mail)
 
 (defcustom mh-compose-letter-function nil
-  "Invoked when setting up a letter draft.
-It is passed three arguments: TO recipients, SUBJECT, and CC recipients."
+  "Invoked when starting a new draft.
+
+However, it is the last function called before you edit your message. The
+consequence of this is that you can write a function to write and send the
+message for you. This function is passed three arguments: the contents of the
+TO, SUBJECT, and CC header fields."
   :type '(choice (const nil) function)
   :group 'mh-sending-mail)
 
@@ -1055,36 +1068,56 @@ It is passed three arguments: TO recipients, SUBJECT, and CC recipients."
   :group 'mh-sending-mail)
 
 (defcustom mh-forward-subject-format "%s: %s"
-  "*Format to generate the Subject: line contents for a forwarded message.
-The two string arguments to the format are the sender of the original
-message and the original subject line."
+  "*Format string for forwarded message subject.
+
+This option is a string which includes two escapes (\"%s\"). The first \"%s\"
+is replaced with the sender of the original message, and the second one is
+replaced with the original \"Subject:\"."
   :type 'string
   :group 'mh-sending-mail)
 
 (defcustom mh-insert-x-mailer-flag t
-  "*Non-nil means append an X-Mailer field to the header."
+  "*Non-nil means append an \"X-Mailer:\" header field to the header.
+
+This header field includes the version of MH-E and Emacs that you are using.
+If you don't want to participate in our marketing, you can turn this option
+off."
+  :type 'boolean
+  :group 'mh-sending-mail)
+
+(defcustom mh-redist-full-contents-flag nil
+  "*Non-nil means the \"dist\" command needs entire letter for redistribution.
+
+This option must be turned on if \"dist\" requires the whole letter for
+redistribution, which is the case if \"send\" is compiled with the BERK option
+\(which many people abhor). If you find that MH will not allow you to
+redistribute a message that has been redistributed before, turn off this
+option."
   :type 'boolean
   :group 'mh-sending-mail)
 
 (defcustom mh-reply-default-reply-to nil
   "*Sets the person or persons to whom a reply will be sent.
-If nil, prompt for recipient.  If non-nil, then \\<mh-folder-mode-map>`\\[mh-reply]' will use this
-value and it should be one of \"from\", \"to\", \"cc\", or \"all\".
-The values \"cc\" and \"all\" do the same thing."
+
+This option is set to \"Prompt\" by default so that you are prompted for the
+recipient of a reply. If you find that most of the time that you specify
+\"cc\" when you reply to a message, set this option to \"cc\". Other choices
+include \"from\", \"to\", or \"all\". You can always edit the recipients in
+the draft."
   :type '(choice (const :tag "Prompt" nil)
-                 (const "from") (const "to")
-                 (const "cc") (const "all"))
+                 (const "from")
+                 (const "to")
+                 (const "cc")
+                 (const "all"))
   :group 'mh-sending-mail)
 
 (defcustom mh-reply-show-message-flag t
-  "*Non-nil means the show buffer is displayed using \\<mh-letter-mode-map>\\[mh-reply].
+  "*Non-nil means the MH-Show buffer is displayed when replying.
 
-The setting of this variable determines whether the MH `show-buffer' is
-displayed with the current message when using `mh-reply' without a prefix
-argument.  Set it to nil if you already include the message automatically
-in your draft using
- repl: -filter repl.filter
-in your ~/.mh_profile file."
+If you include the message automatically, you can hide the MH-Show
+buffer by turning off this option.
+
+See also `mh-reply'."
   :type 'boolean
   :group 'mh-sending-mail)
 
@@ -2162,7 +2195,7 @@ insert the signature with `mh-signature-file-name'."
   :group 'mh-letter)
 
 (defcustom mh-letter-mode-hook nil
-  "Invoked in `mh-letter-mode' on a new letter."
+  "Invoked by `mh-letter-mode' on a new letter."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-sending-mail)
