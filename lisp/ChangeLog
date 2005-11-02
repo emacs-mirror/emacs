@@ -1,3 +1,8 @@
+2005-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-blink-match): Use
+	`blink-matching-delay'.
+
 2005-11-02  John Mongan <jmongan@mccammon.ucsd.edu>  (tiny change)
 
 	* progmodes/f90.el (f90-match-end): Use `blink-matching-delay'.
