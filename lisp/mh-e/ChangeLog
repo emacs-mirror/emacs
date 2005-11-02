@@ -9,7 +9,7 @@
 	msg argument to message (to make for a better docstring).
 
 	* mh-customize.el (mh-redist-full-contents-flag): Convert defvar
-	to defcustom.
+	to defcustom. Rename by adding -flag.
 	(mh-compose-forward-as-mime-flag)
 	(mh-compose-letter-function, mh-forward-subject-format)
 	(mh-insert-x-mailer-flag, mh-reply-default-reply-to)
