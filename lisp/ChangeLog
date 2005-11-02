@@ -1,3 +1,8 @@
+2005-11-01  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Pass nil to flyspell-get-word.
+
 2005-11-02  Kim F. Storm  <storm@cua.dk>
 
 	* menu-bar.el (menu-bar-options-menu): Show "Shift Movement (CUA)"
