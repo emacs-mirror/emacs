@@ -1135,7 +1135,7 @@ of FORM by signaling the error at compile-time."
 	  (setq constant nil))
       (setq args (cdr args)))
     (if constant
-	(eval form)
+	(cons 'quote (eval form))
       form)))
 
 ;; Avoid having to write forward-... with a negative arg for speed.
