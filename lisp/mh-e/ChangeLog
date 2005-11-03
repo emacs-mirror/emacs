@@ -1,3 +1,10 @@
+2005-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mh-customize.el (mh-folder-body-face, mh-folder-cur-msg-face)
+	(mh-folder-cur-msg-number-face, mh-folder-refiled-face)
+	(mh-folder-to-face): Use the min-colors attribute instead of the
+	type attribute.
+
 2005-11-03  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-refile-preserves-sequences-flag)
