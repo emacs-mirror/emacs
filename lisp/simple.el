@@ -3115,6 +3115,13 @@ Display `Mark set' unless the optional second arg NOMSG is non-nil."
       (unless nomsg
 	(message "Mark activated")))))
 
+(defcustom set-mark-command-repeat-pop nil
+  "*Non-nil means that repeating \\[set-mark-command] after popping will pop.
+This means that if you type C-u \\[set-mark-command] \\[set-mark-command]
+will pop twice."
+  :type 'boolean
+  :group 'editing)
+
 (defun set-mark-command (arg)
   "Set mark at where point is, or jump to mark.
 With no prefix argument, set mark, and push old mark position on local
@@ -3147,10 +3154,13 @@ purposes.  See the documentation of `set-mark' for more information."
     (if arg
 	(pop-to-mark-command)
       (push-mark-command t)))
-   ((eq last-command 'pop-to-mark-command)
+   ((and set-mark-command-repeat-pop
+	 (eq last-command 'pop-to-mark-command))
     (setq this-command 'pop-to-mark-command)
     (pop-to-mark-command))
-   ((and (eq last-command 'pop-global-mark) (not arg))
+   ((and set-mark-command-repeat-pop
+	 (eq last-command 'pop-global-mark)
+	 (not arg))
     (setq this-command 'pop-global-mark)
     (pop-global-mark))
    (arg
