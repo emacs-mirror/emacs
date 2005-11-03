@@ -1,3 +1,8 @@
+2005-11-03  Romain Francoise  <romain@orebokech.com>
+
+	* net/eudcb-mab.el: Now part of GNU Emacs.  Update FSF's address.
+	Update copyright years.
+
 2005-11-03  Sam Steingold  <sds@gnu.org>
 
 	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event): Use
@@ -33,6 +38,7 @@
 	* progmodes/f90.el (f90-match-end): Use `blink-matching-delay'.
 
 2005-11-02  Lars Hansen  <larsh@soem.dk>
+
 	* net/tramp.el (tramp-action-out-of-band): Handle scp message
 	"Permission denied".
 
