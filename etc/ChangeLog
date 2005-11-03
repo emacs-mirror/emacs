@@ -1,3 +1,7 @@
+2005-11-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* DEBUG (Note): GDB can sometimes expand macros.
+
 2005-11-01  Romain Francoise  <romain@orebokech.com>
 
 	* NEWS: Source files are compressed by default.
