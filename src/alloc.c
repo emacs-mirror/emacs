@@ -360,6 +360,8 @@ enum mem_type
 
 static POINTER_TYPE *lisp_align_malloc P_ ((size_t, enum mem_type));
 static POINTER_TYPE *lisp_malloc P_ ((size_t, enum mem_type));
+void refill_memory_reserve ();
+
 
 #if GC_MARK_STACK || defined GC_MALLOC_CHECK
 
@@ -460,7 +462,6 @@ static void mem_rotate_right P_ ((struct mem_node *));
 static void mem_delete P_ ((struct mem_node *));
 static void mem_delete_fixup P_ ((struct mem_node *));
 static INLINE struct mem_node *mem_find P_ ((void *));
-void refill_memory_reserve ();
 
 
 #if GC_MARK_STACK == GC_MARK_STACK_CHECK_GCPROS
