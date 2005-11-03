@@ -3872,15 +3872,16 @@ DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 3, "p",
        doc: /* Make current window ARG lines bigger.
 From program, optional second arg non-nil means grow sideways ARG columns.
 Interactively, if an argument is not given, make the window one line bigger.
+If HORIZONTAL is non-nil, enlarge horizontally instead of vertically.
 
 Optional third arg PRESERVE-BEFORE, if non-nil, means do not change the size
 of the siblings above or to the left of the selected window.  Only
 siblings to the right or below are changed.  */)
-     (arg, side, preserve_before)
-     register Lisp_Object arg, side, preserve_before;
+     (arg, horizontal, preserve_before)
+     register Lisp_Object arg, horizontal, preserve_before;
 {
   CHECK_NUMBER (arg);
-  enlarge_window (selected_window, XINT (arg), !NILP (side),
+  enlarge_window (selected_window, XINT (arg), !NILP (horizontal),
 		  !NILP (preserve_before));
 
   if (! NILP (Vwindow_configuration_change_hook))
@@ -3928,40 +3929,43 @@ window_width (window)
 
 
 #define CURBEG(w) \
-  *(widthflag ? &(XWINDOW (w)->left_col) : &(XWINDOW (w)->top_line))
+  *(horiz_flag ? &(XWINDOW (w)->left_col) : &(XWINDOW (w)->top_line))
 
 #define CURSIZE(w) \
-  *(widthflag ? &(XWINDOW (w)->total_cols) : &(XWINDOW (w)->total_lines))
+  *(horiz_flag ? &(XWINDOW (w)->total_cols) : &(XWINDOW (w)->total_lines))
 
 
-/* Enlarge WINDOW by DELTA.  WIDTHFLAG non-zero means
-   increase its width.  Siblings of the selected window are resized to
-   fulfill the size request.  If they become too small in the process,
-   they will be deleted.
+/* Enlarge WINDOW by DELTA.
+   HORIZ_FLAG nonzero means enlarge it horizontally;
+   zero means do it vertically.
+
+   Siblings of the selected window are resized to fulfill the size
+   request.  If they become too small in the process, they will be
+   deleted.
 
    If PRESERVE_BEFORE is nonzero, that means don't alter
    the siblings to the left or above WINDOW.  */
 
 static void
-enlarge_window (window, delta, widthflag, preserve_before)
+enlarge_window (window, delta, horiz_flag, preserve_before)
      Lisp_Object window;
-     int delta, widthflag, preserve_before;
+     int delta, horiz_flag, preserve_before;
 {
   Lisp_Object parent, next, prev;
   struct window *p;
   Lisp_Object *sizep;
   int maximum;
   int (*sizefun) P_ ((Lisp_Object))
-    = widthflag ? window_width : window_height;
+    = horiz_flag ? window_width : window_height;
   void (*setsizefun) P_ ((Lisp_Object, int, int))
-    = (widthflag ? set_window_width : set_window_height);
+    = (horiz_flag ? set_window_width : set_window_height);
 
   /* Check values of window_min_width and window_min_height for
      validity.  */
   check_min_window_sizes ();
 
   /* Give up if this window cannot be resized.  */
-  if (window_fixed_size_p (XWINDOW (window), widthflag, 1))
+  if (window_fixed_size_p (XWINDOW (window), horiz_flag, 1))
     error ("Window is not resizable");
 
   /* Find the parent of the selected window.  */
@@ -3972,12 +3976,12 @@ enlarge_window (window, delta, widthflag, preserve_before)
 
       if (NILP (parent))
 	{
-	  if (widthflag)
+	  if (horiz_flag)
 	    error ("No other window to side of this one");
 	  break;
 	}
 
-      if (widthflag
+      if (horiz_flag
 	  ? !NILP (XWINDOW (parent)->hchild)
 	  : !NILP (XWINDOW (parent)->vchild))
 	break;
@@ -4003,7 +4007,7 @@ enlarge_window (window, delta, widthflag, preserve_before)
 	else
 	  maxdelta = (!NILP (p->next) ? ((*sizefun) (p->next)
 					 - window_min_size (XWINDOW (p->next),
-							    widthflag, 0, 0))
+							    horiz_flag, 0, 0))
 		      : (delta = 0));
       }
     else
@@ -4011,11 +4015,11 @@ enlarge_window (window, delta, widthflag, preserve_before)
 		  /* This is a main window followed by a minibuffer.  */
 		  : !NILP (p->next) ? ((*sizefun) (p->next)
 				       - window_min_size (XWINDOW (p->next),
-							  widthflag, 0, 0))
+							  horiz_flag, 0, 0))
 		  /* This is a minibuffer following a main window.  */
 		  : !NILP (p->prev) ? ((*sizefun) (p->prev)
 				       - window_min_size (XWINDOW (p->prev),
-							  widthflag, 0, 0))
+							  horiz_flag, 0, 0))
 		  /* This is a frame with only one window, a minibuffer-only
 		     or a minibufferless frame.  */
 		  : (delta = 0));
@@ -4027,7 +4031,7 @@ enlarge_window (window, delta, widthflag, preserve_before)
       delta = maxdelta;
   }
 
-  if (XINT (*sizep) + delta < window_min_size (XWINDOW (window), widthflag, 0, 0))
+  if (XINT (*sizep) + delta < window_min_size (XWINDOW (window), horiz_flag, 0, 0))
     {
       delete_window (window);
       return;
@@ -4040,11 +4044,11 @@ enlarge_window (window, delta, widthflag, preserve_before)
   maximum = 0;
   for (next = p->next; ! NILP (next); next = XWINDOW (next)->next)
     maximum += (*sizefun) (next) - window_min_size (XWINDOW (next),
-						    widthflag, 0, 0);
+						    horiz_flag, 0, 0);
   if (! preserve_before)
     for (prev = p->prev; ! NILP (prev); prev = XWINDOW (prev)->prev)
       maximum += (*sizefun) (prev) - window_min_size (XWINDOW (prev),
-						      widthflag, 0, 0);
+						      horiz_flag, 0, 0);
 
   /* If we can get it all from them without deleting them, do so.  */
   if (delta <= maximum)
@@ -4066,7 +4070,7 @@ enlarge_window (window, delta, widthflag, preserve_before)
 	    {
 	      int this_one = ((*sizefun) (next)
 			      - window_min_size (XWINDOW (next),
-						 widthflag, 0, &fixed_p));
+						 horiz_flag, 0, &fixed_p));
 	      if (!fixed_p)
 		{
 		  if (this_one > delta)
@@ -4088,7 +4092,7 @@ enlarge_window (window, delta, widthflag, preserve_before)
 	    {
 	      int this_one = ((*sizefun) (prev)
 			      - window_min_size (XWINDOW (prev),
-						 widthflag, 0, &fixed_p));
+						 horiz_flag, 0, &fixed_p));
 	      if (!fixed_p)
 		{
 		  if (this_one > delta)
@@ -4191,10 +4195,10 @@ enlarge_window (window, delta, widthflag, preserve_before)
 	  int n = 1;
 
 	  for (s = w->next; !NILP (s); s = XWINDOW (s)->next)
-	    if (!window_fixed_size_p (XWINDOW (s), widthflag, 0))
+	    if (!window_fixed_size_p (XWINDOW (s), horiz_flag, 0))
 	      ++n;
 	  for (s = w->prev; !NILP (s); s = XWINDOW (s)->prev)
-	    if (!window_fixed_size_p (XWINDOW (s), widthflag, 0))
+	    if (!window_fixed_size_p (XWINDOW (s), horiz_flag, 0))
 	      ++n;
 
 	  delta1 = n * delta;
