@@ -1,3 +1,15 @@
+2005-11-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-refile-preserves-sequences-flag)
+	(mh-tick-seq, mh-update-sequences-after-mh-show-flag): Sync
+	docstrings with manual.
+
+	* mh-e.el (mh-update-sequences): Sync docstrings with manual.
+
+	* mh-seq.el (mh-delete-seq, mh-list-sequences, mh-narrow-to-seq) 
+	(mh-widen, mh-toggle-tick, mh-narrow-to-tick): Sync docstrings
+	with manual.
+
 2005-11-01  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-redist-full-contents) Convert defvar to

@@ -1131,29 +1131,34 @@ See also `mh-reply'."
 
 (defcustom mh-refile-preserves-sequences-flag t
   "*Non-nil means that sequences are preserved when messages are refiled.
-If this variable is non-nil and a message belonging to a sequence other than
-cur or Previous-Sequence (see mh-profile 5) is refiled then it is put in the
-same sequence in the destination folder."
+
+If a message is in any sequence (except \"Previous-Sequence:\" and \"cur\")
+when it is refiled, then it will still be in those sequences in the
+destination folder. If this behavior is not desired, then turn off this
+option."
   :type 'boolean
   :group 'mh-sequences)
 
 (defcustom mh-tick-seq 'tick
   "The name of the MH sequence for ticked messages.
-You would change this option if you already use the `tick' sequence for your
-own use. You can also disable all of the ticking functions by choosing the
-`Disable Ticking' item but there isn't much advantage to that."
+
+You can customize this option if you already use the \"tick\" sequence for
+your own use. You can also disable all of the ticking functions by choosing
+the \"Disable Ticking\" item but there isn't much advantage to that."
   :type '(choice (const :tag "Disable Ticking" nil)
                  symbol)
   :group 'mh-sequences)
 
 (defcustom mh-update-sequences-after-mh-show-flag t
   "*Non-nil means flush MH sequences to disk after message is shown.
+
 Three sequences are maintained internally by MH-E and pushed out to MH when a
 message is shown. They include the sequence specified by your
-`Unseen-Sequence:' profile entry, `cur', and the sequence listed by
-the `mh-tick-seq' option which is `tick' by default.
-If you do not like this behavior, set this option to nil. You can then update
-the state manually with the \\<mh-folder-mode-map>`\\[mh-execute-commands]', `\\[mh-quit]', or `\\[mh-update-sequences]' commands."
+\"Unseen-Sequence:\" profile entry, \"cur\", and the sequence listed by the
+option `mh-tick-seq' which is \"tick\" by default. If you do not like this
+behavior, turn off this option. You can then update the state manually with
+the `\\[mh-execute-commands]', `\\[mh-quit]', or `\\[mh-update-sequences]'
+commands."
   :type 'boolean
   :group 'mh-sequences)
 

@@ -1254,8 +1254,11 @@ regardless of the size of the `mh-large-folder' variable."
 
 
 (defun mh-update-sequences ()
-  "Update MH's Unseen-Sequence and current folder and message.
-Flush MH-E's state out to MH. The message at the cursor becomes current."
+  "Flush MH-E's state out to MH.
+This function updates the sequence specified by your \"Unseen-Sequence:\"
+profile component, \"cur\", and the sequence listed by the `mh-tick-seq'
+option which is \"tick\" by default. The message at the cursor is used for
+\"cur\"."
   (interactive)
   ;; mh-update-sequences is the opposite of mh-read-folder-sequences,
   ;; which updates MH-E's state from MH.

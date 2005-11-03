@@ -140,7 +140,11 @@ redone to get the new thread tree. This makes incremental threading easier.")
 
 ;;;###mh-autoload
 (defun mh-delete-seq (sequence)
-  "Delete the SEQUENCE."
+  "Delete SEQUENCE.
+
+You are prompted for the sequence to delete. Note that this deletes only the
+sequence, not the messages in the sequence. If you want to delete the
+messages, use \"\\[universal-argument] \\[mh-delete-msg]\"."
   (interactive (list (mh-read-seq-default "Delete" t)))
   (let ((msg-list (mh-seq-to-msgs sequence))
         (internal-flag (mh-internal-seq sequence))
@@ -161,7 +165,8 @@ redone to get the new thread tree. This makes incremental threading easier.")
 
 ;;;###mh-autoload
 (defun mh-list-sequences ()
-  "List the sequences defined in the folder being visited."
+  "List all sequences in folder.
+The list appears in a buffer named \"*MH-E Sequences*\"."
   (interactive)
   (let ((folder mh-current-folder)
         (temp-buffer mh-sequences-buffer)
@@ -228,8 +233,13 @@ appears."
 
 ;;;###mh-autoload
 (defun mh-narrow-to-seq (sequence)
-  "Restrict display of this folder to just messages in SEQUENCE.
-Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
+  "Restrict display to messages in SEQUENCE.
+
+You are prompted for the name of the sequence. What this command does is show
+only those messages that are in the selected sequence in the MH-Folder buffer.
+In addition, it limits further MH-E searches to just those messages.
+
+When you want to widen the view to all your messages again, use \\[mh-widen]."
   (interactive (list (mh-read-seq "Narrow to" t)))
   (with-mh-folder-updating (t)
     (cond ((mh-seq-to-msgs sequence)
@@ -296,7 +306,7 @@ OP is one of 'widen and 'unthread."
 
 ;;;###mh-autoload
 (defun mh-widen (&optional all-flag)
-  "Restore the previous limit.
+  "Remove last restriction.
 If optional prefix argument ALL-FLAG is non-nil, remove all limits."
   (interactive "P")
   (let ((msg (mh-get-msg-num nil)))
@@ -1669,7 +1679,14 @@ start of the region and the second is the point at the end."
 
 ;;;###mh-autoload
 (defun mh-toggle-tick (range)
-  "Toggle tick mark of all messages in RANGE."
+  "Toggle tick mark of all messages in RANGE.
+
+This command adds messages to the \"tick\" sequence (which you can customize
+via the option `mh-tick-seq'). This sequence can be viewed later with the
+\\[mh-index-ticked-messages] command.
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use."
   (interactive (list (mh-interactive-range "Tick")))
   (unless mh-tick-seq
     (error "Enable ticking by customizing `mh-tick-seq'"))
@@ -1696,9 +1713,13 @@ start of the region and the second is the point at the end."
 
 ;;;###mh-autoload
 (defun mh-narrow-to-tick ()
-  "Limit to messages in `mh-tick-seq'.
+  "Limit to ticked messages.
 
-Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
+What this command does is show only those messages that are in the \"tick\"
+sequence (which you can customize via the `mh-tick-seq' option) in the
+MH-Folder buffer. In addition, it limits further MH-E searches to just those
+messages. When you want to widen the view to all your messages again, use
+\\[mh-widen]."
   (interactive)
   (cond ((not mh-tick-seq)
          (error "Enable ticking by customizing `mh-tick-seq'"))
