@@ -1,3 +1,8 @@
+2005-11-02  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-syntax-table): Allow xml.el to compile in xemacs.
+	(xml-parse-tag): Join strings separated by a comment properly.
+
 2005-11-02  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Quote the
