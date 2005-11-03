@@ -1,3 +1,12 @@
+2005-11-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-watch): Use save-selected-window in
+	case GUD buffer is not visible.
+	(gdb-goto-breakpoint): Try to force display in source buffer.
+	(gdb-frame-gdb-buffer): Copy other similar functions.
+	(gdb-restore-windows): Don't display source if not asked for.
+	(gdb-assembler-buffer-name): Don't capitalise.
+
 2005-11-03  Richard M. Stallman  <rms@gnu.org>
 
 	* wid-edit.el (key-sequence): New widget type.
@@ -22,6 +31,7 @@
 	Bind deactivate-mark to prevent deactivation.
 
 2005-11-03  Lars Hansen  <larsh@soem.dk>
+
 	* dired-x.el: Add menu bindings for dired-do-find-marked-files,
 	dired-do-relsymlink, dired-flag-extension, dired-mark-extension,
 	dired-mark-omitted, dired-do-relsymlink-regexp, dired-omit-mode.
@@ -60,8 +70,8 @@
 
 2005-11-02  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-mouse-until): Make it work in
-	diassembly buffer too.
+	* progmodes/gdb-ui.el (gdb-mouse-until): Make it work in the
+	disassembly buffer too.
 	(gdb-exited): Remove overlay arrows when execution has finished.
 	(gdb-info-frames-custom, gdb-info-threads-custom)
 	(gdb-info-registers-custom): Don't add inappropriate text
