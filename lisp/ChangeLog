@@ -1,3 +1,8 @@
+2005-11-03  Lars Hansen  <larsh@soem.dk>
+	* dired-x.el: Add menu bindings for dired-do-find-marked-files,
+	dired-do-relsymlink, dired-flag-extension, dired-mark-extension,
+	dired-mark-omitted, dired-do-relsymlink-regexp, dired-omit-mode.
+
 2005-11-03  Romain Francoise  <romain@orebokech.com>
 
 	* net/eudcb-mab.el: Now part of GNU Emacs.  Update FSF's address.
