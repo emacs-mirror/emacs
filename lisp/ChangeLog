@@ -1,3 +1,8 @@
+2005-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el (font-lock-warning-face): Use the more vivid red1,
+	not red.
+
 2005-11-04  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gud-watch): Use save-selected-window in

@@ -1803,7 +1803,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 (defface font-lock-warning-face
   '((((class color) (min-colors 88) (background light)) (:foreground "Red1" :weight bold))
     (((class color) (min-colors 88) (background dark)) (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 16) (background light)) (:foreground "Red" :weight bold))
+    (((class color) (min-colors 16) (background light)) (:foreground "Red1" :weight bold))
     (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))
     (((class color) (min-colors 8)) (:foreground "red"))
     (t (:inverse-video t :weight bold)))
