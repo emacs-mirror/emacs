@@ -3757,7 +3757,9 @@ the variable `Info-file-list-for-emacs'."
 		    ;; an end of sentence
 		    (skip-syntax-backward " ("))
                   (setq other-tag
-                        (cond ((memq (char-before) '(nil ?\. ?! ??))
+			(cond ((save-match-data (looking-back "\\<see"))
+			       "")
+			      ((memq (char-before) '(nil ?\. ?! ??))
                                "See ")
 			      ((save-match-data
 				 (save-excursion
