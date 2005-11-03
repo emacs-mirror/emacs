@@ -1,3 +1,9 @@
+2005-11-03  Sam Steingold  <sds@gnu.org>
+
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event): Use
+	system-type instead of window-system because window-system is not
+	correctly defined during loadup.
+
 2005-11-02  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (xml-syntax-table): Allow xml.el to compile in xemacs.
