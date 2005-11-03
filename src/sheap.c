@@ -1,5 +1,5 @@
-/* simulate sbrk() with an array in .bss, for unexec() support for Cygwin;
-   complete rewrite of xemacs Cygwin unexec() code
+/* simulate `sbrk' with an array in .bss, for `unexec' support for Cygwin;
+   complete rewrite of xemacs Cygwin `unexec' code
 
    Copyright (C) 2004, 2005 Free Software Foundation, Inc.
 
@@ -27,9 +27,9 @@ Boston, MA 02110-1301, USA.  */
 #include <unistd.h>
 
 #ifdef HAVE_X_WINDOWS
-#define STATIC_HEAP_SIZE	(7 * 1024 * 1024)
+#define STATIC_HEAP_SIZE	(8 * 1024 * 1024)
 #else
-#define STATIC_HEAP_SIZE	(7 * 1024 * 1024)
+#define STATIC_HEAP_SIZE	(8 * 1024 * 1024)
 #endif
 
 int debug_sheap = 0;
