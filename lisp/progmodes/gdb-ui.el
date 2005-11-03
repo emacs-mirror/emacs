@@ -457,21 +457,21 @@ With arg, use separate IO iff arg is positive."
   "Watch expression at point."
   (interactive)
   (require 'tooltip)
-  (let ((expr (tooltip-identifier-from-point (point))))
-    (if (and (string-equal gdb-current-language "c")
-	     gdb-use-colon-colon-notation gdb-selected-frame)
-	(setq expr (concat gdb-selected-frame "::" expr)))
-    (catch 'already-watched
-      (dolist (var gdb-var-list)
-	(if (string-equal expr (car var)) (throw 'already-watched nil)))
-      (set-text-properties 0 (length expr) nil expr)
-      (gdb-enqueue-input
-       (list
-	(if (eq gud-minor-mode 'gdba)
-	    (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
-	  (concat"-var-create - * "  expr "\n"))
-	     `(lambda () (gdb-var-create-handler ,expr))))))
-  (select-window (get-buffer-window gud-comint-buffer 0)))
+  (save-selected-window
+    (let ((expr (tooltip-identifier-from-point (point))))
+      (if (and (string-equal gdb-current-language "c")
+	       gdb-use-colon-colon-notation gdb-selected-frame)
+	  (setq expr (concat gdb-selected-frame "::" expr)))
+      (catch 'already-watched
+	(dolist (var gdb-var-list)
+	  (if (string-equal expr (car var)) (throw 'already-watched nil)))
+	(set-text-properties 0 (length expr) nil expr)
+	(gdb-enqueue-input
+	 (list
+	  (if (eq gud-minor-mode 'gdba)
+	      (concat "server interpreter mi \"-var-create - * "  expr "\"\n")
+	    (concat"-var-create - * "  expr "\n"))
+	  `(lambda () (gdb-var-create-handler ,expr))))))))
 
 (defconst gdb-var-create-regexp
   "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
@@ -1582,6 +1582,9 @@ static char *magick[] = {
   "Display the breakpoint location specified at current line."
   (interactive (list last-input-event))
   (if event (mouse-set-point event))
+  ;; Hack to stop gdb-goto-breakpoint displaying in GUD buffer.
+  (let ((window (get-buffer-window gud-comint-buffer)))
+    (if window (save-selected-window  (select-window window))))
   (save-excursion
     (beginning-of-line 1)
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
@@ -2363,9 +2366,9 @@ corresponding to the mode line clicked."
 (defun gdb-frame-gdb-buffer ()
   "Display GUD buffer in a new frame."
   (interactive)
-  (select-frame (make-frame gdb-frame-parameters))
-  (switch-to-buffer (gdb-get-create-buffer 'gdba))
-  (set-window-dedicated-p (selected-window) t))
+  (let ((special-display-regexps (append special-display-regexps '(".*")))
+	(special-display-frame-alist gdb-frame-parameters))
+    (display-buffer (gdb-get-create-buffer 'gdb-stack-buffer))))
 
 (defun gdb-display-gdb-buffer ()
   "Display GUD buffer."
@@ -2440,13 +2443,14 @@ This arrangement depends on the value of `gdb-many-windows'."
     (delete-other-windows)
   (if gdb-many-windows
       (gdb-setup-windows)
-    (split-window)
-    (other-window 1)
-    (switch-to-buffer
-	 (if gud-last-last-frame
-	     (gud-find-file (car gud-last-last-frame))
-	   (gud-find-file gdb-main-file)))
-    (other-window 1)))
+    (when (or gud-last-last-frame gdb-show-main)
+      (split-window)
+      (other-window 1)
+      (switch-to-buffer
+       (if gud-last-last-frame
+	   (gud-find-file (car gud-last-last-frame))
+	 (gud-find-file gdb-main-file)))
+      (other-window 1))))
 
 (defun gdb-reset ()
   "Exit a debugging session cleanly.
@@ -2730,7 +2734,7 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-assembler-buffer-name ()
   (with-current-buffer gud-comint-buffer
-    (concat "*Disassembly of " (gdb-get-target-string) "*")))
+    (concat "*disassembly of " (gdb-get-target-string) "*")))
 
 (defun gdb-display-assembler-buffer ()
   "Display disassembly view."
