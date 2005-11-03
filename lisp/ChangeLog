@@ -5,8 +5,8 @@
 
 2005-11-03  Sam Steingold  <sds@gnu.org>
 
-	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event): Use
-	system-type instead of window-system because window-system is not
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
+	Use system-type instead of window-system because window-system is not
 	correctly defined during loadup.
 
 2005-11-02  Mark A. Hershberger  <mah@everybody.org>
@@ -16,8 +16,19 @@
 
 2005-11-02  Andreas Schwab  <schwab@suse.de>
 
-	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Quote the
-	folded value.
+	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Fix last fix.
+
+2005-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (string-to-syntax): Mark it as pure.
+	(byte-optimize-pure-func): Quote the eval'd value.
+
+	* progmodes/perl-mode.el (perl-font-lock-special-syntactic-constructs):
+	Rename from perl-font-lock-syntactic-face-function.
+	Change the calling convention so it can be used as a font-lock MATCHER.
+	Do the parse-partial-sexp loop outselves.
+	(perl-font-lock-syntactic-keywords): Use it.
+	(perl-mode): Don't set font-lock-syntactic-face-function any more.
 
 2005-11-02  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -30,8 +41,8 @@
 
 2005-11-02  Glenn Morris  <rgm@gnu.org>
 
-	* progmodes/fortran.el (fortran-blink-match): Use
-	`blink-matching-delay'.
+	* progmodes/fortran.el (fortran-blink-match):
+	Use `blink-matching-delay'.
 
 2005-11-02  John Mongan <jmongan@mccammon.ucsd.edu>  (tiny change)
 
