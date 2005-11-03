@@ -1,3 +1,26 @@
+2005-11-03  Richard M. Stallman  <rms@gnu.org>
+
+	* wid-edit.el (key-sequence): New widget type.
+
+	* simple.el (set-mark-command-repeat-pop): New variable.
+	(set-mark-command): Only interpret plan C-@ after a pop as a pop
+	if set-mark-command-repeat-pop is true.
+
+	* info.el (Info-fontify-node): Don't display extra "see" if there
+	already is one here.
+
+	* mouse.el: Fix special handling of DEL after dragging a region:
+	(mouse-drag-region-1): Treat mouse-set-region like mouse-set-point.
+	(mouse-region-delete-keys): Add [backspace].
+
+	* mail/feedmail.el: Use insert-buffer-substring, not insert-buffer.
+
+	* textmodes/ispell.el (ispell-command-loop): Change `i' description
+	not to assume it pertains to an affix.
+
+	* textmodes/flyspell.el (flyspell-post-command-hook):
+	Bind deactivate-mark to prevent deactivation.
+
 2005-11-03  Lars Hansen  <larsh@soem.dk>
 	* dired-x.el: Add menu bindings for dired-do-find-marked-files,
 	dired-do-relsymlink, dired-flag-extension, dired-mark-extension,

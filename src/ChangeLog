@@ -1,3 +1,13 @@
+2005-11-03  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fenlarge_window): Rename SIDE to HORIZONTAL.
+	(enlarge_window): Rename WIDTHFLAG to HORIZ_FLAG.
+	(CURBEG, CURSIZE): Use HORIZ_FLAG instead of WIDTHFLAG.
+
+	* sheap.c (STATIC_HEAP_SIZE): Increment both definitions.
+
+	* alloc.c (refill_memory_reserve): Move decl out of conditionals.
+
 2005-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fdisplay_buffer): Fix last change to not use

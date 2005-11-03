@@ -44,6 +44,9 @@ invalid pointer from string_free_list.
 
 * BUGS
 
+** Make where-is-internal detect when a key is shadowed by a shorter
+prefix key that prevents you from entering it.
+
 ** Clean up the confusion about what `unspecified' means
 in the face defaults for new frames.
 
@@ -56,7 +59,7 @@ Seems to be a problem in sys_select in w32proc.c.
 
 * DOCUMENTATION
 
-** Update man/info.texi.
+** Check man/info.texi.
 
 ** Add missing years in copyright notices of all files.
 

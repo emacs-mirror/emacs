@@ -240,8 +240,9 @@ in the region, rather than on all complete lines in the region.
 
 +++
 ** A prefix argument is no longer required to repeat a jump to a
-previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
-mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
+previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
+C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
+to set the mark immediately after a jump.
 
 +++
 ** The info-search bindings on C-h C-f, C-h C-k and C-h C-i
