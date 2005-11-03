@@ -158,8 +158,9 @@ we want the address of the l-value expression near the bottom of
 
   XVECTOR (this_command_keys)->contents[this_command_key_count++] = key;
 
-XVECTOR is a macro, and therefore GDB does not know about it.
-GDB cannot evaluate "p XVECTOR (this_command_keys)".
+XVECTOR is a macro, and therefore, in general, GDB does not know about it.
+Unless Emacs has been compiled with preprocessor macro info, GDB cannot
+evaluate "p XVECTOR (this_command_keys)" .
 
 However, you can use the xvector command in GDB to get the same
 result.  Here is how:
