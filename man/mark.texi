@@ -383,10 +383,12 @@ C-@key{SPC}} (or @kbd{C-u C-@@}); this is the command
 where the mark was, and restores the mark from the ring of former
 marks.
 
-  If you repeat the character @kbd{C-@key{SPC}}, after typing @kbd{C-u
-C-@key{SPC}}, each repetition moves point to a previous mark position
-from the ring.  The mark positions you move through in this way are
-not lost; they go to the end of the ring.
+@vindex set-mark-command-repeat-pop
+  If you set @code{set-mark-command-repeat-pop} to non-@code{nil},
+then whern you repeat the character @kbd{C-@key{SPC}}, after typing
+@kbd{C-u C-@key{SPC}}, each repetition moves point to a previous mark
+position from the ring.  The mark positions you move through in this
+way are not lost; they go to the end of the ring.
 
   Each buffer has its own mark ring.  All editing commands use the current
 buffer's mark ring.  In particular, @kbd{C-u C-@key{SPC}} always stays in
