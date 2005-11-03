@@ -3535,6 +3535,8 @@ displayed.  */)
 		  || EQ (XWINDOW (window)->parent, Qnil))
 	      && window_height (window) >= window_min_height << 1)
 	    window = Fsplit_window (window, Qnil, Qnil);
+	  else
+	    window = Fget_lru_window (frames, Qnil);
 	  /* If Fget_lru_window returned nil, try other approaches.  */
 
 	  /* Try visible frames first.  */
