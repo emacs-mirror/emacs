@@ -1272,7 +1272,8 @@ fi
 AC_PATH_PROG(INSTALL_INFO, install-info)
 AC_PATH_PROG(INSTALL_INFO, install-info,, /usr/sbin)
 AC_PATH_PROG(INSTALL_INFO, install-info,:, /sbin)
-AC_PATH_PROG(GZIP, gzip)
+dnl Don't use GZIP, which is used by gzip for additional parameters.
+AC_PATH_PROG(GZIP_PROG, gzip)
 
 dnl Add our options to ac_link now, after it is set up.
 
