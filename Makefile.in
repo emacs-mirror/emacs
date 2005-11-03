@@ -224,7 +224,7 @@ INSTALL_INFO = @INSTALL_INFO@
 INSTALL_STRIP =
 
 # We use gzip to compress installed .el files.
-GZIP = @GZIP@
+GZIP_PROG = @GZIP_PROG@
 
 # ============================= Targets ==============================
 
@@ -478,11 +478,11 @@ install-arch-indep: mkdir info
 	   (cd ${lispdir}; find . -exec chown $${LOGNAME:-$$USERNAME} {} ';') ; \
 	else true; fi
 	-unset CDPATH; \
-	if [ -n "${GZIP}" ]; \
+	if [ -n "${GZIP_PROG}" ]; \
 	then \
 	   echo "Compressing *.el ..." ; \
 	   (cd ${lispdir}; for f in `find . -name "*.elc" -print`; do \
-		${GZIP} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
+		${GZIP_PROG} -9n `echo $$f|sed 's/.elc$$/.el/'` ; \
 	    done) \
 	else true; fi
 	-unset CDPATH; \
