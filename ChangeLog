@@ -1,3 +1,10 @@
+2005-11-03  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Use GZIP_PROG instead of GZIP.
+
+	* Makefile.in (GZIP_PROG): Renamed from GZIP.
+	(install-arch-indep): Adjust.
+
 2005-11-01  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (bootstrap): Fix dependencies for parallel build.
