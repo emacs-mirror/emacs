@@ -1,3 +1,8 @@
+2005-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fdisplay_buffer): Fix last change to not use
+	a dedicated window.
+
 2005-11-01  Kim F. Storm  <storm@cua.dk>
 
 	* fringe.c (update_window_fringes): Undo 2005-10-27 change.
@@ -62,8 +67,8 @@
 	(decode_mode_spec): Test Vmemory_full, not spare_memory.
 	(Fformat_mode_line): Clear mode_line_proptrans_alist after saving.
 
-	* lisp.h (memory_full_cons_threshold): Declared.
-	(internal_lisp_condition_case): Declared.
+	* lisp.h (memory_full_cons_threshold): Declare.
+	(internal_lisp_condition_case): Declare.
 
 	* alloc.c (syms_of_alloc) <memory-full>: Doc fix.
 	(Fmemory_full_p): Function deleted.
