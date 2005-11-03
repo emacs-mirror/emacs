@@ -895,7 +895,9 @@ Mostly we check word delimiters."
 (defun flyspell-post-command-hook ()
   "The `post-command-hook' used by flyspell to check a word in-the-fly."
   (interactive)
-  (let ((command this-command))
+  (let ((command this-command)
+	;; Prevent anything we do from affecting the mark.
+	deactivate-mark)
     (if (flyspell-check-pre-word-p)
 	(save-excursion
 	  '(flyspell-debug-signal-pre-word-checked)
