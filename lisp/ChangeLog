@@ -1,3 +1,11 @@
+2005-11-04  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* ediff-merge.el (ediff-merge-region-is-non-clash): return t, if not
+	merging.
+	
+	* ediff-util.el (ediff-previous-difference): don't skip regions that
+	have merge clashes.
+	
 2005-11-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event): Undo
