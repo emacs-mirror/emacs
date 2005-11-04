@@ -1,3 +1,113 @@
+2005-11-04  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el: Use split-string OMIT-NULLS argument.
+	(rcirc-print): Force redisplay before running hooks.  Do long
+	buffer truncation after making new text read-only.  Deal with nil
+	text when decoding strings.  If TARGET is nil, use either the
+	currently selected buffer, if it is an rcirc buffer and of the
+	same process or the process buffer.
+	(rcirc-mode): Remove header-line.  Recompute short buffer names.
+	Initialize rcirc-buffer-alist here instead of
+	rcirc-get-buffer-create.
+	(rcirc-short-buffer-name): Add variable.
+	(rcirc-kill-buffer-hook): Recompute short buffer names.  Remove
+	nick from private channel.
+	(rcirc-send-input): Send command text to current-buffer.  Don't
+	clear overlay arrow here.
+	(rcirc-short-buffer-name): Return a short buffer name.
+	(rcirc-update-short-buffer-names, rcirc-abbreviate)
+	(rcirc-rebuild-tree, rcirc-make-trees): Add functions to generate
+	buffer-name abbreviations.
+	(rcirc-kill-buffer-hook-1): Split to make debugging easier.  Do
+	not touch nick-table when killing a parted channel.
+	(rcirc-window-configuration-change): Rename from
+	rcirc-update-activity.  Clear arrow from current buffer if it is
+	now hidden.
+	(rcirc-current-buffer): Add variable.
+	(rcirc-my-nick, rcirc-other-nick, rcirc-server)
+	(rcirc-nick-in-message, rcirc-prompt, rcirc-mode-line-nick):
+	Remove -face from names.
+	(rcirc-update-activity-string): Print "DND" when globally ignoring
+	activity.
+	(rcirc-ignore-buffer-activity-flag): Rename from
+	rcirc-ignore-channel-activity.
+	(rcirc-ignore-all-activity-flag): Doc fix.
+	(rcirc-channels): Remove variable.
+	(rcirc-kill-buffer-hook):
+	(rcirc-get-buffer-create): Add nick to private channel.
+	(rcirc-multiline-edit-submit): Remove tabs.
+	(rcirc-put-nick-channel, rcirc-channel-nicks): Look up nicks case
+	folded.
+	(rcirc-remove-nick-channel): Bug fix.
+	(rcirc-toggle-ignore-buffer-activity): Rename from
+	rcirc-toggle-ignore-channel-activity.
+	(rcirc-record-activity): Add buffers to the front of the list.
+	(rcirc-update-activity): Remove killed buffers from list.
+	(rcirc-process-server-response-1): Remove last argument if it is
+	null before calling handler.
+	(rcirc): Add "rcirc" defcustom prefix.
+	(rcirc-prompt): Simplify default prompt.  Use
+	custom-initialize-default.
+	(rcirc-private-chats): Remove variable.
+	(rcirc-prompt): Change initialization.
+	(rcirc-version): Remove function.
+	(rcirc-id-string): Add constant.
+	(rcirc-last-buffer): Remove variable.
+	(rcirc-buffer-alist): Add variable.
+	(rcirc-connect): Update variable setup.
+	(rcirc-sentinel, rcirc-update-prompt): Use `rcirc-buffer-alist'.
+	(rcirc-trap-errors-flag): Rename from `rcirc-trap-errors' change
+	default.
+	(rcirc-handler-generic): Trigger activity.
+	(rcirc-send-message): Create the buffor of the target.
+	(rcirc-generate-new-buffer-name): Rename from
+	`rcirc-get-buffer-name'.
+	(rcirc-get-buffer): Just return nil if there is no matching
+	buffer.
+	(rcirc-multiline-edit-cancel): Remove function.
+	(rcirc-set-last-buffer): Remove function.
+	(rcirc-get-any-buffer): Add function.
+	(rcirc-join-channels): Don't print /join text.
+	(rcirc-toggle-ignore-channel-activity): Add and update echo area
+	messages.
+	(rcirc-cmd-ctcp): Use rcirc-send-string to send request.
+	(rcirc-handler-NOTICE): Recognize CTCP responses.
+	(rcirc-handler-332, rcirc-handler-332): Use a temp buffer for
+	constructing TOPIC string for buffers we are not JOINed.
+	(rcirc-handler-CTCP-response): Add handler.
+	(rcirc-multiline-edit-submit): Restore the window-configuration
+	before adjusting point.
+	(rcirc): Add customization group.
+	(rcirc-server, rcirc-port, rcirc-nick, rcirc-user-name)
+	(rcirc-user-full-name, rcirc-startup-channels-alist)
+	(rcirc-fill-flag, rcirc-fill-column, rcirc-fill-prefix)
+	(rcirc-ignore-all-activity-flag, rcirc-time-format)
+	(rcirc-input-ring-size, rcirc-read-only-flag)
+	(rcirc-buffer-maximum-lines, rcirc-authinfo-file-name)
+	(rcirc-auto-authenticate-flag, rcirc-prompt, rcirc-print-hooks):
+	Change defvar to defcustom.
+	(rcirc-update-prompt): Add optional ALL arg, which will update
+	prompts in all rcirc buffers.  Regexp quote replacement text.
+	(rcirc-fill-column): Accept 'frame-width as a value.
+	(rcirc-set-changed): Add function.
+	(rcirc-next-active-buffer): Write more meaningful messages.
+	(rcirc-faces): Add customization group.
+	(rcirc-my-nick-face, rcirc-other-nick-face, rcirc-server-face)
+	(rcirc-nick-in-message-face, rcirc-prompt-face)
+	(rcirc-mode-line-nick-face): Move into rcirc-faces group.
+	(with-rcirc-process-buffer): Move before first usage.
+	(rcirc-debug-buffer): Rename from `rcirc-log-buffer'.
+	(rcirc-debug-flag): Rename from `rcirc-log-p'.
+	(rcirc-debug): Rename from `rcirc-log'.
+	(rcirc-format-response-string): Do not print '-' chars for a
+	NOTICE with no sender.  Simplify output of server responses.
+	
+2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
+
+	(rcirc-browse-url-map, rcirc-browse-url-at-point)
+	(rcirc-browse-url-at-mouse, rcirc-mangle-text): Make urls
+	mouse and RET clickable.
+
 2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
 
 	* mail/rmailout.el (rmail-output-to-rmail-file, rmail-output): Doc fix.
