@@ -77,6 +77,8 @@
 ;; 4) Mark breakpoint locations on scroll-bar of source buffer?
 ;; 5) After release of 22.1 use '-var-list-children --all-values'
 ;;    and '-stack-list-locals 2' which need GDB 6.1 onwards.
+;; 6) With gud-print and gud-pstar, print the variable name in the GUD
+;;    buffer instead of the value's history number.
 
 ;;; Code:
 
@@ -94,7 +96,6 @@
 (defvar gdb-var-list nil "List of variables in watch window.")
 (defvar gdb-var-changed nil "Non-nil means that `gdb-var-list' has changed.")
 (defvar gdb-main-file nil "Source file from which program execution begins.")
-(defvar gdb-buffer-type nil)
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
 (defvar gdb-flush-pending-output nil)
@@ -110,6 +111,7 @@ and #define directives otherwise.")
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
+(make-variable-buffer-local 'gdb-buffer-type)
 
 (defvar gdb-input-queue ()
   "A list of gdb command objects.")
@@ -693,7 +695,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 	  (let ((trigger))
 	    (if (cdr (cdr rules))
 		(setq trigger (funcall (car (cdr (cdr rules))))))
-	    (set (make-local-variable 'gdb-buffer-type) key)
+	    (setq gdb-buffer-type key)
 	    (set (make-local-variable 'gud-minor-mode)
 		 (with-current-buffer gud-comint-buffer gud-minor-mode))
 	    (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
@@ -2367,14 +2369,15 @@ corresponding to the mode line clicked."
   "Display GUD buffer in a new frame."
   (interactive)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
-	(special-display-frame-alist gdb-frame-parameters))
-    (display-buffer (gdb-get-create-buffer 'gdb-stack-buffer))))
+	(special-display-frame-alist gdb-frame-parameters)
+	(same-window-regexps nil))
+    (display-buffer gud-comint-buffer)))
 
 (defun gdb-display-gdb-buffer ()
   "Display GUD buffer."
   (interactive)
-  (gdb-display-buffer
-   (gdb-get-create-buffer 'gdba)))
+  (let ((same-window-regexps nil))
+    (pop-to-buffer gud-comint-buffer)))
 
 (defun gdb-set-window-buffer (name)
   (set-window-buffer (selected-window) (get-buffer name))
