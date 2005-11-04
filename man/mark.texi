@@ -385,7 +385,7 @@ marks.
 
 @vindex set-mark-command-repeat-pop
   If you set @code{set-mark-command-repeat-pop} to non-@code{nil},
-then whern you repeat the character @kbd{C-@key{SPC}}, after typing
+then when you repeat the character @kbd{C-@key{SPC}} after typing
 @kbd{C-u C-@key{SPC}}, each repetition moves point to a previous mark
 position from the ring.  The mark positions you move through in this
 way are not lost; they go to the end of the ring.
