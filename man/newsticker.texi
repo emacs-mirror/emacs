@@ -1,8 +1,9 @@
 \input texinfo   @c -*-texinfo-*-
+@comment $Id: newsticker.texi,v 1.8 2005/11/02 20:07:07 u11 Exp $
 @comment %**start of header
 @setfilename ../info/newsticker
-@set VERSION 1.8
-@set UPDATED October 2005
+@set VERSION 1.9
+@set UPDATED November 2005
 @settitle Newsticker @value{VERSION}
 @syncodeindex vr cp
 @syncodeindex fn cp
@@ -75,13 +76,27 @@ that asynchronously retrieves headlines from a list of news sites,
 prepares these headlines for reading, and allows for loading the
 corresponding articles in a web browser.
 
-Headlines consist of a title and (possibly) a small description. They
-are contained in RSS (RDF Site Summary) files.  Newsticker should work
-with all RSS files that follow the @uref{http://purl.org/rss/1.0/spec,
-RDF Rich Site Summary 1.0} specification. It should also work with
-version 2.0 as well as other/older/alternative rss formats (like
-0.9<something> or such). In other words: Newsticker is a ``RSS
-reader'' or ``RSS aggregator''.
+
+Headlines consist of a title and (possibly) a small description.  They
+are contained in "RSS" (RDF Site Summary) or "Atom" files.  Newsticker
+should work with the following RSS formats:
+
+@itemize
+@item RSS 0.91 (see @uref{http://backend.userland.com/rss091} or
+@uref{http://my.netscape.com/publish/formats/rss-spec-0.91.html}),
+@item RSS 0.92 (see @uref{http://backend.userland.com/rss092}),
+@item RSS 1.0 (see @uref{http://purl.org/rss/1.0/spec}
+@item RSS 2.0 (see @uref{http://blogs.law.harvard.edu/tech/rss}),
+@end itemize
+@itemize
+as well as the following Atom formats:
+@item Atom 0.3
+@item Atom 1.0 (see
+@uref{http://www.ietf.org/internet-drafts/draft-ietf-atompub-format-11.txt}).
+@end itemize
+
+That makes Newsticker.el an "Atom aggregator, "RSS reader", or "RSS
+aggregator".
 
 Newsticker provides several commands for reading headlines, navigating
 through them, marking them as read/unread, hiding old headlines etc.
@@ -122,18 +137,12 @@ prints them to stdout.  By default Newsticker will use
 @node Installation
 @chapter Installation
 
-Place Newsticker in a directory where Emacs can find it. Add the
-following line to your Emacs startup file (@file{~/.emacs}).
+As Newsticker is part of GNU Emacs there is no need to perform any
+installation steps in order to use Newsticker.
 
-@lisp
-(add-to-list 'load-path "/path/to/newsticker/")
-(autoload 'newsticker-start "newsticker" "Emacs Newsticker" t)
-(autoload 'newsticker-show-news "newsticker" "Emacs Newsticker" t)
-@end lisp
-
-Newsticker-mode supports imenu. This allows for navigating with the
-help of a menu. In order to use this feature you should also add the
-following.
+However, if you are using imenu, which allows for navigating with the
+help of a menu, you should add the following to your Emacs startup file
+(@file{~/.emacs}).
 
 @lisp
 (add-hook 'newsticker-mode-hook 'imenu-add-menubar-index)
@@ -211,7 +220,7 @@ Newsticker cache.
 
 @item
 @code{newsticker-layout} contains options that define how the
-buffer for reading RSS headlines is formatted.
+buffer for reading news headlines is formatted.
 
 @itemize
 @item
