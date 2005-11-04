@@ -1,3 +1,8 @@
+2005-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fget_lru_window, Fget_largest_window, window_loop):
+	Don't abuse the `mini' arg.  Use the `obj' arg instead.
+
 2005-11-04  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (show_mouse_face): Clear mouse face to eol.
@@ -251,8 +256,7 @@
 
 2005-10-20  Aubrey Jaffer  <agj@alum.mit.edu>  (tiny change)
 
-	* unexelf.c (unexec): Fix calls to `fatal' with less than 3
-	arguments.
+	* unexelf.c (unexec): Fix calls to `fatal' with less than 3 arguments.
 
 2005-10-20  Olli Savia  <ops@iki.fi>  (tiny change)
 
