@@ -1,3 +1,9 @@
+2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-read-date, org-goto-calendar)
+	(org-recenter-calendar, org-agenda-goto-calendar): Temporarily
+	clear 'calendar-move-hook'.
+
 2005-11-04  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* ediff-merge.el (ediff-merge-region-is-non-clash): return t, if not
