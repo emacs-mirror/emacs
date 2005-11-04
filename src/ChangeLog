@@ -1,3 +1,7 @@
+2005-11-04  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (show_mouse_face): Clear mouse face to eol.
+
 2005-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* Makefile.in (lisp, shortlisp): Add emacs-lisp/syntax.elc,
