@@ -21332,7 +21332,11 @@ show_mouse_face (dpyinfo, draw)
 	  if (row == last)
 	    end_hpos = dpyinfo->mouse_face_end_col;
 	  else
-	    end_hpos = row->used[TEXT_AREA];
+	    {
+	      end_hpos = row->used[TEXT_AREA];
+	      if (draw == DRAW_NORMAL_TEXT)
+		row->fill_line_p = 1; /* Clear to end of line */
+	    }
 
 	  if (end_hpos > start_hpos)
 	    {
