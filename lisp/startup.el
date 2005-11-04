@@ -770,7 +770,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
-  (unless (memq window-system '(x w32))
+  (unless (memq window-system '(x w32 mac))
     ;; We do this regardles of whether the terminal supports colors
     ;; or not, since they can switch that support on or off in
     ;; mid-session by setting the tty-color-mode frame parameter.
