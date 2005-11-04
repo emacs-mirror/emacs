@@ -1,3 +1,7 @@
+2005-11-04  J,bi(Br,bt(Bme Marant  <jerome@marant.org>
+
+	* misc.texi (Shell Mode): Describe how to activate password echoing.
+
 2005-11-04  Ulf Jasper  <ulf.jasper@web.de>
 
 	* newsticker.texi: VERSION changed to 1.9.  Updated UPDATED.
