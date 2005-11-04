@@ -1,3 +1,8 @@
+2005-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-region-internal): Box more tightly in the
+	common case where there's no TAB in the boxed text.
+
 2005-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* info.el (info-tool-bar-map): Use images prev-node, next-node and
@@ -6,26 +11,26 @@
 2005-11-04  Ulf Jasper  <ulf.jasper@web.de>
 
 	* newsticker.el: Commentary updated. Code formatting changed.
-	(newsticker-version): Changed to "1.9".
+	(newsticker-version): Change to "1.9".
 	(newsticker, newsticker-feed): Doc fix.
-	(newsticker-url-list): Doc fix. Added option "Weekly".
-	(newsticker-retrieval-interval): Added option "Weekly".
+	(newsticker-url-list): Doc fix.  Add option "Weekly".
+	(newsticker-retrieval-interval): Add option "Weekly".
 	(newsticker-headline-processing): Doc fix.
-	(newsticker-auto-mark-filter): Removed.
+	(newsticker-auto-mark-filter): Remove.
 	(newsticker-auto-mark-filter-list): New.
 	(newsticker-layout, newsticker-sort-method): Doc fix.
 	(newsticker-hide-old-items-in-newsticker-buffer)
 	(newsticker-heading-format, newsticker-item-format)
 	(newsticker-desc-format): Doc fix.
-	(newsticker-show-all-rss-elements): Removed.
+	(newsticker-show-all-rss-elements): Remove.
 	(newsticker-show-all-news-elements): New.
 	(newsticker-faces, newsticker-ticker): Doc fix.
 	(remove-from-invisibility-spec): Code formatting.
 	(newsticker--process-ids): New.
 	(newsticker-mode): Doc fix.
-	(newsticker-mode): Changed mode-line-format.
-	(newsticker-start): Removed debug output.
-	(newsticker-start-ticker): Doc fix. Added Autoload cookie.
+	(newsticker-mode): Change mode-line-format.
+	(newsticker-start): Remove debug output.
+	(newsticker-start-ticker): Doc fix.  Add Autoload cookie.
 	(newsticker-w3m-show-inline-images): Code formatting.
 	(newsticker-next-item): Call `force-mode-line-update'.
 	(newsticker-previous-item): Call `force-mode-line-update'.
@@ -33,19 +38,19 @@
 	(newsticker-previous-feed): Call `force-mode-line-update'.
 	(newsticker-mark-all-items-at-point-as-read): Code formatting.
 	(newsticker-show-old-items): Do not show descs.
-	(newsticker-hide-entry): Hided too much.
+	(newsticker-hide-entry): Hide too much.
 	(newsticker-hide-entry, newsticker-show-entry)
 	(newsticker-toggle-auto-narrow-to-feed): Code formatting.
 	(newsticker-set-auto-narrow-to-feed): Update buffer immediately.
 	(newsticker-toggle-auto-narrow-to-item): Code formatting.
 	(newsticker-set-auto-narrow-to-item): Update buffer immediately.
 	(newsticker-running-p, newsticker-ticker-running-p): Autoload cookie.
-	(newsticker-get-news): Call `force-mode-line-update'. Collect
-	process ids.
-	(newsticker--sentinel): Changed coding system handling.  Moved
-	image retrieval to new functions newsticker--get-logo-url-*.
-	Moved feed parsing to new functions newsticker--parse-*.  Update
-	list of process ids.
+	(newsticker-get-news): Call `force-mode-line-update'.
+	Collect process ids.
+	(newsticker--sentinel): Change coding system handling.
+	Move image retrieval to new functions newsticker--get-logo-url-*.
+	Move feed parsing to new functions newsticker--parse-*.
+	Update list of process ids.
 	(newsticker--get-logo-url-atom-1.0, newsticker--get-logo-url-atom-0.3)
 	(newsticker--get-logo-url-rss-2.0, newsticker--get-logo-url-rss-1.0)
 	(newsticker--get-logo-url-rss-0.92, newsticker--get-logo-url-rss-0.91)
@@ -53,28 +58,27 @@
 	(newsticker--parse-rss-0.91, newsticker--parse-rss-0.92)
 	(newsticker--parse-rss-1.0, newsticker--parse-rss-2.0)
 	(newsticker--parse-generic-feed, newsticker--parse-generic-items): New.
-	(newsticker--decode-coding-string): Removed
-	(newsticker--decode-numeric-entities): Check input.  Code
-	formatting.
+	(newsticker--decode-coding-string): Remove.
+	(newsticker--decode-numeric-entities): Check input.  Format code.
 	(newsticker--remove-whitespace): Check input.
 	(newsticker--do-forget-preformatted): Doc fix.
 	(newsticker--decode-rfc822-date): Allow for missing time.
 	(newsticker--update-process-ids): New.
-	(newsticker--image-sentinel): Changed comment.
-	(newsticker--image-read): Changed error message.
+	(newsticker--image-sentinel): Change comment.
+	(newsticker--image-read): Change error message.
 	(newsticker--imenu-goto): Doc fix.  Show headline title.
 	(newsticker--buffer-set-uptodate): Call `force-mode-line-update'.
 	(newsticker--buffer-do-insert-text): Clean whitespace in
-	html-rendered headline title.  Code formatting.  Call
-	`newsticker--buffer-print-extra-elements'.
-	(newsticker--buffer-print-extra-element): Removed.
+	html-rendered headline title.  Code formatting.
+	Call `newsticker--buffer-print-extra-elements'.
+	(newsticker--buffer-print-extra-element): Remove.
 	(newsticker--buffer-print-extra-elements): New.
 	(newsticker--buffer-do-print-extra-element): New.
 	(newsticker--buffer-insert-enclosure): Doc fix.  Use MBytes for
 	large sizes.
 	(newsticker--run-auto-mark-filter)
-	(newsticker--do-run-auto-mark-filter): Use
-	`newsticker-auto-mark-filter-list'.
+	(newsticker--do-run-auto-mark-filter):
+	Use `newsticker-auto-mark-filter-list'.
 
 2005-11-04  Ryan Yeske  <rcyeske@gmail.com>
 
@@ -85,19 +89,18 @@
 	currently selected buffer, if it is an rcirc buffer and of the
 	same process or the process buffer.
 	(rcirc-mode): Remove header-line.  Recompute short buffer names.
-	Initialize rcirc-buffer-alist here instead of
-	rcirc-get-buffer-create.
+	Initialize rcirc-buffer-alist here instead of rcirc-get-buffer-create.
 	(rcirc-short-buffer-name): Add variable.
-	(rcirc-kill-buffer-hook): Recompute short buffer names.  Remove
-	nick from private channel.
-	(rcirc-send-input): Send command text to current-buffer.  Don't
-	clear overlay arrow here.
+	(rcirc-kill-buffer-hook): Recompute short buffer names.
+	Remove nick from private channel.
+	(rcirc-send-input): Send command text to current-buffer.
+	Don't clear overlay arrow here.
 	(rcirc-short-buffer-name): Return a short buffer name.
 	(rcirc-update-short-buffer-names, rcirc-abbreviate)
 	(rcirc-rebuild-tree, rcirc-make-trees): Add functions to generate
 	buffer-name abbreviations.
-	(rcirc-kill-buffer-hook-1): Split to make debugging easier.  Do
-	not touch nick-table when killing a parted channel.
+	(rcirc-kill-buffer-hook-1): Split to make debugging easier.
+	Do not touch nick-table when killing a parted channel.
 	(rcirc-window-configuration-change): Rename from
 	rcirc-update-activity.  Clear arrow from current buffer if it is
 	now hidden.
@@ -124,8 +127,8 @@
 	(rcirc-process-server-response-1): Remove last argument if it is
 	null before calling handler.
 	(rcirc): Add "rcirc" defcustom prefix.
-	(rcirc-prompt): Simplify default prompt.  Use
-	custom-initialize-default.
+	(rcirc-prompt): Simplify default prompt.
+	Use custom-initialize-default.
 	(rcirc-private-chats): Remove variable.
 	(rcirc-prompt): Change initialization.
 	(rcirc-version): Remove function.
@@ -138,10 +141,8 @@
 	default.
 	(rcirc-handler-generic): Trigger activity.
 	(rcirc-send-message): Create the buffor of the target.
-	(rcirc-generate-new-buffer-name): Rename from
-	`rcirc-get-buffer-name'.
-	(rcirc-get-buffer): Just return nil if there is no matching
-	buffer.
+	(rcirc-generate-new-buffer-name): Rename from `rcirc-get-buffer-name'.
+	(rcirc-get-buffer): Just return nil if there is no matching buffer.
 	(rcirc-multiline-edit-cancel): Remove function.
 	(rcirc-set-last-buffer): Remove function.
 	(rcirc-get-any-buffer): Add function.
@@ -179,7 +180,7 @@
 	(rcirc-debug): Rename from `rcirc-log'.
 	(rcirc-format-response-string): Do not print '-' chars for a
 	NOTICE with no sender.  Simplify output of server responses.
-	
+
 2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
 
 	(rcirc-browse-url-map, rcirc-browse-url-at-point)
@@ -218,21 +219,21 @@
 2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-read-date, org-goto-calendar)
-	(org-recenter-calendar, org-agenda-goto-calendar): Temporarily
-	clear 'calendar-move-hook'.
+	(org-recenter-calendar, org-agenda-goto-calendar):
+	Temporarily clear 'calendar-move-hook'.
 
 2005-11-04  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* ediff-merge.el (ediff-merge-region-is-non-clash): return t, if not
+
+	* ediff-merge.el (ediff-merge-region-is-non-clash): Return t, if not
 	merging.
-	
-	* ediff-util.el (ediff-previous-difference): don't skip regions that
+
+	* ediff-util.el (ediff-previous-difference): Don't skip regions that
 	have merge clashes.
-	
+
 2005-11-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event): Undo
-	previous change.
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
+	Undo previous change.
 
 	* startup.el (command-line): Use `custom-reevaluate-setting' for
 	mouse-wheel-down-event and mouse-wheel-up-event.  Don't call
@@ -240,8 +241,7 @@
 
 2005-11-04  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-buffer-type): Remove duplicate
-	declaration.
+	* progmodes/gdb-ui.el (gdb-buffer-type): Remove duplicate declaration.
 	(gdb-buffer-type): Make it automatically buffer local...
 	(gdb-get-create-buffer): ...and set it accordingly.
 	(gdb-frame-gdb-buffer, gdb-display-gdb-buffer): Make these

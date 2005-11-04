@@ -943,9 +943,13 @@ the region rather than at left margin."
 		(setq max-indent (max max-indent (current-column)))
 		(not (or (eobp) (progn (forward-line) nil)))))
 
-	  ;; Inserting ccs can change max-indent by (1- tab-width).
 	  (setq max-indent
-		(+ max-indent (max (length cs) (length ccs)) tab-width -1))
+		(+ max-indent (max (length cs) (length ccs))
+                   ;; Inserting ccs can change max-indent by (1- tab-width)
+                   ;; but only if there are TABs in the boxed text, of course.
+                   (if (save-excursion (goto-char beg)
+                                       (search-forward "\t" end t))
+                       (1- tab-width) 0)))
 	  (unless indent (setq min-indent 0))
 
 	  ;; make the leading and trailing lines if requested
