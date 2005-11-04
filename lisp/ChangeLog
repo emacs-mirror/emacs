@@ -4,7 +4,8 @@
 	previous change.
 
 	* startup.el (command-line): Use `custom-reevaluate-setting' for
-	mouse-wheel-down-event and mouse-wheel-up-event.
+	mouse-wheel-down-event and mouse-wheel-up-event.  Don't call
+	tty-register-default-colors on Mac.
 
 2005-11-04  Nick Roberts  <nickrob@snap.net.nz>
 
