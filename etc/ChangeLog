@@ -1,3 +1,10 @@
+2005-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* images/up-node.xpm, images/prev-node.xpm, images/next-node.xpm
+	* images/up-node.pbm, images/prev-node.pbm, images/next-node.pbm
+	* images/low-color/up-node.xpm, images/low-color/prev-node.xpm
+	* images/low-color/next-node.xpm: New images.
+
 2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
 
 	* orgcard.tex (section{Notes}): Version number change.
