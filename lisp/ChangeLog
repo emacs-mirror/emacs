@@ -1,3 +1,7 @@
+2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
+
+	* mail/rmailout.el (rmail-output-to-rmail-file, rmail-output): Doc fix.
+
 2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)

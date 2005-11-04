@@ -1,3 +1,9 @@
+2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg.texi (User Commands): Document additional passphrase
+	argument for pgg-encrypt-*, pgg-decrypt-*, and pgg-sign-* functions.
+	(Backend methods): Likewise for corresponding pgg-scheme-* functions.
+
 2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Version number changed to 3.19
