@@ -1,3 +1,8 @@
+2005-11-04  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el: Refactor faces. Move grayscale requirements
+	last before t. Use uniform line breaks.
+
 2005-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* mh-customize.el (mh-folder-body-face, mh-folder-cur-msg-face)
