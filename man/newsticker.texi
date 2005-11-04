@@ -1,5 +1,4 @@
 \input texinfo   @c -*-texinfo-*-
-@comment $Id: newsticker.texi,v 1.8 2005/11/02 20:07:07 u11 Exp $
 @comment %**start of header
 @setfilename ../info/newsticker
 @set VERSION 1.9
