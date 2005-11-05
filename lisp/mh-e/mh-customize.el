@@ -2248,30 +2248,6 @@ will be removed from the unseen sequence."
 
 ;;; Faces (:group 'mh-*-faces + group where faces described)
 
-(defvar mh-min-colors-defined-flag (and (not mh-xemacs-flag)
-                                        (>= emacs-major-version 22))
-  "Non-nil means defface supports min-colors display requirement.")
-
-(defun mh-defface-compat (spec)
-  "Converts SPEC for defface if necessary to run on older platforms.
-See `defface' for the spec definition.
-
-When `mh-min-colors-defined-flag' is nil, this function finds a display with a
-single \"class\" requirement with a \"color\" item, renames the requirement to
-\"tty\" and moves it to the beginning of the list. It then strips any
-\"min-colors\" requirements."
-  (when (not mh-min-colors-defined-flag)
-    ;; Insert ((class tty)) display with ((class color)) attributes.
-    (let ((attributes (cdr (assoc '((class color)) spec))))
-      (cons (cons '((class tty)) attributes) spec))
-    ;; Delete ((class color)) display.
-    (delq (assoc '((class color)) spec) spec)
-    ;; Strip min-colors.
-    (loop for entry in spec do
-          (when (not (eq (car entry) t))
-            (if (assoc 'min-colors (car entry))
-                (delq (assoc 'min-colors (car entry)) (car entry)))))))
-  
 ;;; Faces Used in Scan Listing (:group 'mh-folder-faces)
 
 (defvar mh-folder-body-face 'mh-folder-body

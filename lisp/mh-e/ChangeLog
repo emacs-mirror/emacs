@@ -1,5 +1,13 @@
 2005-11-04  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el (mh-min-colors-defined-flag, mh-defface-compat):
+	Move to mh-init.el to minimize bulk of mh-customize.el.
+
+	* mh-init.el: Modify commentary since file is used for load and
+	initialization as well as setting and getting the variant.
+	(mh-min-colors-defined-flag, mh-defface-compat): Move
+	here from mh-customize.el. 
+
 	* mh-customize.el: Refactor faces. Move grayscale requirements
 	last before t. Use uniform line breaks.
 	(mh-min-colors-defined-flag): New variable.
