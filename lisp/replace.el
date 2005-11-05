@@ -1140,7 +1140,8 @@ See also `multi-occur'."
 					 'follow-link t
 					 'help-echo
 					 "mouse-2: go to this occurrence")
-			     "\n"))
+			     ;; Add marker at eol, but no mouse props.
+			     (propertize "\n" 'occur-target marker)))
 			   (data
 			    (if (= nlines 0)
 				;; The simple display style

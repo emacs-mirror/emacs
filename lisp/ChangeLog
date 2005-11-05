@@ -1,3 +1,7 @@
+2005-11-05  Romain Francoise  <romain@orebokech.com>
+
+	* replace.el (occur-engine): Add marker at end of line, too.
+
 2005-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font-lock.el: Don't deal with font-lock-face-attributes here,
