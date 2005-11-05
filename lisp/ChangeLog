@@ -1,3 +1,15 @@
+2005-11-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	`global-font-lock-mode'.
+
+	* font-core.el (global-font-lock-mode): Enable
+	`global-font-lock-mode' by default, except in batch mode or when
+	the -D command line option is given.
+
+	* emacs-lisp/easy-mmode.el (define-global-minor-mode): Pass all
+	specified keyword args on to `define-minor-mode'.  Update docstring.
+
 2005-11-05  Romain Francoise  <romain@orebokech.com>
 
 	* replace.el (occur-engine): Add marker at end of line, too.
