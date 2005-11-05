@@ -765,6 +765,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'blink-cursor-mode)
   (custom-reevaluate-setting 'normal-erase-is-backspace)
   (custom-reevaluate-setting 'tooltip-mode)
+  (custom-reevaluate-setting 'global-font-lock-mode)
   (custom-reevaluate-setting 'mouse-wheel-down-event)
   (custom-reevaluate-setting 'mouse-wheel-up-event)
 
