@@ -958,6 +958,38 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 					(or mail-host-address
 					    (system-name)))))
 
+    ;; Originally face attributes were specified via
+    ;; `font-lock-face-attributes'.  Users then changed the default
+    ;; face attributes by setting that variable.  However, we try and
+    ;; be back-compatible and respect its value if set except for
+    ;; faces where M-x customize has been used to save changes for the
+    ;; face.
+    (when (boundp 'font-lock-face-attributes)
+      (let ((face-attributes font-lock-face-attributes))
+	(while face-attributes
+	  (let* ((face-attribute (pop face-attributes))
+		 (face (car face-attribute)))
+	    ;; Rustle up a `defface' SPEC from a
+	    ;; `font-lock-face-attributes' entry.
+	    (unless (get face 'saved-face)
+	      (let ((foreground (nth 1 face-attribute))
+		    (background (nth 2 face-attribute))
+		    (bold-p (nth 3 face-attribute))
+		    (italic-p (nth 4 face-attribute))
+		    (underline-p (nth 5 face-attribute))
+		    face-spec)
+		(when foreground
+		  (setq face-spec (cons ':foreground (cons foreground face-spec))))
+		(when background
+		  (setq face-spec (cons ':background (cons background face-spec))))
+		(when bold-p
+		  (setq face-spec (append '(:weight bold) face-spec)))
+		(when italic-p
+		  (setq face-spec (append '(:slant italic) face-spec)))
+		(when underline-p
+		  (setq face-spec (append '(:underline t) face-spec)))
+		(face-spec-set face (list (list t face-spec)) nil)))))))
+
     ;; If parameter have been changed in the init file which influence
     ;; face realization, clear the face cache so that new faces will
     ;; be realized.
