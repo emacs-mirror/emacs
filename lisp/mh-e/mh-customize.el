@@ -2248,57 +2248,84 @@ will be removed from the unseen sequence."
 
 ;;; Faces (:group 'mh-*-faces + group where faces described)
 
+(defvar mh-min-colors-defined-flag (and (not mh-xemacs-flag)
+                                        (>= emacs-major-version 22))
+  "Non-nil means defface supports min-colors display requirement.")
+
+(defun mh-defface-compat (spec)
+  "Converts SPEC for defface if necessary to run on older platforms.
+See `defface' for the spec definition.
+
+When `mh-min-colors-defined-flag' is nil, this function finds a display with a
+single \"class\" requirement with a \"color\" item, renames the requirement to
+\"tty\" and moves it to the beginning of the list. It then strips any
+\"min-colors\" requirements."
+  (when (not mh-min-colors-defined-flag)
+    ;; Insert ((class tty)) display with ((class color)) attributes.
+    (let ((attributes (cdr (assoc '((class color)) spec))))
+      (cons (cons '((class tty)) attributes) spec))
+    ;; Delete ((class color)) display.
+    (delq (assoc '((class color)) spec) spec)
+    ;; Strip min-colors.
+    (loop for entry in spec do
+          (when (not (eq (car entry) t))
+            (if (assoc 'min-colors (car entry))
+                (delq (assoc 'min-colors (car entry)) (car entry)))))))
+  
 ;;; Faces Used in Scan Listing (:group 'mh-folder-faces)
 
 (defvar mh-folder-body-face 'mh-folder-body
   "Face used to highlight body text in MH-Folder buffers.")
 (defface mh-folder-body
-  '((((class color) (min-colors 88) (background light))
-     (:foreground "RosyBrown"))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "LightSalmon"))
-    (((class color))
-     (:foreground "green"))
-    (((class grayscale) (background light))
-     (:foreground "DimGray" :italic t))
-    (((class grayscale) (background dark))
-     (:foreground "LightGray" :italic t))
-    (t
-     (:italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "RosyBrown"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightSalmon"))
+     (((class color))
+      (:foreground "green"))
+     (((class grayscale) (background light))
+      (:foreground "DimGray" :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "LightGray" :italic t))
+     (t
+      (:italic t))))
   "Face used to highlight body text in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-cur-msg-face 'mh-folder-cur-msg
   "Face used for the current message line in MH-Folder buffers.")
 (defface mh-folder-cur-msg
-  '((((class color) (min-colors 88) (background light))
-     (:background "LightGreen")         ;Use this for solid background colour
-     ;;  (:underline t)                 ;Use this for underlining
-     )
-    (((class color) (min-colors 88) (background dark))
-     (:background "DarkOliveGreen4"))
-    (((class color))
-     (:background "LightGreen"))
-    (t
-     (:underline t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:background "LightGreen")        ;Use this for solid background colour
+      ;;  (:underline t)                 ;Use this for underlining
+      )
+     (((class color) (min-colors 88) (background dark))
+      (:background "DarkOliveGreen4"))
+     (((class color))
+      (:background "LightGreen"))
+     (t
+      (:underline t))))
   "Face used for the current message line in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-cur-msg-number-face 'mh-folder-cur-msg-number
   "Face used to highlight the current message in MH-Folder buffers.")
 (defface mh-folder-cur-msg-number
-  '((((class color) (min-colors 88) (background light))
-     (:foreground "Purple"))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "Cyan"))
-    (((class color))
-     (:foreground "cyan" :weight bold))
-    (((class grayscale) (background light))
-     (:foreground "LightGray" :bold t))
-    (((class grayscale) (background dark))
-     (:foreground "DimGray" :bold t))
-    (t
-     (:bold t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "Purple"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "Cyan"))
+     (((class color))
+      (:foreground "cyan" :weight bold))
+     (((class grayscale) (background light))
+      (:foreground "LightGray" :bold t))
+     (((class grayscale) (background dark))
+      (:foreground "DimGray" :bold t))
+     (t
+      (:bold t))))
   "Face used to highlight the current message in MH-Folder buffers."
   :group 'mh-folder-faces)
 
@@ -2345,18 +2372,19 @@ will be removed from the unseen sequence."
 (defvar mh-folder-refiled-face 'mh-folder-refiled
   "Face used to highlight refiled messages in MH-Folder buffers.")
 (defface mh-folder-refiled
-  '((((class color) (min-colors 88) (background light))
-     (:foreground "DarkGoldenrod"))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "LightGoldenrod"))
-    (((class color))
-     (:foreground "yellow" :weight light))
-    (((class grayscale) (background light))
-     (:foreground "Gray90" :bold t :italic t))
-    (((class grayscale) (background dark))
-     (:foreground "DimGray" :bold t :italic t))
-    (t
-     (:bold t :italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "DarkGoldenrod"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightGoldenrod"))
+     (((class color))
+      (:foreground "yellow" :weight light))
+     (((class grayscale) (background light))
+      (:foreground "Gray90" :bold t :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "DimGray" :bold t :italic t))
+     (t
+      (:bold t :italic t))))
   "Face used to highlight refiled messages in MH-Folder buffers."
   :group 'mh-folder-faces)
 
@@ -2395,18 +2423,19 @@ will be removed from the unseen sequence."
 (defvar mh-folder-to-face 'mh-folder-to
   "Face used to highlight the To: string in MH-Folder buffers.")
 (defface mh-folder-to
-  '((((class color) (min-colors 88) (background light))
-     (:foreground "RosyBrown"))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "LightSalmon"))
-    (((class color))
-     (:foreground "green"))
-    (((class grayscale) (background light))
-     (:foreground "DimGray" :italic t))
-    (((class grayscale) (background dark))
-     (:foreground "LightGray" :italic t))
-    (t
-     (:italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "RosyBrown"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightSalmon"))
+     (((class color))
+      (:foreground "green"))
+     (((class grayscale) (background light))
+      (:foreground "DimGray" :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "LightGray" :italic t))
+     (t
+      (:italic t))))
   "Face used to highlight the To: string in MH-Folder buffers."
   :group 'mh-folder-faces)
 
@@ -2447,54 +2476,57 @@ will be removed from the unseen sequence."
 (defvar mh-show-cc-face 'mh-show-cc
   "Face used to highlight cc: header fields.")
 (defface mh-show-cc
-  '((((class color) (min-colors 88) (background light))
-     (:foreground "DarkGoldenrod"))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "LightGoldenrod"))
-    (((class color))
-     (:foreground "yellow" :weight light))
-    (((class grayscale) (background light))
-     (:foreground "Gray90" :bold t :italic t))
-    (((class grayscale) (background dark))
-     (:foreground "DimGray" :bold t :italic t))
-    (t
-     (:bold t :italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "DarkGoldenrod"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightGoldenrod"))
+     (((class color))
+      (:foreground "yellow" :weight light))
+     (((class grayscale) (background light))
+      (:foreground "Gray90" :bold t :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "DimGray" :bold t :italic t))
+     (t
+      (:bold t :italic t))))
   "Face used to highlight cc: header fields."
   :group 'mh-show-faces)
 
 (defvar mh-show-date-face 'mh-show-date
   "Face used to highlight the Date: header field.")
 (defface mh-show-date
-  '((((class color) (min-colors 88) (background light))
-     (:foreground "ForestGreen"))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "PaleGreen"))
-    (((class color))
-     (:foreground "green"))
-    (((class grayscale) (background light))
-     (:foreground "Gray90" :bold t))
-    (((class grayscale) (background dark))
-     (:foreground "DimGray" :bold t))
-    (t
-     (:bold t :underline t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "ForestGreen"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "PaleGreen"))
+     (((class color))
+      (:foreground "green"))
+     (((class grayscale) (background light))
+      (:foreground "Gray90" :bold t))
+     (((class grayscale) (background dark))
+      (:foreground "DimGray" :bold t))
+     (t
+      (:bold t :underline t))))
   "Face used to highlight the Date: header field."
   :group 'mh-show-faces)
 
 (defvar mh-show-header-face 'mh-show-header
   "Face used to deemphasize unspecified header fields.")
 (defface mh-show-header
-  '((((class color) (min-colors 88) (background light))
-     (:foreground "RosyBrown"))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "LightSalmon"))
-    (((class color))
-     (:foreground "green"))
-    (((class grayscale) (background light))
-     (:foreground "DimGray" :italic t))
-    (((class grayscale) (background dark))
-     (:foreground "LightGray" :italic t))
-    (t
-     (:italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "RosyBrown"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightSalmon"))
+     (((class color))
+      (:foreground "green"))
+     (((class grayscale) (background light))
+      (:foreground "DimGray" :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "LightGray" :italic t))
+     (t
+      (:italic t))))
   "Face used to deemphasize unspecified header fields."
   :group 'mh-show-faces)
 

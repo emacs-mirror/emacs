@@ -2,6 +2,12 @@
 
 	* mh-customize.el: Refactor faces. Move grayscale requirements
 	last before t. Use uniform line breaks.
+	(mh-min-colors-defined-flag): New variable.
+	(mh-defface-compat): New function. Provides backward compatibility
+	for face specs.
+	(mh-show-header, mh-show-date, mh-show-cc, mh-folder-to) 
+	(mh-folder-refiled, mh-folder-cur-msg-number, mh-folder-cur-msg) 
+	(mh-folder-body): Use mh-defface-compat.
 
 2005-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
 
