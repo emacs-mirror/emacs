@@ -1,3 +1,13 @@
+2005-11-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler, gdb-var-delete)
+	(gdb-edit-value, gdb-speedbar-expand-node)
+	(gdb-get-create-buffer,  gdb-breakpoints-mode)
+	(gdb-toggle-breakpoint, gdb-delete-breakpoint)
+	(gdb-goto-breakpoint, gdb-frames-mode, gdb-registers-mode)
+	(gdb-locals-mode, gdb-find-file-hook): Use buffer-local-value.
+	(gdb-send-item, ): Use buffer-local-value and simplify.
+
 2005-11-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* startup.el (command-line): Use `custom-reevaluate-setting' for
