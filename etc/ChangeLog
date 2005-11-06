@@ -1,5 +1,11 @@
 2005-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* images/copy.xpm, images/copy.pbm, images/low-color/copy.xpm
+	* images/save.xpm, images/save.pbm, images/low-color/save.xpm:
+	Adjust baseline.
+	
+2005-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
 	* images/up-node.xpm, images/prev-node.xpm, images/next-node.xpm
 	* images/up-node.pbm, images/prev-node.pbm, images/next-node.pbm
 	* images/low-color/up-node.xpm, images/low-color/prev-node.xpm
