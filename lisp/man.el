@@ -286,8 +286,12 @@ This regexp should not start with a `^' character.")
 This regular expression should start with a `^' character.")
 
 (defvar Man-reference-regexp
-  (concat "\\(" Man-name-regexp "\\)(\\(" Man-section-regexp "\\))")
+  (concat "\\(" Man-name-regexp "\\)[ \t]*(\\(" Man-section-regexp "\\))")
   "Regular expression describing a reference to another manpage.")
+
+(defvar Man-apropos-regexp
+  (concat "\\\[\\(" Man-name-regexp "\\)\\\][ \t]*(\\(" Man-section-regexp "\\))")
+  "Regular expression describing a reference to manpages in \"man -k output\".")
 
 (defvar Man-synopsis-regexp "SYNOPSIS"
   "Regular expression for SYNOPSIS heading (or your equivalent).
@@ -421,7 +425,8 @@ Otherwise, the value is whatever the function
   'func nil
   'action (lambda (button) (funcall 
 			    (button-get button 'func)
-			    (button-label button))))
+			    (or (button-get button 'Man-target-string)
+				(button-label button)))))
 
 (define-button-type 'Man-xref-man-page 
   :supertype 'Man-abstract-xref-man-page
@@ -918,9 +923,20 @@ header file (#include <foo.h>) and files in FILES.
 If XREF-MAN-TYPE is used as the button type for items
 in SEE ALSO section. If it is nil, default type, 
 `Man-xref-man-page' is used."
-  (let ((dummy 0))
+  (if (string-match "-k " Man-arguments)
+      (progn
+	(Man-highlight-references0
+	 nil Man-reference-regexp 1 nil
+	 (or xref-man-type 'Man-xref-man-page))
+	(Man-highlight-references0
+	 nil Man-apropos-regexp 1 (lambda () 
+				    (format "%s(%s)"
+					    (match-string 1)
+					    (match-string 2)))
+	 (or xref-man-type 'Man-xref-man-page))
+	)
     (Man-highlight-references0
-     Man-see-also-regexp Man-reference-regexp 1 dummy
+     Man-see-also-regexp Man-reference-regexp 1 nil
      (or xref-man-type 'Man-xref-man-page))
     (Man-highlight-references0
      Man-synopsis-regexp Man-header-regexp 0 2
@@ -929,21 +945,30 @@ in SEE ALSO section. If it is nil, default type,
      Man-files-regexp Man-normal-file-regexp 0 0
      'Man-xref-normal-file)))
 
-(defun Man-highlight-references0 (start-section regexp button-pos target-pos type)
+(defun Man-highlight-references0 (start-section regexp button-pos target type)
   ;; Based on `Man-build-references-alist'
-  (when (Man-find-section start-section)
-    (forward-line 1)
-    (let ((end (save-excursion
-                 (Man-next-section 1)
-                 (point))))
-      (back-to-indentation)
+  (when (or (null start-section)
+	    (Man-find-section start-section))
+    (let ((end (if start-section
+		   (progn
+		     (forward-line 1)
+		     (back-to-indentation)
+		     (save-excursion
+		       (Man-next-section 1)
+		       (point)))
+		 (goto-char (point-min))
+		 (point-max))))
       (while (re-search-forward regexp end t)
 	(make-text-button
 	 (match-beginning button-pos)
 	 (match-end button-pos)
 	 'type type
-	 'Man-target-string (match-string target-pos)
-	 )))))
+	 'Man-target-string (cond
+			     ((numberp target) 
+			      (match-string target))
+			     ((functionp target)
+			      (funcall target))
+			     (t nil)))))))
 
 (defun Man-cleanup-manpage (&optional interactive)
   "Remove overstriking and underlining from the current buffer.

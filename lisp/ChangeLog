@@ -1,3 +1,15 @@
+2005-11-07  Masatake YAMATO  <jet@gyve.org>
+
+	* man.el (Man-reference-regexp): Accpet spaces between 
+	`Man-name-regexp' and `Man-section-regexp'.
+	(Man-apropos-regexp): New variable.
+	(Man-abstract-xref-man-page): Use value for `Man-target-string'
+	if available.
+	(Man-highlight-references, Man-highlight-references0): Handle 
+	the case when `Man-arguments' includes "-k".
+	(Man-highlight-references0): Rename the argument `TARGET-POS' to 
+	`TARGET'. `TARGET' can be a number, function or nil.
+
 2005-11-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler, gdb-var-delete)
