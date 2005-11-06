@@ -1,3 +1,10 @@
+2005-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* images/up-node.xpm, images/prev-node.xpm, images/next-node.xpm
+	* images/up-node.pbm, images/prev-node.pbm, images/next-node.pbm
+	* images/low-color/up-node.xpm, images/low-color/prev-node.xpm
+	* images/low-color/next-node.xpm: Adjust paper size and layout.
+
 2005-11-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* DEBUG: Describe how to provide preprocessor macro information.
