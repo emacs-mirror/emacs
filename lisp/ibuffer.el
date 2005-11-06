@@ -2288,7 +2288,7 @@ FORMATS is the value to use for `ibuffer-formats'.
       (save-selected-window
 	;; We switch to the buffer's window in order to be able
 	;; to modify the value of point
-	(select-window (get-buffer-window buf))
+	(select-window (get-buffer-window buf 'visible))
 	(or (eq major-mode 'ibuffer-mode)
 	    (ibuffer-mode))
 	(setq ibuffer-restore-window-config-on-quit other-window-p)
