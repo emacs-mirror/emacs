@@ -1,3 +1,8 @@
+2005-11-06  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer): Search all visible frames when getting
+	Ibuffer buffer's window.
+
 2005-11-07  Masatake YAMATO  <jet@gyve.org>
 
 	* man.el (Man-reference-regexp): Accpet spaces between 
