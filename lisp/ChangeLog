@@ -13,21 +13,19 @@
 2005-11-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler, gdb-var-delete)
-	(gdb-edit-value, gdb-speedbar-expand-node)
-	(gdb-get-create-buffer,  gdb-breakpoints-mode)
-	(gdb-toggle-breakpoint, gdb-delete-breakpoint)
+	(gdb-edit-value, gdb-speedbar-expand-node, gdb-get-create-buffer)
+	(gdb-breakpoints-mode, gdb-toggle-breakpoint, gdb-delete-breakpoint)
 	(gdb-goto-breakpoint, gdb-frames-mode, gdb-registers-mode)
 	(gdb-locals-mode, gdb-find-file-hook): Use buffer-local-value.
-	(gdb-send-item, ): Use buffer-local-value and simplify.
+	(gdb-send-item): Use buffer-local-value and simplify.
 
 2005-11-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* startup.el (command-line): Use `custom-reevaluate-setting' for
 	`global-font-lock-mode'.
 
-	* font-core.el (global-font-lock-mode): Enable
-	`global-font-lock-mode' by default, except in batch mode or when
-	the -D command line option is given.
+	* font-core.el (global-font-lock-mode): Enable `global-font-lock-mode'
+	by default, except in batch mode or when the -D option is given.
 
 	* emacs-lisp/easy-mmode.el (define-global-minor-mode): Pass all
 	specified keyword args on to `define-minor-mode'.  Update docstring.
@@ -149,9 +147,8 @@
 	buffer-name abbreviations.
 	(rcirc-kill-buffer-hook-1): Split to make debugging easier.
 	Do not touch nick-table when killing a parted channel.
-	(rcirc-window-configuration-change): Rename from
-	rcirc-update-activity.  Clear arrow from current buffer if it is
-	now hidden.
+	(rcirc-window-configuration-change): Rename from rcirc-update-activity.
+	Clear arrow from current buffer if it is now hidden.
 	(rcirc-current-buffer): Add variable.
 	(rcirc-my-nick, rcirc-other-nick, rcirc-server)
 	(rcirc-nick-in-message, rcirc-prompt, rcirc-mode-line-nick):
@@ -266,7 +263,7 @@
 
 2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-read-date, org-goto-calendar)
+	* textmodes/org.el (org-read-date, org-goto-calendar)
 	(org-recenter-calendar, org-agenda-goto-calendar):
 	Temporarily clear 'calendar-move-hook'.
 
