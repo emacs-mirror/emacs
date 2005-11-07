@@ -1,6 +1,14 @@
+2005-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-post-command): Rework the handling of
+	reveal-open-spots, so as to be more reliable.  There were several
+	tricky corner cases where an open spot might be lost, or where
+	a closed spot might end up on the list of open spots.
+	Only reveal text that's ellipsised.
+
 2005-11-07  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-export-as-html): Removed bogus (debug) form.
+	* textmodes/org.el (org-export-as-html): Remove bogus (debug) form.
 
 2005-11-06  Richard M. Stallman  <rms@gnu.org>
 
@@ -19,14 +27,14 @@
 
 2005-11-07  Masatake YAMATO  <jet@gyve.org>
 
-	* man.el (Man-reference-regexp): Accpet spaces between 
+	* man.el (Man-reference-regexp): Accpet spaces between
 	`Man-name-regexp' and `Man-section-regexp'.
 	(Man-apropos-regexp): New variable.
 	(Man-abstract-xref-man-page): Use value for `Man-target-string'
 	if available.
-	(Man-highlight-references, Man-highlight-references0): Handle 
-	the case when `Man-arguments' includes "-k".
-	(Man-highlight-references0): Rename the argument `TARGET-POS' to 
+	(Man-highlight-references, Man-highlight-references0):
+	Handle the case when `Man-arguments' includes "-k".
+	(Man-highlight-references0): Rename the argument `TARGET-POS' to
 	`TARGET'. `TARGET' can be a number, function or nil.
 
 2005-11-06  Nick Roberts  <nickrob@snap.net.nz>
