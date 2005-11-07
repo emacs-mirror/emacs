@@ -1,3 +1,8 @@
+2005-11-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.texi (Help Echo): By default, help echos are only shown on
+	mouse-over, not on point-over.
+
 2005-11-04  J,bi(Br,bt(Bme Marant  <jerome@marant.org>
 
 	* misc.texi (Shell Mode): Describe how to activate password echoing.
