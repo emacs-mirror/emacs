@@ -707,24 +707,25 @@ FMTS is a list of format specs for transforming the file name.
       (setq marker (nth 3 (cadr marker-line))
 	    marker-line (or (car marker-line) 1))
       (with-current-buffer (marker-buffer marker)
-	(save-restriction
-	  (widen)
-	  (goto-char (marker-position marker))
-	  (when (or end-col end-line)
-	    (beginning-of-line (- (or end-line line) marker-line -1))
-	    (if (or (null end-col) (< end-col 0))
-		(end-of-line)
-	      (compilation-move-to-column
-	       end-col compilation-error-screen-columns))
-	    (setq end-marker (list (point-marker))))
-	  (beginning-of-line (if end-line
-				 (- line end-line -1)
-			       (- loc marker-line -1)))
-	  (if col
-	      (compilation-move-to-column
-	       col compilation-error-screen-columns)
-	    (forward-to-indentation 0))
-	  (setq marker (list (point-marker))))))
+	(save-excursion
+	  (save-restriction
+	    (widen)
+	    (goto-char (marker-position marker))
+	    (when (or end-col end-line)
+	      (beginning-of-line (- (or end-line line) marker-line -1))
+	      (if (or (null end-col) (< end-col 0))
+		  (end-of-line)
+		(compilation-move-to-column
+		 end-col compilation-error-screen-columns))
+	      (setq end-marker (list (point-marker))))
+	    (beginning-of-line (if end-line
+				   (- line end-line -1)
+				 (- loc marker-line -1)))
+	    (if col
+		(compilation-move-to-column
+		 col compilation-error-screen-columns)
+	      (forward-to-indentation 0))
+	    (setq marker (list (point-marker)))))))
 
     (setq loc (compilation-assq line (cdr file-struct)))
     (if end-line
