@@ -4481,6 +4481,11 @@ and scroll-bar settings.
 *** The new function `window-tree' returns a frame's window tree.
 
 +++
+*** The functions `get-lru-window' and `get-largest-window' take an optional
+argument `dedicated'.  If non-nil, those functions do not ignore
+dedicated windows.
+
++++
 ** Customizable fringe bitmaps
 
 *** New function `define-fringe-bitmap' can now be used to create new
