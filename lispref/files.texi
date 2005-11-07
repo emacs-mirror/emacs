@@ -2706,11 +2706,13 @@ The operation for which certain handlers are presently inhibited.
 @end defvar
 
 @defun find-file-name-handler file operation
-This function returns the handler function for file name @var{file}, or
-@code{nil} if there is none.  The argument @var{operation} should be the
-operation to be performed on the file---the value you will pass to the
-handler as its first argument when you call it.  The operation is needed
-for comparison with @code{inhibit-file-name-operation}.
+This function returns the handler function for file name @var{file},
+or @code{nil} if there is none.  The argument @var{operation} should
+be the operation to be performed on the file---the value you will pass
+to the handler as its first argument when you call it.  If
+@var{operation} equals @code{inhibit-file-name-operation}, or if it is
+not found in the @code{operations} property of the handler, this
+function returns @code{nil}.
 @end defun
 
 @defun file-local-copy filename
