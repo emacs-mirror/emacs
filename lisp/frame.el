@@ -696,17 +696,18 @@ setup is for focus to follow the pointer."
    (function (lambda (frame)
 	       (eq frame (window-frame (minibuffer-window frame)))))))
 
-(defun frames-on-display-list (&optional display)
-  "Return a list of all frames on DISPLAY.
+(defun frames-on-display-list (&optional terminal)
+  "Return a list of all frames on TERMINAL.
 
-DISPLAY should be a display identifier (an integer), but it may
-also be a name of a display, a string of the form HOST:SERVER.SCREEN.
+TERMINAL should be a terminal identifier (an integer), a frame,
+or a name of an X display (a string of the form
+HOST:SERVER.SCREEN).
 
-If DISPLAY is omitted or nil, it defaults to the selected frame's display."
-  (let* ((display (or display (frame-display)))
+If TERMINAL is omitted or nil, it defaults to the selected
+frame's terminal device."
+  (let* ((terminal (terminal-id terminal))
 	 (func #'(lambda (frame)
-		   (or (eq (frame-display frame) display)
-		       (equal (frame-parameter frame 'display) display)))))
+		   (eq (frame-display frame) terminal))))
     (filtered-frame-list func)))
 
 (defun framep-on-display (&optional display)
@@ -1430,13 +1431,23 @@ Use Custom to set this variable to get the display updated."
 (defun terminal-id (terminal)
   "Return the numerical id of terminal TERMINAL.
 
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
+TERMINAL can be a terminal id (an integer), a frame, or
+nil (meaning the selected frame's terminal).  Alternatively,
+TERMINAL may be the name of an X display
+device (HOST.SERVER.SCREEN) or a tty device file."
   (cond
    ((integerp terminal)
-    terminal)
+    (if (display-live-p terminal)
+	terminal
+      (signal 'wrong-type-argument (list 'display-live-p terminal))))
    ((or (null terminal) (framep terminal))
     (frame-display terminal))
+   ((stringp terminal)
+    (let ((f (car (filtered-frame-list (lambda (frame)
+					 (or (equal (frame-parameter frame 'display) terminal)
+					     (equal (frame-parameter frame 'tty) terminal)))))))
+      (or f (error "Display %s does not exist" terminal))
+      (frame-display f)))
    (t
     (error "Invalid argument %s in `terminal-id'" terminal))))
 

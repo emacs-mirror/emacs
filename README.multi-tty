@@ -424,9 +424,6 @@ THINGS TO DO
    instead of delete-frame-functions),
    after-delete-terminal-functions, after-create-terminal-functions.
 
-** If the first key pressed on a new tty terminal is a function key,
-   it is not recognized correctly.  May be related to the bug below.
-
 ** Fix set-input-mode for multi-tty.  It's a truly horrible interface;
    what if we'd blow it up into several separate functions (with a
    compatibility definition)?
@@ -471,20 +468,6 @@ THINGS TO DO
     display-tty-type                    terminal-tty-type
     frame-display                       terminal-of-frame
     delete-display			delete-terminal
-
-** The semantics of terminal-local variables are confusing; it is not
-   clear what binding is in effect in any given time.  See if
-   current_kboard (or at least the terminal-local bindings exported to
-   Lisp) might be changed to be tied to the selected frame instead.
-   Currently, `function-key-map' and `key-translation-map' may be
-   accessed reliably only using the hackish
-   `(set-)terminal-local-value' functions.
-
-   Perhaps there should be a difference between `last-command' &co.
-   and these more conventional configuration variables.
-   (E.g. `symbol-value' would use current_kboard to access
-   `last-command', but SELECTED_FRAME()->display->kboard to get the
-   value of `function-key-map'.
 
 ** The single-keyboard mode of MULTI_KBOARD is extremely confusing
    sometimes; Emacs does not respond to stimuli from other keyboards.
@@ -1260,6 +1243,28 @@ DIARY OF CHANGES
 -- I think keyboard-translate-table should be made terminal-local.
 
    (Done in patch-431.)
+
+-- The semantics of terminal-local variables are confusing; it is not
+   clear what binding is in effect in any given time.  See if
+   current_kboard (or at least the terminal-local bindings exported to
+   Lisp) might be changed to be tied to the selected frame instead.
+   Currently, `function-key-map' and `key-translation-map' may be
+   accessed reliably only using the hackish
+   `(set-)terminal-local-value' functions.
+
+   Perhaps there should be a difference between `last-command' &co.
+   and these more conventional configuration variables.
+   (E.g. `symbol-value' would use current_kboard to access
+   `last-command', but SELECTED_FRAME()->display->kboard to get the
+   value of `function-key-map'.
+
+   (Fixed in patch-434.)
+
+-- If the first key pressed on a new tty terminal is a function key,
+   it is not recognized correctly.  May be related to the bug below.
+
+   (Seems to have been fixed as a side effect of patch-434.  "The bug
+   below" was the set-input-mode madness.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 
