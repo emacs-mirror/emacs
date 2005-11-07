@@ -1,3 +1,7 @@
+2005-11-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-export-as-html): Removed bogus (debug) form.
+
 2005-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/compile.el (compilation-internal-error-properties):
