@@ -1343,15 +1343,28 @@ usage: (condition-case VAR BODYFORM &rest HANDLERS)  */)
      (args)
      Lisp_Object args;
 {
-  Lisp_Object val;
-  struct catchtag c;
-  struct handler h;
   register Lisp_Object bodyform, handlers;
   volatile Lisp_Object var;
 
   var      = Fcar (args);
   bodyform = Fcar (Fcdr (args));
   handlers = Fcdr (Fcdr (args));
+
+  return internal_lisp_condition_case (var, bodyform, handlers);
+}
+
+/* Like Fcondition_case, but the args are separate
+   rather than passed in a list.  Used by Fbyte_code.  */
+
+Lisp_Object
+internal_lisp_condition_case (var, bodyform, handlers)
+     volatile Lisp_Object var;
+     Lisp_Object bodyform, handlers;
+{
+  Lisp_Object val;
+  struct catchtag c;
+  struct handler h;
+
   CHECK_SYMBOL (var);
 
   for (val = handlers; CONSP (val); val = XCDR (val))
@@ -2094,8 +2107,10 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
     return form;
 
   QUIT;
-  if (consing_since_gc > gc_cons_threshold
-      && consing_since_gc > gc_relative_threshold)
+  if ((consing_since_gc > gc_cons_threshold
+       && consing_since_gc > gc_relative_threshold)
+      ||
+      (!NILP (Vmemory_full) && consing_since_gc > memory_full_cons_threshold))
     {
       GCPRO1 (form);
       Fgarbage_collect ();
@@ -2795,8 +2810,10 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   register int i;
 
   QUIT;
-  if (consing_since_gc > gc_cons_threshold
-      && consing_since_gc > gc_relative_threshold)
+  if ((consing_since_gc > gc_cons_threshold
+       && consing_since_gc > gc_relative_threshold)
+      ||
+      (!NILP (Vmemory_full) && consing_since_gc > memory_full_cons_threshold))
     Fgarbage_collect ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)

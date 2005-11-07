@@ -777,6 +777,9 @@ lisp= \
 	${lispsource}subr.elc \
 	${lispsource}term/tty-colors.elc \
 	${lispsource}font-core.elc \
+	${lispsource}emacs-lisp/syntax.elc \
+	${lispsource}font-lock.elc \
+	${lispsource}jit-lock.elc \
 	${lispsource}textmodes/fill.elc \
 	${lispsource}textmodes/page.elc \
 	${lispsource}textmodes/paragraphs.elc \
@@ -871,6 +874,9 @@ shortlisp= \
 	../lisp/subr.elc \
 	../lisp/term/tty-colors.elc \
 	../lisp/font-core.elc \
+	../lisp/emacs-lisp/syntax.elc \
+	../lisp/font-lock.elc \
+	../lisp/jit-lock.elc \
 	../lisp/textmodes/fill.elc \
 	../lisp/textmodes/page.elc \
 	../lisp/textmodes/paragraphs.elc \

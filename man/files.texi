@@ -281,11 +281,13 @@ Archives}, for more about these features.
 
 @cindex wildcard characters in file names
 @vindex find-file-wildcards
-  If the file name you specify contains shell-style wildcard characters,
-Emacs visits all the files that match it.  Wildcards include @samp{?},
-@samp{*}, and @samp{[@dots{}]} sequences.  @xref{Quoted File Names}, for
-information on how to visit a file whose name actually contains wildcard
-characters.  You can disable the wildcard feature by customizing
+  If the file name you specify contains shell-style wildcard
+characters, Emacs visits all the files that match it.  Wildcards
+include @samp{?}, @samp{*}, and @samp{[@dots{}]} sequences.  To enter
+the wild card @samp{?} in a file name in the minibuffer, you need to
+type @kbd{C-q ?}.  @xref{Quoted File Names}, for information on how to
+visit a file whose name actually contains wildcard characters.  You
+can disable the wildcard feature by customizing
 @code{find-file-wildcards}.
 
   If you visit a file that the operating system won't let you modify,
@@ -3082,7 +3084,7 @@ support them, this command is not defined.
 @pindex gzip
 
   Emacs automatically uncompresses compressed files when you visit
-them, and automatically recompress them if you alter them and save
+them, and automatically recompresses them if you alter them and save
 them.  Emacs recognizes compressed files by their file names.  File
 names ending in @samp{.gz} indicate a file compressed with
 @code{gzip}.  Other endings indicate other compression programs.

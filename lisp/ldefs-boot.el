@@ -7658,8 +7658,8 @@ If the menu located by PATH has no submenu named NAME, add one.
 If the optional argument BEFORE is present, add it just before
 the submenu named BEFORE, otherwise add it at the end of the menu.
 
-Either call this from `menu-bar-update-hook' or use a menu filter,
-to implement dynamic menus.
+To implement dynamic menus, either call this from
+`menu-bar-update-hook' or use a menu filter.
 
 \(fn PATH NAME ITEMS &optional BEFORE)" nil nil)
 
@@ -12340,22 +12340,6 @@ With ARG, you are asked to choose which language.
 
 \(fn &optional ARG)" t nil)
 
-(autoload (quote locate-library) "help-fns" "\
-Show the precise file name of Emacs library LIBRARY.
-This command searches the directories in `load-path' like `\\[load-library]'
-to find the file that `\\[load-library] RET LIBRARY RET' would load.
-Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'
-to the specified name LIBRARY.
-
-If the optional third arg PATH is specified, that list of directories
-is used instead of `load-path'.
-
-When called from a program, the file name is normaly returned as a
-string.  When run interactively, the argument INTERACTIVE-CALL is t,
-and the file name is displayed in the echo area.
-
-\(fn LIBRARY &optional NOSUFFIX PATH INTERACTIVE-CALL)" t nil)
-
 (autoload (quote describe-function) "help-fns" "\
 Display the full documentation of FUNCTION (a symbol).
 
@@ -12367,7 +12351,8 @@ KIND should be `var' for a variable or `subr' for a subroutine.
 
 \(fn SUBR-OR-VAR KIND)" nil nil)
 
-(defface help-argument-name (quote ((((supports :slant italic)) :inherit italic))) "Face to highlight argument names in *Help* buffers." :group (quote help))
+(defface help-argument-name (quote ((((supports :slant italic)) :inherit italic))) "\
+Face to highlight argument names in *Help* buffers." :group (quote help))
 
 (autoload (quote describe-function-1) "help-fns" "\
 Not documented
@@ -24634,6 +24619,27 @@ Studlify-case the current buffer.
 
 ;;;***
 
+;;;### (autoloads (locate-library) "subr" "subr.el" (17250 21630))
+;;; Generated autoloads from subr.el
+
+(autoload (quote locate-library) "subr" "\
+Show the precise file name of Emacs library LIBRARY.
+This command searches the directories in `load-path' like `\\[load-library]'
+to find the file that `\\[load-library] RET LIBRARY RET' would load.
+Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'
+to the specified name LIBRARY.
+
+If the optional third arg PATH is specified, that list of directories
+is used instead of `load-path'.
+
+When called from a program, the file name is normaly returned as a
+string.  When run interactively, the argument INTERACTIVE-CALL is t,
+and the file name is displayed in the echo area.
+
+\(fn LIBRARY &optional NOSUFFIX PATH INTERACTIVE-CALL)" t nil)
+
+;;;***
+
 ;;;### (autoloads (sc-cite-original) "supercite" "mail/supercite.el"
 ;;;;;;  (17229 28053))
 ;;; Generated autoloads from mail/supercite.el
@@ -27869,6 +27875,12 @@ The buffer in question is current when this function is called.
 
 ;;;***
 
+;;;### (autoloads nil "utf-7" "international/utf-7.el" (17245 4870))
+;;; Generated autoloads from international/utf-7.el
+(autoload-coding-system 'utf-7 '(require 'utf-7))
+
+;;;***
+
 ;;;### (autoloads (uudecode-decode-region uudecode-decode-region-internal
 ;;;;;;  uudecode-decode-region-external) "uudecode" "gnus/uudecode.el"
 ;;;;;;  (17187 59901))
@@ -29934,7 +29946,7 @@ Zone-mode does two things:
 ;;;;;;  "progmodes/mantemp.el" "progmodes/xscheme.el" "register.el"
 ;;;;;;  "replace.el" "s-region.el" "saveplace.el" "sb-image.el" "scroll-bar.el"
 ;;;;;;  "select.el" "simple.el" "soundex.el" "startup.el" "subdirs.el"
-;;;;;;  "subr.el" "tempo.el" "term/AT386.el" "term/apollo.el" "term/bobcat.el"
+;;;;;;  "tempo.el" "term/AT386.el" "term/apollo.el" "term/bobcat.el"
 ;;;;;;  "term/cygwin.el" "term/internal.el" "term/iris-ansi.el" "term/linux.el"
 ;;;;;;  "term/lk201.el" "term/mac-win.el" "term/news.el" "term/pc-win.el"
 ;;;;;;  "term/rxvt.el" "term/sun-mouse.el" "term/sun.el" "term/sup-mouse.el"

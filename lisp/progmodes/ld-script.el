@@ -97,11 +97,17 @@
     "ADDR"
     "ALIGN"
     "BLOCK"
+    "DATA_SEGMENT_ALIGN"
+    "DATA_SEGMENT_END"
+    "DATA_SEGMENT_RELRO_END"
     "DEFINED"
+    "LENGTH"
     "LOADADDR"
     "MAX"
     "MIN"
     "NEXT"
+    "ORIGIN"
+    "SEGMENT_START"
     "SIZEOF"
     "SIZEOF_HEADERS"
     "sizeof_headers")
@@ -119,7 +125,7 @@
   "Default font-lock-keywords for `ld-script-mode'.")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.lds" . ld-script-mode))
+(add-to-list 'auto-mode-alist '("\\.ld[s]?\\(\\.in\\)?$" . ld-script-mode))
 
 ;;;###autoload
 (define-derived-mode ld-script-mode nil "LD-Script"

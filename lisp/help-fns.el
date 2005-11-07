@@ -100,34 +100,6 @@ With ARG, you are asked to choose which language."
       (setq buffer-undo-list nil)
       (set-buffer-modified-p nil))))
 
-;;;###autoload
-(defun locate-library (library &optional nosuffix path interactive-call)
-  "Show the precise file name of Emacs library LIBRARY.
-This command searches the directories in `load-path' like `\\[load-library]'
-to find the file that `\\[load-library] RET LIBRARY RET' would load.
-Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'
-to the specified name LIBRARY.
-
-If the optional third arg PATH is specified, that list of directories
-is used instead of `load-path'.
-
-When called from a program, the file name is normaly returned as a
-string.  When run interactively, the argument INTERACTIVE-CALL is t,
-and the file name is displayed in the echo area."
-  (interactive (list (completing-read "Locate library: "
-				      'locate-file-completion
-				      (cons load-path load-suffixes))
-		     nil nil
-		     t))
-  (let ((file (locate-file library
-			   (or path load-path)
-			   (append (unless nosuffix load-suffixes) '("")))))
-    (if interactive-call
-	(if file
-	    (message "Library is file %s" (abbreviate-file-name file))
-	  (message "No library %s in search path" library)))
-    file))
-
 
 ;; Functions
 
@@ -311,6 +283,7 @@ face (according to `face-differs-from-default-p')."
   ;; Return value is like the one from help-split-fundoc, but highlighted
   (cons usage doc))
 
+;;;###autoload
 (defun describe-simplify-lib-file-name (file)
   "Simplify a library name FILE to a relative name, and make it a source file."
   (if file
@@ -319,7 +292,7 @@ face (according to `face-differs-from-default-p')."
 	;; Now convert that back to a file name and see if we get
 	;; the original one.  If so, they are equivalent.
 	(if (equal file (locate-file libname load-path '("")))
-	    (if (string-match "[.]elc?\\'" libname)
+	    (if (string-match "[.]elc\\'" libname)
 		(substring libname 0 -1)
 	      libname)
 	  file))))

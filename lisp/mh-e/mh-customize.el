@@ -781,12 +781,12 @@ be set to \"MH\" if MH-style directives are preferred."
   :group 'mh-letter)
 
 (defcustom mh-compose-space-does-completion-flag nil
-  "*On means \\<mh-letter-mode-map>\\[mh-letter-complete-or-space] does completion in message header."
+  "*Non-nil means \\<mh-letter-mode-map>\\[mh-letter-complete-or-space] does completion in message header."
   :type 'boolean
   :group 'mh-letter)
 
 (defcustom mh-delete-yanked-msg-window-flag nil
-  "*On means delete any window displaying the message.
+  "*Non-nil means delete any window displaying the message.
 This deletes the window containing the original message after yanking it with
 \\<mh-letter-mode-map>\\[mh-yank-cur-msg] to make more room on your screen for
 your reply."
@@ -869,7 +869,7 @@ option."
   :group 'mh-letter)
 
 (defcustom mh-signature-separator-flag t
-  "*On means a signature separator should be inserted.
+  "*Non-nil means a signature separator should be inserted.
 It is not recommended that you change this option since various mail user
 agents, including MH-E, use the separator to present the signature
 differently, and to suppress the signature when replying or yanking a letter
@@ -885,14 +885,16 @@ If the file starts with either of the strings \"X-Face:\", \"Face:\" or
 Otherwise it is assumed that the file contains the value of the \"X-Face:\"
 header field.
 
-The \"X-Face:\" header field, which is a low-resolution, black and white
-image, can be generated using the \"compface\"
-\(ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z) command. The
-\"Online X-Face Converter\" (http://www.dairiki.org/xface/) is a useful
-resource for quick conversion of images into \"X-Face:\" header fields.
+The \"X-Face:\" header field, which is a low-resolution, black
+and white image, can be generated using the \"compface\" command
+\(see URL `ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z').
+The \"Online X-Face Converter\" is a useful resource for quick
+conversion of images into \"X-Face:\" header fields (see URL
+`http://www.dairiki.org/xface/').
 
-Use the \"make-face\" (http://quimby.gnus.org/circus/face/make-face) script to
-convert a JPEG image to the higher resolution, color, \"Face:\" header field.
+Use the \"make-face\" script to convert a JPEG image to the
+higher resolution, color, \"Face:\" header field (see URL
+`http://quimby.gnus.org/circus/face/make-face').
 
 The URL of any image can be used for the \"X-Image-URL:\" field and no
 processing of the image is required.
@@ -946,7 +948,7 @@ is added to the yanked region."
 ;;; Ranges (:group 'mh-ranges)
 
 (defcustom mh-interpret-number-as-range-flag t
-  "On means interpret a number as a range.
+  "*Non-nil means interpret a number as a range.
 Since one of the most frequent ranges used is \"last:N\", MH-E will interpret
 input such as \"200\" as \"last:200\" if this option is on (which is the
 default). If you need to scan just the message 200, then use the range
@@ -958,18 +960,44 @@ default). If you need to scan just the message 200, then use the range
 
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
+;;; Forward definition to avoid compiler and runtime error.
+(defvar mh-scan-format-file t)
+
+(defun mh-adaptive-cmd-note-flag-check (symbol value)
+  "Check if desired setting is legal.
+Throw an error if user tries to turn on `mh-adaptive-cmd-note-flag' when
+`mh-scan-format-file' isn't t. Otherwise, set SYMBOL to VALUE."
+  (if (and value
+           (not (eq mh-scan-format-file t)))
+      (error "%s %s" "Can't turn on unless mh-scan-format-file"
+             "is set to \"Use MH-E scan Format\"")
+    (set-default symbol value)))
+
+(defun mh-scan-format-file-check (symbol value)
+  "Check if desired setting is legal.
+Throw an error if user tries to set `mh-scan-format-file' to anything but t
+when `mh-adaptive-cmd-note-flag' is on. Otherwise, set SYMBOL to VALUE."
+  (if (and (not (eq value t))
+           (eq mh-adaptive-cmd-note-flag t))
+      (error "%s %s" "You must turn off mh-adaptive-cmd-note-flag"
+             "unless you use \"Use MH-E scan Format\"")
+    (set-default symbol value)))
+
 (defcustom mh-adaptive-cmd-note-flag t
-  "*On means that the message number width is determined dynamically.
+  "*Non-nil means that the message number width is determined dynamically.
 If you've created your own format to handle long message numbers, you'll be
 pleased to know you no longer need it since MH-E adapts its internal format
 based upon the largest message number if this option is on (the default).
+This option may only be turned on when `mh-scan-format-file' is set to \"Use
+MH-E scan Format\".
 
 If you prefer fixed-width message numbers, turn off this option and call
-`mh-set-cmd-note' with the width specified by your format file (see
-`mh-scan-format-file'). For example, the default width is 4, so you would use
-\"(mh-set-cmd-note 4)\"."
+`mh-set-cmd-note' with the width specified by your format file
+\(see `mh-scan-format-file'). For example, the default width is 4, so you would
+use \"(mh-set-cmd-note 4)\"."
   :type 'boolean
-  :group 'mh-scan-line-formats)
+  :group 'mh-scan-line-formats
+  :set 'mh-adaptive-cmd-note-flag-check)
 
 (defcustom mh-scan-format-file t
   "Specifies the format file to pass to the scan program.
@@ -977,23 +1005,24 @@ If you prefer fixed-width message numbers, turn off this option and call
 The default setting for this option is \"Use MH-E scan Format\". This means
 that the format string will be taken from the either `mh-scan-format-mh' or
 `mh-scan-format-nmh' depending on whether MH or nmh (or GNU mailutils) is in
-use. You can also set this option to \"Use Default scan Format\" to get the
+use. This setting also enables you to turn on the `mh-adaptive-cmd-note-flag'
+option.
+
+You can also set this option to \"Use Default scan Format\" to get the
 same output as you would get if you ran \"scan\" from the shell. If you have a
 format file that you want MH-E to use but not MH, you can set this option to
 \"Specify a scan Format File\" and enter the name of your format file.
 
 If you change the format of the scan lines you'll need to tell MH-E how to
 parse the new format. As you will see, quite a lot of variables are involved
-to do that. Use \"M-x apropos RET mh-scan.*regexp\" to obtain a list of these
-variables. You may also have to call `mh-set-cmd-note' to modify `mh-cmd-note'
-with the column for your notations if you turn off
-`mh-adaptive-cmd-note-flag'. However, you will need to set the `mh-cmd-note'
-variable manually with `setq' if `mh-scan-format-file' is set to anything
-other than \"Use MH-E scan Format\"."
+to do that. Use \"\\[apropos] RET mh-scan.*regexp\" to obtain a list of these
+variables. You will also have to call `mh-set-cmd-note' if your notations are
+not in column 4 (columns in Emacs start with 0)."
   :type '(choice (const :tag "Use MH-E scan Format" t)
                  (const :tag "Use Default scan Format" nil)
                  (file  :tag "Specify a scan Format File"))
-  :group 'mh-scan-line-formats)
+  :group 'mh-scan-line-formats
+  :set 'mh-scan-format-file-check)
 
 (defcustom mh-scan-prog "scan"
   "*Program used to scan messages.
@@ -1010,13 +1039,26 @@ assumed to be in the `mh-progs' directory. You may link another program to
 ;;; Sending Mail (:group 'mh-sending-mail)
 
 (defcustom mh-compose-forward-as-mime-flag t
-  "Non-nil means that messages are forwarded as a MIME part."
+  "*Non-nil means that messages are forwarded as attachments.
+
+By default, this option is on which means that the forwarded messages are
+included as attachments. If you would prefer to forward your messages verbatim
+\(as text, inline), then turn off this option. Forwarding messages verbatim
+works well for short, textual messages, but your recipient won't be able to
+view any non-textual attachments that were in the forwarded message. Be aware
+that if you have \"forw: -mime\" in your MH profile, then forwarded messages
+will always be included as attachments regardless of the settings of this
+option."
   :type 'boolean
   :group 'mh-sending-mail)
 
 (defcustom mh-compose-letter-function nil
-  "Invoked when setting up a letter draft.
-It is passed three arguments: TO recipients, SUBJECT, and CC recipients."
+  "Invoked when starting a new draft.
+
+However, it is the last function called before you edit your message. The
+consequence of this is that you can write a function to write and send the
+message for you. This function is passed three arguments: the contents of the
+TO, SUBJECT, and CC header fields."
   :type '(choice (const nil) function)
   :group 'mh-sending-mail)
 
@@ -1026,36 +1068,56 @@ It is passed three arguments: TO recipients, SUBJECT, and CC recipients."
   :group 'mh-sending-mail)
 
 (defcustom mh-forward-subject-format "%s: %s"
-  "*Format to generate the Subject: line contents for a forwarded message.
-The two string arguments to the format are the sender of the original
-message and the original subject line."
+  "*Format string for forwarded message subject.
+
+This option is a string which includes two escapes (\"%s\"). The first \"%s\"
+is replaced with the sender of the original message, and the second one is
+replaced with the original \"Subject:\"."
   :type 'string
   :group 'mh-sending-mail)
 
 (defcustom mh-insert-x-mailer-flag t
-  "*Non-nil means append an X-Mailer field to the header."
+  "*Non-nil means append an \"X-Mailer:\" header field to the header.
+
+This header field includes the version of MH-E and Emacs that you are using.
+If you don't want to participate in our marketing, you can turn this option
+off."
+  :type 'boolean
+  :group 'mh-sending-mail)
+
+(defcustom mh-redist-full-contents-flag nil
+  "*Non-nil means the \"dist\" command needs entire letter for redistribution.
+
+This option must be turned on if \"dist\" requires the whole letter for
+redistribution, which is the case if \"send\" is compiled with the BERK option
+\(which many people abhor). If you find that MH will not allow you to
+redistribute a message that has been redistributed before, turn off this
+option."
   :type 'boolean
   :group 'mh-sending-mail)
 
 (defcustom mh-reply-default-reply-to nil
   "*Sets the person or persons to whom a reply will be sent.
-If nil, prompt for recipient.  If non-nil, then \\<mh-folder-mode-map>`\\[mh-reply]' will use this
-value and it should be one of \"from\", \"to\", \"cc\", or \"all\".
-The values \"cc\" and \"all\" do the same thing."
+
+This option is set to \"Prompt\" by default so that you are prompted for the
+recipient of a reply. If you find that most of the time that you specify
+\"cc\" when you reply to a message, set this option to \"cc\". Other choices
+include \"from\", \"to\", or \"all\". You can always edit the recipients in
+the draft."
   :type '(choice (const :tag "Prompt" nil)
-                 (const "from") (const "to")
-                 (const "cc") (const "all"))
+                 (const "from")
+                 (const "to")
+                 (const "cc")
+                 (const "all"))
   :group 'mh-sending-mail)
 
 (defcustom mh-reply-show-message-flag t
-  "*Non-nil means the show buffer is displayed using \\<mh-letter-mode-map>\\[mh-reply].
+  "*Non-nil means the MH-Show buffer is displayed when replying.
 
-The setting of this variable determines whether the MH `show-buffer' is
-displayed with the current message when using `mh-reply' without a prefix
-argument.  Set it to nil if you already include the message automatically
-in your draft using
- repl: -filter repl.filter
-in your ~/.mh_profile file."
+If you include the message automatically, you can hide the MH-Show
+buffer by turning off this option.
+
+See also `mh-reply'."
   :type 'boolean
   :group 'mh-sending-mail)
 
@@ -1069,29 +1131,34 @@ in your ~/.mh_profile file."
 
 (defcustom mh-refile-preserves-sequences-flag t
   "*Non-nil means that sequences are preserved when messages are refiled.
-If this variable is non-nil and a message belonging to a sequence other than
-cur or Previous-Sequence (see mh-profile 5) is refiled then it is put in the
-same sequence in the destination folder."
+
+If a message is in any sequence (except \"Previous-Sequence:\" and \"cur\")
+when it is refiled, then it will still be in those sequences in the
+destination folder. If this behavior is not desired, then turn off this
+option."
   :type 'boolean
   :group 'mh-sequences)
 
 (defcustom mh-tick-seq 'tick
   "The name of the MH sequence for ticked messages.
-You would change this option if you already use the `tick' sequence for your
-own use. You can also disable all of the ticking functions by choosing the
-`Disable Ticking' item but there isn't much advantage to that."
+
+You can customize this option if you already use the \"tick\" sequence for
+your own use. You can also disable all of the ticking functions by choosing
+the \"Disable Ticking\" item but there isn't much advantage to that."
   :type '(choice (const :tag "Disable Ticking" nil)
                  symbol)
   :group 'mh-sequences)
 
 (defcustom mh-update-sequences-after-mh-show-flag t
   "*Non-nil means flush MH sequences to disk after message is shown.
+
 Three sequences are maintained internally by MH-E and pushed out to MH when a
 message is shown. They include the sequence specified by your
-`Unseen-Sequence:' profile entry, `cur', and the sequence listed by
-the `mh-tick-seq' option which is `tick' by default.
-If you do not like this behavior, set this option to nil. You can then update
-the state manually with the \\<mh-folder-mode-map>`\\[mh-execute-commands]', `\\[mh-quit]', or `\\[mh-update-sequences]' commands."
+\"Unseen-Sequence:\" profile entry, \"cur\", and the sequence listed by the
+option `mh-tick-seq' which is \"tick\" by default. If you do not like this
+behavior, turn off this option. You can then update the state manually with
+the `\\[mh-execute-commands]', `\\[mh-quit]', or `\\[mh-update-sequences]'
+commands."
   :type 'boolean
   :group 'mh-sequences)
 
@@ -1515,20 +1582,19 @@ This feature will be turned on by default if your system supports it.
 
 The first header field used, if present, is the Gnus-specific `Face:' field.
 The `Face:' field appeared in GNU Emacs 21 and XEmacs. For more information,
-see http://quimby.gnus.org/circus/face/. Next is the traditional `X-Face:'
-header field. The display of this field requires the `uncompface' program
-which can be obtained from
-ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z. Recent versions of
-XEmacs have internal support for `X-Face:' images. If your version of XEmacs
-does not, then you'll need both `uncompface' and the x-face package which is
-available at ftp://ftp.jpl.org/pub/elisp/.
+see URL `http://quimby.gnus.org/circus/face/'. Next is the traditional
+`X-Face:' header field. The display of this field requires the `uncompface'
+program (see URL `ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z').
+Recent versions of XEmacs have internal support for `X-Face:' images. If your
+version of XEmacs does not, then you'll need both `uncompface' and the x-face
+package (see URL `ftp://ftp.jpl.org/pub/elisp/').
 
 Finally, MH-E will display images referenced by the `X-Image-URL:' header
 field if neither the `Face:' nor the `X-Face:' fields are present. The display
-of the images requires `wget' (available from
-http://www.gnu.org/software/wget/wget.html), `fetch', or `curl' to fetch the
-image and the `convert' program from the ImageMagick suite, available from
-http://www.imagemagick.org/. Of the three header fields this is the most
+of the images requires `wget' (see URL
+`http://www.gnu.org/software/wget/wget.html'), `fetch', or `curl' to fetch the
+image and the `convert' program from the ImageMagick suite (see URL
+`http://www.imagemagick.org/'). Of the three header fields this is the most
 efficient in terms of network usage since the image doesn't need to be
 transmitted with every single mail.
 
@@ -2034,9 +2100,9 @@ can find the citation between point and mark and it should leave point and
 mark around the modified citation text for the next hook function. The
 standard prefix `mh-ins-buf-prefix' is not added if this hook is set.
 
-For example, if you use the hook function trivial-cite
-\(http://shasta.cs.uiuc.edu/~lrclause/tc.html) (which is NOT part of Emacs),
-set `mh-yank-behavior' to \"Body and Header\"."
+For example, if you use the hook function trivial-cite (which is NOT part of
+Emacs), set `mh-yank-behavior' to \"Body and Header\" (see URL
+`http://shasta.cs.uiuc.edu/~lrclause/tc.html')."
   :type 'hook
   :options '(trivial-cite)
   :group 'mh-hooks
@@ -2134,7 +2200,7 @@ insert the signature with `mh-signature-file-name'."
   :group 'mh-letter)
 
 (defcustom mh-letter-mode-hook nil
-  "Invoked in `mh-letter-mode' on a new letter."
+  "Invoked by `mh-letter-mode' on a new letter."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-sending-mail)
@@ -2187,39 +2253,55 @@ will be removed from the unseen sequence."
 (defvar mh-folder-body-face 'mh-folder-body
   "Face used to highlight body text in MH-Folder buffers.")
 (defface mh-folder-body
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class grayscale) (background light)) (:foreground "DimGray" :italic t))
-    (((class grayscale) (background dark)) (:foreground "LightGray" :italic t))
-    (((class color) (background light)) (:foreground "RosyBrown"))
-    (((class color) (background dark)) (:foreground "LightSalmon"))
-    (t (:italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "RosyBrown"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightSalmon"))
+     (((class color))
+      (:foreground "green"))
+     (((class grayscale) (background light))
+      (:foreground "DimGray" :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "LightGray" :italic t))
+     (t
+      (:italic t))))
   "Face used to highlight body text in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-cur-msg-face 'mh-folder-cur-msg
   "Face used for the current message line in MH-Folder buffers.")
 (defface mh-folder-cur-msg
-  '((((type tty pc) (class color))
-     (:background "LightGreen"))
-    (((class color) (background light))
-     (:background "LightGreen")         ;Use this for solid background colour
-     ;;  (:underline t)                 ;Use this for underlining
-     )
-    (((class color) (background dark))
-     (:background "DarkOliveGreen4"))
-    (t (:underline t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:background "LightGreen")        ;Use this for solid background colour
+      ;;  (:underline t)                 ;Use this for underlining
+      )
+     (((class color) (min-colors 88) (background dark))
+      (:background "DarkOliveGreen4"))
+     (((class color))
+      (:background "LightGreen"))
+     (t
+      (:underline t))))
   "Face used for the current message line in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-cur-msg-number-face 'mh-folder-cur-msg-number
   "Face used to highlight the current message in MH-Folder buffers.")
 (defface mh-folder-cur-msg-number
-  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
-    (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
-    (((class color) (background light)) (:foreground "Purple"))
-    (((class color) (background dark)) (:foreground "Cyan"))
-    (t (:bold t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "Purple"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "Cyan"))
+     (((class color))
+      (:foreground "cyan" :weight bold))
+     (((class grayscale) (background light))
+      (:foreground "LightGray" :bold t))
+     (((class grayscale) (background dark))
+      (:foreground "DimGray" :bold t))
+     (t
+      (:bold t))))
   "Face used to highlight the current message in MH-Folder buffers."
   :group 'mh-folder-faces)
 
@@ -2266,14 +2348,19 @@ will be removed from the unseen sequence."
 (defvar mh-folder-refiled-face 'mh-folder-refiled
   "Face used to highlight refiled messages in MH-Folder buffers.")
 (defface mh-folder-refiled
-  '((((type tty) (class color)) (:foreground "yellow" :weight light))
-    (((class grayscale) (background light))
-     (:foreground "Gray90" :bold t :italic t))
-    (((class grayscale) (background dark))
-     (:foreground "DimGray" :bold t :italic t))
-    (((class color) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (background dark)) (:foreground "LightGoldenrod"))
-    (t (:bold t :italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "DarkGoldenrod"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightGoldenrod"))
+     (((class color))
+      (:foreground "yellow" :weight light))
+     (((class grayscale) (background light))
+      (:foreground "Gray90" :bold t :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "DimGray" :bold t :italic t))
+     (t
+      (:bold t :italic t))))
   "Face used to highlight refiled messages in MH-Folder buffers."
   :group 'mh-folder-faces)
 
@@ -2292,9 +2379,12 @@ will be removed from the unseen sequence."
   :group 'mh-folder-faces)
 
 (defface mh-folder-tick
-  '((((class color) (background dark)) (:background "#dddf7e"))
-    (((class color) (background light)) (:background "#dddf7e"))
-    (t (:underline t)))
+  '((((class color) (background dark))
+     (:background "#dddf7e"))
+    (((class color) (background light))
+     (:background "#dddf7e"))
+    (t
+     (:underline t)))
   "Face used to show ticked messages."
   :group 'mh-folder-faces)
 
@@ -2309,12 +2399,19 @@ will be removed from the unseen sequence."
 (defvar mh-folder-to-face 'mh-folder-to
   "Face used to highlight the To: string in MH-Folder buffers.")
 (defface mh-folder-to
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class grayscale) (background light)) (:foreground "DimGray" :italic t))
-    (((class grayscale) (background dark)) (:foreground "LightGray" :italic t))
-    (((class color) (background light)) (:foreground "RosyBrown"))
-    (((class color) (background dark)) (:foreground "LightSalmon"))
-    (t (:italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "RosyBrown"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightSalmon"))
+     (((class color))
+      (:foreground "green"))
+     (((class grayscale) (background light))
+      (:foreground "DimGray" :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "LightGray" :italic t))
+     (t
+      (:italic t))))
   "Face used to highlight the To: string in MH-Folder buffers."
   :group 'mh-folder-faces)
 
@@ -2343,7 +2440,8 @@ will be removed from the unseen sequence."
      (:background "gray90"))
     (((class color) (background dark))
      (:background "gray10"))
-    (t (:bold t)))
+    (t
+     (:bold t)))
   "Face used to display header fields in draft buffers."
   :group 'mh-letter-faces)
 
@@ -2354,45 +2452,65 @@ will be removed from the unseen sequence."
 (defvar mh-show-cc-face 'mh-show-cc
   "Face used to highlight cc: header fields.")
 (defface mh-show-cc
-  '((((type tty) (class color)) (:foreground "yellow" :weight light))
-    (((class grayscale) (background light))
-     (:foreground "Gray90" :bold t :italic t))
-    (((class grayscale) (background dark))
-     (:foreground "DimGray" :bold t :italic t))
-    (((class color) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (background dark)) (:foreground "LightGoldenrod"))
-    (t (:bold t :italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "DarkGoldenrod"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightGoldenrod"))
+     (((class color))
+      (:foreground "yellow" :weight light))
+     (((class grayscale) (background light))
+      (:foreground "Gray90" :bold t :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "DimGray" :bold t :italic t))
+     (t
+      (:bold t :italic t))))
   "Face used to highlight cc: header fields."
   :group 'mh-show-faces)
 
 (defvar mh-show-date-face 'mh-show-date
   "Face used to highlight the Date: header field.")
 (defface mh-show-date
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class grayscale) (background light)) (:foreground "Gray90" :bold t))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
-    (((class color) (background light)) (:foreground "ForestGreen"))
-    (((class color) (background dark)) (:foreground "PaleGreen"))
-    (t (:bold t :underline t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "ForestGreen"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "PaleGreen"))
+     (((class color))
+      (:foreground "green"))
+     (((class grayscale) (background light))
+      (:foreground "Gray90" :bold t))
+     (((class grayscale) (background dark))
+      (:foreground "DimGray" :bold t))
+     (t
+      (:bold t :underline t))))
   "Face used to highlight the Date: header field."
   :group 'mh-show-faces)
 
 (defvar mh-show-header-face 'mh-show-header
   "Face used to deemphasize unspecified header fields.")
 (defface mh-show-header
-  '((((type tty) (class color)) (:foreground "green"))
-    (((class grayscale) (background light)) (:foreground "DimGray" :italic t))
-    (((class grayscale) (background dark)) (:foreground "LightGray" :italic t))
-    (((class color) (background light)) (:foreground "RosyBrown"))
-    (((class color) (background dark)) (:foreground "LightSalmon"))
-    (t (:italic t)))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "RosyBrown"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "LightSalmon"))
+     (((class color))
+      (:foreground "green"))
+     (((class grayscale) (background light))
+      (:foreground "DimGray" :italic t))
+     (((class grayscale) (background dark))
+      (:foreground "LightGray" :italic t))
+     (t
+      (:italic t))))
   "Face used to deemphasize unspecified header fields."
   :group 'mh-show-faces)
 
 (defvar mh-show-pgg-good-face 'mh-show-pgg-good
   "Face used to highlight a good PGG signature.")
 (defface mh-show-pgg-good
-  '((t (:bold t :foreground "LimeGreen")))
+  '((t
+     (:bold t :foreground "LimeGreen")))
   "Face used to highlight a good PGG signature."
   :group 'mh-show-faces)
 
@@ -2400,7 +2518,8 @@ will be removed from the unseen sequence."
   "Face used to highlight a PGG signature whose status is unknown.
 This face is also used for a signature when the signer is untrusted.")
 (defface mh-show-pgg-unknown
-  '((t (:bold t :foreground "DarkGoldenrod2")))
+  '((t
+     (:bold t :foreground "DarkGoldenrod2")))
   "Face used to highlight a PGG signature whose status is unknown.
 This face is also used for a signature when the signer is untrusted."
   :group 'mh-show-faces)
@@ -2408,12 +2527,14 @@ This face is also used for a signature when the signer is untrusted."
 (defvar mh-show-pgg-bad-face 'mh-show-pgg-bad
   "Face used to highlight a bad PGG signature.")
 (defface mh-show-pgg-bad
-  '((t (:bold t :foreground "DeepPink1")))
+  '((t
+     (:bold t :foreground "DeepPink1")))
   "Face used to highlight a bad PGG signature."
   :group 'mh-show-faces)
 
 (defface mh-show-signature
-  '((t (:italic t)))
+  '((t
+     (:italic t)))
   "Face used to highlight the message signature."
   :group 'mh-show-faces)
 
@@ -2422,12 +2543,14 @@ This face is also used for a signature when the signer is untrusted."
 (if (boundp 'facemenu-unlisted-faces)
     (add-to-list 'facemenu-unlisted-faces "^mh-show"))
 (defface mh-show-to
-  '((((class grayscale) (background light))
+  '((((class color) (background light))
+     (:foreground "SaddleBrown"))
+    (((class color) (background dark))
+     (:foreground "burlywood"))
+    (((class grayscale) (background light))
      (:foreground "DimGray" :underline t))
     (((class grayscale) (background dark))
      (:foreground "LightGray" :underline t))
-    (((class color) (background light)) (:foreground "SaddleBrown"))
-    (((class color) (background dark))  (:foreground "burlywood"))
     (t (:underline t)))
   "Face used to highlight the To: header field."
   :group 'mh-show-faces)
@@ -2445,7 +2568,8 @@ This face is also used for a signature when the signer is untrusted."
   :group 'mh-show-faces)
 
 (defface mh-show-xface
-  '((t (:foreground "black" :background "white")))
+  '((t
+     (:foreground "black" :background "white")))
   "Face used to display the X-Face image.
 The background and foreground is used in the image."
   :group 'mh-show-faces)
@@ -2471,17 +2595,20 @@ The background and foreground is used in the image."
      (:foreground "red1" :underline t))
     (((class color) (background dark))
      (:foreground "red1" :underline t))
-    (t (:underline t)))
+    (t
+     (:underline t)))
   "Face used for the current folder."
   :group 'mh-speed-faces)
 
 (defface mh-speedbar-folder-with-unseen-messages
-  '((t (:inherit mh-speedbar-folder :bold t)))
+  '((t
+     (:inherit mh-speedbar-folder :bold t)))
   "Face used for folders in the speedbar buffer which have unread messages."
   :group 'mh-speed-faces)
 
 (defface mh-speedbar-selected-folder-with-unseen-messages
-  '((t (:inherit mh-speedbar-selected-folder :bold t)))
+  '((t
+     (:inherit mh-speedbar-selected-folder :bold t)))
   "Face used for the current folder when it has unread messages."
   :group 'mh-speed-faces)
 

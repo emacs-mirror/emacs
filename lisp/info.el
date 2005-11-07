@@ -310,6 +310,9 @@ Marker points nowhere if file has no tag table.")
 (defvar Info-current-file-completions nil
   "Cached completion list for current Info file.")
 
+(defvar Info-file-supports-index-cookies nil
+  "Non-nil if current Info file supports index cookies.")
+
 (defvar Info-index-alternatives nil
   "List of possible matches for last `Info-index' command.")
 
@@ -842,6 +845,19 @@ a case-insensitive match is tried."
                 (info-insert-file-contents filename nil)
                 (setq default-directory (file-name-directory filename))))
               (set-buffer-modified-p nil)
+
+	      ;; Check makeinfo version for index cookie support
+	      (let ((found nil))
+		(goto-char (point-min))
+		(condition-case ()
+		    (if (and (re-search-forward
+			      "makeinfo version \\([0-9]+.[0-9]+\\)"
+			      (line-beginning-position 3) t)
+			     (not (version< (match-string 1) "4.7")))
+			(setq found t))
+		  (error nil))
+		(set (make-local-variable 'Info-file-supports-index-cookies) found))
+
               ;; See whether file has a tag table.  Record the location if yes.
               (goto-char (point-max))
               (forward-line -8)
@@ -1945,7 +1961,9 @@ If SAME-FILE is non-nil, do not move to a different Info file."
               (if (and (string-equal file curr-file)
                        (string-equal node curr-node))
                   (setq p (point)))
-              (insert "* " node ": (" (file-name-nondirectory file)
+              (insert "* " node ": ("
+		      (propertize (or (file-name-directory file) "") 'invisible t)
+		      (file-name-nondirectory file)
                       ")" node ".\n"))
             (setq hl (cdr hl))))))
     (Info-find-node "history" "Top")
@@ -2649,62 +2667,63 @@ following nodes whose names also contain the word \"Index\"."
       (and (member file '("dir" "history" "toc" "apropos"))
            (setq Info-index-nodes (cons (cons file nil) Info-index-nodes)))
       (not (stringp file))
-      ;; Find nodes with index cookie
-      (let* ((default-directory (or (and (stringp file)
-                                         (file-name-directory
-                                          (setq file (Info-find-file file))))
-                                    default-directory))
-             Info-history Info-history-list Info-fontify-maximum-menu-size
-             (main-file file) subfiles nodes node)
-        (condition-case nil
-            (with-temp-buffer
-              (while (or main-file subfiles)
-                (erase-buffer)
-                (info-insert-file-contents (or main-file (car subfiles)))
-                (goto-char (point-min))
-                (while (search-forward "\0\b[index\0\b]" nil 'move)
-                  (save-excursion
-                    (re-search-backward "^\^_")
-                    (search-forward "Node: ")
-                    (setq nodes (cons (Info-following-node-name) nodes))))
-                (if main-file
-                    (save-excursion
-                      (goto-char (point-min))
-                      (if (search-forward "\n\^_\nIndirect:" nil t)
-                          (let ((bound (save-excursion (search-forward "\n\^_" nil t))))
-                            (while (re-search-forward "^\\(.*\\): [0-9]+$" bound t)
-                              (setq subfiles (cons (match-string-no-properties 1)
-                                                   subfiles)))))
-                      (setq subfiles (nreverse subfiles)
-                            main-file nil))
-                  (setq subfiles (cdr subfiles)))))
-          (error nil))
-        (if nodes
-            (setq nodes (nreverse nodes)
-                  Info-index-nodes (cons (cons file nodes) Info-index-nodes)))
-        nodes)
-      ;; Find nodes with the word "Index" in the node name
-      (let ((case-fold-search t)
-            Info-history Info-history-list Info-fontify-maximum-menu-size
-            nodes node)
-        (condition-case nil
-            (with-temp-buffer
-              (Info-mode)
-              (Info-find-node file "Top")
-              (when (and (search-forward "\n* menu:" nil t)
-                         (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t))
-                (goto-char (match-beginning 1))
-                (setq nodes (list (Info-extract-menu-node-name)))
-                (Info-goto-node (car nodes))
-                (while (and (setq node (Info-extract-pointer "next" t))
-                            (string-match "\\<Index\\>" node))
-                  (setq nodes (cons node nodes))
-                  (Info-goto-node node))))
-          (error nil))
-        (if nodes
-            (setq nodes (nreverse nodes)
-                  Info-index-nodes (cons (cons file nodes) Info-index-nodes)))
-        nodes)
+      (if Info-file-supports-index-cookies
+	  ;; Find nodes with index cookie
+	  (let* ((default-directory (or (and (stringp file)
+					     (file-name-directory
+					      (setq file (Info-find-file file))))
+					default-directory))
+		 Info-history Info-history-list Info-fontify-maximum-menu-size
+		 (main-file file) subfiles nodes node)
+	    (condition-case nil
+		(with-temp-buffer
+		  (while (or main-file subfiles)
+		    (erase-buffer)
+		    (info-insert-file-contents (or main-file (car subfiles)))
+		    (goto-char (point-min))
+		    (while (search-forward "\0\b[index\0\b]" nil 'move)
+		      (save-excursion
+			(re-search-backward "^\^_")
+			(search-forward "Node: ")
+			(setq nodes (cons (Info-following-node-name) nodes))))
+		    (if main-file
+			(save-excursion
+			  (goto-char (point-min))
+			  (if (search-forward "\n\^_\nIndirect:" nil t)
+			      (let ((bound (save-excursion (search-forward "\n\^_" nil t))))
+				(while (re-search-forward "^\\(.*\\): [0-9]+$" bound t)
+				  (setq subfiles (cons (match-string-no-properties 1)
+						       subfiles)))))
+			  (setq subfiles (nreverse subfiles)
+				main-file nil))
+		      (setq subfiles (cdr subfiles)))))
+	      (error nil))
+	    (if nodes
+		(setq nodes (nreverse nodes)
+		      Info-index-nodes (cons (cons file nodes) Info-index-nodes)))
+	    nodes)
+	;; Else find nodes with the word "Index" in the node name
+	(let ((case-fold-search t)
+	      Info-history Info-history-list Info-fontify-maximum-menu-size
+	      nodes node)
+	  (condition-case nil
+	      (with-temp-buffer
+		(Info-mode)
+		(Info-find-node file "Top")
+		(when (and (search-forward "\n* menu:" nil t)
+			   (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t))
+		  (goto-char (match-beginning 1))
+		  (setq nodes (list (Info-extract-menu-node-name)))
+		  (Info-goto-node (car nodes))
+		  (while (and (setq node (Info-extract-pointer "next" t))
+			      (string-match "\\<Index\\>" node))
+		    (setq nodes (cons node nodes))
+		    (Info-goto-node node))))
+	    (error nil))
+	  (if nodes
+	      (setq nodes (nreverse nodes)
+		    Info-index-nodes (cons (cons file nodes) Info-index-nodes)))
+	  nodes))
       ;; If file has no index nodes, still add it to the cache
       (setq Info-index-nodes (cons (cons file nil) Info-index-nodes)))
   (cdr (assoc file Info-index-nodes)))
@@ -2718,17 +2737,17 @@ If FILE is nil, check the current Info file."
       (member (or node Info-current-node) (Info-index-nodes file))
     ;; Don't search all index nodes if request is only for the current node
     ;; and file is not in the cache of index nodes
-    (or
-     (save-match-data
-       (string-match "\\<Index\\>" (or node Info-current-node "")))
-     (save-excursion
-       (goto-char (+ (or (save-excursion
-                           (search-backward "\n\^_" nil t))
-                         (point-min)) 2))
-       (search-forward "\0\b[index\0\b]"
-                       (or (save-excursion
-                             (search-forward "\n\^_" nil t))
-                           (point-max)) t)))))
+    (if Info-file-supports-index-cookies
+	(save-excursion
+	  (goto-char (+ (or (save-excursion
+			      (search-backward "\n\^_" nil t))
+			    (point-min)) 2))
+	  (search-forward "\0\b[index\0\b]"
+			  (or (save-excursion
+				(search-forward "\n\^_" nil t))
+			      (point-max)) t))
+      (save-match-data
+	(string-match "\\<Index\\>" (or node Info-current-node ""))))))
 
 (defun Info-goto-index ()
   "Go to the first index node."
@@ -3162,11 +3181,11 @@ if point is in a menu item description, follow that menu item."
   (if (display-graphic-p)
       (let ((map (make-sparse-keymap)))
 	(tool-bar-local-item-from-menu 'Info-exit "close" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-prev "left-arrow" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-next "right-arrow" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-up "up-arrow" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-history-back "back-arrow" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-history-forward "fwd-arrow" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-prev "prev-node" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-next "next-node" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-up "up-node" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-history-back "left-arrow" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-history-forward "right-arrow" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-goto-node "jump-to" map Info-mode-map)
@@ -3504,10 +3523,6 @@ in the first element of the returned list (which is treated specially in
 		(setq info-file file file-list nil))
 	    (setq file-list (cdr file-list))))))
     (Info-find-node info-file "Top")
-    (or (and (search-forward "\n* menu:" nil t)
-	     (re-search-forward "\n\\* \\(.*\\<Index\\>\\)" nil t))
-	(error "Info file `%s' appears to lack an index" info-file))
-    (goto-char (match-beginning 1))
     ;; Bind Info-history to nil, to prevent the index nodes from
     ;; getting into the node history.
     (let ((Info-history nil)
@@ -3649,7 +3664,7 @@ the variable `Info-file-list-for-emacs'."
                  (nend (match-end 2))
                  (tbeg (match-beginning 1))
                  (tag (match-string 1)))
-            (if (string-equal tag "Node")
+            (if (string-equal (downcase tag) "node")
                 (put-text-property nbeg nend 'font-lock-face 'info-header-node)
               (put-text-property nbeg nend 'font-lock-face 'info-header-xref)
               (put-text-property tbeg nend 'mouse-face 'highlight)
@@ -3660,11 +3675,12 @@ the variable `Info-file-list-for-emacs'."
               ;; Always set up the text property keymap.
               ;; It will either be used in the buffer
               ;; or copied in the header line.
-              (put-text-property tbeg nend 'keymap
-                                 (cond
-                                  ((equal tag "Prev") Info-prev-link-keymap)
-                                  ((equal tag "Next") Info-next-link-keymap)
-                                  ((equal tag "Up") Info-up-link-keymap))))))
+              (put-text-property
+	       tbeg nend 'keymap
+	       (cond
+		((string-equal (downcase tag) "prev") Info-prev-link-keymap)
+		((string-equal (downcase tag) "next") Info-next-link-keymap)
+		((string-equal (downcase tag) "up"  ) Info-up-link-keymap))))))
         (when Info-use-header-line
           (goto-char (point-min))
           (let* ((header-end (line-end-position))
@@ -3706,8 +3722,8 @@ the variable `Info-file-list-for-emacs'."
                     ;; underline has the same size as the text.  A typical
                     ;; counter example is when a continuation "..." is alone
                     ;; on a line.
-                    (= (- (match-end 1) (match-beginning 1))
-                       (- (match-end 2) (match-beginning 2))))
+                    (= (string-width (match-string 1))
+                       (string-width (match-string 2))))
           (let* ((c (preceding-char))
                  (face
                   (cond ((= c ?*) 'info-title-1)
@@ -3741,7 +3757,9 @@ the variable `Info-file-list-for-emacs'."
 		    ;; an end of sentence
 		    (skip-syntax-backward " ("))
                   (setq other-tag
-                        (cond ((memq (char-before) '(nil ?\. ?! ??))
+			(cond ((save-match-data (looking-back "\\<see"))
+			       "")
+			      ((memq (char-before) '(nil ?\. ?! ??))
                                "See ")
 			      ((save-match-data
 				 (save-excursion

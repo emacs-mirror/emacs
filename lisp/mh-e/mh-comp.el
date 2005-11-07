@@ -86,11 +86,6 @@ before, and `sc-post-hook' is run after the guts of this function.")
   "Name of the MH send program.
 Some sites need to change this because of a name conflict.")
 
-(defvar mh-redist-full-contents nil
-  "Non-nil if the `dist' command needs whole letter for redistribution.
-This is the case only when `send' is compiled with the BERK option.
-If MH will not allow you to redist a previously redist'd msg, set to nil.")
-
 (defvar mh-redist-background nil
   "If non-nil redist will be done in background like send.
 This allows transaction log to be visible if -watch, -verbose or -snoop are
@@ -195,24 +190,29 @@ Used by the \\<mh-folder-mode-map>`\\[mh-edit-again]' and `\\[mh-extract-rejecte
 
 ;;;###autoload
 (defun mh-smail ()
-  "Compose and send mail with the MH mail system.
-This function is an entry point to MH-E, the Emacs interface to the MH mail
-system.
-
+  "Compose a message with the MH mail system.
 See `mh-send' for more details on composing mail."
   (interactive)
   (mh-find-path)
   (call-interactively 'mh-send))
 
+;;;###autoload
+(defun mh-smail-other-window ()
+  "Compose a message with the MH mail system in other window.
+See `mh-send' for more details on composing mail."
+  (interactive)
+  (mh-find-path)
+  (call-interactively 'mh-send-other-window))
+
 (defvar mh-error-if-no-draft nil)       ;raise error over using old draft
 
 ;;;###autoload
 (defun mh-smail-batch (&optional to subject other-headers &rest ignored)
-  "Set up a mail composition draft with the MH mail system.
-This function is an entry point to MH-E, the Emacs interface to the MH mail
-system. This function does not prompt the user for any header fields, and thus
+  "Compose a message with the MH mail system.
+
+This function does not prompt the user for any header fields, and thus
 is suitable for use by programs that want to create a mail buffer. Users
-should use `mh-smail' to compose mail.
+should use \\[mh-smail] to compose mail.
 
 Optional arguments for setting certain fields include TO, SUBJECT, and
 OTHER-HEADERS. Additional arguments are IGNORED."
@@ -245,10 +245,25 @@ CONTINUE, SWITCH-FUNCTION, YANK-ACTION and SEND-ACTIONS are ignored."
       (setq other-headers (cdr other-headers)))))
 
 ;;;###mh-autoload
-(defun mh-edit-again (msg)
-  "Clean up a draft or a message MSG previously sent and make it resendable.
-Default is the current message.
-The variable `mh-new-draft-cleaned-headers' specifies the headers to remove.
+(defun mh-edit-again (message)
+  "Edit a MESSAGE to send it again.
+
+If you don't complete a draft for one reason or another, and if the draft
+buffer is no longer available, you can pick your draft up again with this
+command. If you don't use a draft folder, your last \"draft\" file will be
+used. If you use draft folders, you'll need to visit the draft folder with
+\"\\[mh-visit-folder] drafts <RET>\", use \\[mh-next-undeleted-msg] to move to
+the appropriate message, and then use \\[mh-edit-again] to prepare the message
+for editing.
+
+This command can also be used to take messages that were sent to you and to
+send them to more people.
+
+Don't use this command to re-edit a message from a Mailer-Daemon who
+complained that your mail wasn't posted for some reason or another (see
+`mh-extract-rejected-mail').
+
+The default message is the current message.
 
 See also `mh-send'."
   (interactive (list (mh-get-msg-num t)))
@@ -256,8 +271,9 @@ See also `mh-send'."
          (config (current-window-configuration))
          (draft
           (cond ((and mh-draft-folder (equal from-folder mh-draft-folder))
-                 (pop-to-buffer (find-file-noselect (mh-msg-filename msg)) t)
-                 (rename-buffer (format "draft-%d" msg))
+                 (pop-to-buffer (find-file-noselect (mh-msg-filename message))
+                                t)
+                 (rename-buffer (format "draft-%d" message))
                  ;; Make buffer writable...
                  (setq buffer-read-only nil)
                  ;; If buffer was being used to display the message reinsert
@@ -267,7 +283,7 @@ See also `mh-send'."
                    (insert-file-contents buffer-file-name))
                  (buffer-name))
                 (t
-                 (mh-read-draft "clean-up" (mh-msg-filename msg) nil)))))
+                 (mh-read-draft "clean-up" (mh-msg-filename message) nil)))))
     (mh-clean-msg-header (point-min) mh-new-draft-cleaned-headers nil)
     (mh-insert-header-separator)
     (goto-char (point-min))
@@ -278,16 +294,20 @@ See also `mh-send'."
     (mh-letter-adjust-point)))
 
 ;;;###mh-autoload
-(defun mh-extract-rejected-mail (msg)
-  "Extract message MSG returned by the mail system and make it resendable.
-Default is the current message.  The variable `mh-new-draft-cleaned-headers'
-gives the headers to clean out of the original message.
+(defun mh-extract-rejected-mail (message)
+  "Edit a MESSAGE that was returned by the mail system.
+
+This command prepares the message for editing by removing the Mailer-Daemon
+envelope and unneeded header fields. Fix whatever addressing problem you had,
+and send the message again with \\[mh-send-letter].
+
+The default message is the current message.
 
 See also `mh-send'."
   (interactive (list (mh-get-msg-num t)))
   (let ((from-folder mh-current-folder)
         (config (current-window-configuration))
-        (draft (mh-read-draft "extraction" (mh-msg-filename msg) nil)))
+        (draft (mh-read-draft "extraction" (mh-msg-filename message) nil)))
     (goto-char (point-min))
     (cond ((re-search-forward mh-rejected-letter-start nil t)
            (skip-chars-forward " \t\n")
@@ -298,7 +318,7 @@ See also `mh-send'."
     (mh-insert-header-separator)
     (goto-char (point-min))
     (save-buffer)
-    (mh-compose-and-send-mail draft "" from-folder msg
+    (mh-compose-and-send-mail draft "" from-folder message
                               (mh-get-header-field "To:")
                               (mh-get-header-field "From:")
                               (mh-get-header-field "Cc:")
@@ -307,14 +327,20 @@ See also `mh-send'."
 
 ;;;###mh-autoload
 (defun mh-forward (to cc &optional range)
-  "Forward messages to the recipients TO and CC.
-Use optional RANGE argument to specify a message or sequence to forward.
-Default is the displayed message.
+  "Forward message(s).
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use.
+You are prompted for the TO and CC recipients. You are given a draft to edit
+that looks like it would if you had run the MH command \"forw\". You are given
+a chance to add some text.
 
-See also `mh-send'."
+You can forward several messages by using a RANGE. All of the messages in the
+range are inserted into your draft. Check the documentation of
+`mh-interactive-range' to see how RANGE is read in interactive use.
+
+The default message is the current message.
+
+See also `mh-compose-forward-as-mime-flag', `mh-forward-subject-format',
+and `mh-send'."
   (interactive (list (mh-interactive-read-address "To: ")
                      (mh-interactive-read-address "Cc: ")
                      (mh-interactive-range "Forward")))
@@ -398,33 +424,30 @@ Original message has headers FROM and SUBJECT."
            (setq from (substring from (1+ comment) (1- (length from)))))))
   (format mh-forward-subject-format from subject))
 
-;;;###autoload
-(defun mh-smail-other-window ()
-  "Compose and send mail in other window with the MH mail system.
-This function is an entry point to MH-E, the Emacs interface to the MH mail
-system.
-
-See `mh-send' for more details on composing mail."
-  (interactive)
-  (mh-find-path)
-  (call-interactively 'mh-send-other-window))
-
 ;;;###mh-autoload
-(defun mh-redistribute (to cc &optional msg)
-  "Redistribute displayed message to recipients TO and CC.
-Use optional argument MSG to redistribute another message.
-Depending on how your copy of MH was compiled, you may need to change the
-setting of the variable `mh-redist-full-contents'.  See its documentation."
+(defun mh-redistribute (to cc &optional message)
+  "Redistribute a message.
+
+This command is similar in function to forwarding mail, but it does not allow
+you to edit the message, nor does it add your name to the \"From\" header
+field. It appears to the recipient as if the message had come from the
+original sender. When you run this command, you are prompted for the TO and CC
+recipients. The default MESSAGE is the current message.
+
+Also investigate the \\[mh-edit-again] command for another way to redistribute
+messages.
+
+See also `mh-redist-full-contents-flag'."
   (interactive (list (mh-read-address "Redist-To: ")
                      (mh-read-address "Redist-Cc: ")
                      (mh-get-msg-num t)))
-  (or msg
-      (setq msg (mh-get-msg-num t)))
+  (or message
+      (setq message (mh-get-msg-num t)))
   (save-window-excursion
     (let ((folder mh-current-folder)
           (draft (mh-read-draft "redistribution"
-                                (if mh-redist-full-contents
-                                    (mh-msg-filename msg)
+                                (if mh-redist-full-contents-flag
+                                    (mh-msg-filename message)
                                   nil)
                                 nil)))
       (mh-goto-header-end 0)
@@ -438,17 +461,18 @@ setting of the variable `mh-redist-full-contents'.  See its documentation."
       (message "Redistributing...")
       (let ((env "mhdist=1"))
         ;; Setup environment...
-        (setq env (concat env " mhaltmsg=" (if mh-redist-full-contents
-                                               buffer-file-name
-                                             (mh-msg-filename msg folder))))
-        (unless mh-redist-full-contents
+        (setq env (concat env " mhaltmsg="
+                          (if mh-redist-full-contents-flag
+                              buffer-file-name
+                            (mh-msg-filename message folder))))
+        (unless mh-redist-full-contents-flag
           (setq env (concat env " mhannotate=1")))
         ;; Redistribute...
         (if mh-redist-background
             (mh-exec-cmd-env-daemon env mh-send-prog nil buffer-file-name)
           (mh-exec-cmd-error env mh-send-prog "-push" buffer-file-name))
         ;; Annotate...
-        (mh-annotate-msg msg folder mh-note-dist
+        (mh-annotate-msg message folder mh-note-dist
                          "-component" "Resent:"
                          "-text" (format "\"%s %s\"" to cc)))
       (kill-buffer draft)
@@ -481,21 +505,48 @@ Optional argument BUFFER can be used to specify the buffer."
 
 ;;;###mh-autoload
 (defun mh-reply (message &optional reply-to includep)
-  "Reply to MESSAGE.
-Default is the displayed message.
-If the optional argument REPLY-TO is not given, prompts for type of addresses
-to reply to:
-   from    sender only,
-   to      sender and primary recipients,
-   cc/all  sender and all recipients.
-If optional prefix argument INCLUDEP provided, then include the message
-in the reply using filter `mhl.reply' in your MH directory.
-If the file named by `mh-repl-formfile' exists, it is used as a skeleton for
-the reply. If REPLY-TO is cc or all and you're using either the nmh or GNU
-mailutils variants and the file names by `mh-repl-group-formfile' exists, it
-is used instead.
+  "Reply to a MESSAGE.
 
-See also `mh-send'."
+When you reply to a message, you are first prompted with \"Reply to whom?\"
+\(unless the optional argument REPLY-TO is provided). You have several choices
+here.
+
+     Response     Reply Goes To
+
+     from         The person who sent the message.  This is the default,
+                  so <RET> is sufficient.
+
+     to           Replies to the sender, plus all recipients in the
+                  \"To:\" header field.
+
+     all
+     cc           Forms a reply to the sender, plus all recipients.
+
+Depending on your answer, \"repl\" is given a different argument to form your
+reply. Specifically, a choice of \"from\" or none at all runs \"repl -nocc
+all\", and a choice of \"to\" runs \"repl -cc to\". Finally, either \"cc\" or
+\"all\" runs \"repl -cc all -nocc me\".
+
+Two windows are then created. One window contains the message to which you are
+replying in an MH-Show buffer. Your draft, in MH-Letter mode
+\(see `mh-letter-mode'), is in the other window.
+
+If you supply a prefix argument INCLUDEP, the message you are replying to is
+inserted in your reply after having first been run through \"mhl\" with the
+format file \"mhl.reply\".
+
+Alternatively, you can customize the option `mh-yank-behavior' and choose one
+of its \"Automatically\" variants to do the same thing. If you do so, the
+prefix argument has no effect.
+
+Another way to include the message automatically in your draft is to use
+\"repl: -filter repl.filter\" in your MH profile.
+
+If you wish to customize the header or other parts of the reply draft, please
+see \"repl\" and \"mh-format\".
+
+See also `mh-reply-show-message-flag', `mh-reply-default-reply-to', and
+`mh-send'."
   (interactive (list
                 (mh-get-msg-num t)
                 (let ((minibuffer-help-form
@@ -560,14 +611,19 @@ See also `mh-send'."
 
 ;;;###mh-autoload
 (defun mh-send (to cc subject)
-  "Compose and send a letter.
-Do not call this function from outside MH-E; use \\[mh-smail] instead.
+  "Compose a message.
 
-The file named by `mh-comp-formfile' will be used as the form.
-The letter is composed in `mh-letter-mode'; see its documentation for more
-details.
-If `mh-compose-letter-function' is defined, it is called on the draft and
-passed three arguments: TO, CC, and SUBJECT."
+Your letter appears in an Emacs buffer whose mode is MH-Letter (see
+`mh-letter-mode').
+
+The arguments TO, CC, and SUBJECT can be used to prefill the draft fields or
+suppress the prompts if `mh-compose-prompt-flag' is on. They are also passed
+to the function set in the option `mh-compose-letter-function'.
+
+See also `mh-insert-x-mailer-flag' and `mh-letter-mode-hook'.
+
+Outside of an MH-Folder buffer (`mh-folder-mode'), you must call either
+\\[mh-smail] or \\[mh-smail-other-window] to compose a new message."
   (interactive (list
                 (mh-interactive-read-address "To: ")
                 (mh-interactive-read-address "Cc: ")
@@ -578,15 +634,10 @@ passed three arguments: TO, CC, and SUBJECT."
 
 ;;;###mh-autoload
 (defun mh-send-other-window (to cc subject)
-  "Compose and send a letter in another window.
-Do not call this function from outside MH-E; use \\[mh-smail-other-window]
-instead.
+  "Compose a message in another window.
 
-The file named by `mh-comp-formfile' will be used as the form.
-The letter is composed in `mh-letter-mode'; see its documentation for more
-details.
-If `mh-compose-letter-function' is defined, it is called on the draft and
-passed three arguments: TO, CC, and SUBJECT."
+See `mh-send' for more information and a description of how the TO, CC, and
+SUBJECT arguments are used."
   (interactive (list
                 (mh-interactive-read-address "To: ")
                 (mh-interactive-read-address "Cc: ")
@@ -698,7 +749,8 @@ MSG can be a message number, a list of message numbers, or a sequence."
     (cond ((get-buffer buffer)          ; Buffer may be deleted
            (set-buffer buffer)
            (mh-iterate-on-range nil msg
-             (mh-notate nil note (1+ mh-cmd-note)))))))
+             (mh-notate nil note
+                        (+ mh-cmd-note mh-scan-field-destination-offset)))))))
 
 (defun mh-insert-fields (&rest name-values)
   "Insert the NAME-VALUES pairs in the current buffer.
@@ -859,7 +911,7 @@ well.")
 (defun mh-fill-paragraph-function (arg)
   "Fill paragraph at or after point.
 Prefix ARG means justify as well. This function enables `fill-paragraph' to
-work better in MH-Letter mode."
+work better in MH-Letter mode (see `mh-letter-mode')."
   (interactive "P")
   (let ((fill-paragraph-function) (fill-prefix))
     (if (mh-in-header-p)

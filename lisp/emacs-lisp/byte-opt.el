@@ -1121,6 +1121,7 @@
 (put 'symbol-name 'byte-optimizer 'byte-optimize-pure-func)
 (put 'regexp-opt 'byte-optimizer 'byte-optimize-pure-func)
 (put 'regexp-quote 'byte-optimizer 'byte-optimize-pure-func)
+(put 'string-to-syntax 'byte-optimizer 'byte-optimize-pure-func)
 (defun byte-optimize-pure-func (form)
   "Do constant folding for pure functions.
 This assumes that the function will not have any side-effects and that
@@ -1134,7 +1135,7 @@ of FORM by signaling the error at compile-time."
 	  (setq constant nil))
       (setq args (cdr args)))
     (if constant
-	(eval form)
+	(list 'quote (eval form))
       form)))
 
 ;; Avoid having to write forward-... with a negative arg for speed.

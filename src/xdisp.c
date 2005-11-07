@@ -3163,6 +3163,9 @@ handle_fontified_prop (it)
   Lisp_Object prop, pos;
   enum prop_handled handled = HANDLED_NORMALLY;
 
+  if (!NILP (Vmemory_full))
+    return handled;
+
   /* Get the value of the `fontified' property at IT's current buffer
      position.  (The `fontified' property doesn't have a special
      meaning in strings.)  If the value is nil, call functions from
@@ -8618,7 +8621,7 @@ static Lisp_Object mode_line_string_face_prop;
 static Lisp_Object Vmode_line_unwind_vector;
 
 static Lisp_Object
-format_mode_line_unwind_data (obuf)
+format_mode_line_unwind_data (obuf, save_proptrans)
      struct buffer *obuf;
 {
   Lisp_Object vector;
@@ -8634,7 +8637,7 @@ format_mode_line_unwind_data (obuf)
   AREF (vector, 0) = make_number (mode_line_target);
   AREF (vector, 1) = make_number (MODE_LINE_NOPROP_LEN (0));
   AREF (vector, 2) = mode_line_string_list;
-  AREF (vector, 3) = mode_line_proptrans_alist;
+  AREF (vector, 3) = (save_proptrans ? mode_line_proptrans_alist : Qt);
   AREF (vector, 4) = mode_line_string_face;
   AREF (vector, 5) = mode_line_string_face_prop;
 
@@ -8653,7 +8656,8 @@ unwind_format_mode_line (vector)
   mode_line_target = XINT (AREF (vector, 0));
   mode_line_noprop_ptr = mode_line_noprop_buf + XINT (AREF (vector, 1));
   mode_line_string_list = AREF (vector, 2);
-  mode_line_proptrans_alist = AREF (vector, 3);
+  if (! EQ (AREF (vector, 3), Qt))
+    mode_line_proptrans_alist = AREF (vector, 3);
   mode_line_string_face = AREF (vector, 4);
   mode_line_string_face_prop = AREF (vector, 5);
 
@@ -8776,7 +8780,7 @@ x_consider_frame_title (frame)
 	 mode_line_target so that display_mode_element will output into
 	 mode_line_noprop_buf; then display the title.  */
       record_unwind_protect (unwind_format_mode_line,
-			     format_mode_line_unwind_data (current_buffer));
+			     format_mode_line_unwind_data (current_buffer, 0));
 
       set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->buffer));
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
@@ -10575,7 +10579,8 @@ redisplay_internal (preserve_echo_area)
     clear_garbaged_frames ();
 
   /* Build menubar and tool-bar items.  */
-  prepare_menu_bars ();
+  if (NILP (Vmemory_full))
+    prepare_menu_bars ();
 
   if (windows_or_buffers_changed)
     update_mode_lines++;
@@ -15686,7 +15691,9 @@ display_line (it)
 			produce_special_glyphs (it, IT_CONTINUATION);
 		      row->continued_p = 1;
 
+		      it->current_x = x_before;
 		      it->continuation_lines_width += x;
+		      extend_face_to_end_of_line (it);
 
 		      if (nglyphs > 1 && i > 0)
 			{
@@ -16171,7 +16178,7 @@ display_mode_line (w, face_id, format)
     it.base_face_id = it.face_id = DEFAULT_FACE_ID;
 
   record_unwind_protect (unwind_format_mode_line,
-			 format_mode_line_unwind_data (NULL));
+			 format_mode_line_unwind_data (NULL, 0));
 
   mode_line_target = MODE_LINE_DISPLAY;
 
@@ -16204,6 +16211,44 @@ display_mode_line (w, face_id, format)
     }
 
   return it.glyph_row->height;
+}
+
+/* Move element ELT in LIST to the front of LIST.
+   Return the updated list.  */
+
+static Lisp_Object
+move_elt_to_front (elt, list)
+     Lisp_Object elt, list;
+{
+  register Lisp_Object tail, prev;
+  register Lisp_Object tem;
+
+  tail = list;
+  prev = Qnil;
+  while (CONSP (tail))
+    {
+      tem = XCAR (tail);
+
+      if (EQ (elt, tem))
+	{
+	  /* Splice out the link TAIL.  */
+	  if (NILP (prev))
+	    list = XCDR (tail);
+	  else
+	    Fsetcdr (prev, XCDR (tail));
+
+	  /* Now make it the first.  */
+	  Fsetcdr (tail, list);
+	  return tail;
+	}
+      else
+	prev = tail;
+      tail = XCDR (tail);
+      QUIT;
+    }
+
+  /* Not found--return unchanged LIST.  */
+  return list;
 }
 
 /* Contribute ELT to the mode line for window IT->w.  How it
@@ -16255,7 +16300,8 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	unsigned char c;
 	int offset = 0;
 
-	if (!NILP (props) || risky)
+	if (SCHARS (elt) > 0
+	    && (!NILP (props) || risky))
 	  {
 	    Lisp_Object oprops, aelt;
 	    oprops = Ftext_properties_at (make_number (0), elt);
@@ -16286,13 +16332,21 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		aelt = Fassoc (elt, mode_line_proptrans_alist);
 		if (! NILP (aelt) && !NILP (Fequal (props, XCDR (aelt))))
 		  {
-		    mode_line_proptrans_alist
-		      = Fcons (aelt, Fdelq (aelt, mode_line_proptrans_alist));
+		    /* AELT is what we want.  Move it to the front
+		       without consing.  */
 		    elt = XCAR (aelt);
+		    mode_line_proptrans_alist
+		      = move_elt_to_front (aelt, mode_line_proptrans_alist);
 		  }
 		else
 		  {
 		    Lisp_Object tem;
+
+		    /* If AELT has the wrong props, it is useless.
+		       so get rid of it.  */
+		    if (! NILP (aelt))
+		      mode_line_proptrans_alist
+			= Fdelq (aelt, mode_line_proptrans_alist);
 
 		    elt = Fcopy_sequence (elt);
 		    Fset_text_properties (make_number (0), Flength (elt),
@@ -16818,8 +16872,11 @@ are the selected window and the window's buffer).  */)
   if (XBUFFER (buffer) != current_buffer)
     old_buffer = current_buffer;
 
+  /* Save things including mode_line_proptrans_alist,
+     and set that to nil so that we don't alter the outer value.  */
   record_unwind_protect (unwind_format_mode_line,
-			 format_mode_line_unwind_data (old_buffer));
+			 format_mode_line_unwind_data (old_buffer, 1));
+  mode_line_proptrans_alist = Qnil;
 
   if (old_buffer)
     set_buffer_internal_1 (XBUFFER (buffer));
@@ -17203,6 +17260,18 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 	pint2str (decode_mode_spec_buf, field_width, col);
 	return decode_mode_spec_buf;
       }
+
+    case 'e':
+#ifndef SYSTEM_MALLOC
+      {
+	if (NILP (Vmemory_full))
+	  return "";
+	else
+	  return "!MEM FULL! ";
+      }
+#else
+      return "";
+#endif
 
     case 'F':
       /* %F displays the frame name.  */
@@ -18723,19 +18792,15 @@ set_glyph_string_background_width (s, start, last_x)
 {
   /* If the face of this glyph string has to be drawn to the end of
      the drawing area, set S->extends_to_end_of_line_p.  */
-  struct face *default_face = FACE_FROM_ID (s->f, DEFAULT_FACE_ID);
 
   if (start == s->row->used[s->area]
       && s->area == TEXT_AREA
-      && ((s->hl == DRAW_NORMAL_TEXT
-	   && (s->row->fill_line_p
-	       || s->face->background != default_face->background
-	       || s->face->stipple != default_face->stipple
-	       || s->row->mouse_face_p))
-	  || s->hl == DRAW_MOUSE_FACE
-	  || ((s->hl == DRAW_IMAGE_RAISED || s->hl == DRAW_IMAGE_SUNKEN)
-	      && s->row->fill_line_p)))
-      s->extends_to_end_of_line_p = 1;
+      && ((s->row->fill_line_p
+	   && (s->hl == DRAW_NORMAL_TEXT
+	       || s->hl == DRAW_IMAGE_RAISED
+	       || s->hl == DRAW_IMAGE_SUNKEN))
+	  || s->hl == DRAW_MOUSE_FACE))
+    s->extends_to_end_of_line_p = 1;
 
   /* If S extends its face to the end of the line, set its
      background_width to the distance to the right edge of the drawing
@@ -21279,7 +21344,11 @@ show_mouse_face (dpyinfo, draw)
 	  if (row == last)
 	    end_hpos = dpyinfo->mouse_face_end_col;
 	  else
-	    end_hpos = row->used[TEXT_AREA];
+	    {
+	      end_hpos = row->used[TEXT_AREA];
+	      if (draw == DRAW_NORMAL_TEXT)
+		row->fill_line_p = 1; /* Clear to end of line */
+	    }
 
 	  if (end_hpos > start_hpos)
 	    {

@@ -861,7 +861,7 @@ update_window_fringes (w, keep_current_p)
 
 	      if (!done_bot)
 		{
-		  if (row->ends_at_zv_p
+		  if (MATRIX_ROW_END_CHARPOS (row) >= BUF_ZV (XBUFFER (w->buffer))
 		      && !MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P (w, row))
 		    row->indicate_eob_p = !NILP (boundary_bot), done_bot = 1;
 		  else if (y + row->height >= yb)
@@ -907,9 +907,12 @@ update_window_fringes (w, keep_current_p)
 	left = LEFT_TRUNCATION_BITMAP;
       else if (row->indicate_bob_p && EQ (boundary_top, Qleft))
 	left = ((row->indicate_eob_p && EQ (boundary_bot, Qleft))
-		? LEFT_BRACKET_BITMAP : TOP_LEFT_ANGLE_BITMAP);
+		? (row->ends_at_zv_p
+		   ? TOP_RIGHT_ANGLE_BITMAP : LEFT_BRACKET_BITMAP)
+		: TOP_LEFT_ANGLE_BITMAP);
       else if (row->indicate_eob_p && EQ (boundary_bot, Qleft))
-	left = BOTTOM_LEFT_ANGLE_BITMAP;
+	left = (row->ends_at_zv_p
+		? TOP_RIGHT_ANGLE_BITMAP : BOTTOM_LEFT_ANGLE_BITMAP);
       else if (MATRIX_ROW_CONTINUATION_LINE_P (row))
 	left = CONTINUATION_LINE_BITMAP;
       else if (row->indicate_empty_line_p && EQ (empty_pos, Qleft))
@@ -933,9 +936,12 @@ update_window_fringes (w, keep_current_p)
 	right = RIGHT_TRUNCATION_BITMAP;
       else if (row->indicate_bob_p && EQ (boundary_top, Qright))
 	right = ((row->indicate_eob_p && EQ (boundary_bot, Qright))
-		 ? RIGHT_BRACKET_BITMAP : TOP_RIGHT_ANGLE_BITMAP);
+		 ? (row->ends_at_zv_p
+		    ? TOP_LEFT_ANGLE_BITMAP : RIGHT_BRACKET_BITMAP)
+		 : TOP_RIGHT_ANGLE_BITMAP);
       else if (row->indicate_eob_p && EQ (boundary_bot, Qright))
-	right = BOTTOM_RIGHT_ANGLE_BITMAP;
+	right = (row->ends_at_zv_p
+		 ? TOP_LEFT_ANGLE_BITMAP : BOTTOM_RIGHT_ANGLE_BITMAP);
       else if (row->continued_p)
 	right = CONTINUED_LINE_BITMAP;
       else if (row->indicate_top_line_p && EQ (arrow_top, Qright))

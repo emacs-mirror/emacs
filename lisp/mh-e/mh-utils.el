@@ -111,10 +111,9 @@ It is a format string; use `%d' to represent the location of the message
 number within the expression as in the default of \"^[^0-9]*%d[^0-9]\".")
 
 (defvar mh-cmd-note 4
-  "Column where notations begin.
+  "Column for notations.
 This variable should be set with the function `mh-set-cmd-note'. This variable
-may be updated dynamically if `mh-adaptive-cmd-note-flag' is on and
-`mh-scan-format-file' is set to \"Use MH-E scan Format\".
+may be updated dynamically if `mh-adaptive-cmd-note-flag' is on.
 
 Note that columns in Emacs start with 0.")
 (make-variable-buffer-local 'mh-cmd-note)
@@ -1827,8 +1826,10 @@ If NOTATION is nil then no change in the buffer occurs."
         (with-mh-folder-updating (t)
           (beginning-of-line)
           (forward-char offset)
-          (let* ((change-stack-flag (and (equal offset (1+ mh-cmd-note))
-                                         (not (eq notation mh-note-seq))))
+          (let* ((change-stack-flag
+                  (and (equal offset
+                              (+ mh-cmd-note mh-scan-field-destination-offset))
+                       (not (eq notation mh-note-seq))))
                  (msg (and change-stack-flag (or msg (mh-get-msg-num nil))))
                  (stack (and msg (gethash msg mh-sequence-notation-history)))
                  (notation (or notation (char-after))))
@@ -1992,8 +1993,8 @@ The message number width portion of the format is discovered using
                  (substring fmt end))))
       fmt))
 
-(defun mh-message-number-width (folder)
-  "Return the widest message number in this FOLDER."
+(defun mh-msg-num-width (folder)
+  "Return the width of the largest message number in this FOLDER."
   (or mh-progs (mh-find-path))
   (let ((tmp-buffer (get-buffer-create mh-temp-buffer))
         (width 0))

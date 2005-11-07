@@ -63,9 +63,10 @@ the @samp{-f} option will not read arguments for interactive
 functions.
 
 @item
-Emacs now looks for @file{.emacs} and @file{.emacs_SHELL} in one
-standard location---your home directory.  Don't put these files in
-@file{~/.emacs.d}; they won't be found.
+We have standardized on one location for the user init file: the file
+named @file{.emacs} in your home directory.  Emacs will not look for
+the init file in @file{~/.emacs.d/init.el}.  Similarly, don't try
+putting @file{.emacs_SHELL} in @file{~/.emacs.d}; Emacs won't find it.
 
 @item
 Emacs will not read @file{~/.abbrev_defs} automatically.  If you want

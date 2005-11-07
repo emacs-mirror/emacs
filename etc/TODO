@@ -288,6 +288,9 @@ when the body only calls primitives.
 
 ** Face remapping.
 
+** Optionally make the cursor a little thinner at the end of a line
+  or the end of the buffer.
+
 ** Add support for rendering antialiased text, probably using
   XRender/Freetype.
 

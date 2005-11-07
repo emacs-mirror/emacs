@@ -1038,8 +1038,11 @@ necessary.  If nil, the buffer name is generated."
 			   stream))
 		      ;; We're done, kill the first connection
 		      (imap-close buffer)
-		      (kill-buffer buffer)
-		      (rename-buffer buffer)
+		      (let ((name (if (stringp buffer)
+				      buffer
+				    (buffer-name buffer))))
+			(kill-buffer buffer)
+			(rename-buffer name))
 		      (message "imap: Reconnecting with stream `%s'...done"
 			       stream)
 		      (setq imap-stream stream)

@@ -4,6 +4,7 @@
 ;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
+;; Symmetric encryption added by: Sascha Wilde <wilde@sha-bang.de>
 ;; Created: 1999/10/28
 ;; Keywords: PGP
 
@@ -67,25 +68,109 @@
     (set-window-buffer window buffer)
     (shrink-window-if-larger-than-buffer window)))
 
+;; XXX `pgg-display-output-buffer' is a horrible name for this function.
+;;     It should be something like `pgg-situate-output-or-display-error'.
 (defun pgg-display-output-buffer (start end status)
+  "Situate en/decryption results or pop up an error buffer.
+
+Text from START to END is replaced by contents of output buffer if STATUS
+is true, or else the output buffer is displayed."
   (if status
-      (progn
-	(delete-region start end)
-	(insert-buffer-substring pgg-output-buffer)
-	(decode-coding-region start (point) buffer-file-coding-system))
-    (let ((temp-buffer-show-function
-	   (function pgg-temp-buffer-show-function)))
-      (with-output-to-temp-buffer pgg-echo-buffer
-	(set-buffer standard-output)
-	(insert-buffer-substring pgg-errors-buffer)))))
+      (pgg-situate-output start end)
+    (pgg-display-error-buffer)))
+
+(defun pgg-situate-output (start end)
+  "Place en/decryption result in place of current text from START to END."
+  (delete-region start end)
+  (insert-buffer-substring pgg-output-buffer)
+  (decode-coding-region start (point) buffer-file-coding-system))
+
+(defun pgg-display-error-buffer ()
+  "Pop up an error buffer indicating the reason for an en/decryption failure."
+  (let ((temp-buffer-show-function
+         (function pgg-temp-buffer-show-function)))
+    (with-output-to-temp-buffer pgg-echo-buffer
+      (set-buffer standard-output)
+      (insert-buffer-substring pgg-errors-buffer))))
 
 (defvar pgg-passphrase-cache (make-vector 7 0))
 
-(defun pgg-read-passphrase (prompt &optional key)
-  (or (and pgg-cache-passphrase
-	   key (setq key (pgg-truncate-key-identifier key))
-	   (symbol-value (intern-soft key pgg-passphrase-cache)))
+(defvar pgg-pending-timers (make-vector 7 0)
+  "Hash table for managing scheduled pgg cache management timers.
+
+We associate key and timer, so the timer can be cancelled if a new
+timeout for the key is set while an old one is still pending.")
+
+(defun pgg-read-passphrase (prompt &optional key notruncate)
+  "Using PROMPT, obtain passphrase for KEY from cache or user.
+
+Truncate the key to 8 trailing characters unless NOTRUNCATE is true
+\(default false).
+
+Custom variables `pgg-cache-passphrase' and `pgg-passphrase-cache-expiry'
+regulate cache behavior."
+  (or (pgg-read-passphrase-from-cache key notruncate)
       (read-passwd prompt)))
+
+(defun pgg-read-passphrase-from-cache (key &optional notruncate)
+  "Obtain passphrase for KEY from time-limited passphrase cache.
+
+Truncate the key to 8 trailing characters unless NOTRUNCATE is true
+\(default false).
+
+Custom variables `pgg-cache-passphrase' and `pgg-passphrase-cache-expiry'
+regulate cache behavior."
+  (and pgg-cache-passphrase
+       key (or notruncate
+                (setq key (pgg-truncate-key-identifier key)))
+       (symbol-value (intern-soft key pgg-passphrase-cache))))
+
+(defun pgg-add-passphrase-to-cache (key passphrase &optional notruncate)
+  "Associate KEY with PASSPHRASE in time-limited passphrase cache.
+
+Truncate the key to 8 trailing characters unless NOTRUNCATE is true
+\(default false).
+
+Custom variables `pgg-cache-passphrase' and `pgg-passphrase-cache-expiry'
+regulate cache behavior."
+
+  (let* ((key (if notruncate key (pgg-truncate-key-identifier key)))
+         (interned-timer-key (intern-soft key pgg-pending-timers))
+         (old-timer (symbol-value interned-timer-key))
+         new-timer)
+    (when old-timer
+        (cancel-timer old-timer)
+        (unintern interned-timer-key pgg-pending-timers))
+    (set (intern key pgg-passphrase-cache)
+         passphrase)
+    (set (intern key pgg-pending-timers)
+         (pgg-run-at-time pgg-passphrase-cache-expiry nil
+                           #'pgg-remove-passphrase-from-cache
+                           key notruncate))))
+
+(defun pgg-remove-passphrase-from-cache (key &optional notruncate)
+  "Omit passphrase associated with KEY in time-limited passphrase cache.
+
+Truncate the key to 8 trailing characters unless NOTRUNCATE is true
+\(default false).
+
+This is a no-op if there is not entry for KEY (eg, it's already expired.
+
+The memory for the passphrase is filled with underscores to clear any
+references to it.
+
+Custom variables `pgg-cache-passphrase' and `pgg-passphrase-cache-expiry'
+regulate cache behavior."
+  (let* ((passphrase (pgg-read-passphrase-from-cache key notruncate))
+         (key (if notruncate key (pgg-truncate-key-identifier key)))
+         (interned-timer-key (intern-soft key pgg-pending-timers))
+         (old-timer (symbol-value interned-timer-key)))
+    (when passphrase
+      (fillarray passphrase ?_)
+      (unintern key pgg-passphrase-cache))
+    (when old-timer
+      (pgg-cancel-timer old-timer)
+      (unintern interned-timer-key pgg-pending-timers))))
 
 (eval-when-compile
   (defmacro pgg-run-at-time-1 (time repeat function args)
@@ -151,27 +236,20 @@
 
 (eval-and-compile
   (if (featurep 'xemacs)
-      (defun pgg-run-at-time (time repeat function &rest args)
-	"Emulating function run as `run-at-time'.
+      (progn
+        (defun pgg-run-at-time (time repeat function &rest args)
+          "Emulating function run as `run-at-time'.
 TIME should be nil meaning now, or a number of seconds from now.
 Return an itimer object which can be used in either `delete-itimer'
 or `cancel-timer'."
-	(pgg-run-at-time-1 time repeat function args))
-    (defalias 'pgg-run-at-time 'run-at-time)))
-
-(defun pgg-add-passphrase-cache (key passphrase)
-  (setq key (pgg-truncate-key-identifier key))
-  (set (intern key pgg-passphrase-cache)
-       passphrase)
-  (pgg-run-at-time pgg-passphrase-cache-expiry nil
-		   #'pgg-remove-passphrase-cache
-		   key))
-
-(defun pgg-remove-passphrase-cache (key)
-  (let ((passphrase (symbol-value (intern-soft key pgg-passphrase-cache))))
-    (when passphrase
-      (fillarray passphrase ?_)
-      (unintern key pgg-passphrase-cache))))
+          (pgg-run-at-time-1 time repeat function args))
+        (defun pgg-cancel-timer (timer)
+          "Emulate cancel-timer for xemacs."
+          (let ((delete-itimer 'delete-itimer))
+            (funcall delete-itimer timer)))
+        )
+    (defalias 'pgg-run-at-time 'run-at-time)
+    (defalias 'pgg-cancel-timer 'cancel-timer)))
 
 (defmacro pgg-convert-lbt-region (start end lbt)
   `(let ((pgg-conversion-end (set-marker (make-marker) ,end)))
@@ -222,93 +300,156 @@ or `cancel-timer'."
 ;;;
 
 ;;;###autoload
-(defun pgg-encrypt-region (start end rcpts &optional sign)
+(defun pgg-encrypt-region (start end rcpts &optional sign passphrase)
   "Encrypt the current region between START and END for RCPTS.
-If optional argument SIGN is non-nil, do a combined sign and encrypt."
+
+If optional argument SIGN is non-nil, do a combined sign and encrypt.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (interactive
    (list (region-beginning)(region-end)
 	 (split-string (read-string "Recipients: ") "[ \t,]+")))
   (let ((status
 	 (pgg-save-coding-system start end
 	   (pgg-invoke "encrypt-region" (or pgg-scheme pgg-default-scheme)
-		       (point-min) (point-max) rcpts sign))))
+		       (point-min) (point-max) rcpts sign passphrase))))
     (when (interactive-p)
       (pgg-display-output-buffer start end status))
     status))
 
 ;;;###autoload
-(defun pgg-encrypt (rcpts &optional sign start end)
-  "Encrypt the current buffer for RCPTS.
-If optional argument SIGN is non-nil, do a combined sign and encrypt.
+(defun pgg-encrypt-symmetric-region (start end &optional passphrase)
+  "Encrypt the current region between START and END symmetric with passphrase.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+cache or user."
+  (interactive "r")
+  (let ((status
+	 (pgg-save-coding-system start end
+	   (pgg-invoke "encrypt-symmetric-region" 
+		       (or pgg-scheme pgg-default-scheme)
+		       (point-min) (point-max) passphrase))))
+    (when (interactive-p)
+      (pgg-display-output-buffer start end status))
+    status))
+
+;;;###autoload
+(defun pgg-encrypt-symmetric (&optional start end passphrase)
+  "Encrypt the current buffer using a symmetric, rather than key-pair, cipher.
+
 If optional arguments START and END are specified, only encrypt within
-the region."
+the region.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
+  (interactive)
+  (let* ((start (or start (point-min)))
+	 (end (or end (point-max)))
+	 (status (pgg-encrypt-symmetric-region start end passphrase)))
+    (when (interactive-p)
+      (pgg-display-output-buffer start end status))
+    status))
+
+;;;###autoload
+(defun pgg-encrypt (rcpts &optional sign start end passphrase)
+  "Encrypt the current buffer for RCPTS.
+
+If optional argument SIGN is non-nil, do a combined sign and encrypt.
+
+If optional arguments START and END are specified, only encrypt within
+the region.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (interactive (list (split-string (read-string "Recipients: ") "[ \t,]+")))
   (let* ((start (or start (point-min)))
 	 (end (or end (point-max)))
-	 (status (pgg-encrypt-region start end rcpts sign)))
+	 (status (pgg-encrypt-region start end rcpts sign passphrase)))
     (when (interactive-p)
       (pgg-display-output-buffer start end status))
     status))
 
 ;;;###autoload
-(defun pgg-decrypt-region (start end)
-  "Decrypt the current region between START and END."
+(defun pgg-decrypt-region (start end &optional passphrase)
+  "Decrypt the current region between START and END.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (interactive "r")
   (let* ((buf (current-buffer))
 	 (status
 	  (pgg-save-coding-system start end
 	    (pgg-invoke "decrypt-region" (or pgg-scheme pgg-default-scheme)
-			(point-min) (point-max)))))
+			(point-min) (point-max) passphrase))))
     (when (interactive-p)
       (pgg-display-output-buffer start end status))
     status))
 
 ;;;###autoload
-(defun pgg-decrypt (&optional start end)
+(defun pgg-decrypt (&optional start end passphrase)
   "Decrypt the current buffer.
+
 If optional arguments START and END are specified, only decrypt within
-the region."
+the region.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (interactive "")
   (let* ((start (or start (point-min)))
 	 (end (or end (point-max)))
-	 (status (pgg-decrypt-region start end)))
+	 (status (pgg-decrypt-region start end passphrase)))
     (when (interactive-p)
       (pgg-display-output-buffer start end status))
     status))
 
 ;;;###autoload
-(defun pgg-sign-region (start end &optional cleartext)
+(defun pgg-sign-region (start end &optional cleartext passphrase)
   "Make the signature from text between START and END.
+
 If the optional 3rd argument CLEARTEXT is non-nil, it does not create
 a detached signature.
+
 If this function is called interactively, CLEARTEXT is enabled
-and the the output is displayed."
+and the the output is displayed.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (interactive "r")
   (let ((status (pgg-save-coding-system start end
 		  (pgg-invoke "sign-region" (or pgg-scheme pgg-default-scheme)
 			      (point-min) (point-max)
-			      (or (interactive-p) cleartext)))))
+			      (or (interactive-p) cleartext)
+                              passphrase))))
     (when (interactive-p)
       (pgg-display-output-buffer start end status))
     status))
 
 ;;;###autoload
-(defun pgg-sign (&optional cleartext start end)
+(defun pgg-sign (&optional cleartext start end passphrase)
   "Sign the current buffer.
+
 If the optional argument CLEARTEXT is non-nil, it does not create a
 detached signature.
+
 If optional arguments START and END are specified, only sign data
 within the region.
+
 If this function is called interactively, CLEARTEXT is enabled
-and the the output is displayed."
+and the the output is displayed.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (interactive "")
   (let* ((start (or start (point-min)))
 	 (end (or end (point-max)))
-	 (status (pgg-sign-region start end (or (interactive-p) cleartext))))
+	 (status (pgg-sign-region start end
+                                  (or (interactive-p) cleartext)
+                                  passphrase)))
     (when (interactive-p)
       (pgg-display-output-buffer start end status))
     status))
-  
+
 ;;;###autoload
 (defun pgg-verify-region (start end &optional signature fetch)
   "Verify the current region between START and END.

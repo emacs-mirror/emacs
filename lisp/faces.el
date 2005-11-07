@@ -374,8 +374,11 @@ completely specified)."
       ;; VALUE is relative, so merge with inherited faces
       (let ((inh-from (face-attribute face :inherit frame)))
 	(unless (or (null inh-from) (eq inh-from 'unspecified))
-	  (setq value
-		(face-attribute-merged-with attribute value inh-from frame)))))
+          (condition-case nil
+              (setq value
+                    (face-attribute-merged-with attribute value inh-from frame))
+            ;; The `inherit' attribute may point to non existent faces.
+            (error nil)))))
     (when (and inherit
 	       (not (eq inherit t))
 	       (face-attribute-relative-p attribute value))
@@ -1445,7 +1448,7 @@ FRAME is the frame whose frame-local face is set.  FRAME nil means
 do it on all frames.  See `defface' for information about SPEC.
 If SPEC is nil, do nothing."
   (let ((attrs (face-spec-choose spec frame)))
-    (when attrs
+    (when spec
       (face-spec-reset-face face frame))
     (while attrs
       (let ((attribute (car attrs))

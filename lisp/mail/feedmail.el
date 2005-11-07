@@ -1372,7 +1372,7 @@ complicated cases."
 	      (if (string-match tracer (buffer-name buffy))
 		  (progn
 		    (insert "SMTP Trace from " (buffer-name buffy) "\n---------------")
-		    (insert-buffer buffy)
+		    (insert-buffer-substring buffy)
 		    (insert "\n\n"))))
 	   (buffer-list))))))
 
@@ -1989,7 +1989,7 @@ mapped to mostly alphanumerics for safety."
 	  (set-buffer feedmail-prepped-text-buffer) (erase-buffer)
 
 	  ;; jam contents of user-supplied mail buffer into our scratch buffer
-	  (insert-buffer feedmail-raw-text-buffer)
+	  (insert-buffer-substring feedmail-raw-text-buffer)
 
 	  ;; require one newline at the end.
 	  (goto-char (point-max))
@@ -2215,7 +2215,7 @@ feedmail-fiddle-plex-blurb."
 		(erase-buffer)
 		;; not life's most efficient methodology, but spraying isn't
 		;; an every-5-minutes event either
-		(insert-buffer feedmail-prepped-text-buffer)
+		(insert-buffer-substring feedmail-prepped-text-buffer)
 		;; There's a good case to me made that each separate transmission of
 		;; a message in the spray should have a distinct Message-Id:.  There
 		;; is also a less compelling argument in the other direction.  I think

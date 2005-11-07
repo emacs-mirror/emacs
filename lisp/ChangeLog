@@ -1,3 +1,769 @@
+2005-11-06  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/compile.el (compilation-internal-error-properties):
+	save-excursion around the computation of MARKER.
+
+2005-11-06  Piet van Oostrum  <piet@cs.uu.nl>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	flyspell-get-word returns a list, not just a string.
+
+2005-11-06  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuffer.el (ibuffer): Search all visible frames when getting
+	Ibuffer buffer's window.
+
+2005-11-07  Masatake YAMATO  <jet@gyve.org>
+
+	* man.el (Man-reference-regexp): Accpet spaces between 
+	`Man-name-regexp' and `Man-section-regexp'.
+	(Man-apropos-regexp): New variable.
+	(Man-abstract-xref-man-page): Use value for `Man-target-string'
+	if available.
+	(Man-highlight-references, Man-highlight-references0): Handle 
+	the case when `Man-arguments' includes "-k".
+	(Man-highlight-references0): Rename the argument `TARGET-POS' to 
+	`TARGET'. `TARGET' can be a number, function or nil.
+
+2005-11-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler, gdb-var-delete)
+	(gdb-edit-value, gdb-speedbar-expand-node, gdb-get-create-buffer)
+	(gdb-breakpoints-mode, gdb-toggle-breakpoint, gdb-delete-breakpoint)
+	(gdb-goto-breakpoint, gdb-frames-mode, gdb-registers-mode)
+	(gdb-locals-mode, gdb-find-file-hook): Use buffer-local-value.
+	(gdb-send-item): Use buffer-local-value and simplify.
+
+2005-11-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	`global-font-lock-mode'.
+
+	* font-core.el (global-font-lock-mode): Enable `global-font-lock-mode'
+	by default, except in batch mode or when the -D option is given.
+
+	* emacs-lisp/easy-mmode.el (define-global-minor-mode): Pass all
+	specified keyword args on to `define-minor-mode'.  Update docstring.
+
+2005-11-05  Romain Francoise  <romain@orebokech.com>
+
+	* replace.el (occur-engine): Add marker at end of line, too.
+
+2005-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el: Don't deal with font-lock-face-attributes here,
+	move the code ...
+
+	* startup.el (command-line): ... here. Use face-spec-set instead
+	of custom-declare-face.
+
+	* faces.el (face-spec-set): Reset the face if spec is not nil.
+
+2005-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-region-internal): Box more tightly in the
+	common case where there's no TAB in the boxed text.
+
+2005-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* info.el (info-tool-bar-map): Use images prev-node, next-node and
+	up-node.
+
+2005-11-04  Ulf Jasper  <ulf.jasper@web.de>
+
+	* newsticker.el: Commentary updated. Code formatting changed.
+	(newsticker-version): Change to "1.9".
+	(newsticker, newsticker-feed): Doc fix.
+	(newsticker-url-list): Doc fix.  Add option "Weekly".
+	(newsticker-retrieval-interval): Add option "Weekly".
+	(newsticker-headline-processing): Doc fix.
+	(newsticker-auto-mark-filter): Remove.
+	(newsticker-auto-mark-filter-list): New.
+	(newsticker-layout, newsticker-sort-method): Doc fix.
+	(newsticker-hide-old-items-in-newsticker-buffer)
+	(newsticker-heading-format, newsticker-item-format)
+	(newsticker-desc-format): Doc fix.
+	(newsticker-show-all-rss-elements): Remove.
+	(newsticker-show-all-news-elements): New.
+	(newsticker-faces, newsticker-ticker): Doc fix.
+	(remove-from-invisibility-spec): Code formatting.
+	(newsticker--process-ids): New.
+	(newsticker-mode): Doc fix.
+	(newsticker-mode): Change mode-line-format.
+	(newsticker-start): Remove debug output.
+	(newsticker-start-ticker): Doc fix.  Add Autoload cookie.
+	(newsticker-w3m-show-inline-images): Code formatting.
+	(newsticker-next-item): Call `force-mode-line-update'.
+	(newsticker-previous-item): Call `force-mode-line-update'.
+	(newsticker-next-feed): Call `force-mode-line-update'.
+	(newsticker-previous-feed): Call `force-mode-line-update'.
+	(newsticker-mark-all-items-at-point-as-read): Code formatting.
+	(newsticker-show-old-items): Do not show descs.
+	(newsticker-hide-entry): Hide too much.
+	(newsticker-hide-entry, newsticker-show-entry)
+	(newsticker-toggle-auto-narrow-to-feed): Code formatting.
+	(newsticker-set-auto-narrow-to-feed): Update buffer immediately.
+	(newsticker-toggle-auto-narrow-to-item): Code formatting.
+	(newsticker-set-auto-narrow-to-item): Update buffer immediately.
+	(newsticker-running-p, newsticker-ticker-running-p): Autoload cookie.
+	(newsticker-get-news): Call `force-mode-line-update'.
+	Collect process ids.
+	(newsticker--sentinel): Change coding system handling.
+	Move image retrieval to new functions newsticker--get-logo-url-*.
+	Move feed parsing to new functions newsticker--parse-*.
+	Update list of process ids.
+	(newsticker--get-logo-url-atom-1.0, newsticker--get-logo-url-atom-0.3)
+	(newsticker--get-logo-url-rss-2.0, newsticker--get-logo-url-rss-1.0)
+	(newsticker--get-logo-url-rss-0.92, newsticker--get-logo-url-rss-0.91)
+	(newsticker--parse-atom-0.3, newsticker--parse-atom-1.0)
+	(newsticker--parse-rss-0.91, newsticker--parse-rss-0.92)
+	(newsticker--parse-rss-1.0, newsticker--parse-rss-2.0)
+	(newsticker--parse-generic-feed, newsticker--parse-generic-items): New.
+	(newsticker--decode-coding-string): Remove.
+	(newsticker--decode-numeric-entities): Check input.  Format code.
+	(newsticker--remove-whitespace): Check input.
+	(newsticker--do-forget-preformatted): Doc fix.
+	(newsticker--decode-rfc822-date): Allow for missing time.
+	(newsticker--update-process-ids): New.
+	(newsticker--image-sentinel): Change comment.
+	(newsticker--image-read): Change error message.
+	(newsticker--imenu-goto): Doc fix.  Show headline title.
+	(newsticker--buffer-set-uptodate): Call `force-mode-line-update'.
+	(newsticker--buffer-do-insert-text): Clean whitespace in
+	html-rendered headline title.  Code formatting.
+	Call `newsticker--buffer-print-extra-elements'.
+	(newsticker--buffer-print-extra-element): Remove.
+	(newsticker--buffer-print-extra-elements): New.
+	(newsticker--buffer-do-print-extra-element): New.
+	(newsticker--buffer-insert-enclosure): Doc fix.  Use MBytes for
+	large sizes.
+	(newsticker--run-auto-mark-filter)
+	(newsticker--do-run-auto-mark-filter):
+	Use `newsticker-auto-mark-filter-list'.
+
+2005-11-04  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el: Use split-string OMIT-NULLS argument.
+	(rcirc-print): Force redisplay before running hooks.  Do long
+	buffer truncation after making new text read-only.  Deal with nil
+	text when decoding strings.  If TARGET is nil, use either the
+	currently selected buffer, if it is an rcirc buffer and of the
+	same process or the process buffer.
+	(rcirc-mode): Remove header-line.  Recompute short buffer names.
+	Initialize rcirc-buffer-alist here instead of rcirc-get-buffer-create.
+	(rcirc-short-buffer-name): Add variable.
+	(rcirc-kill-buffer-hook): Recompute short buffer names.
+	Remove nick from private channel.
+	(rcirc-send-input): Send command text to current-buffer.
+	Don't clear overlay arrow here.
+	(rcirc-short-buffer-name): Return a short buffer name.
+	(rcirc-update-short-buffer-names, rcirc-abbreviate)
+	(rcirc-rebuild-tree, rcirc-make-trees): Add functions to generate
+	buffer-name abbreviations.
+	(rcirc-kill-buffer-hook-1): Split to make debugging easier.
+	Do not touch nick-table when killing a parted channel.
+	(rcirc-window-configuration-change): Rename from rcirc-update-activity.
+	Clear arrow from current buffer if it is now hidden.
+	(rcirc-current-buffer): Add variable.
+	(rcirc-my-nick, rcirc-other-nick, rcirc-server)
+	(rcirc-nick-in-message, rcirc-prompt, rcirc-mode-line-nick):
+	Remove -face from names.
+	(rcirc-update-activity-string): Print "DND" when globally ignoring
+	activity.
+	(rcirc-ignore-buffer-activity-flag): Rename from
+	rcirc-ignore-channel-activity.
+	(rcirc-ignore-all-activity-flag): Doc fix.
+	(rcirc-channels): Remove variable.
+	(rcirc-kill-buffer-hook):
+	(rcirc-get-buffer-create): Add nick to private channel.
+	(rcirc-multiline-edit-submit): Remove tabs.
+	(rcirc-put-nick-channel, rcirc-channel-nicks): Look up nicks case
+	folded.
+	(rcirc-remove-nick-channel): Bug fix.
+	(rcirc-toggle-ignore-buffer-activity): Rename from
+	rcirc-toggle-ignore-channel-activity.
+	(rcirc-record-activity): Add buffers to the front of the list.
+	(rcirc-update-activity): Remove killed buffers from list.
+	(rcirc-process-server-response-1): Remove last argument if it is
+	null before calling handler.
+	(rcirc): Add "rcirc" defcustom prefix.
+	(rcirc-prompt): Simplify default prompt.
+	Use custom-initialize-default.
+	(rcirc-private-chats): Remove variable.
+	(rcirc-prompt): Change initialization.
+	(rcirc-version): Remove function.
+	(rcirc-id-string): Add constant.
+	(rcirc-last-buffer): Remove variable.
+	(rcirc-buffer-alist): Add variable.
+	(rcirc-connect): Update variable setup.
+	(rcirc-sentinel, rcirc-update-prompt): Use `rcirc-buffer-alist'.
+	(rcirc-trap-errors-flag): Rename from `rcirc-trap-errors' change
+	default.
+	(rcirc-handler-generic): Trigger activity.
+	(rcirc-send-message): Create the buffor of the target.
+	(rcirc-generate-new-buffer-name): Rename from `rcirc-get-buffer-name'.
+	(rcirc-get-buffer): Just return nil if there is no matching buffer.
+	(rcirc-multiline-edit-cancel): Remove function.
+	(rcirc-set-last-buffer): Remove function.
+	(rcirc-get-any-buffer): Add function.
+	(rcirc-join-channels): Don't print /join text.
+	(rcirc-toggle-ignore-channel-activity): Add and update echo area
+	messages.
+	(rcirc-cmd-ctcp): Use rcirc-send-string to send request.
+	(rcirc-handler-NOTICE): Recognize CTCP responses.
+	(rcirc-handler-332, rcirc-handler-332): Use a temp buffer for
+	constructing TOPIC string for buffers we are not JOINed.
+	(rcirc-handler-CTCP-response): Add handler.
+	(rcirc-multiline-edit-submit): Restore the window-configuration
+	before adjusting point.
+	(rcirc): Add customization group.
+	(rcirc-server, rcirc-port, rcirc-nick, rcirc-user-name)
+	(rcirc-user-full-name, rcirc-startup-channels-alist)
+	(rcirc-fill-flag, rcirc-fill-column, rcirc-fill-prefix)
+	(rcirc-ignore-all-activity-flag, rcirc-time-format)
+	(rcirc-input-ring-size, rcirc-read-only-flag)
+	(rcirc-buffer-maximum-lines, rcirc-authinfo-file-name)
+	(rcirc-auto-authenticate-flag, rcirc-prompt, rcirc-print-hooks):
+	Change defvar to defcustom.
+	(rcirc-update-prompt): Add optional ALL arg, which will update
+	prompts in all rcirc buffers.  Regexp quote replacement text.
+	(rcirc-fill-column): Accept 'frame-width as a value.
+	(rcirc-set-changed): Add function.
+	(rcirc-next-active-buffer): Write more meaningful messages.
+	(rcirc-faces): Add customization group.
+	(rcirc-my-nick-face, rcirc-other-nick-face, rcirc-server-face)
+	(rcirc-nick-in-message-face, rcirc-prompt-face)
+	(rcirc-mode-line-nick-face): Move into rcirc-faces group.
+	(with-rcirc-process-buffer): Move before first usage.
+	(rcirc-debug-buffer): Rename from `rcirc-log-buffer'.
+	(rcirc-debug-flag): Rename from `rcirc-log-p'.
+	(rcirc-debug): Rename from `rcirc-log'.
+	(rcirc-format-response-string): Do not print '-' chars for a
+	NOTICE with no sender.  Simplify output of server responses.
+
+2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
+
+	(rcirc-browse-url-map, rcirc-browse-url-at-point)
+	(rcirc-browse-url-at-mouse, rcirc-mangle-text): Make urls
+	mouse and RET clickable.
+
+2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
+
+	* mail/rmailout.el (rmail-output-to-rmail-file, rmail-output): Doc fix.
+
+2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp-decrypt-region, pgg-pgp-sign-region): Use new name for
+	pgg-add-passphrase-to-cache function.
+
+	* pgg-pgp5.el (pgg-pgp5-encrypt-region, pgg-pgp5-decrypt-region)
+	(pgg-pgp5-encrypt-symmetric-region, pgg-pgp5-encrypt-symmetric)
+	(pgg-pgp5-encrypt, pgg-pgp5-decrypt-region, pgg-pgp5-decrypt)
+	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
+	function.
+
+2005-11-04  Edward O'Connor  <hober0@gmail.com>  (tiny change)
+
+	* net/goto-addr.el (goto-address-url-regexp): Remove `data:' URLs
+	from goto-address-url-regexp.
+
+2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-read-date, org-goto-calendar)
+	(org-recenter-calendar, org-agenda-goto-calendar):
+	Temporarily clear 'calendar-move-hook'.
+
+2005-11-04  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-merge.el (ediff-merge-region-is-non-clash): Return t, if not
+	merging.
+
+	* ediff-util.el (ediff-previous-difference): Don't skip regions that
+	have merge clashes.
+
+2005-11-04  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
+	Undo previous change.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	mouse-wheel-down-event and mouse-wheel-up-event.  Don't call
+	tty-register-default-colors on Mac.
+
+2005-11-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-buffer-type): Remove duplicate declaration.
+	(gdb-buffer-type): Make it automatically buffer local...
+	(gdb-get-create-buffer): ...and set it accordingly.
+	(gdb-frame-gdb-buffer, gdb-display-gdb-buffer): Make these
+	actually work.
+
+2005-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* font-lock.el (font-lock-warning-face): Use the more vivid red1,
+	not red.
+
+2005-11-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gud-watch): Use save-selected-window in
+	case GUD buffer is not visible.
+	(gdb-goto-breakpoint): Try to force display in source buffer.
+	(gdb-frame-gdb-buffer): Copy other similar functions.
+	(gdb-restore-windows): Don't display source if not asked for.
+	(gdb-assembler-buffer-name): Don't capitalise.
+
+2005-11-03  Richard M. Stallman  <rms@gnu.org>
+
+	* wid-edit.el (key-sequence): New widget type.
+
+	* simple.el (set-mark-command-repeat-pop): New variable.
+	(set-mark-command): Only interpret plan C-@ after a pop as a pop
+	if set-mark-command-repeat-pop is true.
+
+	* info.el (Info-fontify-node): Don't display extra "see" if there
+	already is one here.
+
+	* mouse.el: Fix special handling of DEL after dragging a region:
+	(mouse-drag-region-1): Treat mouse-set-region like mouse-set-point.
+	(mouse-region-delete-keys): Add [backspace].
+
+	* mail/feedmail.el: Use insert-buffer-substring, not insert-buffer.
+
+	* textmodes/ispell.el (ispell-command-loop): Change `i' description
+	not to assume it pertains to an affix.
+
+	* textmodes/flyspell.el (flyspell-post-command-hook):
+	Bind deactivate-mark to prevent deactivation.
+
+2005-11-03  Lars Hansen  <larsh@soem.dk>
+
+	* dired-x.el: Add menu bindings for dired-do-find-marked-files,
+	dired-do-relsymlink, dired-flag-extension, dired-mark-extension,
+	dired-mark-omitted, dired-do-relsymlink-regexp, dired-omit-mode.
+
+2005-11-03  Romain Francoise  <romain@orebokech.com>
+
+	* net/eudcb-mab.el: Now part of GNU Emacs.  Update FSF's address.
+	Update copyright years.
+
+2005-11-03  Sam Steingold  <sds@gnu.org>
+
+	* mwheel.el (mouse-wheel-down-event, mouse-wheel-up-event):
+	Use system-type instead of window-system because window-system is not
+	correctly defined during loadup.
+
+2005-11-02  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-syntax-table): Allow xml.el to compile in xemacs.
+	(xml-parse-tag): Join strings separated by a comment properly.
+
+2005-11-02  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/byte-opt.el (byte-optimize-pure-func): Fix last fix.
+
+2005-11-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/byte-opt.el (string-to-syntax): Mark it as pure.
+	(byte-optimize-pure-func): Quote the eval'd value.
+
+	* progmodes/perl-mode.el (perl-font-lock-special-syntactic-constructs):
+	Rename from perl-font-lock-syntactic-face-function.
+	Change the calling convention so it can be used as a font-lock MATCHER.
+	Do the parse-partial-sexp loop outselves.
+	(perl-font-lock-syntactic-keywords): Use it.
+	(perl-mode): Don't set font-lock-syntactic-face-function any more.
+
+2005-11-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-mouse-until): Make it work in the
+	disassembly buffer too.
+	(gdb-exited): Remove overlay arrows when execution has finished.
+	(gdb-info-frames-custom, gdb-info-threads-custom)
+	(gdb-info-registers-custom): Don't add inappropriate text
+	properties if inferior is not active.
+
+2005-11-02  Glenn Morris  <rgm@gnu.org>
+
+	* progmodes/fortran.el (fortran-blink-match):
+	Use `blink-matching-delay'.
+
+2005-11-02  John Mongan <jmongan@mccammon.ucsd.edu>  (tiny change)
+
+	* progmodes/f90.el (f90-match-end): Use `blink-matching-delay'.
+
+2005-11-02  Lars Hansen  <larsh@soem.dk>
+
+	* net/tramp.el (tramp-action-out-of-band): Handle scp message
+	"Permission denied".
+
+2005-11-01  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Pass nil to flyspell-get-word.
+
+2005-11-02  Kim F. Storm  <storm@cua.dk>
+
+	* menu-bar.el (menu-bar-options-menu): Show "Shift Movement (CUA)"
+	item instead of "C-x/C-c/C-v (CUA)" if cua-enable-cua-keys is nil.
+
+2005-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/cal-menu.el (date, event): Don't declare as dynamic-var.
+	(calendar-mouse-holidays, calendar-mouse-view-diary-entries)
+	(calendar-mouse-print-dates): Add optional `event' argument.
+	Update interactive-spec.
+	(calendar-mouse-cal-tex-menu, cal-tex-mouse-filofax):
+	Use `calendar-event-to-date' instead of `event'.
+
+2005-11-02  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/ld-script.el (ld-script-builtins):
+	Add more words: "DATA_SEGMENT_ALIGN", "DATA_SEGMENT_END",
+	"DATA_SEGMENT_RELRO_END", "LENGTH", "ORIGIN", and "SEGMENT_START".
+	(auto-mode-alist): Accept .ld, .lds, ld.in and .lds.in.
+
+2005-11-01  Romain Francoise  <romain@orebokech.com>
+
+	* vc-sccs.el: Update copyright year.
+	* ezimage.el: Likewise.
+
+2005-11-01  KOBAYASHI Yasuhiro <kobayays@otsukakj.co.jp>  (tiny change)
+
+	* info.el (Info-fontify-node): Use `string-width' for fontifying
+	underlined titles.
+
+2005-11-01  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-fontify-node): Downcase node header keywords Node,
+	Prev, Next, Up before comparison.
+	(Info-history): Insert absolute directory name, and put invisible
+	property on it.
+
+2005-11-01  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-file-supports-index-cookies): New variable.
+	(Info-find-node-2): Check makeinfo version for index cookie support.
+	(Info-index-nodes): Search for nodes with index cookies only when
+	Info-file-supports-index-cookies is t.  Otherwise, search nodes
+	with "Index" in the node name.
+	(Info-index-node): Search index cookie in the current node only when
+	Info-file-supports-index-cookies is t.  Otherwise, check the word
+	"Index" in the node name.
+	(Info-find-emacs-command-nodes): Remove code that searches nodes
+	with "Index" node name in the top menu.
+
+2005-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/scheme.el (scheme-mode-variables): Use the default
+	comment-indent-function.
+
+	* faces.el (face-attribute): Handle the case where a face inherits from
+	a non-existent face.
+
+	* simple.el (eval-expression-print-format): Use lisp-readable syntax
+	for octal and hexa output, and merge the char into the paren.
+	(kill-new): Use push.
+	(copy-to-buffer): Use with-current-buffer.
+	(completion-setup-function): Move code in loop to remove redundancy.
+	(minibuffer-local-must-match-map): Don't add bindings that duplicate
+	those inherited from minibuffer-local-completion-map.
+
+	* savehist.el (savehist-mode) <defcustom>:
+	Use custom-set-minor-mode if available.
+	(savehist-mode) <defun>: Run the minor mode hook, set the custom state
+	and emit a message if applicable.
+
+2005-11-01  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* savehist.el: Sync up to version 19.
+	(savehist-mode): New minor mode.
+	(savehist-file): Use ~/.emacs.d or ~/.xemacs if available.
+	(savehist-length): Remove (use history-length instead).
+	(savehist-file-modes): Rename from savehist-modes.
+	(savehist-save-hook, savehist-loaded): New vars.
+	(savehist-load): Use savehist-mode.  Try to smooth up transition from
+	old format to new format.
+	(savehist-install): Allow savehist-autosave-interval to be nil.
+	(savehist-save): Run the new hook.  Be more careful to only trim the
+	history variables.
+	(savehist-trim-history): New fun.  Replaces savehist-process-for-saving.
+	(savehist-printable): Print into a buffer rather than char-by-char.
+
+2005-11-01  John Wiegley  <johnw@newartisans.com>
+
+	* iswitchb.el (iswitchb-define-mode-map): Re-enable the
+	toggle-ignore keybinding (C-a).  The author said it had been
+	disabled much earlier due to a possible incompatibility, but after
+	many months of usage I have encountered no problems (and it is a
+	rather useful option, especially for switching to " *temp*").
+
+	* net/eudcb-mab.el (eudc-mab-query-internal): Add backend
+	support for OS/X's AddressBook, by calling out to the open source
+	program "contacts" (installable through Fink).
+
+	* net/eudc.el (eudc-expand-inline): If the
+	`eudc-multiple-match-handling-method' is set to `all', delete the
+	query string before inserting the query result.
+
+	* eshell/em-ls.el (eshell-do-ls): Add no-op support for --dired
+	flag, to prevent Eshell from using the system ls when
+	`eshell-ls-insert-directory' is in used.
+	(eshell-ls-insert-directory): Disable font-lock in directory
+	buffer so that Eshell's own fontification is seen.  This broke
+	recently due to changes in font-lock, so this goes back to version
+	21 behavior.
+
+2005-11-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer): New function.
+	(menu, toggle-gdb-use-inferior-io-buffer): Get rid of defadvice.
+	(gdb-many-windows): Doc fix.
+
+2005-10-31  Romain Francoise  <romain@orebokech.com>
+
+	* help-fns.el (describe-simplify-lib-file-name): Add autoload cookie.
+
+2005-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* loadup.el: Load emacs-lisp/syntax, font-lock and jit-lock so
+	that global-font-lock-mode can be enabled by default.
+
+	* font-lock.el (font-lock-keywords, font-lock-mode-internal)
+	(font-lock-add-keywords, font-lock-remove-keywords)
+	(font-lock-fontify-buffer): Remove autoload cookies.
+
+	* jit-lock.el (jit-lock-register): Likewise.
+
+	* emacs-lisp/syntax.el (syntax-ppss): Likewise.
+
+2005-10-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-many-windows): Leave window configuration
+	intact if there is no gud-comint-buffer.
+
+2005-10-31  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/gud.el (gud-filter): Use comint-update-fence to delete
+	old prompt comint-prompt-read-only is t and GDB commands are
+	issued from tool bar etc.
+
+2005-10-31  Masatake YAMATO  <jet@gyve.org>
+
+	* vc.el (vc-directory-exclusion-list): Add "{arch}".
+
+2005-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* thumbs.el (thumbs-thumbsdir): Default to ~/.emacs.d/thumbs.
+	(thumbs-thumbsdir): Make .emacs.d if it does not exist.
+
+2005-10-30  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp.el (tramp-chunksize): Escape parentheses in docstring
+	starting at beginning of line.  Fontification is messed up when
+	`open-paren-in-column-0-is-defun-start' set to t.
+	Reported by John Paul Wallington <jpw@pobox.com>.
+
+2005-10-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-send-input): Call `comint-update-fence' when
+	`comint-process-echoes' and `comint-prompt-read-only' are both
+	non-nil, to avoid leftover read-only newline.
+
+2005-10-30  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Detect when WORD can't be checked properly because
+	flyspell-get-word finds just part of it, and move on.
+
+	* textmodes/ispell.el (ispell-dictionary-alist-5): Add . as
+	boundarychar for Polish.
+	(ispell-dictionary-alist-4): Add . as boundarychar for Italian.
+	(ispell-dictionary-alist-3): Add . and @ as boundarychars for French.
+
+2005-10-31  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-tooltip-print-1): Fix regexp.
+	(gdb-registers-font-lock-keywords): Delete.
+	(gdb-registers-mode): Don't fontify.
+	(gdb-info-registers-custom): Use text properties instead as, in
+	future, changed register values will use font-lock-warning-face.
+	(gdb-local-font-lock-keywords): Rename to...
+	(gdb-locals-font-lock-keywords): ...for consistency.
+
+2005-10-30  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc.el (vc-switch-backend): Better error message if the buffer is
+	not visiting a file under version control.
+
+	* vc-cvs.el (vc-cvs-delete-file): Commit the file after removing it.
+
+2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* startup.el (command-line): Use ~/.emacs.d/init.el instead of
+	~/.emacs.d/.emacs.
+
+2005-10-29  Richard M. Stallman  <rms@gnu.org>
+
+	* replace.el (occur-mode-mouse-goto): Always go to other window.
+	(occur-mode-goto-occurrence): Always switch in same window.
+
+	* simple.el (undo): Display message at end, not at start.
+
+	* emacs-lisp/timer.el (timer-activate, timer-activate-when-idle):
+	New arg REUSE-CELL.
+	(cancel-timer-internal): New function.
+	(timer-event-handler): Use cancel-timer-internal,
+	and pass the cell it returns to timer-activate...
+
+	* jit-lock.el (jit-lock-function, jit-lock-stealth-fontify)
+	(jit-lock-deferred-fontify, jit-lock-context-fontify)
+	(jit-lock-after-change): Test memory-full.
+
+2005-10-29  Roland Winkler  <roland.winkler@physik.uni-erlangen.de>
+
+	* textmodes/conf-mode.el (conf-assignment-sign)
+	(conf-assignment-regexp): Fix docstrings.
+	(conf-mode-initialize): New function.
+	(conf-mode): Remove optional args.  Use delay-mode-hooks to
+	recognize recursive calls.
+	(conf-unix-mode, conf-windows-mode, conf-javaprop-mode)
+	(conf-space-mode, conf-colon-mode, conf-ppd-mode)
+	(conf-xdefaults-mode): Use define-derived-mode and
+	conf-mode-initialize.
+
+2005-10-29  Romain Francoise  <romain@orebokech.com>
+
+	* help-fns.el (describe-simplify-lib-file-name): Fix regexp.
+
+2005-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-gpg.el (pgg-gpg-select-matching-key): Fix: look at the right
+	part of the decoded armor to find the key-identifier.
+	(pgg-gpg-lookup-key-owner): New function to return the
+	human-readable identifier of a key owner.
+	(pgg-gpg-lookup-id-from-key-owner): Make it easy to identify the
+	key itself.
+	(pgg-gpg-decrypt-region): Prompt with the key owner (rather than
+	the key value) if we have a key and can match it against a secret
+	key.  Also, added a note pointing out fact that the prompt only
+	indicates the first matching key.
+
+	* pgg.el (pgg-decrypt): Passing along 'passphrase' in call to
+	pgg-decrypt-region.
+	(pgg-pending-timers): A new hash for tracking the passphrase cache
+	timers, so that new ones supercede old ones.
+	(pgg-add-passphrase-to-cache): Rename from
+	`pgg-add-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when new ones are added.
+	(pgg-remove-passphrase-from-cache): Rename from
+	`pgg-remove-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when their keys are
+	removed from the cache.
+	(pgg-cancel-timer): In Emacs, an alias for cancel-timer; in
+	XEmacs, an indirection to delete-itimer.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase):
+	Extract pgg-read-passphrase-from-cache from pgg-read-passphrase so
+	users can only check cache without risk of prompting.  Correct bug in
+	notruncate behavior.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase)
+	(pgg-add-passphrase-cache, pgg-remove-passphrase-cache):
+	Add informative docstrings.
+	(pgg-decrypt): Convey provided passphrase in subordinate call to
+	pgg-decrypt-region.
+
+2005-10-20  Ken Manheimer <ken.manheimer+emacs@gmail.com>
+
+	* pgg.el (pgg-encrypt-region, pgg-encrypt-symmetric-region)
+	(pgg-encrypt-symmetric, pgg-encrypt, pgg-decrypt-region)
+	(pgg-decrypt, pgg-sign-region, pgg-sign): Add optional
+	'passphrase' argument, so the passphrase can be managed externally
+	and then passed in to the system.
+
+	* pgg.el (pgg-read-passphrase, pgg-add-passphrase-cache)
+	(pgg-remove-passphrase-cache): Add optional 'notruncate' argument,
+	so the passphrase cache can be used reliably with identifiers
+	besides a pgp packet's key id.
+
+	* pgg-gpg.el (pgg-pgp-encrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+
+	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Add optional
+	'notruncate' argument, so the passphrase cache can be used
+	reliably with identifiers besides a pgp packet's key id.
+
+2005-10-29  Sascha Wilde  <swilde@sha-bang.de>
+
+	* pgg-gpg.el (pgg-gpg-encrypt-symmetric-region): New function for
+	symmetric encryption.
+	(pgg-gpg-symmetric-key-p): New function to check for an symmetric
+	encrypted session key.
+	(pgg-gpg-decrypt-region): When decrypting a symmetric encrypted
+	message ask for the passphrase in a proper way.
+
+	* pgg.el (pgg-encrypt-symmetric, pgg-encrypt-symmetric-region):
+	New user commands for symmetric encryption.
+
+2005-10-28  Bill Wohler  <wohler@newt.com>
+
+	* help-mode.el (help-url): New button type. Calls browse-url.
+	(help-xref-url-regexp): New regexp to recognize URLs in docstring.
+	Similar to Info nodes: URL `url'.
+	(help-make-xrefs): Create help-url buttons for
+	help-xref-url-regexp matches.
+
+2005-10-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tool-bar.el (tool-bar-add-item-from-menu)
+	(tool-bar-local-item-from-menu): Fix doc strings.
+
+2005-10-28  Romain Francoise  <romain@orebokech.com>
+
+	* ldefs-boot.el: Update.
+
+	* subr.el (locate-library): Move from help-fns.el.
+	* help-fns.el (locate-library): Move to subr.el.
+
+2005-10-28  Richard M. Stallman  <rms@gnu.org>
+
+	* net/tramp.el (tramp-completion-mode): defvar moved up.
+
+	* emacs-lisp/easymenu.el (easy-menu-change): Doc fix.
+
+	* tool-bar.el (tool-bar-mode): Delete autoload cookie.
+
+	* files.el (find-file-noselect): Use %d to format large file size.
+
+	* bindings.el (mode-line-format): Add %e.
+
+	* loadup.el ("facemenu"): Load unconditionally.
+	("image", "international/fontset", "dnd", "mwheel", "tool-bar"):
+	("x-dnd"): Load, when appropriate.
+
+	* startup.el (command-line): Call before-init-hook earlier.
+	Warn about some bad characters in -u user name.
+
+	* textmodes/flyspell.el (flyspell-large-region): Pass -t if Tex file.
+	(flyspell-external-point-words): Error if misspelled word is not found.
+	Set flyspell-large-region-beg at end of word.
+
+2005-10-28  Andreas Schwab  <schwab@suse.de>
+
+	* view.el (View-revert-buffer-scroll-page-forward):
+	Use view-page-size-default.
+
 2005-10-28  Juri Linkov  <juri@jurta.org>
 
 	* international/quail.el (quail-get-current-str): Translate last
@@ -90,8 +856,7 @@
 
 2005-10-25  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* net/browse-url.el (browse-url-of-buffer): Add ".html" to
-	filename.
+	* net/browse-url.el (browse-url-of-buffer): Add ".html" to filename.
 
 2005-10-25  Masatake YAMATO  <jet@gyve.org>
 

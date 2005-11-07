@@ -1644,8 +1644,7 @@ already has a default value, that value remains unchanged.
 If the variable is terminal-local, this function signals an error,
 because such variables cannot have frame-local bindings as well.
 @xref{Multiple Displays}.  A few variables that are implemented
-specially in Emacs can be (and usually are) buffer-local, but can never
-be frame-local.
+specially in Emacs can be buffer-local, but can never be frame-local.
 
 This command returns @var{variable}.
 @end deffn

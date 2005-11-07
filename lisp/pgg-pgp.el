@@ -132,41 +132,57 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 		 (buffer-substring (point)(progn (end-of-line) (point)))))
 	 2))))))
 
-(defun pgg-pgp-encrypt-region (start end recipients)
+(defun pgg-pgp-encrypt-region (start end recipients &optional sign passphrase)
   "Encrypt the current region between START and END."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
+	 (passphrase (or passphrase
+                         (when sign
+                           (pgg-read-passphrase
+                            (format "PGP passphrase for %s: "
+                                    pgg-pgp-user-id)
+                            pgg-pgp-user-id))))
 	 (args
-	  `("+encrypttoself=off +verbose=1" "+batchmode"
-	    "+language=us" "-fate"
-	    ,@(if recipients
-		  (mapcar (lambda (rcpt) (concat "\"" rcpt "\""))
-			  (append recipients
-				  (if pgg-encrypt-for-me
-				      (list pgg-pgp-user-id))))))))
+          (append
+           `("+encrypttoself=off +verbose=1" "+batchmode"
+             "+language=us" "-fate"
+             ,@(if recipients
+                   (mapcar (lambda (rcpt) (concat "\"" rcpt "\""))
+                           (append recipients
+                                   (if pgg-encrypt-for-me
+                                       (list pgg-pgp-user-id))))))
+           (if sign '("-s" "-u" pgg-pgp-user-id)))))
     (pgg-pgp-process-region start end nil pgg-pgp-program args)
     (pgg-process-when-success nil)))
 
-(defun pgg-pgp-decrypt-region (start end)
-  "Decrypt the current region between START and END."
+(defun pgg-pgp-decrypt-region (start end &optional passphrase)
+  "Decrypt the current region between START and END.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
 	 (key (pgg-pgp-lookup-key pgg-pgp-user-id 'encrypt))
 	 (passphrase
-	  (pgg-read-passphrase
-	   (format "PGP passphrase for %s: " pgg-pgp-user-id) key))
+          (or passphrase
+              (pgg-read-passphrase
+               (format "PGP passphrase for %s: " pgg-pgp-user-id) key)))
 	 (args
-	  '("+verbose=1" "+batchmode" "+language=us" "-f")))
+          '("+verbose=1" "+batchmode" "+language=us" "-f")))
     (pgg-pgp-process-region start end passphrase pgg-pgp-program args)
     (pgg-process-when-success
       (if pgg-cache-passphrase
-	  (pgg-add-passphrase-cache key passphrase)))))
+	  (pgg-add-passphrase-to-cache key passphrase)))))
 
-(defun pgg-pgp-sign-region (start end &optional clearsign)
-  "Make detached signature from text between START and END."
+(defun pgg-pgp-sign-region (start end &optional clearsign passphrase)
+  "Make detached signature from text between START and END.
+
+If optional PASSPHRASE is not specified, it will be obtained from the
+passphrase cache or user."
   (let* ((pgg-pgp-user-id (or pgg-pgp-user-id pgg-default-user-id))
 	 (passphrase
-	  (pgg-read-passphrase
-	   (format "PGP passphrase for %s: " pgg-pgp-user-id)
-	   (pgg-pgp-lookup-key pgg-pgp-user-id 'sign)))
+          (or passphrase
+              (pgg-read-passphrase
+               (format "PGP passphrase for %s: " pgg-pgp-user-id)
+               (pgg-pgp-lookup-key pgg-pgp-user-id 'sign))))
 	 (args
 	  (list (if clearsign "-fast" "-fbast")
 		"+verbose=1" "+language=us" "+batchmode"
@@ -181,7 +197,7 @@ Bourne shell or its equivalent \(not tcsh) is needed for \"2>\"."
 				    (point))
 			     (point-max))))))
 	  (if pgg-cache-passphrase
-	      (pgg-add-passphrase-cache
+	      (pgg-add-passphrase-to-cache
 	       (cdr (assq 'key-identifier packet))
 	       passphrase)))))))
 

@@ -1,7 +1,51 @@
+2005-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* images/copy.xpm, images/copy.pbm, images/low-color/copy.xpm
+	* images/save.xpm, images/save.pbm, images/low-color/save.xpm:
+	Adjust baseline.
+	
+2005-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* images/up-node.xpm, images/prev-node.xpm, images/next-node.xpm
+	* images/up-node.pbm, images/prev-node.pbm, images/next-node.pbm
+	* images/low-color/up-node.xpm, images/low-color/prev-node.xpm
+	* images/low-color/next-node.xpm: Adjust paper size and layout.
+
+2005-11-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* DEBUG: Describe how to provide preprocessor macro information.
+
+2005-11-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* images/up-node.xpm, images/prev-node.xpm, images/next-node.xpm
+	* images/up-node.pbm, images/prev-node.pbm, images/next-node.pbm
+	* images/low-color/up-node.xpm, images/low-color/prev-node.xpm
+	* images/low-color/next-node.xpm: New images.
+
+2005-11-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* orgcard.tex (section{Notes}): Version number change.
+
+2005-11-03  Romain Francoise  <romain@orebokech.com>
+
+	* orgcard.tex: Update FSF's address.
+
+2005-11-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* DEBUG: GDB can sometimes expand macros.
+
+2005-11-01  Romain Francoise  <romain@orebokech.com>
+
+	* NEWS: Source files are compressed by default.
+
+2005-10-28  Bill Wohler  <wohler@newt.com>
+
+	* NEWS: Help mode now creates hyperlinks for URLs.
+
 2005-10-27  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* e/eterm-color.ti (el1): Undo 2005-10-23 change. 
-	Add some comments on how to update this file. Add ri 
+	* e/eterm-color.ti (el1): Undo 2005-10-23 change.
+	Add some comments on how to update this file. Add ri
 	capability that has long been supported by term.el.
 
 2005-10-25  Nick Roberts  <nickrob@snap.net.nz>

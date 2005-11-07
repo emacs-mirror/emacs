@@ -118,6 +118,9 @@ emacs crash.
 The Emacs terminal emulation in term.el now uses "eterm-color" as its
 terminfo name, since term.el now supports color.
 
+---
+** Emacs Lisp source files are compressed by default if `gzip' is available.
+
 
 * Startup Changes in Emacs 22.1
 
@@ -192,8 +195,9 @@ displays a buffer menu.  This option turns the buffer menu off.
 
 +++
 ** Init file changes
-You can now put the init files .emacs and .emacs_SHELL under
-~/.emacs.d or directly under ~.  Emacs will find them in either place.
+If the init file ~/.emacs does not exist, Emacs will try
+~/.emacs.d/init.el or ~/.emacs.d/init.elc.  You can also put the shell
+init file .emacs_SHELL under ~/.emacs.d.
 
 +++
 ** Emacs now reads the standard abbrevs file ~/.abbrev_defs
@@ -236,8 +240,9 @@ in the region, rather than on all complete lines in the region.
 
 +++
 ** A prefix argument is no longer required to repeat a jump to a
-previous mark, i.e. C-u C-SPC C-SPC C-SPC ... cycles through the
-mark ring.  Use C-u C-u C-SPC to set the mark immediately after a jump.
+previous mark if you set `set-mark-command-repeat-pop' to t.  I.e. C-u
+C-SPC C-SPC C-SPC ... cycles through the mark ring.  Use C-u C-u C-SPC
+to set the mark immediately after a jump.
 
 +++
 ** The info-search bindings on C-h C-f, C-h C-k and C-h C-i
@@ -278,6 +283,14 @@ doublequotes make no difference in the shell, but they prevent
 special treatment in `dired-do-shell-command'.
 
 * Editing Changes in Emacs 22.1
+
++++
+** !MEM FULL! at the start of the mode line indicates that Emacs
+cannot get any more memory for Lisp data.  This often means it could
+crash soon if you do things that use more memory.  On most systems,
+killing buffers will get out of this state.  If killing buffers does
+not make !MEM FULL! disappear, you should save your work and start
+a new Emacs.
 
 +++
 ** The max size of buffers and integers has been doubled.
@@ -468,7 +481,9 @@ hyperlinks for variables without variable documentation, unless
 preceded by one of the words `variable' or `option'.  It now makes
 hyperlinks to Info anchors (or nodes) if the anchor (or node) name is
 enclosed in single quotes and preceded by `info anchor' or `Info
-anchor' (in addition to earlier `info node' and `Info node').
+anchor' (in addition to earlier `info node' and `Info node'). In
+addition, it now makes hyperlinks to URLs as well if the URL is
+enclosed in single quotes and preceded by `URL'.
 
 +++
 *** The new command `describe-char' (C-u C-x =) pops up a buffer with
@@ -1522,7 +1537,7 @@ separate manual.
 
 +++
 ** savehist saves minibuffer histories between sessions.
-To use this feature, put (savehist-load) in your `.emacs' file.
+To use this feature, turn on savehist-mode in your `.emacs' file.
 
 +++
 ** Filesets are collections of files.  You can define a fileset in
@@ -3348,6 +3363,10 @@ the command `undefined'.  (In earlier Emacs versions, it used
 
 ---
 ** Support for Mocklisp has been removed.
+
++++
+** The variable `memory-full' now remains t until
+there is no longer a shortage of memory.
 
 * Lisp Changes in Emacs 22.1
 

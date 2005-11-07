@@ -737,6 +737,8 @@ opening the first frame (e.g. open a connection to an X server).")
     (and command-line-args
          (setcdr command-line-args args)))
 
+  (run-hooks 'before-init-hook)
+
   ;; Under X Window, this creates the X frame and deletes the terminal frame.
   (when (fboundp 'frame-initialize)
     (frame-initialize))
@@ -768,14 +770,18 @@ opening the first frame (e.g. open a connection to an X server).")
   ;; are not set.
   (custom-reevaluate-setting 'blink-cursor-mode)
   (custom-reevaluate-setting 'tooltip-mode)
+  (custom-reevaluate-setting 'global-font-lock-mode)
+  (custom-reevaluate-setting 'mouse-wheel-down-event)
+  (custom-reevaluate-setting 'mouse-wheel-up-event)
 
   (normal-erase-is-backspace-setup-frame)
 
   ;; Register default TTY colors for the case the terminal hasn't a
-  ;; terminal init file.
-  ;; We do this regardles of whether the terminal supports colors
-  ;; or not, since they can switch that support on or off in
-  ;; mid-session by setting the tty-color-mode frame parameter.
+  ;; terminal init file.  We do this regardles of whether the terminal
+  ;; supports colors or not and regardless the current display type,
+  ;; since users can connect to color-capable terminals and also
+  ;; switch color support on or off in mid-session by setting the
+  ;; tty-color-mode frame parameter.
   (tty-register-default-colors)
 
   ;; Record whether the tool-bar is present before the user and site
@@ -794,8 +800,6 @@ opening the first frame (e.g. open a connection to an X server).")
 	(old-font-list-limit font-list-limit)
 	(old-face-ignored-fonts face-ignored-fonts))
 
-    (run-hooks 'before-init-hook)
-
     ;; Run the site-start library if it exists.  The point of this file is
     ;; that it is run before .emacs.  There is no point in doing this after
     ;; .emacs; that is useless.
@@ -807,12 +811,18 @@ opening the first frame (e.g. open a connection to an X server).")
     (setq inhibit-startup-message nil)
 
     ;; Warn for invalid user name.
-    (and init-file-user
-	 (not (file-directory-p (expand-file-name (concat "~" init-file-user))))
-	 (display-warning 'initialization
-			  (format "User %s has no home directory"
-				  init-file-user)
-			  :error))
+    (when init-file-user
+      (if (string-match "[~/:\n]" init-file-user)
+	  (display-warning 'initialization
+			   (format "Invalid user name %s"
+				   init-file-user)
+			   :error)
+	(if (file-directory-p (expand-file-name (concat "~" init-file-user)))
+	    nil
+	  (display-warning 'initialization
+			   (format "User %s has no home directory"
+				   init-file-user)
+			   :error))))
 
     ;; Load that user's init file, or the default one, or none.
     (let (debug-on-error-from-init-file
@@ -850,14 +860,12 @@ opening the first frame (e.g. open a connection to an X server).")
 
 		      (when (eq user-init-file t)
 			;; If we did not find ~/.emacs, try
-			;; ~/.emacs.d/.emacs.
+			;; ~/.emacs.d/init.el.
 			(let ((otherfile
 			       (expand-file-name
-				(file-name-nondirectory user-init-file-1)
+				"init"
 				(file-name-as-directory
-				 (expand-file-name
-				  ".emacs.d"
-				  (file-name-directory user-init-file-1))))))
+				 (concat "~" init-file-user "/.emacs.d")))))
 			  (load otherfile t t)
 
 			  ;; If we did not find the user's init file,
@@ -957,6 +965,38 @@ opening the first frame (e.g. open a connection to an X server).")
 	(setq user-mail-address (concat (user-login-name) "@"
 					(or mail-host-address
 					    (system-name)))))
+
+    ;; Originally face attributes were specified via
+    ;; `font-lock-face-attributes'.  Users then changed the default
+    ;; face attributes by setting that variable.  However, we try and
+    ;; be back-compatible and respect its value if set except for
+    ;; faces where M-x customize has been used to save changes for the
+    ;; face.
+    (when (boundp 'font-lock-face-attributes)
+      (let ((face-attributes font-lock-face-attributes))
+	(while face-attributes
+	  (let* ((face-attribute (pop face-attributes))
+		 (face (car face-attribute)))
+	    ;; Rustle up a `defface' SPEC from a
+	    ;; `font-lock-face-attributes' entry.
+	    (unless (get face 'saved-face)
+	      (let ((foreground (nth 1 face-attribute))
+		    (background (nth 2 face-attribute))
+		    (bold-p (nth 3 face-attribute))
+		    (italic-p (nth 4 face-attribute))
+		    (underline-p (nth 5 face-attribute))
+		    face-spec)
+		(when foreground
+		  (setq face-spec (cons ':foreground (cons foreground face-spec))))
+		(when background
+		  (setq face-spec (cons ':background (cons background face-spec))))
+		(when bold-p
+		  (setq face-spec (append '(:weight bold) face-spec)))
+		(when italic-p
+		  (setq face-spec (append '(:slant italic) face-spec)))
+		(when underline-p
+		  (setq face-spec (append '(:underline t) face-spec)))
+		(face-spec-set face (list (list t face-spec)) nil)))))))
 
     ;; If parameter have been changed in the init file which influence
     ;; face realization, clear the face cache so that new faces will

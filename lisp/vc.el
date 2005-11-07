@@ -547,7 +547,7 @@ These are passed to the checkin program by \\[vc-register]."
   :group 'vc
   :version "20.3")
 
-(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn")
+(defcustom vc-directory-exclusion-list '("SCCS" "RCS" "CVS" "MCVS" ".svn" "{arch}")
   "*List of directory names to be ignored when walking directory trees."
   :type '(repeat string)
   :group 'vc)
@@ -2596,9 +2596,12 @@ By default, this command cycles through the registered backends.
 To get a prompt, use a prefix argument."
   (interactive
    (list
-    buffer-file-name
+    (or buffer-file-name
+        (error "There is no version-controlled file in this buffer"))
     (let ((backend (vc-backend buffer-file-name))
 	  (backends nil))
+      (unless backend
+        (error "File %s is not under version control" buffer-file-name))
       ;; Find the registered backends.
       (dolist (backend vc-handled-backends)
 	(when (vc-call-backend backend 'registered buffer-file-name)

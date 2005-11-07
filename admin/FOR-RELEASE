@@ -27,8 +27,6 @@ face name prefixes should be in it for good results.
 
 * NEW FEATURES
 
-** Change .emacs.d/.emacs to .emacs.d/emacs.
-
 ** Rework how fringe bitmaps are defined and used.
 Currently, bitmap usage and bitmap appearence are "mixed-up" in a
 one-level representation.  It would be cleaner to split the
@@ -46,7 +44,11 @@ invalid pointer from string_free_list.
 
 * BUGS
 
-** VC bug report from Peter Milliken on Sep 21 (emacs-pretest-bug).
+** Make where-is-internal detect when a key is shadowed by a shorter
+prefix key that prevents you from entering it.
+
+** Clean up the confusion about what `unspecified' means
+in the face defaults for new frames.
 
 ** TCP server processes do not work on Windows.
 
@@ -57,7 +59,7 @@ Seems to be a problem in sys_select in w32proc.c.
 
 * DOCUMENTATION
 
-** Update man/info.texi.
+** Check man/info.texi.
 
 ** Add missing years in copyright notices of all files.
 

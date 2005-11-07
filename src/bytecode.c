@@ -861,11 +861,11 @@ If the third argument is incorrect, Emacs may crash.  */)
 
 	case Bcondition_case:
 	  {
-	    Lisp_Object v1;
-	    v1 = POP;
-	    v1 = Fcons (POP, v1);
+	    Lisp_Object handlers, body;
+	    handlers = POP;
+	    body = POP;
 	    BEFORE_POTENTIAL_GC ();
-	    TOP = Fcondition_case (Fcons (TOP, v1));
+	    TOP = internal_lisp_condition_case (TOP, body, handlers);
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }

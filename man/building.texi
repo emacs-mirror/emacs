@@ -758,10 +758,10 @@ without needing to know GDB commands.  For example, you can click
 @kbd{Mouse-1} in the fringe or display margin of a source buffer to
 set a breakpoint there and, on a graphical display, a red bullet will
 appear.  If a breakpoint already exists on that line, this action will
-remove it (@code{gdb-mouse-set-clear-breakpoint}).  You can also
-enable or disable a breakpoint by clicking @kbd{Mouse-3} on the
-bullet.  If you drag the debugger arrow in the fringe with
-@kbd{Mouse-1}, execution will continue to where you release the button
+remove it.  You can also enable or disable a breakpoint by clicking
+@kbd{Mouse-3} on the bullet.  If you drag the debugger arrow in the
+fringe with @kbd{Mouse-1}, execution will continue to the line where
+you release the button, provided it is still in the same frame
 (@code{gdb-mouse-until}).  Alternatively, you can click @kbd{Mouse-2}
 at some point in the fringe of this buffer and execution will advance
 to there.
@@ -936,8 +936,11 @@ statements, the default value is @code{nil}.
 @vindex gdb-use-inferior-io-buffer
 If the variable @code{gdb-use-inferior-io-buffer} is non-@code{nil},
 the executable program that is being debugged takes its input and
-displays its output here.  Some of the commands from shell mode are
-available here.  @xref{Shell Mode}.
+displays its output here, otherwise it uses the GUD buffer.  To toggle
+the use of this buffer, do @kbd{M-x gdb-use-inferior-io-buffer}.
+
+Some of the commands from shell mode are available here.  @xref{Shell
+Mode}.
 
 @item Locals Buffer
 The locals buffer displays the values of local variables of the

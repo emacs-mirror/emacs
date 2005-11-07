@@ -134,10 +134,11 @@
 (load "frame")
 (load "term/tty-colors")
 (load "font-core")
+(load "emacs-lisp/syntax")
+(load "font-lock")
+(load "jit-lock")
 
-(if (fboundp 'frame-face-alist)
-    (progn
-      (load "facemenu")))
+(load "facemenu")
 (if (fboundp 'track-mouse)
     (progn
       (load "mouse")
@@ -166,6 +167,19 @@
 (load "abbrev")
 (load "buff-menu")
 (load "server") ; server-getenv is used throughout the terminal initialization code
+
+(if (fboundp 'x-create-frame)
+    (progn
+      (load "image")
+      (load "international/fontset")
+      (load "dnd")
+      (load "mwheel")
+      (load "tool-bar")
+      (load "term/x-win")))
+(if (featurep 'x)
+    (load "x-dnd"))
+(message "%s" (garbage-collect))
+
 (if (eq system-type 'vax-vms)
     (progn
       (load "vms-patch")))
@@ -193,20 +207,11 @@
       (load "emacs-lisp/float-sup")))
 (message "%s" (garbage-collect))
 
-;; Load auxiliary settings for X displays if we support them.
-(when (fboundp 'x-create-frame)
-  (load "mouse")
-  (load "international/fontset")
-  (load "dnd")
-  (load "x-dnd")
-  (load "term/x-win"))
-
-(message "%s" (garbage-collect))
-
 (load "vc-hooks")
 (load "jka-cmpr-hook")
 (load "ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))
+
 (message "%s" (garbage-collect))
 
 ;If you want additional libraries to be preloaded and their

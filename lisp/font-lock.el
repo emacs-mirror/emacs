@@ -340,7 +340,6 @@ This can be an \"!\" or the \"n\" in \"ifndef\".")
 
 ;; Fontification variables:
 
-;;;###autoload
 (defvar font-lock-keywords nil
   "A list of the keywords to highlight.
 There are two kinds of values: user-level, and compiled.
@@ -630,7 +629,6 @@ Major/minor modes can set this variable if they know which option applies.")
   ;; Shut up the byte compiler.
   (defvar font-lock-face-attributes))	; Obsolete but respected if set.
 
-;;;###autoload
 (defun font-lock-mode-internal (arg)
   ;; Turn on Font Lock mode.
   (when arg
@@ -652,7 +650,6 @@ Major/minor modes can set this variable if they know which option applies.")
     (font-lock-unfontify-buffer)
     (font-lock-turn-off-thing-lock)))
 
-;;;###autoload
 (defun font-lock-add-keywords (mode keywords &optional append)
   "Add highlighting KEYWORDS for MODE.
 
@@ -771,7 +768,6 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 ;;      is added and removed several times.
 ;;
 ;; (II) The keywords are removed from the current buffer.
-;;;###autoload
 (defun font-lock-remove-keywords (mode keywords)
   "Remove highlighting KEYWORDS for MODE.
 
@@ -981,7 +977,6 @@ The value of this variable is used when Font Lock mode is turned on."
 ;; directives correctly and cleanly.  (It is the same problem as fontifying
 ;; multi-line strings and comments; regexps are not appropriate for the job.)
 
-;;;###autoload
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way the function `font-lock-mode' would."
   (interactive)
@@ -1651,37 +1646,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 
 ;;; Colour etc. support.
 
-;; Originally face attributes were specified via `font-lock-face-attributes'.
-;; Users then changed the default face attributes by setting that variable.
-;; However, we try and be back-compatible and respect its value if set except
-;; for faces where M-x customize has been used to save changes for the face.
-(when (boundp 'font-lock-face-attributes)
-  (let ((face-attributes font-lock-face-attributes))
-    (while face-attributes
-      (let* ((face-attribute (pop face-attributes))
-	     (face (car face-attribute)))
-	;; Rustle up a `defface' SPEC from a `font-lock-face-attributes' entry.
-	(unless (get face 'saved-face)
-	  (let ((foreground (nth 1 face-attribute))
-		(background (nth 2 face-attribute))
-		(bold-p (nth 3 face-attribute))
-		(italic-p (nth 4 face-attribute))
-		(underline-p (nth 5 face-attribute))
-		face-spec)
-	    (when foreground
-	      (setq face-spec (cons ':foreground (cons foreground face-spec))))
-	    (when background
-	      (setq face-spec (cons ':background (cons background face-spec))))
-	    (when bold-p
-	      (setq face-spec (append '(:weight bold) face-spec)))
-	    (when italic-p
-	      (setq face-spec (append '(:slant italic) face-spec)))
-	    (when underline-p
-	      (setq face-spec (append '(:underline t) face-spec)))
-	    (custom-declare-face face (list (list t face-spec)) nil)))))))
-
-;; But now we do it the custom way.  Note that `defface' will not overwrite any
-;; faces declared above via `custom-declare-face'.
+;; Note that `defface' will not overwrite any faces declared above via
+;; `custom-declare-face'.
 (defface font-lock-comment-face
   '((((class grayscale) (background light))
      (:foreground "DimGray" :weight bold :slant italic))
@@ -1808,7 +1774,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 (defface font-lock-warning-face
   '((((class color) (min-colors 88) (background light)) (:foreground "Red1" :weight bold))
     (((class color) (min-colors 88) (background dark)) (:foreground "Pink" :weight bold))
-    (((class color) (min-colors 16) (background light)) (:foreground "Red" :weight bold))
+    (((class color) (min-colors 16) (background light)) (:foreground "Red1" :weight bold))
     (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))
     (((class color) (min-colors 8)) (:foreground "red"))
     (t (:inverse-video t :weight bold)))

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.18
+;; Version: 3.19
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -80,6 +80,9 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.19
+;;    - Bug fixes
+;;
 ;; Version 3.18
 ;;    - Export of calendar information in the standard iCalendar format.
 ;;    - Some bug fixes.
@@ -217,7 +220,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.18"
+(defvar org-version "3.19"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -781,7 +784,7 @@ as possible."
 (defcustom org-level-color-stars-only nil
   "Non-nil means fontify only the stars in each headline.
 When nil, the entire headline is fontified.
-After changing this, requires restart of Emacs to become effective."
+After changin this, requires restart of Emacs to become effective."
   :group 'org-structure
   :type 'boolean)
 
@@ -2865,7 +2868,7 @@ At all other locations, this simply calls `ispell-complete-word'."
 	     (message "Making completion list...")
 	     (let ((list (sort (all-completions pattern table) 'string<)))
 	       (with-output-to-temp-buffer "*Completions*"
-		 (display-completion-list list pattern)))
+		 (display-completion-list list)))
 	     (message "Making completion list...%s" "done"))))))
 
 ;;; Comments, TODO and DEADLINE
@@ -3189,6 +3192,8 @@ used to insert the time stamp into the buffer to include the time."
 		(mapcar (lambda(x) (or x 0))  ;; FIXME: Problem with timezone?
 			(parse-time-string (match-string 1))))
 	     (current-time)))
+	 (calendar-move-hook nil)
+	 (view-diary-entries-initially nil)
 	 (timestr (format-time-string
 		   (if with-time "%Y-%m-%d %H:%M" "%Y-%m-%d") default-time))
 	 (prompt (format "YYYY-MM-DD [%s]: " timestr))
@@ -3200,8 +3205,7 @@ used to insert the time stamp into the buffer to include the time."
 	;; Copied (with modifications) from planner.el by John Wiegley
 	(save-excursion
 	  (save-window-excursion
-	    (let ((view-diary-entries-initially nil))
-	      (calendar))
+	    (calendar)
 	    (calendar-forward-day (- (time-to-days default-time)
 				     (calendar-absolute-from-gregorian
 				      (calendar-current-date))))
@@ -3524,7 +3528,8 @@ in the timestamp determines what will be changed."
 (defun org-recenter-calendar (date)
   "If the calendar is visible, recenter it to DATE."
   (let* ((win (selected-window))
-	 (cwin (get-buffer-window "*Calendar*" t)))
+	 (cwin (get-buffer-window "*Calendar*" t))
+	 (calendar-move-hook nil))
     (when cwin
       (select-window cwin)
       (calendar-goto-date (if (listp date) date
@@ -3536,7 +3541,9 @@ in the timestamp determines what will be changed."
 If there is a time stamp in the current line, go to that date.
 A prefix ARG can be used force the current date."
   (interactive "P")
-  (let ((tsr org-ts-regexp) diff)
+  (let ((tsr org-ts-regexp) diff
+	(calendar-move-hook nil)
+	(view-diary-entries-initially nil))
     (if (or (org-at-timestamp-p)
 	    (save-excursion
 	      (beginning-of-line 1)
@@ -3545,8 +3552,7 @@ A prefix ARG can be used force the current date."
 	      (d2 (time-to-days
 		   (org-time-string-to-time (match-string 1)))))
 	  (setq diff (- d2 d1))))
-    (let ((view-diary-entries-initially nil))
-      (calendar))
+    (calendar)
     (calendar-goto-today)
     (if (and diff (not arg)) (calendar-forward-day diff))))
 
@@ -5248,9 +5254,10 @@ argument, latitude and longitude will be prompted for."
   (interactive)
   (let* ((day (or (get-text-property (point) 'day)
 		  (error "Don't know which date to open in calendar")))
-	 (date (calendar-gregorian-from-absolute day)))
-    (let ((view-diary-entries-initially nil))
-      (calendar))
+	 (date (calendar-gregorian-from-absolute day))
+	 (calendar-move-hook nil)
+	 (view-diary-entries-initially nil))
+    (calendar)
     (calendar-goto-date date)))
 
 (defun org-calendar-goto-agenda ()
@@ -9574,13 +9581,13 @@ END:VTODO\n"
   (let ((user user-full-name)
 	(calname "something")
 	(name (or name "unknown"))
-	(timezone "Europe/Amsterdam")) ;; FIXME:  How to get the real timezone?
+	(timezone "FIXME"))
     (princ
      (format "BEGIN:VCALENDAR
 VERSION:2.0
 X-WR-CALNAME:%s
 PRODID:-//%s//Emacs with Org-mode//EN
-X-WR-TIMEZONE:Europe/%s
+X-WR-TIMEZONE:Europe/Amsterdam
 CALSCALE:GREGORIAN\n" name user timezone))))
 
 (defun org-finish-icalendar-file ()

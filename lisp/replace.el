@@ -755,7 +755,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
       (save-excursion
 	(goto-char (posn-point (event-end event)))
 	(setq pos (occur-mode-find-occurrence))))
-    (pop-to-buffer (marker-buffer pos))
+    (switch-to-buffer-other-window (marker-buffer pos))
     (goto-char pos)))
 
 (defun occur-mode-find-occurrence ()
@@ -770,7 +770,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   "Go to the occurrence the current line describes."
   (interactive)
   (let ((pos (occur-mode-find-occurrence)))
-    (pop-to-buffer (marker-buffer pos))
+    (switch-to-buffer (marker-buffer pos))
     (goto-char pos)))
 
 (defun occur-mode-goto-occurrence-other-window ()
@@ -1140,7 +1140,8 @@ See also `multi-occur'."
 					 'follow-link t
 					 'help-echo
 					 "mouse-2: go to this occurrence")
-			     "\n"))
+			     ;; Add marker at eol, but no mouse props.
+			     (propertize "\n" 'occur-target marker)))
 			   (data
 			    (if (= nlines 0)
 				;; The simple display style

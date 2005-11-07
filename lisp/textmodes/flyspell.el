@@ -895,7 +895,9 @@ Mostly we check word delimiters."
 (defun flyspell-post-command-hook ()
   "The `post-command-hook' used by flyspell to check a word in-the-fly."
   (interactive)
-  (let ((command this-command))
+  (let ((command this-command)
+	;; Prevent anything we do from affecting the mark.
+	deactivate-mark)
     (if (flyspell-check-pre-word-p)
 	(save-excursion
 	  '(flyspell-debug-signal-pre-word-checked)
@@ -1356,7 +1358,14 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 		  (progn
 		    (setq flyspell-large-region-beg (point))
 		    (goto-char (- (point) 1))
-		    (setq keep (flyspell-word)))
+		    (setq keep
+			  ;; Detect when WORD can't be checked properly
+			  ;; because flyspell-get-word finds
+			  ;; just part of it, and treat that as ok.
+			  (if (< (length (car (flyspell-get-word nil)))
+				 (length word))
+			      nil
+			    (flyspell-word))))
 		(error "Bug: misspelled word `%s' (output pos %d) not found in buffer"
 		       word wordpos)))))))
     ;; we are done

@@ -1,7 +1,145 @@
+2005-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fget_lru_window, Fget_largest_window, window_loop):
+	Don't abuse the `mini' arg.  Use the `obj' arg instead.
+
+2005-11-04  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (show_mouse_face): Clear mouse face to eol.
+
+2005-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* Makefile.in (lisp, shortlisp): Add emacs-lisp/syntax.elc,
+	font-lock.elc and jit-lock.elc.
+
+2005-11-03  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fenlarge_window): Rename SIDE to HORIZONTAL.
+	(enlarge_window): Rename WIDTHFLAG to HORIZ_FLAG.
+	(CURBEG, CURSIZE): Use HORIZ_FLAG instead of WIDTHFLAG.
+
+	* sheap.c (STATIC_HEAP_SIZE): Increment both definitions.
+
+	* alloc.c (refill_memory_reserve): Move decl out of conditionals.
+
+2005-11-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fdisplay_buffer): Fix last change to not use
+	a dedicated window.
+
+2005-11-01  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.c (update_window_fringes): Undo 2005-10-27 change.
+	Instead, rotate the bottom angle bitmap 180 degrees to indicate
+	that the bottom row does not end in a newline.
+
+2005-11-01  Andreas Schwab  <schwab@suse.de>
+
+	* unexelf.c (unexec): Handle .plt section in BSS segment.
+
+2005-11-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (readevalloop): Yet another int/Lisp_Object mixup (YAILOM).
+
+	* window.c (window_loop): For LRU and LARGEST, let the `mini' argument
+	determine whether to consider dedicated windows as well.
+	(Fget_lru_window, Fget_largest_window): Add `dedicated' argument.
+	(Fdisplay_buffer): Do consider dedicated windows in those cases where
+	we will split the window rather than reuse it.
+	Don't try to use windows on other displays.
+
+2005-10-31  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1170000.
+
+2005-10-31  Romain Francoise  <romain@orebokech.com>
+
+	* macfns.c: Update copyright year.
+	* m/gould.h: Likewise.
+
+2005-10-30  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_line): Restore it->current_x and call
+	extend_face_to_end_of_line when last glyph doesn't fit on line.
+	(set_glyph_string_background_width): Remove specific tests  here
+	to see if face background should extend to end of line.  Simplify.
+
+2005-10-30  Richard M. Stallman  <rms@gnu.org>
+
+	* alloc.c (BYTES_USED): Use uordblks, not arena.
+	(bytes_used_when_reconsidered): New variable.
+	(emacs_blocked_free): Set that.
+
+2005-10-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* alloc.c (emacs_blocked_free): Fix typo.
+
+2005-10-29  Richard M. Stallman  <rms@gnu.org>
+
+	* data.c (Fmake_variable_frame_local): Doc fix.
+
+	* xdisp.c (handle_fontified_prop): Do nothing if memory full.
+	(format_mode_line_unwind_data): New arg SAVE_PROPTRANS
+	controls whether to save and restore mode_line_proptrans_alist.
+	Callers changed.
+	(unwind_format_mode_line): Work with that feature.
+	(redisplay_internal): Don't call prepare_menu_bars if memory full.
+	(move_elt_to_front): New function.
+	(display_mode_element): Use move_elt_to_front.
+	Don't bother munging text props on a null string.
+	Delete obsolete elts from mode_line_proptrans_alist.
+	(decode_mode_spec): Test Vmemory_full, not spare_memory.
+	(Fformat_mode_line): Clear mode_line_proptrans_alist after saving.
+
+	* lisp.h (memory_full_cons_threshold): Declare.
+	(internal_lisp_condition_case): Declare.
+
+	* alloc.c (syms_of_alloc) <memory-full>: Doc fix.
+	(Fmemory_full_p): Function deleted.
+	(syms_of_alloc): Don't defsubr it.
+	(memory_full_cons_threshold): New variable.
+	(spare_memory): Now a vector of 7 elts.
+	(buffer_memory_full): Don't set Vmemory_full here.
+	(xfree): Don't try to refill here.
+	(emacs_blocked_free): Record BYTES_USED in local var.
+	(memory_full): Now free all the slots in spare_memory.
+	(refill_memory_reserve): Allocate each slot in spare_memory.
+	(init_alloc_once): Call refill_memory_reserve.
+
+	* keyboard.c (command_loop_1): Don't set Vmemory_full here.
+
+	* eval.c (internal_lisp_condition_case): New function.
+	(Fcondition_case): Use internal_lisp_condition_case.
+	(Feval): Test Vmemory_full and memory_full_cons_threshold.
+	(Ffuncall): Likewise.
+
+	* bytecode.c (Fbyte_code): Use internal_lisp_condition_case.
+
+2005-10-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.c (Fparse_partial_sexp): Fix docstring.
+
+2005-10-28  Romain Francoise  <romain@orebokech.com>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1130000.
+
+2005-10-28  Richard M. Stallman  <rms@gnu.org>
+
+	* xfns.c (syms_of_xfns): Provide `x' as feature.
+
+	* xdisp.c (decode_mode_spec): Define %e to indicate memory full.
+
+	* editfns.c (Fformat): Don't include string padding
+	between info[n].start and info[n].end.
+
+	* alloc.c (spare_memory): No longer static.
+	(xfree) [!SYSTEM_MALLOC]: Call refill_memory_reserve.
+
+	* puresize.h (BASE_PURESIZE): Increment to 1120000.
+
 2005-10-27  Chong Yidong  <cyd@stupidchicken.com>
 
-	* data.c (Fmake_variable_frame_local): Add clarification to
-	docstring.
+	* data.c (Fmake_variable_frame_local): Add clarification to docstring.
 
 	* fringe.c (update_window_fringes): Handle case where buffer ends
 	with a newline.
@@ -118,8 +256,7 @@
 
 2005-10-20  Aubrey Jaffer  <agj@alum.mit.edu>  (tiny change)
 
-	* unexelf.c (unexec): Fix calls to `fatal' with less than 3
-	arguments.
+	* unexelf.c (unexec): Fix calls to `fatal' with less than 3 arguments.
 
 2005-10-20  Olli Savia  <ops@iki.fi>  (tiny change)
 
@@ -165,7 +302,7 @@
 2005-10-16  Masatake YAMATO  <jet@gyve.org>
 
 	* minibuf.c (Fdisplay_completion_list): Add new optional
-	argument COMMON_SUBSTRING. Bind `completion-common-substring'
+	argument COMMON_SUBSTRING.  Bind `completion-common-substring'
 	to the optional argument during running `completion-setup-hook'.
 
 2005-10-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>

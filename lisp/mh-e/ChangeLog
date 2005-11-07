@@ -1,3 +1,123 @@
+2005-11-04  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-min-colors-defined-flag, mh-defface-compat):
+	Move to mh-init.el to minimize bulk of mh-customize.el.
+
+	* mh-init.el: Modify commentary since file is used for load and
+	initialization as well as setting and getting the variant.
+	(mh-min-colors-defined-flag, mh-defface-compat): Move
+	here from mh-customize.el. 
+
+	* mh-customize.el: Refactor faces. Move grayscale requirements
+	last before t. Use uniform line breaks.
+	(mh-min-colors-defined-flag): New variable.
+	(mh-defface-compat): New function. Provides backward compatibility
+	for face specs.
+	(mh-show-header, mh-show-date, mh-show-cc, mh-folder-to) 
+	(mh-folder-refiled, mh-folder-cur-msg-number, mh-folder-cur-msg) 
+	(mh-folder-body): Use mh-defface-compat.
+
+2005-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mh-customize.el (mh-folder-body-face, mh-folder-cur-msg-face)
+	(mh-folder-cur-msg-number-face, mh-folder-refiled-face)
+	(mh-folder-to-face): Use the min-colors attribute instead of the
+	type attribute.
+
+2005-11-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-refile-preserves-sequences-flag)
+	(mh-tick-seq, mh-update-sequences-after-mh-show-flag): Sync
+	docstrings with manual.
+
+	* mh-e.el (mh-update-sequences): Sync docstrings with manual.
+
+	* mh-seq.el (mh-delete-seq, mh-list-sequences, mh-narrow-to-seq) 
+	(mh-widen, mh-toggle-tick, mh-narrow-to-tick): Sync docstrings
+	with manual.
+
+2005-11-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-redist-full-contents) Convert defvar to
+	defcustom.
+	(mh-smail, mh-extract-rejected-mail, mh-forward, mh-redistribute)
+	(mh-reply, mh-send, mh-send-other-window)
+	(mh-fill-paragraph-function): Sync docstrings with manual.
+	(mh-edit-again, mh-extract-rejected-mail, mh-redistribute): Rename
+	msg argument to message (to make for a better docstring).
+
+	* mh-customize.el (mh-redist-full-contents-flag): Convert defvar
+	to defcustom. Rename by adding -flag.
+	(mh-compose-forward-as-mime-flag)
+	(mh-compose-letter-function, mh-forward-subject-format)
+	(mh-insert-x-mailer-flag, mh-reply-default-reply-to)
+	(mh-reply-show-message-flag, mh-letter-mode-hook): Sync docstrings
+	with manual.
+
+	* mh-print.el (mh-ps-spool-buffer, mh-ps-spool-a-msg) 
+	(mh-ps-print-msg): Remove debugging messages.
+	(mh-ps-print-msg-show, mh-ps-print-msg-show) 
+	(mh-ps-print-toggle-color, mh-ps-print-toggle-mime): Remove period
+	after message per conventions.
+
+2005-10-30  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-scan-good-msg-regexp, mh-scan-deleted-msg-regexp) 
+	(mh-scan-refiled-msg-regexp, mh-scan-cur-msg-number-regexp): Sync
+	docstrings with manual.
+
+	* mh-customize.el (mh-compose-space-does-completion-flag)
+	(mh-signature-separator-flag, mh-interpret-number-as-range-flag)
+	(mh-adaptive-cmd-note-flag): Use "Non-nil means" instead of "On
+	means" to remain checkdoc clean and consistent with Emacs. I
+	raised this issue with the Emacs developers and Stallman agrees
+	that "On means" should be allowed in custom docstrings but that
+	this change requires thought and should wait until after the Emacs
+	22 release.
+
+2005-10-28  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-annotate-msg): Use new variable
+	mh-scan-field-destination-offset rather than hard-coding 1.
+
+	* mh-customize.el (mh-interpret-number-as-range-flag): Add * to
+	docstring.
+	(mh-adaptive-cmd-note-flag-check, mh-scan-format-file-check): New
+	functions to check input for mh-adaptive-cmd-note-flag and
+	mh-scan-format-file respectively.
+	(mh-adaptive-cmd-note-flag, mh-scan-format-file): Docstring fixes,
+	add :set.
+
+	* mh-e.el: (mh-scan-field-destination-offset): New variable. The
+	destination is the -, t, b, c, or n character for Replied, To, cc,
+	Bcc, or Newsgroups respectively.
+	(mh-make-folder, mh-regenerate-headers, mh-generate-new-cmd-note)
+	Call new function mh-msg-num-width-to-column to make leap between
+	width and column more explicit.
+	(mh-msg-num-width-to-column): New function that steals logic from
+	old mh-set-cmd-note. Also, throw error if mh-scan-format-file
+	isn't t since we can't adapt the scan lines in this case.
+	(mh-set-cmd-note): Now just simply sets mh-cmd-note which will
+	make the documentation more clear.
+	(mh-generate-new-cmd-note): Docstring fix--mh-cmd-note is a
+	column, not a width.
+	(mh-add-sequence-notation, mh-remove-sequence-notation): Use new
+	variable mh-scan-field-destination-offset rather than hard-coding
+	1. 
+
+	* mh-utils.el (mh-cmd-note) Synced docstring with manual.
+	(mh-notate): Use new variable mh-scan-field-destination-offset
+	rather than hard-coding 1.
+	(mh-message-number-width): Rename to mh-msg-num-width to be
+	consistent with mh-get-msg-num and mh-msg-num-width-to-column.
+
+	* mh-customize.el (mh-x-face-file, mh-show-use-xface-flag)
+	(mail-citation-hook): Quote URLs in docstrings and precede with
+	`URL'. The former will suppress checkdoc warnings, the latter will
+	turn them into hyperlinks in Emacs 22 (I just added the code
+	to do that today).
+	(mh-scan-format-file): Checkdoc fix.
+
 2005-10-27  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-adaptive-cmd-note-flag)

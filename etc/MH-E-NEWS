@@ -32,6 +32,11 @@ Instead of "Prompt: [<default>] ", the prompts now look like "Prompt
 
 The -face suffix has been dropped from all face names. 
 
+*** Default Identity Prevents Insertion of Auto Fields
+
+Auto insertion of an identity now occurs even when the default
+identity is used (closes SF #1204506).
+
 *** mh-compose-forward and Default Message Number
 
 mh-compose-forward will now default to the sent message in the sent

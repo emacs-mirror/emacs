@@ -26,12 +26,14 @@
 
 ;;; Commentary:
 
-;; Sets up the MH variant (currently nmh or MH).
+;; Sets up the MH variant (currently nmh, MH, or GNU mailutils).
 ;;
 ;; Users may customize `mh-variant' to switch between available variants.
 ;; Available MH variants are described in the variable `mh-variants'.
 ;; Developers may check which variant is currently in use with the
 ;; variable `mh-variant-in-use' or the function `mh-variant-p'.
+;;
+;; Also contains code that is used at load or initialization time only.
 
 ;;; Change Log:
 
@@ -300,6 +302,8 @@ by the variable `mh-variants'."
                     (add-to-list 'mh-variants variant)))))
       mh-variants)))
 
+
+
 (defvar mh-image-load-path-called-flag nil)
 
 ;;;###mh-autoload
@@ -325,6 +329,32 @@ directory is added to the `load-path' if it isn't already there."
         (add-to-list 'load-path mh-image-load-path)))
     (setq mh-image-load-path-called-flag t)))
 
+
+
+(defvar mh-min-colors-defined-flag (and (not mh-xemacs-flag)
+                                        (>= emacs-major-version 22))
+  "Non-nil means defface supports min-colors display requirement.")
+
+(defun mh-defface-compat (spec)
+  "Converts SPEC for defface if necessary to run on older platforms.
+See `defface' for the spec definition.
+
+When `mh-min-colors-defined-flag' is nil, this function finds a display with a
+single \"class\" requirement with a \"color\" item, renames the requirement to
+\"tty\" and moves it to the beginning of the list. It then strips any
+\"min-colors\" requirements."
+  (when (not mh-min-colors-defined-flag)
+    ;; Insert ((class tty)) display with ((class color)) attributes.
+    (let ((attributes (cdr (assoc '((class color)) spec))))
+      (cons (cons '((class tty)) attributes) spec))
+    ;; Delete ((class color)) display.
+    (delq (assoc '((class color)) spec) spec)
+    ;; Strip min-colors.
+    (loop for entry in spec do
+          (when (not (eq (car entry) t))
+            (if (assoc 'min-colors (car entry))
+                (delq (assoc 'min-colors (car entry)) (car entry)))))))
+  
 (provide 'mh-init)
 
 ;;; Local Variables:

@@ -1721,14 +1721,20 @@ From now on the default value will apply in this buffer.  Return VARIABLE.  */)
 DEFUN ("make-variable-frame-local", Fmake_variable_frame_local, Smake_variable_frame_local,
        1, 1, "vMake Variable Frame Local: ",
        doc: /* Enable VARIABLE to have frame-local bindings.
-When a frame-local binding exists in the current frame,
-it is in effect whenever the current buffer has no buffer-local binding.
-A frame-local binding is actually a frame parameter value;
-thus, any given frame has a local binding for VARIABLE if it has
-a value for the frame parameter named VARIABLE.  Return VARIABLE.
+This does not create any frame-local bindings for VARIABLE,
+it just makes them possible.
 
-This function does not in itself create any frame-local bindings for
-VARIABLE.  See `modify-frame-parameters' for how to set frame parameters.  */)
+A frame-local binding is actually a frame parameter value.
+If a frame F has a value for the frame parameter named VARIABLE,
+that also acts as a frame-local binding for VARIABLE in F--
+provided this function has been called to enable VARIABLE
+to have frame-local bindings at all.
+
+The only way to create a frame-local binding for VARIABLE in a frame
+is to set the VARIABLE frame parameter of that frame.  See
+`modify-frame-parameters' for how to set frame parameters.
+
+Buffer-local bindings take precedence over frame-local bindings.  */)
      (variable)
      register Lisp_Object variable;
 {

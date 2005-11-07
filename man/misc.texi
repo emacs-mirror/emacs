@@ -645,12 +645,13 @@ Send @var{text} as input to the shell, after reading it without
 echoing.  This is useful when a shell command runs a program that asks
 for a password.
 
-Alternatively, you can arrange for Emacs to notice password prompts
-and turn off echoing for them, as follows:
+Please note that Emacs will not echo passwords by default.  If you
+really want them to be echoed, evaluate the following Lisp
+expression:
 
 @example
-(add-hook 'comint-output-filter-functions
-          'comint-watch-for-password-prompt)
+(remove-hook 'comint-output-filter-functions
+             'comint-watch-for-password-prompt)
 @end example
 
 @item M-x comint-continue-subjob

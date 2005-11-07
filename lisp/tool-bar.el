@@ -41,7 +41,9 @@
 
 ;;; Code:
 
-;;;###autoload
+;; The autoload cookie doesn't work when preloading.
+;; Deleting it means invoking this command won't work
+;; when you are on a tty.  I hope that won't cause too much trouble -- rms.
 (define-minor-mode tool-bar-mode
   "Toggle use of the tool bar.
 With numeric ARG, display the tool bar if and only if ARG is positive.
@@ -143,7 +145,7 @@ ICON.xbm, using `find-image'."
 
 ;;;###autoload
 (defun tool-bar-add-item-from-menu (command icon &optional map &rest props)
-  "Define tool bar binding for COMMAND using the given ICON in keymap MAP.
+  "Define tool bar binding for COMMAND in keymap MAP using the given ICON.
 This makes a binding for COMMAND in `tool-bar-map', copying its
 binding from the menu bar in MAP (which defaults to `global-map'), but
 modifies the binding by adding an image specification for ICON.  It
@@ -153,20 +155,21 @@ properties to add to the binding.
 MAP must contain appropriate binding for `[menu-bar]' which holds a keymap.
 
 Use this function only to make bindings in the global value of `tool-bar-map'.
-To define items in any other map, use `tool-bar-local-item'."
+To define items in any other map, use `tool-bar-local-item-from-menu'."
   (apply 'tool-bar-local-item-from-menu command icon
 	 (default-value 'tool-bar-map) map props))
 
 ;;;###autoload
 (defun tool-bar-local-item-from-menu (command icon in-map &optional from-map &rest props)
-  "Define tool bar binding for COMMAND using the given ICON in keymap MAP.
+  "Define local tool bar binding for COMMAND using the given ICON.
 This makes a binding for COMMAND in IN-MAP, copying its binding from
 the menu bar in FROM-MAP (which defaults to `global-map'), but
 modifies the binding by adding an image specification for ICON.  It
 finds ICON just like `tool-bar-add-item'.  PROPS are additional
 properties to add to the binding.
 
-MAP must contain appropriate binding for `[menu-bar]' which holds a keymap."
+FROM-MAP must contain appropriate binding for `[menu-bar]' which
+holds a keymap."
   (unless from-map
     (setq from-map global-map))
   (let* ((menu-bar-map (lookup-key from-map [menu-bar]))
