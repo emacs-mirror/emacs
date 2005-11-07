@@ -20797,7 +20797,7 @@ get_window_cursor_type (w, glyph, width, active_cursor)
   /* Use cursor-in-non-selected-windows for non-selected window or frame.  */
   if (non_selected)
     {
-      alt_cursor = XBUFFER (w->buffer)->cursor_in_non_selected_windows;
+      alt_cursor = b->cursor_in_non_selected_windows;
       return get_specified_cursor_type (alt_cursor, width);
     }
 
