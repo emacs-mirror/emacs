@@ -175,9 +175,8 @@
       (load "dnd")
       (load "mwheel")
       (load "tool-bar")
+      (load "x-dnd")
       (load "term/x-win")))
-(if (featurep 'x)
-    (load "x-dnd"))
 (message "%s" (garbage-collect))
 
 (if (eq system-type 'vax-vms)
