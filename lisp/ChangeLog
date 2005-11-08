@@ -1,5 +1,9 @@
 2005-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Don't set
+	comment-indent-function.
+	(lisp-comment-indent): Replace by an alias for comment-indent-default.
+
 	* reveal.el (reveal-post-command): Rework the handling of
 	reveal-open-spots, so as to be more reliable.  There were several
 	tricky corner cases where an open spot might be lost, or where
