@@ -1,3 +1,17 @@
+2005-11-10  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (valid_lisp_object_p): New function to validate that
+	an object is really a valid Lisp_Object.
+
+	* lisp.h (valid_lisp_object_p): Add prototype.
+
+	* print.c (safe_debug_print): New function to be called from gdb
+	to print Lisp objects; use valid_lisp_object_p to avoid crashing
+	if user tries to print something which is not a Lisp object.
+
+	* .gdbinit (pp, pp1): Use safe_debug_print.
+	(pv, pv1): New commands to print value of a lisp variable.
+
 2005-11-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* .gdbinit (pp1): New user-defined function.
