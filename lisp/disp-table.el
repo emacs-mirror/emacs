@@ -229,7 +229,7 @@ for users who call this function in `.emacs'."
     ;; unless some other has been specified.
     (if (equal current-language-environment "English")
 	(set-language-environment "latin-1"))
-    (unless (or noninteractive (memq window-system '(x w32)))
+    (unless (or noninteractive (memq window-system '(x w32 mac)))
       ;; Send those codes literally to a character-based terminal.
       ;; If we are using single-byte characters,
       ;; it doesn't matter which coding system we use.
