@@ -44,6 +44,10 @@ invalid pointer from string_free_list.
 
 * BUGS
 
+** Automatically redisplay changes in cursor-type.
+
+** Fix completion highlighting bug in partial completion mode.
+
 ** Clean up the confusion about what `unspecified' means
 in the face defaults for new frames.
 
