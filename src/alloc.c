@@ -4484,8 +4484,77 @@ mark_stack ()
 #endif
 }
 
-
 #endif /* GC_MARK_STACK != 0 */
+
+
+
+/* Return 1 if OBJ is a valid lisp object.
+   Return 0 if OBJ is NOT a valid lisp object.
+   Return -1 if we cannot validate OBJ.
+*/
+
+int
+valid_lisp_object_p (obj)
+     Lisp_Object obj;
+{
+#if !GC_MARK_STACK
+  /* Cannot determine this.  */
+  return -1;
+#else
+  void *p;
+  struct mem_node *m;
+
+  if (INTEGERP (obj))
+    return 1;
+
+  p = (void *) XPNTR (obj);
+
+  if (PURE_POINTER_P (p))
+    return 1;
+
+  m = mem_find (p);
+
+  if (m == MEM_NIL)
+    return 0;
+
+  switch (m->type)
+    {
+    case MEM_TYPE_NON_LISP:
+      return 0;
+
+    case MEM_TYPE_BUFFER:
+      return live_buffer_p (m, p);
+
+    case MEM_TYPE_CONS:
+      return live_cons_p (m, p);
+
+    case MEM_TYPE_STRING:
+      return live_string_p (m, p);
+
+    case MEM_TYPE_MISC:
+      return live_misc_p (m, p);
+
+    case MEM_TYPE_SYMBOL:
+      return live_symbol_p (m, p);
+
+    case MEM_TYPE_FLOAT:
+      return live_float_p (m, p);
+
+    case MEM_TYPE_VECTOR:
+    case MEM_TYPE_PROCESS:
+    case MEM_TYPE_HASH_TABLE:
+    case MEM_TYPE_FRAME:
+    case MEM_TYPE_WINDOW:
+      return live_vector_p (m, p);
+
+    default:
+      break;
+    }
+
+  return 0;
+#endif
+}
+
 
 
 
@@ -4967,7 +5036,7 @@ returns nil, because real GC can't be done.  */)
       total += total_floats  * sizeof (struct Lisp_Float);
       total += total_intervals * sizeof (struct interval);
       total += total_strings * sizeof (struct Lisp_String);
-      
+
       gc_relative_threshold = total * XFLOAT_DATA (Vgc_cons_percentage);
     }
   else
