@@ -625,7 +625,7 @@ and source-file directory for your debugger."
   (gud-def gud-pstar  "print* %e"    nil
 	   "Evaluate C dereferenced pointer expression at point.")
   ;; For debugging Emacs only.
-  (gud-def gud-pp  "pp %e"           nil "Print the emacs s-expression.")
+  (gud-def gud-pp  "pp1 %e"          nil "Print the emacs s-expression.")
   (gud-def gud-until  "until %l"     "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	     nil    "Run the program.")
 
