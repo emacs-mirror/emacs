@@ -44,9 +44,6 @@ invalid pointer from string_free_list.
 
 * BUGS
 
-** Make where-is-internal detect when a key is shadowed by a shorter
-prefix key that prevents you from entering it.
-
 ** Clean up the confusion about what `unspecified' means
 in the face defaults for new frames.
 
