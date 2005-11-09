@@ -1,3 +1,8 @@
+2005-11-09  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-excluded-properties): New defcustom.
+	(occur-1, occur-engine, occur-accumulate-lines): Use it.
+
 2005-11-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-units.el (math-convert-units): Replace any composite

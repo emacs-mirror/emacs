@@ -1,3 +1,9 @@
+2005-11-09  Juri Linkov  <juri@jurta.org>
+
+	* keymap.c (shadow_lookup): If Flookup_key returns a number,
+	call it again with a sub-key-sequence, and if its return value
+	is non-nil (sub-key is bound), return nil.
+
 2005-11-08  Kim F. Storm  <storm@cua.dk>
 
 	* process.c (Fsignal_process): Recognize signal names with and
