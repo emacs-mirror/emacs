@@ -1,3 +1,16 @@
+2005-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OSX] (image_load_quartz2d): Fix memory leak.
+
+	* mac.c [MAC_OSX] (init_mac_osx_environment): Reinitialize locale
+	related variables for dumped executable.
+
+	* unexmacosx.c (unexec_write_zero): New function.
+	(copy_data_segment): Clear uninitialized local variables in
+	statically linked libraries.
+
+	* s/darwin.h (C_SWITCH_SYSTEM): Remove -fno-common.
+
 2005-11-09  Juri Linkov  <juri@jurta.org>
 
 	* keymap.c (shadow_lookup): If Flookup_key returns a number,
