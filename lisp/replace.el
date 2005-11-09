@@ -878,6 +878,16 @@ If the value is nil, don't highlight the buffer names specially."
   :type 'face
   :group 'matching)
 
+(defcustom occur-excluded-properties
+  '(read-only invisible intangible field mouse-face help-echo local-map keymap
+    yank-handler follow-link)
+  "*Text properties to discard when copying lines to the *Occur* buffer.
+The value should be a list of text properties to discard or t,
+which means to discard all text properties."
+  :type '(choice (const :tag "All" t) (repeat symbol))
+  :group 'matching
+  :version "22.1")
+
 (defun occur-accumulate-lines (count &optional keep-props)
   (save-excursion
     (let ((forwardp (> count 0))
@@ -894,10 +904,12 @@ If the value is nil, don't highlight the buffer names specially."
 	    (if (fboundp 'jit-lock-fontify-now)
 		(jit-lock-fontify-now beg end)))
 	(push
-	 (funcall (if keep-props
-		      #'buffer-substring
-		    #'buffer-substring-no-properties)
-		  beg end)
+	 (if (and keep-props (not (eq occur-excluded-properties t)))
+	     (let ((str (buffer-substring beg end)))
+	       (remove-list-of-text-properties
+		0 (length str) occur-excluded-properties str)
+	       str)
+	   (buffer-substring-no-properties beg end))
 	 result)
 	(forward-line (if forwardp 1 -1)))
       (nreverse result))))
@@ -1033,7 +1045,8 @@ See also `multi-occur'."
 		      (and case-fold-search
 			   (isearch-no-upper-case-p regexp t))
 		      list-matching-lines-buffer-name-face
-		      nil list-matching-lines-face t)))
+		      nil list-matching-lines-face
+		      (not (eq occur-excluded-properties t)))))
 	  (let* ((bufcount (length active-bufs))
 		 (diff (- (length bufs) bufcount)))
 	    (message "Searched %d buffer%s%s; %s match%s for `%s'"
@@ -1102,13 +1115,15 @@ See also `multi-occur'."
 			     (text-property-not-all begpt endpt 'fontified t))
 			(if (fboundp 'jit-lock-fontify-now)
 			    (jit-lock-fontify-now begpt endpt)))
-		    (setq curstring (buffer-substring begpt endpt))
-		    ;; Depropertize the string, and maybe
-		    ;; highlight the matches
+		    (if (and keep-props (not (eq occur-excluded-properties t)))
+			(progn
+			  (setq curstring (buffer-substring begpt endpt))
+			  (remove-list-of-text-properties
+			   0 (length curstring) occur-excluded-properties curstring))
+		      (setq curstring (buffer-substring-no-properties begpt endpt)))
+		    ;; Highlight the matches
 		    (let ((len (length curstring))
 			  (start 0))
-		      (unless keep-props
-			(set-text-properties 0 len nil curstring))
 		      (while (and (< start len)
 				  (string-match regexp curstring start))
 			(add-text-properties
