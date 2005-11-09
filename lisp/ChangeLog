@@ -1,3 +1,10 @@
+2005-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Ensure tool-bar is constant
+	when using the speedbar.
+	(gdb): New command gud-pp.
+	(gud-menu-map, gud-tool-bar-map): Put it on the tool bar.
+
 2005-11-09  Juri Linkov  <juri@jurta.org>
 
 	* replace.el (occur-excluded-properties): New defcustom.
