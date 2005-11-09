@@ -1,12 +1,13 @@
 2005-11-08  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-units.el (math-convert-units):  Replace any composite
+	* calc/calc-units.el (math-convert-units): Replace any composite
 	unit by its definition.
 
 2005-11-08 Lars Hansen <larsh@soem.dk>
-	* emacs-lisp/autoload.el (update-directory-autoloads): Add
-	obsolete function alias.
-	
+
+	* emacs-lisp/autoload.el (update-directory-autoloads):
+	Add obsolete function alias.
+
 2005-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Don't set
