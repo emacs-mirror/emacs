@@ -73,6 +73,21 @@ Print the argument as an emacs s-expression
 Works only when an inferior emacs is executing.
 end
 
+# Print out s-expressions from tool bar
+define pp1
+  set $tmp = $arg0
+  echo $arg0
+  printf " = "
+  set debug_print ($tmp)
+end
+document pp1
+Print the argument as an emacs s-expression
+Works only when an inferior emacs is executing.
+For use on tool bar when debugging in Emacs
+where the variable name would not otherwise
+be recorded in the GUD buffer.
+end
+
 # Print out current buffer point and boundaries
 define ppt
   set $b = current_buffer
