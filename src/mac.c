@@ -4119,7 +4119,7 @@ DEFUN ("mac-code-convert-string", Fmac_code_convert_string, Smac_code_convert_st
 The conversion is performed using the converter provided by the system.
 Each encoding is specified by either a coding system symbol, a mime
 charset string, or an integer as a CFStringEncoding value.  Nil for
-encoding means UTF-16 in native byte order, no byte order marker.
+encoding means UTF-16 in native byte order, no byte order mark.
 On Mac OS X 10.2 and later, you can do Unicode Normalization by
 specifying the optional argument NORMALIZATION-FORM with a symbol NFD,
 NFKD, NFC, NFKC, HFS+D, or HFS+C.
@@ -4192,6 +4192,29 @@ DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table, Smac_clear_font_
   return Qnil;
 }
 
+
+static Lisp_Object
+mac_get_system_locale ()
+{
+  OSErr err;
+  LangCode lang;
+  RegionCode region;
+  LocaleRef locale;
+  Str255 str;
+
+  lang = GetScriptVariable (smSystemScript, smScriptLang);
+  region = GetScriptManagerVariable (smRegionCode);
+  err = LocaleRefFromLangOrRegionCode (lang, region, &locale);
+  if (err == noErr)
+    err = LocaleRefGetPartString (locale, kLocaleAllPartsMask,
+				  sizeof (str), str);
+  if (err == noErr)
+    return build_string (str);
+  else
+    return Qnil;
+}
+
+
 #ifdef MAC_OSX
 #undef select
 
@@ -4213,7 +4236,7 @@ extern int noninteractive;
       involved, and timeout is not too short (greater than
       SELECT_TIMEOUT_THRESHHOLD_RUNLOOP seconds).
       -> Create CFSocket for each socket and add it into the current
-         event RunLoop so that an `ready-to-read' event can be posted
+         event RunLoop so that a `ready-to-read' event can be posted
          to the event queue that is also used for window events.  Then
          ReceiveNextEvent can wait for both kinds of inputs.
    4. Otherwise.
@@ -4481,6 +4504,11 @@ init_mac_osx_environment ()
   char *p, *q;
   struct stat st;
 
+  /* Initialize locale related variables.  */
+  mac_system_script_code =
+    (ScriptCode) GetScriptManagerVariable (smSysScript);
+  Vmac_system_locale = mac_get_system_locale ();
+
   /* Fetch the pathname of the application bundle as a C string into
      app_bundle_pathname.  */
 
@@ -4598,28 +4626,6 @@ init_mac_osx_environment ()
     }
 }
 #endif /* MAC_OSX */
-
-
-static Lisp_Object
-mac_get_system_locale ()
-{
-  OSErr err;
-  LangCode lang;
-  RegionCode region;
-  LocaleRef locale;
-  Str255 str;
-
-  lang = GetScriptVariable (smSystemScript, smScriptLang);
-  region = GetScriptManagerVariable (smRegionCode);
-  err = LocaleRefFromLangOrRegionCode (lang, region, &locale);
-  if (err == noErr)
-    err = LocaleRefGetPartString (locale, kLocaleAllPartsMask,
-				  sizeof (str), str);
-  if (err == noErr)
-    return build_string (str);
-  else
-    return Qnil;
-}
 
 
 void
