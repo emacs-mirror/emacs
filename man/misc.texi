@@ -2136,29 +2136,6 @@ Emacs key bindings are still available.  The EDT emulation rebindings
 are done in the global keymap, so there is no problem switching
 buffers or major modes while in EDT emulation.
 
-@item CUA bindings
-@findex cua-mode
-@vindex cua-mode
-@cindex CUA key bindings
-@vindex cua-enable-cua-keys
-The command @kbd{M-x cua-mode} sets up key bindings that are
-compatible with the Common User Access (CUA) system used in many other
-applications.  @kbd{C-x} means cut (kill), @kbd{C-c} copy, @kbd{C-v}
-paste (yank), and @kbd{C-z} undo.  Standard Emacs commands like
-@kbd{C-x C-c} still work, because @kbd{C-x} and @kbd{C-c} only take
-effect when the mark is active.  However, if you don't want these
-bindings at all, set @code{cua-enable-cua-keys} to @code{nil}.
-
-In CUA mode, using @kbd{Shift} together with the movement keys
-activates the region over which they move.  The standard (unshifted)
-movement keys deactivate the mark, and typed text replaces the active
-region as in Delete-Selection mode (@pxref{Graphical Kill}).
-
-CUA mode also provides enhanced rectangle support with visible
-rectangle highlighting.  Use @kbd{Shift-RET} to start a rectangle,
-extend it using the movement commands, and cut or copy it using
-@kbd{C-x} or @kbd{C-c}.
-
 @item TPU (DEC VMS editor)
 @findex tpu-edt-on
 @cindex TPU
