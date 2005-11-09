@@ -1,3 +1,9 @@
+2005-11-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* find-lisp.el: Require dired.
+	(find-lisp-find-dired-internal): Do not call
+	`abbreviate-file-name' on DIR.
+
 2005-11-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gdb): Make gud-pp use user-defined command pp1.
