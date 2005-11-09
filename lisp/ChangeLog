@@ -1,3 +1,7 @@
+2005-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Make gud-pp use user-defined command pp1.
+
 2005-11-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Ensure tool-bar is constant

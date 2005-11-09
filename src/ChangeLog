@@ -1,3 +1,7 @@
+2005-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit (pp1): New user-defined function.
+
 2005-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* image.c [MAC_OSX] (image_load_quartz2d): Fix memory leak.
