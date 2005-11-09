@@ -3,7 +3,7 @@
 ;; Author: Peter Breton
 ;; Created: Fri Mar 26 1999
 ;; Keywords: unix
-;; Time-stamp: <2001-07-16 12:42:35 pavel>
+;; Time-stamp: <2005-11-09 17:05:07 teirllm>
 
 ;; Copyright (C) 1999, 2000, 2002, 2003, 2004,
 ;;   2005 Free Software Foundation, Inc.
@@ -45,6 +45,8 @@
 ;; again. Maybe that could work by storing the original file attributes?
 
 ;;; Code:
+
+(require 'dired)
 
 (defvar dired-buffers)
 (defvar dired-subdir-alist)
@@ -198,8 +200,7 @@ It is a function which takes two arguments, the directory and its parent."
 	(regexp find-lisp-regexp))
     ;; Expand DIR ("" means default-directory), and make sure it has a
     ;; trailing slash.
-    (setq dir (abbreviate-file-name
-	       (file-name-as-directory (expand-file-name dir))))
+    (setq dir (file-name-as-directory (expand-file-name dir)))
     ;; Check that it's really a directory.
     (or (file-directory-p dir)
 	(error "find-dired needs a directory: %s" dir))
