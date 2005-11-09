@@ -125,9 +125,9 @@ Used to grey out relevant togolbar icons.")
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
     ([tooltips] menu-item "Toggle GUD tooltips" gud-tooltip-mode
-                  :enable  (and (not emacs-basic-display)
-				(display-graphic-p)
-				(fboundp 'x-show-tip))
+                  :enable (and (not emacs-basic-display)
+			       (display-graphic-p)
+			       (fboundp 'x-show-tip))
 	          :button (:toggle . gud-tooltip-mode))
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
@@ -137,18 +137,21 @@ Used to grey out relevant togolbar icons.")
                   :enable (and (not gud-running)
 			       (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-				     (> (car (window-fringes)) 0))))
+                     (> (car (window-fringes
+			      (get-buffer-window (current-buffer))) 0)))))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
                   :enable (not gud-running)
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-				     (> (car (window-fringes)) 0))))
+                     (> (car (window-fringes
+			      (get-buffer-window (current-buffer))) 0)))))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
 		  :enable (memq gud-minor-mode
 				'(gdbmi gdba gdb sdb xdb bashdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
                   :enable (not gud-running)
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-				     (> (car (window-fringes)) 0))))
+                     (> (car (window-fringes
+			      (get-buffer-window (current-buffer))) 0)))))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
@@ -157,6 +160,13 @@ Used to grey out relevant togolbar icons.")
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
 				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
+    ([pp]	menu-item "Print the emacs s-expression" gud-pp
+                     :enable (and (not gud-running)
+				  gdb-active-process)
+		     :visible (and (string-equal
+				  (buffer-local-value
+				   'gud-target-name gud-comint-buffer) "emacs")
+				   (memq gud-minor-mode '(gdbmi gdba))))
     ([print*]	menu-item "Print Dereference" gud-pstar
                      :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdbmi gdba gdb))))
@@ -204,6 +214,7 @@ Used to grey out relevant togolbar icons.")
 		     (gud-remove . "gud/remove")
 		     (gud-print . "gud/print")
 		     (gud-pstar . "gud/pstar")
+		     (gud-pp . "gud/pp")
 		     (gud-watch . "gud/watch")
 		     (gud-cont . "gud/cont")
 		     (gud-until . "gud/until")
@@ -613,6 +624,8 @@ and source-file directory for your debugger."
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
   (gud-def gud-pstar  "print* %e"    nil
 	   "Evaluate C dereferenced pointer expression at point.")
+  ;; For debugging Emacs only.
+  (gud-def gud-pp  "pp %e"           nil "Print the emacs s-expression.")
   (gud-def gud-until  "until %l"     "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	     nil    "Run the program.")
 
