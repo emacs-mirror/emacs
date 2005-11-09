@@ -2549,6 +2549,7 @@ extern void init_alloc_once P_ ((void));
 extern void init_alloc P_ ((void));
 extern void syms_of_alloc P_ ((void));
 extern struct buffer * allocate_buffer P_ ((void));
+extern int valid_lisp_object_p P_ ((Lisp_Object));
 
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;
