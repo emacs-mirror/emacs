@@ -1,3 +1,7 @@
+2005-11-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* killing.texi (CUA Bindings): Add @section.
+
 2005-11-10  Kim F. Storm  <storm@cua.dk>
 
 	* emacs.texi (Top): Add CUA Bindings entry to menu.
