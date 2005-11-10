@@ -1,3 +1,9 @@
+2005-11-10  Masatake YAMATO  <jet@gyve.org>
+
+	* man.el (Man-highlight-references): Set an empty
+	string to `Man-arguments' if it is nil.
+	Suggested by Reiner Steib <reinersteib+gmane@imap.cc>.
+
 2005-11-09  Richard M. Stallman  <rms@gnu.org>
 
 	* apropos.el (apropos-pattern): Renamed from apropos-regexp.
