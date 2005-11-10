@@ -138,12 +138,12 @@ Used to grey out relevant togolbar icons.")
 			       (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
                      (> (car (window-fringes
-			      (get-buffer-window (current-buffer))) 0)))))
+			      (get-buffer-window (current-buffer)))) 0))))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
                   :enable (not gud-running)
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
                      (> (car (window-fringes
-			      (get-buffer-window (current-buffer))) 0)))))
+			      (get-buffer-window (current-buffer)))) 0))))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
 		  :enable (memq gud-minor-mode
 				'(gdbmi gdba gdb sdb xdb bashdb)))
@@ -151,7 +151,7 @@ Used to grey out relevant togolbar icons.")
                   :enable (not gud-running)
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
                      (> (car (window-fringes
-			      (get-buffer-window (current-buffer))) 0)))))
+			      (get-buffer-window (current-buffer)))) 0))))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
@@ -607,27 +607,31 @@ and source-file directory for your debugger."
   (set (make-local-variable 'gud-minor-mode) 'gdb)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set temporary breakpoint at current line.")
-  (gud-def gud-remove "clear %f:%l"  "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
-  (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
-  (gud-def gud-next   "next %p"      "\C-n" "Step one line (skip functions).")
-  (gud-def gud-nexti  "nexti %p"      nil   "Step one instruction (skip functions).")
-  (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
-  (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
+  (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
+	   "Set temporary breakpoint at current line.")
+  (gud-def gud-remove "clear %f:%l" "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step %p"     "\C-s" "Step one source line with display.")
+  (gud-def gud-stepi  "stepi %p"    "\C-i" "Step one instruction with display.")
+  (gud-def gud-next   "next %p"     "\C-n" "Step one line (skip functions).")
+  (gud-def gud-nexti  "nexti %p" nil   "Step one instruction (skip functions).")
+  (gud-def gud-cont   "cont"     "\C-r" "Continue with display.")
+  (gud-def gud-finish "finish"   "\C-f" "Finish executing current function.")
   (gud-def gud-jump
 	   (progn (gud-call "tbreak %f:%l") (gud-call "jump %f:%l"))
 	   "\C-j" "Set execution address to current line.")
 
-  (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
-  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
-  (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
-  (gud-def gud-pstar  "print* %e"    nil
+  (gud-def gud-up     "up %p"     "<" "Up N stack frames (numeric arg).")
+  (gud-def gud-down   "down %p"   ">" "Down N stack frames (numeric arg).")
+  (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-pstar  "print* %e" nil
 	   "Evaluate C dereferenced pointer expression at point.")
+
   ;; For debugging Emacs only.
-  (gud-def gud-pp  "pp1 %e"          nil "Print the emacs s-expression.")
-  (gud-def gud-until  "until %l"     "\C-u" "Continue to current line.")
-  (gud-def gud-run    "run"	     nil    "Run the program.")
+  (gud-def gud-pp  "pp1 %e"     nil   "Print the emacs s-expression.")
+  (gud-def gud-pv "pv1 %e"      "\C-v" "Print the value of the lisp variable.")
+
+  (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
+  (gud-def gud-run    "run"	 nil    "Run the program.")
 
   (local-set-key "\C-i" 'gud-gdb-complete-command)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")
