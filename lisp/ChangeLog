@@ -1,3 +1,12 @@
+2005-11-09  Richard M. Stallman  <rms@gnu.org>
+
+	* apropos.el (apropos-pattern): Renamed from apropos-regexp.
+	(apropos-orig-pattern): Renamed from apropos-orig-regexp.
+	All uses changed.
+	(apropos-rewrite-regexp): Doc fix.
+	(apropos-variable, apropos-command, apropos, apropos-value): 
+	Change prompt; carry through the argument renaming.
+
 2005-11-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* find-lisp.el: Require dired.
