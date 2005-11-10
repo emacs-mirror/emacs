@@ -308,7 +308,7 @@ Value is a list of offsets of the words into the string."
 	  (if (setq i (string-match word str))
 	      (setq scores (cons i scores))))
       ;; Return list of start and end position of regexp
-      (string-match apropos-regexp str)
+      (string-match apropos-pattern str)
       (list (match-beginning 0) (match-end 0)))))
 
 (defun apropos-score-str (str)

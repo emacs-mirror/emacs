@@ -1,3 +1,7 @@
+2005-11-10  Romain Francoise  <romain@orebokech.com>
+
+	* apropos.el (apropos-calc-scores): Use `apropos-pattern'.
+
 2005-11-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Move parentheses.
