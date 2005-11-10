@@ -645,6 +645,7 @@ rectangle shifts right.
 shifting the original text to the right.
 
 @node CUA Bindings, Registers, Rectangles, Top
+@section CUA Bindings
 @findex cua-mode
 @vindex cua-mode
 @cindex CUA key bindings
