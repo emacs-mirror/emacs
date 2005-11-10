@@ -1,3 +1,8 @@
+2005-11-10  Alan Mackenzie  <acm@muc.de>
+
+	* help-fns.el (describe-variable): Make C-h v work when a variable
+	has variable documentation yet is unbound.
+
 2005-11-10  Masatake YAMATO  <jet@gyve.org>
 
 	* man.el (Man-highlight-references): Set an empty
