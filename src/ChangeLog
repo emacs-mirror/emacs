@@ -1,3 +1,7 @@
+2005-11-10  Lars Hansen <larsh@soem.dk>
+
+	* fileio.c (file-regular-p): Doc fix.
+
 2005-11-10  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (valid_lisp_object_p): New function to validate that
