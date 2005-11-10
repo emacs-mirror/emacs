@@ -3392,8 +3392,10 @@ searchable directory.  */)
 }
 
 DEFUN ("file-regular-p", Ffile_regular_p, Sfile_regular_p, 1, 1, 0,
-       doc: /* Return t if file FILENAME is the name of a regular file.
-This is the sort of file that holds an ordinary stream of data bytes.  */)
+       doc: /* Return t if FILENAME names a regular file.
+This is the sort of file that holds an ordinary stream of data bytes.
+Symbolic links to regular files count as regular files.
+See `file-symlink-p' to distinguish symlinks.  */)
      (filename)
      Lisp_Object filename;
 {
