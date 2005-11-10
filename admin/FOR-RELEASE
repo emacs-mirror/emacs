@@ -37,6 +37,16 @@ a bitmap appearence.
 
 * FATAL ERRORS
 
+** Emacs infloops in redisplay when displaying a non-breaking
+space in an overlay.  Setting `nobreak-char-display' to nil makes the
+bug go away.  The following form reproduces the bug:
+
+(overlay-put (make-overlay 1 2 nil t)
+             'after-string
+             (string (decode-char 'ucs #x00A0)))
+
+(Copy to *scratch* and evaluate.)
+
 ** Investigate reported crashes in compact_small_strings.
 
 ** Investigate reported crashes related to using an
