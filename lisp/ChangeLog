@@ -12,7 +12,7 @@
 
 	* man.el (Man-highlight-references): Set an empty
 	string to `Man-arguments' if it is nil.
-	Suggested by Reiner Steib <reinersteib+gmane@imap.cc>.
+	Suggested by Reiner Steib <Reiner.Steib@gmx.de>.
 
 2005-11-09  Richard M. Stallman  <rms@gnu.org>
 
@@ -88,7 +88,7 @@
 
 2005-11-07  Masatake YAMATO  <jet@gyve.org>
 
-	* man.el (Man-reference-regexp): Accpet spaces between
+	* man.el (Man-reference-regexp): Accept spaces between
 	`Man-name-regexp' and `Man-section-regexp'.
 	(Man-apropos-regexp): New variable.
 	(Man-abstract-xref-man-page): Use value for `Man-target-string'
