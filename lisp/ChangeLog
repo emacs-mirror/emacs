@@ -1,8 +1,7 @@
 2005-11-10  Masatake YAMATO  <jet@gyve.org>
 
-	* add-log.el: (add-log-current-defun): Handle 
-	class::method notation of c++.
-	Fix incorrect comment.
+	* add-log.el (add-log-current-defun): Handle class::method
+	notation of c++. Fix incorrect comment.
 
 2005-11-10  Alan Mackenzie  <acm@muc.de>
 
@@ -21,7 +20,7 @@
 	(apropos-orig-pattern): Renamed from apropos-orig-regexp.
 	All uses changed.
 	(apropos-rewrite-regexp): Doc fix.
-	(apropos-variable, apropos-command, apropos, apropos-value): 
+	(apropos-variable, apropos-command, apropos, apropos-value):
 	Change prompt; carry through the argument renaming.
 
 2005-11-09  Luc Teirlinck  <teirllm@auburn.edu>
