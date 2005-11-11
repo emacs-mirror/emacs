@@ -1,3 +1,13 @@
+2005-11-11  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct it): New member ignore_overlay_strings_at_pos_p.
+
+	* xdisp.c (handle_stop): Skip overlay string handling if
+	ignore_overlay_strings_at_pos_p is set.
+	(set_iterator_to_next): At end of display vector, set
+	ignore_overlay_strings_at_pos_p if dpvec came from an overlay
+	string, so we skip those overlay strings at current pos.
+
 2005-11-10  Lars Hansen <larsh@soem.dk>
 
 	* fileio.c (file-regular-p): Doc fix.
