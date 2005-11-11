@@ -1,5 +1,7 @@
 2005-11-11  Kim F. Storm  <storm@cua.dk>
 
+	* doc.c (Fsubstitute_command_keys): Doc fix.
+
 	* dispextern.h (struct it): New member ignore_overlay_strings_at_pos_p.
 
 	* xdisp.c (handle_stop): Skip overlay string handling if
