@@ -1,3 +1,24 @@
+2005-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (XVarious): Fix description of gnus-use-toolbar; add
+	new variable gnus-toolbar-thickness.
+
+2005-11-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (XVarious): Revert description of gnus-use-toolbar.
+
+2005-11-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (X-Face): Fix description.
+	(XVarious): Remove gnus-xmas-logo-color-alist and
+	gnus-xmas-logo-color-style; fix description of gnus-use-toolbar.
+
+2005-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Group Parameters): Mention new varable
+	gnus-parameters-case-fold-search.
+	(Home Score File): Addition.
+
 2005-11-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* killing.texi (CUA Bindings): Add @section.

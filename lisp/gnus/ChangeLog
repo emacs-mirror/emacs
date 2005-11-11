@@ -1,3 +1,23 @@
+2005-11-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.el (message-generate-headers): Downcase the argument
+	given to message-check-element.
+
+2005-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.el (gnus-parameters-case-fold-search): New variable.
+	(gnus-parameters-get-parameter): Use it.
+
+	* gnus-score.el (gnus-home-score-file): Doc fix.
+
+2005-11-01  Xavier Maillard  <zedek@gnu-rox.org>  (tiny change)
+
+	* gnus-score.el (gnus-update-score-entry-dates): Doc fix.
+
+2005-10-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mml.el (mml-preview): Doc fix.
+
 2005-10-27  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* flow-fill.el (fill-flowed-encode-tests): Restore trailing
