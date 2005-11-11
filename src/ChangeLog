@@ -1,15 +1,19 @@
 2005-11-11  David Reitter <david.reitter@gmail.com>
 
-	* macterm.c (backtranslate_modified_keycode): New function to
-	mask modifiers off of keycodes for use in modifier mapping.
-	(mac_determine_quit_char_modifiers): Remove
-	mac-reverse-ctrl-meta and replace it with more flexible system
-	mapping mac modifier keys to emacs modifier keys.
+	* macterm.c (syms_of_macterm): Remove macCtrlKey, macShiftKey,
+	macMetaKey, macAltKey. Introduce Qctrl, Qmeta,
+	Vmac_control_modifier / mac-control-modifier,
+	Vmac_option_modifier / mac-option-modifier,
+	Vmac_command_modifier / mac-command-modifier.
+	(mac_to_emacs_modifiers): Use the new style modifier
+	variables. Return UInt32 (modifiers are longs now.)
+	(backtranslate_modified_keycode): new function (refactoring)
+	(XTread_socket): use new modifier variables and refactored
+	function
+	(mac_determine_quit_char_modifiers): remove macMetaKey (there is
+	no dedicated meta key. Not in use anyway.)
 	(convert_fn_keycode): Map Fn-keys to their original keycode
 	using a table (english keyboard only).
-	(syms_of_macterm): Define mac-control-modifier,
-	mac-command-modifier, mac-function-modifier.
-	Define meta and ctrl for use as modifiers.
 
 2005-11-11  Kim F. Storm  <storm@cua.dk>
 
