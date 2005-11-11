@@ -162,7 +162,7 @@ define pitx
     printf " HL"
   end
   if ($it->n_overlay_strings > 0)
-    printf " nov=%d"
+    printf " nov=%d", $it->n_overlay_strings
   end
   if ($it->sp != 0)
     printf " sp=%d", $it->sp
@@ -710,6 +710,16 @@ document xbacktrace
   Print a backtrace of Lisp function calls from backtrace_list.
   Set a breakpoint at Fsignal and call this to see from where
   an error was signaled.
+end
+
+# Show Lisp backtrace after normal backtrace.
+define hookpost-backtrace
+  set $bt = backtrace_list
+  if $bt
+    echo \n
+    echo Lisp Backtrace:\n
+    xbacktrace
+  end
 end
 
 define xreload
