@@ -1,3 +1,16 @@
+2005-11-11  David Reitter <david.reitter@gmail.com>
+
+	* macterm.c (backtranslate_modified_keycode): New function to
+	mask modifiers off of keycodes for use in modifier mapping.
+	(mac_determine_quit_char_modifiers): Remove
+	mac-reverse-ctrl-meta and replace it with more flexible system
+	mapping mac modifier keys to emacs modifier keys.
+	(convert_fn_keycode): Map Fn-keys to their original keycode
+	using a table (english keyboard only).
+	(syms_of_macterm): Define mac-control-modifier,
+	mac-command-modifier, mac-function-modifier.
+	Define meta and ctrl for use as modifiers.
+
 2005-11-11  Kim F. Storm  <storm@cua.dk>
 
 	* .gdbinit (pitx): Fix output format if n_overlay_strings > 0.
