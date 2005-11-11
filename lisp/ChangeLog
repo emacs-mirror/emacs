@@ -1,3 +1,20 @@
+2005-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jka-cmpr-hook.el (jka-compr-install): Use push and dolist.
+	Add jka-compr-load-suffixes to load-suffixes.
+
+	* jka-compr.el: Require 'jka-cmpr-hook.
+	(jka-compr-info-compress-message, jka-compr-info-compress-program)
+	(jka-compr-info-compress-args, jka-compr-info-uncompress-message)
+	(jka-compr-info-uncompress-program, jka-compr-info-uncompress-args)
+	(jka-compr-info-can-append, jka-compr-info-strip-extension)
+	(jka-compr-info-file-magic-bytes, jka-compr-get-compression-info)
+	(jka-compr-info-regexp): Remove.  Provided by jka-cmpr-hook.
+	(jka-compr-uninstall): Remove entries from
+	jka-compr-added-to-file-coding-system-alist after they are used.
+	(jka-compr-error): Remove unused var `curbuf'.
+	(jka-compr-file-local-copy): Remove unused var `notfound'.
+
 2005-11-10  Romain Francoise  <romain@orebokech.com>
 
 	* apropos.el (apropos-calc-scores): Use `apropos-pattern'.
@@ -6,6 +23,26 @@
 
 	* progmodes/gud.el (gud-menu-map): Move parentheses.
 	(gdb): New command gud-pv.
+
+2005-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el: Remove spurious or unnecessary leading stars
+	in docstrings.
+	(tar-header-block-tokenize): Also obey default-file-name-coding-system.
+	(tar-parse-octal-integer-safe): Use mapc.
+	(tar-header-block-summarize): Remove unused var `ck'.
+	(tar-summarize-buffer): Don't clear the modified-p bit if it wasn't
+	cleared before.  Obey default-enable-multibyte-characters.
+	Use mapconcat.  Simplify setting of tar-header-offset.
+	(tar-mode-map): Move initialization inside delcaration.
+	(tar-flag-deleted): Use `abs'.
+	(tar-expunge-internal): Remove unused var `line'.
+	(tar-expunge-internal): Don't hardcode point-min==1.
+	(tar-expunge): Widen while doing set-buffer-multibyte.
+	(tar-rename-entry): Use file-name-coding-system.
+	(tar-alter-one-field): Don't hardcode point-min==1.
+	(tar-subfile-save-buffer): string-as-unibyte works on unibyte strings.
+	(tar-pad-to-blocksize): Don't hardcode point-min==1.  Clarify the code.
 
 2005-11-10  Masatake YAMATO  <jet@gyve.org>
 
@@ -23,10 +60,18 @@
 	string to `Man-arguments' if it is nil.
 	Suggested by Reiner Steib <Reiner.Steib@gmx.de>.
 
+2005-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (mh-loaddefs.el, loaddefs.el): Better follow the
+	commenting conventions.
+
+	* cus-dep.el (custom-make-dependencies): Simplify.
+	Better follow the commenting conventions.
+
 2005-11-09  Richard M. Stallman  <rms@gnu.org>
 
-	* apropos.el (apropos-pattern): Renamed from apropos-regexp.
-	(apropos-orig-pattern): Renamed from apropos-orig-regexp.
+	* apropos.el (apropos-pattern): Rename from apropos-regexp.
+	(apropos-orig-pattern): Rename from apropos-orig-regexp.
 	All uses changed.
 	(apropos-rewrite-regexp): Doc fix.
 	(apropos-variable, apropos-command, apropos, apropos-value):
