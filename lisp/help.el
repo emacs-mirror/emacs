@@ -78,6 +78,8 @@
 
 (define-key help-map "c" 'describe-key-briefly)
 
+(define-key help-map "d" 'apropos-documentation)
+
 (define-key help-map "e" 'view-echo-area-messages)
 
 (define-key help-map "f" 'describe-function)
