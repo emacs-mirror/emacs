@@ -4,10 +4,11 @@
 	selected window.  This still doesn't work for speedbar.
 	(gud-speedbar-buttons): Handle strings properly.
 
-	* progmodes/gdb-ui.el (gdb-var-create-handler)
-	(gdb-var-evaluate-expression-handler): Handle strings properly.
+	* progmodes/gdb-ui.el (gdb-var-evaluate-expression-handler)
+	(gdb-var-create-handler): Handle string expressions properly.
 	(gdb-var-list-children-regexp, gdb-var-list-children-handler):
-	Handle strings properly.  Move "type" field into regexp.
+	Handle string expressions properly.  Move "type" field into
+	regexp.
 
 2005-11-12  Karl Fogel  <kfogel@red-bean.com>
 	
