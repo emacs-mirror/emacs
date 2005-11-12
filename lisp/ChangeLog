@@ -1,3 +1,14 @@
+2005-11-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Revert to window-fringes for
+	selected window.  This still doesn't work for speedbar.
+	(gud-speedbar-buttons): Handle strings properly.
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler)
+	(gdb-var-evaluate-expression-handler): Handle strings properly.
+	(gdb-var-list-children-regexp, gdb-var-list-children-handler):
+	Handle strings properly.  Move "type" field into regexp.
+
 2005-11-12  Karl Fogel  <kfogel@red-bean.com>
 	
 	* bookmark.el (bookmark-maybe-message): New function to reduce
