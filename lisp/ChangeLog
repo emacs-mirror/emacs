@@ -1,3 +1,8 @@
+2005-11-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-mode): Set the default value of
+	font-lock-defaults.
+
 2005-11-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* find-lisp.el (find-lisp-find-dired-insert-file): Pass `string'

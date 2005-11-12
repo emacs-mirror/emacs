@@ -304,8 +304,10 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
     (when (and (not hi-lock-mode-prev) hi-lock-mode)
       (add-hook 'find-file-hook 'hi-lock-find-file-hook)
       (add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook)
-      (when (eq nil font-lock-defaults)
-	(setq font-lock-defaults '(nil)))
+      (if (null (default-value 'font-lock-defaults))
+	  (setq-default font-lock-defaults '(nil)))
+      (if (null font-lock-defaults)
+	  (setq font-lock-defaults '(nil)))
       (unless font-lock-mode
 	(font-lock-mode 1))
       (define-key-after menu-bar-edit-menu [hi-lock]
@@ -322,6 +324,10 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
             (setq hi-lock-interactive-patterns nil
                   hi-lock-file-patterns nil)
             (when font-lock-mode (hi-lock-refontify)))))
+
+      (let ((fld (default-value 'font-lock-defaults)))
+	(if (and fld (listp fld) (null (car fld)))
+	    (setq-default font-lock-defaults (cdr fld))))
       (define-key-after menu-bar-edit-menu [hi-lock] nil)
       (remove-hook 'find-file-hook 'hi-lock-find-file-hook)
       (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook))))
