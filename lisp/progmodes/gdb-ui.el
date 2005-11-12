@@ -491,7 +491,9 @@ With arg, use separate IO iff arg is positive."
 	  (unless (string-equal
 		   speedbar-initial-expansion-list-name "GUD")
 	    (speedbar-change-initial-expansion-list "GUD"))
-	  (if (equal (nth 2 var) "0")
+	  (if (or (equal (nth 2 var) "0")
+		  (and (equal (nth 2 var) "1")
+		       (equal (nth 3 var) "char *")))
 	      (gdb-enqueue-input
 	       (list
 		(if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
@@ -509,14 +511,14 @@ With arg, use separate IO iff arg is positive."
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
-    (re-search-forward ".*value=\"\\(.*?\\)\"" nil t)
+    (re-search-forward ".*value=\\(\".+\"\\)" nil t)
     (catch 'var-found
       (let ((num 0))
 	(dolist (var gdb-var-list)
 	  (if (string-equal varnum (cadr var))
 	      (progn
 		(if changed (setcar (nthcdr 5 var) t))
-		(setcar (nthcdr 4 var) (match-string 1))
+		(setcar (nthcdr 4 var) (read (match-string 1)))
 		(setcar (nthcdr num gdb-var-list) var)
 		(throw 'var-found nil)))
 	  (setq num (+ num 1))))))
@@ -528,7 +530,8 @@ With arg, use separate IO iff arg is positive."
 	 `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
-  "name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\"")
+ "name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",\
+type=\"\\(.*?\\)\"")
 
 (defun gdb-var-list-children-handler (varnum)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
@@ -543,14 +546,15 @@ With arg, use separate IO iff arg is positive."
 		 (let ((varchild (list (match-string 2)
 				       (match-string 1)
 				       (match-string 3)
-				       nil nil nil)))
-		   (if (looking-at ",type=\"\\(.*?\\)\"")
-		       (setcar (nthcdr 3 varchild) (match-string 1)))
+				       (match-string 4)
+				       nil nil)))
 		   (dolist (var1 gdb-var-list)
 		     (if (string-equal (cadr var1) (cadr varchild))
 			 (throw 'child-already-watched nil)))
 		   (push varchild var-list)
-		   (if (equal (nth 2 varchild) "0")
+		   (if (or (equal (nth 2 varchild) "0")
+			   (and (equal (nth 2 varchild) "1")
+				(equal (nth 3 varchild) "char *")))
 		       (gdb-enqueue-input
 			(list
 			 (concat
