@@ -1,4 +1,11 @@
 2005-11-12  Karl Fogel  <kfogel@red-bean.com>
+	
+	* bookmark.el (bookmark-maybe-message): New function to reduce
+	code duplication: invokes `message' iff baud-rate is high enough. 
+	(bookmark-write-file): Use above instead of an inline conditional.
+	(bookmark-load): Same.
+	
+2005-11-12  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-write-file): Don't visit the destination
 	file, just write the data to it using write-region.  This is

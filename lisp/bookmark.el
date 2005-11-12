@@ -717,6 +717,14 @@ This expects to be called from `point-min' in a bookmark file."
 ;;; end file-format stuff
 
 
+;;; Generic helpers.
+
+(defun bookmark-maybe-message (fmt &rest args)
+  "Apply `message' to FMT and ARGS, but only if the display is fast enough."
+  (if (>= baud-rate 9600)
+      (apply 'message fmt args)))
+
+
 ;;; Core code:
 
 ;;;###autoload
@@ -1350,8 +1358,7 @@ for a file, defaulting to the file defined by variable
 (defun bookmark-write-file (file)
   (save-excursion
     (save-window-excursion
-      (if (>= baud-rate 9600)
-          (message "Saving bookmarks to file %s..." file))
+      (bookmark-maybe-message "Saving bookmarks to file %s..." file)
       (set-buffer (get-buffer-create " *Bookmarks*"))
       (goto-char (point-min))
       (delete-region (point-min) (point-max))
@@ -1370,8 +1377,8 @@ for a file, defaulting to the file defined by variable
               (write-region (point-min) (point-max) file)
             (file-error (message "Can't write %s" file)))
 	  (kill-buffer (current-buffer))
-	  (if (>= baud-rate 9600)
-	      (message "Saving bookmarks to file %s...done" file)))))))
+          (bookmark-maybe-message
+           "Saving bookmarks to file %s...done" file))))))
 
 
 (defun bookmark-import-new-list (new-list)
@@ -1437,8 +1444,8 @@ method buffers use to resolve name collisions."
   (if (file-readable-p file)
       (save-excursion
         (save-window-excursion
-          (if (and (null no-msg) (>= baud-rate 9600))
-              (message "Loading bookmarks from %s..." file))
+          (if (null no-msg)
+              (bookmark-maybe-message "Loading bookmarks from %s..." file))
           (set-buffer (let ((enable-local-variables nil))
                         (find-file-noselect file)))
           (goto-char (point-min))
@@ -1461,8 +1468,8 @@ method buffers use to resolve name collisions."
                   (bookmark-bmenu-surreptitiously-rebuild-list))
               (error "Invalid bookmark list in %s" file)))
           (kill-buffer (current-buffer)))
-	(if (and (null no-msg) (>= baud-rate 9600))
-            (message "Loading bookmarks from %s...done" file)))
+	(if (null no-msg)
+            (bookmark-maybe-message "Loading bookmarks from %s...done" file)))
     (error "Cannot read bookmark file %s" file)))
 
 
