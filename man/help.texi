@@ -46,17 +46,19 @@ manual index, then finally look in the FAQ and the package keywords.
 @table @kbd
 @item C-h a @var{topic} @key{RET}
 This searches for commands whose names match @var{topic}, which should
-be a regular expression (@pxref{Regexps}).  Browse the buffer that this
-command displays to find what you are looking for.  @xref{Apropos}.
+be a list of words or a regular expression (@pxref{Regexps}).  Browse
+the buffer that this command displays to find what you are looking
+for.  @xref{Apropos}.
 
 @item M-x apropos @key{RET} @var{topic} @key{RET}
 This works like @kbd{C-h a}, but it also searches for noninteractive
 functions and for variables.  @xref{Apropos}.
 
-@item M-x apropos-documentation @key{RET} @var{topic} @key{RET}
+@item C-h d @var{topic} @key{RET}
 This searches the @emph{documentation strings} (the built-in short
 descriptions) of all variables and functions (not their names) for a
-match for @var{topic}, a regular expression.  @xref{Apropos}.
+match for @var{topic}, a list or words or a regular expression.
+@xref{Apropos}.
 
 @item C-h i d m emacs @key{RET} i @var{topic} @key{RET}
 This looks up @var{topic} in the indices of the Emacs on-line manual.
@@ -111,8 +113,8 @@ command.
 pre-written file of information.
 
 @table @kbd
-@item C-h a @var{regexp} @key{RET}
-Display a list of commands whose names match @var{regexp}
+@item C-h a @var{topic} @key{RET}
+Display a list of commands whose names match word list or regexp @var{topic}
 (@code{apropos-command}).
 @item C-h b
 Display a table of all key bindings in effect now, in this order: minor
@@ -122,6 +124,13 @@ mode bindings, major mode bindings, and global bindings
 Show the name of the command that @var{key} runs
 (@code{describe-key-briefly}).  Here @kbd{c} stands for ``character.''
 For more extensive information on @var{key}, use @kbd{C-h k}.
+@item C-h d @var{topic} @key{RET}
+Display a list of commands and variables whose documentation match
+word list or regexp @var{topic}
+(@code{apropos-documentation}).
+@item C-h e
+Display the @code{*Messages*} buffer
+(@code{view-echo-area-messages}).
 @item C-h f @var{function} @key{RET}
 Display documentation on the Lisp function named @var{function}
 (@code{describe-function}).  Since commands are Lisp functions,
@@ -304,25 +313,27 @@ view, describe, default.
 @end quotation
 
 @findex apropos-variable
-  To list all user variables that match a regexp, use the command
-@kbd{M-x apropos-variable}.  By default, this command shows only
-variables meant for user customization; if you specify a prefix
+  To list all user variables that match a word list or regexp, use the
+command @kbd{M-x apropos-variable}.  By default, this command shows
+only variables meant for user customization; if you specify a prefix
 argument, it checks all variables.
 
 @findex apropos
-  To list all Lisp symbols that contain a match for a regexp, not just
-the ones that are defined as commands, use the command @kbd{M-x apropos}
-instead of @kbd{C-h a}.  This command does not check key bindings by
-default; specify a numeric argument if you want it to check them.
+  To list all Lisp symbols that contain a match for a word list or
+regexp, not just the ones that are defined as commands, use the
+command @kbd{M-x apropos} instead of @kbd{C-h a}.  This command does
+not check key bindings by default; specify a numeric argument if you
+want it to check them.
 
+@kindex C-h d
 @findex apropos-documentation
   The @code{apropos-documentation} command is like @code{apropos} except
 that it searches documentation strings as well as symbol names for
-matches for the specified regular expression.
+matches for the specified topic, a word list or regular expression.
 
 @findex apropos-value
   The @code{apropos-value} command is like @code{apropos} except that it
-searches symbols' values for matches for the specified regular
+searches symbols' values for matches for the specified word list or regular
 expression.  This command does not check function definitions or
 property lists by default; specify a numeric argument if you want it to
 check them.
@@ -337,6 +348,12 @@ above all behave as if they had been given a prefix argument.
 If the variable @code{apropos-sort-by-scores} is non-@code{nil},
 Apropos tries to guess the relevance of each result, and displays the
 most relevant ones first.
+
+@vindex apropos-documentation-sort-by-scores
+  By default, Apropos lists the search results for
+  @code{apropos-documentation} in order of relevance.
+If the variable @code{apropos-documentation-sort-by-scores} is @code{nil},
+Apropos will list documentation in alphabetical order.
 
   If you want more information about a function definition, variable or
 symbol property listed in the Apropos buffer, you can click on it with
