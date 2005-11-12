@@ -1,5 +1,8 @@
 2005-11-12  Kim F. Storm  <storm@cua.dk>
 
+	* simple.el (what-cursor-position): Print (EOB) instead of (100%)
+	when point is at end-of-buffer.
+
 	* apropos.el (apropos-match-face): Doc fix.
 	(apropos-sort-by-scores): Add new choice `verbose'.
 	(apropos-documentation-sort-by-scores): New defcustom.
