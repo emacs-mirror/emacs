@@ -1,5 +1,7 @@
 2005-11-12  Kim F. Storm  <storm@cua.dk>
 
+	* help.el (help-map): Bind C-h d to apropos-documentation.
+
 	* simple.el (what-cursor-position): Print (EOB) instead of (100%)
 	when point is at end-of-buffer.
 
