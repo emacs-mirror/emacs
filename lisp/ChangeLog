@@ -1,3 +1,9 @@
+2005-11-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* find-lisp.el (find-lisp-find-dired-insert-file): Pass 'string
+	arg to `file-attributes'.
+	(find-lisp-format): The UID and GID can now be strings.
+
 2005-11-12  Kim F. Storm  <storm@cua.dk>
 
 	* help.el (help-map): Bind C-h d to apropos-documentation.
