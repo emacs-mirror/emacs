@@ -1,3 +1,45 @@
+2005-11-12  Kim F. Storm  <storm@cua.dk>
+
+	* apropos.el (apropos-match-face): Doc fix.
+	(apropos-sort-by-scores): Add new choice `verbose'.
+	(apropos-documentation-sort-by-scores): New defcustom.
+	(apropos-pattern): Now contains the pattern entered by the user.
+	(apropos-pattern-quoted): New defvar.
+	(apropos-regexp): New defvar, containing the regexp corresponding
+	to apropos-pattern.
+	(apropos-all-words-regexp): Renamed from apropos-all-regexp.
+	(apropos-read-pattern): New defun.  Use it to read pattern arg in
+	interactive calls; returns list of words for a word list, and
+	string for a regexp.
+	(apropos-parse-pattern): Renamed from apropos-rewrite-regexp.  Now
+	parses a list of words or regexp as returned by apropos-read-pattern.
+	(apropos-calc-scores): Return nil if apropos-regexp doesn't match.
+	(apropos-score-doc): Return a very high score if the string
+	entered by the user matches literally.
+	(apropos-variable): Doc fix.  Use apropos-read-pattern.
+	(apropos-command): Doc fix.  Use apropos-read-pattern and
+	apropos-parse-pattern.  Call apropos-print with nosubst=t.
+	(apropos, apropos-value): Doc fix. Use apropos-read-pattern and
+	apropos-parse-pattern.
+	(apropos-documentation): Doc fix. Use apropos-read-pattern and
+	apropos-parse-pattern.  Locally bind apropos-sort-by-scores to
+	apropos-documentation-sort-by-scores.  Call apropos-print with
+	nosubst=t.
+	(apropos-documentation-internal): Pass doc string through
+	substitute-key-definition before adding text properties.
+	Highlight substring matching literal user input if possible.
+	(apropos-documentation-check-doc-file): Remove locals beg and end.
+	Fix calculation of score (as added twice).  Pass doc string through
+	substitute-key-definition before adding text properties.
+	(apropos-documentation-check-elc-file): Pass doc string through
+	substitute-key-definition before adding text properties.
+	Highlight substring matching literal user input if possible.
+	(apropos-print): Add new arg NOSUBST; if set, command and variable
+	doc strings have already been passed through substitute-key-definition.
+	Add code to handle apropos-accumulator items without score element
+	for backwards compatibility (e.g. with woman package).
+	Only show scores if apropos-sort-by-scores is `verbose'.
+
 2005-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* jka-cmpr-hook.el (jka-compr-install): Use push and dolist.
