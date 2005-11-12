@@ -137,21 +137,18 @@ Used to grey out relevant togolbar icons.")
                   :enable (and (not gud-running)
 			       (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-                     (> (car (window-fringes
-			      (get-buffer-window (current-buffer)))) 0))))
+                     (> (car (window-fringes 0))))))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
                   :enable (not gud-running)
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-                     (> (car (window-fringes
-			      (get-buffer-window (current-buffer)))) 0))))
+                      (> (car (window-fringes 0))))))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
 		  :enable (memq gud-minor-mode
 				'(gdbmi gdba gdb sdb xdb bashdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
                   :enable (not gud-running)
 		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-                     (> (car (window-fringes
-			      (get-buffer-window (current-buffer)))) 0))))
+                      (> (car (window-fringes 0))))))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
@@ -425,7 +422,9 @@ required by the caller."
 		(while (string-match "\\." varnum start)
 		  (setq depth (1+ depth)
 			start (1+ (match-beginning 0))))
-		(if (equal (nth 2 var) "0")
+		(if (or (equal (nth 2 var) "0")
+			(and (equal (nth 2 var) "1")
+			     (equal (nth 3 var) "char *")))
 		    (speedbar-make-tag-line 'bracket ?? nil nil
 					    (concat (car var) "\t" (nth 4 var))
 					    'gdb-edit-value
