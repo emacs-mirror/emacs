@@ -893,8 +893,8 @@ in *Help* buffer.  See also the command `describe-char'."
 	(if (or (/= beg 1) (/= end (1+ total)))
 	    (message "point=%d of %d (%d%%) <%d - %d> column %d %s"
 		     pos total percent beg end col hscroll)
-	  (message "point=%d of %d (%d%%) column %d %s"
-		   pos total percent col hscroll))
+	  (message "point=%d of %d (EOB) column %d %s"
+		   pos total col hscroll))
       (let ((coding buffer-file-coding-system)
 	    encoded encoding-msg display-prop under-display)
 	(if (or (not coding)
@@ -3718,11 +3718,11 @@ The goal column is stored in the variable `goal-column'."
     ;;"Goal column %d (use \\[set-goal-column] with an arg to unset it)")
     ;;goal-column)
     (message "%s"
-	     (concat 
+	     (concat
 	      (format "Goal column %d " goal-column)
 	      (substitute-command-keys
 	       "(use \\[set-goal-column] with an arg to unset it)")))
-    
+
     )
   nil)
 
@@ -4860,7 +4860,7 @@ Called from `temp-buffer-show-hook'."
 When this hook is run, the current buffer is the one in which the
 command to display the completion list buffer was run.
 The completion list buffer is available as the value of `standard-output'.
-The common prefix substring for completion may be available as the 
+The common prefix substring for completion may be available as the
 value of `completion-common-substring'. See also `display-completion-list'.")
 
 
@@ -4889,9 +4889,9 @@ of the differing parts is, by contrast, slightly highlighted."
   "Common prefix substring to use in `completion-setup-function' to put faces.
 The value is set by `display-completion-list' during running `completion-setup-hook'.
 
-To put faces, `completions-first-difference' and `completions-common-part' 
+To put faces, `completions-first-difference' and `completions-common-part'
 into \"*Completions*\* buffer, the common prefix substring in completions is
-needed as a hint. (Minibuffer is a special case. The content of minibuffer itself 
+needed as a hint. (Minibuffer is a special case. The content of minibuffer itself
 is the substring.)")
 
 ;; This function goes in completion-setup-hook, so that it is called
