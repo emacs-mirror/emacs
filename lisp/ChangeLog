@@ -1,3 +1,10 @@
+2005-11-12  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-write-file): Don't visit the destination
+	file, just write the data to it using write-region.  This is
+	similar to revision 1.32 of saveplace.el, but with an additional
+	change to avoid visiting the file in the first place.
+
 2005-11-12  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hi-lock.el (hi-lock-mode): Set the default value of

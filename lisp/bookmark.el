@@ -1352,12 +1352,11 @@ for a file, defaulting to the file defined by variable
     (save-window-excursion
       (if (>= baud-rate 9600)
           (message "Saving bookmarks to file %s..." file))
-      (set-buffer (let ((enable-local-variables nil))
-                    (find-file-noselect file)))
+      (set-buffer (get-buffer-create " *Bookmarks*"))
       (goto-char (point-min))
+      (delete-region (point-min) (point-max))
       (let ((print-length nil)
 	    (print-level nil))
-	(delete-region (point-min) (point-max))
 	(bookmark-insert-file-format-version-stamp)
 	(pp bookmark-alist (current-buffer))
 	(let ((version-control
@@ -1368,7 +1367,7 @@ for a file, defaulting to the file defined by variable
 		(t
 		 t))))
           (condition-case nil
-              (write-file file)
+              (write-region (point-min) (point-max) file)
             (file-error (message "Can't write %s" file)))
 	  (kill-buffer (current-buffer))
 	  (if (>= baud-rate 9600)
