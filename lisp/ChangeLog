@@ -1,8 +1,19 @@
 2005-11-13  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/gud.el (gud-menu-map):  Move parentheses (again).
+	(gud-speedbar-buttons): Match on "const char *" too.
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler)
+	(gdb-var-list-children-handler): Match on "const char *" too.
+	(gdb-var-evaluate-expression-handler): Match on empty string.
+	(gdb-var-update-handler): Only call
+	gdb-var-evaluate-expression-handler when required.
+
+2005-11-13  Nick Roberts  <nickrob@snap.net.nz>
+
 	* progmodes/gud.el (gud-menu-map): Revert to window-fringes for
 	selected window.  This still doesn't work for speedbar.
-	(gud-speedbar-buttons): Handle strings properly.
+	(gud-speedbar-buttons): Handle string expressions properly.
 
 	* progmodes/gdb-ui.el (gdb-var-evaluate-expression-handler)
 	(gdb-var-create-handler): Handle string expressions properly.
