@@ -40,6 +40,8 @@ to the FSF.
    list fonts, display a font as a sample, etc.  [fx is looking at
   multilingual font selection for Emacs 22.]
 
+** Rewrite the face code to be simpler, clearer and faster.
+
 ** Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?  Maybe see info at
   http://latex2rtf.sourceforge.net/.]
