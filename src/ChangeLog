@@ -1,3 +1,22 @@
+2005-11-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (USE_CG_TEXT_DRAWING): New define.
+	(struct MacFontStruct) [USE_CG_TEXT_DRAWING]: New members cg_font
+	and cg_glyphs.
+
+	* macterm.c [USE_CG_TEXT_DRAWING] (mac_draw_string_cg): New function.
+	(x_draw_glyph_string_foreground) [USE_CG_TEXT_DRAWING]: Use it.
+	(XLoadQueryFont) [USE_CG_TEXT_DRAWING]: Set members cg_font and
+	cg_glyphs in struct MacFontStruct if synthesized bold or italic is
+	not used and font substitution never occurs for ASCII and Latin-1
+	characters.
+	(XLoadQueryFont): Maximum and minimum metrics are now those among
+	ASCII characters.
+	(XLoadQueryFont) [!MAC_OS8 || USE_ATSUI]: Apply WebKit-style
+	height adjustments for Courier, Helvetica, and Times.
+
+	* s/darwin.h (LIBS_CARBON) [!HAVE_CARBON]: Remove `-framework Carbon'.
+
 2005-11-11  David Reitter <david.reitter@gmail.com>
 
 	* macterm.c (syms_of_macterm): Remove macCtrlKey, macShiftKey,
@@ -260,7 +279,7 @@
 	from last_mouse_glyph_frame, and update last_mouse_glyph_frame.
 	(XTmouse_position): Set last_mouse_glyph_frame.
 	(XTread_socket): Clear last_mouse_glyph_frame on mouse up/down event.
-	(mac_draw_string_common) [MAC_OSX && WORDS_BIG_ENDIAN]: Fix typo.
+	(mac_draw_string_common) [USE_ATSUI && WORDS_BIG_ENDIAN]: Fix typo.
 	Use EndianU16_BtoN.
 	(mac_draw_string_common) [MAC_OSX]: Don't use ATSUClearLayoutControls.
 	(x_per_char_metric, XLoadQueryFont)
