@@ -493,7 +493,7 @@ With arg, use separate IO iff arg is positive."
 	    (speedbar-change-initial-expansion-list "GUD"))
 	  (if (or (equal (nth 2 var) "0")
 		  (and (equal (nth 2 var) "1")
-		       (equal (nth 3 var) "char *")))
+		       (string-match "char \\*" (nth 3 var))))
 	      (gdb-enqueue-input
 	       (list
 		(if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
@@ -511,7 +511,7 @@ With arg, use separate IO iff arg is positive."
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
-    (re-search-forward ".*value=\\(\".+\"\\)" nil t)
+    (re-search-forward ".*value=\\(\".*\"\\)" nil t)
     (catch 'var-found
       (let ((num 0))
 	(dolist (var gdb-var-list)
@@ -554,7 +554,7 @@ type=\"\\(.*?\\)\"")
 		   (push varchild var-list)
 		   (if (or (equal (nth 2 varchild) "0")
 			   (and (equal (nth 2 varchild) "1")
-				(equal (nth 3 varchild) "char *")))
+				(string-match "char \\*" (nth 3 varchild))))
 		       (gdb-enqueue-input
 			(list
 			 (concat
@@ -578,12 +578,19 @@ type=\"\\(.*?\\)\"")
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (while (re-search-forward gdb-var-update-regexp nil t)
+      (catch 'var-found-1
 	(let ((varnum (match-string 1)))
-	  (gdb-enqueue-input
-	   (list
-	    (concat "server interpreter mi \"-var-evaluate-expression "
-		    varnum "\"\n")
-	    `(lambda () (gdb-var-evaluate-expression-handler ,varnum t)))))))
+	  (dolist (var gdb-var-list)
+	    (when (and (string-equal varnum (cadr var))
+		     (or (equal (nth 2 var) "0")
+			 (and (equal (nth 2 var) "1")
+			      (string-match "char \\*" (nth 3 var)))))
+	      (gdb-enqueue-input
+	       (list
+		(concat "server interpreter mi \"-var-evaluate-expression "
+			varnum "\"\n")
+		`(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
+	      (throw 'var-found-1 nil)))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
