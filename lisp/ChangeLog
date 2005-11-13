@@ -1,3 +1,7 @@
+2005-11-13  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (help-for-help-internal): Fix `a' entry.  Add `d' entry.
+
 2005-11-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map):  Move parentheses (again).
@@ -22,12 +26,12 @@
 	regexp.
 
 2005-11-12  Karl Fogel  <kfogel@red-bean.com>
-	
+
 	* bookmark.el (bookmark-maybe-message): New function to reduce
-	code duplication: invokes `message' iff baud-rate is high enough. 
+	code duplication: invokes `message' iff baud-rate is high enough.
 	(bookmark-write-file): Use above instead of an inline conditional.
 	(bookmark-load): Same.
-	
+
 2005-11-12  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-write-file): Don't visit the destination
