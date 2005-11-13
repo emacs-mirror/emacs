@@ -190,15 +190,18 @@ If FUNCTION is nil, it applies `message', thus displaying the message."
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
-a  command-apropos.  Give a substring, and see a list of commands
-	(functions that are interactively callable) that contain
-	that substring.  See also the  apropos  command.
+a  apropos-command.  Give a pattern (a list or words or a regexp), and see a
+	list of commands (functions that are interactively callable)
+	that matches the pattern.  See also the apropos command.
 b  describe-bindings.  Display table of all key bindings.
 c  describe-key-briefly.  Type a command key sequence;
 	it prints the function name that sequence runs.
 C  describe-coding-system.  This describes either a specific coding system
         (if you type its name) or the coding systems currently in use
 	(if you type just RET).
+d  apropos-documentation.  Give a pattern (a list or words or a regexp), and
+	see a list of functions, variables, and other items whose built-in
+	doucmentation string matches that pattern.  See also the apropos command.
 e  view-echo-area-messages.  Show the buffer where the echo-area messages
 	are stored.
 f  describe-function.  Type a function name and get its documentation.
