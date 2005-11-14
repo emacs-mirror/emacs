@@ -1,3 +1,14 @@
+2005-11-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help-mode.el (help-make-xrefs, help-xref-on-pp)
+	(help-xref-interned, help-follow): Make hyperlinks for variables
+	that are unbound, but have a non-nil variable-documentation property.
+
+	* emacs-lisp/derived.el (define-derived-mode): Remove defvar for
+	mode hook.  (It conflicted with defcustoms for some mode hooks.)
+	Use the `variable-documentation' property to give the mode hook a
+	docstring and expand that docstring.
+
 2005-11-14  Hrvoje Niksic  <hniksic@xemacs.org>
 
 	* savehist.el (savehist-mode): Don't bother with `custom-set-minor-mode.
