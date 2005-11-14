@@ -1053,10 +1053,6 @@ mail status in mode line"))
 			   "Active Region Highlighting"
 			   "Make text in active region stand out in color (Transient Mark mode)"
 			   (:enable (not cua-mode))))
-(define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
-  (menu-bar-make-mm-toggle global-font-lock-mode
-			   "Syntax Highlighting"
-			   "Colorize text based on language syntax (Global Font Lock mode)"))
 
 
 ;; The "Tools" menu items

@@ -1,3 +1,8 @@
+2005-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* menu-bar.el (menu-bar-options-menu): Delete "Syntax
+	Highlighting" entry, it is on by default now.
+
 2005-11-13  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-large-region):
