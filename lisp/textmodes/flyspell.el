@@ -947,7 +947,7 @@ Mostly we check word delimiters."
 			    (sort (car (cdr (cdr poss))) 'string<)
 			  (car (cdr (cdr poss)))))))
     (if flyspell-issue-message-flag
-	(message "mispelling `%s'  %S" word replacements))))
+	(message "misspelling `%s'  %S" word replacements))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-word-search-backward ...                                */
@@ -1375,6 +1375,44 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
   (setq flyspell-external-ispell-buffer nil))
 
 ;*---------------------------------------------------------------------*/
+;*    flyspell-process-localwords ...                                  */
+;*    -------------------------------------------------------------    */
+;*    This function is used to prevent marking of words explicitly     */
+;*    declared correct.                                                */
+;*---------------------------------------------------------------------*/
+(defun flyspell-process-localwords (misspellings-buffer)
+  (let (localwords
+	(ispell-casechars (ispell-get-casechars)))
+    ;; Get localwords from the original buffer
+    (save-excursion
+      (goto-char (point-min))
+      ;; Localwords parsing copied from ispell.el.
+      (while (search-forward ispell-words-keyword nil t)
+	(let ((end (save-excursion (end-of-line) (point)))
+	      string)
+	  ;; buffer-local words separated by a space, and can contain
+	  ;; any character other than a space.  Not rigorous enough.
+	  (while (re-search-forward " *\\([^ ]+\\)" end t)
+	    (setq string (buffer-substring-no-properties (match-beginning 1)
+							 (match-end 1)))
+	    ;; This can fail when string contains a word with invalid chars.
+	    ;; Error handling needs to be added between Ispell and Emacs.
+	    (if (and (< 1 (length string))     
+		     (equal 0 (string-match ispell-casechars string)))
+		(push string localwords))))))
+    ;; Remove localwords matches from misspellings-buffer.
+    ;; The usual mechanism of communicating the local words to ispell
+    ;; does not affect the special ispell process used by
+    ;; flyspell-large-region.
+    (with-current-buffer misspellings-buffer
+      (save-excursion
+	(dolist (word localwords)
+	  (goto-char (point-min))
+	  (let ((regexp (concat "^" word "\n")))
+	    (while (re-search-forward regexp nil t)
+	      (delete-region (match-beginning 0) (match-end 0)))))))))
+
+;*---------------------------------------------------------------------*/
 ;*    flyspell-large-region ...                                        */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-large-region (beg end)
@@ -1384,6 +1422,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
     (setq flyspell-large-region-buffer curbuf)
     (setq flyspell-large-region-beg beg)
     (setq flyspell-large-region-end end)
+    (flyspell-accept-buffer-local-defs)
     (set-buffer buffer)
     (erase-buffer)
     ;; this is done, we can start checking...
@@ -1416,7 +1455,11 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 		      (setq args (append args ispell-extra-args))
 		      args))))
       (if (eq c 0)
-	  (flyspell-external-point-words)
+	  (progn
+	    (flyspell-process-localwords buffer)
+	    (with-current-buffer curbuf
+	      (flyspell-delete-region-overlays beg end))
+	    (flyspell-external-point-words))
 	(error "Can't check region...")))))
 
 ;*---------------------------------------------------------------------*/
@@ -1503,18 +1546,23 @@ FLYSPELL-BUFFER."
   (and (overlayp o) (overlay-get o 'flyspell-overlay)))
 
 ;*---------------------------------------------------------------------*/
-;*    flyspell-delete-all-overlays ...                                 */
+;*    flyspell-delete-region-overlays, flyspell-delete-all-overlays    */
 ;*    -------------------------------------------------------------    */
-;*    Remove all the overlays introduced by flyspell.                  */
+;*    Remove overlays introduced by flyspell.                          */
 ;*---------------------------------------------------------------------*/
-(defun flyspell-delete-all-overlays ()
-  "Delete all the overlays used by flyspell."
-  (let ((l (overlays-in (point-min) (point-max))))
+(defun flyspell-delete-region-overlays (beg end)
+  "Delete overlays used by flyspell in a given region."
+  (let ((l (overlays-in beg end)))
     (while (consp l)
       (progn
 	(if (flyspell-overlay-p (car l))
 	    (delete-overlay (car l)))
 	(setq l (cdr l))))))
+
+
+(defun flyspell-delete-all-overlays ()
+  "Delete all the overlays used by flyspell."
+  (flyspell-delete-region-overlays (point-min) (point-max)))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-unhighlight-at ...                                      */
