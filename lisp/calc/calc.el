@@ -2027,6 +2027,10 @@ See calc-keypad for details."
   (calc-slow-wrapper
    (calc-binary-op "/" 'calcFunc-div arg 0 'calcFunc-inv '/)))
 
+(defun calc-left-divide (arg)
+  (interactive "P")
+  (calc-slow-wrapper
+   (calc-binary-op "ldiv" 'calcFunc-ldiv arg 0 nil nil)))
 
 (defun calc-change-sign (arg)
   (interactive "P")
