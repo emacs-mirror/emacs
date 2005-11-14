@@ -1,5 +1,7 @@
 2005-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc-svn.el (vc-svn-registered): Catch all errors.
+
 	* cus-dep.el (custom-make-dependencies): Typo.
 
 2005-11-13  Michael Albinus  <michael.albinus@gmx.de>
