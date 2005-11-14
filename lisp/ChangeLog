@@ -1,3 +1,7 @@
+2005-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* help.el (help-for-help-internal): Improve doc of C-h a.
+
 2005-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-registered): Catch all errors.
