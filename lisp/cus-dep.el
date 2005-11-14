@@ -99,7 +99,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		    (insert "(put '" (symbol-name symbol)
                             " 'custom-loads '")
                     (prin1 found (current-buffer))
-                    (insert "))\n"))))))
+                    (insert ")\n"))))))
   (insert "\
 ;; These are for handling :version.  We need to have a minimum of
 ;; information so `customize-changed-options' could do its job.
