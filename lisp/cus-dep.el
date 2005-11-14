@@ -98,7 +98,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		  (when found
 		    (insert "(put '" (symbol-name symbol)
                             " 'custom-loads '")
-                    (prin1 found (current-buffer))
+                    (prin1 (nreverse found) (current-buffer))
                     (insert ")\n"))))))
   (insert "\
 ;; These are for handling :version.  We need to have a minimum of
