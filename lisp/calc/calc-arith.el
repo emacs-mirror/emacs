@@ -1856,8 +1856,9 @@
 
 ;;; Division from the left.
 (defun calcFunc-ldiv (a b)
-  (math-mul (math-pow a -1) b))
-
+  (if (math-known-scalarp a)
+      (math-div b a)
+    (math-mul (math-pow a -1) b)))
 
 (defun calcFunc-mod (a b)
   (math-normalize (list '% a b)))
