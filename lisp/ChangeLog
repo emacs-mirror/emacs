@@ -1,3 +1,11 @@
+2005-11-14  Juri Linkov  <juri@jurta.org>
+
+	* cus-edit.el (custom-variable-prompt): Set the default value arg
+	of completing-read.
+
+	* cus-dep.el (custom-make-dependencies): Reverse the list of
+	found dependencies.
+
 2005-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* menu-bar.el (menu-bar-options-menu): Delete "Syntax
