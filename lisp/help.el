@@ -190,9 +190,9 @@ If FUNCTION is nil, it applies `message', thus displaying the message."
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
-a  apropos-command.  Give a pattern (a list or words or a regexp), and see a
-	list of commands (functions that are interactively callable)
-	that matches the pattern.  See also the apropos command.
+a  command-apropos.  Give a list of words or a regexp, to get a list of
+        commands whose names match (they contain two or more of the words,
+	or a match for the regexp).  See also the  apropos  command.
 b  describe-bindings.  Display table of all key bindings.
 c  describe-key-briefly.  Type a command key sequence;
 	it prints the function name that sequence runs.
@@ -611,13 +611,15 @@ the last key hit are used."
 
 (defun describe-key (key &optional untranslated up-event)
   "Display documentation of the function invoked by KEY.
-KEY should be a key sequence--when calling from a program,
-pass a string or a vector.
-If non-nil UNTRANSLATED is a vector of the untranslated events.
-It can also be a number in which case the untranslated events from
-the last key hit are used."
+KEY can be any kind of a key sequence; it can include keyboard events,
+mouse events, and/or menu events.  When calling from a program,
+pass KEY as a string or a vector.
+
+If non-nil, UNTRANSLATED is a vector of the correspondinguntranslated events.
+It can also be a number, in which case the untranslated events from
+the last key sequence entered are used."
   ;; UP-EVENT is the up-event that was discarded by reading KEY, or nil.
-  (interactive "kDescribe key: \np\nU")
+  (interactive "kDescribe key (or click or menu item): \np\nU")
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))
   (save-excursion
