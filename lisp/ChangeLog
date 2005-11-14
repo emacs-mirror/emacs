@@ -1,5 +1,7 @@
 2005-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (write-file): Refresh VC status.
+
 	* calendar/diary-lib.el (diary-list-entries, diary-show-all-entries)
 	(mark-diary-entries, make-diary-entry): Check default-major-mode rather
 	than fundamental-mode to see if the mode was set.
