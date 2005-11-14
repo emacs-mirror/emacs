@@ -1,3 +1,13 @@
+2005-11-14  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* savehist.el (savehist-mode): Don't bother with `custom-set-minor-mode.
+	(savehist-coding-system): Check XEmacs version.
+	(history-length): Declare also at run time.
+	(savehist-mode): Don't emit a message.  Don't run the minor mode hook.
+	Don't set the customize state.
+	(savehist-minibuffer-hook): Special case for when
+	minibuffer-history-variable is equal to t.
+
 2005-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (write-file): Refresh VC status.
