@@ -1,5 +1,20 @@
 2005-11-13  Richard M. Stallman  <rms@gnu.org>
 
+	* textmodes/flyspell.el (flyspell-large-region):
+	Call flyspell-accept-buffer-local-defs.
+
+2005-11-13  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-notify-misspell):
+	Fix misspelling of "Misspelling".
+	(flyspell-process-localwords): New function.
+	(flyspell-large-region): Call flyspell-process-localwords and
+	flyspell-delete-region-overlays.
+	(flyspell-delete-region-overlays): New function.
+	(flyspell-delete-all-overlays): Call that.
+
+2005-11-13  Richard M. Stallman  <rms@gnu.org>
+
 	* help.el (help-for-help-internal): Improve doc of C-h a.
 
 2005-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
