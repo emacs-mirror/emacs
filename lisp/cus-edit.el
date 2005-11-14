@@ -493,11 +493,12 @@ Return a list suitable for use in `interactive'."
    (let ((v (variable-at-point))
 	 (enable-recursive-minibuffers t)
 	 val)
-     (setq val (completing-read
-		(if (and (symbolp v) (custom-variable-p v))
-		    (format "Customize option (default %s): " v)
-		  "Customize option: ")
-		obarray 'custom-variable-p t))
+     (setq val (if (and (symbolp v) (custom-variable-p v))
+		   (completing-read
+		    (format "Customize option (default %s): " v) obarray
+		    'custom-variable-p t nil nil (symbol-name v))
+		 (completing-read "Customize option: " obarray
+				  'custom-variable-p t)))
      (list (if (equal val "")
 	       (if (symbolp v) v nil)
 	     (intern val)))))
