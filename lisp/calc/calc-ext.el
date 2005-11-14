@@ -659,7 +659,7 @@
  ("calc-alg" calc-has-rules math-defsimplify
 calc-modify-simplify-mode calcFunc-collect calcFunc-esimplify
 calcFunc-islin calcFunc-islinnt calcFunc-lin calcFunc-linnt
-calcFunc-simplify calcFunc-subst calcFunc-writeoutpower math-beforep
+calcFunc-simplify calcFunc-subst calcFunc-powerexpand math-beforep
 math-build-polynomial-expr math-expand-formula math-expr-contains
 math-expr-contains-count math-expr-depends math-expr-height
 math-expr-subst math-expr-weight math-integer-plus math-is-linear
@@ -694,7 +694,7 @@ calcFunc-dnonneg calcFunc-dnonzero calcFunc-dnumint calcFunc-dodd
 calcFunc-dpos calcFunc-drange calcFunc-drat calcFunc-dreal
 calcFunc-dscalar calcFunc-fceil calcFunc-ffloor calcFunc-float
 calcFunc-fround calcFunc-frounde calcFunc-froundu calcFunc-ftrunc
-calcFunc-idiv calcFunc-incr calcFunc-mant calcFunc-max calcFunc-min
+calcFunc-idiv calcFunc-incr calcFunc-ldiv calcFunc-mant calcFunc-max calcFunc-min
 calcFunc-mod calcFunc-mul calcFunc-neg calcFunc-percent calcFunc-pow
 calcFunc-relch calcFunc-round calcFunc-rounde calcFunc-roundu
 calcFunc-scf calcFunc-sub calcFunc-xpon math-abs math-abs-approx
@@ -923,7 +923,7 @@ calc-force-refresh calc-locate-cursor-element calc-show-edit-buffer)
  ("calc-alg" calc-alg-evaluate calc-apart calc-collect calc-expand
 calc-expand-formula calc-factor calc-normalize-rat calc-poly-div
 calc-poly-div-rem calc-poly-gcd calc-poly-rem calc-simplify
-calc-simplify-extended calc-substitute calc-writeoutpower)
+calc-simplify-extended calc-substitute calc-powerexpand)
 
  ("calcalg2" calc-alt-summation calc-derivative
 calc-dump-integral-cache calc-integral calc-num-integral
