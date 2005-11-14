@@ -1,3 +1,9 @@
+2005-11-14  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el: If `vm-visit-folder' doesn't exist, define it as a
+	dummy function in `eval-when-compile' to avoid compiler warning.
+	Require `man' at compile time.
+
 2005-11-14  Jay Belanger  <belanger@truman.edu>
 
 	* calc-alg.el (calcFunc-write-out-power): Rename it to

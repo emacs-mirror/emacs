@@ -112,6 +112,7 @@
 (require 'dired-aux)
 
 (defvar vm-folder-directory)
+(eval-when-compile (require 'man))
 
 ;;; User-defined variables.
 
@@ -1411,9 +1412,11 @@ Uses `man.el' of \\[manual-entry] fame."
 
 ;;; Run mail on mail folders.
 
-;;; (and (not (fboundp 'vm-visit-folder))
-;;;      (defun vm-visit-folder (file &optional arg)
-;;;        nil))
+;; Avoid compiler warning.
+(eval-when-compile
+  (when (not (fboundp 'vm-visit-folder))
+    (defun vm-visit-folder (file &optional arg)
+      nil)))
 
 (defun dired-vm (&optional read-only)
   "Run VM on this file.
