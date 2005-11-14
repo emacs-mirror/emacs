@@ -378,7 +378,7 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
             (or (verify-visited-file-modtime diary-buffer)
                 (revert-buffer t t))))
         ;; Setup things like the header-line-format and invisibility-spec.
-        (when (eq major-mode 'fundamental-mode) (diary-mode))
+        (when (eq major-mode default-major-mode) (diary-mode))
         ;; d-s-p is passed to the diary display function.
         (let ((diary-saved-point (point)))
           (save-excursion
@@ -773,7 +773,7 @@ is created."
         (pop-up-frames (window-dedicated-p (selected-window))))
     (with-current-buffer (or (find-buffer-visiting d-file)
                              (find-file-noselect d-file t))
-      (when (eq major-mode 'fundamental-mode) (diary-mode))
+      (when (eq major-mode default-major-mode) (diary-mode))
       (diary-unhide-everything)
       (display-buffer (current-buffer)))))
 
@@ -876,7 +876,7 @@ diary entries."
         file-glob-attrs marks)
     (with-current-buffer (find-file-noselect (diary-check-diary-file) t)
       (save-excursion
-        (when (eq major-mode 'fundamental-mode) (diary-mode))
+        (when (eq major-mode default-major-mode) (diary-mode))
         (setq mark-diary-entries-in-calendar t)
         (message "Marking diary entries...")
         (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
@@ -1671,7 +1671,7 @@ If omitted, NONMARKING defaults to nil and FILE defaults to
 `diary-file'."
   (let ((pop-up-frames (window-dedicated-p (selected-window))))
     (find-file-other-window (substitute-in-file-name (or file diary-file))))
-  (when (eq major-mode 'fundamental-mode) (diary-mode))
+  (when (eq major-mode default-major-mode) (diary-mode))
   (widen)
   (diary-unhide-everything)
   (goto-char (point-max))

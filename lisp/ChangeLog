@@ -1,3 +1,9 @@
+2005-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* calendar/diary-lib.el (diary-list-entries, diary-show-all-entries)
+	(mark-diary-entries, make-diary-entry): Check default-major-mode rather
+	than fundamental-mode to see if the mode was set.
+
 2005-11-14  Romain Francoise  <romain@orebokech.com>
 
 	* dired-x.el: If `vm-visit-folder' doesn't exist, define it as a
