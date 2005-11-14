@@ -641,8 +641,7 @@ by \"Save Options\" in Custom buffers.")
     ;; put on a customized-value property.
     (dolist (elt '(line-number-mode column-number-mode size-indication-mode
 		   cua-mode show-paren-mode transient-mark-mode
-		   global-font-lock-mode blink-cursor-mode
-		   display-time-mode display-battery-mode))
+		   blink-cursor-mode display-time-mode display-battery-mode))
       (and (customize-mark-to-save elt)
 	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.

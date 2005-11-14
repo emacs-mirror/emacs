@@ -2,6 +2,7 @@
 
 	* menu-bar.el (menu-bar-options-menu): Delete "Syntax
 	Highlighting" entry, it is on by default now.
+	(menu-bar-options-save): Do not save global-font-lock-mode.
 
 2005-11-13  Richard M. Stallman  <rms@gnu.org>
 
