@@ -1,3 +1,20 @@
+2005-11-14  Jay Belanger  <belanger@truman.edu>
+
+	* calc-alg.el (calcFunc-write-out-power): Rename it to
+	calcFunc-powerexpand.
+	(math-write-out-power): Rename it to math-powerexpand; have it
+	handle negative exponents.
+	(calc-writeoutpower): Rename it to calc-powerexpand.
+
+	* calc-ext.el: Change calcFunc-writeoutpower and
+	calc-writeoutpower to calcFunc-powerexpand and calc-powerexpand in
+	autoloads.
+	Add calcFunc-ldiv to autoloads.
+
+	* calc-arith.el (calcFunc-ldiv): New function.
+
+	* calc.el (calc-left-divide): New function.
+
 2005-11-14  Juri Linkov  <juri@jurta.org>
 
 	* cus-edit.el (custom-variable-prompt): Set the default value arg
