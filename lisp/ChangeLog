@@ -10,6 +10,12 @@
 	* progmodes/gud.el (gud-menu-map): Make visibility of stop and
 	go buttons complementary.
 
+2005-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rfn-eshadow.el (rfn-eshadow-regexp): Remove.
+	(rfn-eshadow-sifn-equal): New function.
+	(rfn-eshadow-update-overlay): Rewrite to use substitute-in-file-name.
+
 2005-11-15  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper-utils (viper-non-word-characters-reformed-vi): Quote `-' in
@@ -40,8 +46,7 @@
 
 2005-11-16  Kim F. Storm  <storm@cua.dk>
 
-	* progmodes/gud.el (gud-tool-bar-item-visible-no-fringe): New
-	function.
+	* progmodes/gud.el (gud-tool-bar-item-visible-no-fringe): New function.
 	(gud-menu-map): Use it.
 
 2005-11-14  Luc Teirlinck  <teirllm@auburn.edu>
