@@ -140,10 +140,12 @@ Used to grey out relevant togolbar icons.")
 			       (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
 		  :visible (not (eq gud-minor-mode 'gdba)))
     ([go]	menu-item "Run/Continue" gud-go
-                  :enable (not gud-running)
-		  :visible (eq gud-minor-mode 'gdba))
+		  :visible (and (not gud-running)
+				(eq gud-minor-mode 'gdba)))
     ([stop]	menu-item "Stop" comint-interrupt-subjob
-                  :enable gud-running)
+		  :visible (or (not (eq gud-minor-mode 'gdba))
+			       (and gud-running
+				    (eq gud-minor-mode 'gdba))))
     ([until]	menu-item "Continue to selection" gud-until
                   :enable (and (not gud-running)
 			       (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
