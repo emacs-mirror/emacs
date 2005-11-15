@@ -358,13 +358,16 @@ With arg, use separate IO iff arg is positive."
 			  (gud-call "clear *%a" arg)))
 	   "\C-d" "Remove breakpoint at current line or address.")
   ;;
-  (gud-def gud-until  (if (not (string-match "Machine" mode-name))
+  (gud-def gud-until (if (not (string-match "Machine" mode-name))
 			  (gud-call "until %f:%l" arg)
 			(save-excursion
 			  (beginning-of-line)
 			  (forward-char 2)
 			  (gud-call "until *%a" arg)))
 	   "\C-u" "Continue to current line or address.")
+  ;;
+  (gud-def gud-go (gud-call (if gdb-active-process "continue" "run") arg)
+	   nil "Start or continue execution.")
 
   (define-key gud-minor-mode-map [left-margin mouse-1]
     'gdb-mouse-set-clear-breakpoint)
@@ -1376,8 +1379,6 @@ static char *magick[] = {
      :weight bold))
   "Face for enabled breakpoint icon in fringe."
   :group 'gud)
-;; Compatibility alias for old name.
-(put 'breakpoint-enabled-bitmap-face 'face-alias 'breakpoint-enabled)
 
 (defface breakpoint-disabled
   ;; We use different values of grey for different background types,
@@ -2358,11 +2359,13 @@ corresponding to the mode line clicked."
   (define-key menu [breakpoints]
     '("Breakpoints" . gdb-frame-breakpoints-buffer)))
 
-(let ((menu (make-sparse-keymap "GDB-UI")))
+(let ((menu (make-sparse-keymap "GDB-UI/MI")))
   (define-key gud-menu-map [ui]
-    `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
+    `(menu-item (if (eq gud-minor-mode 'gdba) "GDB-UI" "GDB-MI")
+		,menu :visible (memq gud-minor-mode '(gdbmi gdba))))
   (define-key menu [gdb-use-inferior-io]
   '(menu-item "Separate inferior IO" gdb-use-inferior-io-buffer
+	      :visible (eq gud-minor-mode 'gdba)
 	      :help "Toggle separate IO for inferior."
 	      :button (:toggle . gdb-use-inferior-io-buffer)))
   (define-key menu [gdb-many-windows]
@@ -2702,7 +2705,8 @@ BUFFER nil or omitted means use the current buffer."
 		  (if (re-search-forward address nil t)
 		      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
     (if (not (equal gdb-frame-address "main"))
-	(set-window-point (get-buffer-window buffer 0) pos))))
+	(with-current-buffer buffer
+	  (set-window-point (get-buffer-window buffer 0) pos)))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
