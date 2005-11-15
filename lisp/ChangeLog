@@ -5,6 +5,9 @@
 	
 	* viper.el (viper-emacs-state-mode-list): Ensure that
 	rcirc-mode buffers come up in Emacs state.
+	
+	* ediff-util (ediff-make-temp-file): use proper file-name-handler
+	operation
 
 2005-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
