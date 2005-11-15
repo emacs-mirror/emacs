@@ -1,3 +1,8 @@
+2005-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-termcap-format): Fix typos.
+	(term-down): Fix the negative argument case.
+
 2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el: Remove face-alias left over from change on
