@@ -142,7 +142,7 @@ Used to grey out relevant togolbar icons.")
     ([go]	menu-item "Run/Continue" gud-go
 		  :visible (and (not gud-running)
 				(eq gud-minor-mode 'gdba)))
-    ([stop]	menu-item "Stop" comint-interrupt-subjob
+    ([stop]	menu-item "Stop" comint-stop-subjob
 		  :visible (or (not (eq gud-minor-mode 'gdba))
 			       (and gud-running
 				    (eq gud-minor-mode 'gdba))))
@@ -224,17 +224,17 @@ Used to grey out relevant togolbar icons.")
 		     (gud-pstar . "gud/pstar")
 		     (gud-pp . "gud/pp")
 		     (gud-watch . "gud/watch")
-		     (gud-finish . "gud/finish")
-		     (gud-until . "gud/until")
-		     (gud-cont . "gud/cont")
 		     (gud-run . "gud/run")
 		     (gud-go . "gud/go")
-		     (comint-interrupt-subjob . "gud/stop")
+		     (comint-stop-subjob . "gud/stop")
 		     ;; gud-s, gud-si etc. instead of gud-step,
 		     ;; gud-stepi, to avoid file-name clashes on DOS
 		     ;; 8+3 filesystems.
+		     (gud-cont . "gud/cont")
+		     (gud-until . "gud/until")
 		     (gud-next . "gud/next")
 		     (gud-step . "gud/step")
+		     (gud-finish . "gud/finish")
 		     (gud-nexti . "gud/nexti")
 		     (gud-stepi . "gud/stepi")
 		     (gud-up . "gud/up")
