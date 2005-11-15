@@ -8458,7 +8458,8 @@ init_image ()
 {
 #ifdef MAC_OS
   /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */
-  EnterMovies ();
+  if (!inhibit_window_system)
+    EnterMovies ();
 #ifdef MAC_OSX
   init_image_func_pointer ();
 #endif
