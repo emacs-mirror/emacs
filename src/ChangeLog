@@ -1,3 +1,8 @@
+2005-11-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c (init_image) [MAC_OS]: Don't call EnterMovies if
+	inhibit_window_system is set.
+
 2005-11-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macgui.h (USE_CG_TEXT_DRAWING): New define.
