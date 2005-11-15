@@ -1,3 +1,8 @@
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Make visibility of stop and
+	go buttons complementary.
+
 2005-11-15  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
 	* viper-utils (viper-non-word-characters-reformed-vi): quote `-' in
