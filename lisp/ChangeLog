@@ -1,5 +1,9 @@
 2005-11-14  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* jka-cmpr-hook.el (auto-compression-mode): Enable it in a way
+	that works correctly for Custom and that does not override a user
+	who disables it.
+
 	* help-mode.el (help-make-xrefs, help-xref-on-pp)
 	(help-xref-interned, help-follow): Make hyperlinks for variables
 	that are unbound, but have a non-nil variable-documentation property.
