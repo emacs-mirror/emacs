@@ -2531,7 +2531,7 @@ void
 free_float (ptr)
      struct Lisp_Float *ptr;
 {
-  *(struct Lisp_Float **)&ptr->data = float_free_list;
+  ptr->u.chain = float_free_list;
   float_free_list = ptr;
 }
 
@@ -2549,7 +2549,7 @@ make_float (float_value)
       /* We use the data field for chaining the free list
 	 so that we won't use the same field that has the mark bit.  */
       XSETFLOAT (val, float_free_list);
-      float_free_list = *(struct Lisp_Float **)&float_free_list->data;
+      float_free_list = float_free_list->u.chain;
     }
   else
     {
@@ -2649,7 +2649,7 @@ void
 free_cons (ptr)
      struct Lisp_Cons *ptr;
 {
-  *(struct Lisp_Cons **)&ptr->cdr = cons_free_list;
+  ptr->u.chain = cons_free_list;
 #if GC_MARK_STACK
   ptr->car = Vdead;
 #endif
@@ -2668,7 +2668,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
       /* We use the cdr for chaining the free list
 	 so that we won't use the same field that has the mark bit.  */
       XSETCONS (val, cons_free_list);
-      cons_free_list = *(struct Lisp_Cons **)&cons_free_list->cdr;
+      cons_free_list = cons_free_list->u.chain;
     }
   else
     {
@@ -2703,7 +2703,7 @@ check_cons_list ()
   struct Lisp_Cons *tail = cons_free_list;
 
   while (tail)
-    tail = *(struct Lisp_Cons **)&tail->cdr;
+    tail = tail->u.chain;
 #endif
 }
 
@@ -3140,7 +3140,7 @@ Its value and function definition are void, and its property list is nil.  */)
   if (symbol_free_list)
     {
       XSETSYMBOL (val, symbol_free_list);
-      symbol_free_list = *(struct Lisp_Symbol **)&symbol_free_list->value;
+      symbol_free_list = symbol_free_list->next;
     }
   else
     {
@@ -5563,14 +5563,14 @@ mark_object (arg)
 	CHECK_ALLOCATED_AND_LIVE (live_cons_p);
 	CONS_MARK (ptr);
 	/* If the cdr is nil, avoid recursion for the car.  */
-	if (EQ (ptr->cdr, Qnil))
+	if (EQ (ptr->u.cdr, Qnil))
 	  {
 	    obj = ptr->car;
 	    cdr_count = 0;
 	    goto loop;
 	  }
 	mark_object (ptr->car);
-	obj = ptr->cdr;
+	obj = ptr->u.cdr;
 	cdr_count++;
 	if (cdr_count == mark_object_loop_halt)
 	  abort ();
@@ -5717,7 +5717,7 @@ gc_sweep ()
 	  if (!CONS_MARKED_P (&cblk->conses[i]))
 	    {
 	      this_free++;
-	      *(struct Lisp_Cons **)&cblk->conses[i].cdr = cons_free_list;
+	      cblk->conses[i].u.chain = cons_free_list;
 	      cons_free_list = &cblk->conses[i];
 #if GC_MARK_STACK
 	      cons_free_list->car = Vdead;
@@ -5736,7 +5736,7 @@ gc_sweep ()
 	  {
 	    *cprev = cblk->next;
 	    /* Unhook from the free list.  */
-	    cons_free_list = *(struct Lisp_Cons **) &cblk->conses[0].cdr;
+	    cons_free_list = cblk->conses[0].u.chain;
 	    lisp_align_free (cblk);
 	    n_cons_blocks--;
 	  }
@@ -5767,7 +5767,7 @@ gc_sweep ()
 	  if (!FLOAT_MARKED_P (&fblk->floats[i]))
 	    {
 	      this_free++;
-	      *(struct Lisp_Float **)&fblk->floats[i].data = float_free_list;
+	      fblk->floats[i].u.chain = float_free_list;
 	      float_free_list = &fblk->floats[i];
 	    }
 	  else
@@ -5783,7 +5783,7 @@ gc_sweep ()
 	  {
 	    *fprev = fblk->next;
 	    /* Unhook from the free list.  */
-	    float_free_list = *(struct Lisp_Float **) &fblk->floats[0].data;
+	    float_free_list = fblk->floats[0].u.chain;
 	    lisp_align_free (fblk);
 	    n_float_blocks--;
 	  }
@@ -5871,7 +5871,7 @@ gc_sweep ()
 
 	    if (!sym->gcmarkbit && !pure_p)
 	      {
-		*(struct Lisp_Symbol **) &sym->value = symbol_free_list;
+		sym->next = symbol_free_list;
 		symbol_free_list = sym;
 #if GC_MARK_STACK
 		symbol_free_list->function = Vdead;
@@ -5895,7 +5895,7 @@ gc_sweep ()
 	  {
 	    *sprev = sblk->next;
 	    /* Unhook from the free list.  */
-	    symbol_free_list = *(struct Lisp_Symbol **)&sblk->symbols[0].value;
+	    symbol_free_list = sblk->symbols[0].next;
 	    lisp_free (sblk);
 	    n_symbol_blocks--;
 	  }
