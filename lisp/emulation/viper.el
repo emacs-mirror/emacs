@@ -440,6 +440,8 @@ widget."
     Buffer-menu-mode
     compilation-mode
 
+    rcirc-mode
+
     view-mode
     vm-mode
     vm-summary-mode)

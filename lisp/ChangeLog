@@ -1,3 +1,11 @@
+2005-11-15  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-utils (viper-non-word-characters-reformed-vi): quote `-' in
+	string.
+	
+	* viper.el (viper-emacs-state-mode-list): Ensure that
+	rcirc-mode buffers come up in Emacs state.
+
 2005-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-termcap-format): Fix typos.
