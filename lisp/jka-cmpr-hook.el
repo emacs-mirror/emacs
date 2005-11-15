@@ -244,7 +244,7 @@ The return value is the entry in `file-name-handler-alist' for jka-compr."
   "Toggle automatic file compression and uncompression.
 With prefix argument ARG, turn auto compression on if positive, else off.
 Returns the new status of auto compression (non-nil means on)."
-  :global t :group 'jka-compr
+  :global t :init-value t :group 'jka-compr
   (let* ((installed (jka-compr-installed-p))
 	 (flag auto-compression-mode))
     (cond
@@ -276,7 +276,7 @@ Returns the new status of auto compression (non-nil means on)."
 				      file-local-copy load))
 
 ;; Turn on the mode.
-(auto-compression-mode 1)
+(when auto-compression-mode (auto-compression-mode 1))
 
 (provide 'jka-cmpr-hook)
 
