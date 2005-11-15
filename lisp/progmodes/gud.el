@@ -122,6 +122,11 @@ Used to grey out relevant togolbar icons.")
 	(info "(emacs)GDB Graphical Interface")
       (info "(emacs)Debuggers"))))
 
+(defun gud-tool-bar-item-visible-no-fringe ()
+  (not (or (eq (buffer-local-value 'major-mode (window-buffer)) 'speedbar-mode)
+	   (and (memq gud-minor-mode '(gdbmi gdba))
+		(> (car (window-fringes)) 0)))))
+
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
     ([tooltips] menu-item "Toggle GUD tooltips" gud-tooltip-mode
@@ -132,23 +137,26 @@ Used to grey out relevant togolbar icons.")
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                   :enable (and (not gud-running)
-			       (memq gud-minor-mode '(gdbmi gdba gdb dbx jdb))))
+			       (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
+		  :visible (not (eq gud-minor-mode 'gdba)))
+    ([go]	menu-item "Run/Continue" gud-go
+                  :enable (not gud-running)
+		  :visible (eq gud-minor-mode 'gdba))
+    ([stop]	menu-item "Stop" comint-interrupt-subjob
+                  :enable gud-running)
     ([until]	menu-item "Continue to selection" gud-until
                   :enable (and (not gud-running)
 			       (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
-		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-                     (> (car (window-fringes)) 0))))
+		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
                   :enable (not gud-running)
-		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-                      (> (car (window-fringes)) 0))))
+		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
 		  :enable (memq gud-minor-mode
 				'(gdbmi gdba gdb sdb xdb bashdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
                   :enable (not gud-running)
-		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-                      (> (car (window-fringes)) 0))))
+		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
@@ -163,7 +171,7 @@ Used to grey out relevant togolbar icons.")
 		     :visible (and (string-equal
 				  (buffer-local-value
 				   'gud-target-name gud-comint-buffer) "emacs")
-				   (memq gud-minor-mode '(gdbmi gdba))))
+				   (eq gud-minor-mode 'gdba)))
     ([print*]	menu-item "Print Dereference" gud-pstar
                      :enable (and (not gud-running)
 				  (memq gud-minor-mode '(gdbmi gdba gdb))))
@@ -187,7 +195,8 @@ Used to grey out relevant togolbar icons.")
     ([next]	menu-item "Next Line" gud-next
                      :enable (not gud-running))
     ([cont]	menu-item "Continue" gud-cont
-                     :enable (not gud-running)))
+                     :enable (not gud-running)
+		     :visible (not (eq gud-minor-mode 'gdba))))
   "Menu for `gud-mode'."
   :name "Gud")
 
@@ -213,10 +222,12 @@ Used to grey out relevant togolbar icons.")
 		     (gud-pstar . "gud/pstar")
 		     (gud-pp . "gud/pp")
 		     (gud-watch . "gud/watch")
-		     (gud-cont . "gud/cont")
-		     (gud-until . "gud/until")
 		     (gud-finish . "gud/finish")
+		     (gud-until . "gud/until")
+		     (gud-cont . "gud/cont")
 		     (gud-run . "gud/run")
+		     (gud-go . "gud/go")
+		     (comint-interrupt-subjob . "gud/stop")
 		     ;; gud-s, gud-si etc. instead of gud-step,
 		     ;; gud-stepi, to avoid file-name clashes on DOS
 		     ;; 8+3 filesystems.
