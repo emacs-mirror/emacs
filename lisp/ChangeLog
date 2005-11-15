@@ -1,18 +1,25 @@
+2005-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gud.el (gud-menu-map): Let [stop] stop program rather
+	than kill it.
+	(gud-tool-bar-map): Likewise.  Move cont/until/finish buttons
+	to a more useful/logical place.
+
 2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Make visibility of stop and
 	go buttons complementary.
 
 2005-11-15  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper-utils (viper-non-word-characters-reformed-vi): quote `-' in
+
+	* viper-utils (viper-non-word-characters-reformed-vi): Quote `-' in
 	string.
-	
+
 	* viper.el (viper-emacs-state-mode-list): Ensure that
 	rcirc-mode buffers come up in Emacs state.
-	
-	* ediff-util (ediff-make-temp-file): use proper file-name-handler
-	operation
+
+	* ediff-util (ediff-make-temp-file): Use proper file-name-handler
+	operation.
 
 2005-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
 
