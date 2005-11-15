@@ -35,6 +35,8 @@ bitmap usage to a bitmap name, and second level maps bitmap name to
 a bitmap appearence.
 [Assigned to KFS]
 
+** Install Zhilin's icons.
+
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
