@@ -854,9 +854,14 @@ parse_resource_line (p)
    implemented as a hash table that maps a pair (SRC-NODE-ID .
    EDGE-LABEL) to DEST-NODE-ID.  It also holds a maximum node id used
    in the table as a value for HASHKEY_MAX_NID.  A value associated to
-   a node is recorded as a value for the node id.  */
+   a node is recorded as a value for the node id.
+
+   A database also has a cache for past queries as a value for
+   HASHKEY_QUERY_CACHE.  It is another hash table that maps
+   "NAME-STRING\0CLASS-STRING" to the result of the query.  */
 
 #define HASHKEY_MAX_NID (make_number (0))
+#define HASHKEY_QUERY_CACHE (make_number (-1))
 
 static XrmDatabase
 xrm_create_database ()
@@ -868,6 +873,7 @@ xrm_create_database ()
 			      make_float (DEFAULT_REHASH_THRESHOLD),
 			      Qnil, Qnil, Qnil);
   Fputhash (HASHKEY_MAX_NID, make_number (0), database);
+  Fputhash (HASHKEY_QUERY_CACHE, Qnil, database);
 
   return database;
 }
@@ -901,6 +907,7 @@ xrm_q_put_resource (database, quarks, value)
   Fputhash (node_id, value, database);
 
   Fputhash (HASHKEY_MAX_NID, make_number (max_nid), database);
+  Fputhash (HASHKEY_QUERY_CACHE, Qnil, database);
 }
 
 /* Merge multiple resource entries specified by DATA into a resource
@@ -989,8 +996,30 @@ xrm_get_resource (database, name, class)
      XrmDatabase database;
      char *name, *class;
 {
-  Lisp_Object quark_name, quark_class, tmp;
-  int nn, nc;
+  Lisp_Object key, query_cache, quark_name, quark_class, tmp;
+  int i, nn, nc;
+  struct Lisp_Hash_Table *h;
+  unsigned hash_code;
+
+  nn = strlen (name);
+  nc = strlen (class);
+  key = make_uninit_string (nn + nc + 1);
+  strcpy (SDATA (key), name);
+  strncpy (SDATA (key) + nn + 1, class, nc);
+
+  query_cache = Fgethash (HASHKEY_QUERY_CACHE, database, Qnil);
+  if (NILP (query_cache))
+    {
+      query_cache = make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+				     make_float (DEFAULT_REHASH_SIZE),
+				     make_float (DEFAULT_REHASH_THRESHOLD),
+				     Qnil, Qnil, Qnil);
+      Fputhash (HASHKEY_QUERY_CACHE, query_cache, database);
+    }
+  h = XHASH_TABLE (query_cache);
+  i = hash_lookup (h, key, &hash_code);
+  if (i >= 0)
+    return HASH_VALUE (h, i);
 
   quark_name = parse_resource_name (&name);
   if (*name != '\0')
@@ -1009,7 +1038,11 @@ xrm_get_resource (database, name, class)
   if (nn != nc)
     return Qnil;
   else
-    return xrm_q_get_resource (database, quark_name, quark_class);
+    {
+      tmp = xrm_q_get_resource (database, quark_name, quark_class);
+      hash_put (h, key, tmp, hash_code);
+      return tmp;
+    }
 }
 
 #if TARGET_API_MAC_CARBON
