@@ -1,3 +1,21 @@
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Remove face-alias left over from change on
+	2005-08-15.
+	(gdb-ann3): New command gud-go.
+	(menu): Accomodate gdb-mi.el.
+	(gdb-assembler-custom): Make buffer of selected window current
+	so that set-window-point works.
+
+	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map): Re-define
+	buttons and include new ones.
+
+2005-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gud.el (gud-tool-bar-item-visible-no-fringe): New
+	function.
+	(gud-menu-map): Use it.
+
 2005-11-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* jka-cmpr-hook.el (auto-compression-mode): Enable it in a way
