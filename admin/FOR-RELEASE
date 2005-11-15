@@ -44,7 +44,9 @@ invalid pointer from string_free_list.
 
 * BUGS
 
-** Automatically redisplay changes in cursor-type.
+** Fix window resizing bug:
+C-x 2, C-x 3, C-x 2. Now try to move the bottom of the 
+second window to the left.
 
 ** Fix completion highlighting bug in partial completion mode.
 
