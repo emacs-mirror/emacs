@@ -1,5 +1,9 @@
 2005-11-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
+	* mac.c (HASHKEY_QUERY_CACHE): New define.
+	(xrm_create_database, xrm_q_put_resource): Empty query cache.
+	(xrm_get_resource): Use query cache.
+
 	* image.c (init_image) [MAC_OS]: Don't call EnterMovies if
 	inhibit_window_system is set.
 
