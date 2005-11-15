@@ -1,3 +1,20 @@
+2005-11-15  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h (struct Lisp_Cons): Make cdr a union.
+	(XCDR_AS_LVALUE): Adjust.
+	(struct Lisp_Float): Make data a union.
+	(XFLOAT_DATA): Adjust.
+
+	* alloc.c (free_float): Make free list chaining aliasing-safe.
+	(make_float): Likewise.
+	(free_cons): Likewise.
+	(Fcons): Likewise.
+	(check_cons_list): Likewise.
+	(Fmake_symbol): Likewise.
+	(allocate_misc): Likewise.
+	(free_misc): Likewise.
+	(gc_sweep): Likewise.
+
 2005-11-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (HASHKEY_QUERY_CACHE): New define.
