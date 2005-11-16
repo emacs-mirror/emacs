@@ -1327,8 +1327,7 @@ enable the mode.  For example:
   "Toggle msb-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `msb-mode'."
-  :set (lambda (symbol value)
-	 (msb-mode (or value 0)))
+  :set 'custom-set-minor-mode
   :initialize 'custom-initialize-default
   :version "20.4"
   :type    'boolean

@@ -1,3 +1,7 @@
+2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* modes.texi (Minor Mode Conventions): Use custom-set-minor-mode.
+
 2005-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Magic File Names): find-file-name-handler checks the
@@ -31,9 +35,9 @@
 
 2005-10-27  Masatake YAMATO  <jet@gyve.org>
 
-	* minibuf.texi (Completion Commands): 
+	* minibuf.texi (Completion Commands):
 	Write about new optional argument for `display-completion-list'.
-	
+
 2005-10-23  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Overlay Arrow): Clarify about local bindings of
