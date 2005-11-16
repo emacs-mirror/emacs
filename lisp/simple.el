@@ -4314,9 +4314,7 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
 			  (eq (syntax-class syntax) 4)
 			  (cdr syntax)))))
 	(cond
-	 ((or (null matching-paren)
-	      (/= (char-before oldpos)
-		  matching-paren))
+	 ((not (eq matching-paren (char-before oldpos)))
 	  (message "Mismatched parentheses"))
 	 ((not blinkpos)
 	  (if (not blink-matching-paren-distance)
@@ -4908,37 +4906,49 @@ is the substring.)")
 	  (setq default-directory (file-name-directory mbuf-contents))))
     ;; If partial-completion-mode is on, point might not be after the
     ;; last character in the minibuffer.
-    ;; FIXME: This still doesn't work if the text to be completed
-    ;; starts with a `-'.
-    (when (and partial-completion-mode (not (eobp)))
+    ;; FIXME: This hack should be moved to complete.el where we call
+    ;; display-completion-list.
+    (when partial-completion-mode
       (setq common-string-length
-            (- common-string-length (- (point) (point-max)))))
+            (if (eq (char-after (field-beginning)) ?-)
+                ;; If the text to be completed starts with a `-', there is no
+                ;; common prefix.
+                ;; FIXME: this probably still doesn't do the right thing
+                ;; when completing file names.  It's not even clear what
+                ;; is TRT.
+                0
+              (- common-string-length (- (point) (point-max))))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
-      (if minibuffer-completing-file-name
-	  ;; For file name completion,
-	  ;; use the number of chars before the start of the
-	  ;; last file name component.
-	  (setq completion-base-size
+      (setq completion-base-size
+            (if minibuffer-completing-file-name
+                ;; For file name completion, use the number of chars before
+                ;; the start of the last file name component.
 		(with-current-buffer mainbuf
 		  (save-excursion
 		    (goto-char (point-max))
 		    (skip-chars-backward completion-root-regexp)
-		    (- (point) (minibuffer-prompt-end)))))
-	;; Otherwise, in minibuffer, the whole input is being completed.
-	(if (minibufferp mainbuf)
-	    (if (and (symbolp minibuffer-completion-table)
-		     (get minibuffer-completion-table 'completion-base-size-function))
-		(setq completion-base-size
-		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
-	      (setq completion-base-size 0))))
+		    (- (point) (minibuffer-prompt-end))))
+              ;; Otherwise, in minibuffer, the whole input is being completed.
+              (if (minibufferp mainbuf) 0)))
+      (if (and (symbolp minibuffer-completion-table)
+               (get minibuffer-completion-table 'completion-base-size-function))
+          (setq completion-base-size
+                ;; FIXME: without any extra arg, how is this function
+                ;; expected to return anything else than a constant unless
+                ;; it redoes part of the work of all-completions?
+                ;; In most cases this value would better be computed and
+                ;; returned at the same time as the list of all-completions
+                ;; is computed.  --Stef
+                (funcall (get minibuffer-completion-table
+                              'completion-base-size-function))))
       ;; Put faces on first uncommon characters and common parts.
       (when (or completion-common-substring completion-base-size)
         (setq common-string-length
-		(if completion-common-substring
-		    (length completion-common-substring)
-                  (- common-string-length completion-base-size)))
+              (if completion-common-substring
+                  (length completion-common-substring)
+                (- common-string-length completion-base-size)))
 	(let ((element-start (point-min))
               (maxp (point-max))
               element-common-end)
