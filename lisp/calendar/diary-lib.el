@@ -452,7 +452,8 @@ If LIST-ONLY is non-nil don't modify or display the buffer, only return a list."
                                 2))
                              (while (looking-at " \\|\^I")
                                (re-search-forward "\^M\\|\n" nil 'move))
-                             (unless (eobp) (backward-char 1))
+                             (unless (and (eobp) (not (bolp)))
+                               (backward-char 1))
                              (unless list-only
                                (remove-overlays date-start (point)
                                                 'invisible 'diary))
