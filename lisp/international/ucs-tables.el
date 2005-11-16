@@ -2523,9 +2523,9 @@ This function is automatically called directly at the end of `get-buffer-create'
 	(when (char-table-p table)
 	  (if buffer
 	      (with-current-buffer buffer
-		(set (make-variable-buffer-local 'translation-table-for-input)
+		(set (make-local-variable 'translation-table-for-input)
 		     table))
-	    (set (make-variable-buffer-local 'translation-table-for-input)
+	    (set (make-local-variable 'translation-table-for-input)
 		 table)))))))
 
 ;; The minibuffer needs to acquire a `buffer-file-coding-system' for
