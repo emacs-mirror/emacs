@@ -3575,7 +3575,7 @@ example:
 ;; Fixme: match
 (define-widget 'color 'editable-field
   "Choose a color name (with sample)."
-  :format "%t: %v (%{sample%})\n"
+  :format "%{%t%}: %v (%{sample%})\n"
   :size 10
   :tag "Color"
   :value "black"
