@@ -1,6 +1,7 @@
 2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Minor Mode Conventions): Use custom-set-minor-mode.
+	(Minor Mode Conventions): Mention the use of a hook.
 
 2005-11-06  Richard M. Stallman  <rms@gnu.org>
 
