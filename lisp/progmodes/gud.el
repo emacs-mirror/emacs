@@ -371,6 +371,12 @@ t means that there is no stack, and we are in display-file mode.")
 (defvar gud-speedbar-key-map nil
   "Keymap used when in the buffers display mode.")
 
+(defun gud-speedbar-item-info ()
+  "Display the data type of the watch expression element."
+  (let ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list)))
+    (if (nth 4 var)
+	(speedbar-message "%s" (nth 3 var)))))
+
 (defun gud-install-speedbar-variables ()
   "Install those variables used by speedbar to enhance gud/gdb."
   (if gud-speedbar-key-map
@@ -387,7 +393,12 @@ t means that there is no stack, and we are in display-file mode.")
 
   (speedbar-add-expansion-list '("GUD" gud-speedbar-menu-items
 				 gud-speedbar-key-map
-				 gud-expansion-speedbar-buttons)))
+				 gud-expansion-speedbar-buttons))
+
+  (add-to-list 
+   'speedbar-mode-functions-list
+   '("GUD" (speedbar-item-info . gud-speedbar-item-info)
+     (speedbar-line-directory . ignore))))
 
 (defvar gud-speedbar-menu-items
   '(["Jump to stack frame" speedbar-edit-line
