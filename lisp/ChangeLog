@@ -12,8 +12,8 @@
 
 	* rfn-eshadow.el (file-name-shadow-mode): Set :init-value to t.
 	Add :version keyword.
-	(file-name-shadow-properties, file-name-shadow-tty-properties):
-	Add :version keyword.
+	(file-name-shadow-properties, file-name-shadow-tty-properties)
+	(file-name-shadow): Add :version keyword.
 
 	* cus-edit.el (custom-add-parent-links): Fix bug whereby, for
 	instance, `(fringe custom-face)' shadowed `(fringe custom-group)'
