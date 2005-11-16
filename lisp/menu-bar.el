@@ -1360,9 +1360,8 @@ key, a click, or a menu-item"))
   '(menu-item "Getting New Versions" describe-distribution
 	      :help "How to get latest versions of Emacs"))
 (define-key menu-bar-help-menu [more]
-  '(menu-item "Find Extra Packages"
-	      menu-bar-help-extra-packages
-	      :help "Where to find some extra packages and possible updates"))
+  '(menu-item "External Packages" menu-bar-help-extra-packages
+	      :help "Lisp packages distributed separately for use in Emacs"))
 (defun menu-bar-help-extra-packages ()
   "Display help about some additional packages available for Emacs."
   (interactive)
