@@ -1,9 +1,14 @@
+2005-11-16  Juergen Hoetzel  <emacs@hoetzel.info>  (tiny change)
+
+	* url-handlers.el (url-insert-file-contents): Use the charset info
+	provided by the HTTP server, if any.
+
 2005-10-20  CHENG Gao  <chenggao@gmail.com>  (tiny change)
 
-	* url-nfs.el (top level): 
-	* url-handlers.el (directory-files): 
+	* url-nfs.el (top level):
+	* url-handlers.el (directory-files):
 	* url-file.el (top level):
-	* url-dired.el (url-dired-minor-mode-map): 
+	* url-dired.el (url-dired-minor-mode-map):
 	* url-http.el (url-http-chunked-encoding-after-change-function):
 	Remove XEmacs support.
 

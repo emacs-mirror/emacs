@@ -202,6 +202,7 @@ accessible."
 (defun url-insert-file-contents (url &optional visit beg end replace)
   (let ((buffer (url-retrieve-synchronously url))
 	(handle nil)
+	(charset nil)
 	(data nil))
     (if (not buffer)
 	(error "Opening input file: No such file or directory, %s" url))
@@ -215,13 +216,14 @@ accessible."
     (mm-destroy-parts handle)
     (if replace (delete-region (point-min) (point-max)))
     (save-excursion
+      (setq charset (mail-content-type-get (mm-handle-type handle)
+					     'charset))
       (let ((start (point)))
-	(insert data)
-	;; FIXME: for text/plain data, we sometimes receive a `charset'
-	;; annotation which we could use as a hint of the locale in use
-	;; at the remote site.  Not sure how/if that should be done.  --Stef
-	(decode-coding-inserted-region
-	 start (point) url visit beg end replace)))
+	(if charset
+	    (insert (mm-decode-string data (mm-charset-to-coding-system charset)))
+	  (progn
+	    (insert data)
+	    (decode-coding-inserted-region start (point) url visit beg end replace)))))
     (list url (length data))))
 
 (defun url-file-name-completion (url directory)
