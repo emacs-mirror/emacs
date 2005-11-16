@@ -127,6 +127,13 @@ Used to grey out relevant togolbar icons.")
 	   (and (memq gud-minor-mode '(gdbmi gdba))
 		(> (car (window-fringes)) 0)))))
 
+(defun gud-stop-subjob ()
+  (interactive)
+  (if (string-equal
+       (buffer-local-value 'gud-target-name gud-comint-buffer) "emacs")
+      (comint-stop-subjob)
+    (comint-interrupt-subjob)))
+
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
     ([tooltips] menu-item "Toggle GUD tooltips" gud-tooltip-mode
@@ -142,7 +149,7 @@ Used to grey out relevant togolbar icons.")
     ([go]	menu-item "Run/Continue" gud-go
 		  :visible (and (not gud-running)
 				(eq gud-minor-mode 'gdba)))
-    ([stop]	menu-item "Stop" comint-stop-subjob
+    ([stop]	menu-item "Stop" gud-stop-subjob
 		  :visible (or (not (eq gud-minor-mode 'gdba))
 			       (and gud-running
 				    (eq gud-minor-mode 'gdba))))
@@ -168,37 +175,34 @@ Used to grey out relevant togolbar icons.")
 			       (memq gud-minor-mode
 				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
     ([pp]	menu-item "Print the emacs s-expression" gud-pp
-                     :enable (and (not gud-running)
+                  :enable (and (not gud-running)
 				  gdb-active-process)
-		     :visible (and (string-equal
-				  (buffer-local-value
-				   'gud-target-name gud-comint-buffer) "emacs")
-				   (eq gud-minor-mode 'gdba)))
+		  :visible (and (string-equal
+				 (buffer-local-value
+				  'gud-target-name gud-comint-buffer) "emacs")
+				(eq gud-minor-mode 'gdba)))
     ([print*]	menu-item "Print Dereference" gud-pstar
-                     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdbmi gdba gdb))))
+                  :enable (and (not gud-running)
+			       (memq gud-minor-mode '(gdbmi gdba gdb))))
     ([print]	menu-item "Print Expression" gud-print
-                     :enable (not gud-running))
+                  :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
-		     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdbmi gdba))))
-    ([finish]	menu-item "Finish Function" gud-finish
-		     :enable (and (not gud-running)
-				  (memq gud-minor-mode
-					'(gdbmi gdba gdb xdb jdb pdb bashdb))))
+		  :enable (and (not gud-running)
+			       (memq gud-minor-mode
+				     '(gdbmi gdba gdb xdb jdb pdb bashdb))))
     ([stepi]	menu-item "Step Instruction" gud-stepi
-                     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
+                  :enable (and (not gud-running)
+			       (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
     ([nexti]	menu-item "Next Instruction" gud-nexti
-                     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
+                  :enable (and (not gud-running)
+			       (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
     ([step]	menu-item "Step Line" gud-step
-                     :enable (not gud-running))
+                  :enable (not gud-running))
     ([next]	menu-item "Next Line" gud-next
-                     :enable (not gud-running))
+                  :enable (not gud-running))
     ([cont]	menu-item "Continue" gud-cont
-                     :enable (not gud-running)
-		     :visible (not (eq gud-minor-mode 'gdba))))
+                  :enable (not gud-running)
+		  :visible (not (eq gud-minor-mode 'gdba))))
   "Menu for `gud-mode'."
   :name "Gud")
 
@@ -226,7 +230,7 @@ Used to grey out relevant togolbar icons.")
 		     (gud-watch . "gud/watch")
 		     (gud-run . "gud/run")
 		     (gud-go . "gud/go")
-		     (comint-stop-subjob . "gud/stop")
+		     (gud-stop-subjob . "gud/stop")
 		     ;; gud-s, gud-si etc. instead of gud-step,
 		     ;; gud-stepi, to avoid file-name clashes on DOS
 		     ;; 8+3 filesystems.
