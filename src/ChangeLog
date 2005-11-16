@@ -5,6 +5,7 @@
 	* xterm.c (x_bitmap_icon): Use the xpm if available.
 
 	* image.c (x_create_bitmap_from_xpm_data): New function.
+	(x_create_bitmap_from_xpm_data): Initialize XpmAttributes.
 
 2005-11-15  Luc Teirlinck  <teirllm@auburn.edu>
 

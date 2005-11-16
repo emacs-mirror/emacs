@@ -3729,6 +3729,11 @@ x_create_bitmap_from_xpm_data (f, bits)
 
   bzero (&attrs, sizeof attrs);
 
+  attrs.visual = FRAME_X_VISUAL (f);
+  attrs.colormap = FRAME_X_COLORMAP (f);
+  attrs.valuemask |= XpmVisual;
+  attrs.valuemask |= XpmColormap;
+
   rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				bits, &bitmap, &mask, &attrs);
   if (rc != XpmSuccess)
@@ -3797,6 +3802,9 @@ xpm_load (f, img)
   attrs.valuemask |= XpmCloseness;
 #endif /* not XpmAllocCloseColors */
 #endif /* ALLOC_XPM_COLORS */
+#ifdef ALLOC_XPM_COLORS
+  xpm_init_color_cache (f, &attrs);
+#endif
 
   /* If image specification contains symbolic color definitions, add
      these to `attrs'.  */
