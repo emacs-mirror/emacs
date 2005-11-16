@@ -101,7 +101,8 @@ Only used when `file-name-shadow-mode' is active.
 If Emacs is not running under a window system,
 `file-name-shadow-tty-properties' is used instead."
   :type file-name-shadow-properties-custom-type
-  :group 'minibuffer)
+  :group 'minibuffer
+  :version "22.1")
 
 ;;;###autoload
 (defcustom file-name-shadow-tty-properties
@@ -111,12 +112,14 @@ Only used when `file-name-shadow-mode' is active and emacs
 is not running under a window-system; if emacs is running under a window
 system, `file-name-shadow-properties' is used instead."
   :type file-name-shadow-properties-custom-type
-  :group 'minibuffer)
+  :group 'minibuffer
+  :version "22.1")
 
 (defface file-name-shadow
   '((t :inherit shadow))
   "Face used by `file-name-shadow-mode' for the shadow."
-  :group 'minibuffer)
+  :group 'minibuffer
+  :version "22.1")
 
 
 ;;; Internal variables
@@ -210,6 +213,7 @@ Returns non-nil if the new state is enabled."
   :global t
   :init-value t
   :group 'minibuffer
+  :version "22.1"
   (if file-name-shadow-mode
       ;; Enable the mode
       (add-hook 'minibuffer-setup-hook 'rfn-eshadow-setup-minibuffer)
