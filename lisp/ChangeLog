@@ -1,3 +1,8 @@
+2005-11-16  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* savehist.el (savehist-mode-hook): Re-add the var.
+	(savehist-mode): Use it.
+
 2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/flyspell.el: Fix commenting convention.

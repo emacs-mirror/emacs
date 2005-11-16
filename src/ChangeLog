@@ -1,9 +1,13 @@
+2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (readevalloop): Add missing GCPROs.
+
 2005-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfns.c (xg_set_icon_from_xpm_data): New function.
 
-	* gnu.h (gnu_xpm_bits): Renamed from gnu_bits.
-	(gnu_xbm_bits): Renamed from gnu_bits (xbm version).
+	* gnu.h (gnu_xpm_bits): Rename from gnu_bits.
+	(gnu_xbm_bits): Rename from gnu_bits (xbm version).
 
 	* xterm.c (x_bitmap_icon): Use the xpm if available.
 
@@ -71,12 +75,11 @@
 	Vmac_option_modifier / mac-option-modifier,
 	Vmac_command_modifier / mac-command-modifier.
 	(mac_to_emacs_modifiers): Use the new style modifier
-	variables. Return UInt32 (modifiers are longs now.)
-	(backtranslate_modified_keycode): new function (refactoring)
-	(XTread_socket): use new modifier variables and refactored
-	function
-	(mac_determine_quit_char_modifiers): remove macMetaKey (there is
-	no dedicated meta key. Not in use anyway.)
+	variables.  Return UInt32 (modifiers are longs now.)
+	(backtranslate_modified_keycode): New function (refactoring).
+	(XTread_socket): Use new modifier variables and refactored function.
+	(mac_determine_quit_char_modifiers): Remove macMetaKey (there is
+	no dedicated meta key.  Not in use anyway.)
 	(convert_fn_keycode): Map Fn-keys to their original keycode
 	using a table (english keyboard only).
 
