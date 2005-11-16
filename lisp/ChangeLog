@@ -1,7 +1,24 @@
 2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* textmodes/flyspell.el (flyspell-delete-region-overlays): Use
-	remove-overlays.
+	* textmodes/flyspell.el: Fix commenting convention.
+	Remove unnecessary leading * in custom docstrings.
+	(flyspell-emacs): Remove unused var.
+	(flyspell-delete-region-overlays): Use remove-overlays.
+	(flyspell-accept-buffer-local-defs): Use save-current-buffer.
+	(flyspell-debug-signal-no-check, flyspell-debug-signal-changed-checked)
+	(flyspell-debug-signal-pre-word-checked, flyspell-post-command-hook)
+	(flyspell-debug-signal-word-checked): Use with-current-buffer.
+	(make-flyspell-overlay): Don't locally reuse a global name.
+	(flyspell-highlight-incorrect-region)
+	(flyspell-highlight-duplicate-region): Use flyspell-unhighlight-at.
+	(flyspell-check-previous-highlighted-word): Use flyspell-overlay-p.
+	(flyspell-notify-misspell): Remove unused args `start' and `end'.
+	(flyspell-word): Adjust call accordingly.  Use ispell-send-string.
+	Wrap calls to accept-process-output inside with-local-quit since it's
+	often called from a post-command-hook.
+	(flyspell-correct-word, flyspell-auto-correct-word):
+	Use ispell-send-string.
+	(flyspell-xemacs-popup): Remove unused arg `event'.  Update call.
 
 	* calendar/diary-lib.el (diary-list-entries): Also hide the
 	terminating newline.
