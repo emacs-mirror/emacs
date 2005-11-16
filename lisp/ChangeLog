@@ -1,3 +1,18 @@
+2005-11-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	`file-name-shadow-mode'.
+
+	* loadup.el: Preload rfn-eshadow.
+
+	* rfn-eshadow.el (file-name-shadow-mode): Set :init-value to t.
+
+	* cus-edit.el (custom-add-parent-links): Fix bug whereby, for
+	instance, `(fringe custom-face)' shadowed `(fringe custom-group)'
+	in the custom-group property of the symbol frames and the fringe
+	group got no link to its parent group frames.
+	Doc fix.
+
 2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-stop-subjob): New function.
@@ -71,7 +86,8 @@
 
 2005-11-14  Hrvoje Niksic  <hniksic@xemacs.org>
 
-	* savehist.el (savehist-mode): Don't bother with `custom-set-minor-mode.
+	* savehist.el (savehist-mode): Don't bother with
+	`custom-set-minor-mode'.
 	(savehist-coding-system): Check XEmacs version.
 	(history-length): Declare also at run time.
 	(savehist-mode): Don't emit a message.  Don't run the minor mode hook.
