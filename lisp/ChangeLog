@@ -1,5 +1,8 @@
 2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/flyspell.el (flyspell-delete-region-overlays): Use
+	remove-overlays.
+
 	* calendar/diary-lib.el (diary-list-entries): Also hide the
 	terminating newline.
 

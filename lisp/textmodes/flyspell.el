@@ -1552,12 +1552,7 @@ FLYSPELL-BUFFER."
 ;*---------------------------------------------------------------------*/
 (defun flyspell-delete-region-overlays (beg end)
   "Delete overlays used by flyspell in a given region."
-  (let ((l (overlays-in beg end)))
-    (while (consp l)
-      (progn
-	(if (flyspell-overlay-p (car l))
-	    (delete-overlay (car l)))
-	(setq l (cdr l))))))
+  (remove-overlays beg end 'flyspell-overlay t))
 
 
 (defun flyspell-delete-all-overlays ()
