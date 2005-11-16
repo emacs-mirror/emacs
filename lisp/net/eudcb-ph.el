@@ -184,7 +184,7 @@ SERVER is either a string naming the server or a list (NAME PORT)."
       (setq process (open-network-stream "ph" eudc-ph-process-buffer host port))
       (if (null process)
 	  (throw 'done nil))
-      (process-kill-without-query process)
+      (set-process-query-on-exit-flag process t)
       process)))
 
 (defun eudc-ph-close-session (process)
