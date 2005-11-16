@@ -135,7 +135,8 @@ If set to nil, disables timer-based autosaving."
   "Hook called by `savehist-save' before saving the variables.
 You can use this hook to influence choice and content of variables to
 save."
-  :type 'hook)
+  :type 'hook
+  :group 'savehist)
 
 ;; This should be capable of representing characters used by Emacs.
 ;; We prefer UTF-8 over ISO 2022 because it is well-known outside
