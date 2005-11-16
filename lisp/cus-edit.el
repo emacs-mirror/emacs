@@ -799,7 +799,8 @@ making them as if they had never been customized at all."
   (interactive)
   (let ((children custom-options))
     (mapc (lambda (widget)
-	    (and (widget-apply widget :custom-standard-value)
+	    (and (widget-get widget :custom-standard-value)
+		 (widget-apply widget :custom-standard-value)
 		 (if (memq (widget-get widget :custom-state)
 			   '(modified set changed saved rogue))
 		     (widget-apply widget :custom-reset-standard))))
@@ -3397,7 +3398,7 @@ restoring it to the state of a face that has never been customized."
 
 (define-widget 'face 'symbol
   "A Lisp face name (with sample)."
-  :format "%t: (%{sample%}) %v"
+  :format "%{%t%}: (%{sample%}) %v"
   :tag "Face"
   :value 'default
   :sample-face-get 'widget-face-sample-face-get
