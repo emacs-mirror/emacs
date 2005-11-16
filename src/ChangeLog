@@ -1,3 +1,7 @@
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit: Make SIGTSTP work like SIGINT normally does.
+
 2005-11-15  Andreas Schwab  <schwab@suse.de>
 
 	* lisp.h (struct Lisp_Cons): Make cdr a union.

@@ -1,3 +1,8 @@
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-stop-subjob): New function.
+	(gud-menu-map, gud-tool-bar-map): Use it.
+
 2005-11-16  Kim F. Storm  <storm@cua.dk>
 
 	* progmodes/gud.el (gud-menu-map): Let [stop] stop program rather
