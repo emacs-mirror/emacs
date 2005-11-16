@@ -208,6 +208,7 @@ that portion dim, invisible, or otherwise less visually noticeable.
 With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled."
   :global t
+  :init-value t
   :group 'minibuffer
   (if file-name-shadow-mode
       ;; Enable the mode
