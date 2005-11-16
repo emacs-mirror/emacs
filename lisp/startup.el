@@ -768,6 +768,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'global-font-lock-mode)
   (custom-reevaluate-setting 'mouse-wheel-down-event)
   (custom-reevaluate-setting 'mouse-wheel-up-event)
+  (custom-reevaluate-setting 'file-name-shadow-mode)
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
