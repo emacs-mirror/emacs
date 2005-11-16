@@ -260,6 +260,9 @@ Since the default input is the current directory, this has the effect
 of specifying the current directory.  Normally that means to visit the
 directory with Dired.
 
+You can get the old behavior by typing C-x C-f M-n RET, which fetches
+the actual file name into the minibuffer.
+
 +++
 ** The completion commands TAB, SPC and ? in the minibuffer apply only
 to the text before point.  If there is text in the buffer after point,

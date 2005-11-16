@@ -64,6 +64,9 @@ Seems to be a problem in sys_select in w32proc.c.
 
 * DOCUMENTATION
 
+** Update what needs to be updated now that Global Font Lock mode and
+File Name Shadow mode are enabled by default.
+
 ** Check man/info.texi.
 
 ** Add missing years in copyright notices of all files.

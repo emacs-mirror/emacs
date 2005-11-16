@@ -1,3 +1,32 @@
+2005-11-16  Richard M. Stallman  <rms@gnu.org>
+
+	* net/eudcb-ph.el (eudc-ph-open-session):
+	Use set-process-query-on-exit-flag.
+
+	* mail/smtpmail.el (smtpmail-send-it): Use insert-buffer-contents.
+
+	* international/ucs-tables.el (ucs-set-table-for-input):
+	Use make-local-variable, not make-variable-buffer-local.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Improve warning message text.
+
+	* savehist.el (savehist-save-hook): Add :group.
+
+	* menu-bar.el (menu-bar-help-menu):
+	Rename Find Extra Packages to External Packages.
+
+	* cus-edit.el (Custom-reset-standard): Verify that
+	:custom-standard-value prop exists before calling it.
+
+	* apropos.el (apropos-calc-scores): Use apropos-pattern.
+
+2005-11-16  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* wid-edit.el (color): Enclose %t in %{...%}.
+
+	* cus-edit.el (face): Enclose %t in %{...%}.
+
 2005-11-16  Hrvoje Niksic  <hniksic@xemacs.org>
 
 	* savehist.el (savehist-mode-hook): Re-add the var.
@@ -207,7 +236,8 @@
 2005-11-13  Richard M. Stallman  <rms@gnu.org>
 
 	* help.el (help-for-help-internal): Improve doc of C-h a.
-
+	(describe-key): Improve prompt; doc fix.
+	
 2005-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-registered): Catch all errors.
