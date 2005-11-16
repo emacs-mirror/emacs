@@ -1,3 +1,11 @@
+2005-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* gnu.h (gnu_bits): Xpm version of the new Emacs icon.
+
+	* xterm.c (x_bitmap_icon): Use the xpm if available.
+
+	* image.c (x_create_bitmap_from_xpm_data): New function.
+
 2005-11-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* Makefile.in (lisp, shortlisp): Add rfn-eshadow.

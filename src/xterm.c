@@ -7362,9 +7362,14 @@ x_bitmap_icon (f, file)
       /* Create the GNU bitmap and mask if necessary.  */
       if (FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id < 0)
 	{
+#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+	  FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id
+	    = x_create_bitmap_from_xpm_data (f, gnu_bits);
+#else
 	  FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id
 	    = x_create_bitmap_from_data (f, gnu_bits,
 					 gnu_width, gnu_height);
+#endif /*  (HAVE_XPM) && defined (HAVE_X_WINDOWS) */
 	  x_create_bitmap_mask (f, FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id);
 	}
 

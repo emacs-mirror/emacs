@@ -3716,6 +3716,40 @@ xpm_image_p (object)
 
 #endif /* HAVE_XPM || MAC_OS */
 
+#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+int
+x_create_bitmap_from_xpm_data (f, bits)
+     struct frame *f;
+     char **bits;
+{
+  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  int id, rc;
+  XpmAttributes attrs;
+  Pixmap bitmap, mask;
+
+  bzero (&attrs, sizeof attrs);
+
+  rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				bits, &bitmap, &mask, &attrs);
+  if (rc != XpmSuccess)
+    return -1;
+
+  id = x_allocate_bitmap_record (f);
+
+  dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].have_mask = 1;
+  dpyinfo->bitmaps[id - 1].mask = mask;
+  dpyinfo->bitmaps[id - 1].file = NULL;
+  dpyinfo->bitmaps[id - 1].height = attrs.height;
+  dpyinfo->bitmaps[id - 1].width = attrs.width;
+  dpyinfo->bitmaps[id - 1].depth = attrs.depth;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+
+  XpmFreeAttributes (&attrs);
+  return id;
+}
+#endif /* HAVE_X_WINDOWS */
+
 /* Load image IMG which will be displayed on frame F.  Value is
    non-zero if successful.  */
 
