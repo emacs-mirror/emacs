@@ -2124,7 +2124,7 @@ Insert PREFIX first if non-nil."
 
 (defun custom-add-parent-links (widget &optional initial-string)
   "Add \"Parent groups: ...\" to WIDGET if the group has parents.
-The value if non-nil if any parents were found.
+The value is non-nil if any parents were found.
 If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   (let ((name (widget-value widget))
 	(type (widget-type widget))
@@ -2133,15 +2133,14 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 	(parents nil))
     (insert (or initial-string "Parent groups:"))
     (mapatoms (lambda (symbol)
-		(let ((entry (assq name (get symbol 'custom-group))))
-		  (when (eq (nth 1 entry) type)
-		    (insert " ")
-		    (push (widget-create-child-and-convert
-			   widget 'custom-group-link
-			   :tag (custom-unlispify-tag-name symbol)
-			   symbol)
-			  buttons)
-		    (setq parents (cons symbol parents))))))
+		(when (member (list name type) (get symbol 'custom-group))
+		  (insert " ")
+		  (push (widget-create-child-and-convert
+			 widget 'custom-group-link
+			 :tag (custom-unlispify-tag-name symbol)
+			 symbol)
+			buttons)
+		  (setq parents (cons symbol parents)))))
     (and (null (get name 'custom-links)) ;No links of its own.
          (= (length parents) 1)         ;A single parent.
          (let* ((links (get (car parents) 'custom-links))
