@@ -1,3 +1,9 @@
+2005-11-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-item-info): New function.
+	(gud-install-speedbar-variables): Use it to display data types
+	of watch expression as tooltips in speedbar.
+
 2005-11-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* font-core.el (global-font-lock-mode): Add :version keyword,
