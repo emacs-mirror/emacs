@@ -31,6 +31,9 @@ dir ../lwlib
 # However, C-z works just as well in that case.
 handle 2 noprint pass
 
+# Make it work like SIGINT normally does.
+handle SIGTSTP nopass
+
 # Don't pass SIGALRM to Emacs.  This makes problems when
 # debugging.
 handle SIGALRM ignore
