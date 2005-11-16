@@ -4,7 +4,7 @@
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Keywords: minibuffer
-;; Version: 23
+;; Version: 24
 
 ;; This file is part of GNU Emacs.
 
@@ -127,6 +127,10 @@ If set to nil, disables timer-based autosaving."
   :type 'integer
   :group 'savehist)
 
+(defcustom savehist-mode-hook nil
+  "Hook called when `savehist-mode' is turned on."
+  :type 'hook)
+
 (defcustom savehist-save-hook nil
   "Hook called by `savehist-save' before saving the variables.
 You can use this hook to influence choice and content of variables to
@@ -157,14 +161,16 @@ The contents of this variable is built while Emacs is running, and saved
 along with minibuffer history.  You can change its value off
 `savehist-save-hook' to influence which variables are saved.")
 
-;; Coding system without any conversion, used for calculating an
-;; internal checksum.  Should be as fast as possible, ideally simply
-;; exposing the internal representation of buffer text.
-(defconst savehist-no-conversion (if (featurep 'xemacs) 'binary 'no-conversion))
+(defconst savehist-no-conversion (if (featurep 'xemacs) 'binary 'no-conversion)
+  "Coding system without any conversion.
+This is used for calculating an internal checksum.  Should be as fast
+as possible, ideally simply exposing the internal representation of
+buffer text.")
 
-;; Whether the history has already been loaded.  This prevents
-;; toggling savehist-mode from destroying existing minibuffer history.
-(defvar savehist-loaded nil)
+(defvar savehist-loaded nil
+  "Whether the history has already been loaded.
+This prevents toggling savehist-mode from destroying existing
+minibuffer history.")
 
 (when (featurep 'xemacs)
   ;; Must declare this under XEmacs, which doesn't have built-in
@@ -207,7 +213,8 @@ which is probably undesirable."
 	 (setq savehist-mode nil)
 	 (savehist-uninstall)
 	 (signal (car errvar) (cdr errvar)))))
-    (savehist-install))
+    (savehist-install)
+    (run-hooks 'savehist-mode-hook))
   ;; Return the new setting.
   savehist-mode)
 (add-minor-mode 'savehist-mode "")
@@ -329,9 +336,9 @@ Does nothing if savehist-mode is off."
     (savehist-save t)))
 
 (defun savehist-trim-history (value)
-  ;; Retain only the first history-length items in VALUE.  Only used
-  ;; under XEmacs, which doesn't (yet) implement automatic trimming of
-  ;; history lists to history-length items.
+  "Retain only the first history-length items in VALUE.
+Only used under XEmacs, which doesn't (yet) implement automatic
+trimming of history lists to history-length items."
   (if (and (featurep 'xemacs)
 	   (natnump history-length)
 	   (> (length value) history-length))
