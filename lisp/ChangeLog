@@ -1,7 +1,7 @@
 2005-11-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* font-core.el (global-font-lock-mode): Add :version keyword,
-	because default was changed. 
+	because default was changed.
 
 	* jka-cmpr-hook.el (auto-compression-mode): Ditto.
 
