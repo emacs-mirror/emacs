@@ -1,3 +1,14 @@
+2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* printing.el (easy-menu-intern): Don't define.
+	(pr-get-symbol): Use easy-menu-intern only if defined.
+
+	* simple.el (blink-matching-open): Simplify a bit.
+	(completion-setup-function): Fix the case of partial-completion-mode
+	when the minibuffer's contents start with "-".
+	Obey completion-base-size-function even when
+	minibuffer-completing-file-name is non-nil.
+
 2005-11-16  Richard M. Stallman  <rms@gnu.org>
 
 	* net/eudcb-ph.el (eudc-ph-open-session):
