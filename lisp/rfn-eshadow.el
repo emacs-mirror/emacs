@@ -210,6 +210,7 @@ Returns non-nil if the new state is enabled."
   :global t
   :init-value t
   :group 'minibuffer
+  :version "22.1"
   (if file-name-shadow-mode
       ;; Enable the mode
       (add-hook 'minibuffer-setup-hook 'rfn-eshadow-setup-minibuffer)
