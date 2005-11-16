@@ -818,6 +818,27 @@ xg_set_icon (f, file)
   UNGCPRO;
   return result;
 }
+
+int
+xg_set_icon_from_xpm_data (f, data)
+    FRAME_PTR f;
+    char **data;
+{
+  int result = 0;
+  GError *err = NULL;
+  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
+
+  if (!pixbuf)
+    {
+      g_error_free (err);
+      return 0;
+    }
+
+  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
+		       pixbuf);
+  g_object_unref (pixbuf);
+  return 1;
+}
 #endif /* USE_GTK */
 
 

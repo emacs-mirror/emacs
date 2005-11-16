@@ -1,6 +1,9 @@
 2005-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
-	* gnu.h (gnu_bits): Xpm version of the new Emacs icon.
+	* xfns.c (xg_set_icon_from_xpm_data): New function.
+
+	* gnu.h (gnu_xpm_bits): Renamed from gnu_bits.
+	(gnu_xbm_bits): Renamed from gnu_bits (xbm version).
 
 	* xterm.c (x_bitmap_icon): Use the xpm if available.
 
