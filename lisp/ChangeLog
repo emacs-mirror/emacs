@@ -1,3 +1,8 @@
+2005-11-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex.el (reftex-use-fonts): removed the check for
+	window-system, to allow fonts on tty. 
+
 2005-11-17  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-item-info): New function.
