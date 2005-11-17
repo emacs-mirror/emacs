@@ -673,6 +673,10 @@ modes do.
 ** Minibuffer changes:
 
 +++
+*** The new file-name-shadow-mode is turned ON by default, so that when
+entering a file name, any prefix which Emacs will ignore is dimmed.
+
++++
 *** There's a new face `minibuffer-prompt'.
 Emacs adds this face to the list of text properties stored in the
 variable `minibuffer-prompt-properties', which is used to display the
