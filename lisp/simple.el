@@ -4506,7 +4506,7 @@ See also `read-mail-command' concerning reading mail."
 	(unless (member-ignore-case (car (car other-headers))
 				    '("in-reply-to" "cc" "body"))
 	    (insert (car (car other-headers)) ": "
-		    (cdr (car other-headers)) "\n"))
+		    (cdr (car other-headers)) hard-newline))
 	(setq other-headers (cdr other-headers)))
       (when body
 	(forward-line 1)
