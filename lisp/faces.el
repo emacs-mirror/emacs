@@ -1019,7 +1019,7 @@ Value is the new attribute value."
 		     (format "%s for face `%s' (default %s): "
 			     name face default)
 		   (format "%s for face `%s': " name face))
-		 completion-alist)))
+		 completion-alist nil nil nil nil default)))
     (if (equal value "") default value)))
 
 
