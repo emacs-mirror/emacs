@@ -93,7 +93,6 @@
 		  (symbol :tag "Property")
 		  (sexp :tag "Value")))))
 
-;;;###autoload
 (defcustom file-name-shadow-properties
   '(face file-name-shadow field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
@@ -104,7 +103,6 @@ If Emacs is not running under a window system,
   :group 'minibuffer
   :version "22.1")
 
-;;;###autoload
 (defcustom file-name-shadow-tty-properties
   '(before-string "{" after-string "} " field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
@@ -199,7 +197,6 @@ been set up by `rfn-eshadow-setup-minibuffer'."
     ;; `substitute-in-file-name' can fail on partial input.
     (error nil)))
 
-;;;###autoload
 (define-minor-mode file-name-shadow-mode
   "Toggle File-Name Shadow mode.
 When active, any part of a filename being read in the minibuffer
