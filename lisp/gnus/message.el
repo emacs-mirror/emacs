@@ -141,7 +141,11 @@ mailbox format."
   :group 'message-sending)
 
 (defcustom message-courtesy-message
-  "The following message is a courtesy copy of an article\nthat has been posted to %s as well.\n\n"
+  (concat
+   "The following message is a courtesy copy of an article"
+   hard-newline
+   "that has been posted to %s as well."
+   hard-newline hard-newline)
   "*This is inserted at the start of a mailed copy of a posted message.
 If the string contains the format spec \"%s\", the Newsgroups
 the article has been posted to will be inserted there.
@@ -339,7 +343,9 @@ few false positives here."
 ;;; marking inserted text
 
 (defcustom message-mark-insert-begin
-  "--8<---------------cut here---------------start------------->8---\n"
+  (concat
+   "--8<---------------cut here---------------start------------->8---"
+   hard-newline)
   "How to mark the beginning of some inserted text."
   :version "22.1"
   :type 'string
@@ -347,14 +353,16 @@ few false positives here."
   :group 'message-various)
 
 (defcustom message-mark-insert-end
-  "--8<---------------cut here---------------end--------------->8---\n"
+  (concat
+   "--8<---------------cut here---------------end--------------->8---"
+   hard-newline)
   "How to mark the end of some inserted text."
   :version "22.1"
   :type 'string
   :link '(custom-manual "(message)Insertion Variables")
   :group 'message-various)
 
-(defcustom message-archive-header "X-No-Archive: Yes\n"
+(defcustom message-archive-header "X-No-Archive: Yes"
   "Header to insert when you don't want your article to be archived.
 Archives \(such as groups.google.com\) respect this header."
   :version "22.1"
@@ -418,7 +426,8 @@ for `message-cross-post-insert-note'."
   :link '(custom-manual "(message)Various Message Variables")
   :group 'message-various)
 
-(defcustom message-elide-ellipsis "\n[...]\n\n"
+(defcustom message-elide-ellipsis
+  (concat hard-newline "[...]" hard-newline hard-newline)
   "*The string which is inserted for elided text."
   :type 'string
   :link '(custom-manual "(message)Various Commands")
@@ -578,7 +587,8 @@ Done before generating the new subject of a forward."
   :link '(custom-manual "(message)Insertion Variables")
   :type 'regexp)
 
-(defcustom message-cancel-message "I am canceling my own article.\n"
+(defcustom message-cancel-message 
+  (concat "I am canceling my own article." hard-newline)
   "Message to be inserted in the cancel message."
   :group 'message-interface
   :link '(custom-manual "(message)Canceling News")
@@ -1734,7 +1744,7 @@ see `message-narrow-to-headers-or-head'."
 	  (goto-char (point-max))
 	  (if (string-match "\n$" (car headers))
 	      (insert (car headers))
-	    (insert (car headers) ?\n)))))
+	    (insert (car headers) hard-newline)))))
     (setq headers (cdr headers))))
 
 (defmacro message-with-reply-buffer (&rest forms)
@@ -1841,7 +1851,7 @@ Leading \"Re: \" is not stripped by this function.  Use the function
 		    (insert (concat "Subject: "
 				    new-subject
 				    " (was: "
-				    old-subject ")\n")))))))))
+				    old-subject ")" hard-newline)))))))))
 
 (defun message-mark-inserted-region (beg end)
   "Mark some region in the current article with enclosing tags.
@@ -1925,7 +1935,7 @@ With prefix-argument just set Follow-Up, don't cross-post."
 				 target-group
 				 "[ \t]*$")
 			 (message-fetch-field "Newsgroups")))
-      (insert (concat "\nFollowup-To: " target-group)))
+      (insert (concat hard-newline "Followup-To: " target-group)))
   (setq message-cross-post-old-target target-group))
 
 (defun message-cross-post-insert-note (target-group cross-post in-old
@@ -1957,8 +1967,8 @@ been made to before the user asked for a Crosspost."
     (if (or in-old
 	    (not cross-post)
 	    (string-match "^[ \t]*poster[ \t]*$" target-group))
-	(insert (concat message-followup-to-note target-group "\n"))
-      (insert (concat message-cross-post-note target-group "\n")))))
+	(insert message-followup-to-note target-group hard-newline)
+      (insert message-cross-post-note target-group hard-newline))))
 
 (defun message-cross-post-followup-to (target-group)
   "Crossposts message and set Followup-To to TARGET-GROUP.
@@ -2018,7 +2028,7 @@ With prefix-argument just set Follow-Up, don't cross-post."
 	  (save-excursion
 	    (message-goto-to)
 	    (message-delete-line)
-	    (insert (concat "To: " cc-content "\n"))
+	    (insert (concat "To: " cc-content hard-newline))
 	    (save-restriction
 	      (message-narrow-to-headers)
 	      (message-remove-header (if bcc
@@ -2783,7 +2793,7 @@ or in the synonym headers, defined by `message-header-synonyms'."
 	  (message-remove-header (symbol-name (car elem)))
 	  (goto-char (point-min))
 	  (insert (symbol-name (car elem)) ": "
-		  (cdr elem) "\n"))))))
+		  (cdr elem) hard-newline))))))
 
 (defun message-insert-newsgroups ()
   "Insert the Newsgroups header from the article being replied to."
@@ -2813,7 +2823,7 @@ or in the synonym headers, defined by `message-header-synonyms'."
 				 (point)
 			       (forward-line -2)
 			       (point)))
-      (insert "\n")
+      (insert hard-newline)
       (goto-char beg)
       (delete-region beg (progn (message-goto-body)
 				(forward-line 2)
@@ -2832,7 +2842,7 @@ or in the synonym headers, defined by `message-header-synonyms'."
       (end-of-line -1))
     (kill-region point (point))
     (unless (bolp)
-      (insert "\n"))))
+      (insert hard-newline))))
 
 (defun message-newline-and-reformat (&optional arg not-break)
   "Insert four newlines, and then reformat if inside quoted text.
@@ -2974,15 +2984,15 @@ Prefix arg means justify as well."
       (goto-char (point-max))
       ;; Insert the signature.
       (unless (bolp)
-	(insert "\n"))
+	(insert hard-newline))
       (when message-signature-insert-empty-line
-	(insert "\n"))
-      (insert "-- \n")
+	(insert hard-newline))
+      (insert "-- " hard-newline)
       (if (eq signature t)
 	  (insert-file-contents message-signature-file)
 	(insert signature))
       (goto-char (point-max))
-      (or (bolp) (insert "\n")))))
+      (or (bolp) (insert hard-newline)))))
 
 (defun message-insert-importance-high ()
   "Insert header to mark message as important."
@@ -2992,7 +3002,7 @@ Prefix arg means justify as well."
       (message-narrow-to-headers)
       (message-remove-header "Importance"))
     (message-goto-eoh)
-    (insert "Importance: high\n")))
+    (insert "Importance: high" hard-newline)))
 
 (defun message-insert-importance-low ()
   "Insert header to mark message as unimportant."
@@ -3002,7 +3012,7 @@ Prefix arg means justify as well."
       (message-narrow-to-headers)
       (message-remove-header "Importance"))
     (message-goto-eoh)
-    (insert "Importance: low\n")))
+    (insert "Importance: low" hard-newline)))
 
 (defun message-insert-or-toggle-importance ()
   "Insert a \"Importance: high\" header, or cycle through the header values.
@@ -3024,7 +3034,7 @@ and `low'."
 			  (t
 			   "high")))))
       (message-goto-eoh)
-      (insert (format "Importance: %s\n" new)))))
+      (insert (format "Importance: %s" new) hard-newline))))
 
 (defun message-insert-disposition-notification-to ()
   "Request a disposition notification (return receipt) to this message.
@@ -3035,10 +3045,11 @@ Note that this should not be used in newsgroups."
       (message-narrow-to-headers)
       (message-remove-header "Disposition-Notification-To"))
     (message-goto-eoh)
-    (insert (format "Disposition-Notification-To: %s\n"
+    (insert (format "Disposition-Notification-To: %s"
 		    (or (message-field-value "Reply-to")
 			(message-field-value "From")
-			(message-make-from))))))
+			(message-make-from)))
+	    hard-newline)))
 
 (defun message-elide-region (b e)
   "Elide the text in the region.
@@ -3173,7 +3184,7 @@ However, if `message-yank-prefix' is non-nil, insert that prefix on each line."
     ;; Delete blank lines at the end of the buffer.
     (goto-char (point-max))
     (unless (eolp)
-      (insert "\n"))
+      (insert hard-newline))
     (while (and (zerop (forward-line -1))
 		(looking-at "$"))
       (message-delete-line))
@@ -3211,7 +3222,7 @@ prefix, and don't delete any headers."
 	(funcall message-cite-function))
       (message-exchange-point-and-mark)
       (unless (bolp)
-	(insert ?\n))
+	(insert hard-newline))
       (unless modified
 	(setq message-checksum (message-checksum))))))
 
@@ -3269,13 +3280,13 @@ prefix, and don't delete any headers."
       (delete-region (point) end)
       (unless (search-backward "\n\n" start t)
 	;; Insert a blank line if it is peeled off.
-	(insert "\n")))
+	(insert hard-newline)))
     (goto-char start)
     (while functions
       (funcall (pop functions)))
     (when message-citation-line-function
       (unless (bolp)
-	(insert "\n"))
+	(insert hard-newline))
       (funcall message-citation-line-function))))
 
 (eval-when-compile (defvar mail-citation-hook))	;Compiler directive
@@ -3311,13 +3322,14 @@ prefix, and don't delete any headers."
 	(funcall (pop functions)))
       (when message-citation-line-function
 	(unless (bolp)
-	  (insert "\n"))
+	  (insert hard-newline))
 	(funcall message-citation-line-function)))))
 
 (defun message-insert-citation-line ()
   "Insert a simple citation line."
   (when message-reply-headers
-    (insert (mail-header-from message-reply-headers) " writes:\n\n")))
+    (insert (mail-header-from message-reply-headers)
+	    " writes:" hard-newline hard-newline)))
 
 (defun message-position-on-field (header &rest afters)
   (let ((case-fold-search t))
@@ -3343,7 +3355,7 @@ prefix, and don't delete any headers."
 	(when afters
 	  (re-search-forward "^[^ \t]" nil 'move)
 	  (beginning-of-line))
-	(insert header ": \n")
+	(insert header ": " hard-newline)
 	(forward-char -1)
 	nil))))
 
@@ -3539,7 +3551,7 @@ It should typically alter the sending method in some way or other."
   ;; Make sure there's a newline at the end of the message.
   (goto-char (point-max))
   (unless (bolp)
-    (insert "\n"))
+    (insert hard-newline))
   ;; Make the hidden headers visible.
   (let ((points (message-text-with-property 'message-hidden)))
     (when points
@@ -3644,7 +3656,7 @@ It should typically alter the sending method in some way or other."
   (goto-char (point-min))
   (re-search-forward
    (concat "^" (regexp-quote mail-header-separator) "\n"))
-  (replace-match "\n")
+  (replace-match hard-newline)
   (run-hooks 'message-send-mail-hook)
   (let ((p (goto-char (point-min)))
 	(tembuf (message-generate-new-buffer-clone-locals " message temp"))
@@ -3686,17 +3698,18 @@ It should typically alter the sending method in some way or other."
 	      (message-remove-header "Message-ID")
 	      (message-remove-header "Lines")
 	      (goto-char (point-max))
-	      (insert "Mime-Version: 1.0\n")
+	      (insert "Mime-Version: 1.0" hard-newline)
 	      (setq header (buffer-string)))
 	    (goto-char (point-max))
-	    (insert (format "Content-Type: message/partial; id=\"%s\"; number=%d; total=%d\n\n"
-			    id n total))
+	    (insert (format "Content-Type: message/partial; id=\"%s\"; number=%d; total=%d"
+			    id n total)
+		    hard-newline hard-newline)
 	    (forward-char -1)
 	    (let ((mail-header-separator ""))
 	      (when (memq 'Message-ID message-required-mail-headers)
-		(insert "Message-ID: " (message-make-message-id) "\n"))
+		(insert "Message-ID: " (message-make-message-id) hard-newline))
 	      (when (memq 'Lines message-required-mail-headers)
-		(insert "Lines: " (message-make-lines) "\n"))
+		(insert "Lines: " (message-make-lines) hard-newline))
 	      (message-goto-subject)
 	      (end-of-line)
 	      (insert (format " (%d/%d)" n total))
@@ -3761,7 +3774,7 @@ It should typically alter the sending method in some way or other."
 	  (goto-char (point-max))
 	  ;; require one newline at the end.
 	  (or (= (preceding-char) ?\n)
-	      (insert ?\n))
+	      (insert hard-newline))
 	  (message-cleanup-headers)
 	  ;; FIXME: we're inserting the courtesy copy after encoding.
 	  ;; This is wrong if the courtesy copy string contains
@@ -3837,7 +3850,7 @@ If you always want Gnus to send messages in one piece, set
 	    (goto-char (point-min))
 	    (re-search-forward
 	     (concat "^" (regexp-quote mail-header-separator) "\n"))
-	    (replace-match "\n")
+	    (replace-match hard-newline)
 	    (backward-char 1)
 	    (setq delimline (point-marker))
 	    (run-hooks 'message-send-mail-hook)
@@ -3899,7 +3912,7 @@ to find out how to use this."
   (goto-char (point-min))
   (re-search-forward
    (concat "^" (regexp-quote mail-header-separator) "\n"))
-  (replace-match "\n")
+  (replace-match hard-newline)
   (run-hooks 'message-send-mail-hook)
   ;; send the message
   (case
@@ -4067,13 +4080,13 @@ Otherwise, generate and save a value for `canlock-password' first."
 	      (goto-char (point-max))
 	      ;; require one newline at the end.
 	      (or (= (preceding-char) ?\n)
-		  (insert ?\n))
+		  (insert hard-newline))
 	      (let ((case-fold-search t))
 		;; Remove the delimiter.
 		(goto-char (point-min))
 		(re-search-forward
 		 (concat "^" (regexp-quote mail-header-separator) "\n"))
-		(replace-match "\n")
+		(replace-match hard-newline)
 		(backward-char 1))
 	      (run-hooks 'message-send-news-hook)
 	      (gnus-open-server method)
@@ -4200,7 +4213,7 @@ Otherwise, generate and save a value for `canlock-password' first."
 					     (message-tokenize-header
 					      newsgroups)))))))))
 	 (goto-char (point-min))
-	 (insert "Followup-To: " to "\n"))
+	 (insert "Followup-To: " to hard-newline))
        t))
    ;; Check "Shoot me".
    (message-check 'shoot
@@ -5099,7 +5112,7 @@ Headers already prepared in the buffer are not modified."
 		      ;; We check whether the value was ended by a
 		      ;; newline.  If now, we insert one.
 		      (unless (bolp)
-			(insert "\n"))
+			(insert hard-newline))
 		      (forward-line -1)))
 		;; The value of this header was empty, so we clear
 		;; totally and insert the new value.
@@ -5139,7 +5152,7 @@ Headers already prepared in the buffer are not modified."
 	    (beginning-of-line))
 	  (when (or (message-news-p)
 		    (string-match "@.+\\.." secure-sender))
-	    (insert "Sender: " secure-sender "\n"))))
+	    (insert "Sender: " secure-sender hard-newline))))
       ;; Check for IDNA
       (message-idna-to-ascii-rhs))))
 
@@ -5151,7 +5164,7 @@ Headers already prepared in the buffer are not modified."
 	(message-narrow-to-headers)
 	(when (setq newsgroups (message-fetch-field "newsgroups"))
 	  (goto-char (point-max))
-	  (insert "Posted-To: " newsgroups "\n")))
+	  (insert "Posted-To: " newsgroups hard-newline)))
       (forward-line 1)
       (when message-courtesy-message
 	(cond
@@ -5170,7 +5183,7 @@ Headers already prepared in the buffer are not modified."
     (insert (capitalize (symbol-name header))
 	    ": "
 	    (if (consp value) (car value) value)
-	    "\n")
+	    hard-newline)
     (narrow-to-region (point-min) (1- (point-max)))
     (let (quoted last)
       (goto-char (point-min))
@@ -5184,7 +5197,7 @@ Headers already prepared in the buffer are not modified."
 		  (progn
 		    (save-excursion
 		      (goto-char last)
-		      (insert "\n\t"))
+		      (insert hard-newline "\t"))
 		    (setq last (1+ (point))))
 		(setq last (1+ (point)))))
 	  (setq quoted (not quoted)))
@@ -5210,7 +5223,7 @@ If the current line has `message-yank-prefix', insert it on the new line."
     (insert (capitalize (symbol-name header))
 	    ": "
 	    (if (consp value) (car value) value)
-	    "\n")
+	    hard-newline)
     (save-restriction
       (narrow-to-region begin (point))
       (fill-region-as-paragraph begin (point))
@@ -5279,7 +5292,7 @@ than 988 characters long, and if they are not, trim them until they are."
     (let ((refstring (mapconcat #'identity refs " ")))
       (if (and message-this-is-news message-cater-to-broken-inn)
 	  (insert (capitalize (symbol-name header)) ": "
-		  refstring "\n")
+		  refstring hard-newline)
 	(message-fill-header header refstring)))))
 
 (defun message-position-point ()
@@ -5508,18 +5521,18 @@ are not included."
   (delete-region (point) (progn (forward-line -1) (point)))
   (when message-default-headers
     (insert message-default-headers)
-    (or (bolp) (insert ?\n)))
+    (or (bolp) (insert hard-newline)))
   (put-text-property
    (point)
    (progn
-     (insert mail-header-separator "\n")
+     (insert mail-header-separator hard-newline)
      (1- (point)))
    'read-only nil)
   (forward-line -1)
   (when (message-news-p)
     (when message-default-news-headers
       (insert message-default-news-headers)
-      (or (bolp) (insert ?\n)))
+      (or (bolp) (insert hard-newline)))
     (when message-generate-headers-first
       (message-generate-headers
        (message-headers-to-generate
@@ -5530,7 +5543,7 @@ are not included."
   (when (message-mail-p)
     (when message-default-mail-headers
       (insert message-default-mail-headers)
-      (or (bolp) (insert ?\n)))
+      (or (bolp) (insert hard-newline)))
     (save-restriction
       (message-narrow-to-headers)
       (if message-alternative-emails
@@ -6012,14 +6025,14 @@ If ARG, allow editing of the cancellation message."
 	    (message-news)
 	  (setq buf (set-buffer (get-buffer-create " *message cancel*"))))
 	(erase-buffer)
-	(insert "Newsgroups: " newsgroups "\n"
-		"From: " from "\n"
-		"Subject: cmsg cancel " message-id "\n"
-		"Control: cancel " message-id "\n"
+	(insert "Newsgroups: " newsgroups hard-newline
+		"From: " from hard-newline
+		"Subject: cmsg cancel " message-id hard-newline
+		"Control: cancel " message-id hard-newline
 		(if distribution
-		    (concat "Distribution: " distribution "\n")
+		    (concat "Distribution: " distribution hard-newline)
 		  "")
-		mail-header-separator "\n"
+		mail-header-separator hard-newline
 		message-cancel-message)
 	(run-hooks 'message-cancel-hook)
 	(unless arg
@@ -6208,7 +6221,9 @@ Optional DIGEST will use digest to forward."
 
 (defun message-forward-make-body-plain (forward-buffer)
   (insert
-   "\n-------------------- Start of forwarded message --------------------\n")
+   hard-newline
+   "-------------------- Start of forwarded message --------------------"
+   hard-newline)
   (let ((b (point)) e)
     (insert
      (with-temp-buffer
@@ -6224,7 +6239,9 @@ Optional DIGEST will use digest to forward."
        (buffer-string)))
     (setq e (point))
     (insert
-     "\n-------------------- End of forwarded message --------------------\n")
+     hard-newline
+     "-------------------- End of forwarded message --------------------"
+     hard-newline)
     (when message-forward-ignored-headers
       (save-restriction
 	(narrow-to-region b e)
@@ -6234,7 +6251,10 @@ Optional DIGEST will use digest to forward."
 	(message-remove-header message-forward-ignored-headers t)))))
 
 (defun message-forward-make-body-mime (forward-buffer)
-  (insert "\n\n<#part type=message/rfc822 disposition=inline raw=t>\n")
+  (insert 
+   hard-newline hard-newline
+   "<#part type=message/rfc822 disposition=inline raw=t>"
+   hard-newline)
   (let ((b (point)) e)
     (save-restriction
       (narrow-to-region (point) (point))
@@ -6244,10 +6264,13 @@ Optional DIGEST will use digest to forward."
 	(replace-match "X-From-Line: "))
       (goto-char (point-max)))
     (setq e (point))
-    (insert "<#/part>\n")))
+    (insert "<#/part>" hard-newline)))
 
 (defun message-forward-make-body-mml (forward-buffer)
-  (insert "\n\n<#mml type=message/rfc822 disposition=inline>\n")
+  (insert 
+   hard-newline hard-newline
+   "<#mml type=message/rfc822 disposition=inline>"
+   hard-newline)
   (let ((b (point)) e)
     (if (not message-forward-decoded-p)
 	(insert
@@ -6270,7 +6293,7 @@ Optional DIGEST will use digest to forward."
 	  (replace-match "X-From-Line: "))
 	(goto-char (point-max))))
     (setq e (point))
-    (insert "<#/mml>\n")
+    (insert "<#/mml>" hard-newline)
     (when (and (not message-forward-decoded-p)
 	       message-forward-ignored-headers)
       (save-restriction
@@ -6282,19 +6305,23 @@ Optional DIGEST will use digest to forward."
 
 (defun message-forward-make-body-digest-plain (forward-buffer)
   (insert
-   "\n-------------------- Start of forwarded message --------------------\n")
+   hard-newline
+   "-------------------- Start of forwarded message --------------------"
+   hard-newline)
   (let ((b (point)) e)
     (mml-insert-buffer forward-buffer)
     (setq e (point))
     (insert
-     "\n-------------------- End of forwarded message --------------------\n")))
+     hard-newline
+     "-------------------- End of forwarded message --------------------"
+     hard-newline)))
 
 (defun message-forward-make-body-digest-mime (forward-buffer)
-  (insert "\n<#multipart type=digest>\n")
+  (insert hard-newline "<#multipart type=digest>" hard-newline)
   (let ((b (point)) e)
     (insert-buffer-substring forward-buffer)
     (setq e (point))
-    (insert "<#/multipart>\n")
+    (insert "<#/multipart>" hard-newline)
     (save-restriction
       (narrow-to-region b e)
       (goto-char b)
@@ -6799,7 +6826,7 @@ regexp VARSTR."
 	(message-narrow-to-headers-or-head)
 	(message-remove-header "Mime-Version")
 	(goto-char (point-max))
-	(insert "MIME-Version: 1.0\n")
+	(insert "MIME-Version: 1.0" hard-newline)
 	(when lines
 	  (insert lines))
 	(setq content-type-p
@@ -6819,7 +6846,7 @@ regexp VARSTR."
 	;; For unknown reason, MIME-Version doesn't exist.
 	(when (re-search-forward "^MIME-Version:" nil t)
 	  (forward-line 1)
-	  (insert "Content-Type: text/plain; charset=us-ascii\n"))))))
+	  (insert "Content-Type: text/plain; charset=us-ascii" hard-newline))))))
 
 (defun message-read-from-minibuffer (prompt &optional initial-contents)
   "Read from the minibuffer while providing abbrev expansion."
@@ -6848,7 +6875,7 @@ regexp VARSTR."
       (pop emails))
     (unless (or (not email) (equal email user-mail-address))
       (goto-char (point-max))
-      (insert "From: " email "\n"))))
+      (insert "From: " email hard-newline))))
 
 (defun message-options-get (symbol)
   (cdr (assq symbol message-options)))

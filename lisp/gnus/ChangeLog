@@ -1,3 +1,33 @@
+2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el (message-courtesy-message)
+	(message-mark-insert-begin, message-mark-insert-end)
+	(message-elide-ellipsis, message-cancel-message)
+	(message-add-header, message-change-subject)
+	(message-cross-post-followup-to-header)
+	(message-cross-post-insert-note, message-reduce-to-to-cc)
+	(message-widen-reply, message-delete-not-region)
+	(message-kill-to-signature, message-insert-signature)
+	(message-insert-importance-high, message-insert-importance-low)
+	(message-insert-or-toggle-importance)
+	(message-insert-disposition-notification-to)
+	(message-indent-citation, message-yank-original)
+	(message-cite-original-without-signature, message-cite-original)
+	(message-insert-citation-line, message-position-on-field)
+	(message-fix-before-sending, message-send-mail-partially)
+	(message-send-mail, message-send-mail-with-sendmail)
+	(message-send-mail-with-qmail, message-send-news)
+	(message-check-news-header-syntax, message-generate-headers)
+	(message-insert-courtesy-copy, message-fill-address)
+	(message-fill-header, message-shorten-references)
+	(message-setup-1, message-cancel-news)
+	(message-forward-make-body-plain) (message-forward-make-body-mime)
+	(message-forward-make-body-mml) (message-encode-message-body)
+	(message-forward-make-body-digest-plain)
+	(message-forward-make-body-digest-mime)
+	(message-use-alternative-email-as-from): Insert `hard-newline'
+	instead of ordinary newlines.
+
 2005-11-09  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-generate-headers): Downcase the argument
