@@ -9,7 +9,8 @@
 	(mail-position-on-field, mail-signature, mail-yank-original)
 	(mail-attach-file): Likewise.
 
-	* mail/mailheader.el (mail-header-format) 	(mail-header-format-function): Likewise.
+	* mail/mailheader.el (mail-header-format)
+	(mail-header-format-function): Likewise.
 
 	* add-log.el (add-change-log-entry, change-log-merge): Likewise.
 
@@ -326,7 +327,7 @@
 
 	* help.el (help-for-help-internal): Improve doc of C-h a.
 	(describe-key): Improve prompt; doc fix.
-	
+
 2005-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-registered): Catch all errors.
@@ -343,7 +344,7 @@
 
 2005-11-13  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gud-menu-map):  Move parentheses (again).
+	* progmodes/gud.el (gud-menu-map): Move parentheses (again).
 	(gud-speedbar-buttons): Match on "const char *" too.
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler)
