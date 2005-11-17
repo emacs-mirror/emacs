@@ -1,3 +1,60 @@
+2005-11-17  Juri Linkov  <juri@jurta.org>
+
+	* font-lock.el (font-lock-faces): Rename this defgroup from
+	`font-lock-highlighting-faces'.
+	(font-lock-comment-face, font-lock-comment-delimiter-face)
+	(font-lock-string-face, font-lock-doc-face)
+	(font-lock-keyword-face, font-lock-builtin-face)
+	(font-lock-function-name-face, font-lock-variable-name-face)
+	(font-lock-type-face, font-lock-constant-face)
+	(font-lock-warning-face, font-lock-negation-char-face)
+	(font-lock-preprocessor-face)
+	(font-lock-regexp-grouping-backslash)
+	(font-lock-regexp-grouping-construct): Rename :group from
+	`font-lock-highlighting-faces' to `font-lock-faces'.
+
+	* cus-edit.el (lisp, c, tex):
+	* progmodes/ada-mode.el (ada):
+	* progmodes/asm-mode.el (asm):
+	* progmodes/cperl-mode.el (cperl-faces):
+	* progmodes/cpp.el (cpp):
+	* progmodes/dcl-mode.el (dcl):
+	* progmodes/f90.el (f90):
+	* progmodes/fortran.el (fortran):
+	* progmodes/icon.el (icon):
+	* progmodes/idlwave.el (idlwave-misc):
+	* progmodes/m4-mode.el (m4):
+	* progmodes/make-mode.el (makefile):
+	* progmodes/meta-mode.el (meta-font):
+	* progmodes/modula2.el (modula2):
+	* progmodes/octave-mod.el (octave):
+	* progmodes/pascal.el (pascal):
+	* progmodes/perl-mode.el (perl):
+	* progmodes/prolog.el (prolog):
+	* progmodes/ps-mode.el (PostScript-edit):
+	* progmodes/scheme.el (scheme):
+	* progmodes/sh-script.el (sh-script):
+	* progmodes/simula.el (simula):
+	* progmodes/tcl.el (tcl):
+	* textmodes/nroff-mode.el (nroff):
+	* textmodes/reftex-vars.el (reftex-fontification-configurations):
+	* textmodes/sgml-mode.el (sgml):
+	* textmodes/texinfo.el (texinfo):
+	Add :link (custom-group-link font-lock-faces) to defgroup.
+
+	* hi-lock.el (hi-lock): Rename this defgroup from
+	`hi-lock-interactive-text-highlighting'.  Change parent group from
+	`faces' to `font-lock'.  Add link to the manual.
+	(hi-lock-mode, hi-lock-file-patterns-range)
+	(hi-lock-exclude-modes, hi-lock-faces): Rename :group from
+	`hi-lock-interactive-text-highlighting' to `hi-lock'.
+	(hi-lock-faces): Add :group `faces'.
+
+	* cus-edit.el (custom-variable-prompt): Clarify the code.
+
+	* faces.el (face-read-string): Set the default value arg of
+	completing-read.
+
 2005-11-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* rfn-eshadow.el (file-name-shadow-properties)
