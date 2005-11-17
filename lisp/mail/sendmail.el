@@ -446,7 +446,7 @@ actually occur.")
 	;; has been called and has done so.
 	(let ((fill-prefix "\t")
 	      (address-start (point)))
-	  (insert to "\n")
+	  (insert to hard-newline)
 	  (fill-region-as-paragraph address-start (point-max))
 	  (goto-char (point-max))
 	  (unless (bolp)
@@ -455,7 +455,7 @@ actually occur.")
     (if cc
 	(let ((fill-prefix "\t")
 	      (address-start (progn (insert "CC: ") (point))))
-	  (insert cc "\n")
+	  (insert cc hard-newline)
 	  (fill-region-as-paragraph address-start (point-max))
 	  (goto-char (point-max))
 	  (unless (bolp)
@@ -464,23 +464,23 @@ actually occur.")
 	(let ((fill-prefix "\t")
 	      (fill-column 78)
 	      (address-start (point)))
-	  (insert "In-reply-to: " in-reply-to "\n")
+	  (insert "In-reply-to: " in-reply-to hard-newline)
 	  (fill-region-as-paragraph address-start (point-max))
 	  (goto-char (point-max))
 	  (unless (bolp)
 	    (newline))))
-    (insert "Subject: " (or subject "") "\n")
+    (insert "Subject: " (or subject "") hard-newline)
     (if mail-default-headers
 	(insert mail-default-headers))
     (if mail-default-reply-to
-	(insert "Reply-to: " mail-default-reply-to "\n"))
+	(insert "Reply-to: " mail-default-reply-to hard-newline))
     (if mail-self-blind
-	(insert "BCC: " user-mail-address "\n"))
+	(insert "BCC: " user-mail-address hard-newline))
     (if mail-archive-file-name
-	(insert "FCC: " mail-archive-file-name "\n"))
+	(insert "FCC: " mail-archive-file-name hard-newline))
     (put-text-property (point)
 		       (progn
-			 (insert mail-header-separator "\n")
+			 (insert mail-header-separator hard-newline)
 			 (1- (point)))
 		       'category 'mail-header-separator)
     ;; Insert the signature.  But remember the beginning of the message.
@@ -488,7 +488,7 @@ actually occur.")
     (cond ((eq mail-signature t)
 	   (if (file-exists-p mail-signature-file)
 	       (progn
-		 (insert "\n\n-- \n")
+		 (insert hard-newline hard-newline "-- " hard-newline)
 		 (insert-file-contents mail-signature-file))))
 	  ((stringp mail-signature)
 	   (insert mail-signature))
@@ -835,14 +835,14 @@ the user from the mailer."
 			     (split-string new-header-values
 					   ",[[:space:]]+" t))
 			    (mapconcat 'identity l ", "))
-			  "\n"))
+			  hard-newline))
 		;; Add Mail-Reply-To if none yet
 		(unless (mail-fetch-field "mail-reply-to")
 		  (goto-char (mail-header-end))
 		  (insert "Mail-Reply-To: "
 			  (or (mail-fetch-field "reply-to")
 			      user-mail-address)
-			  "\n"))))))
+			  hard-newline))))))
 	(unless (memq mail-send-nonascii '(t mime))
 	  (goto-char (point-min))
 	  (skip-chars-forward "\0-\177")
@@ -931,7 +931,7 @@ See also the function `select-message-coding-system'.")
 					     fullname-end 1)
 		     (replace-match "\\\\\\&" t))
 		   (insert "\""))))
-	   (insert " <" login ">\n"))
+	   (insert " <" login ">" hard-newline))
 	  ((eq mail-from-style 'parens)
 	   (insert "From: " login " (")
 	   (let ((fullname-start (point)))
@@ -955,9 +955,9 @@ See also the function `select-message-coding-system'.")
 		       fullname-end 1)
 		 (replace-match "\\1(\\3)" t)
 		 (goto-char fullname-start))))
-	   (insert ")\n"))
+	   (insert ")" hard-newline))
 	  ((null mail-from-style)
-	   (insert "From: " login "\n"))
+	   (insert "From: " login hard-newline))
 	  ((eq mail-from-style 'system-default)
 	   nil)
 	  (t (error "Invalid value for `mail-from-style'")))))
@@ -996,7 +996,7 @@ external program defined by `sendmail-program'."
 	  (goto-char (point-max))
 	  ;; require one newline at the end.
 	  (or (= (preceding-char) ?\n)
-	      (insert ?\n))
+	      (insert hard-newline))
 	  ;; Change header-delimiter to be what sendmail expects.
 	  (goto-char (mail-header-end))
 	  (delete-region (point) (progn (end-of-line) (point)))
@@ -1008,7 +1008,7 @@ external program defined by `sendmail-program'."
 	  ;; Ignore any blank lines in the header
 	  (while (and (re-search-forward "\n\n\n*" delimline t)
 		      (< (point) delimline))
-	    (replace-match "\n"))
+	    (replace-match hard-newline))
 	  (goto-char (point-min))
 	  ;; Look for Resent- headers.  They require sending
 	  ;; the message specially.
@@ -1070,10 +1070,10 @@ external program defined by `sendmail-program'."
 		   (setq charset
 			 (coding-system-get selected-coding 'mime-charset))
 		   (goto-char delimline)
-		   (insert "MIME-version: 1.0\n"
+		   (insert "MIME-version: 1.0" hard-newline
 			   "Content-type: text/plain; charset="
-			   (symbol-name charset) "\n"
-			   "Content-Transfer-Encoding: 8bit\n")))
+			   (symbol-name charset) hard-newline
+			   "Content-Transfer-Encoding: 8bit" hard-newline)))
 	    ;; Insert an extra newline if we need it to work around
 	    ;; Sun's bug that swallows newlines.
 	    (goto-char (1+ delimline))
@@ -1167,8 +1167,8 @@ external program defined by `sendmail-program'."
       (set-buffer tembuf)
       (erase-buffer)
       ;; This initial newline is written out if the fcc file already exists.
-      (insert "\nFrom " (user-login-name) " "
-	      (current-time-string time) "\n")
+      (insert hard-newline "From " (user-login-name) " "
+	      (current-time-string time) hard-newline)
       ;; Insert the time zone before the year.
       (forward-char -1)
       (forward-word -1)
@@ -1178,7 +1178,7 @@ external program defined by `sendmail-program'."
       (insert-buffer-substring rmailbuf)
       ;; Make sure messages are separated.
       (goto-char (point-max))
-      (insert ?\n)
+      (insert hard-newline)
       (goto-char 2)
       ;; ``Quote'' "^From " as ">From "
       ;;  (note that this isn't really quoting, as there is no requirement
@@ -1220,10 +1220,11 @@ external program defined by `sendmail-program'."
 			      (rmail-maybe-set-message-counters)
 			      (widen)
 			      (narrow-to-region (point-max) (point-max))
-			      (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
-				      "Date: " (mail-rfc822-date) "\n")
+			      (insert "\C-l" hard-newline "0, unseen,,"
+				      hard-newline "*** EOOH ***" hard-newline
+				      "Date: " (mail-rfc822-date) hard-newline)
 			      (insert-buffer-substring curbuf beg2 end)
-			      (insert "\n\C-_")
+			      (insert hard-newline "\C-_")
 			      (goto-char (point-min))
 			      (widen)
 			      (search-backward "\n\^_")
@@ -1261,10 +1262,11 @@ external program defined by `sendmail-program'."
 		    (set-buffer (get-buffer-create " mail-temp"))
 		    (setq buffer-read-only nil)
 		    (erase-buffer)
-		    (insert "\C-l\n0, unseen,,\n*** EOOH ***\n"
-			    "Date: " (mail-rfc822-date) "\n")
+		    (insert "\C-l" hard-newline "0, unseen,," hard-newline
+			    "*** EOOH ***" hard-newline "Date: "
+			    (mail-rfc822-date) hard-newline)
 		    (insert-buffer-substring curbuf beg2 end)
-		    (insert "\n\C-_")
+		    (insert hard-newline "\C-_")
 		    (write-region (point-min) (point-max) (car fcc-list) t)
 		    (erase-buffer)))
 	      (write-region
@@ -1316,7 +1318,7 @@ external program defined by `sendmail-program'."
   (expand-abbrev)
   (or (mail-position-on-field "cc" t)
       (progn (mail-position-on-field "to")
-	     (insert "\nCC: "))))
+	     (insert hard-newline "CC: "))))
 
 (defun mail-bcc ()
   "Move point to end of BCC-field.  Create a BCC field if none."
@@ -1324,7 +1326,7 @@ external program defined by `sendmail-program'."
   (expand-abbrev)
   (or (mail-position-on-field "bcc" t)
       (progn (mail-position-on-field "to")
-	     (insert "\nBCC: "))))
+	     (insert hard-newline "BCC: "))))
 
 (defun mail-fcc (folder)
   "Add a new FCC field, with file name completion."
@@ -1332,7 +1334,7 @@ external program defined by `sendmail-program'."
   (expand-abbrev)
   (or (mail-position-on-field "fcc" t)	;Put new field after exiting FCC.
       (mail-position-on-field "to"))
-  (insert "\nFCC: " folder))
+  (insert hard-newline "FCC: " folder))
 
 (defun mail-reply-to ()
   "Move point to end of Reply-To-field.  Create a Reply-To field if none."
@@ -1347,7 +1349,7 @@ Create a Mail-Reply-To field if none."
   (expand-abbrev)
   (or (mail-position-on-field "mail-reply-to" t)
       (progn (mail-position-on-field "to")
-           (insert "\nMail-Reply-To: "))))
+           (insert hard-newline "Mail-Reply-To: "))))
 
 (defun mail-mail-followup-to ()
   "Move point to end of Mail-Followup-To field.
@@ -1356,7 +1358,7 @@ Create a Mail-Followup-To field if none."
   (expand-abbrev)
   (or (mail-position-on-field "mail-followup-to" t)
       (progn (mail-position-on-field "to")
-           (insert "\nMail-Followup-To: "))))
+           (insert hard-newline "Mail-Followup-To: "))))
 
 (defun mail-position-on-field (field &optional soft)
   (let (end
@@ -1371,7 +1373,7 @@ Create a Mail-Followup-To field if none."
 	  t)
       (or soft
 	  (progn (goto-char end)
-		 (insert field ": \n")
+		 (insert field ": " hard-newline)
 		 (skip-chars-backward "\n")))
       nil)))
 
@@ -1394,7 +1396,7 @@ Prefix arg means put contents at point."
 	(delete-region (point) (point-max)))
     (if (stringp mail-signature)
 	(insert mail-signature)
-      (insert "\n\n-- \n")
+      (insert hard-newline hard-newline "-- " hard-newline)
       (insert-file-contents (expand-file-name mail-signature-file)))))
 
 (defun mail-fill-yanked-message (&optional justifyp)
@@ -1480,7 +1482,7 @@ and don't delete any header fields."
 	;; loop would deactivate the mark because we inserted text.
 	(goto-char (prog1 (mark t)
 		     (set-marker (mark-marker) (point) (current-buffer))))
-	(if (not (eolp)) (insert ?\n)))))
+	(if (not (eolp)) (insert hard-newline)))))
 
 (defun mail-yank-clear-headers (start end)
   (if (< end start)
@@ -1564,7 +1566,8 @@ If the current line has `mail-yank-prefix', insert it on the new line."
       (insert-char ?= (max 0 (- 60 (current-column))))
       (newline)
       (setq middle (point))
-      (insert "============================================================\n")
+      (insert "============================================================"
+	      hard-newline)
       (push-mark)
       (goto-char middle)
       (insert-file-contents file)

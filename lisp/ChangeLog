@@ -1,3 +1,17 @@
+2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (hard-newline): New variable.
+
+	* mail/sendmail.el (mail-setup, mail-send, mail-insert-from-field)
+	(sendmail-send-it, mail-do-fcc, mail-cc, mail-bcc, mail-fcc)
+	(mail-mail-reply-to, mail-mail-followup-to)
+	(mail-position-on-field, mail-signature, mail-yank-original)
+	(mail-attach-file): Use it.
+
+	* mail/mailheader.el (mail-header-format) 	(mail-header-format-function): Likewise.
+
+	* add-log.el (add-change-log-entry, change-log-merge): Likewise.
+
 2005-11-17  Juri Linkov  <juri@jurta.org>
 
 	* font-lock.el (font-lock-faces): Rename this defgroup from

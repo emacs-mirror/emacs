@@ -146,7 +146,7 @@ skip the header altogether if there are no other elements.
     (insert (capitalize (symbol-name header))
 	    ": "
 	    (if (consp value) (car value) value)
-	    "\n")))
+	    hard-newline)))
 
 (defun mail-header-format (format-rules headers)
   "Use FORMAT-RULES to format HEADERS and insert into current buffer.
@@ -187,7 +187,7 @@ A key of nil has as its value a list of defaulted headers to ignore."
 	       (if (cdr rule)
 		   (funcall (cdr rule) header value)
 		 (funcall mail-header-format-function header value))))))
-    (insert "\n")))
+    (insert hard-newline)))
 
 (provide 'mailheader)
 
