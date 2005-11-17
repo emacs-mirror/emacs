@@ -309,8 +309,8 @@ Controlling the Display
 * Faces::	           How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
-* Highlight Changes::      Using colors to show where you changed the buffer.
 * Highlight Interactively:: Tell Emacs what text to highlight.
+* Highlight Changes::      Using colors to show where you changed the buffer.
 * Scrolling::	           Moving text up and down in a window.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Fringes::                Enabling or disabling window fringes.
