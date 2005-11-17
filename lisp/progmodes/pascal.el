@@ -63,6 +63,7 @@
 
 (defgroup pascal nil
   "Major mode for editing Pascal source in Emacs."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defvar pascal-mode-abbrev-table nil

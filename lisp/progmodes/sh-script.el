@@ -211,6 +211,7 @@
 
 (defgroup sh-script nil
   "Shell script mode."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'sh
   :prefix "sh-")
 

@@ -52,6 +52,7 @@
 
 (defgroup asm nil
   "Mode for editing assembler code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defcustom asm-comment-char ?\;
