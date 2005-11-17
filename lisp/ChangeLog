@@ -1,7 +1,7 @@
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* simple.el (hard-newline): New variable.
-	(sendmail-user-agent-compose): Use it.
+	(sendmail-user-agent-compose, next-line): Use it.
 
 	* mail/sendmail.el (mail-setup, mail-send, mail-insert-from-field)
 	(sendmail-send-it, mail-do-fcc, mail-cc, mail-bcc, mail-fcc)

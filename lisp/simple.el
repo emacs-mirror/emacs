@@ -3326,7 +3326,7 @@ and more reliable (no dependence on goal column, etc.)."
 	  ;; When adding a newline, don't expand an abbrev.
 	  (let ((abbrev-mode nil))
 	    (end-of-line)
-	    (insert "\n"))
+	    (insert hard-newline))
 	(line-move arg nil nil try-vscroll))
     (if (interactive-p)
 	(condition-case nil
