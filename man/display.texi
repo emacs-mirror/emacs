@@ -14,8 +14,8 @@ display it.
 * Faces::	           How to change the display style using faces.
 * Standard Faces::         Emacs' predefined faces.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
-* Highlight Changes::      Using colors to show where you changed the buffer.
 * Highlight Interactively:: Tell Emacs what text to highlight.
+* Highlight Changes::      Using colors to show where you changed the buffer.
 * Scrolling::	           Moving text up and down in a window.
 * Horizontal Scrolling::   Moving text left and right in a window.
 * Fringes::                Enabling or disabling window fringes.
@@ -385,14 +385,6 @@ control this background fontification, also called @dfn{Just-In-Time}
 (or @dfn{JIT}) Lock, by customizing variables in the customization
 group @samp{jit-lock}.  @xref{Specific Customization}.
 
-@node Highlight Changes
-@section Highlight Changes Mode
-
-@findex highlight-changes-mode
-  Use @kbd{M-x highlight-changes-mode} to enable a minor mode
-that uses faces (colors, typically) to indicate which parts of
-the buffer were changed most recently.
-
 @node Highlight Interactively
 @section Interactive Highlighting by Matching
 @cindex highlighting by matching
@@ -459,6 +451,14 @@ found no matter where in the buffer it may be.
 This command does nothing if the major mode is a member of the list
 @code{hi-lock-exclude-modes}.
 @end table
+
+@node Highlight Changes
+@section Highlight Changes Mode
+
+@findex highlight-changes-mode
+  Use @kbd{M-x highlight-changes-mode} to enable a minor mode
+that uses faces (colors, typically) to indicate which parts of
+the buffer were changed most recently.
 
 @node Scrolling
 @section Scrolling
