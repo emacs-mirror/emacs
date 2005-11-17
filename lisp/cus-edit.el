@@ -212,11 +212,13 @@
 
 (defgroup lisp nil
   "Lisp support, including Emacs Lisp."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages
   :group 'development)
 
 (defgroup c nil
   "Support for the C language and related languages."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :link '(custom-manual "(ccmode)")
   :group 'languages)
 
@@ -323,6 +325,7 @@
 
 (defgroup tex nil
   "Code related to the TeX formatter."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'wp)
 
 (defgroup faces nil
@@ -490,15 +493,14 @@ IF REGEXP is not a string, return it unchanged."
 (defun custom-variable-prompt ()
   "Prompt for a custom variable, defaulting to the variable at point.
 Return a list suitable for use in `interactive'."
-   (let ((v (variable-at-point))
-	 (enable-recursive-minibuffers t)
-	 val)
-     (setq val (if (and (symbolp v) (custom-variable-p v))
-		   (completing-read
-		    (format "Customize option (default %s): " v) obarray
-		    'custom-variable-p t nil nil (symbol-name v))
-		 (completing-read "Customize option: " obarray
-				  'custom-variable-p t)))
+   (let* ((v (variable-at-point))
+	  (default (and (symbolp v) (custom-variable-p v) (symbol-name v)))
+	  (enable-recursive-minibuffers t)
+	  val)
+     (setq val (completing-read
+		(if default (format "Customize option (default %s): " default)
+		  "Customize option: ")
+		obarray 'custom-variable-p t nil nil default))
      (list (if (equal val "")
 	       (if (symbolp v) v nil)
 	     (intern val)))))
