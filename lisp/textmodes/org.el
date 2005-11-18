@@ -1,11 +1,11 @@
-;;; org.el --- Outline-based notes management and organizer
+;;; org.el --- Outline-based notes management and organize
 ;; Carstens outline-mode for keeping track of everything.
 ;; Copyright (c) 2004, 2005 Free Software Foundation
 ;;
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.19
+;; Version: 3.20
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -80,6 +80,20 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.20
+;;    - There is finally an option to make TAB jump over horizontal lines
+;;      in tables instead of creating a new line before that line.
+;;      The option is `org-table-tab-jumps-over-hlines', default nil.
+;;    - New command for sorting tables, on `C-c ^'.
+;;    - Changes to the HTML exporter
+;;      - hand-formatted lists are exported correctly, similar to
+;;        markdown lists.  Nested lists are possible.  See the docstring
+;;        of the variable `org-export-local-list-max-depth'.
+;;      - cleaned up to produce valid HTML 4.0 (transitional).
+;;      - support for cascading style sheets.
+;;    - New command to cycle through all agenda files, on C-,
+;;    - C-c [ can now also be used to change the sequence of agenda files.
+;;
 ;; Version 3.19
 ;;    - Bug fixes
 ;;
@@ -220,7 +234,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.19"
+(defvar org-version "3.20"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -530,7 +544,7 @@ moved to the new date."
 
 (defcustom org-agenda-files nil
   "A list of org files for agenda/diary display.
-Entries are added to this list with \\[org-add-file] and removed with
+Entries are added to this list with \\[org-agenda-file-to-front] and removed with
 \\[org-remove-file].  You can also use customize to edit the list."
   :group 'org-agenda
   :type '(repeat file))
@@ -1128,6 +1142,17 @@ See also the variable `org-table-auto-blank-field'."
 	  (const :tag "on" t)
 	  (const :tag "on, optimized" optimized)))
 
+;; FIXME: We could have a third option which makes it jump onle over the first
+;; hline in a table.
+(defcustom org-table-tab-jumps-over-hlines t
+  "Non-nil means, tab in the last column of a table with jump over a hline.
+If a horizontal separator line is following the current line,
+`org-table-next-field' can either create a new row before that line, or jump
+over the line.  When this option is nil, a new line will be created before
+this line."
+  :group 'org-table
+  :type 'boolean)
+
 (defcustom org-table-auto-blank-field t
   "Non-nil means, automatically blank table field when starting to type into it.
 This only happens when typing immediately after a field motion
@@ -1313,7 +1338,28 @@ or use the +OPTION lines for a per-file setting."
 
 (defcustom org-export-default-language "en"
   "The default language of HTML export, as a string.
-This should have an association in `org-export-language-setup'"
+This should have an association in `org-export-language-setup'."
+  :group 'org-export
+  :type 'string)
+
+(defcustom org-export-html-style ""
+  "The default style specification for exported HTML files.
+Since there are different ways of setting style information, this variable
+needs to contain the full HTML structure to provide a style, including the
+surrounding HTML tags.  For example, legal values would be
+
+   <style type=\"text/css\">
+       p {font-weight: normal; color: gray; }
+       h1 {color: black; }
+   </style>
+
+or
+
+   <link rel=\"stylesheet\" type=\"text/css\" href=\"mystyles.css\">
+
+As the value of this option simply gets inserted into the HTML <head> header,
+you can \"misuse\" it to add arbitrary text to the header.
+"
   :group 'org-export
   :type 'string)
 
@@ -1346,6 +1392,30 @@ In HTML output, the TOC will be clickable.
 This option can also be set with the +OPTIONS line, e.g. \"toc:nil\"."
   :group 'org-export
   :type 'boolean)
+
+(defcustom org-export-local-list-max-depth 1
+  "Maximum depth of hand-formatted lists in HTML export.
+Org-mode parses hand-formatted enumeration and bullet lists and
+transforms them to HTML open export.  Different indentation of the bullet
+or number indicates different list nesting levels.  To avoid confusion,
+only a single level is allowed by default.  This means that a list is started
+with an item, and that all further items are consitered as long as the
+indentation is larger or equal to the indentation of the first item.  When this
+is larger than 1, deeper indentation leads to deeper list nesting.
+If you are careful with hand formatting, you can increase this limit and
+get lists of arbitrary depth.  For example, by setting this option to 3, the
+following list would look correct in HTML:
+
+  * Fruit
+    - Apple
+    - Banana
+      1. from Africa
+      2. from South America
+    - Pineapple
+  * Bread
+  * Dairy products"
+  :group 'org-export
+  :type 'integer)
 
 (defcustom org-export-preserve-breaks nil
   "Non-nil means, preserve all line breaks when exporting.
@@ -1874,19 +1944,8 @@ The following commands are available:
   (make-local-hook 'before-change-functions)  ;; needed for XEmacs
   (add-hook 'before-change-functions 'org-before-change-function nil
 	    'local)
-  ;; Paragraph regular expressions
-  (set (make-local-variable 'paragraph-separate) "\f\\|[ 	]*$\\|\\([*\f]+\\)")
-  (set (make-local-variable 'paragraph-start) "\f\\|[ 	]*$\\|\\([*\f]+\\)")
-  ;; Inhibit auto-fill for headers, tables and fixed-width lines.
-  (set (make-local-variable 'auto-fill-inhibit-regexp)
-       (concat "\\*\\|#"
-	       (if (or org-enable-table-editor org-enable-fixed-width-editor)
-		   (concat
-		    "\\|[ \t]*["
-		    (if org-enable-table-editor "|" "")
-		   (if org-enable-fixed-width-editor ":"  "")
-		   "]"))))
-  (set (make-local-variable 'fill-paragraph-function) 'org-fill-paragraph)
+  ;; Paragraphs and auto-filling
+  (org-set-autofill-regexps)
   ;; Settings for Calc embedded mode
   (set (make-local-variable 'calc-embedded-open-formula) "|\\|\n")
   (set (make-local-variable 'calc-embedded-close-formula) "|\\|\n")
@@ -1917,12 +1976,6 @@ The following commands are available:
        ((eq org-startup-folded 'content)
 	(let ((this-command 'org-cycle) (last-command 'org-cycle))
 	  (org-cycle '(4)) (org-cycle '(4))))))))
-
-(defun org-fill-paragraph (&optional justify)
-  "Re-align a table, pass through to fill-paragraph if no table."
-  (save-excursion
-    (beginning-of-line 1)
-    (looking-at "\\s-*\\(|\\|\\+-+\\)")))
 
 (defsubst org-current-line (&optional pos)
   (+ (if (bolp) 1 0) (count-lines (point-min) (or pos (point)))))
@@ -4230,34 +4283,53 @@ Needed to avoid empty dates which mess up holiday display."
       (error
        (add-to-diary-list original-date  "Org-mode dummy" "" nil)))))
 
-(defun org-add-file (&optional file)
-  "Add current file to the list of files in variable `org-agenda-files'.
-These are the files which are being checked for agenda entries.
-Optional argument FILE means, use this file instead of the current.
-It is possible (but not recommended) to add this function to the
-`org-mode-hook'."
+(defun org-cycle-agenda-files ()
+  "Cycle through the files in `org-agenda-files'.
+If the current buffer visits an agenda file, find the next one in the list.
+If the current buffer does not, find the first agenda file."
   (interactive)
-  (catch 'exit
-    (let* ((file (or file (buffer-file-name)
-		     (if (interactive-p)
-			 (error "Buffer is not visiting a file")
-		       (throw 'exit nil))))
-	   (true-file (file-truename file))
-	   (afile (abbreviate-file-name file))
-	   (present (delq nil (mapcar
-			       (lambda (x)
-				 (equal true-file (file-truename x)))
-			       org-agenda-files))))
-      (if (not present)
-	  (progn
-	    (setq org-agenda-files
-		  (cons afile org-agenda-files))
-	    ;; Make sure custom.el does not end up with Org-mode
-	    (let ((org-mode-hook nil) (default-major-mode 'fundamental-mode))
-	      (customize-save-variable 'org-agenda-files org-agenda-files))
-	    (org-install-agenda-files-menu)
-	    (message "Added file: %s" afile))
-	(message "File was already in list: %s" afile)))))
+  (let ((files (append org-agenda-files (list (car org-agenda-files))))
+	(tcf (if (buffer-file-name) (file-truename (buffer-file-name))))
+	file)
+    (unless files (error "No agenda files"))
+    (catch 'exit
+      (while (setq file (pop files))
+	(if (equal (file-truename file) tcf)
+	    (when (car files)
+	      (find-file (car files))
+	      (throw 'exit t))))
+      (find-file (car org-agenda-files)))))
+
+(defun org-agenda-file-to-end (&optional file)
+  "Move/add the current file to the end of the agenda fiole list.
+I the file is not present in the list, it is appended ot the list.  If it is
+present, it is moved there."
+  (interactive)
+  (org-agenda-file-to-front 'to-end file))
+
+(defun org-agenda-file-to-front (&optional to-end file)
+  "Move/add the current file to the top of the agenda file list.
+If the file is not present in the list, it is added to the front.  If it is
+present, it is moved there.  With optional argument TO-END, add/move to the
+end of the list."
+  (interactive "P")
+  (let ((file-alist (mapcar (lambda (x)
+			      (cons (file-truename x) x))
+			    org-agenda-files))
+	(ctf (file-truename (buffer-file-name)))
+	x had)
+    (setq x (assoc ctf file-alist) had x)
+
+    (if (not x) (setq x (cons ctf (abbreviate-file-name (buffer-file-name)))))
+    (if to-end
+	(setq file-alist (append (delq x file-alist) (list x)))
+      (setq file-alist (cons x (delq x file-alist))))
+    (setq org-agenda-files (mapcar 'cdr file-alist))
+    (let ((org-mode-hook nil) (default-major-mode 'fundamental-mode))
+      (customize-save-variable 'org-agenda-files org-agenda-files))
+    (org-install-agenda-files-menu)
+    (message "File %s to %s of agenda file list"
+	     (if had "moved" "added") (if to-end "end" "front"))))
 
 (defun org-remove-file (&optional file)
   "Remove current file from the list of files in variable `org-agenda-files'.
@@ -6300,7 +6372,7 @@ Optional argument NEW may specify text to replace the current field content."
 	(goto-char pos))))))
 
 (defun org-table-next-field ()
-  "Go to the next field in the current table.
+  "Go to the next field in the current table, creating new lines as needed.
 Before doing so, re-align the table if necessary."
   (interactive)
   (org-table-maybe-eval-formula)
@@ -6308,20 +6380,25 @@ Before doing so, re-align the table if necessary."
   (if (and org-table-automatic-realign
 	   org-table-may-need-update)
       (org-table-align))
-  (if (org-at-table-hline-p)
-      (end-of-line 1))
-  (condition-case nil
-      (progn
-	(re-search-forward "|" (org-table-end))
-	(if (looking-at "[ \t]*$")
-	    (re-search-forward "|" (org-table-end)))
-	(if (looking-at "-")
-	    (progn
-	      (beginning-of-line 0)
-	      (org-table-insert-row 'below))
-	  (if (looking-at " ") (forward-char 1))))
-    (error
-     (org-table-insert-row 'below))))
+  (let ((end (org-table-end)))
+    (if (org-at-table-hline-p)
+	(end-of-line 1))
+    (condition-case nil
+	(progn
+	  (re-search-forward "|" end)
+	  (if (looking-at "[ \t]*$")
+	      (re-search-forward "|" end))
+	  (if (and (looking-at "-")
+		   org-table-tab-jumps-over-hlines
+		   (re-search-forward "^[ \t]*|\\([^-]\\)" end t))
+	      (goto-char (match-beginning 1)))
+	  (if (looking-at "-")
+	      (progn
+		(beginning-of-line 0)
+		(org-table-insert-row 'below))
+	    (if (looking-at " ") (forward-char 1))))
+      (error
+       (org-table-insert-row 'below)))))
 
 (defun org-table-previous-field ()
   "Go to the previous field in the table.
@@ -6472,6 +6549,7 @@ With optional argument ON-DELIM, stop with point before the left delimiter
 of the field.
 If there are less than N fields, just go to after the last delimiter.
 However, when FORCE is non-nil, create new columns if necessary."
+  (interactive "p")
   (let ((pos (point-at-eol)))
     (beginning-of-line 1)
     (when (> n 0)
@@ -6490,13 +6568,20 @@ However, when FORCE is non-nil, create new columns if necessary."
 
 (defun org-at-table-p (&optional table-type)
   "Return t if the cursor is inside an org-type table.
-If TABLE-TYPE is non-nil, also chack for table.el-type tables."
+If TABLE-TYPE is non-nil, also check for table.el-type tables."
   (if org-enable-table-editor
       (save-excursion
 	(beginning-of-line 1)
 	(looking-at (if table-type org-table-any-line-regexp
 		      org-table-line-regexp)))
     nil))
+
+(defun org-at-table.el-p ()
+  "Return t if and only if we are at a table.el table."
+  (and (org-at-table-p 'any)
+       (save-excursion
+	 (goto-char (org-table-begin 'any))
+	 (looking-at org-table1-hline-regexp))))
 
 (defun org-table-recognize-table.el ()
   "If there is a table.el table nearby, recognize it and move into it."
@@ -6523,15 +6608,6 @@ If TABLE-TYPE is non-nil, also chack for table.el-type tables."
 	    t)
 	nil)
     nil))
-
-(defun org-at-table.el-p ()
-  "Return t if the cursor is inside a table.el-type table."
-  (save-excursion
-    (if (org-at-table-p 'any)
-	(progn
-	  (goto-char (org-table-begin 'any))
-	  (looking-at org-table1-hline-regexp))
-      nil)))
 
 (defun org-at-table-hline-p ()
   "Return t if the cursor is inside a hline in a table."
@@ -6745,6 +6821,49 @@ With prefix ARG, insert above the current line."
     (if (not (org-at-table-p)) (beginning-of-line 0))
     (move-to-column col)))
 
+(defun org-table-sort-lines (beg end numericp)
+  "Sort table lines in region.
+Point and mark define the first and last line to include.  Both point and
+mark should be in the column that is used for sorting.  For example, to
+sort according to column 3, put the mark in the first line to sort, in
+table column 3.  Put point into the last line to be included in the sorting,
+also in table column 3. The command will prompt for the sorting method (n for
+numerical, a for alphanumeric)."
+  (interactive "r\nsSorting method: [n]=numeric [a]=alpha: ")
+  (setq numericp (string-match "[nN]" numericp))
+  (org-table-align) ;; Just to be safe
+  (let* (bcol ecol cmp column lns)
+    (goto-char beg)
+    (org-table-check-inside-data-field)
+    (setq column (org-table-current-column)
+	  beg (move-marker (make-marker) (point-at-bol)))
+    (goto-char end)
+    (org-table-check-inside-data-field)
+    (setq end (move-marker (make-marker) (1+ (point-at-eol))))
+    (untabify beg end)
+    (goto-char beg)
+    (org-table-goto-column column)
+    (skip-chars-backward "^|")
+    (setq bcol (current-column))
+    (org-table-goto-column (1+ column))
+    (skip-chars-backward "^|")
+    (setq ecol (1- (current-column)))
+    (setq cmp (if numericp
+		  (lambda (a b) (< (car a) (car b)))
+		(lambda (a b) (string< (car a) (car b)))))
+    (setq lns (mapcar (lambda(x) (cons (org-trim (substring x bcol ecol)) x))
+		      (split-string (buffer-substring beg end) "\n")))
+    (if numericp
+	(setq lns (mapcar (lambda(x)
+			      (cons (string-to-number (car x)) (cdr x)))
+			    lns)))
+    (delete-region beg end)
+    (move-marker beg nil)
+    (move-marker end nil)
+    (insert (mapconcat 'cdr (setq lns (sort lns cmp)) "\n") "\n")
+    (message "%d lines sorted %s based on column %d"
+	     (length lns)
+	     (if numericp "numerically" "alphabetically") column)))
 
 (defun org-table-cut-region (beg end)
   "Copy region in table to the clipboard and blank all relevant fields."
@@ -8013,6 +8132,7 @@ to execute outside of tables."
 	  '("\C-c="              org-table-eval-formula)
 	  '("\C-c'"              org-table-edit-formulas)
 	  '("\C-c*"              org-table-recalculate)
+	  '("\C-c^"              org-table-sort-lines)
 	  '([(control ?#)]       org-table-rotate-recalc-marks)))
 	elt key fun cmd)
     (while (setq elt (pop bindings))
@@ -8063,6 +8183,7 @@ to execute outside of tables."
 	 ["Move Row Down" org-metadown :active (org-at-table-p) :keys "M-<down>"]
 	 ["Delete Row" org-shiftmetaup :active (org-at-table-p) :keys "M-S-<up>"]
 	 ["Insert Row" org-shiftmetadown :active (org-at-table-p) :keys "M-S-<down>"]
+	 ["Sort lines in region" org-table-sort-lines (org-at-table-p) :keys "C-c ^"]
 	 "--"
 	 ["Insert Hline" org-table-insert-hline :active (org-at-table-p) :keys "C-c -"])
 	("Rectangle"
@@ -8838,7 +8959,8 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
   (setq-default org-todo-line-regexp org-todo-line-regexp)
   (setq-default org-deadline-line-regexp org-deadline-line-regexp)
   (setq-default org-done-string org-done-string)
-  (let* ((region-p (org-region-active-p))
+  (let* ((style org-export-html-style)
+	 (region-p (org-region-active-p))
          (region
           (buffer-substring
            (if region-p (region-beginning) (point-min))
@@ -8859,6 +8981,10 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
          (options     nil)
 	 (quote-re    (concat "^\\*+[ \t]*" org-quote-string "\\>"))
 	 (inquote     nil)
+	 (infixed     nil)
+	 (in-local-list nil)
+	 (local-list-num nil)
+	 (local-list-indent nil)
 	 (email       user-mail-address)
          (language    org-export-default-language)
 	 (text        nil)
@@ -8875,6 +9001,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 		       (coding-system-get coding-system 'mime-charset)))
 	 table-open type
 	 table-buffer table-orig-buffer
+	 ind start-is-num starter
 	 )
     (message "Exporting...")
 
@@ -8899,16 +9026,19 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 
       ;; File header
       (insert (format
-               "<html lang=\"%s\"><head>
+               "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.0 Transitional//EN\"
+ \"http://www.w3.org/TR/REC-html40/loose.dtd\">
+<html lang=\"%s\"><head>
 <title>%s</title>
 <meta http-equiv=\"Content-Type\" content=\"text/html;charset=%s\">
 <meta name=generator content=\"Org-mode\">
 <meta name=generated content=\"%s %s\">
 <meta name=author content=\"%s\">
+%s
 </head><body>
 "
 	       language (org-html-expand title) (or charset "iso-8859-1")
-	       date time author))
+	       date time author style))
       (if title     (insert (concat "<H1 align=\"center\">"
 				    (org-html-expand title) "</H1>\n")))
       (if author    (insert (concat (nth 1 lang-words) ": " author "\n")))
@@ -8959,8 +9089,8 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 				   (insert
 				    (format
 				     (if todo
-					 "<li><a href=\"#sec-%d\"><span style='color:red'>%s</span></a></li>\n"
-				       "<li><a href=\"#sec-%d\">%s</a></li>\n")
+					 "<li><a href=\"#sec-%d\"><span style='color:red'>%s</span></a>\n"
+				       "<li><a href=\"#sec-%d\">%s</a>\n")
 				     head-count txt))
 				   (setq org-last-level level))
 			       ))))
@@ -8973,15 +9103,30 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
       (org-init-section-numbers)
 
       (while (setq line (pop lines) origline line)
-	;; end of quote?
-	(when (and inquote (string-match "^\\*+" line))
-	  (insert "</pre>\n")
-	  (setq inquote nil))
-	;; inquote
-	(if inquote
-	    (progn
-	      (insert line "\n")
-	      (setq line (org-html-expand line))) ;;????? FIXME: not needed?
+	(catch 'nextline
+
+	  ;; end of quote section?
+	  (when (and inquote (string-match "^\\*+" line))
+	    (insert "</pre>\n")
+	    (setq inquote nil))
+	  ;; inside a quote section?
+	  (when inquote
+	    (insert (org-html-protect line) "\n")
+	    (throw 'nextline nil))
+
+	  ;; verbatim lines
+	  (when (and org-export-with-fixed-width
+		     (string-match "^[ \t]*:\\(.*\\)" line))
+	    (when (not infixed)
+	      (setq infixed t)
+	      (insert "<pre>\n"))
+	    (insert (org-html-protect (match-string 1 line)) "\n")
+	    (when (and lines
+		       (not (string-match "^[ \t]+\\(:.*\\)"
+					  (car lines))))
+	      (setq infixed nil)
+	      (insert "</pre>\n"))
+	    (throw 'nextline nil))
 
 	  ;; Protect the links
 	  (setq start 0)
@@ -8991,121 +9136,145 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 			(concat "\000" (match-string 1 line) "\000")
 			t t line)))
 
-	  ;; replace "<" and ">" by "&lt;" and "&gt;"
+	  ;; replace "&" by "&amp;", "<" and ">" by "&lt;" and "&gt;"
 	  ;; handle @<..> HTML tags (replace "@&gt;..&lt;" by "<..>")
 	  (setq line (org-html-expand line))
 
-	  ;; Verbatim lines
-	  (if (and org-export-with-fixed-width
-		   (string-match "^[ \t]*:\\(.*\\)" line))
-	      (progn
-		(let ((l (match-string 1 line)))
-		  (while (string-match " " l)
-		    (setq l (replace-match "&nbsp;" t t l)))
-		  (insert "\n<span style='font-family:Courier'>"
-			  l "</span>"
-			  (if (and lines
-				   (not (string-match "^[ \t]+\\(:.*\\)"
-						      (car lines))))
-			      "<br>\n" "\n"))))
-
-	    (setq start 0)
-	    (while (string-match org-protected-link-regexp line start)
-	      (setq start (- (match-end 0) 2))
-	      (setq type (match-string 1 line))
-	      (cond
-	       ((member type '("http" "https" "ftp" "mailto" "news"))
-		;; standard URL
-		(setq line (replace-match
-					;                          "<a href=\"\\1:\\2\">&lt;\\1:\\2&gt;</a>"
-			    "<a href=\"\\1:\\2\">\\1:\\2</a>"
-			    nil nil line)))
-	       ((string= type "file")
-		;; FILE link
-		(let* ((filename (match-string 2 line))
-		       (abs-p (file-name-absolute-p filename))
-		       (thefile (if abs-p (expand-file-name filename) filename))
-		       (thefile (save-match-data
-				  (if (string-match ":[0-9]+$" thefile)
-				      (replace-match "" t t thefile)
-				    thefile)))
-		       (file-is-image-p
-			(save-match-data
-			  (string-match (org-image-file-name-regexp) thefile))))
-		  (setq line (replace-match
-			      (if (and org-export-html-inline-images
-				       file-is-image-p)
-				  (concat "<img src=\"" thefile "\"/>")
-				(concat "<a href=\"" thefile "\">\\1:\\2</a>"))
-			      nil nil line))))
-
-	       ((member type '("bbdb" "vm" "wl" "rmail" "gnus" "shell"))
-		(setq line (replace-match
-			    "<i>&lt;\\1:\\2&gt;</i>" nil nil line)))))
-
-	    ;; TODO items
-	    (if (and (string-match org-todo-line-regexp line)
-		     (match-beginning 2))
-		(if (equal (match-string 2 line) org-done-string)
-		    (setq line (replace-match
-				"<span style='color:green'>\\2</span>"
-				nil nil line 2))
-		  (setq line (replace-match "<span style='color:red'>\\2</span>"
-					    nil nil line 2))))
-
-	    ;; DEADLINES
-	    (if (string-match org-deadline-line-regexp line)
-		(progn
-		  (if (save-match-data
-			(string-match "<a href"
-				      (substring line 0 (match-beginning 0))))
-		      nil     ; Don't do the replacement - it is inside a link
-		    (setq line (replace-match "<span style='color:red'>\\&</span>"
-					      nil nil line 1)))))
-
-
+	  ;; Format the links
+	  (setq start 0)
+	  (while (string-match org-protected-link-regexp line start)
+	    (setq start (- (match-end 0) 2))
+	    (setq type (match-string 1 line))
 	    (cond
-	     ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
-	      ;; This is a headline
-	      (setq level (- (match-end 1) (match-beginning 1))
-		    txt (match-string 2 line))
-	      (if (<= level umax) (setq head-count (+ head-count 1)))
-	      (org-html-level-start level txt umax
-				    (and org-export-with-toc (<= level umax))
-				    head-count)
-	      ;; QUOTES
-	      (when (string-match quote-re line)
-		(insert "<pre>")
-		(setq inquote t)))
+	     ((member type '("http" "https" "ftp" "mailto" "news"))
+	      ;; standard URL
+	      (setq line (replace-match
+					;                          "<a href=\"\\1:\\2\">&lt;\\1:\\2&gt;</a>"
+			  "<a href=\"\\1:\\2\">\\1:\\2</a>"
+			  nil nil line)))
+	     ((string= type "file")
+	      ;; FILE link
+	      (let* ((filename (match-string 2 line))
+		     (abs-p (file-name-absolute-p filename))
+		     (thefile (if abs-p (expand-file-name filename) filename))
+		     (thefile (save-match-data
+				(if (string-match ":[0-9]+$" thefile)
+				    (replace-match "" t t thefile)
+				  thefile)))
+		     (file-is-image-p
+		      (save-match-data
+			(string-match (org-image-file-name-regexp) thefile))))
+		(setq line (replace-match
+			    (if (and org-export-html-inline-images
+				     file-is-image-p)
+				(concat "<img src=\"" thefile "\"/>")
+			      (concat "<a href=\"" thefile "\">\\1:\\2</a>"))
+			    nil nil line))))
 
-	     ((and org-export-with-tables
-		   (string-match "^\\([ \t]*\\)\\(|\\|\\+-+\\+\\)" line))
-	      (if (not table-open)
-		  ;; New table starts
-		  (setq table-open t table-buffer nil table-orig-buffer nil))
-	      ;; Accumulate lines
-	      (setq table-buffer (cons line table-buffer)
-		    table-orig-buffer (cons origline table-orig-buffer))
-	      (when (or (not lines)
-			(not (string-match "^\\([ \t]*\\)\\(|\\|\\+-+\\+\\)"
-					   (car lines))))
-		(setq table-open nil
-		      table-buffer (nreverse table-buffer)
-		      table-orig-buffer (nreverse table-orig-buffer))
-		(insert (org-format-table-html table-buffer table-orig-buffer))))
-	     (t
-	      ;; Normal lines
-	      ;; Lines starting with "-", and empty lines make new paragraph.
-	      ;; FIXME: Should we add + and *?
-	      (if (string-match "^ *-\\|^[ \t]*$" line) (insert "<p>"))
-	      (insert line (if org-export-preserve-breaks "<br>\n" "\n"))))
-	    )))
-	(if org-export-html-with-timestamp
-	    (insert org-export-html-html-helper-timestamp))
-	(insert "</body>\n</html>\n")
-	(normal-mode)
-	(save-buffer)
-	(goto-char (point-min)))))
+	     ((member type '("bbdb" "vm" "wl" "rmail" "gnus" "shell"))
+	      (setq line (replace-match
+			  "<i>&lt;\\1:\\2&gt;</i>" nil nil line)))))
+
+	  ;; TODO items
+	  (if (and (string-match org-todo-line-regexp line)
+		   (match-beginning 2))
+	      (if (equal (match-string 2 line) org-done-string)
+		  (setq line (replace-match
+			      "<span style='color:green'>\\2</span>"
+			      nil nil line 2))
+		(setq line (replace-match "<span style='color:red'>\\2</span>"
+					  nil nil line 2))))
+
+	  ;; DEADLINES
+	  (if (string-match org-deadline-line-regexp line)
+	      (progn
+		(if (save-match-data
+		      (string-match "<a href"
+				    (substring line 0 (match-beginning 0))))
+		    nil     ; Don't do the replacement - it is inside a link
+		  (setq line (replace-match "<span style='color:red'>\\&</span>"
+					    nil nil line 1)))))
+
+	  (cond
+	   ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
+	    ;; This is a headline
+	    (setq level (- (match-end 1) (match-beginning 1))
+		  txt (match-string 2 line))
+	    (if (<= level umax) (setq head-count (+ head-count 1)))
+	    (when in-local-list
+	      ;; Close any local lists before inserting a new header line
+	      (while local-list-num
+		(insert (if (car local-list-num) "</ol>\n" "</ul>"))
+		(pop local-list-num))
+	      (setq local-list-indent nil
+		    in-local-list nil))
+	    (org-html-level-start level txt umax
+				  (and org-export-with-toc (<= level umax))
+				  head-count)
+	    ;; QUOTES
+	    (when (string-match quote-re line)
+	      (insert "<pre>")
+	      (setq inquote t)))
+
+	   ((and org-export-with-tables
+		 (string-match "^\\([ \t]*\\)\\(|\\|\\+-+\\+\\)" line))
+	    (if (not table-open)
+		;; New table starts
+		(setq table-open t table-buffer nil table-orig-buffer nil))
+	    ;; Accumulate lines
+	    (setq table-buffer (cons line table-buffer)
+		  table-orig-buffer (cons origline table-orig-buffer))
+	    (when (or (not lines)
+		      (not (string-match "^\\([ \t]*\\)\\(|\\|\\+-+\\+\\)"
+					 (car lines))))
+	      (setq table-open nil
+		    table-buffer (nreverse table-buffer)
+		    table-orig-buffer (nreverse table-orig-buffer))
+	      (insert (org-format-table-html table-buffer table-orig-buffer))))
+	   (t
+	    ;; Normal lines
+	    (when (and (> org-export-local-list-max-depth 0)
+		       (string-match
+			"^\\( *\\)\\(\\([-+*]\\)\\|\\([0-9]+\\.\\)\\)? *\\([^ \t\n\r]\\)"
+			line))
+	      (setq ind (- (match-end 1) (match-beginning 1))
+		    start-is-num (match-beginning 4)
+		    starter (if (match-beginning 2) (match-string 2 line)))
+	      (while (and in-local-list
+			  (or (and (= ind (car local-list-indent))
+				   (not starter))
+			      (< ind (car local-list-indent))))
+		(insert (if (car local-list-num) "</ol>\n" "</ul>"))
+		(pop local-list-num) (pop local-list-indent)
+		(setq in-local-list local-list-indent))
+
+	      (cond
+	       ((and starter
+		     (or (not in-local-list)
+			 (> ind (car local-list-indent)))
+		     (< (length local-list-indent)
+			org-export-local-list-max-depth))
+		;; Start new (level of ) list
+		(insert (if start-is-num "<ol>\n<li>\n" "<ul>\n<li>\n"))
+		(push start-is-num local-list-num)
+		(push ind local-list-indent)
+		(setq in-local-list t))
+	       (starter
+		;; continue current list
+		(insert "<li>\n")))
+	      (setq line (substring line (match-beginning 5))))
+	    ;; Empty lines start a new paragraph.  If hand-formatted lists
+	    ;; are not fully interpreted, lines starting with "-", "+", "*"
+	    ;; also start a new paragraph.
+	    (if (string-match "^ [-+*]-\\|^[ \t]*$" line) (insert "<p>"))
+	    (insert line (if org-export-preserve-breaks "<br>\n" "\n"))))
+	  ))
+      (if org-export-html-with-timestamp
+	  (insert org-export-html-html-helper-timestamp))
+      (insert "</body>\n</html>\n")
+      (normal-mode)
+      (save-buffer)
+      (goto-char (point-min)))))
 
 (defun org-format-table-html (lines olines)
   "Find out which HTML converter to use and return the HTML code."
@@ -9235,18 +9404,28 @@ But it has the disadvantage, that Org-mode's HTML conversions cannot be used."
     (set-buffer " org-tmp2 ")
     (buffer-substring (point-min) (point-max))))
 
+(defun org-html-protect (s)
+  ;; convert & to &amp;, < to &lt; and > to &gt;
+  (let ((start 0))
+    (while (string-match "&" s start)
+      (setq s (replace-match "&amp;" t t s)
+	    start (1+ (match-beginning 0))))
+    (while (string-match "<" s)
+      (setq s (replace-match "&lt;" t t s)))
+    (while (string-match ">" s)
+      (setq s (replace-match "&gt;" t t s))))
+  s)
+
 (defun org-html-expand (string)
   "Prepare STRING for HTML export.  Applies all active conversions."
   ;; First check if there is a link in the line - if yes, apply conversions
   ;; only before the start of the link.
+  ;; FIXME: This is no longer correct, because links now have an end.
   (let* ((m (string-match org-link-regexp string))
 	 (s (if m (substring string 0 m) string))
 	 (r (if m (substring string m) "")))
-    ;; convert < to &lt; and > to &gt;
-    (while (string-match "<" s)
-      (setq s (replace-match "&lt;" t t s)))
-    (while (string-match ">" s)
-      (setq s (replace-match "&gt;" t t s)))
+    ;; convert & to &amp;, < to &lt; and > to &gt;
+    (setq s (org-html-protect s))
     (if org-export-html-expand
 	(while (string-match "@&lt;\\([^&]*\\)&gt;" s)
 	  (setq s (replace-match "<\\1>" nil nil s))))
@@ -9446,9 +9625,6 @@ When LEVEL is non-nil, increase section numbers on that level."
     string))
 
 
-
-
-
 (defun org-export-icalendar-this-file ()
   "Export current file as an iCalendar file.
 The iCalendar file will be located in the same directory as the Org-mode
@@ -9496,7 +9672,7 @@ file and store it under the name `org-combined-agenda-icalendar-file'."
 	  (let ((standard-output ical-buffer))
 	    (if combine
 		(and (not started) (setq started t)
-		     (org-start-icalendar-file "OrgMode"))
+		     (org-start-icalendar-file org-icalendar-combined-name))
 	      (org-start-icalendar-file category))
 	    (org-print-icalendar-entries combine category)
 	    (when (or (and combine (not files)) (not combine))
@@ -9540,7 +9716,7 @@ When COMBINE is non nil, add the category to each line."
 		donep (org-entry-is-done-p)))
 	(if (or (string-match org-tr-regexp hd)
 		(string-match org-ts-regexp hd))
-	    (setq hd (replace-match "" t t hd)))		
+	    (setq hd (replace-match "" t t hd)))
 	(if combine
 	    (setq hd (concat hd " (category " category ")")))
 	(if deadlinep (setq hd (concat "DL: " hd " This is a deadline")))
@@ -9693,10 +9869,12 @@ a time), or the day by one (if it does not contain a time)."
 (define-key org-mode-map "\C-c\C-y" 'org-evaluate-time-range)
 (define-key org-mode-map "\C-c>"    'org-goto-calendar)
 (define-key org-mode-map "\C-c<"    'org-date-from-calendar)
-(define-key org-mode-map "\C-c["    'org-add-file)
+(define-key org-mode-map [(control ?,)]     'org-cycle-agenda-files)
+(define-key org-mode-map "\C-c["    'org-agenda-file-to-front)
 (define-key org-mode-map "\C-c]"    'org-remove-file)
 (define-key org-mode-map "\C-c\C-r"       'org-timeline)
 (define-key org-mode-map "\C-c-"          'org-table-insert-hline)
+(define-key org-mode-map "\C-c^"          'org-table-sort-lines)
 (define-key org-mode-map "\C-c\C-c"       'org-ctrl-c-ctrl-c)
 (define-key org-mode-map "\C-m"           'org-return)
 (define-key org-mode-map "\C-c?"          'org-table-current-column)
@@ -9807,7 +9985,7 @@ COMMANDS is a list of alternating OLDDEF NEWDEF command names."
       (if (fboundp 'command-remapping)
 	  (define-key map (vector 'remap old) new)
 	(substitute-key-definition old new map global-map)))))
-  
+
 (when (eq org-enable-table-editor 'optimized)
   ;; If the user wants maximum table support, we need to hijack
   ;; some standard editing functions
@@ -10044,6 +10222,7 @@ See the individual commands for more information."
      ["Move Row Down" org-metadown (org-at-table-p)]
      ["Delete Row" org-shiftmetaup (org-at-table-p)]
      ["Insert Row" org-shiftmetadown (org-at-table-p)]
+     ["Sort lines in region" org-table-sort-lines (org-at-table-p)]
      "--"
      ["Insert Hline" org-table-insert-hline (org-at-table-p)])
     ("Rectangle"
@@ -10185,8 +10364,9 @@ With optional NODE, go directly to that node."
    (append
     (list
      ["Edit File List" (customize-variable 'org-agenda-files) t]
-     ["Add Current File to List" org-add-file t]
+     ["Add/Move Current File to Front of List" org-agenda-file-to-front t]
      ["Remove Current File from List" org-remove-file t]
+     ["Cycle through agenda files" org-cycle-agenda-files t]
      "--")
     (mapcar 'org-file-menu-entry org-agenda-files))))
 
@@ -10242,6 +10422,58 @@ With optional NODE, go directly to that node."
     (insert (delete-and-extract-region beg end))
     (goto-char pos)
     (move-to-column col)))
+
+;; Paragraph filling stuff.
+;; We want this to be just right, so use the full arsenal.
+;; FIXME:  This very likely does not work correctly for XEmacs, because the
+;; filladapt package works slightly differently.
+
+(defun org-set-autofill-regexps ()
+  (interactive)
+  ;; In the paragraph separator we include headlines, because filling
+  ;; text in a line directly attached to a headline would otherwise
+  ;; fill the headline as well.
+  (set (make-local-variable 'paragraph-separate) "\f\\|\\*\\|[ 	]*$\\|[ \t]*[:|]")
+  ;; The paragraph starter includes hand-formatted lists.
+  (set (make-local-variable 'paragraph-start)
+       "\f\\|[ 	]*$\\|\\([*\f]+\\)\\|[ \t]*\\([-+*]\\|[0-9]+\\.[ \t]+\\)\\|[ \t]*[:|]")
+  ;; Inhibit auto-fill for headers, tables and fixed-width lines.
+  ;; But only if the user has not turned off tables or fixed-width regions
+  (set (make-local-variable 'auto-fill-inhibit-regexp)
+       (concat "\\*\\|#"
+	       (if (or org-enable-table-editor org-enable-fixed-width-editor)
+		   (concat
+		    "\\|[ \t]*["
+		    (if org-enable-table-editor "|" "")
+		    (if org-enable-fixed-width-editor ":"  "")
+		    "]"))))
+  ;; We use our own fill-paragraph function, to make sure that tables
+  ;; and fixed-width regions are not wrapped.  That function will pass
+  ;; through to `fill-paragraph' when appropriate.
+  (set (make-local-variable 'fill-paragraph-function) 'org-fill-paragraph)
+  ;; Adaptive filling: To get full control, first make sure that
+  ;; `adaptive-fill-regexp' never matches.  Then install our won matcher.
+  (setq adaptive-fill-regexp "\000")
+  (setq adaptive-fill-function 'org-adaptive-fill-function))
+
+(defun org-fill-paragraph (&optional justify)
+  "Re-align a table, pass through to fill-paragraph if no table."
+  (let ((table-p (org-at-table-p))
+	(table.el-p (org-at-table.el-p)))
+    (cond ((equal (char-after (point-at-bol)) ?*) t) ; skip headlines
+	  (table.el-p t)                             ; skip table.el tables
+	  (table-p (org-table-align) t)              ; align org-mode tables
+	  (t nil))))                                 ; call paragraph-fill
+
+;; For reference, this is the default value of adaptive-fill-regexp
+;;  "[ \t]*\\([-|#;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"
+
+(defun org-adaptive-fill-function ()
+  "Return a fill prefix for org-mode files.
+In particular, this makes sure hanging paragraphs for hand-formatted lists
+work correctly."
+  (if (looking-at " *\\([-*+] \\|[0-9]+\\. \\)?")
+      (make-string (- (match-end 0) (match-beginning 0)) ?\ )))
 
 ;; Functions needed for Emacs/XEmacs region compatibility
 
@@ -10474,3 +10706,4 @@ Show the heading too, if it is currently invisible."
 
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
+
