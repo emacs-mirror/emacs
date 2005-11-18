@@ -50,6 +50,7 @@
 ;;; Customization:
 (defgroup cpp nil
   "Highlight or hide text according to cpp conditionals."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'c
   :prefix "cpp-")
 

@@ -84,9 +84,10 @@
 (eval-and-compile
   (require 'font-lock))
 
-(defgroup hi-lock-interactive-text-highlighting nil
+(defgroup hi-lock nil
   "Interactively add and remove font-lock patterns for highlighting text."
-  :group 'faces)
+  :link '(custom-manual "(emacs)Highlight Interactively")
+  :group 'font-lock)
 
 ;;;###autoload
 (defcustom hi-lock-mode nil
@@ -95,7 +96,7 @@
          (hi-lock-mode (or value 0)))
   :initialize 'custom-initialize-default
   :type 'boolean
-  :group 'hi-lock-interactive-text-highlighting
+  :group 'hi-lock
   :require 'hi-lock)
 
 (defcustom hi-lock-file-patterns-range 10000
@@ -104,7 +105,7 @@ When a file is visited and hi-lock mode is on patterns starting
 up to this limit are added to font-lock's patterns.  See documentation
 of functions `hi-lock-mode' and `hi-lock-find-patterns'."
   :type 'integer
-  :group 'hi-lock-interactive-text-highlighting)
+  :group 'hi-lock)
 
 (defcustom hi-lock-exclude-modes
   '(rmail-mode mime/viewer-mode gnus-article-mode)
@@ -112,12 +113,13 @@ of functions `hi-lock-mode' and `hi-lock-find-patterns'."
 For security reasons since font lock patterns can specify function
 calls."
   :type '(repeat symbol)
-  :group 'hi-lock-interactive-text-highlighting)
+  :group 'hi-lock)
 
 
 (defgroup hi-lock-faces nil
   "Faces for hi-lock."
-  :group 'hi-lock-interactive-text-highlighting)
+  :group 'hi-lock
+  :group 'faces)
 
 (defface hi-yellow
   '((((min-colors 88) (background dark))

@@ -63,7 +63,8 @@
 
 (defgroup fortran nil
   "Major mode for editing fixed format Fortran code."
-  :link  '(custom-manual "(emacs)Fortran")
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
+  :link '(custom-manual "(emacs)Fortran")
   :group 'languages)
 
 (defgroup fortran-indent nil

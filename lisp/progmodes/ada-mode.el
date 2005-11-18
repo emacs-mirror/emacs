@@ -163,6 +163,7 @@ This is a good place to add Ada environment specific bindings.")
 
 (defgroup ada nil
   "Major mode for editing Ada source in Emacs."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defcustom ada-auto-case t

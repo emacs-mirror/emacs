@@ -216,7 +216,7 @@
   :link '(custom-manual "(elisp)Font Lock Mode")
   :group 'faces)
 
-(defgroup font-lock-highlighting-faces nil
+(defgroup font-lock-faces nil
   "Faces for highlighting text."
   :prefix "font-lock-"
   :group 'font-lock)
@@ -1667,7 +1667,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
      )
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight comments."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-comment-delimiter-face
   '((default :inherit font-lock-comment-face)
@@ -1678,7 +1678,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8) (background dark))
      :foreground "red1"))
   "Font Lock mode face used to highlight comment delimiters."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-string-face
   '((((class grayscale) (background light)) (:foreground "DimGray" :slant italic))
@@ -1690,12 +1690,12 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8)) (:foreground "green"))
     (t (:slant italic)))
   "Font Lock mode face used to highlight strings."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-doc-face
   '((t :inherit font-lock-string-face))
   "Font Lock mode face used to highlight documentation."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-keyword-face
   '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
@@ -1707,7 +1707,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8)) (:foreground "cyan" :weight bold))
     (t (:weight bold)))
   "Font Lock mode face used to highlight keywords."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-builtin-face
   '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
@@ -1719,7 +1719,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
     (t (:weight bold)))
   "Font Lock mode face used to highlight builtins."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-function-name-face
   '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
@@ -1729,7 +1729,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
     (t (:inverse-video t :weight bold)))
   "Font Lock mode face used to highlight function names."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-variable-name-face
   '((((class grayscale) (background light))
@@ -1743,7 +1743,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8)) (:foreground "yellow" :weight light))
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight variable names."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-type-face
   '((((class grayscale) (background light)) (:foreground "Gray90" :weight bold))
@@ -1755,7 +1755,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8)) (:foreground "green"))
     (t (:weight bold :underline t)))
   "Font Lock mode face used to highlight type and classes."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-constant-face
   '((((class grayscale) (background light))
@@ -1769,7 +1769,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8)) (:foreground "magenta"))
     (t (:weight bold :underline t)))
   "Font Lock mode face used to highlight constants and labels."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-warning-face
   '((((class color) (min-colors 88) (background light)) (:foreground "Red1" :weight bold))
@@ -1779,27 +1779,27 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8)) (:foreground "red"))
     (t (:inverse-video t :weight bold)))
   "Font Lock mode face used to highlight warnings."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-negation-char-face
   '((t nil))
   "Font Lock mode face used to highlight easy to overlook negation."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-preprocessor-face
   '((t :inherit font-lock-builtin-face))
   "Font Lock mode face used to highlight preprocessor directives."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-regexp-grouping-backslash
   '((t :inherit bold))
   "Font Lock mode face for backslashes in Lisp regexp grouping constructs."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 (defface font-lock-regexp-grouping-construct
   '((t :inherit bold))
   "Font Lock mode face used to highlight grouping constructs in Lisp regexps."
-  :group 'font-lock-highlighting-faces)
+  :group 'font-lock-faces)
 
 ;;; End of Colour etc. support.
 

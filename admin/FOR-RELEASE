@@ -25,6 +25,9 @@ face name prefixes should be in it for good results.
 
 ** Check what should be deleted or updated in MORE.STUFF.
 
+** Send an email to the various distributions, including the GNOME
+and KDE projects, to use the new Emacs icons in etc/images/icons.
+
 * NEW FEATURES
 
 ** Rework how fringe bitmaps are defined and used.
@@ -51,9 +54,6 @@ C-x 2, C-x 3, C-x 2. Now try to move the bottom of the
 second window to the left.
 
 ** Fix completion highlighting bug in partial completion mode.
-
-** Clean up the confusion about what `unspecified' means
-in the face defaults for new frames.
 
 ** TCP server processes do not work on Windows.
 

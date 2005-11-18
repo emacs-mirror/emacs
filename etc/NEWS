@@ -4935,6 +4935,11 @@ was inconsistent with the face behavior under X.
 *** `set-fontset-font', `fontset-info', `fontset-font' now operate on
 the default fontset if the argument NAME is nil..
 
++++
+*** In `set-face-attribute', you can assign any attribute the value
+`:ignore-defface'.  This forces the attribute value to be acquired
+from some other face during face merging.
+
 ** Font-Lock changes:
 
 +++
@@ -13334,10 +13339,10 @@ as soft, and paragraph boundaries are determined solely from the text.
 *** Custom support
 
 The variables font-lock-face-attributes, font-lock-display-type and
-font-lock-background-mode are now obsolete; the recommended way to specify the
-faces to use for Font Lock mode is with M-x customize-group on the new custom
-group font-lock-highlighting-faces.  If you set font-lock-face-attributes in
-your ~/.emacs file, Font Lock mode will respect its value.  However, you should
+font-lock-background-mode are now obsolete; the recommended way to specify
+the faces to use for Font Lock mode is with M-x customize-group on the new
+custom group font-lock-faces.  If you set font-lock-face-attributes in your
+~/.emacs file, Font Lock mode will respect its value.  However, you should
 consider converting from setting that variable to using M-x customize.
 
 You can still use X resources to specify Font Lock face appearances.

@@ -348,6 +348,8 @@ Other major modes are defined by comparison with this one."
 
 ;; Making and deleting lines.
 
+(defvar hard-newline (propertize "\n" 'hard t 'rear-nonsticky '(hard)))
+
 (defun newline (&optional arg)
   "Insert a newline, and move to left margin of the new line if it's blank.
 If `use-hard-newlines' is non-nil, the newline is marked with the
@@ -3328,7 +3330,7 @@ and more reliable (no dependence on goal column, etc.)."
 	  ;; When adding a newline, don't expand an abbrev.
 	  (let ((abbrev-mode nil))
 	    (end-of-line)
-	    (insert "\n"))
+	    (insert hard-newline))
 	(line-move arg nil nil try-vscroll))
     (if (interactive-p)
 	(condition-case nil
@@ -4508,7 +4510,7 @@ See also `read-mail-command' concerning reading mail."
 	(unless (member-ignore-case (car (car other-headers))
 				    '("in-reply-to" "cc" "body"))
 	    (insert (car (car other-headers)) ": "
-		    (cdr (car other-headers)) "\n"))
+		    (cdr (car other-headers)) hard-newline))
 	(setq other-headers (cdr other-headers)))
       (when body
 	(forward-line 1)
@@ -4921,7 +4923,7 @@ is the substring.)")
                 ;; when completing file names.  It's not even clear what
                 ;; is TRT.
                 0
-              (- common-string-length (- (point) (point-max))))))
+              (- common-string-length (- (point-max) (point))))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)

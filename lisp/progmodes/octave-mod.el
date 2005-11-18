@@ -45,6 +45,7 @@
 
 (defgroup octave nil
   "Major mode for editing Octave source files."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defvar inferior-octave-output-list nil)

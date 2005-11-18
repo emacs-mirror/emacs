@@ -36,6 +36,7 @@
 
 (defgroup prolog nil
   "Major mode for editing and running Prolog under Emacs."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 

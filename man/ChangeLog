@@ -1,3 +1,9 @@
+2005-11-17  Juri Linkov  <juri@jurta.org>
+
+	* emacs.texi (Top):
+	* display.texi (Highlight Interactively): Put this font-lock based
+	mode near Font Lock node.
+
 2005-11-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* ack.texi (Acknowledgments): Acknowledge Andrew Zhilin for Emacs

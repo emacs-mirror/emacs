@@ -1,8 +1,108 @@
+2005-11-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-install-speedbar-variables): Bind gud-pp
+	to "p".
+	(gdb): Move definition of gud-pp to...
+
+	* progmodes/gdb-ui.el (gdb-ann3): ...here.  Make it work in the
+	speedbar.
+	(gdb-find-watch-expression): New function.
+	
+2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el (face-attribute, set-face-attribute): Mention existence
+	of `:ignore-defface' setting in docstring.
+
+2005-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (completion-setup-function): Fix last change.
+
+2005-11-17  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (ibuffer-interactive-filter-by-mode):
+	Use `posn-set-point' instead of `mouse-set-point' because the
+	latter is not fbound when configured without X.
+
+	* comint.el (comint-insert-input): Likewise.
+
+2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* simple.el (hard-newline): New variable.
+	(sendmail-user-agent-compose, next-line): Use it.
+
+	* mail/sendmail.el (mail-setup, mail-send, mail-insert-from-field)
+	(sendmail-send-it, mail-do-fcc, mail-cc, mail-bcc, mail-fcc)
+	(mail-mail-reply-to, mail-mail-followup-to)
+	(mail-position-on-field, mail-signature, mail-yank-original)
+	(mail-attach-file): Likewise.
+
+	* mail/mailheader.el (mail-header-format)
+	(mail-header-format-function): Likewise.
+
+	* add-log.el (add-change-log-entry, change-log-merge): Likewise.
+
+2005-11-17  Juri Linkov  <juri@jurta.org>
+
+	* font-lock.el (font-lock-faces): Rename this defgroup from
+	`font-lock-highlighting-faces'.
+	(font-lock-comment-face, font-lock-comment-delimiter-face)
+	(font-lock-string-face, font-lock-doc-face)
+	(font-lock-keyword-face, font-lock-builtin-face)
+	(font-lock-function-name-face, font-lock-variable-name-face)
+	(font-lock-type-face, font-lock-constant-face)
+	(font-lock-warning-face, font-lock-negation-char-face)
+	(font-lock-preprocessor-face)
+	(font-lock-regexp-grouping-backslash)
+	(font-lock-regexp-grouping-construct): Rename :group from
+	`font-lock-highlighting-faces' to `font-lock-faces'.
+
+	* cus-edit.el (lisp, c, tex):
+	* progmodes/ada-mode.el (ada):
+	* progmodes/asm-mode.el (asm):
+	* progmodes/cperl-mode.el (cperl-faces):
+	* progmodes/cpp.el (cpp):
+	* progmodes/dcl-mode.el (dcl):
+	* progmodes/f90.el (f90):
+	* progmodes/fortran.el (fortran):
+	* progmodes/icon.el (icon):
+	* progmodes/idlwave.el (idlwave-misc):
+	* progmodes/m4-mode.el (m4):
+	* progmodes/make-mode.el (makefile):
+	* progmodes/meta-mode.el (meta-font):
+	* progmodes/modula2.el (modula2):
+	* progmodes/octave-mod.el (octave):
+	* progmodes/pascal.el (pascal):
+	* progmodes/perl-mode.el (perl):
+	* progmodes/prolog.el (prolog):
+	* progmodes/ps-mode.el (PostScript-edit):
+	* progmodes/scheme.el (scheme):
+	* progmodes/sh-script.el (sh-script):
+	* progmodes/simula.el (simula):
+	* progmodes/tcl.el (tcl):
+	* textmodes/nroff-mode.el (nroff):
+	* textmodes/reftex-vars.el (reftex-fontification-configurations):
+	* textmodes/sgml-mode.el (sgml):
+	* textmodes/texinfo.el (texinfo):
+	Add :link (custom-group-link font-lock-faces) to defgroup.
+
+	* hi-lock.el (hi-lock): Rename this defgroup from
+	`hi-lock-interactive-text-highlighting'.  Change parent group from
+	`faces' to `font-lock'.  Add link to the manual.
+	(hi-lock-mode, hi-lock-file-patterns-range)
+	(hi-lock-exclude-modes, hi-lock-faces): Rename :group from
+	`hi-lock-interactive-text-highlighting' to `hi-lock'.
+	(hi-lock-faces): Add :group `faces'.
+
+	* cus-edit.el (custom-variable-prompt): Clarify the code.
+
+	* faces.el (face-read-string): Set the default value arg of
+	completing-read.
+
 2005-11-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* rfn-eshadow.el (file-name-shadow-properties)
-	(file-name-shadow-tty-properties, file-name-shadow-mode): Remove
-	autoloads, because the file is now preloaded.
+	(file-name-shadow-tty-properties, file-name-shadow-mode):
+	Remove autoloads, because the file is now preloaded.
 
 2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -82,8 +182,8 @@
 2005-11-17  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-item-info): New function.
-	(gud-install-speedbar-variables): Use it to display data types
-	of watch expression as tooltips in speedbar.
+	(gud-install-speedbar-variables): Use it to display data type
+	of watch expression as a tooltip in speedbar.
 
 2005-11-15  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -254,7 +354,7 @@
 
 	* help.el (help-for-help-internal): Improve doc of C-h a.
 	(describe-key): Improve prompt; doc fix.
-	
+
 2005-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-svn.el (vc-svn-registered): Catch all errors.
@@ -271,7 +371,7 @@
 
 2005-11-13  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gud-menu-map):  Move parentheses (again).
+	* progmodes/gud.el (gud-menu-map): Move parentheses (again).
 	(gud-speedbar-buttons): Match on "const char *" too.
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler)
@@ -489,6 +589,11 @@
 2005-11-07  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-export-as-html): Remove bogus (debug) form.
+
+2005-11-07  John Paul Wallington  <jpw@gnu.org>
+
+	* ibuffer.el (ibuffer): Search iconified frames too when
+	getting Ibuffer buffer's window.
 
 2005-11-06  Richard M. Stallman  <rms@gnu.org>
 

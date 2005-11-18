@@ -24,6 +24,7 @@
 
 (defgroup modula2 nil
   "Major mode for editing Modula-2 code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :prefix "m2-"
   :group 'languages)
 

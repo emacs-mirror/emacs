@@ -38,6 +38,7 @@
 
 (defgroup nroff nil
   "Nroff mode."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'wp
   :prefix "nroff-")
 

@@ -337,6 +337,15 @@ With arg, use separate IO iff arg is positive."
 			 (file-name-nondirectory file) ":1\n")
 		 `(lambda () (gdb-set-gud-minor-mode ,buffer)))))))))
 
+(defun gdb-find-watch-expression ()
+  (let* ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list))
+	 (varno (nth 1 var)) (expr))
+    (string-match "\\(var[0-9]+\\)\\.\\(.*\\)" varno)
+    (dolist (var1 gdb-var-list)
+      (if (string-equal (nth 1 var1) (match-string 1 varno))
+	  (setq expr (concat (car var1) "." (match-string 2 varno)))))
+    expr))
+
 (defun gdb-ann3 ()
   (setq gdb-debug-log nil)
   (set (make-local-variable 'gud-minor-mode) 'gdba)
@@ -368,6 +377,15 @@ With arg, use separate IO iff arg is positive."
   ;;
   (gud-def gud-go (gud-call (if gdb-active-process "continue" "run") arg)
 	   nil "Start or continue execution.")
+
+  ;; For debugging Emacs only.
+  (gud-def gud-pp
+	   (gud-call
+	    (concat
+	     "pp1 " (if (eq (buffer-local-value
+			     'major-mode (window-buffer)) 'speedbar-mode)
+			(gdb-find-watch-expression) "%e")) arg)
+	   nil   "Print the emacs s-expression.")
 
   (define-key gud-minor-mode-map [left-margin mouse-1]
     'gdb-mouse-set-clear-breakpoint)

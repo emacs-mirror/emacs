@@ -84,6 +84,7 @@
 
 (defgroup icon nil
   "Mode for editing Icon code."
+  :link '(custom-group-link :tag "Font Lock Faces group" font-lock-faces)
   :group 'languages)
 
 (defcustom icon-indent-level 4

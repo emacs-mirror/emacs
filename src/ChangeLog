@@ -1,3 +1,18 @@
+2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* image.c (x_create_bitmap_from_xpm_data): Free attributes on
+	fail.
+
+	* xfaces.c (Qignore_defface): New variable.
+	(syms_of_xfaces): Provide `:ignore-defface'.
+	(IGNORE_DEFFACE_P): New macro.
+	(check_lface_attrs, lface_fully_specified_p)
+	(Finternal_set_lisp_face_attribute)
+	(Fface_attribute_relative_p, Fmerge_face_attribute): Handle
+	Qignore_defface as a possible value.
+	(merge_face_vectors): The merged face is `unspecified' if the
+	mergee specifies `:ignore-defface'.
+
 2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* lread.c (readevalloop): Add missing GCPROs.
