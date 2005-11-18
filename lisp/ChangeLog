@@ -1,3 +1,7 @@
+2005-11-17  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (completion-setup-function): Fix last change.
+
 2005-11-17  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuf-ext.el (ibuffer-interactive-filter-by-mode):
@@ -82,8 +86,8 @@
 2005-11-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* rfn-eshadow.el (file-name-shadow-properties)
-	(file-name-shadow-tty-properties, file-name-shadow-mode): Remove
-	autoloads, because the file is now preloaded.
+	(file-name-shadow-tty-properties, file-name-shadow-mode):
+	Remove autoloads, because the file is now preloaded.
 
 2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 

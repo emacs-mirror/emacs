@@ -4919,7 +4919,7 @@ is the substring.)")
                 ;; when completing file names.  It's not even clear what
                 ;; is TRT.
                 0
-              (- common-string-length (- (point) (point-max))))))
+              (- common-string-length (- (point-max) (point))))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
