@@ -52,9 +52,6 @@ second window to the left.
 
 ** Fix completion highlighting bug in partial completion mode.
 
-** Clean up the confusion about what `unspecified' means
-in the face defaults for new frames.
-
 ** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
