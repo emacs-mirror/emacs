@@ -132,12 +132,6 @@ are indicated with a symbol."
         (when (and longlines-show-hard-newlines
                    (not longlines-showing))
           (longlines-show-hard-newlines))
-        (when longlines-auto-wrap
-          (auto-fill-mode 0)
-          (add-hook 'after-change-functions
-                    'longlines-after-change-function nil t)
-          (add-hook 'post-command-hook
-                    'longlines-post-command-function nil t))
 
 	;; Hacks to make longlines play nice with various modes.
 	(cond ((eq major-mode 'mail-mode)
@@ -151,7 +145,13 @@ are indicated with a symbol."
 			 (list message-indent-citation-function)))
 	       (add-to-list 'message-indent-citation-function
 			    'longlines-decode-region t)))
-	)
+
+        (when longlines-auto-wrap
+          (auto-fill-mode 0)
+          (add-hook 'after-change-functions
+                    'longlines-after-change-function nil t)
+          (add-hook 'post-command-hook
+                    'longlines-post-command-function nil t)))
     ;; Turn off longlines mode
     (setq buffer-file-format (delete 'longlines buffer-file-format))
     (if longlines-showing
