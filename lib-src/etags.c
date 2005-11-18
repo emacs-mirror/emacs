@@ -41,7 +41,7 @@
  * configuration file containing regexp definitions for etags.
  */
 
-char pot_etags_version[] = "@(#) pot revision number is 17.14";
+char pot_etags_version[] = "@(#) pot revision number is 17.15";
 
 #define	TRUE	1
 #define	FALSE	0
@@ -479,7 +479,7 @@ static bool packages_only;	/* --packages-only: in Ada, only tag packages*/
 
 /* STDIN is defined in LynxOS system headers */
 #ifdef STDIN
-#undef STDIN
+# undef STDIN
 #endif
 
 #define STDIN 0x1001		/* returned by getopt_long on --parse-stdin */
@@ -994,9 +994,9 @@ Relative ones are stored relative to the output file's directory.\n");
   if (CTAGS)
     {
       puts ("-v, --vgrind\n\
-        Generates an index of items intended for human consumption,\n\
-        similar to the output of vgrind.  The index is sorted, and\n\
-        gives the page number of each item.");
+        Print on the standard output an index of items intended for\n\
+        human consumption, similar to the output of vgrind.  The index\n\
+        is sorted, and gives the page number of each item.");
       puts ("-w, --no-warn\n\
         Suppress warning messages about entries defined in multiple\n\
         files.");
@@ -1428,7 +1428,8 @@ main (argc, argv)
 
   if (!CTAGS || cxref_style)
     {
-      put_entries (nodehead);	/* write the remaining tags (ETAGS) */
+      /* Write the remaining tags to tagf (ETAGS) or stdout (CXREF). */
+      put_entries (nodehead);
       free_tree (nodehead);
       nodehead = NULL;
       if (!CTAGS)
@@ -1442,10 +1443,11 @@ main (argc, argv)
 
 	  while (nincluded_files-- > 0)
 	    fprintf (tagf, "\f\n%s,include\n", *included_files++);
+
+	  if (fclose (tagf) == EOF)
+	    pfatal (tagfile);
 	}
 
-      if (fclose (tagf) == EOF)
-	pfatal (tagfile);
       exit (EXIT_SUCCESS);
     }
 
