@@ -1,3 +1,7 @@
+2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Attribute Functions): Mention :ignore-defface.
+
 2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* modes.texi (Minor Mode Conventions): Use custom-set-minor-mode.

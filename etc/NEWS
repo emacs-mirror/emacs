@@ -4935,6 +4935,11 @@ was inconsistent with the face behavior under X.
 *** `set-fontset-font', `fontset-info', `fontset-font' now operate on
 the default fontset if the argument NAME is nil..
 
++++
+*** In `set-face-attribute', you can assign any attribute the value
+`:ignore-defface'.  This forces the attribute value to be acquired
+from some other face during face merging.
+
 ** Font-Lock changes:
 
 +++
