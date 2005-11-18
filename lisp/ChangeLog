@@ -1,3 +1,8 @@
+2005-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Add hacks for mail-mode and
+	message-mode.
+
 2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-table-sort-lines): New command.

@@ -137,7 +137,21 @@ are indicated with a symbol."
           (add-hook 'after-change-functions
                     'longlines-after-change-function nil t)
           (add-hook 'post-command-hook
-                    'longlines-post-command-function nil t)))
+                    'longlines-post-command-function nil t))
+
+	;; Hacks to make longlines play nice with various modes.
+	(cond ((eq major-mode 'mail-mode)
+	       (or mail-citation-hook
+		   (add-hook 'mail-citation-hook 'mail-indent-citation nil t))
+	       (add-hook 'mail-citation-hook 'longlines-decode-region nil t))
+	      ((eq major-mode 'message-mode)
+	       (make-local-variable 'message-indent-citation-function)
+	       (if (not (listp message-indent-citation-function))
+		   (setq message-indent-citation-function
+			 (list message-indent-citation-function)))
+	       (add-to-list 'message-indent-citation-function
+			    'longlines-decode-region t)))
+	)
     ;; Turn off longlines mode
     (setq buffer-file-format (delete 'longlines buffer-file-format))
     (if longlines-showing
@@ -298,8 +312,11 @@ Otherwise, return nil.  Text cannot be moved across hard newlines."
                    (1+ (current-column)))
                  space))))))
 
-(defun longlines-decode-region (beg end)
-  "Turn all newlines between BEG and END into hard newlines."
+(defun longlines-decode-region (&optional beg end)
+  "Turn all newlines between BEG and END into hard newlines.
+If BEG and END are nil, the point and mark are used."
+  (if (null beg) (setq beg (point)))
+  (if (null end) (setq end (mark t)))
   (save-excursion
     (goto-char (min beg end))
     (while (search-forward "\n" (max beg end) t)
