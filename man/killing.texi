@@ -520,7 +520,7 @@ of the specified file.  The file is changed immediately on disk.
 editing in Emacs would change the file behind Emacs's back, which
 can lead to losing some of your editing.
 
-@node Rectangles, Registers, Accumulating Text, Top
+@node Rectangles, CUA Bindings, Accumulating Text, Top
 @section Rectangles
 @cindex rectangle
 @cindex columns (and rectangles)
@@ -643,6 +643,52 @@ rectangle shifts right.
   The command @kbd{M-x string-insert-rectangle} is similar to
 @code{string-rectangle}, but inserts the string on each line,
 shifting the original text to the right.
+
+@node CUA Bindings, Registers, Rectangles, Top
+@section CUA Bindings
+@findex cua-mode
+@vindex cua-mode
+@cindex CUA key bindings
+@vindex cua-enable-cua-keys
+  The command @kbd{M-x cua-mode} sets up key bindings that are
+compatible with the Common User Access (CUA) system used in many other
+applications.  @kbd{C-x} means cut (kill), @kbd{C-c} copy, @kbd{C-v}
+paste (yank), and @kbd{C-z} undo.  Standard Emacs commands like
+@kbd{C-x C-c} still work, because @kbd{C-x} and @kbd{C-c} only take
+effect when the mark is active.  However, if you don't want these
+bindings at all, set @code{cua-enable-cua-keys} to @code{nil}.
+
+  In CUA mode, using @kbd{Shift} together with the movement keys
+activates the region over which they move.  The standard (unshifted)
+movement keys deactivate the mark, and typed text replaces the active
+region as in Delete-Selection mode (@pxref{Graphical Kill}).
+
+@cindex rectangle highlighting
+  CUA mode provides enhanced rectangle support with visible
+rectangle highlighting.  Use @kbd{C-RET} to start a rectangle,
+extend it using the movement commands, and cut or copy it using
+@kbd{C-x} or @kbd{C-c}.  When a rectangle is active, text you type is
+automatically inserted before or after each line in the rectangle.
+
+  With CUA you can easily copy text and rectangles into and out of
+registers by providing a one-digit numeric prefix the the kill, copy,
+and yank commands, e.g. @kbd{C-1 C-c} copies the region into register
+@code{1}, and @kbd{C-2 C-v} yanks the contents of register @code{2}.
+
+@cindex global mark
+  CUA mode also has a global mark feature which allows easy moving and
+copying of text between buffers.  Use @kbd{C-S-SPC} to toggle the
+global mark on and off.  When the global mark is on, all text that you
+kill or copy is automatically inserted at the global mark, and text
+you type is inserted at the global mark rather than at the current
+position.
+
+  For example, to copy words from various buffers into a word list in
+a given buffer, set the global mark in the target buffer, then
+navigate to each of the words you want in the list, mark it (e.g. with
+@kbd{S-M-f}), copy it to the list with @kbd{C-c} or @kbd{M-w}, and
+insert a newline after the word in the target list by pressing
+@key{RET}.
 
 @ifnottex
 @lowersections

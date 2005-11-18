@@ -87,14 +87,6 @@ Boston, MA 02110-1301, USA.  */
 #include "atimer.h"
 #include "keymap.h"
 
-/* Set of macros that handle mapping of Mac modifier keys to emacs.  */
-#define macCtrlKey     (NILP (Vmac_reverse_ctrl_meta) ? controlKey :	\
-			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey))
-#define macShiftKey    (shiftKey)
-#define macMetaKey     (NILP (Vmac_reverse_ctrl_meta) ?			\
-			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey) \
-			: controlKey)
-#define macAltKey      (NILP (Vmac_command_key_is_meta) ? cmdKey : optionKey)
 
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
@@ -207,7 +199,8 @@ extern EMACS_INT extra_keyboard_modifiers;
 
 /* The keysyms to use for the various modifiers.  */
 
-static Lisp_Object Qalt, Qhyper, Qsuper, Qmodifier_value;
+static Lisp_Object Qalt, Qhyper, Qsuper, Qctrl,
+  Qmeta, Qmodifier_value;
 
 extern int inhibit_window_system;
 
@@ -778,7 +771,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
 	      QDEndCGContext (port, &context);
 #if 0
 	      /* This doesn't work on Mac OS X 10.1.  */
-	      ATSUClearLayoutControls (text_layout, 
+	      ATSUClearLayoutControls (text_layout,
 				       sizeof (tags) / sizeof (tags[0]),
 				       tags);
 #else
@@ -869,6 +862,77 @@ mac_draw_image_string_16 (f, gc, x, y, buf, nchars)
 {
   mac_draw_string_common (f, gc, x, y, (char *) buf, nchars, srcCopy, 2);
 }
+
+
+#if USE_CG_TEXT_DRAWING
+static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
+
+static int
+mac_draw_string_cg (f, gc, x, y, buf, nchars)
+     struct frame *f;
+     GC gc;
+     int x, y;
+     XChar2b *buf;
+     int nchars;
+{
+  CGrafPtr port;
+  float port_height, gx, gy;
+  int i;
+  CGContextRef context;
+  CGGlyph *glyphs;
+  CGSize *advances;
+
+  if (NILP (Vmac_use_core_graphics) || GC_FONT (gc)->cg_font == NULL)
+    return 0;
+
+  port = GetWindowPort (FRAME_MAC_WINDOW (f));
+  port_height = FRAME_PIXEL_HEIGHT (f);
+  gx = x;
+  gy = port_height - y;
+  glyphs = (CGGlyph *)buf;
+  advances = xmalloc (sizeof (CGSize) * nchars);
+  for (i = 0; i < nchars; i++)
+    {
+      advances[i].width = x_per_char_metric (GC_FONT (gc), buf)->width;
+      advances[i].height = 0;
+      glyphs[i] = GC_FONT (gc)->cg_glyphs[buf->byte2];
+      buf++;
+    }
+
+  QDBeginCGContext (port, &context);
+  if (gc->n_clip_rects)
+    {
+      CGContextTranslateCTM (context, 0, port_height);
+      CGContextScaleCTM (context, 1, -1);
+      CGContextClipToRects (context, gc->clip_rects, gc->n_clip_rects);
+      CGContextScaleCTM (context, 1, -1);
+      CGContextTranslateCTM (context, 0, -port_height);
+    }
+  CGContextSetRGBFillColor (context,
+			    RED_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    GREEN_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    BLUE_FROM_ULONG (gc->xgcv.foreground) / 255.0,
+			    1.0);
+  CGContextSetFont (context, GC_FONT (gc)->cg_font);
+  CGContextSetFontSize (context, GC_FONT (gc)->mac_fontsize);
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
+  CGContextSetTextPosition (context, gx, gy);
+  CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
+#else
+  for (i = 0; i < nchars; i++)
+    {
+      CGContextShowGlyphsAtPoint (context, gx, gy, glyphs + i, 1);
+      gx += advances[i].width;
+    }
+#endif
+  CGContextSynchronize (context);
+  QDEndCGContext (port, &context);
+
+  xfree (advances);
+
+  return 1;
+}
+#endif
 
 
 /* Mac replacement for XCopyArea: dest must be window.  */
@@ -2265,6 +2329,13 @@ x_draw_glyph_string_foreground (s)
 	      || GC_FONT (s->gc)->mac_style
 #endif
 	      )
+#if USE_CG_TEXT_DRAWING
+	    if (!s->two_byte_p
+		&& mac_draw_string_cg (s->f, s->gc, x, s->ybase - boff,
+				       s->char2b, s->nchars))
+	      ;
+	    else
+#endif
 	    mac_draw_string_16 (s->f, s->gc, x,	s->ybase - boff,
 				s->char2b, s->nchars);
 	  else
@@ -7288,6 +7359,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
   Str31 charset;
   SInt16 fontnum;
 #if USE_ATSUI
+  static ATSUFontID font_id;
   ATSUStyle mac_style = NULL;
 #endif
   Style fontface;
@@ -7322,7 +7394,6 @@ XLoadQueryFont (Display *dpy, char *fontname)
 				 kATSUQDBoldfaceTag, kATSUQDItalicTag};
       ByteCount sizes[] = {sizeof (ATSUFontID), sizeof (Fixed),
 			   sizeof (Boolean), sizeof (Boolean)};
-      static ATSUFontID font_id;
       static Fixed size_fixed;
       static Boolean bold_p, italic_p;
       ATSUAttributeValuePtr values[] = {&font_id, &size_fixed,
@@ -7376,6 +7447,10 @@ XLoadQueryFont (Display *dpy, char *fontname)
   font->mac_scriptcode = scriptcode;
 #if USE_ATSUI
   font->mac_style = mac_style;
+#if USE_CG_TEXT_DRAWING
+  font->cg_font = NULL;
+  font->cg_glyphs = NULL;
+#endif
 #endif
 
   /* Apple Japanese (SJIS) font is listed as both
@@ -7405,6 +7480,30 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	}
       bzero (font->per_char, sizeof (XCharStruct) * 0x10000);
 
+#if USE_CG_TEXT_DRAWING
+      {
+	FMFontFamily font_family;
+	FMFontStyle style;
+	ATSFontRef ats_font;
+
+	err = FMGetFontFamilyInstanceFromFont (font_id, &font_family, &style);
+	if (err == noErr)
+	  err = FMGetFontFromFontFamilyInstance (font_family, fontface,
+						 &font_id, &style);
+	/* Use CG text drawing if italic/bold is not synthesized.  */
+	if (err == noErr && style == fontface)
+	  {
+	    ats_font = FMGetATSFontRefFromFont (font_id);
+	    font->cg_font = CGFontCreateWithPlatformFont (&ats_font);
+	  }
+      }
+
+      if (font->cg_font)
+	font->cg_glyphs = xmalloc (sizeof (CGGlyph) * 0x100);
+      if (font->cg_glyphs)
+	bzero (font->cg_glyphs, sizeof (CGGlyph) * 0x100);
+#endif
+
       err = atsu_get_text_layout_with_text_ptr (&c, 1,
 						font->mac_style,
 						&text_layout);
@@ -7414,8 +7513,19 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	  return NULL;
 	}
 
-      for (c = 0x20; c <= 0x7e; c++)
+      for (c = 0x20; c <= 0xff; c++)
 	{
+	  if (c == 0xad)
+	    /* Soft hyphen is not supported in ATSUI.  */
+	    continue;
+	  else if (c == 0x7f)
+	    {
+	      STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
+	      STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
+	      c = 0x9f;
+	      continue;
+	    }
+
 	  err = ATSUClearLayoutCache (text_layout, kATSUFromTextBeginning);
 	  if (err == noErr)
 	    err = ATSUMeasureTextImage (text_layout,
@@ -7464,9 +7574,32 @@ XLoadQueryFont (Display *dpy, char *fontname)
 		    }
 		}
 	    }
+#if USE_CG_TEXT_DRAWING
+	  if (err == noErr && char_width > 0 && font->cg_font)
+	    {
+	      ATSUGlyphInfoArray glyph_info_array;
+	      ByteCount count = sizeof (ATSUGlyphInfoArray);
+
+	      err = ATSUMatchFontsToText (text_layout, kATSUFromTextBeginning,
+					  kATSUToTextEnd, NULL, NULL, NULL);
+	      if (err == noErr)
+		err = ATSUGetGlyphInfo (text_layout, kATSUFromTextBeginning,
+					kATSUToTextEnd, &count,
+					&glyph_info_array);
+	      if (err == noErr)
+		font->cg_glyphs[c] = glyph_info_array.glyphs[0].glyphID;
+	      else
+		{
+		  /* Don't use CG text drawing if font substitution
+		     occurs in ASCII or Latin-1 characters.  */
+		  CGFontRelease (font->cg_font);
+		  font->cg_font = NULL;
+		  xfree (font->cg_glyphs);
+		  font->cg_glyphs = NULL;
+		}
+	    }
+#endif
 	}
-      STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
-      STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
 
       font->min_byte1 = 0;
       font->max_byte1 = 0xff;
@@ -7579,6 +7712,13 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	  SetRect (&max_bounds, 0, 0, 0, 0);
 	  for (c = 0x20; c <= 0xff; c++)
 	    {
+	      if (c == 0x7f)
+		{
+		  STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
+		  STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
+		  continue;
+		}
+
 	      ch = c;
 	      char_width = CharWidth (ch);
 	      QDTextBounds (1, &ch, &char_bounds);
@@ -7601,8 +7741,6 @@ XLoadQueryFont (Display *dpy, char *fontname)
 		  UnionRect (&max_bounds, &char_bounds, &max_bounds);
 		}
 	    }
-	  STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
-	  STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
 	  if (min_width == max_width
 	      && max_bounds.left >= 0 && max_bounds.right <= max_width)
 	    {
@@ -7617,6 +7755,15 @@ XLoadQueryFont (Display *dpy, char *fontname)
       TextSize (old_fontsize);
       TextFace (old_fontface);
     }
+
+#if !defined (MAC_OS8) || USE_ATSUI
+  /* AppKit and WebKit do some adjustment to the heights of Courier,
+     Helvetica, and Times.  This only works on the environments where
+     the XDrawImageString counterpart is never used.  */
+  if (strcmp (family, "courier") == 0 || strcmp (family, "helvetica") == 0
+      || strcmp (family, "times") == 0)
+    font->ascent += (font->ascent + font->descent) * .15 + 0.5;
+#endif
 
   return font;
 }
@@ -7633,6 +7780,12 @@ mac_unload_font (dpyinfo, font)
 #if USE_ATSUI
   if (font->mac_style)
     ATSUDisposeStyle (font->mac_style);
+#if USE_CG_TEXT_DRAWING
+  if (font->cg_font)
+    CGFontRelease (font->cg_font);
+  if (font->cg_glyphs)
+    xfree (font->cg_glyphs);
+#endif
 #endif
   xfree (font);
 }
@@ -7920,14 +8073,18 @@ x_find_ccl_program (fontp)
 /* Contains the string "reverse", which is a constant for mouse button emu.*/
 Lisp_Object Qreverse;
 
-/* True if using command key as meta key.  */
-Lisp_Object Vmac_command_key_is_meta;
 
-/* Modifier associated with the option key, or nil for normal behavior. */
+/* Modifier associated with the control key, or nil to ignore. */
+Lisp_Object Vmac_control_modifier;
+
+/* Modifier associated with the option key, or nil to ignore. */
 Lisp_Object Vmac_option_modifier;
 
-/* True if the ctrl and meta keys should be reversed.  */
-Lisp_Object Vmac_reverse_ctrl_meta;
+/* Modifier associated with the command key, or nil to ignore. */
+Lisp_Object Vmac_command_modifier;
+
+/* Modifier associated with the function key, or nil to ignore. */
+Lisp_Object Vmac_function_modifier;
 
 /* True if the option and command modifiers should be used to emulate
    a three button mouse */
@@ -8001,19 +8158,43 @@ mac_to_emacs_modifiers (EventModifiers mods)
 #endif
 {
   unsigned int result = 0;
-  if (mods & macShiftKey)
+  if (mods & shiftKey)
     result |= shift_modifier;
-  if (mods & macCtrlKey)
-    result |= ctrl_modifier;
-  if (mods & macMetaKey)
-    result |= meta_modifier;
-  if (NILP (Vmac_command_key_is_meta) && (mods & macAltKey))
-    result |= alt_modifier;
+
+
+
+  /* Deactivated to simplify configuration:
+     if Vmac_option_modifier is non-NIL, we fully process the Option
+     key. Otherwise, we only process it if an additional Ctrl or Command
+     is pressed. That way the system may convert the character to a
+     composed one.
+     if ((mods & optionKey) &&
+      (( !NILP(Vmac_option_modifier) ||
+      ((mods & cmdKey) || (mods & controlKey))))) */
+
   if (!NILP (Vmac_option_modifier) && (mods & optionKey)) {
-      Lisp_Object val = Fget(Vmac_option_modifier, Qmodifier_value);
-      if (!NILP(val))
-          result |= XUINT(val);
+    Lisp_Object val = Fget(Vmac_option_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
   }
+  if (!NILP (Vmac_command_modifier) && (mods & cmdKey)) {
+    Lisp_Object val = Fget(Vmac_command_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+  if (!NILP (Vmac_control_modifier) && (mods & controlKey)) {
+    Lisp_Object val = Fget(Vmac_control_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+
+#ifdef MAC_OSX
+  if (!NILP (Vmac_function_modifier) && (mods & kEventKeyModifierFnMask)) {
+    Lisp_Object val = Fget(Vmac_function_modifier, Qmodifier_value);
+    if (INTEGERP(val))
+      result |= XUINT(val);
+  }
+#endif
 
   return result;
 }
@@ -8035,7 +8216,7 @@ mac_get_emulated_btn ( UInt32 modifiers )
 #if USE_CARBON_EVENTS
 /* Obtains the event modifiers from the event ref and then calls
    mac_to_emacs_modifiers.  */
-static int
+static UInt32
 mac_event_to_emacs_modifiers (EventRef eventRef)
 {
   UInt32 mods = 0;
@@ -9385,12 +9566,128 @@ static unsigned char keycode_to_xkeysym_table[] = {
   /*0x7C*/ 0x53 /*right*/, 0x54 /*down*/, 0x52 /*up*/, 0
 };
 
+
 static int
 keycode_to_xkeysym (int keyCode, int *xKeySym)
 {
   *xKeySym = keycode_to_xkeysym_table [keyCode & 0x7f];
   return *xKeySym != 0;
 }
+
+static unsigned char fn_keycode_to_xkeysym_table[] = {
+  /*0x00*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x10*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+  /*0x20*/ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+
+  /*0x30*/ 0, 0, 0, 0,
+  /*0x34*/ 0, 0, 0, 0,
+  /*0x38*/ 0, 0, 0, 0,
+  /*0x3C*/ 0, 0, 0, 0,
+
+  /*0x40*/ 0, 0x2e /*kp-. = .*/, 0, 0x50 /*kp-* = 'p'*/,
+  /*0x44*/ 0, '/' /*kp-+*/, 0, 0,
+  /*0x48*/ 0, 0, 0, 0x30 /*kp-/ = '0'*/,
+  /*0x4C*/ 0, 0, 0x3b /*kp-- = ';'*/, 0,
+
+  /*0x50*/ 0, 0x2d /*kp-= = '-'*/, 0x6d /*kp-0 = 'm'*/, 0x6a /*kp-1 = 'j'*/,
+  /*0x54*/ 0x6b /*kp-2 = 'k'*/, 0x6c /*kp-3 = 'l'*/, 'u' /*kp-4*/, 'i' /*kp-5*/,
+  /*0x58*/ 'o' /*kp-6*/, '7' /*kp-7*/, 0, '8' /*kp-8*/,
+  /*0x5C*/ '9' /*kp-9*/, 0, 0, 0,
+
+  /*0x60*/ 0, 0, 0, 0,
+  /*0x64*/ 0, 0, 0, 0,
+  /*0x68*/ 0, 0, 0, 0,
+  /*0x6C*/ 0, 0, 0, 0,
+
+  /*0x70*/ 0, 0, 0, 0,
+  /*0x74*/ 0, 0, 0, 0,
+  /*0x78*/ 0, 0, 0, 0,
+  /*0x7C*/ 0, 0, 0, 0
+};
+static int
+convert_fn_keycode (EventRef eventRef, int keyCode, int *newCode)
+{
+#ifdef MAC_OSX
+  /* Use the special map to translate keys when function modifier is
+     to be caught. KeyTranslate can't be used in that case.
+     We can't detect the function key using the input_event.modifiers,
+     because this uses the high word of an UInt32. Therefore,
+     we'll just read it out of the original eventRef.
+  */
+
+
+  /* TODO / known issues
+
+  - Fn-Shift-j is regonized as Fn-j and not Fn-J.
+  The above table always translates to lower characters. We need to use
+  the KCHR keyboard resource (KeyTranslate() ) to map k->K and 8->*.
+
+  - The table is meant for English language keyboards, and it will work
+  for many others with the exception of key combinations like Fn-ö on
+  a German keyboard, which is currently mapped to Fn-;.
+  How to solve this without keeping separate tables for all keyboards
+  around? KeyTranslate isn't of much help here, as it only takes a 16-bit
+  value for keycode with the modifiers in he high byte, i.e. no room for the
+  Fn modifier. That's why we need the table.
+
+  */
+
+  UInt32 mods = 0;
+  if (!NILP(Vmac_function_modifier))
+    {
+      GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
+			 sizeof (UInt32), NULL, &mods);
+      if (mods & kEventKeyModifierFnMask)
+	{  *newCode = fn_keycode_to_xkeysym_table [keyCode & 0x7f];
+
+	  return (*newCode != 0);
+	}
+    }
+#endif
+  return false;
+}
+
+static int
+backtranslate_modified_keycode(int mods, int keycode, int def)
+{
+  if  (mods &
+       (controlKey |
+	(NILP (Vmac_option_modifier) ? 0 : optionKey) |
+	cmdKey))
+    {
+      /* This code comes from Keyboard Resource,
+	 Appendix C of IM - Text.  This is necessary
+	 since shift is ignored in KCHR table
+	 translation when option or command is pressed.
+	 It also does not translate correctly
+	 control-shift chars like C-% so mask off shift
+	 here also.
+
+	 Not done for combinations with the option key (alt)
+	 unless it is to be caught by Emacs:  this is
+	 to preserve key combinations translated by the OS
+	 such as Alt-3.
+      */
+      /* mask off option and command */
+      int new_modifiers = mods & 0xe600;
+      /* set high byte of keycode to modifier high byte*/
+      int new_keycode = keycode | new_modifiers;
+      Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+      unsigned long some_state = 0;
+      return (int) KeyTranslate (kchr_ptr, new_keycode,
+			   &some_state) & 0xff;
+      /* TO DO: Recognize two separate resulting characters, "for
+	 example, when the user presses Option-E followed by N, you
+	 can map this through the KeyTranslate function using the
+	 U.S. 'KCHR' resource to produce ´n, which KeyTranslate
+	 returns as two characters in the bytes labeled Character code
+	 1 and Character code 2." (from Carbon API doc) */
+
+    }
+  else
+    return def;
+}
+
 
 #if !USE_CARBON_EVENTS
 static RgnHandle mouse_region = NULL;
@@ -9936,8 +10233,7 @@ XTread_socket (sd, expected, hold_quit)
 		 || !(er.modifiers & cmdKey))
 		&& (!NILP (Vmac_pass_control_to_system)
 		    || !(er.modifiers & controlKey))
-		&& (!NILP (Vmac_command_key_is_meta)
-		    && NILP (Vmac_option_modifier)
+		&& (NILP (Vmac_option_modifier)
 		    || !(er.modifiers & optionKey)))
 	      if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 		  != eventNotHandledErr)
@@ -9981,49 +10277,36 @@ XTread_socket (sd, expected, hold_quit)
 		dpyinfo->mouse_face_hidden = 1;
 	      }
 
-	    if (keycode_to_xkeysym (keycode, &xkeysym))
+	    /* translate the keycode back to determine the original key */
+	    /* Convert key code if function key is pressed.
+	       Otherwise, if non-ASCII-event, take care of that
+	       without re-translating the key code. */
+#if USE_CARBON_EVENTS
+	    if (convert_fn_keycode (eventRef, keycode, &xkeysym))
 	      {
-		inev.code = 0xff00 | xkeysym;
-		inev.kind = NON_ASCII_KEYSTROKE_EVENT;
-	      }
-	    else
-	      {
-		if (er.modifiers & (controlKey |
-				    (NILP (Vmac_command_key_is_meta) ? optionKey
-				     : cmdKey)))
-		  {
-		    /* This code comes from Keyboard Resource,
-		       Appendix C of IM - Text.  This is necessary
-		       since shift is ignored in KCHR table
-		       translation when option or command is pressed.
-		       It also does not translate correctly
-		       control-shift chars like C-% so mask off shift
-		       here also */
-		    int new_modifiers = er.modifiers & 0xe600;
-		    /* mask off option and command */
-		    int new_keycode = keycode | new_modifiers;
-		    Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-		    unsigned long some_state = 0;
-		    inev.code = KeyTranslate (kchr_ptr, new_keycode,
-					      &some_state) & 0xff;
-		  }
-		else if (!NILP (Vmac_option_modifier)
-			 && (er.modifiers & optionKey))
-		  {
-		    /* When using the option key as an emacs modifier,
-		       convert the pressed key code back to one
-		       without the Mac option modifier applied. */
-		    int new_modifiers = er.modifiers & ~optionKey;
-		    int new_keycode = keycode | new_modifiers;
-		    Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-		    unsigned long some_state = 0;
-		    inev.code = KeyTranslate (kchr_ptr, new_keycode,
-					      &some_state) & 0xff;
-		  }
-		else
-		  inev.code = er.message & charCodeMask;
+		inev.code = xkeysym;
+		/* this doesn't work - tried to add shift modifiers */
+		  inev.code =
+		    backtranslate_modified_keycode(er.modifiers & (~0x2200),
+						   xkeysym | 0x80,  xkeysym);
 		inev.kind = ASCII_KEYSTROKE_EVENT;
 	      }
+	    else
+#endif
+	      if (keycode_to_xkeysym (keycode, &xkeysym))
+		{
+		  inev.code = 0xff00 | xkeysym;
+		  inev.kind = NON_ASCII_KEYSTROKE_EVENT;
+		}
+	      else
+		{
+
+		  inev.code =
+		    backtranslate_modified_keycode(er.modifiers, keycode,
+						   er.message & charCodeMask);
+		  inev.kind = ASCII_KEYSTROKE_EVENT;
+
+		}
 	  }
 
 #if USE_CARBON_EVENTS
@@ -10463,10 +10746,9 @@ mac_determine_quit_char_modifiers()
 
   /* Map modifiers */
   mac_quit_char_modifiers = 0;
-  if (qc_modifiers & ctrl_modifier)  mac_quit_char_modifiers |= macCtrlKey;
-  if (qc_modifiers & shift_modifier) mac_quit_char_modifiers |= macShiftKey;
-  if (qc_modifiers & meta_modifier)  mac_quit_char_modifiers |= macMetaKey;
-  if (qc_modifiers & alt_modifier)   mac_quit_char_modifiers |= macAltKey;
+  if (qc_modifiers & ctrl_modifier)  mac_quit_char_modifiers |= controlKey;
+  if (qc_modifiers & shift_modifier) mac_quit_char_modifiers |= shiftKey;
+  if (qc_modifiers & alt_modifier)   mac_quit_char_modifiers |= optionKey;
 }
 
 static void
@@ -10624,6 +10906,10 @@ syms_of_macterm ()
 #endif
 
   Qmodifier_value = intern ("modifier-value");
+  Qctrl = intern ("ctrl");
+  Fput (Qctrl, Qmodifier_value, make_number (ctrl_modifier));
+  Qmeta = intern ("meta");
+  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
   Qalt = intern ("alt");
   Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
   Qhyper = intern ("hyper");
@@ -10676,21 +10962,36 @@ syms_of_macterm ()
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-  DEFVAR_LISP ("mac-command-key-is-meta", &Vmac_command_key_is_meta,
-    doc: /* Non-nil means that the command key is used as the Emacs meta key.
-Otherwise the option key is used.  */);
-  Vmac_command_key_is_meta = Qt;
+
+
+/* Variables to configure modifier key assignment.  */
+
+  DEFVAR_LISP ("mac-control-modifier", &Vmac_control_modifier,
+    doc: /* Modifier key assumed when the Mac control key is pressed.
+The value can be `alt', `ctrl', `hyper', or `super' for the respective
+modifier.  The default is `ctrl'.  */);
+  Vmac_control_modifier = Qctrl;
 
   DEFVAR_LISP ("mac-option-modifier", &Vmac_option_modifier,
-    doc: /* Modifier to use for the Mac alt/option key.  The value can
-be alt, hyper, or super for the respective modifier.  If the value is
-nil then the key will act as the normal Mac option modifier.  */);
+    doc: /* Modifier key assumed when the Mac alt/option key is pressed.
+The value can be `alt', `ctrl', `hyper', or `super' for the respective
+modifier.  If the value is nil then the key will act as the normal
+Mac control modifier, and the option key can be used to compose
+characters depending on the chosen Mac keyboard setting. */);
   Vmac_option_modifier = Qnil;
 
-  DEFVAR_LISP ("mac-reverse-ctrl-meta", &Vmac_reverse_ctrl_meta,
-    doc: /* Non-nil means that the control and meta keys are reversed.  This is
-useful for non-standard keyboard layouts.  */);
-  Vmac_reverse_ctrl_meta = Qnil;
+  DEFVAR_LISP ("mac-command-modifier", &Vmac_command_modifier,
+    doc: /* Modifier key assumed when the Mac command key is pressed.
+The value can be `alt', `ctrl', `hyper', or `super' for the respective
+modifier. The default is `meta'. */);
+  Vmac_command_modifier = Qmeta;
+
+  DEFVAR_LISP ("mac-function-modifier", &Vmac_function_modifier,
+    doc: /* Modifier key assumed when the Mac function key is pressed.
+The value can be `alt', `ctrl', `hyper', or `super' for the respective
+modifier. Note that remapping the function key may lead to unexpected
+results for some keys on non-US/GB keyboards.  */);
+  Vmac_function_modifier = Qnil;
 
   DEFVAR_LISP ("mac-emulate-three-button-mouse",
 	       &Vmac_emulate_three_button_mouse,

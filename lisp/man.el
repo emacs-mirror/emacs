@@ -923,6 +923,10 @@ header file (#include <foo.h>) and files in FILES.
 If XREF-MAN-TYPE is used as the button type for items
 in SEE ALSO section. If it is nil, default type, 
 `Man-xref-man-page' is used."
+  ;; `Man-highlight-references' is used from woman.el, too.
+  ;; woman.el doesn't set `Man-arguments'.
+  (unless Man-arguments
+    (setq Man-arguments ""))
   (if (string-match "-k " Man-arguments)
       (progn
 	(Man-highlight-references0

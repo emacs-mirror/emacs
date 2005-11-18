@@ -31,6 +31,9 @@ dir ../lwlib
 # However, C-z works just as well in that case.
 handle 2 noprint pass
 
+# Make it work like SIGINT normally does.
+handle SIGTSTP nopass
+
 # Don't pass SIGALRM to Emacs.  This makes problems when
 # debugging.
 handle SIGALRM ignore
@@ -66,11 +69,51 @@ end
 # Print out s-expressions
 define pp
   set $tmp = $arg0
-  set debug_print ($tmp)
+  set safe_debug_print ($tmp)
 end
 document pp
 Print the argument as an emacs s-expression
 Works only when an inferior emacs is executing.
+end
+
+# Print out s-expressions from tool bar
+define pp1
+  set $tmp = $arg0
+  echo $arg0
+  printf " = "
+  set safe_debug_print ($tmp)
+end
+document pp1
+Print the argument as an emacs s-expression
+Works only when an inferior emacs is executing.
+For use on tool bar when debugging in Emacs
+where the variable name would not otherwise
+be recorded in the GUD buffer.
+end
+
+# Print value of lisp variable
+define pv
+  set $tmp = "$arg0"
+  set safe_debug_print ( find_symbol_value (intern ($tmp)))
+end
+document pv
+Print the value of the lisp variable given as argument.
+Works only when an inferior emacs is executing.
+end
+
+# Print value of lisp variable
+define pv1
+  set $tmp = "$arg0"
+  echo $arg0
+  printf " = "
+  set safe_debug_print (find_symbol_value (intern ($tmp)))
+end
+document pv1
+Print the value of the lisp variable given as argument.
+Works only when an inferior emacs is executing.
+For use on tool bar when debugging in Emacs
+where the variable name would not otherwise
+be recorded in the GUD buffer.
 end
 
 # Print out current buffer point and boundaries
@@ -122,7 +165,7 @@ define pitx
     printf " HL"
   end
   if ($it->n_overlay_strings > 0)
-    printf " nov=%d"
+    printf " nov=%d", $it->n_overlay_strings
   end
   if ($it->sp != 0)
     printf " sp=%d", $it->sp
@@ -670,6 +713,16 @@ document xbacktrace
   Print a backtrace of Lisp function calls from backtrace_list.
   Set a breakpoint at Fsignal and call this to see from where
   an error was signaled.
+end
+
+# Show Lisp backtrace after normal backtrace.
+define hookpost-backtrace
+  set $bt = backtrace_list
+  if $bt
+    echo \n
+    echo Lisp Backtrace:\n
+    xbacktrace
+  end
 end
 
 define xreload

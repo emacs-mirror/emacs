@@ -1214,8 +1214,8 @@ The value of this variable is a list of all minor mode commands.
   There are conventions for writing minor modes just as there are for
 major modes.  Several of the major mode conventions apply to minor
 modes as well: those regarding the name of the mode initialization
-function, the names of global symbols, and the use of keymaps and
-other tables.
+function, the names of global symbols, the use of a hook at the end of
+the initialization function, and the use of keymaps and other tables.
 
   In addition, there are several conventions that are specific to
 minor modes.  (The easiest way to follow all the conventions is to use
@@ -1327,8 +1327,7 @@ enable the mode.  For example:
   "Toggle msb-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `msb-mode'."
-  :set (lambda (symbol value)
-	 (msb-mode (or value 0)))
+  :set 'custom-set-minor-mode
   :initialize 'custom-initialize-default
   :version "20.4"
   :type    'boolean

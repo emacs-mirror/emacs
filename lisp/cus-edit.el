@@ -493,11 +493,12 @@ Return a list suitable for use in `interactive'."
    (let ((v (variable-at-point))
 	 (enable-recursive-minibuffers t)
 	 val)
-     (setq val (completing-read
-		(if (and (symbolp v) (custom-variable-p v))
-		    (format "Customize option (default %s): " v)
-		  "Customize option: ")
-		obarray 'custom-variable-p t))
+     (setq val (if (and (symbolp v) (custom-variable-p v))
+		   (completing-read
+		    (format "Customize option (default %s): " v) obarray
+		    'custom-variable-p t nil nil (symbol-name v))
+		 (completing-read "Customize option: " obarray
+				  'custom-variable-p t)))
      (list (if (equal val "")
 	       (if (symbolp v) v nil)
 	     (intern val)))))
@@ -798,7 +799,8 @@ making them as if they had never been customized at all."
   (interactive)
   (let ((children custom-options))
     (mapc (lambda (widget)
-	    (and (widget-apply widget :custom-standard-value)
+	    (and (widget-get widget :custom-standard-value)
+		 (widget-apply widget :custom-standard-value)
 		 (if (memq (widget-get widget :custom-state)
 			   '(modified set changed saved rogue))
 		     (widget-apply widget :custom-reset-standard))))
@@ -2123,7 +2125,7 @@ Insert PREFIX first if non-nil."
 
 (defun custom-add-parent-links (widget &optional initial-string)
   "Add \"Parent groups: ...\" to WIDGET if the group has parents.
-The value if non-nil if any parents were found.
+The value is non-nil if any parents were found.
 If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   (let ((name (widget-value widget))
 	(type (widget-type widget))
@@ -2132,15 +2134,14 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 	(parents nil))
     (insert (or initial-string "Parent groups:"))
     (mapatoms (lambda (symbol)
-		(let ((entry (assq name (get symbol 'custom-group))))
-		  (when (eq (nth 1 entry) type)
-		    (insert " ")
-		    (push (widget-create-child-and-convert
-			   widget 'custom-group-link
-			   :tag (custom-unlispify-tag-name symbol)
-			   symbol)
-			  buttons)
-		    (setq parents (cons symbol parents))))))
+		(when (member (list name type) (get symbol 'custom-group))
+		  (insert " ")
+		  (push (widget-create-child-and-convert
+			 widget 'custom-group-link
+			 :tag (custom-unlispify-tag-name symbol)
+			 symbol)
+			buttons)
+		  (setq parents (cons symbol parents)))))
     (and (null (get name 'custom-links)) ;No links of its own.
          (= (length parents) 1)         ;A single parent.
          (let* ((links (get (car parents) 'custom-links))
@@ -3397,7 +3398,7 @@ restoring it to the state of a face that has never been customized."
 
 (define-widget 'face 'symbol
   "A Lisp face name (with sample)."
-  :format "%t: (%{sample%}) %v"
+  :format "%{%t%}: (%{sample%}) %v"
   :tag "Face"
   :value 'default
   :sample-face-get 'widget-face-sample-face-get

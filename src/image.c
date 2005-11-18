@@ -2549,6 +2549,7 @@ image_load_quartz2d (f, img, png_p)
 
   if (!check_image_size (f, width, height))
     {
+      CGImageRelease (image);
       UNGCPRO;
       image_error ("Invalid image size", Qnil, Qnil);
       return 0;
@@ -3715,6 +3716,45 @@ xpm_image_p (object)
 
 #endif /* HAVE_XPM || MAC_OS */
 
+#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+int
+x_create_bitmap_from_xpm_data (f, bits)
+     struct frame *f;
+     char **bits;
+{
+  Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
+  int id, rc;
+  XpmAttributes attrs;
+  Pixmap bitmap, mask;
+
+  bzero (&attrs, sizeof attrs);
+
+  attrs.visual = FRAME_X_VISUAL (f);
+  attrs.colormap = FRAME_X_COLORMAP (f);
+  attrs.valuemask |= XpmVisual;
+  attrs.valuemask |= XpmColormap;
+
+  rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
+				bits, &bitmap, &mask, &attrs);
+  if (rc != XpmSuccess)
+    return -1;
+
+  id = x_allocate_bitmap_record (f);
+
+  dpyinfo->bitmaps[id - 1].pixmap = bitmap;
+  dpyinfo->bitmaps[id - 1].have_mask = 1;
+  dpyinfo->bitmaps[id - 1].mask = mask;
+  dpyinfo->bitmaps[id - 1].file = NULL;
+  dpyinfo->bitmaps[id - 1].height = attrs.height;
+  dpyinfo->bitmaps[id - 1].width = attrs.width;
+  dpyinfo->bitmaps[id - 1].depth = attrs.depth;
+  dpyinfo->bitmaps[id - 1].refcount = 1;
+
+  XpmFreeAttributes (&attrs);
+  return id;
+}
+#endif /* HAVE_X_WINDOWS */
+
 /* Load image IMG which will be displayed on frame F.  Value is
    non-zero if successful.  */
 
@@ -3762,6 +3802,9 @@ xpm_load (f, img)
   attrs.valuemask |= XpmCloseness;
 #endif /* not XpmAllocCloseColors */
 #endif /* ALLOC_XPM_COLORS */
+#ifdef ALLOC_XPM_COLORS
+  xpm_init_color_cache (f, &attrs);
+#endif
 
   /* If image specification contains symbolic color definitions, add
      these to `attrs'.  */
@@ -8457,7 +8500,8 @@ init_image ()
 {
 #ifdef MAC_OS
   /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */
-  EnterMovies ();
+  if (!inhibit_window_system)
+    EnterMovies ();
 #ifdef MAC_OSX
   init_image_func_pointer ();
 #endif

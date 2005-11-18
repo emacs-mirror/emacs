@@ -116,8 +116,11 @@ This is only meaningful if you don't use the implicit checkout model
       (cd (file-name-directory file))
       (condition-case nil
 	  (vc-svn-command t 0 file "status" "-v")
-	;; We can't find an `svn' executable.  We could also deregister SVN.
-	(file-error nil))
+	;; Some problem happened.  E.g. We can't find an `svn' executable.
+        ;; We used to only catch `file-error' but when the process is run on
+        ;; a remote host via Tramp, the error is only reported via the
+        ;; exit status which is turned into an `error' by vc-do-command.
+	(error nil))
       (vc-svn-parse-status t)
       (eq 'SVN (vc-file-getprop file 'vc-backend)))))
 

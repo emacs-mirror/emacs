@@ -122,33 +122,50 @@ Used to grey out relevant togolbar icons.")
 	(info "(emacs)GDB Graphical Interface")
       (info "(emacs)Debuggers"))))
 
+(defun gud-tool-bar-item-visible-no-fringe ()
+  (not (or (eq (buffer-local-value 'major-mode (window-buffer)) 'speedbar-mode)
+	   (and (memq gud-minor-mode '(gdbmi gdba))
+		(> (car (window-fringes)) 0)))))
+
+(defun gud-stop-subjob ()
+  (interactive)
+  (if (string-equal
+       (buffer-local-value 'gud-target-name gud-comint-buffer) "emacs")
+      (comint-stop-subjob)
+    (comint-interrupt-subjob)))
+
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
     ([tooltips] menu-item "Toggle GUD tooltips" gud-tooltip-mode
-                  :enable  (and (not emacs-basic-display)
-				(display-graphic-p)
-				(fboundp 'x-show-tip))
+                  :enable (and (not emacs-basic-display)
+			       (display-graphic-p)
+			       (fboundp 'x-show-tip))
 	          :button (:toggle . gud-tooltip-mode))
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                   :enable (and (not gud-running)
-			       (memq gud-minor-mode '(gdbmi gdba gdb dbx jdb))))
+			       (memq gud-minor-mode '(gdbmi gdb dbx jdb)))
+		  :visible (not (eq gud-minor-mode 'gdba)))
+    ([go]	menu-item "Run/Continue" gud-go
+		  :visible (and (not gud-running)
+				(eq gud-minor-mode 'gdba)))
+    ([stop]	menu-item "Stop" gud-stop-subjob
+		  :visible (or (not (eq gud-minor-mode 'gdba))
+			       (and gud-running
+				    (eq gud-minor-mode 'gdba))))
     ([until]	menu-item "Continue to selection" gud-until
                   :enable (and (not gud-running)
 			       (memq gud-minor-mode '(gdbmi gdba gdb perldb)))
-		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-				     (> (car (window-fringes)) 0))))
+		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([remove]	menu-item "Remove Breakpoint" gud-remove
                   :enable (not gud-running)
-		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-				     (> (car (window-fringes)) 0))))
+		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([tbreak]	menu-item "Temporary Breakpoint" gud-tbreak
 		  :enable (memq gud-minor-mode
 				'(gdbmi gdba gdb sdb xdb bashdb)))
     ([break]	menu-item "Set Breakpoint" gud-break
                   :enable (not gud-running)
-		  :visible (not (and (memq gud-minor-mode '(gdbmi gdba))
-				     (> (car (window-fringes)) 0))))
+		  :visible (gud-tool-bar-item-visible-no-fringe))
     ([up]	menu-item "Up Stack" gud-up
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
@@ -157,30 +174,35 @@ Used to grey out relevant togolbar icons.")
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
 				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
+    ([pp]	menu-item "Print the emacs s-expression" gud-pp
+                  :enable (and (not gud-running)
+				  gdb-active-process)
+		  :visible (and (string-equal
+				 (buffer-local-value
+				  'gud-target-name gud-comint-buffer) "emacs")
+				(eq gud-minor-mode 'gdba)))
     ([print*]	menu-item "Print Dereference" gud-pstar
-                     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdbmi gdba gdb))))
+                  :enable (and (not gud-running)
+			       (memq gud-minor-mode '(gdbmi gdba gdb))))
     ([print]	menu-item "Print Expression" gud-print
-                     :enable (not gud-running))
+                  :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
-		     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdbmi gdba))))
-    ([finish]	menu-item "Finish Function" gud-finish
-		     :enable (and (not gud-running)
-				  (memq gud-minor-mode
-					'(gdbmi gdba gdb xdb jdb pdb bashdb))))
+		  :enable (and (not gud-running)
+			       (memq gud-minor-mode
+				     '(gdbmi gdba gdb xdb jdb pdb bashdb))))
     ([stepi]	menu-item "Step Instruction" gud-stepi
-                     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
+                  :enable (and (not gud-running)
+			       (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
     ([nexti]	menu-item "Next Instruction" gud-nexti
-                     :enable (and (not gud-running)
-				  (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
+                  :enable (and (not gud-running)
+			       (memq gud-minor-mode '(gdbmi gdba gdb dbx))))
     ([step]	menu-item "Step Line" gud-step
-                     :enable (not gud-running))
+                  :enable (not gud-running))
     ([next]	menu-item "Next Line" gud-next
-                     :enable (not gud-running))
+                  :enable (not gud-running))
     ([cont]	menu-item "Continue" gud-cont
-                     :enable (not gud-running)))
+                  :enable (not gud-running)
+		  :visible (not (eq gud-minor-mode 'gdba))))
   "Menu for `gud-mode'."
   :name "Gud")
 
@@ -204,16 +226,19 @@ Used to grey out relevant togolbar icons.")
 		     (gud-remove . "gud/remove")
 		     (gud-print . "gud/print")
 		     (gud-pstar . "gud/pstar")
+		     (gud-pp . "gud/pp")
 		     (gud-watch . "gud/watch")
-		     (gud-cont . "gud/cont")
-		     (gud-until . "gud/until")
-		     (gud-finish . "gud/finish")
 		     (gud-run . "gud/run")
+		     (gud-go . "gud/go")
+		     (gud-stop-subjob . "gud/stop")
 		     ;; gud-s, gud-si etc. instead of gud-step,
 		     ;; gud-stepi, to avoid file-name clashes on DOS
 		     ;; 8+3 filesystems.
+		     (gud-cont . "gud/cont")
+		     (gud-until . "gud/until")
 		     (gud-next . "gud/next")
 		     (gud-step . "gud/step")
+		     (gud-finish . "gud/finish")
 		     (gud-nexti . "gud/nexti")
 		     (gud-stepi . "gud/stepi")
 		     (gud-up . "gud/up")
@@ -346,6 +371,12 @@ t means that there is no stack, and we are in display-file mode.")
 (defvar gud-speedbar-key-map nil
   "Keymap used when in the buffers display mode.")
 
+(defun gud-speedbar-item-info ()
+  "Display the data type of the watch expression element."
+  (let ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list)))
+    (if (nth 4 var)
+	(speedbar-message "%s" (nth 3 var)))))
+
 (defun gud-install-speedbar-variables ()
   "Install those variables used by speedbar to enhance gud/gdb."
   (if gud-speedbar-key-map
@@ -362,7 +393,12 @@ t means that there is no stack, and we are in display-file mode.")
 
   (speedbar-add-expansion-list '("GUD" gud-speedbar-menu-items
 				 gud-speedbar-key-map
-				 gud-expansion-speedbar-buttons)))
+				 gud-expansion-speedbar-buttons))
+
+  (add-to-list 
+   'speedbar-mode-functions-list
+   '("GUD" (speedbar-item-info . gud-speedbar-item-info)
+     (speedbar-line-directory . ignore))))
 
 (defvar gud-speedbar-menu-items
   '(["Jump to stack frame" speedbar-edit-line
@@ -414,7 +450,9 @@ required by the caller."
 		(while (string-match "\\." varnum start)
 		  (setq depth (1+ depth)
 			start (1+ (match-beginning 0))))
-		(if (equal (nth 2 var) "0")
+		(if (or (equal (nth 2 var) "0")
+			(and (equal (nth 2 var) "1")
+			     (string-match "char \\*" (nth 3 var))))
 		    (speedbar-make-tag-line 'bracket ?? nil nil
 					    (concat (car var) "\t" (nth 4 var))
 					    'gdb-edit-value
@@ -596,25 +634,31 @@ and source-file directory for your debugger."
   (set (make-local-variable 'gud-minor-mode) 'gdb)
 
   (gud-def gud-break  "break %f:%l"  "\C-b" "Set breakpoint at current line.")
-  (gud-def gud-tbreak "tbreak %f:%l" "\C-t" "Set temporary breakpoint at current line.")
-  (gud-def gud-remove "clear %f:%l"  "\C-d" "Remove breakpoint at current line")
-  (gud-def gud-step   "step %p"      "\C-s" "Step one source line with display.")
-  (gud-def gud-stepi  "stepi %p"     "\C-i" "Step one instruction with display.")
-  (gud-def gud-next   "next %p"      "\C-n" "Step one line (skip functions).")
-  (gud-def gud-nexti  "nexti %p"      nil   "Step one instruction (skip functions).")
-  (gud-def gud-cont   "cont"         "\C-r" "Continue with display.")
-  (gud-def gud-finish "finish"       "\C-f" "Finish executing current function.")
+  (gud-def gud-tbreak "tbreak %f:%l" "\C-t"
+	   "Set temporary breakpoint at current line.")
+  (gud-def gud-remove "clear %f:%l" "\C-d" "Remove breakpoint at current line")
+  (gud-def gud-step   "step %p"     "\C-s" "Step one source line with display.")
+  (gud-def gud-stepi  "stepi %p"    "\C-i" "Step one instruction with display.")
+  (gud-def gud-next   "next %p"     "\C-n" "Step one line (skip functions).")
+  (gud-def gud-nexti  "nexti %p" nil   "Step one instruction (skip functions).")
+  (gud-def gud-cont   "cont"     "\C-r" "Continue with display.")
+  (gud-def gud-finish "finish"   "\C-f" "Finish executing current function.")
   (gud-def gud-jump
 	   (progn (gud-call "tbreak %f:%l") (gud-call "jump %f:%l"))
 	   "\C-j" "Set execution address to current line.")
 
-  (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
-  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
-  (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
-  (gud-def gud-pstar  "print* %e"    nil
+  (gud-def gud-up     "up %p"     "<" "Up N stack frames (numeric arg).")
+  (gud-def gud-down   "down %p"   ">" "Down N stack frames (numeric arg).")
+  (gud-def gud-print  "print %e"  "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-pstar  "print* %e" nil
 	   "Evaluate C dereferenced pointer expression at point.")
-  (gud-def gud-until  "until %l"     "\C-u" "Continue to current line.")
-  (gud-def gud-run    "run"	     nil    "Run the program.")
+
+  ;; For debugging Emacs only.
+  (gud-def gud-pp  "pp1 %e"     nil   "Print the emacs s-expression.")
+  (gud-def gud-pv "pv1 %e"      "\C-v" "Print the value of the lisp variable.")
+
+  (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
+  (gud-def gud-run    "run"	 nil    "Run the program.")
 
   (local-set-key "\C-i" 'gud-gdb-complete-command)
   (setq comint-prompt-regexp "^(.*gdb[+]?) *")

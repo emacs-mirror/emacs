@@ -1,3 +1,18 @@
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz> 
+
+	* images/gud/go.xpm, images/gud/go.pbm: Old gud-remove icons.
+	Use for run/continue.
+	* images/gud/stop.xpm, images/gud/stop.pbm: Old gud-break icons.
+	Use for interrupting inferior.
+	* images/gud/pp.xpm, images/gud/pstar.xpm, images/gud/until.xpm:
+	Use a more appropriate variable name.
+	* images/gud/remove.xpm, images/gud/remove.pbm
+	* images/gud/break.xpm, images/gud/break.pbm: Make more intuitive.
+	
+2005-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* images/gud/pp.xpm, images/gud/pp.pbm: New icons.
+
 2005-11-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* images/copy.xpm, images/copy.pbm, images/low-color/copy.xpm

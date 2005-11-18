@@ -1,3 +1,495 @@
+2005-11-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* rfn-eshadow.el (file-name-shadow-properties)
+	(file-name-shadow-tty-properties, file-name-shadow-mode): Remove
+	autoloads, because the file is now preloaded.
+
+2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* printing.el (easy-menu-intern): Don't define.
+	(pr-get-symbol): Use easy-menu-intern only if defined.
+
+	* simple.el (blink-matching-open): Simplify a bit.
+	(completion-setup-function): Fix the case of partial-completion-mode
+	when the minibuffer's contents start with "-".
+	Obey completion-base-size-function even when
+	minibuffer-completing-file-name is non-nil.
+
+2005-11-16  Richard M. Stallman  <rms@gnu.org>
+
+	* net/eudcb-ph.el (eudc-ph-open-session):
+	Use set-process-query-on-exit-flag.
+
+	* mail/smtpmail.el (smtpmail-send-it): Use insert-buffer-contents.
+
+	* international/ucs-tables.el (ucs-set-table-for-input):
+	Use make-local-variable, not make-variable-buffer-local.
+
+	* emacs-lisp/byte-opt.el (byte-optimize-form-code-walker):
+	Improve warning message text.
+
+	* savehist.el (savehist-save-hook): Add :group.
+
+	* menu-bar.el (menu-bar-help-menu):
+	Rename Find Extra Packages to External Packages.
+
+	* cus-edit.el (Custom-reset-standard): Verify that
+	:custom-standard-value prop exists before calling it.
+
+	* apropos.el (apropos-calc-scores): Use apropos-pattern.
+
+2005-11-16  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* wid-edit.el (color): Enclose %t in %{...%}.
+
+	* cus-edit.el (face): Enclose %t in %{...%}.
+
+2005-11-16  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* savehist.el (savehist-mode-hook): Re-add the var.
+	(savehist-mode): Use it.
+
+2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el: Fix commenting convention.
+	Remove unnecessary leading * in custom docstrings.
+	(flyspell-emacs): Remove unused var.
+	(flyspell-delete-region-overlays): Use remove-overlays.
+	(flyspell-accept-buffer-local-defs): Use save-current-buffer.
+	(flyspell-debug-signal-no-check, flyspell-debug-signal-changed-checked)
+	(flyspell-debug-signal-pre-word-checked, flyspell-post-command-hook)
+	(flyspell-debug-signal-word-checked): Use with-current-buffer.
+	(make-flyspell-overlay): Don't locally reuse a global name.
+	(flyspell-highlight-incorrect-region)
+	(flyspell-highlight-duplicate-region): Use flyspell-unhighlight-at.
+	(flyspell-check-previous-highlighted-word): Use flyspell-overlay-p.
+	(flyspell-notify-misspell): Remove unused args `start' and `end'.
+	(flyspell-word): Adjust call accordingly.  Use ispell-send-string.
+	Wrap calls to accept-process-output inside with-local-quit since it's
+	often called from a post-command-hook.
+	(flyspell-correct-word, flyspell-auto-correct-word):
+	Use ispell-send-string.
+	(flyspell-xemacs-popup): Remove unused arg `event'.  Update call.
+
+	* calendar/diary-lib.el (diary-list-entries): Also hide the
+	terminating newline.
+
+2005-11-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex.el (reftex-use-fonts): Remove the check for
+	window-system, to allow fonts on tty.
+
+2005-11-17  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-item-info): New function.
+	(gud-install-speedbar-variables): Use it to display data types
+	of watch expression as tooltips in speedbar.
+
+2005-11-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* font-core.el (global-font-lock-mode): Add :version keyword,
+	because default was changed.
+
+	* jka-cmpr-hook.el (auto-compression-mode): Ditto.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	`file-name-shadow-mode'.
+
+	* loadup.el: Preload rfn-eshadow.
+
+	* rfn-eshadow.el (file-name-shadow-mode): Set :init-value to t.
+	Add :version keyword.
+	(file-name-shadow-properties, file-name-shadow-tty-properties)
+	(file-name-shadow): Add :version keyword.
+
+	* cus-edit.el (custom-add-parent-links): Fix bug whereby, for
+	instance, `(fringe custom-face)' shadowed `(fringe custom-group)'
+	in the custom-group property of the symbol frames and the fringe
+	group got no link to its parent group frames.
+	Doc fix.
+
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-stop-subjob): New function.
+	(gud-menu-map, gud-tool-bar-map): Use it.
+
+2005-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gud.el (gud-menu-map): Let [stop] stop program rather
+	than kill it.
+	(gud-tool-bar-map): Likewise.  Move cont/until/finish buttons
+	to a more useful/logical place.
+
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Make visibility of stop and
+	go buttons complementary.
+
+2005-11-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* rfn-eshadow.el (rfn-eshadow-regexp): Remove.
+	(rfn-eshadow-sifn-equal): New function.
+	(rfn-eshadow-update-overlay): Rewrite to use substitute-in-file-name.
+
+2005-11-15  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-utils (viper-non-word-characters-reformed-vi): Quote `-' in
+	string.
+
+	* viper.el (viper-emacs-state-mode-list): Ensure that
+	rcirc-mode buffers come up in Emacs state.
+
+	* ediff-util (ediff-make-temp-file): Use proper file-name-handler
+	operation.
+
+2005-11-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-termcap-format): Fix typos.
+	(term-down): Fix the negative argument case.
+
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el: Remove face-alias left over from change on
+	2005-08-15.
+	(gdb-ann3): New command gud-go.
+	(menu): Accomodate gdb-mi.el.
+	(gdb-assembler-custom): Make buffer of selected window current
+	so that set-window-point works.
+
+	* progmodes/gud.el (gud-menu-map, gud-tool-bar-map): Re-define
+	buttons and include new ones.
+
+2005-11-16  Kim F. Storm  <storm@cua.dk>
+
+	* progmodes/gud.el (gud-tool-bar-item-visible-no-fringe): New function.
+	(gud-menu-map): Use it.
+
+2005-11-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* jka-cmpr-hook.el (auto-compression-mode): Enable it in a way
+	that works correctly for Custom and that does not override a user
+	who disables it.
+
+	* help-mode.el (help-make-xrefs, help-xref-on-pp)
+	(help-xref-interned, help-follow): Make hyperlinks for variables
+	that are unbound, but have a non-nil variable-documentation property.
+
+	* emacs-lisp/derived.el (define-derived-mode): Remove defvar for
+	mode hook.  (It conflicted with defcustoms for some mode hooks.)
+	Use the `variable-documentation' property to give the mode hook a
+	docstring and expand that docstring.
+
+2005-11-14  Hrvoje Niksic  <hniksic@xemacs.org>
+
+	* savehist.el (savehist-mode): Don't bother with
+	`custom-set-minor-mode'.
+	(savehist-coding-system): Check XEmacs version.
+	(history-length): Declare also at run time.
+	(savehist-mode): Don't emit a message.  Don't run the minor mode hook.
+	Don't set the customize state.
+	(savehist-minibuffer-hook): Special case for when
+	minibuffer-history-variable is equal to t.
+
+2005-11-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (write-file): Refresh VC status.
+
+	* calendar/diary-lib.el (diary-list-entries, diary-show-all-entries)
+	(mark-diary-entries, make-diary-entry): Check default-major-mode rather
+	than fundamental-mode to see if the mode was set.
+
+2005-11-14  Romain Francoise  <romain@orebokech.com>
+
+	* dired-x.el: If `vm-visit-folder' doesn't exist, define it as a
+	dummy function in `eval-when-compile' to avoid compiler warning.
+	Require `man' at compile time.
+
+2005-11-14  Jay Belanger  <belanger@truman.edu>
+
+	* calc-alg.el (calcFunc-write-out-power): Rename it to
+	calcFunc-powerexpand.
+	(math-write-out-power): Rename it to math-powerexpand; have it
+	handle negative exponents.
+	(calc-writeoutpower): Rename it to calc-powerexpand.
+
+	* calc-ext.el: Change calcFunc-writeoutpower and
+	calc-writeoutpower to calcFunc-powerexpand and calc-powerexpand in
+	autoloads.
+	Add calcFunc-ldiv to autoloads.
+
+	* calc-arith.el (calcFunc-ldiv): New function.
+
+	* calc.el (calc-left-divide): New function.
+
+2005-11-14  Juri Linkov  <juri@jurta.org>
+
+	* cus-edit.el (custom-variable-prompt): Set the default value arg
+	of completing-read.
+
+	* cus-dep.el (custom-make-dependencies): Reverse the list of
+	found dependencies.
+
+2005-11-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* menu-bar.el (menu-bar-options-menu): Delete "Syntax
+	Highlighting" entry, it is on by default now.
+	(menu-bar-options-save): Do not save global-font-lock-mode.
+
+2005-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-large-region):
+	Call flyspell-accept-buffer-local-defs.
+
+2005-11-13  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-notify-misspell):
+	Fix misspelling of "Misspelling".
+	(flyspell-process-localwords): New function.
+	(flyspell-large-region): Call flyspell-process-localwords and
+	flyspell-delete-region-overlays.
+	(flyspell-delete-region-overlays): New function.
+	(flyspell-delete-all-overlays): Call that.
+
+2005-11-13  Richard M. Stallman  <rms@gnu.org>
+
+	* help.el (help-for-help-internal): Improve doc of C-h a.
+	(describe-key): Improve prompt; doc fix.
+	
+2005-11-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc-svn.el (vc-svn-registered): Catch all errors.
+
+	* cus-dep.el (custom-make-dependencies): Typo.
+
+2005-11-13  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-util.el (top): Fix compilation warning.
+
+2005-11-13  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (help-for-help-internal): Fix `a' entry.  Add `d' entry.
+
+2005-11-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map):  Move parentheses (again).
+	(gud-speedbar-buttons): Match on "const char *" too.
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler)
+	(gdb-var-list-children-handler): Match on "const char *" too.
+	(gdb-var-evaluate-expression-handler): Match on empty string.
+	(gdb-var-update-handler): Only call
+	gdb-var-evaluate-expression-handler when required.
+
+2005-11-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Revert to window-fringes for
+	selected window.  This still doesn't work for speedbar.
+	(gud-speedbar-buttons): Handle string expressions properly.
+
+	* progmodes/gdb-ui.el (gdb-var-evaluate-expression-handler)
+	(gdb-var-create-handler): Handle string expressions properly.
+	(gdb-var-list-children-regexp, gdb-var-list-children-handler):
+	Handle string expressions properly.  Move "type" field into regexp.
+
+2005-11-12  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-maybe-message): New function to reduce
+	code duplication: invokes `message' iff baud-rate is high enough.
+	(bookmark-write-file): Use above instead of an inline conditional.
+	(bookmark-load): Same.
+
+2005-11-12  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-write-file): Don't visit the destination
+	file, just write the data to it using write-region.  This is
+	similar to revision 1.32 of saveplace.el, but with an additional
+	change to avoid visiting the file in the first place.
+
+2005-11-12  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-mode): Set the default value of
+	font-lock-defaults.
+
+2005-11-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* find-lisp.el (find-lisp-find-dired-insert-file): Pass `string'
+	arg to `file-attributes'.
+	(find-lisp-format): The UID and GID can now be strings.
+
+2005-11-12  Kim F. Storm  <storm@cua.dk>
+
+	* help.el (help-map): Bind C-h d to apropos-documentation.
+
+	* simple.el (what-cursor-position): Print (EOB) instead of (100%)
+	when point is at end-of-buffer.
+
+	* apropos.el (apropos-match-face): Doc fix.
+	(apropos-sort-by-scores): Add new choice `verbose'.
+	(apropos-documentation-sort-by-scores): New defcustom.
+	(apropos-pattern): Now contains the pattern entered by the user.
+	(apropos-pattern-quoted): New defvar.
+	(apropos-regexp): New defvar, containing the regexp corresponding
+	to apropos-pattern.
+	(apropos-all-words-regexp): Rename from apropos-all-regexp.
+	(apropos-read-pattern): New defun.  Use it to read pattern arg in
+	interactive calls; returns list of words for a word list, and
+	string for a regexp.
+	(apropos-parse-pattern): Rename from apropos-rewrite-regexp.  Now
+	parses a list of words or regexp as returned by apropos-read-pattern.
+	(apropos-calc-scores): Return nil if apropos-regexp doesn't match.
+	(apropos-score-doc): Return a very high score if the string
+	entered by the user matches literally.
+	(apropos-variable): Doc fix.  Use apropos-read-pattern.
+	(apropos-command): Doc fix.  Use apropos-read-pattern and
+	apropos-parse-pattern.  Call apropos-print with nosubst=t.
+	(apropos, apropos-value): Doc fix. Use apropos-read-pattern and
+	apropos-parse-pattern.
+	(apropos-documentation): Doc fix. Use apropos-read-pattern and
+	apropos-parse-pattern.  Locally bind apropos-sort-by-scores to
+	apropos-documentation-sort-by-scores.  Call apropos-print with
+	nosubst=t.
+	(apropos-documentation-internal): Pass doc string through
+	substitute-key-definition before adding text properties.
+	Highlight substring matching literal user input if possible.
+	(apropos-documentation-check-doc-file): Remove locals beg and end.
+	Fix calculation of score (as added twice).  Pass doc string through
+	substitute-key-definition before adding text properties.
+	(apropos-documentation-check-elc-file): Pass doc string through
+	substitute-key-definition before adding text properties.
+	Highlight substring matching literal user input if possible.
+	(apropos-print): Add new arg NOSUBST; if set, command and variable
+	doc strings have already been passed through substitute-key-definition.
+	Add code to handle apropos-accumulator items without score element
+	for backwards compatibility (e.g. with woman package).
+	Only show scores if apropos-sort-by-scores is `verbose'.
+
+2005-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* jka-cmpr-hook.el (jka-compr-install): Use push and dolist.
+	Add jka-compr-load-suffixes to load-suffixes.
+
+	* jka-compr.el: Require 'jka-cmpr-hook.
+	(jka-compr-info-compress-message, jka-compr-info-compress-program)
+	(jka-compr-info-compress-args, jka-compr-info-uncompress-message)
+	(jka-compr-info-uncompress-program, jka-compr-info-uncompress-args)
+	(jka-compr-info-can-append, jka-compr-info-strip-extension)
+	(jka-compr-info-file-magic-bytes, jka-compr-get-compression-info)
+	(jka-compr-info-regexp): Remove.  Provided by jka-cmpr-hook.
+	(jka-compr-uninstall): Remove entries from
+	jka-compr-added-to-file-coding-system-alist after they are used.
+	(jka-compr-error): Remove unused var `curbuf'.
+	(jka-compr-file-local-copy): Remove unused var `notfound'.
+
+2005-11-10  Romain Francoise  <romain@orebokech.com>
+
+	* apropos.el (apropos-calc-scores): Use `apropos-pattern'.
+
+2005-11-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Move parentheses.
+	(gdb): New command gud-pv.
+
+2005-11-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* tar-mode.el: Remove spurious or unnecessary leading stars
+	in docstrings.
+	(tar-header-block-tokenize): Also obey default-file-name-coding-system.
+	(tar-parse-octal-integer-safe): Use mapc.
+	(tar-header-block-summarize): Remove unused var `ck'.
+	(tar-summarize-buffer): Don't clear the modified-p bit if it wasn't
+	cleared before.  Obey default-enable-multibyte-characters.
+	Use mapconcat.  Simplify setting of tar-header-offset.
+	(tar-mode-map): Move initialization inside delcaration.
+	(tar-flag-deleted): Use `abs'.
+	(tar-expunge-internal): Remove unused var `line'.
+	(tar-expunge-internal): Don't hardcode point-min==1.
+	(tar-expunge): Widen while doing set-buffer-multibyte.
+	(tar-rename-entry): Use file-name-coding-system.
+	(tar-alter-one-field): Don't hardcode point-min==1.
+	(tar-subfile-save-buffer): string-as-unibyte works on unibyte strings.
+	(tar-pad-to-blocksize): Don't hardcode point-min==1.  Clarify the code.
+
+2005-11-10  Masatake YAMATO  <jet@gyve.org>
+
+	* add-log.el (add-log-current-defun): Handle class::method
+	notation of c++. Fix incorrect comment.
+
+2005-11-10  Alan Mackenzie  <acm@muc.de>
+
+	* help-fns.el (describe-variable): Make C-h v work when a variable
+	has variable documentation yet is unbound.
+
+2005-11-10  Masatake YAMATO  <jet@gyve.org>
+
+	* man.el (Man-highlight-references): Set an empty
+	string to `Man-arguments' if it is nil.
+	Suggested by Reiner Steib <Reiner.Steib@gmx.de>.
+
+2005-11-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* Makefile.in (mh-loaddefs.el, loaddefs.el): Better follow the
+	commenting conventions.
+
+	* cus-dep.el (custom-make-dependencies): Simplify.
+	Better follow the commenting conventions.
+
+2005-11-09  Richard M. Stallman  <rms@gnu.org>
+
+	* apropos.el (apropos-pattern): Rename from apropos-regexp.
+	(apropos-orig-pattern): Rename from apropos-orig-regexp.
+	All uses changed.
+	(apropos-rewrite-regexp): Doc fix.
+	(apropos-variable, apropos-command, apropos, apropos-value):
+	Change prompt; carry through the argument renaming.
+
+2005-11-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* find-lisp.el: Require dired.
+	(find-lisp-find-dired-internal): Do not call
+	`abbreviate-file-name' on DIR.
+
+2005-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gdb): Make gud-pp use user-defined command pp1.
+
+2005-11-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Ensure tool-bar is constant
+	when using the speedbar.
+	(gdb): New command gud-pp.
+	(gud-menu-map, gud-tool-bar-map): Put it on the tool bar.
+
+2005-11-09  Juri Linkov  <juri@jurta.org>
+
+	* replace.el (occur-excluded-properties): New defcustom.
+	(occur-1, occur-engine, occur-accumulate-lines): Use it.
+
+2005-11-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el (math-convert-units): Replace any composite
+	unit by its definition.
+
+2005-11-08  Lars Hansen  <larsh@soem.dk>
+
+	* emacs-lisp/autoload.el (update-directory-autoloads):
+	Add obsolete function alias.
+
+2005-11-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Don't set
+	comment-indent-function.
+	(lisp-comment-indent): Replace by an alias for comment-indent-default.
+
+	* reveal.el (reveal-post-command): Rework the handling of
+	reveal-open-spots, so as to be more reliable.  There were several
+	tricky corner cases where an open spot might be lost, or where
+	a closed spot might end up on the list of open spots.
+	Only reveal text that's ellipsised.
+
+2005-11-07  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-export-as-html): Remove bogus (debug) form.
+
 2005-11-06  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/compile.el (compilation-internal-error-properties):
@@ -15,14 +507,14 @@
 
 2005-11-07  Masatake YAMATO  <jet@gyve.org>
 
-	* man.el (Man-reference-regexp): Accpet spaces between 
+	* man.el (Man-reference-regexp): Accept spaces between
 	`Man-name-regexp' and `Man-section-regexp'.
 	(Man-apropos-regexp): New variable.
 	(Man-abstract-xref-man-page): Use value for `Man-target-string'
 	if available.
-	(Man-highlight-references, Man-highlight-references0): Handle 
-	the case when `Man-arguments' includes "-k".
-	(Man-highlight-references0): Rename the argument `TARGET-POS' to 
+	(Man-highlight-references, Man-highlight-references0):
+	Handle the case when `Man-arguments' includes "-k".
+	(Man-highlight-references0): Rename the argument `TARGET-POS' to
 	`TARGET'. `TARGET' can be a number, function or nil.
 
 2005-11-06  Nick Roberts  <nickrob@snap.net.nz>
@@ -251,7 +743,7 @@
 
 	* mail/rmailout.el (rmail-output-to-rmail-file, rmail-output): Doc fix.
 
-2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+2005-11-04  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)

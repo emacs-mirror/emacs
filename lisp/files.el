@@ -2717,7 +2717,10 @@ Interactively, confirmation is required unless you supply a prefix argument."
   (and buffer-file-name
        (file-writable-p buffer-file-name)
        (setq buffer-read-only nil))
-  (save-buffer))
+  (save-buffer)
+  ;; It's likely that the VC status at the new location is different from
+  ;; the one at the old location.
+  (vc-find-file-hook))
 
 (defun backup-buffer ()
   "Make a backup of the disk file visited by the current buffer, if appropriate.

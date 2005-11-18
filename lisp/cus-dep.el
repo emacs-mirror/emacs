@@ -79,54 +79,46 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
   (message "Generating %s..." generated-custom-dependencies-file)
   (set-buffer (find-file-noselect generated-custom-dependencies-file))
   (erase-buffer)
-  (insert "\
-;;; " (file-name-nondirectory generated-custom-dependencies-file)
+  (insert ";;; " (file-name-nondirectory generated-custom-dependencies-file)
       " --- automatically extracted custom dependencies
-;;
-;;; Code:
+;;\n;;; Code:
 
 ")
   (mapatoms (lambda (symbol)
 	      (let ((members (get symbol 'custom-group))
-		    item where found)
+                    where found)
 		(when members
-		  ;; So x and no-x builds won't differ.
-		  (setq members
-			(sort (copy-sequence members)
-			      (lambda (x y) (string< (car x) (car y)))))
-		  (while members
-		    (setq item (car (car members))
-			  members (cdr members)
-			  where (get item 'custom-where))
+		  (dolist (member
+                           ;; So x and no-x builds won't differ.
+                           (sort (mapcar 'car members) 'string<))
+		    (setq where (get member 'custom-where))
 		    (unless (or (null where)
 				(member where found))
-		      (if found
-			  (insert " ")
-			(insert "(put '" (symbol-name symbol)
-				" 'custom-loads '("))
-		      (prin1 where (current-buffer))
 		      (push where found)))
 		  (when found
-		    (insert "))\n"))))))
+		    (insert "(put '" (symbol-name symbol)
+                            " 'custom-loads '")
+                    (prin1 (nreverse found) (current-buffer))
+                    (insert ")\n"))))))
   (insert "\
-;;; These are for handling :version.  We need to have a minimum of
-;;; information so `customize-changed-options' could do its job.
+;; These are for handling :version.  We need to have a minimum of
+;; information so `customize-changed-options' could do its job.
 
-;;; For groups we set `custom-version', `group-documentation' and
-;;; `custom-tag' (which are shown in the customize buffer), so we
-;;; don't have to load the file containing the group.
+;; For groups we set `custom-version', `group-documentation' and
+;; `custom-tag' (which are shown in the customize buffer), so we
+;; don't have to load the file containing the group.
 
-;;; `custom-versions-load-alist' is an alist that has as car a version
-;;; number and as elts the files that have variables or faces that
-;;; contain that version. These files should be loaded before showing
-;;; the customization buffer that `customize-changed-options'
-;;; generates.
+;; `custom-versions-load-alist' is an alist that has as car a version
+;; number and as elts the files that have variables or faces that
+;; contain that version. These files should be loaded before showing
+;; the customization buffer that `customize-changed-options'
+;; generates.
 
-;;; This macro is used so we don't modify the information about
-;;; variables and groups if it's already set. (We don't know when
-;;; " (file-name-nondirectory generated-custom-dependencies-file)
+;; This macro is used so we don't modify the information about
+;; variables and groups if it's already set. (We don't know when
+;; " (file-name-nondirectory generated-custom-dependencies-file)
       " is going to be loaded and at that time some of the
-;;; files might be loaded and some others might not).
+;; files might be loaded and some others might not).
 \(defmacro custom-put-if-not (symbol propname value)
   `(unless (get ,symbol ,propname)
      (put ,symbol ,propname ,value)))
@@ -175,12 +167,13 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 \(provide '" (file-name-sans-extension
 	      (file-name-nondirectory generated-custom-dependencies-file)) ")
 
-;;; Local Variables:
-;;; version-control: never
-;;; no-byte-compile: t
-;;; no-update-autoloads: t
-;;; End:
-;;; " (file-name-nondirectory generated-custom-dependencies-file) " ends here\n")
+;; Local Variables:
+;; version-control: never
+;; no-byte-compile: t
+;; no-update-autoloads: t
+;; End:\n;;; "
+              (file-name-nondirectory generated-custom-dependencies-file)
+              " ends here\n")
   (let ((kept-new-versions 10000000))
     (save-buffer))
   (message "Generating %s...done" generated-custom-dependencies-file)
@@ -188,5 +181,5 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 
 
 
-;;; arch-tag: b7b6421a-bf7a-44fd-a382-6f44976bdf68
+;; arch-tag: b7b6421a-bf7a-44fd-a382-6f44976bdf68
 ;;; cus-dep.el ends here

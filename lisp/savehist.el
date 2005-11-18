@@ -4,7 +4,7 @@
 
 ;; Author: Hrvoje Niksic <hniksic@xemacs.org>
 ;; Keywords: minibuffer
-;; Version: 19
+;; Version: 24
 
 ;; This file is part of GNU Emacs.
 
@@ -64,9 +64,7 @@
 Set this by calling the `savehist-mode' function or using the customize
 interface."
   :type 'boolean
-  :set (if (fboundp 'custom-set-minor-mode)
-           'custom-set-minor-mode
-         (lambda (symbol value) (funcall symbol (or value 0))))
+  :set (lambda (symbol value) (savehist-mode (or value 0)))
   :initialize 'custom-initialize-default
   :require 'savehist
   :group 'savehist)
@@ -129,18 +127,25 @@ If set to nil, disables timer-based autosaving."
   :type 'integer
   :group 'savehist)
 
+(defcustom savehist-mode-hook nil
+  "Hook called when `savehist-mode' is turned on."
+  :type 'hook)
+
 (defcustom savehist-save-hook nil
   "Hook called by `savehist-save' before saving the variables.
 You can use this hook to influence choice and content of variables to
 save."
-  :type 'hook)
+  :type 'hook
+  :group 'savehist)
 
-(defvar savehist-coding-system
-  ;; UTF-8 is usually preferable to ISO-2022-8 when available, but under
-  ;; XEmacs, UTF-8 is provided by external packages, and may not always be
-  ;; available, so even if it currently is available, we prefer not to
-  ;; use is.
-  (if (featurep 'xemacs) 'iso-2022-8 'utf-8)
+;; This should be capable of representing characters used by Emacs.
+;; We prefer UTF-8 over ISO 2022 because it is well-known outside
+;; Mule.  XEmacs prir to 21.5 had UTF-8 provided by an external
+;; package which may not be loaded, which is why we check for version.
+(defvar savehist-coding-system (if (and (featurep 'xemacs)
+					(<= emacs-major-version 21)
+					(< emacs-minor-version 5))
+				   'iso-2022-8 'utf-8)
   "The coding system savehist uses for saving the minibuffer history.
 Changing this value while Emacs is running is supported, but considered
 unwise, unless you know what you are doing.")
@@ -158,20 +163,20 @@ along with minibuffer history.  You can change its value off
 `savehist-save-hook' to influence which variables are saved.")
 
 (defconst savehist-no-conversion (if (featurep 'xemacs) 'binary 'no-conversion)
-  "Coding system without conversion, used for calculating internal checksums.
-Should be as fast as possible, ideally simply exposing the internal
-representation of buffer text.")
+  "Coding system without any conversion.
+This is used for calculating an internal checksum.  Should be as fast
+as possible, ideally simply exposing the internal representation of
+buffer text.")
 
 (defvar savehist-loaded nil
   "Whether the history has already been loaded.
-This prevents toggling `savehist-mode' from destroying existing
+This prevents toggling savehist-mode from destroying existing
 minibuffer history.")
 
-(eval-when-compile
-  (when (featurep 'xemacs)
-    ;; Must declare this under XEmacs, which doesn't have built-in
-    ;; minibuffer history truncation.
-    (defvar history-length 100)))
+(when (featurep 'xemacs)
+  ;; Must declare this under XEmacs, which doesn't have built-in
+  ;; minibuffer history truncation.
+  (defvar history-length 100))
 
 ;; Functions.
 
@@ -209,16 +214,8 @@ which is probably undesirable."
 	 (setq savehist-mode nil)
 	 (savehist-uninstall)
 	 (signal (car errvar) (cdr errvar)))))
-    (savehist-install))
-
-  ;; End with the usual minor-mode conventions normally provided
-  ;; transparently by define-minor-mode.
-  (run-hooks 'savehist-mode-hook)
-  (if (interactive-p)
-      (progn
-        (customize-mark-as-set 'savehist-mode)
-        (unless (current-message)
-          (message "Savehist mode %sabled" (if savehist-mode "en" "dis")))))
+    (savehist-install)
+    (run-hooks 'savehist-mode-hook))
   ;; Return the new setting.
   savehist-mode)
 (add-minor-mode 'savehist-mode "")
@@ -340,9 +337,9 @@ Does nothing if savehist-mode is off."
     (savehist-save t)))
 
 (defun savehist-trim-history (value)
-  ;; Retain only the first history-length items in VALUE.  Only used
-  ;; under XEmacs, which doesn't (yet) implement automatic trimming of
-  ;; history lists to history-length items.
+  "Retain only the first history-length items in VALUE.
+Only used under XEmacs, which doesn't (yet) implement automatic
+trimming of history lists to history-length items."
   (if (and (featurep 'xemacs)
 	   (natnump history-length)
 	   (> (length value) history-length))
@@ -373,8 +370,11 @@ Does nothing if savehist-mode is off."
 	(error nil))))))
 
 (defun savehist-minibuffer-hook ()
-  (add-to-list 'savehist-minibuffer-history-variables
-	       minibuffer-history-variable))
+  ;; XEmacs sets minibuffer-history-variable to t to mean "no history
+  ;; is being recorded".
+  (unless (eq minibuffer-history-variable t)
+    (add-to-list 'savehist-minibuffer-history-variables
+		 minibuffer-history-variable)))
 
 (provide 'savehist)
 

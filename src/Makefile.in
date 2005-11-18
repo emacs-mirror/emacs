@@ -725,6 +725,7 @@ lisp= \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \
 	${lispsource}isearch.elc \
+	${lispsource}rfn-eshadow.elc \
 	${lispsource}loadup.el \
 	${lispsource}loaddefs.el \
 	${lispsource}bindings.elc \
@@ -821,6 +822,7 @@ shortlisp= \
 	../lisp/help.elc \
 	../lisp/indent.elc \
 	../lisp/isearch.elc \
+	../lisp/rfn-eshadow.elc \
 	../lisp/loadup.el \
 	../lisp/loaddefs.el \
 	../lisp/bindings.elc \

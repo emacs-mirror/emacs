@@ -1,3 +1,7 @@
+2005-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (shortlisp): Sync with src/Makefile.in.
+
 2005-10-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* INSTALL: Replace `Mac OS 8/9' with `Mac OS Classic'.  Add

@@ -101,7 +101,7 @@
   :group 'data)
 
 (defcustom tar-anal-blocksize 20
-  "*The blocksize of tar files written by Emacs, or nil, meaning don't care.
+  "The blocksize of tar files written by Emacs, or nil, meaning don't care.
 The blocksize of a tar file is not really the size of the blocks; rather, it is
 the number of blocks written with one system call.  When tarring to a tape,
 this is the size of the *tape* blocks, but when writing to a file, it doesn't
@@ -112,7 +112,7 @@ how many null padding bytes go on the end of the tar file."
   :group 'tar)
 
 (defcustom tar-update-datestamp nil
-  "*Non-nil means Tar mode should play fast and loose with sub-file datestamps.
+  "Non-nil means Tar mode should play fast and loose with sub-file datestamps.
 If this is true, then editing and saving a tar file entry back into its
 tar file will update its datestamp.  If false, the datestamp is unchanged.
 You may or may not want this - it is good in that you can tell when a file
@@ -123,7 +123,7 @@ the file never exists on disk."
   :group 'tar)
 
 (defcustom tar-mode-show-date nil
-  "*Non-nil means Tar mode should show the date/time of each subfile.
+  "Non-nil means Tar mode should show the date/time of each subfile.
 This information is useful, but it takes screen space away from file names."
   :type 'boolean
   :group 'tar)
@@ -231,12 +231,16 @@ write-date, checksum, link-type, and link-name."
 	   (setq linkname (substring string tar-link-offset link-end))
 	   (if default-enable-multibyte-characters
 	       (setq name
-		     (decode-coding-string name (or file-name-coding-system
-						    'undecided))
+		     (decode-coding-string name
+					   (or file-name-coding-system
+					       default-file-name-coding-system
+					       'undecided))
 		     linkname
-		     (decode-coding-string linkname (or file-name-coding-system
-							'undecided))))
-	   (if (and (null link-p) (string-match "/$" name)) (setq link-p 5)) ; directory
+		     (decode-coding-string linkname
+					   (or file-name-coding-system
+					       default-file-name-coding-system
+					       'undecided))))
+	   (if (and (null link-p) (string-match "/\\'" name)) (setq link-p 5)) ; directory
 	   (make-tar-header
 	     name
 	     (tar-parse-octal-integer string tar-mode-offset tar-uid-offset)
@@ -284,12 +288,11 @@ write-date, checksum, link-type, and link-name."
       (list hi lo))))
 
 (defun tar-parse-octal-integer-safe (string)
-  (let ((L (length string)))
-    (if (= L 0) (error "empty string"))
-    (dotimes (i L)
-       (if (or (< (aref string i) ?0)
-	       (> (aref string i) ?7))
-	   (error "`%c' is not an octal digit" (aref string i)))))
+  (if (zerop (length string)) (error "empty string"))
+  (mapc (lambda (c)
+	  (if (or (< c ?0) (> c ?7))
+	      (error "`%c' is not an octal digit" c)))
+	string)
   (tar-parse-octal-integer string))
 
 
@@ -343,7 +346,7 @@ MODE should be an integer which is a file mode value."
 	(gname (tar-header-gname tar-hblock))
 	(size (tar-header-size tar-hblock))
 	(time (tar-header-date tar-hblock))
-	(ck (tar-header-checksum tar-hblock))
+	;; (ck (tar-header-checksum tar-hblock))
 	(type (tar-header-link-type tar-hblock))
 	(link-name (tar-header-link-name tar-hblock)))
     (format "%c%c%s%8s/%-8s%7s%s %s%s"
@@ -403,147 +406,143 @@ MODE should be an integer which is a file mode value."
 Place a dired-like listing on the front;
 then narrow to it, so that only that listing
 is visible (and the real data of the buffer is hidden)."
-  (set-buffer-multibyte nil)
-  (let* ((result '())
-	 (pos (point-min))
-	 (progress-reporter
-	  (make-progress-reporter "Parsing tar file..."
-				  (point-min) (max 1 (- (buffer-size) 1024))))
-	 tokens)
-    (while (and (<= (+ pos 512) (point-max))
-		(not (eq 'empty-tar-block
-			 (setq tokens
-			       (tar-header-block-tokenize
-				(buffer-substring pos (+ pos 512)))))))
-      (setq pos (+ pos 512))
-      (progress-reporter-update progress-reporter pos)
-      (if (eq (tar-header-link-type tokens) 20)
-	  ;; Foo.  There's an extra empty block after these.
-	  (setq pos (+ pos 512)))
-      (let ((size (tar-header-size tokens)))
-	(if (< size 0)
-	    (error "%s has size %s - corrupted"
-		   (tar-header-name tokens) size))
-	;
-	; This is just too slow.  Don't really need it anyway....
-	;(tar-header-block-check-checksum
-	;  hblock (tar-header-block-checksum hblock)
-	;  (tar-header-name tokens))
+  (let ((modified (buffer-modified-p)))
+    (set-buffer-multibyte nil)
+    (let* ((result '())
+           (pos (point-min))
+           (progress-reporter
+            (make-progress-reporter "Parsing tar file..."
+                                    (point-min) (max 1 (- (buffer-size) 1024))))
+           tokens)
+      (while (and (<= (+ pos 512) (point-max))
+                  (not (eq 'empty-tar-block
+                           (setq tokens
+                                 (tar-header-block-tokenize
+                                  (buffer-substring pos (+ pos 512)))))))
+        (setq pos (+ pos 512))
+        (progress-reporter-update progress-reporter pos)
+        (if (eq (tar-header-link-type tokens) 20)
+            ;; Foo.  There's an extra empty block after these.
+            (setq pos (+ pos 512)))
+        (let ((size (tar-header-size tokens)))
+          (if (< size 0)
+              (error "%s has size %s - corrupted"
+                     (tar-header-name tokens) size))
+                                        ;
+                                        ; This is just too slow.  Don't really need it anyway....
+                                        ;(tar-header-block-check-checksum
+                                        ;  hblock (tar-header-block-checksum hblock)
+                                        ;  (tar-header-name tokens))
 
-	(setq result (cons (make-tar-desc pos tokens) result))
+          (push (make-tar-desc pos tokens) result)
 
-	(and (null (tar-header-link-type tokens))
-	     (> size 0)
-	     (setq pos
-		   (+ pos 512 (ash (ash (1- size) -9) 9))        ; this works
-		   ;(+ pos (+ size (- 512 (rem (1- size) 512)))) ; this doesn't
-		   ))))
-    (make-local-variable 'tar-parse-info)
-    (setq tar-parse-info (nreverse result))
-    ;; A tar file should end with a block or two of nulls,
-    ;; but let's not get a fatal error if it doesn't.
-    (if (eq tokens 'empty-tar-block)
-	(progress-reporter-done progress-reporter)
-      (message "Warning: premature EOF parsing tar file")))
-  (save-excursion
+          (and (null (tar-header-link-type tokens))
+               (> size 0)
+               (setq pos
+                     (+ pos 512 (ash (ash (1- size) -9) 9)) ; this works
+                                        ;(+ pos (+ size (- 512 (rem (1- size) 512)))) ; this doesn't
+                     ))))
+      (make-local-variable 'tar-parse-info)
+      (setq tar-parse-info (nreverse result))
+      ;; A tar file should end with a block or two of nulls,
+      ;; but let's not get a fatal error if it doesn't.
+      (if (eq tokens 'empty-tar-block)
+          (progress-reporter-done progress-reporter)
+        (message "Warning: premature EOF parsing tar file")))
+    (set-buffer-multibyte default-enable-multibyte-characters)
     (goto-char (point-min))
-    (let ((buffer-read-only nil)
-	  (summaries nil))
+    (let ((inhibit-read-only t))
       ;; Collect summary lines and insert them all at once since tar files
       ;; can be pretty big.
-      (dolist (tar-desc (reverse tar-parse-info))
-	(setq summaries
-	      (cons (tar-header-block-summarize (tar-desc-tokens tar-desc))
-		    (cons "\n"
-			  summaries))))
-      (let ((total-summaries (apply 'concat summaries)))
-	(if (multibyte-string-p total-summaries)
-	    (set-buffer-multibyte t))
-	(insert total-summaries))
-      (make-local-variable 'tar-header-offset)
-      (setq tar-header-offset (point))
-      (narrow-to-region (point-min) tar-header-offset)
-      (if enable-multibyte-characters
-	  (setq tar-header-offset (position-bytes tar-header-offset)))
-      (set-buffer-modified-p nil))))
+      (let ((total-summaries
+	     (mapconcat
+	      (lambda (tar-desc)
+		(tar-header-block-summarize (tar-desc-tokens tar-desc)))
+	      tar-parse-info
+	      "\n")))
+	(insert total-summaries "\n"))
+      (narrow-to-region (point-min) (point))
+      (set (make-local-variable 'tar-header-offset) (position-bytes (point)))
+      (goto-char (point-min))
+      (restore-buffer-modified-p modified))))
 
-(defvar tar-mode-map nil "*Local keymap for Tar mode listings.")
+(defvar tar-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map " " 'tar-next-line)
+    (define-key map "C" 'tar-copy)
+    (define-key map "d" 'tar-flag-deleted)
+    (define-key map "\^D" 'tar-flag-deleted)
+    (define-key map "e" 'tar-extract)
+    (define-key map "f" 'tar-extract)
+    (define-key map "\C-m" 'tar-extract)
+    (define-key map [mouse-2] 'tar-mouse-extract)
+    (define-key map "g" 'revert-buffer)
+    (define-key map "h" 'describe-mode)
+    (define-key map "n" 'tar-next-line)
+    (define-key map "\^N" 'tar-next-line)
+    (define-key map [down] 'tar-next-line)
+    (define-key map "o" 'tar-extract-other-window)
+    (define-key map "p" 'tar-previous-line)
+    (define-key map "q" 'quit-window)
+    (define-key map "\^P" 'tar-previous-line)
+    (define-key map [up] 'tar-previous-line)
+    (define-key map "R" 'tar-rename-entry)
+    (define-key map "u" 'tar-unflag)
+    (define-key map "v" 'tar-view)
+    (define-key map "x" 'tar-expunge)
+    (define-key map "\177" 'tar-unflag-backwards)
+    (define-key map "E" 'tar-extract-other-window)
+    (define-key map "M" 'tar-chmod-entry)
+    (define-key map "G" 'tar-chgrp-entry)
+    (define-key map "O" 'tar-chown-entry)
 
-(if tar-mode-map
-    nil
-  (setq tar-mode-map (make-keymap))
-  (suppress-keymap tar-mode-map)
-  (define-key tar-mode-map " " 'tar-next-line)
-  (define-key tar-mode-map "C" 'tar-copy)
-  (define-key tar-mode-map "d" 'tar-flag-deleted)
-  (define-key tar-mode-map "\^D" 'tar-flag-deleted)
-  (define-key tar-mode-map "e" 'tar-extract)
-  (define-key tar-mode-map "f" 'tar-extract)
-  (define-key tar-mode-map "\C-m" 'tar-extract)
-  (define-key tar-mode-map [mouse-2] 'tar-mouse-extract)
-  (define-key tar-mode-map "g" 'revert-buffer)
-  (define-key tar-mode-map "h" 'describe-mode)
-  (define-key tar-mode-map "n" 'tar-next-line)
-  (define-key tar-mode-map "\^N" 'tar-next-line)
-  (define-key tar-mode-map [down] 'tar-next-line)
-  (define-key tar-mode-map "o" 'tar-extract-other-window)
-  (define-key tar-mode-map "p" 'tar-previous-line)
-  (define-key tar-mode-map "q" 'quit-window)
-  (define-key tar-mode-map "\^P" 'tar-previous-line)
-  (define-key tar-mode-map [up] 'tar-previous-line)
-  (define-key tar-mode-map "R" 'tar-rename-entry)
-  (define-key tar-mode-map "u" 'tar-unflag)
-  (define-key tar-mode-map "v" 'tar-view)
-  (define-key tar-mode-map "x" 'tar-expunge)
-  (define-key tar-mode-map "\177" 'tar-unflag-backwards)
-  (define-key tar-mode-map "E" 'tar-extract-other-window)
-  (define-key tar-mode-map "M" 'tar-chmod-entry)
-  (define-key tar-mode-map "G" 'tar-chgrp-entry)
-  (define-key tar-mode-map "O" 'tar-chown-entry)
-  )
-
-;; Make menu bar items.
+    ;; Make menu bar items.
 
-;; Get rid of the Edit menu bar item to save space.
-(define-key tar-mode-map [menu-bar edit] 'undefined)
+    ;; Get rid of the Edit menu bar item to save space.
+    (define-key map [menu-bar edit] 'undefined)
 
-(define-key tar-mode-map [menu-bar immediate]
-  (cons "Immediate" (make-sparse-keymap "Immediate")))
+    (define-key map [menu-bar immediate]
+      (cons "Immediate" (make-sparse-keymap "Immediate")))
 
-(define-key tar-mode-map [menu-bar immediate view]
-  '("View This File" . tar-view))
-(define-key tar-mode-map [menu-bar immediate display]
-  '("Display in Other Window" . tar-display-other-window))
-(define-key tar-mode-map [menu-bar immediate find-file-other-window]
-  '("Find in Other Window" . tar-extract-other-window))
-(define-key tar-mode-map [menu-bar immediate find-file]
-  '("Find This File" . tar-extract))
+    (define-key map [menu-bar immediate view]
+      '("View This File" . tar-view))
+    (define-key map [menu-bar immediate display]
+      '("Display in Other Window" . tar-display-other-window))
+    (define-key map [menu-bar immediate find-file-other-window]
+      '("Find in Other Window" . tar-extract-other-window))
+    (define-key map [menu-bar immediate find-file]
+      '("Find This File" . tar-extract))
 
-(define-key tar-mode-map [menu-bar mark]
-  (cons "Mark" (make-sparse-keymap "Mark")))
+    (define-key map [menu-bar mark]
+      (cons "Mark" (make-sparse-keymap "Mark")))
 
-(define-key tar-mode-map [menu-bar mark unmark-all]
-  '("Unmark All" . tar-clear-modification-flags))
-(define-key tar-mode-map [menu-bar mark deletion]
-  '("Flag" . tar-flag-deleted))
-(define-key tar-mode-map [menu-bar mark unmark]
-  '("Unflag" . tar-unflag))
+    (define-key map [menu-bar mark unmark-all]
+      '("Unmark All" . tar-clear-modification-flags))
+    (define-key map [menu-bar mark deletion]
+      '("Flag" . tar-flag-deleted))
+    (define-key map [menu-bar mark unmark]
+      '("Unflag" . tar-unflag))
 
-(define-key tar-mode-map [menu-bar operate]
-  (cons "Operate" (make-sparse-keymap "Operate")))
+    (define-key map [menu-bar operate]
+      (cons "Operate" (make-sparse-keymap "Operate")))
 
-(define-key tar-mode-map [menu-bar operate chown]
-  '("Change Owner..." . tar-chown-entry))
-(define-key tar-mode-map [menu-bar operate chgrp]
-  '("Change Group..." . tar-chgrp-entry))
-(define-key tar-mode-map [menu-bar operate chmod]
-  '("Change Mode..." . tar-chmod-entry))
-(define-key tar-mode-map [menu-bar operate rename]
-  '("Rename to..." . tar-rename-entry))
-(define-key tar-mode-map [menu-bar operate copy]
-  '("Copy to..." . tar-copy))
-(define-key tar-mode-map [menu-bar operate expunge]
-  '("Expunge Marked Files" . tar-expunge))
+    (define-key map [menu-bar operate chown]
+      '("Change Owner..." . tar-chown-entry))
+    (define-key map [menu-bar operate chgrp]
+      '("Change Group..." . tar-chgrp-entry))
+    (define-key map [menu-bar operate chmod]
+      '("Change Mode..." . tar-chmod-entry))
+    (define-key map [menu-bar operate rename]
+      '("Rename to..." . tar-rename-entry))
+    (define-key map [menu-bar operate copy]
+      '("Copy to..." . tar-copy))
+    (define-key map [menu-bar operate expunge]
+      '("Expunge Marked Files" . tar-expunge))
+
+    map)
+  "Local keymap for Tar mode listings.")
+
 
 ;; tar mode is suitable only for specially formatted data.
 (put 'tar-mode 'mode-class 'special)
@@ -559,7 +558,7 @@ or click mouse-2 on the file's line in the Tar mode buffer.
 Type `c' to copy an entry from the tar file into another file on disk.
 
 If you edit a sub-file of this archive (as with the `e' command) and
-save it with Control-x Control-s, the contents of that buffer will be
+save it with \\[save-buffer], the contents of that buffer will be
 saved back into the tar-file buffer; in this way you can edit a file
 inside of a tar archive without extracting it and re-archiving it.
 
@@ -787,17 +786,17 @@ appear on disk when you save the tar-file's buffer."
 
 
 (defun tar-extract-other-window ()
-  "*In Tar mode, find this entry of the tar file in another window."
+  "In Tar mode, find this entry of the tar file in another window."
   (interactive)
   (tar-extract t))
 
 (defun tar-display-other-window ()
-  "*In Tar mode, display this entry of the tar file in another window."
+  "In Tar mode, display this entry of the tar file in another window."
   (interactive)
   (tar-extract 'display))
 
 (defun tar-view ()
-  "*In Tar mode, view the tar file entry on this line."
+  "In Tar mode, view the tar file entry on this line."
   (interactive)
   (tar-extract 'view))
 
@@ -823,7 +822,7 @@ appear on disk when you save the tar-file's buffer."
 
 
 (defun tar-copy (&optional to-file)
-  "*In Tar mode, extract this entry of the tar file into a file on disk.
+  "In Tar mode, extract this entry of the tar file into a file on disk.
 If TO-FILE is not supplied, it is prompted for, defaulting to the name of
 the current tar-entry."
   (interactive (list (tar-read-file-name)))
@@ -856,11 +855,11 @@ the current tar-entry."
     (message "Copied tar entry %s to %s" name to-file)))
 
 (defun tar-flag-deleted (p &optional unflag)
-  "*In Tar mode, mark this sub-file to be deleted from the tar file.
+  "In Tar mode, mark this sub-file to be deleted from the tar file.
 With a prefix argument, mark that many files."
   (interactive "p")
   (beginning-of-line)
-  (dotimes (i (if (< p 0) (- p) p))
+  (dotimes (i (abs p))
     (if (tar-current-descriptor unflag) ; barf if we're not on an entry-line.
 	(progn
 	  (delete-char 1)
@@ -869,13 +868,13 @@ With a prefix argument, mark that many files."
   (if (eobp) nil (forward-char 36)))
 
 (defun tar-unflag (p)
-  "*In Tar mode, un-mark this sub-file if it is marked to be deleted.
+  "In Tar mode, un-mark this sub-file if it is marked to be deleted.
 With a prefix argument, un-mark that many files forward."
   (interactive "p")
   (tar-flag-deleted p t))
 
 (defun tar-unflag-backwards (p)
-  "*In Tar mode, un-mark this sub-file if it is marked to be deleted.
+  "In Tar mode, un-mark this sub-file if it is marked to be deleted.
 With a prefix argument, un-mark that many files backward."
   (interactive "p")
   (tar-flag-deleted (- p) t))
@@ -886,7 +885,7 @@ With a prefix argument, un-mark that many files backward."
   "Expunge the tar-entry specified by the current line."
   (let* ((descriptor (tar-current-descriptor))
 	 (tokens (tar-desc-tokens descriptor))
-	 (line (tar-desc-data-start descriptor))
+	 ;; (line (tar-desc-data-start descriptor))
 	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
 	 (link-p (tar-header-link-type tokens))
@@ -898,18 +897,16 @@ With a prefix argument, un-mark that many files backward."
     (beginning-of-line)
     (let ((line-start (point)))
       (end-of-line) (forward-char)
-      (let ((line-len (- (point) line-start)))
-	(delete-region line-start (point))
-	;;
-	;; decrement the header-pointer to be in sync...
-	(setq tar-header-offset (- tar-header-offset line-len))))
+      ;; decrement the header-pointer to be in sync...
+      (setq tar-header-offset (- tar-header-offset (- (point) line-start)))
+      (delete-region line-start (point)))
     ;;
     ;; delete the data pointer...
     (setq tar-parse-info (delq descriptor tar-parse-info))
     ;;
     ;; delete the data from inside the file...
     (widen)
-    (let* ((data-start (+ start tar-header-offset -513))
+    (let* ((data-start (+ start (- tar-header-offset (point-min)) -512))
 	   (data-end (+ data-start 512 (ash (ash (+ size 511) -9) 9))))
       (delete-region data-start data-end)
       ;;
@@ -927,7 +924,7 @@ With a prefix argument, un-mark that many files backward."
 
 
 (defun tar-expunge (&optional noconfirm)
-  "*In Tar mode, delete all the archived files flagged for deletion.
+  "In Tar mode, delete all the archived files flagged for deletion.
 This does not modify the disk image; you must save the tar file itself
 for this to be permanent."
   (interactive)
@@ -935,8 +932,9 @@ for this to be permanent."
 	  (y-or-n-p "Expunge files marked for deletion? "))
       (let ((n 0)
 	    (multibyte enable-multibyte-characters))
-	(set-buffer-multibyte nil)
 	(save-excursion
+          (widen)
+          (set-buffer-multibyte nil)
 	  (goto-char (point-min))
 	  (while (not (eobp))
 	    (if (looking-at "D")
@@ -945,8 +943,9 @@ for this to be permanent."
 		(forward-line 1)))
 	  ;; after doing the deletions, add any padding that may be necessary.
 	  (tar-pad-to-blocksize)
+          (widen)
+          (set-buffer-multibyte multibyte)
 	  (narrow-to-region (point-min) tar-header-offset))
-	(set-buffer-multibyte multibyte)
 	(if (zerop n)
 	    (message "Nothing to expunge.")
 	    (message "%s files expunged.  Be sure to save this buffer." n)))))
@@ -964,7 +963,7 @@ for this to be permanent."
 
 
 (defun tar-chown-entry (new-uid)
-  "*Change the user-id associated with this entry in the tar file.
+  "Change the user-id associated with this entry in the tar file.
 If this tar file was written by GNU tar, then you will be able to edit
 the user id as a string; otherwise, you must edit it as a number.
 You can force editing as a number by calling this with a prefix arg.
@@ -992,7 +991,7 @@ for this to be permanent."
 
 
 (defun tar-chgrp-entry (new-gid)
-  "*Change the group-id associated with this entry in the tar file.
+  "Change the group-id associated with this entry in the tar file.
 If this tar file was written by GNU tar, then you will be able to edit
 the group id as a string; otherwise, you must edit it as a number.
 You can force editing as a number by calling this with a prefix arg.
@@ -1020,7 +1019,7 @@ for this to be permanent."
 	   (concat (substring (format "%6o" new-gid) 0 6) "\000 ")))))
 
 (defun tar-rename-entry (new-name)
-  "*Change the name associated with this entry in the tar file.
+  "Change the name associated with this entry in the tar file.
 This does not modify the disk image; you must save the tar file itself
 for this to be permanent."
   (interactive
@@ -1030,12 +1029,16 @@ for this to be permanent."
   (if (> (length new-name) 98) (error "name too long"))
   (tar-setf (tar-header-name (tar-desc-tokens (tar-current-descriptor)))
 	    new-name)
+  (if (multibyte-string-p new-name)
+      (setq new-name (encode-coding-string new-name
+					   (or file-name-coding-system
+					       default-file-name-coding-system))))
   (tar-alter-one-field 0
     (substring (concat new-name (make-string 99 0)) 0 99)))
 
 
 (defun tar-chmod-entry (new-mode)
-  "*Change the protection bits associated with this entry in the tar file.
+  "Change the protection bits associated with this entry in the tar file.
 This does not modify the disk image; you must save the tar file itself
 for this to be permanent."
   (interactive (list (tar-parse-octal-integer-safe
@@ -1063,7 +1066,9 @@ for this to be permanent."
 
 	  (widen)
 	  (set-buffer-multibyte nil)
-	  (let* ((start (+ (tar-desc-data-start descriptor) tar-header-offset -513)))
+	  (let* ((start (+ (tar-desc-data-start descriptor)
+			   (- tar-header-offset (point-min))
+                           -512)))
 	    ;;
 	    ;; delete the old field and insert a new one.
 	    (goto-char (+ start data-position))
@@ -1196,9 +1201,7 @@ to make your changes permanent."
 		;; Insert the new text after the old, before deleting,
 		;; to preserve the window start.
 		(let ((line (tar-header-block-summarize tokens t)))
-		  (if (multibyte-string-p line)
-		      (insert-before-markers (string-as-unibyte line) "\n")
-		    (insert-before-markers line "\n")))
+		  (insert-before-markers (string-as-unibyte line) "\n"))
 		(delete-region p after)
 		(setq tar-header-offset (marker-position m)))
 	      )))
@@ -1234,19 +1237,17 @@ Leaves the region wide."
 	   (size (if link-p 0 (tar-header-size tokens)))
 	   (data-end (+ start size))
 	   (bbytes (ash tar-anal-blocksize 9))
-	   (pad-to (+ bbytes (* bbytes (/ (1- data-end) bbytes))))
+	   (pad-to (+ bbytes (* bbytes (/ (- data-end (point-min)) bbytes))))
 	   (inhibit-read-only t) ; ##
 	   )
       ;; If the padding after the last data is too long, delete some;
       ;; else insert some until we are padded out to the right number of blocks.
       ;;
-      (goto-char (+ (or tar-header-offset 0) data-end))
-      (if (> (1+ (buffer-size)) (+ (or tar-header-offset 0) pad-to))
-	  (delete-region (+ (or tar-header-offset 0) pad-to) (1+ (buffer-size)))
-	  (insert (make-string (- (+ (or tar-header-offset 0) pad-to)
-				  (1+ (buffer-size)))
-			       0)))
-      )))
+      (let ((goal-end (+ (or tar-header-offset 0) pad-to)))
+        (if (> (point-max) goal-end)
+            (delete-region goal-end (point-max))
+          (goto-char (point-max))
+	  (insert (make-string (- goal-end (point-max)) ?\0)))))))
 
 
 ;; Used in write-file-hook to write tar-files out correctly.
@@ -1273,5 +1274,5 @@ Leaves the region wide."
 
 (provide 'tar-mode)
 
-;;; arch-tag: 8a585a4a-340e-42c2-89e7-d3b1013a4b78
+;; arch-tag: 8a585a4a-340e-42c2-89e7-d3b1013a4b78
 ;;; tar-mode.el ends here

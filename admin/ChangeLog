@@ -1,3 +1,8 @@
+2005-11-11  Kim F. Storm  <storm@cua.dk>
+
+	* FOR-RELEASE (FATAL ERRORS): Fix infinite loop in redisplay
+	when displaying a non-breaking space in an overlay string.
+
 2005-10-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* FOR-RELEASE: Init file change implemented.

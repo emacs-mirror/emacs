@@ -44,10 +44,10 @@
 ;;; Todo:
 
 ;; - find other hysteresis features.
+;; - don't hide after a scroll command
+;; - delay hiding by a couple seconds (i.e. hide in the background)
 
 ;;; Code:
-
-(require 'pcvs-util)
 
 (defgroup reveal nil
   "Reveal hidden text on the fly."
@@ -58,7 +58,9 @@
   :type 'boolean
   :group 'reveal)
 
-(defvar reveal-open-spots nil)
+(defvar reveal-open-spots nil
+  "List of spots in the buffer which are open.
+Each element has the form (WINDOW . OVERLAY).")
 (make-variable-buffer-local 'reveal-open-spots)
 
 (defvar reveal-last-tick nil)
@@ -74,35 +76,34 @@
   ;; FIXME: do we actually know that (current-buffer) = (window-buffer) ?
   (with-local-quit
   (condition-case err
-   (let* ((spots (cvs-partition
-		  (lambda (x)
-		    ;; We refresh any spot in the current window as well
-		    ;; as any spots associated with a dead window or a window
-		    ;; which does not show this buffer any more.
-		    (or (eq (car x) (selected-window))
-			(not (window-live-p (car x)))
-			(not (eq (window-buffer (car x))
-				 (current-buffer)))))
-		  reveal-open-spots))
-	  (old-ols (mapcar 'cdr (car spots)))
-	  (repeat t))
-     (setq reveal-open-spots (cdr spots))
+   (let ((old-ols (delq nil
+                        (mapcar
+                         (lambda (x)
+                           ;; We refresh any spot in the current window as
+                           ;; well as any spots associated with a dead
+                           ;; window or a window which does not show this
+                           ;; buffer any more.
+                           (if (or (eq (car x) (selected-window))
+                                   (not (window-live-p (car x)))
+                                   (not (eq (window-buffer (car x))
+                                            (current-buffer))))
+                               (cdr x)))
+                         reveal-open-spots)))
+         (repeat t))
      ;; Open new overlays.
      (while repeat
        (setq repeat nil)
        (dolist (ol (nconc (when (and reveal-around-mark mark-active)
 			    (overlays-at (mark)))
 			  (overlays-at (point))))
-	 (push (cons (selected-window) ol) reveal-open-spots)
 	 (setq old-ols (delq ol old-ols))
 	 (let ((inv (overlay-get ol 'invisible)) open)
 	   (when (and inv
 		      ;; There's an `invisible' property.  Make sure it's
-		      ;; actually invisible.
-		      (or (not (listp buffer-invisibility-spec))
-			  (memq inv buffer-invisibility-spec)
-			  (assq inv buffer-invisibility-spec))
-		      (or (setq open
+		      ;; actually invisible, and ellipsised.
+                      (and (consp buffer-invisibility-spec)
+                           (cdr (assq inv buffer-invisibility-spec)))
+                      (or (setq open
 				(or (overlay-get ol 'reveal-toggle-invisible)
 				    (and (symbolp inv)
 					 (get inv 'reveal-toggle-invisible))
@@ -111,8 +112,10 @@
 			  (and (consp buffer-invisibility-spec)
 			       (cdr (assq inv buffer-invisibility-spec))))
 		      (overlay-put ol 'reveal-invisible inv))
+             (push (cons (selected-window) ol) reveal-open-spots)
 	     (if (null open)
-		 (overlay-put ol 'invisible nil)
+		 (progn ;; (debug)
+                   (overlay-put ol 'invisible nil))
 	       ;; Use the provided opening function and repeat (since the
 	       ;; opening function might have hidden a subpart around point).
 	       (setq repeat t)
@@ -133,32 +136,37 @@
 	 ;; should be rear-advance when it's open, but things like
 	 ;; outline-minor-mode make it non-rear-advance because it's
 	 ;; a better choice when it's closed).
-	 (dolist (ol old-ols)
-	   (push (cons (selected-window) ol) reveal-open-spots))
+         nil
        ;; The last command was only a point motion or some such
        ;; non-buffer-modifying command.  Let's close whatever can be closed.
        (dolist (ol old-ols)
-	 (when (and (eq (current-buffer) (overlay-buffer ol))
-		    (not (rassq ol reveal-open-spots)))
-	   (if (and (>= (point) (save-excursion
-				  (goto-char (overlay-start ol))
-				  (line-beginning-position 1)))
-		    (<= (point) (save-excursion
-				  (goto-char (overlay-end ol))
-				  (line-beginning-position 2))))
-	       ;; Still near the overlay: keep it open.
-	       (push (cons (selected-window) ol) reveal-open-spots)
-	     ;; Really close it.
-	     (let ((open (overlay-get ol 'reveal-toggle-invisible)) inv)
-	       (if (or open
-		       (and (setq inv (overlay-get ol 'reveal-invisible))
-			    (setq open (or (get inv 'reveal-toggle-invisible)
-					   (overlay-get ol 'isearch-open-invisible-temporary)))))
-		   (condition-case err
-		       (funcall open ol t)
-		     (error (message "!!Reveal-hide (funcall %s %s t): %s !!"
-				     open ol err)))
-		 (overlay-put ol 'invisible inv))))))))
+         (if (and (>= (point) (save-excursion
+                                (goto-char (overlay-start ol))
+                                (line-beginning-position 1)))
+                  (<= (point) (save-excursion
+                                (goto-char (overlay-end ol))
+                                (line-beginning-position 2)))
+                  ;; If the application has moved the overlay to some other
+                  ;; buffer, we'd better reset the buffer to its
+                  ;; original state.
+                  (eq (current-buffer) (overlay-buffer ol)))
+             ;; Still near the overlay: keep it open.
+             nil
+           ;; Really close it.
+           (let ((open (overlay-get ol 'reveal-toggle-invisible)) inv)
+             (if (or open
+                     (and (setq inv (overlay-get ol 'reveal-invisible))
+                          (setq open (or (get inv 'reveal-toggle-invisible)
+                                         (overlay-get ol 'isearch-open-invisible-temporary)))))
+                 (condition-case err
+                     (funcall open ol t)
+                   (error (message "!!Reveal-hide (funcall %s %s t): %s !!"
+                                   open ol err)))
+               (overlay-put ol 'invisible inv))
+             ;; Remove the olverlay from the list of open spots.
+             (setq reveal-open-spots
+                   (delq (rassoc ol reveal-open-spots)
+                         reveal-open-spots)))))))
    (error (message "Reveal: %s" err)))))
 
 (defvar reveal-mode-map

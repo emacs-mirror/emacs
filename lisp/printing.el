@@ -1042,12 +1042,6 @@ Please send all bug fixes and enhancements to
 ;; To avoid compilation gripes
 
 
-(or (fboundp 'easy-menu-intern)		; hacked from easymenu.el
-    (defsubst easy-menu-intern (s)
-      (if (stringp s) (intern s) s)))
-
-
-
 (or (fboundp 'subst-char-in-string)	; hacked from subr.el
     (defun subst-char-in-string (fromchar tochar string &optional inplace)
       "Replace FROMCHAR with TOCHAR in STRING each time it occurs.
@@ -2803,8 +2797,10 @@ See `pr-ps-printer-alist'.")
   (and pr-print-using-ghostscript (not pr-spool-p)))
 
 
-(defun pr-get-symbol (name)
-  (easy-menu-intern name))
+(defalias 'pr-get-symbol
+  (if (fboundp 'easy-menu-intern)
+      'easy-menu-intern
+    (lambda (s) (if (stringp s) (intern s) s))))
 
 (cond
  ((featurep 'xemacs)			; XEmacs

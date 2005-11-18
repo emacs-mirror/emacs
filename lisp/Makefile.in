@@ -98,11 +98,11 @@ $(lisp)/loaddefs.el:
 	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
 	echo ";;" >> $@; echo ";;; Code:" >> $@
 	echo "" >> $@
-	echo ";;; Local Variables:" >> $@
-	echo ";;; version-control: never" >> $@
-	echo ";;; no-byte-compile: t" >> $@
-	echo ";;; no-update-autoloads: t" >> $@
-	echo ";;; End:" >> $@
+	echo ";; Local Variables:" >> $@
+	echo ";; version-control: never" >> $@
+	echo ";; no-byte-compile: t" >> $@
+	echo ";; no-update-autoloads: t" >> $@
+	echo ";; End:" >> $@
 	echo ";;; loaddefs.el ends here" >> $@
 autoloads: $(lisp)/loaddefs.el doit
 	wd=$(lisp); $(setwins); \
@@ -231,11 +231,10 @@ mh-autoloads: $(lisp)/mh-e/mh-loaddefs.el
 $(lisp)/mh-e/mh-loaddefs.el: $(MH-E-SRC)
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
 	echo ";;" >> $@
-	echo ";;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc." >> $@
-	echo ";;; Author: Bill Wohler <wohler@newt.com>" >> $@
-	echo ";;; Keywords: mail" >> $@
+	echo ";; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc." >> $@
+	echo ";; Author: Bill Wohler <wohler@newt.com>" >> $@
+	echo ";; Keywords: mail" >> $@
 	echo ";;; Commentary:" >> $@
-	echo ";;; Change Log:" >> $@
 	echo ";;; Code:" >> $@
 	$(EMACS) $(EMACSOPT) \
 	   -l autoload \
@@ -245,11 +244,11 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH-E-SRC)
 	   -f batch-update-autoloads $(lisp)/mh-e
 	echo "" >> $@
 	echo "(provide 'mh-loaddefs)" >> $@
-	echo ";;; Local Variables:" >> $@
-	echo ";;; version-control: never" >> $@
-	echo ";;; no-byte-compile: t" >> $@
-	echo ";;; no-update-autoloads: t" >> $@
-	echo ";;; End:" >> $@
+	echo ";; Local Variables:" >> $@
+	echo ";; version-control: never" >> $@
+	echo ";; no-byte-compile: t" >> $@
+	echo ";; no-update-autoloads: t" >> $@
+	echo ";; End:" >> $@
 	echo ";;; mh-loaddefs.el ends here" >> $@
 
 # Prepare a bootstrap in the lisp subdirectory.

@@ -100,15 +100,27 @@ turns off mouse highlighting."
 (defcustom apropos-match-face 'match
   "*Face for matching text in Apropos documentation/value, or nil for none.
 This applies when you look for matches in the documentation or variable value
-for the regexp; the part that matches gets displayed in this font."
+for the pattern; the part that matches gets displayed in this font."
   :group 'apropos
   :type 'face)
 
 (defcustom apropos-sort-by-scores nil
   "*Non-nil means sort matches by scores; best match is shown first.
-The computed score is shown for each match."
+This applies to all `apropos' commands except `apropos-documentation'.
+If value is `verbose', the computed score is shown for each match."
   :group 'apropos
-  :type 'boolean)
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "on" t)
+		 (const :tag "show scores" verbose)))
+
+(defcustom apropos-documentation-sort-by-scores t
+  "*Non-nil means sort matches by scores; best match is shown first.
+This applies to `apropos-documentation' only.
+If value is `verbose', the computed score is shown for each match."
+  :group 'apropos
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "on" t)
+		 (const :tag "show scores" verbose)))
 
 (defvar apropos-mode-map
   (let ((map (make-sparse-keymap)))
@@ -126,13 +138,22 @@ The computed score is shown for each match."
 (defvar apropos-mode-hook nil
   "*Hook run when mode is turned on.")
 
+(defvar apropos-pattern nil
+  "Apropos pattern as entered by user.")
+
+(defvar apropos-pattern-quoted nil
+  "Apropos pattern passed through `regexp-quoute'.")
+
+(defvar apropos-words ()
+  "Current list of apropos words extracted from `apropos-pattern'.")
+
+(defvar apropos-all-words ()
+  "Current list of words and synonyms.")
+
 (defvar apropos-regexp nil
   "Regexp used in current apropos run.")
 
-(defvar apropos-orig-regexp nil
-  "Regexp as entered by user.")
-
-(defvar apropos-all-regexp nil
+(defvar apropos-all-words-regexp nil
   "Regexp matching apropos-all-words.")
 
 (defvar apropos-files-scanned ()
@@ -151,12 +172,6 @@ The computed score is shown for each match."
   "List of synonyms known by apropos.
 Each element is a list of words where the first word is the standard emacs
 term, and the rest of the words are alternative terms.")
-
-(defvar apropos-words ()
-  "Current list of words.")
-
-(defvar apropos-all-words ()
-  "Current list of words and synonyms.")
 
 
 ;;; Button types used by apropos
@@ -269,18 +284,35 @@ before finding a label."
 		      "\\)")
 	    "")))
 
-(defun apropos-rewrite-regexp (regexp)
+;;;###autoload
+(defun apropos-read-pattern (subject)
+  "Read an apropos pattern, either a word list or a regexp.
+Returns the user pattern, either a list of words which are matched
+literally, or a string which is used as a regexp to search for.
+
+SUBJECT is a string that is included in the prompt to identify what
+kind of objects to search."
+  (let ((pattern
+	 (read-string (concat "Apropos " subject " (word list or regexp): "))))
+    (if (string-equal (regexp-quote pattern) pattern)
+	;; Split into words
+	(split-string pattern "[ \t]+")
+      pattern)))
+
+(defun apropos-parse-pattern (pattern)
   "Rewrite a list of words to a regexp matching all permutations.
-If REGEXP is already a regexp, don't modify it."
-  (setq apropos-orig-regexp regexp)
-  (setq apropos-words () apropos-all-words ())
-  (if (string-equal (regexp-quote regexp) regexp)
+If PATTERN is a string, that means it is already a regexp."
+  (setq apropos-words nil
+	apropos-all-words nil)
+  (if (consp pattern)
       ;; We don't actually make a regexp matching all permutations.
       ;; Instead, for e.g. "a b c", we make a regexp matching
       ;; any combination of two or more words like this:
       ;; (a|b|c).*(a|b|c) which may give some false matches,
       ;; but as long as it also gives the right ones, that's ok.
-      (let ((words (split-string regexp "[ \t]+")))
+      (let ((words pattern))
+	(setq apropos-pattern (mapconcat 'identity pattern " ")
+	      apropos-pattern-quoted (regexp-quote apropos-pattern))
 	(dolist (word words)
 	  (let ((syn apropos-synonyms) (s word) (a word))
 	    (while syn
@@ -293,30 +325,30 @@ If REGEXP is already a regexp, don't modify it."
 		(setq syn (cdr syn))))
 	    (setq apropos-words (cons s apropos-words)
 		  apropos-all-words (cons a apropos-all-words))))
-	(setq apropos-all-regexp (apropos-words-to-regexp apropos-all-words ".+"))
+	(setq apropos-all-words-regexp (apropos-words-to-regexp apropos-all-words ".+"))
 	(apropos-words-to-regexp apropos-words ".*?"))
-    (setq apropos-all-regexp regexp)))
+    (setq apropos-pattern-quoted (regexp-quote pattern)
+	  apropos-all-words-regexp pattern
+	  apropos-pattern pattern)))
+
 
 (defun apropos-calc-scores (str words)
   "Return apropos scores for string STR matching WORDS.
 Value is a list of offsets of the words into the string."
-  (let ((scores ())
-	i)
+  (let (scores i)
     (if words
 	(dolist (word words scores)
 	  (if (setq i (string-match word str))
 	      (setq scores (cons i scores))))
       ;; Return list of start and end position of regexp
-      (string-match apropos-regexp str)
-      (list (match-beginning 0) (match-end 0)))))
+      (and (string-match apropos-pattern str)
+	   (list (match-beginning 0) (match-end 0))))))
 
 (defun apropos-score-str (str)
   "Return apropos score for string STR."
   (if str
-      (let* (
-	     (l (length str))
-	     (score (- (/ l 10)))
-	    i)
+      (let* ((l (length str))
+	     (score (- (/ l 10))))
 	(dolist (s (apropos-calc-scores str apropos-all-words) score)
 	  (setq score (+ score 1000 (/ (* (- l s) 1000) l)))))
       0))
@@ -325,8 +357,9 @@ Value is a list of offsets of the words into the string."
   "Return apropos score for documentation string DOC."
   (let ((l (length doc)))
     (if (> l 0)
-	(let ((score 0)
-	      i)
+	(let ((score 0) i)
+	  (when (setq i (string-match apropos-pattern-quoted doc))
+	    (setq score 10000))
 	  (dolist (s (apropos-calc-scores doc apropos-all-words) score)
 	    (setq score (+ score 50 (/ (* (- l s) 50) l)))))
       0)))
@@ -335,8 +368,7 @@ Value is a list of offsets of the words into the string."
   "Return apropos score for SYMBOL."
   (setq symbol (symbol-name symbol))
   (let ((score 0)
-	(l (length symbol))
-	i)
+	(l (length symbol)))
     (dolist (s (apropos-calc-scores symbol apropos-words) (* score (or weight 3)))
       (setq score (+ score (- 60 l) (/ (* (- l s) 60) l))))))
 
@@ -367,18 +399,20 @@ This requires that at least 2 keywords (unless only one was given)."
 \\{apropos-mode-map}")
 
 ;;;###autoload
-(defun apropos-variable (regexp &optional do-all)
-  "Show user variables that match REGEXP.
-With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also show
+(defun apropos-variable (pattern &optional do-all)
+  "Show user variables that match PATTERN.
+PATTERN can be a word, a list of words (separated by spaces),
+or a regexp (using some regexp special characters).  If it is a word,
+search for matches for that word as a substring.  If it is a list of words,
+search for matches for any two (or more) of those words.
+
+With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, also show
 normal variables."
-  (interactive (list (read-string
-                      (concat "Apropos "
-                              (if (or current-prefix-arg apropos-do-all)
-				  "variable"
-				"user option")
-                              " (regexp or words): "))
+  (interactive (list (apropos-read-pattern
+		      (if (or current-prefix-arg apropos-do-all)
+			  "variable" "user option"))
                      current-prefix-arg))
-  (apropos-command regexp nil
+  (apropos-command pattern nil
 		   (if (or do-all apropos-do-all)
 		       #'(lambda (symbol)
 			   (and (boundp symbol)
@@ -389,21 +423,26 @@ normal variables."
 ;;;###autoload
 (defalias 'command-apropos 'apropos-command)
 ;;;###autoload
-(defun apropos-command (apropos-regexp &optional do-all var-predicate)
-  "Show commands (interactively callable functions) that match APROPOS-REGEXP.
-With optional prefix DO-ALL, or if `apropos-do-all' is non-nil, also show
+(defun apropos-command (pattern &optional do-all var-predicate)
+  "Show commands (interactively callable functions) that match PATTERN.
+PATTERN can be a word, a list of words (separated by spaces),
+or a regexp (using some regexp special characters).  If it is a word,
+search for matches for that word as a substring.  If it is a list of words,
+search for matches for any two (or more) of those words.
+
+With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, also show
 noninteractive functions.
 
 If VAR-PREDICATE is non-nil, show only variables, and only those that
-satisfy the predicate VAR-PREDICATE."
-  (interactive (list (read-string (concat
-				   "Apropos command "
-				   (if (or current-prefix-arg
-					   apropos-do-all)
-				       "or function ")
-				   "(regexp or words): "))
+satisfy the predicate VAR-PREDICATE.
+
+When called from a Lisp program, a string PATTERN is used as a regexp,
+while a list of strings is used as a word list."
+  (interactive (list (apropos-read-pattern
+		      (if (or current-prefix-arg apropos-do-all)
+			  "command or function" "command"))
 		     current-prefix-arg))
-  (setq apropos-regexp (apropos-rewrite-regexp apropos-regexp))
+  (setq apropos-regexp (apropos-parse-pattern pattern))
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Apropos*")))
 	   (print-help-return-message 'identity))))
@@ -441,7 +480,7 @@ satisfy the predicate VAR-PREDICATE."
 					  (string-match "\n" doc)))))))
 	(setcar (cdr (car p)) score)
 	(setq p (cdr p))))
-    (and (apropos-print t nil)
+    (and (apropos-print t nil nil t)
 	 message
 	 (message "%s" message))))
 
@@ -457,13 +496,19 @@ satisfy the predicate VAR-PREDICATE."
 
 
 ;;;###autoload
-(defun apropos (apropos-regexp &optional do-all)
-  "Show all bound symbols whose names match APROPOS-REGEXP.
-With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also
+(defun apropos (pattern &optional do-all)
+  "Show all bound symbols whose names match PATTERN.
+PATTERN can be a word, a list of words (separated by spaces),
+or a regexp (using some regexp special characters).  If it is a word,
+search for matches for that word as a substring.  If it is a list of words,
+search for matches for any two (or more) of those words.
+
+With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, also
 show unbound symbols and key bindings, which is a little more
 time-consuming.  Returns list of symbols and documentation found."
-  (interactive "sApropos symbol (regexp or words): \nP")
-  (setq apropos-regexp (apropos-rewrite-regexp apropos-regexp))
+  (interactive (list (apropos-read-pattern "symbol")
+		     current-prefix-arg))
+  (setq apropos-regexp (apropos-parse-pattern pattern))
   (apropos-symbols-internal
    (apropos-internal apropos-regexp
 			  (and (not do-all)
@@ -520,13 +565,19 @@ time-consuming.  Returns list of symbols and documentation found."
 
 
 ;;;###autoload
-(defun apropos-value (apropos-regexp &optional do-all)
-  "Show all symbols whose value's printed image matches APROPOS-REGEXP.
-With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also looks
+(defun apropos-value (pattern &optional do-all)
+  "Show all symbols whose value's printed image matches PATTERN.
+PATTERN can be a word, a list of words (separated by spaces),
+or a regexp (using some regexp special characters).  If it is a word,
+search for matches for that word as a substring.  If it is a list of words,
+search for matches for any two (or more) of those words.
+
+With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, also looks
 at the function and at the names and values of properties.
 Returns list of symbols and values found."
-  (interactive "sApropos value (regexp or words): \nP")
-  (setq apropos-regexp (apropos-rewrite-regexp apropos-regexp))
+  (interactive (list (apropos-read-pattern "value")
+		     current-prefix-arg))
+  (setq apropos-regexp (apropos-parse-pattern pattern))
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator ())
    (let (f v p)
@@ -534,7 +585,7 @@ Returns list of symbols and values found."
       (lambda (symbol)
 	(setq f nil v nil p nil)
 	(or (memq symbol '(apropos-regexp
-			   apropos-orig-regexp apropos-all-regexp
+			   apropos-pattern apropos-all-words-regexp
 			   apropos-words apropos-all-words
 			   do-all apropos-accumulator
 			   symbol f v p))
@@ -559,17 +610,24 @@ Returns list of symbols and values found."
 
 
 ;;;###autoload
-(defun apropos-documentation (apropos-regexp &optional do-all)
-  "Show symbols whose documentation contain matches for APROPOS-REGEXP.
-With optional prefix DO-ALL or if `apropos-do-all' is non-nil, also use
+(defun apropos-documentation (pattern &optional do-all)
+  "Show symbols whose documentation contain matches for PATTERN.
+PATTERN can be a word, a list of words (separated by spaces),
+or a regexp (using some regexp special characters).  If it is a word,
+search for matches for that word as a substring.  If it is a list of words,
+search for matches for any two (or more) of those words.
+
+With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, also use
 documentation that is not stored in the documentation file and show key
 bindings.
 Returns list of symbols and documentation found."
-  (interactive "sApropos documentation (regexp or words): \nP")
-  (setq apropos-regexp (apropos-rewrite-regexp apropos-regexp))
+  (interactive (list (apropos-read-pattern "documentation")
+		     current-prefix-arg))
+  (setq apropos-regexp (apropos-parse-pattern pattern))
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator () apropos-files-scanned ())
   (let ((standard-input (get-buffer-create " apropos-temp"))
+	(apropos-sort-by-scores apropos-documentation-sort-by-scores)
 	f v sf sv)
     (unwind-protect
 	(save-excursion
@@ -602,7 +660,7 @@ Returns list of symbols and documentation found."
 					 (+ (apropos-score-symbol symbol 2) sf sv)
 					 f v)
 				   apropos-accumulator)))))))
-	  (apropos-print nil "\n----------------\n"))
+	  (apropos-print nil "\n----------------\n" nil t))
       (kill-buffer standard-input))))
 
 
@@ -621,16 +679,17 @@ Returns list of symbols and documentation found."
 (defun apropos-documentation-internal (doc)
   (if (consp doc)
       (apropos-documentation-check-elc-file (car doc))
-    (and doc
-	 (string-match apropos-all-regexp doc)
-	 (save-match-data (apropos-true-hit-doc doc))
-	 (progn
-	   (if apropos-match-face
-	       (put-text-property (match-beginning 0)
-				  (match-end 0)
-				  'face apropos-match-face
-				  (setq doc (copy-sequence doc))))
-	   doc))))
+    (if (and doc
+	     (string-match apropos-all-words-regexp doc)
+	     (apropos-true-hit-doc doc))
+	(when apropos-match-face
+	  (setq doc (substitute-command-keys (copy-sequence doc)))
+	  (if (or (string-match apropos-pattern-quoted doc)
+		  (string-match apropos-all-words-regexp doc))
+	      (put-text-property (match-beginning 0)
+				 (match-end 0)
+				 'face apropos-match-face doc))
+	  doc))))
 
 (defun apropos-format-plist (pl sep &optional compare)
   (setq pl (symbol-plist pl))
@@ -656,7 +715,7 @@ Returns list of symbols and documentation found."
 ;; Finds all documentation related to APROPOS-REGEXP in internal-doc-file-name.
 
 (defun apropos-documentation-check-doc-file ()
-  (let (type symbol (sepa 2) sepb beg end)
+  (let (type symbol (sepa 2) sepb)
     (insert ?\^_)
     (backward-char)
     (insert-file-contents (concat doc-directory internal-doc-file-name))
@@ -667,30 +726,31 @@ Returns list of symbols and documentation found."
       (beginning-of-line 2)
       (if (save-restriction
 	    (narrow-to-region (point) (1- sepb))
-	    (re-search-forward apropos-all-regexp nil t))
+	    (re-search-forward apropos-all-words-regexp nil t))
 	  (progn
-	    (setq beg (match-beginning 0)
-		  end (point))
 	    (goto-char (1+ sepa))
 	    (setq type (if (eq ?F (preceding-char))
 			   2	; function documentation
 			 3)		; variable documentation
 		  symbol (read)
-		  beg (- beg (point) 1)
-		  end (- end (point) 1)
 		  doc (buffer-substring (1+ (point)) (1- sepb)))
 	    (when (apropos-true-hit-doc doc)
 	      (or (and (setq apropos-item (assq symbol apropos-accumulator))
 		       (setcar (cdr apropos-item)
-			       (+ (cadr apropos-item) (apropos-score-doc doc))))
+			       (apropos-score-doc doc)))
 		  (setq apropos-item (list symbol
 					   (+ (apropos-score-symbol symbol 2)
 					      (apropos-score-doc doc))
 					   nil nil)
 			apropos-accumulator (cons apropos-item
 						  apropos-accumulator)))
-	      (if apropos-match-face
-		  (put-text-property beg end 'face apropos-match-face doc))
+	      (when apropos-match-face
+		(setq doc (substitute-command-keys doc))
+		(if (or (string-match apropos-pattern-quoted doc)
+			(string-match apropos-all-words-regexp doc))
+		    (put-text-property (match-beginning 0)
+				       (match-end 0)
+				       'face apropos-match-face doc)))
 	      (setcar (nthcdr type apropos-item) doc))))
       (setq sepa (goto-char sepb)))))
 
@@ -710,7 +770,7 @@ Returns list of symbols and documentation found."
 	(if (save-restriction
 	      ;; match ^ and $ relative to doc string
 	      (narrow-to-region beg end)
-	      (re-search-forward apropos-all-regexp nil t))
+	      (re-search-forward apropos-all-words-regexp nil t))
 	    (progn
 	      (goto-char (+ end 2))
 	      (setq doc (buffer-substring beg end)
@@ -738,9 +798,13 @@ Returns list of symbols and documentation found."
 						   nil nil)
 				apropos-accumulator (cons apropos-item
 							  apropos-accumulator)))
-		      (if apropos-match-face
-			  (put-text-property beg end 'face apropos-match-face
-					     doc))
+		      (when apropos-match-face
+			(setq doc (substitute-command-keys doc))
+			(if (or (string-match apropos-pattern-quoted doc)
+				(string-match apropos-all-words-regexp doc))
+			    (put-text-property (match-beginning 0)
+					       (match-end 0)
+					       'face apropos-match-face doc)))
 		      (setcar (nthcdr (if this-is-a-variable 3 2)
 				      apropos-item)
 			      doc))))))))))
@@ -770,7 +834,7 @@ Will return nil instead."
     function))
 
 
-(defun apropos-print (do-keys spacing &optional text)
+(defun apropos-print (do-keys spacing &optional text nosubst)
   "Output result of apropos searching into buffer `*Apropos*'.
 The value of `apropos-accumulator' is the list of items to output.
 Each element should have the format
@@ -782,7 +846,7 @@ alphabetically by symbol name; but this function also sets
 If SPACING is non-nil, it should be a string; separate items with that string.
 If non-nil TEXT is a string that will be printed as a heading."
   (if (null apropos-accumulator)
-      (message "No apropos matches for `%s'" apropos-orig-regexp)
+      (message "No apropos matches for `%s'" apropos-pattern)
     (setq apropos-accumulator
 	  (sort apropos-accumulator
 		(lambda (a b)
@@ -816,13 +880,20 @@ If non-nil TEXT is a string that will be printed as a heading."
 	  (setq apropos-item (car p)
 		symbol (car apropos-item)
 		p (cdr p))
+	  ;; Insert dummy score element for backwards compatibility with 21.x
+	  ;; apropos-item format.
+	  (if (not (numberp (cadr apropos-item)))
+	      (setq apropos-item
+		    (cons (car apropos-item)
+			  (cons nil (cdr apropos-item)))))
 	  (insert-text-button (symbol-name symbol)
 			      'type 'apropos-symbol
 			      ;; Can't use default, since user may have
 			      ;; changed the variable!
 			      ;; Just say `no' to variables containing faces!
 			      'face apropos-symbol-face)
-	  (if apropos-sort-by-scores
+	  (if (and (eq apropos-sort-by-scores 'verbose)
+		   (cadr apropos-item))
 	      (insert " (" (number-to-string (cadr apropos-item)) ") "))
 	  ;; Calculate key-bindings if we want them.
 	  (and do-keys
@@ -874,8 +945,8 @@ If non-nil TEXT is a string that will be printed as a heading."
 			       (if (apropos-macrop symbol)
 				   'apropos-macro
 				 'apropos-function))
-			     t)
-	  (apropos-print-doc 3 'apropos-variable t)
+			     (not nosubst))
+	  (apropos-print-doc 3 'apropos-variable (not nosubst))
 	  (apropos-print-doc 7 'apropos-group t)
 	  (apropos-print-doc 6 'apropos-face t)
 	  (apropos-print-doc 5 'apropos-widget t)

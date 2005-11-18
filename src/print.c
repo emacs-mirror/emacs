@@ -970,6 +970,26 @@ debug_print (arg)
   Fprin1 (arg, Qexternal_debugging_output);
   fprintf (stderr, "\r\n");
 }
+
+void
+safe_debug_print (arg)
+     Lisp_Object arg;
+{
+  int valid = valid_lisp_object_p (arg);
+
+  if (valid > 0)
+    debug_print (arg);
+  else
+    fprintf (stderr, "#<%s_LISP_OBJECT 0x%08lx>\r\n",
+	     !valid ? "INVALID" : "SOME",
+#ifdef NO_UNION_TYPE
+	     (unsigned long) arg
+#else
+	     (unsigned long) arg.i
+#endif
+	     );
+}
+
 
 DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
        1, 1, 0,

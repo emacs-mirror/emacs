@@ -854,9 +854,14 @@ parse_resource_line (p)
    implemented as a hash table that maps a pair (SRC-NODE-ID .
    EDGE-LABEL) to DEST-NODE-ID.  It also holds a maximum node id used
    in the table as a value for HASHKEY_MAX_NID.  A value associated to
-   a node is recorded as a value for the node id.  */
+   a node is recorded as a value for the node id.
+
+   A database also has a cache for past queries as a value for
+   HASHKEY_QUERY_CACHE.  It is another hash table that maps
+   "NAME-STRING\0CLASS-STRING" to the result of the query.  */
 
 #define HASHKEY_MAX_NID (make_number (0))
+#define HASHKEY_QUERY_CACHE (make_number (-1))
 
 static XrmDatabase
 xrm_create_database ()
@@ -868,6 +873,7 @@ xrm_create_database ()
 			      make_float (DEFAULT_REHASH_THRESHOLD),
 			      Qnil, Qnil, Qnil);
   Fputhash (HASHKEY_MAX_NID, make_number (0), database);
+  Fputhash (HASHKEY_QUERY_CACHE, Qnil, database);
 
   return database;
 }
@@ -901,6 +907,7 @@ xrm_q_put_resource (database, quarks, value)
   Fputhash (node_id, value, database);
 
   Fputhash (HASHKEY_MAX_NID, make_number (max_nid), database);
+  Fputhash (HASHKEY_QUERY_CACHE, Qnil, database);
 }
 
 /* Merge multiple resource entries specified by DATA into a resource
@@ -989,8 +996,30 @@ xrm_get_resource (database, name, class)
      XrmDatabase database;
      char *name, *class;
 {
-  Lisp_Object quark_name, quark_class, tmp;
-  int nn, nc;
+  Lisp_Object key, query_cache, quark_name, quark_class, tmp;
+  int i, nn, nc;
+  struct Lisp_Hash_Table *h;
+  unsigned hash_code;
+
+  nn = strlen (name);
+  nc = strlen (class);
+  key = make_uninit_string (nn + nc + 1);
+  strcpy (SDATA (key), name);
+  strncpy (SDATA (key) + nn + 1, class, nc);
+
+  query_cache = Fgethash (HASHKEY_QUERY_CACHE, database, Qnil);
+  if (NILP (query_cache))
+    {
+      query_cache = make_hash_table (Qequal, make_number (DEFAULT_HASH_SIZE),
+				     make_float (DEFAULT_REHASH_SIZE),
+				     make_float (DEFAULT_REHASH_THRESHOLD),
+				     Qnil, Qnil, Qnil);
+      Fputhash (HASHKEY_QUERY_CACHE, query_cache, database);
+    }
+  h = XHASH_TABLE (query_cache);
+  i = hash_lookup (h, key, &hash_code);
+  if (i >= 0)
+    return HASH_VALUE (h, i);
 
   quark_name = parse_resource_name (&name);
   if (*name != '\0')
@@ -1009,7 +1038,11 @@ xrm_get_resource (database, name, class)
   if (nn != nc)
     return Qnil;
   else
-    return xrm_q_get_resource (database, quark_name, quark_class);
+    {
+      tmp = xrm_q_get_resource (database, quark_name, quark_class);
+      hash_put (h, key, tmp, hash_code);
+      return tmp;
+    }
 }
 
 #if TARGET_API_MAC_CARBON
@@ -4119,7 +4152,7 @@ DEFUN ("mac-code-convert-string", Fmac_code_convert_string, Smac_code_convert_st
 The conversion is performed using the converter provided by the system.
 Each encoding is specified by either a coding system symbol, a mime
 charset string, or an integer as a CFStringEncoding value.  Nil for
-encoding means UTF-16 in native byte order, no byte order marker.
+encoding means UTF-16 in native byte order, no byte order mark.
 On Mac OS X 10.2 and later, you can do Unicode Normalization by
 specifying the optional argument NORMALIZATION-FORM with a symbol NFD,
 NFKD, NFC, NFKC, HFS+D, or HFS+C.
@@ -4192,6 +4225,29 @@ DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table, Smac_clear_font_
   return Qnil;
 }
 
+
+static Lisp_Object
+mac_get_system_locale ()
+{
+  OSErr err;
+  LangCode lang;
+  RegionCode region;
+  LocaleRef locale;
+  Str255 str;
+
+  lang = GetScriptVariable (smSystemScript, smScriptLang);
+  region = GetScriptManagerVariable (smRegionCode);
+  err = LocaleRefFromLangOrRegionCode (lang, region, &locale);
+  if (err == noErr)
+    err = LocaleRefGetPartString (locale, kLocaleAllPartsMask,
+				  sizeof (str), str);
+  if (err == noErr)
+    return build_string (str);
+  else
+    return Qnil;
+}
+
+
 #ifdef MAC_OSX
 #undef select
 
@@ -4213,7 +4269,7 @@ extern int noninteractive;
       involved, and timeout is not too short (greater than
       SELECT_TIMEOUT_THRESHHOLD_RUNLOOP seconds).
       -> Create CFSocket for each socket and add it into the current
-         event RunLoop so that an `ready-to-read' event can be posted
+         event RunLoop so that a `ready-to-read' event can be posted
          to the event queue that is also used for window events.  Then
          ReceiveNextEvent can wait for both kinds of inputs.
    4. Otherwise.
@@ -4481,6 +4537,11 @@ init_mac_osx_environment ()
   char *p, *q;
   struct stat st;
 
+  /* Initialize locale related variables.  */
+  mac_system_script_code =
+    (ScriptCode) GetScriptManagerVariable (smSysScript);
+  Vmac_system_locale = mac_get_system_locale ();
+
   /* Fetch the pathname of the application bundle as a C string into
      app_bundle_pathname.  */
 
@@ -4598,28 +4659,6 @@ init_mac_osx_environment ()
     }
 }
 #endif /* MAC_OSX */
-
-
-static Lisp_Object
-mac_get_system_locale ()
-{
-  OSErr err;
-  LangCode lang;
-  RegionCode region;
-  LocaleRef locale;
-  Str255 str;
-
-  lang = GetScriptVariable (smSystemScript, smScriptLang);
-  region = GetScriptManagerVariable (smRegionCode);
-  err = LocaleRefFromLangOrRegionCode (lang, region, &locale);
-  if (err == noErr)
-    err = LocaleRefGetPartString (locale, kLocaleAllPartsMask,
-				  sizeof (str), str);
-  if (err == noErr)
-    return build_string (str);
-  else
-    return Qnil;
-}
 
 
 void

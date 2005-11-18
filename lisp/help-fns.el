@@ -497,7 +497,11 @@ it is displayed along with the global value."
 				    (format
 				     "Describe variable (default %s): " v)
 				  "Describe variable: ")
-				obarray 'boundp t nil nil
+				obarray
+				'(lambda (vv)
+				   (or (boundp vv)
+				       (get vv 'variable-documentation)))
+				t nil nil
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
 	       v (intern val)))))

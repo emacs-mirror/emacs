@@ -2370,7 +2370,13 @@ shadow_lookup (shadow, key, flag)
   for (tail = shadow; CONSP (tail); tail = XCDR (tail))
     {
       value = Flookup_key (XCAR (tail), key, flag);
-      if (!NILP (value) && !NATNUMP (value))
+      if (NATNUMP (value))
+	{
+	  value = Flookup_key (XCAR (tail), Fsubstring (key, 0, value), flag);
+	  if (!NILP (value))
+	    return Qnil;
+	}
+      else if (!NILP (value))
 	return value;
     }
   return Qnil;

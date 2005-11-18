@@ -35,6 +35,8 @@ bitmap usage to a bitmap name, and second level maps bitmap name to
 a bitmap appearence.
 [Assigned to KFS]
 
+** Install Zhilin's icons.
+
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
@@ -44,8 +46,11 @@ invalid pointer from string_free_list.
 
 * BUGS
 
-** Make where-is-internal detect when a key is shadowed by a shorter
-prefix key that prevents you from entering it.
+** Fix window resizing bug:
+C-x 2, C-x 3, C-x 2. Now try to move the bottom of the 
+second window to the left.
+
+** Fix completion highlighting bug in partial completion mode.
 
 ** Clean up the confusion about what `unspecified' means
 in the face defaults for new frames.
@@ -58,6 +63,9 @@ CPU time have been observed on different Window XP configurations.
 Seems to be a problem in sys_select in w32proc.c.
 
 * DOCUMENTATION
+
+** Update what needs to be updated now that Global Font Lock mode and
+File Name Shadow mode are enabled by default.
 
 ** Check man/info.texi.
 
@@ -131,7 +139,7 @@ man/help.texi       "Luc Teirlinck"  Chong Yidong
 man/indent.texi     "Luc Teirlinck"  Chong Yidong
 man/killing.texi    "Luc Teirlinck"  Chong Yidong
 man/kmacro.texi     "Luc Teirlinck"  Chong Yidong
-man/macos.texi
+man/macos.texi      Chong Yidong
 man/maintaining.texi Chong Yidong
 man/major.texi      "Luc Teirlinck"  Chong Yidong
 man/mark.texi       "Luc Teirlinck"  Chong Yidong

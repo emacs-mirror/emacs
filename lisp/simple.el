@@ -893,8 +893,8 @@ in *Help* buffer.  See also the command `describe-char'."
 	(if (or (/= beg 1) (/= end (1+ total)))
 	    (message "point=%d of %d (%d%%) <%d - %d> column %d %s"
 		     pos total percent beg end col hscroll)
-	  (message "point=%d of %d (%d%%) column %d %s"
-		   pos total percent col hscroll))
+	  (message "point=%d of %d (EOB) column %d %s"
+		   pos total col hscroll))
       (let ((coding buffer-file-coding-system)
 	    encoded encoding-msg display-prop under-display)
 	(if (or (not coding)
@@ -3722,11 +3722,11 @@ The goal column is stored in the variable `goal-column'."
     ;;"Goal column %d (use \\[set-goal-column] with an arg to unset it)")
     ;;goal-column)
     (message "%s"
-	     (concat 
+	     (concat
 	      (format "Goal column %d " goal-column)
 	      (substitute-command-keys
 	       "(use \\[set-goal-column] with an arg to unset it)")))
-    
+
     )
   nil)
 
@@ -4318,9 +4318,7 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
 			  (eq (syntax-class syntax) 4)
 			  (cdr syntax)))))
 	(cond
-	 ((or (null matching-paren)
-	      (/= (char-before oldpos)
-		  matching-paren))
+	 ((not (eq matching-paren (char-before oldpos)))
 	  (message "Mismatched parentheses"))
 	 ((not blinkpos)
 	  (if (not blink-matching-paren-distance)
@@ -4864,7 +4862,7 @@ Called from `temp-buffer-show-hook'."
 When this hook is run, the current buffer is the one in which the
 command to display the completion list buffer was run.
 The completion list buffer is available as the value of `standard-output'.
-The common prefix substring for completion may be available as the 
+The common prefix substring for completion may be available as the
 value of `completion-common-substring'. See also `display-completion-list'.")
 
 
@@ -4893,9 +4891,9 @@ of the differing parts is, by contrast, slightly highlighted."
   "Common prefix substring to use in `completion-setup-function' to put faces.
 The value is set by `display-completion-list' during running `completion-setup-hook'.
 
-To put faces, `completions-first-difference' and `completions-common-part' 
+To put faces, `completions-first-difference' and `completions-common-part'
 into \"*Completions*\* buffer, the common prefix substring in completions is
-needed as a hint. (Minibuffer is a special case. The content of minibuffer itself 
+needed as a hint. (Minibuffer is a special case. The content of minibuffer itself
 is the substring.)")
 
 ;; This function goes in completion-setup-hook, so that it is called
@@ -4912,37 +4910,49 @@ is the substring.)")
 	  (setq default-directory (file-name-directory mbuf-contents))))
     ;; If partial-completion-mode is on, point might not be after the
     ;; last character in the minibuffer.
-    ;; FIXME: This still doesn't work if the text to be completed
-    ;; starts with a `-'.
-    (when (and partial-completion-mode (not (eobp)))
+    ;; FIXME: This hack should be moved to complete.el where we call
+    ;; display-completion-list.
+    (when partial-completion-mode
       (setq common-string-length
-            (- common-string-length (- (point) (point-max)))))
+            (if (eq (char-after (field-beginning)) ?-)
+                ;; If the text to be completed starts with a `-', there is no
+                ;; common prefix.
+                ;; FIXME: this probably still doesn't do the right thing
+                ;; when completing file names.  It's not even clear what
+                ;; is TRT.
+                0
+              (- common-string-length (- (point) (point-max))))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
-      (if minibuffer-completing-file-name
-	  ;; For file name completion,
-	  ;; use the number of chars before the start of the
-	  ;; last file name component.
-	  (setq completion-base-size
+      (setq completion-base-size
+            (if minibuffer-completing-file-name
+                ;; For file name completion, use the number of chars before
+                ;; the start of the last file name component.
 		(with-current-buffer mainbuf
 		  (save-excursion
 		    (goto-char (point-max))
 		    (skip-chars-backward completion-root-regexp)
-		    (- (point) (minibuffer-prompt-end)))))
-	;; Otherwise, in minibuffer, the whole input is being completed.
-	(if (minibufferp mainbuf)
-	    (if (and (symbolp minibuffer-completion-table)
-		     (get minibuffer-completion-table 'completion-base-size-function))
-		(setq completion-base-size
-		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
-	      (setq completion-base-size 0))))
+		    (- (point) (minibuffer-prompt-end))))
+              ;; Otherwise, in minibuffer, the whole input is being completed.
+              (if (minibufferp mainbuf) 0)))
+      (if (and (symbolp minibuffer-completion-table)
+               (get minibuffer-completion-table 'completion-base-size-function))
+          (setq completion-base-size
+                ;; FIXME: without any extra arg, how is this function
+                ;; expected to return anything else than a constant unless
+                ;; it redoes part of the work of all-completions?
+                ;; In most cases this value would better be computed and
+                ;; returned at the same time as the list of all-completions
+                ;; is computed.  --Stef
+                (funcall (get minibuffer-completion-table
+                              'completion-base-size-function))))
       ;; Put faces on first uncommon characters and common parts.
       (when (or completion-common-substring completion-base-size)
         (setq common-string-length
-		(if completion-common-substring
-		    (length completion-common-substring)
-                  (- common-string-length completion-base-size)))
+              (if completion-common-substring
+                  (length completion-common-substring)
+                (- common-string-length completion-base-size)))
 	(let ((element-start (point-min))
               (maxp (point-max))
               element-common-end)

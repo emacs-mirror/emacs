@@ -260,6 +260,9 @@ Since the default input is the current directory, this has the effect
 of specifying the current directory.  Normally that means to visit the
 directory with Dired.
 
+You can get the old behavior by typing C-x C-f M-n RET, which fetches
+the actual file name into the minibuffer.
+
 +++
 ** The completion commands TAB, SPC and ? in the minibuffer apply only
 to the text before point.  If there is text in the buffer after point,
@@ -434,6 +437,8 @@ is already active in Transient Mark mode.
 
 C-h e displays the *Messages* buffer.
 
+C-h d runs apropos-documentation.
+
 C-h followed by a control character is used for displaying files
     that do not change:
 
@@ -444,23 +449,18 @@ The info-search bindings on C-h C-f, C-h C-k and C-h C-i
 have been moved to C-h F, C-h K and C-h S.
 
 C-h c, C-h k, C-h w, and C-h f now handle remapped interactive commands.
-
 - C-h c and C-h k report the actual command (after possible remapping)
   run by the key sequence.
-
 - C-h w and C-h f on a command which has been remapped now report the
   command it is remapped to, and the keys which can be used to run
   that command.
 
 For example, if C-k is bound to kill-line, and kill-line is remapped
 to new-kill-line, these commands now report:
-
 - C-h c and C-h k C-k reports:
   C-k runs the command new-kill-line
-
 - C-h w and C-h f kill-line reports:
   kill-line is remapped to new-kill-line which is on C-k, <deleteline>
-
 - C-h w and C-h f new-kill-line reports:
   new-kill-line is on C-k
 
@@ -671,6 +671,10 @@ So you can customize mode-require-final-newline to control what these
 modes do.
 
 ** Minibuffer changes:
+
++++
+*** The new file-name-shadow-mode is turned ON by default, so that when
+entering a file name, any prefix which Emacs will ignore is dimmed.
 
 +++
 *** There's a new face `minibuffer-prompt'.
@@ -3501,7 +3505,7 @@ dangerous; otherwise it returns a reason why the form might be unsafe
 evaluate when Emacs starts up.  If this is done after startup,
 it evaluates those expressions immediately.
 
-This is useful in packages that can be preloaded. 
+This is useful in packages that can be preloaded.
 
 *** `list-faces-display' takes an optional argument, REGEXP.
 
@@ -4479,6 +4483,11 @@ and scroll-bar settings.
 
 +++
 *** The new function `window-tree' returns a frame's window tree.
+
++++
+*** The functions `get-lru-window' and `get-largest-window' take an optional
+argument `dedicated'.  If non-nil, those functions do not ignore
+dedicated windows.
 
 +++
 ** Customizable fringe bitmaps

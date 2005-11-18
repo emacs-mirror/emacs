@@ -7376,10 +7376,30 @@ x_bitmap_icon (f, file)
       /* Create the GNU bitmap and mask if necessary.  */
       if (FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id < 0)
 	{
-	  FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id
-	    = x_create_bitmap_from_data (f, gnu_bits,
-					 gnu_width, gnu_height);
-	  x_create_bitmap_mask (f, FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id);
+	  int rc = -1;
+
+#if defined (HAVE_XPM) && defined (HAVE_X_WINDOWS)
+#ifdef USE_GTK
+	  if (xg_set_icon_from_xpm_data (f, gnu_xpm_bits))
+	    return 0;
+#else
+	  rc = x_create_bitmap_from_xpm_data (f, gnu_xpm_bits);
+	  if (rc != -1)
+	    FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id = rc;
+#endif /* USE_GTK */
+#endif /* defined (HAVE_XPM) && defined (HAVE_X_WINDOWS) */
+
+	  /* If all else fails, use the (black and white) xbm image. */
+	  if (rc == -1)
+	    {
+	      rc = x_create_bitmap_from_data (f, gnu_xbm_bits,
+					      gnu_xbm_width, gnu_xbm_height);
+	      if (rc == -1)
+		return 1;
+
+	      FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id = rc;
+	      x_create_bitmap_mask (f, FRAME_X_DISPLAY_INFO (f)->icon_bitmap_id);
+	    }
 	}
 
       /* The first time we create the GNU bitmap and mask,

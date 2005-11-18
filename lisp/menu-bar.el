@@ -641,8 +641,7 @@ by \"Save Options\" in Custom buffers.")
     ;; put on a customized-value property.
     (dolist (elt '(line-number-mode column-number-mode size-indication-mode
 		   cua-mode show-paren-mode transient-mark-mode
-		   global-font-lock-mode blink-cursor-mode
-		   display-time-mode display-battery-mode))
+		   blink-cursor-mode display-time-mode display-battery-mode))
       (and (customize-mark-to-save elt)
 	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.
@@ -1053,10 +1052,6 @@ mail status in mode line"))
 			   "Active Region Highlighting"
 			   "Make text in active region stand out in color (Transient Mark mode)"
 			   (:enable (not cua-mode))))
-(define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
-  (menu-bar-make-mm-toggle global-font-lock-mode
-			   "Syntax Highlighting"
-			   "Colorize text based on language syntax (Global Font Lock mode)"))
 
 
 ;; The "Tools" menu items
@@ -1365,9 +1360,8 @@ key, a click, or a menu-item"))
   '(menu-item "Getting New Versions" describe-distribution
 	      :help "How to get latest versions of Emacs"))
 (define-key menu-bar-help-menu [more]
-  '(menu-item "Find Extra Packages"
-	      menu-bar-help-extra-packages
-	      :help "Where to find some extra packages and possible updates"))
+  '(menu-item "External Packages" menu-bar-help-extra-packages
+	      :help "Lisp packages distributed separately for use in Emacs"))
 (defun menu-bar-help-extra-packages ()
   "Display help about some additional packages available for Emacs."
   (interactive)

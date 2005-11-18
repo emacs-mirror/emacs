@@ -2532,7 +2532,7 @@ void
 free_float (ptr)
      struct Lisp_Float *ptr;
 {
-  *(struct Lisp_Float **)&ptr->data = float_free_list;
+  ptr->u.chain = float_free_list;
   float_free_list = ptr;
 }
 
@@ -2550,7 +2550,7 @@ make_float (float_value)
       /* We use the data field for chaining the free list
 	 so that we won't use the same field that has the mark bit.  */
       XSETFLOAT (val, float_free_list);
-      float_free_list = *(struct Lisp_Float **)&float_free_list->data;
+      float_free_list = float_free_list->u.chain;
     }
   else
     {
@@ -2650,7 +2650,7 @@ void
 free_cons (ptr)
      struct Lisp_Cons *ptr;
 {
-  *(struct Lisp_Cons **)&ptr->cdr = cons_free_list;
+  ptr->u.chain = cons_free_list;
 #if GC_MARK_STACK
   ptr->car = Vdead;
 #endif
@@ -2669,7 +2669,7 @@ DEFUN ("cons", Fcons, Scons, 2, 2, 0,
       /* We use the cdr for chaining the free list
 	 so that we won't use the same field that has the mark bit.  */
       XSETCONS (val, cons_free_list);
-      cons_free_list = *(struct Lisp_Cons **)&cons_free_list->cdr;
+      cons_free_list = cons_free_list->u.chain;
     }
   else
     {
@@ -2704,7 +2704,7 @@ check_cons_list ()
   struct Lisp_Cons *tail = cons_free_list;
 
   while (tail)
-    tail = *(struct Lisp_Cons **)&tail->cdr;
+    tail = tail->u.chain;
 #endif
 }
 
@@ -3141,7 +3141,7 @@ Its value and function definition are void, and its property list is nil.  */)
   if (symbol_free_list)
     {
       XSETSYMBOL (val, symbol_free_list);
-      symbol_free_list = *(struct Lisp_Symbol **)&symbol_free_list->value;
+      symbol_free_list = symbol_free_list->next;
     }
   else
     {
@@ -4485,8 +4485,77 @@ mark_stack ()
 #endif
 }
 
-
 #endif /* GC_MARK_STACK != 0 */
+
+
+
+/* Return 1 if OBJ is a valid lisp object.
+   Return 0 if OBJ is NOT a valid lisp object.
+   Return -1 if we cannot validate OBJ.
+*/
+
+int
+valid_lisp_object_p (obj)
+     Lisp_Object obj;
+{
+#if !GC_MARK_STACK
+  /* Cannot determine this.  */
+  return -1;
+#else
+  void *p;
+  struct mem_node *m;
+
+  if (INTEGERP (obj))
+    return 1;
+
+  p = (void *) XPNTR (obj);
+
+  if (PURE_POINTER_P (p))
+    return 1;
+
+  m = mem_find (p);
+
+  if (m == MEM_NIL)
+    return 0;
+
+  switch (m->type)
+    {
+    case MEM_TYPE_NON_LISP:
+      return 0;
+
+    case MEM_TYPE_BUFFER:
+      return live_buffer_p (m, p);
+
+    case MEM_TYPE_CONS:
+      return live_cons_p (m, p);
+
+    case MEM_TYPE_STRING:
+      return live_string_p (m, p);
+
+    case MEM_TYPE_MISC:
+      return live_misc_p (m, p);
+
+    case MEM_TYPE_SYMBOL:
+      return live_symbol_p (m, p);
+
+    case MEM_TYPE_FLOAT:
+      return live_float_p (m, p);
+
+    case MEM_TYPE_VECTOR:
+    case MEM_TYPE_PROCESS:
+    case MEM_TYPE_HASH_TABLE:
+    case MEM_TYPE_FRAME:
+    case MEM_TYPE_WINDOW:
+      return live_vector_p (m, p);
+
+    default:
+      break;
+    }
+
+  return 0;
+#endif
+}
+
 
 
 
@@ -4969,7 +5038,7 @@ returns nil, because real GC can't be done.  */)
       total += total_floats  * sizeof (struct Lisp_Float);
       total += total_intervals * sizeof (struct interval);
       total += total_strings * sizeof (struct Lisp_String);
-      
+
       gc_relative_threshold = total * XFLOAT_DATA (Vgc_cons_percentage);
     }
   else
@@ -5496,14 +5565,14 @@ mark_object (arg)
 	CHECK_ALLOCATED_AND_LIVE (live_cons_p);
 	CONS_MARK (ptr);
 	/* If the cdr is nil, avoid recursion for the car.  */
-	if (EQ (ptr->cdr, Qnil))
+	if (EQ (ptr->u.cdr, Qnil))
 	  {
 	    obj = ptr->car;
 	    cdr_count = 0;
 	    goto loop;
 	  }
 	mark_object (ptr->car);
-	obj = ptr->cdr;
+	obj = ptr->u.cdr;
 	cdr_count++;
 	if (cdr_count == mark_object_loop_halt)
 	  abort ();
@@ -5650,7 +5719,7 @@ gc_sweep ()
 	  if (!CONS_MARKED_P (&cblk->conses[i]))
 	    {
 	      this_free++;
-	      *(struct Lisp_Cons **)&cblk->conses[i].cdr = cons_free_list;
+	      cblk->conses[i].u.chain = cons_free_list;
 	      cons_free_list = &cblk->conses[i];
 #if GC_MARK_STACK
 	      cons_free_list->car = Vdead;
@@ -5669,7 +5738,7 @@ gc_sweep ()
 	  {
 	    *cprev = cblk->next;
 	    /* Unhook from the free list.  */
-	    cons_free_list = *(struct Lisp_Cons **) &cblk->conses[0].cdr;
+	    cons_free_list = cblk->conses[0].u.chain;
 	    lisp_align_free (cblk);
 	    n_cons_blocks--;
 	  }
@@ -5700,7 +5769,7 @@ gc_sweep ()
 	  if (!FLOAT_MARKED_P (&fblk->floats[i]))
 	    {
 	      this_free++;
-	      *(struct Lisp_Float **)&fblk->floats[i].data = float_free_list;
+	      fblk->floats[i].u.chain = float_free_list;
 	      float_free_list = &fblk->floats[i];
 	    }
 	  else
@@ -5716,7 +5785,7 @@ gc_sweep ()
 	  {
 	    *fprev = fblk->next;
 	    /* Unhook from the free list.  */
-	    float_free_list = *(struct Lisp_Float **) &fblk->floats[0].data;
+	    float_free_list = fblk->floats[0].u.chain;
 	    lisp_align_free (fblk);
 	    n_float_blocks--;
 	  }
@@ -5804,7 +5873,7 @@ gc_sweep ()
 
 	    if (!sym->gcmarkbit && !pure_p)
 	      {
-		*(struct Lisp_Symbol **) &sym->value = symbol_free_list;
+		sym->next = symbol_free_list;
 		symbol_free_list = sym;
 #if GC_MARK_STACK
 		symbol_free_list->function = Vdead;
@@ -5828,7 +5897,7 @@ gc_sweep ()
 	  {
 	    *sprev = sblk->next;
 	    /* Unhook from the free list.  */
-	    symbol_free_list = *(struct Lisp_Symbol **)&sblk->symbols[0].value;
+	    symbol_free_list = sblk->symbols[0].next;
 	    lisp_free (sblk);
 	    n_symbol_blocks--;
 	  }

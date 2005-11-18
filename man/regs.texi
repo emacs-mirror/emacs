@@ -2,7 +2,7 @@
 @c Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 2002, 2003,
 @c   2004, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
-@node Registers, Display, Rectangles, Top
+@node Registers, Display, CUA Bindings, Top
 @chapter Registers
 @cindex registers
 

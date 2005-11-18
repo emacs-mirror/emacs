@@ -147,6 +147,7 @@
       (load "select")))
 (load "emacs-lisp/timer")
 (load "isearch")
+(load "rfn-eshadow")
 
 (message "%s" (garbage-collect))
 (load "menu-bar")

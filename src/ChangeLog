@@ -1,3 +1,152 @@
+2005-11-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* lread.c (readevalloop): Add missing GCPROs.
+
+2005-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfns.c (xg_set_icon_from_xpm_data): New function.
+
+	* gnu.h (gnu_xpm_bits): Rename from gnu_bits.
+	(gnu_xbm_bits): Rename from gnu_bits (xbm version).
+
+	* xterm.c (x_bitmap_icon): Use the xpm if available.
+
+	* image.c (x_create_bitmap_from_xpm_data): New function.
+	(x_create_bitmap_from_xpm_data): Initialize XpmAttributes.
+
+2005-11-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in (lisp, shortlisp): Add rfn-eshadow.
+
+2005-11-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit: Make SIGTSTP work like SIGINT normally does.
+
+2005-11-15  Andreas Schwab  <schwab@suse.de>
+
+	* lisp.h (struct Lisp_Cons): Make cdr a union.
+	(XCDR_AS_LVALUE): Adjust.
+	(struct Lisp_Float): Make data a union.
+	(XFLOAT_DATA): Adjust.
+
+	* alloc.c (free_float): Make free list chaining aliasing-safe.
+	(make_float): Likewise.
+	(free_cons): Likewise.
+	(Fcons): Likewise.
+	(check_cons_list): Likewise.
+	(Fmake_symbol): Likewise.
+	(allocate_misc): Likewise.
+	(free_misc): Likewise.
+	(gc_sweep): Likewise.
+
+2005-11-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (HASHKEY_QUERY_CACHE): New define.
+	(xrm_create_database, xrm_q_put_resource): Empty query cache.
+	(xrm_get_resource): Use query cache.
+
+	* image.c (init_image) [MAC_OS]: Don't call EnterMovies if
+	inhibit_window_system is set.
+
+2005-11-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (USE_CG_TEXT_DRAWING): New define.
+	(struct MacFontStruct) [USE_CG_TEXT_DRAWING]: New members cg_font
+	and cg_glyphs.
+
+	* macterm.c [USE_CG_TEXT_DRAWING] (mac_draw_string_cg): New function.
+	(x_draw_glyph_string_foreground) [USE_CG_TEXT_DRAWING]: Use it.
+	(XLoadQueryFont) [USE_CG_TEXT_DRAWING]: Set members cg_font and
+	cg_glyphs in struct MacFontStruct if synthesized bold or italic is
+	not used and font substitution never occurs for ASCII and Latin-1
+	characters.
+	(XLoadQueryFont): Maximum and minimum metrics are now those among
+	ASCII characters.
+	(XLoadQueryFont) [!MAC_OS8 || USE_ATSUI]: Apply WebKit-style
+	height adjustments for Courier, Helvetica, and Times.
+
+	* s/darwin.h (LIBS_CARBON) [!HAVE_CARBON]: Remove `-framework Carbon'.
+
+2005-11-11  David Reitter <david.reitter@gmail.com>
+
+	* macterm.c (syms_of_macterm): Remove macCtrlKey, macShiftKey,
+	macMetaKey, macAltKey. Introduce Qctrl, Qmeta,
+	Vmac_control_modifier / mac-control-modifier,
+	Vmac_option_modifier / mac-option-modifier,
+	Vmac_command_modifier / mac-command-modifier.
+	(mac_to_emacs_modifiers): Use the new style modifier
+	variables.  Return UInt32 (modifiers are longs now.)
+	(backtranslate_modified_keycode): New function (refactoring).
+	(XTread_socket): Use new modifier variables and refactored function.
+	(mac_determine_quit_char_modifiers): Remove macMetaKey (there is
+	no dedicated meta key.  Not in use anyway.)
+	(convert_fn_keycode): Map Fn-keys to their original keycode
+	using a table (english keyboard only).
+
+2005-11-11  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (pitx): Fix output format if n_overlay_strings > 0.
+	Add post hook to "backtrace" to always dump lisp call stack to
+	increase chance of people sending it to us when reporting bugs.
+
+	* doc.c (Fsubstitute_command_keys): Doc fix.
+
+	* dispextern.h (struct it): New member ignore_overlay_strings_at_pos_p.
+
+	* xdisp.c (handle_stop): Skip overlay string handling if
+	ignore_overlay_strings_at_pos_p is set.
+	(set_iterator_to_next): At end of display vector, set
+	ignore_overlay_strings_at_pos_p if dpvec came from an overlay
+	string, so we skip those overlay strings at current pos.
+
+2005-11-10  Lars Hansen <larsh@soem.dk>
+
+	* fileio.c (file-regular-p): Doc fix.
+
+2005-11-10  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (valid_lisp_object_p): New function to validate that
+	an object is really a valid Lisp_Object.
+
+	* lisp.h (valid_lisp_object_p): Add prototype.
+
+	* print.c (safe_debug_print): New function to be called from gdb
+	to print Lisp objects; use valid_lisp_object_p to avoid crashing
+	if user tries to print something which is not a Lisp object.
+
+	* .gdbinit (pp, pp1): Use safe_debug_print.
+	(pv, pv1): New commands to print value of a lisp variable.
+
+2005-11-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit (pp1): New user-defined function.
+
+2005-11-09  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* image.c [MAC_OSX] (image_load_quartz2d): Fix memory leak.
+
+	* mac.c [MAC_OSX] (init_mac_osx_environment): Reinitialize locale
+	related variables for dumped executable.
+
+	* unexmacosx.c (unexec_write_zero): New function.
+	(copy_data_segment): Clear uninitialized local variables in
+	statically linked libraries.
+
+	* s/darwin.h (C_SWITCH_SYSTEM): Remove -fno-common.
+
+2005-11-09  Juri Linkov  <juri@jurta.org>
+
+	* keymap.c (shadow_lookup): If Flookup_key returns a number,
+	call it again with a sub-key-sequence, and if its return value
+	is non-nil (sub-key is bound), return nil.
+
+2005-11-08  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fsignal_process): Recognize signal names with and
+	without SIG prefix, e.g. SIGHUP and HUP.
+
+	* search.c (search_buffer): No need to initialize base_pat.
+
 2005-11-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fget_lru_window, Fget_largest_window, window_loop):
@@ -179,7 +328,7 @@
 	from last_mouse_glyph_frame, and update last_mouse_glyph_frame.
 	(XTmouse_position): Set last_mouse_glyph_frame.
 	(XTread_socket): Clear last_mouse_glyph_frame on mouse up/down event.
-	(mac_draw_string_common) [MAC_OSX && WORDS_BIG_ENDIAN]: Fix typo.
+	(mac_draw_string_common) [USE_ATSUI && WORDS_BIG_ENDIAN]: Fix typo.
 	Use EndianU16_BtoN.
 	(mac_draw_string_common) [MAC_OSX]: Don't use ATSUClearLayoutControls.
 	(x_per_char_metric, XLoadQueryFont)

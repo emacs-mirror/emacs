@@ -600,9 +600,19 @@ struct Lisp_Cons
     /* Please do not use the names of these elements in code other
        than the core lisp implementation.  Use XCAR and XCDR below.  */
 #ifdef HIDE_LISP_IMPLEMENTATION
-    Lisp_Object car_, cdr_;
+    Lisp_Object car_;
+    union
+    {
+      Lisp_Object cdr_;
+      struct Lisp_Cons *chain;
+    } u;
 #else
-    Lisp_Object car, cdr;
+    Lisp_Object car;
+    union
+    {
+      Lisp_Object cdr;
+      struct Lisp_Cons *chain;
+    } u;
 #endif
   };
 
@@ -615,10 +625,10 @@ struct Lisp_Cons
    invalidated at arbitrary points.)  */
 #ifdef HIDE_LISP_IMPLEMENTATION
 #define XCAR_AS_LVALUE(c) (XCONS ((c))->car_)
-#define XCDR_AS_LVALUE(c) (XCONS ((c))->cdr_)
+#define XCDR_AS_LVALUE(c) (XCONS ((c))->u.cdr_)
 #else
 #define XCAR_AS_LVALUE(c) (XCONS ((c))->car)
-#define XCDR_AS_LVALUE(c) (XCONS ((c))->cdr)
+#define XCDR_AS_LVALUE(c) (XCONS ((c))->u.cdr)
 #endif
 
 /* Use these from normal code.  */
@@ -1275,17 +1285,21 @@ union Lisp_Misc
 /* Lisp floating point type */
 struct Lisp_Float
   {
+    union
+    {
 #ifdef HIDE_LISP_IMPLEMENTATION
-    double data_;
+      double data_;
 #else
-    double data;
+      double data;
 #endif
+      struct Lisp_Float *chain;
+    } u;
   };
 
 #ifdef HIDE_LISP_IMPLEMENTATION
-#define XFLOAT_DATA(f)	(XFLOAT (f)->data_)
+#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data_)
 #else
-#define XFLOAT_DATA(f)	(XFLOAT (f)->data)
+#define XFLOAT_DATA(f)	(XFLOAT (f)->u.data)
 #endif
 
 /* A character, declared with the following typedef, is a member
@@ -2549,6 +2563,7 @@ extern void init_alloc_once P_ ((void));
 extern void init_alloc P_ ((void));
 extern void syms_of_alloc P_ ((void));
 extern struct buffer * allocate_buffer P_ ((void));
+extern int valid_lisp_object_p P_ ((Lisp_Object));
 
 /* Defined in print.c */
 extern Lisp_Object Vprin1_to_string_buffer;

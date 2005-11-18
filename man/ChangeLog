@@ -1,3 +1,59 @@
+2005-11-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ack.texi (Acknowledgments): Acknowledge Andrew Zhilin for Emacs
+	icons.
+
+2005-11-12  Kim F. Storm  <storm@cua.dk>
+
+	* help.texi (Help): Fix C-h a entry.  Add C-h d entry.
+	(Help Summary): Add C-h d and C-h e.
+	(Apropos): Clarify that all apropos commands may search for either
+	list of words or a regexp.  Add C-h d for apropos-documentation.
+	Describe apropos-documentation-sort-by-scores user option.
+
+2005-11-10  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (XVarious): Fix description of gnus-use-toolbar; add
+	new variable gnus-toolbar-thickness.
+
+2005-11-08  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (XVarious): Revert description of gnus-use-toolbar.
+
+2005-11-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (X-Face): Fix description.
+	(XVarious): Remove gnus-xmas-logo-color-alist and
+	gnus-xmas-logo-color-style; fix description of gnus-use-toolbar.
+
+2005-11-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Group Parameters): Mention new varable
+	gnus-parameters-case-fold-search.
+	(Home Score File): Addition.
+
+2005-11-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* killing.texi (CUA Bindings): Add @section.
+
+2005-11-10  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.texi (Top): Add CUA Bindings entry to menu.
+
+	* killing.texi (CUA Bindings): New node.  Moved here from
+	misc.texi and extended with info on rectangle commands and
+	rectangle highlighting, interface to registers, and the global
+	mark feature.
+
+	* misc.texi (Emulation): Move CUA bindings item to killing.texi.
+
+	* regs.texi: Prev link points to CUA Bindings node.
+
+2005-11-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* help.texi (Help Echo): By default, help echos are only shown on
+	mouse-over, not on point-over.
+
 2005-11-04  J,bi(Br,bt(Bme Marant  <jerome@marant.org>
 
 	* misc.texi (Shell Mode): Describe how to activate password echoing.

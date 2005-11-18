@@ -545,7 +545,7 @@
 				(eq (car-safe (nth 2 last)) 'cdr)
 				(eq (cadr (nth 2 last)) var))))
 		    (progn
-		      (byte-compile-warn "`%s' called for effect"
+		      (byte-compile-warn "value returned by `%s' is not used"
 					 (prin1-to-string (car form)))
 		      nil)))
 	   (byte-compile-log "  %s called for effect; deleted" fn)

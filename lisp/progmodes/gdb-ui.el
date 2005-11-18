@@ -358,13 +358,16 @@ With arg, use separate IO iff arg is positive."
 			  (gud-call "clear *%a" arg)))
 	   "\C-d" "Remove breakpoint at current line or address.")
   ;;
-  (gud-def gud-until  (if (not (string-match "Machine" mode-name))
+  (gud-def gud-until (if (not (string-match "Machine" mode-name))
 			  (gud-call "until %f:%l" arg)
 			(save-excursion
 			  (beginning-of-line)
 			  (forward-char 2)
 			  (gud-call "until *%a" arg)))
 	   "\C-u" "Continue to current line or address.")
+  ;;
+  (gud-def gud-go (gud-call (if gdb-active-process "continue" "run") arg)
+	   nil "Start or continue execution.")
 
   (define-key gud-minor-mode-map [left-margin mouse-1]
     'gdb-mouse-set-clear-breakpoint)
@@ -491,7 +494,9 @@ With arg, use separate IO iff arg is positive."
 	  (unless (string-equal
 		   speedbar-initial-expansion-list-name "GUD")
 	    (speedbar-change-initial-expansion-list "GUD"))
-	  (if (equal (nth 2 var) "0")
+	  (if (or (equal (nth 2 var) "0")
+		  (and (equal (nth 2 var) "1")
+		       (string-match "char \\*" (nth 3 var))))
 	      (gdb-enqueue-input
 	       (list
 		(if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
@@ -509,14 +514,14 @@ With arg, use separate IO iff arg is positive."
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
-    (re-search-forward ".*value=\"\\(.*?\\)\"" nil t)
+    (re-search-forward ".*value=\\(\".*\"\\)" nil t)
     (catch 'var-found
       (let ((num 0))
 	(dolist (var gdb-var-list)
 	  (if (string-equal varnum (cadr var))
 	      (progn
 		(if changed (setcar (nthcdr 5 var) t))
-		(setcar (nthcdr 4 var) (match-string 1))
+		(setcar (nthcdr 4 var) (read (match-string 1)))
 		(setcar (nthcdr num gdb-var-list) var)
 		(throw 'var-found nil)))
 	  (setq num (+ num 1))))))
@@ -528,7 +533,8 @@ With arg, use separate IO iff arg is positive."
 	 `(lambda () (gdb-var-list-children-handler ,varnum)))))
 
 (defconst gdb-var-list-children-regexp
-  "name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\"")
+ "name=\"\\(.*?\\)\",exp=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",\
+type=\"\\(.*?\\)\"")
 
 (defun gdb-var-list-children-handler (varnum)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
@@ -543,14 +549,15 @@ With arg, use separate IO iff arg is positive."
 		 (let ((varchild (list (match-string 2)
 				       (match-string 1)
 				       (match-string 3)
-				       nil nil nil)))
-		   (if (looking-at ",type=\"\\(.*?\\)\"")
-		       (setcar (nthcdr 3 varchild) (match-string 1)))
+				       (match-string 4)
+				       nil nil)))
 		   (dolist (var1 gdb-var-list)
 		     (if (string-equal (cadr var1) (cadr varchild))
 			 (throw 'child-already-watched nil)))
 		   (push varchild var-list)
-		   (if (equal (nth 2 varchild) "0")
+		   (if (or (equal (nth 2 varchild) "0")
+			   (and (equal (nth 2 varchild) "1")
+				(string-match "char \\*" (nth 3 varchild))))
 		       (gdb-enqueue-input
 			(list
 			 (concat
@@ -574,12 +581,19 @@ With arg, use separate IO iff arg is positive."
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
     (while (re-search-forward gdb-var-update-regexp nil t)
+      (catch 'var-found-1
 	(let ((varnum (match-string 1)))
-	  (gdb-enqueue-input
-	   (list
-	    (concat "server interpreter mi \"-var-evaluate-expression "
-		    varnum "\"\n")
-	    `(lambda () (gdb-var-evaluate-expression-handler ,varnum t)))))))
+	  (dolist (var gdb-var-list)
+	    (when (and (string-equal varnum (cadr var))
+		     (or (equal (nth 2 var) "0")
+			 (and (equal (nth 2 var) "1")
+			      (string-match "char \\*" (nth 3 var)))))
+	      (gdb-enqueue-input
+	       (list
+		(concat "server interpreter mi \"-var-evaluate-expression "
+			varnum "\"\n")
+		`(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
+	      (throw 'var-found-1 nil)))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
@@ -1365,8 +1379,6 @@ static char *magick[] = {
      :weight bold))
   "Face for enabled breakpoint icon in fringe."
   :group 'gud)
-;; Compatibility alias for old name.
-(put 'breakpoint-enabled-bitmap-face 'face-alias 'breakpoint-enabled)
 
 (defface breakpoint-disabled
   ;; We use different values of grey for different background types,
@@ -2347,11 +2359,13 @@ corresponding to the mode line clicked."
   (define-key menu [breakpoints]
     '("Breakpoints" . gdb-frame-breakpoints-buffer)))
 
-(let ((menu (make-sparse-keymap "GDB-UI")))
+(let ((menu (make-sparse-keymap "GDB-UI/MI")))
   (define-key gud-menu-map [ui]
-    `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
+    `(menu-item (if (eq gud-minor-mode 'gdba) "GDB-UI" "GDB-MI")
+		,menu :visible (memq gud-minor-mode '(gdbmi gdba))))
   (define-key menu [gdb-use-inferior-io]
   '(menu-item "Separate inferior IO" gdb-use-inferior-io-buffer
+	      :visible (eq gud-minor-mode 'gdba)
 	      :help "Toggle separate IO for inferior."
 	      :button (:toggle . gdb-use-inferior-io-buffer)))
   (define-key menu [gdb-many-windows]
@@ -2691,7 +2705,8 @@ BUFFER nil or omitted means use the current buffer."
 		  (if (re-search-forward address nil t)
 		      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
     (if (not (equal gdb-frame-address "main"))
-	(set-window-point (get-buffer-window buffer 0) pos))))
+	(with-current-buffer buffer
+	  (set-window-point (get-buffer-window buffer 0) pos)))))
 
 (defvar gdb-assembler-mode-map
   (let ((map (make-sparse-keymap)))
