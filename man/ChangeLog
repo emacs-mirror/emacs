@@ -1,3 +1,14 @@
+2005-11-18  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Registering): Mention @@ in mode line.
+
+	* mini.texi (Minibuffer File): Clarify previous change.  Add @findex.
+
+2005-11-08  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>  (tiny change)
+
+	* files.texi (Renaming and VC): Some back-ends don't
+	handle renaming.
+
 2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (FAQ): Document `org-table-tab-jumps-over-hlines'.
