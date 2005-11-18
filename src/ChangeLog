@@ -3,9 +3,10 @@
 	* xfaces.c (Qignore_defface): New variable.
 	(syms_of_xfaces): Provide `:ignore-defface'.
 	(IGNORE_DEFFACE_P): New macro.
-	(check_lface_attrs): Qignore_defface is a possible value.
-	(lface_fully_specified_p): Likewise.
-	(Finternal_set_lisp_face_attribute): Likewise.
+	(check_lface_attrs, lface_fully_specified_p)
+	(Finternal_set_lisp_face_attribute)
+	(Fface_attribute_relative_p, Fmerge_face_attribute): Handle
+	Qignore_defface as a possible value.
 	(merge_face_vectors): The merged face is `unspecified' if the
 	mergee specifies `:ignore-defface'.
 

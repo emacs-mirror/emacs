@@ -4794,7 +4794,7 @@ DEFUN ("face-attribute-relative-p", Fface_attribute_relative_p,
      (attribute, value)
      Lisp_Object attribute, value;
 {
-  if (EQ (value, Qunspecified))
+  if (EQ (value, Qunspecified) || (EQ (value, Qignore_defface)))
     return Qt;
   else if (EQ (attribute, QCheight))
     return INTEGERP (value) ? Qnil : Qt;
@@ -4810,7 +4810,7 @@ the result will be absolute, otherwise it will be relative.  */)
      (attribute, value1, value2)
      Lisp_Object attribute, value1, value2;
 {
-  if (EQ (value1, Qunspecified))
+  if (EQ (value1, Qunspecified) || EQ (value1, Qignore_defface))
     return value2;
   else if (EQ (attribute, QCheight))
     return merge_face_heights (value1, value2, value1);
