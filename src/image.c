@@ -3737,10 +3737,12 @@ x_create_bitmap_from_xpm_data (f, bits)
   rc = XpmCreatePixmapFromData (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 				bits, &bitmap, &mask, &attrs);
   if (rc != XpmSuccess)
-    return -1;
+    {
+      XpmFreeAttributes (&attrs);
+      return -1;
+    }
 
   id = x_allocate_bitmap_record (f);
-
   dpyinfo->bitmaps[id - 1].pixmap = bitmap;
   dpyinfo->bitmaps[id - 1].have_mask = 1;
   dpyinfo->bitmaps[id - 1].mask = mask;

@@ -1,5 +1,8 @@
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
+	* image.c (x_create_bitmap_from_xpm_data): Free attributes on
+	fail.
+
 	* xfaces.c (Qignore_defface): New variable.
 	(syms_of_xfaces): Provide `:ignore-defface'.
 	(IGNORE_DEFFACE_P): New macro.
