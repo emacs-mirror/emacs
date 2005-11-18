@@ -105,12 +105,13 @@ Find File: /u2/emacs/src//etc/termcap
 @cindex // in file name
 @cindex double slash in file name
 @cindex slashes repeated in file name
+@findex file-name-shadow-mode
 GNU Emacs gives a special meaning to a double slash (which is not
-normally a useful thing to write): it means, ``ignore everything before
-the second slash in the pair.''  Thus, @samp{/u2/emacs/src/} is ignored
-in the example above, and you get the file @file{/etc/termcap}.
-By default the ignored part of the file name is made dim if the
-terminal allows it.  This is affected by the
+normally a useful thing to write): it means, ``ignore everything
+before the second slash in the pair.''  Thus, @samp{/u2/emacs/src/} is
+ignored in the example above, and you get the file
+@file{/etc/termcap}.  The ignored part of the file name is dimmed if
+the terminal allows it; to disable this, turn off
 @code{file-name-shadow-mode} minor mode.
 
   If you set @code{insert-default-directory} to @code{nil}, the default
