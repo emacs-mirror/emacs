@@ -357,11 +357,12 @@ If the optional argument FRAME is given, report on face FACE in that frame.
 If FRAME is t, report on the defaults for face FACE (for new frames).
 If FRAME is omitted or nil, use the selected frame.
 
-If INHERIT is nil, only attributes directly defined by FACE are considered,
-  so the return value may be `unspecified', or a relative value.
+If INHERIT is nil, only attributes directly defined by FACE are
+  considered, so the return value may be `unspecified',
+  `:ignore-defface', or a relative value.
 If INHERIT is non-nil, FACE's definition of ATTRIBUTE is merged with the
   faces specified by its `:inherit' attribute; however the return value
-  may still be `unspecified' or relative.
+  may still be relative.
 If INHERIT is a face or a list of faces, then the result is further merged
   with that face (or faces), until it becomes specified and absolute.
 
@@ -560,8 +561,13 @@ the default for new frames (this is done automatically each time an
 attribute is changed on all frames).
 
 ARGS must come in pairs ATTRIBUTE VALUE.  ATTRIBUTE must be a valid
-face attribute name.  All attributes can be set to `unspecified';
-this fact is not further mentioned below.
+face attribute name.
+
+Unless you're certain you know what you're doing, don't set an
+attribute to `unspecified' .  To make a face ignore the attribute
+given in the defface spec, assign it the value `:ignore-defface'.
+You can do this for any attribute; this fact is not further
+mentioned below.
 
 The following attributes are recognized:
 
