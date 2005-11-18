@@ -389,7 +389,8 @@ t means that there is no stack, and we are in display-file mode.")
     (define-key gud-speedbar-key-map " " 'speedbar-toggle-line-expansion)
     (define-key gud-speedbar-key-map "[" 'speedbar-expand-line-descendants)
     (define-key gud-speedbar-key-map "]" 'speedbar-contract-line-descendants)
-    (define-key gud-speedbar-key-map "D" 'gdb-var-delete))
+    (define-key gud-speedbar-key-map "D" 'gdb-var-delete)
+    (define-key gud-speedbar-key-map "p" 'gud-pp))
 
   (speedbar-add-expansion-list '("GUD" gud-speedbar-menu-items
 				 gud-speedbar-key-map
@@ -654,7 +655,6 @@ and source-file directory for your debugger."
 	   "Evaluate C dereferenced pointer expression at point.")
 
   ;; For debugging Emacs only.
-  (gud-def gud-pp  "pp1 %e"     nil   "Print the emacs s-expression.")
   (gud-def gud-pv "pv1 %e"      "\C-v" "Print the value of the lisp variable.")
 
   (gud-def gud-until  "until %l" "\C-u" "Continue to current line.")
