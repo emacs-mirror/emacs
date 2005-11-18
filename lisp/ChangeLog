@@ -1,3 +1,24 @@
+2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-table-sort-lines): New command.
+	(org-tbl-menu): Add entry for `org-table-sort-lines'.
+	(org-add-file): Command removed, use `org-agenda-file-to-front'
+	instead.
+	(org-export-icalendar): Use `org-icalendar-combined-name'.
+	(org-cycle-agenda-files, org-agenda-file-to-end)
+	(org-agenda-file-to-front): New commands.
+	(org-table-tab-jumps-over-hlines,org-export-html-style): New
+	options.
+	(org-table-next-field): Use `org-table-tab-jumps-over-hlines'.
+	(org-at-table.el-p, org-set-autofill-regexps,org-html-protect):
+	New functions.
+	(org-fill-paragraph): Call `org-table-align' in tables.
+	(org-mode): Call `org-set-autofill-regexps'.
+	(org-export-as-html): Support for local handformatted lists.
+	Modified to produce valid HTML 4.0. Use `org-export-html-style'.
+	(org-export-local-list-max-depth): New option.
+	(org-html-expand): Use `org-html-protect'.
+
 2005-11-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-install-speedbar-variables): Bind gud-pp

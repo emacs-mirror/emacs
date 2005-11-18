@@ -1,3 +1,11 @@
+2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (FAQ): Document `org-table-tab-jumps-over-hlines'.
+	(Agenda): Document commands `org-cycle-agenda-files' and
+	`org-agenda-file-to-front'
+	(Built-in table editor): Document `org-table-sort-lines'.
+	(HTML formatting): Export of hand-formatted lists.
+
 2005-11-17  Juri Linkov  <juri@jurta.org>
 
 	* emacs.texi (Top):
