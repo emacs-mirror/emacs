@@ -3755,7 +3755,7 @@ x_create_bitmap_from_xpm_data (f, bits)
   XpmFreeAttributes (&attrs);
   return id;
 }
-#endif /* HAVE_X_WINDOWS */
+#endif /* defined (HAVE_XPM) && defined (HAVE_X_WINDOWS) */
 
 /* Load image IMG which will be displayed on frame F.  Value is
    non-zero if successful.  */
