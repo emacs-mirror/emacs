@@ -26,10 +26,9 @@
 
 ;;; Code:
 
-(eval-when-compile
-  (require 'cl)
-  (defvar url-http-extra-headers)
-  (defvar url-http-cookies-sources))
+(eval-when-compile (require 'cl))
+(defvar url-http-extra-headers)
+(defvar url-http-target-url)
 (require 'url-gw)
 (require 'url-util)
 (require 'url-parse)
@@ -320,16 +319,9 @@ This allows us to use `mail-fetch-field', etc."
 		  " authentication.  If you'd like to write it,"
 		  " send it to " url-bug-address ".<hr>")
 	  (setq status t))
-      (let* ((args auth)
-	     (ctr (1- (length args)))
-	     auth)
-	(while (/= 0 ctr)
-	  (if (char-equal ?, (aref args ctr))
-	      (aset args ctr ?\;))
-	  (setq ctr (1- ctr)))
-	(setq args (url-parse-args args)
-	      auth (url-get-authentication url (cdr-safe (assoc "realm" args))
-					   type t args))
+      (let* ((args (url-parse-args (subst-char-in-string ?, ?\; auth)))
+	     (auth (url-get-authentication url (cdr-safe (assoc "realm" args))
+					   type t args)))
 	(if (not auth)
 	    (setq success t)
 	  (push (cons (if proxy "Proxy-Authorization" "Authorization") auth)
@@ -358,7 +350,7 @@ The buffer must already be narrowed to the headers, so mail-fetch-field will
 work correctly."
   (let ((cookies (mail-fetch-field "Set-Cookie" nil nil t))
 	(cookies2 (mail-fetch-field "Set-Cookie2" nil nil t))
-	(url-current-object url-http-cookies-sources))
+	(url-current-object url-http-target-url))
     (and cookies (url-http-debug "Found %d Set-Cookie headers" (length cookies)))
     (and cookies2 (url-http-debug "Found %d Set-Cookie2 headers" (length cookies2)))
     (while cookies
@@ -510,8 +502,11 @@ should be shown to the user."
 	   ;; non-fully-qualified URL (ie: /), which royally confuses
 	   ;; the URL library.
 	   (if (not (string-match url-nonrelative-link redirect-uri))
-	       (setq redirect-uri (url-expand-file-name redirect-uri)))
-	   (let ((url-request-method url-http-method)
+               ;; Be careful to use the real target URL, otherwise we may
+               ;; compute the redirection relative to the URL of the proxy.
+	       (setq redirect-uri
+		     (url-expand-file-name redirect-uri url-http-target-url)))
+           (let ((url-request-method url-http-method)
 		 (url-request-data url-http-data)
 		 (url-request-extra-headers url-http-extra-headers))
 	     (url-retrieve redirect-uri url-callback-function
@@ -727,8 +722,7 @@ should be shown to the user."
   (url-http-debug "url-http-end-of-document-sentinel in buffer (%s)"
 		  (process-buffer proc))
   (url-http-idle-sentinel proc why)
-  (save-excursion
-    (set-buffer (process-buffer proc))
+  (with-current-buffer (process-buffer proc)
     (goto-char (point-min))
     (if (not (looking-at "HTTP/"))
 	;; HTTP/0.9 just gets passed back no matter what
@@ -1039,8 +1033,7 @@ CBARGS as the arguments."
 	  (setq buffer nil)
 	  (error "Could not create connection to %s:%d" (url-host url)
 		 (url-port url)))
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(mm-disable-multibyte)
 	(setq url-current-object url
 	      mode-line-format "%b [%s]")
@@ -1060,7 +1053,7 @@ CBARGS as the arguments."
 		       url-http-method
 		       url-http-extra-headers
 		       url-http-data
-		       url-http-cookies-sources))
+		       url-http-target-url))
 	  (set (make-local-variable var) nil))
 
 	(setq url-http-method (or url-request-method "GET")
@@ -1073,9 +1066,9 @@ CBARGS as the arguments."
 	      url-callback-function callback
 	      url-callback-arguments cbargs
 	      url-http-after-change-function 'url-http-wait-for-headers-change-function
-	      url-http-cookies-sources (if (boundp 'proxy-object)
-					   proxy-object
-					 url-current-object))
+	      url-http-target-url (if (boundp 'proxy-object)
+                                      proxy-object
+                                    url-current-object))
 
 	(set-process-buffer connection buffer)
 	(set-process-sentinel connection 'url-http-end-of-document-sentinel)
@@ -1096,8 +1089,7 @@ CBARGS as the arguments."
   (declare (special url-http-after-change-function))
   (and (process-buffer proc)
        (/= (length data) 0)
-       (save-excursion
-	 (set-buffer (process-buffer proc))
+       (with-current-buffer (process-buffer proc)
 	 (url-http-debug "Calling after change function `%s' for `%S'" url-http-after-change-function proc)
 	 (funcall url-http-after-change-function
 		  (point-max)
@@ -1114,8 +1106,7 @@ CBARGS as the arguments."
     (defun url-http-symbol-value-in-buffer (symbol buffer
 						   &optional unbound-value)
       "Return the value of SYMBOL in BUFFER, or UNBOUND-VALUE if it is unbound."
-      (save-excursion
-	(set-buffer buffer)
+      (with-current-buffer buffer
 	(if (not (boundp symbol))
 	    unbound-value
 	  (symbol-value symbol))))
@@ -1198,10 +1189,9 @@ p3p
     (when (and buffer (= 2 (/ (url-http-symbol-value-in-buffer
 			       'url-http-response-status buffer 0) 100)))
       ;; Only parse the options if we got a 2xx response code!
-      (save-excursion
+      (with-current-buffer buffer
 	(save-restriction
 	  (save-match-data
-	    (set-buffer buffer)
 	    (mail-narrow-to-head)
 
 	    ;; Figure out what methods are supported.

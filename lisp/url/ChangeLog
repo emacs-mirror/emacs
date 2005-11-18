@@ -1,3 +1,10 @@
+2005-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-http.el: Use with-current-buffer.
+	(url-http-target-url): Rename from url-http-cookies-sources.
+	(url-http-parse-headers): Use it.
+	(url-http-handle-authentication): Use subst-char-in-string.
+
 2005-11-16  Juergen Hoetzel  <emacs@hoetzel.info>  (tiny change)
 
 	* url-handlers.el (url-insert-file-contents): Use the charset info
