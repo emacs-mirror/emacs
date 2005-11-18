@@ -25,6 +25,9 @@ face name prefixes should be in it for good results.
 
 ** Check what should be deleted or updated in MORE.STUFF.
 
+** Send an email to the various distributions, including the GNOME
+and KDE projects, to use the new Emacs icons in etc/images/icons.
+
 * NEW FEATURES
 
 ** Rework how fringe bitmaps are defined and used.
