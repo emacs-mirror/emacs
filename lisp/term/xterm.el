@@ -26,8 +26,6 @@
 
 ;;; Code:
 
-(require 'server)
-
 (defvar xterm-function-map nil
   "Function key map overrides for xterm.")
 
@@ -194,8 +192,8 @@
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
   ;; rxvt's keybindings that are incompatible with xterm's. It is
   ;; better in that case to use rxvt's initializion function.
-  (if (and (server-getenv "COLORTERM")
-	   (string-match "\\`rxvt" (server-getenv "COLORTERM")))
+  (if (and (terminal-getenv "COLORTERM")
+	   (string-match "\\`rxvt" (terminal-getenv "COLORTERM")))
       (progn
 	(eval-and-compile (load "term/rxvt"))
 	(terminal-init-rxvt))

@@ -695,26 +695,19 @@ To start the server in Emacs, type \"M-x server-start\".\n",
   fprintf (out, "-version %s ", VERSION);
 
   /* Send over our environment. */
-  {
-    extern char **environ;
-    int i;
-    for (i = 0; environ[i]; i++)
-      {
-        char *name = xstrdup (environ[i]);
-        char *value = strchr (name, '=');
-        if (value && strlen (value) > 1)
-          {
-            *value++ = 0;
-            fprintf (out, "-env ");
-            quote_argument (name, out);
-            fprintf (out, " ");
-            quote_argument (value, out);
-            fprintf (out, " ");
-            fflush (out);
-          }
-        free (name);
-      }
-  }
+  if (!current_frame)
+    {
+      extern char **environ;
+      int i;
+      for (i = 0; environ[i]; i++)
+        {
+          char *name = xstrdup (environ[i]);
+          char *value = strchr (name, '=');
+          fprintf (out, "-env ");
+          quote_argument (environ[i], out);
+          fprintf (out, " ");
+        }
+    }
 
  retry:
   if (nowait)

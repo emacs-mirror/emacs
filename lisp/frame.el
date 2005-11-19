@@ -1511,6 +1511,60 @@ selected frame's terminal)."
 
 (add-hook 'delete-frame-functions 'terminal-handle-delete-frame)
 
+(defun terminal-getenv (variable &optional terminal)
+  "Get the value of VARIABLE in the client environment of TERMINAL.
+VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
+the environment.  Otherwise, value is a string.
+
+If TERMINAL was created by an emacsclient invocation, then the
+variable is looked up in the environment of the emacsclient
+process; otherwise the function consults the environment of the
+Emacs process.
+
+TERMINAL can be a terminal id, a frame, or nil (meaning the
+selected frame's terminal)."
+  (setq terminal (terminal-id terminal))
+  (if (not (terminal-parameter-p terminal 'environment))
+      (getenv variable)
+    (let ((env (terminal-parameter terminal 'environment))
+	  result entry)
+      (while (and env (null result))
+	(setq entry (car env)
+	      env (cdr env))
+	(if (and (> (length entry) (length variable))
+		 (eq ?= (aref entry (length variable)))
+		 (equal variable (substring entry 0 (length variable))))
+	    (setq result (substring entry (+ (length variable) 1)))))
+      (if (null result)
+	  (getenv variable)
+	result))))
+
+(defmacro with-terminal-environment (terminal vars &rest body)
+  "Evaluate BODY with environment variables VARS set to those of TERMINAL.
+The environment variables are then restored to their previous values.
+
+VARS should be a list of strings.
+
+TERMINAL can be a terminal id, a frame, or nil (meaning the
+selected frame's terminal).
+
+See also `terminal-getenv'."
+  (declare (indent 2))
+  (let ((oldvalues (make-symbol "oldvalues"))
+	(var (make-symbol "var"))
+	(value (make-symbol "value"))
+	(pair (make-symbol "pair")))
+    `(let (,oldvalues)
+       (dolist (,var ,vars)
+	 (let ((,value (terminal-getenv ,var ,terminal)))
+	   (setq ,oldvalues (cons (cons ,var (getenv ,var)) ,oldvalues))
+	   (setenv ,var ,value)))
+       (unwind-protect
+	   (progn ,@body)
+	 (dolist (,pair ,oldvalues)
+	   (setenv (car ,pair) (cdr ,pair)))))))
+
+
 (provide 'frame)
 
 ;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56

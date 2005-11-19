@@ -26,8 +26,6 @@
 
 ;;; Code:
 
-(require 'server)
-
 (defvar rxvt-function-map nil
   "Function key overrides for rxvt.")
 
@@ -293,7 +291,7 @@ for the currently selected frame."
 ;; intelligent way than the default guesswork in startup.el.
 (defun rxvt-set-background-mode ()
   "Set background mode as appropriate for the default rxvt colors."
-  (let ((fgbg (server-getenv "COLORFGBG"))
+  (let ((fgbg (terminal-getenv "COLORFGBG"))
 	bg rgb)
     (setq default-frame-background-mode 'light)
     (when (and fgbg

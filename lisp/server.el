@@ -209,39 +209,36 @@ New clients have no properties."
     (setq server-clients (cons (cons proc nil)
 			       server-clients))))
 
-;;;###autoload
-(defun server-getenv (variable &optional frame)
-  "Get the value of VARIABLE in the client environment of frame FRAME.
-VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
-the environment.  Otherwise, value is a string.
+(defun server-getenv-from (env variable)
+  "Get the value of VARIABLE in ENV.
+VARIABLE should be a string.  Value is nil if VARIABLE is
+undefined in ENV.  Otherwise, value is a string.
 
-If FRAME is an emacsclient frame, then the variable is looked up
-in the environment of the emacsclient process; otherwise the
-function consults the environment of the Emacs process.
+ENV should be in the same format as `process-environment'."
+  (let (entry result)
+    (while (and env (null result))
+      (setq entry (car env)
+	    env (cdr env))
+      (if (and (> (length entry) (length variable))
+	       (eq ?= (aref entry (length variable)))
+	       (equal variable (substring entry 0 (length variable))))
+	  (setq result (substring entry (+ (length variable) 1)))))
+    result))
 
-If FRAME is nil or missing, then the selected frame is used."
-  (when (not frame) (setq frame (selected-frame)))
-  (let ((client (frame-parameter frame 'client)) env)
-    (if (null client)
-	(getenv variable)
-      (setq env (server-client-get client 'environment))
-      (if (null env)
-	  (getenv variable)
-	(cdr (assoc variable env))))))
-
-(defmacro server-with-client-environment (client vars &rest body)
-  "Evaluate BODY with environment variables VARS set to those of CLIENT.
+(defmacro server-with-environment (env vars &rest body)
+  "Evaluate BODY with environment variables VARS set to those in ENV.
 The environment variables are then restored to their previous values.
 
-VARS should be a list of strings."
+VARS should be a list of strings.
+ENV should be in the same format as `process-environment'."
   (declare (indent 2))
   (let ((oldvalues (make-symbol "oldvalues"))
 	(var (make-symbol "var"))
 	(value (make-symbol "value"))
 	(pair (make-symbol "pair")))
     `(let (,oldvalues)
-       (dolist (,var (quote ,vars))
-	 (let ((,value (cdr (assoc ,var (server-client-get ,client 'environment)))))
+       (dolist (,var ,vars)
+	 (let ((,value (server-getenv-from ,env ,var)))
 	   (setq ,oldvalues (cons (cons ,var (getenv ,var)) ,oldvalues))
 	   (setenv ,var ,value)))
        (unwind-protect
@@ -483,7 +480,7 @@ The following commands are accepted by the server:
   error if there is a mismatch.  The server replies with
   `-good-version' to confirm the match.
 
-`-env NAME VALUE'
+`-env NAME=VALUE'
   An environment variable on the client side.
 
 `-current-frame'
@@ -571,8 +568,9 @@ The following commands are accepted by the client:
 		current-frame
 		nowait ; t if emacsclient does not want to wait for us.
 		frame ; The frame that was opened for the client (if any).
-		display ; Open the frame on this display.
+		display		     ; Open the frame on this display.
 		dontkill       ; t if the client should not be killed.
+		env
 		(files nil)
 		(lineno 1)
 		(columnno 0))
@@ -605,7 +603,7 @@ The following commands are accepted by the client:
 		 ((equal "-current-frame" arg) (setq current-frame t))
 
 		 ;; -display DISPLAY:
-		 ;; Open X frames on the given instead of the default.
+		 ;; Open X frames on the given display instead of the default.
 		 ((and (equal "-display" arg) (string-match "\\([^ ]*\\) " request))
 		  (setq display (match-string 1 request)
 			request (substring request (match-end 0))))
@@ -639,6 +637,7 @@ The following commands are accepted by the client:
 			  (select-frame frame)
 			  (server-client-set client 'frame frame)
 			  (server-client-set client 'device (frame-display frame))
+			  (set-terminal-parameter frame 'environment env)
 			  (setq dontkill t))
 		      ;; This emacs does not support X.
 		      (server-log "Window system unsupported" proc)
@@ -675,13 +674,13 @@ The following commands are accepted by the client:
 		    (unless (server-client-get client 'version)
 		      (error "Protocol error; make sure you use the correct version of emacsclient"))
 		    (unless current-frame
-		      (server-with-client-environment proc
-			  ("LANG" "LC_CTYPE" "LC_ALL"
-			   ;; For tgetent(3); list according to ncurses(3).
-			   "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
-			   "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
-			   "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
-			   "TERMINFO_DIRS" "TERMPATH")
+		      (server-with-environment env
+			  '("LANG" "LC_CTYPE" "LC_ALL"
+			    ;; For tgetent(3); list according to ncurses(3).
+			    "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
+			    "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
+			    "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
+			    "TERMINFO_DIRS" "TERMPATH")
 			(setq frame (make-frame-on-tty tty type
 						       ;; Ignore nowait here; we always need to clean
 						       ;; up opened ttys when the client dies.
@@ -690,6 +689,7 @@ The following commands are accepted by the client:
 		      (server-client-set client 'frame frame)
 		      (server-client-set client 'tty (display-name frame))
 		      (server-client-set client 'device (frame-display frame))
+		      (set-terminal-parameter frame 'environment env)
 
 		      ;; Reply with our pid.
 		      (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
@@ -737,18 +737,13 @@ The following commands are accepted by the client:
 		    (setq lineno 1
 			  columnno 0)))
 
-		 ;; -env NAME VALUE:  An environment variable.
-		 ((and (equal "-env" arg) (string-match "\\([^ ]+\\) \\([^ ]+\\) " request))
-		  (let ((name (server-unquote-arg (match-string 1 request)))
-			(value (server-unquote-arg (match-string 2 request))))
+		 ;; -env NAME=VALUE:  An environment variable.
+		 ((and (equal "-env" arg) (string-match "\\([^ ]+\\) " request))
+		  (let ((var (server-unquote-arg (match-string 1 request))))
 		    (when coding-system
-			(setq name (decode-coding-string name coding-system))
-			(setq value (decode-coding-string value coding-system)))
+		      (setq var (decode-coding-string var coding-system)))
 		    (setq request (substring request (match-end 0)))
-		    (server-client-set
-		     client 'environment
-		     (cons (cons name value)
-			   (server-client-get client 'environment)))))
+		    (setq env (cons var env))))
 
 		 ;; Unknown command.
 		 (t (error "Unknown command: %s" arg)))))
@@ -1053,30 +1048,23 @@ done that."
 	      ;; a minibuffer/dedicated-window (if there's no other).
 	      (error (pop-to-buffer next-buffer)))))))))
 
-(defun server-save-buffers-kill-display (&optional arg)
-  "Offer to save each buffer, then kill the current connection.
-If the current frame has no client, kill Emacs itself.
+;;;###autoload
+(defun server-save-buffers-kill-display (proc &optional arg)
+  "Offer to save each buffer, then kill PROC.
 
 With prefix arg, silently save all file-visiting buffers, then kill.
 
 If emacsclient was started with a list of filenames to edit, then
 only these files will be asked to be saved."
-  (interactive "P")
-  (let ((proc (frame-parameter (selected-frame) 'client))
-	(frame (selected-frame)))
-    (if proc
-	(let ((buffers (server-client-get proc 'buffers)))
-	  ;; If client is bufferless, emulate a normal Emacs session
-	  ;; exit and offer to save all buffers.  Otherwise, offer to
-	  ;; save only the buffers belonging to the client.
-	  (save-some-buffers arg
-			     (if buffers
-				 (lambda () (memq (current-buffer) buffers))
-			       t))
-	  (server-delete-client proc)
-	  (when (frame-live-p frame)
-	    (delete-frame frame)))
-      (save-buffers-kill-emacs))))
+  (let ((buffers (server-client-get proc 'buffers)))
+    ;; If client is bufferless, emulate a normal Emacs session
+    ;; exit and offer to save all buffers.  Otherwise, offer to
+    ;; save only the buffers belonging to the client.
+    (save-some-buffers arg
+		       (if buffers
+			   (lambda () (memq (current-buffer) buffers))
+			 t))
+    (server-delete-client proc)))
 
 (define-key ctl-x-map "#" 'server-edit)
 

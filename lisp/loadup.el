@@ -167,7 +167,6 @@
       (load "vmsproc")))
 (load "abbrev")
 (load "buff-menu")
-(load "server") ; server-getenv is used throughout the terminal initialization code
 
 (if (fboundp 'x-create-frame)
     (progn
