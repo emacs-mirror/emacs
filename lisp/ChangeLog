@@ -1,3 +1,8 @@
+2005-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* man.el (Man-highlight-references): Doc fix.  Reformat code in a
+	more Lisp-ish way.
+
 2005-11-19  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se> (tiny change)
 
 	* ls-lisp.el (ls-lisp-format-file-size): Format file size with 9
