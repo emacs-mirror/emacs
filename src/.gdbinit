@@ -1,4 +1,4 @@
-# Copyright (C) 1992, 93, 94, 95, 96, 97, 1998, 2000, 01, 2004
+# Copyright (C) 1992, 93, 94, 95, 96, 97, 1998, 2000, 01, 2004, 2005
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -29,7 +29,7 @@ dir ../lwlib
 # This has one unfortunate effect: you can't type C-c
 # at the GDB to stop Emacs, when using X.
 # However, C-z works just as well in that case.
-handle 2 noprint pass
+#handle 2 noprint pass
 
 # Make it work like SIGINT normally does.
 handle SIGTSTP nopass
@@ -628,7 +628,7 @@ Print the contents of $, assuming it is an Emacs Lisp cons.
 end
 
 define nextcons
-  p $.cdr
+  p $.u.cdr
   xcons
 end
 document nextcons
@@ -648,7 +648,7 @@ end
 define xcdr
   xgetptr $
   xgettype $
-  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->cdr : 0)
+  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.cdr : 0)
 end
 document xcdr
 Print the cdr of $, assuming it is an Emacs Lisp pair.
@@ -656,7 +656,7 @@ end
 
 define xfloat
   xgetptr $
-  print ((struct Lisp_Float *) $ptr)->data
+  print ((struct Lisp_Float *) $ptr)->u.data
 end
 document xfloat
 Print $ assuming it is a lisp floating-point number.
@@ -762,7 +762,7 @@ set print sevenbit-strings
 
 show environment DISPLAY
 show environment TERM
-set args -geometry 80x40+0+0
+#set args -geometry 80x40+0+0
 
 # Don't let abort actually run, as it will make
 # stdio stop working and therefore the `pr' command above as well.
