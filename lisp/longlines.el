@@ -442,7 +442,7 @@ This is called by `window-size-change-functions'."
 
 (add-to-list
  'format-alist
- (list 'longlines-encode "Encode long lines." nil nil
+ (list 'longlines "Automatically wrap long lines." nil nil
        'longlines-encode-region t nil))
 
 (provide 'longlines)
