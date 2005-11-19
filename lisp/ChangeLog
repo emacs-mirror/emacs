@@ -1,3 +1,9 @@
+2005-11-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* startup.el (fancy-splash-default-action): Discard only
+	mouse-down and succeeding mouse-up events in the splash screen
+	window so that drag-n-drop event can be processed.
+
 2005-11-18  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-mode): Add hacks for mail-mode and
@@ -2474,7 +2480,7 @@
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* startup.el (fancy-splash-default-action): Discard mouse click in
-	the spash screen window, as it has no sensible meaning in the
+	the splash screen window, as it has no sensible meaning in the
 	next window to be selected.  Fixes error reported by Jan D.
 
 2005-10-12  Reiner Steib  <Reiner.Steib@gmx.de>

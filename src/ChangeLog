@@ -1,3 +1,13 @@
+2005-11-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CG_TEXT_DRAWING] (cg_text_anti_aliasing_threshold):
+	New variable.
+	[USE_CG_TEXT_DRAWING] (init_cg_text_anti_aliasing_threshold): New
+	function.
+	(init_font_name_table) [USE_ATSUI && USE_CG_TEXT_DRAWING]: Use it.
+	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg): Don't do antialiasing if
+	font size is smaller than or equal to cg_text_anti_aliasing_threshold.
+
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (x_create_bitmap_from_xpm_data): Free attributes on
