@@ -1,3 +1,8 @@
+2005-11-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loading.texi (Library Search): Update the default value of
+	`load-suffixes'.
+
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Attribute Functions): Mention :ignore-defface.
