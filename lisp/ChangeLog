@@ -1,5 +1,8 @@
 2005-11-19  Eli Zaretskii  <eliz@gnu.org>
 
+	* complete.el (partial-completion-mode): Mention
+	completion-auto-help in the doc string.
+
 	* man.el (Man-highlight-references): Doc fix.  Reformat code in a
 	more Lisp-ish way.
 
