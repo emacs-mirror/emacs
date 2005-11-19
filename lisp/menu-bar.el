@@ -1239,7 +1239,7 @@ mail status in mode line"))
 
 (define-key menu-bar-describe-menu [list-keybindings]
   '(menu-item "List Key Bindings" describe-bindings
-	      :help "Display a list of all current keybindings"))
+	      :help "Display all current keybindings (keyboard shortcuts)"))
 (define-key menu-bar-describe-menu [describe-current-display-table]
   '(menu-item "Describe Display Table" describe-current-display-table
 	      :help "Describe the current display table"))
