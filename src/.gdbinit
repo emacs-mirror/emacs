@@ -29,7 +29,7 @@ dir ../lwlib
 # This has one unfortunate effect: you can't type C-c
 # at the GDB to stop Emacs, when using X.
 # However, C-z works just as well in that case.
-#handle 2 noprint pass
+handle 2 noprint pass
 
 # Make it work like SIGINT normally does.
 handle SIGTSTP nopass
@@ -762,7 +762,7 @@ set print sevenbit-strings
 
 show environment DISPLAY
 show environment TERM
-#set args -geometry 80x40+0+0
+set args -geometry 80x40+0+0
 
 # Don't let abort actually run, as it will make
 # stdio stop working and therefore the `pr' command above as well.
