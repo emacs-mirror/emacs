@@ -108,6 +108,7 @@ are indicated with a symbol."
         (set (make-local-variable 'require-final-newline) nil)
         (add-to-list 'buffer-file-format 'longlines)
         (add-hook 'change-major-mode-hook 'longlines-mode-off nil t)
+	(add-hook 'before-revert-hook 'longlines-before-revert-hook nil t)
         (make-local-variable 'buffer-substring-filters)
 	(set (make-local-variable 'isearch-search-fun-function)
 	     'longlinges-search-function)
@@ -166,6 +167,7 @@ are indicated with a symbol."
     (remove-hook 'before-kill-functions 'longlines-encode-region t)
     (remove-hook 'after-change-functions 'longlines-after-change-function t)
     (remove-hook 'post-command-hook 'longlines-post-command-function t)
+    (remove-hook 'before-revert-hook 'longlines-before-revert-hook t)
     (remove-hook 'window-configuration-change-hook
                  'longlines-window-change-function t)
     (when longlines-wrap-follows-window-size
@@ -430,10 +432,18 @@ This is called by `window-size-change-functions'."
 
 ;; Loading and saving
 
+(defun longlines-before-revert-hook ()
+  (add-hook 'after-revert-hook 'longlines-after-revert-hook nil t)
+  (longlines-mode 0))
+
+(defun longlines-after-revert-hook ()
+  (remove-hook 'after-revert-hook 'longlines-after-revert-hook t)
+  (longlines-mode 1))
+
 (add-to-list
  'format-alist
- (list 'longlines "Automatically wrap long lines." nil
-       'longlines-decode-region 'longlines-encode-region t nil))
+ (list 'longlines-encode "Encode long lines." nil nil
+       'longlines-encode-region t nil))
 
 (provide 'longlines)
 

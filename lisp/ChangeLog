@@ -1,3 +1,9 @@
+2005-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-before-revert-hook)
+	(longlines-after-revert-hook): New functions.
+	(longlines-mode): Turn off longlines temporarily when reverting.
+
 2005-11-19  Andreas Schwab  <schwab@suse.de>
 
 	* emacs-lisp/shadow.el: Handle compressed files.
