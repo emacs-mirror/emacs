@@ -1,3 +1,18 @@
+2005-11-16  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-mangle-text): Add bold face property without
+	replacing existing properties.
+	(rcirc-my-nick, rcirc-other-nick, rcirc-server)
+	(rcirc-nick-in-message, rcirc-prompt): Use min-colors and remove
+	tty specs.
+	(rcirc-server-prefix, rcirc-server): New faces.
+	(rcirc-url-regexp): Generate with rx macro.
+	(rcirc-last-server-message-time): New variable.
+	(rcirc-filter): Record time of last message.
+	(rcirc-keepalive): Kill processes that did not send a message
+	since the last ping.
+	(rcirc-mode): Give rcirc-topic a local binding here.
+
 2005-11-19  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
 
 	* subr.el (read-passwd): Fontify the prompt as we do with other
