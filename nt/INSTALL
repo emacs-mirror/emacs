@@ -29,50 +29,26 @@
 
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
   later and nmake, or a Windows port of GCC 2.95 or later with MinGW
-  and W32 API support and a port of GNU make.  You can use the Cygwin
+  and W32 API support and a port of GNU Make.  You can use the Cygwin
   ports of GCC, but Emacs requires the MinGW headers and libraries to
   build (latest versions of the Cygwin toolkit, at least since v1.3.3,
   include the MinGW headers and libraries as an integral part).
 
-  Other compilers may work, but specific reports from people that have
-  tried suggest that the Intel C compiler (for example) may produce an
-  Emacs executable with strange filename completion behaviour.  Unless
-  you would like to assist by finding and fixing the cause of any bugs
-  like this, we recommend the use of the supported compilers mentioned
-  in the previous paragraph.
-
-  You will also need a copy of the Posix cp, rm and mv programs.  These
-  and other useful Posix utilities can be obtained from one of several
-  projects:
-
-  * http://www.mingw.org/                         ( MinGW    )
-  * http://www.cygwin.com/                        ( Cygwin   )
-  * http://unxutils.sourceforge.net/              ( UnxUtils )
-  * http://gnuwin32.sourceforge.net/              ( GnuWin32 )
-
-  If you build Emacs on Windows 9X or ME, not on Windows 2K/XP or
-  Windows NT, we suggest to install the Cygwin port of Bash.
-
-  Additional instructions and help for building Emacs on Windows can be
-  found at the Emacs Wiki:
-
-  http://www.emacswiki.org/cgi-bin/wiki/WThirtyTwoInstallationKit
-
-  and at this URL:
-
-  http://ourcomments.org/Emacs/w32-build-emacs.html
-
-  For reference, here is a list of which builds of GNU make are known
-  to work or not, and whether they work in the presence and/or absence
-  of sh.exe, the Cygwin port of Bash. Note that any version of make
-  that is compiled with Cygwin will only work with Cygwin tools, due to
-  the use of cygwin style paths. This means Cygwin make is unsuitable
-  for building parts of Emacs that need to invoke Emacs itself (leim and
-  "make bootstrap", for example). Also see the Trouble-shooting section
-  below if you decide to go ahead and use Cygwin make.
+  If you use the MinGW port of GCC and GNU Make to build Emacs, there
+  are some compatibility issues wrt Make and the shell that is run by
+  Make, either the standard COMMAND.COM/CMD.EXE supplied with Windows
+  or sh.exe., a port of a Unixy shell.  For reference, here is a list
+  of which builds of GNU Make are known to work or not, and whether
+  they work in the presence and/or absence of sh.exe, the Cygwin port
+  of Bash. Note that any version of Make that is compiled with Cygwin
+  will only work with Cygwin tools, due to the use of cygwin style
+  paths.  This means Cygwin Make is unsuitable for building parts of
+  Emacs that need to invoke Emacs itself (leim and "make bootstrap",
+  for example).  Also see the Trouble-shooting section below if you
+  decide to go ahead and use Cygwin make.
 
   In addition, using 4NT as your shell is known to fail the build process,
-  at least for 4NT version 3.01.  Use cmd.exe, the default NT shell,
+  at least for 4NT version 3.01.  Use CMD.EXE, the default Windows shell,
   instead. MSYS sh.exe also appears to cause various problems. If you have
   MSYS installed, try "make SHELL=cmd.exe" to force the use of cmd.exe
   instead of sh.exe.
@@ -101,6 +77,34 @@
     [5] fails when building leim due to the use of cygwin style paths.
         May work if building emacs without leim.
     [6] please report if you try this combination.
+
+  Other compilers may work, but specific reports from people that have
+  tried suggest that the Intel C compiler (for example) may produce an
+  Emacs executable with strange filename completion behaviour.  Unless
+  you would like to assist by finding and fixing the cause of any bugs
+  like this, we recommend the use of the supported compilers mentioned
+  in the previous paragraph.
+
+  You will also need a copy of the Posix cp, rm and mv programs.  These
+  and other useful Posix utilities can be obtained from one of several
+  projects:
+
+  * http://www.mingw.org/                         ( MinGW    )
+  * http://www.cygwin.com/                        ( Cygwin   )
+  * http://unxutils.sourceforge.net/              ( UnxUtils )
+  * http://gnuwin32.sourceforge.net/              ( GnuWin32 )
+
+  If you build Emacs on Windows 9X or ME, not on Windows 2K/XP or
+  Windows NT, we suggest to install the Cygwin port of Bash.
+
+  Additional instructions and help for building Emacs on Windows can be
+  found at the Emacs Wiki:
+
+  http://www.emacswiki.org/cgi-bin/wiki/WThirtyTwoInstallationKit
+
+  and at this URL:
+
+  http://ourcomments.org/Emacs/w32-build-emacs.html
 
 * Configuring
 
