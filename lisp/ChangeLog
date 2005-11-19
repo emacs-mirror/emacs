@@ -1,3 +1,8 @@
+2005-11-19  Ryan Yeske  <rcyeske@gmail.com>
+
+	* ffap.el (ffap-menu-rescan): Use inhibit-read-only instead of
+	binding buffer-read-only to nil.
+
 2005-11-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* complete.el (partial-completion-mode): Mention
