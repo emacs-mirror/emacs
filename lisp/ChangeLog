@@ -1,3 +1,8 @@
+2005-11-19  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se> (tiny change)
+
+	* ls-lisp.el (ls-lisp-format-file-size): Format file size with 9
+	digits, not 8, to avoid misalignment for files larger than 100MB.
+
 2005-11-19  Eli Zaretskii  <eliz@gnu.org>
 
 	* menu-bar.el (menu-bar-describe-menu) <list-keybindings>: Mention
