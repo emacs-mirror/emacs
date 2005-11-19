@@ -1301,7 +1301,7 @@ This is an internal function used to turn off the splash screen after
 the user caused an input event by hitting a key or clicking with the
 mouse."
   (interactive)
-  (if (and (consp last-command-event)
+  (if (and (memq 'down (event-modifiers last-command-event))
 	   (eq (posn-window (event-start last-command-event))
 	       (selected-window)))
       ;; This is a mouse-down event in the spash screen window.
