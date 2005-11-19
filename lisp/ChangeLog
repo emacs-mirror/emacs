@@ -1,3 +1,8 @@
+2005-11-19  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* subr.el (read-passwd): Fontify the prompt as we do with other
+	prompts.
+
 2005-11-19  Ryan Yeske  <rcyeske@gmail.com>
 
 	* ffap.el (ffap-menu-rescan): Use inhibit-read-only instead of
