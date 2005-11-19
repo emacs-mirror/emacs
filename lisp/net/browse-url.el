@@ -864,7 +864,9 @@ xterm, MMM, and then W3."
      ((executable-find "tellw3b") 'browse-url-iximosaic)
      ((executable-find browse-url-xterm-program) 'browse-url-lynx-xterm)
      ((executable-find "mmm") 'browse-url-mmm)
-     (t 'browse-url-w3))
+     ((locate-library "w3") 'browse-url-w3)
+     (t
+      (lambda (&ignore args) (error "No usable browser found"))))
      url args))
 
 ;;;###autoload

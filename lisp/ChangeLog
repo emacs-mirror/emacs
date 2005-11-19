@@ -1,3 +1,8 @@
+2005-11-19  Romain Francoise  <romain@orebokech.com>
+
+	* net/browse-url.el (browse-url-default-browser): Signal an error
+	if no usable browser can be found, rather than try to load w3.
+
 2005-11-16  Ryan Yeske  <rcyeske@gmail.com>
 
 	* net/rcirc.el (rcirc-mangle-text): Add bold face property without
@@ -82,7 +87,7 @@
 	* progmodes/gdb-ui.el (gdb-ann3): ...here.  Make it work in the
 	speedbar.
 	(gdb-find-watch-expression): New function.
-	
+
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (face-attribute, set-face-attribute): Mention existence
