@@ -1,3 +1,8 @@
+2005-11-19  Andreas Schwab  <schwab@suse.de>
+
+	* .gdbinit (nextcons, xcdr, xfloat): Update for changes in
+	Lisp_Cons and Lisp_Float.
+
 2005-11-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_CG_TEXT_DRAWING] (cg_text_anti_aliasing_threshold):
