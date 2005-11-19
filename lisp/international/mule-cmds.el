@@ -1883,8 +1883,10 @@ specifies the character set for the major languages of Western Europe."
 	  (while list
 	    (with-current-buffer (car list)
 	      (set-case-table (standard-case-table)))
-	    (setq list (cdr list))))))
-    (set-display-table-and-terminal-coding-system language-name))
+	    (setq list (cdr list)))))))
+  ;; Always call this so that the display table is correctly set up for
+  ;; unibyte buffers.
+  (set-display-table-and-terminal-coding-system language-name)
 
   (let ((required-features (get-language-info language-name 'features)))
     (while required-features
