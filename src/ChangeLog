@@ -4,6 +4,8 @@
 	:ignore-defface for new frame defaults when `unspecified' is
 	supplied.
 	(Finternal_get_lisp_face_attribute): Hide :ignore-defface.
+	(merge_face_vectors): Don't do :ignore-defface overwriting here.
+	(Finternal_merge_in_global_face): Do it here.
 
 2005-11-20  Juri Linkov  <juri@jurta.org>
 
