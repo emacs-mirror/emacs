@@ -1,3 +1,7 @@
+2005-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi: Revert 2005-11-20 change.
+
 2005-11-20  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* processes.texi (Bindat Functions):
