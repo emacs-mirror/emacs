@@ -1,3 +1,8 @@
+2005-11-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* lisp.h: Use typedef when Lisp_Object is EMACS_INT so that
+	this type is recognised when debugging.
+
 2005-11-19  Andreas Schwab  <schwab@suse.de>
 
 	* .gdbinit (nextcons, xcdr, xfloat): Update for changes in
