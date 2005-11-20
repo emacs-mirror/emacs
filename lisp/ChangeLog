@@ -2137,14 +2137,6 @@
 
 2005-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* simple.el (eval-expression-print-format): Put the char-string
-	inside the parenthesis, like the other alternative notations.
-	(kill-new): Use push.
-	(copy-to-buffer): Use with-current-buffer.
-	(completion-setup-function): Simplify.
-	(minibuffer-local-must-match-map): Don't add redundant bindings which
-	are already present in its parent (minibuffer-local-completion-map).
-
 	* savehist.el (savehist-coding-system): Revert to checking XEmacs.
 
 2005-10-19  Jay Belanger  <belanger@truman.edu>
