@@ -458,6 +458,12 @@ as well as widgets, buttons, overlays, and text properties."
 	 (multibyte-p enable-multibyte-characters)
 	 (overlays (mapcar #'(lambda (o) (overlay-properties o))
 			   (overlays-at pos)))
+	 (char-description (if (not multibyte-p)
+			       (single-key-description char)
+			     (if (< char 128)
+				 (single-key-description char)
+			       (string-to-multibyte
+				(char-to-string char)))))
 	 item-list max-width unicode)
 
     (if (or (< char 256)
@@ -468,12 +474,7 @@ as well as widgets, buttons, overlays, and text properties."
     (setq item-list
 	  `(("character"
 	    ,(format "%s (%d, #o%o, #x%x%s)"
-		     (apply 'propertize (if (not multibyte-p)
-					    (single-key-description char)
-					  (if (< char 128)
-					      (single-key-description char)
-					    (string-to-multibyte
-					     (char-to-string char))))
+		     (apply 'propertize char-description
 			    (text-properties-at pos))
 		     char char char
 		     (if unicode
@@ -639,13 +640,14 @@ as well as widgets, buttons, overlays, and text properties."
 	  (goto-char (point-min))
 	  (re-search-forward "character:[ \t\n]+")
 	  (setq pos (point)))
-	(if overlays
-	    (mapc #'(lambda (props)
-		      (let ((o (make-overlay pos (1+ pos))))
-			(while props
-			  (overlay-put o (car props) (nth 1 props))
-			  (setq props (cddr props)))))
-		  overlays))
+	(let ((end (+ pos (length char-description))))
+	  (if overlays
+	      (mapc #'(lambda (props)
+			(let ((o (make-overlay pos end)))
+			  (while props
+			    (overlay-put o (car props) (nth 1 props))
+			    (setq props (cddr props)))))
+		    overlays)))
 
 	(when disp-vector
 	  (insert
