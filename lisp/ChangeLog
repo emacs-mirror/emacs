@@ -14,6 +14,11 @@
 	* international/mule-cmds.el (encoded-string-description):
 	Use Lisp-readable syntax for hex.
 
+2005-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-enter-backward): Handle the case where the
+	comment is closed by EOB.
+
 2005-11-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-before-revert-hook)
@@ -59,8 +64,8 @@
 
 2005-11-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* complete.el (partial-completion-mode): Mention
-	completion-auto-help in the doc string.
+	* complete.el (partial-completion-mode):
+	Mention completion-auto-help in the doc string.
 
 	* man.el (Man-highlight-references): Doc fix.  Reformat code in a
 	more Lisp-ish way.
@@ -72,8 +77,8 @@
 
 2005-11-19  Eli Zaretskii  <eliz@gnu.org>
 
-	* menu-bar.el (menu-bar-describe-menu) <list-keybindings>: Mention
-	"keyboard shortcuts" in the help text.
+	* menu-bar.el (menu-bar-describe-menu) <list-keybindings>:
+	Mention "keyboard shortcuts" in the help text.
 
 2005-11-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
