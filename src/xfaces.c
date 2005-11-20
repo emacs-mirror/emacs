@@ -4054,7 +4054,11 @@ FRAME 0 means change the face on all frames, and change the default
 
   /* Set lface to the Lisp attribute vector of FACE.  */
   if (EQ (frame, Qt))
-    lface = lface_from_face_name (NULL, face, 1);
+    {
+      lface = lface_from_face_name (NULL, face, 1);
+      if (UNSPECIFIEDP (value))
+	value = Qignore_defface;
+    }
   else
     {
       if (NILP (frame))
@@ -4879,6 +4883,9 @@ frames).  If FRAME is omitted or nil, use the selected frame.  */)
     value = LFACE_FONT (lface);
   else
     signal_error ("Invalid face attribute name", keyword);
+
+  if (IGNORE_DEFFACE_P (value))
+    return Qunspecified;
 
   return value;
 }
