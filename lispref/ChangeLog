@@ -1,3 +1,8 @@
+2005-11-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Bindat Functions):
+	Say "third" to refer to zero-based index "2".
+
 2005-11-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* loading.texi (Library Search): Update the default value of
