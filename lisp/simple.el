@@ -893,9 +893,9 @@ in *Help* buffer.  See also the command `describe-char'."
 	 (col (current-column)))
     (if (= pos end)
 	(if (or (/= beg 1) (/= end (1+ total)))
-	    (message "point=%d of %d (%d%%) <%d - %d> column %d %s"
+	    (message "point=%d of %d (%d%%) <%d-%d> column=%d%s"
 		     pos total percent beg end col hscroll)
-	  (message "point=%d of %d (EOB) column %d %s"
+	  (message "point=%d of %d (EOB) column=%d%s"
 		   pos total col hscroll))
       (let ((coding buffer-file-coding-system)
 	    encoded encoding-msg display-prop under-display)
@@ -904,7 +904,7 @@ in *Help* buffer.  See also the command `describe-char'."
 	    (setq coding default-buffer-file-coding-system))
 	(if (not (char-valid-p char))
 	    (setq encoding-msg
-		  (format "(0%o, %d, 0x%x, invalid)" char char char))
+		  (format "(%d, #o%o, #x%x, invalid)" char char char))
 	  ;; Check if the character is displayed with some `display'
 	  ;; text property.  In that case, set under-display to the
 	  ;; buffer substring covered by that property.
@@ -923,27 +923,27 @@ in *Help* buffer.  See also the command `describe-char'."
 	  (setq encoding-msg
 		(if display-prop
 		    (if (not (stringp display-prop))
-			(format "(0%o, %d, 0x%x, part of display \"%s\")"
+			(format "(%d, #o%o, #x%x, part of display \"%s\")"
 				char char char under-display)
-		      (format "(0%o, %d, 0x%x, part of display \"%s\"->\"%s\")"
+		      (format "(%d, #o%o, #x%x, part of display \"%s\"->\"%s\")"
 			      char char char under-display display-prop))
 		  (if encoded
-		      (format "(0%o, %d, 0x%x, file %s)"
+		      (format "(%d, #o%o, #x%x, file %s)"
 			      char char char
 			      (if (> (length encoded) 1)
 				  "..."
 				(encoded-string-description encoded coding)))
-		    (format "(0%o, %d, 0x%x)" char char char)))))
+		    (format "(%d, #o%o, #x%x)" char char char)))))
 	(if detail
 	    ;; We show the detailed information about CHAR.
 	    (describe-char (point)))
 	(if (or (/= beg 1) (/= end (1+ total)))
-	    (message "Char: %s %s point=%d of %d (%d%%) <%d - %d> column %d %s"
+	    (message "Char: %s %s point=%d of %d (%d%%) <%d-%d> column=%d%s"
 		     (if (< char 256)
 			 (single-key-description char)
 		       (buffer-substring-no-properties (point) (1+ (point))))
 		     encoding-msg pos total percent beg end col hscroll)
-	  (message "Char: %s %s point=%d of %d (%d%%) column %d %s"
+	  (message "Char: %s %s point=%d of %d (%d%%) column=%d%s"
 		   (if enable-multibyte-characters
 		       (if (< char 128)
 			   (single-key-description char)
