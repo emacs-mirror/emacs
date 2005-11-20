@@ -239,9 +239,10 @@ end of the buffer."
 If wrapping is performed, point remains on the line.  If the line does
 not need to be wrapped, move point to the next line and return t."
   (if (longlines-set-breakpoint)
-      (progn (backward-char 1)
-             (delete-char 1)
-             (insert-char ?\n 1)
+      (progn (insert-before-markers ?\n)
+	     (backward-char 1)
+             (delete-char -1)
+	     (forward-char 1)
              nil)
     (if (longlines-merge-lines-p)
         (progn (end-of-line)

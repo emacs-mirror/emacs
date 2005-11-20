@@ -5,6 +5,7 @@
 	(longlines-mode): Turn off longlines temporarily when reverting.
 	Add a message-setup-hook.
 	(longlines-decode-buffer): New function.
+	(longlines-wrap-line): Preserve marker positions.
 
 2005-11-19  Andreas Schwab  <schwab@suse.de>
 
