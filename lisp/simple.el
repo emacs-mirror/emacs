@@ -4316,7 +4316,11 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
 			  (eq (syntax-class syntax) 4)
 			  (cdr syntax)))))
 	(cond
-	 ((not (eq matching-paren (char-before oldpos)))
+	 ((not (or (eq matching-paren (char-before oldpos))
+                   ;; The cdr might hold a new paren-class info rather than
+                   ;; a matching-char info, in which case the two CDRs
+                   ;; should match.
+                   (eq matching-paren (cdr (syntax-after oldpos)))))
 	  (message "Mismatched parentheses"))
 	 ((not blinkpos)
 	  (if (not blink-matching-paren-distance)
