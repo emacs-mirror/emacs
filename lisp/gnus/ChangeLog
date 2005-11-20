@@ -1,3 +1,7 @@
+2005-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el: Revert last changes.
+
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* message.el (message-courtesy-message)
