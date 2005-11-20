@@ -1,3 +1,14 @@
+2005-11-20  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (what-cursor-position):
+	* descr-text.el (describe-char): Use Lisp-readable syntax
+	for octal and hex.  Reorder decimal, octal and hex values.
+	Remove excess whitespace in the output.  Use `=' in `column='
+	like in `point=' and `Hscroll='.
+
+	* international/mule-cmds.el (encoded-string-description):
+	Use Lisp-readable syntax for hex.
+
 2005-11-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-before-revert-hook)
