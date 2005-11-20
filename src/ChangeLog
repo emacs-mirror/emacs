@@ -1,3 +1,8 @@
+2005-11-20  Juri Linkov  <juri@jurta.org>
+
+	* charset.c (invalid_character): Use Lisp-readable syntax
+	for octal and hex.  Reorder decimal, octal and hex values.
+
 2005-11-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* lisp.h: Use typedef when Lisp_Object is EMACS_INT so that
