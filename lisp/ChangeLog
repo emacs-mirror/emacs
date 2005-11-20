@@ -1,3 +1,8 @@
+2005-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (blink-matching-open):
+	* paren.el (show-paren-function): Allow new paren-class info.
+
 2005-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el: Revert 2005-11-17 change.  :ignore-defface is now

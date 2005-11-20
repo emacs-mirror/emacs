@@ -478,19 +478,22 @@ Point is assumed to be just at the end of a comment."
   (if (bolp)
       ;; comment-end = ""
       (progn (backward-char) (skip-syntax-backward " "))
-    (let ((end (point)))
-      (beginning-of-line)
-      (save-restriction
-	(narrow-to-region (point) end)
-	(if (re-search-forward (concat comment-end-skip "\\'") nil t)
-	    (goto-char (match-beginning 0))
-	  ;; comment-end-skip not found probably because it was not set right.
-	  ;; Since \\s> should catch the single-char case, we'll blindly
-	  ;; assume we're at the end of a two-char comment-end.
-	  (goto-char (point-max))
-	  (backward-char 2)
-	  (skip-chars-backward (string (char-after)))
-	  (skip-syntax-backward " "))))))
+    (cond
+     ((save-restriction
+        (beginning-of-line)
+        (narrow-to-region (point) end)
+        (re-search-forward (concat comment-end-skip "\\'") nil t))
+      (goto-char (match-beginning 0)))
+     ;; comment-end-skip not found.  Maybe we're at EOB which implicitly
+     ;; closes the comment.
+     ((eobp) (skip-syntax-backward " "))
+     (t
+      ;; else comment-end-skip was not found probably because it was not
+      ;; set right.  Since \\s> should catch the single-char case, we'll
+      ;; blindly assume we're at the end of a two-char comment-end.
+      (backward-char 2)
+      (skip-chars-backward (string (char-after)))
+      (skip-syntax-backward " ")))))
 
 ;;;;
 ;;;; Commands
