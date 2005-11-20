@@ -287,8 +287,8 @@ first Syntax Highlighting and then Save Options.
 
   Font Lock mode uses several specifically named faces to do its job,
 including @code{font-lock-string-face}, @code{font-lock-comment-face},
-and others.  The easiest way to find them all is to use completion
-on the face name in @code{set-face-foreground}.
+and others.  The easiest way to find them all is to use
+@kbd{M-x customize-group @key{RET} font-lock-faces @key{RET}}.
 
   To change the colors or the fonts used by Font Lock mode to fontify
 different parts of text, just change these faces.  There are
