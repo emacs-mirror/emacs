@@ -1,5 +1,7 @@
 2005-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* newcomment.el (comment-enter-backward): Fix last fix.
+
 	* simple.el (blink-matching-open):
 	* paren.el (show-paren-function): Allow new paren-class info.
 
