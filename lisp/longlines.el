@@ -127,7 +127,7 @@ are indicated with a symbol."
           ;; longlines-wrap-lines that we'll never encounter from here
 	  (save-restriction
 	    (widen)
-	    (longlines-decode-region (point-min) (point-max)))
+	    (longlines-decode-buffer))
           (longlines-wrap-region (point-min) (point-max))
           (set-buffer-modified-p mod))
         (when (and longlines-show-hard-newlines
@@ -140,6 +140,7 @@ are indicated with a symbol."
 		   (add-hook 'mail-citation-hook 'mail-indent-citation nil t))
 	       (add-hook 'mail-citation-hook 'longlines-decode-region nil t))
 	      ((eq major-mode 'message-mode)
+	       (add-hook 'message-setup-hook 'longlines-decode-buffer nil t)
 	       (make-local-variable 'message-indent-citation-function)
 	       (if (not (listp message-indent-citation-function))
 		   (setq message-indent-citation-function
@@ -324,6 +325,10 @@ If BEG and END are nil, the point and mark are used."
     (while (search-forward "\n" (max beg end) t)
       (set-hard-newline-properties
        (match-beginning 0) (match-end 0)))))
+
+(defun longlines-decode-buffer ()
+  "Turn all newlines in the buffer into hard newlines."
+  (longlines-decode-region (point-min) (point-max)))
 
 (defun longlines-encode-region (beg end &optional buffer)
   "Replace each soft newline between BEG and END with exactly one space.

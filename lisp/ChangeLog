@@ -3,6 +3,8 @@
 	* longlines.el (longlines-before-revert-hook)
 	(longlines-after-revert-hook): New functions.
 	(longlines-mode): Turn off longlines temporarily when reverting.
+	Add a message-setup-hook.
+	(longlines-decode-buffer): New function.
 
 2005-11-19  Andreas Schwab  <schwab@suse.de>
 
