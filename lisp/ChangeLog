@@ -1,3 +1,8 @@
+2005-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Handle continued lines
+	in patterns.
+
 2005-11-21  Juri Linkov  <juri@jurta.org>
 
 	* custom.el (defcustom): Update link types in docstring.
