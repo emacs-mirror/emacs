@@ -902,9 +902,9 @@ icon in the tool bar (@code{gud-watch}).
 
 Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree
-format.  Leaves show the name of the expression and its value and the
-data type displays as a tooltip.  Higher levels just show the name and
-the data type.
+format.  Leaves and simple data types show the name of the expression
+and its value, and display the type as a tooltip.  Higher levels
+just show the name and the data type.
 
 To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
