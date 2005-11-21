@@ -1,3 +1,7 @@
+2005-11-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Expand description.
+
 2005-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi (Font Lock): Font lock is enabled by default now.
