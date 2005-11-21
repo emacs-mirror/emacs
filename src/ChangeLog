@@ -1,3 +1,8 @@
+2005-11-21  Ken Raeburn  <raeburn@mit.edu>
+
+	* keymap.c (shadow_lookup): Use make_number to pass a number to
+	Fsubstring.
+
 2005-11-21  Juri Linkov  <juri@jurta.org>
 
 	* puresize.h (BASE_PURESIZE): Increment to 1180000.
