@@ -420,6 +420,7 @@ The following KEYWORDs are defined:
 
 Read the section about customization in the Emacs Lisp manual for more
 information."
+  (declare (doc-string 3))
   ;; It is better not to use backquote in this file,
   ;; because that makes a bootstrapping problem
   ;; if you need to recompile all the Lisp files using interpreted code.
