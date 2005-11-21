@@ -1,3 +1,9 @@
+2005-11-20  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* custom.el (defgroup): Add doc-string-elt info.
+
+	* widget.el (define-widget): Don't use declare for the doc-string-elt.
+
 2005-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* newcomment.el (comment-enter-backward): Fix last fix.
