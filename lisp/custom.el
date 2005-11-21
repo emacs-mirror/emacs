@@ -210,12 +210,11 @@ The following keywords are meaningful:
         item.  This is a sentence containing an active field which
         references some other documentation.
 
-        There are three alternatives you can use for LINK-DATA:
+        There are several alternatives you can use for LINK-DATA:
 
         (custom-manual INFO-NODE)
              Link to an Info node; INFO-NODE is a string which specifies
-             the node name, as in \"(emacs)Top\".  The link appears as
-             `[manual]' in the customization buffer.
+             the node name, as in \"(emacs)Top\".
 
         (info-link INFO-NODE)
              Like `custom-manual' except that the link appears in the
@@ -223,7 +222,24 @@ The following keywords are meaningful:
 
         (url-link URL)
              Link to a web page; URL is a string which specifies the URL.
-             The link appears in the customization buffer as URL.
+
+        (emacs-commentary-link LIBRARY)
+             Link to the commentary section of LIBRARY.
+
+        (emacs-library-link LIBRARY)
+             Link to an Emacs Lisp LIBRARY file.
+
+        (file-link FILE)
+             Link to FILE.
+
+        (function-link FUNCTION)
+             Link to the documentation of FUNCTION.
+
+        (variable-link VARIABLE)
+             Link to the documentation of VARIABLE.
+
+        (custom-group-link GROUP)
+             Link to another customization GROUP.
 
         You can specify the text to use in the customization buffer by
         adding `:tag NAME' after the first element of the LINK-DATA; for
