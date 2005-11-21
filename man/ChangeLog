@@ -1,3 +1,7 @@
+2005-11-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Font Lock): Font lock is enabled by default now.
+
 2005-11-20  Juri Linkov  <juri@jurta.org>
 
 	* basic.texi (Position Info): Update examples of the output.
