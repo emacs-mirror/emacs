@@ -1,3 +1,7 @@
+2005-11-21  Juri Linkov  <juri@jurta.org>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1180000.
+
 2005-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute): Use

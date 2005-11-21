@@ -1,3 +1,7 @@
+2005-11-21  Juri Linkov  <juri@jurta.org>
+
+	* custom.el (defcustom): Update link types in docstring.
+
 2005-11-20  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
 	* custom.el (defgroup): Add doc-string-elt info.

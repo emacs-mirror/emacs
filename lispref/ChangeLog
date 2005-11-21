@@ -1,3 +1,9 @@
+2005-11-21  Juri Linkov  <juri@jurta.org>
+
+	* customize.texi (Common Keywords): Update links types
+	custom-manual and url-link.  Add link types emacs-library-link,
+	file-link, function-link, variable-link, custom-group-link.
+
 2005-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
 	* display.texi: Revert 2005-11-20 change.
