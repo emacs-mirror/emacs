@@ -953,8 +953,10 @@ The locals buffer displays the values of local variables of the
 current frame for simple data types (@pxref{Frame Info, Frame Info,
 Information on a frame, gdb, The GNU debugger}).
 
-Arrays and structures display their type only.  You must display them
-separately to examine their values.  @xref{Watch Expressions}.
+Arrays and structures display their type only.  Move point to their
+type description ([struct/union] or [array]) and press @key{RET}, or
+alternatively click @kbd{Mouse-2} there, to examine their values.
+@xref{Watch Expressions}.
 
 @item Registers Buffer
 @findex toggle-gdb-all-registers
