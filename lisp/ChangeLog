@@ -1,3 +1,10 @@
+2005-11-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-locals-watch-keymap): New local map.
+	(gdb-struct-string, gdb-array-string): New constants.
+	(gdb-info-locals-handler): Use them.
+	(gdb-reset): Reset gdb-var-list to nil.
+
 2005-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-font-lock-paren): Handle continued lines

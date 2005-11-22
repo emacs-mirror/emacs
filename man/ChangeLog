@@ -1,6 +1,8 @@
 2005-11-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Expand description.
+	(Other GDB User Interface Buffers): Describe local map for
+	gud-watch.
 
 2005-11-21  Chong Yidong  <cyd@stupidchicken.com>
 
