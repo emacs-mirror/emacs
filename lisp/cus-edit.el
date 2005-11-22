@@ -800,13 +800,18 @@ This operation eliminates any saved settings for the group members,
 making them as if they had never been customized at all."
   (interactive)
   (let ((children custom-options))
-    (mapc (lambda (widget)
-	    (and (widget-get widget :custom-standard-value)
-		 (widget-apply widget :custom-standard-value)
-		 (if (memq (widget-get widget :custom-state)
-			   '(modified set changed saved rogue))
-		     (widget-apply widget :custom-reset-standard))))
-	    children)))
+    (when (or (and (= 1 (length children))
+		   (memq (widget-type (car children))
+			 '(custom-variable custom-face)))
+	      (yes-or-no-p "Really erase all customizations in this buffer? "))
+      (mapc (lambda (widget)
+	      (and (if (widget-get widget :custom-standard-value)
+		       (widget-apply widget :custom-standard-value)
+		     t)
+		   (memq (widget-get widget :custom-state)
+			 '(modified set changed saved rogue))
+		   (widget-apply widget :custom-reset-standard)))
+	    children))))
 
 ;;; The Customize Commands
 
