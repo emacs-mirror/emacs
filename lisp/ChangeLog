@@ -1,3 +1,10 @@
+2005-11-22 Lars Hansen <larsh@soem.dk>
+	* ls-lisp.el (ls-lisp-parse-symlink): Delete.
+	(ls-lisp-classify, ls-lisp-format): Delete call to
+	ls-lisp-parse-symlink.
+	(ls-lisp-handle-switches): Handle symlinks to directories as
+	directories when ls-lisp-dirs-first in non-nil.
+
 2005-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* startup.el (command-line): Make sure that loaddefs.el is handled
