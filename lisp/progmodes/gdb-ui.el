@@ -2234,6 +2234,9 @@ corresponding to the mode line clicked."
 
 (defvar gdb-locals-watch-keymap
   (let ((map (make-sparse-keymap)))
+    (define-key map "\r" '(lambda () (interactive)
+			    (beginning-of-line)
+			    (gud-watch)))
     (define-key map [mouse-2] '(lambda (event) (interactive "e")
 				 (mouse-set-point event)
 				 (beginning-of-line)
