@@ -75,9 +75,11 @@
 ;;    of 'info registers'.
 ;; 3) Use tree-widget.el instead of the speedbar for watch-expressions?
 ;; 4) Mark breakpoint locations on scroll-bar of source buffer?
-;; 5) After release of 22.1 use '-var-list-children --all-values'
-;;    and '-stack-list-locals 2' which need GDB 6.1 onwards.
-;; 6) With gud-print and gud-pstar, print the variable name in the GUD
+;; 5) After release of 22.1, use "-var-list-children --all-values"
+;;    and "-stack-list-locals --simple-values" which need GDB 6.1 onwards.
+;; 6) After release of 22.1, use "-var-update --all-values" which needs
+;;    GDB 6.4 onwards.
+;; 7) With gud-print and gud-pstar, print the variable name in the GUD
 ;;    buffer instead of the value's history number.
 
 ;;; Code:
@@ -2230,6 +2232,27 @@ corresponding to the mode line clicked."
   "server info locals\n"
   gdb-info-locals-handler)
 
+(defvar gdb-locals-watch-keymap
+  (let ((map (make-sparse-keymap)))
+    (define-key map [mouse-2] '(lambda (event) (interactive "e")
+				 (mouse-set-point event)
+				 (beginning-of-line)
+				 (gud-watch)))
+    map)
+ "Keymap to create watch expression of a complex data type local variable.")
+
+(defconst gdb-struct-string
+  (concat (propertize "[struct/union];"
+		      'mouse-face 'highlight
+		      'help-echo "mouse-2: create watch expression"
+		      'local-map gdb-locals-watch-keymap) "\n"))
+
+(defconst gdb-array-string
+  (concat " " (propertize "[array];"
+			  'mouse-face 'highlight
+			  'help-echo "mouse-2: create watch expression"
+			  'local-map gdb-locals-watch-keymap) "\n"))
+
 ;; Abbreviate for arrays and structures.
 ;; These can be expanded using gud-display.
 (defun gdb-info-locals-handler ()
@@ -2242,10 +2265,10 @@ corresponding to the mode line clicked."
 	(replace-match "" nil nil))
       (goto-char (point-min))
       (while (re-search-forward "{\\(.*=.*\n\\|\n\\)" nil t)
-	(replace-match "(structure);\n" nil nil))
+	(replace-match gdb-struct-string nil nil))
       (goto-char (point-min))
       (while (re-search-forward "\\s-*{.*\n" nil t)
-	(replace-match " (array);\n" nil nil))))
+	(replace-match gdb-array-string nil nil))))
   (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
     (and buf
 	 (with-current-buffer buf
@@ -2504,6 +2527,7 @@ Kills the gdb buffers and resets the source buffers."
 	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
   (setq gud-running nil)
   (setq gdb-active-process nil)
+  (setq gdb-var-list nil)
   (remove-hook 'after-save-hook 'gdb-create-define-alist t))
 
 (defun gdb-source-info ()
