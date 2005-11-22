@@ -1,3 +1,10 @@
+2005-11-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (Custom-reset-standard): Make it handle Custom group
+	buffers correctly.  (It used to throw an error in such buffers.)
+	Make it ask for confirmation in group buffers and other Custom
+	buffers containing more than one customization item.
+
 2005-11-22  John Paul Wallington  <jpw@gnu.org>
 
 	* net/goto-addr.el (goto-address-fontify): Put `follow-link'
