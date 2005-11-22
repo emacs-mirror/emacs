@@ -1,3 +1,11 @@
+2005-11-22  John Paul Wallington  <jpw@gnu.org>
+
+	* net/goto-addr.el (goto-address-fontify): Put `follow-link'
+	property on mail and url overlays.
+	(goto-address-at-point): Use `posn-set-point' instead of
+	`mouse-set-point' because the latter is not fbound when configured
+	without X.
+
 2005-11-22  Lars Hansen  <larsh@soem.dk>
 
 	* ls-lisp.el (ls-lisp-parse-symlink): Delete.
