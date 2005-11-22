@@ -1,3 +1,8 @@
+2005-11-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Make sure that loaddefs.el is handled
+	correctly in load-history.
+
 2005-11-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-locals-watch-keymap): New local map.
