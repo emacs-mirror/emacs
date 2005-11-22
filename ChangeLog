@@ -1,3 +1,7 @@
+2005-11-22  Romain Francoise  <romain@orebokech.com>
+
+	* make-dist: Add etc/images/icons.
+
 2005-11-03  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Use GZIP_PROG instead of GZIP.
