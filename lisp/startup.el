@@ -647,7 +647,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		  (if (and (stringp (car elt))
 			   (not (file-name-absolute-p (car elt))))
 		      (cons (locate-file (car elt) load-path
-					 load-suffixes)
+					 (append load-suffixes '("")))
 			    (cdr elt))
 		    elt))
 		load-history))
