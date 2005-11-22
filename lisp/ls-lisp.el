@@ -45,8 +45,6 @@
 ;; * A few obscure ls switches are still ignored: see the docstring of
 ;; `insert-directory'.
 
-;; * Generally only numeric uid/gid.
-
 ;; TO DO =============================================================
 
 ;; Complete handling of F switch (if/when possible).
@@ -61,8 +59,8 @@
 ;; Revised by Andrew Innes and Geoff Volker (and maybe others).
 
 ;; Modified by Francis J. Wright <F.J.Wright@maths.qmw.ac.uk>, mainly
-;; to support many more ls options, "platform emulation", hooks for
-;; external symbolic link support and more robust sorting.
+;; to support many more ls options, "platform emulation" and more
+;; robust sorting.
 
 ;;; Code:
 
@@ -174,14 +172,6 @@ current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
 ;; Remember the original insert-directory function
 (or (featurep 'ls-lisp)  ; FJW: unless this file is being reloaded!
     (setq original-insert-directory (symbol-function 'insert-directory)))
-
-;; This stub is to allow ls-lisp to parse symbolic links via another
-;; library such as w32-symlinks.el from
-;; http://centaur.maths.qmw.ac.uk/Emacs/:
-(defun ls-lisp-parse-symlink (file-name)
-  "This stub may be redefined to parse FILE-NAME as a symlink.
-It should return nil or the link target as a string."
-  nil)
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -429,7 +419,9 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
   ;; symbolic link, or nil.
       (let (el dirs files)
 	(while file-alist
-	  (if (eq (cadr (setq el (car file-alist))) t) ; directory
+	  (if (or (eq (cadr (setq el (car file-alist))) t) ; directory
+                  (and (stringp (cadr el))
+                       (file-directory-p (cadr el)))) ; symlink to a directory
 	      (setq dirs (cons el dirs))
 	    (setq files (cons el files)))
 	  (setq file-alist (cdr file-alist)))
@@ -455,12 +447,11 @@ links, `|' for FIFOs, `=' for sockets, and nothing for regular files.
 \[But FIFOs and sockets are not recognized.]
 FILEDATA has the form (filename . `file-attributes').  Its `cadr' is t
 for directory, string (name linked to) for symbolic link, or nil."
-  (let ((dir (cadr filedata)) (file-name (car filedata)))
-    (cond ((or dir
-	       ;; Parsing .lnk files here is perhaps overkill!
-	       (setq dir (ls-lisp-parse-symlink file-name)))
+  (let ((file-name (car filedata))
+        (type (cadr filedata)))
+    (cond (type
 	   (cons
-	    (concat file-name (if (eq dir t) "/" "@"))
+	    (concat file-name (if (eq type t) "/" "@"))
 	    (cdr filedata)))
 	  ((string-match "x" (nth 9 filedata))
 	   (cons
@@ -506,10 +497,6 @@ SWITCHES, TIME-INDEX and NOW give the full switch list and time data."
 	;; t for directory, string (name linked to)
 	;; for symbolic link, or nil.
 	(drwxrwxrwx (nth 8 file-attr)))	; attribute string ("drwxrwxrwx")
-    (and (null file-type)
-	 ;; Maybe no kernel support for symlinks, so...
-	 (setq file-type (ls-lisp-parse-symlink file-name))
-	 (aset drwxrwxrwx 0 ?l)) ; symbolic link - update attribute string
     (concat (if (memq ?i switches)	; inode number
 		(format " %6d" (nth 10 file-attr)))
 	    ;; nil is treated like "" in concat
