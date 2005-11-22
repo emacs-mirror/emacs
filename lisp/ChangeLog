@@ -1,4 +1,5 @@
 2005-11-22 Lars Hansen <larsh@soem.dk>
+
 	* ls-lisp.el (ls-lisp-parse-symlink): Delete.
 	(ls-lisp-classify, ls-lisp-format): Delete call to
 	ls-lisp-parse-symlink.
