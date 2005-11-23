@@ -300,36 +300,6 @@ a new Emacs.
 On 32bit machines, it is now 256M (i.e. 268435455).
 
 +++
-** M-g is now a prefix key.
-M-g g and M-g M-g run goto-line.
-M-g n and M-g M-n run next-error (like C-x `).
-M-g p and M-g M-p run previous-error.
-
-+++
-** C-u M-g M-g switches to the most recent previous buffer,
-and goes to the specified line in that buffer.
-
-When goto-line starts to execute, if there's a number in the buffer at
-point then it acts as the default argument for the minibuffer.
-
-+++
-** The old bindings C-M-delete and C-M-backspace have been deleted,
-since there are situations where one or the other will shut down
-the operating system or your X server.
-
-+++
-** line-move-ignore-invisible now defaults to t.
-
-+++
-** When the undo information of the current command gets really large
-(beyond the value of `undo-outer-limit'), Emacs discards it and warns
-you about it.
-
-+++
-** `apply-macro-to-region-lines' now operates on all lines that begin
-in the region, rather than on all complete lines in the region.
-
-+++
 ** You can now switch buffers in a cyclic order with C-x C-left and
 (prev-buffer) and C-x C-right (next-buffer).  C-x left and C-x right
 can be used as well.
@@ -4934,11 +4904,6 @@ was inconsistent with the face behavior under X.
 ---
 *** `set-fontset-font', `fontset-info', `fontset-font' now operate on
 the default fontset if the argument NAME is nil..
-
-+++
-*** In `set-face-attribute', you can assign any attribute the value
-`:ignore-defface'.  This forces the attribute value to be acquired
-from some other face during face merging.
 
 ** Font-Lock changes:
 

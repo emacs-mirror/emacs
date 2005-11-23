@@ -1,3 +1,151 @@
+2005-11-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Make sure that loaddefs.el is handled
+	correctly in load-history.
+
+2005-11-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-locals-watch-keymap): New local map.
+	(gdb-struct-string, gdb-array-string): New constants.
+	(gdb-info-locals-handler): Use them.
+	(gdb-reset): Reset gdb-var-list to nil.
+
+2005-11-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-font-lock-paren): Handle continued lines
+	in patterns.
+
+2005-11-21  Juri Linkov  <juri@jurta.org>
+
+	* custom.el (defcustom): Update link types in docstring.
+
+2005-11-20  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* custom.el (defgroup): Add doc-string-elt info.
+
+	* widget.el (define-widget): Don't use declare for the doc-string-elt.
+
+2005-11-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-enter-backward): Fix last fix.
+
+	* simple.el (blink-matching-open):
+	* paren.el (show-paren-function): Allow new paren-class info.
+
+2005-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faces.el: Revert 2005-11-17 change.  :ignore-defface is now
+	handled automagically.
+
+2005-11-20  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (what-cursor-position):
+	* descr-text.el (describe-char): Use Lisp-readable syntax
+	for octal and hex.  Reorder decimal, octal and hex values.
+	Remove excess whitespace in the output.  Use `=' in `column='
+	like in `point=' and `Hscroll='.
+
+	* international/mule-cmds.el (encoded-string-description):
+	Use Lisp-readable syntax for hex.
+
+2005-11-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-enter-backward): Handle the case where the
+	comment is closed by EOB.
+
+2005-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-before-revert-hook)
+	(longlines-after-revert-hook): New functions.
+	(longlines-mode): Turn off longlines temporarily when reverting.
+	Add a message-setup-hook.
+	(longlines-decode-buffer): New function.
+	(longlines-wrap-line): Preserve marker positions.
+
+2005-11-19  Andreas Schwab  <schwab@suse.de>
+
+	* emacs-lisp/shadow.el: Handle compressed files.
+
+2005-11-19  Romain Francoise  <romain@orebokech.com>
+
+	* net/browse-url.el (browse-url-default-browser): Signal an error
+	if no usable browser can be found, rather than try to load w3.
+
+2005-11-16  Ryan Yeske  <rcyeske@gmail.com>
+
+	* net/rcirc.el (rcirc-mangle-text): Add bold face property without
+	replacing existing properties.
+	(rcirc-my-nick, rcirc-other-nick, rcirc-server)
+	(rcirc-nick-in-message, rcirc-prompt): Use min-colors and remove
+	tty specs.
+	(rcirc-server-prefix, rcirc-server): New faces.
+	(rcirc-url-regexp): Generate with rx macro.
+	(rcirc-last-server-message-time): New variable.
+	(rcirc-filter): Record time of last message.
+	(rcirc-keepalive): Kill processes that did not send a message
+	since the last ping.
+	(rcirc-mode): Give rcirc-topic a local binding here.
+
+2005-11-19  Michael Cadilhac  <michael.cadilhac@lrde.org>  (tiny change)
+
+	* subr.el (read-passwd): Fontify the prompt as we do with other
+	prompts.
+
+2005-11-19  Ryan Yeske  <rcyeske@gmail.com>
+
+	* ffap.el (ffap-menu-rescan): Use inhibit-read-only instead of
+	binding buffer-read-only to nil.
+
+2005-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* complete.el (partial-completion-mode):
+	Mention completion-auto-help in the doc string.
+
+	* man.el (Man-highlight-references): Doc fix.  Reformat code in a
+	more Lisp-ish way.
+
+2005-11-19  Slawomir Nowaczyk  <slawomir.nowaczyk.847@student.lu.se> (tiny change)
+
+	* ls-lisp.el (ls-lisp-format-file-size): Format file size with 9
+	digits, not 8, to avoid misalignment for files larger than 100MB.
+
+2005-11-19  Eli Zaretskii  <eliz@gnu.org>
+
+	* menu-bar.el (menu-bar-describe-menu) <list-keybindings>:
+	Mention "keyboard shortcuts" in the help text.
+
+2005-11-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* startup.el (fancy-splash-default-action): Discard only
+	mouse-down and succeeding mouse-up events in the splash screen
+	window so that drag-n-drop event can be processed.
+
+2005-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Add hacks for mail-mode and
+	message-mode.
+
+2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-table-sort-lines): New command.
+	(org-tbl-menu): Add entry for `org-table-sort-lines'.
+	(org-add-file): Command removed, use `org-agenda-file-to-front'
+	instead.
+	(org-export-icalendar): Use `org-icalendar-combined-name'.
+	(org-cycle-agenda-files, org-agenda-file-to-end)
+	(org-agenda-file-to-front): New commands.
+	(org-table-tab-jumps-over-hlines,org-export-html-style): New
+	options.
+	(org-table-next-field): Use `org-table-tab-jumps-over-hlines'.
+	(org-at-table.el-p, org-set-autofill-regexps,org-html-protect):
+	New functions.
+	(org-fill-paragraph): Call `org-table-align' in tables.
+	(org-mode): Call `org-set-autofill-regexps'.
+	(org-export-as-html): Support for local handformatted lists.
+	Modified to produce valid HTML 4.0. Use `org-export-html-style'.
+	(org-export-local-list-max-depth): New option.
+	(org-html-expand): Use `org-html-protect'.
+
 2005-11-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-install-speedbar-variables): Bind gud-pp
@@ -7,7 +155,7 @@
 	* progmodes/gdb-ui.el (gdb-ann3): ...here.  Make it work in the
 	speedbar.
 	(gdb-find-watch-expression): New function.
-	
+
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faces.el (face-attribute, set-face-attribute): Mention existence
@@ -2033,14 +2181,6 @@
 
 2005-10-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* simple.el (eval-expression-print-format): Put the char-string
-	inside the parenthesis, like the other alternative notations.
-	(kill-new): Use push.
-	(copy-to-buffer): Use with-current-buffer.
-	(completion-setup-function): Simplify.
-	(minibuffer-local-must-match-map): Don't add redundant bindings which
-	are already present in its parent (minibuffer-local-completion-map).
-
 	* savehist.el (savehist-coding-system): Revert to checking XEmacs.
 
 2005-10-19  Jay Belanger  <belanger@truman.edu>
@@ -2448,7 +2588,7 @@
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
 	* startup.el (fancy-splash-default-action): Discard mouse click in
-	the spash screen window, as it has no sensible meaning in the
+	the splash screen window, as it has no sensible meaning in the
 	next window to be selected.  Fixes error reported by Jan D.
 
 2005-10-12  Reiner Steib  <Reiner.Steib@gmx.de>

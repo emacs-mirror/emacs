@@ -1,3 +1,8 @@
+2005-11-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* message.el: Revert last changes.
+	(message-insert-citation-line): Use newlines.
+
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* message.el (message-courtesy-message)

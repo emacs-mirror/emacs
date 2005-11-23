@@ -1859,11 +1859,6 @@ the first face fails to specify a particular attribute, that means the
 next face gets a chance.  However, the @code{default} face must
 specify all attributes.
 
-  Any attribute can have the value @code{:ignore-defface}.  The effect
-of this is identical to @code{unspecified}.  It exists because of an
-technical ambiguity in giving attributes the value @code{unspecified}.
-@xref{Attribute Functions}.
-
   Some of these font attributes are meaningful only on certain kinds of
 displays---if your display cannot handle a certain attribute, the
 attribute is ignored.  (The attributes @code{:family}, @code{:width},
@@ -2055,14 +2050,6 @@ new frames.
 This function sets one or more attributes of face @var{face}
 for frame @var{frame}.  If @var{frame} is @code{nil}, it sets
 the attribute for all frames, and the defaults for new frames.
-
-Unless you know what you're doing, don't set an attribute to
-@code{unspecified}.  This is ambiguous---it is unclear whether it
-means to unspecify the value stored in the frame-local copies of the
-face (which means reverting to the original face spec), or the value
-in the face spec itself.  What you probably want is to set the
-attribute to @code{:ignore-defface}.  This forces the attribute value
-to be acquired from some other face during face merging.
 
 The extra arguments @var{arguments} specify the attributes to set, and
 the values for them.  They should consist of alternating attribute names

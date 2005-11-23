@@ -588,11 +588,11 @@ All ls time options, namely c, t and u, are handled."
 (defun ls-lisp-format-file-size (file-size human-readable)
   (if (or (not human-readable)
           (< file-size 1024))
-      (format (if (floatp file-size) " %8.0f" " %8d") file-size)
+      (format (if (floatp file-size) " %9.0f" " %9d") file-size)
     (do ((file-size (/ file-size 1024.0) (/ file-size 1024.0))
          ;; kilo, mega, giga, tera, peta, exa
          (post-fixes (list "k" "M" "G" "T" "P" "E") (cdr post-fixes)))
-        ((< file-size 1024) (format " %7.0f%s"  file-size (car post-fixes))))))
+        ((< file-size 1024) (format " %8.0f%s"  file-size (car post-fixes))))))
 
 (provide 'ls-lisp)
 

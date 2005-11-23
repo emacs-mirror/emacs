@@ -867,6 +867,19 @@ mac_draw_image_string_16 (f, gc, x, y, buf, nchars)
 #if USE_CG_TEXT_DRAWING
 static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
 
+static int cg_text_anti_aliasing_threshold = 8;
+
+static void
+init_cg_text_anti_aliasing_threshold ()
+{
+  Lisp_Object val =
+    Fmac_get_preference (build_string ("AppleAntiAliasingThreshold"),
+			 Qnil, Qnil, Qnil);
+
+  if (INTEGERP (val))
+    cg_text_anti_aliasing_threshold = XINT (val);
+}
+
 static int
 mac_draw_string_cg (f, gc, x, y, buf, nchars)
      struct frame *f;
@@ -915,6 +928,8 @@ mac_draw_string_cg (f, gc, x, y, buf, nchars)
 			    1.0);
   CGContextSetFont (context, GC_FONT (gc)->cg_font);
   CGContextSetFontSize (context, GC_FONT (gc)->mac_fontsize);
+  if (GC_FONT (gc)->mac_fontsize <= cg_text_anti_aliasing_threshold)
+    CGContextSetShouldAntialias (context, false);
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1030
   CGContextSetTextPosition (context, gx, gy);
   CGContextShowGlyphsWithAdvances (context, glyphs, advances, nchars);
@@ -6784,6 +6799,9 @@ init_font_name_table ()
   text_encoding_info_alist = create_text_encoding_info_alist ();
 
 #if USE_ATSUI
+#if USE_CG_TEXT_DRAWING
+  init_cg_text_anti_aliasing_threshold ();
+#endif
   if (!NILP (assq_no_quit (make_number (kTextEncodingMacUnicode),
 			   text_encoding_info_alist)))
     {

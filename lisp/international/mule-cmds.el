@@ -2659,8 +2659,8 @@ It can be retrieved with `(get-char-code-property CHAR PROPNAME)'."
    (if (and coding-system (eq (coding-system-type coding-system) 2))
        ;; Try to get a pretty description for ISO 2022 escape sequences.
        (function (lambda (x) (or (cdr (assq x iso-2022-control-alist))
-				 (format "0x%02X" x))))
-     (function (lambda (x) (format "0x%02X" x))))
+				 (format "#x%02X" x))))
+     (function (lambda (x) (format "#x%02X" x))))
    str " "))
 
 (defun encode-coding-char (char coding-system)

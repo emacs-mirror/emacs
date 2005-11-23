@@ -257,7 +257,7 @@ respectively."
 (defvar rcirc-process-output nil)
 (defvar rcirc-topic nil)
 (defvar rcirc-keepalive-timer nil)
-(make-variable-buffer-local 'rcirc-topic)
+(defvar rcirc-last-server-message-time nil)
 (defun rcirc-connect (server port nick user-name full-name startup-channels)
   "Return a connection to SERVER on PORT.
 
@@ -290,6 +290,8 @@ STARTUP-CHANNELS will automatically be joined on startup."
       (setq rcirc-process-output nil)
       (make-local-variable 'rcirc-startup-channels)
       (setq rcirc-startup-channels startup-channels)
+      (make-local-variable 'rcirc-last-server-message-time)
+      (setq rcirc-last-server-message-time (current-time))
 
       ;; identify
       (rcirc-send-string process (concat "NICK " nick))
@@ -313,11 +315,16 @@ STARTUP-CHANNELS will automatically be joined on startup."
      ,@body))
 
 (defun rcirc-keepalive ()
-  "Send keep alive pings to active rcirc processes."
+  "Send keep alive pings to active rcirc processes.
+Kill processes that have not received a server message since the
+last ping."
   (if (rcirc-process-list)
       (mapc (lambda (process)
               (with-rcirc-process-buffer process
-                (rcirc-send-string process (concat "PING " rcirc-server))))
+		(if (> (cadr (time-since rcirc-last-server-message-time))
+		       rcirc-keepalive-seconds)
+		    (kill-process process)
+		  (rcirc-send-string process (concat "PING " rcirc-server)))))
             (rcirc-process-list))
     (cancel-timer rcirc-keepalive-timer)
     (setq rcirc-keepalive-timer nil)))
@@ -380,6 +387,7 @@ Function is called with PROCESS COMMAND SENDER ARGS and LINE.")
   "Called when PROCESS receives OUTPUT."
   (rcirc-debug process output)
   (with-rcirc-process-buffer process
+    (setq rcirc-last-server-message-time (current-time))
     (setq rcirc-process-output (concat rcirc-process-output output))
     (when (= (aref rcirc-process-output
                    (1- (length rcirc-process-output))) ?\n)
@@ -582,6 +590,8 @@ If buffer is nil, return the target of the current buffer."
   (setq rcirc-process process)
   (make-local-variable 'rcirc-target)
   (setq rcirc-target target)
+  (make-local-variable 'rcirc-topic)
+  (setq rcirc-topic nil)
 
   (make-local-variable 'rcirc-short-buffer-name)
   (setq rcirc-short-buffer-name nil)
@@ -850,8 +860,8 @@ Create the buffer if it doesn't exist."
       (process-buffer process))))
 
 (defun rcirc-format-response-string (process sender response target text)
-  (concat (when rcirc-time-format
-            (format-time-string rcirc-time-format (current-time)))
+  (concat (rcirc-facify (format-time-string rcirc-time-format (current-time))
+			'rcirc-timestamp)
           (cond ((or (string= response "PRIVMSG")
                      (string= response "NOTICE")
                      (string= response "ACTION"))
@@ -880,14 +890,15 @@ Create the buffer if it doesn't exist."
                 (t
                  (rcirc-mangle-text
                   process
-                  (rcirc-facify
-                   (concat "*** "
-			   (when (not (string= sender (rcirc-server process)))
-			     (concat (rcirc-user-nick sender) " "))
-			   (when (zerop (string-to-number response))
-			     (concat response " "))
-                           text)
-                   'rcirc-server))))))
+		  (concat (rcirc-facify "*** " 'rcirc-server-prefix)
+			  (rcirc-facify
+			   (concat
+			    (when (not (string= sender (rcirc-server process)))
+			      (concat (rcirc-user-nick sender) " "))
+			    (when (zerop (string-to-number response))
+			      (concat response " "))
+			    text)
+			   'rcirc-server)))))))
 
 (defvar rcirc-activity-type nil)
 (make-variable-buffer-local 'rcirc-activity-type)
@@ -1446,11 +1457,16 @@ With a prefix arg, prompt for new topic."
   "Return a copy of STRING with FACE property added."
   (propertize (or string "") 'face face 'rear-nonsticky t))
 
-;; shy grouping must be used within this regexp
 (defvar rcirc-url-regexp
-  "\\b\\(?:\\(?:www\\.\\|\\(?:s?https?\\|ftp\\|file\\|gopher\\|news\\|telnet\
-\\|wais\\|mailto\\):\\)\\(?://[-a-zA-Z0-9_.]+:[0-9]*\\)?\\(?:[-a-zA-Z0-9_=!?#$\
-@~`%&*+|\\/:;.,]\\|\\w\\)+\\(?:[-a-zA-Z0-9_=#$@~`%&*+|\\/]\\|\\w\\)\\)"
+  (rx word-boundary 
+      (or "www."
+	  (and (or "http" "https" "ftp" "file" "gopher" "news" "telnet" "wais" 
+		   "mailto")
+	       "://"
+	       (1+ (char "a-zA-Z0-9_."))
+	       (optional ":" (1+ (char "0-9")))))
+      (1+ (char "-a-zA-Z0-9_=!?#$\@~`%&*+|\\/:;.,"))
+      (char "-a-zA-Z0-9_=!?#$\@~`%&*+|\\/:;"))
   "Regexp matching URL's.  Set to nil to disable URL features in rcirc.")
 
 (defun rcirc-browse-url (&optional arg)
@@ -1498,14 +1514,21 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
   "Return TEXT with properties added based on various patterns."
   ;; ^B
   (setq text
-        (rcirc-map-regexp (lambda (start end string)
-                            (add-text-properties
-                             start end
-                             (list 'face 'bold 'rear-nonsticky t)
-                             string))
-                          ".*?"
-                          text))
-  (while (string-match "\\(.*\\)[]\\(.*\\)" text) ; deal with 
+        (rcirc-map-regexp 
+	 (lambda (start end string)
+	   (let ((orig-face (get-text-property start 'face string)))
+	       (add-text-properties
+		start end
+		(list 'face (if (listp orig-face)
+				(append orig-face 
+					(list 'bold))
+			      (list orig-face 'bold))
+		      'rear-nonsticky t)
+		string)))
+	   ".*?"
+	   text))
+  ;; TODO: deal with ^_ and ^C colors sequences
+  (while (string-match "\\(.*\\)[]\\(.*\\)" text) 
     (setq text (concat (match-string 1 text)
                        (match-string 2 text))))
   ;; my nick
@@ -1527,7 +1550,10 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
 	 (lambda (start end string)
 	   (let ((orig-face (get-text-property start 'face string)))
 	     (add-text-properties start end
-				  (list 'face (list orig-face 'bold)
+				  (list 'face (if (listp orig-face)
+						  (append orig-face 
+							  (list 'bold))
+						(list orig-face 'bold))
 					'rear-nonsticky t
 					'mouse-face 'highlight
 					'keymap rcirc-browse-url-map)
@@ -1836,51 +1862,82 @@ Passwords are read from `rcirc-authinfo-file-name' (which see)."
   :group 'rcirc
   :group 'faces)
 
-(defface rcirc-my-nick
-  '((((type tty) (class color)) (:foreground "blue" :weight bold))
-    (((class color) (background light)) (:foreground "Blue"))
-    (((class color) (background dark)) (:foreground "LightSkyBlue"))
-    (t (:inverse-video t :bold t)))
+(defface rcirc-my-nick			; font-lock-function-name-face
+  '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
+    (((class color) (min-colors 8)) (:foreground "blue" :weight bold))
+    (t (:inverse-video t :weight bold)))
   "The face used to highlight my messages."
   :group 'rcirc-faces)
 
-(defface rcirc-other-nick
-  '((((type tty) (class color)) (:foreground "yellow" :weight light))
-    (((class grayscale) (background light))
-     (:foreground "Gray90" :bold t :italic t))
+(defface rcirc-other-nick	     ; font-lock-variable-name-face
+  '((((class grayscale) (background light))
+     (:foreground "Gray90" :weight bold :slant italic))
     (((class grayscale) (background dark))
-     (:foreground "DimGray" :bold t :italic t))
-    (((class color) (background light)) (:foreground "DarkGoldenrod"))
-    (((class color) (background dark)) (:foreground "LightGoldenrod"))
-    (t (:bold t :italic t)))
+     (:foreground "DimGray" :weight bold :slant italic))
+    (((class color) (min-colors 88) (background light)) (:foreground "DarkGoldenrod"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "LightGoldenrod"))
+    (((class color) (min-colors 16) (background light)) (:foreground "DarkGoldenrod"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "LightGoldenrod"))
+    (((class color) (min-colors 8)) (:foreground "yellow" :weight light))
+    (t (:weight bold :slant italic)))
   "The face used to highlight other messages."
   :group 'rcirc-faces)
 
-(defface rcirc-server
-  '((((type tty pc) (class color) (background light)) (:foreground "red"))
-    (((type tty pc) (class color) (background dark)) (:foreground "red1"))
-    (((class grayscale) (background light))
-     (:foreground "DimGray" :bold t :italic t))
+(defface rcirc-server			; font-lock-comment-face
+  '((((class grayscale) (background light))
+     (:foreground "DimGray" :weight bold :slant italic))
     (((class grayscale) (background dark))
-     (:foreground "LightGray" :bold t :italic t))
-    (((class color) (background light)) (:foreground "gray40"))
-    (((class color) (background dark)) (:foreground "chocolate1"))
-    (t (:bold t :italic t)))
+     (:foreground "LightGray" :weight bold :slant italic))
+    (((class color) (min-colors 88) (background light))
+     (:foreground "Firebrick"))
+    (((class color) (min-colors 88) (background dark))
+     (:foreground "chocolate1"))
+    (((class color) (min-colors 16) (background light))
+     (:foreground "red"))
+    (((class color) (min-colors 16) (background dark))
+     (:foreground "red1"))
+    (((class color) (min-colors 8) (background light))
+     )
+    (((class color) (min-colors 8) (background dark))
+     )
+    (t (:weight bold :slant italic)))
   "The face used to highlight server messages."
   :group 'rcirc-faces)
 
-(defface rcirc-nick-in-message
-  '((((type tty) (class color)) (:foreground "cyan" :weight bold))
-    (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
-    (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
-    (((class color) (background light)) (:foreground "Purple"))
-    (((class color) (background dark)) (:foreground "Cyan"))
-    (t (:bold t)))
+(defface rcirc-server-prefix	 ; font-lock-comment-delimiter-face
+  '((default :inherit font-lock-comment-face)
+    (((class grayscale)))
+    (((class color) (min-colors 16)))
+    (((class color) (min-colors 8) (background light))
+     :foreground "red")
+    (((class color) (min-colors 8) (background dark))
+     :foreground "red1"))
+  "The face used to highlight server prefixes."
+  :group 'rcirc-faces)
+
+(defface rcirc-timestamp
+  '((t (:inherit default)))
+  "The face used to highlight timestamps."
+  :group 'rcirc-faces)
+
+(defface rcirc-nick-in-message		; font-lock-keyword-face
+  '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
+    (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
+    (((class color) (min-colors 88) (background light)) (:foreground "Purple"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "Cyan1"))
+    (((class color) (min-colors 16) (background light)) (:foreground "Purple"))
+    (((class color) (min-colors 16) (background dark)) (:foreground "Cyan"))
+    (((class color) (min-colors 8)) (:foreground "cyan" :weight bold))
+    (t (:weight bold)))
   "The face used to highlight instances of nick within messages."
   :group 'rcirc-faces)
 
-(defface rcirc-prompt
-  '((((background dark)) (:foreground "cyan"))
+(defface rcirc-prompt			; comint-highlight-prompt
+  '((((min-colors 88) (background dark)) (:foreground "cyan1"))
+    (((background dark)) (:foreground "cyan"))
     (t (:foreground "dark blue")))
   "The face to use to highlight prompts."
   :group 'rcirc-faces)

@@ -153,10 +153,6 @@ variable settings override the usual ones.
 mode, whose main feature is to provide a convenient way to look at the
 source line where the error happened.
 
-  If you set the variable @code{compilation-scroll-output} to a
-non-@code{nil} value, then the compilation buffer always scrolls to
-follow output as it comes in.
-
 @table @kbd
 @item M-g M-n
 @itemx M-g n
@@ -214,6 +210,12 @@ message with @key{RET} or @kbd{Mouse-2}, subsequent @kbd{C-x `}
 commands advance from there.  When @kbd{C-x `} gets to the end of the
 buffer and finds no more error messages to visit, it fails and signals
 an Emacs error.
+
+@vindex compilation-skip-threshold
+  By default, @kbd{C-x `} skips less important messages.  The variable
+@code{compilation-skip-threshold} controls this.  If its value is 2,
+@kbd{C-x `} skips anything less than error, 1 skips anything less
+than warning, and 0 doesn't skip any messages.
 
 When the left fringe is displayed, an arrow points to the
 current message in the compilation buffer. The variable
@@ -900,7 +902,11 @@ icon in the tool bar (@code{gud-watch}).
 
 Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree
-format.  To expand or contract a complex data type, click @kbd{Mouse-2}
+format.  Leaves and simple data types show the name of the expression
+and its value, and display the type as a tooltip.  Higher levels
+just show the name and the data type.
+
+To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
 
 @findex gdb-var-delete
@@ -947,8 +953,10 @@ The locals buffer displays the values of local variables of the
 current frame for simple data types (@pxref{Frame Info, Frame Info,
 Information on a frame, gdb, The GNU debugger}).
 
-Arrays and structures display their type only.  You must display them
-separately to examine their values.  @xref{Watch Expressions}.
+Arrays and structures display their type only.  Move point to their
+type description ([struct/union] or [array]) and press @key{RET}, or
+alternatively click @kbd{Mouse-2} there, to examine their values.
+@xref{Watch Expressions}.
 
 @item Registers Buffer
 @findex toggle-gdb-all-registers

@@ -51,25 +51,50 @@ Include an external link after the documentation string for this item.
 This is a sentence containing an active field which references some
 other documentation.
 
-There are four alternatives you can use for @var{link-data}:
+There are several alternatives you can use for @var{link-data}:
 
 @table @code
 @item (custom-manual @var{info-node})
 Link to an Info node; @var{info-node} is a string which specifies the
 node name, as in @code{"(emacs)Top"}.  The link appears as
-@samp{[manual]} in the customization buffer.
+@samp{[Manual]} in the customization buffer and enters the built-in
+Info reader on @var{info-node}.
 
 @item (info-link @var{info-node})
 Like @code{custom-manual} except that the link appears
 in the customization buffer with the Info node name.
 
 @item (url-link @var{url})
-Link to a web page; @var{url} is a string which specifies the @acronym{URL}.
-The link appears in the customization buffer as @var{url}.
+Link to a web page; @var{url} is a string which specifies the
+@acronym{URL}.  The link appears in the customization buffer as
+@var{url} and invokes the WWW browser specified by
+@var{browse-url-browser-function}.
 
 @item (emacs-commentary-link @var{library})
 Link to the commentary section of a library; @var{library} is a string
 which specifies the library name.
+
+@item (emacs-library-link @var{library})
+Link to an Emacs Lisp library file; @var{library} is a string which
+specifies the library name.
+
+@item (file-link @var{file})
+Link to a file; @var{file} is a string which specifies the name of the
+file to visit with @code{find-file} when the user invokes this link.
+
+@item (function-link @var{function})
+Link to the documentation of a function; @var{function} is a string
+which specifies the name of the function to describe with
+@code{describe-function} when the user invokes this link.
+
+@item (variable-link @var{variable})
+Link to the documentation of a variable; @var{variable} is a string
+which specifies the name of the variable to describe with
+@code{describe-variable} when the user invokes this link.
+
+@item (custom-group-link @var{group})
+Link to another customization group.  Invoking it creates a new
+customization buffer for @var{group}.
 @end table
 
 You can specify the text to use in the customization buffer by adding

@@ -986,7 +986,11 @@ Point is at the beginning of the next line."
 		  (when (memq (char-before) '(?\" ?\'))
 		    (condition-case nil (progn (backward-sexp 1) t)
 		      (error nil)))))
-	  (forward-comment (- (point-max)))
+          (while (progn
+                   (forward-comment (- (point-max)))
+                   ;; Maybe we've bumped into an escaped newline.
+                   (sh-is-quoted-p (point)))
+            (backward-char 1))
 	  (when (eq (char-before) ?|)
 	    (backward-char 1) t)))
     (when (save-excursion (backward-char 2) (looking-at ";;\\|in"))

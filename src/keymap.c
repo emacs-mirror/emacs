@@ -2372,7 +2372,8 @@ shadow_lookup (shadow, key, flag)
       value = Flookup_key (XCAR (tail), key, flag);
       if (NATNUMP (value))
 	{
-	  value = Flookup_key (XCAR (tail), Fsubstring (key, 0, value), flag);
+	  value = Flookup_key (XCAR (tail),
+			       Fsubstring (key, make_number (0), value), flag);
 	  if (!NILP (value))
 	    return Qnil;
 	}

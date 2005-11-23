@@ -3593,8 +3593,6 @@ merge_face_vectors (f, from, to, named_merge_points)
       {
 	if (i == LFACE_HEIGHT_INDEX && !INTEGERP (from[i]))
 	  to[i] = merge_face_heights (from[i], to[i], to[i]);
-	else if (IGNORE_DEFFACE_P (from[i]))
-	  to[i] = Qunspecified;
 	else
 	  to[i] = from[i];
       }
@@ -4071,7 +4069,18 @@ FRAME 0 means change the face on all frames, and change the default
 
   /* Set lface to the Lisp attribute vector of FACE.  */
   if (EQ (frame, Qt))
-    lface = lface_from_face_name (NULL, face, 1);
+    {
+      lface = lface_from_face_name (NULL, face, 1);
+
+      /* When updating face-new-frame-defaults, we put :ignore-defface
+	 where the caller wants `unspecified'.  This forces the frame
+	 defaults to ignore the defface value.  Otherwise, the defface
+	 will take effect, which is generally not what is intended.
+	 The value of that attribute will be inherited from some other
+	 face during face merging.  See internal_merge_in_global_face. */
+      if (UNSPECIFIEDP (value))
+      	value = Qignore_defface;
+    }
   else
     {
       if (NILP (frame))
@@ -4897,6 +4906,9 @@ frames).  If FRAME is omitted or nil, use the selected frame.  */)
   else
     signal_error ("Invalid face attribute name", keyword);
 
+  if (IGNORE_DEFFACE_P (value))
+    return Qunspecified;
+
   return value;
 }
 
@@ -4979,7 +4991,10 @@ Default face attributes override any local face attributes.  */)
   gvec = XVECTOR (global_lface)->contents;
   for (i = 1; i < LFACE_VECTOR_SIZE; ++i)
     if (! UNSPECIFIEDP (gvec[i]))
-      lvec[i] = gvec[i];
+      if (IGNORE_DEFFACE_P (gvec[i]))
+	lvec[i] = Qunspecified;
+      else
+	lvec[i] = gvec[i];
 
   return Qnil;
 }

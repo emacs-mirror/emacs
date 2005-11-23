@@ -258,37 +258,40 @@ Some special modes, such as Occur mode and Info mode, have completely
 specialized ways of assigning fonts for Font Lock mode.
 
 @findex font-lock-mode
+  Font Lock mode is turned on by default in all modes which support it.
+You can toggle font-lock for each buffer with the command @kbd{M-x
+font-lock-mode}.  Using a positive argument unconditionally turns Font
+Lock mode on, and a negative or zero argument turns it off.
+
+@findex global-font-lock-mode
+@vindex global-font-lock-mode
+  If you do not wish Font Lock mode to be turned on by default,
+customize the variable @code{global-font-lock-mode} using the Customize
+interface (@pxref{Easy Customization}), or use the function
+@code{global-font-lock-mode} in your @file{.emacs} file, like this:
+
+@example
+(global-font-lock-mode 0)
+@end example
+
+@noindent
+Global Font Lock mode can also be set using the menu bar Options menu,
+specifying first Syntax Highlighting and then Save Options.
+
 @findex turn-on-font-lock
-  The command @kbd{M-x font-lock-mode} turns Font Lock mode on with
-positive argument, off with negative or zero argument, and toggles the
-mode when it has no argument.  The function @code{turn-on-font-lock}
-unconditionally enables Font Lock mode.  This is useful in mode-hook
-functions.  For example, to enable Font Lock mode whenever you edit a
-C file, you can do this:
+  If you have disabled Global Font Lock mode, you can still enable font
+lock for specific major modes by adding the function
+@code{turn-on-font-lock} to the mode hooks (@pxref{Hooks}).  For
+example, to enable Font Lock mode for editing C files, you can do this:
 
 @example
 (add-hook 'c-mode-hook 'turn-on-font-lock)
 @end example
 
-@findex global-font-lock-mode
-@vindex global-font-lock-mode
-  To turn on Font Lock mode automatically in all modes which support
-it, customize the variable @code{global-font-lock-mode} using the
-Customize interface (@pxref{Easy Customization}) or use the function
-@code{global-font-lock-mode} in your @file{.emacs} file, like this:
-
-@example
-(global-font-lock-mode 1)
-@end example
-
-@noindent
-You can also specify this using the menu bar Options menu, specifying
-first Syntax Highlighting and then Save Options.
-
   Font Lock mode uses several specifically named faces to do its job,
 including @code{font-lock-string-face}, @code{font-lock-comment-face},
-and others.  The easiest way to find them all is to use completion
-on the face name in @code{set-face-foreground}.
+and others.  The easiest way to find them all is to use
+@kbd{M-x customize-group @key{RET} font-lock-faces @key{RET}}.
 
   To change the colors or the fonts used by Font Lock mode to fontify
 different parts of text, just change these faces.  There are

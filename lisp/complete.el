@@ -203,7 +203,14 @@ other file in that directory begin with that sequence of characters.
 Unless `PC-disable-includes' is non-nil, the `<...>' sequence is interpreted
 specially in \\[find-file].  For example,
 \\[find-file] <sys/time.h> RET finds the file `/usr/include/sys/time.h'.
-See also the variable `PC-include-file-path'."
+See also the variable `PC-include-file-path'.
+
+Partial Completion mode extends the meaning of `completion-auto-help' (which
+see) so that if it is neither nil nor t, Emacs will show the  *Completions*
+buffer only on the second attempt to complete.  I.e. if TAB finds nothing
+to complete, the first TAB will just say \"Next char not unique\" without
+bringing up the *Completions* buffer, and the second TAB will then bring up
+the *Completions* buffer."
   :global t :group 'partial-completion
   ;; Deal with key bindings...
   (PC-bindings partial-completion-mode)

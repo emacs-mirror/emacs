@@ -653,7 +653,7 @@ opening the first frame (e.g. open a connection to an X server).")
 		  (if (and (stringp (car elt))
 			   (not (file-name-absolute-p (car elt))))
 		      (cons (locate-file (car elt) load-path
-					 load-suffixes)
+					 (append load-suffixes '("")))
 			    (cdr elt))
 		    elt))
 		load-history))
@@ -1285,7 +1285,7 @@ This is an internal function used to turn off the splash screen after
 the user caused an input event by hitting a key or clicking with the
 mouse."
   (interactive)
-  (if (and (consp last-command-event)
+  (if (and (memq 'down (event-modifiers last-command-event))
 	   (eq (posn-window (event-start last-command-event))
 	       (selected-window)))
       ;; This is a mouse-down event in the spash screen window.

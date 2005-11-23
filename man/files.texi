@@ -1762,7 +1762,8 @@ this situation.
   If locking is in use, @kbd{C-x v i} leaves the file unlocked and
 read-only.  Type @kbd{C-x v v} if you wish to start editing it.  After
 registering a file with CVS, you must subsequently commit the initial
-version by typing @kbd{C-x v v}.
+version by typing @kbd{C-x v v}.  Until you do that, the version
+appears as @samp{@@@@} in the mode line.
 
 @vindex vc-default-init-version
 @cindex initial version number to register
@@ -2572,6 +2573,11 @@ accordingly.  It also updates any snapshots (@pxref{Snapshots}) that
 mention the file, so that they use the new name; despite this, the
 snapshot thus modified may not completely work (@pxref{Snapshot
 Caveats}).
+
+  Some backends do not provide an explicit rename operation to their
+repositories.  After issuing @code{vc-rename-file}, use @kbd{C-x v v}
+on the original and renamed buffers and provide the necessary edit
+log.
 
   You cannot use @code{vc-rename-file} on a file that is locked by
 someone else.

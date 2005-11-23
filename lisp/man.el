@@ -919,35 +919,30 @@ Same for the ANSI bold and normal escape sequences."
 (defun Man-highlight-references (&optional xref-man-type)
   "Highlight the references on mouse-over.
 References include items in the SEE ALSO section,
-header file (#include <foo.h>) and files in FILES.
-If XREF-MAN-TYPE is used as the button type for items
-in SEE ALSO section. If it is nil, default type, 
-`Man-xref-man-page' is used."
+header file (#include <foo.h>), and files in FILES.
+If optional argument XREF-MAN-TYPE is non-nil, it used as the
+button type for items in SEE ALSO section.  If it is nil, the
+default type, `Man-xref-man-page' is used for the buttons."
   ;; `Man-highlight-references' is used from woman.el, too.
   ;; woman.el doesn't set `Man-arguments'.
   (unless Man-arguments
     (setq Man-arguments ""))
   (if (string-match "-k " Man-arguments)
       (progn
-	(Man-highlight-references0
-	 nil Man-reference-regexp 1 nil
-	 (or xref-man-type 'Man-xref-man-page))
-	(Man-highlight-references0
-	 nil Man-apropos-regexp 1 (lambda () 
-				    (format "%s(%s)"
-					    (match-string 1)
-					    (match-string 2)))
-	 (or xref-man-type 'Man-xref-man-page))
-	)
-    (Man-highlight-references0
-     Man-see-also-regexp Man-reference-regexp 1 nil
-     (or xref-man-type 'Man-xref-man-page))
-    (Man-highlight-references0
-     Man-synopsis-regexp Man-header-regexp 0 2
-     'Man-xref-header-file)
-    (Man-highlight-references0
-     Man-files-regexp Man-normal-file-regexp 0 0
-     'Man-xref-normal-file)))
+	(Man-highlight-references0 nil Man-reference-regexp 1 nil
+				   (or xref-man-type 'Man-xref-man-page))
+	(Man-highlight-references0 nil Man-apropos-regexp 1
+				   (lambda ()
+				     (format "%s(%s)"
+					     (match-string 1)
+					     (match-string 2)))
+				   (or xref-man-type 'Man-xref-man-page)))
+    (Man-highlight-references0 Man-see-also-regexp Man-reference-regexp 1 nil
+			       (or xref-man-type 'Man-xref-man-page))
+    (Man-highlight-references0 Man-synopsis-regexp Man-header-regexp 0 2
+			       'Man-xref-header-file)
+    (Man-highlight-references0 Man-files-regexp Man-normal-file-regexp 0 0
+			       'Man-xref-normal-file)))
 
 (defun Man-highlight-references0 (start-section regexp button-pos target type)
   ;; Based on `Man-build-references-alist'

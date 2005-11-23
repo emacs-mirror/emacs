@@ -253,7 +253,7 @@ LISP_MAKE_RVALUE (Lisp_Object o)
 /* If union type is not wanted, define Lisp_Object as just a number.  */
 
 #ifdef NO_UNION_TYPE
-#define Lisp_Object EMACS_INT
+typedef EMACS_INT Lisp_Object;
 #define LISP_MAKE_RVALUE(o) (0+(o))
 #endif /* NO_UNION_TYPE */
 

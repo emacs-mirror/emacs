@@ -1,3 +1,45 @@
+2005-11-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Watch Expressions): Expand description.
+	(Other GDB User Interface Buffers): Describe local map for
+	gud-watch.
+
+2005-11-21  Chong Yidong  <cyd@stupidchicken.com>
+
+	* display.texi (Font Lock): Font lock is enabled by default now.
+
+2005-11-20  Juri Linkov  <juri@jurta.org>
+
+	* basic.texi (Position Info): Update examples of the output.
+	Remove the fact that examples are produced in the TeXinfo buffer,
+	because in the Info reader users will get a different output from
+	`C-x ='.
+
+	* building.texi (Compilation Mode): Remove paragraph duplicated
+	from the node `Compilation'.  Add `compilation-skip-threshold'.
+
+	* display.texi (Font Lock): Suggest more user-friendly method of
+	finding all Font Lock faces (M-x customize-group RET font-lock-faces).
+
+2005-11-18  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Registering): Mention @@ in mode line.
+
+	* mini.texi (Minibuffer File): Clarify previous change.  Add @findex.
+
+2005-11-08  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>  (tiny change)
+
+	* files.texi (Renaming and VC): Some back-ends don't
+	handle renaming.
+
+2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (FAQ): Document `org-table-tab-jumps-over-hlines'.
+	(Agenda): Document commands `org-cycle-agenda-files' and
+	`org-agenda-file-to-front'
+	(Built-in table editor): Document `org-table-sort-lines'.
+	(HTML formatting): Export of hand-formatted lists.
+
 2005-11-17  Juri Linkov  <juri@jurta.org>
 
 	* emacs.texi (Top):
@@ -71,7 +113,7 @@
 	(Installation): No installation necessary when using autoload.
 	(Configuration): Rename "RSS" to "news".
 
-2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+2005-11-04  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* pgg.texi (User Commands): Document additional passphrase
 	argument for pgg-encrypt-*, pgg-decrypt-*, and pgg-sign-* functions.

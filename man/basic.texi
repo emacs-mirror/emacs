@@ -626,16 +626,12 @@ point and the character after it.  It displays a line in the echo area
 that looks like this:
 
 @smallexample
-Char: c (0143, 99, 0x63)  point=21044 of 26883(78%)  column 53
+Char: c (99, #o143, #x63) point=28062 of 36168 (78%) column=53
 @end smallexample
-
-@noindent
-(In fact, this is the output produced when point is before the
-@samp{column} in the example.)
 
   The four values after @samp{Char:} describe the character that follows
 point, first by showing it and then by giving its character code in
-octal, decimal and hex.  For a non-@acronym{ASCII} multibyte character, these are
+decimal, octal and hex.  For a non-@acronym{ASCII} multibyte character, these are
 followed by @samp{file} and the character's representation, in hex, in
 the buffer's coding system, if that coding system encodes the character
 safely and with a single byte (@pxref{Coding Systems}).  If the
@@ -654,7 +650,7 @@ as 2, and so on.  The next, larger, number is the total number of characters
 in the buffer.  Afterward in parentheses comes the position expressed as a
 percentage of the total size.
 
-  @samp{column} is followed by the horizontal position of point, in
+  @samp{column=} is followed by the horizontal position of point, in
 columns from the left edge of the window.
 
   If the buffer has been narrowed, making some of the text at the
@@ -663,7 +659,7 @@ additional text describing the currently accessible range.  For example, it
 might display this:
 
 @smallexample
-Char: C (0103, 67, 0x43)  point=252 of 889(28%) <231 - 599>  column 0
+Char: C (67, #o103, #x43) point=252 of 889 (28%) <231-599> column=0
 @end smallexample
 
 @noindent
@@ -676,7 +672,7 @@ part), the @w{@kbd{C-x =}} output does not describe a character after
 point.  The output might look like this:
 
 @smallexample
-point=26957 of 26956(100%)  column 0
+point=36169 of 36168 (EOB) column=0
 @end smallexample
 
 @cindex character set of character at point
@@ -720,16 +716,16 @@ displays the character as @samp{@`A}), and which has font-lock-mode
 (@pxref{Font Lock}) enabled:
 
 @smallexample
-  character: @`A (04300, 2240, 0x8c0, U+00C0)
-    charset: latin-iso8859-1
+  character: @`A (2240, #o4300, #x8c0, U+00C0)
+    charset: [latin-iso8859-1]
              (Right-Hand Part of Latin Alphabet 1@dots{}
- code point: 64
+ code point: [64]
      syntax: w 	which means: word
    category: l:Latin
-   to input: type "`A"
-buffer code: 0x81 0xC0
-  file code: ESC 2C 41 40 (encoded by coding system iso-2022-7bit)
-    display: terminal code 0xC0
+   to input: type "`A" with [latin-1-prefix]
+buffer code: #x81 #xC0
+  file code: ESC #x2C #x41 #x40 (encoded by coding system iso-2022-7bit)
+    display: terminal code #xC0
 
 There are text properties here:
   fontified            t

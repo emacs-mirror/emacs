@@ -108,6 +108,7 @@ are indicated with a symbol."
         (set (make-local-variable 'require-final-newline) nil)
         (add-to-list 'buffer-file-format 'longlines)
         (add-hook 'change-major-mode-hook 'longlines-mode-off nil t)
+	(add-hook 'before-revert-hook 'longlines-before-revert-hook nil t)
         (make-local-variable 'buffer-substring-filters)
 	(set (make-local-variable 'isearch-search-fun-function)
 	     'longlinges-search-function)
@@ -126,12 +127,27 @@ are indicated with a symbol."
           ;; longlines-wrap-lines that we'll never encounter from here
 	  (save-restriction
 	    (widen)
-	    (longlines-decode-region (point-min) (point-max)))
+	    (longlines-decode-buffer))
           (longlines-wrap-region (point-min) (point-max))
           (set-buffer-modified-p mod))
         (when (and longlines-show-hard-newlines
                    (not longlines-showing))
           (longlines-show-hard-newlines))
+
+	;; Hacks to make longlines play nice with various modes.
+	(cond ((eq major-mode 'mail-mode)
+	       (or mail-citation-hook
+		   (add-hook 'mail-citation-hook 'mail-indent-citation nil t))
+	       (add-hook 'mail-citation-hook 'longlines-decode-region nil t))
+	      ((eq major-mode 'message-mode)
+	       (add-hook 'message-setup-hook 'longlines-decode-buffer nil t)
+	       (make-local-variable 'message-indent-citation-function)
+	       (if (not (listp message-indent-citation-function))
+		   (setq message-indent-citation-function
+			 (list message-indent-citation-function)))
+	       (add-to-list 'message-indent-citation-function
+			    'longlines-decode-region t)))
+
         (when longlines-auto-wrap
           (auto-fill-mode 0)
           (add-hook 'after-change-functions
@@ -152,6 +168,7 @@ are indicated with a symbol."
     (remove-hook 'before-kill-functions 'longlines-encode-region t)
     (remove-hook 'after-change-functions 'longlines-after-change-function t)
     (remove-hook 'post-command-hook 'longlines-post-command-function t)
+    (remove-hook 'before-revert-hook 'longlines-before-revert-hook t)
     (remove-hook 'window-configuration-change-hook
                  'longlines-window-change-function t)
     (when longlines-wrap-follows-window-size
@@ -222,9 +239,10 @@ end of the buffer."
 If wrapping is performed, point remains on the line.  If the line does
 not need to be wrapped, move point to the next line and return t."
   (if (longlines-set-breakpoint)
-      (progn (backward-char 1)
-             (delete-char 1)
-             (insert-char ?\n 1)
+      (progn (insert-before-markers ?\n)
+	     (backward-char 1)
+             (delete-char -1)
+	     (forward-char 1)
              nil)
     (if (longlines-merge-lines-p)
         (progn (end-of-line)
@@ -298,13 +316,20 @@ Otherwise, return nil.  Text cannot be moved across hard newlines."
                    (1+ (current-column)))
                  space))))))
 
-(defun longlines-decode-region (beg end)
-  "Turn all newlines between BEG and END into hard newlines."
+(defun longlines-decode-region (&optional beg end)
+  "Turn all newlines between BEG and END into hard newlines.
+If BEG and END are nil, the point and mark are used."
+  (if (null beg) (setq beg (point)))
+  (if (null end) (setq end (mark t)))
   (save-excursion
     (goto-char (min beg end))
     (while (search-forward "\n" (max beg end) t)
       (set-hard-newline-properties
        (match-beginning 0) (match-end 0)))))
+
+(defun longlines-decode-buffer ()
+  "Turn all newlines in the buffer into hard newlines."
+  (longlines-decode-region (point-min) (point-max)))
 
 (defun longlines-encode-region (beg end &optional buffer)
   "Replace each soft newline between BEG and END with exactly one space.
@@ -413,10 +438,18 @@ This is called by `window-size-change-functions'."
 
 ;; Loading and saving
 
+(defun longlines-before-revert-hook ()
+  (add-hook 'after-revert-hook 'longlines-after-revert-hook nil t)
+  (longlines-mode 0))
+
+(defun longlines-after-revert-hook ()
+  (remove-hook 'after-revert-hook 'longlines-after-revert-hook t)
+  (longlines-mode 1))
+
 (add-to-list
  'format-alist
- (list 'longlines "Automatically wrap long lines." nil
-       'longlines-decode-region 'longlines-encode-region t nil))
+ (list 'longlines "Automatically wrap long lines." nil nil
+       'longlines-encode-region t nil))
 
 (provide 'longlines)
 

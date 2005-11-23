@@ -115,7 +115,7 @@ void
 invalid_character (c)
      int c;
 {
-  error ("Invalid character: 0%o, %d, 0x%x", c, c, c);
+  error ("Invalid character: %d, #o%o, #x%x", c, c, c);
 }
 
 /* Parse string STR of length LENGTH and fetch information of a

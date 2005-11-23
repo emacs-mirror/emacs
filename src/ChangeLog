@@ -1,3 +1,46 @@
+2005-11-21  Ken Raeburn  <raeburn@mit.edu>
+
+	* keymap.c (shadow_lookup): Use make_number to pass a number to
+	Fsubstring.
+
+2005-11-21  Juri Linkov  <juri@jurta.org>
+
+	* puresize.h (BASE_PURESIZE): Increment to 1180000.
+
+2005-11-20  Chong Yidong  <cyd@stupidchicken.com>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Use
+	:ignore-defface for new frame defaults when `unspecified' is
+	supplied.
+	(Finternal_get_lisp_face_attribute): Hide :ignore-defface.
+	(merge_face_vectors): Don't do :ignore-defface overwriting here.
+	(Finternal_merge_in_global_face): Do it here.
+
+2005-11-20  Juri Linkov  <juri@jurta.org>
+
+	* charset.c (invalid_character): Use Lisp-readable syntax
+	for octal and hex.  Reorder decimal, octal and hex values.
+
+2005-11-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* lisp.h: Use typedef when Lisp_Object is EMACS_INT so that
+	this type is recognised when debugging.
+
+2005-11-19  Andreas Schwab  <schwab@suse.de>
+
+	* .gdbinit (nextcons, xcdr, xfloat): Update for changes in
+	Lisp_Cons and Lisp_Float.
+
+2005-11-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_CG_TEXT_DRAWING] (cg_text_anti_aliasing_threshold):
+	New variable.
+	[USE_CG_TEXT_DRAWING] (init_cg_text_anti_aliasing_threshold): New
+	function.
+	(init_font_name_table) [USE_ATSUI && USE_CG_TEXT_DRAWING]: Use it.
+	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg): Don't do antialiasing if
+	font size is smaller than or equal to cg_text_anti_aliasing_threshold.
+
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* image.c (x_create_bitmap_from_xpm_data): Free attributes on

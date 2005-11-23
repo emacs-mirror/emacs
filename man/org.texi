@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.19
+@set VERSION 3.20
 @set DATE October 2005
 
 @dircategory Emacs
@@ -698,6 +698,13 @@ Insert a new row above (with arg: below) the current row.
 Insert a horizontal line below current row. With prefix arg, the line
 is created above the current line.
 
+@kindex C-c ^
+@item C-c ^
+Sort the table lines in the region.  Point and mark must be in the first
+and last line to be included, and must be in the column that should be
+used for sorting.  The command prompts for numerical versus
+alphnumerical sorting.
+
 @tsubheading{Regions}
 @kindex C-c C-x M-w
 @item C-c C-x M-w
@@ -859,13 +866,13 @@ substitution takes place:
 @end example
 
 The range vectors can be directly fed into the calc vector functions
-like functions @samp{vmean} and @samp{vsum}.
+like @samp{vmean} and @samp{vsum}.
 
 @samp{$name} is interpreted as the name of a column, parameter or
 constant.  Constants are defined globally through the variable
 @code{org-table-formula-constants}.  If you have the
 @file{constants.el} package, it will also be used to resolve
-constants, including natural constants like @samp{$k} for Planck's
+constants, including natural constants like @samp{$h} for Planck's
 constant, units like @samp{$km} for kilometers.  Column names and
 parameters can be specified in special table lines.  These are
 described below, see @ref{Advanced features}.
@@ -972,7 +979,7 @@ The marking characters have the following meaning:
 The fields in this line define names for the columns, so that you may
 refer to a column as @samp{$Tot} instead of @samp{$6}.
 @item ^
-This row define names for the fields @emph{above} the row.  With such
+This row defines names for the fields @emph{above} the row.  With such
 a definition, any formula in the table may use @samp{$m1} to refer to
 the value @samp{10}.  Also, named fields can have their own formula
 associated with them.
@@ -1762,10 +1769,15 @@ following commands
 @table @kbd
 @kindex C-c [
 @item C-c [
-Add current file to the list of agenda files
+Add current file to the list of agenda files.  The file is added to
+the front of the list.  If it was already in the list, it is moved to
+the front.  With prefix arg, file is added/moved to the end.
 @kindex C-c ]
 @item C-c ]
 Remove current file from the list of agenda files.
+@kindex C-,
+@item C-,
+Cycle through agenda file list.
 @end table
 @noindent
 The Org menu contains the list of all files and can be used to quickly
@@ -2202,7 +2214,9 @@ will not be exported.
 @section HTML export
 @cindex HTML export
 
-Org-mode contains an HTML exporter with extensive HTML formatting.
+Org-mode contains an HTML exporter with extensive HTML formatting, in
+ways similar to John Grubers @emph{markdown} language, but with
+additional support for tables.
 
 @cindex region, active
 @cindex active region
@@ -2246,6 +2260,34 @@ Not all text is transferred literally to the exported HTML file.  The
 exporter implements the following interpretation:
 
 @itemize @bullet
+
+@cindex hand-formatted lists
+@cindex lists, hand-formatted
+@item
+Hand-formatted lists with @samp{-}, @samp{*} or @samp{+} as
+bullet@footnote{When using @samp{*} as a bullet, lines must be
+indented or they will be seen as top-level headlines.}, or
+with @samp{1.}, @samp{2.} as enumerator will be recognized and
+transformed into HTML lists.  The
+lists is terminated by the next headline, or by a line that is
+indented like the bullet/enumerator in the first line, or less.  For
+example: 
+@example
+** Lord of the Rings
+Some of my favorite scenes are
+- Eowyns fight
+- The attack of the Roherim
+  (this may be favorite one)
+- Peter Jackson being shot by Legolas,
+  in the extended DVD edition only  
+My favorite characters are (in this sequence):
+  1. Sam
+  2. Eowyn
+  3. Aragorn
+Among the others I don't really have a preference.
+@end example
+By default, only no nesting of lists is allowed, but see the variable
+@code{org-export-local-list-max-depth}.
 @cindex underlined text
 @cindex bold text
 @cindex italic text
@@ -2336,6 +2378,26 @@ toc:    @r{turn on/off table of contents}
 *:      @r{turn on/off emphasized text (bold, italic, underlined)}
 TeX:    @r{turn on/off @TeX{} macros}
 @end example
+
+You can also give style information for the exported file.  The
+default specification can be configured through the option
+@code{org-export-html-style}.  If you want to use a file-local style,
+you may use file variables, best wrapped into a COMMENT section at the
+end of the outline tree.  For example:
+
+@example
+* COMMENT HTML style specifications
+
+# Local Variables: 
+# org-export-html-style: "   <style type=\"text/css\">
+       p @{font-weight: normal; color: gray; @}
+       h1 @{color: black; @}
+   </style>"
+# End: ***
+@end example
+
+Remember to execute @kbd{M-x normal-mode} after changing this to make
+the new style visible to Emacs.
 
 @node Comment lines,  , Export options, HTML export
 @subsection Comment lines
@@ -2532,6 +2594,7 @@ horizontal line in the table, pressing TAB creates a new table line
 @i{before} the horizontal line.  How can I quickly move to the line
 @i{below} the horizontal line instead?}@*
 Press @key{down} (to get on the separator line) and then @key{TAB}.
+Or configure the variable @code{org-table-tab-jumps-over-hlines}.
 
 @item @b{How can I change the indentation of an entire table without
 fixing every line by hand?}@*
@@ -2649,13 +2712,13 @@ Here is a list of things which should work differently, but which I
 have found too hard to fix.
 
 @itemize @bullet
-@item
-If you call @code{fill-paragraph} (bound to @kbd{M-q}) in a table, the
-filling is correctly disabled.  However, if some text directly
-(without an empty line in between) precedes or follows a table, calling
-@code{fill-paragraph} in that text will also fill the table like
-normal text.  Also, @code{fill-region} does bypass the
-@code{fill-paragraph} code and will fill tables like normal text.
+@c @item
+@c If you call @code{fill-paragraph} (bound to @kbd{M-q}) in a table, the
+@c filling is correctly disabled.  However, if some text directly
+@c (without an empty line in between) precedes or follows a table, calling
+@c @code{fill-paragraph} in that text will also fill the table like
+@c normal text.  Also, @code{fill-region} does bypass the
+@c @code{fill-paragraph} code and will fill tables like normal text.
 @item
 Text in an entry protected with the @samp{QUOTE} keyword should not
 autowrap.

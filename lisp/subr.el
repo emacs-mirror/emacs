@@ -1541,6 +1541,8 @@ by doing (clear-string STRING)."
 	    (c 0)
 	    (echo-keystrokes 0)
 	    (cursor-in-echo-area t))
+	(add-text-properties 0 (length prompt)
+			     minibuffer-prompt-properties prompt)
 	(while (progn (message "%s%s"
 			       prompt
 			       (make-string (length pass) ?.))

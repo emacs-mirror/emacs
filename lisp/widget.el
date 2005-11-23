@@ -71,6 +71,7 @@
 ;;  :button-face-get :button-face :value-face :keymap :entry-from
 ;;  :entry-to :help-echo :documentation-property :tab-order)
 
+(put 'define-widget 'doc-string-elt 3)  ;`declare' doesn't work in functions.
 (defun define-widget (name class doc &rest args)
   "Define a new widget type named NAME from CLASS.
 
@@ -85,7 +86,6 @@ create identical widgets:
 * (apply 'widget-create CLASS ARGS)
 
 The third argument DOC is a documentation string for the widget."
-  (declare (doc-string 3))
   (put name 'widget-type (cons class args))
   (put name 'widget-documentation doc)
   name)

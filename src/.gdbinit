@@ -1,4 +1,4 @@
-# Copyright (C) 1992, 93, 94, 95, 96, 97, 1998, 2000, 01, 2004
+# Copyright (C) 1992, 93, 94, 95, 96, 97, 1998, 2000, 01, 2004, 2005
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -628,7 +628,7 @@ Print the contents of $, assuming it is an Emacs Lisp cons.
 end
 
 define nextcons
-  p $.cdr
+  p $.u.cdr
   xcons
 end
 document nextcons
@@ -648,7 +648,7 @@ end
 define xcdr
   xgetptr $
   xgettype $
-  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->cdr : 0)
+  print/x ($type == Lisp_Cons ? ((struct Lisp_Cons *) $ptr)->u.cdr : 0)
 end
 document xcdr
 Print the cdr of $, assuming it is an Emacs Lisp pair.
@@ -656,7 +656,7 @@ end
 
 define xfloat
   xgetptr $
-  print ((struct Lisp_Float *) $ptr)->data
+  print ((struct Lisp_Float *) $ptr)->u.data
 end
 document xfloat
 Print $ assuming it is a lisp floating-point number.

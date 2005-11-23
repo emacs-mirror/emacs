@@ -181,7 +181,12 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 				       (cdr (syntax-after beg)))
 				   (eq (char-after beg)
 				       ;; This can give nil.
-				       (cdr (syntax-after (1- end)))))))))))))
+				       (cdr (syntax-after (1- end))))
+                                   ;; The cdr might hold a new paren-class
+                                   ;; info rather than a matching-char info,
+                                   ;; in which case the two CDRs should match.
+                                   (eq (cdr (syntax-after (1- end)))
+                                       (cdr (syntax-after beg))))))))))))
 	;;
 	;; Highlight the other end of the sexp, or unhighlight if none.
 	(if (not pos)
