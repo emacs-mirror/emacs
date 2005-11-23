@@ -1,3 +1,8 @@
+2005-11-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-fontify-node): Handle the case where
+	Info-current-file is t.
+
 2005-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* simple.el (blink-matching-open): Fix off-by-one in last change.

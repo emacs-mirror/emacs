@@ -3805,7 +3805,10 @@ the variable `Info-file-list-for-emacs'."
                                                   (match-string 4))
                                              (match-string 2)))))
                                  (file (file-name-nondirectory
-                                        Info-current-file))
+                                        (if Info-current-file
+					    (if (stringp Info-current-file)
+						Info-current-file
+					      (buffer-file-name)))))
                                  (hl Info-history-list)
                                  res)
                             (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
@@ -3816,9 +3819,11 @@ the variable `Info-file-list-for-emacs'."
                                              (match-string 2 node))))
                             (while hl
                               (if (and (string-equal node (nth 1 (car hl)))
-                                       (string-equal file
-                                                     (file-name-nondirectory
-                                                      (nth 0 (car hl)))))
+				       (or (and (eq t Info-current-file)
+						(eq t (nth 0 (car hl))))
+					   (string-equal file
+							 (file-name-nondirectory
+							  (nth 0 (car hl))))))
                                   (setq res (car hl) hl nil)
                                 (setq hl (cdr hl))))
                             res))) 'info-xref-visited 'info-xref))
@@ -3913,7 +3918,11 @@ the variable `Info-file-list-for-emacs'."
                             (let ((node (if (equal (match-string 3) "")
                                             (match-string 1)
                                           (match-string 3)))
-                                  (file (file-name-nondirectory Info-current-file))
+                                  (file (file-name-nondirectory
+					 (if Info-current-file
+					     (if (stringp Info-current-file)
+						 Info-current-file
+					       (buffer-file-name)))))
                                   (hl Info-history-list)
                                   res)
                               (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
@@ -3924,9 +3933,11 @@ the variable `Info-file-list-for-emacs'."
                                                (match-string 2 node))))
                               (while hl
                                 (if (and (string-equal node (nth 1 (car hl)))
-                                         (string-equal file
-                                                       (file-name-nondirectory
-                                                        (nth 0 (car hl)))))
+					 (or (and (eq t Info-current-file)
+						  (eq t (nth 0 (car hl))))
+					     (string-equal file
+							   (file-name-nondirectory
+							    (nth 0 (car hl))))))
                                     (setq res (car hl) hl nil)
                                   (setq hl (cdr hl))))
                               res))) 'info-xref-visited 'info-xref)))
