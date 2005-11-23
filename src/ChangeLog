@@ -1,3 +1,17 @@
+2005-11-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main) [MAC_OSX]: Change working directory to home
+	directory if `-psn_*' option is specified.
+
+	* mac.c (DECODE_UTF_8): Remove macro.
+	[TARGET_API_MAC_CARBON] (cfstring_to_lisp_nodecode): New function
+	created from cfstring_to_lisp.
+	[TARGET_API_MAC_CARBON] (cfstring_to_lisp): Use it.
+	(xrm_get_preference_database) [TARGET_API_MAC_CARBON]: Likewise.
+
+	* macterm.h (cfstring_to_lisp_nodecode) [TARGET_API_MAC_CARBON]:
+	Add prototype.
+
 2005-11-21  Ken Raeburn  <raeburn@mit.edu>
 
 	* keymap.c (shadow_lookup): Use make_number to pass a number to

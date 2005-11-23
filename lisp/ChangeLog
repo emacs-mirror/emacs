@@ -1,3 +1,7 @@
+2005-11-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Don't change default directory.
+
 2005-11-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (Custom-reset-standard): Make it handle Custom group
