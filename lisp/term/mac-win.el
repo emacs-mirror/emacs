@@ -1962,10 +1962,10 @@ Switch to a buffer editing the last file dropped."
 	       user-login-name user-real-login-name user-full-name))
     (set v (decode-coding-string (symbol-value v) mac-system-coding-system))))
 
-;; If Emacs is started from the Finder, change the default directory
-;; to the user's home directory.
-(if (string= default-directory "/")
-    (cd "~"))
+;; Now the default directory is changed to the user's home directory
+;; in emacs.c if invoked from the WindowServer (with -psn_* option).
+;; (if (string= default-directory "/")
+;;     (cd "~"))
 
 ;; Darwin 6- pty breakage is now controlled from the C code so that
 ;; it applies to all builds on darwin.  See s/darwin.h PTY_ITERATION.
