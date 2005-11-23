@@ -962,9 +962,15 @@ main (argc, argv
 
 #ifdef MAC_OSX
   /* Skip process serial number passed in the form -psn_x_y as
-     command-line argument.  */
+     command-line argument.  The WindowServer adds this option when
+     Emacs is invoked from the Finder or by the `open' command.  In
+     these cases, the working directory becomes `/', so we change it
+     to the user's home directory.  */
   if (argc > skip_args + 1 && strncmp (argv[skip_args+1], "-psn_", 5) == 0)
-    skip_args++;
+    {
+      chdir (getenv ("HOME"));
+      skip_args++;
+    }
 #endif /* MAC_OSX */
 
 #ifdef VMS
