@@ -584,6 +584,7 @@ extern void mac_clear_font_name_table P_ ((void));
 extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
 extern CFStringRef cfstring_create_with_string P_ ((Lisp_Object));
 extern Lisp_Object cfdata_to_lisp P_ ((CFDataRef));
+extern Lisp_Object cfstring_to_lisp_nodecode P_ ((CFStringRef));
 extern Lisp_Object cfstring_to_lisp P_ ((CFStringRef));
 extern Lisp_Object cfnumber_to_lisp P_ ((CFNumberRef));
 extern Lisp_Object cfdate_to_lisp P_ ((CFDateRef));
