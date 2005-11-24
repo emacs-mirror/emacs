@@ -1,3 +1,23 @@
+2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-export-plain-list-max-depth): Renamed
+	from `org-export-local-list-max-depth'.  Default values changed to
+	3.
+	(org-auto-renumber-ordered-lists,
+	org-plain-list-ordered-item-terminator): New options.
+	(org-at-item-p, org-beginning-of-item, org-end-of-item,
+	org-get-indentation, org-get-string-indentation,
+	org-maybe-renumber-ordered-list, org-renumber-ordered-list): New
+	functions.
+	(org-move-item-down, org-move-item-up): New commands.
+	(org-export-as-html): New classes for CSS support.  Bug fix in
+	regular expression detecting fixed-width regions.  Respect
+	`org-local-list-ordered-item-terminator'.
+	(org-set-autofill-regexps, org-adaptive-fill-function): "1)" is
+	also a list item.
+	(org-metaup, org-metadown, org-shiftmetaup, org-shiftmetadown):
+	New item moving functions added.
+
 2005-11-24  Juri Linkov  <juri@jurta.org>
 
 	* isearch.el (isearch-repeat): With empty search ring
