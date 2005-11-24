@@ -1085,6 +1085,9 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (put 'return 'ascii-character ?\C-m)
 (put 'escape 'ascii-character ?\e)
 
+;; Modifier name `ctrl' is an alias of `control'.
+(put 'ctrl 'modifier-value (get 'control 'modifier-value))
+
 
 ;;;; Script codes and coding systems
 (defconst mac-script-code-coding-systems
