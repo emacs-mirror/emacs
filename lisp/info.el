@@ -4132,7 +4132,7 @@ INDENT is the current indentation depth."
 NODESPEC is a string of the form: (file)node."
   (save-excursion
     ;; Set up a buffer we can use to fake-out Info.
-    (set-buffer (get-buffer-create "*info-browse-tmp*"))
+    (set-buffer (get-buffer-create " *info-browse-tmp*"))
     (if (not (equal major-mode 'Info-mode))
 	(Info-mode))
     ;; Get the node into this buffer

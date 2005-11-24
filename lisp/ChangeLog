@@ -1,3 +1,8 @@
+2005-11-24  Romain Francoise  <romain@orebokech.com>
+
+	* info.el (Info-speedbar-fetch-file-nodes): Prefix temporary
+	buffer name with a space.
+
 2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-export-plain-list-max-depth): Renamed
