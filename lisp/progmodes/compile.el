@@ -1335,19 +1335,17 @@ Optional argument MINOR indicates this is called from
   ;; jit-lock might fontify some things too late.
   (set (make-local-variable 'font-lock-support-mode) nil)
   (set (make-local-variable 'font-lock-maximum-size) nil)
-  (let ((fld font-lock-defaults))
-    (if (and minor fld)
+  (if minor
+      (let ((fld font-lock-defaults))
 	(font-lock-add-keywords nil (compilation-mode-font-lock-keywords))
-      (setq font-lock-defaults '(compilation-mode-font-lock-keywords t)))
-    (if minor
 	(if font-lock-mode
 	    (if fld
 		(font-lock-fontify-buffer)
 	      (font-lock-change-mode)
 	      (turn-on-font-lock))
-	  (turn-on-font-lock))
-      ;; maybe defer font-lock till after derived mode is set up
-      (run-mode-hooks 'compilation-turn-on-font-lock))))
+	  (turn-on-font-lock)))
+    ;; maybe defer font-lock till after derived mode is set up
+    (run-mode-hooks 'compilation-turn-on-font-lock)))
 
 ;;;###autoload
 (define-minor-mode compilation-shell-minor-mode

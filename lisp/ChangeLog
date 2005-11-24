@@ -1,3 +1,24 @@
+2005-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-buffer-mode): Renamed from `hi-lock-mode'.
+	Use define-minor-mode, and make it a local mode.
+	(hi-lock-mode): New global minor mode.
+	(turn-on-hi-lock-if-enabled): New function.
+	(hi-lock-line-face-buffer, hi-lock-face-buffer)
+	(hi-lock-set-pattern): Changed arguments to regexp and face
+	instead of a font-lock pattern.  Directly set face property,
+	instead of refontifying.
+	(hi-lock-font-lock-hook): Check if font-lock is being turned on.
+	(hi-lock-find-patterns): Use line-number-at-pos.
+
+	(hi-lock-face-phrase-buffer): Call hi-lock-buffer-mode.  Use new
+	arguments for hi-lock-set-pattern.
+	(hi-lock-find-file-hook, hi-lock-current-line)
+	(hi-lock-set-patterns): Deleted unused functions.
+
+	* progmodes/compile.el (compilation-setup): Don't fiddle with
+	font-lock-defaults.
+
 2005-11-25  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler)
