@@ -1138,15 +1138,16 @@ Use `isearch-exit' to quit without signaling."
       ;; C-s in forward or C-r in reverse.
       (if (equal isearch-string "")
 	  ;; If search string is empty, use last one.
-	  (setq isearch-string
-		(or (if isearch-regexp
-			(car regexp-search-ring)
-		      (car search-ring))
-		    (error "No previous search string"))
-		isearch-message
-		(mapconcat 'isearch-text-char-description
-			   isearch-string "")
-		isearch-case-fold-search isearch-last-case-fold-search)
+	  (if (null (if isearch-regexp regexp-search-ring search-ring))
+	      (setq isearch-error "No previous search string")
+	    (setq isearch-string
+		  (if isearch-regexp
+		      (car regexp-search-ring)
+		    (car search-ring))
+		  isearch-message
+		  (mapconcat 'isearch-text-char-description
+			     isearch-string "")
+		  isearch-case-fold-search isearch-last-case-fold-search))
 	;; If already have what to search for, repeat it.
 	(or isearch-success
 	    (progn
