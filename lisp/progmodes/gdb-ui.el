@@ -532,19 +532,16 @@ With arg, use separate IO iff arg is positive."
 	  (unless (string-equal
 		   speedbar-initial-expansion-list-name "GUD")
 	    (speedbar-change-initial-expansion-list "GUD"))
-	  (if (or (equal (nth 2 var) "0")
-		  (and (equal (nth 2 var) "1")
-		       (string-match "char \\*$" (nth 3 var))))
-	      (gdb-enqueue-input
-	       (list
-		(if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-			'gdba)
-		    (concat "server interpreter mi \"-var-evaluate-expression "
-			    (nth 1 var) "\"\n")
-		  (concat "-var-evaluate-expression " (nth 1 var) "\n"))
-		     `(lambda () (gdb-var-evaluate-expression-handler
-				  ,(nth 1 var) nil))))
-	    (setq gdb-var-changed t)))
+	  (gdb-enqueue-input
+	   (list
+	    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdba)
+		(concat "server interpreter mi \"-var-evaluate-expression "
+			(nth 1 var) "\"\n")
+	      (concat "-var-evaluate-expression " (nth 1 var) "\n"))
+	    `(lambda () (gdb-var-evaluate-expression-handler
+			 ,(nth 1 var) nil))))
+	    (setq gdb-var-changed t))
       (if (re-search-forward "Undefined command" nil t)
 	  (message-box "Watching expressions requires gdb 6.0 onwards")
 	(message "No symbol \"%s\" in current context." expr)))))
@@ -593,16 +590,13 @@ type=\"\\(.*?\\)\"")
 		     (if (string-equal (cadr var1) (cadr varchild))
 			 (throw 'child-already-watched nil)))
 		   (push varchild var-list)
-		   (if (or (equal (nth 2 varchild) "0")
-			   (and (equal (nth 2 varchild) "1")
-				(string-match "char \\*$" (nth 3 varchild))))
-		       (gdb-enqueue-input
-			(list
-			 (concat
-			  "server interpreter mi \"-var-evaluate-expression "
-				 (nth 1 varchild) "\"\n")
-			 `(lambda () (gdb-var-evaluate-expression-handler
-				      ,(nth 1 varchild) nil))))))))
+		   (gdb-enqueue-input
+		    (list
+		     (concat
+		      "server interpreter mi \"-var-evaluate-expression "
+		      (nth 1 varchild) "\"\n")
+		     `(lambda () (gdb-var-evaluate-expression-handler
+				  ,(nth 1 varchild) nil)))))))
 	   (push var var-list)))
        (setq gdb-var-list (nreverse var-list))))))
 
