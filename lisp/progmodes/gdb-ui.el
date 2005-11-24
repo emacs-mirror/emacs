@@ -67,6 +67,9 @@
 ;; and compiling with -DUNBUFFERED while debugging.
 ;;
 ;; Known Bugs:
+;; 1) Strings that are watched don't update in the speedbar when their
+;; contents change.
+;; 2) Watch expressions go out of scope when the inferior is re-run.
 ;;
 ;; TODO:
 ;; 1) Use MI command -data-read-memory for memory window.
@@ -471,6 +474,21 @@ With arg, use separate IO iff arg is positive."
 		  (forward-char 2)
 		  (gud-call (concat "until *%a")))))))))
 
+(defcustom gdb-speedbar-auto-raise t
+  "If non-nil raise speedbar every time display of watch expressions is\
+ updated."
+  :type 'boolean
+  :group 'gud
+  :version "22.1")
+
+(defun gdb-speedbar-auto-raise (arg)
+  "Toggle automatic raising of the speedbar for watch expressions."
+  (interactive "P")
+  (setq gdb-speedbar-auto-raise
+	(if (null arg)
+	    (not gdb-speedbar-auto-raise)
+	  (> (prefix-numeric-value arg) 0))))
+
 (defcustom gdb-use-colon-colon-notation nil
   "If non-nil use FUN::VAR format to display variables in the speedbar."
   :type 'boolean
@@ -516,7 +534,7 @@ With arg, use separate IO iff arg is positive."
 	    (speedbar-change-initial-expansion-list "GUD"))
 	  (if (or (equal (nth 2 var) "0")
 		  (and (equal (nth 2 var) "1")
-		       (string-match "char \\*" (nth 3 var))))
+		       (string-match "char \\*$" (nth 3 var))))
 	      (gdb-enqueue-input
 	       (list
 		(if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
@@ -577,7 +595,7 @@ type=\"\\(.*?\\)\"")
 		   (push varchild var-list)
 		   (if (or (equal (nth 2 varchild) "0")
 			   (and (equal (nth 2 varchild) "1")
-				(string-match "char \\*" (nth 3 varchild))))
+				(string-match "char \\*$" (nth 3 varchild))))
 		       (gdb-enqueue-input
 			(list
 			 (concat
@@ -604,16 +622,12 @@ type=\"\\(.*?\\)\"")
       (catch 'var-found-1
 	(let ((varnum (match-string 1)))
 	  (dolist (var gdb-var-list)
-	    (when (and (string-equal varnum (cadr var))
-		     (or (equal (nth 2 var) "0")
-			 (and (equal (nth 2 var) "1")
-			      (string-match "char \\*" (nth 3 var)))))
-	      (gdb-enqueue-input
-	       (list
-		(concat "server interpreter mi \"-var-evaluate-expression "
-			varnum "\"\n")
-		`(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
-	      (throw 'var-found-1 nil)))))))
+	    (gdb-enqueue-input
+	     (list
+	      (concat "server interpreter mi \"-var-evaluate-expression "
+		      varnum "\"\n")
+	      `(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
+	    (throw 'var-found-1 nil))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
@@ -1661,7 +1675,7 @@ static char *magick[] = {
 	(while (< (point) (point-max))
 	  (setq bl (line-beginning-position)
 		el (line-end-position))
-	  (unless (looking-at "No ")
+	  (when (looking-at "#")
 	    (add-text-properties bl el
 				 '(mouse-face highlight
 			           help-echo "mouse-2, RET: Select frame")))
