@@ -304,7 +304,7 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
 ;;;###autoload
 (define-global-minor-mode hi-lock-mode
   hi-lock-buffer-mode turn-on-hi-lock-if-enabled
-  :group 'hi-lock-interactive-text-highlighting)
+  :group 'hi-lock)
   
 (defun turn-on-hi-lock-if-enabled ()
   (unless (memq major-mode hi-lock-exclude-modes)
