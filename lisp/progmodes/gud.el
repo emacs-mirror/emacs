@@ -52,6 +52,7 @@
 (defvar gdb-show-changed-values)
 (defvar gdb-var-changed)
 (defvar gdb-var-list)
+(defvar gdb-speedbar-auto-raise)
 (defvar tool-bar-map)
 
 ;; ======================================================================
@@ -410,6 +411,10 @@ t means that there is no stack, and we are in display-file mode.")
 		(memq gud-minor-mode '(gdbmi gdba)))]
     ["Delete expression" gdb-var-delete
      (with-current-buffer gud-comint-buffer
+       (memq gud-minor-mode '(gdbmi gdba)))]
+    ["Auto raise frame" gdb-speedbar-auto-raise
+     :style toggle :selected gdb-speedbar-auto-raise
+     :visible (with-current-buffer gud-comint-buffer
        (memq gud-minor-mode '(gdbmi gdba)))])
   "Additional menu items to add to the speedbar frame.")
 
@@ -444,6 +449,8 @@ required by the caller."
 			   (looking-at "Watch Expressions:")))))
 	  (erase-buffer)
 	  (insert "Watch Expressions:\n")
+	  (if gdb-speedbar-auto-raise
+	      (raise-frame speedbar-frame))
 	  (let ((var-list gdb-var-list))
 	    (while var-list
 	      (let* ((depth 0) (start 0) (char ?+)
@@ -453,7 +460,7 @@ required by the caller."
 			start (1+ (match-beginning 0))))
 		(if (or (equal (nth 2 var) "0")
 			(and (equal (nth 2 var) "1")
-			     (string-match "char \\*" (nth 3 var))))
+			     (string-match "char \\*$" (nth 3 var))))
 		    (speedbar-make-tag-line 'bracket ?? nil nil
 					    (concat (car var) "\t" (nth 4 var))
 					    'gdb-edit-value
@@ -465,10 +472,21 @@ required by the caller."
 		  (if (and (cadr var-list)
 			   (string-match varnum (cadr (cadr var-list))))
 		      (setq char ?-))
+		  (if (string-match "\\*$" (nth 3 var))
+		      (speedbar-make-tag-line 'bracket char
+					      'gdb-speedbar-expand-node varnum
+					      (concat (car var) "\t"
+						      (nth 3 var)"\t"
+						      (nth 4 var))
+					      'gdb-edit-value nil
+					      (if (and (nth 5 var)
+						       gdb-show-changed-values)
+						  'font-lock-warning-face
+						nil) depth)
 		  (speedbar-make-tag-line 'bracket char
 					  'gdb-speedbar-expand-node varnum
 					  (concat (car var) "\t" (nth 3 var))
-					  nil nil nil depth)))
+					  nil nil nil depth))))
 	      (setq var-list (cdr var-list))))
 	  (setq gdb-var-changed nil)))
        (t (if (and (save-excursion
@@ -3079,6 +3097,8 @@ class of the file (using s to separate nested class ids)."
     ("\\$\\(\\w+\\)" (1 font-lock-variable-name-face))
     ("^\\s-*\\([a-z]+\\)" (1 font-lock-keyword-face))))
 
+;; FIXME: The keyword "end" associated with "document"
+;; should have font-lock-keyword-face (currently font-lock-doc-face).
 (defvar gdb-script-font-lock-syntactic-keywords
   '(("^document\\s-.*\\(\n\\)" (1 "< b"))
     ;; It would be best to change the \n in front, but it's more difficult.
