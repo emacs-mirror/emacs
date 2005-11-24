@@ -1,3 +1,19 @@
+2005-11-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-speedbar-auto-raise): New function
+	and variable.
+	(gdb-var-create-handler, gdb-var-list-children-handler):
+	Don't match on "char **...".
+	(gdb-var-update-handler): Find values for all variable objects.
+	(gdb-info-frames-custom): Identify frames by leading "#".
+
+	* progmodes/gud.el (gud-speedbar-menu-items): Add
+	gdb-speedbar-auto-raise as radio button.
+	(gud-speedbar-buttons): Raise speedbar if requested.
+	Don't match on "char **...".
+	(gud-speedbar-buttons): Add (pointer) value for non-leaves.
+	Make it editable.
+
 2005-11-23  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info.el (Info-fontify-node): Handle the case where
