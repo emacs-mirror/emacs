@@ -1,3 +1,9 @@
+2005-11-24  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-repeat): With empty search ring
+	set `isearch-error' to the error string instead of signaling
+	error with the function `error'.
+
 2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Make modifier `ctrl' an alias of `control'.
