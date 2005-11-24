@@ -4,8 +4,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.20
-@set DATE October 2005
+@set VERSION 3.21
+@set DATE December 2005
 
 @dircategory Emacs
 @direntry
@@ -105,6 +105,7 @@ Document Structure
 * Structure editing::           Changing sequence and level of headlines
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
+* Plain Lists::                 Editing hand-formatted lists
 
 Tables
 
@@ -212,15 +213,16 @@ printing and sharing of notes, an Org-mode file can be exported as a
 structured ASCII file, as HTML, or (todo and agenda items only) as an
 iCalendar file.
 
-Org-mode keeps simple things simple.  Not every outline branch needs
-to be an action item, not every action item needs to have priority or
-scheduling information associated with it.  Org-mode can be used on
-different levels and in different ways, for example
+Org-mode keeps simple things simple.  When first fired up, it should
+feel like a simple but easy to use outliner.  Complexity is not
+imposed, but a large amount of functionality is available when you
+need it.  Org-mode can be used on different levels and in different
+ways, for example
 
 @example
 @r{@bullet{} as an outline extension with visibility cycling and structure editing}
 @r{@bullet{} as an ASCII system and table editor to take structured notes}
-@r{@bullet{} as an ASCII table editor with some spreadsheet-like capabilities}
+@r{@bullet{} as an ASCII table editor with spreadsheet-like capabilities}
 @r{@bullet{} as a simple hypertext system, with HTML export}
 @r{@bullet{} as a TODO list editor}
 @r{@bullet{} as a full agenda and planner with deadlines and work scheduling}
@@ -324,6 +326,7 @@ edit the structure of the document.
 * Structure editing::           Changing sequence and level of headlines
 * Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
+* Plain Lists::                 Editing hand-formatted lists
 @end menu
 
 @node Outlines, Headlines, Document Structure, Document Structure
@@ -347,7 +350,8 @@ key.
 @cindex outline tree
 
 Headlines define the structure of an outline tree.  The Headlines in
-Org-mode start with one or more stars, for example
+Org-mode start with one or more stars, on the left margin.  For
+example
 
 @example
 * Top level headline
@@ -478,7 +482,8 @@ Promote the current subtree by one level
 Demote the current subtree by one level
 @kindex M-S-@key{up}
 @item M-S-@key{up}
-Move subtree up (swap with previous subtree of same level)
+Move subtree up (swap with previous subtree of same
+level)
 @kindex M-S-@key{down}
 @item M-S-@key{down}
 Move subtree down (swap with next subtree of same level)
@@ -530,7 +535,7 @@ this, see the documentation string of the variable
 agenda, archiving to a different file is a good way to keep archived
 trees from contributing agenda items.
 
-@node Sparse trees,  , Archiving, Document Structure
+@node Sparse trees, Plain Lists, Archiving, Document Structure
 @section Sparse trees
 @cindex sparse trees
 @cindex trees, sparse
@@ -572,6 +577,69 @@ XEmacs uses selective display for outlining, not text properties}.
 Or you can use the command @kbd{C-c C-x v} to copy the visible part of
 the document to another file (extension @file{.txt}) which then can be
 printed in any desired way.
+
+@node Plain Lists,  , Sparse trees, Document Structure
+@section Plain Lists
+@cindex plain lists
+@cindex lists, plain
+
+Headlines define the entire structure of the Org-mode file, and also
+lists (for example TODO items (@pxref{TODO items}) should be created
+using headline levels.  However, when taking notes, the plain text is
+sometimes easier to read with hand-formatted lists.  Org-mode supports
+editing such lists, and the HTML exporter (@pxref{Exporting}) does
+parse and format them.
+
+Org-mode knows ordered and unordered lists.  Unordered list items
+start with @samp{-}, @samp{+}, or @samp{*}@footnote{When using
+@samp{*} as a bullet, lines must be indented or they will be seen as
+top-level headlines.} as bullets.  Ordered list items start with
+@samp{1.} or @samp{1)}.  Items belonging to the same list must have
+the same indentation on the first line.  In particular, if an ordered
+list reaches number @samp{10.}, also the 2--digit numbers must be
+written left-aligned with the other numbers in the list.  Indentation
+also determines the end of a list item.  It ends before the next line
+that is indented like the bullet/number, or less.  For example:
+
+@example
+** Lord of the Rings
+My favorite scenes are (in this order
+1. Eowyns fight with the witch king
+   + this was already my favorite scene in the book
+   + I really like Miranda Ott.
+2. The attack of the Roherim
+3. Peter Jackson being shot by Legolas
+    - on DVD only  
+   He makes a really funny face when it happens.
+@end example
+
+Org-mode supports these lists by tuning filling and wrapping commands
+to correctly deal with them.  Futhermore, the following commands act
+on items when the cursor is in the first line of an item (the line
+with the bullet or number).
+
+@table @kbd
+@kindex M-S-@key{up}
+@kindex M-S-@key{down}
+@item M-S-@key{up}
+@itemx M-S-@key{down}
+Move the item including subitems up/down (swap with previous/next item
+of same intentation).  If the list is ordered, renumbering is
+automatic.
+@kindex M-S-@key{left}
+@kindex M-S-@key{right}
+@item M-S-@key{left}
+@itemx M-S-@key{right}
+Decrease/increase the indentation of the item, including subitems.
+Initially, the item tree is selected based on current indentation.
+When these commands are executed several times in direct succession,
+the initially selected region is used, even if the new indentation
+would imply a different hierarchy.  To use the new hierarchy, break
+the command chain with a cursor motion or so.
+@kindex C-c C-c
+@item C-c C-c
+Renumber the ordered list at the cursor.
+@end table
 
 @node Tables, Hyperlinks, Document Structure, Top
 @chapter Tables
@@ -2265,29 +2333,9 @@ exporter implements the following interpretation:
 @cindex lists, hand-formatted
 @item
 Hand-formatted lists with @samp{-}, @samp{*} or @samp{+} as
-bullet@footnote{When using @samp{*} as a bullet, lines must be
-indented or they will be seen as top-level headlines.}, or
-with @samp{1.}, @samp{2.} as enumerator will be recognized and
-transformed into HTML lists.  The
-lists is terminated by the next headline, or by a line that is
-indented like the bullet/enumerator in the first line, or less.  For
-example: 
-@example
-** Lord of the Rings
-Some of my favorite scenes are
-- Eowyns fight
-- The attack of the Roherim
-  (this may be favorite one)
-- Peter Jackson being shot by Legolas,
-  in the extended DVD edition only  
-My favorite characters are (in this sequence):
-  1. Sam
-  2. Eowyn
-  3. Aragorn
-Among the others I don't really have a preference.
-@end example
-By default, only no nesting of lists is allowed, but see the variable
-@code{org-export-local-list-max-depth}.
+bullet, or with @samp{1.} or @samp{2)} as enumerator will be recognized and
+transformed into HTML lists.  See @xref{Plain Lists}.
+
 @cindex underlined text
 @cindex bold text
 @cindex italic text
@@ -2772,9 +2820,9 @@ Kevin Rogers contributed code to access VM files on remote hosts.
 Juergen Vollmer contributed code generating the table of contents
 in HTML output, and other export improvements.
 @item
-Christian Egli converted the documentation into TeXInfo format.  He
-also showed me his plans for a multifile summary for Org-mode. Some of
-his ideas have found their way into the agenda.
+Christian Egli converted the documentation into TeXInfo format and
+patched basic CSS formatting support into the HTML exporter.  He also
+inspired the agenda by showing me his plans for a multifile summary.
 @item
 Philip Rooke created the Org-mode reference card.  He also helped with
 beta testing and contributed a number of very useful ideas.
@@ -2790,10 +2838,10 @@ Linking to VM/BBDB/GNUS was inspired by Tom Shannon's
 @item
 Scheduling TODO items was inspired by John Wiegley's @file{planner.el}.
 @item
-Sacha Chua, the current maintainer of Planner, offered linking code
-from Planner. I made use of the offer for links to RMAIL and Wanderlust.
+Sacha Chua, the current maintainer of Planner, suggested to copy
+linking code from Planner (I took code for RMAIL and Wanderlust).
 @item
-Oliver Oppitz sent several useful suggestions.
+Oliver Oppitz made useful suggestions.
 @item
 Carsten Wimmer suggested some changes and helped fix a bug in linking
 to GNUS.
@@ -2807,8 +2855,8 @@ Emacs-Lisp compiler happy.
 Kai Grossjohann pointed out that a number of key bindings in Org-mode
 conflict with other packages.
 @item 
-Roland Winkler pointed out that additional keybindings are need to use
-Org-mode on a tty.
+Roland Winkler pointed out that additional keybindings are needed to
+use Org-mode on a tty.
 @end itemize
 
 @node Index, Key Index, Miscellaneous, Top
