@@ -1,3 +1,14 @@
+2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (Qcontrol): Rename from Qctrl.  All uses changed.
+	(syms_of_macterm): Staticpro Qcontrol, Qmeta, Qalt, Qhyper,
+	Qsuper, and Qmodifier_value.
+	(Vmac_control_modifier, Vmac_option_modifier)
+	(Vmac_command_modifier, Vmac_function_modifier)
+	(Vmac_emulate_three_button_mouse, Vmac_wheel_button_is_mouse_2)
+	(Vmac_pass_command_to_system, Vmac_pass_control_to_system)
+	(Vmac_charset_info_alist): Doc fixes.
+
 2005-11-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacs.c (main) [MAC_OSX]: Change working directory to home

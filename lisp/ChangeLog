@@ -1,3 +1,7 @@
+2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Make modifier `ctrl' an alias of `control'.
+
 2005-11-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-speedbar-auto-raise): New function

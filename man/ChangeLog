@@ -1,3 +1,12 @@
+2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac Input): Remove description of
+	mac-command-key-is-meta.  Add descriptions of
+	mac-control-modifier, mac-command-modifier, and
+	mac-option-modifier.
+	(Mac International): Fix description of conversion of clipboard	data.
+	(Mac Font Specs): Add example of font customization by face attributes.
+
 2005-11-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Expand description.
