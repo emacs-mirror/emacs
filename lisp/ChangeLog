@@ -1,3 +1,9 @@
+2005-11-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler)
+	(gdb-var-list-children-handler): Find values for all variable
+	objects.  gud-speedbar-buttons decides whether to display them.
+
 2005-11-24  Romain Francoise  <romain@orebokech.com>
 
 	* info.el (Info-speedbar-fetch-file-nodes): Prefix temporary
