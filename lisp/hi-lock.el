@@ -297,7 +297,7 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
     (when hi-lock-file-patterns
       (font-lock-remove-keywords nil hi-lock-file-patterns)
       (setq hi-lock-file-patterns nil))
-    (if font-lock-mode (hi-lock-refontify))
+    (hi-lock-refontify)
     (define-key-after menu-bar-edit-menu [hi-lock] nil)
     (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)))
 
@@ -516,8 +516,8 @@ not suitable."
 (defun hi-lock-refontify ()
   "Unfontify then refontify buffer.  Used when hi-lock patterns change."
   (interactive)
-  (unless font-lock-mode (font-lock-mode 1))
-  (font-lock-fontify-buffer))
+  (if font-lock-mode
+      (font-lock-fontify-buffer)))
 
 (defun hi-lock-find-patterns ()
   "Find patterns in current buffer for hi-lock."
