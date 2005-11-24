@@ -3317,6 +3317,9 @@ w32-use-full-screen-buffer to t.
 ** The variable `mac-keyboard-text-encoding' and the constants
 `kTextEncodingMacRoman', `kTextEncodingISOLatin1', and
 `kTextEncodingISOLatin2' are obsolete.
+
+** The variable `mac-command-key-is-meta' is obsolete.  Use
+`mac-command-modifier' and `mac-option-modifier' instead.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
