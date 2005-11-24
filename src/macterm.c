@@ -199,7 +199,7 @@ extern EMACS_INT extra_keyboard_modifiers;
 
 /* The keysyms to use for the various modifiers.  */
 
-static Lisp_Object Qalt, Qhyper, Qsuper, Qctrl,
+static Lisp_Object Qalt, Qhyper, Qsuper, Qcontrol,
   Qmeta, Qmodifier_value;
 
 extern int inhibit_window_system;
@@ -10922,17 +10922,19 @@ syms_of_macterm ()
   x_error_message_string = Qnil;
 #endif
 
+  Qcontrol = intern ("control");	staticpro (&Qcontrol);
+  Qmeta    = intern ("meta");		staticpro (&Qmeta);
+  Qalt     = intern ("alt");		staticpro (&Qalt);
+  Qhyper   = intern ("hyper");		staticpro (&Qhyper);
+  Qsuper   = intern ("super");		staticpro (&Qsuper);
   Qmodifier_value = intern ("modifier-value");
-  Qctrl = intern ("ctrl");
-  Fput (Qctrl, Qmodifier_value, make_number (ctrl_modifier));
-  Qmeta = intern ("meta");
-  Fput (Qmeta, Qmodifier_value, make_number (meta_modifier));
-  Qalt = intern ("alt");
-  Fput (Qalt, Qmodifier_value, make_number (alt_modifier));
-  Qhyper = intern ("hyper");
-  Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
-  Qsuper = intern ("super");
-  Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
+  staticpro (&Qmodifier_value);
+
+  Fput (Qcontrol, Qmodifier_value, make_number (ctrl_modifier));
+  Fput (Qmeta,    Qmodifier_value, make_number (meta_modifier));
+  Fput (Qalt,     Qmodifier_value, make_number (alt_modifier));
+  Fput (Qhyper,   Qmodifier_value, make_number (hyper_modifier));
+  Fput (Qsuper,   Qmodifier_value, make_number (super_modifier));
 
   Qapplication = intern ("application");  staticpro (&Qapplication);
   Qabout       = intern ("about");	  staticpro (&Qabout);
@@ -10979,63 +10981,61 @@ syms_of_macterm ()
   staticpro (&last_mouse_motion_frame);
   last_mouse_motion_frame = Qnil;
 
-
-
 /* Variables to configure modifier key assignment.  */
 
   DEFVAR_LISP ("mac-control-modifier", &Vmac_control_modifier,
     doc: /* Modifier key assumed when the Mac control key is pressed.
-The value can be `alt', `ctrl', `hyper', or `super' for the respective
-modifier.  The default is `ctrl'.  */);
-  Vmac_control_modifier = Qctrl;
+The value can be `alt', `control', `hyper', or `super' for the
+respective modifier.  The default is `control'.  */);
+  Vmac_control_modifier = Qcontrol;
 
   DEFVAR_LISP ("mac-option-modifier", &Vmac_option_modifier,
     doc: /* Modifier key assumed when the Mac alt/option key is pressed.
-The value can be `alt', `ctrl', `hyper', or `super' for the respective
-modifier.  If the value is nil then the key will act as the normal
-Mac control modifier, and the option key can be used to compose
-characters depending on the chosen Mac keyboard setting. */);
+The value can be `alt', `control', `hyper', or `super' for the
+respective modifier.  If the value is nil then the key will act as the
+normal Mac control modifier, and the option key can be used to compose
+characters depending on the chosen Mac keyboard setting.  */);
   Vmac_option_modifier = Qnil;
 
   DEFVAR_LISP ("mac-command-modifier", &Vmac_command_modifier,
     doc: /* Modifier key assumed when the Mac command key is pressed.
-The value can be `alt', `ctrl', `hyper', or `super' for the respective
-modifier. The default is `meta'. */);
+The value can be `alt', `control', `hyper', or `super' for the
+respective modifier.  The default is `meta'.  */);
   Vmac_command_modifier = Qmeta;
 
   DEFVAR_LISP ("mac-function-modifier", &Vmac_function_modifier,
     doc: /* Modifier key assumed when the Mac function key is pressed.
-The value can be `alt', `ctrl', `hyper', or `super' for the respective
-modifier. Note that remapping the function key may lead to unexpected
-results for some keys on non-US/GB keyboards.  */);
+The value can be `alt', `control', `hyper', or `super' for the
+respective modifier.  Note that remapping the function key may lead to
+unexpected results for some keys on non-US/GB keyboards.  */);
   Vmac_function_modifier = Qnil;
 
   DEFVAR_LISP ("mac-emulate-three-button-mouse",
 	       &Vmac_emulate_three_button_mouse,
-    doc: /* t means that when the option-key is held down while pressing the
-mouse button, the click will register as mouse-2 and while the
-command-key is held down, the click will register as mouse-3.
-'reverse means that the option-key will register for mouse-3
-and the command-key will register for mouse-2.  nil means that
-no emulation should be done and the modifiers should be placed
-on the mouse-1 event. */);
+    doc: /* Specify a way of three button mouse emulation.
+The value can be nil, t, or the symbol `reverse'.
+nil means that no emulation should be done and the modifiers should be
+placed on the mouse-1 event.
+t means that when the option-key is held down while pressing the mouse
+button, the click will register as mouse-2 and while the command-key
+is held down, the click will register as mouse-3.
+The symbol `reverse' means that the option-key will register for
+mouse-3 and the command-key will register for mouse-2.  */);
   Vmac_emulate_three_button_mouse = Qnil;
 
 #if USE_CARBON_EVENTS
   DEFVAR_LISP ("mac-wheel-button-is-mouse-2", &Vmac_wheel_button_is_mouse_2,
-   doc: /* Non-nil means that the wheel button will be treated as mouse-2 and
-the right click will be mouse-3.
-Otherwise, the right click will be mouse-2 and the wheel button mouse-3.*/);
+   doc: /* Non-nil if the wheel button is mouse-2 and the right click mouse-3.
+Otherwise, the right click will be treated as mouse-2 and the wheel
+button will be mouse-3.  */);
   Vmac_wheel_button_is_mouse_2 = Qt;
 
   DEFVAR_LISP ("mac-pass-command-to-system", &Vmac_pass_command_to_system,
-   doc: /* If non-nil, the Mac \"Command\" key is passed on to the Mac
-Toolbox for processing before Emacs sees it.  */);
+   doc: /* Non-nil if command key presses are passed on to the Mac Toolbox.  */);
   Vmac_pass_command_to_system = Qt;
 
   DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
-   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
-Toolbox for processing before Emacs sees it.  */);
+   doc: /* Non-nil if control key presses are passed on to the Mac Toolbox.  */);
   Vmac_pass_control_to_system = Qt;
 
 #endif
@@ -11050,14 +11050,14 @@ may anti-alias the text.  */);
      creating the terminal frame on Mac OS 9 before loading
      term/mac-win.elc.  */
   DEFVAR_LISP ("mac-charset-info-alist", &Vmac_charset_info_alist,
-               doc: /* Alist linking Emacs character sets to Mac text encoding and Emacs coding system.
+               doc: /* Alist of Emacs character sets vs text encodings and coding systems.
 Each entry should be of the form:
 
    (CHARSET-NAME TEXT-ENCODING CODING-SYSTEM)
 
 where CHARSET-NAME is a string used in font names to identify the
-charset, TEXT-ENCODING is a TextEncodingBase value, and CODING_SYSTEM
-is a coding system corresponding to TEXT-ENCODING.  */);
+charset, TEXT-ENCODING is a TextEncodingBase value in Mac, and
+CODING_SYSTEM is a coding system corresponding to TEXT-ENCODING.  */);
   Vmac_charset_info_alist =
     Fcons (list3 (build_string ("mac-roman"),
 		  make_number (smRoman), Qnil), Qnil);
