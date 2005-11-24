@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.20
+;; Version: 3.21
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -76,10 +76,17 @@
 ;; The documentation of Org-mode can be found in the TeXInfo file.  The
 ;; distribution also contains a PDF version of it.  At the homepage of
 ;; Org-mode, you can read the same text online as HTML.  There is also an
-;; excellent reference card made by Philip Rooke.
+;; excellent reference card made by Philip Rooke.  This card can be found
+;; in the etc/ directory of Emacs 22.
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.21
+;;    - Improved CSS support for the HTML export.  Thanks to Christian Egli.
+;;    - Editing support for hand-formatted lists
+;;      - M-S-cursor keys handle plain list items
+;;      - C-c C-c renumbers ordered plain lists
+;;
 ;; Version 3.20
 ;;    - There is finally an option to make TAB jump over horizontal lines
 ;;      in tables instead of creating a new line before that line.
@@ -88,7 +95,7 @@
 ;;    - Changes to the HTML exporter
 ;;      - hand-formatted lists are exported correctly, similar to
 ;;        markdown lists.  Nested lists are possible.  See the docstring
-;;        of the variable `org-export-local-list-max-depth'.
+;;        of the variable `org-export-plain-list-max-depth'.
 ;;      - cleaned up to produce valid HTML 4.0 (transitional).
 ;;      - support for cascading style sheets.
 ;;    - New command to cycle through all agenda files, on C-,
@@ -234,7 +241,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.20"
+(defvar org-version "3.21"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -889,6 +896,25 @@ first line, so it is probably best to use this in combinations with
   :group 'org-structure
   :type 'boolean)
 
+(defcustom org-plain-list-ordered-item-terminator t
+  "The character that makes a line with leading number an ordered list item.
+Valid values are ?. and ?\).  To get both terminators, use t.  While
+?. may look nicer, it creates the danger that a line with leading
+number may be incorrectly interpreted as an item.  ?\) therefore is
+the safe choice."
+  :group 'org-structure
+  :type '(choice (const :tag "dot like in \"2.\"" ?.)
+		 (const :tag "paren like in \"2)\"" ?\))
+		 (const :tab "both" t)))
+
+(defcustom org-auto-renumber-ordered-lists t
+  "Non-nil means, automatically renumber ordered plain lists.
+Renumbering happens when the sequence have been changed with
+\\[org-shiftmetaup] or \\[org-shiftmetadown].  After other editing commands,
+use \\[org-ctrl-c-ctrl-c] to trigger renumbering."
+  :group 'org-structure
+  :type 'boolean)
+
 (defgroup org-link nil
   "Options concerning links in Org-mode."
   :tag "Org Link"
@@ -1342,24 +1368,48 @@ This should have an association in `org-export-language-setup'."
   :group 'org-export
   :type 'string)
 
-(defcustom org-export-html-style ""
+(defcustom org-export-html-style 
+"<style type=\"text/css\">
+  html {
+	font-family: Times, serif;
+	font-size: 12pt;
+  }
+  .title { text-align: center; }
+  .todo, .deadline { color: red; }
+  .done { color: green; }
+  pre {
+	border: 1pt solid #AEBDCC;
+	background-color: #F3F5F7;
+	padding: 5pt;
+	font-family: courier, monospace;
+  }
+  table { border-collapse: collapse; }
+  td, th {
+	vertical-align: top;
+	border: 1pt solid #ADB9CC;
+  }
+</style>"
   "The default style specification for exported HTML files.
 Since there are different ways of setting style information, this variable
 needs to contain the full HTML structure to provide a style, including the
-surrounding HTML tags.  For example, legal values would be
+surrounding HTML tags.  The style specifications should include definiitons
+for new classes todo, done, title, and deadline.  For example, legal values
+would be.
 
    <style type=\"text/css\">
        p {font-weight: normal; color: gray; }
        h1 {color: black; }
+      .title { text-align: center; }
+      .todo, .deadline { color: red; }
+      .done { color: green; }
    </style>
 
-or
+or, if you want to keep the style in a file,
 
    <link rel=\"stylesheet\" type=\"text/css\" href=\"mystyles.css\">
 
 As the value of this option simply gets inserted into the HTML <head> header,
-you can \"misuse\" it to add arbitrary text to the header.
-"
+you can \"misuse\" it to add arbitrary text to the header."
   :group 'org-export
   :type 'string)
 
@@ -1393,18 +1443,16 @@ This option can also be set with the +OPTIONS line, e.g. \"toc:nil\"."
   :group 'org-export
   :type 'boolean)
 
-(defcustom org-export-local-list-max-depth 1
+(defcustom org-export-plain-list-max-depth 3
   "Maximum depth of hand-formatted lists in HTML export.
+
 Org-mode parses hand-formatted enumeration and bullet lists and
-transforms them to HTML open export.  Different indentation of the bullet
-or number indicates different list nesting levels.  To avoid confusion,
-only a single level is allowed by default.  This means that a list is started
-with an item, and that all further items are consitered as long as the
-indentation is larger or equal to the indentation of the first item.  When this
-is larger than 1, deeper indentation leads to deeper list nesting.
-If you are careful with hand formatting, you can increase this limit and
-get lists of arbitrary depth.  For example, by setting this option to 3, the
-following list would look correct in HTML:
+transforms them to HTML open export.  Different indentation of the
+bullet or number indicates different list nesting levels.  To avoid
+confusion, only a single level is allowed by default.  When this is
+larger than 1, deeper indentation leads to deeper list nesting.  For
+example, the default value of 3 allows the following list to be
+formatted correctly in HTML:
 
   * Fruit
     - Apple
@@ -2756,6 +2804,234 @@ If optional TXT is given, check this string instead of the current kill."
 	  (if (< (- (match-end 0) (match-beginning 0)) start-level)
 	      (throw 'exit nil)))
 	t))))
+
+;;; Plain list item
+
+(defun org-at-item-p ()
+  "Is point in a line starting a hand-formatted item?"
+  (let ((llt org-plain-list-ordered-item-terminator))
+    (save-excursion
+      (goto-char (point-at-bol))
+      (looking-at 
+       (cond
+	((eq llt t)  "\\([ \t]*\\([-+]\\|\\([0-9]+[.)]\\)\\)\\|[ \t]+\\*\\)\\( \\|$\\)")
+	((= llt ?.)  "\\([ \t]*\\([-+]\\|\\([0-9]+\\.\\)\\)\\|[ \t]+\\*\\)\\( \\|$\\)")
+	((= llt ?\)) "\\([ \t]*\\([-+]\\|\\([0-9]+)\\)\\)\\|[ \t]+\\*\\)\\( \\|$\\)")
+	(t (error "Invalid value of `org-plain-list-ordered-item-terminator'")))))))
+
+(defun org-get-indentation ()
+  "Get the indentation of the current line, ionterpreting tabs."
+  (save-excursion
+    (beginning-of-line 1)
+    (skip-chars-forward " \t")
+    (current-column)))
+
+(defun org-beginning-of-item ()
+  "Go to the beginning of the current hand-formatted item.
+If the cursor is not in an item, throw an error."
+  (let ((pos (point))
+	(limit (save-excursion (org-back-to-heading) 
+			       (beginning-of-line 2) (point)))
+	ind ind1)
+    (if (org-at-item-p)
+	(beginning-of-line 1)
+      (beginning-of-line 1)
+      (skip-chars-forward " \t")
+      (setq ind (current-column))
+      (if (catch 'exit
+	    (while t
+	      (beginning-of-line 0)
+	      (if (< (point) limit) (throw 'exit nil))
+	      (unless (looking-at " \t]*$")
+		(skip-chars-forward " \t")
+		(setq ind1 (current-column))
+		(if (< ind1 ind)
+		    (throw 'exit (org-at-item-p))))))
+	  nil
+	(goto-char pos)
+	(error "Not in an item")))))
+
+(defun org-end-of-item ()
+  "Go to the beginning of the current hand-formatted item.
+If the cursor is not in an item, throw an error."
+  (let ((pos (point))
+	(limit (save-excursion (outline-next-heading) (point)))
+	(ind (save-excursion
+	       (org-beginning-of-item)
+	       (skip-chars-forward " \t")
+	       (current-column)))
+	ind1)
+    (if (catch 'exit
+	  (while t
+	    (beginning-of-line 2)
+	    (if (>= (point) limit) (throw 'exit t))
+	    (unless (looking-at "[ \t]*$")
+	      (skip-chars-forward " \t")
+	      (setq ind1 (current-column))
+	      (if (<= ind1 ind) (throw 'exit t)))))
+	(beginning-of-line 1)
+      (goto-char pos)
+      (error "Not in an item"))))
+      
+(defun org-move-item-down (arg)
+  "Move the plain list item at point down, i.e. swap with following item.
+Subitems (items with larger indentation are considered part of the item,
+so this really moves item trees."
+  (interactive "p")
+  (let (beg end ind ind1 (pos (point)) txt)
+    (org-beginning-of-item)
+    (setq beg (point))
+    (setq ind (org-get-indentation))
+    (org-end-of-item)
+    (setq end (point))
+    (setq ind1 (org-get-indentation))
+    (if (and (org-at-item-p) (= ind ind1))
+	(progn
+	  (org-end-of-item)
+	  (setq txt (buffer-substring beg end))
+	  (save-excursion
+	    (delete-region beg end))
+	  (setq pos (point))
+	  (insert txt)
+	  (goto-char pos)
+	  (org-maybe-renumber-ordered-list))
+      (goto-char pos)
+      (error "Cannot move this item further down"))))
+    
+(defun org-move-item-up (arg)
+  "Move the plain list item at point up, i.e. swap with previous item.
+Subitems (items with larger indentation are considered part of the item,
+so this really moves item trees."
+  (interactive "p")
+  (let (beg end ind ind1 (pos (point)) txt)
+    (org-beginning-of-item)
+    (setq beg (point))
+    (setq ind (org-get-indentation))
+    (org-end-of-item)
+    (setq end (point))
+    (goto-char beg)
+    (catch 'exit
+      (while t
+	(beginning-of-line 0)
+	(if (looking-at "[ \t]*$")
+	    nil
+	  (if (<= (setq ind1 (org-get-indentation)) ind)
+	      (throw 'exit t)))))
+    (condition-case nil
+	(org-beginning-of-item)
+      (error (goto-char beg)
+	     (error "Cannot move this item further up")))
+    (setq ind1 (org-get-indentation))
+    (if (and (org-at-item-p) (= ind ind1))
+	(progn
+	  (setq txt (buffer-substring beg end))
+	  (save-excursion
+	    (delete-region beg end))
+	  (setq pos (point))
+	  (insert txt)
+	  (goto-char pos)
+	  (org-maybe-renumber-ordered-list))
+      (goto-char pos)
+      (error "Cannot move this item further up"))))
+    
+(defun org-maybe-renumber-ordered-list ()
+  "Renumber the ordered list at point if setup allows it.
+This tests the user option `org-auto-renumber-ordered-lists' before
+doing the renumbering."
+  (and org-auto-renumber-ordered-lists
+       (org-at-item-p)
+       (match-beginning 3)
+       (org-renumber-ordered-list 1)))
+
+(defun org-get-string-indentation (s)
+  "What indentation has S due to SPACE and TAB at the beginning of the string?"
+  (let ((n -1) (i 0) (w tab-width) c)
+    (catch 'exit
+      (while (< (setq n (1+ n)) (length s))
+	(setq c (aref s n))
+	(cond ((= c ?\ ) (setq i (1+ i)))
+	      ((= c ?\t) (setq i (* (/ (+ w i) w) w)))
+	      (t (throw 'exit t)))))
+    i))
+
+(defun org-renumber-ordered-list (arg)
+  "Renumber an ordered plain list.
+Cursor neext to be in the first line of an item, the line that starts
+with something like \"1.\" or \"2)\"."
+  (interactive "p")
+  (unless (and (org-at-item-p)
+	       (match-beginning 3))
+    (error "This is not an ordered list"))
+  (let ((line (org-current-line))
+	(col (current-column))
+	(ind (org-get-string-indentation
+	      (buffer-substring (point-at-bol) (match-beginning 3))))
+	(term (substring (match-string 3) -1))
+	ind1 (n (1- arg)))
+    ;; find where this list begins
+    (catch 'exit
+      (while t
+	(catch 'next
+	  (beginning-of-line 0)
+	  (if (looking-at "[ \t]*$") (throw 'next t))
+	  (skip-chars-forward " \t") (setq ind1 (current-column))
+	  (if (and (<= ind1 ind)
+		   (not (org-at-item-p)))
+	      (throw 'exit t)))))
+    ;; Walk forward and replace these numbers
+    (catch 'exit
+      (while t
+	(catch 'next
+	  (beginning-of-line 2)
+	  (if (eobp) (throw 'exit nil))
+	  (if (looking-at "[ \t]*$") (throw 'next nil))
+	  (skip-chars-forward " \t") (setq ind1 (current-column))
+	  (if (> ind1 ind) (throw 'next t))
+	  (if (< ind1 ind) (throw 'exit t))
+	  (if (not (org-at-item-p)) (throw 'exit nil))
+	  (if (not (match-beginning 3))
+	      (error "unordered bullet in ordered list.  Press \\[undo] to recover"))
+	  (delete-region (match-beginning 3) (1- (match-end 3)))
+	  (goto-char (match-beginning 3))
+	  (insert (format "%d" (setq n (1+ n)))))))
+    (goto-line line)
+    (move-to-column col)))
+    
+(defvar org-last-indent-begin-marker (make-marker))
+(defvar org-last-indent-end-marker (make-marker))
+
+
+(defun org-outdent-item (arg)
+  "Outdent a local list item."
+  (interactive "p")
+  (org-indent-item (- arg)))
+
+(defun org-indent-item (arg)
+  "Indent a local list item."
+  (interactive "p")
+  (unless (org-at-item-p)
+    (error "Not on an item"))
+  (let (beg end ind ind1)
+    (if (memq last-command '(org-shiftmetaright org-shiftmetaleft))
+	  (setq beg org-last-indent-begin-marker
+		end org-last-indent-end-marker)
+      (org-beginning-of-item)
+      (setq beg (move-marker org-last-indent-begin-marker (point)))
+      (org-end-of-item)
+      (setq end (move-marker org-last-indent-end-marker (point))))
+    (goto-char beg)
+    (skip-chars-forward " \t") (setq ind (current-column))
+    (if (< (+ arg ind) 0) (error "Cannot outdent beyond margin"))
+    (while (< (point) end)
+      (beginning-of-line 1)
+      (skip-chars-forward " \t") (setq ind1 (current-column))
+      (delete-region (point-at-bol) (point))
+      (indent-to-column (+ ind1 arg))
+      (beginning-of-line 2))
+    (goto-char beg)))
+
+
+;;; Archiving
 
 (defun org-archive-subtree ()
   "Move the current subtree to the archive.
@@ -8985,6 +9261,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	 (in-local-list nil)
 	 (local-list-num nil)
 	 (local-list-indent nil)
+	 (llt org-plain-list-ordered-item-terminator)
 	 (email       user-mail-address)
          (language    org-export-default-language)
 	 (text        nil)
@@ -9039,7 +9316,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 "
 	       language (org-html-expand title) (or charset "iso-8859-1")
 	       date time author style))
-      (if title     (insert (concat "<H1 align=\"center\">"
+      (if title     (insert (concat "<H1 class=\"title\">"
 				    (org-html-expand title) "</H1>\n")))
       (if author    (insert (concat (nth 1 lang-words) ": " author "\n")))
       (if email	  (insert (concat "<a href=\"mailto:" email "\">&lt;"
@@ -9089,7 +9366,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 				   (insert
 				    (format
 				     (if todo
-					 "<li><a href=\"#sec-%d\"><span style='color:red'>%s</span></a>\n"
+					 "<li><a href=\"#sec-%d\"><span class=\"todo\">%s</span></a>\n"
 				       "<li><a href=\"#sec-%d\">%s</a>\n")
 				     head-count txt))
 				   (setq org-last-level level))
@@ -9122,7 +9399,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	      (insert "<pre>\n"))
 	    (insert (org-html-protect (match-string 1 line)) "\n")
 	    (when (and lines
-		       (not (string-match "^[ \t]+\\(:.*\\)"
+		       (not (string-match "^[ \t]*\\(:.*\\)"
 					  (car lines))))
 	      (setq infixed nil)
 	      (insert "</pre>\n"))
@@ -9180,9 +9457,9 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 		   (match-beginning 2))
 	      (if (equal (match-string 2 line) org-done-string)
 		  (setq line (replace-match
-			      "<span style='color:green'>\\2</span>"
+			      "<span class=\"done\">\\2</span>"
 			      nil nil line 2))
-		(setq line (replace-match "<span style='color:red'>\\2</span>"
+		(setq line (replace-match "<span class=\"todo\">\\2</span>"
 					  nil nil line 2))))
 
 	  ;; DEADLINES
@@ -9192,9 +9469,8 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 		      (string-match "<a href"
 				    (substring line 0 (match-beginning 0))))
 		    nil     ; Don't do the replacement - it is inside a link
-		  (setq line (replace-match "<span style='color:red'>\\&</span>"
+		  (setq line (replace-match "<span class=\"deadline\">\\&</span>"
 					    nil nil line 1)))))
-
 	  (cond
 	   ((string-match "^\\(\\*+\\)[ \t]*\\(.*\\)" line)
 	    ;; This is a headline
@@ -9233,13 +9509,21 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	      (insert (org-format-table-html table-buffer table-orig-buffer))))
 	   (t
 	    ;; Normal lines
-	    (when (and (> org-export-local-list-max-depth 0)
+	    (when (and (> org-export-plain-list-max-depth 0)
 		       (string-match
-			"^\\( *\\)\\(\\([-+*]\\)\\|\\([0-9]+\\.\\)\\)? *\\([^ \t\n\r]\\)"
+			(cond
+			 ((eq llt t) "^\\([ \t]*\\)\\(\\([-+*]\\)\\|\\([0-9]+[.)]\\)\\)?\\( +[^ \t\n\r]\\|[ \t]*$\\)")
+			 ((= llt ?.) "^\\([ \t]*\\)\\(\\([-+*]\\)\\|\\([0-9]+\\.\\)\\)?\\( +[^ \t\n\r]\\|[ \t]*$\\)")
+			 ((= llt ?\)) "^\\( \t]*\\)\\(\\([-+*]\\)\\|\\([0-9]+)\\)\\)?\\( +[^ \t\n\r]\\|[ \t]*$\\)")
+			 (t (error "Invalid value of `org-plain-list-ordered-item-terminator'")))
 			line))
-	      (setq ind (- (match-end 1) (match-beginning 1))
+	      (setq ind (org-get-string-indentation line)
 		    start-is-num (match-beginning 4)
-		    starter (if (match-beginning 2) (match-string 2 line)))
+		    starter (if (match-beginning 2) (match-string 2 line))
+		    line (substring line (match-beginning 5)))
+	      (unless (string-match "[^ \t]" line) 
+		;; empty line.  Pretend indentation is large.
+		(setq ind (1+ (or (car local-list-indent) 1))))
 	      (while (and in-local-list
 			  (or (and (= ind (car local-list-indent))
 				   (not starter))
@@ -9247,13 +9531,12 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 		(insert (if (car local-list-num) "</ol>\n" "</ul>"))
 		(pop local-list-num) (pop local-list-indent)
 		(setq in-local-list local-list-indent))
-
 	      (cond
 	       ((and starter
 		     (or (not in-local-list)
 			 (> ind (car local-list-indent)))
 		     (< (length local-list-indent)
-			org-export-local-list-max-depth))
+			org-export-plain-list-max-depth))
 		;; Start new (level of ) list
 		(insert (if start-is-num "<ol>\n<li>\n" "<ul>\n<li>\n"))
 		(push start-is-num local-list-num)
@@ -9261,8 +9544,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 		(setq in-local-list t))
 	       (starter
 		;; continue current list
-		(insert "<li>\n")))
-	      (setq line (substring line (match-beginning 5))))
+		(insert "<li>\n"))))
 	    ;; Empty lines start a new paragraph.  If hand-formatted lists
 	    ;; are not fully interpreted, lines starting with "-", "+", "*"
 	    ;; also start a new paragraph.
@@ -9327,7 +9609,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 		    (mapconcat (lambda (x)
 				 (if head
 				     (concat "<th>" x "</th>")
-				   (concat "<td valign=\"top\">" x "</td>")))
+				   (concat "<td>" x "</td>")))
 			       fields "")
 		    "</tr>\n"))))
     (setq html (concat html "</table>\n"))
@@ -9366,10 +9648,8 @@ But it has the disadvantage, that no cell- or row-spanning is allowed."
 				 (lambda (x)
 				   (if (equal x "") (setq x empty))
 				   (if head
-				       (concat "<th valign=\"top\">" x
-					       "</th>\n")
-				     (concat "<td valign=\"top\">" x
-					     "</td>\n")))
+				       (concat "<th>" x "</th>\n")
+				     (concat "<td>" x "</td>\n")))
 				 field-buffer "\n")
 				"</tr>\n"))
 		    (setq head nil)
@@ -10016,6 +10296,7 @@ See the individual commands for more information."
   (cond
    ((org-at-table-p) (org-table-delete-column))
    ((org-on-heading-p) (org-promote-subtree))
+   ((org-at-item-p) (call-interactively 'org-outdent-item))
    (t (org-shiftcursor-error))))
 
 (defun org-shiftmetaright ()
@@ -10026,30 +10307,36 @@ See the individual commands for more information."
   (cond
    ((org-at-table-p) (org-table-insert-column))
    ((org-on-heading-p) (org-demote-subtree))
+   ((org-at-item-p) (call-interactively 'org-indent-item))
    (t (org-shiftcursor-error))))
 
 (defun org-shiftmetaup (&optional arg)
   "Move subtree up or kill table row.
-Calls `org-move-subtree-up' or `org-table-kill-row', depending on context.
-See the individual commands for more information."
+Calls `org-move-subtree-up' or `org-table-kill-row' or
+`org-move-item-up' depending on context.  See the individual commands
+for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-kill-row))
    ((org-on-heading-p) (org-move-subtree-up arg))
+   ((org-at-item-p) (org-move-item-up arg))
    (t (org-shiftcursor-error))))
 (defun org-shiftmetadown (&optional arg)
   "Move subtree down or insert table row.
-Calls `org-move-subtree-down' or `org-table-insert-row', depending on context.
-See the individual commands for more information."
+Calls `org-move-subtree-down' or `org-table-insert-row' or
+`org-move-item-down', depending on context.  See the individual
+commands for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-insert-row arg))
    ((org-on-heading-p) (org-move-subtree-down arg))
+   ((org-at-item-p) (org-move-item-down arg))
    (t (org-shiftcursor-error))))
 
 (defun org-metaleft (&optional arg)
   "Promote heading or move table column to left.
 Calls `org-do-promote' or `org-table-move-column', depending on context.
+With no specific context, calls the Emacs default `backward-word'.
 See the individual commands for more information."
   (interactive "P")
   (cond
@@ -10060,6 +10347,7 @@ See the individual commands for more information."
 (defun org-metaright (&optional arg)
   "Demote subtree or move table column to right.
 Calls `org-do-demote' or `org-table-move-column', depending on context.
+With no specific context, calls the Emacs default `forward-word'.
 See the individual commands for more information."
   (interactive "P")
   (cond
@@ -10069,22 +10357,26 @@ See the individual commands for more information."
 
 (defun org-metaup (&optional arg)
   "Move subtree up or move table row up.
-Calls `org-move-subtree-up' or `org-table-move-row', depending on context.
-See the individual commands for more information."
+Calls `org-move-subtree-up' or `org-table-move-row' or
+`org-move-item-up', depending on context.  See the individual commands
+for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-move-row 'up))
    ((org-on-heading-p) (org-move-subtree-up arg))
+   ((org-at-item-p) (org-move-item-up arg))
    (t (org-shiftcursor-error))))
 
 (defun org-metadown (&optional arg)
   "Move subtree down or move table row down.
-Calls `org-move-subtree-down' or `org-table-move-row', depending on context.
-See the individual commands for more information."
+Calls `org-move-subtree-down' or `org-table-move-row' or
+`org-move-item-down', depending on context.  See the individual
+commands for more information."
   (interactive "P")
   (cond
    ((org-at-table-p) (org-table-move-row nil))
    ((org-on-heading-p) (org-move-subtree-down arg))
+   ((org-at-item-p) (org-move-item-down arg))
    (t (org-shiftcursor-error))))
 
 (defun org-shiftup (&optional arg)
@@ -10153,6 +10445,8 @@ If the cursor is on a #+TBLFM line, re-apply the formulae to the table."
 	  (org-table-recalculate t)
 	(org-table-maybe-recalculate-line))
       (org-table-align))
+     ((org-at-item-p)
+      (org-renumber-ordered-list (prefix-numeric-value arg)))
      ((save-excursion (beginning-of-line 1) (looking-at "#\\+\\([A-Z]+\\)"))
       (cond
        ((equal (match-string 1) "TBLFM")
@@ -10165,11 +10459,13 @@ If the cursor is on a #+TBLFM line, re-apply the formulae to the table."
 	(org-mode-restart))))
      ((org-region-active-p)
       (org-table-convert-region (region-beginning) (region-end) arg))
-     ((and (region-beginning) (region-end))
+     ((condition-case nil
+	  (and (region-beginning) (region-end))
+	(error nil))
       (if (y-or-n-p "Convert inactive region to table? ")
 	  (org-table-convert-region (region-beginning) (region-end) arg)
 	(error "Abort")))
-     (t (error "No table at point, and no region to make one")))))
+     (t (error "C-c C-c can do nothing useful at this location.")))))
 
 (defun org-mode-restart ()
   "Restart Org-mode, to scan again for special lines.
@@ -10436,7 +10732,7 @@ With optional NODE, go directly to that node."
   (set (make-local-variable 'paragraph-separate) "\f\\|\\*\\|[ 	]*$\\|[ \t]*[:|]")
   ;; The paragraph starter includes hand-formatted lists.
   (set (make-local-variable 'paragraph-start)
-       "\f\\|[ 	]*$\\|\\([*\f]+\\)\\|[ \t]*\\([-+*]\\|[0-9]+\\.[ \t]+\\)\\|[ \t]*[:|]")
+       "\f\\|[ 	]*$\\|\\([*\f]+\\)\\|[ \t]*\\([-+*]\\|[0-9]+[.)][ \t]+\\)\\|[ \t]*[:|]")
   ;; Inhibit auto-fill for headers, tables and fixed-width lines.
   ;; But only if the user has not turned off tables or fixed-width regions
   (set (make-local-variable 'auto-fill-inhibit-regexp)
@@ -10472,7 +10768,7 @@ With optional NODE, go directly to that node."
   "Return a fill prefix for org-mode files.
 In particular, this makes sure hanging paragraphs for hand-formatted lists
 work correctly."
-  (if (looking-at " *\\([-*+] \\|[0-9]+\\. \\)?")
+  (if (looking-at " *\\([-*+] \\|[0-9]+[.)] \\)?")
       (make-string (- (match-end 0) (match-beginning 0)) ?\ )))
 
 ;; Functions needed for Emacs/XEmacs region compatibility
@@ -10706,4 +11002,5 @@ Show the heading too, if it is currently invisible."
 
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
+
 
