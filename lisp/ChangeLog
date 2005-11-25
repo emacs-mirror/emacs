@@ -1,7 +1,8 @@
 2005-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hi-lock.el (hi-lock-buffer-mode): Renamed from `hi-lock-mode'.
-	Use define-minor-mode, and make it a local mode.
+	Use define-minor-mode, and make it a local mode.  Turn on
+	font-lock.
 	(hi-lock-mode): New global minor mode.
 	(turn-on-hi-lock-if-enabled): New function.
 	(hi-lock-line-face-buffer, hi-lock-face-buffer)
@@ -13,8 +14,14 @@
 
 	(hi-lock-face-phrase-buffer): Call hi-lock-buffer-mode.  Use new
 	arguments for hi-lock-set-pattern.
+	(hi-lock-unface-buffer, hi-lock-set-file-patterns): Call
+	font-lock-fontify-buffer.
 	(hi-lock-find-file-hook, hi-lock-current-line)
-	(hi-lock-set-patterns): Deleted unused functions.
+	(hi-lock-refontify, hi-lock-set-patterns): Deleted unused
+	functions.
+
+	(hi-lock-font-lock-hook): Turn off hi-lock when font lock is
+	turned off.
 
 	* progmodes/compile.el (compilation-setup): Don't fiddle with
 	font-lock-defaults.

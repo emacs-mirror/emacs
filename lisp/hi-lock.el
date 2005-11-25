@@ -286,18 +286,22 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
   (if hi-lock-buffer-mode
       ;; Turned on.
       (progn
+	(unless font-lock-mode (font-lock-mode 1))
 	(define-key-after menu-bar-edit-menu [hi-lock]
 	  (cons "Regexp Highlighting" hi-lock-menu))
 	(hi-lock-find-patterns)
-	(add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t))
+	(add-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook nil t))
     ;; Turned off.
-    (when hi-lock-interactive-patterns 
-      (font-lock-remove-keywords nil hi-lock-interactive-patterns)
-      (setq hi-lock-interactive-patterns nil))
-    (when hi-lock-file-patterns
-      (font-lock-remove-keywords nil hi-lock-file-patterns)
-      (setq hi-lock-file-patterns nil))
-    (hi-lock-refontify)
+    (when (or hi-lock-interactive-patterns
+	      hi-lock-file-patterns)
+      (when hi-lock-interactive-patterns 
+	(font-lock-remove-keywords nil hi-lock-interactive-patterns)
+	(setq hi-lock-interactive-patterns nil))
+      (when hi-lock-file-patterns
+	(font-lock-remove-keywords nil hi-lock-file-patterns)
+	(setq hi-lock-file-patterns nil))
+      (if font-lock-mode
+	  (font-lock-fontify-buffer)))
     (define-key-after menu-bar-edit-menu [hi-lock] nil)
     (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)))
 
@@ -426,7 +430,7 @@ interactive functions.  \(See `hi-lock-interactive-patterns'.\)
       (font-lock-remove-keywords nil (list keyword))
       (setq hi-lock-interactive-patterns
             (delq keyword hi-lock-interactive-patterns))
-      (hi-lock-refontify))))
+      (font-lock-fontify-buffer))))
 
 ;;;###autoload
 (defun hi-lock-write-interactive-patterns ()
@@ -511,13 +515,7 @@ not suitable."
     (font-lock-remove-keywords nil hi-lock-file-patterns)
     (setq hi-lock-file-patterns patterns)
     (font-lock-add-keywords nil hi-lock-file-patterns)
-    (hi-lock-refontify)))
-
-(defun hi-lock-refontify ()
-  "Unfontify then refontify buffer.  Used when hi-lock patterns change."
-  (interactive)
-  (if font-lock-mode
-      (font-lock-fontify-buffer)))
+    (font-lock-fontify-buffer)))
 
 (defun hi-lock-find-patterns ()
   "Find patterns in current buffer for hi-lock."
@@ -544,9 +542,10 @@ not suitable."
 
 (defun hi-lock-font-lock-hook ()
   "Add hi lock patterns to font-lock's."
-  (when font-lock-mode
-    (font-lock-add-keywords nil hi-lock-file-patterns)
-    (font-lock-add-keywords nil hi-lock-interactive-patterns)))
+  (if font-lock-mode
+      (progn (font-lock-add-keywords nil hi-lock-file-patterns)
+	     (font-lock-add-keywords nil hi-lock-interactive-patterns))
+    (hi-lock-buffer-mode -1)))
 
 (provide 'hi-lock)
 
