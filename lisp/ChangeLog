@@ -1,3 +1,15 @@
+2005-11-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-on-current-buffer): Record actual filename in
+	Info-current-file, instead of t, or a fake filename if a non-file
+	buffer.  Make autoload.
+	(Info-find-node, Info-revert-find-node): No need to check for
+	Info-current-file nil.
+	(Info-set-mode-line, Info-up, Info-copy-current-node-name):
+	Info-current-file is now never `t'.
+	(Info-fontify-node): Many simplifications due to Info-current-file
+	always being valid.  Use Info-find-file to find node filename.
+
 2005-11-25  David Kastrup  <dak@gnu.org>
 
 	* longlines.el (longlines-wrap-line): Reorder wrapping to "insert

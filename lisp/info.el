@@ -290,8 +290,7 @@ with wrapping around the current Info node."
 (defvar Info-current-file nil
   "Info file that Info is now looking at, or nil.
 This is the name that was specified in Info, not the actual file name.
-It doesn't contain directory names or file name extensions added by Info.
-Can also be t when using `Info-on-current-buffer'.")
+It doesn't contain directory names or file name extensions added by Info.")
 
 (defvar Info-current-subfile nil
   "Info subfile that is actually in the *info* buffer now.
@@ -691,12 +690,13 @@ it says do not attempt further (recursive) error recovery."
   ;; Go into Info buffer.
   (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
   ;; Record the node we are leaving.
-  (if (and Info-current-file (not no-going-back))
+  (if (not no-going-back)
       (setq Info-history
             (cons (list Info-current-file Info-current-node (point))
                   Info-history)))
   (Info-find-node-2 filename nodename no-going-back))
 
+;;;###autoload
 (defun Info-on-current-buffer (&optional nodename)
   "Use the `Info-mode' to browse the current Info buffer.
 If a prefix arg is provided, it queries for the NODENAME which
@@ -708,7 +708,10 @@ else defaults to \"Top\"."
   (unless nodename (setq nodename "Top"))
   (info-initialize)
   (Info-mode)
-  (set (make-local-variable 'Info-current-file) t)
+  (set (make-local-variable 'Info-current-file)
+       (or buffer-file-name
+	   ;; If called on a non-file buffer, make a fake file name.
+	   (concat default-directory (buffer-name))))
   (Info-find-node-2 nil nodename))
 
 ;; It's perhaps a bit nasty to kill the *info* buffer to force a re-read,
@@ -726,8 +729,7 @@ is preserved, if possible."
 	(pline        (count-lines (point-min) (line-beginning-position)))
 	(wline        (count-lines (point-min) (window-start)))
 	(old-history  Info-history)
-	(new-history (and Info-current-file
-			  (list Info-current-file Info-current-node (point)))))
+	(new-history  (list Info-current-file Info-current-node (point))))
     (kill-buffer (current-buffer))
     (Info-find-node filename nodename)
     (setq Info-history old-history)
@@ -1400,12 +1402,10 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 	(nconc (propertized-buffer-identification "%b")
 	       (list
 		(concat " ("
-			(file-name-nondirectory
-			 (if (stringp Info-current-file)
-			     Info-current-file
-			   (or buffer-file-name "")))
-			") "
-			(or Info-current-node ""))))))
+			(if Info-current-file
+			    (file-name-nondirectory Info-current-file)
+			  " ")
+			") " (or Info-current-node ""))))))
 
 ;; Go to an Info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
@@ -1884,7 +1884,7 @@ If SAME-FILE is non-nil, do not move to a different Info file."
     (let ((old-node Info-current-node)
 	  (old-file Info-current-file)
 	  (node (Info-extract-pointer "up")) p)
-      (and (or same-file (not (stringp Info-current-file)))
+      (and same-file
 	   (string-match "^(" node)
 	   (error "Up node is in another Info file"))
       (Info-goto-node node)
@@ -3266,12 +3266,8 @@ With a zero prefix arg, put the name inside a function call to `info'."
   (interactive "P")
   (unless Info-current-node
     (error "No current Info node"))
-  (let ((node (concat "(" (file-name-nondirectory
-                           (or (and (stringp Info-current-file)
-                                    Info-current-file)
-                               buffer-file-name
-                               ""))
-                      ")" Info-current-node)))
+  (let ((node (concat "(" (file-name-nondirectory Info-current-file) ")"
+		      Info-current-node)))
     (if (zerop (prefix-numeric-value arg))
         (setq node (concat "(info \"" node "\")")))
     (kill-new node)
@@ -3804,28 +3800,19 @@ the variable `Info-file-list-for-emacs'."
                                              (and (not (equal (match-string 4) ""))
                                                   (match-string 4))
                                              (match-string 2)))))
-                                 (file (file-name-nondirectory
-                                        (if Info-current-file
-					    (if (stringp Info-current-file)
-						Info-current-file
-					      (buffer-file-name)))))
+                                 (file Info-current-file)
                                  (hl Info-history-list)
                                  res)
                             (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
-                                (setq file (file-name-nondirectory
-                                            (match-string 1 node))
+                                (setq file (Info-find-file (match-string 1 node))
                                       node (if (equal (match-string 2 node) "")
                                                "Top"
                                              (match-string 2 node))))
-                            (while hl
-                              (if (and (string-equal node (nth 1 (car hl)))
-				       (or (and (eq t Info-current-file)
-						(eq t (nth 0 (car hl))))
-					   (string-equal file
-							 (file-name-nondirectory
-							  (nth 0 (car hl))))))
-                                  (setq res (car hl) hl nil)
-                                (setq hl (cdr hl))))
+			    (while hl
+			      (if (and (string-equal node (nth 1 (car hl)))
+				       (string-equal file (nth 0 (car hl))))
+				  (setq res (car hl) hl nil)
+				(setq hl (cdr hl))))
                             res))) 'info-xref-visited 'info-xref))
               ;; For multiline ref, unfontify newline and surrounding whitespace
               (save-excursion
@@ -3918,28 +3905,19 @@ the variable `Info-file-list-for-emacs'."
                             (let ((node (if (equal (match-string 3) "")
                                             (match-string 1)
                                           (match-string 3)))
-                                  (file (file-name-nondirectory
-					 (if Info-current-file
-					     (if (stringp Info-current-file)
-						 Info-current-file
-					       (buffer-file-name)))))
+                                  (file Info-current-file)
                                   (hl Info-history-list)
                                   res)
                               (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
-                                  (setq file (file-name-nondirectory
-                                              (match-string 1 node))
+                                  (setq file (Info-find-file (match-string 1 node))
                                         node (if (equal (match-string 2 node) "")
                                                  "Top"
                                                (match-string 2 node))))
-                              (while hl
-                                (if (and (string-equal node (nth 1 (car hl)))
-					 (or (and (eq t Info-current-file)
-						  (eq t (nth 0 (car hl))))
-					     (string-equal file
-							   (file-name-nondirectory
-							    (nth 0 (car hl))))))
-                                    (setq res (car hl) hl nil)
-                                  (setq hl (cdr hl))))
+			      (while hl
+				(if (and (string-equal node (nth 1 (car hl)))
+					 (string-equal file (nth 0 (car hl))))
+				    (setq res (car hl) hl nil)
+				  (setq hl (cdr hl))))
                               res))) 'info-xref-visited 'info-xref)))
 	      (when (and not-fontified-p (memq Info-hide-note-references '(t hide)))
 		(put-text-property (match-beginning 2) (1- (match-end 6))
