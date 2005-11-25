@@ -1,5 +1,11 @@
 2005-11-25  Chong Yidong  <cyd@stupidchicken.com>
 
+	* custom.el (enable-theme): Signal error if argument is not a
+	theme.  Don't recalculate a face if it's not loaded yet.
+
+	* cus-face.el (custom-theme-set-faces): Don't change saved-face if
+	the `user' theme is in effect.
+
 	* info.el (Info-on-current-buffer): Record actual filename in
 	Info-current-file, instead of t, or a fake filename if a non-file
 	buffer.  Make autoload.

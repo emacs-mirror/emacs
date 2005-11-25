@@ -320,13 +320,18 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 	    (let ((face (nth 0 entry))
 		  (spec (nth 1 entry))
 		  (now (nth 2 entry))
-		  (comment (nth 3 entry)))
+		  (comment (nth 3 entry))
+		  oldspec)
 	      ;; If FACE is actually an alias, customize the face it
 	      ;; is aliased to.
 	      (if (get face 'face-alias)
 		  (setq face (get face 'face-alias)))
-	      (put face 'saved-face spec)
-	      (put face 'saved-face-comment comment)
+
+	      (setq oldspec (get face 'theme-face))
+	      (when (not (and oldspec (eq 'user (caar oldspec))))
+		(put face 'saved-face spec)
+		(put face 'saved-face-comment comment))
+
 	      (custom-push-theme 'theme-face face theme 'set spec)
 	      (when (or now immediate)
 		(put face 'force-face (if now 'rogue 'immediate)))

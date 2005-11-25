@@ -1120,9 +1120,14 @@ See `custom-theme-load-themes' for more information on BODY."
 (defun enable-theme (theme)
   "Reenable all variable and face settings defined by THEME.
 The newly enabled theme gets the highest precedence (after `user').
-If it is already enabled, just give it highest precedence (after `user')."
+If it is already enabled, just give it highest precedence (after `user').
+
+This signals an error if THEME does not specify any theme
+settings.  Theme settings are set using `load-theme'."
   (interactive "SEnable Custom theme: ")
   (let ((settings (get theme 'theme-settings)))
+    (if (and (not (eq theme 'user)) (null settings))
+	(error "No theme settings defined in %s." (symbol-name theme)))
     (dolist (s settings)
       (let* ((prop (car s))
 	     (symbol (cadr s))
@@ -1130,7 +1135,8 @@ If it is already enabled, just give it highest precedence (after `user')."
 	(put symbol prop (cons (cddr s) (assq-delete-all theme spec-list)))
 	(if (eq prop 'theme-value)
 	    (custom-theme-recalc-variable symbol)
-	  (custom-theme-recalc-face symbol)))))
+	  (if (facep symbol)
+	      (custom-theme-recalc-face symbol))))))
   (setq custom-enabled-themes
         (cons theme (delq theme custom-enabled-themes)))
   ;; `user' must always be the highest-precedence enabled theme.
