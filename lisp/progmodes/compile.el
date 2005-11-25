@@ -1344,6 +1344,7 @@ Optional argument MINOR indicates this is called from
 	      (font-lock-change-mode)
 	      (turn-on-font-lock))
 	  (turn-on-font-lock)))
+    (setq font-lock-defaults '(compilation-mode-font-lock-keywords t))
     ;; maybe defer font-lock till after derived mode is set up
     (run-mode-hooks 'compilation-turn-on-font-lock)))
 

@@ -1,3 +1,7 @@
+2005-11-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-setup): Fix last fix.
+
 2005-11-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
