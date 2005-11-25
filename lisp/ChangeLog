@@ -1,10 +1,14 @@
 2005-11-25  Michael Kifer  <kifer@cs.stonybrook.edu>
 	
-	* viper-keym.el (viper-ESC-key): use different values in terminal and
+	* viper-keym.el (viper-ESC-key): Use different values in terminal and
 	window modes.
 	
-	* viper.el (viper-emacs-state-mode-list): delete mail-mode, add
+	* viper.el (viper-emacs-state-mode-list): Delete mail-mode, add
 	jde-javadoc-checker-report-mode.
+	
+	* ediff-wind (ediff-make-wide-display): Slight simplification.
+	
+	* ediff.el (ediff-date): Changed the date of last update.
 	
 2005-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
