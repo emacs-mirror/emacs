@@ -1,3 +1,8 @@
+2005-11-25  David Kastrup  <dak@gnu.org>
+
+	* longlines.el (longlines-wrap-line): Reorder wrapping to "insert
+	new character, then delete" in order to preserve markers.
+
 2005-11-25  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-arrange-by-rule): Handle a special
