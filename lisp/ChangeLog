@@ -1,3 +1,13 @@
+2005-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
+	(gdb-mouse-toggle-breakpoint-margin)
+	(gdb-mouse-toggle-breakpoint-fringe, gdb-threads-select): 
+	Add gdb-server-prefix to keep out of command history.
+	(gdb-edit-register-value): New function.
+	(gdb-registers-mode-map): Bind mouse-2 and RET to it.
+	(gdb-info-registers-custom): Use above map.
+
 2005-11-25  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (enable-theme): Signal error if argument is not a
