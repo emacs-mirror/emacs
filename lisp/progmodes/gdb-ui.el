@@ -1466,11 +1466,11 @@ static char *magick[] = {
 				(gdb-put-breakpoint-icon (eq flag ?y) bptno)))
 			  (gdb-enqueue-input
 			   (list
-			    (concat "list "
+			    (concat gdb-server-prefix "list "
 				    (match-string-no-properties 1) ":1\n")
 			    'ignore))
 			  (gdb-enqueue-input
-			   (list "info source\n"
+			   (list (concat gdb-server-prefix "info source\n")
 				 `(lambda () (gdb-get-location
 					      ,bptno ,line ,flag))))))))))
 	  (end-of-line)))))
@@ -1505,7 +1505,7 @@ static char *magick[] = {
 		 (list
 		  (let ((bptno (get-text-property
 				0 'gdb-bptno (car (posn-string posn)))))
-		    (concat
+		    (concat gdb-server-prefix
 			    (if (get-text-property
 				 0 'gdb-enabled (car (posn-string posn)))
 				"disable "
@@ -1531,7 +1531,7 @@ static char *magick[] = {
 	  (when (stringp obj)
 	    (gdb-enqueue-input
 	     (list
-	      (concat
+	      (concat gdb-server-prefix
 	       (if (get-text-property 0 'gdb-enabled obj)
 		   "disable "
 		 "enable ")
@@ -1832,7 +1832,8 @@ static char *magick[] = {
   (interactive (list last-input-event))
   (if event (mouse-set-point event))
   (gdb-enqueue-input
-   (list (concat "thread " (gdb-get-thread-number) "\n") 'ignore))
+   (list (concat gdb-server-prefix "thread "
+		 (gdb-get-thread-number) "\n") 'ignore))
   (gud-display-frame))
 
 
@@ -1859,19 +1860,36 @@ static char *magick[] = {
   (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
     (save-excursion
       (let ((buffer-read-only nil)
-	    bl)
+	    start end)
 	(goto-char (point-min))
 	(while (< (point) (point-max))
-	  (setq bl (line-beginning-position))
+	  (setq start (line-beginning-position))
+	  (setq end (line-end-position))
 	  (when (looking-at "^[^ ]+")
 	    (unless (string-equal (match-string 0) "The")
-	      (put-text-property bl (match-end 0)
-				 'face font-lock-variable-name-face)))
+	      (put-text-property start (match-end 0)
+				 'face font-lock-variable-name-face)
+	      (add-text-properties start end 
+		                   '(help-echo "mouse-2: edit value"
+				     mouse-face highlight))))
 	  (forward-line 1))))))
+
+(defun gdb-edit-register-value (&optional event)
+  (interactive (list last-input-event))
+  (save-excursion
+    (if event (mouse-set-point event))
+    (beginning-of-line)
+    (let* ((register (current-word))
+	  (value (read-string (format "New value (%s): " register))))
+      (gdb-enqueue-input
+       (list (concat gdb-server-prefix "set $" register "=" value "\n")
+	     'ignore)))))
 
 (defvar gdb-registers-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "\r" 'gdb-edit-register-value)
+    (define-key map [mouse-2] 'gdb-edit-register-value)
     (define-key map " " 'toggle-gdb-all-registers)
     (define-key map "q" 'kill-this-buffer)
      map))
@@ -1915,9 +1933,9 @@ static char *magick[] = {
 	(setq gdb-all-registers nil)
 	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
 	  (setq mode-name "Registers:")))
-	(setq gdb-all-registers t)
-	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
-	  (setq mode-name "Registers:All")))
+    (setq gdb-all-registers t)
+    (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+      (setq mode-name "Registers:All")))
   (gdb-invalidate-registers))
 
 
@@ -2253,13 +2271,13 @@ corresponding to the mode line clicked."
  "Keymap to create watch expression of a complex data type local variable.")
 
 (defconst gdb-struct-string
-  (concat (propertize "[struct/union];"
+  (concat (propertize "[struct/union]"
 		      'mouse-face 'highlight
 		      'help-echo "mouse-2: create watch expression"
 		      'local-map gdb-locals-watch-keymap) "\n"))
 
 (defconst gdb-array-string
-  (concat " " (propertize "[array];"
+  (concat " " (propertize "[array]"
 			  'mouse-face 'highlight
 			  'help-echo "mouse-2: create watch expression"
 			  'local-map gdb-locals-watch-keymap) "\n"))
