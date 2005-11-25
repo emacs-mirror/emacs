@@ -22,28 +22,26 @@
 	(recentf-build-mode-rules): Handle second level auto-mode entries.
 
 2005-11-25  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* viper-keym.el (viper-ESC-key): Use different values in terminal and
 	window modes.
-	
+
 	* viper.el (viper-emacs-state-mode-list): Delete mail-mode, add
 	jde-javadoc-checker-report-mode.
-	
+
 	* ediff-wind (ediff-make-wide-display): Slight simplification.
-	
-	* ediff.el (ediff-date): Changed the date of last update.
-	
+
+	* ediff.el (ediff-date): Change the date of last update.
+
 2005-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hi-lock.el (hi-lock-buffer-mode): Renamed from `hi-lock-mode'.
-	Use define-minor-mode, and make it a local mode.  Turn on
-	font-lock.
+	Use define-minor-mode, and make it a local mode.  Turn on font-lock.
 	(hi-lock-mode): New global minor mode.
 	(turn-on-hi-lock-if-enabled): New function.
-	(hi-lock-line-face-buffer, hi-lock-face-buffer)
-	(hi-lock-set-pattern): Changed arguments to regexp and face
-	instead of a font-lock pattern.  Directly set face property,
-	instead of refontifying.
+	(hi-lock-line-face-buffer, hi-lock-face-buffer, hi-lock-set-pattern):
+	Change arguments to regexp and face instead of a font-lock pattern.
+	Directly set face property, instead of refontifying.
 	(hi-lock-font-lock-hook): Check if font-lock is being turned on.
 	(hi-lock-find-patterns): Use line-number-at-pos.
 
@@ -52,8 +50,7 @@
 	(hi-lock-unface-buffer, hi-lock-set-file-patterns): Call
 	font-lock-fontify-buffer.
 	(hi-lock-find-file-hook, hi-lock-current-line)
-	(hi-lock-refontify, hi-lock-set-patterns): Deleted unused
-	functions.
+	(hi-lock-refontify, hi-lock-set-patterns): Delete unused functions.
 
 	(hi-lock-font-lock-hook): Turn off hi-lock when font lock is
 	turned off.
@@ -74,14 +71,13 @@
 
 2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-export-plain-list-max-depth): Renamed
-	from `org-export-local-list-max-depth'.  Default values changed to
-	3.
-	(org-auto-renumber-ordered-lists,
-	org-plain-list-ordered-item-terminator): New options.
-	(org-at-item-p, org-beginning-of-item, org-end-of-item,
-	org-get-indentation, org-get-string-indentation,
-	org-maybe-renumber-ordered-list, org-renumber-ordered-list): New
+	* textmodes/org.el: (org-export-plain-list-max-depth): Renamed from
+	`org-export-local-list-max-depth'.  Change default value to 3.
+	(org-auto-renumber-ordered-lists)
+	(org-plain-list-ordered-item-terminator): New options.
+	(org-at-item-p, org-beginning-of-item, org-end-of-item)
+	(org-get-indentation, org-get-string-indentation)
+	(org-maybe-renumber-ordered-list, org-renumber-ordered-list): New
 	functions.
 	(org-move-item-down, org-move-item-up): New commands.
 	(org-export-as-html): New classes for CSS support.  Bug fix in
@@ -90,17 +86,17 @@
 	(org-set-autofill-regexps, org-adaptive-fill-function): "1)" is
 	also a list item.
 	(org-metaup, org-metadown, org-shiftmetaup, org-shiftmetadown):
-	New item moving functions added.
+	New item moving functions.
 
 2005-11-24  Juri Linkov  <juri@jurta.org>
 
-	* isearch.el (isearch-repeat): With empty search ring
-	set `isearch-error' to the error string instead of signaling
-	error with the function `error'.
+	* isearch.el (isearch-repeat): With empty search ring set
+	`isearch-error' to the error string instead of signaling error
+	with the function `error'.
 
 2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* term/mac-win.el: Make modifier `ctrl' an alias of `control'.
+	* term/mac-win.el: Make modifier `ctrl' an alias for `control'.
 
 2005-11-24  Nick Roberts  <nickrob@snap.net.nz>
 
