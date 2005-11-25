@@ -1,3 +1,11 @@
+2005-11-25  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-keym.el (viper-ESC-key): use different values in terminal and
+	window modes.
+	
+	* viper.el (viper-emacs-state-mode-list): delete mail-mode, add
+	jde-javadoc-checker-report-mode.
+	
 2005-11-24  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hi-lock.el (hi-lock-buffer-mode): Renamed from `hi-lock-mode'.
