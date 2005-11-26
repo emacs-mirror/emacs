@@ -4687,7 +4687,7 @@ DEFUN ("internal-set-lisp-face-attribute-from-resource",
       if (SYMBOLP (boolean_value))
 	value = boolean_value;
     }
-  else if (EQ (attr, QCbox))
+  else if (EQ (attr, QCbox) || EQ (attr, QCinherit))
     value = Fcar (Fread_from_string (value, Qnil, Qnil));
 
   return Finternal_set_lisp_face_attribute (face, attr, value, frame);
