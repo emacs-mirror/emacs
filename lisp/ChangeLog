@@ -1,3 +1,9 @@
+2005-11-26  John Paul Wallington  <jpw@pobox.com>
+
+	* arc-mode.el (archive-extract):  Use `posn-set-point' instead of
+	`mouse-set-point' because the latter is not fbound when configured
+	without X.
+
 2005-11-26  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* files.el (file-relative-name): Doc fix.
