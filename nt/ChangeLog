@@ -1,3 +1,7 @@
+2005-11-26  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.rc: Use new icons.
+
 2005-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs21.ico: Renamed from emacs.ico.
