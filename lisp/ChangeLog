@@ -1,6 +1,18 @@
+2005-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-mode-map): Doc fix.
+	(ido-mode-common-map, ido-mode-file-map)
+	(ido-mode-file-dir-map, ido-mode-buffer-map): New keymaps.
+	(ido-define-mode-map): Rewrite.  Select one of the new maps as
+	parent for ido-mode-map instead of building from scratch.
+	(ido-init-mode-maps): New defun to initialize new maps.
+	(ido-mode): Call it.
+	(ido-switch-buffer): Doc fix -- use \<ido-mode-buffer-map>.
+	(ido-find-file): Doc fix -- use \<ido-mode-file-map>.
+
 2005-11-26  John Paul Wallington  <jpw@pobox.com>
 
-	* arc-mode.el (archive-extract):  Use `posn-set-point' instead of
+	* arc-mode.el (archive-extract): Use `posn-set-point' instead of
 	`mouse-set-point' because the latter is not fbound when configured
 	without X.
 
@@ -21,7 +33,7 @@
 
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
 	(gdb-mouse-toggle-breakpoint-margin)
-	(gdb-mouse-toggle-breakpoint-fringe, gdb-threads-select): 
+	(gdb-mouse-toggle-breakpoint-fringe, gdb-threads-select):
 	Add gdb-server-prefix to keep out of command history.
 	(gdb-edit-register-value): New function.
 	(gdb-registers-mode-map): Bind mouse-2 and RET to it.
