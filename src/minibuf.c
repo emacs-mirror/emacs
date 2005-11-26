@@ -2770,7 +2770,9 @@ elements are deleted.  */);
   history_delete_duplicates = 0;
 
   DEFVAR_LISP ("completion-auto-help", &Vcompletion_auto_help,
-	       doc: /* *Non-nil means automatically provide help for invalid completion input.  */);
+	       doc: /* *Non-nil means automatically provide help for invalid completion input.
+Under Partial Completion mode, a non-nil, non-t value has a special meaning;
+see the doc string of `partial-completion-mode' for more details.  */);
   Vcompletion_auto_help = Qt;
 
   DEFVAR_BOOL ("completion-ignore-case", &completion_ignore_case,
