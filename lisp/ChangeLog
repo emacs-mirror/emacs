@@ -1,6 +1,11 @@
+2005-11-26  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* progmodes/octave-inf.el (inferior-octave-startup): Force a
+	non-empty string for secondary prompt PS2.
+
 2005-11-25  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/compile.el (compilation-setup): Fix last fix.
+	* progmodes/compile.el (compilation-setup): Fix last change.
 
 2005-11-26  Nick Roberts  <nickrob@snap.net.nz>
 

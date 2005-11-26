@@ -1,3 +1,8 @@
+2005-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.c (syms_of_minibuf): Mention the extension of
+	`completion-auto-help's meaning by complete.el.
+
 2005-11-26  Henrik Enberg  <henrik.enberg@telia.com>
 
 	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource): 
