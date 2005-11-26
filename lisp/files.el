@@ -3154,7 +3154,7 @@ Uses `backup-directory-alist' in the same way as does
 This function returns a relative file name which is equivalent to FILENAME
 when used with that default directory as the default.
 If FILENAME and DIRECTORY lie on different machines or on different drives
-on a DOS/Windows machine, it returns FILENAME on expanded form."
+on a DOS/Windows machine, it returns FILENAME in expanded form."
   (save-match-data
     (setq directory
 	  (file-name-as-directory (expand-file-name (or directory
