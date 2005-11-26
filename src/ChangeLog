@@ -1,3 +1,8 @@
+2005-11-26  Henrik Enberg  <henrik.enberg@telia.com>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource): 
+	Handle :inherit property as a lisp expression.
+
 2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (Qcontrol): Rename from Qctrl.  All uses changed.
