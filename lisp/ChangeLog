@@ -1,3 +1,8 @@
+2005-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--highlight-rectangle): Preserve
+	existing face when partially highlighting a TAB in a rectangle.
+
 2005-11-26  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-mode-map): Doc fix.
