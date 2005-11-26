@@ -1,3 +1,9 @@
+2005-11-18  Chong Yidong  <cyd@stupidchicken.com>
+
+	* images/icons/emacs_16.png, images/icons/emacs_24.png
+	* images/icons/emacs_32.png, images/icons/emacs_48.png:
+	New Emacs icons.
+
 2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
 
 	* orgcard.tex: Version 3.20
