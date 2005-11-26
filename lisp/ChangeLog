@@ -1,3 +1,7 @@
+2005-11-26  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* files.el (file-relative-name): Doc fix.
+
 2005-11-26  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
 
 	* progmodes/octave-inf.el (inferior-octave-startup): Force a
