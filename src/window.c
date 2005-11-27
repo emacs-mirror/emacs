@@ -210,6 +210,10 @@ Lisp_Object Vwindow_configuration_change_hook;
 
 Lisp_Object Vscroll_preserve_screen_position;
 
+/* Incremented by 1 whenever a window is deleted.  */
+
+int window_deletion_count;
+
 #if 0 /* This isn't used anywhere.  */
 /* Nonzero means we can split a frame even if it is "unsplittable".  */
 static int inhibit_frame_unsplittable;
@@ -1333,7 +1337,7 @@ delete_window (window)
     CHECK_WINDOW (window);
   p = XWINDOW (window);
 
-  /* It's okay to delete an already-deleted window.  */
+  /* It's a no-op to delete an already-deleted window.  */
   if (NILP (p->buffer)
       && NILP (p->hchild)
       && NILP (p->vchild))
@@ -1396,6 +1400,9 @@ delete_window (window)
 	  FRAME_SELECTED_WINDOW (f) = swindow;
       }
   }
+
+  /* Now we know we can delete this one.  */
+  window_deletion_count++;
 
   tem = p->buffer;
   /* tem is null for dummy parent windows
@@ -4231,8 +4238,135 @@ enlarge_window (window, delta, horiz_flag, preserve_before)
   adjust_glyphs (XFRAME (WINDOW_FRAME (XWINDOW (window))));
 }
 
+
+/* Adjust the size of WINDOW by DELTA, moving only its trailing edge.
+   HORIZ_FLAG nonzero means adjust the width, moving the right edge.
+   zero means adjust the height, moving the bottom edge.
+
+   Following siblings of the selected window are resized to fulfill
+   the size request.  If they become too small in the process, they
+   are not deleted; instead, we signal an error.  */
+
+static void
+adjust_window_trailing_edge (window, delta, horiz_flag)
+     Lisp_Object window;
+     int delta, horiz_flag;
+{
+  Lisp_Object parent, child;
+  struct window *p;
+  Lisp_Object old_config = Fcurrent_window_configuration (Qnil);
+  int delcount = window_deletion_count;
+
+  /* Check values of window_min_width and window_min_height for
+     validity.  */
+  check_min_window_sizes ();
+
+  if (NILP (window))
+    window = Fselected_window ();
+
+  CHECK_WINDOW (window);
+
+  /* Give up if this window cannot be resized.  */
+  if (window_fixed_size_p (XWINDOW (window), horiz_flag, 1))
+    error ("Window is not resizable");
+
+  while (1)
+    {
+      p = XWINDOW (window);
+      parent = p->parent;
+
+      /* Make sure there is a following window.  */
+      if (NILP (parent)
+	  && (horiz_flag ? 1
+	      : NILP (XWINDOW (window)->next)))
+	{
+	  Fset_window_configuration (old_config);
+	  error ("No other window following this one");
+	}
+
+      /* Don't make this window too small.  */
+      if (XINT (CURSIZE (window)) + delta
+	  < (horiz_flag ? window_min_width : window_min_height))
+	{
+	  Fset_window_configuration (old_config);
+	  error ("Cannot adjust window size as specified");
+	}
+
+      /* Clear out some redisplay caches.  */
+      XSETFASTINT (p->last_modified, 0);
+      XSETFASTINT (p->last_overlay_modified, 0);
+
+      /* Adjust this window's edge.  */
+      XSETINT (CURSIZE (window),
+	       XINT (CURSIZE (window)) + delta);
+
+      /* If this window has following siblings in the desired dimension,
+	 make them smaller.
+	 (If we reach the top of the tree and can never do this,
+	 we will fail and report an error, above.)  */
+      if (horiz_flag
+	  ? !NILP (XWINDOW (parent)->hchild)
+	  : !NILP (XWINDOW (parent)->vchild))
+	{
+	  if (!NILP (XWINDOW (window)->next))
+	    {
+	      XSETINT (CURBEG (p->next),
+		       XINT (CURBEG (p->next)) + delta);
+	      size_window (p->next, XINT (CURSIZE (p->next)) - delta,
+			   horiz_flag, 0);
+	      break;
+	    }
+	}
+      else
+	/* Here we have a chain of parallel siblings, in the other dimension.
+	   Change the size of the other siblings.  */
+	for (child = (horiz_flag
+		      ? XWINDOW (parent)->vchild
+		      : XWINDOW (parent)->hchild);
+	     ! NILP (child);
+	     child = XWINDOW (child)->next)
+	  if (! EQ (child, window))
+	    size_window (child, XINT (CURSIZE (child)) + delta,
+			 horiz_flag, 0);
+
+      window = parent;
+    }
+
+  /* If we made a window so small it got deleted,
+     we failed.  Report failure.  */
+  if (delcount != window_deletion_count)
+    {
+      Fset_window_configuration (old_config);
+      error ("Cannot adjust window size as specified");
+    }
+
+  /* Adjust glyph matrices. */
+  adjust_glyphs (XFRAME (WINDOW_FRAME (XWINDOW (window))));
+}
+
 #undef CURBEG
 #undef CURSIZE
+
+DEFUN ("adjust-window-trailing-edge", Fadjust_window_trailing_edge,
+       Sadjust_window_trailing_edge, 3, 3, 0,
+       doc: /* Adjust the bottom or right edge of WINDOW by DELTA.
+If HORIZ_FLAG is t, that means adjust the width, moving the right edge.
+Otherwise, adjust the height, moving the bottom edge.
+
+Following siblings of the selected window are resized to fulfill
+the size request.  If they become too small in the process, they
+are not deleted; instead, we signal an error.  */)
+  (window, delta, horizontal)
+  Lisp_Object window, delta, horizontal;
+{
+  CHECK_NUMBER (delta);
+  adjust_window_trailing_edge (window, XINT (delta), !NILP (horizontal));
+
+  if (! NILP (Vwindow_configuration_change_hook))
+    call1 (Vrun_hooks, Qwindow_configuration_change_hook);
+
+  return Qnil;
+}
 
 
 
@@ -7114,6 +7248,7 @@ The selected frame is the one whose configuration has changed.  */);
   defsubr (&Ssplit_window);
   defsubr (&Senlarge_window);
   defsubr (&Sshrink_window);
+  defsubr (&Sadjust_window_trailing_edge);
   defsubr (&Sscroll_up);
   defsubr (&Sscroll_down);
   defsubr (&Sscroll_left);
