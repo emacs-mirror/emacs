@@ -1620,7 +1620,7 @@ static char *magick[] = {
 (defun gdb-goto-breakpoint (&optional event)
   "Display the breakpoint location specified at current line."
   (interactive (list last-input-event))
-  (if event (mouse-set-point event))
+  (if event (posn-set-point (event-end event)))
   ;; Hack to stop gdb-goto-breakpoint displaying in GUD buffer.
   (let ((window (get-buffer-window gud-comint-buffer)))
     (if window (save-selected-window  (select-window window))))
@@ -1745,7 +1745,7 @@ static char *magick[] = {
 (defun gdb-frames-select (&optional event)
   "Select the frame and display the relevant source."
   (interactive (list last-input-event))
-  (if event (mouse-set-point event))
+  (if event (posn-set-point (event-end event)))
   (gdb-enqueue-input
    (list (concat gdb-server-prefix "frame "
 		 (gdb-get-frame-number) "\n") 'ignore))
@@ -1830,7 +1830,7 @@ static char *magick[] = {
 (defun gdb-threads-select (&optional event)
   "Select the thread and display the relevant source."
   (interactive (list last-input-event))
-  (if event (mouse-set-point event))
+  (if event (posn-set-point (event-end event)))
   (gdb-enqueue-input
    (list (concat gdb-server-prefix "thread "
 		 (gdb-get-thread-number) "\n") 'ignore))
