@@ -101,6 +101,10 @@ to the FSF.
 ** Maybe reinterpret `parse-error' as a category of errors
   and put some other errors under it.
 
+** A function to tell you the argument pattern of functions.
+
+** Make byte-compile warn when a doc string is too wide.
+
 ** A function to check for customizable options that have been
   set but not saved, and ask the user whether to save them.
   This could go in kill-emacs-query-functions, to remind people
