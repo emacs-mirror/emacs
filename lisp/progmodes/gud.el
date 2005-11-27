@@ -453,7 +453,7 @@ required by the caller."
 	      (raise-frame speedbar-frame))
 	  (let ((var-list gdb-var-list))
 	    (while var-list
-	      (let* ((depth 0) (start 0) (char ?+)
+	      (let* (char (depth 0) (start 0)
 		     (var (car var-list)) (varnum (nth 1 var)))
 		(while (string-match "\\." varnum start)
 		  (setq depth (1+ depth)
@@ -470,8 +470,10 @@ required by the caller."
 						'font-lock-warning-face
 					      nil) depth)
 		  (if (and (cadr var-list)
-			   (string-match varnum (cadr (cadr var-list))))
-		      (setq char ?-))
+			   (string-match (concat varnum "\\.")
+					 (cadr (cadr var-list))))
+		      (setq char ?-)
+		    (setq char ?+))
 		  (if (string-match "\\*$" (nth 3 var))
 		      (speedbar-make-tag-line 'bracket char
 					      'gdb-speedbar-expand-node varnum
@@ -574,6 +576,11 @@ required by the caller."
     ;; they are found.
     (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
       (let ((match (match-string 1 gud-marker-acc)))
+
+	;; Pick up stopped annotation if attaching to process.
+	(if (string-equal match "stopped") (setq gdb-active-process t))
+
+	;; Using annotations, switch to gud-gdba-marker-filter.
 	(when (string-equal match "prompt")
 	  (require 'gdb-ui)
 	  (gdb-prompt nil))
@@ -587,6 +594,8 @@ required by the caller."
 	 ;; Set the accumulator to the remaining text.
 
 	 gud-marker-acc (substring gud-marker-acc (match-end 0)))
+
+	;; Pick up any errors that occur before first prompt annotation.
 	(if (string-equal match "error-begin")
 	    (put-text-property 0 (length gud-marker-acc)
 			       'face font-lock-warning-face
