@@ -73,6 +73,8 @@ to the FSF.
 
 ** Internationalize Emacs's messages.
 
+** Install mmc@maruska.dyndns.org's no-flicker change.
+
 ** Add a "current vertical pixel level" value that goes with point,
   so that motion commands can also move through tall images.
   This value would be to point as window-vscroll is to window-start.
