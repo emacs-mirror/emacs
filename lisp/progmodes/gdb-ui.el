@@ -1877,7 +1877,7 @@ static char *magick[] = {
 (defun gdb-edit-register-value (&optional event)
   (interactive (list last-input-event))
   (save-excursion
-    (if event (mouse-set-point event))
+    (if event (posn-set-point (event-end event)))
     (beginning-of-line)
     (let* ((register (current-word))
 	  (value (read-string (format "New value (%s): " register))))
