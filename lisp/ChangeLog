@@ -1,3 +1,10 @@
+2005-11-27  John Paul Wallington  <jpw@pobox.com>
+
+	* progmodes/gdb-ui.el (gdb-goto-breakpoint, gdb-frames-select)
+	(gdb-threads-select): Use `posn-set-point' instead of
+	`mouse-set-point' because the latter is not fbound when configured
+	without X.
+
 2005-11-27  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--highlight-rectangle): Preserve
