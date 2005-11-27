@@ -4261,7 +4261,9 @@ of the buffer appears in the mode line."
 If nil, means don't show it (but the open-paren can still be shown
 when it is off screen).
 
-This variable is ignored if `show-paren-mode' is enabled."
+This variable has no effect if `blink-matching-paren' is nil.
+\(In that case, the open paren is never shown,)
+It is also ignored if `show-paren-mode' is enabled."
   :type 'boolean
   :group 'paren-blinking)
 
