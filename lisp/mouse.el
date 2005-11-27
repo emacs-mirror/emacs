@@ -371,16 +371,9 @@ That means one whose bottom edge is at the same height as WINDOW's top edge."
 Move it down if GROWTH is positive, or up if GROWTH is negative.
 If this would make WINDOW too short,
 shrink the window or windows above it to make room."
-  (let ((excess (- window-min-height (+ (window-height window) growth))))
-    ;; EXCESS is the number of lines we need to take from windows above.
-    (if (> excess 0)
-	;; This can recursively shrink windows all the way up.
-	(let ((window-above (mouse-drag-window-above window)))
-	  (if window-above
-	      (mouse-drag-move-window-bottom window-above (- excess))))))
-  (save-selected-window
-    (select-window window)
-    (enlarge-window growth nil (> growth 0))))
+  (condition-case nil
+      (adjust-window-trailing-edge window growth nil)
+    (error nil)))
 
 (defsubst mouse-drag-move-window-top (window growth)
   "Move the top of WINDOW up or down by GROWTH lines.
