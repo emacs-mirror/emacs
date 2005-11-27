@@ -1013,6 +1013,7 @@ This filter may simply queue input for a later time."
   "An annotation handler for `pre-prompt'.
 This terminates the collection of output from a previous command if that
 happens to be in effect."
+  (setq gdb-error nil)
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user) t)
@@ -1105,6 +1106,7 @@ directives."
 It is just like `gdb-stopping', except that if we already set the output
 sink to `user' in `gdb-stopping', that is fine."
   (setq gud-running nil)
+  (setq gdb-active-process t)
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'inferior)
