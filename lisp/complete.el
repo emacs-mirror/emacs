@@ -216,9 +216,9 @@ the *Completions* buffer."
   (PC-bindings partial-completion-mode)
   ;; Deal with include file feature...
   (cond ((not partial-completion-mode)
-	 (remove-hook 'find-file-not-found-hooks 'PC-look-for-include-file))
+	 (remove-hook 'find-file-not-found-functions 'PC-look-for-include-file))
 	((not PC-disable-includes)
-	 (add-hook 'find-file-not-found-hooks 'PC-look-for-include-file)))
+	 (add-hook 'find-file-not-found-functions 'PC-look-for-include-file)))
   ;; ... with some underhand redefining.
   (cond ((and (not partial-completion-mode)
 	      (functionp PC-old-read-file-name-internal))
@@ -261,8 +261,7 @@ Word-delimiters for the purposes of Partial Completion are \"-\", \"_\",
       ;; and this command is repeated, scroll that window.
       (if (and window (window-buffer window)
 	       (buffer-name (window-buffer window)))
-	  (save-excursion
-	    (set-buffer (window-buffer window))
+	  (with-current-buffer (window-buffer window)
 	    (if (pos-visible-in-window-p (point-max) window)
 		(set-window-start window (point-min) nil)
 	      (scroll-other-window)))
@@ -346,11 +345,8 @@ See `PC-complete' for details."
 (defvar PC-delims-list nil)
 
 (defvar PC-completion-as-file-name-predicate
-  (function
-   (lambda ()
-     (memq minibuffer-completion-table
-	   '(read-file-name-internal read-directory-name-internal))))
-   "A function testing whether a minibuffer completion now will work filename-style.
+  (lambda () minibuffer-completing-file-name)
+  "A function testing whether a minibuffer completion now will work filename-style.
 The function takes no arguments, and typically looks at the value
 of `minibuffer-completion-table' and the minibuffer contents.")
 
@@ -665,8 +661,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 			(eq mode 'help))
 		    (with-output-to-temp-buffer "*Completions*"
 		      (display-completion-list (sort helpposs 'string-lessp))
-		      (save-excursion
-			(set-buffer standard-output)
+		      (with-current-buffer standard-output
 			;; Record which part of the buffer we are completing
 			;; so that choosing a completion from the list
 			;; knows how much old text to replace.
@@ -732,16 +727,12 @@ Otherwise, all symbols with function definitions, values
 or properties are considered."
   (interactive)
   (let* ((end (point))
-	 (buffer-syntax (syntax-table))
-	 (beg (unwind-protect
-		  (save-excursion
-		    (if lisp-mode-syntax-table
-			(set-syntax-table lisp-mode-syntax-table))
-		    (backward-sexp 1)
-		    (while (= (char-syntax (following-char)) ?\')
-		      (forward-char 1))
-		    (point))
-		(set-syntax-table buffer-syntax)))
+	 (beg (save-excursion
+                (with-syntax-table lisp-mode-syntax-table
+                  (backward-sexp 1)
+                  (while (= (char-syntax (following-char)) ?\')
+                    (forward-char 1))
+                  (point))))
 	 (minibuffer-completion-table obarray)
 	 (minibuffer-completion-predicate
 	  (if (eq (char-after (1- beg)) ?\()
@@ -767,12 +758,11 @@ or properties are considered."
      (goto-char end)
      (PC-do-completion nil beg end)))
 
-;;; Use the shell to do globbing.
-;;; This could now use file-expand-wildcards instead.
+;; Use the shell to do globbing.
+;; This could now use file-expand-wildcards instead.
 
 (defun PC-expand-many-files (name)
-  (save-excursion
-    (set-buffer (generate-new-buffer " *Glob Output*"))
+  (with-current-buffer (generate-new-buffer " *Glob Output*")
     (erase-buffer)
     (shell-command (concat "echo " name) t)
     (goto-char (point-min))
@@ -804,9 +794,9 @@ or properties are considered."
 	  (setq files (cdr files)))
 	p))))
 
-;;; Facilities for loading C header files.  This is independent from the
-;;; main completion code.  See also the variable `PC-include-file-path'
-;;; at top of this file.
+;; Facilities for loading C header files.  This is independent from the
+;; main completion code.  See also the variable `PC-include-file-path'
+;; at top of this file.
 
 (defun PC-look-for-include-file ()
   (if (string-match "[\"<]\\([^\"<>]*\\)[\">]?$" (buffer-file-name))
@@ -817,8 +807,7 @@ or properties are considered."
 	    new-buf)
 	(kill-buffer (current-buffer))
 	(if (equal name "")
-	    (save-excursion
-	      (set-buffer (car (buffer-list)))
+	    (with-current-buffer (car (buffer-list))
 	      (save-excursion
 		(beginning-of-line)
 		(if (looking-at
@@ -855,8 +844,7 @@ or properties are considered."
 	      (if path
 		  (setq name (concat (file-name-as-directory (car path)) name))
 		(error "No such include file: <%s>" name)))
-	  (let ((dir (save-excursion
-		       (set-buffer (car (buffer-list)))
+	  (let ((dir (with-current-buffer (car (buffer-list))
 		       default-directory)))
 	    (if (file-exists-p (concat dir name))
 		(setq name (concat dir name))
@@ -865,8 +853,7 @@ or properties are considered."
 	(if new-buf
 	    ;; no need to verify last-modified time for this!
 	    (set-buffer new-buf)
-	  (setq new-buf (create-file-buffer name))
-	  (set-buffer new-buf)
+	  (set-buffer (create-file-buffer name))
 	  (erase-buffer)
 	  (insert-file-contents name t))
 	;; Returning non-nil with the new buffer current
@@ -885,7 +872,7 @@ or properties are considered."
 		env (substring env 0 pos)))
 	path)))
 
-;;; This is adapted from lib-complete.el, by Mike Williams.
+;; This is adapted from lib-complete.el, by Mike Williams.
 (defun PC-include-file-all-completions (file search-path &optional full)
   "Return all completions for FILE in any directory on SEARCH-PATH.
 If optional third argument FULL is non-nil, returned pathnames should be
