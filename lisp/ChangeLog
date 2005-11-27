@@ -1,3 +1,8 @@
+2005-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-drag-move-window-bottom):
+	Use adjust-window-trailing-edge.
+
 2005-11-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (blink-matching-open): Ignore

@@ -1,3 +1,11 @@
+2005-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (adjust_window_trailing_edge): New function.
+	(Fadjust_window_trailing_edge): New function.
+	(syms_of_window): defsubr it.
+	(window_deletion_count): New variable.
+	(delete_window): Update window_deletion_count.
+
 2005-11-26  Eli Zaretskii  <eliz@gnu.org>
 
 	* minibuf.c (syms_of_minibuf): Mention the extension of

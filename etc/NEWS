@@ -4463,6 +4463,10 @@ argument `dedicated'.  If non-nil, those functions do not ignore
 dedicated windows.
 
 +++
+*** The new function `adjust-window-trailing-edge' moves the right
+or bottom edge of a window.  It does not move other window edges.
+
++++
 ** Customizable fringe bitmaps
 
 *** New function `define-fringe-bitmap' can now be used to create new
