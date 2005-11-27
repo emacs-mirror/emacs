@@ -2,7 +2,7 @@
 
 	* simple.el (blink-matching-open): Ignore
 	`blink-matching-paren-on-screen' if `show-paren-mode' is enabled.
-	Mention this in the docstring.
+	(blink-matching-paren-on-screen): Update docstring.
 
 	* paren.el (show-paren-mode): No longer change
 	`blink-matching-paren-on-screen'.
