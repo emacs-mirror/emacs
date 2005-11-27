@@ -4262,7 +4262,7 @@ If nil, means don't show it (but the open-paren can still be shown
 when it is off screen).
 
 This variable has no effect if `blink-matching-paren' is nil.
-\(In that case, the open paren is never shown,)
+\(In that case, the open-paren is never shown.)
 It is also ignored if `show-paren-mode' is enabled."
   :type 'boolean
   :group 'paren-blinking)
