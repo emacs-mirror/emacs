@@ -1,8 +1,19 @@
+2005-11-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dabbrev.el (dabbrev-completion): Simplify code, by getting rid
+	of `if' whose condition always returned nil.  Doc fix.
+
+	* buff-menu.el (Buffer-menu-revert-function): Make the selected
+	window's buffer the current buffer around the call to
+	`list-buffers-noselect'.  This is necessary to mark that buffer
+	with a `.' in the Buffer Menu when called from Lisp, for instance
+	by Auto Revert Mode.
+
 2005-11-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-stopped): Detect process when attaching.
 	(gdb-pre-prompt): Make sure gdb-error is reset.
-	
+
 	* progmodes/gud.el (gud-gdb-marker-filter): When GDB is invoked
 	with a process, detect it.
 	(gud-speedbar-buttons): Match regexp more carefully.
