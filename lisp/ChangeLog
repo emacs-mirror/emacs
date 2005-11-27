@@ -1,3 +1,12 @@
+2005-11-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-stopped): Detect process when attaching.
+	(gdb-pre-prompt): Make sure gdb-error is reset.
+	
+	* progmodes/gud.el (gud-gdb-marker-filter): When GDB is invoked
+	with a process, detect it.
+	(gud-speedbar-buttons): Match regexp more carefully.
+
 2005-11-27  Richard M. Stallman  <rms@gnu.org>
 
 	* mouse.el (mouse-drag-move-window-bottom):
