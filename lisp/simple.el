@@ -4259,7 +4259,9 @@ of the buffer appears in the mode line."
 (defcustom blink-matching-paren-on-screen t
   "*Non-nil means show matching open-paren when it is on screen.
 If nil, means don't show it (but the open-paren can still be shown
-when it is off screen)."
+when it is off screen).
+
+This variable is ignored if `show-paren-mode' is enabled."
   :type 'boolean
   :group 'paren-blinking)
 
@@ -4328,10 +4330,11 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
 	 ((pos-visible-in-window-p blinkpos)
 	  ;; Matching open within window, temporarily move to blinkpos but only
 	  ;; if `blink-matching-paren-on-screen' is non-nil.
-	  (when blink-matching-paren-on-screen
-	    (save-excursion
-	      (goto-char blinkpos)
-	      (sit-for blink-matching-delay))))
+	  (and blink-matching-paren-on-screen
+	       (not show-paren-mode)
+	       (save-excursion
+		 (goto-char blinkpos)
+		 (sit-for blink-matching-delay))))
 	 (t
 	  (save-excursion
 	    (goto-char blinkpos)
