@@ -1,5 +1,16 @@
 2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/elp.el (elp-not-profilable): Replace interactive-p with
+	called-interactively-p.
+	(elp-profilable-p): Rename from elp-not-profilable-p.
+	Invert result and take into account macros and autoloaded functions.
+	(elp-instrument-function): Update call.
+	(elp-instrument-package): Update call.  Add completion.
+	(elp-pack-number): Use match-string.
+	(elp-results-jump-to-definition-by-mouse): Merge into
+	elp-results-jump-to-definition and then remove.
+	(elp-output-insert-symname): Make help echo text single-line.
+
 	* replace.el (query-replace-map): Move initialization into declaration.
 	(occur-engine): Use with-current-buffer.
 	(occur-mode-goto-occurrence): Make it work for mouse-clicks as well.
