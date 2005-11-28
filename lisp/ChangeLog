@@ -1,3 +1,14 @@
+2005-11-28  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el: Change global keybinding for calc-dispatch to "\C-x*".
+	(calc-dispatch-map): Add more keys for `calc-same-interface'.
+
+	* calc/calc-misc.el (calc-dispatch-help): Update docstring.
+
+	* calc/calc-embed.el (calc-do-embedded): Update help message.
+
+	* calc/calc-prog.el (calc-user-define-invokation): Update help message.
+
 2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-edit.el (log-edit-insert-cvs-rcstemplate): Ignore stderr.

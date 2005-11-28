@@ -1,3 +1,7 @@
+2005-11-28  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi:  Change references of `M-#' to `C-x *' prefix.
+
 2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Structure editing): New item moving commands added.
