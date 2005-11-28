@@ -1,3 +1,12 @@
+2005-11-28  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (quoted-insert): Let-bind input-method-function to nil.
+
+	* replace.el (occur-mode-mouse-goto): Pop, don't switch.
+	(occur-mode-goto-occurrence): Let-bind same-window-buffer-names
+	and same-window-regexps.
+	(occur-next-error): Don't move point for arg 0.
+
 2005-11-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* replace.el (occur-mode-goto-occurrence): Pop, don't switch.
