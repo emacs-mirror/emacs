@@ -120,8 +120,10 @@ If SETUP is 'force, this variable has no effect."
 			   log-edit-insert-changelog)
   "*Hook run at the end of `log-edit'."
   :group 'log-edit
-  :type '(hook :options (log-edit-insert-cvs-template
-			 log-edit-insert-changelog)))
+  :type '(hook :options (log-edit-insert-changelog
+                         log-edit-insert-cvs-rcstemplate
+                         log-edit-insert-cvs-template
+			 log-edit-insert-filenames)))
 
 (defcustom log-edit-mode-hook (if (boundp 'vc-log-mode-hook) vc-log-mode-hook)
   "*Hook run when entering `log-edit-mode'."
@@ -281,20 +283,13 @@ automatically."
 	(insert "\n"))))
 
 ;; Compatibility with old names.
-(defvaralias 'vc-comment-ring 'log-edit-comment-ring)
-(make-obsolete-variable 'vc-comment-ring 'log-edit-comment-ring "22.1")
-(defvaralias 'vc-comment-ring-index 'log-edit-comment-ring-index)
-(make-obsolete-variable 'vc-comment-ring-index 'log-edit-comment-ring-index "22.1")
-(defalias 'vc-previous-comment 'log-edit-previous-comment)
-(make-obsolete 'vc-previous-comment 'log-edit-previous-comment "22.1")
-(defalias 'vc-next-comment 'log-edit-next-comment)
-(make-obsolete 'vc-next-comment 'log-edit-next-comment "22.1")
-(defalias 'vc-comment-search-reverse 'log-edit-comment-search-backward)
-(make-obsolete 'vc-comment-search-reverse 'log-edit-comment-search-backward "22.1")
-(defalias 'vc-comment-search-forward 'log-edit-comment-search-forward)
-(make-obsolete 'vc-comment-search-forward 'log-edit-comment-search-forward "22.1")
-(defalias 'vc-comment-to-change-log 'log-edit-comment-to-change-log)
-(make-obsolete 'vc-comment-to-change-log 'log-edit-comment-to-change-log "22.1")
+(define-obsolete-variable-alias 'vc-comment-ring 'log-edit-comment-ring "22.1")
+(define-obsolete-variable-alias 'vc-comment-ring-index 'log-edit-comment-ring-index "22.1")
+(define-obsolete-function-alias 'vc-previous-comment 'log-edit-previous-comment "22.1")
+(define-obsolete-function-alias 'vc-next-comment 'log-edit-next-comment "22.1")
+(define-obsolete-function-alias 'vc-comment-search-reverse 'log-edit-comment-search-backward "22.1")
+(define-obsolete-function-alias 'vc-comment-search-forward 'log-edit-comment-search-forward "22.1")
+(define-obsolete-function-alias 'vc-comment-to-change-log 'log-edit-comment-to-change-log "22.1")
 
 ;;;
 ;;; Actual code
@@ -396,31 +391,6 @@ If you want to abort the commit, simply delete the buffer."
   "Return the list of files that are about to be committed."
   (ignore-errors (funcall log-edit-listfun)))
 
-
-(defun log-edit-insert-changelog ()
-  "Insert a log message by looking at the ChangeLog.
-The idea is to write your ChangeLog entries first, and then use this
-command to commit your changes.
-
-To select default log text, we:
-- find the ChangeLog entries for the files to be checked in,
-- verify that the top entry in the ChangeLog is on the current date
-  and by the current user; if not, we don't provide any default text,
-- search the ChangeLog entry for paragraphs containing the names of
-  the files we're checking in, and finally
-- use those paragraphs as the log text."
-  (interactive)
-  (log-edit-insert-changelog-entries (log-edit-files))
-  (log-edit-set-common-indentation)
-  (goto-char (point-min))
-  (when (looking-at "\\*\\s-+")
-    (forward-line 1)
-    (when (not (re-search-forward "^\\*\\s-+" nil t))
-      (goto-char (point-min))
-      (skip-chars-forward "^():")
-      (skip-chars-forward ": ")
-      (delete-region (point-min) (point)))))
-
 (defun log-edit-mode-help ()
   "Provide help for the `log-edit-mode-map'."
   (interactive)
@@ -465,11 +435,27 @@ To select default log text, we:
 	(selected-window)))))
 
 (defun log-edit-insert-cvs-template ()
-  "Insert the template specified by the CVS administrator, if any."
+  "Insert the template specified by the CVS administrator, if any.
+This simply uses the local CVS/Template file."
   (interactive)
-  (when (file-readable-p "CVS/Template")
-    (insert-file-contents "CVS/Template")))
+  (when (or (interactive-p) (= (point-min) (point-max)))
+    (when (file-readable-p "CVS/Template")
+      (insert-file-contents "CVS/Template"))))
 
+(defun log-edit-insert-cvs-rcstemplate ()
+  "Insert the rcstemplate from the CVS repository.
+This contacts the repository to get the rcstemplate file and
+can thus take some time."
+  (interactive)
+  (when (or (interactive-p) (= (point-min) (point-max)))
+    (when (file-readable-p "CVS/Entries")
+      (call-process "cvs" nil t nil "checkout" "-p" "CVSROOT/rcstemplate"))))
+
+(defun log-edit-insert-filenames ()
+  "Insert the list of files that are to be committed."
+  (interactive)
+  (insert "Affected files:  \n"
+          (mapconcat 'identity (log-edit-files) "  \n")))
 
 (defun log-edit-add-to-changelog ()
   "Insert this log message into the appropriate ChangeLog file."
@@ -481,6 +467,37 @@ To select default log text, we:
     (let ((buffer-file-name (expand-file-name f)))
       (save-excursion
 	(log-edit-comment-to-change-log)))))
+
+(defvar log-edit-changelog-use-first nil)
+(defun log-edit-insert-changelog (&optional use-first)
+  "Insert a log message by looking at the ChangeLog.
+The idea is to write your ChangeLog entries first, and then use this
+command to commit your changes.
+
+To select default log text, we:
+- find the ChangeLog entries for the files to be checked in,
+- verify that the top entry in the ChangeLog is on the current date
+  and by the current user; if not, we don't provide any default text,
+- search the ChangeLog entry for paragraphs containing the names of
+  the files we're checking in, and finally
+- use those paragraphs as the log text.
+
+If the optional prefix arg USE-FIRST is given (via \\[universal-argument]),
+or if the command is repeated a second time in a row, use the first log entry
+regardless of user name or time."
+  (interactive "P")
+  (let ((log-edit-changelog-use-first
+	 (or use-first (eq last-command 'log-edit-insert-changelog))))
+    (log-edit-insert-changelog-entries (log-edit-files)))
+  (log-edit-set-common-indentation)
+  (goto-char (point-min))
+  (when (looking-at "\\*\\s-+")
+    (forward-line 1)
+    (when (not (re-search-forward "^\\*\\s-+" nil t))
+      (goto-char (point-min))
+      (skip-chars-forward "^():")
+      (skip-chars-forward ": ")
+      (delete-region (point-min) (point)))))
 
 ;;;;
 ;;;; functions for getting commit message from ChangeLog a file...
@@ -561,7 +578,9 @@ Return non-nil iff it is."
 		       (functionp add-log-time-format)
 		       (funcall add-log-time-format))
 		  (format-time-string "%Y-%m-%d"))))
-    (looking-at (regexp-quote (format "%s  %s  <%s>" time name mail)))))
+    (looking-at (if log-edit-changelog-use-first
+                    "[^ \t]"
+                  (regexp-quote (format "%s  %s  <%s>" time name mail))))))
 
 (defun log-edit-changelog-entries (file)
   "Return the ChangeLog entries for FILE, and the ChangeLog they came from.

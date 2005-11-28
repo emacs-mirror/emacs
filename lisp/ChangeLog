@@ -13,6 +13,12 @@
 
 2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* log-edit.el (log-edit-changelog-use-first): New var.
+	(log-edit-changelog-ours-p): Use it.
+	(log-edit-insert-changelog): Set it with new arg `use-first'.
+	(log-edit-insert-cvs-rcstemplate, log-edit-insert-filenames): New funs.
+	(log-edit-hook): Add them to the list of suggested options.
+
 	* textmodes/flyspell.el (flyspell-last-buffer): New var.
 	(flyspell-accept-buffer-local-defs): Use it to avoid doing silly
 	redundant work.
