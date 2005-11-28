@@ -609,7 +609,7 @@ In binary overwrite mode, this function does overwrite, and octal
 digits are interpreted as a character code.  This is intended to be
 useful for editing binary files."
   (interactive "*p")
-  (let* ((char (let (translation-table-for-input)
+  (let* ((char (let (translation-table-for-input input-method-function)
 		 (if (or (not overwrite-mode)
 			 (eq overwrite-mode 'overwrite-mode-binary))
 		     (read-quoted-char)
