@@ -1,3 +1,15 @@
+2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-last-buffer): New var.
+	(flyspell-accept-buffer-local-defs): Use it to avoid doing silly
+	redundant work.
+	(flyspell-mode-on): Use add-hook for after-change-functions.
+	(flyspell-mode-off): Use remove-hook for after-change-functions.
+	(flyspell-changes): Make it buffer-local.
+	(flyspell-after-change-function): Make it non-interactive.  Use push.
+	(flyspell-post-command-hook): Check input-pending-p while processing
+	the potentially long list of buffer changes.
+
 2005-11-28  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* buff-menu.el (list-buffers-noselect): Display the selected

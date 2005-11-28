@@ -501,23 +501,29 @@ in your .emacs file.
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-accept-buffer-local-defs ...                            */
 ;;*---------------------------------------------------------------------*/
+(defvar flyspell-last-buffer nil
+  "The buffer in which the last flyspell operation took place.")
+
 (defun flyspell-accept-buffer-local-defs ()
-  ;; strange problem.  If buffer in current window has font-lock turned on,
-  ;; but SET-BUFFER was called to point to an invisible buffer, this ispell
-  ;; call will reset the buffer to the buffer in the current window.  However,
-  ;; it only happens at startup (fix by Albert L. Ting).
-  (save-current-buffer
-    (ispell-accept-buffer-local-defs))
-  (if (not (and (eq flyspell-dash-dictionary ispell-dictionary)
-		(eq flyspell-dash-local-dictionary ispell-local-dictionary)))
+  ;; When flyspell-word is used inside a loop (e.g. when processing
+  ;; flyspell-changes), the calls to `ispell-accept-buffer-local-defs' end
+  ;; up dwarfing everything else, so only do it when the buffer has changed.
+  (unless (eq flyspell-last-buffer (current-buffer))
+    (setq flyspell-last-buffer (current-buffer))
+    ;; Strange problem:  If buffer in current window has font-lock turned on,
+    ;; but SET-BUFFER was called to point to an invisible buffer, this ispell
+    ;; call will reset the buffer to the buffer in the current window.
+    ;; However, it only happens at startup (fix by Albert L. Ting).
+    (save-current-buffer
+      (ispell-accept-buffer-local-defs))
+    (unless (and (eq flyspell-dash-dictionary ispell-dictionary)
+                 (eq flyspell-dash-local-dictionary ispell-local-dictionary))
       ;; The dictionary has changed
-      (progn
-	(setq flyspell-dash-dictionary ispell-dictionary)
-	(setq flyspell-dash-local-dictionary ispell-local-dictionary)
-	(if (member (or ispell-local-dictionary ispell-dictionary)
-		    flyspell-dictionaries-that-consider-dash-as-word-delimiter)
-	    (setq flyspell-consider-dash-as-word-delimiter-flag t)
-	  (setq flyspell-consider-dash-as-word-delimiter-flag nil)))))
+      (setq flyspell-dash-dictionary ispell-dictionary)
+      (setq flyspell-dash-local-dictionary ispell-local-dictionary)
+      (setq flyspell-consider-dash-as-word-delimiter-flag
+            (member (or ispell-local-dictionary ispell-dictionary)
+                    flyspell-dictionaries-that-consider-dash-as-word-delimiter)))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-mode-on ...                                             */
@@ -543,9 +549,7 @@ in your .emacs file.
   ;; we bound flyspell action to pre-command hook
   (add-hook 'pre-command-hook (function flyspell-pre-command-hook) t t)
   ;; we bound flyspell action to after-change hook
-  (make-local-variable 'after-change-functions)
-  (setq after-change-functions
-	(cons 'flyspell-after-change-function after-change-functions))
+  (add-hook 'after-change-functions 'flyspell-after-change-function nil t)
   ;; set flyspell-generic-check-word-p based on the major mode
   (let ((mode-predicate (get major-mode 'flyspell-mode-predicate)))
     (if mode-predicate
@@ -650,8 +654,7 @@ not the very same deplacement command."
   ;; we remove the hooks
   (remove-hook 'post-command-hook (function flyspell-post-command-hook) t)
   (remove-hook 'pre-command-hook (function flyspell-pre-command-hook) t)
-  (setq after-change-functions (delq 'flyspell-after-change-function
-				     after-change-functions))
+  (remove-hook 'after-change-functions 'flyspell-after-change-function t)
   ;; we remove all the flyspell hilightings
   (flyspell-delete-all-overlays)
   ;; we have to erase pre cache variables
@@ -704,14 +707,14 @@ before the current command."
 ;;*    position has to be spell checked.                                */
 ;;*---------------------------------------------------------------------*/
 (defvar flyspell-changes nil)
+(make-variable-buffer-local 'flyspell-changes)
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-after-change-function ...                               */
 ;;*---------------------------------------------------------------------*/
 (defun flyspell-after-change-function (start stop len)
   "Save the current buffer and point for Flyspell's post-command hook."
-  (interactive)
-  (setq flyspell-changes (cons (cons start stop) flyspell-changes)))
+  (push (cons start stop) flyspell-changes))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-check-changed-word-p ...                                */
@@ -899,7 +902,7 @@ Mostly we check word delimiters."
 	    (progn
 	      (setq flyspell-word-cache-end -1)
 	      (setq flyspell-word-cache-result '_)))))
-    (while (consp flyspell-changes)
+    (while (and (not (input-pending-p)) (consp flyspell-changes))
       (let ((start (car (car flyspell-changes)))
 	    (stop  (cdr (car flyspell-changes))))
 	(if (flyspell-check-changed-word-p start stop)
@@ -1011,7 +1014,7 @@ Mostly we check word delimiters."
 	    ;; when emacs is exited without query
 	    (set-process-query-on-exit-flag ispell-process nil)
 	    ;; Wait until ispell has processed word.  Since this code is often
-            ;; executed rom post-command-hook but the ispell process may not
+            ;; executed from post-command-hook but the ispell process may not
             ;; be responsive, it's important to make sure we re-enable C-g.
 	    (with-local-quit
 	      (while (progn
