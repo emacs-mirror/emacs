@@ -1,3 +1,8 @@
+2005-11-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-event): Set last-input-event so
+	that (list last-input-event) works as in interactive spec.
+
 2005-11-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* loadup.el ("facemenu"): Load facemenu before font-lock, because
@@ -61,11 +66,12 @@
 
 2005-11-28  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-stopped): Detect process when attaching.
+	* progmodes/gdb-ui.el (gdb-stopped): Detect child process when
+	attaching to it.
 	(gdb-pre-prompt): Make sure gdb-error is reset.
 
 	* progmodes/gud.el (gud-gdb-marker-filter): When GDB is invoked
-	with a process, detect it.
+	with a child process, detect it.
 	(gud-speedbar-buttons): Match regexp more carefully.
 
 2005-11-27  Richard M. Stallman  <rms@gnu.org>
