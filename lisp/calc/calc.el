@@ -816,11 +816,6 @@ If nil, selections displayed but ignored.")
 ;; Verify that Calc is running on the right kind of system.
 (defvar calc-emacs-type-lucid (not (not (string-match "Lucid" emacs-version))))
 
-;; Set up the standard keystroke (M-#) to run the Calculator, if that key
-;; has not yet been bound to anything.  For best results, the user should
-;; do this before Calc is even loaded, so that M-# can auto-load Calc.
-(or (global-key-binding "\e#") (global-set-key "\e#" 'calc-dispatch))
-
 ;; Set up the autoloading linkage.
 (let ((name (and (fboundp 'calc-dispatch)
 		   (eq (car-safe (symbol-function 'calc-dispatch)) 'autoload)
@@ -1046,14 +1041,20 @@ If nil, selections displayed but ignored.")
 	       ( ?x . calc-quit )
 	       ( ?y . calc-copy-to-buffer )
 	       ( ?z . calc-user-invocation )
-	       ( ?= . calc-embedded-update-formula )
 	       ( ?\' . calc-embedded-new-formula )
 	       ( ?\` . calc-embedded-edit )
 	       ( ?: . calc-grab-sum-down )
 	       ( ?_ . calc-grab-sum-across )
 	       ( ?0 . calc-reset )
+	       ( ?? . calc-dispatch-help )
 	       ( ?# . calc-same-interface )
-	       ( ?? . calc-dispatch-help ) ))
+	       ( ?& . calc-same-interface )
+	       ( ?\\ . calc-same-interface )
+	       ( ?= . calc-same-interface )
+	       ( ?* . calc-same-interface )
+	       ( ?/ . calc-same-interface )
+	       ( ?+ . calc-same-interface )
+	       ( ?- . calc-same-interface ) ))
     map))
 
 ;;;; (Autoloads here)
@@ -1095,7 +1096,7 @@ If nil, selections displayed but ignored.")
     report-calc-bug)))
 
 
-;;;###autoload (global-set-key "\e#" 'calc-dispatch)
+;;;###autoload (define-key ctl-x-map "*" 'calc-dispatch)
 
 ;;;###autoload
 (defun calc-dispatch (&optional arg)
@@ -3534,7 +3535,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 (defun calc-user-invocation ()
   (interactive)
   (unless calc-invocation-macro
-    (error "Use `Z I' inside Calc to define a `M-# Z' keyboard macro"))
+    (error "Use `Z I' inside Calc to define a `C-x * Z' keyboard macro"))
   (execute-kbd-macro calc-invocation-macro nil))
 
 ;;; User-programmability.
