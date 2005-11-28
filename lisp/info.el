@@ -3804,7 +3804,7 @@ the variable `Info-file-list-for-emacs'."
                                  (hl Info-history-list)
                                  res)
                             (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
-                                (setq file (Info-find-file (match-string 1 node))
+                                (setq file (Info-find-file (match-string 1 node) t)
                                       node (if (equal (match-string 2 node) "")
                                                "Top"
                                              (match-string 2 node))))
@@ -3909,7 +3909,7 @@ the variable `Info-file-list-for-emacs'."
                                   (hl Info-history-list)
                                   res)
                               (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
-                                  (setq file (Info-find-file (match-string 1 node))
+                                  (setq file (Info-find-file (match-string 1 node) t)
                                         node (if (equal (match-string 2 node) "")
                                                  "Top"
                                                (match-string 2 node))))
