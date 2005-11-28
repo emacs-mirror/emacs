@@ -755,7 +755,9 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
       (save-excursion
 	(goto-char (posn-point (event-end event)))
 	(setq pos (occur-mode-find-occurrence))))
-    (switch-to-buffer-other-window (marker-buffer pos))
+    (let (same-window-buffer-names
+	  same-window-regexps)
+      (pop-to-buffer (marker-buffer pos)))
     (goto-char pos)))
 
 (defun occur-mode-find-occurrence ()
@@ -769,7 +771,9 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
 (defun occur-mode-goto-occurrence ()
   "Go to the occurrence the current line describes."
   (interactive)
-  (let ((pos (occur-mode-find-occurrence)))
+  (let ((pos (occur-mode-find-occurrence))
+	same-window-buffer-names
+	same-window-regexps)
     (pop-to-buffer (marker-buffer pos))
     (goto-char pos)))
 
@@ -832,7 +836,8 @@ Compatibility function for \\[next-error] invocations."
 
     (goto-char (cond (reset (point-min))
 		     ((< argp 0) (line-beginning-position))
-		     ((line-end-position))))
+		     ((> argp 0) (line-end-position))
+		     ((point))))
     (occur-find-match
      (abs argp)
      (if (> 0 argp)
