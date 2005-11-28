@@ -2,6 +2,11 @@
 
 	* simple.el (quoted-insert): Let-bind input-method-function to nil.
 
+	* term/w32-win.el: Bind [S-tab] to [backtab].
+
+	* info.el (Info-fontify-node): Set 2nd arg `noerror' of
+	`Info-find-file' to t.
+
 	* replace.el (occur-mode-mouse-goto): Pop, don't switch.
 	(occur-mode-goto-occurrence): Let-bind same-window-buffer-names
 	and same-window-regexps.
