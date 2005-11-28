@@ -1,5 +1,7 @@
 2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* log-edit.el (log-edit-insert-cvs-rcstemplate): Ignore stderr.
+
 	* emacs-lisp/elp.el (elp-not-profilable): Replace interactive-p with
 	called-interactively-p.
 	(elp-profilable-p): Rename from elp-not-profilable-p.

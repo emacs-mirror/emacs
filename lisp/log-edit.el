@@ -448,8 +448,10 @@ This contacts the repository to get the rcstemplate file and
 can thus take some time."
   (interactive)
   (when (or (interactive-p) (= (point-min) (point-max)))
-    (when (file-readable-p "CVS/Entries")
-      (call-process "cvs" nil t nil "checkout" "-p" "CVSROOT/rcstemplate"))))
+    (when (file-readable-p "CVS/Root")
+      ;; Ignore the stderr stuff, even if it's an error.
+      (call-process "cvs" nil '(t nil) nil
+                    "checkout" "-p" "CVSROOT/rcstemplate"))))
 
 (defun log-edit-insert-filenames ()
   "Insert the list of files that are to be committed."
