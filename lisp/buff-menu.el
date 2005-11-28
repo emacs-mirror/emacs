@@ -722,7 +722,7 @@ For more information, see the function `buffer-menu'."
 				   (if (memq c '(?\n ?\s)) c underline))
 				 header)))))
       ;; Collect info for every buffer we're interested in.
-      (dolist (buffer (or buffer-list (buffer-list)))
+      (dolist (buffer (or buffer-list (buffer-list (selected-frame))))
 	(with-current-buffer buffer
 	  (let ((name (buffer-name))
 		(file buffer-file-name))

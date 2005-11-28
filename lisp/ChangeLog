@@ -1,3 +1,8 @@
+2005-11-28  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* buff-menu.el (list-buffers-noselect): Display the selected
+	frame's buffer list, not the global one.
+
 2005-11-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xt-mouse.el (xterm-mouse-event): Set last-input-event so
