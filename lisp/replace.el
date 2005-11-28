@@ -770,7 +770,7 @@ Alternatively, click \\[occur-mode-mouse-goto] on an item to go to it.
   "Go to the occurrence the current line describes."
   (interactive)
   (let ((pos (occur-mode-find-occurrence)))
-    (switch-to-buffer (marker-buffer pos))
+    (pop-to-buffer (marker-buffer pos))
     (goto-char pos)))
 
 (defun occur-mode-goto-occurrence-other-window ()

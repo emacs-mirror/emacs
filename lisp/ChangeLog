@@ -1,3 +1,7 @@
+2005-11-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (occur-mode-goto-occurrence): Pop, don't switch.
+
 2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/flyspell.el (flyspell-last-buffer): New var.
