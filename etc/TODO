@@ -9,6 +9,8 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** revert-buffer should eliminate overlays and the mark.
+
 ** Make occur correctly handle matches that span more than one line,
    as well as overlapping matches.
 
