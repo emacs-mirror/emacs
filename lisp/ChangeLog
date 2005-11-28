@@ -1,3 +1,47 @@
+2005-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* completion.el: Remove useless leading * in defcustom docstrings.
+	(save-completions-file-name): Use ~/.emacs.d if available.
+	(completion-standard-syntax-table): Rename from
+	cmpl-standard-syntax-table and fold initialization into declaration,
+	thus removing cmpl-make-standard-completion-syntax-table.
+	(completion-lisp-syntax-table, completion-c-syntax-table)
+	(completion-fortran-syntax-table, completion-c-def-syntax-table): Idem.
+	(cmpl-saved-syntax, cmpl-saved-point): Remove.
+	(symbol-under-point, symbol-before-point)
+	(symbol-under-or-before-point, symbol-before-point-for-complete)
+	(add-completions-from-c-buffer): Use with-syntax-table.
+	(make-completion): Don't return a list of completion entries.
+	Update callers.
+	(cmpl-prefix-entry-head, cmpl-prefix-entry-tail): Use defalias.
+	(completion-initialize): Rename from initialize-completions.
+	(completion-find-file-hook): Rename from cmpl-find-file-hook.
+	(kill-emacs-save-completions): Collect stats here.
+	(save-completions-to-file, load-completions-from-file):
+	Use with-current-buffer.
+	(completion-def-wrapper): Rename from def-completion-wrapper.  Make it
+	into a function.  Move all calls to toplevel.
+	(completion-lisp-mode-hook): New fun.
+	(completion-c-mode-hook, completion-setup-fortran-mode):
+	Set the syntax-table here.  Use local-set-key.
+	(completion-saved-bindings): New var.
+	(dynamic-completion-mode): Make it into a proper minor mode.
+	(load-completions-from-file): Remove unused var `num-uses'.
+
+	* emacs-lisp/cl-macs.el (defstruct): Don't define the default
+	constructor if it is explicitly overridden.
+
+	* complete.el (PC-completion-as-file-name-predicate):
+	Use minibuffer-completing-file-name.
+	(partial-completion-mode): Use find-file-not-found-functions.
+	(PC-lisp-complete-symbol): Use with-syntax-table.
+	(PC-look-for-include-file): Remove dead setq.
+	(PC-look-for-include-file, PC-expand-many-files, PC-do-completion)
+	(PC-complete): Use with-current-buffer.
+
+	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords): \ doesn't
+	escape single quotes.
+
 2005-11-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dabbrev.el (dabbrev-completion): Simplify code, by getting rid
