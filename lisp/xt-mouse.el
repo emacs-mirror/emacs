@@ -146,10 +146,12 @@
 
     (setq xterm-mouse-x x
 	  xterm-mouse-y y)
-    (if w
-	(list mouse (posn-at-x-y (- x left) (- y top) w t))
-      (list mouse
-	    (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t)))))))
+    (setq
+     last-input-event
+     (if w
+	 (list mouse (posn-at-x-y (- x left) (- y top) w t))
+       (list mouse
+	     (append (list nil 'menu-bar) (nthcdr 2 (posn-at-x-y x y w t))))))))
 
 ;;;###autoload
 (define-minor-mode xterm-mouse-mode
