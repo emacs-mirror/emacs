@@ -1,3 +1,9 @@
+2005-11-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loadup.el ("facemenu"): Load facemenu before font-lock, because
+	`facemenu-keymap' needs to be defined when font-lock is loaded.
+	Otherwise, `M-o M-o' is not bound to `font-lock-fontify-block'.
+
 2005-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* completion.el: Remove useless leading * in defcustom docstrings.
