@@ -1,3 +1,10 @@
+2005-11-30  Kim F. Storm  <storm@cua.dk>
+
+	* apropos.el (apropos-parse-pattern): Doc fix.
+	Set apropos-regexp directly, rather than expecting callers to do so.
+	(apropos-command, apropos, apropos-value, apropos-documentation):
+	Simplify calls to apropos-parse-pattern.
+
 2005-11-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* hi-lock.el (hi-lock-line-face-buffer, hi-lock-face-buffer)
