@@ -1,3 +1,8 @@
+2005-11-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loadup.el: Add comment explaining why facemenu must be loaded
+	before font-lock.
+
 2005-11-28  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el: Change global keybinding for calc-dispatch to "\C-x*".
