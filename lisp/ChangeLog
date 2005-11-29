@@ -1,5 +1,8 @@
 2005-11-28  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* font-lock.el: Throw error if facemenu is not loaded to prevent
+	accidental change of loading order in loadup.el.  (Suggested by RMS.)
+
 	* loadup.el: Add comment explaining why facemenu must be loaded
 	before font-lock.
 
