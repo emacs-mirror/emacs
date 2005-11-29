@@ -93,6 +93,12 @@ considered for restoring."
   :type 'boolean
   :group 'view)
 
+(defcustom view-inhibit-help-message nil
+  "*Non-nil inhibits the help message showed upon entering View mode."
+  :type 'boolean
+  :group 'view
+  :version "22.1")
+
 ;;;###autoload
 (defvar view-mode nil
   "Non-nil if View mode is enabled.
@@ -516,9 +522,10 @@ This function runs the normal hook `view-mode-hook'."
   (unless view-mode			; Do nothing if already in view mode.
     (view-mode-enable)
     (force-mode-line-update)
-    (message "%s"
-	     (substitute-command-keys "\
-View mode: type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit."))))
+    (unless view-inhibit-help-message
+      (message "%s"
+	       (substitute-command-keys "\
+View mode: type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit.")))))
 
 (defun view-mode-exit (&optional return-to-alist exit-action all-win)
   "Exit View mode in various ways, depending on optional arguments.

@@ -1,8 +1,13 @@
+2005-11-29  Romain Francoise  <romain@orebokech.com>
+
+	* view.el (view-inhibit-help-message): New defcustom.
+	(view-mode-enter): Use it.
+
 2005-11-29  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff-wind (ediff-setup-control-frame, ediff-make-wide-display):
 	preserve user position.
-	
+
 2005-11-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* font-lock.el: Throw error if facemenu is not loaded to prevent
