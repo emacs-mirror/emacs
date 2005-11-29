@@ -615,7 +615,7 @@ KEY can be any kind of a key sequence; it can include keyboard events,
 mouse events, and/or menu events.  When calling from a program,
 pass KEY as a string or a vector.
 
-If non-nil, UNTRANSLATED is a vector of the correspondinguntranslated events.
+If non-nil, UNTRANSLATED is a vector of the corresponding untranslated events.
 It can also be a number, in which case the untranslated events from
 the last key sequence entered are used."
   ;; UP-EVENT is the up-event that was discarded by reading KEY, or nil.
