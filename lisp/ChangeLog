@@ -1,3 +1,8 @@
+2005-11-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (describe-key-briefly, describe-key): Recognize default
+	bindings.
+
 2005-11-29  Romain Francoise  <romain@orebokech.com>
 
 	* view.el (view-inhibit-help-message): New defcustom.

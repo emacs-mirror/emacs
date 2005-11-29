@@ -590,7 +590,7 @@ the last key hit are used."
 	    (goto-char position)))
       ;; Ok, now look up the key and name the command.
       (let ((defn (or (string-key-binding key)
-		      (key-binding key)))
+		      (key-binding key t)))
 	    key-desc)
 	;; Don't bother user with strings from (e.g.) the select-paste menu.
 	(if (stringp (aref key (1- (length key))))
@@ -635,7 +635,7 @@ the last key sequence entered are used."
       (when (windowp window)
 	    (set-buffer (window-buffer window))
 	(goto-char position))
-      (let ((defn (or (string-key-binding key) (key-binding key))))
+      (let ((defn (or (string-key-binding key) (key-binding key t))))
 	(if (or (null defn) (integerp defn) (equal defn 'undefined))
 	    (message "%s is undefined" (help-key-description key untranslated))
 	  (help-setup-xref (list #'describe-function defn) (interactive-p))
