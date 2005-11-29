@@ -1,3 +1,9 @@
+2005-11-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-line-face-buffer, hi-lock-face-buffer)
+	(hi-lock-face-phrase-buffer): Use hi-yellow face.
+	(hi-lock-write-interactive-patterns): Use comment-region.
+
 2005-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* international/latexenc.el (latex-inputenc-coding-alist): Reword

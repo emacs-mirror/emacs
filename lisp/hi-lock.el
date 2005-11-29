@@ -331,7 +331,7 @@ list maintained for regexps, global history maintained for faces.
                            (cons (or (car hi-lock-regexp-history) "") 1 )
                            nil nil 'hi-lock-regexp-history))
     (hi-lock-read-face-name)))
-  (or (facep face) (setq face 'rwl-yellow))
+  (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-buffer-mode (hi-lock-buffer-mode 1))
   (hi-lock-set-pattern
    ;; The \\(?:...\\) grouping construct ensures that a leading ^, +, * or ?
@@ -356,7 +356,7 @@ list maintained for regexps, global history maintained for faces.
                            (cons (or (car hi-lock-regexp-history) "") 1 )
                            nil nil 'hi-lock-regexp-history))
     (hi-lock-read-face-name)))
-  (or (facep face) (setq face 'rwl-yellow))
+  (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-buffer-mode (hi-lock-buffer-mode 1))
   (hi-lock-set-pattern regexp face))
 
@@ -376,7 +376,7 @@ lower-case letters made case insensitive."
                             (cons (or (car hi-lock-regexp-history) "") 1 )
                             nil nil 'hi-lock-regexp-history)))
     (hi-lock-read-face-name)))
-  (or (facep face) (setq face 'rwl-yellow))
+  (or (facep face) (setq face 'hi-yellow))
   (unless hi-lock-buffer-mode (hi-lock-buffer-mode 1))
   (hi-lock-set-pattern regexp face))
 
@@ -440,17 +440,16 @@ Interactively added patterns are those normally specified using
 `highlight-regexp' and `highlight-lines-matching-regexp'; they can
 be found in variable `hi-lock-interactive-patterns'."
   (interactive)
-  (let ((prefix (format "%s %s:" (or comment-start "") "Hi-lock")))
-    (when (> (+ (point) (length prefix)) hi-lock-file-patterns-range)
-      (beep)
-      (message
-       "Warning, inserted keywords not close enough to top of file."))
+  (if (null hi-lock-interactive-patterns)
+      (error "There are no interactive patterns"))
+  (let ((beg (point)))
     (mapcar
      (lambda (pattern)
-       (insert (format "%s (%s) %s\n"
-                       prefix (prin1-to-string pattern) (or comment-end ""))))
-     hi-lock-interactive-patterns)))
-
+       (insert (format "Hi-lock: (%s)\n" (prin1-to-string pattern))))
+     hi-lock-interactive-patterns)
+    (comment-region beg (point)))
+  (when (> (point) hi-lock-file-patterns-range)
+    (warn "Inserted keywords not close enough to top of file")))
 
 ;; Implementation Functions
 
