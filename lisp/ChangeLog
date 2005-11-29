@@ -1,3 +1,8 @@
+2005-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* international/latexenc.el (latex-inputenc-coding-alist): Reword
+	doc string.
+
 2005-11-29  Chong Yidong  <cyd@stupidchicken.com>
 
 	* help.el (describe-key-briefly, describe-key): Recognize default

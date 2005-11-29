@@ -78,7 +78,8 @@
     ("next" . next) ; The Next encoding
     ("utf8" . utf-8)
     ("utf8x" . utf-8)) ; used by the Unicode LaTeX package
-  "Mapping from encoding names used by LaTeX's \"inputenc.sty\" to Emacs coding systems.
+  "Mapping from LaTeX encodings to Emacs coding systems.
+LaTeX encodings are specified with \"\\usepackage[encoding]{inputenc}\".
 Used by the function `latexenc-find-file-coding-system'."
   :group 'files
   :group 'mule
