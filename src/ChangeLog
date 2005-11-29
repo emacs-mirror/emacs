@@ -1,4 +1,4 @@
-2005-11-29  Ari Roponen  <arjuropo@cc.jyu.fi>
+2005-11-29  Ari Roponen  <arjuropo@cc.jyu.fi>  (tiny change)
 
 	* atimer.c (stop_other_atimers): Fix loop to correctly compute `prev'.
 
