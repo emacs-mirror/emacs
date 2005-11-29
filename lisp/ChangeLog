@@ -11,6 +11,13 @@
 	(hi-lock-face-phrase-buffer): Use hi-yellow face.
 	(hi-lock-write-interactive-patterns): Use comment-region.
 
+	* longlines.el (longlines-mode): Add mail-setup-hook.
+
+	* mail/mailheader.el, mail/sendmail.el: Revert 2005-11-17 changes.
+
+	* simple.el (sendmail-user-agent-compose, next-line):
+	Conditionally use hard-newline.
+
 2005-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* international/latexenc.el (latex-inputenc-coding-alist): Reword

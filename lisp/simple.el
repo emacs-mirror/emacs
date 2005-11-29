@@ -3326,7 +3326,7 @@ and more reliable (no dependence on goal column, etc.)."
 	  ;; When adding a newline, don't expand an abbrev.
 	  (let ((abbrev-mode nil))
 	    (end-of-line)
-	    (insert hard-newline))
+	    (insert (if use-hard-newlines hard-newline "\n")))
 	(line-move arg nil nil try-vscroll))
     (if (interactive-p)
 	(condition-case nil
@@ -4515,7 +4515,8 @@ See also `read-mail-command' concerning reading mail."
 	(unless (member-ignore-case (car (car other-headers))
 				    '("in-reply-to" "cc" "body"))
 	    (insert (car (car other-headers)) ": "
-		    (cdr (car other-headers)) hard-newline))
+		    (cdr (car other-headers))
+		    (if use-hard-newlines hard-newline "\n")))
 	(setq other-headers (cdr other-headers)))
       (when body
 	(forward-line 1)

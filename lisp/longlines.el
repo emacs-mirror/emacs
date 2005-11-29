@@ -136,6 +136,7 @@ are indicated with a symbol."
 
 	;; Hacks to make longlines play nice with various modes.
 	(cond ((eq major-mode 'mail-mode)
+	       (add-hook 'mail-setup-hook 'longlines-decode-buffer nil t)
 	       (or mail-citation-hook
 		   (add-hook 'mail-citation-hook 'mail-indent-citation nil t))
 	       (add-hook 'mail-citation-hook 'longlines-decode-region nil t))
