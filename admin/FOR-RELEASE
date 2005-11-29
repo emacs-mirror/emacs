@@ -38,8 +38,6 @@ bitmap usage to a bitmap name, and second level maps bitmap name to
 a bitmap appearence.
 [Assigned to KFS]
 
-** Install Zhilin's icons.
-
 * FATAL ERRORS
 
 ** Investigate reported crashes in compact_small_strings.
@@ -52,8 +50,6 @@ invalid pointer from string_free_list.
 ** Fix window resizing bug:
 C-x 2, C-x 3, C-x 2. Now try to move the bottom of the 
 second window to the left.
-
-** Fix completion highlighting bug in partial completion mode.
 
 ** TCP server processes do not work on Windows.
 
