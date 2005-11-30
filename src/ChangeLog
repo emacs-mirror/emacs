@@ -1,3 +1,7 @@
+2005-11-30  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+        * buffer.c (Fpop_to_buffer): Remove superfluous call to record_buffer.
+
 2005-11-30  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c: Include fcntl.h.  Define O_WRONLY if not defined.
