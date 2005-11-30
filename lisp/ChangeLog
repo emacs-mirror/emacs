@@ -1,5 +1,7 @@
 2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* help.el (help-map): Move initialization into declaration.
+
 	* emacs-lisp/autoload.el (make-autoload): Handle defgroup specially.
 
 	* help-fns.el (help-argument-name): Don't autoload.

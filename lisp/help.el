@@ -38,7 +38,57 @@
 (add-hook 'temp-buffer-setup-hook 'help-mode-setup)
 (add-hook 'temp-buffer-show-hook 'help-mode-finish)
 
-(defvar help-map (make-sparse-keymap)
+(defvar help-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (char-to-string help-char) 'help-for-help)
+    (define-key map [help] 'help-for-help)
+    (define-key map [f1] 'help-for-help)
+    (define-key map "." 'display-local-help)
+    (define-key map "?" 'help-for-help)
+
+    (define-key map "\C-c" 'describe-copying)
+    (define-key map "\C-d" 'describe-distribution)
+    (define-key map "\C-e" 'view-emacs-problems)
+    (define-key map "\C-f" 'view-emacs-FAQ)
+    (define-key map "\C-m" 'view-order-manuals)
+    (define-key map "\C-n" 'view-emacs-news)
+    (define-key map "\C-p" 'describe-project)
+    (define-key map "\C-t" 'view-todo)
+    (define-key map "\C-w" 'describe-no-warranty)
+
+    ;; This does not fit the pattern, but it is natural given the C-\ command.
+    (define-key map "\C-\\" 'describe-input-method)
+
+    (define-key map "C" 'describe-coding-system)
+    (define-key map "F" 'Info-goto-emacs-command-node)
+    (define-key map "I" 'describe-input-method)
+    (define-key map "K" 'Info-goto-emacs-key-command-node)
+    (define-key map "L" 'describe-language-environment)
+    (define-key map "S" 'info-lookup-symbol)
+
+    (define-key map "a" 'apropos-command)
+    (define-key map "b" 'describe-bindings)
+    (define-key map "c" 'describe-key-briefly)
+    (define-key map "d" 'apropos-documentation)
+    (define-key map "e" 'view-echo-area-messages)
+    (define-key map "f" 'describe-function)
+    (define-key map "h" 'view-hello-file)
+
+    (define-key map "i" 'info)
+    (define-key map "4i" 'info-other-window)
+
+    (define-key map "k" 'describe-key)
+    (define-key map "l" 'view-lossage)
+    (define-key map "m" 'describe-mode)
+    (define-key map "n" 'view-emacs-news)
+    (define-key map "p" 'finder-by-keyword)
+    (define-key map "r" 'info-emacs-manual)
+    (define-key map "s" 'describe-syntax)
+    (define-key map "t" 'help-with-tutorial)
+    (define-key map "w" 'where-is)
+    (define-key map "v" 'describe-variable)
+    (define-key map "q" 'help-quit)
+    map)
   "Keymap for characters following the Help key.")
 
 (define-key global-map (char-to-string help-char) 'help-command)
@@ -46,72 +96,8 @@
 (define-key global-map [f1] 'help-command)
 (fset 'help-command help-map)
 
-(define-key help-map (char-to-string help-char) 'help-for-help)
-(define-key help-map [help] 'help-for-help)
-(define-key help-map [f1] 'help-for-help)
-(define-key help-map "." 'display-local-help)
-(define-key help-map "?" 'help-for-help)
-
-(define-key help-map "\C-c" 'describe-copying)
-(define-key help-map "\C-d" 'describe-distribution)
-(define-key help-map "\C-e" 'view-emacs-problems)
-(define-key help-map "\C-f" 'view-emacs-FAQ)
-(define-key help-map "\C-m" 'view-order-manuals)
-(define-key help-map "\C-n" 'view-emacs-news)
-(define-key help-map "\C-p" 'describe-project)
-(define-key help-map "\C-t" 'view-todo)
-(define-key help-map "\C-w" 'describe-no-warranty)
-
-;; This does not fit the pattern, but it is natural given the C-\ command.
-(define-key help-map "\C-\\" 'describe-input-method)
-
-(define-key help-map "C" 'describe-coding-system)
-(define-key help-map "F" 'Info-goto-emacs-command-node)
-(define-key help-map "I" 'describe-input-method)
-(define-key help-map "K" 'Info-goto-emacs-key-command-node)
-(define-key help-map "L" 'describe-language-environment)
-(define-key help-map "S" 'info-lookup-symbol)
-
-(define-key help-map "a" 'apropos-command)
-
-(define-key help-map "b" 'describe-bindings)
-
-(define-key help-map "c" 'describe-key-briefly)
-
-(define-key help-map "d" 'apropos-documentation)
-
-(define-key help-map "e" 'view-echo-area-messages)
-
-(define-key help-map "f" 'describe-function)
-
-(define-key help-map "h" 'view-hello-file)
-
-(define-key help-map "i" 'info)
-(define-key help-map "4i" 'info-other-window)
-
-(define-key help-map "k" 'describe-key)
-
-(define-key help-map "l" 'view-lossage)
-
-(define-key help-map "m" 'describe-mode)
-
-(define-key help-map "n" 'view-emacs-news)
-
-(define-key help-map "p" 'finder-by-keyword)
 (autoload 'finder-by-keyword "finder"
   "Find packages matching a given keyword." t)
-
-(define-key help-map "r" 'info-emacs-manual)
-
-(define-key help-map "s" 'describe-syntax)
-
-(define-key help-map "t" 'help-with-tutorial)
-
-(define-key help-map "w" 'where-is)
-
-(define-key help-map "v" 'describe-variable)
-
-(define-key help-map "q" 'help-quit)
 
 ;; insert-button makes the action nil if it is not store somewhere
 (defvar help-button-cache nil)
