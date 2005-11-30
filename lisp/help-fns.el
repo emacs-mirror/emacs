@@ -436,7 +436,9 @@ face (according to `face-differs-from-default-p')."
                          (format "\nMacro: %s" (format-kbd-macro def)))
                         (t "[Missing arglist.  Please make a bug report.]")))
                  (high (help-highlight-arguments use doc)))
-            (insert (car high) "\n")
+            (let ((fill-begin (point)))
+	      (insert (car high) "\n")
+	      (fill-region fill-begin (point)))
             (setq doc (cdr high))))
         (let ((obsolete (and
                          ;; function might be a lambda construct.
