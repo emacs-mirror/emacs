@@ -603,11 +603,11 @@ that is indented like the bullet/number, or less.  For example:
 
 @example
 ** Lord of the Rings
-My favorite scenes are (in this order
-1. Eowyns fight with the witch king
+My favorite scenes are (in this order)
+1. Eowyns fight with the witch-king
    + this was already my favorite scene in the book
-   + I really like Miranda Ott.
-2. The attack of the Roherim
+   + I really like Miranda Otto.
+2. The attack of the Rohirrim
 3. Peter Jackson being shot by Legolas
     - on DVD only  
    He makes a really funny face when it happens.
