@@ -1,3 +1,9 @@
+2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help-fns.el (help-argument-name): Don't autoload.
+	It's useless and triggers a bug in cus-dep.el causing ldefs-boot
+	to be re-loaded when customizing the `help' group.
+
 2005-11-30  John Paul Wallington  <jpw@gnu.org>
 
 	* help-fns.el (describe-function-1): Fill arglist output.
@@ -28,8 +34,8 @@
 
 2005-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* international/latexenc.el (latex-inputenc-coding-alist): Reword
-	doc string.
+	* international/latexenc.el (latex-inputenc-coding-alist):
+	Reword doc string.
 
 2005-11-29  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -44,7 +50,7 @@
 2005-11-29  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* ediff-wind (ediff-setup-control-frame, ediff-make-wide-display):
-	preserve user position.
+	Preserve user position.
 
 2005-11-28  Luc Teirlinck  <teirllm@auburn.edu>
 
