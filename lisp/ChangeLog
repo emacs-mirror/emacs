@@ -1,5 +1,7 @@
 2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/autoload.el (make-autoload): Handle defgroup specially.
+
 	* help-fns.el (help-argument-name): Don't autoload.
 	It's useless and triggers a bug in cus-dep.el causing ldefs-boot
 	to be re-loaded when customizing the `help' group.

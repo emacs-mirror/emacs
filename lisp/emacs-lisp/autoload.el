@@ -135,6 +135,15 @@ or macro definition or a defcustom)."
               (if (equal setter ''custom-set-minor-mode)
                   `(put ',varname 'custom-set 'custom-set-minor-mode))))))
 
+     ((eq car 'defgroup)
+      ;; In Emacs this is normally handled separately by cus-dep.el, but for
+      ;; third party packages, it can be convenient to explicitly autoload
+      ;; a group.
+      (let ((groupname (nth 1 form)))
+        `(let ((loads (get ',groupname 'custom-loads)))
+           (if (member ',file loads) nil
+             (put ',groupname 'custom-loads (cons ',file loads))))))
+
      ;; nil here indicates that this is not a special autoload form.
      (t nil))))
 
