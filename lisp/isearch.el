@@ -386,6 +386,8 @@ A value of nil means highlight all matches."
     (define-key map [iconify-frame] nil)
     (define-key map [make-frame-visible] nil)
     (define-key map [mouse-movement] nil)
+    (define-key map [language-change] nil)
+
     ;; For searching multilingual text.
     (define-key map "\C-\\" 'isearch-toggle-input-method)
     (define-key map "\C-^" 'isearch-toggle-specified-input-method)
