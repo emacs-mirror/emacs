@@ -1,3 +1,9 @@
+2005-11-30  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c: Include fcntl.h.  Define O_WRONLY if not defined.
+	(valid_lisp_object_p) [!GC_MARK_STACK]: Validate pointer by
+	passing it to `emacs_write'.
+
 2005-11-29  Ari Roponen  <arjuropo@cc.jyu.fi>  (tiny change)
 
 	* atimer.c (stop_other_atimers): Fix loop to correctly compute `prev'.

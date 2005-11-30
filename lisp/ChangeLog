@@ -1,5 +1,9 @@
 2005-11-30  Kim F. Storm  <storm@cua.dk>
 
+	* emulation/cua-rect.el (cua--rectangle-overlays): Make	permanent-local.
+	(cua--rectangle-post-command): Cleanup overlays and deactivate mark
+	after revert-buffer (or anything else which kills all local variables).
+
 	* apropos.el (apropos-parse-pattern): Doc fix.
 	Set apropos-regexp directly, rather than expecting callers to do so.
 	(apropos-command, apropos, apropos-value, apropos-documentation):
