@@ -1,3 +1,8 @@
+2005-11-30  Jason Rumney  <jasonr@gnu.org>
+
+	* isearch.el (isearch-mode-map): Avoid exiting search on
+	language-change event.
+
 2005-11-30  Romain Francoise  <romain@orebokech.com>
 
 	* speedbar.el (speedbar-default-position): New defcustom.
