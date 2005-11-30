@@ -1,3 +1,7 @@
+2005-11-30  John Paul Wallington  <jpw@gnu.org>
+
+	* help-fns.el (describe-function-1): Fill arglist output.
+
 2005-11-30  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--rectangle-overlays): Make	permanent-local.
