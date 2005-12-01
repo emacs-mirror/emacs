@@ -18,7 +18,7 @@
 	(speedbar-frame-reposition-smartly): Use it.
 
 	* dframe.el (dframe-reposition-frame-emacs): Fix position
-	computation for 'left location.
+	computation for `left' location.
 	Update copyright year.
 
 2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
