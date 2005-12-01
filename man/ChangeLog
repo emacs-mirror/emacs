@@ -2,7 +2,7 @@
 
 	* building.texi (GDB User Interface Layout): Describe how to
 	kill associated buffers.
-	(Breakpoints Buffer): Use D instead of d for gdb-var-delete.
+	(Breakpoints Buffer): Use D instead of d for gdb-delete-breakpoint.
 	(Watch Expressions): Be more precise.
 	(Other GDB User Interface Buffers): Describe how to change a
 	register value.
