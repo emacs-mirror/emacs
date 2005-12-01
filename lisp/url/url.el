@@ -148,7 +148,8 @@ already completed."
       (if buffer
 	  (with-current-buffer buffer
 	    (apply callback cbargs))))
-    (url-history-update-url url (current-time))
+    (if url-history-track
+	(url-history-update-url url (current-time)))
     buffer))
 
 (defun url-retrieve-synchronously (url)
