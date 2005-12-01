@@ -38,11 +38,17 @@
   :group 'url)
 
 (defcustom url-history-track nil
-  "*Controls whether to keep a list of all the URLS being visited.
-If non-nil, url will keep track of all the URLS visited.
+  "*Controls whether to keep a list of all the URLs being visited.
+If non-nil, the URL package will keep track of all the URLs visited.
 If set to t, then the list is saved to disk at the end of each Emacs
 session."
-  :type 'boolean
+  :set #'(lambda (var val)
+	   (set-default var val)
+	   (and (bound-and-true-p 'url-setup-done)
+		(url-history-setup-save-timer)))
+  :type '(choice (const :tag "off" nil)
+		 (const :tag "on" t)
+		 (const :tag "within session" 'session))
   :group 'url-history)
 
 (defcustom url-history-file nil
@@ -89,7 +95,7 @@ to run the `url-history-setup-save-timer' function manually."
     (cond ((fboundp 'cancel-timer) (cancel-timer url-history-timer))
 	  ((fboundp 'delete-itimer) (delete-itimer url-history-timer))))
   (setq url-history-timer nil)
-  (if url-history-save-interval
+  (if (and (eq url-history-track t) url-history-save-interval)
       (setq url-history-timer
 	    (cond
 	     ((fboundp 'run-at-time)
