@@ -1,3 +1,11 @@
+2005-12-01  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-history.el (url-history-track):
+	Call url-history-setup-save-timer in :set function.
+	:type allows three alternatives.
+	(url-history-setup-save-timer): Test url-history-track.
+	* url.el (url-retrieve): Test url-history-track.
+
 2005-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-http.el: Use with-current-buffer.
