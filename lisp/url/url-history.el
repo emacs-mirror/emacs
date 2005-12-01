@@ -44,7 +44,7 @@ If set to t, then the list is saved to disk at the end of each Emacs
 session."
   :set #'(lambda (var val)
 	   (set-default var val)
-	   (and (bound-and-true-p 'url-setup-done)
+	   (and (bound-and-true-p url-setup-done)
 		(url-history-setup-save-timer)))
   :type '(choice (const :tag "off" nil)
 		 (const :tag "on" t)
