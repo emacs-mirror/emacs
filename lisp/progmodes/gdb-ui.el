@@ -41,7 +41,7 @@
 ;; You don't need to know about annotations to use this mode as a debugger,
 ;; but if you are interested developing the mode itself, then see the
 ;; Annotations section in the GDB info manual.
-;;
+
 ;; GDB developers plan to make the annotation interface obsolete.  A new
 ;; interface called GDB/MI (machine interface) has been designed to replace
 ;; it.  Some GDB/MI commands are used in this file through the CLI command
@@ -49,29 +49,32 @@
 ;; GDB (6.2 onwards) that uses GDB/MI as the primary interface to GDB.  It is
 ;; still under development and is part of a process to migrate Emacs from
 ;; annotations to GDB/MI.
-;;
-;; This mode SHOULD WORK WITH GDB 5.0 ONWARDS but you will NEED GDB 6.0
-;; ONWARDS TO USE WATCH EXPRESSIONS.
-;;
-;; Windows Platforms:
-;;
+
+;; This mode SHOULD WORK WITH GDB 5.0 onwards but you will NEED GDB 6.0
+;; onwards to use watch expressions.
+
+;;; Windows Platforms:
+
 ;; If you are using Emacs and GDB on Windows you will need to flush the buffer
 ;; explicitly in your program if you want timely display of I/O in Emacs.
 ;; Alternatively you can make the output stream unbuffered, for example, by
 ;; using a macro:
-;;
+
 ;;           #ifdef UNBUFFERED
 ;;	     setvbuf (stdout, (char *) NULL, _IONBF, 0);
 ;;	     #endif
-;;
+
 ;; and compiling with -DUNBUFFERED while debugging.
-;;
-;; Known Bugs:
+
+;;; Known Bugs:
+
 ;; 1) Strings that are watched don't update in the speedbar when their
 ;; contents change.
 ;; 2) Watch expressions go out of scope when the inferior is re-run.
-;;
-;; TODO:
+;; 3) Cannot handle multiple debug sessions.
+
+;;; TODO:
+
 ;; 1) Use MI command -data-read-memory for memory window.
 ;; 2) Highlight changed register values (use MI commands
 ;;    -data-list-register-values and -data-list-changed-registers instead
@@ -399,6 +402,8 @@ With arg, use separate IO iff arg is positive."
   (define-key gud-minor-mode-map [left-fringe mouse-2]
     'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-fringe drag-mouse-1]
+    'gdb-mouse-until)
+  (define-key gud-minor-mode-map [left-margin mouse-2]
     'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-margin mouse-3]
     'gdb-mouse-toggle-breakpoint-margin)
@@ -1567,7 +1572,7 @@ static char *magick[] = {
     (suppress-keymap map)
     (define-key map [menu-bar breakpoints] (cons "Breakpoints" menu))
     (define-key map " " 'gdb-toggle-breakpoint)
-    (define-key map "d" 'gdb-delete-breakpoint)
+    (define-key map "D" 'gdb-delete-breakpoint)
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-goto-breakpoint)
     (define-key map [mouse-2] 'gdb-goto-breakpoint)
@@ -1740,7 +1745,8 @@ static char *magick[] = {
 (defun gdb-get-frame-number ()
   (save-excursion
     (end-of-line)
-    (let* ((pos (re-search-backward "^#*\\([0-9]*\\)" nil t))
+    (let* ((start (line-beginning-position))
+	   (pos (re-search-backward "^#*\\([0-9]+\\)" start t))
 	   (n (or (and pos (match-string-no-properties 1)) "0")))
       n)))
 
@@ -1800,6 +1806,7 @@ static char *magick[] = {
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-threads-select)
     (define-key map [mouse-2] 'gdb-threads-select)
+    (define-key map [follow-link] 'mouse-face)
     map))
 
 (defvar gdb-threads-font-lock-keywords
