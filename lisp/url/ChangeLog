@@ -1,3 +1,7 @@
+2005-12-01  Kim F. Storm  <storm@cua.dk>
+
+	* url-history.el (url-history-track): Fix last change.
+
 2005-12-01  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
 
 	* url-history.el (url-history-track):
