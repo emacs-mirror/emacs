@@ -1,3 +1,8 @@
+2005-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fset_window_configuration): Don't accidentally copy the
+	window-point of one window to another.
+
 2005-11-30  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* buffer.c (Fpop_to_buffer): Remove superfluous call to record_buffer.

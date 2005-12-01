@@ -1969,7 +1969,7 @@ window_loop (type, obj, mini, frames)
   GCPRO1 (windows);
   best_window = Qnil;
 
-  for (; CONSP (windows); windows = CDR (windows))
+  for (; CONSP (windows); windows = XCDR (windows))
     {
       struct window *w;
 
@@ -3667,7 +3667,7 @@ temp_output_buffer_show (buf)
 #endif
   set_buffer_internal (old);
 
-  if (!EQ (Vtemp_buffer_show_function, Qnil))
+  if (!NILP (Vtemp_buffer_show_function))
     call1 (Vtemp_buffer_show_function, buf);
   else
     {
@@ -5831,7 +5831,23 @@ the return value is nil.  Otherwise the value is t.  */)
   else
     {
       if (XBUFFER (new_current_buffer) == current_buffer)
-	old_point = PT;
+	/* The code further down "preserves point" by saving here PT in
+	   old_point and then setting it later back into PT.  When the
+	   current-selected-window and the final-selected-window both show
+	   the current buffer, this suffers from the problem that the
+	   current PT is the window-point of the current-selected-window,
+	   while the final PT is the point of the final-selected-window, so
+	   this copy from one PT to the other would end up moving the
+	   window-point of the final-selected-window to the window-point of
+	   the current-selected-window.  So we have to be careful which
+	   point of the current-buffer we copy into old_point.  */
+	if (EQ (XWINDOW (data->current_window)->buffer, new_current_buffer)
+	    && WINDOWP (selected_window)
+	    && EQ (XWINDOW (selected_window)->buffer, new_current_buffer)
+	    && !EQ (selected_window, data->current_window))
+	  old_point = XMARKER (XWINDOW (data->current_window)->pointm)->charpos;
+	else
+	  old_point = PT;
       else
 	/* BUF_PT (XBUFFER (new_current_buffer)) gives us the position of
 	   point in new_current_buffer as of the last time this buffer was
