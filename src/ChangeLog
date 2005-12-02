@@ -1,3 +1,19 @@
+2005-12-02  David Reitter  <david.reitter@gmail.com>
+
+	* minibuf.c (Fcompleting_read): If Vminibuffer_completing_file_name is
+	non-nil, use the new keymaps Vminibuffer_local_filename_completion_map
+	and Vminibuffer_local_must_match_filename_map keymaps.
+	(keys_of_minibuf): Bind SPC in the new file-name completion keymaps.
+
+	* keymap.c (Vminibuffer_local_filename_completion_map)
+	(Vminibuffer_local_must_match_filename_map): New variables.
+	(syms_of_keymap): DEFVAR_LISP them, initialize them, and set their
+	parent to be Vminibuffer_local_completion_map and
+	Vminibuffer_local_must_match_map, respectively.
+
+	* commands.h (Vminibuffer_local_filename_completion_map)
+	(Vminibuffer_local_must_match_filename_map): Declare the new keymaps.
+
 2005-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fset_window_configuration): Don't accidentally copy the

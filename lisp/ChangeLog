@@ -1,3 +1,23 @@
+2005-12-02  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el:(eval-when-compile): Remove unnecessary load of 'cl.
+	Add fset of allout-real-isearch-abort during compile to fix
+	byte-compilation warnings.
+	(allout-mode-p): Move definition of this macro above all uses, or
+	byte compilation in barren emacs (eg, during emacs build) will
+	lack the definition.
+	(allout-mode): Move this variable above any uses, or byte
+	compilation will fail.
+	(allout-resolve-xref): Remove use of personal file-reference
+	function.
+	(allout-toggle-current-subtree-encryption): Do the current (ie,
+	visible containing) topic, rather than nearest around point.  Doc
+	fix.
+	(allout-toggle-subtree-encryption): New function, workhorse that
+	works on nearest topic containing point.
+	(allout-encrypt-string): Signal requirement for newer version of pgg.
+	(allout-resumptions): Doc fix.
+
 2005-12-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* international/latexenc.el (latex-inputenc-coding-alist): Doc fix.
