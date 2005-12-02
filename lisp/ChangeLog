@@ -1,3 +1,8 @@
+2005-12-01  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (mh-loaddefs.el): Reinsert Change Log as its absence
+	triggers lm-verify errors.
+
 2005-12-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (transient-mark-mode, line-number-mode)
