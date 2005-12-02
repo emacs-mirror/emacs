@@ -1,3 +1,7 @@
+2005-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* completion.el (save-completions-file-name): Fix typo in last change.
+
 2005-12-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* info.el: Move back/forward history to the beginning of the tool bar.
@@ -12,11 +16,9 @@
 	lack the definition.
 	(allout-mode): Move this variable above any uses, or byte
 	compilation will fail.
-	(allout-resolve-xref): Remove use of personal file-reference
-	function.
+	(allout-resolve-xref): Remove use of personal file-reference function.
 	(allout-toggle-current-subtree-encryption): Do the current (ie,
-	visible containing) topic, rather than nearest around point.  Doc
-	fix.
+	visible containing) topic, rather than nearest around point.  Doc fix.
 	(allout-toggle-subtree-encryption): New function, workhorse that
 	works on nearest topic containing point.
 	(allout-encrypt-string): Signal requirement for newer version of pgg.
@@ -28,21 +30,20 @@
 
 2005-12-02  Agustin Martin  <agustin.martin@hispalinux.es>
 
-	* textmodes/flyspell.el (flyspell-external-point-words): Consider
-	a misspelling as found in the string search if: (a) misspelling
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Consider a misspelling as found in the string search if: (a) misspelling
 	and found string lengths match, or (b) misspelling is found as
 	element in a boundary-chars separated longer string, or (c)
 	ispell-program-name is really ispell and misspelling is found as
 	part of a TeX string.  After successful match move beginning of
 	search region to end of match.  Warn about not found misspellings
 	once the process is done.
-	(flyspell-large-region) Do not set ispell-parser to tex if in TeX
-	mode.
+	(flyspell-large-region): Do not set ispell-parser to tex if in TeX mode.
 
 2005-12-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Put gud-finish back on the
-	tool bar (removed inadvertantly),
+	tool bar (removed inadvertently).
 
 2005-12-02  Juri Linkov  <juri@jurta.org>
 
@@ -56,8 +57,7 @@
 2005-12-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (transient-mark-mode, line-number-mode)
-	(column-number-mode, size-indication-mode): Remove
-	`:require nil'.
+	(column-number-mode, size-indication-mode): Remove `:require nil'.
 
 2005-12-01  Nick Roberts  <nickrob@snap.net.nz>
 
