@@ -1532,9 +1532,11 @@ in them.
 ** Calc is now part of the Emacs distribution.
 
 Calc is an advanced desk calculator and mathematical tool written in
-Emacs Lisp.  Its documentation is in a separate manual; within Emacs,
-type "C-h i m calc RET" to read that manual.  A reference card is
-available in `etc/calccard.tex' and `etc/calccard.ps'.
+Emacs Lisp.  The prefix for Calc has been changed to `C-x *' and Calc
+can be started with `C-x * *'.  The Calc manual is separate from the
+Emacs manual; within Emacs, type "C-h i m calc RET" to read the
+manual.  A reference card is available in `etc/calccard.tex' and
+`etc/calccard.ps'.
 
 ---
 ** The new package ibuffer provides a powerful, completely
