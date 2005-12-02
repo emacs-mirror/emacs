@@ -1,6 +1,7 @@
 ;;; cc-defs.el --- compile time definitions for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation,
+;; Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -24,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
@@ -43,8 +44,8 @@
 	   load-path)))
     (load "cc-bytecomp" nil t)))
 
-;; `require' in XEmacs doesn't have the third NOERROR argument.
-(condition-case nil (require 'regexp-opt) (file-error nil))
+(eval-when-compile (require 'cl)) ; was (cc-external-require 'cl).  ACM 2005/11/29.
+(cc-external-require 'regexp-opt)
 
 ;; Silence the compiler.
 (cc-bytecomp-defvar c-enable-xemacs-performance-kludge-p) ; In cc-vars.el
@@ -55,31 +56,18 @@
 (cc-bytecomp-defvar mark-active)	; Emacs
 (cc-bytecomp-defvar deactivate-mark)	; Emacs
 (cc-bytecomp-defvar inhibit-point-motion-hooks) ; Emacs
-(cc-bytecomp-defvar parse-sexp-lookup-properties) ; Emacs 20+
+(cc-bytecomp-defvar parse-sexp-lookup-properties) ; Emacs
 (cc-bytecomp-defvar text-property-default-nonsticky) ; Emacs 21
-(cc-bytecomp-defvar lookup-syntax-properties) ; XEmacs 21
+(cc-bytecomp-defvar lookup-syntax-properties) ; XEmacs
 (cc-bytecomp-defun string-to-syntax)	; Emacs 21
-(cc-bytecomp-defun regexp-opt-depth)	; (X)Emacs 20+
 
 
 ;; cc-fix.el contains compatibility macros that should be used if
 ;; needed.
 (eval-and-compile
-  (if (or (not (fboundp 'functionp))
-	  (not (condition-case nil
-		   (progn (eval '(char-before)) t)
-		 (error nil)))
-	  (not (condition-case nil
-		   (progn (eval '(char-after)) t)
-		 (error nil)))
-	  (not (fboundp 'when))
-	  (not (fboundp 'unless))
-	  (not (fboundp 'regexp-opt))
-	  (not (cc-bytecomp-fboundp 'regexp-opt-depth))
-	  (/= (regexp-opt-depth "\\(\\(\\)\\)") 2))
-      (cc-load "cc-fix")
-    (defalias 'c-regexp-opt 'regexp-opt)
-    (defalias 'c-regexp-opt-depth 'regexp-opt-depth)))
+  (if (or (/= (regexp-opt-depth "\\(\\(\\)\\)") 2)
+	  (not (fboundp 'push)))
+      (cc-load "cc-fix")))
 
 (eval-after-load "font-lock"
   '(if (and (not (featurep 'cc-fix)) ; only load the file once.
@@ -99,12 +87,10 @@
 	       font-lock-keywords)))
       (cc-load "cc-fix")))
 
-(eval-when-compile (require 'cl))
-
 
 ;;; Variables also used at compile time.
 
-(defconst c-version "5.30.10"
+(defconst c-version "5.31"
   "CC Mode version number.")
 
 (defconst c-version-sym (intern c-version))
@@ -192,29 +178,29 @@ This variant works around bugs in `eval-when-compile' in various
 The current point is used if POINT isn't specified.  POSITION can be
 one of the following symbols:
 
-`bol'  -- beginning of line
-`eol'  -- end of line
-`bod'  -- beginning of defun
-`eod'  -- end of defun
-`boi'  -- beginning of indentation
-`ionl' -- indentation of next line
-`iopl' -- indentation of previous line
-`bonl' -- beginning of next line
-`eonl' -- end of next line
-`bopl' -- beginning of previous line
-`eopl' -- end of previous line
+`bol'   -- beginning of line
+`eol'   -- end of line
+`bod'   -- beginning of defun
+`eod'   -- end of defun
+`boi'   -- beginning of indentation
+`ionl'  -- indentation of next line
+`iopl'  -- indentation of previous line
+`bonl'  -- beginning of next line
+`eonl'  -- end of next line
+`bopl'  -- beginning of previous line
+`eopl'  -- end of previous line
+`bosws' -- beginning of syntactic whitespace
+`eosws' -- end of syntactic whitespace
 
 If the referenced position doesn't exist, the closest accessible point
-to it is returned.  This function does not modify point or mark.
-
-This function does not do any hidden buffer changes."
+to it is returned.  This function does not modify the point or the mark."
 
   (if (eq (car-safe position) 'quote)
       (let ((position (eval position)))
 	(cond
 
 	 ((eq position 'bol)
-	  (if (and (fboundp 'line-beginning-position) (not point))
+	  (if (and (cc-bytecomp-fboundp 'line-beginning-position) (not point))
 	      `(line-beginning-position)
 	    `(save-excursion
 	       ,@(if point `((goto-char ,point)))
@@ -222,7 +208,7 @@ This function does not do any hidden buffer changes."
 	       (point))))
 
 	 ((eq position 'eol)
-	  (if (and (fboundp 'line-end-position) (not point))
+	  (if (and (cc-bytecomp-fboundp 'line-end-position) (not point))
 	      `(line-end-position)
 	    `(save-excursion
 	       ,@(if point `((goto-char ,point)))
@@ -248,7 +234,7 @@ This function does not do any hidden buffer changes."
 	     (point)))
 
 	 ((eq position 'bopl)
-	  (if (and (fboundp 'line-beginning-position) (not point))
+	  (if (and (cc-bytecomp-fboundp 'line-beginning-position) (not point))
 	      `(line-beginning-position 0)
 	    `(save-excursion
 	       ,@(if point `((goto-char ,point)))
@@ -256,7 +242,7 @@ This function does not do any hidden buffer changes."
 	       (point))))
 
 	 ((eq position 'bonl)
-	  (if (and (fboundp 'line-beginning-position) (not point))
+	  (if (and (cc-bytecomp-fboundp 'line-beginning-position) (not point))
 	      `(line-beginning-position 2)
 	    `(save-excursion
 	       ,@(if point `((goto-char ,point)))
@@ -264,7 +250,7 @@ This function does not do any hidden buffer changes."
 	       (point))))
 
 	 ((eq position 'eopl)
-	  (if (and (fboundp 'line-end-position) (not point))
+	  (if (and (cc-bytecomp-fboundp 'line-end-position) (not point))
 	      `(line-end-position 0)
 	    `(save-excursion
 	       ,@(if point `((goto-char ,point)))
@@ -273,7 +259,7 @@ This function does not do any hidden buffer changes."
 	       (point))))
 
 	 ((eq position 'eonl)
-	  (if (and (fboundp 'line-end-position) (not point))
+	  (if (and (cc-bytecomp-fboundp 'line-end-position) (not point))
 	      `(line-end-position 2)
 	    `(save-excursion
 	       ,@(if point `((goto-char ,point)))
@@ -295,54 +281,138 @@ This function does not do any hidden buffer changes."
 	     (back-to-indentation)
 	     (point)))
 
+	 ((eq position 'bosws)
+	  `(save-excursion
+	     ,@(if point `((goto-char ,point)))
+	     (c-backward-syntactic-ws)
+	     (point)))
+
+	 ((eq position 'eosws)
+	  `(save-excursion
+	     ,@(if point `((goto-char ,point)))
+	     (c-forward-syntactic-ws)
+	     (point)))
+
 	 (t (error "Unknown buffer position requested: %s" position))))
 
-    ;;(message "c-point long expansion")
+    ;; The bulk of this should perhaps be in a function to avoid large
+    ;; expansions, but this case is not used anywhere in CC Mode (and
+    ;; probably not anywhere else either) so we only have it to be on
+    ;; the safe side.
+    (message "Warning: c-point long expansion")
     `(save-excursion
        ,@(if point `((goto-char ,point)))
        (let ((position ,position))
 	 (cond
-	  ((eq position 'bol)  (beginning-of-line))
-	  ((eq position 'eol)  (end-of-line))
-	  ((eq position 'boi)  (back-to-indentation))
-	  ((eq position 'bod)  (c-beginning-of-defun-1))
-	  ((eq position 'eod)  (c-end-of-defun-1))
-	  ((eq position 'bopl) (forward-line -1))
-	  ((eq position 'bonl) (forward-line 1))
-	  ((eq position 'eopl) (progn
-				 (beginning-of-line)
-				 (or (bobp) (backward-char))))
-	  ((eq position 'eonl) (progn
-				 (forward-line 1)
-				 (end-of-line)))
-	  ((eq position 'iopl) (progn
-				 (forward-line -1)
-				 (back-to-indentation)))
-	  ((eq position 'ionl) (progn
-				 (forward-line 1)
-				 (back-to-indentation)))
+	  ((eq position 'bol)	(beginning-of-line))
+	  ((eq position 'eol)	(end-of-line))
+	  ((eq position 'boi)	(back-to-indentation))
+	  ((eq position 'bod)	(c-beginning-of-defun-1))
+	  ((eq position 'eod)	(c-end-of-defun-1))
+	  ((eq position 'bopl)	(forward-line -1))
+	  ((eq position 'bonl)	(forward-line 1))
+	  ((eq position 'eopl)	(progn
+				  (beginning-of-line)
+				  (or (bobp) (backward-char))))
+	  ((eq position 'eonl)	(progn
+				  (forward-line 1)
+				  (end-of-line)))
+	  ((eq position 'iopl)	(progn
+				  (forward-line -1)
+				  (back-to-indentation)))
+	  ((eq position 'ionl)	(progn
+				  (forward-line 1)
+				(back-to-indentation)))
+	  ((eq position 'bosws)	(c-backward-syntactic-ws))
+	  ((eq position 'eosws)	(c-forward-syntactic-ws))
 	  (t (error "Unknown buffer position requested: %s" position))))
        (point))))
 
+(defmacro c-region-is-active-p ()
+  ;; Return t when the region is active.  The determination of region
+  ;; activeness is different in both Emacs and XEmacs.
+  (if (cc-bytecomp-fboundp 'region-active-p)
+      ;; XEmacs.
+      '(region-active-p)
+    ;; Emacs.
+    'mark-active))
+
+(defmacro c-set-region-active (activate)
+  ;; Activate the region if ACTIVE is non-nil, deactivate it
+  ;; otherwise.  Covers the differences between Emacs and XEmacs.
+  (if (cc-bytecomp-fboundp 'zmacs-activate-region)
+      ;; XEmacs.
+      `(if ,activate
+	   (zmacs-activate-region)
+	 (zmacs-deactivate-region))
+    ;; Emacs.
+    `(setq mark-active ,activate)))
+
+(defmacro c-delete-and-extract-region (start end)
+  "Delete the text between START and END and return it."
+  (if (cc-bytecomp-fboundp 'delete-and-extract-region)
+      ;; Emacs 21.1 and later
+      `(delete-and-extract-region ,start ,end)
+    ;; XEmacs and Emacs 20.x
+    `(prog1
+       (buffer-substring ,start ,end)
+       (delete-region ,start ,end))))
+
 (defmacro c-safe (&rest body)
   ;; safely execute BODY, return nil if an error occurred
-  ;;
-  ;; This function does not do any hidden buffer changes.
   `(condition-case nil
        (progn ,@body)
      (error nil)))
 (put 'c-safe 'lisp-indent-function 0)
+
+(defmacro c-int-to-char (integer)
+  ;; In GNU Emacs, a character is an integer.  In XEmacs, a character is a
+  ;; type distinct from an integer.  Sometimes we need to convert integers to
+  ;; characters.  `c-int-to-char' makes this conversion, if necessary.
+  (if (fboundp 'int-to-char)
+      `(int-to-char ,integer)
+    integer))
+
+(defmacro c-sentence-end ()
+  ;; Get the regular expression `sentence-end'.
+  (if (cc-bytecomp-fboundp 'sentence-end)
+      ;; Emacs 22:
+      `(sentence-end)
+    ;; Emacs <22 + XEmacs
+    `sentence-end))
+
+(defmacro c-default-value-sentence-end ()
+  ;; Get the default value of the variable sentence end.
+  (if (cc-bytecomp-fboundp 'sentence-end)
+      ;; Emacs 22:
+      `(let (sentence-end) (sentence-end))
+    ;; Emacs <22 + XEmacs
+    `(default-value 'sentence-end)))
 
 ;; The following is essentially `save-buffer-state' from lazy-lock.el.
 ;; It ought to be a standard macro.
 (defmacro c-save-buffer-state (varlist &rest body)
   "Bind variables according to VARLIST (in `let*' style) and eval BODY,
 then restore the buffer state under the assumption that no significant
-modification has been made.  A change is considered significant if it
-affects the buffer text in any way that isn't completely restored
-again.  Changes in text properties like `face' or `syntax-table' are
-considered insignificant.  This macro allows text properties to be
-changed, even in a read-only buffer.
+modification has been made in BODY.  A change is considered
+significant if it affects the buffer text in any way that isn't
+completely restored again.  Changes in text properties like `face' or
+`syntax-table' are considered insignificant.  This macro allows text
+properties to be changed, even in a read-only buffer.
+
+This macro should be placed around all calculations which set
+\"insignificant\" text properties in a buffer, even when the buffer is
+known to be writeable.  That way, these text properties remain set
+even if the user undoes the command which set them.
+
+This macro should ALWAYS be placed around \"temporary\" internal buffer
+changes \(like adding a newline to calculate a text-property then
+deleting it again\), so that the user never sees them on his
+`buffer-undo-list'.  See also `c-tentative-buffer-changes'.
+
+However, any user-visible changes to the buffer \(like auto-newlines\)
+must not be within a `c-save-buffer-state', since the user then
+wouldn't be able to undo them.
 
 The return value is the value of the last form in BODY."
   `(let* ((modified (buffer-modified-p)) (buffer-undo-list t)
@@ -350,11 +420,79 @@ The return value is the value of the last form in BODY."
 	  before-change-functions after-change-functions
 	  deactivate-mark
 	  ,@varlist)
-     (prog1 (progn ,@body)
+     (unwind-protect
+	 (progn ,@body)
        (and (not modified)
 	    (buffer-modified-p)
 	    (set-buffer-modified-p nil)))))
 (put 'c-save-buffer-state 'lisp-indent-function 1)
+
+(defmacro c-tentative-buffer-changes (&rest body)
+  "Eval BODY and optionally restore the buffer contents to the state it
+was in before BODY.  Any changes are kept if the last form in BODY
+returns non-nil.  Otherwise it's undone using the undo facility, and
+various other buffer state that might be affected by the changes is
+restored.  That includes the current buffer, point, mark, mark
+activation \(similar to `save-excursion'), and the modified state.
+The state is also restored if BODY exits nonlocally.
+
+If BODY makes a change that unconditionally is undone then wrap this
+macro inside `c-save-buffer-state'.  That way the change can be done
+even when the buffer is read-only, and without interference from
+various buffer change hooks."
+  `(let (-tnt-chng-keep
+	 -tnt-chng-state)
+     (unwind-protect
+	 ;; Insert an undo boundary for use with `undo-more'.  We
+	 ;; don't use `undo-boundary' since it doesn't insert one
+	 ;; unconditionally.
+	 (setq buffer-undo-list (cons nil buffer-undo-list)
+	       -tnt-chng-state (c-tnt-chng-record-state)
+	       -tnt-chng-keep (progn ,@body))
+       (c-tnt-chng-cleanup -tnt-chng-keep -tnt-chng-state))))
+(put 'c-tentative-buffer-changes 'lisp-indent-function 0)
+
+(defun c-tnt-chng-record-state ()
+  ;; Used internally in `c-tentative-buffer-changes'.
+  (vector buffer-undo-list		; 0
+	  (current-buffer)		; 1
+	  ;; No need to use markers for the point and mark; if the
+	  ;; undo got out of synch we're hosed anyway.
+	  (point)			; 2
+	  (mark t)			; 3
+	  (c-region-is-active-p)	; 4
+	  (buffer-modified-p)))		; 5
+
+(defun c-tnt-chng-cleanup (keep saved-state)
+  ;; Used internally in `c-tentative-buffer-changes'.
+
+  (let ((saved-undo-list (elt saved-state 0)))
+    (if (eq buffer-undo-list saved-undo-list)
+	;; No change was done afterall.
+	(setq buffer-undo-list (cdr saved-undo-list))
+
+      (if keep
+	  ;; Find and remove the undo boundary.
+	  (let ((p buffer-undo-list))
+	    (while (not (eq (cdr p) saved-undo-list))
+	      (setq p (cdr p)))
+	    (setcdr p (cdr saved-undo-list)))
+
+	;; `primitive-undo' will remove the boundary.
+	(setq saved-undo-list (cdr saved-undo-list))
+	(let ((undo-in-progress t))
+	  (while (not (eq (setq buffer-undo-list
+				(primitive-undo 1 buffer-undo-list))
+			  saved-undo-list))))
+
+	(when (buffer-live-p (elt saved-state 1))
+	  (set-buffer (elt saved-state 1))
+	  (goto-char (elt saved-state 2))
+	  (set-mark (elt saved-state 3))
+	  (c-set-region-active (elt saved-state 4))
+	  (and (not (elt saved-state 5))
+	       (buffer-modified-p)
+	       (set-buffer-modified-p nil)))))))
 
 (defmacro c-forward-syntactic-ws (&optional limit)
   "Forward skip over syntactic whitespace.
@@ -402,91 +540,127 @@ fails for any reason.
 This is like `forward-sexp' except that it isn't interactive and does
 not do any user friendly adjustments of the point and that it isn't
 susceptible to user configurations such as disabling of signals in
-certain situations.
-
-This function does not do any hidden buffer changes."
+certain situations."
   (or count (setq count 1))
-  `(goto-char (or (scan-sexps (point) ,count)
-		  ,(if (numberp count)
-		       (if (> count 0) `(point-max) `(point-min))
-		     `(if (> ,count 0) (point-max) (point-min))))))
+  `(goto-char (scan-sexps (point) ,count)))
 
 (defmacro c-backward-sexp (&optional count)
   "See `c-forward-sexp' and reverse directions."
   (or count (setq count 1))
   `(c-forward-sexp ,(if (numberp count) (- count) `(- ,count))))
 
-(defmacro c-safe-scan-lists (from count depth)
-  "Like `scan-lists' but returns nil instead of signaling errors.
+(defmacro c-safe-scan-lists (from count depth &optional limit)
+  "Like `scan-lists' but returns nil instead of signalling errors
+for unbalanced parens.
 
-This function does not do any hidden buffer changes."
-  (if (featurep 'xemacs)
-      `(scan-lists ,from ,count ,depth nil t)
-    `(c-safe (scan-lists ,from ,count ,depth))))
+A limit for the search may be given.  FROM is assumed to be on the
+right side of it."
+  (let ((res (if (featurep 'xemacs)
+		 `(scan-lists ,from ,count ,depth nil t)
+	       `(c-safe (scan-lists ,from ,count ,depth)))))
+    (if limit
+	`(save-restriction
+	   ,(if (numberp count)
+		(if (< count 0)
+		    `(narrow-to-region ,limit (point-max))
+		  `(narrow-to-region (point-min) ,limit))
+	      `(if (< ,count 0)
+		   (narrow-to-region ,limit (point-max))
+		 (narrow-to-region (point-min) ,limit)))
+	   ,res)
+      res)))
 
 
 ;; Wrappers for common scan-lists cases, mainly because it's almost
 ;; impossible to get a feel for how that function works.
 
-(defmacro c-up-list-forward (&optional pos)
+(defmacro c-up-list-forward (&optional pos limit)
   "Return the first position after the list sexp containing POS,
 or nil if no such position exists.  The point is used if POS is left out.
 
-This function does not do any hidden buffer changes."
-  `(c-safe-scan-lists ,(or pos `(point)) 1 1))
+A limit for the search may be given.  The start position is assumed to
+be before it."
+  `(c-safe-scan-lists ,(or pos `(point)) 1 1 ,limit))
 
-(defmacro c-up-list-backward (&optional pos)
+(defmacro c-up-list-backward (&optional pos limit)
   "Return the position of the start of the list sexp containing POS,
 or nil if no such position exists.  The point is used if POS is left out.
 
-This function does not do any hidden buffer changes."
-  `(c-safe-scan-lists ,(or pos `(point)) -1 1))
+A limit for the search may be given.  The start position is assumed to
+be after it."
+  `(c-safe-scan-lists ,(or pos `(point)) -1 1 ,limit))
 
-(defmacro c-down-list-forward (&optional pos)
+(defmacro c-down-list-forward (&optional pos limit)
   "Return the first position inside the first list sexp after POS,
 or nil if no such position exists.  The point is used if POS is left out.
 
-This function does not do any hidden buffer changes."
-  `(c-safe-scan-lists ,(or pos `(point)) 1 -1))
+A limit for the search may be given.  The start position is assumed to
+be before it."
+  `(c-safe-scan-lists ,(or pos `(point)) 1 -1 ,limit))
 
-(defmacro c-down-list-backward (&optional pos)
+(defmacro c-down-list-backward (&optional pos limit)
   "Return the last position inside the last list sexp before POS,
 or nil if no such position exists.  The point is used if POS is left out.
 
-This function does not do any hidden buffer changes."
-  `(c-safe-scan-lists ,(or pos `(point)) -1 -1))
+A limit for the search may be given.  The start position is assumed to
+be after it."
+  `(c-safe-scan-lists ,(or pos `(point)) -1 -1 ,limit))
 
-(defmacro c-go-up-list-forward (&optional pos)
+(defmacro c-go-up-list-forward (&optional pos limit)
   "Move the point to the first position after the list sexp containing POS,
-or the point if POS is left out.  Return t if such a position exists,
-otherwise nil is returned and the point isn't moved.
+or containing the point if POS is left out.  Return t if such a
+position exists, otherwise nil is returned and the point isn't moved.
 
-This function does not do any hidden buffer changes."
-  `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 1)) t))
+A limit for the search may be given.  The start position is assumed to
+be before it."
+  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 1)) t)))
+    (if limit
+	`(save-restriction
+	   (narrow-to-region (point-min) ,limit)
+	   ,res)
+      res)))
 
-(defmacro c-go-up-list-backward (&optional pos)
+(defmacro c-go-up-list-backward (&optional pos limit)
   "Move the point to the position of the start of the list sexp containing POS,
-or the point if POS is left out.  Return t if such a position exists,
-otherwise nil is returned and the point isn't moved.
+or containing the point if POS is left out.  Return t if such a
+position exists, otherwise nil is returned and the point isn't moved.
 
-This function does not do any hidden buffer changes."
-  `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 1)) t))
+A limit for the search may be given.  The start position is assumed to
+be after it."
+  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 1)) t)))
+    (if limit
+	`(save-restriction
+	   (narrow-to-region ,limit (point-max))
+	   ,res)
+      res)))
 
-(defmacro c-go-down-list-forward (&optional pos)
+(defmacro c-go-down-list-forward (&optional pos limit)
   "Move the point to the first position inside the first list sexp after POS,
-or the point if POS is left out.  Return t if such a position exists,
-otherwise nil is returned and the point isn't moved.
+or before the point if POS is left out.  Return t if such a position
+exists, otherwise nil is returned and the point isn't moved.
 
-This function does not do any hidden buffer changes."
-  `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 -1)) t))
+A limit for the search may be given.  The start position is assumed to
+be before it."
+  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) 1 -1)) t)))
+    (if limit
+	`(save-restriction
+	   (narrow-to-region (point-min) ,limit)
+	   ,res)
+      res)))
 
-(defmacro c-go-down-list-backward (&optional pos)
+(defmacro c-go-down-list-backward (&optional pos limit)
   "Move the point to the last position inside the last list sexp before POS,
-or the point if POS is left out.  Return t if such a position exists,
-otherwise nil is returned and the point isn't moved.
+or before the point if POS is left out.  Return t if such a position
+exists, otherwise nil is returned and the point isn't moved.
 
-This function does not do any hidden buffer changes."
-  `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 -1)) t))
+A limit for the search may be given.  The start position is assumed to
+be after it."
+  (let ((res `(c-safe (goto-char (scan-lists ,(or pos `(point)) -1 -1)) t)))
+    (if limit
+	`(save-restriction
+	   (narrow-to-region ,limit (point-max))
+	   ,res)
+      res)))
 
 
 (defmacro c-beginning-of-defun-1 ()
@@ -501,8 +675,6 @@ This function does not do any hidden buffer changes."
   ;; This is really a bit too large to be a macro but that isn't a
   ;; problem as long as it only is used in one place in
   ;; `c-parse-state'.
-  ;;
-  ;; This function does not do any hidden buffer changes.
 
   `(progn
      (if (and ,(cc-bytecomp-fboundp 'buffer-syntactic-context-depth)
@@ -542,31 +714,84 @@ This function does not do any hidden buffer changes."
 	  (looking-at defun-prompt-regexp)
 	  (goto-char (match-end 0)))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; V i r t u a l   S e m i c o l o n s 
+;;
+;; In most CC Mode languages, statements are terminated explicitly by
+;; semicolons or closing braces.  In some of the CC modes (currently only AWK
+;; Mode (April 2004)), statements are (or can be) terminated by EOLs.  Such a
+;; statement is said to be terminated by a "virtual semicolon" (VS).  A
+;; statement terminated by an actual semicolon or brace is never considered to
+;; have a VS.
+;;
+;; The indentation engine (or whatever) tests for a VS at a specific position
+;; by invoking the macro `c-at-vsemi-p', which in its turn calls the mode
+;; specific function (if any) which is the value of the language variable
+;; `c-at-vsemi-p-fn'.  The actual details of what constitutes a VS in a
+;; language are thus encapsulated in code specific to that language
+;; (e.g. cc-awk.el).  `c-at-vsemi-p' returns non-nil if point (or the optional
+;; parameter POS) is at a VS, nil otherwise.
+;;
+;; The language specific function might well do extensive analysis of the
+;; source text, and may use a cacheing scheme to speed up repeated calls.
+;;
+;; The "virtual semicolon" lies just after the last non-ws token on the line.
+;; Like POINT, it is considered to lie between two characters.  For example,
+;; at the place shown in the following AWK source line:
+;;
+;;          kbyte = 1024             # 1000 if you're not picky
+;;                      ^
+;;                      |
+;;              Virtual Semicolon
+;;
+;; In addition to `c-at-vsemi-p-fn', a mode may need to supply a function for
+;; `c-vsemi-status-unknown-p-fn'.  The macro `c-vsemi-status-unknown-p' is a
+;; rather recondite kludge.  It exists because the function
+;; `c-beginning-of-statement-1' sometimes tests for VSs as an optimisation,
+;; but `c-at-vsemi-p' might well need to call `c-beginning-of-statement-1' in
+;; its calculations, thus potentially leading to infinite recursion.
+;;
+;; The macro `c-vsemi-status-unknown-p' resolves this problem; it may return
+;; non-nil at any time; returning nil is a guarantee that an immediate
+;; invocation of `c-at-vsemi-p' at point will NOT call
+;; `c-beginning-of-statement-1'.  `c-vsemi-status-unknown-p' may not itself
+;; call `c-beginning-of-statement-1'.
+;;
+;; The macro `c-vsemi-status-unknown-p' will typically check the cacheing
+;; scheme used by the `c-at-vsemp-p-fn', hence the name - the status is
+;; "unknown" if there is no cache entry current for the line. 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defmacro c-at-vsemi-p (&optional pos)
+  ;; Is there a virtual semicolon (not a real one or a }) at POS (defaults to
+  ;; point)?  Always returns nil for languages which don't have Virtual
+  ;; semicolons.
+  ;; This macro might do hidden buffer changes.
+  `(if c-at-vsemi-p-fn
+       (funcall c-at-vsemi-p-fn ,@(if pos `(,pos)))))
+
+(defmacro c-vsemi-status-unknown-p ()
+  ;; Return NIL only if it can be guaranteed that an immediate
+  ;; (c-at-vsemi-p) will NOT call c-beginning-of-statement-1.  Otherwise,
+  ;; return non-nil.  (See comments above).  The function invoked by this
+  ;; macro MUST NOT UNDER ANY CIRCUMSTANCES itself call
+  ;; c-beginning-of-statement-1.
+  ;; Languages which don't have EOL terminated statements always return NIL
+  ;; (they _know_ there's no vsemi ;-).
+  `(if c-vsemi-status-unknown-p-fn (funcall c-vsemi-status-unknown-p-fn)))
+
+
 (defmacro c-benign-error (format &rest args)
   ;; Formats an error message for the echo area and dings, i.e. like
   ;; `error' but doesn't abort.
-  ;;
-  ;; This function does not do any hidden buffer changes.
   `(progn
      (message ,format ,@args)
      (ding)))
 
-(defmacro c-update-modeline ()
-  ;; set the c-auto-hungry-string for the correct designation on the modeline
-  ;;
-  ;; This function does not do any hidden buffer changes.
-  `(progn
-     (setq c-auto-hungry-string
-	   (if c-auto-newline
-	       (if c-hungry-delete-key "/ah" "/a")
-	     (if c-hungry-delete-key "/h" nil)))
-     (force-mode-line-update)))
-
 (defmacro c-with-syntax-table (table &rest code)
   ;; Temporarily switches to the specified syntax table in a failsafe
   ;; way to execute code.
-  ;;
-  ;; This function does not do any hidden buffer changes.
   `(let ((c-with-syntax-table-orig-table (syntax-table)))
      (unwind-protect
 	 (progn
@@ -578,9 +803,7 @@ This function does not do any hidden buffer changes."
 (defmacro c-skip-ws-forward (&optional limit)
   "Skip over any whitespace following point.
 This function skips over horizontal and vertical whitespace and line
-continuations.
-
-This function does not do any hidden buffer changes."
+continuations."
   (if limit
       `(let ((limit (or ,limit (point-max))))
 	 (while (progn
@@ -601,9 +824,7 @@ This function does not do any hidden buffer changes."
 (defmacro c-skip-ws-backward (&optional limit)
   "Skip over any whitespace preceding point.
 This function skips over horizontal and vertical whitespace and line
-continuations.
-
-This function does not do any hidden buffer changes."
+continuations."
   (if limit
       `(let ((limit (or ,limit (point-min))))
 	 (while (progn
@@ -624,9 +845,7 @@ This function does not do any hidden buffer changes."
 
 (defmacro c-major-mode-is (mode)
   "Return non-nil if the current CC Mode major mode is MODE.
-MODE is either a mode symbol or a list of mode symbols.
-
-This function does not do any hidden buffer changes."
+MODE is either a mode symbol or a list of mode symbols."
 
   (if c-langs-are-parametric
       ;; Inside a `c-lang-defconst'.
@@ -643,28 +862,9 @@ This function does not do any hidden buffer changes."
 	     (memq c-buffer-is-cc-mode mode)
 	   (eq c-buffer-is-cc-mode mode))))))
 
-(defmacro c-mode-is-new-awk-p ()
-  ;; Is the current mode the "new" awk mode?  It is important for
-  ;; (e.g.) the cc-engine functions do distinguish between the old and
-  ;; new awk-modes.
-  '(and (c-major-mode-is 'awk-mode)
-	(memq 'syntax-properties c-emacs-features)))
-
-(defmacro c-parse-sexp-lookup-properties ()
-  ;; Return the value of the variable that says whether the
-  ;; syntax-table property affects the sexp routines.  Always return
-  ;; nil in (X)Emacsen without support for that.
-  ;;
-  ;; This function does not do any hidden buffer changes.
-  (cond ((cc-bytecomp-boundp 'parse-sexp-lookup-properties)
-	 `parse-sexp-lookup-properties)
-	((cc-bytecomp-boundp 'lookup-syntax-properties)
-	 `lookup-syntax-properties)
-	(t nil)))
-
 
 ;; Macros/functions to handle so-called "char properties", which are
-;; properties set on a single character and that never spreads to any
+;; properties set on a single character and that never spread to any
 ;; other characters.
 
 (eval-and-compile
@@ -719,6 +919,8 @@ This function does not do any hidden buffer changes."
   ;;
   ;; If there's a `text-property-default-nonsticky' variable (Emacs
   ;; 21) then it's assumed that the property is present on it.
+  ;;
+  ;; This macro does a hidden buffer change.
   (setq property (eval property))
   (if (or c-use-extents
 	  (not (cc-bytecomp-boundp 'text-property-default-nonsticky)))
@@ -761,6 +963,8 @@ This function does not do any hidden buffer changes."
   ;; Remove the given property on the character at POS if it's been put
   ;; there by `c-put-char-property'.  PROPERTY is assumed to be
   ;; constant.
+  ;;
+  ;; This macro does a hidden buffer change.
   (setq property (eval property))
   (cond (c-use-extents
 	 ;; XEmacs.
@@ -785,6 +989,8 @@ This function does not do any hidden buffer changes."
   ;; lists of the `rear-nonsticky' properties in the region, if such
   ;; are used.  Thus it should not be used for common properties like
   ;; `syntax-table'.
+  ;;
+  ;; This macro does hidden buffer changes.
   (setq property (eval property))
   (if c-use-extents
       ;; XEmacs.
@@ -795,12 +1001,44 @@ This function does not do any hidden buffer changes."
     `(remove-text-properties ,from ,to '(,property nil))))
 
 
+;; Macros to put overlays (Emacs) or extents (XEmacs) on buffer text.
+;; For our purposes, these are characterized by being possible to
+;; remove again without affecting the other text properties in the
+;; buffer that got overridden when they were put.
+
+(defmacro c-put-overlay (from to property value)
+  ;; Put an overlay/extent covering the given range in the current
+  ;; buffer.  It's currently undefined whether it's front/end sticky
+  ;; or not.  The overlay/extent object is returned.
+  (if (cc-bytecomp-fboundp 'make-overlay)
+      ;; Emacs.
+      `(let ((ol (make-overlay ,from ,to)))
+	 (overlay-put ol ,property ,value)
+	 ol)
+    ;; XEmacs.
+    `(let ((ext (make-extent ,from ,to)))
+       (set-extent-property ext ,property ,value)
+       ext)))
+
+(defmacro c-delete-overlay (overlay)
+  ;; Deletes an overlay/extent object previously retrieved using
+  ;; `c-put-overlay'.
+  (if (cc-bytecomp-fboundp 'make-overlay)
+      ;; Emacs.
+      `(delete-overlay ,overlay)
+    ;; XEmacs.
+    `(delete-extent ,overlay)))
+
+
 ;; Make edebug understand the macros.
 (eval-after-load "edebug"
   '(progn
+     (def-edebug-spec cc-eval-when-compile t)
      (def-edebug-spec c-point t)
+     (def-edebug-spec c-set-region-active t)
      (def-edebug-spec c-safe t)
      (def-edebug-spec c-save-buffer-state let*)
+     (def-edebug-spec c-tentative-buffer-changes t)
      (def-edebug-spec c-forward-syntactic-ws t)
      (def-edebug-spec c-backward-syntactic-ws t)
      (def-edebug-spec c-forward-sexp t)
@@ -820,7 +1058,8 @@ This function does not do any hidden buffer changes."
      (def-edebug-spec c-get-char-property t)
      (def-edebug-spec c-clear-char-property t)
      (def-edebug-spec c-clear-char-properties t)
-     (def-edebug-spec cc-eval-when-compile t)))
+     (def-edebug-spec c-put-overlay t)
+     (def-edebug-spec c-delete-overlay t)))
 
 
 ;;; Functions.
@@ -847,25 +1086,23 @@ This function does not do any hidden buffer changes."
 
 (defsubst c-mark-<-as-paren (pos)
   ;; Mark the "<" character at POS as an sexp list opener using the
-  ;; syntax-table property.  Note that Emacs 19 and XEmacs <= 20
-  ;; doesn't support syntax properties, so this function might not
-  ;; have any effect.
+  ;; syntax-table property.
+  ;;
+  ;; This function does a hidden buffer change.
   (c-put-char-property pos 'syntax-table c-<-as-paren-syntax))
 
 (defconst c->-as-paren-syntax '(5 . ?<))
 
 (defsubst c-mark->-as-paren (pos)
   ;; Mark the ">" character at POS as an sexp list closer using the
-  ;; syntax-table property.  Note that Emacs 19 and XEmacs <= 20
-  ;; doesn't support syntax properties, so this function might not
-  ;; have any effect.
+  ;; syntax-table property.
+  ;;
+  ;; This function does a hidden buffer change.
   (c-put-char-property pos 'syntax-table c->-as-paren-syntax))
 
 (defsubst c-intersect-lists (list alist)
   ;; return the element of ALIST that matches the first element found
   ;; in LIST.  Uses assq.
-  ;;
-  ;; This function does not do any hidden buffer changes.
   (let (match)
     (while (and list
 		(not (setq match (assq (car list) alist))))
@@ -875,41 +1112,33 @@ This function does not do any hidden buffer changes."
 (defsubst c-lookup-lists (list alist1 alist2)
   ;; first, find the first entry from LIST that is present in ALIST1,
   ;; then find the entry in ALIST2 for that entry.
-  ;;
-  ;; This function does not do any hidden buffer changes.
   (assq (car (c-intersect-lists list alist1)) alist2))
 
 (defsubst c-langelem-sym (langelem)
   "Return the syntactic symbol in LANGELEM.
 
-LANGELEM is a syntactic element, i.e. either a cons cell on the
-\"old\" form given as the first argument to lineup functions or a list
-on the \"new\" form as used in `c-syntactic-element'.
-
-This function does not do any hidden buffer changes."
+LANGELEM is either a cons cell on the \"old\" form given as the first
+argument to lineup functions or a syntactic element on the \"new\"
+form as used in `c-syntactic-element'."
   (car langelem))
 
 (defsubst c-langelem-pos (langelem)
-  "Return the (primary) anchor position in LANGELEM, or nil if there is none.
+  "Return the anchor position in LANGELEM, or nil if there is none.
 
-LANGELEM is a syntactic element, i.e. either a cons cell on the
-\"old\" form given as the first argument to lineup functions or a list
-on the \"new\" form as used in `c-syntactic-element'.
-
-This function does not do any hidden buffer changes."
+LANGELEM is either a cons cell on the \"old\" form given as the first
+argument to lineup functions or a syntactic element on the \"new\"
+form as used in `c-syntactic-element'."
   (if (consp (cdr langelem))
       (car-safe (cdr langelem))
     (cdr langelem)))
 
 (defun c-langelem-col (langelem &optional preserve-point)
-  "Return the column of the (primary) anchor position in LANGELEM.
-Leave point at that position unless PRESERVE-POINT is non-nil.
+  "Return the column of the anchor position in LANGELEM.
+Also move the point to that position unless PRESERVE-POINT is non-nil.
 
-LANGELEM is a syntactic element, i.e. either a cons cell on the
-\"old\" form given as the first argument to lineup functions or a list
-on the \"new\" form as used in `c-syntactic-element'.
-
-This function does not do any hidden buffer changes."
+LANGELEM is either a cons cell on the \"old\" form given as the first
+argument to lineup functions or a syntactic element on the \"new\"
+form as used in `c-syntactic-element'."
   (let ((pos (c-langelem-pos langelem))
 	(here (point)))
     (if pos
@@ -923,37 +1152,17 @@ This function does not do any hidden buffer changes."
 (defsubst c-langelem-2nd-pos (langelem)
   "Return the secondary position in LANGELEM, or nil if there is none.
 
-LANGELEM is a syntactic element, typically on the \"new\" form as used
-in `c-syntactic-element'.  It may be on the \"old\" form that is used
-as the first argument to lineup functions, but then the returned value
-always will be nil.
-
-This function does not do any hidden buffer changes."
+LANGELEM is typically a syntactic element on the \"new\" form as used
+in `c-syntactic-element'.  It may also be a cons cell as passed in the
+first argument to lineup functions, but then the returned value always
+will be nil."
   (car-safe (cdr-safe (cdr-safe langelem))))
 
 (defsubst c-keep-region-active ()
   ;; Do whatever is necessary to keep the region active in XEmacs.
   ;; This is not needed for Emacs.
-  ;;
-  ;; This function does not do any hidden buffer changes.
   (and (boundp 'zmacs-region-stays)
        (setq zmacs-region-stays t)))
-
-(defsubst c-region-is-active-p ()
-  ;; Return t when the region is active.  The determination of region
-  ;; activeness is different in both Emacs and XEmacs.
-  ;;
-  ;; This function does not do any hidden buffer changes.
-  (cond
-   ;; XEmacs
-   ((and (fboundp 'region-active-p)
-	 (boundp 'zmacs-regions)
-	 zmacs-regions)
-    (region-active-p))
-   ;; Emacs
-   ((boundp 'mark-active) mark-active)
-   ;; fallback; shouldn't get here
-   (t (mark t))))
 
 (put 'c-mode    'c-mode-prefix "c-")
 (put 'c++-mode  'c-mode-prefix "c++-")
@@ -965,9 +1174,7 @@ This function does not do any hidden buffer changes."
 
 (defsubst c-mode-symbol (suffix)
   "Prefix the current mode prefix (e.g. \"c-\") to SUFFIX and return
-the corresponding symbol.
-
-This function does not do any hidden buffer changes."
+the corresponding symbol."
   (or c-buffer-is-cc-mode
       (error "Not inside a CC Mode based mode"))
   (let ((mode-prefix (get c-buffer-is-cc-mode 'c-mode-prefix)))
@@ -978,16 +1185,12 @@ This function does not do any hidden buffer changes."
 
 (defsubst c-mode-var (suffix)
   "Prefix the current mode prefix (e.g. \"c-\") to SUFFIX and return
-the value of the variable with that name.
-
-This function does not do any hidden buffer changes."
+the value of the variable with that name."
   (symbol-value (c-mode-symbol suffix)))
 
 (defsubst c-got-face-at (pos faces)
   "Return non-nil if position POS in the current buffer has any of the
-faces in the list FACES.
-
-This function does not do any hidden buffer changes."
+faces in the list FACES."
   (let ((pos-faces (get-text-property pos 'face)))
     (if (consp pos-faces)
 	(progn
@@ -1003,31 +1206,72 @@ This function does not do any hidden buffer changes."
   ;; face objects (while it's only their names that are used just
   ;; about anywhere else) without providing a predicate that tests
   ;; face names.
-  ;;
-  ;; This function does not do any hidden buffer changes.
   (memq facename (face-list)))
+
+(defun c-concat-separated (list separator)
+  "Like `concat' on LIST, but separate each element with SEPARATOR.
+Notably, null elements in LIST are ignored."
+  (mapconcat 'identity (delete nil (append list nil)) separator))
 
 (defun c-make-keywords-re (adorn list &optional mode)
   "Make a regexp that matches all the strings the list.
-Duplicates in the list are removed.  The resulting regexp may contain
-zero or more submatch expressions.
+Duplicates and nil elements in the list are removed.  The resulting
+regexp may contain zero or more submatch expressions.
 
-If ADORN is non-nil there will be at least one submatch and the first
-matches the whole keyword, and the regexp will also not match a prefix
-of any identifier.  Adorned regexps cannot be appended.  The language
-variable `c-nonsymbol-key' is used to make the adornment.  The
-optional MODE specifies the language to get it in.  The default is the
-current language (taken from `c-buffer-is-cc-mode')."
+If ADORN is t there will be at least one submatch and the first
+surrounds the matched alternative, and the regexp will also not match
+a prefix of any identifier.  Adorned regexps cannot be appended.  The
+language variable `c-nonsymbol-key' is used to make the adornment.
+
+A value 'appendable for ADORN is like above, but all alternatives in
+the list that end with a word constituent char will have \\> appended
+instead, so that the regexp remains appendable.  Note that this
+variant doesn't always guarantee that an identifier prefix isn't
+matched since the symbol constituent '_' is normally considered a
+nonword token by \\>.
+
+The optional MODE specifies the language to get `c-nonsymbol-key' from
+when it's needed.  The default is the current language taken from
+`c-buffer-is-cc-mode'."
 
   (let (unique)
     (dolist (elt list)
       (unless (member elt unique)
 	(push elt unique)))
-    (setq list unique))
+    (setq list (delete nil unique)))
   (if list
-      (let ((re (c-regexp-opt list)))
+      (let (re)
 
-	;; Emacs < 21 and XEmacs (all versions so far) has a buggy
+	(if (eq adorn 'appendable)
+	    ;; This is kludgy but it works: Search for a string that
+	    ;; doesn't occur in any word in LIST.  Append it to all
+	    ;; the alternatives where we want to add \>.  Run through
+	    ;; `regexp-opt' and then replace it with \>.
+	    (let ((unique "") pos)
+	      (while (let (found)
+		       (setq unique (concat unique "@")
+			     pos list)
+		       (while (and pos
+				   (if (string-match unique (car pos))
+				       (progn (setq found t)
+					      nil)
+				     t))
+			 (setq pos (cdr pos)))
+		       found))
+	      (setq pos list)
+	      (while pos
+		(if (string-match "\\w\\'" (car pos))
+		    (setcar pos (concat (car pos) unique)))
+		(setq pos (cdr pos)))
+	      (setq re (regexp-opt list))
+	      (setq pos 0)
+	      (while (string-match unique re pos)
+		(setq pos (+ (match-beginning 0) 2)
+		      re (replace-match "\\>" t t re))))
+
+	  (setq re (regexp-opt list)))
+
+	;; Emacs 20 and XEmacs (all versions so far) has a buggy
 	;; regexp-opt that doesn't always cope with strings containing
 	;; newlines.  This kludge doesn't handle shy parens correctly
 	;; so we can't advice regexp-opt directly with it.
@@ -1041,21 +1285,31 @@ current language (taken from `c-buffer-is-cc-mode')."
 	  (when fail-list
 	    (setq re (concat re
 			     "\\|"
-			     (mapconcat 'regexp-quote
-					(sort fail-list
-					      (lambda (a b)
-						(> (length a) (length b))))
-					"\\|")))))
+			     (mapconcat
+			      (if (eq adorn 'appendable)
+				  (lambda (str)
+				    (if (string-match "\\w\\'" str)
+					(concat (regexp-quote str)
+						"\\>")
+				      (regexp-quote str)))
+				'regexp-quote)
+			      (sort fail-list
+				    (lambda (a b)
+				      (> (length a) (length b))))
+			      "\\|")))))
 
 	;; Add our own grouping parenthesis around re instead of
 	;; passing adorn to `regexp-opt', since in XEmacs it makes the
 	;; top level grouping "shy".
-	(if adorn
-	    (concat "\\(" re "\\)"
-		    "\\("
-		    (c-get-lang-constant 'c-nonsymbol-key nil mode)
-		    "\\|$\\)")
-	  re))
+	(cond ((eq adorn 'appendable)
+	       (concat "\\(" re "\\)"))
+	      (adorn
+	       (concat "\\(" re "\\)"
+		       "\\("
+		       (c-get-lang-constant 'c-nonsymbol-key nil mode)
+		       "\\|$\\)"))
+	      (t
+	       re)))
 
     ;; Produce a regexp that matches nothing.
     (if adorn
@@ -1063,6 +1317,35 @@ current language (taken from `c-buffer-is-cc-mode')."
       "\\<\\>")))
 
 (put 'c-make-keywords-re 'lisp-indent-function 1)
+
+(defun c-make-bare-char-alt (chars &optional inverted)
+  "Make a character alternative string from the list of characters CHARS.
+The returned string is of the type that can be used with
+`skip-chars-forward' and `skip-chars-backward'.  If INVERTED is
+non-nil, a caret is prepended to invert the set."
+  ;; This function ought to be in the elisp core somewhere.
+  (let ((str (if inverted "^" "")) char char2)
+    (setq chars (sort (append chars nil) `<))
+    (while chars
+      (setq char (pop chars))
+      (if (memq char '(?\\ ?^ ?-))
+	  ;; Quoting necessary (this method only works in the skip
+	  ;; functions).
+	  (setq str (format "%s\\%c" str char))
+	(setq str (format "%s%c" str char)))
+      ;; Check for range.
+      (setq char2 char)
+      (while (and chars (>= (1+ char2) (car chars)))
+	(setq char2 (pop chars)))
+      (unless (= char char2)
+	(if (< (1+ char) char2)
+	    (setq str (format "%s-%c" str char2))
+	  (push char2 chars))))
+    str))
+
+;; Leftovers from (X)Emacs 19 compatibility.
+(defalias 'c-regexp-opt 'regexp-opt)
+(defalias 'c-regexp-opt-depth 'regexp-opt-depth)
 
 
 ;; Figure out what features this Emacs has
@@ -1076,24 +1359,21 @@ current language (taken from `c-buffer-is-cc-mode')."
 	;; I've no idea what this actually is, but it's legacy. /mast
 	(setq list (cons 'infodock list)))
 
-    ;; XEmacs 19 and beyond use 8-bit modify-syntax-entry flags.
-    ;; Emacs 19 uses a 1-bit flag.  We will have to set up our
+    ;; XEmacs uses 8-bit modify-syntax-entry flags.
+    ;; Emacs uses a 1-bit flag.  We will have to set up our
     ;; syntax tables differently to handle this.
     (let ((table (copy-syntax-table))
 	  entry)
       (modify-syntax-entry ?a ". 12345678" table)
       (cond
-       ;; XEmacs 19, and beyond Emacs 19.34
+       ;; Emacs
        ((arrayp table)
 	(setq entry (aref table ?a))
 	;; In Emacs, table entries are cons cells
 	(if (consp entry) (setq entry (car entry))))
-       ;; XEmacs 20
-       ((fboundp 'get-char-table) (setq entry (get-char-table ?a table)))
-       ;; before and including Emacs 19.34
-       ((and (fboundp 'char-table-p)
-	     (char-table-p table))
-	(setq entry (car (char-table-range table [?a]))))
+       ;; XEmacs
+       ((fboundp 'get-char-table)
+	(setq entry (get-char-table ?a table)))
        ;; incompatible
        (t (error "CC Mode is incompatible with this version of Emacs")))
       (setq list (cons (if (= (logand (lsh entry -16) 255) 255)
@@ -1125,7 +1405,11 @@ current language (taken from `c-buffer-is-cc-mode')."
 	(goto-char 1)
 	(c-forward-sexp)
 	(if (= (point) 5)
-	    (setq list (cons 'syntax-properties list)))
+	    (setq list (cons 'syntax-properties list))
+	  (error (concat
+		  "CC Mode is incompatible with this version of Emacs - "
+		  "support for the `syntax-table' text property "
+		  "is required.")))
 
 	;; Find out if generic comment delimiters work.
 	(c-safe
@@ -1153,7 +1437,7 @@ current language (taken from `c-buffer-is-cc-mode')."
 	  (setq list (cons 'posix-char-classes list)))
 
 	;; See if `open-paren-in-column-0-is-defun-start' exists and
-	;; isn't buggy.
+	;; isn't buggy (Emacs >= 21.4).
 	(when (boundp 'open-paren-in-column-0-is-defun-start)
 	  (let ((open-paren-in-column-0-is-defun-start nil)
 		(parse-sexp-ignore-comments t))
@@ -1180,8 +1464,11 @@ current language (taken from `c-buffer-is-cc-mode')."
       (kill-buffer buf))
 
     ;; See if `parse-partial-sexp' returns the eighth element.
-    (when (c-safe (>= (length (save-excursion (parse-partial-sexp 1 1))) 10))
-      (setq list (cons 'pps-extended-state list)))
+    (if (c-safe (>= (length (save-excursion (parse-partial-sexp 1 1))) 10))
+	(setq list (cons 'pps-extended-state list))
+      (error (concat
+	      "CC Mode is incompatible with this version of Emacs - "
+	      "`parse-partial-sexp' has to return at least 10 elements.")))
 
     ;;(message "c-emacs-features: %S" list)
     list)
@@ -1193,14 +1480,17 @@ might be present:
 '8-bit              8 bit syntax entry flags (XEmacs style).
 '1-bit              1 bit syntax entry flags (Emacs style).
 'syntax-properties  It works to override the syntax for specific characters
-		    in the buffer with the 'syntax-table property.
+		    in the buffer with the 'syntax-table property.  It's
+		    always set - CC Mode no longer works in emacsen without
+		    this feature.
 'gen-comment-delim  Generic comment delimiters work
 		    (i.e. the syntax class `!').
 'gen-string-delim   Generic string delimiters work
 		    (i.e. the syntax class `|').
 'pps-extended-state `parse-partial-sexp' returns a list with at least 10
-		    elements, i.e. it contains the position of the
-		    start of the last comment or string.
+		    elements, i.e. it contains the position of the start of
+		    the last comment or string. It's always set - CC Mode no
+		    longer works in emacsen without this feature.
 'posix-char-classes The regexp engine understands POSIX character classes.
 'col-0-paren        It's possible to turn off the ad-hoc rule that a paren
 		    in column zero is the start of a defun.
@@ -1359,9 +1649,7 @@ To work well with repeated loads and interactive reevaluation, only
 one `c-lang-defconst' for each NAME is permitted per file.  If there
 already is one it will be completely replaced; the value in the
 earlier definition will not affect `c-lang-const' on the same
-constant.  A file is identified by its base name.
-
-This macro does not do any hidden buffer changes."
+constant.  A file is identified by its base name."
 
   (let* ((sym (intern (symbol-name name) c-lang-constants))
 	 ;; Make `c-lang-const' expand to a straightforward call to
@@ -1451,8 +1739,7 @@ This macro does not do any hidden buffer changes."
      (&define name [&optional stringp] [&rest sexp def-form])))
 
 (defun c-define-lang-constant (name bindings &optional pre-files)
-  ;; Used by `c-lang-defconst'.  This function does not do any hidden
-  ;; buffer changes.
+  ;; Used by `c-lang-defconst'.
 
   (let* ((sym (intern (symbol-name name) c-lang-constants))
 	 (source (get sym 'source))
@@ -1504,9 +1791,7 @@ LANG is the name of the language, i.e. the mode name without the
 \"-mode\" suffix.  If used inside `c-lang-defconst' or
 `c-lang-defvar', LANG may be left out to refer to the current
 language.  NAME and LANG are not evaluated so they should not be
-quoted.
-
-This macro does not do any hidden buffer changes."
+quoted."
 
   (or (symbolp name)
       (error "Not a symbol: %s" name))
@@ -1516,18 +1801,12 @@ This macro does not do any hidden buffer changes."
   (let ((sym (intern (symbol-name name) c-lang-constants))
 	mode source-files args)
 
-    (if lang
-	(progn
-	  (setq mode (intern (concat (symbol-name lang) "-mode")))
-	  (unless (get mode 'c-mode-prefix)
-	    (error
-	     "Unknown language %S since it got no `c-mode-prefix' property"
-	     (symbol-name lang))))
-      (if c-buffer-is-cc-mode
-	  (setq lang c-buffer-is-cc-mode)
-	(or c-langs-are-parametric
-	    (error
-	     "`c-lang-const' requires a literal language in this context"))))
+    (when lang
+      (setq mode (intern (concat (symbol-name lang) "-mode")))
+      (unless (get mode 'c-mode-prefix)
+	(error
+	 "Unknown language %S since it got no `c-mode-prefix' property"
+	 (symbol-name lang))))
 
     (if (eq c-lang-const-expansion 'immediate)
 	;; No need to find out the source file(s) when we evaluate
@@ -1550,7 +1829,7 @@ This macro does not do any hidden buffer changes."
 					       (list (car elem))))
 					   (get sym 'source))))))
 
-      ;; Spend some effort to make a compact call to
+      ;; Make some effort to do a compact call to
       ;; `c-get-lang-constant' since it will be compiled in.
       (setq args (and mode `(',mode)))
       (if (or source-files args)
@@ -1558,12 +1837,15 @@ This macro does not do any hidden buffer changes."
 			   args)))
 
       (if (or (eq c-lang-const-expansion 'call)
+	      (and (not c-lang-const-expansion)
+		   (not mode))
 	      load-in-progress
 	      (not (boundp 'byte-compile-dest-file))
 	      (not (stringp byte-compile-dest-file)))
 	  ;; Either a straight call is requested in the context, or
-	  ;; we're not being byte compiled so the compile time stuff
-	  ;; below is unnecessary.
+	  ;; we're in an "uncontrolled" context and got no language,
+	  ;; or we're not being byte compiled so the compile time
+	  ;; stuff below is unnecessary.
 	  `(c-get-lang-constant ',name ,@args)
 
 	;; Being compiled.  If the loading and compiling version is
@@ -1577,8 +1859,7 @@ This macro does not do any hidden buffer changes."
 (defvar c-lang-constants-under-evaluation nil)
 
 (defun c-get-lang-constant (name &optional source-files mode)
-  ;; Used by `c-lang-const'.  This function does not do any hidden
-  ;; buffer changes.
+  ;; Used by `c-lang-const'.
 
   (or mode
       (setq mode c-buffer-is-cc-mode)
