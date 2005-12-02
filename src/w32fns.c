@@ -7413,6 +7413,9 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
     *root_y = XINT (top);
   else if (*root_y + XINT (dy) - height < 0)
     *root_y -= XINT (dy);
+  /* If there's not enough place below the pointer, put tip above it.  */
+  else if (*root_y + XINT (dy) >= FRAME_W32_DISPLAY_INFO (f)->height)
+    *root_y -= XINT (dy);
   else
     {
       *root_y -= height;
