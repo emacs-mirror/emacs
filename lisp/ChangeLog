@@ -1,3 +1,7 @@
+2005-12-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* info.el: Move back/forward history to the beginning of the tool bar.
+
 2005-12-02  Ken Manheimer  <ken.manheimer@gmail.com>
 
 	* allout.el:(eval-when-compile): Remove unnecessary load of 'cl.
