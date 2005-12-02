@@ -1,3 +1,7 @@
+2005-12-02  Juri Linkov  <juri@jurta.org>
+
+	* log-view.el (log-view-diff): Clarify doc string.
+
 2005-12-01  Bill Wohler  <wohler@newt.com>
 
 	* Makefile.in (mh-loaddefs.el): Reinsert Change Log as its absence
