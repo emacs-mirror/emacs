@@ -1,3 +1,9 @@
+2005-12-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (transient-mark-mode, line-number-mode)
+	(column-number-mode, size-indication-mode): Remove
+	`:require nil'.
+
 2005-12-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-ann3): Bind mouse-2 to gdb-mouse-until
