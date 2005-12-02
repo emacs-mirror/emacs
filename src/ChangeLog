@@ -1,3 +1,13 @@
+2005-12-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h: Add prototype for xg_set_icon_from_xpm_data.
+
+	* xfns.c (x_real_positions): int ign => unsigned int.
+	(xg_set_icon_from_xpm_data): Remove unused variable err.
+	(x_set_name_internal, Fx_create_frame, xg_set_icon): Add cast
+	to remove compiler warning.
+	(compute_tip_xy): Put tip above pointer if it doesn't fit below.
+
 2005-12-02  David Reitter  <david.reitter@gmail.com>
 
 	* minibuf.c (Fcompleting_read): If Vminibuffer_completing_file_name is
