@@ -1,3 +1,8 @@
+2005-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (compute_tip_xy): Put tip above pointer if it doesn't
+	fit below.
+
 2005-12-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.h: Add prototype for xg_set_icon_from_xpm_data.
