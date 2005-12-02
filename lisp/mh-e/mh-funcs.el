@@ -1,7 +1,7 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
 ;; Copyright (C) 1993, 1995,
-;;  2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -39,15 +39,6 @@
 (mh-require-cl)
 (require 'mh-e)
 
-;;; Customization
-
-(defvar mh-sortm-args nil
-  "Extra arguments to have \\[mh-sort-folder] pass to the \"sortm\" command.
-The arguments are passed to sortm if \\[mh-sort-folder] is given a
-prefix argument.  Normally default arguments to sortm are specified in the
-MH profile.
-For example, '(\"-nolimit\" \"-textfield\" \"subject\") is a useful setting.")
-
 ;;; Scan Line Formats
 
 (defvar mh-note-copied "C"
@@ -60,9 +51,19 @@ For example, '(\"-nolimit\" \"-textfield\" \"subject\") is a useful setting.")
 
 ;;;###mh-autoload
 (defun mh-burst-digest ()
-  "Burst apart the current message, which should be a digest.
-The message is replaced by its table of contents and the messages from the
-digest are inserted into the folder after that message."
+  "Break up digest into separate messages\\<mh-folder-mode-map>.
+
+This command uses the MH command \"burst\" to break out each message in the
+digest into its own message. Using this command, you can quickly delete
+unwanted messages, like this: Once the digest is split up, toggle out of
+MH-Folder Show mode with \\[mh-toggle-showing] so that the scan lines fill the
+screen and messages aren't displayed. Then use \\[mh-delete-msg] to quickly
+delete messages that you don't want to read (based on the \"Subject:\" header
+field). You can also burst the digest to reply directly to the people who
+posted the messages in the digest. One problem you may encounter is that the
+\"From:\" header fields are preceded with a \">\" so that your reply can't
+create the \"To:\" field correctly. In this case, you must correct the \"To:\"
+field yourself."
   (interactive)
   (let ((digest (mh-get-msg-num t)))
     (mh-process-or-undo-commands mh-current-folder)
@@ -186,10 +187,12 @@ entire folder."
   (mh-regenerate-headers range))
 
 ;;;###mh-autoload
-(defun mh-pipe-msg (command include-headers)
-  "Pipe the current message through the given shell COMMAND.
-If INCLUDE-HEADERS (prefix argument) is provided, send the entire message.
-Otherwise just send the message's body without the headers."
+(defun mh-pipe-msg (command include-header)
+  "Pipe message through shell command COMMAND.
+
+You are prompted for the Unix command through which you wish to run your
+message. If you give an argument INCLUDE-HEADER to this command, the message
+header is included in the text passed to the command."
   (interactive
    (list (read-string "Shell command on message: ") current-prefix-arg))
   (let ((msg-file-to-pipe (mh-msg-filename (mh-get-msg-num t)))
@@ -199,13 +202,13 @@ Otherwise just send the message's body without the headers."
       (erase-buffer)
       (insert-file-contents msg-file-to-pipe)
       (goto-char (point-min))
-      (if (not include-headers) (search-forward "\n\n"))
+      (if (not include-header) (search-forward "\n\n"))
       (let ((default-directory message-directory))
         (shell-command-on-region (point) (point-max) command nil)))))
 
 ;;;###mh-autoload
 (defun mh-page-digest ()
-  "Advance displayed message to next digested message."
+  "Display next message in digest."
   (interactive)
   (mh-in-show-buffer (mh-show-buffer)
     ;; Go to top of screen (in case user moved point).
@@ -222,7 +225,7 @@ Otherwise just send the message's body without the headers."
 
 ;;;###mh-autoload
 (defun mh-page-digest-backwards ()
-  "Back up displayed message to previous digested message."
+  "Display previous message in digest."
   (interactive)
   (mh-in-show-buffer (mh-show-buffer)
     ;; Go to top of screen (in case user moved point).
@@ -274,10 +277,13 @@ argument EXTRA-ARGS is given."
 
 ;;;###mh-autoload
 (defun mh-store-msg (directory)
-  "Store the file(s) contained in the current message into DIRECTORY.
-The message can contain a shar file or uuencoded file.
-Default directory is the last directory used, or initially the value of
-`mh-store-default-directory' or the current directory."
+  "Unpack message created with `uudecode' or `shar'.
+
+The default DIRECTORY for extraction is the current directory; however, you
+have a chance to specify a different extraction directory. The next time you
+use this command, the default directory is the last directory you used. If you
+would like to change the initial default directory, customize the option
+`mh-store-default-directory'."
   (interactive (list (let ((udir (or mh-store-default-directory
                                      default-directory)))
                        (read-file-name "Store message in directory: "

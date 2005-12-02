@@ -1000,8 +1000,8 @@ When a message is composed, the hooks `text-mode-hook' and
   (mh-funcall-if-exists mh-toolbar-init :letter)
   (make-local-variable 'font-lock-defaults)
   (cond
-   ((or (equal mh-highlight-citation-p 'font-lock)
-        (equal mh-highlight-citation-p 'gnus))
+   ((or (equal mh-highlight-citation-style 'font-lock)
+        (equal mh-highlight-citation-style 'gnus))
     ;; Let's use font-lock even if gnus is used in show-mode.  The reason
     ;; is that gnus uses static text properties which are not appropriate
     ;; for a buffer that will be edited.  So the choice here is either fontify
@@ -1950,7 +1950,7 @@ except that it is callable from a mouse button."
 (defun mh-letter-toggle-header-field-display (arg)
   "Toggle display of header field at point.
 
-Use this command to display ellipsed header fields. This command is a toggle
+Use this command to display truncated header fields. This command is a toggle
 so entering it again will hide the field. This command takes a prefix argument
 ARG: if negative then the field is hidden, if positive then the field is
 displayed."

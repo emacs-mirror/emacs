@@ -1,3 +1,138 @@
+2005-12-01  Bill Wohler  <wohler@newt.com>
+
+	Rewrote Reading Mail chapter in manual which affected mh-show
+	customization group and related functions.
+	
+	* mh-comp.el (mh-letter-mode): Use mh-highlight-citation-style
+	instead of mh-highlight-citation-p.
+	(mh-letter-toggle-header-field-display): "Ellipsed" isn't a word,
+	I think, so use "truncated".
+
+	* mh-customize.el (mh-folder, mh-folder-faces): Group's manual
+	section is Folders, not Organizing. Parent of mh-folder-faces is
+	mh-folder, not mh-show.
+	(mh-speed): Rename to mh-speedbar for consistency with mh-toolbar.
+	(mh-thread): New group that corresponds with manual's Threading
+	chapter.
+	(mh-letter-faces): Group's manual section is Editing Drafts, not
+	Sending Mail.
+	(mh-sortm-args): New customization variable that used to be a
+	defvar.
+	(mh-index-new-messages-folders, mh-index-ticked-messages-folders):
+	Move from mh-index group to mh-folders group.
+	(mh-alias-local-users-prefix, mh-large-folder)
+	(mh-recursive-folders-flag, mh-before-quit-hook)
+	(mh-folder-mode-hook, mh-kill-folder-suppress-prompt-hook)
+	(mh-quit-hook, mh-refile-msg-hook): Move from mh-show group to
+	mh-folder group.
+	(mh-highlight-citation-style): Rename from
+	mh-highlight-citation-p. Sync docstrings with manual.
+	(mh-mhl-format-file): Rename from mhl-formfile. Sync docstrings
+	with manual.
+	(mh-show-threads-flag): Move from mh-show group to mh-thread
+	group.
+	(mh-find-path-hook): Move from mh-show group to mh-e group.
+	(mh-folder-updated-hook): Add to mh-folder group.
+	(mh-forward-hook): Move from mh-folder to mh-sending-mail group.
+	(mh-unseen-updated-hook): Move from mh-show to mh-sequences group.
+	(mh-bury-show-buffer-flag, mh-clean-message-header-flag)
+	(mh-decode-mime-flag, mh-display-buttons-for-alternatives-flag)
+	(mh-display-buttons-for-inline-parts-flag)
+	(mh-do-not-confirm-flag, mh-fetch-x-image-url)
+	(mh-graphical-smileys-flag, mh-graphical-emphasis-flag)
+	(mh-invisible-header-fields-default, mh-invisible-header-fields)
+	(mh-lpr-command-format, mh-max-inline-image-height)
+	(mh-max-inline-image-width)
+	(mh-mime-save-parts-default-directory, mh-print-background-flag)
+	(mh-show-maximum-size, mh-show-use-goto-addr-flag)
+	(mh-show-use-xface-flag, mh-store-default-directory)
+	(mh-summary-height, mh-delete-msg-hook
+	(mh-show-hook, mh-show-mode-hook): Sync docstrings with manual.
+	
+	* mh-e.el
+	(mh-scan-format-mh, mh-scan-good-msg-regexp)
+	(mh-scan-deleted-msg-regexp, mh-scan-refiled-msg-regexp)
+	(mh-scan-cur-msg-number-regexp, mh-scan-subject-regexp): Use
+	non-fontification instead of non-fontifying.
+	(mh-header-display): Use mh-mhl-format-file instead of
+	mhl-formfile. Sync docstrings with manual.
+	(mh-next-undeleted-msg, mh-previous-undeleted-msg): Rename arg to
+	count. Sync docstrings with manual.
+	(mh-refile-or-write-again): Use output from mh-write-msg-to-file
+	so that message doesn't change when using this command. Sync
+	docstrings with manual.
+	(mh-page-msg, mh-previous-page): Rename arg to lines. Sync
+	docstrings with manual.
+	(mh-write-msg-to-file): Rename msg to message. Rename no-headers
+	to no-header. Sync docstrings with manual.
+	(mh-ps-print-map): Delete keybindings for deleted commands
+	mh-ps-print-toggle-mime and mh-ps-print-msg-show.
+	(mh-help-messages): Updated printing help.
+	(mh-delete-msg, mh-delete-msg-no-motion, mh-first-msg)
+	(mh-last-msg, mh-previous-unread-msg, mh-next-button)
+	(mh-prev-button, mh-folder-toggle-mime-part)
+	(mh-folder-inline-mime-part, mh-folder-save-mime-part)
+	(mh-next-unread-msg, mh-toggle-mime-buttons): Sync docstrings with
+	manual.
+
+	* mh-funcs.el (mh-sortm-args): Now a customization option and
+	in mh-customize.el.
+	(mh-pipe-msg): Rename include-headers to include-header. Sync
+	docstrings with manual.
+	(mh-burst-digest, mh-page-digest, mh-page-digest-backwards)
+	(mh-store-msg): Sync docstrings with manual.
+
+	* mh-mime.el (mh-mime-save-parts): Rename arg to prompt. Sync
+	docstrings with manual.
+	(mh-toggle-mh-decode-mime-flag): Use English in message, not Lisp.
+	Sync docstrings with manual.
+	(mh-mm-display-part, mh-mm-inline-message): Use
+	mh-highlight-citation-style instead of mh-highlight-citation-p.
+	(mh-press-button): Sync docstrings with manual.
+	(mh-display-with-external-viewer): Fix default output in
+	minibuffer. Sync docstrings with manual.
+
+	* mh-print.el: (mh-ps-print-mime, mh-ps-print-toggle-mime):
+	Deleted.
+	(mh-ps-print-color-option): Incorporate docstring from
+	ps-print-color-p.
+	(mh-ps-spool-buffer): Remove unused code. Fix indent. Slimline
+	docstring.
+	(mh-ps-spool-msg): Slimline docstring. Rename from
+	mh-ps-spool-a-msg. Rewrote to use existing show buffer when
+	available.
+	(mh-ps-print-range): Extract method from common code in
+	mh-ps-print-msg and mh-ps-print-msg-file.
+	(mh-ps-print-preprint): Clean docstring. Use filename "mh-%s".
+	(mh-ps-print-msg-show): Delete. Can use either
+	mh-ps-print-msg-show or mh-ps-print-msg-show to same effect with
+	new code in mh-ps-spool-msg.
+	(mh-print-msg): Use mh-mhl-format-file instead of mhl-formfile.
+	Sync docstrings with manual.
+	(mh-ps-print-msg, mh-ps-print-msg-file)
+	(mh-ps-print-toggle-faces, mh-ps-print-toggle-color): Sync
+	docstrings with manual.
+	
+	* mh-utils.el (mh-show-ps-print-msg-show,
+	mh-show-ps-print-toggle-mime): Delete.
+	(mh-show-ps-print-map): Updated accordingly.
+	(mh-show-mode): Use mh-highlight-citation-style instead of
+	mh-highlight-citation-p.
+	(mh-show-xface, mh-display-msg): Use mh-mhl-format-file instead of
+	mhl-formfile.
+	(mh-show): Use mh-mhl-format-file instead of mhl-formfile. Sync
+	docstrings with manual.
+	(mh-show-font-lock-fontify-region, mh-modify, mh-goto-msg): Sync
+	docstrings with manual.
+
+2005-12-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-init.el (mh-defface-compat): Checkdoc fix.
+
+	* mh-junk.el (mh-bogofilter-blacklist, mh-bogofilter-whitelist):
+	Bogofilter is lowercase except at beginning of sentence and in
+	titles.
+
 2005-11-04  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-min-colors-defined-flag, mh-defface-compat):
