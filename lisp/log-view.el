@@ -196,9 +196,9 @@
 
 (defun log-view-diff (beg end)
   "Get the diff for several revisions.
-If the point is the same as the mark, get the diff for this revision.
-Otherwise, get the diff between the revisions
-were the region starts and ends."
+If the point is the same as the mark or the mark is not active,
+get the diff for this revision.  Otherwise, get the diff between
+the revisions where the region starts and ends."
   (interactive
    (list (if mark-active (region-beginning) (point))
          (if mark-active (region-end) (point))))
