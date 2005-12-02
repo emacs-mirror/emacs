@@ -1747,8 +1747,12 @@ Completion ignores case if the ambient value of
     XSETFASTINT (histpos, 0);
 
   val = read_minibuf (NILP (require_match)
-		      ? Vminibuffer_local_completion_map
-		      : Vminibuffer_local_must_match_map,
+		      ? (NILP (Vminibuffer_completing_file_name)
+			 ? Vminibuffer_local_completion_map
+			 : Vminibuffer_local_filename_completion_map)
+		      : (NILP (Vminibuffer_completing_file_name)
+			 ? Vminibuffer_local_must_match_map
+			 : Vminibuffer_local_must_match_filename_map),
 		      init, prompt, make_number (pos), 0,
 		      histvar, histpos, def, 0,
 		      !NILP (inherit_input_method), 0);
@@ -2921,10 +2925,16 @@ keys_of_minibuf ()
   initial_define_key (Vminibuffer_local_completion_map, '?',
 		      "minibuffer-completion-help");
 
+  initial_define_key (Vminibuffer_local_filename_completion_map, ' ',
+		      "self-insert-command");
+
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('m'),
 		      "minibuffer-complete-and-exit");
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('j'),
 		      "minibuffer-complete-and-exit");
+
+  initial_define_key (Vminibuffer_local_must_match_filename_map, ' ',
+		      "self-insert-command");
 }
 
 /* arch-tag: 8f69b601-fba3-484c-a6dd-ceaee54a7a73
