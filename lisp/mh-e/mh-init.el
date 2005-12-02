@@ -1,6 +1,6 @@
 ;;; mh-init.el --- MH-E initialization.
 
-;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -336,7 +336,7 @@ directory is added to the `load-path' if it isn't already there."
   "Non-nil means defface supports min-colors display requirement.")
 
 (defun mh-defface-compat (spec)
-  "Converts SPEC for defface if necessary to run on older platforms.
+  "Convert SPEC for defface if necessary to run on older platforms.
 See `defface' for the spec definition.
 
 When `mh-min-colors-defined-flag' is nil, this function finds a display with a
@@ -354,7 +354,7 @@ single \"class\" requirement with a \"color\" item, renames the requirement to
           (when (not (eq (car entry) t))
             (if (assoc 'min-colors (car entry))
                 (delq (assoc 'min-colors (car entry)) (car entry)))))))
-  
+
 (provide 'mh-init)
 
 ;;; Local Variables:
