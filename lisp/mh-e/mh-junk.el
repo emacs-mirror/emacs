@@ -306,7 +306,7 @@ wildcard entry such as:
 (defvar mh-bogofilter-executable (executable-find "bogofilter"))
 
 (defun mh-bogofilter-blacklist (msg)
-  "Blacklist MSG with Bogofilter.
+  "Blacklist MSG with bogofilter.
 
 Bogofilter is a Bayesian spam filtering program. Get it from your local
 distribution or from http://bogofilter.sourceforge.net/.
@@ -324,11 +324,11 @@ training methods are described in the FAQ that is distributed with bogofilter.
 Note that most Bayesian filters need 1000 to 5000 of each type of message to
 start doing a good job.
 
-To use Bogofilter, add the following recipes to `.procmailrc':
+To use bogofilter, add the following recipes to `.procmailrc':
 
     MAILDIR=$HOME/`mhparam Path`
 
-    # Fight spam with Bogofilter.
+    # Fight spam with bogofilter.
     :0fw
     | bogofilter -3 -e -p
 
@@ -340,9 +340,9 @@ To use Bogofilter, add the following recipes to `.procmailrc':
     * ^X-Bogosity: Unsure, tests=bogofilter
     spam/unsure/.
 
-If Bogofilter classifies a message incorrectly, or is unsure, you can use the
+If bogofilter classifies a message incorrectly, or is unsure, you can use the
 MH-E commands \\[mh-junk-blacklist] and \\[mh-junk-whitelist] to update
-Bogofilter's training.
+bogofilter's training.
 
 The \"Bogofilter FAQ\" suggests that you run the following
 occasionally to shrink the database:
@@ -359,7 +359,7 @@ The \"Bogofilter tuning HOWTO\" describes how you can fine-tune Bogofilter."
                   nil "-s")))
 
 (defun mh-bogofilter-whitelist (msg)
-  "Whitelist MSG with Bogofilter.
+  "Whitelist MSG with bogofilter.
 
 See `mh-bogofilter-blacklist' for more information."
   (unless mh-bogofilter-executable
