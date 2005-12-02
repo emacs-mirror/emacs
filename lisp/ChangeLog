@@ -1,3 +1,16 @@
+2005-12-02  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-external-point-words): Consider
+	a misspelling as found in the string search if: (a) misspelling
+	and found string lengths match, or (b) misspelling is found as
+	element in a boundary-chars separated longer string, or (c)
+	ispell-program-name is really ispell and misspelling is found as
+	part of a TeX string.  After successful match move beginning of
+	search region to end of match.  Warn about not found misspellings
+	once the process is done.
+	(flyspell-large-region) Do not set ispell-parser to tex if in TeX
+	mode.
+
 2005-12-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Put gud-finish back on the
