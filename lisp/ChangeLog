@@ -1,3 +1,7 @@
+2005-12-03  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* subr.el (atomic-change-group): Add edebug and indentation spec.
+
 2005-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* completion.el (save-completions-file-name): Fix typo in last change.
