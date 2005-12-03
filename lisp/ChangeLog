@@ -1,5 +1,8 @@
 2005-12-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* disp-table.el (standard-display-european): Add to the warning
+	message a reference to the doc string.
+
 	* play/yow.el (apropos-zippy): Call print-help-return-message,
 	similar to other Help and Apropos commands.
 
