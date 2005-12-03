@@ -1,3 +1,9 @@
+2005-12-03  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Fix bug
+	whereby names of length one or names starting with a
+	symbol-constituent character would not be returned.
+
 2005-12-03  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* subr.el (atomic-change-group): Add edebug and indentation spec.
