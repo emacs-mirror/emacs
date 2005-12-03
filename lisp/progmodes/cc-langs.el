@@ -2580,15 +2580,17 @@ is in effect or not."
 	  (when (boundp (c-mode-symbol "font-lock-extra-types"))
 	    (c-mode-var "font-lock-extra-types")))
 	 (regexp-strings
-	  (mapcan (lambda (re)
+	  (apply 'nconc
+		 (mapcar (lambda (re)
 		    (when (string-match "[][.*+?^$\\]" re)
 		      (list re)))
-		  extra-types))
+		  extra-types)))
 	 (plain-strings
-	  (mapcan (lambda (re)
+	  (apply 'nconc
+		 (mapcar (lambda (re)
 		    (unless (string-match "[][.*+?^$\\]" re)
 		      (list re)))
-		  extra-types)))
+		  extra-types))))
     (concat "\\<\\("
 	    (c-concat-separated
 	     (append (list (c-make-keywords-re nil
