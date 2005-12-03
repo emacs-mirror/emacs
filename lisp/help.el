@@ -159,7 +159,8 @@ specifies what to do when the user exits the help buffer."
 		   (if first-message "  ")
 		   ;; If the help buffer will go in a separate frame,
 		   ;; it's no use mentioning a command to scroll, so don't.
-		   (if (special-display-p (buffer-name standard-output))
+		   (if (or pop-up-windows
+			   (special-display-p (buffer-name standard-output)))
 		       nil
 		     (if (same-window-p (buffer-name standard-output))
 			 ;; Say how to scroll this window.
