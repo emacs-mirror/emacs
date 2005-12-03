@@ -102,7 +102,7 @@
 				"defsetf" "define-setf-expander"
 				"define-method-combination"
 				"defgeneric" "defmethod") t))
-			   "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Variables")
 	 (purecopy (concat "^\\s-*("
@@ -110,7 +110,7 @@
 			     (regexp-opt
 			      '("defvar" "defconst" "defconstant" "defcustom"
 				"defparameter" "define-symbol-macro") t))
-			   "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Types")
 	 (purecopy (concat "^\\s-*("
@@ -119,7 +119,7 @@
 			      '("defgroup" "deftheme" "deftype" "defstruct"
 				"defclass" "define-condition" "define-widget"
 				"defface" "defpackage") t))
-			   "\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+'?\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
