@@ -1,3 +1,34 @@
+2005-12-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB User Interface Layout): Describe how to
+	kill associated buffers.
+	(Breakpoints Buffer): Use D instead of d for gdb-delete-breakpoint.
+	(Watch Expressions): Be more precise.
+	(Other GDB User Interface Buffers): Describe how to change a
+	register value.
+
+2005-11-30  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Plain Lists): Typos fixed.
+
+2005-11-28  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi:  Change references of `M-#' to `C-x *' prefix.
+
+2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Structure editing): New item moving commands added.
+	(Plain Lists): New section.
+
+2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macos.texi (Mac Input): Remove description of
+	mac-command-key-is-meta.  Add descriptions of
+	mac-control-modifier, mac-command-modifier, and
+	mac-option-modifier.
+	(Mac International): Fix description of conversion of clipboard	data.
+	(Mac Font Specs): Add example of font customization by face attributes.
+
 2005-11-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Watch Expressions): Expand description.

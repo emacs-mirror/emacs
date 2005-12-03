@@ -3317,6 +3317,9 @@ w32-use-full-screen-buffer to t.
 ** The variable `mac-keyboard-text-encoding' and the constants
 `kTextEncodingMacRoman', `kTextEncodingISOLatin1', and
 `kTextEncodingISOLatin2' are obsolete.
+
+** The variable `mac-command-key-is-meta' is obsolete.  Use
+`mac-command-modifier' and `mac-option-modifier' instead.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
@@ -4458,6 +4461,10 @@ and scroll-bar settings.
 *** The functions `get-lru-window' and `get-largest-window' take an optional
 argument `dedicated'.  If non-nil, those functions do not ignore
 dedicated windows.
+
++++
+*** The new function `adjust-window-trailing-edge' moves the right
+or bottom edge of a window.  It does not move other window edges.
 
 +++
 ** Customizable fringe bitmaps

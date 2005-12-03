@@ -265,7 +265,6 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
 #if TARGET_API_MAC_CARBON
 static Lisp_Object Qstring, Qnumber, Qboolean, Qdate, Qdata;
 static Lisp_Object Qarray, Qdictionary;
-#define DECODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 0)
 
 struct cfdict_context
 {
@@ -336,12 +335,11 @@ cfdata_to_lisp (data)
 }
 
 
-/* From CFString to a lisp string.  Never returns a unibyte string
-   (even if it only contains ASCII characters).
-   This may cause GC during code conversion. */
+/* From CFString to a lisp string.  Returns a unibyte string
+   containing a UTF-8 byte sequence.  */
 
 Lisp_Object
-cfstring_to_lisp (string)
+cfstring_to_lisp_nodecode (string)
      CFStringRef string;
 {
   Lisp_Object result = Qnil;
@@ -362,9 +360,23 @@ cfstring_to_lisp (string)
 	}
     }
 
+  return result;
+}
+
+
+/* From CFString to a lisp string.  Never returns a unibyte string
+   (even if it only contains ASCII characters).
+   This may cause GC during code conversion. */
+
+Lisp_Object
+cfstring_to_lisp (string)
+     CFStringRef string;
+{
+  Lisp_Object result = cfstring_to_lisp_nodecode (string);
+
   if (!NILP (result))
     {
-      result = DECODE_UTF_8 (result);
+      result = code_convert_string_norecord (result, Qutf_8, 0);
       /* This may be superfluous.  Just to make sure that the result
 	 is a multibyte string.  */
       result = string_to_multibyte (result);
@@ -1141,7 +1153,7 @@ xrm_get_preference_database (application)
   CFSetGetValues (key_set, (const void **)keys);
   for (index = 0; index < count; index++)
     {
-      res_name = SDATA (cfstring_to_lisp (keys[index]));
+      res_name = SDATA (cfstring_to_lisp_nodecode (keys[index]));
       quarks = parse_resource_name (&res_name);
       if (!(NILP (quarks) || *res_name))
 	{

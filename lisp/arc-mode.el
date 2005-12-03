@@ -895,7 +895,7 @@ using `make-temp-file', and the generated name is returned."
 (defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
   (interactive (list nil last-input-event))
-  (if event (mouse-set-point event))
+  (if event (posn-set-point (event-end event)))
   (let* ((view-p (eq other-window-p 'view))
 	 (descr (archive-get-descr))
          (ename (aref descr 0))

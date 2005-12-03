@@ -315,7 +315,7 @@
       (or (eq calc-embedded-quiet t)
 	  (message "Embedded Calc mode enabled; %s to return to normal"
 		   (if calc-embedded-quiet
-		       "Type `M-# x'"
+		       "Type `C-x * x'"
 		     "Give this command again")))))
   (scroll-down 0))    ; fix a bug which occurs when truncate-lines is changed.
 

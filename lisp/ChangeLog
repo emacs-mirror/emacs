@@ -1,3 +1,465 @@
+2005-12-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-ann3): Bind mouse-2 to gdb-mouse-until
+	in the margin also.
+	(gdb-breakpoints-mode-map): Use D instead of d for
+	gdb-delete-breakpoint.
+	(gdb-get-frame-number): Require a number to match on.
+	(gdb-threads-mode-map): Add follow-link binding.
+
+2005-11-30  Jason Rumney  <jasonr@gnu.org>
+
+	* isearch.el (isearch-mode-map): Avoid exiting search on
+	language-change event.
+
+2005-11-30  Romain Francoise  <romain@orebokech.com>
+
+	* speedbar.el (speedbar-default-position): New defcustom.
+	(speedbar-frame-reposition-smartly): Use it.
+
+	* dframe.el (dframe-reposition-frame-emacs): Fix position
+	computation for 'left location.
+	Update copyright year.
+
+2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* help.el (help-map): Move initialization into declaration.
+
+	* emacs-lisp/autoload.el (make-autoload): Handle defgroup specially.
+
+	* help-fns.el (help-argument-name): Don't autoload.
+	It's useless and triggers a bug in cus-dep.el causing ldefs-boot
+	to be re-loaded when customizing the `help' group.
+
+2005-11-30  John Paul Wallington  <jpw@gnu.org>
+
+	* help-fns.el (describe-function-1): Fill arglist output.
+
+2005-11-30  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--rectangle-overlays): Make	permanent-local.
+	(cua--rectangle-post-command): Cleanup overlays and deactivate mark
+	after revert-buffer (or anything else which kills all local variables).
+
+	* apropos.el (apropos-parse-pattern): Doc fix.
+	Set apropos-regexp directly, rather than expecting callers to do so.
+	(apropos-command, apropos, apropos-value, apropos-documentation):
+	Simplify calls to apropos-parse-pattern.
+
+2005-11-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-line-face-buffer, hi-lock-face-buffer)
+	(hi-lock-face-phrase-buffer): Use hi-yellow face.
+	(hi-lock-write-interactive-patterns): Use comment-region.
+
+	* longlines.el (longlines-mode): Add mail-setup-hook.
+
+	* mail/mailheader.el, mail/sendmail.el: Revert 2005-11-17 changes.
+
+	* simple.el (sendmail-user-agent-compose, next-line):
+	Conditionally use hard-newline.
+
+2005-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* international/latexenc.el (latex-inputenc-coding-alist):
+	Reword doc string.
+
+2005-11-29  Chong Yidong  <cyd@stupidchicken.com>
+
+	* help.el (describe-key-briefly, describe-key): Recognize default
+	bindings.
+
+2005-11-29  Romain Francoise  <romain@orebokech.com>
+
+	* view.el (view-inhibit-help-message): New defcustom.
+	(view-mode-enter): Use it.
+
+2005-11-29  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-wind (ediff-setup-control-frame, ediff-make-wide-display):
+	Preserve user position.
+
+2005-11-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* font-lock.el: Throw error if facemenu is not loaded to prevent
+	accidental change of loading order in loadup.el.  (Suggested by RMS.)
+
+	* loadup.el: Add comment explaining why facemenu must be loaded
+	before font-lock.
+
+2005-11-28  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el: Change global keybinding for calc-dispatch to "\C-x*".
+	(calc-dispatch-map): Add more keys for `calc-same-interface'.
+
+	* calc/calc-misc.el (calc-dispatch-help): Update docstring.
+
+	* calc/calc-embed.el (calc-do-embedded): Update help message.
+
+	* calc/calc-prog.el (calc-user-define-invokation): Update help message.
+
+2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-edit.el (log-edit-insert-cvs-rcstemplate): Ignore stderr.
+
+	* emacs-lisp/elp.el (elp-not-profilable): Replace interactive-p with
+	called-interactively-p.
+	(elp-profilable-p): Rename from elp-not-profilable-p.
+	Invert result and take into account macros and autoloaded functions.
+	(elp-instrument-function): Update call.
+	(elp-instrument-package): Update call.  Add completion.
+	(elp-pack-number): Use match-string.
+	(elp-results-jump-to-definition-by-mouse): Merge into
+	elp-results-jump-to-definition and then remove.
+	(elp-output-insert-symname): Make help echo text single-line.
+
+	* replace.el (query-replace-map): Move initialization into declaration.
+	(occur-engine): Use with-current-buffer.
+	(occur-mode-goto-occurrence): Make it work for mouse-clicks as well.
+	(occur-mode-mouse-goto): Replace with an alias.
+
+2005-11-28  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (quoted-insert): Let-bind input-method-function to nil.
+
+	* term/w32-win.el: Bind [S-tab] to [backtab].
+
+	* info.el (Info-fontify-node): Set 2nd arg `noerror' of
+	`Info-find-file' to t.
+
+	* replace.el (occur-mode-mouse-goto): Pop, don't switch.
+	(occur-mode-goto-occurrence): Let-bind same-window-buffer-names
+	and same-window-regexps.
+	(occur-next-error): Don't move point for arg 0.
+
+2005-11-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* replace.el (occur-mode-goto-occurrence): Pop, don't switch.
+
+2005-11-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-edit.el (log-edit-changelog-use-first): New var.
+	(log-edit-changelog-ours-p): Use it.
+	(log-edit-insert-changelog): Set it with new arg `use-first'.
+	(log-edit-insert-cvs-rcstemplate, log-edit-insert-filenames): New funs.
+	(log-edit-hook): Add them to the list of suggested options.
+
+	* textmodes/flyspell.el (flyspell-last-buffer): New var.
+	(flyspell-accept-buffer-local-defs): Use it to avoid doing silly
+	redundant work.
+	(flyspell-mode-on): Use add-hook for after-change-functions.
+	(flyspell-mode-off): Use remove-hook for after-change-functions.
+	(flyspell-changes): Make it buffer-local.
+	(flyspell-after-change-function): Make it non-interactive.  Use push.
+	(flyspell-post-command-hook): Check input-pending-p while processing
+	the potentially long list of buffer changes.
+
+2005-11-28  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* buff-menu.el (list-buffers-noselect): Display the selected
+	frame's buffer list, not the global one.
+
+2005-11-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xt-mouse.el (xterm-mouse-event): Set last-input-event so
+	that (list last-input-event) works as in interactive spec.
+
+2005-11-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loadup.el ("facemenu"): Load facemenu before font-lock, because
+	`facemenu-keymap' needs to be defined when font-lock is loaded.
+	Otherwise, `M-o M-o' is not bound to `font-lock-fontify-block'.
+
+2005-11-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* completion.el: Remove useless leading * in defcustom docstrings.
+	(save-completions-file-name): Use ~/.emacs.d if available.
+	(completion-standard-syntax-table): Rename from
+	cmpl-standard-syntax-table and fold initialization into declaration,
+	thus removing cmpl-make-standard-completion-syntax-table.
+	(completion-lisp-syntax-table, completion-c-syntax-table)
+	(completion-fortran-syntax-table, completion-c-def-syntax-table): Idem.
+	(cmpl-saved-syntax, cmpl-saved-point): Remove.
+	(symbol-under-point, symbol-before-point)
+	(symbol-under-or-before-point, symbol-before-point-for-complete)
+	(add-completions-from-c-buffer): Use with-syntax-table.
+	(make-completion): Don't return a list of completion entries.
+	Update callers.
+	(cmpl-prefix-entry-head, cmpl-prefix-entry-tail): Use defalias.
+	(completion-initialize): Rename from initialize-completions.
+	(completion-find-file-hook): Rename from cmpl-find-file-hook.
+	(kill-emacs-save-completions): Collect stats here.
+	(save-completions-to-file, load-completions-from-file):
+	Use with-current-buffer.
+	(completion-def-wrapper): Rename from def-completion-wrapper.  Make it
+	into a function.  Move all calls to toplevel.
+	(completion-lisp-mode-hook): New fun.
+	(completion-c-mode-hook, completion-setup-fortran-mode):
+	Set the syntax-table here.  Use local-set-key.
+	(completion-saved-bindings): New var.
+	(dynamic-completion-mode): Make it into a proper minor mode.
+	(load-completions-from-file): Remove unused var `num-uses'.
+
+	* emacs-lisp/cl-macs.el (defstruct): Don't define the default
+	constructor if it is explicitly overridden.
+
+	* complete.el (PC-completion-as-file-name-predicate):
+	Use minibuffer-completing-file-name.
+	(partial-completion-mode): Use find-file-not-found-functions.
+	(PC-lisp-complete-symbol): Use with-syntax-table.
+	(PC-look-for-include-file): Remove dead setq.
+	(PC-look-for-include-file, PC-expand-many-files, PC-do-completion)
+	(PC-complete): Use with-current-buffer.
+
+	* progmodes/sh-script.el (sh-font-lock-syntactic-keywords): \ doesn't
+	escape single quotes.
+
+2005-11-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dabbrev.el (dabbrev-completion): Simplify code, by getting rid
+	of `if' whose condition always returned nil.  Doc fix.
+
+	* buff-menu.el (Buffer-menu-revert-function): Make the selected
+	window's buffer the current buffer around the call to
+	`list-buffers-noselect'.  This is necessary to mark that buffer
+	with a `.' in the Buffer Menu when called from Lisp, for instance
+	by Auto Revert Mode.
+
+2005-11-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-stopped): Detect child process when
+	attaching to it.
+	(gdb-pre-prompt): Make sure gdb-error is reset.
+
+	* progmodes/gud.el (gud-gdb-marker-filter): When GDB is invoked
+	with a child process, detect it.
+	(gud-speedbar-buttons): Match regexp more carefully.
+
+2005-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-drag-move-window-bottom):
+	Use adjust-window-trailing-edge.
+
+2005-11-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (blink-matching-open): Ignore
+	`blink-matching-paren-on-screen' if `show-paren-mode' is enabled.
+	(blink-matching-paren-on-screen): Update docstring.
+
+	* paren.el (show-paren-mode): No longer change
+	`blink-matching-paren-on-screen'.
+
+2005-11-27  John Paul Wallington  <jpw@pobox.com>
+
+	* progmodes/gdb-ui.el (gdb-goto-breakpoint, gdb-frames-select)
+	(gdb-threads-select, gdb-edit-register-value):
+	Use `posn-set-point' instead of `mouse-set-point' because the
+	latter is not fbound when configured without X.
+
+2005-11-27  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--highlight-rectangle): Preserve
+	existing face when partially highlighting a TAB in a rectangle.
+
+2005-11-26  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-mode-map): Doc fix.
+	(ido-mode-common-map, ido-mode-file-map)
+	(ido-mode-file-dir-map, ido-mode-buffer-map): New keymaps.
+	(ido-define-mode-map): Rewrite.  Select one of the new maps as
+	parent for ido-mode-map instead of building from scratch.
+	(ido-init-mode-maps): New defun to initialize new maps.
+	(ido-mode): Call it.
+	(ido-switch-buffer): Doc fix -- use \<ido-mode-buffer-map>.
+	(ido-find-file): Doc fix -- use \<ido-mode-file-map>.
+
+2005-11-26  John Paul Wallington  <jpw@pobox.com>
+
+	* arc-mode.el (archive-extract): Use `posn-set-point' instead of
+	`mouse-set-point' because the latter is not fbound when configured
+	without X.
+
+2005-11-26  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* files.el (file-relative-name): Doc fix.
+
+2005-11-26  Kurt Hornik  <Kurt.Hornik@wu-wien.ac.at>
+
+	* progmodes/octave-inf.el (inferior-octave-startup): Force a
+	non-empty string for secondary prompt PS2.
+
+2005-11-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/compile.el (compilation-setup): Fix last change.
+
+2005-11-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
+	(gdb-mouse-toggle-breakpoint-margin)
+	(gdb-mouse-toggle-breakpoint-fringe, gdb-threads-select):
+	Add gdb-server-prefix to keep out of command history.
+	(gdb-edit-register-value): New function.
+	(gdb-registers-mode-map): Bind mouse-2 and RET to it.
+	(gdb-info-registers-custom): Use above map.
+
+2005-11-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (enable-theme): Signal error if argument is not a
+	theme.  Don't recalculate a face if it's not loaded yet.
+
+	* cus-face.el (custom-theme-set-faces): Don't change saved-face if
+	the `user' theme is in effect.
+
+	* info.el (Info-on-current-buffer): Record actual filename in
+	Info-current-file, instead of t, or a fake filename if a non-file
+	buffer.  Make autoload.
+	(Info-find-node, Info-revert-find-node): No need to check for
+	Info-current-file nil.
+	(Info-set-mode-line, Info-up, Info-copy-current-node-name):
+	Info-current-file is now never `t'.
+	(Info-fontify-node): Many simplifications due to Info-current-file
+	always being valid.  Use Info-find-file to find node filename.
+
+2005-11-25  David Kastrup  <dak@gnu.org>
+
+	* longlines.el (longlines-wrap-line): Reorder wrapping to "insert
+	new character, then delete" in order to preserve markers.
+
+2005-11-25  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-arrange-by-rule): Handle a special
+	`auto-mode-alist'-like "strip suffix" rule.
+	(recentf-build-mode-rules): Handle second level auto-mode entries.
+
+2005-11-25  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* viper-keym.el (viper-ESC-key): Use different values in terminal and
+	window modes.
+
+	* viper.el (viper-emacs-state-mode-list): Delete mail-mode, add
+	jde-javadoc-checker-report-mode.
+
+	* ediff-wind (ediff-make-wide-display): Slight simplification.
+
+	* ediff.el (ediff-date): Change the date of last update.
+
+2005-11-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* hi-lock.el (hi-lock-buffer-mode): Renamed from `hi-lock-mode'.
+	Use define-minor-mode, and make it a local mode.  Turn on font-lock.
+	(hi-lock-mode): New global minor mode.
+	(turn-on-hi-lock-if-enabled): New function.
+	(hi-lock-line-face-buffer, hi-lock-face-buffer, hi-lock-set-pattern):
+	Change arguments to regexp and face instead of a font-lock pattern.
+	Directly set face property, instead of refontifying.
+	(hi-lock-font-lock-hook): Check if font-lock is being turned on.
+	(hi-lock-find-patterns): Use line-number-at-pos.
+
+	(hi-lock-face-phrase-buffer): Call hi-lock-buffer-mode.  Use new
+	arguments for hi-lock-set-pattern.
+	(hi-lock-unface-buffer, hi-lock-set-file-patterns): Call
+	font-lock-fontify-buffer.
+	(hi-lock-find-file-hook, hi-lock-current-line)
+	(hi-lock-refontify, hi-lock-set-patterns): Delete unused functions.
+
+	(hi-lock-font-lock-hook): Turn off hi-lock when font lock is
+	turned off.
+
+	* progmodes/compile.el (compilation-setup): Don't fiddle with
+	font-lock-defaults.
+
+2005-11-25  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler)
+	(gdb-var-list-children-handler): Find values for all variable
+	objects.  gud-speedbar-buttons decides whether to display them.
+
+2005-11-24  Romain Francoise  <romain@orebokech.com>
+
+	* info.el (Info-speedbar-fetch-file-nodes): Prefix temporary
+	buffer name with a space.
+
+2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-export-plain-list-max-depth): Renamed from
+	`org-export-local-list-max-depth'.  Change default value to 3.
+	(org-auto-renumber-ordered-lists)
+	(org-plain-list-ordered-item-terminator): New options.
+	(org-at-item-p, org-beginning-of-item, org-end-of-item)
+	(org-get-indentation, org-get-string-indentation)
+	(org-maybe-renumber-ordered-list, org-renumber-ordered-list): New
+	functions.
+	(org-move-item-down, org-move-item-up): New commands.
+	(org-export-as-html): New classes for CSS support.  Bug fix in
+	regular expression detecting fixed-width regions.  Respect
+	`org-local-list-ordered-item-terminator'.
+	(org-set-autofill-regexps, org-adaptive-fill-function): "1)" is
+	also a list item.
+	(org-metaup, org-metadown, org-shiftmetaup, org-shiftmetadown):
+	New item moving functions.
+
+2005-11-24  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-repeat): With empty search ring set
+	`isearch-error' to the error string instead of signaling error
+	with the function `error'.
+
+2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Make modifier `ctrl' an alias for `control'.
+
+2005-11-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-speedbar-auto-raise): New function
+	and variable.
+	(gdb-var-create-handler, gdb-var-list-children-handler):
+	Don't match on "char **...".
+	(gdb-var-update-handler): Find values for all variable objects.
+	(gdb-info-frames-custom): Identify frames by leading "#".
+
+	* progmodes/gud.el (gud-speedbar-menu-items): Add
+	gdb-speedbar-auto-raise as radio button.
+	(gud-speedbar-buttons): Raise speedbar if requested.
+	Don't match on "char **...".
+	(gud-speedbar-buttons): Add (pointer) value for non-leaves.
+	Make it editable.
+
+2005-11-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-fontify-node): Handle the case where
+	Info-current-file is t.
+
+2005-11-23  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* simple.el (blink-matching-open): Fix off-by-one in last change.
+
+2005-11-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Don't change default directory.
+
+2005-11-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (Custom-reset-standard): Make it handle Custom group
+	buffers correctly.  (It used to throw an error in such buffers.)
+	Make it ask for confirmation in group buffers and other Custom
+	buffers containing more than one customization item.
+
+2005-11-22  John Paul Wallington  <jpw@gnu.org>
+
+	* net/goto-addr.el (goto-address-fontify): Put `follow-link'
+	property on mail and url overlays.
+	(goto-address-at-point): Use `posn-set-point' instead of
+	`mouse-set-point' because the latter is not fbound when configured
+	without X.
+
+2005-11-22  Lars Hansen  <larsh@soem.dk>
+
+	* ls-lisp.el (ls-lisp-parse-symlink): Delete.
+	(ls-lisp-classify, ls-lisp-format): Delete call to
+	ls-lisp-parse-symlink.
+	(ls-lisp-handle-switches): Handle symlinks to directories as
+	directories when ls-lisp-dirs-first in non-nil.
+
 2005-11-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* startup.el (command-line): Make sure that loaddefs.el is handled
@@ -36,6 +498,12 @@
 
 	* faces.el: Revert 2005-11-17 change.  :ignore-defface is now
 	handled automagically.
+
+2005-11-20  Andreas Schwab  <schwab@suse.de>
+
+	* descr-text.el (describe-char): When copying overlays put them
+	over the full char description instead of just the first character
+	of it.
 
 2005-11-20  Juri Linkov  <juri@jurta.org>
 

@@ -1216,6 +1216,9 @@ forms.  But that value is hard to find.
 @defun set-window-point window position
 This function positions point in @var{window} at position
 @var{position} in @var{window}'s buffer.  It returns @var{position}.
+
+If @var{window} is selected, and its buffer is current,
+this simply does @code{goto-char}.
 @end defun
 
 @node Window Start
@@ -1702,19 +1705,9 @@ scrolling value explicitly.  The value you specify serves as a lower
 bound for automatic scrolling, i.e. automatic scrolling will not
 scroll a window to a column less than the specified one.
 
-@deffn Command scroll-left &optional count
+@deffn Command scroll-left &optional count set-minimum
 This function scrolls the selected window @var{count} columns to the
 left (or to the right if @var{count} is negative).  The default
-for @var{count} is the window width, minus 2.
-
-The return value is the total amount of leftward horizontal scrolling in
-effect after the change---just like the value returned by
-@code{window-hscroll} (below).
-@end deffn
-
-@deffn Command scroll-right &optional count
-This function scrolls the selected window @var{count} columns to the
-right (or to the left if @var{count} is negative).  The default
 for @var{count} is the window width, minus 2.
 
 The return value is the total amount of leftward horizontal scrolling in
@@ -1724,6 +1717,19 @@ effect after the change---just like the value returned by
 Once you scroll a window as far right as it can go, back to its normal
 position where the total leftward scrolling is zero, attempts to scroll
 any farther right have no effect.
+
+If @var{set-minimum} is non-@code{nil}, the new scroll amount becomes
+the lower bound for automatic scrolling; that is, automatic scrolling
+will not scroll a window to a column less than the value returned by
+this function.  Interactive calls pass non-@code{nil} for
+@var{set-minimum}.
+@end deffn
+
+@deffn Command scroll-right &optional count set-minimum
+This function scrolls the selected window @var{count} columns to the
+right (or to the left if @var{count} is negative).  The default
+for @var{count} is the window width, minus 2.  Aside from the direction
+of scrolling, this works just like @code{scroll-left}.
 @end deffn
 
 @defun window-hscroll &optional window
@@ -2031,6 +2037,14 @@ It could be defined as follows:
 @end group
 @end example
 @end deffn
+
+@defun adjust-window-trailing-edge window delta horizontal
+This function makes the selected window @var{delta} lines taller or
+@var{delta} columns wider, by moving the bottom or right edge.  This
+function does not delete other windows; if it cannot make the
+requested size adjustment, it signals an error.  On success, this
+function returns @code{nil}.
+@end defun
 
 @defun fit-window-to-buffer &optional window max-height min-height
 This function makes @var{window} the right height to display its

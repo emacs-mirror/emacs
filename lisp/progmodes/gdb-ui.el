@@ -41,7 +41,7 @@
 ;; You don't need to know about annotations to use this mode as a debugger,
 ;; but if you are interested developing the mode itself, then see the
 ;; Annotations section in the GDB info manual.
-;;
+
 ;; GDB developers plan to make the annotation interface obsolete.  A new
 ;; interface called GDB/MI (machine interface) has been designed to replace
 ;; it.  Some GDB/MI commands are used in this file through the CLI command
@@ -49,26 +49,32 @@
 ;; GDB (6.2 onwards) that uses GDB/MI as the primary interface to GDB.  It is
 ;; still under development and is part of a process to migrate Emacs from
 ;; annotations to GDB/MI.
-;;
-;; This mode SHOULD WORK WITH GDB 5.0 ONWARDS but you will NEED GDB 6.0
-;; ONWARDS TO USE WATCH EXPRESSIONS.
-;;
-;; Windows Platforms:
-;;
+
+;; This mode SHOULD WORK WITH GDB 5.0 onwards but you will NEED GDB 6.0
+;; onwards to use watch expressions.
+
+;;; Windows Platforms:
+
 ;; If you are using Emacs and GDB on Windows you will need to flush the buffer
 ;; explicitly in your program if you want timely display of I/O in Emacs.
 ;; Alternatively you can make the output stream unbuffered, for example, by
 ;; using a macro:
-;;
+
 ;;           #ifdef UNBUFFERED
 ;;	     setvbuf (stdout, (char *) NULL, _IONBF, 0);
 ;;	     #endif
-;;
+
 ;; and compiling with -DUNBUFFERED while debugging.
-;;
-;; Known Bugs:
-;;
-;; TODO:
+
+;;; Known Bugs:
+
+;; 1) Strings that are watched don't update in the speedbar when their
+;; contents change.
+;; 2) Watch expressions go out of scope when the inferior is re-run.
+;; 3) Cannot handle multiple debug sessions.
+
+;;; TODO:
+
 ;; 1) Use MI command -data-read-memory for memory window.
 ;; 2) Highlight changed register values (use MI commands
 ;;    -data-list-register-values and -data-list-changed-registers instead
@@ -397,6 +403,8 @@ With arg, use separate IO iff arg is positive."
     'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-fringe drag-mouse-1]
     'gdb-mouse-until)
+  (define-key gud-minor-mode-map [left-margin mouse-2]
+    'gdb-mouse-until)
   (define-key gud-minor-mode-map [left-margin mouse-3]
     'gdb-mouse-toggle-breakpoint-margin)
   (define-key gud-minor-mode-map [left-fringe mouse-3]
@@ -471,6 +479,21 @@ With arg, use separate IO iff arg is positive."
 		  (forward-char 2)
 		  (gud-call (concat "until *%a")))))))))
 
+(defcustom gdb-speedbar-auto-raise t
+  "If non-nil raise speedbar every time display of watch expressions is\
+ updated."
+  :type 'boolean
+  :group 'gud
+  :version "22.1")
+
+(defun gdb-speedbar-auto-raise (arg)
+  "Toggle automatic raising of the speedbar for watch expressions."
+  (interactive "P")
+  (setq gdb-speedbar-auto-raise
+	(if (null arg)
+	    (not gdb-speedbar-auto-raise)
+	  (> (prefix-numeric-value arg) 0))))
+
 (defcustom gdb-use-colon-colon-notation nil
   "If non-nil use FUN::VAR format to display variables in the speedbar."
   :type 'boolean
@@ -514,19 +537,16 @@ With arg, use separate IO iff arg is positive."
 	  (unless (string-equal
 		   speedbar-initial-expansion-list-name "GUD")
 	    (speedbar-change-initial-expansion-list "GUD"))
-	  (if (or (equal (nth 2 var) "0")
-		  (and (equal (nth 2 var) "1")
-		       (string-match "char \\*" (nth 3 var))))
-	      (gdb-enqueue-input
-	       (list
-		(if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-			'gdba)
-		    (concat "server interpreter mi \"-var-evaluate-expression "
-			    (nth 1 var) "\"\n")
-		  (concat "-var-evaluate-expression " (nth 1 var) "\n"))
-		     `(lambda () (gdb-var-evaluate-expression-handler
-				  ,(nth 1 var) nil))))
-	    (setq gdb-var-changed t)))
+	  (gdb-enqueue-input
+	   (list
+	    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		    'gdba)
+		(concat "server interpreter mi \"-var-evaluate-expression "
+			(nth 1 var) "\"\n")
+	      (concat "-var-evaluate-expression " (nth 1 var) "\n"))
+	    `(lambda () (gdb-var-evaluate-expression-handler
+			 ,(nth 1 var) nil))))
+	    (setq gdb-var-changed t))
       (if (re-search-forward "Undefined command" nil t)
 	  (message-box "Watching expressions requires gdb 6.0 onwards")
 	(message "No symbol \"%s\" in current context." expr)))))
@@ -575,16 +595,13 @@ type=\"\\(.*?\\)\"")
 		     (if (string-equal (cadr var1) (cadr varchild))
 			 (throw 'child-already-watched nil)))
 		   (push varchild var-list)
-		   (if (or (equal (nth 2 varchild) "0")
-			   (and (equal (nth 2 varchild) "1")
-				(string-match "char \\*" (nth 3 varchild))))
-		       (gdb-enqueue-input
-			(list
-			 (concat
-			  "server interpreter mi \"-var-evaluate-expression "
-				 (nth 1 varchild) "\"\n")
-			 `(lambda () (gdb-var-evaluate-expression-handler
-				      ,(nth 1 varchild) nil))))))))
+		   (gdb-enqueue-input
+		    (list
+		     (concat
+		      "server interpreter mi \"-var-evaluate-expression "
+		      (nth 1 varchild) "\"\n")
+		     `(lambda () (gdb-var-evaluate-expression-handler
+				  ,(nth 1 varchild) nil)))))))
 	   (push var var-list)))
        (setq gdb-var-list (nreverse var-list))))))
 
@@ -604,16 +621,12 @@ type=\"\\(.*?\\)\"")
       (catch 'var-found-1
 	(let ((varnum (match-string 1)))
 	  (dolist (var gdb-var-list)
-	    (when (and (string-equal varnum (cadr var))
-		     (or (equal (nth 2 var) "0")
-			 (and (equal (nth 2 var) "1")
-			      (string-match "char \\*" (nth 3 var)))))
-	      (gdb-enqueue-input
-	       (list
-		(concat "server interpreter mi \"-var-evaluate-expression "
-			varnum "\"\n")
-		`(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
-	      (throw 'var-found-1 nil)))))))
+	    (gdb-enqueue-input
+	     (list
+	      (concat "server interpreter mi \"-var-evaluate-expression "
+		      varnum "\"\n")
+	      `(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
+	    (throw 'var-found-1 nil))))))
   (setq gdb-pending-triggers
    (delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
@@ -1005,6 +1018,7 @@ This filter may simply queue input for a later time."
   "An annotation handler for `pre-prompt'.
 This terminates the collection of output from a previous command if that
 happens to be in effect."
+  (setq gdb-error nil)
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user) t)
@@ -1097,6 +1111,7 @@ directives."
 It is just like `gdb-stopping', except that if we already set the output
 sink to `user' in `gdb-stopping', that is fine."
   (setq gud-running nil)
+  (setq gdb-active-process t)
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'inferior)
@@ -1458,11 +1473,11 @@ static char *magick[] = {
 				(gdb-put-breakpoint-icon (eq flag ?y) bptno)))
 			  (gdb-enqueue-input
 			   (list
-			    (concat "list "
+			    (concat gdb-server-prefix "list "
 				    (match-string-no-properties 1) ":1\n")
 			    'ignore))
 			  (gdb-enqueue-input
-			   (list "info source\n"
+			   (list (concat gdb-server-prefix "info source\n")
 				 `(lambda () (gdb-get-location
 					      ,bptno ,line ,flag))))))))))
 	  (end-of-line)))))
@@ -1497,7 +1512,7 @@ static char *magick[] = {
 		 (list
 		  (let ((bptno (get-text-property
 				0 'gdb-bptno (car (posn-string posn)))))
-		    (concat
+		    (concat gdb-server-prefix
 			    (if (get-text-property
 				 0 'gdb-enabled (car (posn-string posn)))
 				"disable "
@@ -1523,7 +1538,7 @@ static char *magick[] = {
 	  (when (stringp obj)
 	    (gdb-enqueue-input
 	     (list
-	      (concat
+	      (concat gdb-server-prefix
 	       (if (get-text-property 0 'gdb-enabled obj)
 		   "disable "
 		 "enable ")
@@ -1557,7 +1572,7 @@ static char *magick[] = {
     (suppress-keymap map)
     (define-key map [menu-bar breakpoints] (cons "Breakpoints" menu))
     (define-key map " " 'gdb-toggle-breakpoint)
-    (define-key map "d" 'gdb-delete-breakpoint)
+    (define-key map "D" 'gdb-delete-breakpoint)
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-goto-breakpoint)
     (define-key map [mouse-2] 'gdb-goto-breakpoint)
@@ -1612,7 +1627,7 @@ static char *magick[] = {
 (defun gdb-goto-breakpoint (&optional event)
   "Display the breakpoint location specified at current line."
   (interactive (list last-input-event))
-  (if event (mouse-set-point event))
+  (if event (posn-set-point (event-end event)))
   ;; Hack to stop gdb-goto-breakpoint displaying in GUD buffer.
   (let ((window (get-buffer-window gud-comint-buffer)))
     (if window (save-selected-window  (select-window window))))
@@ -1661,7 +1676,7 @@ static char *magick[] = {
 	(while (< (point) (point-max))
 	  (setq bl (line-beginning-position)
 		el (line-end-position))
-	  (unless (looking-at "No ")
+	  (when (looking-at "#")
 	    (add-text-properties bl el
 				 '(mouse-face highlight
 			           help-echo "mouse-2, RET: Select frame")))
@@ -1730,14 +1745,15 @@ static char *magick[] = {
 (defun gdb-get-frame-number ()
   (save-excursion
     (end-of-line)
-    (let* ((pos (re-search-backward "^#*\\([0-9]*\\)" nil t))
+    (let* ((start (line-beginning-position))
+	   (pos (re-search-backward "^#*\\([0-9]+\\)" start t))
 	   (n (or (and pos (match-string-no-properties 1)) "0")))
       n)))
 
 (defun gdb-frames-select (&optional event)
   "Select the frame and display the relevant source."
   (interactive (list last-input-event))
-  (if event (mouse-set-point event))
+  (if event (posn-set-point (event-end event)))
   (gdb-enqueue-input
    (list (concat gdb-server-prefix "frame "
 		 (gdb-get-frame-number) "\n") 'ignore))
@@ -1790,6 +1806,7 @@ static char *magick[] = {
     (define-key map "q" 'kill-this-buffer)
     (define-key map "\r" 'gdb-threads-select)
     (define-key map [mouse-2] 'gdb-threads-select)
+    (define-key map [follow-link] 'mouse-face)
     map))
 
 (defvar gdb-threads-font-lock-keywords
@@ -1822,9 +1839,10 @@ static char *magick[] = {
 (defun gdb-threads-select (&optional event)
   "Select the thread and display the relevant source."
   (interactive (list last-input-event))
-  (if event (mouse-set-point event))
+  (if event (posn-set-point (event-end event)))
   (gdb-enqueue-input
-   (list (concat "thread " (gdb-get-thread-number) "\n") 'ignore))
+   (list (concat gdb-server-prefix "thread "
+		 (gdb-get-thread-number) "\n") 'ignore))
   (gud-display-frame))
 
 
@@ -1851,19 +1869,36 @@ static char *magick[] = {
   (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
     (save-excursion
       (let ((buffer-read-only nil)
-	    bl)
+	    start end)
 	(goto-char (point-min))
 	(while (< (point) (point-max))
-	  (setq bl (line-beginning-position))
+	  (setq start (line-beginning-position))
+	  (setq end (line-end-position))
 	  (when (looking-at "^[^ ]+")
 	    (unless (string-equal (match-string 0) "The")
-	      (put-text-property bl (match-end 0)
-				 'face font-lock-variable-name-face)))
+	      (put-text-property start (match-end 0)
+				 'face font-lock-variable-name-face)
+	      (add-text-properties start end 
+		                   '(help-echo "mouse-2: edit value"
+				     mouse-face highlight))))
 	  (forward-line 1))))))
+
+(defun gdb-edit-register-value (&optional event)
+  (interactive (list last-input-event))
+  (save-excursion
+    (if event (posn-set-point (event-end event)))
+    (beginning-of-line)
+    (let* ((register (current-word))
+	  (value (read-string (format "New value (%s): " register))))
+      (gdb-enqueue-input
+       (list (concat gdb-server-prefix "set $" register "=" value "\n")
+	     'ignore)))))
 
 (defvar gdb-registers-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map "\r" 'gdb-edit-register-value)
+    (define-key map [mouse-2] 'gdb-edit-register-value)
     (define-key map " " 'toggle-gdb-all-registers)
     (define-key map "q" 'kill-this-buffer)
      map))
@@ -1907,9 +1942,9 @@ static char *magick[] = {
 	(setq gdb-all-registers nil)
 	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
 	  (setq mode-name "Registers:")))
-	(setq gdb-all-registers t)
-	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
-	  (setq mode-name "Registers:All")))
+    (setq gdb-all-registers t)
+    (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+      (setq mode-name "Registers:All")))
   (gdb-invalidate-registers))
 
 
@@ -2245,13 +2280,13 @@ corresponding to the mode line clicked."
  "Keymap to create watch expression of a complex data type local variable.")
 
 (defconst gdb-struct-string
-  (concat (propertize "[struct/union];"
+  (concat (propertize "[struct/union]"
 		      'mouse-face 'highlight
 		      'help-echo "mouse-2: create watch expression"
 		      'local-map gdb-locals-watch-keymap) "\n"))
 
 (defconst gdb-array-string
-  (concat " " (propertize "[array];"
+  (concat " " (propertize "[array]"
 			  'mouse-face 'highlight
 			  'help-echo "mouse-2: create watch expression"
 			  'local-map gdb-locals-watch-keymap) "\n"))

@@ -42,17 +42,25 @@ features such as file dialogs, drag-and-drop, and Unicode menus.
 @cindex Meta (Mac OS)
 @cindex keyboard coding (Mac OS)
 
-@vindex mac-command-key-is-meta
-  On Mac, Emacs can use either the @key{option} key or the
-@key{command} key as the @key{META} key.  If the value of the variable
-@code{mac-command-key-is-meta} is non-@code{nil} (its default value),
-Emacs uses the @key{command} key as the @key{META} key.  Otherwise it
-uses the @key{option} key as the @key{META} key.
+@vindex mac-control-modifier
+@vindex mac-command-modifier
+@vindex mac-option-modifier
+  On Mac, Emacs can use @key{control}, @key{command}, and @key{option}
+keys as any of Emacs modifier keys except @key{SHIFT} (i.e.,
+@key{ALT}, @key{CTRL}, @key{HYPER}, @key{META}, and @key{SUPER}).  The
+assignment is controlled by the variables @code{mac-control-modifier},
+@code{mac-command-modifier}, and @code{mac-option-modifier}.  The
+value for each of these variables can be one of the following symbols:
+@code{alt}, @code{control}, @code{hyper}, @code{meta}, @code{super},
+and @code{nil} (no particular assignment).  By default, the
+@key{control} key works as @key{CTRL}, and the @key{command} key as
+@key{META}.
 
-  Most people should want to use the @key{command} key as the @key{META} key,
-so that dead-key processing with the @key{option} key will still work.  This is
-useful for entering non-@acronym{ASCII} Latin characters directly from the Mac
-keyboard, for example.
+  For the @key{option} key, if @code{mac-option-modifier} is set to
+@code{nil}, which is the default, the key works as the normal
+@key{option} key, i.e., dead-key processing will work.  This is useful
+for entering non-@acronym{ASCII} Latin characters directly from the
+Mac keyboard, for example.
 
   Emacs recognizes the setting in the Keyboard control panel (Mac OS
 Classic) or the International system preference pane (Mac OS X) and
@@ -133,18 +141,18 @@ mainly used by applications on Mac OS X.
 converted to the encoding specified by the selection coding system
 using the converter in the Mac OS system, and then decoded into the
 Emacs internal encoding using the converter in Emacs.  If the first
-conversion failed, then the UTF-16 data is directly converted to Emacs
-internal encoding using the converter in Emacs.  Copying UTF-16 text
-to the clipboard goes through the inverse path.  The reason for this
-two-path decoding is to avoid subtle differences in Unicode mappings
-between the Mac OS system and Emacs such as various kinds of hyphens,
-and to minimize users' customization.  For example, users that mainly
-use Latin characters would prefer Greek characters to be decoded into
-the @code{mule-unicode-0100-24ff} charset, but Japanese users would
-prefer them to be decoded into the @code{japanese-jisx0208} charset.
-Since the coding system for selection is automatically set according
-to the system locale setting, users usually don't have to set it
-manually.
+conversion failed, then the UTF-16 data is converted similarly but via
+UTF-8.  Copying UTF-16 text to the clipboard goes through the inverse
+path.  The reason for this two-pass decoding is to avoid subtle
+differences in Unicode mappings between the Mac OS system and Emacs
+such as various kinds of hyphens, to deal with UTF-16 data in native
+byte order with no byte order mark, and to minimize users'
+customization.  For example, users that mainly use Latin characters
+would prefer Greek characters to be decoded into the
+@code{mule-unicode-0100-24ff} charset, but Japanese users would prefer
+them to be decoded into the @code{japanese-jisx0208} charset.  Since
+the coding system for selection is automatically set according to the
+system locale setting, users usually don't have to set it manually.
 
   The default language environment (@pxref{Language Environments}) is
 set according to the locale setting at the startup time.  On Mac OS,
@@ -283,8 +291,19 @@ created.
 @cindex font names (Mac OS)
 
   It is rare that you need to specify a font name in Emacs; usually
-you specify face attributes instead.  But when you do need to specify
-a font name in Emacs on Mac, use a standard X font name:
+you specify face attributes instead.  For example, you can use 14pt
+Courier by customizing the default face attributes for all frames:
+
+@lisp
+(set-face-attribute 'default nil :family "courier" :height 140)
+@end lisp
+
+@noindent
+Alternatively, an interactive one is also available
+(@pxref{Face Customization}).
+
+But when you do need to specify a font name in Emacs on Mac, use a
+standard X font name:
 
 @smallexample
 -@var{maker}-@var{family}-@var{weight}-@var{slant}-@var{widthtype}-@var{style}@dots{}

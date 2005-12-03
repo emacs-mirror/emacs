@@ -813,39 +813,49 @@ See `recentf-arrange-rules' for details on MATCHER."
 Arrange them in sub-menus following rules in `recentf-arrange-rules'."
   (if (not recentf-arrange-rules)
       l
-    (let ((menus (mapcar #'(lambda (r) (list (car r)))
-                         recentf-arrange-rules))
-          menu others min file rules elts count)
+    (let* ((strip (assq t recentf-arrange-rules))
+           (rules (remq strip recentf-arrange-rules))
+           (menus (mapcar #'(lambda (r) (list (car r))) rules))
+           others l1 l2 menu file min count)
+      ;; Put menu items into sub-menus as defined by rules.
       (dolist (elt l)
-        (setq file  (recentf-menu-element-value elt)
-              rules recentf-arrange-rules
-              elts  menus
-              menu  nil)
-        (while (and (not menu) rules)
-          (when (recentf-match-rule-p (cdar rules) file)
-            (setq menu (car elts))
+        (setq l1   menus ;; List of sub-menus
+              l2   rules ;; List of corresponding matchers.
+              file (recentf-menu-element-value elt)
+              menu nil)
+        ;; Apply the strip suffix rule.
+        (while (recentf-match-rule-p (cdr strip) file)
+          (setq file (substring file 0 (match-beginning 0))))
+        ;; Search which sub-menu to put the menu item into.
+        (while (and (not menu) l2)
+          (when (recentf-match-rule-p (cdar l2) file)
+            (setq menu (car l1))
             (recentf-set-menu-element-value
              menu (cons elt (recentf-menu-element-value menu))))
-          (setq rules (cdr rules)
-                elts  (cdr elts)))
-        (unless menu
-          (push elt others)))
-
-      (setq l nil
-            min (if (natnump recentf-arrange-by-rules-min-items)
-                    recentf-arrange-by-rules-min-items 0))
+          (setq l1 (cdr l1)
+                l2 (cdr l2)))
+        ;; Put unmatched menu items in the `others' bin.
+        (or menu (push elt others)))
+      ;; Finalize the sub-menus.  That is, for each one:
+      ;; - truncate it depending on the value of
+      ;;   `recentf-arrange-by-rules-min-items',
+      ;; - replace %d by the number of menu items,
+      ;; - apply `recentf-arrange-by-rule-subfilter' to menu items.
+      (setq min (if (natnump recentf-arrange-by-rules-min-items)
+                    recentf-arrange-by-rules-min-items 0)
+            l2 nil)
       (dolist (menu menus)
-        (when (setq elts (recentf-menu-element-value menu))
-          (setq count (length elts))
+        (when (setq l1 (recentf-menu-element-value menu))
+          (setq count (length l1))
           (if (< count min)
-              (setq others (nconc elts others))
+              (setq others (nconc l1 others))
             (recentf-set-menu-element-item
              menu (format (recentf-menu-element-item menu) count))
             (recentf-set-menu-element-value
              menu (recentf-apply-menu-filter
-                   recentf-arrange-by-rule-subfilter (nreverse elts)))
-            (push menu l))))
-
+                   recentf-arrange-by-rule-subfilter (nreverse l1)))
+            (push menu l2))))
+      ;; Add the menu items remaining in the `others' bin.
       (if (and (stringp recentf-arrange-by-rule-others) others)
           (nreverse
            (cons
@@ -853,12 +863,11 @@ Arrange them in sub-menus following rules in `recentf-arrange-rules'."
              (format recentf-arrange-by-rule-others (length others))
              (recentf-apply-menu-filter
               recentf-arrange-by-rule-subfilter (nreverse others)))
-            l))
+            l2))
         (nconc
-         (nreverse l)
+         (nreverse l2)
          (recentf-apply-menu-filter
-          recentf-arrange-by-rule-subfilter (nreverse others)))))
-    ))
+          recentf-arrange-by-rule-subfilter (nreverse others)))))))
 
 ;;; Predefined rule based menu filters
 ;;
@@ -870,12 +879,20 @@ Rules obey `recentf-arrange-rules' format."
     (dolist (mode auto-mode-alist)
       (setq regexp (car mode)
             mode   (cdr mode))
-      (when (symbolp mode)
-        (setq rule-name (symbol-name mode))
-        (if (string-match "\\(.*\\)-mode$" rule-name)
-            (setq rule-name (match-string 1 rule-name)))
-        (setq rule-name (concat rule-name " (%d)")
-              rule (assoc rule-name rules))
+      (when mode
+        (cond
+         ;; Build a special "strip suffix" rule from entries of the
+         ;; form (REGEXP FUNCTION NON-NIL).  Notice that FUNCTION is
+         ;; ignored by the menu filter.  So in some corner cases a
+         ;; wrong mode could be guessed.
+         ((and (consp mode) (cadr mode))
+          (setq rule-name t))
+         ((and mode (symbolp mode))
+          (setq rule-name (symbol-name mode))
+          (if (string-match "\\(.*\\)-mode$" rule-name)
+              (setq rule-name (match-string 1 rule-name)))
+          (setq rule-name (concat rule-name " (%d)"))))
+        (setq rule (assoc rule-name rules))
         (if rule
             (setcdr rule (cons regexp (cdr rule)))
           (push (list rule-name regexp) rules))))

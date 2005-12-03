@@ -52,6 +52,7 @@
 (defvar gdb-show-changed-values)
 (defvar gdb-var-changed)
 (defvar gdb-var-list)
+(defvar gdb-speedbar-auto-raise)
 (defvar tool-bar-map)
 
 ;; ======================================================================
@@ -410,6 +411,10 @@ t means that there is no stack, and we are in display-file mode.")
 		(memq gud-minor-mode '(gdbmi gdba)))]
     ["Delete expression" gdb-var-delete
      (with-current-buffer gud-comint-buffer
+       (memq gud-minor-mode '(gdbmi gdba)))]
+    ["Auto raise frame" gdb-speedbar-auto-raise
+     :style toggle :selected gdb-speedbar-auto-raise
+     :visible (with-current-buffer gud-comint-buffer
        (memq gud-minor-mode '(gdbmi gdba)))])
   "Additional menu items to add to the speedbar frame.")
 
@@ -444,16 +449,18 @@ required by the caller."
 			   (looking-at "Watch Expressions:")))))
 	  (erase-buffer)
 	  (insert "Watch Expressions:\n")
+	  (if gdb-speedbar-auto-raise
+	      (raise-frame speedbar-frame))
 	  (let ((var-list gdb-var-list))
 	    (while var-list
-	      (let* ((depth 0) (start 0) (char ?+)
+	      (let* (char (depth 0) (start 0)
 		     (var (car var-list)) (varnum (nth 1 var)))
 		(while (string-match "\\." varnum start)
 		  (setq depth (1+ depth)
 			start (1+ (match-beginning 0))))
 		(if (or (equal (nth 2 var) "0")
 			(and (equal (nth 2 var) "1")
-			     (string-match "char \\*" (nth 3 var))))
+			     (string-match "char \\*$" (nth 3 var))))
 		    (speedbar-make-tag-line 'bracket ?? nil nil
 					    (concat (car var) "\t" (nth 4 var))
 					    'gdb-edit-value
@@ -463,12 +470,25 @@ required by the caller."
 						'font-lock-warning-face
 					      nil) depth)
 		  (if (and (cadr var-list)
-			   (string-match varnum (cadr (cadr var-list))))
-		      (setq char ?-))
+			   (string-match (concat varnum "\\.")
+					 (cadr (cadr var-list))))
+		      (setq char ?-)
+		    (setq char ?+))
+		  (if (string-match "\\*$" (nth 3 var))
+		      (speedbar-make-tag-line 'bracket char
+					      'gdb-speedbar-expand-node varnum
+					      (concat (car var) "\t"
+						      (nth 3 var)"\t"
+						      (nth 4 var))
+					      'gdb-edit-value nil
+					      (if (and (nth 5 var)
+						       gdb-show-changed-values)
+						  'font-lock-warning-face
+						nil) depth)
 		  (speedbar-make-tag-line 'bracket char
 					  'gdb-speedbar-expand-node varnum
 					  (concat (car var) "\t" (nth 3 var))
-					  nil nil nil depth)))
+					  nil nil nil depth))))
 	      (setq var-list (cdr var-list))))
 	  (setq gdb-var-changed nil)))
        (t (if (and (save-excursion
@@ -556,6 +576,11 @@ required by the caller."
     ;; they are found.
     (while (string-match "\n\032\032\\(.*\\)\n" gud-marker-acc)
       (let ((match (match-string 1 gud-marker-acc)))
+
+	;; Pick up stopped annotation if attaching to process.
+	(if (string-equal match "stopped") (setq gdb-active-process t))
+
+	;; Using annotations, switch to gud-gdba-marker-filter.
 	(when (string-equal match "prompt")
 	  (require 'gdb-ui)
 	  (gdb-prompt nil))
@@ -569,6 +594,8 @@ required by the caller."
 	 ;; Set the accumulator to the remaining text.
 
 	 gud-marker-acc (substring gud-marker-acc (match-end 0)))
+
+	;; Pick up any errors that occur before first prompt annotation.
 	(if (string-equal match "error-begin")
 	    (put-text-property 0 (length gud-marker-acc)
 			       'face font-lock-warning-face
@@ -3079,6 +3106,8 @@ class of the file (using s to separate nested class ids)."
     ("\\$\\(\\w+\\)" (1 font-lock-variable-name-face))
     ("^\\s-*\\([a-z]+\\)" (1 font-lock-keyword-face))))
 
+;; FIXME: The keyword "end" associated with "document"
+;; should have font-lock-keyword-face (currently font-lock-doc-face).
 (defvar gdb-script-font-lock-syntactic-keywords
   '(("^document\\s-.*\\(\n\\)" (1 "< b"))
     ;; It would be best to change the \n in front, but it's more difficult.

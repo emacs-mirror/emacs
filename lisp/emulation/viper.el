@@ -9,7 +9,7 @@
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Keywords: emulations
 
-(defconst viper-version "3.11.5 of October 5, 2005"
+(defconst viper-version "3.11.5 of November 25, 2005"
   "The current version of Viper")
 
 ;; This file is part of GNU Emacs.
@@ -429,7 +429,6 @@ widget."
     occur-mode
 
     mh-folder-mode
-    mail-mode
     gnus-group-mode
     gnus-summary-mode
 
@@ -441,6 +440,8 @@ widget."
     compilation-mode
 
     rcirc-mode
+
+    jde-javadoc-checker-report-mode
 
     view-mode
     vm-mode

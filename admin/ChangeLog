@@ -1,3 +1,7 @@
+2005-11-28  Chong Yidong  <cyd@stupidchicken.com>
+
+	* FOR-RELEASE: Icons installed.  Partial completion bug fixed.
+
 2005-11-11  Kim F. Storm  <storm@cua.dk>
 
 	* FOR-RELEASE (FATAL ERRORS): Fix infinite loop in redisplay

@@ -1,3 +1,7 @@
+2005-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Resizing Windows): Add adjust-window-trailing-edge.
+
 2005-11-21  Juri Linkov  <juri@jurta.org>
 
 	* customize.texi (Common Keywords): Update links types

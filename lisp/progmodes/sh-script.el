@@ -1002,6 +1002,8 @@ Point is at the beginning of the next line."
   ;; The list of special chars is taken from the single-unix spec
   ;; of the shell command language (under `quoting') but with `$' removed.
   `(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 ,sh-st-symbol)
+    ;; In a '...' the backslash is not escaping.
+    ("\\(\\\\\\)'" 1 ,sh-st-punc)
     ;; Make sure $@ and @? are correctly recognized as sexps.
     ("\\$\\([?@]\\)" 1 ,sh-st-symbol)
     ;; Find HEREDOC starters and add a corresponding rule for the ender.

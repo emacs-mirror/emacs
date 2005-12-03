@@ -835,6 +835,8 @@ respectively.  If the menu-bar is unavailable, type @code{M-x
 gdb-display-@var{buffertype}-buffer} or @code{M-x
 gdb-frame-@var{buffertype}-buffer} respectively, where
 @var{buffertype} is the relevant buffer type e.g breakpoints.
+Most of these buffers are read-only and be killed by simply
+pressing @kbd{q} in them.
 
 When you finish debugging then kill the GUD buffer with @kbd{C-x k},
 which will also kill all the buffers associated with the session.
@@ -863,8 +865,8 @@ relevant line.  This is red when the breakpoint is enabled and grey
 when it is disabled.  Text-only terminals correspondingly display
 a @samp{B} or @samp{b}.
 
-@item d
-@kindex d @r{(GDB breakpoints buffer)}
+@item D
+@kindex D @r{(GDB breakpoints buffer)}
 @findex gdb-delete-breakpoint
 Delete the breakpoint at the current line (@code{gdb-delete-breakpoint}).
 
@@ -903,8 +905,9 @@ icon in the tool bar (@code{gud-watch}).
 Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree
 format.  Leaves and simple data types show the name of the expression
-and its value, and display the type as a tooltip.  Higher levels
-just show the name and the data type.
+and its value, and display the type as a tooltip.  Higher levels show
+the name, type and address value for pointers and just the name and
+type otherwise.
 
 To expand or contract a complex data type, click @kbd{Mouse-2}
 on the tag to the left of the expression.
@@ -961,8 +964,9 @@ alternatively click @kbd{Mouse-2} there, to examine their values.
 @item Registers Buffer
 @findex toggle-gdb-all-registers
 The registers buffer displays the values held by the registers
-(@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{SPC} to
-toggle the display of floating point registers
+(@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{RET} or
+click @kbd{Mouse-2} on a register if you want to change its value.
+Press @key{SPC} to toggle the display of floating point registers
 (@code{toggle-gdb-all-registers}).
 
 @item Assembler Buffer

@@ -1,3 +1,60 @@
+2005-11-30  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* buffer.c (Fpop_to_buffer): Remove superfluous call to record_buffer.
+
+2005-11-30  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c: Include fcntl.h.  Define O_WRONLY if not defined.
+	(valid_lisp_object_p) [!GC_MARK_STACK]: Validate pointer by
+	passing it to `emacs_write'.
+
+2005-11-29  Ari Roponen  <arjuropo@cc.jyu.fi>  (tiny change)
+
+	* atimer.c (stop_other_atimers): Fix loop to correctly compute `prev'.
+
+2005-11-27  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (adjust_window_trailing_edge): New function.
+	(Fadjust_window_trailing_edge): New function.
+	(syms_of_window): Defsubr it.
+	(window_deletion_count): New variable.
+	(delete_window): Update window_deletion_count.
+
+2005-11-26  Eli Zaretskii  <eliz@gnu.org>
+
+	* minibuf.c (syms_of_minibuf): Mention the extension of
+	`completion-auto-help's meaning by complete.el.
+
+2005-11-26  Henrik Enberg  <henrik.enberg@telia.com>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute_from_resource):
+	Handle :inherit property as a lisp expression.
+
+2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (Qcontrol): Rename from Qctrl.  All uses changed.
+	(syms_of_macterm): Staticpro Qcontrol, Qmeta, Qalt, Qhyper,
+	Qsuper, and Qmodifier_value.
+	(Vmac_control_modifier, Vmac_option_modifier)
+	(Vmac_command_modifier, Vmac_function_modifier)
+	(Vmac_emulate_three_button_mouse, Vmac_wheel_button_is_mouse_2)
+	(Vmac_pass_command_to_system, Vmac_pass_control_to_system)
+	(Vmac_charset_info_alist): Doc fixes.
+
+2005-11-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main) [MAC_OSX]: Change working directory to home
+	directory if `-psn_*' option is specified.
+
+	* mac.c (DECODE_UTF_8): Remove macro.
+	[TARGET_API_MAC_CARBON] (cfstring_to_lisp_nodecode): New function
+	created from cfstring_to_lisp.
+	[TARGET_API_MAC_CARBON] (cfstring_to_lisp): Use it.
+	(xrm_get_preference_database) [TARGET_API_MAC_CARBON]: Likewise.
+
+	* macterm.h (cfstring_to_lisp_nodecode) [TARGET_API_MAC_CARBON]:
+	Add prototype.
+
 2005-11-21  Ken Raeburn  <raeburn@mit.edu>
 
 	* keymap.c (shadow_lookup): Use make_number to pass a number to
@@ -9,8 +66,8 @@
 
 2005-11-20  Chong Yidong  <cyd@stupidchicken.com>
 
-	* xfaces.c (Finternal_set_lisp_face_attribute): Use
-	:ignore-defface for new frame defaults when `unspecified' is
+	* xfaces.c (Finternal_set_lisp_face_attribute):
+	Use :ignore-defface for new frame defaults when `unspecified' is
 	supplied.
 	(Finternal_get_lisp_face_attribute): Hide :ignore-defface.
 	(merge_face_vectors): Don't do :ignore-defface overwriting here.
@@ -35,24 +92,22 @@
 
 	* macterm.c [USE_CG_TEXT_DRAWING] (cg_text_anti_aliasing_threshold):
 	New variable.
-	[USE_CG_TEXT_DRAWING] (init_cg_text_anti_aliasing_threshold): New
-	function.
+	[USE_CG_TEXT_DRAWING] (init_cg_text_anti_aliasing_threshold): New fun.
 	(init_font_name_table) [USE_ATSUI && USE_CG_TEXT_DRAWING]: Use it.
 	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg): Don't do antialiasing if
 	font size is smaller than or equal to cg_text_anti_aliasing_threshold.
 
 2005-11-17  Chong Yidong  <cyd@stupidchicken.com>
 
-	* image.c (x_create_bitmap_from_xpm_data): Free attributes on
-	fail.
+	* image.c (x_create_bitmap_from_xpm_data): Free attributes on fail.
 
 	* xfaces.c (Qignore_defface): New variable.
 	(syms_of_xfaces): Provide `:ignore-defface'.
 	(IGNORE_DEFFACE_P): New macro.
 	(check_lface_attrs, lface_fully_specified_p)
 	(Finternal_set_lisp_face_attribute)
-	(Fface_attribute_relative_p, Fmerge_face_attribute): Handle
-	Qignore_defface as a possible value.
+	(Fface_attribute_relative_p, Fmerge_face_attribute):
+	Handle Qignore_defface as a possible value.
 	(merge_face_vectors): The merged face is `unspecified' if the
 	mergee specifies `:ignore-defface'.
 
@@ -593,8 +648,8 @@
 	* xdisp.c (remember_mouse_glyph): Use MATRIX_BOTTOM_TEXT_ROW to
 	get end of text rows.  Obtain header-line/mode-line rows directly.
 
-	* xterm.c, w32term.c, macterm.c (note_mouse_movement): Restore
-	help_echo_string if mouse is moved inside last_mouse_glyph.
+	* xterm.c, w32term.c, macterm.c (note_mouse_movement):
+	Restore help_echo_string if mouse is moved inside last_mouse_glyph.
 
 2005-10-12  Kim F. Storm  <storm@cua.dk>
 
@@ -659,8 +714,8 @@
 	(init_font_name_table) [USE_ATSUI]: Use decode_mac_font_name.
 	Don't use Fdowncase because family name is already lowered by
 	decode_mac_font_name.
-	(init_font_name_table): Always call decode_mac_font_name.  Add
-	pair of family name and its reference to fm_font_family_alist.
+	(init_font_name_table): Always call decode_mac_font_name.
+	Add pair of family name and its reference to fm_font_family_alist.
 	(mac_clear_font_name_table): Clear fm_font_family_alist.
 	(XLoadQueryFont): Move font size parsing part to parse_x_font_name.
 	Lookup fm_font_family_alist to get font family reference.
@@ -760,8 +815,8 @@
 	(x_fix_overlapping_area): Add new OVERLAPS arg.
 	(get_glyph_string_clip_rects): Add extern.
 
-	* dispnew.c (redraw_overlapping_rows): Call
-	rif->fix_overlapping_area with new OVERLAPS arg as redrawn part.
+	* dispnew.c (redraw_overlapping_rows):
+	Call rif->fix_overlapping_area with new OVERLAPS arg as redrawn part.
 
 	* xdisp.c: Rename member for_overlaps_p in struct glyph_string to
 	for_overlaps.
@@ -1106,8 +1161,8 @@
 
 	* xsmfns.c: (get_current_dir_name): Remove prototype.
 
-	* lisp.h: (get_current_dir_name) [!HAVE_GET_CURRENT_DIR_NAME]: Add
-	prototype.
+	* lisp.h: (get_current_dir_name) [!HAVE_GET_CURRENT_DIR_NAME]:
+	Add prototype.
 
 	* sysdep.c [WINDOWSNT]: Add prototype for getwd.
 	Don't #undef NULL after including blockinput.h.

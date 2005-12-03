@@ -609,7 +609,7 @@ In binary overwrite mode, this function does overwrite, and octal
 digits are interpreted as a character code.  This is intended to be
 useful for editing binary files."
   (interactive "*p")
-  (let* ((char (let (translation-table-for-input)
+  (let* ((char (let (translation-table-for-input input-method-function)
 		 (if (or (not overwrite-mode)
 			 (eq overwrite-mode 'overwrite-mode-binary))
 		     (read-quoted-char)
@@ -3330,7 +3330,7 @@ and more reliable (no dependence on goal column, etc.)."
 	  ;; When adding a newline, don't expand an abbrev.
 	  (let ((abbrev-mode nil))
 	    (end-of-line)
-	    (insert hard-newline))
+	    (insert (if use-hard-newlines hard-newline "\n")))
 	(line-move arg nil nil try-vscroll))
     (if (interactive-p)
 	(condition-case nil
@@ -4263,7 +4263,11 @@ of the buffer appears in the mode line."
 (defcustom blink-matching-paren-on-screen t
   "*Non-nil means show matching open-paren when it is on screen.
 If nil, means don't show it (but the open-paren can still be shown
-when it is off screen)."
+when it is off screen).
+
+This variable has no effect if `blink-matching-paren' is nil.
+\(In that case, the open-paren is never shown.)
+It is also ignored if `show-paren-mode' is enabled."
   :type 'boolean
   :group 'paren-blinking)
 
@@ -4324,7 +4328,7 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
                    ;; The cdr might hold a new paren-class info rather than
                    ;; a matching-char info, in which case the two CDRs
                    ;; should match.
-                   (eq matching-paren (cdr (syntax-after oldpos)))))
+                   (eq matching-paren (cdr (syntax-after (1- oldpos))))))
 	  (message "Mismatched parentheses"))
 	 ((not blinkpos)
 	  (if (not blink-matching-paren-distance)
@@ -4332,10 +4336,11 @@ If nil, search stops at the beginning of the accessible portion of the buffer."
 	 ((pos-visible-in-window-p blinkpos)
 	  ;; Matching open within window, temporarily move to blinkpos but only
 	  ;; if `blink-matching-paren-on-screen' is non-nil.
-	  (when blink-matching-paren-on-screen
-	    (save-excursion
-	      (goto-char blinkpos)
-	      (sit-for blink-matching-delay))))
+	  (and blink-matching-paren-on-screen
+	       (not show-paren-mode)
+	       (save-excursion
+		 (goto-char blinkpos)
+		 (sit-for blink-matching-delay))))
 	 (t
 	  (save-excursion
 	    (goto-char blinkpos)
@@ -4514,7 +4519,8 @@ See also `read-mail-command' concerning reading mail."
 	(unless (member-ignore-case (car (car other-headers))
 				    '("in-reply-to" "cc" "body"))
 	    (insert (car (car other-headers)) ": "
-		    (cdr (car other-headers)) hard-newline))
+		    (cdr (car other-headers))
+		    (if use-hard-newlines hard-newline "\n")))
 	(setq other-headers (cdr other-headers)))
       (when body
 	(forward-line 1)

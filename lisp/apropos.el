@@ -301,7 +301,9 @@ kind of objects to search."
 
 (defun apropos-parse-pattern (pattern)
   "Rewrite a list of words to a regexp matching all permutations.
-If PATTERN is a string, that means it is already a regexp."
+If PATTERN is a string, that means it is already a regexp.
+This updates variables `apropos-pattern', `apropos-pattern-quoted',
+`apropos-regexp', `apropos-words', and `apropos-all-words-regexp'."
   (setq apropos-words nil
 	apropos-all-words nil)
   (if (consp pattern)
@@ -325,11 +327,14 @@ If PATTERN is a string, that means it is already a regexp."
 		(setq syn (cdr syn))))
 	    (setq apropos-words (cons s apropos-words)
 		  apropos-all-words (cons a apropos-all-words))))
-	(setq apropos-all-words-regexp (apropos-words-to-regexp apropos-all-words ".+"))
-	(apropos-words-to-regexp apropos-words ".*?"))
+	(setq apropos-all-words-regexp
+	      (apropos-words-to-regexp apropos-all-words ".+"))
+	(setq apropos-regexp
+	      (apropos-words-to-regexp apropos-words ".*?")))
     (setq apropos-pattern-quoted (regexp-quote pattern)
 	  apropos-all-words-regexp pattern
-	  apropos-pattern pattern)))
+	  apropos-pattern pattern
+	  apropos-regexp pattern)))
 
 
 (defun apropos-calc-scores (str words)
@@ -442,7 +447,7 @@ while a list of strings is used as a word list."
 		      (if (or current-prefix-arg apropos-do-all)
 			  "command or function" "command"))
 		     current-prefix-arg))
-  (setq apropos-regexp (apropos-parse-pattern pattern))
+  (apropos-parse-pattern pattern)
   (let ((message
 	 (let ((standard-output (get-buffer-create "*Apropos*")))
 	   (print-help-return-message 'identity))))
@@ -508,7 +513,7 @@ show unbound symbols and key bindings, which is a little more
 time-consuming.  Returns list of symbols and documentation found."
   (interactive (list (apropos-read-pattern "symbol")
 		     current-prefix-arg))
-  (setq apropos-regexp (apropos-parse-pattern pattern))
+  (apropos-parse-pattern pattern)
   (apropos-symbols-internal
    (apropos-internal apropos-regexp
 			  (and (not do-all)
@@ -577,7 +582,7 @@ at the function and at the names and values of properties.
 Returns list of symbols and values found."
   (interactive (list (apropos-read-pattern "value")
 		     current-prefix-arg))
-  (setq apropos-regexp (apropos-parse-pattern pattern))
+  (apropos-parse-pattern pattern)
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator ())
    (let (f v p)
@@ -623,7 +628,7 @@ bindings.
 Returns list of symbols and documentation found."
   (interactive (list (apropos-read-pattern "documentation")
 		     current-prefix-arg))
-  (setq apropos-regexp (apropos-parse-pattern pattern))
+  (apropos-parse-pattern pattern)
   (or do-all (setq do-all apropos-do-all))
   (setq apropos-accumulator () apropos-files-scanned ())
   (let ((standard-input (get-buffer-create " apropos-temp"))

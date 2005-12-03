@@ -136,6 +136,7 @@ are indicated with a symbol."
 
 	;; Hacks to make longlines play nice with various modes.
 	(cond ((eq major-mode 'mail-mode)
+	       (add-hook 'mail-setup-hook 'longlines-decode-buffer nil t)
 	       (or mail-citation-hook
 		   (add-hook 'mail-citation-hook 'mail-indent-citation nil t))
 	       (add-hook 'mail-citation-hook 'longlines-decode-region nil t))
@@ -246,17 +247,21 @@ not need to be wrapped, move point to the next line and return t."
              nil)
     (if (longlines-merge-lines-p)
         (progn (end-of-line)
-               (delete-char 1)
      ;; After certain commands (e.g. kill-line), there may be two
      ;; successive soft newlines in the buffer.  In this case, we
      ;; replace these two newlines by a single space.  Unfortunately,
      ;; this breaks the conservation of (spaces + newlines), so we
      ;; have to fiddle with longlines-wrap-point.
-               (if (or (bolp) (eolp))
-                   (if (> longlines-wrap-point (point))
-                       (setq longlines-wrap-point
-                             (1- longlines-wrap-point)))
-                 (insert-char ?  1))
+	       (if (or (prog1 (bolp) (forward-char 1)) (eolp))
+		   (progn
+		     (delete-char -1)
+		     (if (> longlines-wrap-point (point))
+			 (setq longlines-wrap-point
+			       (1- longlines-wrap-point))))
+		 (insert-before-markers-and-inherit ?\ )
+		 (backward-char 1)
+		 (delete-char -1)
+		 (forward-char 1))
                nil)
       (forward-line 1)
       t)))

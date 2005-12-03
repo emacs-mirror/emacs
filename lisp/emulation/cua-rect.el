@@ -65,6 +65,7 @@
 ;; List of overlays used to display current rectangle.
 (defvar cua--rectangle-overlays nil)
 (make-variable-buffer-local 'cua--rectangle-overlays)
+(put 'cua--rectangle-overlays 'permanent-local t)
 
 (defvar cua--overlay-keymap
   (let ((map (make-sparse-keymap)))
@@ -781,7 +782,7 @@ If command is repeated at same position, delete the rectangle."
 			       (make-string
 				(- l cl0 (if (and (= le pl) (/= le lb)) 1 0))
 				(if cua--virtual-edges-debug ?. ?\s))
-			       'face 'default))
+			       'face (or (get-text-property (1- s) 'face) 'default)))
 		     (if (/= pl le)
 			 (setq s (1- s))))
 		   (cond
@@ -1393,7 +1394,12 @@ With prefix arg, indent to that column."
       (if (and mark-active
                (not deactivate-mark))
           (cua--highlight-rectangle)
-        (cua--deactivate-rectangle)))
+        (cua--deactivate-rectangle))
+    (when cua--rectangle-overlays
+      ;; clean-up after revert-buffer
+      (mapcar (function delete-overlay) cua--rectangle-overlays)
+      (setq cua--rectangle-overlays nil)
+      (setq deactivate-mark t)))
   (when cua--rect-undo-set-point
     (goto-char cua--rect-undo-set-point)
     (setq cua--rect-undo-set-point nil)))

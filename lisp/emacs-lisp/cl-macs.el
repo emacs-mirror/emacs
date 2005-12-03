@@ -2175,7 +2175,12 @@ copier, a `NAME-p' predicate, and setf-able `NAME-SLOT' accessors.
 				       (symbol-name (car args)) ""))))
 	      ((eq opt :constructor)
 	       (if (cdr args)
-		   (push args constrs)
+                   (progn
+                     ;; If this defines a constructor of the same name as
+                     ;; the default one, don't define the default.
+                     (if (eq (car args) constructor)
+                         (setq constructor nil))
+                     (push args constrs))
 		 (if args (setq constructor (car args)))))
 	      ((eq opt :copier)
 	       (if args (setq copier (car args))))

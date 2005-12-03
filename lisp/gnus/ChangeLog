@@ -1,3 +1,9 @@
+2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* gnus-delay.el (gnus-delay-group): Don't autoload.
+	It's useless and could trigger a bug in cus-dep.el causing ldefs-boot
+	to be re-loaded when customizing the `gnus-delay' group.
+
 2005-11-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* message.el: Revert last changes.
