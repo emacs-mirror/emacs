@@ -1,8 +1,12 @@
 2005-12-03  Eli Zaretskii  <eliz@gnu.org>
 
+	* play/yow.el (apropos-zippy): Call print-help-return-message,
+	similar to other Help and Apropos commands.
+
 	* help.el (print-help-return-message): If pop-up-frames is
 	non-nil, set up help-return-method to delete the help window and,
-	possibly, its frame as well.  Doc fix.
+	possibly, its frame as well, and don't display message about
+	scrolling the help window.  Doc fix.
 	(help-return-method): Doc fix.
 
 2005-12-03  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
