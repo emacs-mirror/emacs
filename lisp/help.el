@@ -111,7 +111,8 @@
 (defvar help-return-method nil
   "What to do to \"exit\" the help buffer.
 This is a list
- (WINDOW . t)              delete the selected window, go to WINDOW.
+ (WINDOW . t)              delete the selected window (and possibly its frame,
+                           see `quit-window' and `View-quit'), go to WINDOW.
  (WINDOW . quit-window)    do quit-window, then select WINDOW.
  (WINDOW BUF START POINT)  display BUF at START, POINT, then select WINDOW.")
 
@@ -119,10 +120,14 @@ This is a list
   "Display or return message saying how to restore windows after help command.
 This function assumes that `standard-output' is the help buffer.
 It computes a message, and applies the optional argument FUNCTION to it.
-If FUNCTION is nil, it applies `message', thus displaying the message."
+If FUNCTION is nil, it applies `message', thus displaying the message.
+In addition, this function sets up `help-return-method', which see, that
+specifies what to do when the user exits the help buffer."
   (and (not (get-buffer-window standard-output))
        (let ((first-message
-	      (cond ((special-display-p (buffer-name standard-output))
+	      (cond ((or
+		      pop-up-frames
+		      (special-display-p (buffer-name standard-output)))
 		     (setq help-return-method (cons (selected-window) t))
 		     ;; If the help output buffer is a special display buffer,
 		     ;; don't say anything about how to get rid of it.
