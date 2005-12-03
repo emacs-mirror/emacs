@@ -1,5 +1,26 @@
+/* Low-level bidirectional buffer-scanning functions for GNU Emacs.
+   Copyright (C) 2000, 2001, 2003, 2005	Free Software Foundation, Inc.
+
+This file is part of GNU Emacs.
+
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2, or (at your option)
+any later version.
+
+GNU Emacs is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to
+the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+Boston, MA 02110-1301, USA.  */
+
 /* A sequential implementation of the Unicode Bidirectional algorithm,
-   as per UAX#9.
+   as per UAX#9, a part of the Unicode Standard.
 
    Unlike the reference and most other implementations, this one is
    designed to be called once for every character in the buffer.
@@ -9,7 +30,9 @@
    returns its information in a special structure.  The caller is then
    expected to process this character for display or any other
    purposes, and call bidi_get_next_char_visually for the next
-   character.
+   character.  See the comments in bidi_get_next_char_visually for
+   more details about its algorithm that finds the next visual-order
+   character by resolving their levels on the fly.
 
    A note about references to UAX#9 rules: if the reference says
    something like "X9/Retaining", it means that you need to refer to
@@ -19,6 +42,8 @@
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
+
+#include <stdio.h>
 
 #ifdef HAVE_STRING_H
 #include <string.h>
@@ -53,8 +78,6 @@ static Lisp_Object bidi_type_table;
 
 #ifdef TEST_STANDALONE
 /* Testing.  */
-
-#include <stdio.h>
 
 static unsigned char *input_buf;
 static size_t input_buf_size;
@@ -110,7 +133,7 @@ static const char *bidi_name[] =
 
 #endif	/* TEST_STANDALONE */
 
-/* Data structures.  */
+/* Local data structures.  (Look in dispextern.h for the rest.)  */
 
 /* What we need to know about the current paragraph.  */
 struct bidi_paragraph_info {
@@ -142,8 +165,9 @@ bidi_dir_t bidi_overriding_paragraph_direction = NEUTRAL_DIR;
 static void
 bidi_initialize ()
 {
+  /* FIXME: This should come from the Unicode Database.  */
   struct {
-    int from, to; 
+    int from, to;
     bidi_type_t type;
   } bidi_type[] =
       { { 0x0000, 0x0008, WEAK_BN },
@@ -421,7 +445,7 @@ bidi_initialize ()
 	{ 0xE0001, 0xE007F, WEAK_BN } };
   int i;
 
-  bidi_type_table = Fmake_char_table (Qnil, make_number (STRONG_L)); 
+  bidi_type_table = Fmake_char_table (Qnil, make_number (STRONG_L));
 
   for (i = 0; i < sizeof bidi_type / sizeof bidi_type[0]; i++)
     char_table_set_range (bidi_type_table, bidi_type[i].from, bidi_type[i].to,
@@ -481,8 +505,8 @@ bidi_get_category (bidi_type_t type)
     }
 }
 
-/* FIXME: exceedingly temporary!  Should consult some TBD data base of
-   character properties.  */
+/* FIXME: exceedingly temporary!  Should consult the Unicode database
+   of character properties.  */
 int
 bidi_mirror_char (int c)
 {
@@ -715,6 +739,8 @@ bidi_at_paragraph_end (int this_ch, int pos)
 {
   int next_ch = FETCH_CHAR (pos);
 
+  /* FIXME: This should support all Unicode characters that can end a
+     paragraph.  */
   return (this_ch == '\n' && next_ch == '\n') || this_ch == BIDI_EOB;
 }
 
@@ -1626,7 +1652,7 @@ bidi_level_of_next_char (struct bidi_it *bidi_it)
 
 	     STet{RLO}{PDF}
 
-	 which will result because we buump up the embedding level as
+	 which will result because we bump up the embedding level as
 	 soon as we see the RLO and pop it as soon as we see the PDF,
 	 so RLO itself has the same embedding level as "teST", and
 	 thus would be normally delivered last, just before the PDF.
@@ -1798,6 +1824,8 @@ bidi_get_next_char_visually (struct bidi_it *bidi_it)
     }
 }
 
+/* This is meant to be called from within the debugger, whenever you
+   wish to examine the cache contents.  */
 void
 bidi_dump_cached_states (void)
 {
@@ -1830,7 +1858,6 @@ bidi_dump_cached_states (void)
 
 #ifdef TEST_STANDALONE
 
-#include <stdio.h>
 #include <sys/stat.h>
 #include <signal.h>
 
