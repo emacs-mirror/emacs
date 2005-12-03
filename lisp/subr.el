@@ -1602,6 +1602,7 @@ This works regardless of whether undo is enabled in the buffer.
 This mechanism is transparent to ordinary use of undo;
 if undo is enabled in the buffer and BODY succeeds, the
 user can undo the change normally."
+  (declare (indent 0) (debug t))
   (let ((handle (make-symbol "--change-group-handle--"))
 	(success (make-symbol "--change-group-success--")))
     `(let ((,handle (prepare-change-group))
