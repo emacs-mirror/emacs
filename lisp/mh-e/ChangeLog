@@ -1,3 +1,30 @@
+2005-12-04  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-forward): Went over all uses of the word "RANGE"
+	in the docstrings and made usage consistent. Generally speaking,
+	"messages in range" and "range of messages" is redundant and just
+	"range" can be used in most circumstances. Also ensured that
+	mh-interactive-range was mentioned in all interactive functions
+	that use a range which describes the range argument for both
+	users and programmers.
+
+	* mh-e.el (mh-delete-msg-no-motion, mh-refile-msg)
+	(mh-refile-or-write-again, mh-rescan-folder, mh-undo)
+	(mh-visit-folder, mh-scan-folder, mh-regenerate-headers)
+	(mh-notate-user-sequences, mh-delete-msg-from-seq, mh-catchup):
+	Ditto.
+
+	* mh-funcs.el (mh-copy-msg, mh-pack-folder, mh-pack-folder-1):
+	Ditto.
+
+	* mh-junk.el (mh-junk-blacklist, mh-junk-whitelist): Ditto.
+
+	* mh-print.el (mh-ps-print-range, mh-ps-print-msg)
+	(mh-ps-print-msg-file, mh-print-msg): Ditto.
+
+	* mh-seq.el (mh-put-msg-in-seq, mh-range-to-msg-list)
+	(mh-narrow-to-range, mh-toggle-tick): Ditto.
+
 2005-12-01  Bill Wohler  <wohler@newt.com>
 
 	Rewrote Reading Mail chapter in manual which affected mh-show

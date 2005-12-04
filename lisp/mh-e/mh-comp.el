@@ -327,17 +327,14 @@ See also `mh-send'."
 
 ;;;###mh-autoload
 (defun mh-forward (to cc &optional range)
-  "Forward message(s).
+  "Forward message.
 
 You are prompted for the TO and CC recipients. You are given a draft to edit
 that looks like it would if you had run the MH command \"forw\". You are given
 a chance to add some text.
 
-You can forward several messages by using a RANGE. All of the messages in the
-range are inserted into your draft. Check the documentation of
+You can forward several messages by using a RANGE. Check the documentation of
 `mh-interactive-range' to see how RANGE is read in interactive use.
-
-The default message is the current message.
 
 See also `mh-compose-forward-as-mime-flag', `mh-forward-subject-format',
 and `mh-send'."

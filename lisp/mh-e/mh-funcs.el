@@ -79,7 +79,14 @@ field yourself."
 
 ;;;###mh-autoload
 (defun mh-copy-msg (range folder)
-  "Copy the specified RANGE to another FOLDER without deleting them.
+  "Copy RANGE to FOLDER\\<mh-folder-mode-map>.
+
+If you wish to copy a message to another folder, you can use this command
+\(see the \"-link\" argument to \"refile\"). Like the command
+\\[mh-refile-msg], this command prompts you for the name of the target folder
+and you can specify a range. Note that unlike the command \\[mh-refile-msg],
+the copy takes place immediately. The original copy remains in the current
+folder.
 
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use."
@@ -156,10 +163,16 @@ Display the results only if something went wrong."
 
 ;;;###mh-autoload
 (defun mh-pack-folder (range)
-  "Renumber the messages of a folder to be 1..n.
-First, offer to execute any outstanding commands for the current folder. If
-optional prefix argument provided, prompt for the RANGE of messages to display
-after packing. Otherwise, show the entire folder."
+  "Pack folder\\<mh-folder-mode-map>.
+
+This command packs the folder, removing gaps from the numbering sequence. If
+you don't want to rescan the entire folder afterward, this command will accept
+a RANGE. Check the documentation of `mh-interactive-range' to see how RANGE is
+read in interactive use.
+
+This command will ask if you want to process refiles or deletes first and then
+either run \\[mh-execute-commands] for you or undo the pending refiles and
+deletes, which are lost."
   (interactive (list (if current-prefix-arg
                          (mh-read-range "Scan" mh-current-folder t nil t
                                         mh-interpret-number-as-range-flag)
@@ -175,8 +188,8 @@ after packing. Otherwise, show the entire folder."
 
 (defun mh-pack-folder-1 (range)
   "Close and pack the current folder.
-Display the given RANGE of messages after packing. If RANGE is nil, show the
-entire folder."
+
+Display RANGE after packing, or the entire folder if RANGE is nil."
   (mh-process-or-undo-commands mh-current-folder)
   (message "Packing folder...")
   (mh-set-folder-modified-p t)          ; lock folder while packing

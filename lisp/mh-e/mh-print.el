@@ -88,7 +88,8 @@ Sensible choices are the functions `ps-spool-buffer' and
           (kill-buffer buffer)))))
 
 (defun mh-ps-print-range (range file)
-  "Print the messages in RANGE to FILE.
+  "Print RANGE to FILE.
+
 This is the function that actually does the work.
 If FILE is nil, then the messages are spooled to the printer."
   (mh-iterate-on-range msg range
@@ -105,7 +106,7 @@ Pass along the PREFIX-ARG to it."
 
 ;;;###mh-autoload
 (defun mh-ps-print-msg (range)
-  "Print the messages in RANGE\\<mh-folder-mode-map>.
+  "Print RANGE\\<mh-folder-mode-map>.
 
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use.
@@ -126,7 +127,7 @@ and \\[mh-ps-print-toggle-faces]."
 
 ;;;###mh-autoload
 (defun mh-ps-print-msg-file (range file)
-  "Print the messages in RANGE to FILE\\<mh-folder-mode-map>.
+  "Print RANGE to FILE\\<mh-folder-mode-map>.
 
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use.
@@ -185,7 +186,7 @@ best. You change this setting permanently by customizing the option
 ;;; Old non-PS based printing
 ;;;###mh-autoload
 (defun mh-print-msg (range)
-  "Print the messages in RANGE the old fashioned way\\<mh-folder-mode-map>.
+  "Print RANGE the old fashioned way\\<mh-folder-mode-map>.
 
 The message is formatted with \"mhl\" (see option `mh-mhl-format-file') and
 printed with the \"lpr\" command (see option `mh-lpr-command-format').
