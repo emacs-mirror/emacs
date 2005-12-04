@@ -7,6 +7,7 @@
 
 	* font-core.el (global-font-lock-mode): Use define-global-minor-mode
 	instead of easy-mmode-define-global-mode.  Add `:group font-lock'.
+	(font-lock-mode): Replace `:group font-lock' with `nil nil nil'.
 
 	* font-lock.el (lisp-font-lock-keywords-1):
 	Add define-global-minor-mode.
