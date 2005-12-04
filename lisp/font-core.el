@@ -146,7 +146,6 @@ buffer local value for `font-lock-defaults', via its mode hook.
 The above is the default behavior of `font-lock-mode'; you may specify
 your own function which is called when `font-lock-mode' is toggled via
 `font-lock-function'. "
-  :group 'font-lock
   ;; Don't turn on Font Lock mode if we don't have a display (we're running a
   ;; batch job) or if the buffer is invisible (the name starts with a space).
   (when (or noninteractive (eq (aref (buffer-name) 0) ?\ ))
@@ -291,12 +290,13 @@ means that Font Lock mode is turned on for buffers in C and C++ modes only."
     (let (inhibit-quit)
       (turn-on-font-lock))))
 
-(easy-mmode-define-global-mode
- global-font-lock-mode font-lock-mode turn-on-font-lock-if-enabled
- :extra-args (dummy)
- :initialize 'custom-initialize-safe-default
- :init-value (not (or noninteractive emacs-basic-display))
- :version "22.1")
+(define-global-minor-mode global-font-lock-mode
+  font-lock-mode turn-on-font-lock-if-enabled
+  :extra-args (dummy)
+  :initialize 'custom-initialize-safe-default
+  :init-value (not (or noninteractive emacs-basic-display))
+  :group 'font-lock
+  :version "22.1")
 
 ;;; End of Global Font Lock mode.
 
