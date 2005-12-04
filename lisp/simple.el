@@ -4970,12 +4970,13 @@ is the substring.)")
                       (< (setq element-common-end
                                (+ element-start common-string-length))
                          maxp))
-	    (when (and (get-char-property element-start 'mouse-face)
-		       (get-char-property element-common-end 'mouse-face))
-	      (put-text-property element-start element-common-end
-				 'font-lock-face 'completions-common-part)
-	      (put-text-property element-common-end (1+ element-common-end)
-				 'font-lock-face 'completions-first-difference)))))
+	    (when (get-char-property element-start 'mouse-face)
+	      (if (get-char-property (1- element-common-end) 'mouse-face)
+		  (put-text-property element-start element-common-end
+				     'font-lock-face 'completions-common-part))
+	      (if (get-char-property element-common-end 'mouse-face)
+		  (put-text-property element-common-end (1+ element-common-end)
+				     'font-lock-face 'completions-first-difference))))))
       ;; Insert help string.
       (goto-char (point-min))
       (if (display-mouse-p)
