@@ -372,8 +372,8 @@ The mode is turned if some feature is enabled for the current
   (if (cwarn-is-enabled major-mode) (turn-on-cwarn-mode)))
 
 ;;;###autoload
-(easy-mmode-define-global-mode global-cwarn-mode cwarn-mode
-			       turn-on-cwarn-mode-if-enabled)
+(define-global-minor-mode global-cwarn-mode
+  cwarn-mode turn-on-cwarn-mode-if-enabled)
 
 (provide 'cwarn)
 
