@@ -1,3 +1,15 @@
+2005-12-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer)
+	(gdb-speedbar-auto-raise): Echo new state in minibuffer.
+	(gdb-var-create-handler, gdb-assembler-custom): Use search-forward
+	for plain strings.
+	(gdb-frames-mode): Remove redundant call to font-lock-mode.
+	(gdb-all-registers): Rename from toggle-gdb-all-registers.  Create
+	registers buffer if necessary.  Echo new state in minibuffer.
+	(gdb-registers-mode-map, gdb-registers-mode): Use
+	gdb-all-registers.
+
 2005-12-03  Chong Yidong  <cyd@stupidchicken.com>
 
 	* info.el (Info-fontify-node): Match external links using
