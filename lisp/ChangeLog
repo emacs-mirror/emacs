@@ -1,3 +1,48 @@
+2005-12-04  Juri Linkov  <juri@jurta.org>
+
+	* font-core.el (global-font-lock-mode): Use define-global-minor-mode
+	instead of easy-mmode-define-global-mode.  Add `:group font-lock'.
+	(font-lock-mode): Remove `:group font-lock'.
+
+	* font-lock.el (lisp-font-lock-keywords-1):
+	Add define-global-minor-mode.
+
+	* emacs-lisp/autoload.el (make-autoload): Add define-global-minor-mode.
+
+	* emacs-lisp/derived.el (define-derived-mode): Put `definition-name'
+	properties on the constructed variable names.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	Put `definition-name' properties on the constructed function names
+	next-sym and prev-sym.
+
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Add define-global-minor-mode.  Replace `easy-mmode-define-global-mode'
+	with `easy-mmode-define-[a-z-]+'.  Add easy-menu-define.
+	(find-variable-regexp): Add easy-mmode-defmap, easy-mmode-defsyntax
+	and easy-menu-define.
+
+	* emacs-lisp/lisp-mode.el: Put `doc-string-elt' property on
+	easy-mmode-define-global-mode and define-global-minor-mode.
+	(lisp-imenu-generic-expression): Add define-global-minor-mode.
+
+	* progmodes/cwarn.el (global-cwarn-mode): Use define-global-minor-mode
+	instead of easy-mmode-define-global-mode.
+
+	* progmodes/idlw-shell.el (idlwave-shell-electric-debug-mode):
+	Use define-minor-mode instead of easy-mmode-define-minor-mode.
+
+	* cus-edit.el (customize-group, customize-group-other-window):
+	Filter out autoloaded options from the group completion list by
+	using heuristics that autoloaded groups don't have `custom-autoload'
+	property on their symbols (they have only `custom-loads').
+
+	* simple.el (completion-setup-function): Put completions-common-part
+	face on full completion string too (i.e. completion string without
+	completions-first-difference face).
+
+	* man.el (Man-section-regexp): Add 0-9 to support "3X11" sections.
+
 2005-12-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* view.el (view-mode): Doc fix.
