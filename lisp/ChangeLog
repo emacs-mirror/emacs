@@ -1,3 +1,8 @@
+2005-12-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-fontify-node): Match external links using
+	non-directory part of filename.
+
 2005-12-04  Juri Linkov  <juri@jurta.org>
 
 	* font-core.el (global-font-lock-mode): Use define-global-minor-mode

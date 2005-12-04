@@ -3800,17 +3800,25 @@ the variable `Info-file-list-for-emacs'."
                                              (and (not (equal (match-string 4) ""))
                                                   (match-string 4))
                                              (match-string 2)))))
-                                 (file Info-current-file)
+				 (external-link-p
+				  (string-match "(\\([^)]+\\))\\([^)]*\\)" node))
+                                 (file (if external-link-p
+					   (file-name-nondirectory
+					    (match-string 1 node))
+					 Info-current-file))
                                  (hl Info-history-list)
                                  res)
-                            (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
-                                (setq file (Info-find-file (match-string 1 node) t)
-                                      node (if (equal (match-string 2 node) "")
+                            (if external-link-p
+				(setq node (if (equal (match-string 2 node) "")
                                                "Top"
                                              (match-string 2 node))))
 			    (while hl
 			      (if (and (string-equal node (nth 1 (car hl)))
-				       (string-equal file (nth 0 (car hl))))
+				       (string-equal
+					file (if external-link-p
+						 (file-name-nondirectory
+						  (caar hl))
+					       (caar hl))))
 				  (setq res (car hl) hl nil)
 				(setq hl (cdr hl))))
                             res))) 'info-xref-visited 'info-xref))
@@ -3902,20 +3910,27 @@ the variable `Info-file-list-for-emacs'."
                  ;; Display visited menu items in a different face
                  (if (and Info-fontify-visited-nodes
                           (save-match-data
-                            (let ((node (if (equal (match-string 3) "")
-                                            (match-string 1)
-                                          (match-string 3)))
-                                  (file Info-current-file)
-                                  (hl Info-history-list)
-                                  res)
-                              (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
-                                  (setq file (Info-find-file (match-string 1 node) t)
-                                        node (if (equal (match-string 2 node) "")
+                            (let* ((node (if (equal (match-string 3) "")
+					     (match-string 1)
+					   (match-string 3)))
+				   (external-link-p
+				    (string-match "(\\([^)]+\\))\\([^)]*\\)" node))
+				   (file (if external-link-p
+					     (file-name-nondirectory
+					      (match-string 1 node))
+					   Info-current-file))
+				   (hl Info-history-list)
+				   res)
+                              (if external-link-p
+                                  (setq node (if (equal (match-string 2 node) "")
                                                  "Top"
                                                (match-string 2 node))))
 			      (while hl
 				(if (and (string-equal node (nth 1 (car hl)))
-					 (string-equal file (nth 0 (car hl))))
+					 (string-equal
+					  file (if external-link-p
+						   (file-name-nondirectory (caar hl))
+						 (caar hl))))
 				    (setq res (car hl) hl nil)
 				  (setq hl (cdr hl))))
                               res))) 'info-xref-visited 'info-xref)))
