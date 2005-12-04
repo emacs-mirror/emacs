@@ -975,13 +975,15 @@ then prompt for the MODE to customize."
 ;;;###autoload
 (defun customize-group (group)
   "Customize GROUP, which must be a customization group."
-  (interactive (list (let ((completion-ignore-case t))
-		       (completing-read "Customize group (default emacs): "
-					obarray
-					(lambda (symbol)
-					  (or (get symbol 'custom-loads)
-					      (get symbol 'custom-group)))
-					t))))
+  (interactive
+   (list (let ((completion-ignore-case t))
+	   (completing-read "Customize group (default emacs): "
+			    obarray
+			    (lambda (symbol)
+			      (or (and (get symbol 'custom-loads)
+				       (not (get symbol 'custom-autoload)))
+				  (get symbol 'custom-group)))
+			    t))))
   (when (stringp group)
     (if (string-equal "" group)
 	(setq group 'emacs)
@@ -998,13 +1000,15 @@ then prompt for the MODE to customize."
 ;;;###autoload
 (defun customize-group-other-window (group)
   "Customize GROUP, which must be a customization group."
-  (interactive (list (let ((completion-ignore-case t))
-		       (completing-read "Customize group (default emacs): "
-					obarray
-					(lambda (symbol)
-					  (or (get symbol 'custom-loads)
-					      (get symbol 'custom-group)))
-					t))))
+  (interactive
+   (list (let ((completion-ignore-case t))
+	   (completing-read "Customize group (default emacs): "
+			    obarray
+			    (lambda (symbol)
+			      (or (and (get symbol 'custom-loads)
+				       (not (get symbol 'custom-autoload)))
+				  (get symbol 'custom-group)))
+			    t))))
   (when (stringp group)
     (if (string-equal "" group)
 	(setq group 'emacs)
