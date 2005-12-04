@@ -63,14 +63,10 @@ is parsed at startup and used to provide URL completion."
 Default is 1 hour.  Note that if you change this variable outside of
 the `customize' interface after `url-do-setup' has been run, you need
 to run the `url-history-setup-save-timer' function manually."
-  :set (function (lambda (var val)
-		   (set-default var val)
-		   (and (featurep 'url)
-			(fboundp 'url-history-setup-save-timer)
-                        (let ((def (symbol-function
-                                    'url-history-setup-save-timer)))
-                          (not (and (listp def) (eq 'autoload (car def)))))
-			(url-history-setup-save-timer))))
+  :set #'(lambda (var val)
+	   (set-default var val)
+	   (if (bound-and-true-p url-setup-done)
+	       (url-history-setup-save-timer)))
   :type 'integer
   :group 'url-history)
 
@@ -92,20 +88,12 @@ to run the `url-history-setup-save-timer' function manually."
   "Reset the history list timer."
   (interactive)
   (ignore-errors
-    (cond ((fboundp 'cancel-timer) (cancel-timer url-history-timer))
-	  ((fboundp 'delete-itimer) (delete-itimer url-history-timer))))
+   (cancel-timer url-history-timer))
   (setq url-history-timer nil)
   (if (and (eq url-history-track t) url-history-save-interval)
-      (setq url-history-timer
-	    (cond
-	     ((fboundp 'run-at-time)
-	      (run-at-time url-history-save-interval
-			   url-history-save-interval
-			   'url-history-save-history))
-	     ((fboundp 'start-itimer)
-	      (start-itimer "url-history-saver" 'url-history-save-history
-			    url-history-save-interval
-			    url-history-save-interval))))))
+      (setq url-history-timer (run-at-time url-history-save-interval
+					   url-history-save-interval
+					   'url-history-save-history))))
 
 ;;;###autoload
 (defun url-history-parse-history (&optional fname)
