@@ -78,7 +78,7 @@
 ;; 1) Use MI command -data-read-memory for memory window.
 ;; 2) Highlight changed register values (use MI commands
 ;;    -data-list-register-values and -data-list-changed-registers instead
-;;    of 'info registers'.
+;;    of 'info registers' after release of 22.1.
 ;; 3) Use tree-widget.el instead of the speedbar for watch-expressions?
 ;; 4) Mark breakpoint locations on scroll-bar of source buffer?
 ;; 5) After release of 22.1, use "-var-list-children --all-values"
@@ -263,6 +263,8 @@ With arg, use separate IO iff arg is positive."
 	(if (null arg)
 	    (not gdb-use-inferior-io-buffer)
 	  (> (prefix-numeric-value arg) 0)))
+  (message (format "Separate inferior IO %sabled"
+		   (if gdb-use-inferior-io-buffer "en" "dis")))
   (if (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer))
       (condition-case nil
@@ -376,11 +378,11 @@ With arg, use separate IO iff arg is positive."
 	   "\C-d" "Remove breakpoint at current line or address.")
   ;;
   (gud-def gud-until (if (not (string-match "Machine" mode-name))
-			  (gud-call "until %f:%l" arg)
-			(save-excursion
-			  (beginning-of-line)
-			  (forward-char 2)
-			  (gud-call "until *%a" arg)))
+			 (gud-call "until %f:%l" arg)
+		       (save-excursion
+			 (beginning-of-line)
+			 (forward-char 2)
+			 (gud-call "until *%a" arg)))
 	   "\C-u" "Continue to current line or address.")
   ;;
   (gud-def gud-go (gud-call (if gdb-active-process "continue" "run") arg)
@@ -492,7 +494,9 @@ With arg, use separate IO iff arg is positive."
   (setq gdb-speedbar-auto-raise
 	(if (null arg)
 	    (not gdb-speedbar-auto-raise)
-	  (> (prefix-numeric-value arg) 0))))
+	  (> (prefix-numeric-value arg) 0)))
+  (message (format "Auto raising %sabled"
+		   (if gdb-speedbar-auto-raise "en" "dis"))))
 
 (defcustom gdb-use-colon-colon-notation nil
   "If non-nil use FUN::VAR format to display variables in the speedbar."
@@ -547,7 +551,7 @@ With arg, use separate IO iff arg is positive."
 	    `(lambda () (gdb-var-evaluate-expression-handler
 			 ,(nth 1 var) nil))))
 	    (setq gdb-var-changed t))
-      (if (re-search-forward "Undefined command" nil t)
+      (if (search-forward "Undefined command" nil t)
 	  (message-box "Watching expressions requires gdb 6.0 onwards")
 	(message "No symbol \"%s\" in current context." expr)))))
 
@@ -1736,7 +1740,6 @@ static char *magick[] = {
   (setq mode-name "Frames")
   (setq buffer-read-only t)
   (use-local-map gdb-frames-mode-map)
-  (font-lock-mode -1)
   (run-mode-hooks 'gdb-frames-mode-hook)
   (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer) 'gdba)
       'gdb-invalidate-frames
@@ -1899,7 +1902,7 @@ static char *magick[] = {
     (suppress-keymap map)
     (define-key map "\r" 'gdb-edit-register-value)
     (define-key map [mouse-2] 'gdb-edit-register-value)
-    (define-key map " " 'toggle-gdb-all-registers)
+    (define-key map " " 'gdb-all-registers)
     (define-key map "q" 'kill-this-buffer)
      map))
 
@@ -1909,7 +1912,7 @@ static char *magick[] = {
 \\{gdb-registers-mode-map}"
   (kill-all-local-variables)
   (setq major-mode 'gdb-registers-mode)
-  (setq mode-name "Registers:")
+  (setq mode-name (if gdb-all-registers "Registers:All" "Registers:"))
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
   (run-mode-hooks 'gdb-registers-mode-hook)
@@ -1934,17 +1937,19 @@ static char *magick[] = {
 	(special-display-frame-alist gdb-frame-parameters))
     (display-buffer (gdb-get-create-buffer 'gdb-registers-buffer))))
 
-(defun toggle-gdb-all-registers ()
+(defun gdb-all-registers ()
   "Toggle the display of floating-point registers."
   (interactive)
   (if gdb-all-registers
       (progn
 	(setq gdb-all-registers nil)
-	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+	(with-current-buffer (gdb-get-create-buffer 'gdb-registers-buffer)
 	  (setq mode-name "Registers:")))
     (setq gdb-all-registers t)
-    (with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+    (with-current-buffer (gdb-get-create-buffer 'gdb-registers-buffer)
       (setq mode-name "Registers:All")))
+  (message (format "Display of floating-point registers %sabled"
+		   (if gdb-all-registers "en" "dis")))
   (gdb-invalidate-registers))
 
 
@@ -2758,7 +2763,7 @@ BUFFER nil or omitted means use the current buffer."
 	    (progn
 	      (goto-char (point-min))
 	      (if (and gdb-frame-address
-		       (re-search-forward gdb-frame-address nil t))
+		       (search-forward gdb-frame-address nil t))
 		  (progn
 		    (setq pos (point))
 		    (beginning-of-line)
@@ -2782,7 +2787,7 @@ BUFFER nil or omitted means use the current buffer."
 	      (with-current-buffer buffer
 		(save-excursion
 		  (goto-char (point-min))
-		  (if (re-search-forward address nil t)
+		  (if (search-forward address nil t)
 		      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
     (if (not (equal gdb-frame-address "main"))
 	(with-current-buffer buffer
