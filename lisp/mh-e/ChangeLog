@@ -1,5 +1,12 @@
 2005-12-04  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el (mh-fetch-x-image-url): Change default from 'ask
+	to nil. Remove t option. Sync docstring with manual (closes SF
+	#831278).
+	(mh-invisible-header-fields-internal): Remove X-Image-URL so that
+	users can see it, look it up in the manual's index, and discover
+	mh-fetch-x-image-url (closes SF #831278).
+
 	* mh-customize.el (mh-invisible-header-fields-internal): Add
 	X-Bugzilla-* and X-Virus-Scanned.
 

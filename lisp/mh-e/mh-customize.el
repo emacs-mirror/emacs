@@ -1273,32 +1273,37 @@ cannot be retracted--without question."
   :type 'boolean
   :group 'mh-show)
 
-(defcustom mh-fetch-x-image-url 'ask
+(defcustom mh-fetch-x-image-url nil
   "*Control fetching of \"X-Image-URL:\" header field image.
 
-If set to \"Always Fetch\", the image is always fetched. You probably want to
-avoid this setting for privacy and denial of service reasons. For example,
-fetching a URL can tip off a spammer that you've read his email. Someone may
-also flood your network and fill your disk drive by sending a torrent of
-messages, each specifying a unique URL to a very large file.
+Ths option controls the fetching of the \"X-Image-URL:\" header field image
+with the following values:
 
-If set to \"Ask Before Fetching\", you are prompted before the image is
-fetched. MH-E will remember your reply and will either use the cached image
-the next time the same URL is encountered or silently skip it if you didn't
-fetch it the first time. This is the default.
+Ask Before Fetching
+     You are prompted before the image is fetched. MH-E will remember
+     your reply and will either use the already fetched image the next
+     time the same URL is encountered or silently skip it if you didn't
+     fetch it the first time. This is a good setting.
 
-If set to \"Never Fetch\", images are never fetched and only displayed if they
-are already present in the cache.
+Never Fetch
+     Images are never fetched and only displayed if they are already
+     present in the cache. This is the default.
+
+There isn't a value of \"Always Fetch\" for privacy and DOS (denial of
+service) reasons. For example, fetching a URL can tip off a spammer that
+you've read his email (which is why you shouldn't blindly answer yes if you've
+set this option to \"Ask Before Fetching\"). Someone may also flood your
+network and fill your disk drive by sending a torrent of messages, each
+specifying a unique URL to a very large file.
 
 The cache of images is found in the directory \".mhe-x-image-cache\" within
-your MH directory. To see how you can add your own face to the \"From:\"
-field, see the option `mh-x-face-file'.
+your MH directory. You can add your own face to the \"From:\" field too. See
+Info node `(mh-e)Picture'.
 
 This setting only has effect if the option `mh-show-use-xface-flag' is turned
 on."
 
-  :type '(choice (const :tag "Always Fetch" t)
-                 (const :tag "Ask Before Fetching" ask)
+  :type '(choice (const :tag "Ask Before Fetching" ask)
                  (const :tag "Never Fetch" nil))
   :group 'mh-show)
 
@@ -1439,7 +1444,6 @@ of citations entirely, choose \"None\"."
     "X-Habeas-SWE-7:"                   ; Spam
     "X-Habeas-SWE-8:"                   ; Spam
     "X-Habeas-SWE-9:"                   ; Spam
-    "X-Image-URL:"                      ; URL equivalent of X-Face and Face
     "X-Info:"                           ; NTMail
     "X-Juno-"                           ; Juno
     "X-List-Host:"                      ; Unknown mailing list managers
