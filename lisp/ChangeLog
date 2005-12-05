@@ -1,7 +1,17 @@
+2005-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el: Remove unnecessary leading-star in docstrings.
+	(mail-yank-ignored-headers): Use regexp-opt.
+	(mail-mode-map): Move initialization into declaration.
+	(mail-sent-via): Remove unused shadowed var `to-line'.
+	(mail-mailer-swallows-blank-line): Use with-temp-buffer.
+	(mail-bury, sendmail-send-it, mail-do-fcc): Use with-current-buffer.
+	(mail-do-fcc): Use dolist and push.
+	(mail-mode-fill-paragraph): Pass the arg to fill-region-as-paragraph.
+
 2005-12-05  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (set-language-info-internal): New
-	function.
+	* international/mule-cmds.el (set-language-info-internal): New fun.
 	(set-language-info): Call set-language-info-internal to update
 	language-info-alist.  If LANG-ENV is the current one, call
 	set-language-environment to make INFO effective now.
@@ -16,10 +26,9 @@
 	(gdb-var-create-handler, gdb-assembler-custom): Use search-forward
 	for plain strings.
 	(gdb-frames-mode): Remove redundant call to font-lock-mode.
-	(gdb-all-registers): Rename from toggle-gdb-all-registers.  Create
-	registers buffer if necessary.  Echo new state in minibuffer.
-	(gdb-registers-mode-map, gdb-registers-mode): Use
-	gdb-all-registers.
+	(gdb-all-registers): Rename from toggle-gdb-all-registers.
+	Create registers buffer if necessary.  Echo new state in minibuffer.
+	(gdb-registers-mode-map, gdb-registers-mode): Use gdb-all-registers.
 
 2005-12-03  Chong Yidong  <cyd@stupidchicken.com>
 
