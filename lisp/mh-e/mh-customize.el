@@ -384,8 +384,9 @@ this option off."
 
 ;;; Organizing Your Mail with Folders (:group 'mh-folder)
 
-(defcustom mh-index-new-messages-folders t
+(defcustom mh-new-messages-folders t
   "Folders searched for the \"unseen\" sequence.
+
 Set this option to \"Inbox\" to search the \"+inbox\" folder or \"All\" to
 search all of the top level folders. Otherwise, list the folders that should
 be searched with the \"Choose Folders\" menu item.
@@ -396,8 +397,9 @@ See also `mh-recursive-folders-flag'."
                  (repeat :tag "Choose Folders" (string :tag "Folder")))
   :group 'mh-folder)
 
-(defcustom mh-index-ticked-messages-folders t
+(defcustom mh-ticked-messages-folders t
   "Folders searched for `mh-tick-seq'.
+
 Set this option to \"Inbox\" to search the \"+inbox\" folder or \"All\" to
 search all of the top level folders. Otherwise, list the folders that should
 be searched with the \"Choose Folders\" menu item.

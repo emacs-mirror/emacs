@@ -1,5 +1,13 @@
 2005-12-04  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el (mh-new-messages-folders): Rename from
+	mh-index-new-messages-folders.
+	(mh-ticked-messages-folders): Rename from
+	mh-index-ticked-messages-folders.
+
+	* mh-index.el (mh-index-sequenced-messages)
+	(mh-index-new-messages): Ditto.
+
 	* mh-comp.el (mh-forward): Went over all uses of the word "RANGE"
 	in the docstrings and made usage consistent. Generally speaking,
 	"messages in range" and "range of messages" is redundant and just
