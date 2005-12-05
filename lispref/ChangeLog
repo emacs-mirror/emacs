@@ -1,3 +1,8 @@
+2005-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymaps.texi (Format of Keymaps): Remove mention of a quirk
+	in full keymaps, since the quirk has been fixed.
+
 2005-12-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* hooks.texi (Standard Hooks): Add index entries.  Mention
