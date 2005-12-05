@@ -432,11 +432,12 @@ is toggled off."
   :group 'mh-folder)
 
 (defcustom mh-sortm-args nil
-  "*Extra arguments to have \\[mh-sort-folder] pass to the \"sortm\" command.
-The arguments are passed to sortm if \\[mh-sort-folder] is given a
-prefix argument.  Normally default arguments to sortm are specified in the
-MH profile.
-For example, '(\"-nolimit\" \"-textfield\" \"subject\") is a useful setting."
+  "*Additional arguments for \"sortm\"\\<mh-folder-mode-map>.
+
+This option is consulted when a prefix argument is used with
+\\[mh-sort-folder]. Normally default arguments to \"sortm\" are specified in
+the MH profile. This option may be used to provide an alternate view. For
+example, \"'(\"-nolimit\" \"-textfield\" \"subject\")\" is a useful setting."
   :type 'string
   :group 'mh-folder)
 
