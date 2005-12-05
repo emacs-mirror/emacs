@@ -1126,6 +1126,13 @@ For a list of useful values for KEY and their meanings,
 see `language-info-alist'."
   (if (symbolp lang-env)
       (setq lang-env (symbol-name lang-env)))
+  (set-language-info-internal lang-env key info)
+  (if (equal lang-env current-language-environment)
+      (set-language-environment lang-env)))
+
+(defun set-language-info-internal (lang-env key info)
+  "Internal use only.
+Arguments are the same as `set-language-info'."
   (let (lang-slot key-slot)
     (setq lang-slot (assoc lang-env language-info-alist))
     (if (null lang-slot)		; If no slot for the language, add it.
@@ -1196,9 +1203,11 @@ in the European submenu in each of those two menus."
     (define-key-after setup-map (vector (intern lang-env))
       (cons lang-env 'setup-specified-language-environment) t)
 
-    (while alist
-      (set-language-info lang-env (car (car alist)) (cdr (car alist)))
-      (setq alist (cdr alist)))))
+    (dolist (elt alist)
+      (set-language-info-internal lang-env (car elt) (cdr elt)))
+    
+    (if (equal lang-env current-language-environment)
+	(set-language-environment lang-env))))
 
 (defun read-language-name (key prompt &optional default)
   "Read a language environment name which has information for KEY.
@@ -2129,7 +2138,7 @@ of `buffer-file-coding-system' set by this function."
     ;; That's actually what the GNU locales define, modulo things like
     ;; en_IN -- fx.
     ("en_IN" "English" utf-8) ; glibc uses utf-8 for English in India
-    ("en" . "Latin-1") ; English
+    ("en" "English" iso-8859-1) ; English
     ("eo" . "Latin-3") ; Esperanto
     ("es" "Spanish" iso-8859-1)
     ("et" . "Latin-1") ; Estonian
