@@ -1,15 +1,20 @@
 2005-12-04  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el (mh-sortm-args): Sync docstrings with manual.
+	(mh-invisible-header-fields-internal): Add X-Bugzilla-* and
+	X-Virus-Scanned.
+ 	
+	* mh-customize.el (mh-insert-signature-hook): Rename
+	mh-letter-insert-signature-hook to mh-insert-signature-hook.
+
+	* mh-comp.el (mh-insert-signature): Ditto.
+
 	* mh-customize.el (mh-fetch-x-image-url): Change default from 'ask
 	to nil. Remove t option. Sync docstring with manual (closes SF
 	#831278).
 	(mh-invisible-header-fields-internal): Remove X-Image-URL so that
 	users can see it, look it up in the manual's index, and discover
 	mh-fetch-x-image-url (closes SF #831278).
-	(mh-sortm-args): Sync docstrings with manual.
-
-	* mh-customize.el (mh-invisible-header-fields-internal): Add
-	X-Bugzilla-* and X-Virus-Scanned.
 
 	* mh-customize.el (mh-new-messages-folders): Rename from
 	mh-index-new-messages-folders.
@@ -24,8 +29,8 @@
 	"messages in range" and "range of messages" is redundant and just
 	"range" can be used in most circumstances. Also ensured that
 	mh-interactive-range was mentioned in all interactive functions
-	that use a range which describes the range argument for both
-	users and programmers.
+	that use a range which describes the range argument for both users
+	and programmers.
 
 	* mh-e.el (mh-delete-msg-no-motion, mh-refile-msg)
 	(mh-refile-or-write-again, mh-rescan-folder, mh-undo)
@@ -43,6 +48,7 @@
 
 	* mh-seq.el (mh-put-msg-in-seq, mh-range-to-msg-list)
 	(mh-narrow-to-range, mh-toggle-tick): Ditto.
+
 
 2005-12-01  Bill Wohler  <wohler@newt.com>
 

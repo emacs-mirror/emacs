@@ -2322,6 +2322,15 @@ current folder, `mh-current-folder'."
   :group 'mh-hooks
   :group 'mh-inc)
 
+(defcustom mh-insert-signature-hook nil
+  "Invoked after signature has been inserted.
+
+These functions may access the actual name of the file or the function used to
+insert the signature with `mh-signature-file-name'."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-letter)
+
 (defcustom mh-kill-folder-suppress-prompt-hook '(mh-index-p)
   "Invoked at the beginning of the  \\<mh-folder-mode-map>`\\[mh-kill-folder]' command.
 This hook is a list of functions to be called, with no arguments, which should
@@ -2338,14 +2347,6 @@ in the +inbox buffer, you will not be happy."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
-
-(defcustom mh-letter-insert-signature-hook nil
-  "Invoked after signature has been inserted.
-This hook may access the actual name of the file or the function used to
-insert the signature with `mh-signature-file-name'."
-  :type 'hook
-  :group 'mh-hooks
-  :group 'mh-letter)
 
 (defcustom mh-letter-mode-hook nil
   "Invoked by `mh-letter-mode' on a new letter."

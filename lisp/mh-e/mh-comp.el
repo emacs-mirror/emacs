@@ -1143,7 +1143,7 @@ By default, the text of your signature is taken from the file
 A signature separator (\"-- \") will be added if the signature block does not
 contain one and `mh-signature-separator-flag' is on.
 
-The value of `mh-letter-insert-signature-hook' is a list of functions to be
+The value of `mh-insert-signature-hook' is a list of functions to be
 called, with no arguments, after the signature is inserted. These functions
 may access the actual name of the file or the function used to insert the
 signature with `mh-signature-file-name'.
@@ -1181,7 +1181,7 @@ The signature can also be inserted using Identities (see `mh-identity-list')"
                  (funcall mh-signature-file-name)))))
         (save-restriction
           (widen)
-          (run-hooks 'mh-letter-insert-signature-hook))
+          (run-hooks 'mh-insert-signature-hook))
         (goto-char (point-min))
         (when (and (not (mh-file-is-vcard-p mh-signature-file-name))
                    mh-signature-separator-flag
