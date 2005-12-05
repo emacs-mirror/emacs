@@ -1,3 +1,14 @@
+2005-12-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-info-internal): New
+	function.
+	(set-language-info): Call set-language-info-internal to update
+	language-info-alist.  If LANG-ENV is the current one, call
+	set-language-environment to make INFO effective now.
+	(set-language-info-alist): Likewise.
+	(locale-language-names): With locale "en", use English
+	lang. env. but set the default codings to iso-8859-1.
+
 2005-12-04  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer)
