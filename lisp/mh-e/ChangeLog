@@ -1,10 +1,13 @@
 2005-12-04  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el (mh-invisible-header-fields-internal): Add
+	X-Bugzilla-* and X-Virus-Scanned.
+
 	* mh-customize.el (mh-new-messages-folders): Rename from
 	mh-index-new-messages-folders.
 	(mh-ticked-messages-folders): Rename from
 	mh-index-ticked-messages-folders.
-
+	
 	* mh-index.el (mh-index-sequenced-messages)
 	(mh-index-new-messages): Ditto.
 

@@ -1413,6 +1413,7 @@ of citations entirely, choose \"None\"."
     "X-Authentication-Warning:"         ; sendmail
     "X-Beenthere:"                      ; Mailman mailing list manager
     "X-Bogosity:"                       ; bogofilter
+    "X-Bugzilla-*"                      ; Bugzilla
     "X-Complaints-To:"
     "X-Cron-Env:"
     "X-DMCA"
@@ -1502,6 +1503,7 @@ of citations entirely, choose \"None\"."
     "X-UIDL:"
     "X-USANET-"                         ; usa.net
     "X-UserInfo1:"
+    "X-Virus-Scanned"                   ; amavisd-new
     "X-VSMLoop:"                        ; NTMail
     "X-Vms-To:"
     "X-WebTV-Signature:"
