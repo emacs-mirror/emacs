@@ -112,7 +112,6 @@ nil means let mailer mail back a message to report errors."
   :type 'boolean
   :group 'sendmail)
 
-;;;###autoload
 (defcustom mail-yank-ignored-headers
   (concat "^"
           (regexp-opt '("via" "mail-from" "origin" "status" "remailed"

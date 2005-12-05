@@ -8,6 +8,7 @@
 	(mail-bury, sendmail-send-it, mail-do-fcc): Use with-current-buffer.
 	(mail-do-fcc): Use dolist and push.
 	(mail-mode-fill-paragraph): Pass the arg to fill-region-as-paragraph.
+	(mail-yank-ignored-headers): Don't autoload.
 
 2005-12-05  Kenichi Handa  <handa@m17n.org>
 
