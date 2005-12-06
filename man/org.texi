@@ -1263,7 +1263,7 @@ targets and exact matches first.  To insert links targeting a
 headline, in-buffer completion can be used.  Just type a star followed
 by a few optional letters into the buffer and press @kbd{M-@key{TAB}}.
 CamelCased versions of all headlines in the current buffer will be
-offered as completions.  @xref{Managing links} for more commands
+offered as completions.  @xref{Managing links}, for more commands
 creating links.
 
 @node External Links, Managing links, Internal Links, Hyperlinks
