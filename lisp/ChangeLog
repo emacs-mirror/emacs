@@ -1,7 +1,8 @@
 2005-12-06  Nozomu Ando <nand@mac.com>  (tiny patch)
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Make password
-	prompts work for AUTH PLAIN.
+	prompts work for AUTH PLAIN.  Also reported by Steve Allan
+	<seallan@verizon.net>.
 
 2005-12-06  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
