@@ -65,7 +65,7 @@ static int window_min_size P_ ((struct window *, int, int, int *));
 static void size_window P_ ((Lisp_Object, int, int, int));
 static int freeze_window_start P_ ((struct window *, void *));
 static int window_fixed_size_p P_ ((struct window *, int, int));
-static void enlarge_window P_ ((Lisp_Object, int, int, int));
+static void enlarge_window P_ ((Lisp_Object, int, int));
 static Lisp_Object window_list P_ ((void));
 static int add_window_to_list P_ ((struct window *, void *));
 static int candidate_window_p P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
@@ -3590,7 +3590,7 @@ displayed.  */)
 			   + XFASTINT (XWINDOW (window)->total_lines));
 	      enlarge_window (upper,
 			      total / 2 - XFASTINT (XWINDOW (upper)->total_lines),
-			      0, 0);
+			      0);
 	    }
 	}
     }
@@ -3881,21 +3881,18 @@ See Info node `(elisp)Splitting Windows' for more details and examples.*/)
   return new;
 }
 
-DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 3, "p",
+DEFUN ("enlarge-window", Fenlarge_window, Senlarge_window, 1, 2, "p",
        doc: /* Make current window ARG lines bigger.
 From program, optional second arg non-nil means grow sideways ARG columns.
 Interactively, if an argument is not given, make the window one line bigger.
 If HORIZONTAL is non-nil, enlarge horizontally instead of vertically.
-
-Optional third arg PRESERVE-BEFORE, if non-nil, means do not change the size
-of the siblings above or to the left of the selected window.  Only
-siblings to the right or below are changed.  */)
-     (arg, horizontal, preserve_before)
-     register Lisp_Object arg, horizontal, preserve_before;
+This function can delete windows, even the second window, if they get
+too small.  */)
+     (arg, horizontal)
+     Lisp_Object arg, horizontal;
 {
   CHECK_NUMBER (arg);
-  enlarge_window (selected_window, XINT (arg), !NILP (horizontal),
-		  !NILP (preserve_before));
+  enlarge_window (selected_window, XINT (arg), !NILP (horizontal));
 
   if (! NILP (Vwindow_configuration_change_hook))
     call1 (Vrun_hooks, Qwindow_configuration_change_hook);
@@ -3903,20 +3900,16 @@ siblings to the right or below are changed.  */)
   return Qnil;
 }
 
-DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 3, "p",
+DEFUN ("shrink-window", Fshrink_window, Sshrink_window, 1, 2, "p",
        doc: /* Make current window ARG lines smaller.
 From program, optional second arg non-nil means shrink sideways arg columns.
-Interactively, if an argument is not given, make the window one line smaller.
-
-Optional third arg PRESERVE-BEFORE, if non-nil, means do not change the size
-of the siblings above or to the left of the selected window.  Only
+Interactively, if an argument is not given, make the window one line smaller.  Only
 siblings to the right or below are changed.  */)
-     (arg, side, preserve_before)
-     register Lisp_Object arg, side, preserve_before;
+     (arg, side)
+     Lisp_Object arg, side;
 {
   CHECK_NUMBER (arg);
-  enlarge_window (selected_window, -XINT (arg), !NILP (side),
-		  !NILP (preserve_before));
+  enlarge_window (selected_window, -XINT (arg), !NILP (side));
 
   if (! NILP (Vwindow_configuration_change_hook))
     call1 (Vrun_hooks, Qwindow_configuration_change_hook);
@@ -3954,15 +3947,12 @@ window_width (window)
 
    Siblings of the selected window are resized to fulfill the size
    request.  If they become too small in the process, they will be
-   deleted.
-
-   If PRESERVE_BEFORE is nonzero, that means don't alter
-   the siblings to the left or above WINDOW.  */
+   deleted.  */
 
 static void
-enlarge_window (window, delta, horiz_flag, preserve_before)
+enlarge_window (window, delta, horiz_flag)
      Lisp_Object window;
-     int delta, horiz_flag, preserve_before;
+     int delta, horiz_flag;
 {
   Lisp_Object parent, next, prev;
   struct window *p;
@@ -4009,33 +3999,18 @@ enlarge_window (window, delta, horiz_flag, preserve_before)
 
     /* Compute the maximum size increment this window can have.  */
 
-    if (preserve_before)
-      {
-	if (!NILP (parent))
-	  {
-	    maxdelta = (*sizefun) (parent) - XINT (*sizep);
-	    /* Subtract size of siblings before, since we can't take that.  */
-	    maxdelta -= XINT (CURBEG (window)) - XINT (CURBEG (parent));
-	  }
-	else
-	  maxdelta = (!NILP (p->next) ? ((*sizefun) (p->next)
-					 - window_min_size (XWINDOW (p->next),
-							    horiz_flag, 0, 0))
-		      : (delta = 0));
-      }
-    else
-      maxdelta = (!NILP (parent) ? (*sizefun) (parent) - XINT (*sizep)
-		  /* This is a main window followed by a minibuffer.  */
-		  : !NILP (p->next) ? ((*sizefun) (p->next)
-				       - window_min_size (XWINDOW (p->next),
-							  horiz_flag, 0, 0))
-		  /* This is a minibuffer following a main window.  */
-		  : !NILP (p->prev) ? ((*sizefun) (p->prev)
-				       - window_min_size (XWINDOW (p->prev),
-							  horiz_flag, 0, 0))
-		  /* This is a frame with only one window, a minibuffer-only
-		     or a minibufferless frame.  */
-		  : (delta = 0));
+    maxdelta = (!NILP (parent) ? (*sizefun) (parent) - XINT (*sizep)
+		/* This is a main window followed by a minibuffer.  */
+		: !NILP (p->next) ? ((*sizefun) (p->next)
+				     - window_min_size (XWINDOW (p->next),
+							horiz_flag, 0, 0))
+		/* This is a minibuffer following a main window.  */
+		: !NILP (p->prev) ? ((*sizefun) (p->prev)
+				     - window_min_size (XWINDOW (p->prev),
+							horiz_flag, 0, 0))
+		/* This is a frame with only one window, a minibuffer-only
+		   or a minibufferless frame.  */
+		: (delta = 0));
 
     if (delta > maxdelta)
       /* This case traps trying to make the minibuffer
@@ -4058,10 +4033,9 @@ enlarge_window (window, delta, horiz_flag, preserve_before)
   for (next = p->next; ! NILP (next); next = XWINDOW (next)->next)
     maximum += (*sizefun) (next) - window_min_size (XWINDOW (next),
 						    horiz_flag, 0, 0);
-  if (! preserve_before)
-    for (prev = p->prev; ! NILP (prev); prev = XWINDOW (prev)->prev)
-      maximum += (*sizefun) (prev) - window_min_size (XWINDOW (prev),
-						      horiz_flag, 0, 0);
+  for (prev = p->prev; ! NILP (prev); prev = XWINDOW (prev)->prev)
+    maximum += (*sizefun) (prev) - window_min_size (XWINDOW (prev),
+						    horiz_flag, 0, 0);
 
   /* If we can get it all from them without deleting them, do so.  */
   if (delta <= maximum)
@@ -4077,7 +4051,7 @@ enlarge_window (window, delta, horiz_flag, preserve_before)
 	 moving away from this window in both directions alternately,
 	 and take as much as we can get without deleting that sibling.  */
       while (delta != 0
-	     && (!NILP (next) || (!preserve_before && !NILP (prev))))
+	     && (!NILP (next) || !NILP (prev)))
 	{
 	  if (! NILP (next))
 	    {
@@ -4101,7 +4075,7 @@ enlarge_window (window, delta, horiz_flag, preserve_before)
 	  if (delta == 0)
 	    break;
 
-	  if (!preserve_before && ! NILP (prev))
+	  if (! NILP (prev))
 	    {
 	      int this_one = ((*sizefun) (prev)
 			      - window_min_size (XWINDOW (prev),
@@ -4350,7 +4324,7 @@ adjust_window_trailing_edge (window, delta, horiz_flag)
 DEFUN ("adjust-window-trailing-edge", Fadjust_window_trailing_edge,
        Sadjust_window_trailing_edge, 3, 3, 0,
        doc: /* Adjust the bottom or right edge of WINDOW by DELTA.
-If HORIZ_FLAG is t, that means adjust the width, moving the right edge.
+If HORIZONTAL is non-nil, that means adjust the width, moving the right edge.
 Otherwise, adjust the height, moving the bottom edge.
 
 Following siblings of the selected window are resized to fulfill
@@ -4602,7 +4576,7 @@ shrink_mini_window (w)
 	 among the other windows.  */
       Lisp_Object window;
       XSETWINDOW (window, w);
-      enlarge_window (window, 1 - XFASTINT (w->total_lines), 0, 0);
+      enlarge_window (window, 1 - XFASTINT (w->total_lines), 0);
     }
 }
 
