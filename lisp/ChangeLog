@@ -1,3 +1,8 @@
+2005-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-skip-whitespace): read1:lread.c says
+	that comments end at \n, regardless of selective-display.
+
 2005-12-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-error-regexp, gdb-first-post-prompt)
@@ -23,8 +28,8 @@
 	(gdb-data-list-register-values-handler)
 	(gdb-data-list-register-values-custom)
 	(gdb-get-changed-registers, gdb-get-changed-registers-handler)
-	(gdb-stack-list-locals-handler, gdb-get-register-names): New
-	functions for use with GDB 6.4+.
+	(gdb-stack-list-locals-handler, gdb-get-register-names):
+	New functions for use with GDB 6.4+.
 	(gdb-locals-watch-map-1): New variable for use with GDB 6.4+.
 	(gdb-source-file-regexp, gdb-var-list-children-regexp-1)
 	(gdb-var-update-regexp-1, gdb-data-list-register-values-regexp)
