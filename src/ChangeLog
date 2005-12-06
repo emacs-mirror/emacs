@@ -1,3 +1,9 @@
+2005-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (enlarge_window): Eliminate arg preserve_before.
+	Assume it is 0.  All callers changed.
+	(Fenlarge_window, Fshrink_window): Likewise.
+
 2005-12-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (compute_tip_xy): Put tip above pointer if it doesn't

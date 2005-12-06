@@ -1752,9 +1752,9 @@ table editing available in modern word processors.  The package also
 can generate a table source in typesetting and markup languages such
 as latex and html from the visually laid out text table.
 
-+++
-** The thumbs.el package allows you to preview image files as thumbnails
-and can be invoked from a Dired buffer.
+** The tumme.el package allows you to easily view, tag and in other ways
+manipulate image files and their thumbnails, using dired as the main interface.
+Tumme provides functionality to generate simple image galleries.
 
 +++
 ** Tramp is now part of the distribution.

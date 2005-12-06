@@ -1,3 +1,7 @@
+2005-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Resizing Windows): Delete preserve-before args.
+
 2005-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* keymaps.texi (Format of Keymaps): Remove mention of a quirk
