@@ -1,3 +1,7 @@
+2005-12-06  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* frame.el (set-frame-parameter): Add doc string.
+
 2005-12-06  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-occur-highlights): New variable.
