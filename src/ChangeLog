@@ -1,3 +1,13 @@
+2005-12-06  Ken Raeburn  <raeburn@gnu.org>
+
+	* buffer.c (Fkill_buffer): Avoid dangerous side effects in NILP
+	argument.
+	* bytecode.c (Fbyte_code): Likewise.
+	* fileio.c (internal_delete_file, Fread_file_name_internal):
+	Likewise.
+	* minibuf.c (Fminibuffer_complete_and_exit): Likewise.
+	* undo.c (truncate_undo_list): Likewise.
+
 2005-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (enlarge_window): Eliminate arg preserve_before.
@@ -97,7 +107,7 @@
 	* macterm.h (cfstring_to_lisp_nodecode) [TARGET_API_MAC_CARBON]:
 	Add prototype.
 
-2005-11-21  Ken Raeburn  <raeburn@mit.edu>
+2005-11-21  Ken Raeburn  <raeburn@gnu.org>
 
 	* keymap.c (shadow_lookup): Use make_number to pass a number to
 	Fsubstring.
@@ -16331,7 +16341,7 @@
 	* xdisp.c (forward_to_next_line_start): Return 0 when reaching the
 	end of the buffer.
 
-2002-08-08  Ken Raeburn  <raeburn@mit.edu>
+2002-08-08  Ken Raeburn  <raeburn@gnu.org>
 
 	* coding.c (Ffind_operation_coding_system): Fix Lisp_Object/int mixup.
 
