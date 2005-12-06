@@ -1,3 +1,7 @@
+2005-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-defs.el (c-emacs-features): Don't assume point-min==1.
+
 2005-12-06  Nozomu Ando <nand@mac.com>  (tiny patch)
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Make password
@@ -11,8 +15,7 @@
 2005-12-06  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-occur-highlights): New variable.
-	(org-highlight-new-match, org-remove-occur-highlights): New
-	functions.
+	(org-highlight-new-match, org-remove-occur-highlights): New functions.
 	(org-highlight-sparse-tree-matches): New option.
 	(org-do-occur): New function.
 	(org-get-heading): Make it work also at beginning of line.
@@ -22,7 +25,7 @@
 	(org-select-this-todo-keyword): New variable.
 	(org-todo-list): New command.
 	(org-shiftright, org-shiftleft): New commands.
-	(org-agenda-todo): Added prefix argument.
+	(org-agenda-todo): Add prefix argument.
 	(org-show-hierarchy-above): New option.
 	(org-show-todo-tree): Numerical prefix creates tree for specific
 	TODO keyword.
@@ -32,14 +35,13 @@
 	(org-mode): Use `org-outline-level' as value of `outline-level'.
 	(org-cycle): Temporarily switch `outline-regexp' if
 	`org-cycle-include-plain-lists' is non-nil.
-	(org-start-icalendar-file): Fixed format bug.
+	(org-start-icalendar-file): Fix format bug.
 	(org-agenda-get-day-entries): Create category table.
 	(org-agenda-get-todos, org-agenda-get-timestamps)
 	(org-agenda-get-deadlines, org-agenda-get-scheduled)
 	(org-agenda-get-blocks): Use `org-get-category'.
-	(org-context-in-file-links): Renamed from
+	(org-context-in-file-links): Rename from
 	`org-line-numbers-in-file-links' .
-	
 
 2005-12-06  Romain Francoise  <romain@orebokech.com>
 

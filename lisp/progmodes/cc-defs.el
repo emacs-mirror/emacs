@@ -1400,11 +1400,11 @@ non-nil, a caret is prepended to invert the set."
 	(modify-syntax-entry ?< ".")
 	(modify-syntax-entry ?> ".")
 	(insert "<()>")
-	(c-mark-<-as-paren 1)
-	(c-mark->-as-paren 4)
-	(goto-char 1)
+	(c-mark-<-as-paren (point-min))
+	(c-mark->-as-paren (+ 3 (point-min)))
+	(goto-char (point-min))
 	(c-forward-sexp)
-	(if (= (point) 5)
+	(if (= (point) (+ 4 (point-min)))
 	    (setq list (cons 'syntax-properties list))
 	  (error (concat
 		  "CC Mode is incompatible with this version of Emacs - "
@@ -2036,5 +2036,5 @@ quoted."
 
 (cc-provide 'cc-defs)
 
-;;; arch-tag: 3bb2629d-dd84-4ff0-ad39-584be0fe3cda
+;; arch-tag: 3bb2629d-dd84-4ff0-ad39-584be0fe3cda
 ;;; cc-defs.el ends here
