@@ -1,3 +1,8 @@
+2005-12-06  Nozomu Ando <nand@mac.com>  (tiny patch)
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Make password
+	prompts work for AUTH PLAIN.
+
 2005-12-06  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* frame.el (set-frame-parameter): Add doc string.

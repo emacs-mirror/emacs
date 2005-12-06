@@ -569,7 +569,7 @@ This is relative to `smtpmail-queue-dir'.")
 					(concat "\0"
 						(smtpmail-cred-user cred)
 						"\0"
-						(smtpmail-cred-passwd cred))))
+						passwd)))
 	(if (or (null (car (setq ret (smtpmail-read-response process))))
 		(not (integerp (car ret)))
 		(not (equal (car ret) 235)))
