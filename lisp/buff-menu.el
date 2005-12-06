@@ -89,6 +89,16 @@
   :type 'number
   :group 'Buffer-menu)
 
+(defcustom Buffer-menu-use-frame-buffer-list t
+  "If non-nil, the Buffer Menu uses the selected frame's buffer list.
+Buffers that were never selected in that frame are listed at the end.
+If the value is nil, the Buffer Menu uses the global buffer list.
+This variable matters if the Buffer Menu is sorted by visited order,
+as it is by default."
+  :type 'boolean
+  :group 'Buffer-menu
+  :version "22.1")
+
 ;; This should get updated & resorted when you click on a column heading
 (defvar Buffer-menu-sort-column nil
   "*2 for sorting by buffer names.  5 for sorting by file names.
@@ -722,7 +732,10 @@ For more information, see the function `buffer-menu'."
 				   (if (memq c '(?\n ?\s)) c underline))
 				 header)))))
       ;; Collect info for every buffer we're interested in.
-      (dolist (buffer (or buffer-list (buffer-list (selected-frame))))
+      (dolist (buffer (or buffer-list
+			  (buffer-list
+			   (when Buffer-menu-use-frame-buffer-list
+			     (selected-frame)))))
 	(with-current-buffer buffer
 	  (let ((name (buffer-name))
 		(file buffer-file-name))
