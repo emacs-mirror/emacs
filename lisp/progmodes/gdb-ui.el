@@ -528,47 +528,45 @@ With arg, use separate IO iff arg is positive."
   "name=\"\\(.*?\\)\",numchild=\"\\(.*?\\)\",type=\"\\(.*?\\)\"")
 
 (defun gdb-var-create-handler (expr)
-  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
-    (goto-char (point-min))
-    (if (re-search-forward gdb-var-create-regexp nil t)
-	(let ((var (list expr
-			 (match-string 1)
-			 (match-string 2)
-			 (match-string 3)
-			 nil nil)))
-	  (push var gdb-var-list)
-	  (speedbar 1)
-	  (unless (string-equal
-		   speedbar-initial-expansion-list-name "GUD")
-	    (speedbar-change-initial-expansion-list "GUD"))
-	  (gdb-enqueue-input
-	   (list
-	    (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
-		    'gdba)
-		(concat "server interpreter mi \"-var-evaluate-expression "
-			(nth 1 var) "\"\n")
-	      (concat "-var-evaluate-expression " (nth 1 var) "\n"))
-	    `(lambda () (gdb-var-evaluate-expression-handler
-			 ,(nth 1 var) nil))))
-	    (setq gdb-var-changed t))
-      (if (search-forward "Undefined command" nil t)
-	  (message-box "Watching expressions requires gdb 6.0 onwards")
-	(message "No symbol \"%s\" in current context." expr)))))
+  (goto-char (point-min))
+  (if (re-search-forward gdb-var-create-regexp nil t)
+      (let ((var (list expr
+		       (match-string 1)
+		       (match-string 2)
+		       (match-string 3)
+		       nil nil)))
+	(push var gdb-var-list)
+	(speedbar 1)
+	(unless (string-equal
+		 speedbar-initial-expansion-list-name "GUD")
+	  (speedbar-change-initial-expansion-list "GUD"))
+	(gdb-enqueue-input
+	 (list
+	  (if (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
+		  'gdba)
+	      (concat "server interpreter mi \"-var-evaluate-expression "
+		      (nth 1 var) "\"\n")
+	    (concat "-var-evaluate-expression " (nth 1 var) "\n"))
+	  `(lambda () (gdb-var-evaluate-expression-handler
+		       ,(nth 1 var) nil))))
+	(setq gdb-var-changed t))
+    (if (search-forward "Undefined command" nil t)
+	(message-box "Watching expressions requires gdb 6.0 onwards")
+      (message "No symbol \"%s\" in current context." expr))))
 
 (defun gdb-var-evaluate-expression-handler (varnum changed)
-  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
-    (goto-char (point-min))
-    (re-search-forward ".*value=\\(\".*\"\\)" nil t)
-    (catch 'var-found
-      (let ((num 0))
-	(dolist (var gdb-var-list)
-	  (if (string-equal varnum (cadr var))
-	      (progn
-		(if changed (setcar (nthcdr 5 var) t))
-		(setcar (nthcdr 4 var) (read (match-string 1)))
-		(setcar (nthcdr num gdb-var-list) var)
-		(throw 'var-found nil)))
-	  (setq num (+ num 1))))))
+  (goto-char (point-min))
+  (re-search-forward ".*value=\\(\".*\"\\)" nil t)
+  (catch 'var-found
+    (let ((num 0))
+      (dolist (var gdb-var-list)
+	(if (string-equal varnum (cadr var))
+	    (progn
+	      (if changed (setcar (nthcdr 5 var) t))
+	      (setcar (nthcdr 4 var) (read (match-string 1)))
+	      (setcar (nthcdr num gdb-var-list) var)
+	      (throw 'var-found nil)))
+	(setq num (+ num 1)))))
   (setq gdb-var-changed t))
 
 (defun gdb-var-list-children (varnum)
@@ -581,33 +579,32 @@ With arg, use separate IO iff arg is positive."
 type=\"\\(.*?\\)\"")
 
 (defun gdb-var-list-children-handler (varnum)
-  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
-    (goto-char (point-min))
-    (let ((var-list nil))
-     (catch 'child-already-watched
-       (dolist (var gdb-var-list)
-	 (if (string-equal varnum (cadr var))
-	     (progn
-	       (push var var-list)
-	       (while (re-search-forward gdb-var-list-children-regexp nil t)
-		 (let ((varchild (list (match-string 2)
-				       (match-string 1)
-				       (match-string 3)
-				       (match-string 4)
-				       nil nil)))
-		   (dolist (var1 gdb-var-list)
-		     (if (string-equal (cadr var1) (cadr varchild))
-			 (throw 'child-already-watched nil)))
-		   (push varchild var-list)
-		   (gdb-enqueue-input
-		    (list
-		     (concat
-		      "server interpreter mi \"-var-evaluate-expression "
-		      (nth 1 varchild) "\"\n")
-		     `(lambda () (gdb-var-evaluate-expression-handler
-				  ,(nth 1 varchild) nil)))))))
-	   (push var var-list)))
-       (setq gdb-var-list (nreverse var-list))))))
+  (goto-char (point-min))
+  (let ((var-list nil))
+    (catch 'child-already-watched
+      (dolist (var gdb-var-list)
+	(if (string-equal varnum (cadr var))
+	    (progn
+	      (push var var-list)
+	      (while (re-search-forward gdb-var-list-children-regexp nil t)
+		(let ((varchild (list (match-string 2)
+				      (match-string 1)
+				      (match-string 3)
+				      (match-string 4)
+				      nil nil)))
+		  (dolist (var1 gdb-var-list)
+		    (if (string-equal (cadr var1) (cadr varchild))
+			(throw 'child-already-watched nil)))
+		  (push varchild var-list)
+		  (gdb-enqueue-input
+		   (list
+		    (concat
+		     "server interpreter mi \"-var-evaluate-expression "
+		     (nth 1 varchild) "\"\n")
+		    `(lambda () (gdb-var-evaluate-expression-handler
+				 ,(nth 1 varchild) nil)))))))
+	  (push var var-list)))
+      (setq gdb-var-list (nreverse var-list)))))
 
 (defun gdb-var-update ()
   (when (not (member 'gdb-var-update gdb-pending-triggers))
@@ -619,20 +616,19 @@ type=\"\\(.*?\\)\"")
 (defconst gdb-var-update-regexp "name=\"\\(.*?\\)\"")
 
 (defun gdb-var-update-handler ()
-  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
-    (goto-char (point-min))
-    (while (re-search-forward gdb-var-update-regexp nil t)
-      (catch 'var-found-1
-	(let ((varnum (match-string 1)))
-	  (dolist (var gdb-var-list)
-	    (gdb-enqueue-input
-	     (list
-	      (concat "server interpreter mi \"-var-evaluate-expression "
-		      varnum "\"\n")
-	      `(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
-	    (throw 'var-found-1 nil))))))
+  (goto-char (point-min))
+  (while (re-search-forward gdb-var-update-regexp nil t)
+    (catch 'var-found-1
+      (let ((varnum (match-string 1)))
+	(dolist (var gdb-var-list)
+	  (gdb-enqueue-input
+	   (list
+	    (concat "server interpreter mi \"-var-evaluate-expression "
+		    varnum "\"\n")
+	    `(lambda () (gdb-var-evaluate-expression-handler ,varnum t))))
+	  (throw 'var-found-1 nil)))))
   (setq gdb-pending-triggers
-   (delq 'gdb-var-update gdb-pending-triggers))
+	(delq 'gdb-var-update gdb-pending-triggers))
   (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
     ;; Dummy command to update speedbar at right time.
     (gdb-enqueue-input (list "server pwd\n" 'gdb-speedbar-timer-fn))
@@ -2891,26 +2887,25 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-frame-handler ()
   (setq gdb-pending-triggers
 	(delq 'gdb-get-selected-frame gdb-pending-triggers))
-  (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
-    (goto-char (point-min))
-    (if (re-search-forward  "Stack level \\([0-9]+\\)" nil t)
-	(setq gdb-frame-number (match-string 1)))
-    (goto-char (point-min))
-    (if (re-search-forward
-	 ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? " nil t)
-	(progn
-	  (setq gdb-selected-frame (match-string 2))
-	  (if (gdb-get-buffer 'gdb-locals-buffer)
-	      (with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
-		(setq mode-name (concat "Locals:" gdb-selected-frame))))
-	  (if (gdb-get-buffer 'gdb-assembler-buffer)
-	      (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
-		(setq mode-name (concat "Machine:" gdb-selected-frame))))
-	  (setq gdb-frame-address (match-string 1))))
-    (goto-char (point-min))
-    (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
-	(setq gdb-current-language (match-string 1))))
-    (gdb-invalidate-assembler))
+  (goto-char (point-min))
+  (if (re-search-forward  "Stack level \\([0-9]+\\)" nil t)
+      (setq gdb-frame-number (match-string 1)))
+  (goto-char (point-min))
+  (if (re-search-forward
+       ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? " nil t)
+      (progn
+	(setq gdb-selected-frame (match-string 2))
+	(if (gdb-get-buffer 'gdb-locals-buffer)
+	    (with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
+	      (setq mode-name (concat "Locals:" gdb-selected-frame))))
+	(if (gdb-get-buffer 'gdb-assembler-buffer)
+	    (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
+	      (setq mode-name (concat "Machine:" gdb-selected-frame))))
+	(setq gdb-frame-address (match-string 1))))
+  (goto-char (point-min))
+  (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
+      (setq gdb-current-language (match-string 1)))
+  (gdb-invalidate-assembler))
 
 (provide 'gdb-ui)
 
