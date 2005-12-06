@@ -293,7 +293,7 @@ If WINDOW is nil or omitted, it defaults to the currently selected window."
 				      (when newsize
 					(enlarge-window (- newsize
 							   (window-height))
-							nil t)
+							nil)
 					(unless (= (window-height) newsize)
 					  (setq done nil))))))
 			'nomini))))))

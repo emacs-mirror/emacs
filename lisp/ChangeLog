@@ -1,3 +1,8 @@
+2005-12-06  Romain Francoise  <romain@orebokech.com>
+
+	* window.el (balance-windows): Delete extraneous third arg to
+	`enlarge-window'.
+
 2005-12-06  Kenichi Handa  <handa@m17n.org>
 
 	* international/kinsoku.el (kinsoku-longer): Check eolp, not eobp.
