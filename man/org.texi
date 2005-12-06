@@ -1066,7 +1066,7 @@ the value @samp{10}.  Also, named fields can have their own formula
 associated with them.
 @item _
 Similar to @samp{^}, but defines names for the fields in the row
-@emph{below}. 
+@emph{below}.
 @item $
 Fields in this row can define @emph{parameters} for formulas.  For
 example, if a field in a @samp{$} row contains @samp{max=50}, then
@@ -1083,7 +1083,7 @@ lines will be left alone by this command.
 Selects this line for global recalculation with @kbd{C-u C-c *}, but
 not for automatic recalculation.  Use this when automatic
 recalculation slows down editing too much.
-@item  
+@item
 Unmarked lines are exempted from recalculation with @kbd{C-u C-c *}.
 All lines that should be recalculated should be marked with @samp{#}
 or @samp{*}.
@@ -1117,7 +1117,7 @@ give an empty reply when prompted for the formula, or to edit the
 @kindex C-c C-c
 You may edit the @samp{#+TBLFM} directly and re-apply
 the changed equations with @kbd{C-c C-c} in that line, or with the
-normal recalculation commands in the table.  
+normal recalculation commands in the table.
 
 @kindex C-c '
 @kindex C-c C-c
@@ -1796,7 +1796,7 @@ and time.
 @kindex C-c !
 @item C-c !
 Like @kbd{C-c .}, but insert an inactive time stamp not triggering the
-agenda. 
+agenda.
 
 @kindex C-c <
 @item C-c <
@@ -2570,7 +2570,7 @@ end of the outline tree.  For example:
 @example
 * COMMENT HTML style specifications
 
-# Local Variables: 
+# Local Variables:
 # org-export-html-style: "   <style type=\"text/css\">
        p @{font-weight: normal; color: gray; @}
        h1 @{color: black; @}
@@ -2992,7 +2992,7 @@ Emacs-Lisp compiler happy.
 @item
 Kai Grossjohann pointed out that a number of key bindings in Org-mode
 conflict with other packages.
-@item 
+@item
 Roland Winkler pointed out that additional keybindings are needed to
 use Org-mode on a tty.
 @item
