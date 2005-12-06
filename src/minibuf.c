@@ -2926,8 +2926,8 @@ keys_of_minibuf ()
   initial_define_key (Vminibuffer_local_completion_map, '?',
 		      "minibuffer-completion-help");
 
-  initial_define_key (Vminibuffer_local_filename_completion_map, ' ',
-		      "self-insert-command");
+  Fdefine_key (Vminibuffer_local_filename_completion_map,
+	       build_string (" "), Qnil);
 
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('m'),
 		      "minibuffer-complete-and-exit");
