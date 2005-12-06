@@ -1,3 +1,8 @@
+2005-12-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buff-menu.el (Buffer-menu-use-frame-buffer-list): New user option.
+	(list-buffers-noselect): Use it.
+
 2005-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mail/sendmail.el: Remove unnecessary leading-star in docstrings.
