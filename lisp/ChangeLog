@@ -1,3 +1,37 @@
+2005-12-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-error-regexp, gdb-first-post-prompt)
+	(gdb-version): New variables.
+	(gdb-source-file-list, gdb-register-names)
+	(gdb-changed-registers): New variables for use with GDB 6.4+.
+	(gdb-ann3): Replace with...
+	(gdb-init-1, gdb-init-2): ...two new functions.
+	(gdba, gdb-prompt): Call gdb-init-1.
+	(gdb-get-version): New function.  Call gdb-init-2 from here.
+	(gud-watch): Make it work with mouse events too.
+	(gdb-post-prompt): Don't add to queue until GDB version is known.
+	(gdb-speedbar-expand-node, gdb-post-prompt, gdb-registers-mode)
+	(gdb-locals-mode): Use gdb-version.
+	(gdb-memory-format-map, gdb-memory-unit-map)
+	(gdb-locals-watch-map): Rename from gdb-*-*-keymap.
+	(gdb-locals-font-lock-keywords-1)
+	(gdb-locals-font-lock-keywords-2): New variables.
+	(gdb-find-file-hook): fgfg.
+	(gdb-set-gud-minor-mode-existing-buffers-1)
+	(gdb-var-list-children-1, gdb-var-list-children-handler-1)
+	(gdb-var-update-1, gdb-var-update-handler-1)
+	(gdb-data-list-register-values-handler)
+	(gdb-data-list-register-values-custom)
+	(gdb-get-changed-registers, gdb-get-changed-registers-handler)
+	(gdb-stack-list-locals-handler, gdb-get-register-names): New
+	functions for use with GDB 6.4+.
+	(gdb-locals-watch-map-1): New variable for use with GDB 6.4+.
+	(gdb-source-file-regexp, gdb-var-list-children-regexp-1)
+	(gdb-var-update-regexp-1, gdb-data-list-register-values-regexp)
+	(gdb-stack-list-locals-regexp)
+	(gdb-data-list-register-names-regexp): New regexps for use with
+	GDB 6.4+.
+
 2005-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-defs.el (c-emacs-features): Don't assume point-min==1.
