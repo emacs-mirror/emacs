@@ -1,3 +1,7 @@
+2005-12-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/kinsoku.el (kinsoku-longer): Check eolp, not eobp.
+
 2005-12-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-var-create-handler)
