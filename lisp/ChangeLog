@@ -1,3 +1,11 @@
+2005-12-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler)
+	(gdb-var-evaluate-expression-handler, gdb-frame-handler)
+	(gdb-var-list-children-handler, gdb-var-update-handler):
+	Current buffer is already gdb-partial-output-buffer, don't
+	make it current again.
+
 2005-12-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buff-menu.el (Buffer-menu-use-frame-buffer-list): New user option.
