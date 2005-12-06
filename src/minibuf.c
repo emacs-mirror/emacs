@@ -2116,16 +2116,17 @@ a repetition of this command will exit.  */)
      ()
 {
   register int i;
-  Lisp_Object val;
+  Lisp_Object val, tem;
 
   /* Allow user to specify null string */
   if (XINT (Fminibuffer_prompt_end ()) == ZV)
     goto exit;
 
   val = Fminibuffer_contents ();
-  if (!NILP (Ftest_completion (val,
-			       Vminibuffer_completion_table,
-			       Vminibuffer_completion_predicate)))
+  tem = Ftest_completion (val,
+			  Vminibuffer_completion_table,
+			  Vminibuffer_completion_predicate);
+  if (!NILP (tem))
     {
       if (completion_ignore_case)
 	{ /* Fixup case of the field, if necessary. */
