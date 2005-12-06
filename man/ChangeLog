@@ -1,3 +1,10 @@
+2005-12-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (TODO basics): Document the global todo list.
+	(TODO items): Documents sparse tree for specific TODO
+	keywords.
+	
+
 2005-12-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB User Interface Layout): Describe how to

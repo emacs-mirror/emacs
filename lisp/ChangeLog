@@ -1,3 +1,36 @@
+2005-12-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-occur-highlights): New variable.
+	(org-highlight-new-match, org-remove-occur-highlights): New
+	functions.
+	(org-highlight-sparse-tree-matches): New option.
+	(org-do-occur): New function.
+	(org-get-heading): Make it work also at beginning of line.
+	(org-category-table): New variable.
+	(org-get-category-table, org-get-category)
+	(org-camel-to-words, org-link-search): New functions.
+	(org-select-this-todo-keyword): New variable.
+	(org-todo-list): New command.
+	(org-shiftright, org-shiftleft): New commands.
+	(org-agenda-todo): Added prefix argument.
+	(org-show-hierarchy-above): New option.
+	(org-show-todo-tree): Numerical prefix creates tree for specific
+	TODO keyword.
+	(org-outline-level): New function, to assign a level to plain
+	lists items.
+	(org-cycle-include-plain-lists): New option.
+	(org-mode): Use `org-outline-level' as value of `outline-level'.
+	(org-cycle): Temporarily switch `outline-regexp' if
+	`org-cycle-include-plain-lists' is non-nil.
+	(org-start-icalendar-file): Fixed format bug.
+	(org-agenda-get-day-entries): Create category table.
+	(org-agenda-get-todos, org-agenda-get-timestamps)
+	(org-agenda-get-deadlines, org-agenda-get-scheduled)
+	(org-agenda-get-blocks): Use `org-get-category'.
+	(org-context-in-file-links): Renamed from
+	`org-line-numbers-in-file-links' .
+	
+
 2005-12-06  Romain Francoise  <romain@orebokech.com>
 
 	* window.el (balance-windows): Delete extraneous third arg to
