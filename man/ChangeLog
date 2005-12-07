@@ -1,3 +1,10 @@
+2005-12-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Explain screen size
+	setting.
+	(Other GDB User Interface Buffers): Describe features specific to
+	GDB 6.4.
+
 2005-12-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* org.texi (Internal Links): Fix Texinfo usage.

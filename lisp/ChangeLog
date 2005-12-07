@@ -1,3 +1,15 @@
+2005-12-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-find-file-unhook): Delete variable.
+	(gdb-set-gud-minor-mode, gdb-set-gud-minor-mode): Delete functions.
+	(gdb-set-gud-minor-mode-existing-buffers, gdb-init-2): Use GDB
+	command "info sources".  Move calls to GDB command "list".
+	(gdb-find-file-hook): Just use gdb-source-file-list.
+	(gdb-source-file-regexp): Use regexp for pre-GDB 6.4.
+	(gdb-source-file-regexp-1): New regexp for GDB 6.4+ only.
+	(gdb-set-gud-minor-mode-existing-buffers-1): Use it.
+	(gdb-data-list-register-values-handler): Use correct trigger name.
+
 2005-12-07  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-completion-map): Renamed from ido-mode-map.
