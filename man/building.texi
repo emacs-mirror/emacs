@@ -768,6 +768,10 @@ you release the button, provided it is still in the same frame
 at some point in the fringe of this buffer and execution will advance
 to there.
 
+This mode requires that GDB think that the screen size is unlimited,
+and sets the height and width accordingly.  For correct operation it
+is important that you don't change these values during the session.
+
 @vindex gud-gdb-command-name
 @findex gdba
   You can also run GDB in text command mode, which creates a buffer
@@ -956,17 +960,20 @@ The locals buffer displays the values of local variables of the
 current frame for simple data types (@pxref{Frame Info, Frame Info,
 Information on a frame, gdb, The GNU debugger}).
 
-Arrays and structures display their type only.  Move point to their
-type description ([struct/union] or [array]) and press @key{RET}, or
-alternatively click @kbd{Mouse-2} there, to examine their values.
-@xref{Watch Expressions}.
+Arrays and structures display their type only.  With GDB 6.4 or later,
+move point to their name and press @key{RET}, or alternatively click
+@kbd{Mouse-2} there, to examine their values.  With earlier versions
+of GDB, move point to their type description ([struct/union] or
+[array]).  @xref{Watch Expressions}.
 
 @item Registers Buffer
 @findex toggle-gdb-all-registers
 The registers buffer displays the values held by the registers
 (@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{RET} or
 click @kbd{Mouse-2} on a register if you want to change its value.
-Press @key{SPC} to toggle the display of floating point registers
+With GDB 6.4 or later, recently changed register values display with
+font-lock-warning-face.  With earlier versions of GDB, you can press
+@key{SPC} to toggle the display of floating point registers
 (@code{toggle-gdb-all-registers}).
 
 @item Assembler Buffer
