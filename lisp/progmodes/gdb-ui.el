@@ -110,7 +110,6 @@
 (defvar gdb-flush-pending-output nil)
 (defvar gdb-location-alist nil
   "Alist of breakpoint numbers and full filenames.")
-(defvar gdb-find-file-unhook nil)
 (defvar gdb-active-process nil "GUD tooltips display variable values when t, \
 and #define directives otherwise.")
 (defvar gdb-error "Non-nil when GDB is reporting an error.")
@@ -160,6 +159,8 @@ handlers.")
 (defvar gdb-first-post-prompt nil)
 (defvar gdb-version nil)
 (defvar gdb-locals-font-lock-keywords nil)
+(defvar gdb-source-file-list nil
+  "List of source files for the current executable")
 (defconst gdb-error-regexp "\\^error,msg=\"\\(.+\\)\"")
 
 (defvar gdb-locals-font-lock-keywords-1
@@ -190,8 +191,6 @@ handlers.")
 
 ;; Variables for GDB 6.4+
 
-(defvar gdb-source-file-list nil
-  "List of source files for the current executable")
 (defvar gdb-register-names nil "List of register names.")
 (defvar gdb-changed-registers nil
   "List of changed register numbers (strings).")
@@ -351,39 +350,25 @@ With arg, use separate IO iff arg is positive."
 	   (list  (concat gdb-server-prefix "print " expr "\n")
 		  'gdb-tooltip-print))))))
 
-(defun gdb-set-gud-minor-mode (buffer)
-  "Set `gud-minor-mode' from find-file if appropriate."
-  (goto-char (point-min))
-  (unless (search-forward "No source file named " nil t)
-    (condition-case nil
-	(gdb-enqueue-input
-	 (list (concat gdb-server-prefix "info source\n")
-	       `(lambda () (gdb-set-gud-minor-mode-1 ,buffer))))
-      (error (setq gdb-find-file-unhook t)))))
-
-(defun gdb-set-gud-minor-mode-1 (buffer)
-  (goto-char (point-min))
-  (when (and (search-forward "Located in " nil t)
-	     (looking-at "\\S-+")
-	     (string-equal (buffer-file-name buffer)
-			   (match-string 0)))
-    (with-current-buffer buffer
-      (set (make-local-variable 'gud-minor-mode) 'gdba)
-      (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
-      (when gud-tooltip-mode
-	(make-local-variable 'gdb-define-alist)
-	(gdb-create-define-alist)
-	(add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))
+(defconst gdb-source-file-regexp "\\(.+?\\), \\|\\([^, \n].*$\\)")
 
 (defun gdb-set-gud-minor-mode-existing-buffers ()
-  (dolist (buffer (buffer-list))
-    (let ((file (buffer-file-name buffer)))
-      (if file
-	(progn
-	  (gdb-enqueue-input
-	   (list (concat gdb-server-prefix "list "
-			 (file-name-nondirectory file) ":1\n")
-		 `(lambda () (gdb-set-gud-minor-mode ,buffer)))))))))
+  "Create list of source files for current GDB session."
+  (goto-char (point-min))
+  (when (search-forward "read in on demand:" nil t)
+    (while (re-search-forward gdb-source-file-regexp nil t)
+      (push (or (match-string 1) (match-string 2)) gdb-source-file-list))
+    (dolist (buffer (buffer-list))
+      (with-current-buffer buffer
+	(when (and buffer-file-name
+		   (member (file-name-nondirectory buffer-file-name)
+			   gdb-source-file-list))
+	  (set (make-local-variable 'gud-minor-mode) 'gdba)
+	  (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
+	  (when gud-tooltip-mode
+	    (make-local-variable 'gdb-define-alist)
+	    (gdb-create-define-alist)
+	    (add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))))
 
 (defun gdb-find-watch-expression ()
   (let* ((var (nth (- (line-number-at-pos (point)) 2) gdb-var-list))
@@ -471,7 +456,6 @@ With arg, use separate IO iff arg is positive."
 	gdb-server-prefix "server "
 	gdb-flush-pending-output nil
 	gdb-location-alist nil
-	gdb-find-file-unhook nil
 	gdb-source-file-list nil
 	gdb-error nil
 	gdb-macro-info nil
@@ -491,14 +475,11 @@ With arg, use separate IO iff arg is positive."
       (gdb-enqueue-input (list "set new-console off\n" 'ignore)))
   (gdb-enqueue-input (list "set height 0\n" 'ignore))
   (gdb-enqueue-input (list "set width 0\n" 'ignore))
-  ;; find source file and compilation directory here
-  (gdb-enqueue-input (list "server list main\n"   'ignore))   ; C program
-  (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
-  (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
 
   (if (string-equal gdb-version "pre-6.4")
       (progn
-	(gdb-set-gud-minor-mode-existing-buffers)
+	(gdb-enqueue-input (list (concat gdb-server-prefix "info sources\n")
+				 'gdb-set-gud-minor-mode-existing-buffers))
 	(setq gdb-locals-font-lock-keywords gdb-locals-font-lock-keywords-1))
     (gdb-enqueue-input
      (list "server interpreter mi -data-list-register-names\n"
@@ -508,6 +489,11 @@ With arg, use separate IO iff arg is positive."
      (list "server interpreter mi \"-file-list-exec-source-files\"\n"
 	   'gdb-set-gud-minor-mode-existing-buffers-1))
     (setq gdb-locals-font-lock-keywords gdb-locals-font-lock-keywords-2))
+
+  ;; find source file and compilation directory here
+  (gdb-enqueue-input (list "server list main\n"   'ignore))   ; C program
+  (gdb-enqueue-input (list "server list MAIN__\n" 'ignore))   ; Fortran program
+  (gdb-enqueue-input (list "server info source\n" 'gdb-source-info))
 
   (run-hooks 'gdba-mode-hook))
 
@@ -2689,18 +2675,10 @@ of the current session."
 	   gud-comint-buffer
 	   (eq (buffer-local-value 'gud-minor-mode gud-comint-buffer)
 	       'gdba))
-      (if (string-equal gdb-version "pre-6.4")
-	  (condition-case nil
-	      (gdb-enqueue-input
-	       (list (concat gdb-server-prefix "list "
-			     (file-name-nondirectory buffer-file-name)
-			     ":1\n")
-		     `(lambda () (gdb-set-gud-minor-mode ,(current-buffer)))))
-	  (error (setq gdb-find-file-unhook t)))
-	(if (member buffer-file-name gdb-source-file-list)
-	    (with-current-buffer (find-buffer-visiting buffer-file-name)
-	      (set (make-local-variable 'gud-minor-mode) 'gdba)
-	      (set (make-local-variable 'tool-bar-map) gud-tool-bar-map))))))
+      (if (member buffer-file-name gdb-source-file-list)
+	  (with-current-buffer (find-buffer-visiting buffer-file-name)
+	    (set (make-local-variable 'gud-minor-mode) 'gdba)
+	    (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)))))
 
 ;;from put-image
 (defun gdb-put-string (putstring pos &optional dprop &rest sprops)
@@ -2978,15 +2956,15 @@ BUFFER nil or omitted means use the current buffer."
   (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
       (setq gdb-current-language (match-string 1)))
   (gdb-invalidate-assembler))
+
 
 ;; Code specific to GDB 6.4
-
-(defconst gdb-source-file-regexp "fullname=\"\\(.*?\\)\"")
+(defconst gdb-source-file-regexp-1 "fullname=\"\\(.*?\\)\"")
 
 (defun gdb-set-gud-minor-mode-existing-buffers-1 ()
   "Create list of source files for current GDB session."
   (goto-char (point-min))
-  (while (re-search-forward gdb-source-file-regexp nil t)
+  (while (re-search-forward gdb-source-file-regexp-1 nil t)
     (push (match-string 1) gdb-source-file-list))
   (dolist (buffer (buffer-list))
     (with-current-buffer buffer
@@ -3089,7 +3067,7 @@ value=\\(\".*?\"\\),type=\"\\(.+?\\)\"}")
   "number=\"\\(.*?\\)\",value=\"\\(.*?\\)\"")
 
 (defun gdb-data-list-register-values-handler ()
-  (setq gdb-pending-triggers (delq 'gdb-invalidate-registers
+  (setq gdb-pending-triggers (delq 'gdb-invalidate-registers-1
 				   gdb-pending-triggers))
   (goto-char (point-min))
   (if (re-search-forward gdb-error-regexp nil t)
