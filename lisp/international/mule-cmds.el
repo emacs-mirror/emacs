@@ -1798,7 +1798,9 @@ The default status is as follows:
 (defun set-display-table-and-terminal-coding-system (language-name &optional coding-system)
   "Set up the display table and terminal coding system for LANGUAGE-NAME."
   (let ((coding (get-language-info language-name 'unibyte-display)))
-    (if coding
+    (if (and coding
+	     (or (not coding-system)
+		 (coding-system-equal coding coding-system)))
 	(standard-display-european-internal)
       ;; The following 2 lines undo the 8-bit display that we set up
       ;; in standard-display-european-internal, which see.  This is in
