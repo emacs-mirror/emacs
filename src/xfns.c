@@ -3373,6 +3373,13 @@ This function is an internal primitive--use `make-frame' instead.  */)
       UNBLOCK_INPUT;
     }
 
+  /* Initialize `default-minibuffer-frame' in case this is the first
+     frame on this display device.  */
+  if (FRAME_HAS_MINIBUF_P (f)
+      && (!FRAMEP (kb->Vdefault_minibuffer_frame)
+          || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
+    kb->Vdefault_minibuffer_frame = frame;
+
   UNGCPRO;
 
   /* Make sure windows on this frame appear in calls to next-window
