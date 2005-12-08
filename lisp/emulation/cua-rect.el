@@ -1242,6 +1242,7 @@ The numbers are formatted according to the FORMAT string."
 	       (setq z (cdr z)))
 	     (if cua--debug
 		 (print (list (current-column) cc) auxbuf))
+	     (just-one-space 0)
              (indent-to cc))))
       (if (> tr 0)
 	  (message "Warning:  Truncated %d row%s" tr (if (> tr 1) "s" "")))
