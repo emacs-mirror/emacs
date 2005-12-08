@@ -1,3 +1,8 @@
+2005-12-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (Structure editing): DOcument new fucntionality of
+	M-RET. 
+
 2005-12-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB Graphical Interface): Explain screen size

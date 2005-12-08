@@ -1,3 +1,11 @@
+2005-12-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-insert-heading): Try to do items before
+	headings.
+	(org-agenda-mode): Quote `org-agenda-mode-hook'.
+	(org-insert-item): New function.
+	(org-renumber-ordered-list): Don't skip to higher level lists.
+
 2005-12-08  Juri Linkov  <juri@jurta.org>
 
 	* info.el (Info-mode-map): Bind M-TAB to `Info-prev-reference'.
