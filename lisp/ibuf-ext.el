@@ -1021,10 +1021,12 @@ currently used by buffers."
   (ibuffer-awhen (with-current-buffer buf
 		   (or buffer-file-name
 		       (and (boundp 'dired-directory)
-			    (if (stringp dired-directory)
-				dired-directory
-			      (car dired-directory))
-			    (expand-file-name dired-directory))))
+			    (let ((dired-dir
+				   (if (stringp dired-directory)
+				       dired-directory
+				     (car dired-directory))))
+			      (and dired-dir
+				   (expand-file-name dired-dir))))))
     (string-match qualifier it)))
 
 ;;;###autoload (autoload 'ibuffer-filter-by-size-gt  "ibuf-ext")
