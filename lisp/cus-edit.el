@@ -2155,7 +2155,11 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 		  (setq parents (cons symbol parents)))))
     (and (null (get name 'custom-links)) ;No links of its own.
          (= (length parents) 1)         ;A single parent.
-         (let* ((links (get (car parents) 'custom-links))
+         (let* ((links (delq nil (mapcar (lambda (w)
+					   (unless (eq (widget-type w)
+						       'custom-group-link)
+					     w))
+					 (get (car parents) 'custom-links))))
                 (many (> (length links) 2)))
            (when links
              (insert "\nParent documentation: ")
