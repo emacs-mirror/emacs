@@ -47,6 +47,12 @@ invalid pointer from string_free_list.
 
 * BUGS
 
+** ottomaddox's Nov 23 bug report about foldout mode.
+
+** Ronan Keryell's Sep 23 bug about "tramp sudo:: and version control on RCS"
+
+** Bug: C-h v warning-type-format gives "Search failed".
+
 ** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
@@ -55,6 +61,80 @@ CPU time have been observed on different Window XP configurations.
 Seems to be a problem in sys_select in w32proc.c.
 
 * DOCUMENTATION
+
+** Fix some of these doc strings by adding \\<keymap-name> where needed.
+
+ada-mode
+array-mode
+artist-mode
+autoarg-mode
+bibtext-mode
+bookmark-bmenu-other-window-with-mouse
+checkdoc-minor-mode
+completing-read-multiple
+constrain-to-field
+copy-file
+decipher-mode
+define-generic-mode
+define-ibuffer-op
+diff-mode
+dired-maybe-insert-subdir
+ediff-merge-buffers-with-ancestor
+ediff-merge-directories-with-ancestor
+ediff-merge-directory-revisions-with-ancestor
+edir-merge-revisions-with-ancestor
+edirs-merge-with-ancestor
+edit-picture
+ethio-fidel-to-sera-mail-or-marker
+ethio-sera-to-fidel-mail-or-marker
+face-attribute-specified-or
+face-equal
+flyspell-mode
+gnus-agent-delete-group
+gnus-agent-rename-group
+gnus-cache-delete-group
+gnus-cache-rename-group
+gnus-msg-mail
+hexl-mode
+hi-lock-mode
+ibuffer
+ido-find-file
+internal-lisp-face-equal-p
+isearch-forward
+kmacro-start-macro
+kmacro-start-macro-or-insert-counter
+mail-extract-address-components
+mail-mode
+make-byte-code
+message-mail
+mh-user-agent-compose
+next-single-char-property-change
+octave-mode
+outline-mode
+pascal-mode
+picture-mode
+previous-single-char-property-change
+python-mode
+quail-define-package
+read-from-minibuffer
+read-key-sequence
+read-key-sequence-vector
+reftex-index-phrases-mode
+reftex-mode
+rmail-mode
+save-buffer
+sh-mode
+shell-script-mode
+solar-equinoxes-solstices
+table-capture
+table-insert
+table-split-cell-horizontally
+ucs-set-table-for-input
+view-mode
+w32-shell-dos-semantics
+
+** Update what needs to be updated now that Global Font Lock mode and
+File Name Shadow mode are enabled by default.
 
 ** Check man/info.texi.
 
