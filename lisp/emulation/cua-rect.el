@@ -1358,7 +1358,9 @@ With prefix arg, indent to that column."
 
 (defun cua-help-for-rectangle (&optional help)
   (interactive)
-  (let ((M (if cua-use-hyper-key " H-" " M-")))
+  (let ((M (cond ((eq cua--rectangle-modifier-key 'hyper) " H-")
+		 ((eq cua--rectangle-modifier-key 'super) " s-")
+		 (t " M-"))))
     (message
      (concat (if help "C-?:help" "")
              M "p:pad" M "o:open" M "c:close" M "b:blank"
@@ -1410,12 +1412,11 @@ With prefix arg, indent to that column."
   (cua--M/H-key cua--rectangle-keymap key cmd))
 
 (defun cua--init-rectangles ()
-  (unless (eq cua-use-hyper-key 'only)
-    (define-key cua--rectangle-keymap [(control return)] 'cua-clear-rectangle-mark)
-    (define-key cua--region-keymap    [(control return)] 'cua-toggle-rectangle-mark))
-  (when cua-use-hyper-key
-    (cua--rect-M/H-key 'space			       'cua-clear-rectangle-mark)
-    (cua--M/H-key cua--region-keymap 'space	       'cua-toggle-rectangle-mark))
+  (define-key cua--rectangle-keymap [(control return)] 'cua-clear-rectangle-mark)
+  (define-key cua--region-keymap    [(control return)] 'cua-toggle-rectangle-mark)
+  (unless (eq cua--rectangle-modifier-key 'meta)
+    (cua--rect-M/H-key ?\s			       'cua-clear-rectangle-mark)
+    (cua--M/H-key cua--region-keymap ?\s	       'cua-toggle-rectangle-mark))
 
   (define-key cua--rectangle-keymap [remap copy-region-as-kill] 'cua-copy-rectangle)
   (define-key cua--rectangle-keymap [remap kill-ring-save]      'cua-copy-rectangle)
