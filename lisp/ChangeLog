@@ -1,5 +1,8 @@
 2005-12-08  Kim F. Storm  <storm@cua.dk>
 
+	* emulation/cua-rect.el (cua--extract-rectangle): Don't use \s
+	in strings.
+
 	* ido.el: Move Acknowledgements and History after Commentary.
 	Minor changes to Commentary.
 
