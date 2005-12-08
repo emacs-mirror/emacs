@@ -1,3 +1,8 @@
+2005-12-07  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-cookie.el (url-cookie-save-interval): Simplify.
+	(url-cookie-setup-save-timer): Simplify.
+
 2005-12-04  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
 
 	* url-history.el (url-history-list): Var deleted.
