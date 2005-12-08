@@ -1,3 +1,17 @@
+2005-12-08  Juri Linkov  <juri@jurta.org>
+
+	* info.el (Info-mode-map): Bind M-TAB to `Info-prev-reference'.
+
+	* button.el (button-buffer-map): Bind M-TAB to `backward-button'.
+
+	* wid-edit.el (widget-keymap): Bind M-TAB to `widget-backward'.
+
+	* pcvs.el (defun-cvs-mode): Put `definition-name' property on
+	the constructed function name fun-1.
+
+	* cus-edit.el (custom-add-parent-links): Filter out custom-group-link,
+	because such links don't lead to parent documentation.
+
 2005-12-08  Kenichi Handa  <handa@m17n.org>
 
 	* descr-text.el (describe-char): Use *Help-2* buffer if the
@@ -187,7 +201,8 @@
 
 	* font-core.el (global-font-lock-mode): Use define-global-minor-mode
 	instead of easy-mmode-define-global-mode.  Add `:group font-lock'.
-	(font-lock-mode): Replace `:group font-lock' with `nil nil nil'.
+	(font-lock-mode): Replace `:group font-lock' with `nil nil nil'
+	because there is no customization option for it.
 
 	* font-lock.el (lisp-font-lock-keywords-1):
 	Add define-global-minor-mode.
@@ -223,8 +238,8 @@
 	property on their symbols (they have only `custom-loads').
 
 	* simple.el (completion-setup-function): Put completions-common-part
-	face on full completion string too (i.e. completion string without
-	completions-first-difference face).
+	face on complete completion string too (i.e. completion string
+	without completions-first-difference face).
 
 	* man.el (Man-section-regexp): Add 0-9 to support "3X11" sections.
 
