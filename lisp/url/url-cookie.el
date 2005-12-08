@@ -449,11 +449,10 @@ telling Microsoft that."
 Default is 1 hour.  Note that if you change this variable outside of
 the `customize' interface after `url-do-setup' has been run, you need
 to run the `url-cookie-setup-save-timer' function manually."
-  :set (function (lambda (var val)
-		   (set-default var val)
-		   (and (featurep 'url)
-			(fboundp 'url-cookie-setup-save-timer)
-			(url-cookie-setup-save-timer))))
+  :set #'(lambda (var val)
+	   (set-default var val)
+	   (if (bound-and-true-p url-setup-done)
+	       (url-cookie-setup-save-timer)))
   :type 'integer
   :group 'url)
 
@@ -461,21 +460,12 @@ to run the `url-cookie-setup-save-timer' function manually."
 (defun url-cookie-setup-save-timer ()
   "Reset the cookie saver timer."
   (interactive)
-  (ignore-errors
-    (cond ((fboundp 'cancel-timer) (cancel-timer url-cookie-timer))
-	  ((fboundp 'delete-itimer) (delete-itimer url-cookie-timer))))
+  (ignore-errors (cancel-timer url-cookie-timer))
   (setq url-cookie-timer nil)
   (if url-cookie-save-interval
-      (setq url-cookie-timer
-	    (cond
-	     ((fboundp 'run-at-time)
-	      (run-at-time url-cookie-save-interval
-			   url-cookie-save-interval
-			   'url-cookie-write-file))
-	     ((fboundp 'start-itimer)
-	      (start-itimer "url-cookie-saver" 'url-cookie-write-file
-			    url-cookie-save-interval
-			    url-cookie-save-interval))))))
+      (setq url-cookie-timer (run-at-time url-cookie-save-interval
+					  url-cookie-save-interval
+					  #'url-cookie-write-file))))
 
 (provide 'url-cookie)
 
