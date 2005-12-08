@@ -198,14 +198,16 @@ into a longer string that it stands for, by matching it against a set of
 argument.  @kbd{?} is defined to display a list of possible completions
 of what you have inserted.
 
-  For example, when @kbd{M-x} uses the minibuffer to read the name of a
-command, it provides a list of all available Emacs command names to
+  For example, when @kbd{M-x} uses the minibuffer to read the name of
+a command, it provides a list of all available Emacs command names to
 complete against.  The completion keys match the minibuffer text
 against all the command names, find any additional name characters
 implied by the ones already present in the minibuffer, and add those
 characters to the ones you have given.  This is what makes it possible
 to type @kbd{M-x ins @key{SPC} b @key{RET}} instead of @kbd{M-x
-insert-buffer @key{RET}} (for example).
+insert-buffer @key{RET}} (for example).  (@key{SPC} does not do
+completion in reading file names, because it is common to use spaces
+in file names on some systems.)
 
   Case is normally significant in completion, because it is significant
 in most of the names that you can complete (buffer names, file names and
@@ -260,8 +262,10 @@ when completion is available.
 Complete the text before point in the minibuffer as much as possible
 (@code{minibuffer-complete}).
 @item @key{SPC}
-Complete the minibuffer text before point, but don't go beyond one word
-(@code{minibuffer-complete-word}).
+Complete the minibuffer text before point, but don't go beyond one
+word (@code{minibuffer-complete-word}).  @key{SPC} for completion is
+not available when entering a file name, since some users often put
+spaces in filenames.
 @item @key{RET}
 Submit the text in the minibuffer as the argument, possibly completing
 first as described
