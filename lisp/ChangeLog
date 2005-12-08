@@ -1,3 +1,8 @@
+2005-12-08  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-rect.el (cua--rectangle-aux-replace): Fix
+	indention of text on right side of replaced rectangle.
+
 2005-12-09  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-speedbar-buttons, gud-tooltip-tips):
