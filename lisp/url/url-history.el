@@ -72,9 +72,6 @@ to run the `url-history-setup-save-timer' function manually."
 
 (defvar url-history-timer nil)
 
-(defvar url-history-list nil
-  "List of urls visited this session.")
-
 (defvar url-history-changed-since-last-save nil
   "Whether the history list has changed since the last save operation.")
 
