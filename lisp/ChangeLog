@@ -1,5 +1,8 @@
 2005-12-08  Kim F. Storm  <storm@cua.dk>
 
+	* ido.el: Move Acknowledgements and History after Commentary.
+	Minor changes to Commentary.
+
 	* emulation/cua-base.el (cua--select-keymaps): Enable repeat
 	keymap if cua--prefix-override-timer equals 'shift.
 	(cua--shift-control-prefix): New function; emulate "type prefix
