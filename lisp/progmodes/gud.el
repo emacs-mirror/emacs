@@ -436,8 +436,7 @@ ZERO are not used, but are required by the caller."
 If the GUD BUFFER is not running a supported debugger, then turn
 off the specialized speedbar mode.  BUFFER is not used, but are
 required by the caller."
-  (when (and (boundp 'gud-comint-buffer)
-	     gud-comint-buffer
+  (when (and gud-comint-buffer
 	     ;; gud-comint-buffer might be killed
 	     (buffer-name gud-comint-buffer))
     (let* ((minor-mode (with-current-buffer buffer gud-minor-mode))
@@ -661,6 +660,11 @@ The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger."
   (interactive (list (gud-query-cmdline 'gdb)))
 
+  (if (and gud-comint-buffer
+	   (buffer-name gud-comint-buffer)
+	   (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba)))
+      (error "Multiple debugging is only supported with \"gdb --fullname\""))
+				
   (gud-common-init command-line nil 'gud-gdb-marker-filter)
   (set (make-local-variable 'gud-minor-mode) 'gdb)
 
@@ -3330,7 +3334,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
   (gud-tooltip-activate-mouse-motions-if-enabled)
   (if (and
        gud-comint-buffer
-       (buffer-name gud-comint-buffer); gud-comint-buffer might be kille
+       (buffer-name gud-comint-buffer); gud-comint-buffer might be killed
        (with-current-buffer gud-comint-buffer
 	(memq gud-minor-mode '(gdbmi gdba))))
       (if gud-tooltip-mode
@@ -3384,9 +3388,8 @@ This function must return nil if it doesn't handle EVENT."
   (let (process)
     (when (and (eventp event)
 	       gud-tooltip-mode
-	       (boundp 'gud-comint-buffer)
 	       gud-comint-buffer
-	       (buffer-name gud-comint-buffer); gud-comint-buffer might be killed
+	       (buffer-name gud-comint-buffer); might be killed
 	       (setq process (get-buffer-process gud-comint-buffer))
 	       (posn-point (event-end event))
 	       (or (and (eq gud-minor-mode 'gdba) (not gdb-active-process))
