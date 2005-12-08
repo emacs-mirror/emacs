@@ -1,6 +1,6 @@
 2005-12-09  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gud-speedbar-buttons, gud-tooltip-tips): 
+	* progmodes/gud.el (gud-speedbar-buttons, gud-tooltip-tips):
 	No need to check gud-comint-buffer is bound.
 	(gdb): Prevent multiple debugging when first session uses gdba.
 
@@ -341,7 +341,7 @@
 
 	* progmodes/cc-cmds.el: In c-electric-brace, add code for new
 	clean-up one-liner-defun.
-	
+
 	* progmodes/cc-styles.el: Add the new "awk" style.
 
 	* progmodes/cc-vars.el: Add description of one-liner-defun to
@@ -1203,6 +1203,20 @@
 	construct like "a * b = c;" as a declaration.
 
 2005-12-08  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-use-hyper-key): Replaced by ...
+	(cua-rectangle-modifier-key): ... this.  New defcustom.  Can now
+	select either meta, hyper, or super modifier for rectangle commands.
+	(cua--rectangle-modifier-key): New defvar.
+	(cua--M/H-key): Use it.  Remove special case for 'space.
+	(cua--init-keymaps): Initialize it from cua-rectangle-modifier-key
+	on X, to meta otherwise.  Always bind C-return to toggle
+	rectangle.  Pass ?\s instead of 'space to cua--M/H-key.
+
+	* emulation/cua-rect.el (cua-help-for-rectangle): Use
+	cua--rectangle-modifier-key.  Handle super modifier too.
+	(cua--init-rectangles): Always bind C-return to toggle rectangle.
+	Pass ?\s instead of 'space to cua--M/H-key and cua--rect-M/H-key.
 
 	* emulation/cua-rect.el (cua--extract-rectangle): Don't use \s
 	in strings.
