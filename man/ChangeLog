@@ -1,3 +1,8 @@
+2005-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* mini.texi (Completion Commands, Completion):
+	In file name input, SPC does not do completion.
+
 2005-12-08  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi (Structure editing): DOcument new fucntionality of
