@@ -3071,6 +3071,7 @@ if point is in a menu item description, follow that menu item."
   (define-key Info-mode-map " " 'Info-scroll-up)
   (define-key Info-mode-map "\C-m" 'Info-follow-nearest-node)
   (define-key Info-mode-map "\t" 'Info-next-reference)
+  (define-key Info-mode-map "\e\t" 'Info-prev-reference)
   (define-key Info-mode-map [(shift tab)] 'Info-prev-reference)
   (define-key Info-mode-map [backtab] 'Info-prev-reference)
   (define-key Info-mode-map "1" 'Info-nth-menu-item)
