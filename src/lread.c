@@ -1738,13 +1738,12 @@ read_escape (readcharfun, stringp, byterep)
       return c | alt_modifier;
 
     case 's':
-      if (stringp)
-	return ' ';
       c = READCHAR;
-      if (c != '-') {
-	UNREAD (c);
-	return ' ';
-      }
+      if (c != '-')
+	{
+	  UNREAD (c);
+	  return ' ';
+	}
       c = READCHAR;
       if (c == '\\')
 	c = read_escape (readcharfun, 0, byterep);
