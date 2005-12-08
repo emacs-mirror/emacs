@@ -1,3 +1,13 @@
+2005-12-08  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--select-keymaps): Enable repeat
+	keymap if cua--prefix-override-timer equals 'shift.
+	(cua--shift-control-prefix): New function; emulate "type prefix
+	key twice" functionality to handle shifted prefix key override.
+	(cua--shift-control-c-prefix, cua--shift-control-x-prefix): New
+	commands.
+	(cua--init-keymaps): Bind them to S-C-c and S-C-x.
+
 2005-12-08  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-insert-heading): Try to do items before
