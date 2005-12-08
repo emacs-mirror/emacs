@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.22
+@set VERSION 3.23
 @set DATE December 2005
 
 @dircategory Emacs
@@ -469,7 +469,10 @@ visible.
 @table @kbd
 @kindex M-@key{RET}
 @item M-@key{RET}
-Insert new heading with same level as current
+Insert new heading with same level as current.  If the cursor is in a
+plain list item, a new item is created.  To force creation of a new
+headline, use a prefix arg, or first press @key{RET} to get to the
+beginning of the next line.
 @kindex M-S-@key{RET}
 @item M-S-@key{RET}
 Insert new TODO entry with same level as current heading.
@@ -632,6 +635,9 @@ Items can be folded just like headline levels if you set the variable
 given by the indentation of the bullet/number.  However, items are
 always subortinate to real headlines, the hierarchies remain
 completely separated.
+@kindex M-@key{RET}
+@item M-@key{RET}
+Insert new item at current level.  With prefix arg, for a new heading.
 @kindex M-S-@key{up}
 @kindex M-S-@key{down}
 @item M-S-@key{up}
