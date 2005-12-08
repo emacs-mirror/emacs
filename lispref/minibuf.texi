@@ -85,25 +85,12 @@ permit or forbid recursive minibuffers by setting the variable
 @code{enable-recursive-minibuffers} or by putting properties of that
 name on command symbols (@pxref{Recursive Mini}).
 
-  Like other buffers, a minibuffer may use any of several local keymaps
-(@pxref{Keymaps}); these contain various exit commands and in some cases
-completion commands (@pxref{Completion}).
-
-@itemize @bullet
-@item
-@code{minibuffer-local-map} is for ordinary input (no completion).
-
-@item
-@code{minibuffer-local-ns-map} is similar, except that @key{SPC} exits
-just like @key{RET}.
-
-@item
-@code{minibuffer-local-completion-map} is for permissive completion.
-
-@item
-@code{minibuffer-local-must-match-map} is for strict completion and
-for cautious completion.
-@end itemize
+  Like other buffers, a minibuffer use a local keymap
+(@pxref{Keymaps}) to specify special key bindings.  The function that
+invokes the minibuffer also sets up its local map according to the job
+to be done.  @xref{Text from Minibuffer}, for the non-completion
+minibuffer local maps.  @xref{Completion Commands}, for the minibuffer
+local maps for completion.
 
   When Emacs is running in batch mode, any request to read from the
 minibuffer actually reads a line from the standard input descriptor that
@@ -1032,6 +1019,16 @@ bindings:
 
 @noindent
 with other characters bound as in @code{minibuffer-local-map}.
+@end defvar
+
+@defvar minibuffer-local-filename-completion-map
+This is like @code{minibuffer-local-completion-map}
+except that it does not bind @key{SPC}.
+@end defvar
+
+@defvar minibuffer-local-must-match-filename-map
+This is like @code{minibuffer-local-must-match-map}
+except that it does not bind @key{SPC}.
 @end defvar
 
 @node High-Level Completion
