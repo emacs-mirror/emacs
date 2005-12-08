@@ -1,3 +1,8 @@
+2005-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* objects.texi (Character Type): Clarify that \s is not space
+	if a dash follows.
+
 2005-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* windows.texi (Resizing Windows): Delete preserve-before args.
