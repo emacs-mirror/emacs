@@ -1232,7 +1232,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	     (not cua--prefix-override-timer)))
   (setq cua--ena-prefix-repeat-keymap
 	(and cua--ena-region-keymap
-	     (timerp cua--prefix-override-timer)))
+	     (or (timerp cua--prefix-override-timer)
+		 (eq cua--prefix-override-timer 'shift))))
   (setq cua--ena-cua-keys-keymap
 	(and cua-enable-cua-keys
 	     (not cua-inhibit-cua-keys)
@@ -1243,6 +1244,26 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	     (not (window-minibuffer-p)))))
 
 (defvar cua--keymaps-initalized nil)
+
+(defun cua--shift-control-prefix (prefix arg)
+  ;; handle S-C-x and S-C-c by emulating the fast double prefix function.
+  ;; Don't record this command
+  (setq this-command last-command)
+  ;; Restore the prefix arg
+  (setq prefix-arg arg)
+  (reset-this-command-lengths)
+  ;; Activate the cua--prefix-repeat-keymap
+  (setq cua--prefix-override-timer 'shift)
+  ;; Push duplicate keys back on the event queue
+  (setq unread-command-events (cons prefix (cons prefix unread-command-events))))
+
+(defun cua--shift-control-c-prefix (arg)
+  (interactive "P")
+  (cua--shift-control-prefix ?\C-c arg))
+
+(defun cua--shift-control-x-prefix (arg)
+  (interactive "P")
+  (cua--shift-control-prefix ?\C-x arg))
 
 (defun cua--init-keymaps ()
   (unless (eq cua-use-hyper-key 'only)
@@ -1287,8 +1308,9 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua--prefix-repeat-keymap [(control c) right] 'cua--prefix-copy-handler)
 
   ;; Enable shifted fallbacks for C-x and C-c when region is active
-  (define-key cua--region-keymap [(shift control x)] 'Control-X-prefix)
-  (define-key cua--region-keymap [(shift control c)] 'mode-specific-command-prefix)
+  (define-key cua--region-keymap [(shift control x)] 'cua--shift-control-x-prefix)
+  (define-key cua--region-keymap [(shift control c)] 'cua--shift-control-c-prefix)
+
   ;; replace current region
   (define-key cua--region-keymap [remap self-insert-command]	'cua-replace-region)
   (define-key cua--region-keymap [remap self-insert-iso]	'cua-replace-region)
