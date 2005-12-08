@@ -1,3 +1,8 @@
+2005-12-08  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (define-ibuffer-filter filename):
+	If `dired-directory' is a list then really use its car.
+
 2005-12-08  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--rectangle-aux-replace): Fix
