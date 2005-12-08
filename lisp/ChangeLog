@@ -1,3 +1,9 @@
+2005-12-09  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-speedbar-buttons, gud-tooltip-tips): 
+	No need to check gud-comint-buffer is bound.
+	(gdb): Prevent multiple debugging when first session uses gdba.
+
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	CC Mode update to 5.31.
@@ -1196,10 +1202,6 @@
 	* progmodes/cc-fonts.el (c-font-lock-declarations): Recognize a
 	construct like "a * b = c;" as a declaration.
 
-
-Local Variables:
-add-log-mailing-address: "bug-cc-mode@gnu.org"
-End:
 2005-12-08  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-rect.el (cua--extract-rectangle): Don't use \s
@@ -1302,7 +1304,7 @@ End:
 	(gdb-locals-watch-map): Rename from gdb-*-*-keymap.
 	(gdb-locals-font-lock-keywords-1)
 	(gdb-locals-font-lock-keywords-2): New variables.
-	(gdb-find-file-hook): fgfg.
+	(gdb-find-file-hook): Make it work with GDB 6.4+ too.
 	(gdb-set-gud-minor-mode-existing-buffers-1)
 	(gdb-var-list-children-1, gdb-var-list-children-handler-1)
 	(gdb-var-update-1, gdb-var-update-handler-1)
