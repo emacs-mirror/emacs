@@ -596,7 +596,10 @@ actually occur.")
 (define-derived-mode mail-mode text-mode "Mail"
   "Major mode for editing mail to be sent.
 Like Text Mode but with these additional commands:
-\\[mail-send]  mail-send (send the message)    \\[mail-send-and-exit]  mail-send-and-exit
+
+\\[mail-send]  mail-send (send the message)
+\\[mail-send-and-exit]  mail-send-and-exit (send the message and exit)
+
 Here are commands that move to a header field (and create it if there isn't):
 	 \\[mail-to]  move to To:	\\[mail-subject]  move to Subject:
 	 \\[mail-cc]  move to CC:	\\[mail-bcc]  move to BCC:
