@@ -1,3 +1,7 @@
+2005-12-09  Chong Yidong  <cyd@stupidchicken.com>
+
+	* foldout.el (foldout-exit-fold): Properly hide subtree.
+
 2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.el (save-buffer):

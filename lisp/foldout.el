@@ -308,7 +308,8 @@ optional arg EXPOSURE \(interactively with prefix arg\) changes this:-
 Normally causes exited folds to be hidden, but with ARG < 0, -ARG folds are
 exited and text is left visible."
   (interactive "p")
-  (let (start-marker end-marker (hide-fold t))
+  (let ((hide-fold t) start-marker end-marker
+	beginning-of-heading end-of-subtree)
 
     ;; check there are some folds to leave
     (if (null foldout-fold-list)
@@ -355,26 +356,23 @@ exited and text is left visible."
       ;; is \n otherwise it will be hidden.  If there is a newline
       ;; before this one, make it visible too so we do the same as
       ;; outline.el and leave a blank line before the heading.
-      (if (zerop num-folds)
-	  (let ((beginning-of-heading (point))
-		(end-of-subtree (if end-marker
-				    (progn
-				      (forward-char -1)
-				      (if (memq (preceding-char)
-						'(?\n ?\^M))
-					  (forward-char -1))
-				      (point))
-				  (point-max))))
-	    ;; hide the subtree
-	    (if hide-fold
-		(outline-flag-region start-marker end-of-subtree
-				     foldout-hide-flag))
+      (when (zerop num-folds)
+	(if end-marker
+	    (setq beginning-of-heading (point)
+		  end-of-subtree (progn (forward-char -1)
+					(if (memq (preceding-char)
+						  '(?\n ?\^M))
+					    (forward-char -1))
+					(point))))
+	;; hide the subtree
+	(when hide-fold
+	  (goto-char start-marker)
+	  (hide-subtree))
 
-	    ;; make sure the next heading is exposed
-	    (if end-marker
-		(outline-flag-region end-of-subtree beginning-of-heading
-				     foldout-show-flag))
-	    ))
+	;; make sure the next heading is exposed
+	(if end-marker
+	    (outline-flag-region end-of-subtree beginning-of-heading
+				 foldout-show-flag)))
 
       ;; zap the markers so they don't slow down editing
       (set-marker start-marker nil)
