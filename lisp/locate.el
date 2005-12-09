@@ -229,7 +229,8 @@ With prefix arg, prompt for the locate command to run."
     (save-window-excursion
       (set-buffer (get-buffer-create locate-buffer-name))
       (locate-mode)
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+	    (buffer-undo-list t))
 	(erase-buffer)
 
 	(setq locate-current-filter filter)
