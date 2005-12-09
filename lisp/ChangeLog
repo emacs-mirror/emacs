@@ -1,3 +1,25 @@
+2005-12-09  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-highlight): Change main overlay priority
+	from 1 to 1001.  Simplify.
+	(isearch-lazy-highlight-update): Change lazy overlay priority
+	from 0 to 1000.
+
+	* replace.el (replace-highlight): Change overlay priority from
+	1 to 1001.
+
+	* textmodes/ispell.el (ispell-highlight-spelling-error-overlay):
+	Change overlay priority from 1 to 1001.  Reuse existing overlay.
+
+	* compare-w.el (compare-windows-highlight): Change overlay
+	priority from 1 to 1000.
+
+	* menu-bar.el (menu-bar-edit-menu): Add listp around
+	pending-undo-list to disable menu item "undo" when pending
+	undo list is empty.
+
+	* locate.el (locate): Disable undo in *Locate* buffer.
+
 2005-12-09  Kim F. Storm  <storm@cua.dk>
 
 	* mail/smtpmail.el (smtpmail-via-smtp): Disable undo in SMTP buffer.
