@@ -1,3 +1,8 @@
+2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* FOR-RELEASE (DOCUMENTATION): Remove message-mail and
+	gnus-* from doc strings item (Done).
+
 2005-11-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* FOR-RELEASE: Icons installed.  Partial completion bug fixed.

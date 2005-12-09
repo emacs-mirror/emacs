@@ -88,11 +88,6 @@ ethio-sera-to-fidel-mail-or-marker
 face-attribute-specified-or
 face-equal
 flyspell-mode
-gnus-agent-delete-group
-gnus-agent-rename-group
-gnus-cache-delete-group
-gnus-cache-rename-group
-gnus-msg-mail
 hexl-mode
 hi-lock-mode
 ibuffer
@@ -104,7 +99,6 @@ kmacro-start-macro-or-insert-counter
 mail-extract-address-components
 mail-mode
 make-byte-code
-message-mail
 mh-user-agent-compose
 next-single-char-property-change
 octave-mode
