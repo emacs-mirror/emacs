@@ -8939,8 +8939,12 @@ w32_abort()
   button = MessageBox (NULL,
 		       "A fatal error has occurred!\n\n"
 		       "Would you like to attach a debugger?\n\n"
-		       "Select YES to debug, NO to abort Emacs",
-		       "Emacs Abort Dialog",
+		       "Select YES to debug, NO to abort Emacs"
+#if __GNUC__
+		       "\n\n(type \"gdb -p <emacs-PID>\" and\n"
+		       "\"continue\" inside GDB before clicking YES.)"
+#endif
+		       , "Emacs Abort Dialog",
 		       MB_ICONEXCLAMATION | MB_TASKMODAL
 		       | MB_SETFOREGROUND | MB_YESNO);
   switch (button)
