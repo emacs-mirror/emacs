@@ -1,3 +1,8 @@
+2005-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* INSTALL: Add explanation of how to debug with GDB starting from
+	the Emacs Abort dialog.
+
 2005-11-26  Chong Yidong  <cyd@stupidchicken.com>
 
 	* emacs.rc: Use new icons.
