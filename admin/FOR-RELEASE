@@ -51,8 +51,6 @@ invalid pointer from string_free_list.
 
 ** Ronan Keryell's Sep 23 bug about "tramp sudo:: and version control on RCS"
 
-** Bug: C-h v warning-type-format gives "Search failed".
-
 ** TCP server processes do not work on Windows.
 
 TCP/IP server processes created with `make-network-process' consume
