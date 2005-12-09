@@ -1,3 +1,20 @@
+2005-12-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.texi (Customization): Use xref to elisp manual for
+	non-TeX output.
+	(Minor Modes): Update.
+	(Customization Groups, Changing a Variable, Face Customization):
+	Update for new appearance of Custom buffers.
+	(Changing a Variable): `custom-buffer-done-function' has been
+	replaced by `custom-buffer-done-kill'.
+	(Specific Customization): In the `customize-group' buffer, a
+	subgroup's contents are not "hidden".  They are not included at
+	all.  They have no [Show] button.
+	(Mouse Buttons): Add pxref to description of mouse event lists in
+	Elisp manual.  Add `menu-bar' and `header-line' dummy prefix keys.
+	(Find Init): Emacs now looks for ~/.emacs.d/init.el instead of
+	~/.emacs.d/.emacs, if it can not find ~/.emacs(.el).
+
 2005-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* mini.texi (Completion Commands, Completion):
@@ -5,8 +22,8 @@
 
 2005-12-08  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi (Structure editing): DOcument new fucntionality of
-	M-RET. 
+	* org.texi (Structure editing): Document new functionality of
+	M-RET.
 
 2005-12-08  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -44,7 +61,7 @@
 
 2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Structure editing): New item moving commands added.
+	* org.texi (Structure editing): New item moving commands added.
 	(Plain Lists): New section.
 
 2005-11-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
@@ -92,7 +109,7 @@
 
 2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (FAQ): Document `org-table-tab-jumps-over-hlines'.
+	* org.texi (FAQ): Document `org-table-tab-jumps-over-hlines'.
 	(Agenda): Document commands `org-cycle-agenda-files' and
 	`org-agenda-file-to-front'
 	(Built-in table editor): Document `org-table-sort-lines'.

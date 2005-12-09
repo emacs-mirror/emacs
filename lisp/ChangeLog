@@ -1,3 +1,9 @@
+2005-12-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (custom-buffer-create-internal): Relabel the whole
+	buffer "Reset" button to "Reset to Current" for consistency with
+	the State buttons.
+
 2005-12-08  John Paul Wallington  <jpw@pobox.com>
 
 	* ibuf-ext.el (define-ibuffer-filter filename):
@@ -1244,7 +1250,7 @@
 
 2005-12-08  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-insert-heading): Try to do items before
+	* textmodes/org.el (org-insert-heading): Try to do items before
 	headings.
 	(org-agenda-mode): Quote `org-agenda-mode-hook'.
 	(org-insert-item): New function.
@@ -1360,7 +1366,7 @@
 
 2005-12-06  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-occur-highlights): New variable.
+	* textmodes/org.el (org-occur-highlights): New variable.
 	(org-highlight-new-match, org-remove-occur-highlights): New functions.
 	(org-highlight-sparse-tree-matches): New option.
 	(org-do-occur): New function.
@@ -1965,7 +1971,7 @@
 
 2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-export-plain-list-max-depth): Renamed from
+	* textmodes/org.el (org-export-plain-list-max-depth): Renamed from
 	`org-export-local-list-max-depth'.  Change default value to 3.
 	(org-auto-renumber-ordered-lists)
 	(org-plain-list-ordered-item-terminator): New options.
@@ -2179,7 +2185,7 @@
 
 2005-11-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-table-sort-lines): New command.
+	* textmodes/org.el (org-table-sort-lines): New command.
 	(org-tbl-menu): Add entry for `org-table-sort-lines'.
 	(org-add-file): Command removed, use `org-agenda-file-to-front'
 	instead.
@@ -4079,7 +4085,7 @@
 
 2005-10-21  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-combined-agenda-icalendar-file)
+	* textmodes/org.el (org-combined-agenda-icalendar-file)
 	(org-icalendar-include-todo, org-icalendar-combined-name): New options.
 	(org-export-icalendar-this-file)
 	(org-export-icalendar-all-agenda-files)
@@ -4761,7 +4767,7 @@
 
 2005-10-10  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-mode-map): Explicit definition of `C-c
+	* textmodes/org.el (org-mode-map): Explicit definition of `C-c
 	C-x' as a prefix.
 	(orgtbl-mode-map): Full keymap instead of sparse, because all
 	`self-insert-command' keys are redefined in this map.
@@ -16644,7 +16650,7 @@
 
 	* cus-edit.el (custom-bury-buffer): Function deleted.
 	(custom-buffer-done-function): Option deleted.
-	(custom-buffer-done-kill): New (replacement option.
+	(custom-buffer-done-kill): New replacement option.
 	(Custom-buffer-done): Call quit-window.
 	(custom-buffer-create-internal): Update for above changes.
 
