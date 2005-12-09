@@ -1,3 +1,46 @@
+2005-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* pgg.texi (User Commands): Fix description of pgg-verify-region.
+	(Selecting an implementation): Fix descriptions.
+
+2005-11-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Various Message Variables): Addition.
+
+2005-11-29  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi: Fix default values.
+
+2005-11-25  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Header Commands): Clarify descriptions of
+	message-cross-post-followup-to, message-reduce-to-to-cc, and
+	message-insert-wide-reply.
+	(Various Commands): Fix kindex for message-kill-to-signature;
+	clarify description of message-tab.
+
+2005-11-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* message.texi (Mailing Lists): Fix description about MFT.
+
+	* gnus.texi (Emacs Lisp): Use ~/.gnus.el instead of ~/.emacs.
+
+2005-11-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Slow Terminal Connection): Replace old description
+	with new one.
+
+2005-11-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Oort Gnus): Use ~/.gnus.el instead of ~/.emacs;
+	replace X-Draft-Headers with X-Draft-From.
+
+2005-11-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (Various Various): Fix the default value of
+	nnheader-max-head-length.
+	(Gnus Versions): Fix typo.
+
 2005-12-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Customization): Use xref to elisp manual for

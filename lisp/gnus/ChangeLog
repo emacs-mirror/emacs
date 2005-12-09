@@ -1,3 +1,204 @@
+2005-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* mm-decode.el (mm-discouraged-alternatives): Fix custom type.
+	Suggest image/.* in the doc string.
+
+2005-12-07  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-decode.el (mm-display-external): Use nametemplate (defined in
+	RFC1524) if it is in mailcap or add a suffix according to
+	mailcap-mime-extensions when generating a temp filename; postpone
+	deleting a temp file for 2 seconds for some wrappers, shell
+	scripts, and so on, which might exit right after having started a
+	viewer command as a background job.
+
+2005-12-06  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-default-article-saver): Add user-defined
+	`function' to custom type.
+
+2005-12-02  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
+
+	* mm-view.el (mm-inline-text-html-render-with-w3m): Fix misplaced
+	parens.
+
+2005-11-29  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-cache.el (gnus-cache-rename-group): Wrap doc strings and
+	long lines.
+	(gnus-cache-delete-group): Wrap doc strings.
+
+	* gnus-agent.el (gnus-agent-rename-group)
+	(gnus-agent-delete-group): Wrap doc strings.
+
+2005-11-24  Pascal Rigaux  <pixel@mandriva.com>  (tiny change)
+
+	* rfc2231.el (rfc2231-parse-string): Support non-ascii chars.
+
+2005-11-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnmail.el (nnmail-fancy-expiry-target): Use current-time instead
+	of current-time-string.
+
+2005-11-20  Stefan Schimanski  <schimmi@debian.org>  (tiny change)
+
+	* nnmail.el (nnmail-fancy-expiry-target): Protect against invalid
+	date header.
+
+2005-11-16  Boris Samorodov <bsam@ipt.ru>  (tiny patch)
+
+	* imap.el (imap-kerberos4-open): Ignore SSL stuff.
+
+2005-11-14  Kevin Greiner  <kevin.greiner@compsol.cc>
+
+	* gnus-agent.el (gnus-agent-article-alist-save-format): Changed
+	internal variable to a custom variable.  Changed default value
+	from compressed(2) to uncompressed(1).
+	(gnus-agent-read-agentview): Reversed revision 7.8 to restore
+	support for uncompressed agentview files.  Taken together, reading
+	the agentview file should now be 6-7 times faster.
+	(gnus-agent-long-article,
+	gnus-agent-short-article, gnus-agent-score): Renamed category
+	keywords to match gnus-cus.
+	(gnus-agent-summary-fetch-series): Modified to protect against
+	gnus-agent-summary-fetch-group clearing processable flags.
+	(gnus-agent-synchronize-group-flags): Update live group buffer as
+	synchronization may occur due to the user toggling the plugged
+	status.
+	(gnus-agent-braid-nov): Now tests new nov entries
+	for duplicates which are removed.  The invalid sort check then
+	triggers a rescan after the sort as sorting may have moved
+	duplicate entries such that they can be cheaply detected.
+	(gnus-agent-read-local): Trivial fix to format of
+	error message to display actual error condition.
+	(gnus-agent-save-local): Avoid saving symbols that are bound to
+	nil as they simply result in a warning message in
+	gnus-agent-read-local.
+	(gnus-agent-fetch-group-1): Clear downloadable flag when article
+	successfully downloaded.
+	(gnus-agent-regenerate-group): Use
+	gnus-agent-synchronize-group-flags to reset read status in both
+	gnus and server.
+
+	* nntp.el (nntp-end-of-line): Doc fix.
+	(nntp-authinfo-rejected): New error condition.
+	(nntp-wait-for): Use new error condition to signal authentication
+	error.
+	(nntp-retrieve-data): Rethrow new error condition to break out of
+	recursive call to nntp-send-authinfo.
+	
+2005-11-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-dribble-read-file): Use make-local-variable
+	rather than make-variable-buffer-local for file-precious-flag.
+
+2005-11-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-start.el (gnus-dribble-read-file): Quote file-precious-flag.
+
+2005-11-11  Jan Nieuwenhuizen  <janneke@gnu.org>
+
+	* gnus-start.el (gnus-dribble-read-file): Set file-precious-flag,
+	as a buffer-local variable.  This avoids creating truncated
+	dribble files as a result of a hang up, eg.
+
+2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp-decrypt-region, pgg-pgp-sign-region): Use new name for
+	pgg-add-passphrase-to-cache function.
+
+	* pgg-pgp5.el (pgg-pgp5-encrypt-region, pgg-pgp5-decrypt-region)
+	(pgg-pgp5-encrypt-symmetric-region, pgg-pgp5-encrypt-symmetric)
+	(pgg-pgp5-encrypt, pgg-pgp5-decrypt-region, pgg-pgp5-decrypt)
+	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
+	function.
+
+2005-10-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* imap.el (imap-open): Handle case where buffer is a buffer
+	object.
+
+2005-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-gpg.el (pgg-gpg-select-matching-key): Fix: look at the right
+	part of the decoded armor to find the key-identifier.
+	(pgg-gpg-lookup-key-owner): New function to return the
+	human-readable identifier of a key owner.
+	(pgg-gpg-lookup-id-from-key-owner): Make it easy to identify the
+	key itself.
+	(pgg-gpg-decrypt-region): Prompt with the key owner (rather than
+	the key value) if we have a key and can match it against a secret
+	key.  Also, added a note pointing out fact that the prompt only
+	indicates the first matching key.
+
+	* pgg.el (pgg-decrypt): Passing along 'passphrase' in call to
+	pgg-decrypt-region.
+	(pgg-pending-timers): A new hash for tracking the passphrase cache
+	timers, so that new ones supercede old ones.
+	(pgg-add-passphrase-to-cache): Rename from
+	`pgg-add-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when new ones are added.
+	(pgg-remove-passphrase-from-cache): Rename from
+	`pgg-remove-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when their keys are
+	removed from the cache.
+	(pgg-cancel-timer): In Emacs, an alias for cancel-timer; in
+	XEmacs, an indirection to delete-itimer.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase):
+	Extract pgg-read-passphrase-from-cache from pgg-read-passphrase so
+	users can only check cache without risk of prompting.  Correct bug in
+	notruncate behavior.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase)
+	(pgg-add-passphrase-cache, pgg-remove-passphrase-cache):
+	Add informative docstrings.
+	(pgg-decrypt): Convey provided passphrase in subordinate call to
+	pgg-decrypt-region.
+
+2005-10-20  Ken Manheimer <ken.manheimer+emacs@gmail.com>
+
+	* pgg.el (pgg-encrypt-region, pgg-encrypt-symmetric-region)
+	(pgg-encrypt-symmetric, pgg-encrypt, pgg-decrypt-region)
+	(pgg-decrypt, pgg-sign-region, pgg-sign): Add optional
+	'passphrase' argument, so the passphrase can be managed externally
+	and then passed in to the system.
+
+	* pgg.el (pgg-read-passphrase, pgg-add-passphrase-cache)
+	(pgg-remove-passphrase-cache): Add optional 'notruncate' argument,
+	so the passphrase cache can be used reliably with identifiers
+	besides a pgp packet's key id.
+
+	* pgg-gpg.el (pgg-pgp-encrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+
+	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Add optional
+	'notruncate' argument, so the passphrase cache can be used
+	reliably with identifiers besides a pgp packet's key id.
+
+2005-10-29  Sascha Wilde  <swilde@sha-bang.de>
+
+	* pgg-gpg.el (pgg-gpg-encrypt-symmetric-region): New function for
+	symmetric encryption.
+	(pgg-gpg-symmetric-key-p): New function to check for an symmetric
+	encrypted session key.
+	(pgg-gpg-decrypt-region): When decrypting a symmetric encrypted
+	message ask for the passphrase in a proper way.
+
+	* pgg.el (pgg-encrypt-symmetric, pgg-encrypt-symmetric-region):
+	New user commands for symmetric encryption.
+
 2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* gnus-delay.el (gnus-delay-group): Don't autoload.
