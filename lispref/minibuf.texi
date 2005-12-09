@@ -85,7 +85,7 @@ permit or forbid recursive minibuffers by setting the variable
 @code{enable-recursive-minibuffers} or by putting properties of that
 name on command symbols (@pxref{Recursive Mini}).
 
-  Like other buffers, a minibuffer use a local keymap
+  Like other buffers, a minibuffer uses a local keymap
 (@pxref{Keymaps}) to specify special key bindings.  The function that
 invokes the minibuffer also sets up its local map according to the job
 to be done.  @xref{Text from Minibuffer}, for the non-completion
