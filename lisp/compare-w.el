@@ -343,13 +343,13 @@ on third call it again advances points to the next difference and so on."
         (move-overlay compare-windows-overlay1 beg1 end1 b1)
       (setq compare-windows-overlay1 (make-overlay beg1 end1 b1))
       (overlay-put compare-windows-overlay1 'face 'compare-windows)
-      (overlay-put compare-windows-overlay1 'priority 1))
+      (overlay-put compare-windows-overlay1 'priority 1000))
     (overlay-put compare-windows-overlay1 'window w1)
     (if compare-windows-overlay2
         (move-overlay compare-windows-overlay2 beg2 end2 b2)
       (setq compare-windows-overlay2 (make-overlay beg2 end2 b2))
       (overlay-put compare-windows-overlay2 'face 'compare-windows)
-      (overlay-put compare-windows-overlay2 'priority 1))
+      (overlay-put compare-windows-overlay2 'priority 1000))
     (overlay-put compare-windows-overlay2 'window w2)
     ;; Remove highlighting before next command is executed
     (add-hook 'pre-command-hook 'compare-windows-dehighlight)))
