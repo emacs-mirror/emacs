@@ -47,8 +47,6 @@ invalid pointer from string_free_list.
 
 * BUGS
 
-** ottomaddox's Nov 23 bug report about foldout mode.
-
 ** Ronan Keryell's Sep 23 bug about "tramp sudo:: and version control on RCS"
 
 ** TCP server processes do not work on Windows.
