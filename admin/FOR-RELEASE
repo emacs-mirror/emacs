@@ -69,7 +69,6 @@ autoarg-mode
 bibtext-mode
 bookmark-bmenu-other-window-with-mouse
 checkdoc-minor-mode
-completing-read-multiple
 constrain-to-field
 copy-file
 decipher-mode
@@ -96,8 +95,6 @@ internal-lisp-face-equal-p
 isearch-forward
 kmacro-start-macro
 kmacro-start-macro-or-insert-counter
-mail-extract-address-components
-mail-mode
 make-byte-code
 mh-user-agent-compose
 next-single-char-property-change
@@ -107,21 +104,18 @@ pascal-mode
 picture-mode
 previous-single-char-property-change
 python-mode
-quail-define-package
 read-from-minibuffer
 read-key-sequence
 read-key-sequence-vector
 reftex-index-phrases-mode
 reftex-mode
 rmail-mode
-save-buffer
 sh-mode
 shell-script-mode
 solar-equinoxes-solstices
 table-capture
 table-insert
 table-split-cell-horizontally
-ucs-set-table-for-input
 view-mode
 w32-shell-dos-semantics
 

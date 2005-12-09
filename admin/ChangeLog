@@ -1,7 +1,9 @@
 2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
-	* FOR-RELEASE (DOCUMENTATION): Remove message-mail and
-	gnus-* from doc strings item (Done).
+	* FOR-RELEASE (DOCUMENTATION): Remove message-mail, gnus-*
+	completing-read-multiple, mail-extract-address-components,
+	mail-mode, quail-define-package, save-buffer and
+	ucs-set-table-for-input from doc strings item (Done).
 
 2005-11-28  Chong Yidong  <cyd@stupidchicken.com>
 
