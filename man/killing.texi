@@ -655,20 +655,29 @@ compatible with the Common User Access (CUA) system used in many other
 applications.  @kbd{C-x} means cut (kill), @kbd{C-c} copy, @kbd{C-v}
 paste (yank), and @kbd{C-z} undo.  Standard Emacs commands like
 @kbd{C-x C-c} still work, because @kbd{C-x} and @kbd{C-c} only take
-effect when the mark is active.  However, if you don't want these
-bindings at all, set @code{cua-enable-cua-keys} to @code{nil}.
+effect when the mark is active (and the region is highlighted).
+However, if you don't want these bindings at all, set
+@code{cua-enable-cua-keys} to @code{nil}.
 
   In CUA mode, using @kbd{Shift} together with the movement keys
-activates the region over which they move.  The standard (unshifted)
-movement keys deactivate the mark, and typed text replaces the active
-region as in Delete-Selection mode (@pxref{Graphical Kill}).
+activates and highlights the region over which they move.  The
+standard (unshifted) movement keys deactivate the mark, and typed text
+replaces the active region as in Delete-Selection mode
+(@pxref{Graphical Kill}).
+
+  To run a command like @kbd{C-x C-f} while the mark is active, use
+one of the following methods: either hold @kbd{Shift} together with
+the prefix key, e.g. @kbd{S-C-x C-f}, or quickly type the prefix key
+twice, e.g. @kbd{C-x C-x C-f}.
 
 @cindex rectangle highlighting
   CUA mode provides enhanced rectangle support with visible
 rectangle highlighting.  Use @kbd{C-RET} to start a rectangle,
 extend it using the movement commands, and cut or copy it using
-@kbd{C-x} or @kbd{C-c}.  When a rectangle is active, text you type is
-automatically inserted before or after each line in the rectangle.
+@kbd{C-x} or @kbd{C-c}.  @kbd{RET} moves the cursor to the next
+(clockwise) corner of the rectangle, so you can easily expand it in
+any direction.  Normal text you type is inserted to the left or right
+of each line in the rectangle (on the same side as the cursor).
 
   With CUA you can easily copy text and rectangles into and out of
 registers by providing a one-digit numeric prefix the the kill, copy,
