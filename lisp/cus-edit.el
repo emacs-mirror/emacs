@@ -1466,7 +1466,7 @@ This updates your Emacs initialization file or creates a new one."
 				 (custom-reset event))))
     (widget-insert "\n ")
     (widget-create 'push-button
-		   :tag "Reset"
+		   :tag "Reset to Current"
 		   :help-echo "\
 Reset all edited text in this buffer to reflect current values."
 		   :action 'Custom-reset-current)
