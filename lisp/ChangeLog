@@ -1,3 +1,42 @@
+2005-12-09  David Ponce  <david@dponce.com>
+
+	* recentf.el Improvement of the menu code.
+	(recentf-enabled-p): Move before first use.  Use `kill-emacs-hook'
+	instead of menu hook.
+	(recentf-show-menu, recentf-hide-menu): New functions.
+	(recentf-menu-customization-changed, recentf-mode): Use them.
+	(recentf-menu-action, recentf-max-menu-items)
+	(recentf-menu-open-all-flag, recentf-menu-append-commands-flag)
+	(recentf-arrange-by-rule-others)
+	(recentf-arrange-by-rules-min-items)
+	(recentf-arrange-by-rule-subfilter) : Don't use
+	`recentf-menu-customization-changed'.
+	(recentf-arrange-rules): Likewise.  Accept functions to compute
+	sub-menu titles.
+	(recentf-menu-filter): Likewise.  Doc fix.
+	(recentf-menu-value-shortcut): Doc fix.
+	(recentf-dump-variable): Quote atom value.
+	(recentf-make-menu-items): Update to use it as a menu filter.
+	(recentf-match-rule): New function.
+	(recentf-arrange-by-rule): Use it.
+	(recentf-indirect-mode-rule): New function.
+	(recentf-build-mode-rules): Use it.
+	(recentf-dir-rule): New function.
+	(recentf-arrange-by-dir): Use it.
+	(recentf-filter-changer-current): Rename from
+	`recentf-filter-changer-state'.  All references updated.
+	(recentf-filter-changer-alist): Update filter names.
+	(recentf-filter-changer-select): New function.
+	(recentf-filter-changer): Use it.  Make a sub-menu from filters
+	available in `recentf-filter-changer-alist'.
+
+	(recentf-data-cache, recentf-clear-data)
+	(recentf-update-menu): Remove.  All references updated.
+	(recentf-match-rule-p, recentf-build-dir-rules)
+	(recentf-filter-changer-goto-next)
+	(recentf-filter-changer-get-current)
+	(recentf-filter-changer-get-next): Remove.
+
 2005-12-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (custom-buffer-create-internal): Relabel the whole
