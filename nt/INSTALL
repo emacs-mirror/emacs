@@ -243,7 +243,19 @@
 
   You should be able to debug Emacs using the debugger that is
   appropriate for the compiler you used, namely DevStudio or Windbg if
-  compiled with MSVC, or gdb if compiled with gcc.
+  compiled with MSVC, or GDB if compiled with GCC.
+
+  When Emacs aborts due to a fatal internal error, Emacs on Windows
+  pops up an Emacs Abort Dialog asking you whether you want to debug
+  Emacs or terminate it.  If Emacs was built with MSVC, click YES
+  twice, and Windbg or the DevStudio debugger will start up
+  automatically.  If Emacs was built with GCC, first start GDB and
+  attach it to the Emacs process with the "gdb -p EMACS-PID" command,
+  where EMACS-PID is the Emacs process ID (which you can see in the
+  Windows Task Manager), type the "continue" command inside GDB, and
+  only then click YES on the abort dialog.  This will pass control to
+  the debugger, and you will be able to debug the cause of the fatal
+  error.
 
   Emacs functions implemented in C use a naming convention that reflects
   their names in lisp.  The names of the C routines are the lisp names
@@ -254,17 +266,18 @@
   easily set breakpoints or examine familiar lisp variables by name.
 
   Since Emacs data is often in the form of a lisp object, and the
-  Lisp_Object type is difficult to examine manually in the MSVC
-  debugger, Emacs provides a helper routine called debug_print that
-  prints out a readable representation of a Lisp_Object.  (If you are
-  using gdb, there is a .gdbinit file in the src directory which
-  provides definitions that are useful for examining lisp objects.  The
-  following tips are mainly of interest when using MSVC.)  The output
-  from debug_print is sent to stderr, and to the debugger via the
-  OutputDebugString routine.  The output sent to stderr should be
-  displayed in the console window that was opened when the emacs.exe
-  executable was started.  The output sent to the debugger should be
-  displayed in its "Debug" output window.
+  Lisp_Object type is difficult to examine manually in a debugger,
+  Emacs provides a helper routine called debug_print that prints out a
+  readable representation of a Lisp_Object.  If you are using GDB,
+  there is a .gdbinit file in the src directory which provides
+  definitions that are useful for examining lisp objects.  Therefore,
+  the following tips are mainly of interest when using MSVC.
+
+  The output from debug_print is sent to stderr, and to the debugger
+  via the OutputDebugString routine.  The output sent to stderr should
+  be displayed in the console window that was opened when the
+  emacs.exe executable was started.  The output sent to the debugger
+  should be displayed in its "Debug" output window.
 
   When you are in the process of debugging Emacs and you would like to
   examine the contents of a Lisp_Object variable, popup the QuickWatch
