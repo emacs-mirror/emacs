@@ -1273,9 +1273,6 @@
 	(cua--init-rectangles): Always bind C-return to toggle rectangle.
 	Pass ?\s instead of 'space to cua--M/H-key and cua--rect-M/H-key.
 
-	* emulation/cua-rect.el (cua--extract-rectangle): Don't use \s
-	in strings.
-
 	* ido.el: Move Acknowledgements and History after Commentary.
 	Minor changes to Commentary.
 
