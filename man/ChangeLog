@@ -1,3 +1,9 @@
+2005-12-09  Kim F. Storm  <storm@cua.dk>
+
+	* killing.texi (CUA Bindings): Describe how to use C-x and C-c as
+	prefix keys even when mark is active.  Decribe that RET moves
+	cursor to next corner in rectangle; clarify insert around rectangle.
+
 2005-12-05  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* pgg.texi (User Commands): Fix description of pgg-verify-region.
