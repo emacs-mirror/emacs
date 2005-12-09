@@ -1,3 +1,8 @@
+2005-12-09  Kyotaro HORIGUCHI <horiguti@meadowy.org>  (tiny change)
+
+	* indent.c (Fvertical_motion): Force move if starting on
+	stretch glyph.
+
 2005-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* lread.c (read_escape) <\s>: Don't treat strings specially.
