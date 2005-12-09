@@ -481,7 +481,7 @@ A large number or nil slows down menu responsiveness."
 	      :enable (and (not buffer-read-only)
 			   (not (eq t buffer-undo-list))
 			   (if (eq last-command 'undo)
-			       pending-undo-list
+			       (listp pending-undo-list)
 			     (consp buffer-undo-list)))
 	      :help "Undo last operation"))
 
