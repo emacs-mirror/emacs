@@ -2307,11 +2307,13 @@ otherwise it is displayed normally.
 
 The variable `ispell-highlight-face' selects the face to use for highlighting."
   (if highlight
-      (progn
+      (if ispell-overlay
+	  (move-overlay ispell-overlay start end (current-buffer))
 	(setq ispell-overlay (make-overlay start end))
-	(overlay-put ispell-overlay 'priority 1) ;higher than lazy overlays
+	(overlay-put ispell-overlay 'priority 1001) ;higher than lazy overlays
 	(overlay-put ispell-overlay 'face ispell-highlight-face))
-    (delete-overlay ispell-overlay))
+    (if ispell-overlay
+	(delete-overlay ispell-overlay)))
   (if (and ispell-lazy-highlight (boundp 'lazy-highlight-cleanup))
       (if highlight
 	  (let ((isearch-string
