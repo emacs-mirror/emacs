@@ -133,9 +133,6 @@ ucs-set-table-for-input
 view-mode
 w32-shell-dos-semantics
 
-** Update what needs to be updated now that Global Font Lock mode and
-File Name Shadow mode are enabled by default.
-
 ** Check man/info.texi.
 
 ** Add missing years in copyright notices of all files.
