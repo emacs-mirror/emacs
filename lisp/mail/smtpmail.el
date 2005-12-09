@@ -605,6 +605,7 @@ This is relative to `smtpmail-queue-dir'.")
 
 	  ;; clear the trace buffer of old output
 	  (with-current-buffer process-buffer
+	    (setq buffer-undo-list t)
 	    (erase-buffer))
 
 	  ;; open the connection to the server
