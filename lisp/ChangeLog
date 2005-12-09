@@ -1,6 +1,6 @@
 2005-12-09  David Ponce  <david@dponce.com>
 
-	* recentf.el Improvement of the menu code.
+	* recentf.el: Improvement of the menu code.
 	(recentf-enabled-p): Move before first use.  Use `kill-emacs-hook'
 	instead of menu hook.
 	(recentf-show-menu, recentf-hide-menu): New functions.
@@ -29,7 +29,6 @@
 	(recentf-filter-changer-select): New function.
 	(recentf-filter-changer): Use it.  Make a sub-menu from filters
 	available in `recentf-filter-changer-alist'.
-
 	(recentf-data-cache, recentf-clear-data)
 	(recentf-update-menu): Remove.  All references updated.
 	(recentf-match-rule-p, recentf-build-dir-rules)
