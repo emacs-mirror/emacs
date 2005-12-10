@@ -1331,6 +1331,7 @@ main (argc, argv
       syms_of_macfns ();
       syms_of_ccl ();
       syms_of_fontset ();
+      syms_of_keymap ();
       syms_of_macterm ();
       syms_of_macmenu ();
       syms_of_macselect ();
@@ -1585,7 +1586,9 @@ main (argc, argv
 #endif /* CLASH_DETECTION */
       syms_of_indent ();
       syms_of_insdel ();
+#ifndef MAC_OS8
       syms_of_keymap ();
+#endif
       syms_of_macros ();
       syms_of_marker ();
       syms_of_minibuf ();
