@@ -274,10 +274,6 @@ interface (@pxref{Easy Customization}), or use the function
 (global-font-lock-mode 0)
 @end example
 
-@noindent
-Global Font Lock mode can also be set using the menu bar Options menu,
-specifying first Syntax Highlighting and then Save Options.
-
 @findex turn-on-font-lock
   If you have disabled Global Font Lock mode, you can still enable font
 lock for specific major modes by adding the function
