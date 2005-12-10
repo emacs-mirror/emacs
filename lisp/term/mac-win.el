@@ -76,10 +76,12 @@
 (require 'menu-bar)
 (require 'fontset)
 (require 'dnd)
+(eval-when-compile (require 'url))
 
 (defvar mac-charset-info-alist)
 (defvar mac-services-selection)
 (defvar mac-system-script-code)
+(defvar mac-apple-event-map)
 (defvar x-invocation-args)
 
 (defvar x-command-line-resources nil)
@@ -1148,7 +1150,7 @@ correspoinding TextEncodingBase value."
 
 (define-key special-event-map [language-change] 'mac-handle-language-change)
 
-;;;; Selections and Services menu
+;;;; Selections
 
 ;; Setup to use the Mac clipboard.
 (set-selection-coding-system mac-system-coding-system)
@@ -1386,6 +1388,155 @@ in `selection-converter-alist', which see."
 	 (public.file-url . mac-select-convert-to-file-url)
 	 )
        selection-converter-alist))
+
+;;;; Apple events, HICommand events, and Services menu
+
+;;; Event classes
+(put 'core-event     'mac-apple-event-class "aevt") ; kCoreEventClass
+(put 'internet-event 'mac-apple-event-class "GURL") ; kAEInternetEventClass
+
+;;; Event IDs 
+;; kCoreEventClass
+(put 'open-application   'mac-apple-event-id "oapp") ; kAEOpenApplication
+(put 'reopen-application 'mac-apple-event-id "rapp") ; kAEReopenApplication
+(put 'open-documents     'mac-apple-event-id "odoc") ; kAEOpenDocuments
+(put 'print-documents    'mac-apple-event-id "pdoc") ; kAEPrintDocuments
+(put 'open-contents      'mac-apple-event-id "ocon") ; kAEOpenContents
+(put 'quit-application   'mac-apple-event-id "quit") ; kAEQuitApplication
+(put 'application-died   'mac-apple-event-id "obit") ; kAEApplicationDied
+(put 'show-preferences   'mac-apple-event-id "pref") ; kAEShowPreferences
+(put 'autosave-now       'mac-apple-event-id "asav") ; kAEAutosaveNow
+;; kAEInternetEventClass
+(put 'get-url            'mac-apple-event-id "GURL") ; kAEGetURL
+;; Converted HICommand events
+(put 'about              'mac-apple-event-id "abou") ; kHICommandAbout
+
+(defmacro mac-event-spec (event)
+  `(nth 1 ,event))
+
+(defmacro mac-event-ae (event)
+  `(nth 2 ,event))
+
+(defun mac-ae-parameter (ae &optional keyword type)
+  (or keyword (setq keyword "----")) ;; Direct object.
+  (if (not (and (consp ae) (equal (car ae) "aevt")))
+      (error "Not an Apple event: %S" ae)
+    (let ((type-data (cdr (assoc keyword (cdr ae))))
+	  data)
+      (when (and type type-data)
+	(setq data (mac-coerce-ae-data (car type-data) (cdr type-data) type))
+	(setq type-data (if data (cons type data) nil)))
+      type-data)))
+
+(defun mac-ae-list (ae &optional keyword type)
+  (or keyword (setq keyword "----")) ;; Direct object.
+  (let ((desc (mac-ae-parameter ae keyword)))
+    (cond ((null desc)
+	   nil)
+	  ((not (equal (car desc) "list"))
+	   (error "Parameter for \"%s\" is not a list" keyword))
+	  (t
+	   (if (null type)
+	       (cdr desc)
+	     (mapcar
+	      (lambda (type-data)
+		(mac-coerce-ae-data (car type-data) (cdr type-data) type))
+	      (cdr desc)))))))
+
+(defun mac-bytes-to-integer (bytes &optional from to)
+  (or from (setq from 0))
+  (or to (setq to (length bytes)))
+  (let* ((len (- to from))
+	 (extended-sign-len (- (1+ (ceiling (log most-positive-fixnum 2)))
+			       (* 8 len)))
+	 (result 0))
+    (dotimes (i len)
+      (setq result (logior (lsh result 8)
+			   (aref bytes (+ from (if (eq (byteorder) ?B) i
+						 (- len i 1)))))))
+    (if (> extended-sign-len 0)
+	(ash (lsh result extended-sign-len) (- extended-sign-len))
+      result)))
+
+(defun mac-ae-selection-range (ae)
+;; #pragma options align=mac68k
+;; typedef struct SelectionRange {
+;;   short unused1; // 0 (not used)
+;;   short lineNum; // line to select (<0 to specify range)
+;;   long startRange; // start of selection range (if line < 0)
+;;   long endRange; // end of selection range (if line < 0)
+;;   long unused2; // 0 (not used)
+;;   long theDate; // modification date/time
+;; } SelectionRange;
+;; #pragma options align=reset
+  (let ((range-bytes (cdr (mac-ae-parameter ae "kpos" "TEXT"))))
+    (and range-bytes
+	 (list (mac-bytes-to-integer range-bytes 2 4)
+	       (mac-bytes-to-integer range-bytes 4 8)
+	       (mac-bytes-to-integer range-bytes 8 12)
+	       (mac-bytes-to-integer range-bytes 16 20)))))
+
+;; On Mac OS X 10.4 and later, the `open-document' event contains an
+;; optional parameter keyAESearchText from the Spotlight search.
+(defun mac-ae-text-for-search (ae)
+  (let ((utf8-text (cdr (mac-ae-parameter ae "stxt" "utf8"))))
+    (and utf8-text
+	 (decode-coding-string utf8-text 'utf-8))))
+
+(defun mac-ae-open-documents (event)
+  (interactive "e")
+  (let ((ae (mac-event-ae event)))
+    (dolist (file-name (mac-ae-list ae nil 'undecoded-file-name))
+      (if file-name
+	  (dnd-open-local-file (concat "file:" file-name) nil)))
+    (let ((selection-range (mac-ae-selection-range ae))
+	  (search-text (mac-ae-text-for-search ae)))
+      (cond (selection-range
+	     (let ((line (car selection-range))
+		   (start (cadr selection-range))
+		   (end (nth 2 selection-range)))
+	       (if (> line 0)
+		   (goto-line line)
+		 (if (and (> start 0) (> end 0))
+		     (progn (set-mark start)
+			    (goto-char end))))))
+	    ((stringp search-text)
+	     (re-search-forward
+	      (mapconcat 'regexp-quote (split-string search-text) "\\|")
+	      nil t)))))
+  (raise-frame))
+
+(defun mac-ae-text (ae)
+  (or (cdr (mac-ae-parameter ae nil "TEXT"))
+      (error "No text in Apple event.")))
+
+(defun mac-ae-get-url (event)
+  (interactive "e")
+  (let* ((ae (mac-event-ae event))
+	 (parsed-url (url-generic-parse-url (mac-ae-text ae))))
+    (if (string= (url-type parsed-url) "mailto")
+	(url-mailto parsed-url)
+      (error "Unsupported URL scheme: %s" (url-type parsed-url)))))
+
+;; Received when Emacs is launched without associated documents.
+;; Accept it as an Apple event, but no Emacs event is generated so as
+;; not to erase the splash screen.
+(define-key mac-apple-event-map [core-event open-application] 0)
+
+;; Received when a dock or application icon is clicked and Emacs is
+;; already running.  Simply ignored.  Another idea is to make a new
+;; frame if all frames are invisible.
+(define-key mac-apple-event-map [core-event reopen-application] 'ignore)
+
+(define-key mac-apple-event-map [core-event open-documents]
+  'mac-ae-open-documents)
+(define-key mac-apple-event-map [core-event show-preferences] 'customize)
+(define-key mac-apple-event-map [core-event quit-application]
+  'save-buffers-kill-emacs)
+
+(define-key mac-apple-event-map [internet-event get-url] 'mac-ae-get-url)
+
+(define-key mac-apple-event-map [hicommand about] 'display-splash-screen)
 
 (defun mac-services-open-file ()
   (interactive)
@@ -1420,21 +1571,35 @@ in `selection-converter-alist', which see."
        (substitute-command-keys
 	"The text from the Services menu can be accessed with \\[yank]")))))
 
-(defvar mac-application-menu-map (make-sparse-keymap))
-(define-key mac-application-menu-map [quit] 'save-buffers-kill-emacs)
-(define-key mac-application-menu-map [services perform open-file]
+(define-key mac-apple-event-map [services paste] 'mac-services-insert-text)
+(define-key mac-apple-event-map [services perform open-file]
   'mac-services-open-file)
-(define-key mac-application-menu-map [services perform open-selection]
+(define-key mac-apple-event-map [services perform open-selection]
   'mac-services-open-selection)
-(define-key mac-application-menu-map [services perform mail-selection]
+(define-key mac-apple-event-map [services perform mail-selection]
   'mac-services-mail-selection)
-(define-key mac-application-menu-map [services perform mail-to]
+(define-key mac-apple-event-map [services perform mail-to]
   'mac-services-mail-to)
-(define-key mac-application-menu-map [services paste]
-  'mac-services-insert-text)
-(define-key mac-application-menu-map [preferences] 'customize)
-(define-key mac-application-menu-map [about] 'display-splash-screen)
-(global-set-key [menu-bar application] mac-application-menu-map)
+
+(defun mac-dispatch-apple-event (event)
+  (interactive "e")
+  (let* ((binding (lookup-key mac-apple-event-map (mac-event-spec event)))
+	 (service-message
+	  (and (keymapp binding)
+	       (cdr (mac-ae-parameter (mac-event-ae event) "svmg")))))
+    (when service-message
+      (setq service-message
+	    (intern (decode-coding-string service-message 'utf-8)))
+      (setq binding (lookup-key binding (vector service-message))))
+    (call-interactively binding)))
+
+(global-set-key [mac-apple-event] 'mac-dispatch-apple-event)
+
+;; Processing of Apple events are deferred at the startup time.  For
+;; example, files dropped onto the Emacs application icon can only be
+;; processed when the initial frame has been created: this is where
+;; the files should be opened.
+(add-hook 'after-init-hook 'mac-process-deferred-apple-events)
 
 ;;; Do the actual Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
@@ -1855,31 +2020,12 @@ Switch to a buffer editing the last file dropped."
 	 (y (cdr coords)))
     (if (and (> x 0) (> y 0))
 	(set-frame-selected-window nil window))
-    (mapcar (lambda (file-name)
-	      (if (listp file-name)
-		  (let ((line (car file-name))
-			(start (car (cdr file-name)))
-			(end (car (cdr (cdr file-name)))))
-		    (if (> line 0)
-			(goto-line line)
-		      (if (and (> start 0) (> end 0))
-			  (progn (set-mark start)
-				 (goto-char end)))))
-		(dnd-handle-one-url window 'private
-				    (concat "file:" file-name))))
-	    (car (cdr (cdr event)))))
+    (dolist (file-name (nth 2 event))
+      (dnd-handle-one-url window 'private
+			  (concat "file:" file-name))))
   (raise-frame))
 
 (global-set-key [drag-n-drop] 'mac-drag-n-drop)
-
-;; By checking whether the variable mac-ready-for-drag-n-drop has been
-;; defined, the event loop in macterm.c can be informed that it can
-;; now receive Finder drag and drop events.  Files dropped onto the
-;; Emacs application icon can only be processed when the initial frame
-;; has been created: this is where the files should be opened.
-(add-hook 'after-init-hook
-	  '(lambda ()
-	     (defvar mac-ready-for-drag-n-drop t)))
 
 ;;;; Non-toolkit Scroll bars
 
