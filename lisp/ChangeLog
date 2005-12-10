@@ -1,3 +1,14 @@
+2005-12-11  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el (tooltip-mode): Move to start of file so that it
+	appears at top of customize buffer.
+
+	* progmodes/gud.el (gud-tooltip-modes, gud-tooltip-display):
+	Add the gud groupname.
+	(gud-tooltip-mode): Add the tooltip groupname.
+	(gud-tooltip-echo-area): Add the gud groupname. Remove tag to
+	avoid conflict with tooltip-use-echo-area.
+
 2005-12-10  Romain Francoise  <romain@orebokech.com>
 
 	* help.el (help-for-help-internal): Add `r' in doc string.
