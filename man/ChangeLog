@@ -1,3 +1,7 @@
+2005-12-09  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Font Lock): Delete the Global FL menu item.
+
 2005-12-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Minibuffer Maps): Mention the maps for file name
