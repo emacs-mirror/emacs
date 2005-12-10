@@ -1,3 +1,8 @@
+2005-12-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.texi (Minibuffer Maps): Mention the maps for file name
+	completion.
+
 2005-12-09  Kim F. Storm  <storm@cua.dk>
 
 	* killing.texi (CUA Bindings): Describe how to use C-x and C-c as
