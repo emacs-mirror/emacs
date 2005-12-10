@@ -7778,6 +7778,9 @@ gif_load (f, img)
   specified_file = image_spec_value (img->spec, QCfile, NULL);
   specified_data = image_spec_value (img->spec, QCdata, NULL);
 
+  /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */
+  EnterMovies ();
+
   if (NILP (specified_data))
     {
       /* Read from a file */
@@ -8500,13 +8503,8 @@ meaning don't clear the cache.  */);
 void
 init_image ()
 {
-#ifdef MAC_OS
-  /* Animated gifs use QuickTime Movie Toolbox.  So initialize it here. */
-  if (!inhibit_window_system)
-    EnterMovies ();
-#ifdef MAC_OSX
+#if defined (MAC_OSX) && TARGET_API_MAC_CARBON
   init_image_func_pointer ();
-#endif
 #endif
 }
 
