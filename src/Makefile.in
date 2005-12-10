@@ -1253,7 +1253,7 @@ macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
   frame.h charset.h ccl.h dispextern.h fontset.h termhooks.h termopts.h \
   termchar.h gnu.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
   process.h coding.h $(config_h)
-macselect.o: blockinput.h macterm.h macgui.h frame.h $(config_h)
+macselect.o: blockinput.h macterm.h macgui.h frame.h keymap.h $(config_h)
 
 ${emacsapp}Contents/Resources/English.lproj:
 	mkdir -p $@
