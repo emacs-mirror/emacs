@@ -35,7 +35,18 @@
 	<string>EMAx</string>
 	<key>CFBundleVersion</key>
 	<string>1.1</string>
-	<key>NSServices</key>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>Email Address URL</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>mailto</string>
+			</array>
+		</dict>
+	</array>
+  	<key>NSServices</key>
 	<array>
 		<dict>
 			<key>NSKeyEquivalent</key>
@@ -43,10 +54,10 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Emacs/Open Selected File</string>
+				<string>Emacs/New Buffer Containing Selection</string>
 			</dict>
 			<key>NSMessage</key>
-			<string>open-file</string>
+			<string>open-selection</string>
 			<key>NSPortName</key>
 			<string>Emacs</string>
 			<key>NSReturnTypes</key>
@@ -62,10 +73,10 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Emacs/New Buffer Containing Selection</string>
+				<string>Emacs/Open Selected File</string>
 			</dict>
 			<key>NSMessage</key>
-			<string>open-selection</string>
+			<string>open-file</string>
 			<key>NSPortName</key>
 			<string>Emacs</string>
 			<key>NSReturnTypes</key>
