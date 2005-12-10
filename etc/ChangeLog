@@ -1,3 +1,8 @@
+2005-12-10  David Koppelman  <koppel@ece.lsu.edu>
+
+	* NEWS: hi-lock-mode is now buffer local, use global-hi-lock-mode
+	instead.
+
 2005-12-02  Jay Belanger  <belanger@truman.edu>
 
 	* NEWS: Add comment about the Calc prefix.

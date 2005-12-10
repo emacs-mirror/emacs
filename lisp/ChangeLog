@@ -1,3 +1,10 @@
+2005-12-10  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* align.el (align-regexp, align-highlight-rule): Use
+	region-beginning and region-end instead of point and mark, so that
+	repetition (with `repeat-complex-command') recomputes the region
+	bounds.
+
 2005-12-10  Lennart Borgman <lennart.borgman.073@student.lu.se>
 
 	* window.el (bw-get-tree, bw-get-tree-1, bw-find-tree-sub)
