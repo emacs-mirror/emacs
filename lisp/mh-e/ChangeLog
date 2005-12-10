@@ -1,3 +1,12 @@
+2005-12-09  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-path): Move here from mh-init.el.
+	(mh-variant): Mention that mh-path can be customized.
+	(mh-invisible-header-fields-internal): Add X-ContentStamp,
+	X-MAIL-INFO, and X-UNTD- from NetZero.
+
+	* mh-init.el (mh-path): Move defcustom to mh-customize.el.
+
 2005-12-04  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-sortm-args): Sync docstrings with manual.

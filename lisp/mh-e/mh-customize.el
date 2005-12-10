@@ -260,15 +260,21 @@ mailutils."
 (eval-when (compile)
   (setq mh-variant 'none))
 
+(defcustom mh-path nil
+  "*Additional list of directories to search for MH.
+See `mh-variant'."
+  :group 'mh-e
+  :type '(repeat (directory)))
+
 (defcustom mh-variant 'autodetect
   "*Specifies the variant used by MH-E.
 
 The default setting of this option is `Auto-detect' which means that MH-E will
 automatically choose the first of nmh, MH, or GNU mailutils that it finds in
-the directories listed in `mh-path', `mh-sys-path', and `exec-path'. If, for
-example, you have both nmh and mailutils installed and `mh-variant-in-use' was
-initialized to nmh but you want to use mailutils, then you can set this option
-to `mailutils'.
+the directories listed in `mh-path' (which you can customize), `mh-sys-path',
+and `exec-path'. If, for example, you have both nmh and mailutils installed
+and `mh-variant-in-use' was initialized to nmh but you want to use mailutils,
+then you can set this option to `mailutils'.
 
 When this variable is changed, MH-E resets `mh-progs', `mh-lib',
 `mh-lib-progs', `mh-flists-present-flag', and `mh-variant-in-use'
@@ -1421,6 +1427,7 @@ of citations entirely, choose \"None\"."
     "X-Bogosity:"                       ; bogofilter
     "X-Bugzilla-*"                      ; Bugzilla
     "X-Complaints-To:"
+    "X-ContentStamp:"                   ; NetZero
     "X-Cron-Env:"
     "X-DMCA"
     "X-Delivered"
@@ -1453,6 +1460,7 @@ of citations entirely, choose \"None\"."
     "X-Listprocessor-"                  ; ListProc(tm) by CREN
     "X-Listserver:"                     ; Unknown mailing list managers
     "X-Loop:"                           ; Unknown mailing list managers
+    "X-MAIL-INFO:"                      ; NetZero
     "X-MHE-Checksum"                    ; Checksum added during index search
     "X-MIME-Autoconverted:"             ; sendmail
     "X-MIMETrack:"
@@ -1506,6 +1514,7 @@ of citations entirely, choose \"None\"."
     "X-Trace:"
     "X-UID"
     "X-UIDL:"
+    "X-UNTD-"                           ; NetZero
     "X-USANET-"                         ; usa.net
     "X-UserInfo1:"
     "X-Virus-Scanned"                   ; amavisd-new
