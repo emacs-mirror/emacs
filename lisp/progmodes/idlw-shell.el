@@ -4188,7 +4188,7 @@ Otherwise, just expand the file name."
 (defvar idlwave-shell-electric-debug-read-only) 
 (defvar idlwave-shell-electric-debug-buffers nil)
 
-(easy-mmode-define-minor-mode idlwave-shell-electric-debug-mode
+(define-minor-mode idlwave-shell-electric-debug-mode
   "Toggle Electric Debug mode.
 With no argument, this command toggles the mode. 
 Non-null prefix argument turns on the mode.
@@ -4196,9 +4196,9 @@ Null prefix argument turns off the mode.
 
 When Electric Debug mode is enabled, the many debugging commands are
 available as single key sequences."
-nil
-" *Debugging*"
-idlwave-shell-electric-debug-mode-map)
+  nil
+  " *Debugging*"
+  idlwave-shell-electric-debug-mode-map)
 
 (add-hook 
  'idlwave-shell-electric-debug-mode-on-hook

@@ -1,6 +1,7 @@
 ;;; cc-menus.el --- imenu support for CC Mode
 
-;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1985,1987,1992-2003, 2004, 2005 Free Software Foundation,
+;; Inc.
 
 ;; Authors:    1998- Martin Stjernholm
 ;;             1992-1999 Barry A. Warsaw
@@ -24,7 +25,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; along with this program; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
@@ -240,7 +241,6 @@ Example:
 - perform: (SEL)aSelector withObject: object1 withObject: object2; /* METHOD */
 =>
 -perform:withObject:withObject:withObject: /* selector */"
-  ;; This function does not do any hidden buffer changes.
   (let ((return "")			; String to be returned
 	(p 0)				; Current scanning position in METHOD  
 	(pmax (length method))		; 
@@ -281,7 +281,6 @@ Example:
 
 (defun cc-imenu-objc-remove-white-space  (str)
   "Remove all spaces and tabs from STR."
-  ;; This function does not do any hidden buffer changes.
   (let ((return "")
 	(p 0)
 	(max (length str)) 
@@ -296,7 +295,6 @@ Example:
 
 (defun cc-imenu-objc-function ()
   "imenu supports for objc-mode."
-  ;; This function does not do any hidden buffer changes.
   (let (methodlist
 	clist
 	;;
@@ -415,7 +413,6 @@ Example:
 
 (defun cc-imenu-init (mode-generic-expression
 		      &optional mode-create-index-function)
-  ;; This function does not do any hidden buffer changes.
   (setq imenu-generic-expression mode-generic-expression
 	imenu-case-fold-search nil)
   (when mode-create-index-function

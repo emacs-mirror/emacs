@@ -189,6 +189,9 @@ Used to grey out relevant togolbar icons.")
                   :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
 		  :enable (and (not gud-running)
+			       (memq gud-minor-mode '(gdbmi gdba))))
+    ([finish]	menu-item "Finish Function" gud-finish
+                  :enable (and (not gud-running)
 			       (memq gud-minor-mode
 				     '(gdbmi gdba gdb xdb jdb pdb bashdb))))
     ([stepi]	menu-item "Step Instruction" gud-stepi

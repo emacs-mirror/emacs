@@ -252,7 +252,7 @@
 ;;
 ;;(defun ido-my-keys ()
 ;;  "Add my keybindings for ido."
-;;  (define-key ido-mode-map " " 'ido-next-match)
+;;  (define-key ido-completion-map " " 'ido-next-match)
 ;;  )
 
 ;; Seeing all the matching buffers or files
@@ -716,7 +716,7 @@ ask user whether to create buffer, or 'never to never create new buffer."
   "*Hook run after the ido variables and keymap have been setup.
 The dynamic variable `ido-cur-item' contains the current type of item that
 is read by ido, possible values are file, dir, buffer, and list.
-Additional keys can be defined in `ido-mode-map'."
+Additional keys can be defined in `ido-completion-map'."
   :type 'hook
   :group 'ido)
 
@@ -898,19 +898,19 @@ The fallback command is passed as an argument to the functions."
 
 ;; Persistent variables
 
-(defvar ido-mode-map nil
+(defvar ido-completion-map nil
   "Currently active keymap for ido commands.")
 
-(defvar ido-mode-common-map nil
+(defvar ido-common-completion-map nil
   "Keymap for all ido commands.")
 
-(defvar ido-mode-file-map nil
+(defvar ido-file-completion-map nil
   "Keymap for ido file commands.")
 
-(defvar ido-mode-file-dir-map nil
+(defvar ido-file-dir-completion-map nil
   "Keymap for ido file and directory commands.")
 
-(defvar ido-mode-buffer-map nil
+(defvar ido-buffer-completion-map nil
   "Keymap for ido buffer commands.")
 
 (defvar  ido-file-history nil
@@ -1345,7 +1345,7 @@ This function also adds a hook to the minibuffer."
 
   (ido-everywhere (if ido-everywhere 1 -1))
   (when ido-mode
-    (ido-init-mode-maps))
+    (ido-init-completion-maps))
 
   (when ido-mode
     (add-hook 'minibuffer-setup-hook 'ido-minibuffer-setup)
@@ -1354,12 +1354,7 @@ This function also adds a hook to the minibuffer."
 
     (add-hook 'kill-emacs-hook 'ido-kill-emacs-hook)
 
-    (if ido-minor-mode-map-entry
-	(setcdr ido-minor-mode-map-entry (make-sparse-keymap))
-      (setq ido-minor-mode-map-entry (cons 'ido-mode (make-sparse-keymap)))
-      (add-to-list 'minor-mode-map-alist ido-minor-mode-map-entry))
-
-    (let ((map (cdr ido-minor-mode-map-entry)))
+    (let ((map (make-sparse-keymap)))
       (when (memq ido-mode '(file both))
 	(define-key map [remap find-file] 'ido-find-file)
 	(define-key map [remap find-file-read-only] 'ido-find-file-read-only)
@@ -1379,7 +1374,13 @@ This function also adds a hook to the minibuffer."
 	(define-key map [remap switch-to-buffer-other-frame] 'ido-switch-buffer-other-frame)
 	(define-key map [remap insert-buffer] 'ido-insert-buffer)
 	(define-key map [remap kill-buffer] 'ido-kill-buffer)
-	(define-key map [remap display-buffer] 'ido-display-buffer)))))
+	(define-key map [remap display-buffer] 'ido-display-buffer))
+
+      (if ido-minor-mode-map-entry
+	  (setcdr ido-minor-mode-map-entry map)
+	(setq ido-minor-mode-map-entry (cons 'ido-mode map))
+	(add-to-list 'minor-mode-map-alist ido-minor-mode-map-entry)))))
+
 
 (defun ido-everywhere (arg)
   "Toggle using ido speed-ups everywhere file and directory names are read.
@@ -1404,8 +1405,8 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
 
 
 ;;; IDO KEYMAP
-(defun ido-init-mode-maps ()
-  "Set up the keymaps used by `ido'."
+(defun ido-init-completion-maps ()
+  "Set up the completion keymaps used by `ido'."
 
   ;; Common map
   (let ((map (make-sparse-keymap)))
@@ -1431,7 +1432,7 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map "\C-f" 'ido-magic-forward-char)
     (define-key map "\C-d" 'ido-magic-delete-char)
     (set-keymap-parent map minibuffer-local-map)
-    (setq ido-mode-common-map map))
+    (setq ido-common-completion-map map))
 
   ;; File and directory map
   (let ((map (make-sparse-keymap)))
@@ -1457,8 +1458,8 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map [(meta control ?o)] 'ido-next-work-file)
     (define-key map [(meta ?p)] 'ido-prev-work-directory)
     (define-key map [(meta ?s)] 'ido-merge-work-directories)
-    (set-keymap-parent map ido-mode-common-map)
-    (setq ido-mode-file-dir-map map))
+    (set-keymap-parent map ido-common-completion-map)
+    (setq ido-file-dir-completion-map map))
 
   ;; File only map
   (let ((map (make-sparse-keymap)))
@@ -1467,19 +1468,19 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
     (define-key map "\C-w" 'ido-copy-current-file-name)
     (define-key map [(meta ?l)] 'ido-toggle-literal)
     (define-key map "\C-v" 'ido-toggle-vc)
-    (set-keymap-parent map ido-mode-file-dir-map)
-    (setq ido-mode-file-map map))
+    (set-keymap-parent map ido-file-dir-completion-map)
+    (setq ido-file-completion-map map))
 
   ;; Buffer map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-x\C-f" 'ido-enter-find-file)
     (define-key map "\C-x\C-b" 'ido-fallback-command)
     (define-key map "\C-k" 'ido-kill-buffer-at-head)
-    (set-keymap-parent map ido-mode-common-map)
-    (setq ido-mode-buffer-map map)))
+    (set-keymap-parent map ido-common-completion-map)
+    (setq ido-buffer-completion-map map)))
 
 
-(defun ido-define-mode-map ()
+(defun ido-setup-completion-map ()
   "Set up the keymap for `ido'."
 
   ;; generated every time so that it can inherit new functions.
@@ -1500,18 +1501,18 @@ With ARG, turn ido speed-up on if arg is positive, off otherwise."
 	(define-key map [remap viper-delete-backward-word] 'ido-delete-backward-word-updir))
       (set-keymap-parent map
 			 (if (eq ido-cur-item 'file)
-			     ido-mode-file-map
-			   ido-mode-file-dir-map)))
+			     ido-file-completion-map
+			   ido-file-dir-completion-map)))
 
      ((eq ido-cur-item 'buffer)
       (when ido-context-switch-command
 	(define-key map "\C-x\C-f" ido-context-switch-command))
-      (set-keymap-parent map ido-mode-buffer-map))
+      (set-keymap-parent map ido-buffer-completion-map))
 
      (t
-      (set-keymap-parent map ido-mode-common-map)))
+      (set-keymap-parent map ido-common-completion-map)))
 
-    (setq ido-mode-map map)))
+    (setq ido-completion-map map)))
 
 (defun ido-final-slash (dir &optional fix-it)
   ;; return DIR if DIR has final slash.
@@ -1683,7 +1684,7 @@ If INITIAL is non-nil, it specifies the initial input string."
        (ido-enable-regexp ido-enable-regexp)
        )
 
-    (ido-define-mode-map)
+    (ido-setup-completion-map)
     (setq ido-text-init initial)
     (setq ido-input-stack nil)
 
@@ -1788,7 +1789,8 @@ If INITIAL is non-nil, it specifies the initial input string."
       (if (and ido-matches (eq ido-try-merged-list 'auto))
 	  (setq ido-try-merged-list t))
       (let
-	  ((minibuffer-local-completion-map ido-mode-map)
+	  ((minibuffer-local-completion-map ido-completion-map)
+	   (minibuffer-local-filename-completion-map ido-completion-map)
 	   (max-mini-window-height (or ido-max-window-height
 				       (and (boundp 'max-mini-window-height) max-mini-window-height)))
 	   (ido-completing-read t)
@@ -3670,7 +3672,7 @@ As you type in a string, all of the buffers matching the string are
 displayed if substring-matching is used \(default). Look at
 `ido-enable-prefix' and `ido-toggle-prefix'.  When you have found the
 buffer you want, it can then be selected.  As you type, most keys have
-their normal keybindings, except for the following: \\<ido-mode-buffer-map>
+their normal keybindings, except for the following: \\<ido-buffer-completion-map>
 
 RET Select the buffer at the front of the list of matches.  If the
 list is empty, possibly prompt to create new buffer.
@@ -3758,7 +3760,7 @@ type in a string, all of the filenames matching the string are displayed
 if substring-matching is used \(default).  Look at `ido-enable-prefix' and
 `ido-toggle-prefix'.  When you have found the filename you want, it can
 then be selected.  As you type, most keys have their normal keybindings,
-except for the following: \\<ido-mode-file-map>
+except for the following: \\<ido-file-completion-map>
 
 RET Select the file at the front of the list of matches.  If the
 list is empty, possibly prompt to create new file.

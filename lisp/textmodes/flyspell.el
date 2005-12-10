@@ -1307,50 +1307,75 @@ Word syntax described by `flyspell-dictionary-alist' (which see)."
 The list of incorrect words should be in `flyspell-external-ispell-buffer'.
 \(We finish by killing that buffer and setting the variable to nil.)
 The buffer to mark them in is `flyspell-large-region-buffer'."
-
-  (with-current-buffer flyspell-external-ispell-buffer
-    (goto-char (point-min))
-    ;; Loop over incorrect words.
-    (while (re-search-forward "\\([^\n]+\\)\n" (point-max) t)
-      ;; Bind WORD to the next one.
-      (let ((word (match-string 1)) (wordpos (point)))
-	;; Here there used to be code to see if WORD is the same
-	;; as the previous iteration, and count the number of consecutive
-	;; identical words, and the loop below would search for that many.
-	;; That code seemed to be incorrect, and on principle, should
-	;; be unnecessary too. -- rms.
-	(if flyspell-issue-message-flag
-	    (message "Spell Checking...%d%% [%s]"
-		     (* 100 (/ (float (point)) (point-max)))
-		     word))
-	;; Search the other buffer for occurrences of this word,
-	;; and check them.  Stop when we find one that reports "incorrect".
-	;; (I don't understand the reason for that logic,
-	;; but I didn't want to change it. -- rms.)
-	(with-current-buffer flyspell-large-region-buffer
-	  (goto-char flyspell-large-region-beg)
-	  (let ((keep t))
-	    (while keep
-	      (if (search-forward word
-				     flyspell-large-region-end t)
-		  (progn
-		    (setq flyspell-large-region-beg (point))
-		    (goto-char (- (point) 1))
-		    (setq keep
-			  ;; Detect when WORD can't be checked properly
-			  ;; because flyspell-get-word finds
-			  ;; just part of it, and treat that as ok.
-			  (if (< (length (car (flyspell-get-word nil)))
-				 (length word))
-			      nil
-			    (flyspell-word))))
-		(error "Bug: misspelled word `%s' (output pos %d) not found in buffer"
-		       word wordpos)))))))
-    ;; we are done
-    (if flyspell-issue-message-flag (message "Spell Checking completed.")))
-  ;; Kill and forget the buffer with the list of incorrect words.
-  (kill-buffer flyspell-external-ispell-buffer)
-  (setq flyspell-external-ispell-buffer nil))
+  (let (words-not-found
+	(ispell-otherchars (ispell-get-otherchars)))
+    (with-current-buffer flyspell-external-ispell-buffer
+      (goto-char (point-min))
+      ;; Loop over incorrect words.
+      (while (re-search-forward "\\([^\n]+\\)\n" (point-max) t)
+	;; Bind WORD to the next one.
+	(let ((word (match-string 1)) (wordpos (point)))
+	  ;; Here there used to be code to see if WORD is the same
+	  ;; as the previous iteration, and count the number of consecutive
+	  ;; identical words, and the loop below would search for that many.
+	  ;; That code seemed to be incorrect, and on principle, should
+	  ;; be unnecessary too. -- rms.
+	  (if flyspell-issue-message-flag
+	      (message "Spell Checking...%d%% [%s]"
+		       (* 100 (/ (float (point)) (point-max)))
+		       word))
+	  (with-current-buffer flyspell-large-region-buffer
+	    (goto-char flyspell-large-region-beg)
+	    (let ((keep t))
+	      ;; Iterate on string search until string is found as word,
+	      ;; not as substring
+	      (while keep
+		(if (search-forward word
+				    flyspell-large-region-end t)
+		    (progn
+		      (goto-char (- (point) 1))
+		      (let* ((match-point (point)) ; flyspell-get-word might move it
+			     (flyword-prev-l (flyspell-get-word nil))
+			     (flyword-prev (car flyword-prev-l))
+			     (size-match (= (length flyword-prev) (length word))))
+			(when (or
+			       ;; size matches, we are done
+			       size-match
+			       ;; Matches as part of a boundary-char separated word
+			       (member word
+				       (split-string flyword-prev ispell-otherchars))
+			       ;; ispell treats beginning of some TeX
+			       ;; commands as nroff control sequences
+			       ;; and strips them in the list of
+			       ;; misspelled words thus giving a
+			       ;; non-existent word.  Skip if ispell
+			       ;; is used, string is a TeX command
+			       ;; (char before beginning of word is
+			       ;; backslash) and none of the previous
+			       ;; contitions match
+			       (and (not ispell-really-aspell)
+				    (save-excursion
+				      (goto-char (- (nth 1 flyword-prev-l) 1))
+				      (if (looking-at "[\\]" )
+					  t
+					nil))))
+			  (setq keep nil)
+			  (flyspell-word)
+			  ;; Next search will begin from end of last match
+			  (setq flyspell-large-region-beg match-point))))
+		  ;; Record if misspelling is not found and try new one
+		  (add-to-list 'words-not-found
+			       (concat " -> " word " - "
+				       (int-to-string wordpos)))
+		  (setq keep nil)))))))
+      ;; we are done
+      (if flyspell-issue-message-flag (message "Spell Checking completed.")))
+    ;; Warn about not found misspellings
+    (dolist (word words-not-found)
+      (message "%s: word not found" word))
+    ;; Kill and forget the buffer with the list of incorrect words.
+    (kill-buffer flyspell-external-ispell-buffer)
+    (setq flyspell-external-ispell-buffer nil)))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-process-localwords ...                                  */
@@ -1375,7 +1400,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 							 (match-end 1)))
 	    ;; This can fail when string contains a word with invalid chars.
 	    ;; Error handling needs to be added between Ispell and Emacs.
-	    (if (and (< 1 (length string))     
+	    (if (and (< 1 (length string))
 		     (equal 0 (string-match ispell-casechars string)))
 		(push string localwords))))))
     ;; Remove localwords matches from misspellings-buffer.
@@ -1419,8 +1444,6 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 		      (if ispell-local-dictionary
 			  (setq ispell-dictionary ispell-local-dictionary))
 		      (setq args (ispell-get-ispell-args))
-		      (if (eq ispell-parser 'tex)
-			  (setq args (cons "-t" args)))
 		      (if ispell-dictionary ; use specified dictionary
 			  (setq args
 				(append (list "-d" ispell-dictionary) args)))

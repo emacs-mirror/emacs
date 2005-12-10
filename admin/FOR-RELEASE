@@ -48,7 +48,7 @@ invalid pointer from string_free_list.
 * BUGS
 
 ** Fix window resizing bug:
-C-x 2, C-x 3, C-x 2. Now try to move the bottom of the 
+C-x 2, C-x 3, C-x 2. Now try to move the bottom of the
 second window to the left.
 
 ** TCP server processes do not work on Windows.
@@ -122,7 +122,7 @@ man/building.texi   "Ted Zlatanov" <tzz@lifelogs.com>
 man/calendar.texi   joakim@verona.se  Chong Yidong
 man/cmdargs.texi    Chong Yidong     "Luc Teirlinck"
 man/commands.texi   "Luc Teirlinck"  Chong Yidong
-man/custom.texi     Chong Yidong
+man/custom.texi     Chong Yidong     "Luc Teirlinck"
 man/dired.texi      Chong Yidong     joakim@verona.se
 man/display.texi    "Luc Teirlinck"  Chong Yidong
 man/emacs.texi      "Luc Teirlinck"  Lute Kamstra

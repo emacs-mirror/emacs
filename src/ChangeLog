@@ -1,3 +1,66 @@
+2005-12-07  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* xfns.c (Fx_create_frame): Initialize Vdefault_minibuffer_frame,
+	when needed.
+
+2005-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (keys_of_minibuf): Just unbind SPC in
+	Vminibuffer_local_filename_completion_map rather than forcing it
+	explicitly to the same binding as the global map.
+
+2005-12-06  Ken Raeburn  <raeburn@gnu.org>
+
+	* buffer.c (Fkill_buffer): Avoid dangerous side effects in NILP
+	argument.
+	* bytecode.c (Fbyte_code): Likewise.
+	* fileio.c (internal_delete_file, Fread_file_name_internal):
+	Likewise.
+	* minibuf.c (Fminibuffer_complete_and_exit): Likewise.
+	* undo.c (truncate_undo_list): Likewise.
+
+2005-12-05  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (enlarge_window): Eliminate arg preserve_before.
+	Assume it is 0.  All callers changed.
+	(Fenlarge_window, Fshrink_window): Likewise.
+
+2005-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (compute_tip_xy): Put tip above pointer if it doesn't
+	fit below.
+
+2005-12-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.h: Add prototype for xg_set_icon_from_xpm_data.
+
+	* xfns.c (x_real_positions): int ign => unsigned int.
+	(xg_set_icon_from_xpm_data): Remove unused variable err.
+	(x_set_name_internal, Fx_create_frame, xg_set_icon): Add cast
+	to remove compiler warning.
+	(compute_tip_xy): Put tip above pointer if it doesn't fit below.
+
+2005-12-02  David Reitter  <david.reitter@gmail.com>
+
+	* minibuf.c (Fcompleting_read): If Vminibuffer_completing_file_name is
+	non-nil, use the new keymaps Vminibuffer_local_filename_completion_map
+	and Vminibuffer_local_must_match_filename_map keymaps.
+	(keys_of_minibuf): Bind SPC in the new file-name completion keymaps.
+
+	* keymap.c (Vminibuffer_local_filename_completion_map)
+	(Vminibuffer_local_must_match_filename_map): New variables.
+	(syms_of_keymap): DEFVAR_LISP them, initialize them, and set their
+	parent to be Vminibuffer_local_completion_map and
+	Vminibuffer_local_must_match_map, respectively.
+
+	* commands.h (Vminibuffer_local_filename_completion_map)
+	(Vminibuffer_local_must_match_filename_map): Declare the new keymaps.
+
+2005-12-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fset_window_configuration): Don't accidentally copy the
+	window-point of one window to another.
+
 2005-11-30  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* buffer.c (Fpop_to_buffer): Remove superfluous call to record_buffer.
@@ -55,7 +118,7 @@
 	* macterm.h (cfstring_to_lisp_nodecode) [TARGET_API_MAC_CARBON]:
 	Add prototype.
 
-2005-11-21  Ken Raeburn  <raeburn@mit.edu>
+2005-11-21  Ken Raeburn  <raeburn@gnu.org>
 
 	* keymap.c (shadow_lookup): Use make_number to pass a number to
 	Fsubstring.
@@ -16289,7 +16352,7 @@
 	* xdisp.c (forward_to_next_line_start): Return 0 when reaching the
 	end of the buffer.
 
-2002-08-08  Ken Raeburn  <raeburn@mit.edu>
+2002-08-08  Ken Raeburn  <raeburn@gnu.org>
 
 	* coding.c (Ffind_operation_coding_system): Fix Lisp_Object/int mixup.
 

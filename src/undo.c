@@ -378,11 +378,11 @@ truncate_undo_list (b)
       && size_so_far > XINT (Vundo_outer_limit)
       && !NILP (Vundo_outer_limit_function))
     {
-      Lisp_Object temp = last_undo_buffer;
+      Lisp_Object temp = last_undo_buffer, tem;
 
       /* Normally the function this calls is undo-outer-limit-truncate.  */
-      if (! NILP (call1 (Vundo_outer_limit_function,
-			 make_number (size_so_far))))
+      tem = call1 (Vundo_outer_limit_function, make_number (size_so_far));
+      if (! NILP (tem))
 	{
 	  /* The function is responsible for making
 	     any desired changes in buffer-undo-list.  */

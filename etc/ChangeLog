@@ -1,3 +1,7 @@
+2005-12-02  Jay Belanger  <belanger@truman.edu>
+
+	* NEWS: Add comment about the Calc prefix.
+
 2005-11-28  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* MORE.STUFF: Add entry: "Go in a buffer: Go Text Protocol client".

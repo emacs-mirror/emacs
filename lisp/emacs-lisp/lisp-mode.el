@@ -96,13 +96,13 @@
 			     (regexp-opt
 			      '("defun" "defun*" "defsubst" "defmacro"
 				"defadvice" "define-skeleton"
-				"define-minor-mode" "define-derived-mode"
-				"define-generic-mode"
+				"define-minor-mode" "define-global-minor-mode"
+				"define-derived-mode" "define-generic-mode"
 				"define-compiler-macro" "define-modify-macro"
 				"defsetf" "define-setf-expander"
 				"define-method-combination"
 				"defgeneric" "defmethod") t))
-			   "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Variables")
 	 (purecopy (concat "^\\s-*("
@@ -110,7 +110,7 @@
 			     (regexp-opt
 			      '("defvar" "defconst" "defconstant" "defcustom"
 				"defparameter" "define-symbol-macro") t))
-			   "\\s-+\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2)
    (list (purecopy "Types")
 	 (purecopy (concat "^\\s-*("
@@ -119,7 +119,7 @@
 			      '("defgroup" "deftheme" "deftype" "defstruct"
 				"defclass" "define-condition" "define-widget"
 				"defface" "defpackage") t))
-			   "\\s-+'?\\(\\sw\\(\\sw\\|\\s_\\)+\\)"))
+			   "\\s-+'?\\(\\(\\sw\\|\\s_\\)+\\)"))
 	 2))
 
   "Imenu generic expression for Lisp mode.  See `imenu-generic-expression'.")
@@ -141,6 +141,8 @@
 (put 'define-compilation-mode 'doc-string-elt 3)
 (put 'easy-mmode-define-minor-mode 'doc-string-elt 2)
 (put 'define-minor-mode 'doc-string-elt 2)
+(put 'easy-mmode-define-global-mode 'doc-string-elt 2)
+(put 'define-global-minor-mode 'doc-string-elt 2)
 (put 'define-generic-mode 'doc-string-elt 7)
 (put 'define-ibuffer-filter 'doc-string-elt 2)
 (put 'define-ibuffer-op 'doc-string-elt 3)

@@ -1,3 +1,320 @@
+2005-12-08  Kenichi Handa  <handa@m17n.org>
+
+	* descr-text.el (describe-char): Use *Help-2* buffer if the
+	current buffer is *Help*.  Call describe-text-properties while
+	setting the original buffer.
+
+2005-12-07  Bill Wohler  <wohler@newt.com>
+
+	* files.el (auto-mode-alist): Remove mh-letter-mode. Unnecessary,
+	and causes problems with non-MH users (such as Gnus users).
+
+2005-12-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-find-file-unhook): Delete variable.
+	(gdb-set-gud-minor-mode, gdb-set-gud-minor-mode): Delete functions.
+	(gdb-set-gud-minor-mode-existing-buffers, gdb-init-2): Use GDB
+	command "info sources".  Move calls to GDB command "list".
+	(gdb-find-file-hook): Just use gdb-source-file-list.
+	(gdb-source-file-regexp): Use regexp for pre-GDB 6.4.
+	(gdb-source-file-regexp-1): New regexp for GDB 6.4+ only.
+	(gdb-set-gud-minor-mode-existing-buffers-1): Use it.
+	(gdb-data-list-register-values-handler): Use correct trigger name.
+
+2005-12-07  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-completion-map): Renamed from ido-mode-map.
+	(ido-common-completion-map, ido-file-completion-map)
+	(ido-file-dir-completion-map, ido-buffer-completion-map):
+	Renamed from ido-mode-....-map.
+	(ido-init-completion-maps): Renamed from ido-init-mode-maps.
+	(ido-setup-completion-map): Renamed from ido-define-mode-map.
+	(ido-read-internal): Bind minibuffer-local-filename-completion-map
+	to ido-completion-map.
+
+2005-12-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el
+	(set-display-table-and-terminal-coding-system): If the coding
+	system specified in `unibyte-display' property is different from
+	the arg coding-system, don't setup standard-display-table.
+
+2005-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/edebug.el (edebug-skip-whitespace): read1:lread.c says
+	that comments end at \n, regardless of selective-display.
+
+2005-12-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-error-regexp, gdb-first-post-prompt)
+	(gdb-version): New variables.
+	(gdb-source-file-list, gdb-register-names)
+	(gdb-changed-registers): New variables for use with GDB 6.4+.
+	(gdb-ann3): Replace with...
+	(gdb-init-1, gdb-init-2): ...two new functions.
+	(gdba, gdb-prompt): Call gdb-init-1.
+	(gdb-get-version): New function.  Call gdb-init-2 from here.
+	(gud-watch): Make it work with mouse events too.
+	(gdb-post-prompt): Don't add to queue until GDB version is known.
+	(gdb-speedbar-expand-node, gdb-post-prompt, gdb-registers-mode)
+	(gdb-locals-mode): Use gdb-version.
+	(gdb-memory-format-map, gdb-memory-unit-map)
+	(gdb-locals-watch-map): Rename from gdb-*-*-keymap.
+	(gdb-locals-font-lock-keywords-1)
+	(gdb-locals-font-lock-keywords-2): New variables.
+	(gdb-find-file-hook): fgfg.
+	(gdb-set-gud-minor-mode-existing-buffers-1)
+	(gdb-var-list-children-1, gdb-var-list-children-handler-1)
+	(gdb-var-update-1, gdb-var-update-handler-1)
+	(gdb-data-list-register-values-handler)
+	(gdb-data-list-register-values-custom)
+	(gdb-get-changed-registers, gdb-get-changed-registers-handler)
+	(gdb-stack-list-locals-handler, gdb-get-register-names):
+	New functions for use with GDB 6.4+.
+	(gdb-locals-watch-map-1): New variable for use with GDB 6.4+.
+	(gdb-source-file-regexp, gdb-var-list-children-regexp-1)
+	(gdb-var-update-regexp-1, gdb-data-list-register-values-regexp)
+	(gdb-stack-list-locals-regexp)
+	(gdb-data-list-register-names-regexp): New regexps for use with
+	GDB 6.4+.
+
+2005-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-defs.el (c-emacs-features): Don't assume point-min==1.
+
+2005-12-06  Nozomu Ando <nand@mac.com>  (tiny patch)
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Make password
+	prompts work for AUTH PLAIN.  Also reported by Steve Allan
+	<seallan@verizon.net>.
+
+2005-12-06  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* frame.el (set-frame-parameter): Add doc string.
+
+2005-12-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-occur-highlights): New variable.
+	(org-highlight-new-match, org-remove-occur-highlights): New functions.
+	(org-highlight-sparse-tree-matches): New option.
+	(org-do-occur): New function.
+	(org-get-heading): Make it work also at beginning of line.
+	(org-category-table): New variable.
+	(org-get-category-table, org-get-category)
+	(org-camel-to-words, org-link-search): New functions.
+	(org-select-this-todo-keyword): New variable.
+	(org-todo-list): New command.
+	(org-shiftright, org-shiftleft): New commands.
+	(org-agenda-todo): Add prefix argument.
+	(org-show-hierarchy-above): New option.
+	(org-show-todo-tree): Numerical prefix creates tree for specific
+	TODO keyword.
+	(org-outline-level): New function, to assign a level to plain
+	lists items.
+	(org-cycle-include-plain-lists): New option.
+	(org-mode): Use `org-outline-level' as value of `outline-level'.
+	(org-cycle): Temporarily switch `outline-regexp' if
+	`org-cycle-include-plain-lists' is non-nil.
+	(org-start-icalendar-file): Fix format bug.
+	(org-agenda-get-day-entries): Create category table.
+	(org-agenda-get-todos, org-agenda-get-timestamps)
+	(org-agenda-get-deadlines, org-agenda-get-scheduled)
+	(org-agenda-get-blocks): Use `org-get-category'.
+	(org-context-in-file-links): Rename from
+	`org-line-numbers-in-file-links' .
+
+2005-12-06  Romain Francoise  <romain@orebokech.com>
+
+	* window.el (balance-windows): Delete extraneous third arg in call
+	to `enlarge-window'.
+
+2005-12-06  Kenichi Handa  <handa@m17n.org>
+
+	* international/kinsoku.el (kinsoku-longer): Check eolp, not eobp.
+
+2005-12-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-create-handler)
+	(gdb-var-evaluate-expression-handler, gdb-frame-handler)
+	(gdb-var-list-children-handler, gdb-var-update-handler):
+	Current buffer is already gdb-partial-output-buffer, don't
+	make it current again.
+
+2005-12-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buff-menu.el (Buffer-menu-use-frame-buffer-list): New user option.
+	(list-buffers-noselect): Use it.
+
+2005-12-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mail/sendmail.el: Remove unnecessary leading-star in docstrings.
+	(mail-yank-ignored-headers): Use regexp-opt.
+	(mail-mode-map): Move initialization into declaration.
+	(mail-sent-via): Remove unused shadowed var `to-line'.
+	(mail-mailer-swallows-blank-line): Use with-temp-buffer.
+	(mail-bury, sendmail-send-it, mail-do-fcc): Use with-current-buffer.
+	(mail-do-fcc): Use dolist and push.
+	(mail-mode-fill-paragraph): Pass the arg to fill-region-as-paragraph.
+	(mail-yank-ignored-headers): Don't autoload.
+
+2005-12-05  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (set-language-info-internal): New fun.
+	(set-language-info): Call set-language-info-internal to update
+	language-info-alist.  If LANG-ENV is the current one, call
+	set-language-environment to make INFO effective now.
+	(set-language-info-alist): Likewise.
+	(locale-language-names): With locale "en", use English
+	lang. env. but set the default codings to iso-8859-1.
+
+2005-12-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-use-inferior-io-buffer)
+	(gdb-speedbar-auto-raise): Echo new state in minibuffer.
+	(gdb-var-create-handler, gdb-assembler-custom): Use search-forward
+	for plain strings.
+	(gdb-frames-mode): Remove redundant call to font-lock-mode.
+	(gdb-all-registers): Rename from toggle-gdb-all-registers.
+	Create registers buffer if necessary.  Echo new state in minibuffer.
+	(gdb-registers-mode-map, gdb-registers-mode): Use gdb-all-registers.
+
+2005-12-03  Chong Yidong  <cyd@stupidchicken.com>
+
+	* info.el (Info-fontify-node): Match external links using
+	non-directory part of filename.
+
+2005-12-04  Juri Linkov  <juri@jurta.org>
+
+	* font-core.el (global-font-lock-mode): Use define-global-minor-mode
+	instead of easy-mmode-define-global-mode.  Add `:group font-lock'.
+	(font-lock-mode): Replace `:group font-lock' with `nil nil nil'.
+
+	* font-lock.el (lisp-font-lock-keywords-1):
+	Add define-global-minor-mode.
+
+	* emacs-lisp/autoload.el (make-autoload): Add define-global-minor-mode.
+
+	* emacs-lisp/derived.el (define-derived-mode): Put `definition-name'
+	properties on the constructed variable names.
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-define-navigation):
+	Put `definition-name' properties on the constructed function names
+	next-sym and prev-sym.
+
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Add define-global-minor-mode.  Replace `easy-mmode-define-global-mode'
+	with `easy-mmode-define-[a-z-]+'.  Add easy-menu-define.
+	(find-variable-regexp): Add easy-mmode-defmap, easy-mmode-defsyntax
+	and easy-menu-define.
+
+	* emacs-lisp/lisp-mode.el: Put `doc-string-elt' property on
+	easy-mmode-define-global-mode and define-global-minor-mode.
+	(lisp-imenu-generic-expression): Add define-global-minor-mode.
+
+	* progmodes/cwarn.el (global-cwarn-mode): Use define-global-minor-mode
+	instead of easy-mmode-define-global-mode.
+
+	* progmodes/idlw-shell.el (idlwave-shell-electric-debug-mode):
+	Use define-minor-mode instead of easy-mmode-define-minor-mode.
+
+	* cus-edit.el (customize-group, customize-group-other-window):
+	Filter out autoloaded options from the group completion list by
+	using heuristics that autoloaded groups don't have `custom-autoload'
+	property on their symbols (they have only `custom-loads').
+
+	* simple.el (completion-setup-function): Put completions-common-part
+	face on full completion string too (i.e. completion string without
+	completions-first-difference face).
+
+	* man.el (Man-section-regexp): Add 0-9 to support "3X11" sections.
+
+2005-12-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* view.el (view-mode): Doc fix.
+
+	* disp-table.el (standard-display-european): Add to the warning
+	message a reference to the doc string.
+
+	* play/yow.el (apropos-zippy): Call print-help-return-message,
+	similar to other Help and Apropos commands.
+
+	* help.el (print-help-return-message): If pop-up-frames is
+	non-nil, set up help-return-method to delete the help window and,
+	possibly, its frame as well, and don't display message about
+	scrolling the help window.  Doc fix.
+	(help-return-method): Doc fix.
+
+2005-12-03  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (lisp-imenu-generic-expression): Fix bug
+	whereby names of length one or names starting with a
+	symbol-constituent character would not be returned.
+
+2005-12-03  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* subr.el (atomic-change-group): Add edebug and indentation spec.
+
+2005-12-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* completion.el (save-completions-file-name): Fix typo in last change.
+
+2005-12-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* info.el: Move back/forward history to the beginning of the tool bar.
+
+2005-12-02  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* allout.el:(eval-when-compile): Remove unnecessary load of 'cl.
+	Add fset of allout-real-isearch-abort during compile to fix
+	byte-compilation warnings.
+	(allout-mode-p): Move definition of this macro above all uses, or
+	byte compilation in barren emacs (eg, during emacs build) will
+	lack the definition.
+	(allout-mode): Move this variable above any uses, or byte
+	compilation will fail.
+	(allout-resolve-xref): Remove use of personal file-reference function.
+	(allout-toggle-current-subtree-encryption): Do the current (ie,
+	visible containing) topic, rather than nearest around point.  Doc fix.
+	(allout-toggle-subtree-encryption): New function, workhorse that
+	works on nearest topic containing point.
+	(allout-encrypt-string): Signal requirement for newer version of pgg.
+	(allout-resumptions): Doc fix.
+
+2005-12-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* international/latexenc.el (latex-inputenc-coding-alist): Doc fix.
+
+2005-12-02  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Consider a misspelling as found in the string search if: (a) misspelling
+	and found string lengths match, or (b) misspelling is found as
+	element in a boundary-chars separated longer string, or (c)
+	ispell-program-name is really ispell and misspelling is found as
+	part of a TeX string.  After successful match move beginning of
+	search region to end of match.  Warn about not found misspellings
+	once the process is done.
+	(flyspell-large-region): Do not set ispell-parser to tex if in TeX mode.
+
+2005-12-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Put gud-finish back on the
+	tool bar (removed inadvertently).
+
+2005-12-02  Juri Linkov  <juri@jurta.org>
+
+	* log-view.el (log-view-diff): Clarify doc string.
+
+2005-12-01  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (mh-loaddefs.el): Reinsert Change Log as its absence
+	triggers lm-verify errors.
+
+2005-12-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (transient-mark-mode, line-number-mode)
+	(column-number-mode, size-indication-mode): Remove `:require nil'.
+
 2005-12-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-ann3): Bind mouse-2 to gdb-mouse-until
@@ -18,7 +335,7 @@
 	(speedbar-frame-reposition-smartly): Use it.
 
 	* dframe.el (dframe-reposition-frame-emacs): Fix position
-	computation for 'left location.
+	computation for `left' location.
 	Update copyright year.
 
 2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>

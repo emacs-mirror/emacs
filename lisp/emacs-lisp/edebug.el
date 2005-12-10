@@ -733,8 +733,7 @@ already is one.)"
   ;; Leave point before the next token, skipping white space and comments.
   (skip-chars-forward " \t\r\n\f")
   (while (= (following-char) ?\;)
-    ;; \r is counted as a comment terminator to support selective display.
-    (skip-chars-forward "^\n\r")  ; skip the comment
+    (skip-chars-forward "^\n")  ; skip the comment
     (skip-chars-forward " \t\r\n\f")))
 
 

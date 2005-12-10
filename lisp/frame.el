@@ -953,6 +953,9 @@ pixels) is kept by adjusting the numbers of the lines and columns."
   (run-hooks 'after-setting-font-hook 'after-setting-font-hooks))
 
 (defun set-frame-parameter (frame parameter value)
+  "Set frame parameter PARAMETER to VALUE on FRAME.
+If FRAME is nil, it defaults to the selected frame.
+See `modify-frame-parameters.'"
   (modify-frame-parameters frame (list (cons parameter value))))
 
 (defun set-background-color (color-name)

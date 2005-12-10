@@ -1,4 +1,4 @@
-% Reference Card for Org Mode 3.21
+% Reference Card for Org Mode 3.22
 %
 %**start of header
 \newcount\columnsperpage
@@ -58,7 +58,7 @@
 % Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
 % for their many good ideas.
 
-\def\orgversionnumber{3.21}
+\def\orgversionnumber{3.22}
 \def\year{2005}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
@@ -270,18 +270,20 @@ are preserved on all copies.
 
 \section{Getting Started}
 %
-Put the following in your \kbd{~/.emacs}$^1$
+%Put the following in your \kbd{~/.emacs}$^1$
 \vskip -1mm
 \beginexample%
-(autoload 'org-mode "org" "Org mode" t)
-(autoload 'org-diary "org" "Org mode diary entries")
-(autoload 'org-agenda "org" "Agenda from Org files" t)
-(autoload 'org-store-link "org" "Store org link" t)
-(autoload 'orgtbl-mode "org" "Orgtbl minor mode" t)
-(autoload 'turn-on-orgtbl "org" "Orgtbl minor mode")
+%(autoload 'org-mode "org" "Org mode" t)
+%(autoload 'org-diary "org" "Org mode diary entries")
+%(autoload 'org-agenda "org" "Agenda from Org files" t)
+%(autoload 'org-todo-list "org" "Global TODO list" t)
+%(autoload 'org-store-link "org" "Store org link" t)
+%(autoload 'orgtbl-mode "org" "Orgtbl minor mode" t)
+%(autoload 'turn-on-orgtbl "org" "Orgtbl minor mode")
 (add-to-list 'auto-mode-alist '("\\\\.org\$" . org-mode))
 (define-key global-map "\\C-cl" 'org-store-link)$^2$
 (define-key global-map "\\C-ca" 'org-agenda)$^2$
+(define-key global-map "\\C-ct" 'org-todo-list)$^2$
 \endexample
 %
 \metax{For the many customization options try}{M-x org-customize}
@@ -330,15 +332,17 @@ To set archive location for current file, add a line like$^3$:
 
 \key{show sparse tree for all matches of a regexp}{C-c /}
 \key{view TODO's in sparse tree}{C-c C-v}
+\key{global TODO list in agenda mode}{C-c t$^2$}
 \key{create sparse tree with all deadlines due}{C-c C-w}
 \key{time sorted view of current org file}{C-c C-r}
-\key{agenda for the week}{C-c a$2$}
+\key{agenda for the week}{C-c a$^2$}
 \key{agenda for date at cursor}{C-c C-o}
 
 \section{TODO Items}
 
 \key{rotate the state of the current item}{C-c C-t}
 \key{view TODO items in a sparse tree}{C-c C-v}
+\key{view 3rd TODO keyword's sparse tree}{C-3 C-c C-v}
 
 \key{set the priority of the current item}{C-c , [ABC]}
 \key{remove priority cookie from current item}{C-c , SPC}
@@ -374,12 +378,12 @@ per-file TODO keywords: add line(s) like$^3$:
 \key{access the calendar for the current date}{C-c >}
 \key{insert timestamp matching date in calendar}{C-c <}
 \key{access agenda for current date}{C-c C-o}
-\key{While prompted for a date:}{}
-\key{... select date in calendar}{mouse-1/RET}
-\key{... scroll calendar back/forward one month}{< / >}
-\key{... forward/backward one day}{S-LEFT/RIGHT}
-\key{... forward/backward one week}{S-UP/DOWN}
-\key{... forward/backward one month}{M-S-LEFT/RIGT}
+\key{Select date while prompted}{mouse-1/RET}
+%\key{... select date in calendar}{mouse-1/RET}
+%\key{... scroll calendar back/forward one month}{< / >}
+%\key{... forward/backward one day}{S-LEFT/RIGHT}
+%\key{... forward/backward one week}{S-UP/DOWN}
+%\key{... forward/backward one month}{M-S-LEFT/RIGT}
 
 \section{Links}
 
@@ -394,19 +398,25 @@ per-file TODO keywords: add line(s) like$^3$:
 
 {\bf Link types}
 
-\key{\kbd{<http://www.astro.uva.nl/~dominik>}}{\rm on the web}
-\key{\kbd{<mailto:adent@galaxy.net>}}{\rm EMail address}
-\key{\kbd{<news:comp.emacs>}}{\rm Usenet group}
+\key{\kbd{*CamelCaseWord}}{\rm search headline}
+\key{\kbd{CamelCaseWord}}{\rm search in buffer}
 \key{\kbd{<file:/home/dominik/img/mars.jpg>}}{\rm file, absolute}
 \key{\kbd{<file:papers/last.pdf>}}{\rm file, relative}
 \key{\kbd{<file:~/code/main.c:255>}}{\rm file with line nr.}
+\key{\kbd{<file:projects.org::*CamelCaseWord>}}{\rm search headline}
+\key{\kbd{<file:projects.org::find me>}}{\rm search string}
+\key{\kbd{<file:projects.org::/regexp/>}}{\rm search regexp}
+\key{\kbd{<http://www.astro.uva.nl/~dominik>}}{\rm on the web}
+\key{\kbd{<mailto:adent@galaxy.net>}}{\rm EMail address}
+\key{\kbd{<news:comp.emacs>}}{\rm Usenet group}
 \key{\kbd{<bbdb:Richard Stallman>}}{\rm BBDB person}
 \key{\kbd{<shell:ls *.org>}}{\rm shell command}
 \key{\kbd{<gnus:group>}}{\rm GNUS group}
 \key{\kbd{<gnus:group\#id>}}{\rm GNUS message}
 \key{\kbd{<vm:folder>}}{\rm VM folder}
 \key{\kbd{<vm:folder\#id>}}{\rm VM message}
-\key{\kbd{<vm://myself@some.where.org/folder\#id>}}{\rm VM remote}
+% FIXME: would like to get this back in.
+%\key{\kbd{<vm://myself@some.where.org/folder\#id>}}{\rm VM remote}
 Wanderlust \kbd{<wl:...>} and RMAIL \kbd{<rmail:...>} like VM
 %\key{\kbd{<wl:folder>}}{\rm Wanderlust f.}
 %\key{\kbd{<wl:folder\#id>}}{\rm Wanderlust m.}
@@ -506,7 +516,7 @@ introduces a column formula, \kbd{:=} a named-field formula.
 
 \centerline{(for version \orgversionnumber)}
 
-\section{Timeline and Agenda}
+\section{Timeline, Agenda, Global TODO List}
 
 \key{show timeline of current org file}{C-c C-r}
 \key{... include past dates}{C-u C-c C-r}
@@ -516,6 +526,7 @@ introduces a column formula, \kbd{:=} a named-field formula.
 \key{cycle through agenda file list}{C-,}
 \key{compile agenda for the current week}{C-c a$^2$}
 \key{agenda for date at cursor}{C-c C-o}
+\key{global TODO list}{C-c t$^2$}
 \vskip 1mm
 To set category for current file, add line$^3$:
 \vskip -1mm
@@ -524,8 +535,6 @@ To set category for current file, add line$^3$:
 \endexample
 
 {\bf Commands available in an agenda buffer}
-
-The agenda buffer is electric: single key presses execute commands.
 
 {\bf View org file}
 

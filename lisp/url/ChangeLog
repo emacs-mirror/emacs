@@ -1,3 +1,26 @@
+2005-12-07  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-cookie.el (url-cookie-save-interval): Simplify.
+	(url-cookie-setup-save-timer): Simplify.
+
+2005-12-04  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-history.el (url-history-list): Var deleted.
+	(url-history-save-interval): Simplify.
+	(url-history-setup-save-timer): Simplify.
+
+2005-12-01  Kim F. Storm  <storm@cua.dk>
+
+	* url-history.el (url-history-track): Fix last change.
+
+2005-12-01  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-history.el (url-history-track):
+	Call url-history-setup-save-timer in :set function.
+	:type allows three alternatives.
+	(url-history-setup-save-timer): Test url-history-track.
+	* url.el (url-retrieve): Test url-history-track.
+
 2005-11-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-http.el: Use with-current-buffer.

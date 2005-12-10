@@ -235,6 +235,7 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH-E-SRC)
 	echo ";; Author: Bill Wohler <wohler@newt.com>" >> $@
 	echo ";; Keywords: mail" >> $@
 	echo ";;; Commentary:" >> $@
+	echo ";;; Change Log:" >> $@
 	echo ";;; Code:" >> $@
 	$(EMACS) $(EMACSOPT) \
 	   -l autoload \

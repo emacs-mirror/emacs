@@ -1,3 +1,20 @@
+2005-12-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (GDB Graphical Interface): Explain screen size
+	setting.
+	(Other GDB User Interface Buffers): Describe features specific to
+	GDB 6.4.
+
+2005-12-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* org.texi (Internal Links): Fix Texinfo usage.
+
+2005-12-06  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi (TODO basics): Document the global todo list.
+	(TODO items): Documents sparse tree for specific TODO
+	keywords.
+
 2005-12-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (GDB User Interface Layout): Describe how to

@@ -86,10 +86,10 @@ or macro definition or a defcustom)."
 
      ;; For special function-like operators, use the `autoload' function.
      ((memq car '(defun define-skeleton defmacro define-derived-mode
-                   define-compilation-mode
-		   define-generic-mode easy-mmode-define-minor-mode
-		   easy-mmode-define-global-mode
-		   define-minor-mode defun* defmacro*))
+                   define-compilation-mode define-generic-mode
+		   easy-mmode-define-global-mode define-global-minor-mode
+		   easy-mmode-define-minor-mode define-minor-mode
+		   defun* defmacro*))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
 	     (args (case car
@@ -109,6 +109,7 @@ or macro definition or a defcustom)."
 	      (or (and (memq car '(define-skeleton define-derived-mode
 				    define-generic-mode
 				    easy-mmode-define-global-mode
+				    define-global-minor-mode
 				    easy-mmode-define-minor-mode
 				    define-minor-mode)) t)
 		  (eq (car-safe (car body)) 'interactive))

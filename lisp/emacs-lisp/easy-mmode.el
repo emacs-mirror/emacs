@@ -515,6 +515,7 @@ found, do widen first and then call NARROWFUN with no args after moving."
                    (unless (pos-visible-in-window-p endpt nil t)
                      (recenter '(0))))))
              ,re-narrow-maybe)))
+       (put ',next-sym 'definition-name ',base)
        (defun ,prev-sym (&optional count)
 	 ,(format "Go to the previous COUNT'th %s" (or name base-name))
 	 (interactive)
@@ -524,7 +525,8 @@ found, do widen first and then call NARROWFUN with no args after moving."
              ,check-narrow-maybe
              (unless (re-search-backward ,re nil t count)
                (error "No previous %s" ,name))
-             ,re-narrow-maybe))))))
+             ,re-narrow-maybe)))
+       (put ',prev-sym 'definition-name ',base))))
 
 
 (provide 'easy-mmode)

@@ -464,6 +464,9 @@ as well as widgets, buttons, overlays, and text properties."
 				 (single-key-description char)
 			       (string-to-multibyte
 				(char-to-string char)))))
+	 (orig-buf (current-buffer))
+	 (help-buf (if (eq orig-buf (get-buffer "*Help*"))
+		       "*Help-2*" "*Help*"))
 	 item-list max-width unicode)
 
     (if (or (< char 256)
@@ -616,7 +619,7 @@ as well as widgets, buttons, overlays, and text properties."
     (setq max-width (apply #'max (mapcar #'(lambda (x)
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
-    (with-output-to-temp-buffer "*Help*"
+    (with-output-to-temp-buffer help-buf
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
@@ -636,18 +639,17 @@ as well as widgets, buttons, overlays, and text properties."
 		  (insert " " clm)))
 	      (insert "\n"))))
 
-	(save-excursion
-	  (goto-char (point-min))
-	  (re-search-forward "character:[ \t\n]+")
-	  (setq pos (point)))
-	(let ((end (+ pos (length char-description))))
-	  (if overlays
+	(when overlays
+	  (save-excursion
+	    (goto-char (point-min))
+	    (re-search-forward "character:[ \t\n]+")
+	    (let* ((end (+ (point) (length char-description))))
 	      (mapc #'(lambda (props)
-			(let ((o (make-overlay pos end)))
+			(let ((o (make-overlay (point) end)))
 			  (while props
 			    (overlay-put o (car props) (nth 1 props))
 			    (setq props (cddr props)))))
-		    overlays)))
+		    overlays))))
 
 	(when disp-vector
 	  (insert
@@ -720,7 +722,9 @@ as well as widgets, buttons, overlays, and text properties."
 	  (insert "\nSee the variable `reference-point-alist' for "
 		  "the meaning of the rule.\n"))
 
-	(describe-text-properties pos (current-buffer))
+	(save-excursion
+	  (set-buffer orig-buf)
+	  (describe-text-properties pos help-buf))
 	(describe-text-mode)))))
 
 (defalias 'describe-char-after 'describe-char)

@@ -1753,8 +1753,12 @@ Completion ignores case if the ambient value of
     XSETFASTINT (histpos, 0);
 
   val = read_minibuf (NILP (require_match)
-		      ? Vminibuffer_local_completion_map
-		      : Vminibuffer_local_must_match_map,
+		      ? (NILP (Vminibuffer_completing_file_name)
+			 ? Vminibuffer_local_completion_map
+			 : Vminibuffer_local_filename_completion_map)
+		      : (NILP (Vminibuffer_completing_file_name)
+			 ? Vminibuffer_local_must_match_map
+			 : Vminibuffer_local_must_match_filename_map),
 		      init, prompt, make_number (pos), 0,
 		      histvar, histpos, def, 0,
 		      !NILP (inherit_input_method), 0);
@@ -2118,16 +2122,17 @@ a repetition of this command will exit.  */)
      ()
 {
   register int i;
-  Lisp_Object val;
+  Lisp_Object val, tem;
 
   /* Allow user to specify null string */
   if (XINT (Fminibuffer_prompt_end ()) == ZV)
     goto exit;
 
   val = Fminibuffer_contents ();
-  if (!NILP (Ftest_completion (val,
-			       Vminibuffer_completion_table,
-			       Vminibuffer_completion_predicate)))
+  tem = Ftest_completion (val,
+			  Vminibuffer_completion_table,
+			  Vminibuffer_completion_predicate);
+  if (!NILP (tem))
     {
       if (completion_ignore_case)
 	{ /* Fixup case of the field, if necessary. */
@@ -2927,10 +2932,16 @@ keys_of_minibuf ()
   initial_define_key (Vminibuffer_local_completion_map, '?',
 		      "minibuffer-completion-help");
 
+  Fdefine_key (Vminibuffer_local_filename_completion_map,
+	       build_string (" "), Qnil);
+
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('m'),
 		      "minibuffer-complete-and-exit");
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('j'),
 		      "minibuffer-complete-and-exit");
+
+  initial_define_key (Vminibuffer_local_must_match_filename_map, ' ',
+		      "self-insert-command");
 }
 
 /* arch-tag: 8f69b601-fba3-484c-a6dd-ceaee54a7a73

@@ -262,7 +262,7 @@ the associated section number."
 (defvar Man-name-regexp "[-a-zA-Z0-9_­+][-a-zA-Z0-9_.:­+]*"
   "Regular expression describing the name of a manpage (without section).")
 
-(defvar Man-section-regexp "[0-9][a-zA-Z+]*\\|[LNln]"
+(defvar Man-section-regexp "[0-9][a-zA-Z0-9+]*\\|[LNln]"
   "Regular expression describing a manpage section within parentheses.")
 
 (defvar Man-page-header-regexp

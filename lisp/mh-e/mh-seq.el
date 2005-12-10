@@ -273,10 +273,16 @@ When you want to widen the view to all your messages again, use \\[mh-widen]."
 
 ;;;###mh-autoload
 (defun mh-put-msg-in-seq (range sequence)
-  "Add RANGE to SEQUENCE.
+  "Add RANGE to SEQUENCE\\<mh-folder-mode-map>.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use."
+To place a message in a sequence, use this command to do it manually, or use
+the MH command \"pick\" or the MH-E version of \"pick\", \\[mh-search-folder],
+which create a sequence automatically.
+
+Give this command a RANGE and you can add all the messages in a sequence to
+another sequence (for example, \"\\[universal-argument] \\[mh-put-msg-in-seq]
+SourceSequence RET DestSequence RET\"). Check the documentation of
+`mh-interactive-range' to see how RANGE is read in interactive use."
   (interactive (list (mh-interactive-range "Add messages from")
                      (mh-read-seq-default "Add to" nil)))
   (unless (mh-valid-seq-p sequence)
@@ -661,8 +667,9 @@ in order to provide a uniform interface to MH-E functions."
 ;;;###mh-autoload
 (defun mh-range-to-msg-list (range)
   "Return a list of messages for RANGE.
-RANGE can be a message number, a list of message numbers, a sequence, or
-a region in a cons cell."
+
+Check the documentation of `mh-interactive-range' to see how RANGE is read in
+interactive use."
   (let (msg-list)
     (mh-iterate-on-range msg range
       (push msg msg-list))
@@ -915,7 +922,7 @@ The MH command pick is used to do the match."
 
 ;;;###mh-autoload
 (defun mh-narrow-to-range (range)
-  "Limit to messages in RANGE.
+  "Limit to RANGE.
 
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use.
@@ -1679,7 +1686,7 @@ start of the region and the second is the point at the end."
 
 ;;;###mh-autoload
 (defun mh-toggle-tick (range)
-  "Toggle tick mark of all messages in RANGE.
+  "Toggle tick mark of RANGE.
 
 This command adds messages to the \"tick\" sequence (which you can customize
 via the option `mh-tick-seq'). This sequence can be viewed later with the

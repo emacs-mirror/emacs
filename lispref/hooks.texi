@@ -6,6 +6,8 @@
 @setfilename ../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
 @appendix Standard Hooks
+@cindex standard hooks
+@cindex hook variables, list of
 
 The following is a list of hook variables that let you provide
 functions to be called from within Emacs on suitable occasions.
@@ -101,6 +103,9 @@ the above conventions.)
 @item comment-indent-function
 @xref{Options for Comments,, Options Controlling Comments, emacs, the
 GNU Emacs Manual}.
+
+@item compilation-finish-functions
+Functions to call when a compilation process finishes.
 
 @item custom-define-hook
 Hook called after defining each customize option.

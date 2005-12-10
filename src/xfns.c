@@ -619,7 +619,7 @@ x_real_positions (f, xptr, yptr)
 
   if (! had_errors)
     {
-      int ign;
+      unsigned int ign;
       Window child, rootw;
 
       /* Get the real coordinates for the WM window upper left corner */
@@ -805,9 +805,7 @@ xg_set_icon (f, file)
     {
       GdkPixbuf *pixbuf;
       GError *err = NULL;
-      char *filename;
-
-      filename = SDATA (found);
+      char *filename = (char *) SDATA (found);
       BLOCK_INPUT;
 
       pixbuf = gdk_pixbuf_new_from_file (filename, &err);
@@ -836,17 +834,12 @@ xg_set_icon_from_xpm_data (f, data)
     char **data;
 {
   int result = 0;
-  GError *err = NULL;
-  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data (data);
+  GdkPixbuf *pixbuf = gdk_pixbuf_new_from_xpm_data ((const char **) data);
 
   if (!pixbuf)
-    {
-      g_error_free (err);
-      return 0;
-    }
+    return 0;
 
-  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-		       pixbuf);
+  gtk_window_set_icon (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)), pixbuf);
   g_object_unref (pixbuf);
   return 1;
 }
@@ -1658,7 +1651,7 @@ x_set_name_internal (f, name)
 
 #ifdef USE_GTK
         gtk_window_set_title (GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f)),
-                              SDATA (ENCODE_UTF_8 (name)));
+                              (char *) SDATA (ENCODE_UTF_8 (name)));
 #else /* not USE_GTK */
 	XSetWMName (FRAME_X_DISPLAY (f), FRAME_OUTER_WINDOW (f), &text);
 #endif /* not USE_GTK */
@@ -3393,9 +3386,16 @@ This function is an internal primitive--use `make-frame' instead.  */)
                        FRAME_OUTER_WINDOW (f),
                        dpyinfo->Xatom_wm_client_leader,
                        XA_WINDOW, 32, PropModeReplace,
-                       (char *) &dpyinfo->client_leader_window, 1);
+                       (unsigned char *) &dpyinfo->client_leader_window, 1);
       UNBLOCK_INPUT;
     }
+
+  /* Initialize `default-minibuffer-frame' in case this is the first
+     frame on this display device.  */
+  if (FRAME_HAS_MINIBUF_P (f)
+      && (!FRAMEP (kb->Vdefault_minibuffer_frame)
+          || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
+    kb->Vdefault_minibuffer_frame = frame;
 
   UNGCPRO;
 
@@ -4943,6 +4943,9 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
   if (INTEGERP (top))
     *root_y = XINT (top);
   else if (*root_y + XINT (dy) - height < 0)
+    *root_y -= XINT (dy);
+  else if (*root_y + XINT (dy) >= FRAME_X_DISPLAY_INFO (f)->height)
+    /* Put tip above the pointer.  */
     *root_y -= XINT (dy);
   else
     {

@@ -3264,7 +3264,7 @@ default part of the buffer's text.  Examples of such commands include
 Invoke \\[apropos-documentation] and type \"transient\" or
 \"mark.*active\" at the prompt, to see the documentation of
 commands which are sensitive to the Transient Mark mode."
-  :global t :group 'editing-basics :require nil)
+  :global t :group 'editing-basics)
 
 (defvar widen-automatically t
   "Non-nil means it is ok for commands to call `widen' when they want to.
@@ -4234,21 +4234,21 @@ in the mode line.
 Line numbers do not appear for very large buffers and buffers
 with very long lines; see variables `line-number-display-limit'
 and `line-number-display-limit-width'."
-  :init-value t :global t :group 'editing-basics :require nil)
+  :init-value t :global t :group 'editing-basics)
 
 (define-minor-mode column-number-mode
   "Toggle Column Number mode.
 With arg, turn Column Number mode on iff arg is positive.
 When Column Number mode is enabled, the column number appears
 in the mode line."
-  :global t :group 'editing-basics :require nil)
+  :global t :group 'editing-basics)
 
 (define-minor-mode size-indication-mode
   "Toggle Size Indication mode.
 With arg, turn Size Indication mode on iff arg is positive.  When
 Size Indication mode is enabled, the size of the accessible part
 of the buffer appears in the mode line."
-  :global t :group 'editing-basics :require nil)
+  :global t :group 'editing-basics)
 
 (defgroup paren-blinking nil
   "Blinking matching of parens and expressions."
@@ -4974,12 +4974,13 @@ is the substring.)")
                       (< (setq element-common-end
                                (+ element-start common-string-length))
                          maxp))
-	    (when (and (get-char-property element-start 'mouse-face)
-		       (get-char-property element-common-end 'mouse-face))
-	      (put-text-property element-start element-common-end
-				 'font-lock-face 'completions-common-part)
-	      (put-text-property element-common-end (1+ element-common-end)
-				 'font-lock-face 'completions-first-difference)))))
+	    (when (get-char-property element-start 'mouse-face)
+	      (if (get-char-property (1- element-common-end) 'mouse-face)
+		  (put-text-property element-start element-common-end
+				     'font-lock-face 'completions-common-part))
+	      (if (get-char-property element-common-end 'mouse-face)
+		  (put-text-property element-common-end (1+ element-common-end)
+				     'font-lock-face 'completions-first-difference))))))
       ;; Insert help string.
       (goto-char (point-min))
       (if (display-mouse-p)

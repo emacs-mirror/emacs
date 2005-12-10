@@ -66,6 +66,13 @@ Lisp_Object Vminibuffer_local_ns_map;
 /* was MinibufLocalCompletionMap */
 Lisp_Object Vminibuffer_local_completion_map;
 
+/* keymap used for minibuffers when doing completion in filenames */
+Lisp_Object Vminibuffer_local_filename_completion_map;
+
+/* keymap used for minibuffers when doing completion in filenames 
+   with require-match*/
+Lisp_Object Vminibuffer_local_must_match_filename_map;
+
 /* keymap used for minibuffers when doing completion and require a match */
 /* was MinibufLocalMustMatchMap */
 Lisp_Object Vminibuffer_local_must_match_map;
@@ -3775,11 +3782,26 @@ don't alter it yourself.  */);
   Vminibuffer_local_completion_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_completion_map, Vminibuffer_local_map);
 
+  DEFVAR_LISP ("minibuffer-local-filename-completion-map", 
+	       &Vminibuffer_local_filename_completion_map,
+	       doc: /* Local keymap for minibuffer input with completion for filenames.  */);
+  Vminibuffer_local_filename_completion_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (Vminibuffer_local_filename_completion_map, 
+		      Vminibuffer_local_completion_map);
+
+
   DEFVAR_LISP ("minibuffer-local-must-match-map", &Vminibuffer_local_must_match_map,
 	       doc: /* Local keymap for minibuffer input with completion, for exact match.  */);
   Vminibuffer_local_must_match_map = Fmake_sparse_keymap (Qnil);
   Fset_keymap_parent (Vminibuffer_local_must_match_map,
 		      Vminibuffer_local_completion_map);
+
+  DEFVAR_LISP ("minibuffer-local-must-match-filename-map", 
+	       &Vminibuffer_local_must_match_filename_map,
+	       doc: /* Local keymap for minibuffer input with completion for filenames with exact match.  */);
+  Vminibuffer_local_must_match_filename_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (Vminibuffer_local_must_match_filename_map, 
+		      Vminibuffer_local_must_match_map);
 
   DEFVAR_LISP ("minor-mode-map-alist", &Vminor_mode_map_alist,
 	       doc: /* Alist of keymaps to use for minor modes.

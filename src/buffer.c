@@ -1359,7 +1359,8 @@ with SIGHUP.  */)
     /* First run the query functions; if any query is answered no,
        don't kill the buffer.  */
     arglist[0] = Qkill_buffer_query_functions;
-    if (NILP (Frun_hook_with_args_until_failure (1, arglist)))
+    tem = Frun_hook_with_args_until_failure (1, arglist);
+    if (NILP (tem))
       return unbind_to (count, Qnil);
 
     /* Then run the hooks.  */

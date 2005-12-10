@@ -2732,8 +2732,10 @@ int
 internal_delete_file (filename)
      Lisp_Object filename;
 {
-  return NILP (internal_condition_case_1 (Fdelete_file, filename,
-					  Qt, internal_delete_file_1));
+  Lisp_Object tem;
+  tem = internal_condition_case_1 (Fdelete_file, filename,
+				   Qt, internal_delete_file_1);
+  return NILP (tem);
 }
 
 DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,
@@ -6236,13 +6238,17 @@ DEFUN ("read-file-name-internal", Fread_file_name_internal, Sread_file_name_inte
 #endif
 	{
 	  /* Must do it the hard (and slow) way.  */
+	  Lisp_Object tem;
 	  GCPRO3 (all, comp, specdir);
 	  count = SPECPDL_INDEX ();
 	  record_unwind_protect (read_file_name_cleanup, current_buffer->directory);
 	  current_buffer->directory = realdir;
 	  for (comp = Qnil; CONSP (all); all = XCDR (all))
-	    if (!NILP (call1 (Vread_file_name_predicate, XCAR (all))))
-	      comp = Fcons (XCAR (all), comp);
+	    {
+	      tem = call1 (Vread_file_name_predicate, XCAR (all));
+	      if (!NILP (tem))
+		comp = Fcons (XCAR (all), comp);
+	    }
 	  unbind_to (count, Qnil);
 	  UNGCPRO;
 	}
