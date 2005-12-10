@@ -1,3 +1,10 @@
+2005-12-10  Lennart Borgman <lennart.borgman.073@student.lu.se>
+
+	* window.el (bw-get-tree, bw-get-tree-1, bw-find-tree-sub)
+	(bw-find-tree-sub-1, bw-l, bw-t, bw-r, bw-b, bw-dir, bw-eqdir)
+	(bw-refresh-edges, bw-adjust-window, bw-balance-sub): New functions.
+	(balance-windows): Rewrite using the above new functions.
+
 2005-12-10  David Koppelman  <koppel@ece.lsu.edu>
 
 	* hi-lock.el: (hi-lock-mode) Renamed from hi-lock-buffer-mode; 
