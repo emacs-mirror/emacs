@@ -622,7 +622,7 @@ atsu_get_text_layout_with_text_ptr (text, text_length, style, text_layout)
       ByteCount sizes[] = {sizeof (ATSLineLayoutOptions)};
       static ATSLineLayoutOptions line_layout =
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-	kATSLineDisableAllLayoutOperations  | kATSLineUseDeviceMetrics
+	kATSLineDisableAllLayoutOperations | kATSLineUseDeviceMetrics
 #else
 	kATSLineIsDisplayOnly | kATSLineFractDisable
 #endif
@@ -8127,20 +8127,18 @@ Lisp_Object Vmac_pass_control_to_system;
    Carbon/Apple event handlers.  */
 static struct input_event *read_socket_inev = NULL;
 
-/* Set in term/mac-win.el to indicate that event loop can now generate
-   drag and drop events.  */
-Lisp_Object Qmac_ready_for_drag_n_drop;
-
 Point saved_menu_event_location;
 
 /* Apple Events */
-static void init_required_apple_events (void);
-static pascal OSErr
-do_ae_open_application (const AppleEvent *, AppleEvent *, long);
-static pascal OSErr
-do_ae_print_documents (const AppleEvent *, AppleEvent *, long);
-static pascal OSErr do_ae_open_documents (AppleEvent *, AppleEvent *, long);
-static pascal OSErr do_ae_quit_application (AppleEvent *, AppleEvent *, long);
+#if USE_CARBON_EVENTS
+static Lisp_Object Qhicommand;
+#endif
+extern int mac_ready_for_apple_events;
+extern Lisp_Object Qundefined;
+extern void init_apple_event_handler P_ ((void));
+extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
+					   Lisp_Object *, Lisp_Object *,
+					   Lisp_Object *));
 
 #if TARGET_API_MAC_CARBON
 /* Drag and Drop */
@@ -8150,11 +8148,10 @@ static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
 static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
 #endif
 
-static Lisp_Object Qapplication, Qabout;
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
 extern void init_service_handler ();
-static Lisp_Object Qpreferences, Qservices, Qpaste, Qperform;
+static Lisp_Object Qservices, Qpaste, Qperform;
 #endif
 /* Window Event Handler */
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
@@ -8699,179 +8696,49 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   x_real_positions (f, &f->left_pos, &f->top_pos);
 }
 
-/* Intialize AppleEvent dispatcher table for the required events.  */
-void
-init_required_apple_events ()
+OSErr
+mac_store_apple_event (class, id, desc)
+     Lisp_Object class, id;
+     const AEDesc *desc;
 {
-  OSErr err;
-  long result;
+  OSErr err = noErr;
+  struct input_event buf;
+  AEDesc *desc_copy;
 
-  /* Make sure we have apple events before starting.  */
-  err = Gestalt (gestaltAppleEventsAttr, &result);
-  if (err != noErr)
-    abort ();
+  desc_copy = xmalloc (sizeof (AEDesc));
+  if (desc_copy == NULL)
+    err = memFullErr;
+  else
+    err = AEDuplicateDesc (desc, desc_copy);
+  if (err == noErr)
+    {
+      EVENT_INIT (buf);
 
-  if (!(result & (1 << gestaltAppleEventsPresent)))
-    abort ();
+      buf.kind = MAC_APPLE_EVENT;
+      buf.x = class;
+      buf.y = id;
+      buf.code = (int)desc_copy;
+      XSETFRAME (buf.frame_or_window,
+		 mac_focus_frame (&one_mac_display_info));
+      buf.arg = Qnil;
+      kbd_buffer_store_event (&buf);
+    }
 
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenApplication,
-			      NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_open_application),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenApplication,
-			      NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_open_application),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments,
-                              NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_open_documents),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments,
-                              NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_open_documents),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments,
-                              NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_print_documents),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments,
-                              NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_print_documents),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
-
-#if TARGET_API_MAC_CARBON
-  err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication,
-                              NewAEEventHandlerUPP
-			      ((AEEventHandlerProcPtr) do_ae_quit_application),
-                              0L, false);
-#else
-  err = AEInstallEventHandler(kCoreEventClass, kAEQuitApplication,
-                              NewAEEventHandlerProc
-			      ((AEEventHandlerProcPtr) do_ae_quit_application),
-                              0L, false);
-#endif
-  if (err != noErr)
-    abort ();
+  return err;
 }
 
-void
-mac_store_application_menu_event (event)
-#if USE_CARBON_EVENTS
-     EventRef event;
-#else
-     UInt32 event;
-#endif
+Lisp_Object
+mac_make_lispy_event_code (code)
+     int code;
 {
-  struct input_event buf;
-  Lisp_Object frame, entry;
+  AEDesc *desc = (AEDesc *)code;
+  Lisp_Object obj;
 
-  EVENT_INIT (buf);
+  obj = mac_aedesc_to_lisp (desc);
+  AEDisposeDesc (desc);
+  xfree (desc);
 
-  XSETFRAME (frame, mac_focus_frame (&one_mac_display_info));
-  buf.kind = MENU_BAR_EVENT;
-  buf.frame_or_window = frame;
-  buf.arg = frame;
-  kbd_buffer_store_event (&buf);
-
-  buf.arg = Qapplication;
-  kbd_buffer_store_event (&buf);
-
-#if USE_CARBON_EVENTS
-  switch (GetEventClass (event))
-    {
-#ifdef MAC_OSX
-    case kEventClassService:
-      buf.arg = Qservices;
-      kbd_buffer_store_event (&buf);
-      switch (GetEventKind (event))
-	{
-	case kEventServicePaste:
-	  entry = Qpaste;
-	  break;
-
-	case kEventServicePerform:
-	  {
-	    OSErr err;
-	    CFStringRef message;
-
-	    err = GetEventParameter (event, kEventParamServiceMessageName,
-				     typeCFStringRef, NULL,
-				     sizeof (CFStringRef), NULL, &message);
-	    buf.arg = Qperform;
-	    kbd_buffer_store_event (&buf);
-	    if (err == noErr && message)
-	      entry = intern (SDATA (cfstring_to_lisp (message)));
-	    else
-	      entry = Qnil;
-	  }
-	  break;
-
-	default:
-	  abort ();
-	}
-      break;
-#endif	/* MAC_OSX */
-    case kEventClassCommand:
-      {
-	HICommand command;
-
-	GetEventParameter(event, kEventParamDirectObject, typeHICommand,
-			  NULL, sizeof (HICommand), NULL, &command);
-	switch (command.commandID)
-	  {
-	  case kHICommandAbout:
-	    entry = Qabout;
-	    break;
-#ifdef MAC_OSX
-	  case kHICommandPreferences:
-	    entry = Qpreferences;
-	    break;
-#endif /* MAC_OSX */
-	  case kHICommandQuit:
-	    entry = Qquit;
-	    break;
-	  default:
-	    abort ();
-	  }
-      }
-      break;
-
-    default:
-      abort ();
-    }
-#else  /* USE_CARBON_EVENTS */
-  switch (event)
-    {
-    case kHICommandAbout:
-      entry = Qabout;
-      break;
-    case kHICommandQuit:
-      entry = Qquit;
-      break;
-    default:
-      abort ();
-    }
-#endif
-
-  buf.arg = entry;
-  kbd_buffer_store_event (&buf);
+  return obj;
 }
 
 #if USE_CARBON_EVENTS
@@ -8881,28 +8748,49 @@ mac_handle_command_event (next_handler, event, data)
      EventRef event;
      void *data;
 {
+  OSStatus result;
+  OSErr err;
   HICommand command;
-  OSErr result;
+  Lisp_Object class_key, id_key, binding;
 
-  GetEventParameter(event, kEventParamDirectObject, typeHICommand, NULL,
-		    sizeof (HICommand), NULL, &command);
+  result = CallNextEventHandler (next_handler, event);
+  if (result != eventNotHandledErr)
+    return result;
 
-  switch (command.commandID)
-    {
-    case kHICommandAbout:
-#ifdef MAC_OSX
-    case kHICommandPreferences:
-#endif	/* MAC_OSX */
-      result = CallNextEventHandler (next_handler, event);
-      if (result != eventNotHandledErr)
-	return result;
+  GetEventParameter (event, kEventParamDirectObject, typeHICommand, NULL,
+		     sizeof (HICommand), NULL, &command);
 
-      mac_store_application_menu_event (event);
-      return noErr;
+  if (command.commandID == 0)
+    return eventNotHandledErr;
 
-    default:
-      break;
-    }
+  /* A HICommand event is mapped to an Apple event whose event class
+     symbol is `hicommand' and event ID is its command ID.  */
+  class_key = Qhicommand;
+  mac_find_apple_event_spec (0, command.commandID,
+			     &class_key, &id_key, &binding);
+  if (!NILP (binding) && !EQ (binding, Qundefined))
+    if (INTEGERP (binding))
+      return XINT (binding);
+    else
+      {
+	AppleEvent apple_event;
+	UInt32 modifiers;
+	static EventParamName names[] = {kEventParamDirectObject,
+					 kEventParamKeyModifiers};
+	static EventParamType types[] = {typeHICommand,
+					 typeUInt32};
+	static UInt32 sizes[] = {sizeof (HICommand),
+				 sizeof (UInt32)};
+	err = create_apple_event_from_event_ref (event, 2, names, types,
+						 sizes, &apple_event);
+	if (err == noErr)
+	  {
+	    err = mac_store_apple_event (class_key, id_key, &apple_event);
+	    AEDisposeDesc (&apple_event);
+	  }
+	if (err == noErr)
+	  return noErr;
+      }
 
   return eventNotHandledErr;
 }
@@ -9064,6 +8952,52 @@ mac_handle_mouse_event (next_handler, event, data)
 
   return eventNotHandledErr;
 }
+
+#ifdef MAC_OSX
+OSErr
+mac_store_services_event (event)
+     EventRef event;
+{
+  OSErr err;
+  AppleEvent apple_event;
+  Lisp_Object id_key;
+
+  switch (GetEventKind (event))
+    {
+    case kEventServicePaste:
+      id_key = Qpaste;
+      err = create_apple_event_from_event_ref (event, 0, NULL,
+					       NULL, NULL, &apple_event);
+      break;
+
+    case kEventServicePerform:
+      {
+	static EventParamName names[] = {kEventParamServiceMessageName,
+					 kEventParamServiceUserData};
+	static EventParamType types[] = {typeCFStringRef,
+					 typeCFStringRef};
+	static UInt32 sizes[] = {sizeof (CFStringRef),
+				 sizeof (CFStringRef)};
+
+	id_key = Qperform;
+	err = create_apple_event_from_event_ref (event, 2, names, types,
+						 sizes, &apple_event);
+      }
+      break;
+
+    default:
+      abort ();
+    }
+
+  if (err == noErr)
+    {
+      err = mac_store_apple_event (Qservices, id_key, &apple_event);
+      AEDisposeDesc (&apple_event);
+    }
+
+  return err;
+}
+#endif	/* MAC_OSX */
 #endif	/* USE_CARBON_EVENTS */
 
 
@@ -9121,159 +9055,6 @@ remove_window_handler (window)
     RemoveReceiveHandler (mac_do_receive_dragUPP, window);
 #endif
 }
-
-/* Open Application Apple Event */
-static pascal OSErr
-do_ae_open_application(const AppleEvent *pae, AppleEvent *preply, long prefcon)
-{
-  return noErr;
-}
-
-
-/* Called when we receive an AppleEvent with an ID of
-   "kAEOpenDocuments".  This routine gets the direct parameter,
-   extracts the FSSpecs in it, and puts their names on a list.  */
-#pragma options align=mac68k
-typedef struct SelectionRange {
-  short unused1; // 0 (not used)
-  short lineNum; // line to select (<0 to specify range)
-  long startRange; // start of selection range (if line < 0)
-  long endRange; // end of selection range (if line < 0)
-  long unused2; // 0 (not used)
-  long theDate; // modification date/time
-} SelectionRange;
-#pragma options align=reset
-
-static pascal OSErr
-do_ae_open_documents(AppleEvent *message, AppleEvent *reply, long refcon)
-{
-  OSErr err, err2;
-  AEDesc the_desc;
-  AEKeyword keyword;
-  DescType actual_type;
-  Size actual_size;
-  SelectionRange position;
-  Lisp_Object file_list = Qnil;
-
-  xassert (read_socket_inev);
-
-  err = AEGetParamDesc (message, keyDirectObject, typeAEList, &the_desc);
-  if (err != noErr)
-    goto descriptor_error_exit;
-
-  err = AEGetParamPtr (message, keyAEPosition, typeChar, &actual_type, &position, sizeof(SelectionRange), &actual_size);
-  if (err == noErr)
-    file_list = Fcons (list3 (make_number (position.lineNum + 1),
-			      make_number (position.startRange + 1),
-			      make_number (position.endRange + 1)),
-		       file_list);
-
-  /* Check to see that we got all of the required parameters from the
-     event descriptor.  For an 'odoc' event this should just be the
-     file list.  */
-  err = AEGetAttributePtr(message, keyMissedKeywordAttr, typeWildCard,
-			  &actual_type, (Ptr) &keyword,
-                          sizeof (keyword), &actual_size);
-  /* No error means that we found some unused parameters.
-     errAEDescNotFound means that there are no more parameters.  If we
-     get an error code other than that, flag it.  */
-  if ((err == noErr) || (err != errAEDescNotFound))
-    {
-      err = errAEEventNotHandled;
-      goto error_exit;
-    }
-  err = noErr;
-
-  /* Got all the parameters we need.  Now, go through the direct
-     object list and parse it up.  */
-  {
-    long num_files_to_open;
-
-    err = AECountItems (&the_desc, &num_files_to_open);
-    if (err == noErr)
-      {
-        int i;
-
-        /* AE file list is one based so just use that for indexing here.  */
-        for (i = 1; i <= num_files_to_open; i++)
-	  {
-	    char unix_path_name[MAXPATHLEN];
-#ifdef MAC_OSX
-	    FSRef fref;
-
-	    err = AEGetNthPtr (&the_desc, i, typeFSRef, &keyword,
-			       &actual_type, &fref, sizeof (FSRef),
-			       &actual_size);
-	    if (err != noErr || actual_type != typeFSRef)
-	      continue;
-
-	    if (FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name))
-		== noErr)
-#else
-	    FSSpec fs;
-
-	    err = AEGetNthPtr(&the_desc, i, typeFSS, &keyword, &actual_type,
-			      (Ptr) &fs, sizeof (fs), &actual_size);
-	    if (err != noErr) continue;
-
-	    if (fsspec_to_posix_pathname (&fs, unix_path_name,
-					  sizeof (unix_path_name) - 1) == noErr)
-#endif
-	      /* x-dnd functions expect undecoded filenames.  */
-	      file_list = Fcons (make_unibyte_string (unix_path_name,
-						      strlen (unix_path_name)),
-				 file_list);
-	  }
-      }
-
-    /* Build a DRAG_N_DROP_EVENT type event as is done in
-       constuct_drag_n_drop in w32term.c.  */
-    if (!NILP (file_list))
-      {
-	struct frame *f = mac_focus_frame (&one_mac_display_info);
-	WindowPtr wp;
-	Lisp_Object frame;
-
-	read_socket_inev->kind = DRAG_N_DROP_EVENT;
-	read_socket_inev->code = 0;
-	read_socket_inev->modifiers = 0;
-
-	XSETINT (read_socket_inev->x, 0);
-	XSETINT (read_socket_inev->y, 0);
-
-	XSETFRAME (frame, f);
-	read_socket_inev->frame_or_window = Fcons (frame, file_list);
-
-#if 0
-	/* Regardless of whether Emacs was suspended or in the
-	   foreground, ask it to redraw its entire screen.  Otherwise
-	   parts of the screen can be left in an inconsistent
-	   state.  */
-	wp = FRAME_MAC_WINDOW (f);
-	if (wp)
-#if TARGET_API_MAC_CARBON
-	  {
-	    Rect r;
-
-	    GetWindowPortBounds (wp, &r);
-	    InvalWindowRect (wp, &r);
-	  }
-#else /* not TARGET_API_MAC_CARBON */
-	InvalRect (&(wp->portRect));
-#endif /* not TARGET_API_MAC_CARBON */
-#endif
-      }
-  }
-
-error_exit:
-  /* Nuke the coerced file list in any case */
-  err2 = AEDisposeDesc(&the_desc);
-
-descriptor_error_exit:
-  /* InvalRect(&(gFrontMacWindowP->mWP->portRect)); */
-  return err;
-}
-
 
 #if TARGET_API_MAC_CARBON
 static pascal OSErr
@@ -9429,44 +9210,6 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
 #endif
 
 
-/* Print Document Apple Event */
-static pascal OSErr
-do_ae_print_documents (const AppleEvent *pAE, AppleEvent *reply, long refcon)
-{
-  return errAEEventNotHandled;
-}
-
-
-static pascal OSErr
-do_ae_quit_application (AppleEvent* message, AppleEvent *reply, long refcon)
-{
-#if USE_CARBON_EVENTS
-  OSErr err;
-  EventRef event = NULL;
-  static const HICommand quit_command = {kEventAttributeNone, kHICommandQuit};
-
-  err = CreateEvent (NULL, kEventClassCommand, kEventCommandProcess, 0,
-		     kEventAttributeUserEvent, &event);
-  if (err == noErr)
-    err = SetEventParameter (event, kEventParamDirectObject, typeHICommand,
-			     sizeof (HICommand), &quit_command);
-  if (err == noErr)
-    mac_store_application_menu_event (event);
-  if (event)
-    ReleaseEvent (event);
-
-  if (err == noErr)
-    return noErr;
-  else
-    return errAEEventNotHandled;
-#else
-  mac_store_application_menu_event (kHICommandQuit);
-
-  return noErr;
-#endif
-}
-
-
 #if __profile__
 void
 profiler_exit_proc ()
@@ -9520,7 +9263,7 @@ main (void)
 
   initialize_applescript ();
 
-  init_required_apple_events ();
+  init_apple_event_handler ();
 
   {
     char **argv;
@@ -9724,7 +9467,7 @@ mac_wait_next_event (er, sleep_time, dequeue)
     mouse_region = NewRgn ();
 
   event_mask = everyEvent;
-  if (NILP (Fboundp (Qmac_ready_for_drag_n_drop)))
+  if (!mac_ready_for_apple_events)
     event_mask -= highLevelEventMask;
 
   current_tick = TickCount ();
@@ -10891,7 +10634,6 @@ mac_initialize ()
   BLOCK_INPUT;
 
 #if TARGET_API_MAC_CARBON
-  init_required_apple_events ();
 
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
@@ -10906,6 +10648,8 @@ mac_initialize ()
 #endif	/* USE_CARBON_EVENTS */
 
 #ifdef MAC_OSX
+  init_apple_event_handler ();
+
   if (!inhibit_window_system)
     MakeMeTheFrontProcess ();
 #endif
@@ -10936,14 +10680,13 @@ syms_of_macterm ()
   Fput (Qhyper,   Qmodifier_value, make_number (hyper_modifier));
   Fput (Qsuper,   Qmodifier_value, make_number (super_modifier));
 
-  Qapplication = intern ("application");  staticpro (&Qapplication);
-  Qabout       = intern ("about");	  staticpro (&Qabout);
-
-#if USE_CARBON_EVENTS && defined (MAC_OSX)
-  Qpreferences = intern ("preferences");  staticpro (&Qpreferences);
+#if USE_CARBON_EVENTS
+  Qhicommand   = intern ("hicommand");    staticpro (&Qhicommand);
+#ifdef MAC_OSX
   Qservices    = intern ("services");	  staticpro (&Qservices);
   Qpaste       = intern ("paste");	  staticpro (&Qpaste);
   Qperform     = intern ("perform");	  staticpro (&Qperform);
+#endif
 #endif
 
 #ifdef MAC_OSX
@@ -10952,9 +10695,6 @@ syms_of_macterm ()
 
   staticpro (&Qreverse);
   Qreverse = intern ("reverse");
-
-  staticpro (&Qmac_ready_for_drag_n_drop);
-  Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
 
   staticpro (&x_display_name_list);
   x_display_name_list = Qnil;
