@@ -1311,7 +1311,8 @@ Maybe expand abbrevs and blink matching block open keywords.
 Reindent the line of `octave-auto-indent' is non-nil."
   (interactive)
   (setq last-command-char ? )
-  (if (not (octave-not-in-string-or-comment-p))
+  (if (and octave-auto-indent
+	   (not (octave-not-in-string-or-comment-p)))
       (progn
 	(indent-according-to-mode)
 	(self-insert-command 1))
