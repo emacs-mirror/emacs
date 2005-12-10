@@ -3373,16 +3373,12 @@ This function is an internal primitive--use `make-frame' instead.  */)
       UNBLOCK_INPUT;
     }
 
-#if 0 /* This is incorrect because `default-minibuffer-frame'
-	 should only be set automatically to a minibuffer-only frame.  */
-
   /* Initialize `default-minibuffer-frame' in case this is the first
      frame on this display device.  */
   if (FRAME_HAS_MINIBUF_P (f)
       && (!FRAMEP (kb->Vdefault_minibuffer_frame)
           || !FRAME_LIVE_P (XFRAME (kb->Vdefault_minibuffer_frame))))
     kb->Vdefault_minibuffer_frame = frame;
-#endif
 
   UNGCPRO;
 
