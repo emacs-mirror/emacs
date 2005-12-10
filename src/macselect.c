@@ -23,6 +23,7 @@ Boston, MA 02110-1301, USA.  */
 #include "lisp.h"
 #include "macterm.h"
 #include "blockinput.h"
+#include "keymap.h"
 
 #if !TARGET_API_MAC_CARBON
 #include <Endian.h>
@@ -908,6 +909,253 @@ and t is the same as `SECONDARY'.  */)
 }
 
 
+int mac_ready_for_apple_events = 0;
+static Lisp_Object Vmac_apple_event_map;
+static Lisp_Object Qmac_apple_event_class, Qmac_apple_event_id;
+static struct
+{
+  AppleEvent *buf;
+  int size, count;
+} deferred_apple_events;
+extern Lisp_Object Qundefined;
+extern OSErr mac_store_apple_event P_ ((Lisp_Object, Lisp_Object,
+					const AEDesc *));
+
+struct apple_event_binding
+{
+  UInt32 code;			/* Apple event class or ID.  */
+  Lisp_Object key, binding;
+};
+
+static void
+find_event_binding_fun (key, binding, args, data)
+     Lisp_Object key, binding, args;
+     void *data;
+{
+  struct apple_event_binding *event_binding =
+    (struct apple_event_binding *)data;
+  Lisp_Object code_string;
+
+  if (!SYMBOLP (key))
+    return;
+  code_string = Fget (key, args);
+  if (STRINGP (code_string) && SBYTES (code_string) == 4
+      && (EndianU32_BtoN (*((UInt32 *) SDATA (code_string)))
+	  == event_binding->code))
+    {
+      event_binding->key = key;
+      event_binding->binding = binding;
+    }
+}
+
+static void
+find_event_binding (keymap, event_binding, class_p)
+     Lisp_Object keymap;
+     struct apple_event_binding *event_binding;
+     int class_p;
+{
+  if (event_binding->code == 0)
+    event_binding->binding =
+      access_keymap (keymap, event_binding->key, 0, 1, 0);
+  else
+    {
+      event_binding->binding = Qnil;
+      map_keymap (keymap, find_event_binding_fun,
+		  class_p ? Qmac_apple_event_class : Qmac_apple_event_id,
+		  event_binding, 0);
+    }
+}
+
+void
+mac_find_apple_event_spec (class, id, class_key, id_key, binding)
+     AEEventClass class;
+     AEEventID id;
+     Lisp_Object *class_key, *id_key, *binding;
+{
+  struct apple_event_binding event_binding;
+  Lisp_Object keymap;
+
+  *binding = Qnil;
+
+  keymap = get_keymap (Vmac_apple_event_map, 0, 0);
+  if (NILP (keymap))
+    return;
+
+  event_binding.code = class;
+  event_binding.key = *class_key;
+  event_binding.binding = Qnil;
+  find_event_binding (keymap, &event_binding, 1);
+  *class_key = event_binding.key;
+  keymap = get_keymap (event_binding.binding, 0, 0);
+  if (NILP (keymap))
+    return;
+
+  event_binding.code = id;
+  event_binding.key = *id_key;
+  event_binding.binding = Qnil;
+  find_event_binding (keymap, &event_binding, 0);
+  *id_key = event_binding.key;
+  *binding = event_binding.binding;
+}
+
+static OSErr
+defer_apple_events (apple_event, reply)
+     const AppleEvent *apple_event, *reply;
+{
+  OSErr err;
+
+  err = AESuspendTheCurrentEvent (apple_event);
+
+  /* Mac OS 10.3 Xcode manual says AESuspendTheCurrentEvent makes
+     copies of the Apple event and the reply, but Mac OS 10.4 Xcode
+     manual says it doesn't.  Anyway we create copies of them and save
+     it in `deferred_apple_events'.  */
+  if (err == noErr)
+    {
+      if (deferred_apple_events.buf == NULL)
+	{
+	  deferred_apple_events.size = 16;
+	  deferred_apple_events.count = 0;
+	  deferred_apple_events.buf =
+	    xmalloc (sizeof (AppleEvent) * deferred_apple_events.size);
+	  if (deferred_apple_events.buf == NULL)
+	    err = memFullErr;
+	}
+      else if (deferred_apple_events.count == deferred_apple_events.size)
+	{
+	  AppleEvent *newbuf;
+
+	  deferred_apple_events.size *= 2;
+	  newbuf = xrealloc (deferred_apple_events.buf,
+			     sizeof (AppleEvent) * deferred_apple_events.size);
+	  if (newbuf)
+	    deferred_apple_events.buf = newbuf;
+	  else
+	    err = memFullErr;
+	}
+    }
+
+  if (err == noErr)
+    {
+      int count = deferred_apple_events.count;
+
+      AEDuplicateDesc (apple_event, deferred_apple_events.buf + count);
+      AEDuplicateDesc (reply, deferred_apple_events.buf + count + 1);
+      deferred_apple_events.count += 2;
+    }
+
+  return err;
+}
+
+static pascal OSErr
+mac_handle_apple_event (apple_event, reply, refcon)
+     const AppleEvent *apple_event;
+     AppleEvent *reply;
+     SInt32 refcon;
+{
+  OSErr err;
+  AEEventClass event_class;
+  AEEventID event_id;
+  Lisp_Object class_key, id_key, binding;
+
+  /* We can't handle an Apple event that requests a reply, but this
+     seems to be too restrictive.  */
+#if 0
+  if (reply->descriptorType != typeNull)
+    return errAEEventNotHandled;
+#endif
+
+  if (!mac_ready_for_apple_events)
+    {
+      err = defer_apple_events (apple_event, reply);
+      if (err != noErr)
+	return errAEEventNotHandled;
+      return noErr;
+    }
+
+  err = AEGetAttributePtr (apple_event, keyEventClassAttr, typeType, NULL,
+			   &event_class, sizeof (AEEventClass), NULL);
+  if (err == noErr)
+    err = AEGetAttributePtr (apple_event, keyEventIDAttr, typeType, NULL,
+			     &event_id, sizeof (AEEventID), NULL);
+  if (err == noErr)
+    {
+      mac_find_apple_event_spec (event_class, event_id,
+				 &class_key, &id_key, &binding);
+      if (!NILP (binding) && !EQ (binding, Qundefined))
+	{
+	  if (INTEGERP (binding))
+	    return XINT (binding);
+	  err = mac_store_apple_event (class_key, id_key, apple_event);
+	  if (err == noErr)
+	    return noErr;
+	}
+    }
+  return errAEEventNotHandled;
+}
+
+void
+init_apple_event_handler ()
+{
+  OSErr err;
+  long result;
+
+  /* Make sure we have Apple events before starting.  */
+  err = Gestalt (gestaltAppleEventsAttr, &result);
+  if (err != noErr)
+    abort ();
+
+  if (!(result & (1 << gestaltAppleEventsPresent)))
+    abort ();
+
+  err = AEInstallEventHandler (typeWildCard, typeWildCard,
+#if TARGET_API_MAC_CARBON
+			       NewAEEventHandlerUPP (mac_handle_apple_event),
+#else
+			       NewAEEventHandlerProc (mac_handle_apple_event),
+#endif
+			       0L, false);
+  if (err != noErr)
+    abort ();
+}
+
+DEFUN ("mac-process-deferred-apple-events", Fmac_process_deferred_apple_events, Smac_process_deferred_apple_events, 0, 0, 0,
+       doc: /* Process Apple events that are deferred at the startup time.  */)
+  ()
+{
+  OSErr err;
+  Lisp_Object result = Qnil;
+  long i, count;
+  AppleEvent apple_event, reply;
+  AEKeyword keyword;
+
+  if (mac_ready_for_apple_events)
+    return Qnil;
+
+  BLOCK_INPUT;
+  mac_ready_for_apple_events = 1;
+  if (deferred_apple_events.buf)
+    {
+      for (i = 0; i < deferred_apple_events.count; i += 2)
+	{
+	  AEResumeTheCurrentEvent (deferred_apple_events.buf + i,
+				   deferred_apple_events.buf + i + 1,
+				   ((AEEventHandlerUPP)
+				    kAEUseStandardDispatch), 0);
+	  AEDisposeDesc (deferred_apple_events.buf + i);
+	  AEDisposeDesc (deferred_apple_events.buf + i + 1);
+	}
+      xfree (deferred_apple_events.buf);
+      bzero (&deferred_apple_events, sizeof (deferred_apple_events));
+
+      result = Qt;
+    }
+  UNBLOCK_INPUT;
+
+  return result;
+}
+
+
 #ifdef MAC_OSX
 void
 init_service_handler ()
@@ -920,7 +1168,56 @@ init_service_handler ()
 				  GetEventTypeCount (specs), specs, NULL, NULL);
 }
 
-extern void mac_store_services_event P_ ((EventRef));
+extern OSErr mac_store_services_event P_ ((EventRef));
+
+static OSStatus
+copy_scrap_flavor_data (from_scrap, to_scrap, flavor_type)
+     ScrapRef from_scrap, to_scrap;
+     ScrapFlavorType flavor_type;
+{
+  OSStatus err;
+  Size size, size_allocated;
+  char *buf = NULL;
+
+  err = GetScrapFlavorSize (from_scrap, flavor_type, &size);
+  if (err == noErr)
+    buf = xmalloc (size);
+  while (buf)
+    {
+      size_allocated = size;
+      err = GetScrapFlavorData (from_scrap, flavor_type, &size, buf);
+      if (err != noErr)
+	{
+	  xfree (buf);
+	  buf = NULL;
+	}
+      else if (size_allocated < size)
+	{
+	  char *newbuf = xrealloc (buf, size);
+
+	  if (newbuf)
+	    buf = newbuf;
+	  else
+	    {
+	      xfree (buf);
+	      buf = NULL;
+	    }
+	}
+      else
+	break;
+    }
+  if (err == noErr)
+    if (buf == NULL)
+      err = memFullErr;
+    else
+      {
+	err = PutScrapFlavor (to_scrap, flavor_type, kScrapFlavorMaskNone,
+			      size, buf);
+	xfree (buf);
+      }
+
+  return err;
+}
 
 static OSStatus
 mac_handle_service_event (call_ref, event, data)
@@ -929,7 +1226,12 @@ mac_handle_service_event (call_ref, event, data)
      void *data;
 {
   OSStatus err = noErr;
-  ScrapRef cur_scrap;
+  ScrapRef cur_scrap, specific_scrap;
+  UInt32 event_kind = GetEventKind (event);
+  CFMutableArrayRef copy_types, paste_types;
+  CFStringRef type;
+  Lisp_Object rest;
+  ScrapFlavorType flavor_type;
 
   /* Check if Vmac_services_selection is a valid selection that has a
      corresponding scrap.  */
@@ -940,86 +1242,103 @@ mac_handle_service_event (call_ref, event, data)
   if (!(err == noErr && cur_scrap))
     return eventNotHandledErr;
 
-  switch (GetEventKind (event))
+  switch (event_kind)
     {
     case kEventServiceGetTypes:
-      {
-	CFMutableArrayRef copy_types, paste_types;
-	CFStringRef type;
-	Lisp_Object rest;
-	ScrapFlavorType flavor_type;
+      /* Set paste types. */
+      err = GetEventParameter (event, kEventParamServicePasteTypes,
+			       typeCFMutableArrayRef, NULL,
+			       sizeof (CFMutableArrayRef), NULL,
+			       &paste_types);
+      if (err != noErr)
+	break;
 
-	/* Set paste types. */
-	err = GetEventParameter (event, kEventParamServicePasteTypes,
-				 typeCFMutableArrayRef, NULL,
-				 sizeof (CFMutableArrayRef), NULL,
-				 &paste_types);
-	if (err == noErr)
-	  for (rest = Vselection_converter_alist; CONSP (rest);
-	       rest = XCDR (rest))
-	    if (CONSP (XCAR (rest)) && SYMBOLP (XCAR (XCAR (rest)))
-		&& (flavor_type =
-		    get_flavor_type_from_symbol (XCAR (XCAR (rest)))))
+      for (rest = Vselection_converter_alist; CONSP (rest);
+	   rest = XCDR (rest))
+	if (CONSP (XCAR (rest)) && SYMBOLP (XCAR (XCAR (rest)))
+	    && (flavor_type =
+		get_flavor_type_from_symbol (XCAR (XCAR (rest)))))
+	  {
+	    type = CreateTypeStringWithOSType (flavor_type);
+	    if (type)
 	      {
-		type = CreateTypeStringWithOSType (flavor_type);
-		if (type)
-		  {
-		    CFArrayAppendValue (paste_types, type);
-		    CFRelease (type);
-		  }
+		CFArrayAppendValue (paste_types, type);
+		CFRelease (type);
 	      }
+	  }
 
-	/* Set copy types.  */
-	err = GetEventParameter (event, kEventParamServiceCopyTypes,
-				 typeCFMutableArrayRef, NULL,
-				 sizeof (CFMutableArrayRef), NULL,
-				 &copy_types);
-	if (err == noErr
-	    && !NILP (Fx_selection_owner_p (Vmac_services_selection)))
-	  for (rest = get_scrap_target_type_list (cur_scrap);
-	       CONSP (rest) && SYMBOLP (XCAR (rest)); rest = XCDR (rest))
-	    {
-	      flavor_type = get_flavor_type_from_symbol (XCAR (rest));
-	      if (flavor_type)
-		{
-		  type = CreateTypeStringWithOSType (flavor_type);
-		  if (type)
-		    {
-		      CFArrayAppendValue (copy_types, type);
-		      CFRelease (type);
-		    }
-		}
-	    }
-      }
-      break;
+      /* Set copy types.  */
+      err = GetEventParameter (event, kEventParamServiceCopyTypes,
+			       typeCFMutableArrayRef, NULL,
+			       sizeof (CFMutableArrayRef), NULL,
+			       &copy_types);
+      if (err != noErr)
+	break;
+
+      if (NILP (Fx_selection_owner_p (Vmac_services_selection)))
+	break;
+      else
+	goto copy_all_flavors;
 
     case kEventServiceCopy:
-      {
-	ScrapRef specific_scrap;
-	Lisp_Object rest, data;
-
-	err = GetEventParameter (event, kEventParamScrapRef,
-				 typeScrapRef, NULL,
-				 sizeof (ScrapRef), NULL, &specific_scrap);
-	if (err == noErr
-	    && !NILP (Fx_selection_owner_p (Vmac_services_selection)))
-	  for (rest = get_scrap_target_type_list (cur_scrap);
-	       CONSP (rest) && SYMBOLP (XCAR (rest)); rest = XCDR (rest))
-	    {
-	      data = get_scrap_string (cur_scrap, XCAR (rest));
-	      if (STRINGP (data))
-		err = put_scrap_string (specific_scrap, XCAR (rest), data);
-	    }
-	else
+      err = GetEventParameter (event, kEventParamScrapRef,
+			       typeScrapRef, NULL,
+			       sizeof (ScrapRef), NULL, &specific_scrap);
+      if (err != noErr
+	  || NILP (Fx_selection_owner_p (Vmac_services_selection)))
+	{
 	  err = eventNotHandledErr;
+	  break;
+	}
+
+    copy_all_flavors:
+      {
+	UInt32 count, i;
+	ScrapFlavorInfo *flavor_info = NULL;
+	ScrapFlavorFlags flags;
+
+	err = GetScrapFlavorCount (cur_scrap, &count);
+	if (err == noErr)
+	  flavor_info = xmalloc (sizeof (ScrapFlavorInfo) * count);
+	if (flavor_info)
+	  {
+	    err = GetScrapFlavorInfoList (cur_scrap, &count, flavor_info);
+	    if (err != noErr)
+	      {
+		xfree (flavor_info);
+		flavor_info = NULL;
+	      }
+	  }
+	if (flavor_info == NULL)
+	  break;
+
+	for (i = 0; i < count; i++)
+	  {
+	    flavor_type = flavor_info[i].flavorType;
+	    err = GetScrapFlavorFlags (cur_scrap, flavor_type, &flags);
+	    if (err == noErr && !(flags & kScrapFlavorMaskSenderOnly))
+	      {
+		if (event_kind == kEventServiceCopy)
+		  err = copy_scrap_flavor_data (cur_scrap, specific_scrap,
+						flavor_type);
+		else	     /* event_kind == kEventServiceGetTypes */
+		  {
+		    type = CreateTypeStringWithOSType (flavor_type);
+		    if (type)
+		      {
+			CFArrayAppendValue (copy_types, type);
+			CFRelease (type);
+		      }
+		  }
+	      }
+	  }
+	xfree (flavor_info);
       }
       break;
 
     case kEventServicePaste:
     case kEventServicePerform:
       {
-        ScrapRef specific_scrap;
-	Lisp_Object rest, data;
 	int data_exists_p = 0;
 
         err = GetEventParameter (event, kEventParamScrapRef, typeScrapRef,
@@ -1033,25 +1352,24 @@ mac_handle_service_event (call_ref, event, data)
 	    {
 	      if (! (CONSP (XCAR (rest)) && SYMBOLP (XCAR (XCAR (rest)))))
 		continue;
-	      data = get_scrap_string (specific_scrap, XCAR (XCAR (rest)));
-	      if (STRINGP (data))
-		{
-		  err = put_scrap_string (cur_scrap, XCAR (XCAR (rest)),
-					  data);
-		  if (err != noErr)
-		    break;
-		  data_exists_p = 1;
-		}
+	      flavor_type = get_flavor_type_from_symbol (XCAR (XCAR (rest)));
+	      if (flavor_type == 0)
+		continue;
+	      err = copy_scrap_flavor_data (specific_scrap, cur_scrap,
+					    flavor_type);
+	      if (err == noErr)
+		data_exists_p = 1;
 	    }
-	if (err == noErr)
-	  if (data_exists_p)
-	    mac_store_application_menu_event (event);
-	  else
-	    err = eventNotHandledErr;
+	if (!data_exists_p)
+	  err = eventNotHandledErr;
+	else
+	  err = mac_store_services_event (event);
       }
       break;
     }
 
+  if (err != noErr)
+    err = eventNotHandledErr;
   return err;
 }
 #endif
@@ -1065,6 +1383,7 @@ syms_of_macselect ()
   defsubr (&Sx_disown_selection_internal);
   defsubr (&Sx_selection_owner_p);
   defsubr (&Sx_selection_exists_p);
+  defsubr (&Smac_process_deferred_apple_events);
 
   Vselection_alist = Qnil;
   staticpro (&Vselection_alist);
@@ -1106,6 +1425,10 @@ next communication only.  After the communication, this variable is
 set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
+  DEFVAR_LISP ("mac-apple-event-map", &Vmac_apple_event_map,
+	       doc: /* Keymap for Apple events handled by Emacs.  */);
+  Vmac_apple_event_map = Fmake_sparse_keymap (Qnil);
+
 #ifdef MAC_OSX
   DEFVAR_LISP ("mac-services-selection", &Vmac_services_selection,
 	       doc: /* Selection name for communication via Services menu.  */);
@@ -1125,6 +1448,12 @@ set to nil.  */);
 
   Qmac_ostype = intern ("mac-ostype");
   staticpro (&Qmac_ostype);
+
+  Qmac_apple_event_class = intern ("mac-apple-event-class");
+  staticpro (&Qmac_apple_event_class);
+
+  Qmac_apple_event_id = intern ("mac-apple-event-id");
+  staticpro (&Qmac_apple_event_id);
 }
 
 /* arch-tag: f3c91ad8-99e0-4bd6-9eef-251b2f848732
