@@ -1,3 +1,15 @@
+2005-12-10  David Koppelman  <koppel@ece.lsu.edu>
+
+	* hi-lock.el: (hi-lock-mode) Renamed from hi-lock-buffer-mode; 
+	react if global-hi-lock-mode seems intended.
+	(global-hi-lock-mode) Renamed from hi-lock-mode.
+	(hi-lock-archaic-interface-message-used)
+	(hi-lock-archaic-interface-deduce): New variables.  
+	(turn-on-hi-lock-if-enabled, hi-lock-line-face-buffer)
+	(hi-lock-face-buffer, hi-lock-face-phrase-buffer)
+	(hi-lock-find-patterns, hi-lock-font-lock-hook): Replace
+	hi-lock-buffer-mode with hi-lock-mode.
+
 2005-12-10  Kevin Rodgers  <ihs_4664@ihs.com>
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Regenerate the
