@@ -1,3 +1,7 @@
+2005-12-10  Romain Francoise  <romain@orebokech.com>
+
+	* help.el (help-for-help-internal): Add `r' in doc string.
+
 2005-12-10  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* align.el (align-regexp, align-highlight-rule): Use
@@ -5,7 +9,7 @@
 	repetition (with `repeat-complex-command') recomputes the region
 	bounds.
 
-2005-12-10  Lennart Borgman <lennart.borgman.073@student.lu.se>
+2005-12-10  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* window.el (bw-get-tree, bw-get-tree-1, bw-find-tree-sub)
 	(bw-find-tree-sub-1, bw-l, bw-t, bw-r, bw-b, bw-dir, bw-eqdir)
@@ -14,11 +18,11 @@
 
 2005-12-10  David Koppelman  <koppel@ece.lsu.edu>
 
-	* hi-lock.el: (hi-lock-mode) Renamed from hi-lock-buffer-mode; 
+	* hi-lock.el: (hi-lock-mode) Renamed from hi-lock-buffer-mode;
 	react if global-hi-lock-mode seems intended.
 	(global-hi-lock-mode) Renamed from hi-lock-mode.
 	(hi-lock-archaic-interface-message-used)
-	(hi-lock-archaic-interface-deduce): New variables.  
+	(hi-lock-archaic-interface-deduce): New variables.
 	(turn-on-hi-lock-if-enabled, hi-lock-line-face-buffer)
 	(hi-lock-face-buffer, hi-lock-face-phrase-buffer)
 	(hi-lock-find-patterns, hi-lock-font-lock-hook): Replace
@@ -78,7 +82,7 @@
 2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* files.el (save-buffer):
-	* international/ucs-tables.el (ucs-set-table-for-input): 
+	* international/ucs-tables.el (ucs-set-table-for-input):
 	* mail/mail-extr.el (mail-extract-address-components):
 	* mail/sendmail.el (mail-mode): Reformat doc string.
 
@@ -278,7 +282,7 @@
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-mode.el: Give c-hungry-backspace and
-	  c-hungry-delete-forward permanent key bindings.
+	c-hungry-delete-forward permanent key bindings.
 
 	* progmodes/cc-cmds.el (c-electric-semi&comma): Bind
 	c-syntactic-context for calls to "criteria functions", for
