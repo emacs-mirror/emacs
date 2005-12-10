@@ -1406,6 +1406,8 @@ to add local bindings (not very useful, we admit) for @kbd{C-c n} and
 @vindex minibuffer-local-ns-map
 @vindex minibuffer-local-completion-map
 @vindex minibuffer-local-must-match-map
+@vindex minibuffer-local-filename-completion-map
+@vindex minibuffer-local-must-match-filename-map
   The minibuffer has its own set of local keymaps; they contain various
 completion and exit commands.
 
@@ -1420,6 +1422,11 @@ just like @key{RET}.  This is used mainly for Mocklisp compatibility.
 @item
 @code{minibuffer-local-must-match-map} is for strict completion and
 for cautious completion.
+@item
+@code{minibuffer-local-filename-completion-map} and
+@code{minibuffer-local-must-match-filename-map} are like the two
+previous ones, but they are specifically for file name completion.
+They do not bind @key{SPC}.
 @end itemize
 
 @node Rebinding
