@@ -30,6 +30,35 @@
 (defvar comint-prompt-regexp)
 
 ;;; Customizable settings
+;;; Switching tooltips on/off
+
+;; We don't set track-mouse globally because this is a big redisplay
+;; problem in buffers having a pre-command-hook or such installed,
+;; which does a set-buffer, like the summary buffer of Gnus.  Calling
+;; set-buffer prevents redisplay optimizations, so every mouse motion
+;; would be accompanied by a full redisplay.
+
+(define-minor-mode tooltip-mode
+  "Toggle Tooltip display.
+With ARG, turn tooltip mode on if and only if ARG is positive."
+  :global t
+  :init-value (not (or noninteractive
+		       emacs-basic-display
+		       (not (display-graphic-p))
+		       (not (fboundp 'x-show-tip))))
+  :initialize 'custom-initialize-safe-default
+  :group 'tooltip
+  (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
+    (error "Sorry, tooltips are not yet available on this system"))
+  (if tooltip-mode
+      (progn
+	(add-hook 'pre-command-hook 'tooltip-hide)
+	(add-hook 'tooltip-hook 'tooltip-help-tips))
+    (unless (and (boundp 'gud-tooltip-mode) gud-tooltip-mode)
+      (remove-hook 'pre-command-hook 'tooltip-hide))
+    (remove-hook 'tooltip-hook 'tooltip-help-tips))
+  (setq show-help-function
+	(if tooltip-mode 'tooltip-show-help nil)))
 
 (defgroup tooltip nil
   "Customization group for the `tooltip' package."
@@ -144,36 +173,6 @@ the last mouse movement event that occurred.")
 This might return nil if the event did not occur over a buffer."
   (let ((window (posn-window (event-end event))))
     (and window (window-buffer window))))
-
-;;; Switching tooltips on/off
-
-;; We don't set track-mouse globally because this is a big redisplay
-;; problem in buffers having a pre-command-hook or such installed,
-;; which does a set-buffer, like the summary buffer of Gnus.  Calling
-;; set-buffer prevents redisplay optimizations, so every mouse motion
-;; would be accompanied by a full redisplay.
-
-(define-minor-mode tooltip-mode
-  "Toggle Tooltip display.
-With ARG, turn tooltip mode on if and only if ARG is positive."
-  :global t
-  :init-value (not (or noninteractive
-		       emacs-basic-display
-		       (not (display-graphic-p))
-		       (not (fboundp 'x-show-tip))))
-  :initialize 'custom-initialize-safe-default
-  :group 'tooltip
-  (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
-    (error "Sorry, tooltips are not yet available on this system"))
-  (if tooltip-mode
-      (progn
-	(add-hook 'pre-command-hook 'tooltip-hide)
-	(add-hook 'tooltip-hook 'tooltip-help-tips))
-    (unless (and (boundp 'gud-tooltip-mode) gud-tooltip-mode)
-      (remove-hook 'pre-command-hook 'tooltip-hide))
-    (remove-hook 'tooltip-hook 'tooltip-help-tips))
-  (setq show-help-function
-	(if tooltip-mode 'tooltip-show-help nil)))
 
 
 ;;; Timeout for tooltip display
