@@ -2,7 +2,8 @@
 
 	* mail/rmail.el (rmail-next-same-subject): Handle multiple "Re: "
 	strings and long subject lines that were broken into multiple
-	lines at arbitrary places.
+	lines at arbitrary places.  Handle subjects that have "Re: " in
+	the middle.
 
 2005-12-10  John W. Eaton  <jwe@octave.org>
 
