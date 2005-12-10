@@ -1,3 +1,8 @@
+2005-12-10  John W. Eaton  <jwe@octave.org>
+
+	* emacs/octave-mod.el (octave-electric-space): Don't indent
+	comments or strings if octave-auto-indent is nil.
+
 2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Require url when compiling.  Call
