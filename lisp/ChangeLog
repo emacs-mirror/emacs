@@ -1,3 +1,11 @@
+2005-12-10  Kevin Rodgers  <ihs_4664@ihs.com>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Regenerate the
+	completion list, even after a partial completion has been
+	inserted in the current buffer.  If there are more than 1
+	completion, redisplay the *Completions* buffer; if the
+	completion is unique, delete the *Completions* window.
+
 2005-12-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-next-same-subject): Handle multiple "Re: "
