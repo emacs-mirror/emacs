@@ -1,3 +1,22 @@
+2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Require url when compiling.  Call
+	mac-process-deferred-apple-events after loading init files.
+	(mac-apple-event-map): New defvar.  Define event handlers in it.
+	(core-event, internet-event): New Apple event class symbols.
+	(open-application, reopen-application, open-documents)
+	(print-documents, open-contents, quit-application)
+	(application-died, show-preferences, autosave-now, get-url): New
+	Apple event ID symbols.
+	(about): New HICommand ID symbol.
+	(mac-event-spec, mac-event-ae): New macros.
+	(mac-ae-parameter, mac-ae-list, mac-bytes-to-integer)
+	(mac-ae-selection-range, mac-ae-text-for-search)
+	(mac-ae-open-documents, mac-ae-text, mac-ae-get-url): New functions.
+	(mac-application-menu-map): Remove keymap.  Handlers for HICommand
+	and Services menu events are now defined in mac-apple-event-map.
+	(mac-drag-n-drop): Remove selection range handling.
+
 2005-12-10  Kenichi Handa  <handa@m17n.org>
 
 	* simple.el (zap-to-char): Translate CHAR by
