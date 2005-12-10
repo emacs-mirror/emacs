@@ -1809,6 +1809,8 @@ Isearch mode."
    ((eq   char ?|)       (isearch-fallback t nil t)))
 
   ;; Append the char to the search string, update the message and re-search.
+  (if (char-table-p translation-table-for-input)
+      (setq char (or (aref translation-table-for-input char) char)))
   (isearch-process-search-string
    (char-to-string char)
    (if (>= char ?\200)
