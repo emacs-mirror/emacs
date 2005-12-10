@@ -1,3 +1,9 @@
+2005-12-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-next-same-subject): Handle multiple "Re: "
+	strings and long subject lines that were broken into multiple
+	lines at arbitrary places.
+
 2005-12-10  John W. Eaton  <jwe@octave.org>
 
 	* emacs/octave-mod.el (octave-electric-space): Don't indent
