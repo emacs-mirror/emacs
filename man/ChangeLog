@@ -1,8 +1,60 @@
+2005-12-10  Romain Francoise  <romain@orebokech.com>
+
+	Update the Emacs FAQ for the 22.1 release.
+
+	* faq.texi: Set VER to `22.1'.
+	(Basic editing): Explain how to use localized versions of the
+	Tutorial.  Mention that `C-h r' displays the manual.  Delete
+	obsolete WWW link to an Emacs 18 tutorial.
+	(Getting a printed manual): Point to the new locations of the
+	manuals on the GNU Web site.
+	(Emacs Lisp documentation): Explain that the Emacs Lisp manual is
+	available via Info (it was previously distributed separately).
+	(Installing Texinfo documentation): The latest version of Texinfo
+	is 4.8, not 4.0.
+	(Informational files for Emacs): COPYING is the GNU General Public
+	License, not the Emacs General Public License.
+	(Informational files for Emacs): Delete obsolete link to the
+	GNUinfo pages as they have been removed from the GNU Web site.
+	(New in Emacs 22): New node.
+	(Setting up a customization file): Say that most packages support
+	Customize nowadays.
+	(Colors on a TTY): Delete reference to instructions on how to
+	enable syntax highlighting, it is now enabled by default.
+	(Turning on abbrevs by default): Emacs now reads the abbrevs file
+	at startup automatically.
+	(Controlling case sensitivity): Mention `M-c' in isearch.
+	(Using an already running Emacs process): Emacs now creates the
+	socket in `/tmp/emacsUID'.  Fix typos.  Change default location of
+	gnuserv.  As emacsclient can now run Lisp code as well, delete a
+	sentence praising gnuserv for that.  Simplify description of how
+	the client/server operation works.
+	(Compiler error messages): Delete obsolete text (compile.el has
+	been rewritten).
+	(Indenting switch statements): Fix typo.
+	(Matching parentheses): Simplify setup instructions, mention the
+	menu bar item in the Options menu.
+	(Repeating a command as many times as possible): Mention `C-x e'.
+	(Going to a line by number): Mention new keymap and bindings
+	`M-g M-g', `M-g M-p' and `M-g M-n'.
+	(Turning on syntax highlighting): Now on by default.  Simplify.
+	(Replacing highlighted text): Use `1', not `t'.
+	(Problems with very large files): The maximum size is now 256MB on
+	32-bit machines.
+	(^M in the shell buffer): Mention `comint-process-echoes'.
+	(Emacs for Apple computers): Emacs 22 has native support for Mac
+	OS X.
+	(Translating names to IP addresses): Delete node.
+	(Binding keys to commands): Fix typo.
+	(SPC no longer completes file names): New node.
+	(MIME with Emacs mail packages): Delete section about the Emacs
+	MIME FAQ (it's not reachable anymore).
+
 2005-12-10  David Koppelman  <koppel@ece.lsu.edu>
 
 	* display.texi (Highlight Interactively): Include
 	global-hi-lock-mode.  Add miscellaneous details and elaborations.
-        
+
 2005-12-09  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Font Lock): Delete the Global FL menu item.
@@ -120,7 +172,7 @@
 
 2005-11-28  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi:  Change references of `M-#' to `C-x *' prefix.
+	* calc.texi: Change references of `M-#' to `C-x *' prefix.
 
 2005-11-24  Carsten Dominik  <dominik@science.uva.nl>
 
