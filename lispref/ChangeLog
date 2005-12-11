@@ -1,3 +1,7 @@
+2005-12-10  Richard M. Stallman  <rms@gnu.org>
+
+	* customize.texi (Common Keywords): State caveats for use of :tag.
+
 2005-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Intro to Minibuffers): Replace list of local maps

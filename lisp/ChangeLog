@@ -1,3 +1,7 @@
+2005-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* buff-menu.el (Buffer-menu-sort-column): Not a user variable.
+
 2005-12-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Create keymap for mac-apple-event-map.
@@ -63,6 +67,7 @@
 	* emacs/octave-mod.el (octave-electric-space): Don't indent
 	comments or strings if octave-auto-indent is nil.
 
+>>>>>>> 1.8782
 2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Require url when compiling.  Call
