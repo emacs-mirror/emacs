@@ -228,75 +228,201 @@ If WINDOW is nil or omitted, it defaults to the currently selected window."
       (or (= (nth 2 edges) (nth 2 (window-edges (previous-window))))
 	  (= (nth 0 edges) (nth 0 (window-edges (next-window))))))))
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;; `balance-windows' subroutines using `window-tree'
 
-(defun balance-windows ()
-  "Make all visible windows the same height (approximately)."
+;;; Translate from internal window tree format
+
+(defun bw-get-tree (&optional window-or-frame)
+  "Get a window split tree in our format.
+
+WINDOW-OR-FRAME must be nil, a frame, or a window.  If it is nil,
+then the whole window split tree for `selected-frame' is returned.
+If it is a frame, then this is used instead.  If it is a window,
+then the smallest tree containing that window is returned."
+  (when window-or-frame
+    (unless (or (framep window-or-frame)
+                (windowp window-or-frame))
+      (error "Not a frame or window: %s" window-or-frame)))
+  (let ((subtree (bw-find-tree-sub window-or-frame)))
+    (if (integerp subtree)
+        nil
+      (bw-get-tree-1 subtree))))
+
+(defun bw-get-tree-1 (split)
+  (if (windowp split)
+      split
+    (let ((dir (car split))
+          (edges (car (cdr split)))
+          (childs (cdr (cdr split))))
+      (list
+       (cons 'dir (if dir 'ver 'hor))
+       (cons 'b (nth 3 edges))
+       (cons 'r (nth 2 edges))
+       (cons 't (nth 1 edges))
+       (cons 'l (nth 0 edges))
+       (cons 'childs (mapcar #'bw-get-tree-1 childs))))))
+
+(defun bw-find-tree-sub (window-or-frame &optional get-parent)
+  (let* ((window (when (windowp window-or-frame) window-or-frame))
+         (frame (when (windowp window) (window-frame window)))
+         (wt (car (window-tree frame))))
+    (when (< 1 (length (window-list frame 0)))
+      (if window
+          (bw-find-tree-sub-1 wt window get-parent)
+        wt))))
+
+(defun bw-find-tree-sub-1 (tree win &optional get-parent)
+  (unless (windowp win) (error "Not a window: %s" win))
+  (if (memq win tree)
+      (if get-parent
+          get-parent
+        tree)
+    (let ((childs (cdr (cdr tree)))
+          child
+          subtree)
+      (while (and childs (not subtree))
+        (setq child (car childs))
+        (setq childs (cdr childs))
+        (when (and child (listp child))
+          (setq subtree (bw-find-tree-sub-1 child win get-parent))))
+      (if (integerp subtree)
+          (progn
+            (if (= 1 subtree)
+                tree
+              (1- subtree)))
+        subtree
+        ))))
+
+;;; Window or object edges
+
+(defun bw-l(obj)
+  "Left edge of OBJ."
+  (if (windowp obj) (nth 0 (window-edges obj)) (cdr (assq 'l obj))))
+(defun bw-t(obj)
+  "Top edge of OBJ."
+  (if (windowp obj) (nth 1 (window-edges obj)) (cdr (assq 't obj))))
+(defun bw-r(obj)
+  "Right edge of OBJ."
+  (if (windowp obj) (nth 2 (window-edges obj)) (cdr (assq 'r obj))))
+(defun bw-b(obj)
+  "Bottom edge of OBJ."
+  (if (windowp obj) (nth 3 (window-edges obj)) (cdr (assq 'b obj))))
+
+;;; Split directions
+
+(defun bw-dir(obj)
+  "Return window split tree direction if OBJ.
+If OBJ is a window return 'both. If it is a window split tree
+then return its direction."
+  (if (symbolp obj)
+      obj
+    (if (windowp obj)
+        'both
+      (let ((dir (cdr (assq 'dir obj))))
+        (unless (memq dir '(hor ver both))
+          (error "Can't find dir in %s" obj))
+        dir))))
+
+(defun bw-eqdir(obj1 obj2)
+  "Return t if window split tree directions are equal.
+OBJ1 and OBJ2 should be either windows or window split trees in
+our format. The directions returned by `bw-dir' are compared and
+t is returned if they are `eq' or one of them is 'both."
+  (let ((dir1 (bw-dir obj1))
+        (dir2 (bw-dir obj2)))
+    (or (eq dir1 dir2)
+        (eq dir1 'both)
+        (eq dir2 'both))))
+
+;;; Building split tree
+
+(defun bw-refresh-edges(obj)
+  "Refresh the edge information of OBJ and return OBJ."
+  (unless (windowp obj)
+    (let ((childs (cdr (assq 'childs obj)))
+          (ol 1000)
+          (ot 1000)
+          (or -1)
+          (ob -1))
+      (dolist (o childs)
+        (when (> ol (bw-l o)) (setq ol (bw-l o)))
+        (when (> ot (bw-t o)) (setq ot (bw-t o)))
+        (when (< or (bw-r o)) (setq or (bw-r o)))
+        (when (< ob (bw-b o)) (setq ob (bw-b o))))
+      (setq obj (delq 'l obj))
+      (setq obj (delq 't obj))
+      (setq obj (delq 'r obj))
+      (setq obj (delq 'b obj))
+      (add-to-list 'obj (cons 'l ol))
+      (add-to-list 'obj (cons 't ot))
+      (add-to-list 'obj (cons 'r or))
+      (add-to-list 'obj (cons 'b ob))
+      ))
+  obj)
+
+;;; Balance windows
+
+(defun balance-windows(&optional window-or-frame)
+  "Make windows the same heights or widths in window split subtrees.
+
+When called non-interactively WINDOW-OR-FRAME may be either a
+window or a frame. It then balances the windows on the implied
+frame. If the parameter is a window only the corresponding window
+subtree is balanced."
   (interactive)
-  (let ((count -1) levels newsizes level-size
-	;; Don't count the lines that are above the uppermost windows.
-	;; (These are the menu bar lines, if any.)
-	(mbl (nth 1 (window-edges (frame-first-window (selected-frame)))))
-	(last-window (previous-window (frame-first-window (selected-frame))))
-	;; Don't count the lines that are past the lowest main window.
-	total)
-    ;; Bottom edge of last window determines what size we have to work with.
-    (setq total
-	  (+ (window-height last-window)
-	     (nth 1 (window-edges last-window))))
+  (let (
+        (wt (bw-get-tree window-or-frame))
+        (w)
+        (h)
+        (tried-sizes)
+        (last-sizes)
+        (windows (window-list nil 0))
+        (counter 0))
+    (when wt
+      (while (not (member last-sizes tried-sizes))
+        (when last-sizes (setq tried-sizes (cons last-sizes tried-sizes)))
+        (setq last-sizes (mapcar (lambda(w)
+                                   (window-edges w))
+                                 windows))
+        (when (eq 'hor (bw-dir wt))
+          (setq w (- (bw-r wt) (bw-l wt))))
+        (when (eq 'ver (bw-dir wt))
+          (setq h (- (bw-b wt) (bw-t wt))))
+        (bw-balance-sub wt w h)))))
 
-    ;; Find all the different vpos's at which windows start,
-    ;; then count them.  But ignore levels that differ by only 1.
-    (let (tops (prev-top -2))
-      (walk-windows (function (lambda (w)
-				(setq tops (cons (nth 1 (window-edges w))
-						 tops))))
-		    'nomini)
-      (setq tops (sort tops '<))
-      (while tops
-	(if (> (car tops) (1+ prev-top))
-	    (setq prev-top (car tops)
-		  count (1+ count)))
-	(setq levels (cons (cons (car tops) count) levels))
-	(setq tops (cdr tops)))
-      (setq count (1+ count)))
-    ;; Subdivide the frame into desired number of vertical levels.
-    (setq level-size (/ (- total mbl) count))
-    (save-selected-window
-      ;; Set up NEWSIZES to map windows to their desired sizes.
-      ;; If a window ends at the bottom level, don't include
-      ;; it in NEWSIZES.  Those windows get the right sizes
-      ;; by adjusting the ones above them.
-      (walk-windows (function
-		     (lambda (w)
-		       (let ((newtop (cdr (assq (nth 1 (window-edges w))
-						levels)))
-			     (newbot (cdr (assq (+ (window-height w)
-						   (nth 1 (window-edges w)))
-						levels))))
-			 (if newbot
-			     (setq newsizes
-				   (cons (cons w (* level-size (- newbot newtop)))
-					 newsizes))))))
-		    'nomini)
-      ;; Make walk-windows start with the topmost window.
-      (select-window (previous-window (frame-first-window (selected-frame))))
-      (let (done (count 0))
-	;; Give each window its precomputed size, or at least try.
-	;; Keep trying until they all get the intended sizes,
-	;; but not more than 3 times (to prevent infinite loop).
-	(while (and (not done) (< count 3))
-	  (setq done t)
-	  (setq count (1+ count))
-	  (walk-windows (function (lambda (w)
-				    (select-window w)
-				    (let ((newsize (cdr (assq w newsizes))))
-				      (when newsize
-					(enlarge-window (- newsize
-							   (window-height))
-							nil)
-					(unless (= (window-height) newsize)
-					  (setq done nil))))))
-			'nomini))))))
+(defun bw-adjust-window(window delta horizontal)
+  "Wrapper around `adjust-window-trailing-edge' with error checking.
+Arguments WINDOW, DELTA and HORIZONTAL are passed on to that function."
+  (condition-case err
+      (adjust-window-trailing-edge window delta horizontal)
+    (error
+     ;;(message "adjust: %s" (error-message-string err))
+     )))
+
+(defun bw-balance-sub(wt w h)
+  (setq wt (bw-refresh-edges wt))
+  (unless w (setq w (- (bw-r wt) (bw-l wt))))
+  (unless h (setq h (- (bw-b wt) (bw-t wt))))
+  (if (windowp wt)
+      (progn
+        (when w
+          (let ((dw (- w (- (bw-r wt) (bw-l wt)))))
+            (when (/= 0 dw)
+                (bw-adjust-window wt dw t))))
+        (when h
+          (let ((dh (- h (- (bw-b wt) (bw-t wt)))))
+            (when (/= 0 dh)
+              (bw-adjust-window wt dh nil)))))
+    (let* ((childs (cdr (assq 'childs wt)))
+           (lastchild (car (last childs)))
+           (cw (when w (/ w (if (bw-eqdir 'hor wt) (length childs) 1))))
+           (ch (when h (/ h (if (bw-eqdir 'ver wt) (length childs) 1)))))
+      (dolist (c childs)
+          (bw-balance-sub c cw ch)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t

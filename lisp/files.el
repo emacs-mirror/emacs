@@ -3197,7 +3197,9 @@ on a DOS/Windows machine, it returns FILENAME in expanded form."
             ancestor))))))
 
 (defun save-buffer (&optional args)
-  "Save current buffer in visited file if modified.  Variations are described below.
+  "Save current buffer in visited file if modified.
+Variations are described below.
+
 By default, makes the previous version into a backup file
  if previously requested or if this is the first save.
 Prefixed with one \\[universal-argument], marks this version

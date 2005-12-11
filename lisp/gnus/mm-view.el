@@ -250,19 +250,19 @@
 	   (point-min) (point-max)
 	   (list 'keymap w3m-minor-mode-map
 		 ;; Put the mark meaning this part was rendered by emacs-w3m.
-		 'mm-inline-text-html-with-w3m t))))
-      (mm-handle-set-undisplayer
-       handle
-       `(lambda ()
-	  (let (buffer-read-only)
-	    (if (functionp 'remove-specifier)
-		(mapcar (lambda (prop)
-			  (remove-specifier
-			   (face-property 'default prop)
-			   (current-buffer)))
-			'(background background-pixmap foreground)))
-	    (delete-region ,(point-min-marker)
-			   ,(point-max-marker))))))))
+		 'mm-inline-text-html-with-w3m t)))
+	(mm-handle-set-undisplayer
+	 handle
+	 `(lambda ()
+	    (let (buffer-read-only)
+	      (if (functionp 'remove-specifier)
+		  (mapcar (lambda (prop)
+			    (remove-specifier
+			     (face-property 'default prop)
+			     (current-buffer)))
+			  '(background background-pixmap foreground)))
+	      (delete-region ,(point-min-marker)
+			     ,(point-max-marker)))))))))
 
 (defun mm-links-remove-leading-blank ()
   ;; Delete the annoying three spaces preceding each line of links

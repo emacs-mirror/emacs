@@ -1,3 +1,100 @@
+2005-12-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main) [MAC_OS8]: Undo previous change.
+
+	* macselect.c (syms_of_macselect) <mac-apple-event-map>:
+	Initialize to nil.  Keymap is now created in lisp/term/mac-win.el.
+
+2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (macselect.o): Depend on keymap.h.
+
+	* emacs.c (main) [MAC_OS8]: Call syms_of_keymap before
+	syms_of_macselect.
+
+	* image.c (init_image) [MAC_OS]: Don't call EnterMovies.
+	[!HAVE_GIF && MAC_OS] (gif_load): Call EnterMovies.
+
+	* keyboard.c (Qmac_apple_event) [MAC_OS]: New variable.
+	(syms_of_keyboard) [MAC_OS]: Initialize it.
+	(make_lispy_event) [MAC_OS]: Build lisp event for MAC_APPLE_EVENT.
+
+	* mac.c (Qundecoded_file_name): New variable.
+	(syms_of_mac): Initialize it.
+	(mac_aelist_to_lisp, mac_aedesc_to_lisp): New functions.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): New
+	function.
+	(Fmac_coerce_ae_data): New defun.
+	(syms_of_mac): Defsubr it.
+
+	* macselect.c: Include keymap.h.
+	(mac_ready_for_apple_events): New variable.
+	(Vmac_apple_event_map, Qmac_apple_event_class)
+	(Qmac_apple_event_id): New variables.
+	(syms_of_macselect): Initialize them.
+	(Qundefined, mac_store_apple_event): Add externs.
+	(struct apple_event_binding): New struct.
+	(find_event_binding_fun, find_event_binding)
+	(mac_find_apple_event_spec, defer_apple_events)
+	(mac_handle_apple_event, init_apple_event_handler)
+	(copy_scrap_flavor_data): New functions.
+	(Fmac_process_deferred_apple_events): New defun.
+	(syms_of_macselect): Defsubr it.
+	(mac_store_services_event): Fix extern.
+	(mac_handle_service_event): Don't allocate Lisp objects during
+	asynchronous input processing.  Use mac_store_services_event
+	instead of mac_store_application_menu_event.
+
+	* macterm.c (Qmac_ready_for_drag_n_drop, Qapplication, Qabout)
+	(Qpreferences): Remove variables.
+	(syms_of_macterm) : Don't initialize them.
+	(Qhicommand) [USE_CARBON_EVENTS]: New variable.
+	(syms_of_macterm) [USE_CARBON_EVENTS]: Initialize it.
+	(init_required_apple_events, do_ae_open_application)
+	(do_ae_print_documents, do_ae_open_documents)
+	(do_ae_quit_application): Remove functions and prototypes.
+	(mac_ready_for_apple_events, Qundefined, init_apple_event_handler)
+	(mac_find_apple_event_spec): Add externs.
+	(mac_store_application_menu_event): Remove function.
+	(mac_store_apple_event, mac_make_lispy_event_code): New functions.
+	(mac_handle_command_event): Create Apple event from Carbon event.
+	Use mac_store_apple_event instead of mac_store_application_menu_event.
+	[MAC_OSX] (mac_store_services_event): Likewise.
+	(struct SelectionRange, SelectionRange): Remove struct and typedef.
+	[MAC_OS8] (main): Call init_apple_event_handler instead of
+	init_required_apple_events.
+	(mac_initialize) [MAC_OSX]: Likewise.
+	[!USE_CARBON_EVENTS] (mac_wait_next_event): Use
+	mac_ready_for_apple_events instead of Qmac_ready_for_drag_n_drop.
+
+	* macterm.h (mac_make_lispy_event_code, mac_aedesc_to_lisp): Add
+	externs.
+	(create_apple_event_from_event_ref) [TARGET_API_MAC_CARBON]: Likewise.
+	(Fmac_get_preference): Add EXFUN.
+
+	* termhooks.h (enum event_kind) [MAC_OS]: Add new MAC_APPLE_EVENT
+	event.
+
+2005-12-09  Richard M. Stallman  <rms@gnu.org>
+
+	* xfns.c (Fx_create_frame): Reinstate previous change.
+
+2005-12-09  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_abort) [__GNUC__]: Add instructions for attaching
+	GDB to the abort dialog.
+
+2005-12-09  Kyotaro HORIGUCHI <horiguti@meadowy.org>  (tiny change)
+
+	* indent.c (Fvertical_motion): Force move if starting on
+	stretch glyph.
+
+2005-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (read_escape) <\s>: Don't treat strings specially.
+
+	* xfns.c (Fx_create_frame): Comment out previous change.
+
 2005-12-07  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* xfns.c (Fx_create_frame): Initialize Vdefault_minibuffer_frame,

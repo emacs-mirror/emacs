@@ -24310,7 +24310,7 @@ to the Gnus back ends instead of Gnus proper.
 @item nnheader-max-head-length
 @vindex nnheader-max-head-length
 When the back ends read straight heads of articles, they all try to read
-as little as possible.  This variable (default 4096) specifies
+as little as possible.  This variable (default 8192) specifies
 the absolute max length the back ends will try to read before giving up
 on finding a separator line between the head and the body.  If this
 variable is @code{nil}, there is no upper read bound.  If it is
@@ -24491,7 +24491,7 @@ On July 28th 1996 work on Red Gnus was begun, and it was released on
 January 25th 1997 (after 84 releases) as ``Gnus 5.4'' (67 releases).
 
 On September 13th 1997, Quassia Gnus was started and lasted 37 releases.
-If was released as ``Gnus 5.6'' on March 8th 1998 (46 releases).
+It was released as ``Gnus 5.6'' on March 8th 1998 (46 releases).
 
 Gnus 5.6 begat Pterodactyl Gnus on August 29th 1998 and was released as
 ``Gnus 5.8'' (after 99 releases and a CVS repository) on December 3rd
@@ -26032,7 +26032,7 @@ The new variable @code{gnus-parameters} can be used to set group parameters.
 Earlier this was done only via @kbd{G p} (or @kbd{G c}), which stored
 the parameters in @file{~/.newsrc.eld}, but via this variable you can
 enjoy the powers of customize, and simplified backups since you set the
-variable in @file{~/.emacs} instead of @file{~/.newsrc.eld}.  The
+variable in @file{~/.gnus.el} instead of @file{~/.newsrc.eld}.  The
 variable maps regular expressions matching group names to group
 parameters, a'la:
 @lisp
@@ -26047,7 +26047,7 @@ parameters, a'la:
 @item
 Smileys (@samp{:-)}, @samp{;-)} etc) are now iconized for Emacs too.
 
-Put @code{(setq gnus-treat-display-smileys nil)} in @file{~/.emacs} to
+Put @code{(setq gnus-treat-display-smileys nil)} in @file{~/.gnus.el} to
 disable it.
 
 @item
@@ -26074,8 +26074,8 @@ appropriate headers and a note in the body for cross-postings and
 followups (see the variables @code{message-cross-post-@var{*}}).
 
 @item
-References and X-Draft-Headers are no longer generated when you start
-composing messages and @code{message-generate-headers-first} is
+References and X-Draft-From headers are no longer generated when you
+start composing messages and @code{message-generate-headers-first} is
 @code{nil}.
 
 @item
@@ -26316,7 +26316,8 @@ It was aliased to @kbd{Y c}
 (@code{gnus-summary-insert-cached-articles}).  The new function filters
 out other articles.
 
-@item Some limiting commands accept a @kbd{C-u} prefix to negate the match.
+@item
+Some limiting commands accept a @kbd{C-u} prefix to negate the match.
 
 If @kbd{C-u} is used on subject, author or extra headers, i.e., @kbd{/
 s}, @kbd{/ a}, and @kbd{/ x}
@@ -26767,7 +26768,7 @@ minimum.  You can, in fact, make do without them altogether---most of the
 useful data is in the summary buffer, anyway.  Set this variable to
 @samp{^NEVVVVER} or @samp{From:}, or whatever you feel you need.
 
-Set this hook to all the available hiding commands:
+Use the following to enable all the available hiding features:
 @lisp
 (setq gnus-treat-hide-headers 'head
       gnus-treat-hide-signature t
@@ -28495,8 +28496,10 @@ interpreted.)  If you decide that you don't like the way Gnus does
 certain things, it's trivial to have it do something a different way.
 (Well, at least if you know how to write Lisp code.)  However, that's
 beyond the scope of this manual, so we are simply going to talk about
-some common constructs that you normally use in your @file{.emacs} file
-to customize Gnus.
+some common constructs that you normally use in your @file{~/.gnus.el}
+file to customize Gnus.  (You can also use the @file{~/.emacs} file, but
+in order to set things of Gnus up, it is much better to use the
+@file{~/.gnus.el} file, @xref{Startup Files}.)
 
 If you want to set the variable @code{gnus-florgbnize} to four (4), you
 write the following:
@@ -28507,12 +28510,12 @@ write the following:
 
 This function (really ``special form'') @code{setq} is the one that can
 set a variable to some value.  This is really all you need to know.  Now
-you can go and fill your @file{.emacs} file with lots of these to change
-how Gnus works.
+you can go and fill your @file{~/.gnus.el} file with lots of these to
+change how Gnus works.
 
-If you have put that thing in your @file{.emacs} file, it will be read
-and @code{eval}ed (which is lisp-ese for ``run'') the next time you
-start Emacs.  If you want to change the variable right away, simply say
+If you have put that thing in your @file{~/.gnus.el} file, it will be
+read and @code{eval}ed (which is Lisp-ese for ``run'') the next time you
+start Gnus.  If you want to change the variable right away, simply say
 @kbd{C-x C-e} after the closing parenthesis.  That will @code{eval} the
 previous ``form'', which is a simple @code{setq} statement here.
 

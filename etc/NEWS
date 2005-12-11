@@ -268,6 +268,7 @@ the actual file name into the minibuffer.
 to the text before point.  If there is text in the buffer after point,
 it remains unchanged.
 
++++
 ** When Emacs prompts for file names, SPC no longer completes the file name.
 This is so filenames with embedded spaces could be input without the
 need to quote the space with a C-q.  The underlying changes in the
@@ -1808,6 +1809,18 @@ instead and point will be kept vertically fixed relative to window
 boundaries during scrolling.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
+
+** Changes in Hi Lock:
+
++++
+*** hi-lock-mode now only affects a single buffer, and a new function
+`global-hi-lock-mode' enables Hi Lock in all buffers.  By default, if
+hi-lock-mode is used in what appears to be the initialization file, a
+warning message suggests to use global-hi-lock-mode instead.  However,
+if the new variable `hi-lock-archaic-interface-deduce' is non-nil,
+using hi-lock-mode in an initialization file will turn on Hi Lock in all
+buffers and no warning will be issued (for compatibility with the
+behavior in older versions of Emacs).
 
 ** Changes in Allout
 

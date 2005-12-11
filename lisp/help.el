@@ -178,7 +178,7 @@ specifies what to do when the user exits the help buffer."
 (defalias 'help-for-help 'help-for-help-internal)
 ;; It can't find this, but nobody will look.
 (make-help-screen help-for-help-internal
-  "a b c C e f F i I k C-k l L m p s t v w C-c C-d C-f C-n C-p C-t C-w . or ? :"
+  "a b c C e f F i I k C-k l L m p r s t v w C-c C-d C-f C-n C-p C-t C-w . or ? :"
   "You have typed %THIS-KEY%, the help character.  Type a Help option:
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
@@ -217,6 +217,7 @@ m  describe-mode.  Display documentation of current minor modes,
 	and the current major mode, including their special commands.
 n  view-emacs-news.  Display news of recent Emacs changes.
 p  finder-by-keyword. Find packages matching a given topic keyword.
+r  info-emacs-manual.  Display the Emacs manual in Info mode.
 s  describe-syntax.  Display contents of syntax table, plus explanations.
 S  info-lookup-symbol.  Display the definition of a specific symbol
         as found in the manual for the language this buffer is written in.

@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.22
+;; Version: 3.23
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -82,6 +82,10 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.23
+;;    - M-RET makes new items as well as new headings.
+;;    - Various small bug fixes
+;;
 ;; Version 3.22
 ;;    - CamelCase words link to other locations in the same file.
 ;;    - File links accept search options, to link to specific locations.
@@ -253,7 +257,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.22"
+(defvar org-version "3.23"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -2530,22 +2534,39 @@ or nil."
 (defvar org-ignore-region nil
   "To temporarily disable the active region.")
 
-(defun org-insert-heading ()
-  "Insert a new heading with same depth at point."
-  (interactive)
-  (let* ((head (save-excursion
-		 (condition-case nil
-		     (org-back-to-heading)
-		   (error (outline-next-heading)))
-		 (prog1 (match-string 0)
-		   (funcall outline-level)))))
+(defun org-insert-heading (&optional force-heading)
+  "Insert a new heading or item with same depth at point.
+If ARG is non-nil"
+  (interactive "P")
+  (when (or force-heading (not (org-insert-item)))
+    (let* ((head (save-excursion
+		   (condition-case nil
+		       (org-back-to-heading)
+		     (error (outline-next-heading)))
+		   (prog1 (match-string 0)
+		     (funcall outline-level)))))
+      (unless (bolp) (newline))
+      (insert head)
+      (unless (eolp)
+	(save-excursion (newline-and-indent)))
+      (unless (equal (char-before) ?\ )
+	(insert " "))
+      (run-hooks 'org-insert-heading-hook))))
+
+(defun org-insert-item ()
+  "Insert a new item at the current level.
+Return t when tings worked, nil when we are not in an item."
+  (when (save-excursion
+	  (condition-case nil
+	      (progn
+		(org-beginning-of-item)
+		(org-at-item-p)
+		t)
+	    (error nil)))
     (unless (bolp) (newline))
-    (insert head)
-    (unless (eolp)
-      (save-excursion (newline-and-indent)))
-    (unless (equal (char-before) ?\ )
-      (insert " "))
-    (run-hooks 'org-insert-heading-hook)))
+    (insert (match-string 0))
+    (org-maybe-renumber-ordered-list)
+    t))
 
 (defun org-insert-todo-heading (arg)
   "Insert a new heading with the same level and TODO state as current heading.
@@ -3034,8 +3055,9 @@ with something like \"1.\" or \"2)\"."
 	  (beginning-of-line 0)
 	  (if (looking-at "[ \t]*$") (throw 'next t))
 	  (skip-chars-forward " \t") (setq ind1 (current-column))
-	  (if (and (<= ind1 ind)
-		   (not (org-at-item-p)))
+	  (if (or (< ind1 ind)
+		  (and (= ind1 ind)
+		       (not (org-at-item-p))))
 	      (throw 'exit t)))))
     ;; Walk forward and replace these numbers
     (catch 'exit
@@ -3055,7 +3077,7 @@ with something like \"1.\" or \"2)\"."
 	  (insert (format "%d" (setq n (1+ n)))))))
     (goto-line line)
     (move-to-column col)))
-    
+
 (defvar org-last-indent-begin-marker (make-marker))
 (defvar org-last-indent-end-marker (make-marker))
 
@@ -3422,9 +3444,10 @@ that the match should indeed be shown."
 		  (save-match-data (funcall callback)))
 	  (setq cnt (1+ cnt))
 	  (org-highlight-new-match (match-beginning 0) (match-end 0))
-	  (add-hook 'before-change-functions 'org-remove-occur-highlights
-		    nil 'local)
 	  (org-show-hierarchy-above))))
+    (make-local-hook 'before-change-functions) ; needed for XEmacs
+    (add-hook 'before-change-functions 'org-remove-occur-highlights
+	      nil 'local)
     (run-hooks 'org-occur-hook)
     (if (interactive-p)
 	(message "%d match(es) for regexp %s" cnt regexp))
@@ -4036,7 +4059,9 @@ The following commands are available:
   (use-local-map org-agenda-mode-map)
   (easy-menu-add org-agenda-menu)
   (if org-startup-truncated (setq truncate-lines t))
+  (make-local-hook 'post-command-hook)  ; Needed for XEmacs
   (add-hook 'post-command-hook 'org-agenda-post-command-hook nil 'local)
+  (make-local-hook 'pre-command-hook)  ; Needed for XEmacs
   (add-hook 'pre-command-hook 'org-unhighlight nil 'local)
   (setq org-agenda-follow-mode nil)
   (easy-menu-change
@@ -4049,7 +4074,7 @@ The following commands are available:
   (org-agenda-set-mode-name)
   (apply
    (if (fboundp 'run-mode-hooks) 'run-mode-hooks 'run-hooks)
-   org-agenda-mode-hook))
+   (list 'org-agenda-mode-hook)))
 
 (define-key org-agenda-mode-map "\C-i"     'org-agenda-goto)
 (define-key org-agenda-mode-map "\C-m"     'org-agenda-switch-to)
@@ -4903,8 +4928,8 @@ function from a program - use `org-agenda-get-day-entries' instead."
   (let (tbl)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward "^#\\+CATEGORY:[ \t]*\\(.*\\)" nil t)
-	(push (cons (point) (org-trim (match-string 1))) tbl)))
+      (while (re-search-forward "\\(^\\|\r\\)#\\+CATEGORY:[ \t]*\\(.*\\)" nil t)
+	(push (cons (point) (org-trim (match-string 2))) tbl)))
     tbl))
   (defun org-get-category (&optional pos)
     "Get the category applying to position POS."
@@ -10899,7 +10924,7 @@ See the individual commands for more information."
   (cond
    ((org-at-table-p)
     (org-table-wrap-region arg))
-   (t (org-insert-heading))))
+   (t (org-insert-heading arg))))
 
 ;;; Menu entries
 

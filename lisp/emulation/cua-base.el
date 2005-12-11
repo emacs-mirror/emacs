@@ -329,15 +329,6 @@ interpreted as a register number."
   :type 'boolean
   :group 'cua)
 
-(defcustom cua-use-hyper-key nil
-  "*If non-nil, bind rectangle commands to H-... instead of M-....
-If set to `also', toggle region command is also on C-return.
-Must be set prior to enabling CUA."
-  :type '(choice (const :tag "Meta key and C-return" nil)
-		 (const :tag "Hyper key only" only)
-		 (const :tag "Hyper key and C-return" also))
-  :group 'cua)
-
 (defcustom cua-enable-region-auto-help nil
   "*If non-nil, automatically show help for active region."
   :type 'boolean
@@ -377,6 +368,15 @@ and after the region marked by the rectangle to search."
   :type '(choice (number :tag "Auto detect (limit)")
 		 (const :tag "Disabled" nil)
 		 (other :tag "Enabled" t))
+  :group 'cua)
+
+(defcustom cua-rectangle-modifier-key 'meta
+  "*Modifier key used for rectangle commands bindings.
+On non-window systems, always use the meta modifier.
+Must be set prior to enabling CUA."
+  :type '(choice (const :tag "Meta key" meta)
+		 (const :tag "Hyper key" hyper )
+		 (const :tag "Super key" super))
   :group 'cua)
 
 (defcustom cua-enable-rectangle-auto-help t
@@ -1180,11 +1180,13 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 ;;; Keymaps
 
+;; Cached value of actual cua-rectangle-modifier-key
+(defvar cua--rectangle-modifier-key 'meta)
+
 (defun cua--M/H-key (map key fct)
   ;; bind H-KEY or M-KEY to FCT in MAP
-  (if (eq key 'space) (setq key ?\s))
   (unless (listp key) (setq key (list key)))
-  (define-key map (vector (cons (if cua-use-hyper-key 'hyper 'meta) key)) fct))
+  (define-key map (vector (cons cua--rectangle-modifier-key key)) fct))
 
 (defun cua--self-insert-char-p (def)
   ;; Return DEF if current key sequence is self-inserting in
@@ -1232,7 +1234,8 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	     (not cua--prefix-override-timer)))
   (setq cua--ena-prefix-repeat-keymap
 	(and cua--ena-region-keymap
-	     (timerp cua--prefix-override-timer)))
+	     (or (timerp cua--prefix-override-timer)
+		 (eq cua--prefix-override-timer 'shift))))
   (setq cua--ena-cua-keys-keymap
 	(and cua-enable-cua-keys
 	     (not cua-inhibit-cua-keys)
@@ -1244,12 +1247,39 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 (defvar cua--keymaps-initalized nil)
 
+(defun cua--shift-control-prefix (prefix arg)
+  ;; handle S-C-x and S-C-c by emulating the fast double prefix function.
+  ;; Don't record this command
+  (setq this-command last-command)
+  ;; Restore the prefix arg
+  (setq prefix-arg arg)
+  (reset-this-command-lengths)
+  ;; Activate the cua--prefix-repeat-keymap
+  (setq cua--prefix-override-timer 'shift)
+  ;; Push duplicate keys back on the event queue
+  (setq unread-command-events (cons prefix (cons prefix unread-command-events))))
+
+(defun cua--shift-control-c-prefix (arg)
+  (interactive "P")
+  (cua--shift-control-prefix ?\C-c arg))
+
+(defun cua--shift-control-x-prefix (arg)
+  (interactive "P")
+  (cua--shift-control-prefix ?\C-x arg))
+
 (defun cua--init-keymaps ()
-  (unless (eq cua-use-hyper-key 'only)
-    (define-key cua-global-keymap [(control return)]	'cua-set-rectangle-mark))
-  (when cua-use-hyper-key
-    (cua--M/H-key cua-global-keymap 'space	'cua-set-rectangle-mark)
-    (define-key cua-global-keymap [(hyper mouse-1)] 'cua-mouse-set-rectangle-mark))
+  ;; Cache actual rectangle modifier key.
+  (setq cua--rectangle-modifier-key
+	(if (and cua-rectangle-modifier-key
+		 (memq window-system '(x)))
+	    cua-rectangle-modifier-key
+	  'meta))
+  ;; C-return always toggles rectangle mark
+  (define-key cua-global-keymap [(control return)]	'cua-set-rectangle-mark)
+  (unless (eq cua--rectangle-modifier-key 'meta)
+    (cua--M/H-key cua-global-keymap ?\s			'cua-set-rectangle-mark)
+    (define-key cua-global-keymap
+      (vector (list cua--rectangle-modifier-key 'mouse-1)) 'cua-mouse-set-rectangle-mark))
 
   (define-key cua-global-keymap [(shift control ?\s)]	'cua-toggle-global-mark)
 
@@ -1287,8 +1317,9 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua--prefix-repeat-keymap [(control c) right] 'cua--prefix-copy-handler)
 
   ;; Enable shifted fallbacks for C-x and C-c when region is active
-  (define-key cua--region-keymap [(shift control x)] 'Control-X-prefix)
-  (define-key cua--region-keymap [(shift control c)] 'mode-specific-command-prefix)
+  (define-key cua--region-keymap [(shift control x)] 'cua--shift-control-x-prefix)
+  (define-key cua--region-keymap [(shift control c)] 'cua--shift-control-c-prefix)
+
   ;; replace current region
   (define-key cua--region-keymap [remap self-insert-command]	'cua-replace-region)
   (define-key cua--region-keymap [remap self-insert-iso]	'cua-replace-region)
@@ -1365,7 +1396,7 @@ CUA bindings, or `cua-prefix-override-inhibit-delay' to change
 the prefix fallback behavior."
   :global t
   :group 'cua
-  :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
+  :set-after '(cua-enable-modeline-indications cua-rectangle-modifier-key)
   :require 'cua-base
   :link '(emacs-commentary-link "cua-base.el")
   (setq mark-even-if-inactive t)

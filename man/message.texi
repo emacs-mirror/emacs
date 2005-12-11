@@ -249,7 +249,10 @@ supersede the message in the current buffer.
 Headers matching the @code{message-ignored-supersedes-headers} are
 removed before popping up the new message buffer.  The default is@*
 @samp{^Path:\\|^Date\\|^NNTP-Posting-Host:\\|^Xref:\\|^Lines:\\|@*
-^Received:\\|^X-From-Line:\\|Return-Path:\\|^Supersedes:}.
+^Received:\\|^X-From-Line:\\|^X-Trace:\\|^X-Complaints-To:\\|@*
+Return-Path:\\|^Supersedes:\\|^NNTP-Posting-Date:\\|^X-Trace:\\|@*
+^X-Complaints-To:\\|^Cancel-Lock:\\|^Cancel-Key:\\|^X-Hashcash:\\|@*
+^X-Payment:}.
 
 
 
@@ -330,7 +333,7 @@ undeliverable.
 @vindex message-ignored-bounced-headers
 Headers that match the @code{message-ignored-bounced-headers} regexp
 will be removed before popping up the buffer.  The default is
-@samp{^\\(Received\\|Return-Path\\):}.
+@samp{^\\(Received\\|Return-Path\\|Delivered-To\\):}.
 
 
 @node Mailing Lists
@@ -339,7 +342,7 @@ will be removed before popping up the buffer.  The default is
 @cindex Mail-Followup-To
 Sometimes while posting to mailing lists, the poster needs to direct
 followups to the post to specific places.  The Mail-Followup-To (MFT)
-was created to enable just this.  Two example scenarios where this is
+was created to enable just this.  Three example scenarios where this is
 useful:
 
 @itemize @bullet
@@ -681,26 +684,30 @@ stripped on replying, see @code{message-subject-trailing-was-query}
 @kindex C-c C-f x
 @findex message-cross-post-followup-to
 @vindex message-cross-post-default
+@vindex message-cross-post-note-function
 @cindex X-Post
 @cindex cross-post
-Ask for an additional @samp{Newsgroups} and @samp{FollowUp-To} for a
-cross-post.  @code{message-cross-post-followup-to} mangles
-@samp{FollowUp-To} and @samp{Newsgroups} header to point to group.
-If @code{message-cross-post-default} is @code{nil} or if called with a
-prefix-argument @samp{Follow-Up} is set, but the message is not
-cross-posted.
+Set up the @samp{FollowUp-To} header with a target newsgroup for a
+cross-post, add that target newsgroup to the @samp{Newsgroups} header if
+it is not a member of @samp{Newsgroups}, and insert a note in the body.
+If @code{message-cross-post-default} is @code{nil} or if this command is
+called with a prefix-argument, only the @samp{FollowUp-To} header will
+be set but the the target newsgroup will not be added to the
+@samp{Newsgroups} header.  The function to insert a note is controlled
+by the @code{message-cross-post-note-function} variable.
 
 @item C-c C-f t
 @kindex C-c C-f t
 @findex message-reduce-to-to-cc
 Replace contents of @samp{To} header with contents of @samp{Cc} or
-@samp{Bcc} header.
+@samp{Bcc} header.  (Iff @samp{Cc} header is not present, @samp{Bcc}
+header will be used instead.)
 
 @item C-c C-f w
 @kindex C-c C-f w
 @findex message-insert-wide-reply
 Insert @samp{To} and @samp{Cc} headers as if you were doing a wide
-reply.
+reply even if the message was not made for a wide reply first.
 
 @item C-c C-f a
 @kindex C-c C-f a
@@ -839,8 +846,8 @@ typed a non-@acronym{ASCII} domain name.
 The @code{message-use-idna} variable control whether @acronym{IDNA} is
 used.  If the variable is @code{nil} no @acronym{IDNA} encoding will
 ever happen, if it is set to the symbol @code{ask} the user will be
-queried, and if set to @code{t} @acronym{IDNA} encoding happens
-automatically (the default).
+queried, and if set to @code{t} (which is the default if @acronym{IDNA}
+is fully available) @acronym{IDNA} encoding happens automatically.
 
 @findex message-idna-to-ascii-rhs
 If you want to experiment with the @acronym{IDNA} encoding, you can
@@ -1081,7 +1088,7 @@ The text is killed and replaced with the contents of the variable
 (@samp{[...]}).
 
 @item C-c C-z
-@kindex C-c C-x
+@kindex C-c C-z
 @findex message-kill-to-signature
 Kill all the text up to the signature, or if that's missing, up to the
 end of the message (@code{message-kill-to-signature}).
@@ -1125,9 +1132,9 @@ prompt for a new buffer name.
 @kindex TAB
 @findex message-tab
 @vindex message-tab-body-function
-If non-@code{nil} execute the function specified in
-@code{message-tab-body-function}.  Otherwise use the function bound to
-@kbd{TAB} in @code{text-mode-map} or @code{global-map}.
+If @code{message-tab-body-function} is non-@code{nil}, execute the
+function it specifies.  Otherwise use the function bound to @kbd{TAB} in
+@code{text-mode-map} or @code{global-map}.
 
 @end table
 
@@ -1417,13 +1424,14 @@ header when the message is already @code{Cc}ed to the recipient.
 @item message-required-mail-headers
 @vindex message-required-mail-headers
 @xref{News Headers}, for the syntax of this variable.  It is
-@code{(From Date Subject (optional . In-Reply-To) Message-ID Lines
+@code{(From Subject Date (optional . In-Reply-To) Message-ID
 (optional . User-Agent))} by default.
 
 @item message-ignored-mail-headers
 @vindex message-ignored-mail-headers
-Regexp of headers to be removed before mailing.  The default is
-@samp{^[GF]cc:\\|^Resent-Fcc:\\|^Xref:\\|^X-Draft-From:}.
+Regexp of headers to be removed before mailing.  The default is@*
+@samp{^[GF]cc:\\|^Resent-Fcc:\\|^Xref:\\|^X-Draft-From:\\|@*
+^X-Gnus-Agent-Meta-Information:}.
 
 @item message-default-mail-headers
 @vindex message-default-mail-headers
@@ -1694,7 +1702,8 @@ All these conditions are checked by default.
 @item message-ignored-news-headers
 @vindex message-ignored-news-headers
 Regexp of headers to be removed before posting.  The default is@*
-@samp{^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|^X-Draft-From:}.
+@samp{^NNTP-Posting-Host:\\|^Xref:\\|^[BGF]cc:\\|^Resent-Fcc:\\|@*
+^X-Draft-From:\\|^X-Gnus-Agent-Meta-Information:}.
 
 @item message-default-news-headers
 @vindex message-default-news-headers
@@ -1847,12 +1856,13 @@ say.
 @item message-default-charset
 @vindex message-default-charset
 @cindex charset
-Symbol naming a @acronym{MIME} charset.  Non-@acronym{ASCII}
-characters in messages are assumed to be encoded using this charset.
-The default is @code{nil}, which means ask the user.  (This variable
-is used only on non-@sc{mule} Emacsen.  @xref{Charset Translation, ,
-Charset Translation, emacs-mime, Emacs MIME Manual}, for details on
-the @sc{mule}-to-@acronym{MIME} translation process.
+Symbol naming a @acronym{MIME} charset.  Non-@acronym{ASCII} characters
+in messages are assumed to be encoded using this charset.  The default
+is @code{iso-8859-1} on non-@sc{mule} Emacsen; otherwise @code{nil},
+which means ask the user.  (This variable is used only on non-@sc{mule}
+Emacsen.)  @xref{Charset Translation, , Charset Translation, emacs-mime,
+Emacs MIME Manual}, for details on the @sc{mule}-to-@acronym{MIME}
+translation process.
 
 @item message-signature-separator
 @vindex message-signature-separator
@@ -1954,8 +1964,11 @@ message composition doesn't break too bad.
 
 @item message-send-method-alist
 @vindex message-send-method-alist
-
-Alist of ways to send outgoing messages.  Each element has the form
+@findex message-mail-p
+@findex message-news-p
+@findex message-send-via-mail
+@findex message-send-via-news
+Alist of ways to send outgoing messages.  Each element has the form:
 
 @lisp
 (@var{type} @var{predicate} @var{function})
@@ -1967,20 +1980,32 @@ A symbol that names the method.
 
 @item predicate
 A function called without any parameters to determine whether the
-message is a message of type @var{type}.
+message is a message of type @var{type}.  The function will be called in
+the buffer where the message is.
 
 @item function
 A function to be called if @var{predicate} returns non-@code{nil}.
 @var{function} is called with one parameter -- the prefix.
 @end table
 
+The default is:
+
 @lisp
 ((news message-news-p message-send-via-news)
  (mail message-mail-p message-send-via-mail))
 @end lisp
 
+The @code{message-news-p} function returns non-@code{nil} if the message
+looks like news, and the @code{message-send-via-news} function sends the
+message according to the @code{message-send-news-function} variable
+(@pxref{News Variables}).  The @code{message-mail-p} function returns
+non-@code{nil} if the message looks like mail, and the
+@code{message-send-via-mail} function sends the message according to the
+@code{message-send-mail-function} variable (@pxref{Mail Variables}).
 
-
+All the elements in this alist will be tried in order, so a message
+containing both a valid @samp{Newsgroups} header and a valid @samp{To}
+header, for example, will be sent as news, and then as mail.
 @end table
 
 

@@ -1809,6 +1809,8 @@ Isearch mode."
    ((eq   char ?|)       (isearch-fallback t nil t)))
 
   ;; Append the char to the search string, update the message and re-search.
+  (if (char-table-p translation-table-for-input)
+      (setq char (or (aref translation-table-for-input char) char)))
   (isearch-process-search-string
    (char-to-string char)
    (if (>= char ?\200)
@@ -2235,17 +2237,15 @@ since they have special meaning in a regexp."
 (defvar isearch-overlay nil)
 
 (defun isearch-highlight (beg end)
-  (unless (null search-highlight)
-    (cond (isearch-overlay
-	   ;; Overlay already exists, just move it.
-	   (move-overlay isearch-overlay beg end (current-buffer)))
-
-	  (t
-	   ;; Overlay doesn't exist, create it.
-	   (setq isearch-overlay (make-overlay beg end))
-	   (overlay-put isearch-overlay 'face isearch)
-           (overlay-put isearch-overlay 'priority 1) ;higher than lazy overlays
-           ))))
+  (if search-highlight
+      (if isearch-overlay
+	  ;; Overlay already exists, just move it.
+	  (move-overlay isearch-overlay beg end (current-buffer))
+	;; Overlay doesn't exist, create it.
+	(setq isearch-overlay (make-overlay beg end))
+	;; 1001 is higher than lazy's 1000 and ediff's 100+
+	(overlay-put isearch-overlay 'priority 1001)
+	(overlay-put isearch-overlay 'face isearch))))
 
 (defun isearch-dehighlight ()
   (when isearch-overlay
@@ -2409,8 +2409,10 @@ Attempt to do the search exactly the way the pending isearch would."
 			;; non-zero-length match
 			(let ((ov (make-overlay mb me)))
 			  (push ov isearch-lazy-highlight-overlays)
+			  ;; 1000 is higher than ediff's 100+,
+			  ;; but lower than isearch main overlay's 1001
+			  (overlay-put ov 'priority 1000)
 			  (overlay-put ov 'face lazy-highlight-face)
-			  (overlay-put ov 'priority 0) ;lower than main overlay
 			  (overlay-put ov 'window (selected-window))))
 		      (if isearch-forward
 			  (setq isearch-lazy-highlight-end (point))

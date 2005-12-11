@@ -775,6 +775,7 @@ clear what alternative to use.
 For interactive use, use `" (symbol-name fun) "' instead.")
 	     ,interact
 	     ,@body)
+	   (put ',fun-1 'definition-name ',fun)
 	   (defun ,fun ()
 	     ,(concat line1 "\nWrapper function that switches to a *cvs* buffer
 before calling the real function `" (symbol-name fun-1) "'.\n")

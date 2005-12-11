@@ -129,7 +129,7 @@ enum event_kind
 				   by MS-Windows scroll bar controls. */
 #endif
   SELECTION_REQUEST_EVENT,	/* Another X client wants a selection from us.
-				   See `struct selection_event'.  */
+				   See `struct selection_input_event'.  */
   SELECTION_CLEAR_EVENT,	/* Another X client cleared our selection.  */
   BUFFER_SWITCH_EVENT,		/* A process filter has switched buffers.  */
   DELETE_WINDOW_EVENT,		/* An X client said "delete this window".  */
@@ -177,12 +177,22 @@ enum event_kind
 
   /* Queued from XTread_socket when session manager sends
      save yourself before shutdown. */
-  SAVE_SESSION_EVENT
+  SAVE_SESSION_EVENT,
+
+#ifdef MAC_OS
+  /* Generated when an Apple event, a HICommand event, or a Services
+     menu event is received and the corresponding handler is
+     registered.  Members `x' and `y' are for the event class and ID
+     symbols, respectively.  Member `code' points to the Apple event
+     descriptor.  Parameters for Non-Apple events are converted to
+     those in Apple events.  */
+  MAC_APPLE_EVENT
+#endif
 };
 
 /* If a struct input_event has a kind which is SELECTION_REQUEST_EVENT
    or SELECTION_CLEAR_EVENT, then its contents are really described
-   by `struct selection_event'; see xterm.h.  */
+   by `struct selection_input_event'; see xterm.h.  */
 
 /* The keyboard input buffer is an array of these structures.  Each one
    represents some sort of input event - a keystroke, a mouse click, or
@@ -208,7 +218,7 @@ struct input_event
   unsigned long timestamp;
 
   /* This is padding just to put the frame_or_window field
-     past the size of struct selection_event.  */
+     past the size of struct selection_input_event.  */
   int *padding[2];
 
   /* This field is copied into a vector while the event is in the queue,

@@ -3155,13 +3155,18 @@ If N is negative, go backwards instead."
 	search-regexp found)
     (if (string-match "\\`[ \t]+" subject)
 	(setq subject (substring subject (match-end 0))))
-    (if (string-match "Re:[ \t]*" subject)
+    (if (string-match "\\`\\(Re:[ \t]*\\)+" subject)
 	(setq subject (substring subject (match-end 0))))
     (if (string-match "[ \t]+\\'" subject)
 	(setq subject (substring subject 0 (match-beginning 0))))
-    (setq search-regexp (concat "^Subject: *\\(Re:[ \t]*\\)?"
-				(regexp-quote subject)
-				"[ \t]*\n"))
+    ;; If Subject is long, mailers will break it into several lines at
+    ;; arbitrary places, so replace whitespace with a regexp that will
+    ;; match any sequence of spaces, TABs, and newlines.
+    (setq subject (regexp-quote subject))
+    (setq subject
+	  (replace-regexp-in-string "[ \t\n]+" "[ \t\n]+" subject t t))
+    (setq search-regexp (concat "^Subject: *\\(Re:[ \t]*\\)*"
+				subject "[ \t]*\n"))
     (save-excursion
       (save-restriction
 	(widen)

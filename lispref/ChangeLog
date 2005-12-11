@@ -1,3 +1,12 @@
+2005-12-08  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Intro to Minibuffers): Replace list of local maps
+	with xrefs and better explanation.
+	(Completion Commands): Add the filename completion maps.
+
+	* objects.texi (Character Type): Clarify that \s is not space
+	if a dash follows.
+
 2005-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* windows.texi (Resizing Windows): Delete preserve-before args.

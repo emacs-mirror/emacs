@@ -58,7 +58,7 @@
 ;;    hi-lock mode and adds a "Regexp Highlighting" entry
 ;;    to the edit menu.
 ;;
-;;    (hi-lock-mode 1)
+;;    (global-hi-lock-mode 1)
 ;;
 ;;    You might also want to bind the hi-lock commands to more
 ;;    finger-friendly sequences:
@@ -188,6 +188,17 @@ calls."
 (defvar hi-lock-file-patterns-prefix "Hi-lock"
   "Regexp for finding hi-lock patterns at top of file.")
 
+(defvar hi-lock-archaic-interface-message-used nil
+  "True if user alerted that global-hi-lock-mode is now the global switch.
+Earlier versions of hi-lock used hi-lock-mode as the global switch,
+the message is issued if it appears that hi-lock-mode is used assuming
+that older functionality.  This variable avoids multiple reminders.")
+
+(defvar hi-lock-archaic-interface-deduce nil
+  "If non-nil, sometimes assume that hi-lock-mode means global-hi-lock-mode.
+Assumption is made if hi-lock-mode used in the *scratch* buffer while
+a library is being loaded.")
+
 (make-variable-buffer-local 'hi-lock-interactive-patterns)
 (put 'hi-lock-interactive-patterns 'permanent-local t)
 (make-variable-buffer-local 'hi-lock-regexp-history)
@@ -238,13 +249,15 @@ calls."
 
 
 ;;;###autoload
-(define-minor-mode hi-lock-buffer-mode
+(define-minor-mode hi-lock-mode
   "Toggle minor mode for interactively adding font-lock highlighting patterns.
 
 If ARG positive turn hi-lock on.  Issuing a hi-lock command will also
-turn hi-lock on.  When hi-lock is turned on, a \"Regexp Highlighting\"
-submenu is added to the \"Edit\" menu.  The commands in the submenu,
-which can be called interactively, are:
+turn hi-lock on; to turn hi-lock on in all buffers use
+global-hi-lock-mode or in your .emacs file (global-hi-lock-mode 1).
+When hi-lock is turned on, a \"Regexp Highlighting\" submenu is added
+to the \"Edit\" menu.  The commands in the submenu, which can be
+called interactively, are:
 
 \\[highlight-regexp] REGEXP FACE
   Highlight matches of pattern REGEXP in current buffer with FACE.
@@ -283,7 +296,24 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
   :lighter " H"
   :global nil
   :keymap hi-lock-map
-  (if hi-lock-buffer-mode
+  (when (and (equal (buffer-name) "*scratch*")
+             load-in-progress
+             (not (interactive-p))
+             (not hi-lock-archaic-interface-message-used))
+    (setq hi-lock-archaic-interface-message-used t)
+    (if hi-lock-archaic-interface-deduce
+        (global-hi-lock-mode hi-lock-mode)
+      (warn
+       "Possible archaic use of (hi-lock-mode).
+Use (global-hi-lock-mode 1) in .emacs to enable hi-lock for all buffers,
+use (hi-lock-mode 1) for individual buffers. For compatibility with Emacs
+versions before 22 use the following in your .emacs file:
+
+        (if (functionp 'global-hi-lock-mode)
+            (global-hi-lock-mode 1)
+          (hi-lock-mode 1))
+")))
+  (if hi-lock-mode
       ;; Turned on.
       (progn
 	(unless font-lock-mode (font-lock-mode 1))
@@ -294,7 +324,7 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
     ;; Turned off.
     (when (or hi-lock-interactive-patterns
 	      hi-lock-file-patterns)
-      (when hi-lock-interactive-patterns 
+      (when hi-lock-interactive-patterns
 	(font-lock-remove-keywords nil hi-lock-interactive-patterns)
 	(setq hi-lock-interactive-patterns nil))
       (when hi-lock-file-patterns
@@ -306,13 +336,14 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
     (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)))
 
 ;;;###autoload
-(define-global-minor-mode hi-lock-mode
-  hi-lock-buffer-mode turn-on-hi-lock-if-enabled
+(define-global-minor-mode global-hi-lock-mode
+  hi-lock-mode turn-on-hi-lock-if-enabled
   :group 'hi-lock)
-  
+
 (defun turn-on-hi-lock-if-enabled ()
+  (setq hi-lock-archaic-interface-message-used t)
   (unless (memq major-mode hi-lock-exclude-modes)
-    (hi-lock-buffer-mode 1)))
+    (hi-lock-mode 1)))
 
 ;;;###autoload
 (defalias 'highlight-lines-matching-regexp 'hi-lock-line-face-buffer)
@@ -332,7 +363,7 @@ list maintained for regexps, global history maintained for faces.
                            nil nil 'hi-lock-regexp-history))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
-  (unless hi-lock-buffer-mode (hi-lock-buffer-mode 1))
+  (unless hi-lock-mode (hi-lock-mode 1))
   (hi-lock-set-pattern
    ;; The \\(?:...\\) grouping construct ensures that a leading ^, +, * or ?
    ;; or a trailing $ in REGEXP will be interpreted correctly.
@@ -357,7 +388,7 @@ list maintained for regexps, global history maintained for faces.
                            nil nil 'hi-lock-regexp-history))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
-  (unless hi-lock-buffer-mode (hi-lock-buffer-mode 1))
+  (unless hi-lock-mode (hi-lock-mode 1))
   (hi-lock-set-pattern regexp face))
 
 ;;;###autoload
@@ -377,7 +408,7 @@ lower-case letters made case insensitive."
                             nil nil 'hi-lock-regexp-history)))
     (hi-lock-read-face-name)))
   (or (facep face) (setq face 'hi-yellow))
-  (unless hi-lock-buffer-mode (hi-lock-buffer-mode 1))
+  (unless hi-lock-mode (hi-lock-mode 1))
   (hi-lock-set-pattern regexp face))
 
 ;;;###autoload
@@ -535,7 +566,7 @@ not suitable."
                 (setq all-patterns (append (read (current-buffer)) all-patterns))
               (error (message "Invalid pattern list expression at %d"
                               (line-number-at-pos)))))))
-      (when hi-lock-buffer-mode (hi-lock-set-file-patterns all-patterns))
+      (when hi-lock-mode (hi-lock-set-file-patterns all-patterns))
       (if (interactive-p)
         (message "Hi-lock added %d patterns." (length all-patterns))))))
 
@@ -544,7 +575,7 @@ not suitable."
   (if font-lock-mode
       (progn (font-lock-add-keywords nil hi-lock-file-patterns)
 	     (font-lock-add-keywords nil hi-lock-interactive-patterns))
-    (hi-lock-buffer-mode -1)))
+    (hi-lock-mode -1)))
 
 (provide 'hi-lock)
 

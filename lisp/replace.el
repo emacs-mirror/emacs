@@ -1710,7 +1710,7 @@ make, or the user didn't cancel the call."
       (if replace-overlay
 	  (move-overlay replace-overlay match-beg match-end (current-buffer))
 	(setq replace-overlay (make-overlay match-beg match-end))
-	(overlay-put replace-overlay 'priority 1) ;higher than lazy overlays
+	(overlay-put replace-overlay 'priority 1001) ;higher than lazy overlays
 	(overlay-put replace-overlay 'face 'query-replace)))
   (if query-replace-lazy-highlight
       (let ((isearch-string string)

@@ -7,8 +7,15 @@
 @cindex customization
 
   This chapter talks about various topics relevant to adapting the
-behavior of Emacs in minor ways.  See @cite{The Emacs Lisp Reference
-Manual} for how to make more far-reaching changes.  @xref{X Resources},
+behavior of Emacs in minor ways.
+@iftex
+See @cite{The Emacs Lisp Reference Manual}
+@end iftex
+@ifnottex
+@xref{Top, Emacs Lisp, Emacs Lisp, elisp, The Emacs Lisp
+Reference Manual},
+@end ifnottex
+for how to make more far-reaching changes.  @xref{X Resources},
 for information on using X resources to customize Emacs.
 
   Customization that you do within Emacs normally affects only the
@@ -52,8 +59,8 @@ line when they are on; for example, @samp{Fill} in the mode line means
 that Auto Fill mode is on.
 
   Append @code{-mode} to the name of a minor mode to get the name of a
-command function that turns the mode on or off.  Thus, the command to
-enable or disable Auto Fill mode is called @kbd{M-x auto-fill-mode}.  These
+command that turns the mode on or off.  Thus, the command to
+enable or disable Auto Fill mode is called @code{auto-fill-mode}.  These
 commands are usually invoked with @kbd{M-x}, but you can bind keys to them
 if you wish.  With no argument, the function turns the mode on if it was
 off and off if it was on.  This is known as @dfn{toggling}.  A positive
@@ -66,21 +73,25 @@ buffer-local; they apply only to the current buffer, so you can enable
 the mode in certain buffers and not others.
 
   For most minor modes, the command name is also the name of a
-variable which directly controls the mode.  The mode is enabled
-whenever this variable's value is non-@code{nil}, and the minor-mode
-command works by setting the variable.  For example, the command
-@code{outline-minor-mode} works by setting the value of
-@code{outline-minor-mode} as a variable; it is this variable that
-directly turns Outline minor mode on and off.  To check whether a
-given minor mode works this way, use @kbd{C-h v} to ask for
-documentation on the variable name.
+variable.  The variable's value is non-@code{nil} if the mode is
+enabled and @code{nil} if it is disabled.  Some minor-mode commands
+work by just setting the variable.  For example, the command
+@code{abbrev-mode} works by setting the value of @code{abbrev-mode} as
+a variable; it is this variable that directly turns Abbrev mode on and
+off.  You can directly set the variable's value instead of calling the
+mode function.  For other minor modes, you need to either set the
+variable through the Customize interface or call the mode function to
+correctly enable or disable the mode.  To check which of these two
+possibilities applies to a given minor mode, use @kbd{C-h v} to ask
+for documentation on the variable name.
 
-  These minor-mode variables provide a good way for Lisp programs to
-turn minor modes on and off; they are also useful in a file's local
-variables list (@pxref{File Variables}).  But please think twice
-before setting minor modes with a local variables list, because most
-minor modes are a matter of user preference---other users editing the
-same file might not want the same minor modes you prefer.
+  For minor mode commands that work by just setting the minor mode
+variable, that variable provides a good way for Lisp programs to turn
+minor modes on and off; it is also useful in a file's local variables
+list (@pxref{File Variables}).  But please think twice before setting
+minor modes with a local variables list, because most minor modes are
+a matter of user preference---other users editing the same file might
+not want the same minor modes you prefer.
 
   The most useful buffer-local minor modes include Abbrev mode, Auto
 Fill mode, Auto Save mode, Font-Lock mode, Glasses mode, ISO Accents
@@ -144,9 +155,10 @@ In Binary Overwrite mode, digits after @kbd{C-q} specify an
 octal character code, as usual.
 
   Here are some useful minor modes that normally apply to all buffers
-at once.  Since each is enabled or disabled by the value of a
+at once.  Since Line Number mode and Transient Mark mode can be
+enabled or disabled just by setting the value of the minor mode
 variable, you @emph{can} set them differently for particular buffers,
-by explicitly making the corresponding variables local in those
+by explicitly making the corresponding variable local in those
 buffers.  @xref{Locals}.
 
   Icomplete mode displays an indication of available completions when
@@ -166,7 +178,7 @@ these modes are enabled by default when you use the X Window System.
 will get an error.  This means you must either set the mark, or
 explicitly ``reactivate'' it, before each command that uses the region.
 The advantage of Transient Mark mode is that Emacs can display the
-region highlighted (currently only when using X).  @xref{Mark}.
+region highlighted.  @xref{Mark}.
 
 @node Easy Customization
 @section Easy Customization Interface
@@ -274,7 +286,7 @@ variables and faces), and their structure.
 @samp{[-]}; invoking that hides the group contents.
 
   Each group, variable, or face name in this buffer has an active field
-which says @samp{[Group]}, @samp{[Variable]} or @samp{[Face]}.  Invoking
+which says @samp{[Group]}, @samp{[Option]} or @samp{[Face]}.  Invoking
 that active field creates an ordinary customization buffer showing just
 that group and its contents, just that variable, or just that face.
 This is the way to set values in it.
@@ -286,16 +298,16 @@ This is the way to set values in it.
 customization buffer:
 
 @smallexample
-Kill Ring Max: [Hide] 60
-   [State]: this variable is unchanged from its standard setting.
+Kill Ring Max: [Hide Value] 60
+   [State]: STANDARD.
 Maximum length of kill ring before oldest elements are thrown away.
 @end smallexample
 
-  The text following @samp{[Hide]}, @samp{60} in this case, indicates
-the current value of the variable.  If you see @samp{[Show]} instead of
-@samp{[Hide]}, it means that the value is hidden; the customization
+  The text following @samp{[Hide Value]}, @samp{60} in this case, indicates
+the current value of the variable.  If you see @samp{[Show Value]} instead of
+@samp{[Hide Value]}, it means that the value is hidden; the customization
 buffer initially hides values that take up several lines.  Invoke
-@samp{[Show]} to show the value.
+@samp{[Show Value]} to show the value.
 
   The line after the option name indicates the @dfn{customization state}
 of the variable: in the example above, it says you have not changed the
@@ -317,7 +329,8 @@ another number.
 change to say that you have edited the value:
 
 @smallexample
-[State]: you have edited the value as text, but not set the variable.
+[State]: EDITED, shown value does not take effect until you set or @r{@dots{}}
+                                                           save it.
 @end smallexample
 
 @cindex setting option value
@@ -328,7 +341,7 @@ that, you must @dfn{set} it.  To do this, invoke the word
   The state of the variable changes visibly when you set it:
 
 @smallexample
-[State]: you have set this variable, but not saved it for future sessions.
+[State]: SET for current session only.
 @end smallexample
 
    You don't have to worry about specifying a value that is not valid;
@@ -355,7 +368,7 @@ value of @code{file-coding-system-alist} is an association list.  Here
 is how it appears in the customization buffer:
 
 @smallexample
-File Coding System Alist: [Hide]
+File Coding System Alist: [Hide Value]
 [INS] [DEL] File regexp: \.elc\'
             Choice: [Value Menu] Encoding/decoding pair:
             Decoding: emacs-mule
@@ -373,8 +386,9 @@ File Coding System Alist: [Hide]
             Decoding: undecided
             Encoding: nil
 [INS]
-   [State]: this variable is unchanged from its standard setting.
-Alist to decide a coding system to use for a file I/O operation. [Hide]
+   [State]: STANDARD.
+Alist to decide a coding system to use for a file I/O @r{@dots{}}
+                                operation. [Hide Rest]
 The format is ((PATTERN . VAL) ...),
 where PATTERN is a regular expression matching a file name,
 @r{[@dots{}more lines of documentation@dots{}]}
@@ -420,10 +434,10 @@ Customizations}).
 
   You can also restore the variable to its standard value by invoking
 @samp{[State]} and selecting the @samp{Erase Customization} operation.
-There are actually three reset operations:
+There are actually four reset operations:
 
 @table @samp
-@item Reset
+@item Reset to Current
 If you have made some modifications and not yet set the variable,
 this restores the text in the customization buffer to match
 the actual value.
@@ -452,28 +466,25 @@ comment you enter will be saved, and displayed again if you again view
 the same variable in a customization buffer, even in another session.
 
   The state of a group indicates whether anything in that group has been
-edited, set or saved.  You can select @samp{Set for Current Session},
-@samp{Save for Future Sessions} and the various kinds of @samp{Reset}
-operation for the group; these operations on the group apply to all
-options in the group and its subgroups.
+edited, set or saved.
 
   Near the top of the customization buffer there are two lines
 containing several active fields:
 
 @smallexample
  [Set for Current Session] [Save for Future Sessions]
- [Reset] [Reset to Saved] [Erase Customization]   [Finish]
+ [Reset to Current] [Reset to Saved] [Erase Customization]   [Finish]
 @end smallexample
 
 @vindex custom-buffer-done-function
 @noindent
 Invoking @samp{[Finish]} either buries or kills this customization
 buffer according to the setting of the option
-@code{custom-buffer-done-function}; the default is to bury the buffer.
+@code{custom-buffer-done-kill}; the default is to bury the buffer.
 Each of the other fields performs an operation---set, save or
 reset---on each of the options in the buffer that could meaningfully
 be set, saved or reset.  They do not operate on options whose values
-are hidden.
+are hidden, nor on subgroups.
 
 @node Saving Customizations
 @subsection Saving Customizations
@@ -529,10 +540,10 @@ the faces in the group appear in the customization buffer.  Here is an
 example of how a face looks:
 
 @smallexample
-Custom Changed Face:(sample) [Hide]
-   [State]: this face is unchanged from its standard setting.
+Custom Changed Face:(sample) [Hide Face]
+   [State]: STANDARD.
 Face used when the customize item has been changed.
-Parent groups: => Custom Magic Faces
+Parent groups: [Custom Magic Faces]
 Attributes: [ ] Font Family: *
             [ ] Width: *
             [ ] Height: *
@@ -556,7 +567,7 @@ attribute by invoking that field.  When the attribute is enabled, you
 can change the attribute value in the usual ways.
 
   For the colors, you can specify a color name (use @kbd{M-x
-list-colors-display}) for a list of them) or a hexadecimal color
+list-colors-display} for a list of them) or a hexadecimal color
 specification of the form @samp{#@var{rr}@var{gg}@var{bb}}.
 (@samp{#000000} is black, @samp{#ff0000} is red, @samp{#00ff00} is
 green, @samp{#0000ff} is blue, and @samp{#ffffff} is white.)  On a
@@ -627,16 +638,15 @@ on the character after point.
   You can also set up the customization buffer with a specific group,
 using @kbd{M-x customize-group}.  The immediate contents of the chosen
 group, including user options, faces, and other groups, all appear
-as well.  However, these subgroups' own contents start out hidden.  You
-can show their contents in the usual way, by invoking @samp{[Show]}.
+as well.  However, these subgroups' own contents are not included.
 
 @findex customize-apropos
   To control more precisely what to customize, you can use @kbd{M-x
 customize-apropos}.  You specify a regular expression as argument; then
 all options, faces and groups whose names match this regular expression
 are set up in the customization buffer.  If you specify an empty regular
-expression, this includes @emph{all} groups, options and faces in the
-customization buffer (but that takes a long time).
+expression, this includes @emph{all} groups, options and faces (but
+that takes a long time).
 
 @findex customize-changed-options
   When you upgrade to a new Emacs version, you might want to customize
@@ -1396,6 +1406,8 @@ to add local bindings (not very useful, we admit) for @kbd{C-c n} and
 @vindex minibuffer-local-ns-map
 @vindex minibuffer-local-completion-map
 @vindex minibuffer-local-must-match-map
+@vindex minibuffer-local-filename-completion-map
+@vindex minibuffer-local-must-match-filename-map
   The minibuffer has its own set of local keymaps; they contain various
 completion and exit commands.
 
@@ -1410,6 +1422,11 @@ just like @key{RET}.  This is used mainly for Mocklisp compatibility.
 @item
 @code{minibuffer-local-must-match-map} is for strict completion and
 for cautious completion.
+@item
+@code{minibuffer-local-filename-completion-map} and
+@code{minibuffer-local-must-match-filename-map} are like the two
+previous ones, but they are specifically for file name completion.
+They do not bind @key{SPC}.
 @end itemize
 
 @node Rebinding
@@ -1688,9 +1705,9 @@ word:
 @cindex keypad
   Many keyboards have a ``numeric keypad'' on the right hand side.
 The numeric keys in the keypad double up as cursor motion keys,
-toggled by a key labelled @samp{Num Lock}.  By default, Emacs
+toggled by a key labeled @samp{Num Lock}.  By default, Emacs
 translates these keys to the corresponding keys in the main keyboard.
-For example, when @samp{Num Lock} is on, the key labelled @samp{8} on
+For example, when @samp{Num Lock} is on, the key labeled @samp{8} on
 the numeric keypad produces @code{kp-8}, which is translated to
 @kbd{8}; when @samp{Num Lock} is off, the same key produces
 @code{kp-up}, which is translated to @key{UP}.  If you rebind a key
@@ -1825,12 +1842,13 @@ twice.
   Emacs also supports triple-click events whose names start with
 @samp{triple-}.  Emacs does not distinguish quadruple clicks as event
 types; clicks beyond the third generate additional triple-click events.
-However, the full number of clicks is recorded in the event list, so you
-can distinguish if you really want to.  We don't recommend distinct
-meanings for more than three clicks, but sometimes it is useful for
-subsequent clicks to cycle through the same set of three meanings, so
-that four clicks are equivalent to one click, five are equivalent to
-two, and six are equivalent to three.
+However, the full number of clicks is recorded in the event list, so
+if you know Emacs Lisp you can distinguish if you really want to
+(@pxref{Accessing Events,,, elisp, The Emacs Lisp Reference Manual}).
+We don't recommend distinct meanings for more than three clicks, but
+sometimes it is useful for subsequent clicks to cycle through the same
+set of three meanings, so that four clicks are equivalent to one
+click, five are equivalent to two, and six are equivalent to three.
 
   Emacs also records multiple presses in drag and button-down events.
 For example, when you press a button twice, then move the mouse while
@@ -1848,7 +1866,7 @@ click.  Its value is in units of milliseconds.  If the value is
 
 @vindex double-click-fuzz
   The variable @code{double-click-fuzz} specifies how much the mouse
-can move between clicks still allow them to be grouped as a multiple
+can move between clicks and still allow them to be grouped as a multiple
 click.  Its value is in units of pixels on windowed displays and in
 units of 1/8 of a character cell on text-mode terminals; the default is
 3.
@@ -1882,6 +1900,10 @@ you use scroll bars, they appear in place of these vertical lines.)
 @item vertical-scroll-bar
 The mouse was in a vertical scroll bar.  (This is the only kind of
 scroll bar Emacs currently supports.)
+@item menu-bar
+The mouse was in the menu bar.
+@item header-line
+The mouse was in a header line.
 @ignore
 @item horizontal-scroll-bar
 The mouse was in a horizontal scroll bar.  Horizontal scroll bars do
@@ -2397,9 +2419,10 @@ library.  @xref{Hooks}.
 @subsection How Emacs Finds Your Init File
 
   Normally Emacs uses the environment variable @env{HOME} to find
-@file{.emacs}; that's what @samp{~} means in a file name.  If @file{.emacs}
-is not found directly inside @file{~/}, Emacs looks for it in
-@file{~/.emacs.d/}.
+@file{.emacs}; that's what @samp{~} means in a file name.  If
+@file{.emacs} is not found inside @file{~/} (nor @file{.emacs.el}),
+Emacs looks for @file{~/.emacs.d/init.el} (which, like
+@file{~/.emacs.el}, can be byte-compiled).
 
   However, if you run Emacs from a shell started by @code{su}, Emacs
 tries to find your own @file{.emacs}, not that of the user you are

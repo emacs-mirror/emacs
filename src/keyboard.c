@@ -514,6 +514,9 @@ Lisp_Object Qlanguage_change;
 #endif
 Lisp_Object Qdrag_n_drop;
 Lisp_Object Qsave_session;
+#ifdef MAC_OS
+Lisp_Object Qmac_apple_event;
+#endif
 
 /* Lisp_Object Qmouse_movement; - also an event header */
 
@@ -5915,6 +5918,20 @@ make_lispy_event (event)
     case SAVE_SESSION_EVENT:
       return Qsave_session;
 
+#ifdef MAC_OS
+    case MAC_APPLE_EVENT:
+      {
+	Lisp_Object spec[2];
+
+	spec[0] = event->x;
+	spec[1] = event->y;
+	return Fcons (Qmac_apple_event,
+		      Fcons (Fvector (2, spec),
+			     Fcons (mac_make_lispy_event_code (event->code),
+				    Qnil)));
+      }
+#endif
+
       /* The 'kind' field of the event is something we don't recognize.  */
     default:
       abort ();
@@ -11073,6 +11090,11 @@ syms_of_keyboard ()
 
   Qsave_session = intern ("save-session");
   staticpro (&Qsave_session);
+
+#ifdef MAC_OS
+  Qmac_apple_event = intern ("mac-apple-event");
+  staticpro (&Qmac_apple_event);
+#endif
 
   Qusr1_signal = intern ("usr1-signal");
   staticpro (&Qusr1_signal);

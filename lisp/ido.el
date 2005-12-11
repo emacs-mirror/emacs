@@ -24,45 +24,6 @@
 ;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301, USA.
 
-;;; Acknowledgements
-
-;; Infinite amounts of gratitude goes to Stephen Eglen <stephen@cns.ed.ac.uk>
-;; who wrote iswitch-buffer mode - from which I ripped off 99% of the code
-;; for ido-switch-buffer and found the inspiration for ido-find-file.
-;; The ido package would never have existed without his work.
-
-;; Also thanks to Klaus Berndl, Rohit Namjoshi, Robert Fenk, Alex
-;; Schroeder, Bill Benedetto, Stephen Eglen, and many others for bug
-;; fixes and improvements.
-
-;;; History
-
-;; Since I discovered Stephen Eglen's excellent iswitchb package, I just
-;; couldn't live without it, but once being addicted to switching buffers
-;; with a minimum of keystrokes, I soon found that opening files in the
-;; old-fashioned way was just too slow - so I decided to write a package
-;; which could open files with the same speed and ease as iswitchb could
-;; switch buffers.
-
-;; I originally wrote a separate ifindf.el package based on a copy of
-;; iswitchb.el, which did for opening files what iswitchb did for
-;; switching buffers.  Along the way, I corrected a few errors in
-;; ifindf which could have found its way back into iswitchb, but since
-;; most of the functionality of the two package was practically
-;; identical, I decided that the proper thing to do was to merge my
-;; ifindf package back into iswitchb.
-;;
-;; This is basically what ido (interactively do) is all about; but I
-;; found it ackward to merge my changes into the "iswitchb-" namespace,
-;; so I invented a common "ido-" namespace for the merged packages.
-;;
-;; This version is based on ido.el version 1.57 released on
-;; gnu.emacs.sources adapted for emacs 22.1 to use command remapping
-;; and optionally hooking the read-buffer and read-file-name functions.
-;;
-;; Prefix matching was added by Klaus Berndl <klaus.berndl@sdm.de> based on
-;; an idea of Yuji Minejima <ggb01164@nifty.ne.jp> and his mcomplete-package.
-
 
 ;;; Commentary:
 
@@ -94,10 +55,10 @@
 ;; most recent, when I use ido-switch-buffer, I first of all get
 ;; presented with the list of all the buffers
 ;;
-;;       Buffer:  {123456,123}
+;;       Buffer: {123456 | 123}
 ;;
 ;; If I then press 2:
-;;       Buffer: 2[3]{123456,123}
+;;       Buffer: 2[3]{123456 | 123}
 ;;
 ;; The list in {...} are the matching buffers, most recent first
 ;; (buffers visible in the current frame are put at the end of the
@@ -110,7 +71,7 @@
 ;; pressing TAB.  In this case, I will get "3" added to my input.
 
 ;; So, I press TAB:
-;;	 Buffer: 23{123456,123}
+;;	 Buffer: 23{123456 | 123}
 ;;
 ;; At this point, I still have two matching buffers.
 ;; If I want the first buffer in the list, I simply press RET.  If I
@@ -118,13 +79,16 @@
 ;; top of the list and then RET to select it.
 ;;
 ;; However, if I type 4, I only have one match left:
-;;       Buffer: 234[123456] [Matched]
+;;       Buffer: 234[123456]
 ;;
-;; Since there is only one matching buffer left, it is given in [] and we
-;; see the text [Matched] afterwards.  I can now press TAB or RET to go
-;; to that buffer.
+;; Since there is only one matching buffer left, it is given in [] and
+;; it is shown in the `ido-only-match' face (ForestGreen).  I can now
+;; press TAB or RET to go to that buffer.
 ;;
-;; If however, I now type "a":
+;; If I want to create a new buffer named "234", I press C-j instead of
+;; TAB or RET.
+;;
+;; If instead, I type "a":
 ;;       Buffer: 234a [No match]
 ;; There are no matching buffers.  If I press RET or TAB, I can be
 ;; prompted to create a new buffer called "234a".
@@ -317,6 +281,45 @@
 ;; ido-read-buffer, ido-read-file-name, and ido-read-directory-name
 ;; can be used by other packages to read a buffer name, a file name,
 ;; or a directory name in the `ido' way.
+
+;;; Acknowledgements
+
+;; Infinite amounts of gratitude goes to Stephen Eglen <stephen@cns.ed.ac.uk>
+;; who wrote iswitch-buffer mode - from which I ripped off 99% of the code
+;; for ido-switch-buffer and found the inspiration for ido-find-file.
+;; The ido package would never have existed without his work.
+
+;; Also thanks to Klaus Berndl, Rohit Namjoshi, Robert Fenk, Alex
+;; Schroeder, Bill Benedetto, Stephen Eglen, and many others for bug
+;; fixes and improvements.
+
+;;; History
+
+;; Since I discovered Stephen Eglen's excellent iswitchb package, I just
+;; couldn't live without it, but once being addicted to switching buffers
+;; with a minimum of keystrokes, I soon found that opening files in the
+;; old-fashioned way was just too slow - so I decided to write a package
+;; which could open files with the same speed and ease as iswitchb could
+;; switch buffers.
+
+;; I originally wrote a separate ifindf.el package based on a copy of
+;; iswitchb.el, which did for opening files what iswitchb did for
+;; switching buffers.  Along the way, I corrected a few errors in
+;; ifindf which could have found its way back into iswitchb, but since
+;; most of the functionality of the two package was practically
+;; identical, I decided that the proper thing to do was to merge my
+;; ifindf package back into iswitchb.
+;;
+;; This is basically what ido (interactively do) is all about; but I
+;; found it ackward to merge my changes into the "iswitchb-" namespace,
+;; so I invented a common "ido-" namespace for the merged packages.
+;;
+;; This version is based on ido.el version 1.57 released on
+;; gnu.emacs.sources adapted for emacs 22.1 to use command remapping
+;; and optionally hooking the read-buffer and read-file-name functions.
+;;
+;; Prefix matching was added by Klaus Berndl <klaus.berndl@sdm.de> based on
+;; an idea of Yuji Minejima <ggb01164@nifty.ne.jp> and his mcomplete-package.
 
 
 ;;; Code:
