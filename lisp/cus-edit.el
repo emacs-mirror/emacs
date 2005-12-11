@@ -1252,12 +1252,12 @@ suggest to customize that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-apropos (regexp &optional all)
-  "Customize all user options matching REGEXP.
+  "Customize all options, faces and groups matching REGEXP.
 If ALL is `options', include only options.
 If ALL is `faces', include only faces.
 If ALL is `groups', include only groups.
-If ALL is t (interactively, with prefix arg), include options which are not
-user-settable, as well as faces and groups."
+If ALL is t (interactively, with prefix arg), include variables
+that are not customizable options, as well as faces and groups."
   (interactive "sCustomize regexp: \nP")
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1270,11 +1270,11 @@ user-settable, as well as faces and groups."
 		    (push (list symbol 'custom-face) found))
 		  (when (and (not (memq all '(groups faces)))
 			     (boundp symbol)
+			     (eq (indirect-variable symbol) symbol)
 			     (or (get symbol 'saved-value)
 				 (custom-variable-p symbol)
-				 (if (memq all '(nil options))
-				     (user-variable-p symbol)
-				   (get symbol 'variable-documentation))))
+				 (and (not (memq all '(nil options)))
+				      (get symbol 'variable-documentation))))
 		    (push (list symbol 'custom-variable) found)))))
     (if (not found)
 	(error "No matches")
@@ -1284,8 +1284,8 @@ user-settable, as well as faces and groups."
 
 ;;;###autoload
 (defun customize-apropos-options (regexp &optional arg)
-  "Customize all user options matching REGEXP.
-With prefix arg, include options which are not user-settable."
+  "Customize all customizable options matching REGEXP.
+With prefix arg, include variables that are not customizable options."
   (interactive "sCustomize regexp: \nP")
   (customize-apropos regexp (or arg 'options)))
 
