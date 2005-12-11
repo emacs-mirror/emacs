@@ -4499,7 +4499,8 @@ mark_stack ()
 /* Return 1 if OBJ is a valid lisp object.
    Return 0 if OBJ is NOT a valid lisp object.
    Return -1 if we cannot validate OBJ.
-*/
+   This function can be quite slow,
+   so it should only be used in code for manual debugging.  */
 
 int
 valid_lisp_object_p (obj)
@@ -4525,11 +4526,11 @@ valid_lisp_object_p (obj)
      trying), so we trick the o/s to tell us whether p is a valid
      pointer.  Unfortunately, we cannot use NULL_DEVICE here, as
      emacs_write may not validate p in that case.  */
-  if ((fd = emacs_open("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
+  if ((fd = emacs_open ("__Valid__Lisp__Object__", O_CREAT | O_WRONLY | O_TRUNC, 0666)) >= 0)
     {
-      int valid = emacs_write(fd, (char *)p, 16) == 16;
-      emacs_close(fd);
-      unlink("__Valid__Lisp__Object__");
+      int valid = (emacs_write (fd, (char *)p, 16) == 16);
+      emacs_close (fd);
+      unlink ("__Valid__Lisp__Object__");
       return valid;
     }
 
