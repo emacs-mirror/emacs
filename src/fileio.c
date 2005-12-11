@@ -4554,6 +4554,8 @@ actually used.  */)
 #endif
       Vdeactivate_mark = old_Vdeactivate_mark;
     }
+  else
+    Vdeactivate_mark = Qt;
 
   /* Make the text read part of the buffer.  */
   GAP_SIZE -= inserted;
