@@ -1,3 +1,21 @@
+2005-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (syms_of_xdisp) <blink-cursor-alist>: Doc fix.
+
+	* lisp.h [! NO_UNION_TYPE] (EQ): Use == so args are computed just once.
+
+	* keymap.c (Fset_keymap_parent, store_in_keymap): Use CHECK_IMPURE.
+	(Flookup_key): Doc fix.
+	(syms_of_keymap) <function-key-map>: Doc fix.
+
+	* fns.c (Frequire): Treat evaluating from a source file
+	like loading the file.
+
+	* floatfns.c (Flog): Doc fix.
+
+	* fileio.c (Finsert_file_contents): Set Vdeactivate_mark
+	when we change the buffer.
+
 2005-12-11  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.c (display_completion_list_1):
