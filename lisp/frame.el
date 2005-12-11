@@ -886,7 +886,7 @@ See `modify-frame-parameters.'"
   "Set the background color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current background color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color)))
+  (interactive (list (facemenu-read-color "Background color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'background-color color-name)))
   (or window-system
@@ -896,7 +896,7 @@ To get the frame's current background color, use `frame-parameters'."
   "Set the foreground color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current foreground color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color)))
+  (interactive (list (facemenu-read-color "Foreground color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'foreground-color color-name)))
   (or window-system
@@ -906,7 +906,7 @@ To get the frame's current foreground color, use `frame-parameters'."
   "Set the text cursor color of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current cursor color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color)))
+  (interactive (list (facemenu-read-color "Cursor color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'cursor-color color-name))))
 
@@ -914,7 +914,7 @@ To get the frame's current cursor color, use `frame-parameters'."
   "Set the color of the mouse pointer of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current mouse color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color)))
+  (interactive (list (facemenu-read-color "Mouse color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'mouse-color
 				       (or color-name
@@ -925,7 +925,7 @@ To get the frame's current mouse color, use `frame-parameters'."
   "Set the color of the border of the selected frame to COLOR-NAME.
 When called interactively, prompt for the name of the color to use.
 To get the frame's current border color, use `frame-parameters'."
-  (interactive (list (facemenu-read-color)))
+  (interactive (list (facemenu-read-color "Border color: ")))
   (modify-frame-parameters (selected-frame)
 			   (list (cons 'border-color color-name))))
 
@@ -1203,7 +1203,6 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 (defcustom show-trailing-whitespace nil
   "*Non-nil means highlight trailing whitespace.
 This is done in the face `trailing-whitespace'."
-  :tag "Highlight trailing whitespace."
   :type 'boolean
   :group 'whitespace-faces)
 
@@ -1235,13 +1234,11 @@ point visible."
 
 (defcustom blink-cursor-delay 0.5
   "*Seconds of idle time after which cursor starts to blink."
-  :tag "Delay in seconds."
   :type 'number
   :group 'cursor)
 
 (defcustom blink-cursor-interval 0.5
   "*Length of cursor blink interval in seconds."
-  :tag "Blink interval in seconds."
   :type 'number
   :group 'cursor)
 
@@ -1317,14 +1314,12 @@ itself as a pre-command hook."
 ;; Hourglass pointer
 
 (defcustom display-hourglass t
-  "*Non-nil means show an hourglass pointer when running under a window system."
-  :tag "Hourglass pointer"
+  "*Non-nil to show an hourglass pointer when Emacs is busy on a window system."
   :type 'boolean
   :group 'cursor)
 
 (defcustom hourglass-delay 1
-  "*Seconds to wait before displaying an hourglass pointer."
-  :tag "Hourglass delay"
+  "*Seconds to wait before displaying an hourglass pointer when Emacs is busy."
   :type 'number
   :group 'cursor)
 
@@ -1333,7 +1328,7 @@ itself as a pre-command hook."
   "*Non-nil means show a hollow box cursor in non-selected windows.
 If nil, don't show a cursor except in the selected window.
 Use Custom to set this variable to get the display updated."
-  :tag "Cursor in non-selected windows"
+  :tag "Cursor In Non-selected Windows"
   :type 'boolean
   :group 'cursor
   :set #'(lambda (symbol value)
