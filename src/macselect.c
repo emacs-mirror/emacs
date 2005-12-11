@@ -1427,7 +1427,7 @@ set to nil.  */);
 
   DEFVAR_LISP ("mac-apple-event-map", &Vmac_apple_event_map,
 	       doc: /* Keymap for Apple events handled by Emacs.  */);
-  Vmac_apple_event_map = Fmake_sparse_keymap (Qnil);
+  Vmac_apple_event_map = Qnil;
 
 #ifdef MAC_OSX
   DEFVAR_LISP ("mac-services-selection", &Vmac_services_selection,
