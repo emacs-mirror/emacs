@@ -23632,7 +23632,11 @@ go back to their normal size.  */);
 Each element has the form (ON-STATE . OFF-STATE).  Whenever the
 `cursor-type' frame-parameter or variable equals ON-STATE,
 comparing using `equal', Emacs uses OFF-STATE to specify
-how to blink it off.  */);
+how to blink it off.  ON-STATE and OFF-STATE are values for
+the `cursor-type' frame parameter.
+
+If a frame's ON-STATE has no entry in this list,
+the frame's other specifications determine how to blink the cursor off.  */);
   Vblink_cursor_alist = Qnil;
 
   DEFVAR_BOOL ("auto-hscroll-mode", &automatic_hscrolling_p,
