@@ -1,3 +1,11 @@
+2005-12-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-apropos): Avoid listing an option more
+	than once under different aliases.  No longer list user options
+	that are not defined with defcustom (unless a prefix arg is given).
+	Doc fix.
+	(customize-apropos-options): Doc fix.
+
 2005-12-11  Juri Linkov  <juri@jurta.org>
 
 	* frame.el (set-background-color, set-foreground-color)
