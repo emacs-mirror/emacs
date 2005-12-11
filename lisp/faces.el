@@ -1577,17 +1577,17 @@ If omitted or nil, that stands for the selected frame's display."
 (defcustom frame-background-mode nil
   "*The brightness of the background.
 Set this to the symbol `dark' if your background color is dark,
-`light' if your background is light, or nil (default) if you want Emacs
-to examine the brightness for you.  Don't set this variable with `setq';
-this won't have the expected effect."
+`light' if your background is light, or nil (automatic by default)
+if you want Emacs to examine the brightness for you.  Don't set this
+variable with `setq'; this won't have the expected effect."
   :group 'faces
   :set #'(lambda (var value)
 	   (set-default var value)
 	   (mapc 'frame-set-background-mode (frame-list)))
   :initialize 'custom-initialize-changed
-  :type '(choice (choice-item dark)
-		 (choice-item light)
-		 (choice-item :tag "default" nil)))
+  :type '(choice (const dark)
+		 (const light)
+		 (const :tag "automatic" nil)))
 
 (defvar default-frame-background-mode nil
   "Internal variable for the default brightness of the background.
@@ -1983,7 +1983,7 @@ created."
     (t :inverse-video t))
   "Basic face for highlighting trailing whitespace."
   :version "21.1"
-  :group 'whitespace		; like `show-trailing-whitespace'
+  :group 'whitespace-faces	; like `show-trailing-whitespace'
   :group 'basic-faces)
 
 (defface escape-glyph
