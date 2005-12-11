@@ -1,3 +1,7 @@
+2005-12-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Create keymap for mac-apple-event-map.
+
 2005-12-11  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tooltip.el (tooltip-mode): Move to start of file so that it

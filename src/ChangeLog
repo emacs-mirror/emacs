@@ -1,3 +1,10 @@
+2005-12-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main) [MAC_OS8]: Undo previous change.
+
+	* macselect.c (syms_of_macselect) <mac-apple-event-map>:
+	Initialize to nil.  Keymap is now created in lisp/term/mac-win.el.
+
 2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (macselect.o): Depend on keymap.h.
