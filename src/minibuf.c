@@ -2563,7 +2563,7 @@ static Lisp_Object
 display_completion_list_1 (list)
      Lisp_Object list;
 {
-  return Fdisplay_completion_list (list, Qnil);
+  return Fdisplay_completion_list (list, minibuffer_completion_contents ());
 }
 
 DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_completion_help,
@@ -2934,8 +2934,8 @@ keys_of_minibuf ()
   initial_define_key (Vminibuffer_local_must_match_map, Ctl ('j'),
 		      "minibuffer-complete-and-exit");
 
-  initial_define_key (Vminibuffer_local_must_match_filename_map, ' ',
-		      "self-insert-command");
+  Fdefine_key (Vminibuffer_local_must_match_filename_map,
+	       build_string (" "), Qnil);
 }
 
 /* arch-tag: 8f69b601-fba3-484c-a6dd-ceaee54a7a73
