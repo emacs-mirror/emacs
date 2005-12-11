@@ -1518,6 +1518,8 @@ in `selection-converter-alist', which see."
 	(url-mailto parsed-url)
       (error "Unsupported URL scheme: %s" (url-type parsed-url)))))
 
+(setq mac-apple-event-map (make-sparse-keymap))
+
 ;; Received when Emacs is launched without associated documents.
 ;; Accept it as an Apple event, but no Emacs event is generated so as
 ;; not to erase the splash screen.
