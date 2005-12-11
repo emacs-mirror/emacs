@@ -454,7 +454,7 @@ enum pvec_type
 extern Lisp_Object make_number P_ ((EMACS_INT));
 #endif
 
-#define EQ(x, y) ((x).s.val == (y).s.val && (x).s.type == (y).s.type)
+#define EQ(x, y) ((x).i == (y).i)
 
 #endif /* NO_UNION_TYPE */
 
