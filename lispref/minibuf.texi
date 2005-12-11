@@ -1023,12 +1023,14 @@ with other characters bound as in @code{minibuffer-local-map}.
 
 @defvar minibuffer-local-filename-completion-map
 This is like @code{minibuffer-local-completion-map}
-except that it does not bind @key{SPC}.
+except that it does not bind @key{SPC}.  This keymap is used by the
+function @code{read-file-name}.
 @end defvar
 
 @defvar minibuffer-local-must-match-filename-map
 This is like @code{minibuffer-local-must-match-map}
-except that it does not bind @key{SPC}.
+except that it does not bind @key{SPC}.  This keymap is used by the
+function @code{read-file-name}.
 @end defvar
 
 @node High-Level Completion
@@ -1211,6 +1213,12 @@ value of @var{existing} is neither @code{nil} nor @code{t}, then
 @key{RET} also requires confirmation after completion.  If
 @var{existing} is @code{nil}, then the name of a nonexistent file is
 acceptable.
+
+The function @code{read-file-name} uses
+@code{minibuffer-local-filename-completion-map} as the keymap if
+@var{existing} is @code{nil}, and uses
+@code{minibuffer-local-must-match-filename-map} if @var{existing} is
+non-@code{nil}.  @xref{Completion Commands}.
 
 The argument @var{directory} specifies the directory to use for
 completion of relative file names.  It should be an absolute directory
