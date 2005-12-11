@@ -1,3 +1,20 @@
+2005-12-11  Juri Linkov  <juri@jurta.org>
+
+	* frame.el (set-background-color, set-foreground-color)
+	(set-cursor-color, set-mouse-color, set-border-color):
+	Add explicit prompts to read colors by `facemenu-read-color'.
+	(show-trailing-whitespace, blink-cursor-delay)
+	(blink-cursor-interval, display-hourglass, hourglass-delay):
+	Remove tags.
+	(display-hourglass, hourglass-delay): Doc fix.
+	(cursor-in-non-selected-windows): Capitalize words in tag.
+
+	* faces.el (frame-background-mode): Replace `choice-item' keywords
+	with `const' to not make [default] button.  Change default value tag
+	from `default' to `automatic'.  Doc fix.
+	(trailing-whitespace) <defface>: Change group `whitespace' to
+	`whitespace-faces'.
+
 2005-12-11  Richard M. Stallman  <rms@gnu.org>
 
 	* buff-menu.el (Buffer-menu-sort-column): Not a user variable.
