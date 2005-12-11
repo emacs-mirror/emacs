@@ -1,3 +1,12 @@
+2005-12-11  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.c (display_completion_list_1):
+	Call `minibuffer_completion_contents' instead of using `nil' as
+	second arg of `Fdisplay_completion_list'.
+	(keys_of_minibuf): Unbind SPC in
+	Vminibuffer_local_filename_completion_map (see also related
+	change on 2005-12-06).
+
 2005-12-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacs.c (main) [MAC_OS8]: Undo previous change.

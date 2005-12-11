@@ -1,3 +1,10 @@
+2005-12-11  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Completion Commands): Add mention of read-file-name
+	for filename completion keymaps.
+	(Reading File Names): Add mention of filename completion keymaps
+	for read-file-name and xref to `Completion Commands'.
+
 2005-12-10  Richard M. Stallman  <rms@gnu.org>
 
 	* customize.texi (Common Keywords): State caveats for use of :tag.
