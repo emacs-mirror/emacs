@@ -98,11 +98,13 @@ few tricky test cases for you.
 Known problems:
 
         * GTK support.  If you compile your Emacs with the GTK
-          toolkit, some functionality of multi-tty will be lost.
-	  In particular, closing an X display causes a crash.
-          Current releases of GTK have limitations and bugs that
-          prevent full-blown multi-display support in Emacs.  Use the
-          Lucid toolkit if you want to see a complete feature set.
+          toolkit, some functionality of multi-tty will be lost.  In
+          particular, you will not be able to work on multiple X
+          displays at once.  Current releases of GTK have limitations
+          and bugs that prevent full-blown multi-display support in
+          Emacs.  (GTK crashes when Emacs tries to disconnect from an
+          X server.)  Use the Lucid toolkit if you want to see a
+          complete feature set.
 
         * The single-kboard mode.
 
@@ -393,7 +395,10 @@ THINGS TO DO
 ** Report GTK multi-display problems to GTK maintainers.  For extra
    credit, fix them.
 
-** Disable connecting to a new X display when we use the GTK toolkit.
+   Currently you can not connect to new X displays when you compile
+   Emacs with GTK support.  If you want to play around with GTK
+   multidisplay (and don't mind core dumps), you can edit src/config.h
+   and define HAVE_GTK_MULTIDISPLAY there by hand.
 
 ** Possibly turn off the double C-g feature when there is an X frame.
    C.f. (emacs)Emergency Escape.
@@ -1277,6 +1282,10 @@ DIARY OF CHANGES
    local function-key-map/key-translation-map references when it
    switched keyboards.  I don't understand why did this bug only
    appear on brand new frames, though!)
+
+-- Disable connecting to a new X display when we use the GTK toolkit.
+
+   (Disabled in patch-450.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 

@@ -10141,14 +10141,26 @@ x_term_init (display_name, xrm_option, resource_name)
     char **argv2 = argv;
     GdkAtom atom;
 
+#ifndef HAVE_GTK_MULTIDISPLAY
+    if (!EQ (Vinitial_window_system, intern ("x")))
+      error ("Sorry, you cannot connect to X servers with the GTK toolkit");
+#endif
+
     if (x_initialized++ > 1)
       {
+#ifdef HAVE_GTK_MULTIDISPLAY
         /* Opening another display.  If xg_display_open returns less
            than zero, we are probably on GTK 2.0, which can only handle
            one display.  GTK 2.2 or later can handle more than one.  */
         if (xg_display_open (SDATA (display_name), &dpy) < 0)
           error ("Sorry, this version of GTK can only handle one display");
-     }
+#else
+        /* XXX Unfortunately, multiple display support is severely broken
+           in recent GTK versions, so HAVE_GTK_MULTIDISPLAY is
+           unconditionally disabled in configure.in.  */
+        error ("Sorry, multiple display support is broken in current GTK versions");
+#endif
+      }
     else
       {
         for (argc = 0; argc < NUM_ARGV; ++argc)
