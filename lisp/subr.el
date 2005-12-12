@@ -2895,11 +2895,11 @@ Usually the separator is \".\", but it can be any other string.")
 
 
 (defvar version-regexp-alist
-  '(("^[-_+]?a\\(lpha\\)?$"   . -3)
+  '(("^[-_+ ]?a\\(lpha\\)?$"   . -3)
     ("^[-_+]$" . -3)	; treat "1.2.3-20050920" and "1.2-3" as alpha releases
-    ("^[-_+]cvs$" . -3)	; treat "1.2.3-CVS" as alpha release
-    ("^[-_+]?b\\(eta\\)?$"    . -2)
-    ("^[-_+]?\\(pre\\|rc\\)$" . -1))
+    ("^[-_+ ]cvs$" . -3)	; treat "1.2.3-CVS" as alpha release
+    ("^[-_+ ]?b\\(eta\\)?$"    . -2)
+    ("^[-_+ ]?\\(pre\\|rc\\)$" . -1))
   "*Specify association between non-numeric version part and a priority.
 
 This association is used to handle version string like \"1.0pre2\",
@@ -2910,10 +2910,10 @@ non-numeric part to an integer.  For example:
    \"1.0pre2\"         (1  0 -1 2)
    \"1.0PRE2\"         (1  0 -1 2)
    \"22.8beta3\"       (22 8 -2 3)
-   \"22.8Beta3\"       (22 8 -2 3)
+   \"22.8 Beta3\"      (22 8 -2 3)
    \"0.9alpha1\"       (0  9 -3 1)
    \"0.9AlphA1\"       (0  9 -3 1)
-   \"0.9alpha\"        (0  9 -3)
+   \"0.9 alpha\"       (0  9 -3)
 
 Each element has the following form:
 
@@ -2965,8 +2965,13 @@ As an example of version convertion:
    \"0.9alpha\"        (0  9 -3)
 
 See documentation for `version-separator' and `version-regexp-alist'."
-  (or (and (stringp ver) (not (string= ver "")))
+  (or (and (stringp ver) (> (length ver) 0))
       (error "Invalid version string: '%s'" ver))
+  ;; Change .x.y to 0.x.y
+  (if (and (>= (length ver) (length version-separator))
+	   (string-equal (substring ver 0 (length version-separator))
+		    version-separator))
+      (setq ver (concat "0" ver)))
   (save-match-data
     (let ((i 0)
 	  (case-fold-search t)		; ignore case in matching
