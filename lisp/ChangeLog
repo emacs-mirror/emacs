@@ -1,3 +1,8 @@
+2005-12-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/README: Update the summary of changes.
+
+
 2005-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* descr-text.el (describe-char): Rework last fix to solve the problem
