@@ -36,6 +36,11 @@ to the FSF.
 
 ** Make occur handle multi-line matches cleanly with context.
 
+** Height returned by frame-parameter ... and height given to
+   make-frame does not mean the same thing.  The former includes menu and
+   tool bar lines, the latter don't.  frame-parameter should return height
+   without menu and tool bar lines.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
