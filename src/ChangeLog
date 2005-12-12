@@ -1,3 +1,12 @@
+2005-12-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (SSDATA): New macro to remove compiler warnings.
+	(xg_get_image_for_pixmap, xg_create_frame_widgets)
+	(xg_get_file_with_chooser): Use SSDATA instead of SDATA.
+
+	* xmenu.c (menubar_selection_callback): Do nothing if the callback
+	is for an unselected radio menu item.
+
 2005-12-11  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (syms_of_xdisp) <blink-cursor-alist>: Doc fix.
