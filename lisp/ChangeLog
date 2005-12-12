@@ -1,3 +1,9 @@
+2005-12-12  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (version-regexp-alist): Allow space as separator before
+	non-numeric part, e.g. "1.0 alpha".
+	(version-to-list): Interpret .X.Y version as 0.X.Y version.
+
 2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-agenda, org-timeline, org-todo):
