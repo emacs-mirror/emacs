@@ -400,6 +400,11 @@ THINGS TO DO
    multidisplay (and don't mind core dumps), you can edit src/config.h
    and define HAVE_GTK_MULTIDISPLAY there by hand.
 
+** Audit `face-valid-attribute-values' usage in customize and
+   elsewhere.  Its return value depends on the current window system.
+   Replace static initializers using it with runtime functions.  For
+   example, custom's buttons are broken on non-initial device types.
+
 ** Possibly turn off the double C-g feature when there is an X frame.
    C.f. (emacs)Emergency Escape.
 
