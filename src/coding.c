@@ -7411,7 +7411,9 @@ DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_intern
 
 DEFUN ("keyboard-coding-system", Fkeyboard_coding_system,
        Skeyboard_coding_system, 0, 1, 0,
-       doc: /* Return coding system specified for decoding keyboard input.  */)
+       doc: /* Return coding system for decoding keyboard input on DEVICE.
+DEVICE may be a display device id, a frame, or nil for the selected
+frame's display device.  */)
      (device)
      Lisp_Object device;
 {

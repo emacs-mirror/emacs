@@ -31,9 +31,11 @@ The following is a (sadly incomplete) list of people who have
 contributed to the project by testing, submitting patches, bug
 reports, and suggestions.  Thanks!
 
+Bernard Adrian <bernadrian@free.fr>
 ARISAWA Akihiro <ari@mbf.ocn.ne.jp>
 Vincent Bernat <bernat@luffy.cx>
 Han Boetes <han@mijncomputer.nl>
+Damien Cassou <damien.cassou@laposte.net>
 Robert J. Chassell <bob@rattlesnake.com>
 Romain Francoise <romain@orebokech.com>
 Ami Fischman <ami@fischman.org>
@@ -191,8 +193,8 @@ If you run Debian, or a distribution based on Debian, you are welcome
 to use our binary packages; put these lines in your /etc/apt/sources.list:
 
 	# Multi-tty Emacs
-	deb http://aszt.inf.elte.hu/~lorentey/mirror/apt ./
-	deb-src http://aszt.inf.elte.hu/~lorentey/mirror/apt ./
+	deb http://aszt.inf.elte.hu/~lorentey/mirror/apt unstable multi-tty
+	deb-src http://aszt.inf.elte.hu/~lorentey/mirror/apt unstable multi-tty
 
 Note that these packages are intended solely to provide an easy way to
 test the new multi-tty features.  They are not to be taken as Emacs
@@ -208,7 +210,7 @@ The multi-tty branch is compiled the same way as Emacs itself:
 
 	make maintainer-clean  # (If you have compiled Emacs before)
 
-	./configure <your favourite options>
+	./configure --without-gtk <your favourite options>
 	make bootstrap
 	make install
 
@@ -391,6 +393,8 @@ THINGS TO DO
 ** Report GTK multi-display problems to GTK maintainers.  For extra
    credit, fix them.
 
+** Disable connecting to a new X display when we use the GTK toolkit.
+
 ** Possibly turn off the double C-g feature when there is an X frame.
    C.f. (emacs)Emergency Escape.
 
@@ -564,7 +568,7 @@ THINGS TO DO
 ** Dan Nicolaescu suggests that -nw should be added as an alias for -t
    in emacsclient.  Good idea.  (Alas, implementing this is not
    trivial, getopt_long does not seem to support two-letter ``short''
-   options.  Patches are welcome.) :-)
+   options.  Patches are welcome.)
 
 ** Mark Plaksin suggests that emacsclient should accept the same
    X-related command-line arguments as Emacs.  Most of the X-related
@@ -608,6 +612,8 @@ THINGS TO DO
    useful.  (Update: Look again. X unconditionally enables this, maybe
    that's why raw terminal support is broken again.  I really do need
    to understand input.)
+   (Update: I am starting to understand the read_key_sequence->read-char
+   ->kbd_buffer_get_event->read_avail_input->read_socket_hook path.  Yay!)
 
 ** flow-ctrl.el must be updated.
 
@@ -914,7 +920,7 @@ DIARY OF CHANGES
    frame that is dumped with Emacs.  Checking for this frame (e.g. in
    cmd_error_internal) is ugly.
 
-   (Done, broking interactive temacs.)
+   (Done, breaking interactive temacs.)
 
 -- The command `emacsclient -t -e '(delete-frame)'' fails to exit.
 
@@ -1264,7 +1270,13 @@ DIARY OF CHANGES
    it is not recognized correctly.  May be related to the bug below.
 
    (Seems to have been fixed as a side effect of patch-434.  "The bug
-   below" was the set-input-mode madness.)
+   below" was the set-input-mode madness.)  
+
+   (Update: this bug was fixed for good in patch-449.  It was tracked
+   down to a bug in `read_key_sequence': it failed to reinitialize its
+   local function-key-map/key-translation-map references when it
+   switched keyboards.  I don't understand why did this bug only
+   appear on brand new frames, though!)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 

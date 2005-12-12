@@ -2662,6 +2662,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (_setjmp (local_getcjmp))
     {
+      /* Handle quits while reading the keyboard.  */
       /* We must have saved the outer value of getcjmp here,
 	 so restore it now.  */
       restore_getcjmp (save_jump);
@@ -3690,12 +3691,10 @@ kbd_buffer_store_event_hold (event, hold_quit)
       if (c == quit_char)
 	{
 #ifdef MULTI_KBOARD
-	  KBOARD *kb;
+	  KBOARD *kb = FRAME_KBOARD (XFRAME (event->frame_or_window));
 	  struct input_event *sp;
 
-	  if (single_kboard
-	      && (kb = FRAME_KBOARD (XFRAME (event->frame_or_window)),
-		  kb != current_kboard))
+	  if (single_kboard && kb != current_kboard)
 	    {
 	      kb->kbd_queue
 		= Fcons (make_lispy_switch_frame (event->frame_or_window),
@@ -8742,12 +8741,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   last_nonmenu_event = Qnil;
 
   delayed_switch_frame = Qnil;
-  fkey.map = fkey.parent = current_kboard->Vlocal_function_key_map;
-  keytran.map = keytran.parent = current_kboard->Vlocal_key_translation_map;
-  /* If there is no translation-map, turn off scanning.  */
-  fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
-  keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
-
+  
   if (INTERACTIVE)
     {
       if (!NILP (prompt))
@@ -8786,6 +8780,14 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
      we need to rescan it starting from the beginning.  When we jump here,
      keybuf[0..mock_input] holds the sequence we should reread.  */
  replay_sequence:
+
+  /* We may switch keyboards between rescans, so we need to
+     reinitialize fkey and keytran before each replay.  */
+  fkey.map = fkey.parent = current_kboard->Vlocal_function_key_map;
+  keytran.map = keytran.parent = current_kboard->Vlocal_key_translation_map;
+  /* If there is no translation map, turn off scanning.  */
+  fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
+  keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
 
   starting_buffer = current_buffer;
   first_unbound = bufsize + 1;
