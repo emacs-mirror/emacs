@@ -1572,6 +1572,15 @@ menubar_selection_callback (widget, client_data)
   if (! cb_data || ! cb_data->cl_data || ! cb_data->cl_data->f)
     return;
 
+  /* For a group of radio buttons, GTK calls the selection callback first
+     for the item that was active before the selection and then for the one that
+     is active after the selection.  For C-h k this means we get the help on
+     the deselected item and then the selected item is executed.  Prevent that
+     by ignoring the non-active item.  */
+  if (GTK_IS_RADIO_MENU_ITEM (widget)
+      && ! gtk_check_menu_item_get_active (GTK_CHECK_MENU_ITEM (widget)))
+    return;
+
   /* When a menu is popped down, X generates a focus event (i.e. focus
      goes back to the frame below the menu).  Since GTK buffers events,
      we force it out here before the menu selection event.  Otherwise
@@ -1891,7 +1900,7 @@ update_submenu_strings (first_wv)
     {
       if (STRINGP (wv->lname))
         {
-          wv->name = SDATA (wv->lname);
+          wv->name = (char *) SDATA (wv->lname);
 
           /* Ignore the @ that means "separate pane".
              This is a kludge, but this isn't worth more time.  */
@@ -1904,7 +1913,7 @@ update_submenu_strings (first_wv)
         }
 
       if (STRINGP (wv->lkey))
-        wv->key = SDATA (wv->lkey);
+        wv->key = (char *) SDATA (wv->lkey);
 
       if (wv->contents)
         update_submenu_strings (wv->contents);
