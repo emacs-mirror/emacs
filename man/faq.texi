@@ -3790,7 +3790,7 @@ Superyank is an old version of Supercite.
 @email{daveg@@csvax.cs.caltech.edu, Dave Gillespie}
 
 @item Latest version
-2.02g (part of Emacs since version 22.1)
+2.1 (part of Emacs since version 22.1)
 
 @item Distribution
 No separate distribution outside of Emacs.  Older versions
