@@ -1,3 +1,7 @@
+2005-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* mm-url.el (mm-url-load-url): Require url-parse and url-vars.
+
 2005-12-08  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* mm-decode.el (mm-discouraged-alternatives): Fix custom type.

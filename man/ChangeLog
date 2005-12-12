@@ -1,3 +1,19 @@
+2005-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Easy Customization): Change menu comment.
+	(Prefix Keymaps): Fix spelling of Control-X-prefix.
+
+	* help.texi (Apropos): Rewrite.  Talk about "apropos patterns".
+	(Help): Among the Apropos commands, describe only C-h a here.
+
+2005-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* programs.texi (Options for Comments): Comment-end starts with space.
+
+	* glossary.texi (Glossary): Minor cleanup.
+
+	* files.texi (Old Versions): Use @table.
+
 2005-12-10  Romain Francoise  <romain@orebokech.com>
 
 	Update the Emacs FAQ for the 22.1 release.

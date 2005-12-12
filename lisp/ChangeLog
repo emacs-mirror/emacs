@@ -1,3 +1,25 @@
+2005-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-drag-vertical-line): Use adjust-window-trailing-edge.
+
+	* frame.el (display-hourglass): Doc fix.
+
+	* help.el (help-for-help-internal): Simplify entry for `a'.
+
+	* info.el (Info-on-current-buffer): Doc fix.
+	(info-insert-file-contents): Don't test (featurep 'jka-compr).
+
+	* startup.el (inhibit-splash-screen): Make this the real name.
+	(inhibit-startup-message): Make this the alias.
+	(command-line): Find only simple.el, and use its directory
+	to fill in other preloaded files' names.
+	(command-line): Deactivate the mark if deactivate-mark is set.
+
+	* international/mule.el (load-with-code-conversion):
+	Bind deactivate-mark.
+
+	* progmodes/compile.el (compilation-error-regexp-alist): Doc fix.
+
 2005-12-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (customize-apropos): Avoid listing an option more
