@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.23
+@set VERSION 3.24
 @set DATE December 2005
 
 @dircategory Emacs
@@ -134,6 +134,7 @@ Hyperlinks
 TODO items
 
 * TODO basics::                 Marking and displaying TODO entries
+* Progress Logging::            Document your productivity
 * TODO extensions::             Workflow and assignments
 * Priorities::                  Some things are more important than others
 
@@ -1072,7 +1073,7 @@ the value @samp{10}.  Also, named fields can have their own formula
 associated with them.
 @item _
 Similar to @samp{^}, but defines names for the fields in the row
-@emph{below}.
+@emph{below}. 
 @item $
 Fields in this row can define @emph{parameters} for formulas.  For
 example, if a field in a @samp{$} row contains @samp{max=50}, then
@@ -1089,7 +1090,7 @@ lines will be left alone by this command.
 Selects this line for global recalculation with @kbd{C-u C-c *}, but
 not for automatic recalculation.  Use this when automatic
 recalculation slows down editing too much.
-@item
+@item  
 Unmarked lines are exempted from recalculation with @kbd{C-u C-c *}.
 All lines that should be recalculated should be marked with @samp{#}
 or @samp{*}.
@@ -1123,7 +1124,7 @@ give an empty reply when prompted for the formula, or to edit the
 @kindex C-c C-c
 You may edit the @samp{#+TBLFM} directly and re-apply
 the changed equations with @kbd{C-c C-c} in that line, or with the
-normal recalculation commands in the table.
+normal recalculation commands in the table.  
 
 @kindex C-c '
 @kindex C-c C-c
@@ -1269,7 +1270,7 @@ targets and exact matches first.  To insert links targeting a
 headline, in-buffer completion can be used.  Just type a star followed
 by a few optional letters into the buffer and press @kbd{M-@key{TAB}}.
 CamelCased versions of all headlines in the current buffer will be
-offered as completions.  @xref{Managing links}, for more commands
+offered as completions.  @xref{Managing links} for more commands
 creating links.
 
 @node External Links, Managing links, Internal Links, Hyperlinks
@@ -1497,11 +1498,12 @@ things you have to do.
 
 @menu
 * TODO basics::                 Marking and displaying TODO entries
+* Progress Logging::            Document your productivity
 * TODO extensions::             Workflow and assignments
 * Priorities::                  Some things are more important than others
 @end menu
 
-@node TODO basics, TODO extensions, TODO items, TODO items
+@node TODO basics, Progress Logging, TODO items, TODO items
 @section Basic TODO functionality
 
 Any headline can become a TODO item by starting it with the word TODO,
@@ -1543,18 +1545,38 @@ particular type.  With a C-u prefix you are prompted for a keyword.
 With a numeric prefix, the Nth keyword in @code{org-todo-keywords} is
 selected.
 @kindex r
-The @kbd{r} key in the agenda
-buffer regenerates it, and you can give a prefix argument to this
-command to change the selected TODO keyword, for example @kbd{3 r}.
-The key binding @kbd{C-c t} is only a suggestion - see
-@ref{Installation and Activation}.
+The @kbd{r} key in the agenda buffer regenerates it, and you can give
+a prefix argument to this command to change the selected TODO keyword,
+for example @kbd{3 r}.  The key binding @kbd{C-c t} is only a
+suggestion - see @ref{Installation and Activation}.
 @kindex C-u C-c a
 @item C-u C-c a
 A @kbd{C-u} argument to the @code{org-agenda command} (@pxref{Agenda})
 includes all unfinished TODO items at the beginning of todays agenda.
+See also the variable @code{org-agenda-include-all-todo} to get this
+by default.
 @end table
 
-@node TODO extensions, Priorities, TODO basics, TODO items
+@node Progress Logging, TODO extensions, TODO basics, TODO items
+@section Progress Logging
+@cindex progress logging
+@cindex logging, of progress
+If you want to keep track of @emph{when} a certain TODO item was
+finished, turn on logging with
+@lisp
+(setq org-log-done t)
+@end lisp
+@noindent
+Then each time you turn a TODO entry into DONE using either @kbd{C-c
+C-v} in the Org-mode buffer or @kbd{t} in the agenda buffer, a line
+@samp{CLOSED: [timestamp]} will be inserted just after the headline.
+If you turn the entry back into a TODO item again thorugh further
+state cycling, that line will be removed again.  In the timeline
+(@pxref{Timeline}) and in the agenda (@pxref{Agenda}), you can then
+use the @kbd{L} key to display the TODO items closed on each day,
+giving you an overview of what has been done on a day.
+
+@node TODO extensions, Priorities, Progress Logging, TODO items
 @section Extended use of TODO keywords
 @cindex extended TODO keywords
 
@@ -1802,7 +1824,7 @@ and time.
 @kindex C-c !
 @item C-c !
 Like @kbd{C-c .}, but insert an inactive time stamp not triggering the
-agenda.
+agenda. 
 
 @kindex C-c <
 @item C-c <
@@ -2136,9 +2158,14 @@ Go to the original location of the item and delete other windows.
 
 @kindex f
 @item f
-Toggle follow mode.  In follow mode, as you move the cursor through
+Toggle Follow mode.  In Follow mode, as you move the cursor through
 the agenda buffer, the other window always shows the corresponding
 location in the org file.
+
+@kindex L
+@item L
+Toggle Logbook mode.  In Logbook mode, entries that where marked DONE while
+logging was on (variable @code{org-log-done}) are shown in the agenda.
 
 @tsubheading{Change display}
 @kindex o
@@ -2576,7 +2603,7 @@ end of the outline tree.  For example:
 @example
 * COMMENT HTML style specifications
 
-# Local Variables:
+# Local Variables: 
 # org-export-html-style: "   <style type=\"text/css\">
        p @{font-weight: normal; color: gray; @}
        h1 @{color: black; @}
@@ -2998,7 +3025,7 @@ Emacs-Lisp compiler happy.
 @item
 Kai Grossjohann pointed out that a number of key bindings in Org-mode
 conflict with other packages.
-@item
+@item 
 Roland Winkler pointed out that additional keybindings are needed to
 use Org-mode on a tty.
 @item
