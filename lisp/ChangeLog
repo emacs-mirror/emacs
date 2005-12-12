@@ -1,3 +1,9 @@
+2005-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* descr-text.el (describe-char): Rework last fix to solve the problem
+	is the same way it's solved for everything else in that function
+	(i.e. by extracting the info before setting up the *Help* buffer).
+
 2005-12-12  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (version-regexp-alist): Allow space as separator before

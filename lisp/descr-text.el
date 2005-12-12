@@ -464,9 +464,13 @@ as well as widgets, buttons, overlays, and text properties."
 				 (single-key-description char)
 			       (string-to-multibyte
 				(char-to-string char)))))
-	 (orig-buf (current-buffer))
-	 (help-buf (if (eq orig-buf (get-buffer "*Help*"))
-		       "*Help-2*" "*Help*"))
+         (text-props-desc
+          (let ((tmp-buf (generate-new-buffer " *text-props*")))
+            (unwind-protect
+                (progn
+                  (describe-text-properties pos tmp-buf)
+                  (with-current-buffer tmp-buf (buffer-string)))
+              (kill-buffer tmp-buf))))
 	 item-list max-width unicode)
 
     (if (or (< char 256)
@@ -619,7 +623,7 @@ as well as widgets, buttons, overlays, and text properties."
     (setq max-width (apply #'max (mapcar #'(lambda (x)
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
-    (with-output-to-temp-buffer help-buf
+    (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
@@ -722,9 +726,7 @@ as well as widgets, buttons, overlays, and text properties."
 	  (insert "\nSee the variable `reference-point-alist' for "
 		  "the meaning of the rule.\n"))
 
-	(save-excursion
-	  (set-buffer orig-buf)
-	  (describe-text-properties pos help-buf))
+        (if text-props-desc (insert text-props-desc))
 	(describe-text-mode)))))
 
 (defalias 'describe-char-after 'describe-char)
