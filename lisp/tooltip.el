@@ -106,7 +106,7 @@ the value of `tooltip-x-offset' is ignored."
   :type 'integer
   :group 'tooltip)
 
-(defcustom tooltip-y-offset +40
+(defcustom tooltip-y-offset +20
   "Y offset, in pixels, for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
 be chosen so that the tooltip window doesn't contain the mouse
