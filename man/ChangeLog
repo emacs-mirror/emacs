@@ -1,3 +1,7 @@
+2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Progress Logging): New section.
+
 2005-12-12  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (Easy Customization): Change menu comment.

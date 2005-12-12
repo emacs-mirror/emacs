@@ -1,3 +1,11 @@
+2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-agenda, org-timeline, org-todo):
+	Implement Logging and the keep-modes setting.
+	(org-get-category): Make sure a string is returned.
+	(org-log-done): New function.
+	(org-log-done, org-closed-string): New options.
+
 2005-12-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* tooltip.el (tooltip-y-offset): Changed default to 20.
