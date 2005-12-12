@@ -3,6 +3,7 @@
 ;; Copyright (C) 1994, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Kevin Broadey <KevinB@bartley.demon.co.uk>
+;; Maintainer: FSF
 ;; Created: 27 Jan 1994
 ;; Version: foldout.el 1.10 dated 94/05/19 at 17:09:12
 ;; Keywords: folding, outlines
