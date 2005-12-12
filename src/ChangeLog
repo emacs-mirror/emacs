@@ -1,5 +1,12 @@
 2005-12-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
+	* xfns.c (compute_tip_xy): Calculate root_y the same way as root_x,
+	i.e. dy is offset from top of frame instead of bottom.
+
+	* macfns.c (compute_tip_xy): Ditto.
+
+	* w32fns.c (compute_tip_xy): Ditto.
+
 	* gtkutil.c (SSDATA): New macro to remove compiler warnings.
 	(xg_get_image_for_pixmap, xg_create_frame_widgets)
 	(xg_get_file_with_chooser): Use SSDATA instead of SDATA.
