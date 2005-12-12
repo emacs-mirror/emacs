@@ -1022,9 +1022,11 @@ in regexp syntax.  @xref{Regexp Backslash}.)
 @vindex comment-end
   When a comment command makes a new comment, it inserts the value of
 @code{comment-start} to begin it.  The value of @code{comment-end} is
-inserted after point, so that it will follow the text that you will insert
-into the comment.  In C mode, @code{comment-start} has the value
-@w{@code{"/* "}} and @code{comment-end} has the value @w{@code{" */"}}.
+inserted after point, so that it will follow the text that you will
+insert into the comment.  When @code{comment-end} is non-empty, it
+should start with a space.  For example, in C mode,
+@code{comment-start} has the value @w{@code{"/* "}} and
+@code{comment-end} has the value @w{@code{" */"}}.
 
 @vindex comment-padding
   The variable @code{comment-padding} specifies how many spaces
