@@ -1,3 +1,7 @@
+2005-12-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* tooltip.el (tooltip-y-offset): Changed default to 20.
+
 2005-12-12  Richard M. Stallman  <rms@gnu.org>
 
 	* mouse.el (mouse-drag-vertical-line): Use adjust-window-trailing-edge.
