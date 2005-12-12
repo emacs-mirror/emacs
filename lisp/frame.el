@@ -1314,7 +1314,9 @@ itself as a pre-command hook."
 ;; Hourglass pointer
 
 (defcustom display-hourglass t
-  "*Non-nil to show an hourglass pointer when Emacs is busy on a window system."
+  "*Non-nil means show an hourglass pointer, when Emacs is busy.
+This feature only works when on a window system that can change
+cursor shapes."
   :type 'boolean
   :group 'cursor)
 
