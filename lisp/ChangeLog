@@ -1,7 +1,13 @@
+2005-12-12  Bill Wohler  <wohler@newt.com>
+
+	* vc-svn.el (vc-svn-registered): Fix problem of visiting
+	non-writable Subversion-controlled files by saving window
+	configuration before calling vc-do-command. vc-do-command calls
+	pop-to-buffer on error which is unexpected during registration.
+
 2005-12-12  Jay Belanger  <belanger@truman.edu>
 
 	* calc/README: Update the summary of changes.
-
 
 2005-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
