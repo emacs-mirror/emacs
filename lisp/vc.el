@@ -930,8 +930,9 @@ Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the
 current buffer if BUFFER is t.  If the destination buffer is not
 already current, set it up properly and erase it.  The command is
 considered successful if its exit status does not exceed OKSTATUS (if
-OKSTATUS is nil, that means to ignore errors, if it is 'async, that
-means not to wait for termination of the subprocess).  FILE is the
+OKSTATUS is nil, that means to ignore error status, if it is 'async, that
+means not to wait for termination of the subprocess; if it is t it means to
+ignore all execution errors).  FILE is the
 name of the working file (may also be nil, to execute commands that
 don't expect a file name).  If an optional list of FLAGS is present,
 that is inserted into the command line before the filename."
@@ -976,7 +977,9 @@ that is inserted into the command line before the filename."
 	       `(unless (active-minibuffer-window)
                   (message "Running %s in the background... done" ',command))))
 	  (setq status (apply 'process-file command nil t nil squeezed))
-	  (when (or (not (integerp status)) (and okstatus (< okstatus status)))
+	  (when (and (not (eq t okstatus))
+                     (or (not (integerp status))
+                         (and okstatus (< okstatus status))))
 	    (pop-to-buffer (current-buffer))
 	    (goto-char (point-min))
 	    (shrink-window-if-larger-than-buffer)
