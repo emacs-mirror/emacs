@@ -1252,7 +1252,7 @@ suggest to customize that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-apropos (regexp &optional all)
-  "Customize all options, faces and groups matching REGEXP.
+  "Customize all loaded options, faces and groups matching REGEXP.
 If ALL is `options', include only options.
 If ALL is `faces', include only faces.
 If ALL is `groups', include only groups.
@@ -1284,20 +1284,20 @@ that are not customizable options, as well as faces and groups."
 
 ;;;###autoload
 (defun customize-apropos-options (regexp &optional arg)
-  "Customize all customizable options matching REGEXP.
+  "Customize all loaded customizable options matching REGEXP.
 With prefix arg, include variables that are not customizable options."
   (interactive "sCustomize regexp: \nP")
   (customize-apropos regexp (or arg 'options)))
 
 ;;;###autoload
 (defun customize-apropos-faces (regexp)
-  "Customize all user faces matching REGEXP."
+  "Customize all loaded faces matching REGEXP."
   (interactive "sCustomize regexp: \n")
   (customize-apropos regexp 'faces))
 
 ;;;###autoload
 (defun customize-apropos-groups (regexp)
-  "Customize all user groups matching REGEXP."
+  "Customize all loaded groups matching REGEXP."
   (interactive "sCustomize regexp: \n")
   (customize-apropos regexp 'groups))
 
