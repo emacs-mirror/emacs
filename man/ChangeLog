@@ -1,3 +1,7 @@
+2005-12-13  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Scrolling only one line): Use `scroll-conservatively'.
+
 2005-12-12  Jay Belanger  <belanger@truman.edu>
 
 	* faq.texi (Calc): Updated version number.

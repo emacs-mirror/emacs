@@ -2503,13 +2503,16 @@ consult the documentation of the variables @code{ps-printer-name},
 @cindex Scrolling only one line
 @cindex Reducing the increment when scrolling
 
-Place the following Lisp form in your @file{.emacs} file:
+Customize the @code{scroll-conservatively} variable with @kbd{M-x
+customize-variable @key{RET} scroll-conservatively @key{RET}} and set it
+to a large value like, say, 10000.  For an explanation of what this
+means, @inforef{Scrolling, Scrolling, emacs}.
+
+Alternatively, use the following Lisp form in your @file{.emacs}:
 
 @lisp
-(setq scroll-step 1)
+(setq scroll-conservatively most-positive-fixnum)
 @end lisp
-
-@inforef{Scrolling, Scrolling, emacs}.
 
 @node Replacing highlighted text, Editing MS-DOS files, Scrolling only one line, Common requests
 @section How can I replace highlighted text with what I type?
