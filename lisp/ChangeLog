@@ -1,3 +1,8 @@
+2005-12-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-showhide-fringe-menu): Moved "On the Right"
+	so it comes after "On the Left" in the menu.
+
 2005-12-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (customize-apropos, customize-apropos-options)
