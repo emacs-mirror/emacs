@@ -114,20 +114,19 @@ This is only meaningful if you don't use the implicit checkout model
 					   (file-name-directory file)))
     (with-temp-buffer
       (cd (file-name-directory file))
-        (condition-case nil
-            ;; Save configuration since vc-do-command calls pop-to-buffer on
-            ;; error (such as visiting a Subversion-controlled file that you
-            ;; don't have permission to edit). This causes later problems
-            ;; during registration.
-            (save-window-excursion
-              (vc-svn-command t 0 file "status" "-v"))
-          ;; Some problem happened.  E.g. We can't find an `svn' executable.
-          ;; We used to only catch `file-error' but when the process is run on
-          ;; a remote host via Tramp, the error is only reported via the
-          ;; exit status which is turned into an `error' by vc-do-command.
-          (error nil))
-      (vc-svn-parse-status t)
-      (eq 'SVN (vc-file-getprop file 'vc-backend)))))
+      (let ((status 
+             (condition-case nil
+                 ;; Ignore all errors.
+                 (vc-svn-command t t file "status" "-v")
+               ;; Some problem happened.  E.g. We can't find an `svn'
+               ;; executable.  We used to only catch `file-error' but when
+               ;; the process is run on a remote host via Tramp, the error
+               ;; is only reported via the exit status which is turned into
+               ;; an `error' by vc-do-command.
+               (error nil))))
+        (when (eq 0 status)
+          (vc-svn-parse-status t)
+          (eq 'SVN (vc-file-getprop file 'vc-backend)))))))
 
 (defun vc-svn-state (file &optional localp)
   "SVN-specific version of `vc-state'."
