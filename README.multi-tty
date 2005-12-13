@@ -35,6 +35,7 @@ Bernard Adrian <bernadrian@free.fr>
 ARISAWA Akihiro <ari@mbf.ocn.ne.jp>
 Vincent Bernat <bernat@luffy.cx>
 Han Boetes <han@mijncomputer.nl>
+Francisco Borges <borges@let.rug.nl>
 Damien Cassou <damien.cassou@laposte.net>
 Robert J. Chassell <bob@rattlesnake.com>
 Romain Francoise <romain@orebokech.com>
@@ -52,8 +53,8 @@ Gergely Nagy <algernon@debian.org>
 Dan Nicolaescu <dann@ics.uci.edu>
 Kalle Olavi Niemitalo <kon@iki.fi>
 Mark Plaksin <happy@mcplaksin.org>
-Francisco Borges <borges@let.rug.nl>
 Frank Ruell <stoerte@dreamwarrior.net>
+Tom Schutzer-Weissmann <trmsw@yahoo.co.uk>
 Dan Waber <dwaber@logolalia.com>
 and many others.
 
@@ -391,6 +392,9 @@ is probably not very interesting for anyone else.)
 
 THINGS TO DO
 ------------
+
+** Emacs crashes when a tty frame is resized so that there is no space
+   for all its windows.  (Tom Schutzer-Weissmann)
 
 ** Report GTK multi-display problems to GTK maintainers.  For extra
    credit, fix them.

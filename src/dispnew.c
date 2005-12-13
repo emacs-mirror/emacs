@@ -6050,7 +6050,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 #ifndef USE_CRT_DLL
   extern int errno;
 #endif
-  int old_errno = errno;
+  int old_errno = errno;x
 
   struct tty_display_info *tty;
 
@@ -6068,7 +6068,7 @@ window_change_signal (signalnum) /* If we don't have an argument, */
 
     get_tty_size (fileno (tty->input), &width, &height);
     
-    {
+    if (width > 5 && height > 2) {
       Lisp_Object tail, frame;
       
       FOR_EACH_FRAME (tail, frame)
