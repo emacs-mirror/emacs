@@ -1,3 +1,8 @@
+2005-12-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-apropos, customize-apropos-options)
+	(customize-apropos-faces, customize-apropos-groups): Doc fixes.
+
 2005-12-12  Bill Wohler  <wohler@newt.com>
 
 	* vc-svn.el (vc-svn-registered): Fix problem of visiting
