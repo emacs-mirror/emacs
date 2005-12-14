@@ -11,6 +11,8 @@ to the FSF.
 
 ** revert-buffer should eliminate overlays and the mark.
 
+** erase-buffer should perhaps disregard read-only properties of text.
+
 ** Make occur correctly handle matches that span more than one line,
    as well as overlapping matches.
 
@@ -36,10 +38,19 @@ to the FSF.
 
 ** Make occur handle multi-line matches cleanly with context.
 
+** In Custom buffers, put the option that turns a mode on or off first,
+  using a heuristic of some kind?
+
+** Define recompute-arg and recompute-arg-if for fix_command to use.
+  See rms message of 11 Dec 05.
+
 ** Height returned by frame-parameter ... and height given to
    make-frame does not mean the same thing.  The former includes menu and
    tool bar lines, the latter don't.  frame-parameter should return height
    without menu and tool bar lines.
+
+** In Emacs Info, examples of using Customize should be clickable
+   and they should create Custom buffers.
 
 * Important features:
 
