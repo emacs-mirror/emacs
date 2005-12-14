@@ -212,6 +212,8 @@ converted to Info is stored in a temporary buffer."
 
 ;;; Find a buffer to use.
     (switch-to-buffer (get-buffer-create texinfo-region-buffer-name))
+    (setq buffer-read-only t)
+    (let ((inhibit-read-only t))
     (erase-buffer)
     ;; Insert the header into the buffer.
     (insert header-text)
@@ -313,7 +315,7 @@ converted to Info is stored in a temporary buffer."
     (goto-char (point-min))
     (Info-tagify input-buffer)
     (goto-char (point-min))
-    (message "Done.")))
+    (message "Done."))))
 
 ;;;###autoload
 (defun texi2info (&optional nosplit)
