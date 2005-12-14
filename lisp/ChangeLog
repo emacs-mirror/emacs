@@ -1,3 +1,9 @@
+2005-12-14  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/texinfmt.el (texinfo-format-region): 
+            [on behalf of Lennart Borgman <lennart.borgman.073@student.lu.se>]
+  	    Set buffer to read-only except for texinfo-format-region evaluation.
+	
 2005-12-14  Richard M. Stallman  <rms@gnu.org>
 
 	* vc.el (vc-default-previous-version, vc-default-next-version)
