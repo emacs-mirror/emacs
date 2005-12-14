@@ -1,3 +1,8 @@
+2005-12-14  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-query-replace): Use (mark) instead of
+	isearch-opoint if mark is active in transient-mark-mode.
+
 2005-12-14  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
 
 	* isearch.el (isearch-query-replace): Check for isearch-other-end.
