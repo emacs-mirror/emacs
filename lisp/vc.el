@@ -762,7 +762,7 @@ in their implementation of vc-BACKEND-diff.")
 (defun vc-default-previous-version (backend file rev)
   "Return the version number immediately preceding REV for FILE,
 or nil if there is no previous version.  This default
-implementation works for <major>.<minor>-style version numbers as
+implementation works for MAJOR.MINOR-style version numbers as
 used by RCS and CVS."
   (let ((branch (vc-branch-part rev))
         (minor-num (string-to-number (vc-minor-part rev))))
@@ -781,7 +781,7 @@ used by RCS and CVS."
 (defun vc-default-next-version (backend file rev)
   "Return the version number immediately following REV for FILE,
 or nil if there is no next version.  This default implementation
-works for <major>.<minor>-style version numbers as used by RCS
+works for MAJOR.MINOR-style version numbers as used by RCS
 and CVS."
   (when (not (string= rev (vc-workfile-version file)))
     (let ((branch (vc-branch-part rev))
@@ -930,7 +930,7 @@ Output from COMMAND goes to BUFFER, or *vc* if BUFFER is nil or the
 current buffer if BUFFER is t.  If the destination buffer is not
 already current, set it up properly and erase it.  The command is
 considered successful if its exit status does not exceed OKSTATUS (if
-OKSTATUS is nil, that means to ignore error status, if it is 'async, that
+OKSTATUS is nil, that means to ignore error status, if it is `async', that
 means not to wait for termination of the subprocess; if it is t it means to
 ignore all execution errors).  FILE is the
 name of the working file (may also be nil, to execute commands that
