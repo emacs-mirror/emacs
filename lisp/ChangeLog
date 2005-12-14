@@ -1,5 +1,7 @@
 2005-12-14  Juri Linkov  <juri@jurta.org>
 
+	* log-view.el (log-view-diff): Doc fix.
+
 	* isearch.el (isearch-query-replace): Use (mark) instead of
 	isearch-opoint if mark is active in transient-mark-mode.
 
