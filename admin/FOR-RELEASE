@@ -28,6 +28,9 @@ face name prefixes should be in it for good results.
 ** Send an email to the various distributions, including the GNOME
 and KDE projects, to use the new Emacs icons in etc/images/icons.
 
+** Ensure MH-E 8.0 has been released.
+Assigned to Bill Wohler <wohler@newt.com>.
+
 * NEW FEATURES
 
 ** Rework how fringe bitmaps are defined and used.
