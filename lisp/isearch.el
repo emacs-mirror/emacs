@@ -1224,7 +1224,8 @@ Use `isearch-exit' to quit without signaling."
   (let ((case-fold-search isearch-case-fold-search))
     (isearch-done)
     (isearch-clean-overlays)
-    (if (and (< isearch-other-end (point))
+    (if (and isearch-other-end
+	     (< isearch-other-end (point))
              (not (and transient-mark-mode mark-active
                        (< isearch-opoint (point)))))
         (goto-char isearch-other-end))
