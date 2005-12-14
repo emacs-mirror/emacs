@@ -15,7 +15,6 @@
 
 	* coding.c (code_convert_region_unwind): GCPRO arg.
 
->>>>>>> 1.4762
 2005-12-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (compute_tip_xy): Calculate root_y the same way as root_x,
