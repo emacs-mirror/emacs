@@ -1,3 +1,8 @@
+2005-12-14  Romain Francoise  <romain@orebokech.com>
+
+	* modes.texi (Customizing Keywords): Rename `append' to `how'.
+	Fix typo.
+
 2005-12-11  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.texi (Completion Commands): Add mention of read-file-name
