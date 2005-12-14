@@ -160,7 +160,7 @@ otherwise."
       (let ((buffer (current-buffer))
 	    (target-buffer "*Help*"))
 	(when (eq buffer (get-buffer target-buffer))
-	  (setq target-buffer "*Help-2*"))
+	  (setq target-buffer "*Help*<2>"))
 	(save-excursion
 	  (with-output-to-temp-buffer target-buffer
 	    (set-buffer standard-output)
@@ -625,6 +625,8 @@ as well as widgets, buttons, overlays, and text properties."
 					 item-list)))
     (with-output-to-temp-buffer "*Help*"
       (with-current-buffer standard-output
+	(let ((help-xref-following t))
+	  (help-setup-xref nil nil))
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
 	  (dolist (elt item-list)
@@ -727,7 +729,10 @@ as well as widgets, buttons, overlays, and text properties."
 		  "the meaning of the rule.\n"))
 
         (if text-props-desc (insert text-props-desc))
-	(describe-text-mode)))))
+	(describe-text-mode)
+	(toggle-read-only 1)
+	(help-make-xrefs (current-buffer))
+	(print-help-return-message)))))
 
 (defalias 'describe-char-after 'describe-char)
 (make-obsolete 'describe-char-after 'describe-char "22.1")
