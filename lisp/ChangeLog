@@ -1,3 +1,21 @@
+2005-12-14  Juri Linkov  <juri@jurta.org>
+
+	* help-macro.el (make-help-screen): Bind `inhibit-read-only' to t
+	around `erase-buffer' and `insert'.
+
+	* descr-text.el (describe-text-properties): Replace buffer name
+	"*Help-2*" with "*Help*<2>".
+	(describe-char): Add functions print-help-return-message,
+	toggle-read-only.  Use help-setup-xref with nil to not store
+	describe-char in help-xref-stack.  Use help-make-xrefs to
+	make [back] button.
+
+	* desktop.el (desktop-minor-mode-table): Add vc-dired-mode with nil.
+
+	* wdired.el (wdired-old-point): New internal variable.
+	(wdired-change-to-wdired-mode): Set it buffer-locally.
+	(wdired-abort-changes): Restore point after aborting changes.
+
 2005-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-do-command): Add a new value t for okstatus.
