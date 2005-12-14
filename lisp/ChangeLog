@@ -1,3 +1,8 @@
+2005-12-14  Richard M. Stallman  <rms@gnu.org>
+
+	* vc.el (vc-default-previous-version, vc-default-next-version)
+	(vc-do-command): Doc fixes.
+
 2005-12-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-expand-strings)
