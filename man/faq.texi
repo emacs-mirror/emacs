@@ -2568,11 +2568,9 @@ and MS-DOS have for delineating the end of a line.
 @cindex Single space following periods
 @cindex Periods, one space following
 
-@email{ulm@@vsnhd1.cern.ch, Ulrich Mueller} suggests adding the
-following two lines to your @file{.emacs} file:
+Add the following line to your @file{.emacs} file:
 
 @lisp
-(setq sentence-end "[.?!][]\"')@}]*\\($\\|[ \t]\\)[ \t\n]*")
 (setq sentence-end-double-space nil)
 @end lisp
 

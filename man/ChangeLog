@@ -1,3 +1,8 @@
+2005-12-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faq.texi (Filling paragraphs with a single space): No need to
+	change sentence-end now.
+
 2005-12-13  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (Scrolling only one line): Use `scroll-conservatively'.
