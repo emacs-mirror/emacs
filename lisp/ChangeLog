@@ -1,3 +1,61 @@
+2005-12-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-expand-strings)
+	(bibtex-autokey-expand-string, bibtex-name-part)
+	(bibtex-entry-type-whitespace, bibtex-entry-type-str)
+	(bibtex-any-entry-maybe-empty-head, bibtex-string-type)
+	(bibtex-preamble-prefix, bibtex-string-empty-key): New variables.
+	(bibtex-entry-type, bibtex-entry-head): Match only valid entries.
+	(bibtex-entry-postfix, bibtex-known-entry-type-re)
+	(bibtex-valid-entry-re, bibtex-any-valid-entry-re)
+	(bibtex-valid-entry-whitespace-re, bibtex-empty-field-re)
+	(bibtex-field-name-for-parsing, bibtex-remove-delimiters-string)
+	(bibtex-beginning-of-last-entry): Remove.
+	(bibtex-parse-field-name): Use bibtex-field-name.  Issue error
+	message if comma is missing but buffer is read-only.
+	(bibtex-parse-field-text): Handle whitespaces at the end of field
+	text.  Return 3-element list with beginning and end of field text
+	and end of field.
+	(bibtex-end-of-text-in-field, bibtex-end-of-field): Change accordingly.
+	(bibtex-parse-field): Remove arg name.  Use bibtex-field-name.
+	(bibtex-search-forward-field, bibtex-search-backward-field):
+	Search always delimited by limits of entry.  Use more efficient
+	search algorithms.
+	(bibtex-name-in-field): Use bibtex-start-of-name-in-field and
+	bibtex-end-of-name-in-field.
+	(bibtex-text-in-field-bounds): Handle BibTeX strings when
+	extracting the content of a field.
+	(bibtex-text-in-field): Use search limits.
+	(bibtex-parse-string-prefix): Handle empty string keys based on
+	bibtex-string-empty-key.
+	(bibtex-parse-string): Fix docstring.
+	(bibtex-text-in-string): Use bibtex-text-in-field-bounds.
+	(bibtex-preamble-prefix, bibtex-strings): New functions.
+	(bibtex-skip-to-valid-entry): Include preceding whitespace in
+	BibTeX entries (consistent with other BibTeX functions).
+	(bibtex-map-entries): Use bibtex-skip-to-valid-entry.
+	(bibtex-search-entry): Fix docstring.  Simplify.
+	(bibtex-flash-head, bibtex-complete-string-cleanup)
+	(bibtex-count-entries, bibtex-sort-buffer): Simplify.
+	(bibtex-beginning-of-first-entry): Use bibtex-skip-to-valid-entry.
+	(bibtex-parse-entry): New optional arg content.
+	(bibtex-format-entry, bibtex-autofill-entry, bibtex-url): Use it.
+	Use bibtex-text-in-field-bounds.
+	(bibtex-print-help-message): Handle BibTeX strings and preambles.
+	(bibtex-end-of-entry): Use bibtex-preamble-prefix and
+	bibtex-parse-string-postfix.
+	(bibtex-find-text-internal): New function.
+	(bibtex-remove-delimiters): Use it.
+	(bibtex-find-text): Use it.  New optional arg help.
+	(bibtex-complete): Handle BibTeX string and preamble entries.
+	(bibtex-Preamble): Fix order of closing delimiters.
+
+2005-12-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-default-revert): New fun.
+
+	* vc-mcvs.el (vc-mcvs-revert): Fix call to vc-default-revert.
+
 2005-12-14  Romain Francoise  <romain@orebokech.com>
 
 	* font-lock.el (font-lock-keywords-alist): Rename `append' to `how'.

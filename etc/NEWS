@@ -2539,6 +2539,10 @@ in multiple BibTeX files.
 *** The new command `bibtex-copy-summary-as-kill' pushes summary
 of BibTeX entry to kill ring (bound to C-c C-t).
 
+*** The new variables bibtex-expand-strings and
+bibtex-autokey-expand-strings control the expansion of strings when
+extracting the content of a BibTeX field.
+
 +++
 ** In Enriched mode, `set-left-margin' and `set-right-margin' are now
 by default bound to `C-c [' and `C-c ]' instead of the former `C-c C-l'
