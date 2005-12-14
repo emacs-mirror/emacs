@@ -1227,7 +1227,7 @@ Use `isearch-exit' to quit without signaling."
     (if (and isearch-other-end
 	     (< isearch-other-end (point))
              (not (and transient-mark-mode mark-active
-                       (< isearch-opoint (point)))))
+                       (< (mark) (point)))))
         (goto-char isearch-other-end))
     (set query-replace-from-history-variable
          (cons isearch-string
