@@ -1,3 +1,11 @@
+2005-12-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (compute_tip_xy): Handle negative dx and dy.
+
+	* w32fns.c (compute_tip_xy): Ditto
+
+	* macfns.c (compute_tip_xy): Ditto
+
 2005-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* print.c (print_preprocess): Go to a deeper print_depth to avoid

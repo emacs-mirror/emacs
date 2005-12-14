@@ -3840,9 +3840,11 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
   if (INTEGERP (top))
     *root_y = XINT (top);
+  else if (*root_y + XINT (dy) <= 0)
+    *root_y = 0; /* Can happen for negative dy */
   else if (*root_y + XINT (dy) + height <= FRAME_MAC_DISPLAY_INFO (f)->height)
     /* It fits below the pointer */
-      *root_y += XINT (dy);
+    *root_y += XINT (dy);
   else if (height + XINT (dy) <= *root_y)
     /* It fits above the pointer.  */
     *root_y -= height + XINT (dy);
@@ -3852,6 +3854,8 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
   if (INTEGERP (left))
     *root_x = XINT (left);
+  else if (*root_x + XINT (dx) <= 0)
+    *root_x = 0; /* Can happen for negative dx */
   else if (*root_x + XINT (dx) + width <= FRAME_MAC_DISPLAY_INFO (f)->width)
     /* It fits to the right of the pointer.  */
     *root_x += XINT (dx);
