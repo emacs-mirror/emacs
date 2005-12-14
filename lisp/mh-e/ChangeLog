@@ -1,3 +1,15 @@
+2005-12-14  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-speed-flists-interval): Rename to
+	mh-speed-update-interval.
+	(mh-speed-run-flists-flag): Delete. Setting
+	mh-speed-flists-interval to 0 accomplishes the same thing.
+
+	* mh-speed.el (mh-folder-speedbar-buttons, mh-speed-flists): Use
+	mh-speed-update-interval instead of mh-speed-run-flists-flag.
+	(mh-speed-toggle, mh-speed-view, mh-speed-refresh): Sync
+	docstrings with manual.
+
 2005-12-09  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-path): Move here from mh-init.el.
