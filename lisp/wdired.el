@@ -211,6 +211,7 @@ program `dired-chmod-program', which must exist."
 ;; Local variables (put here to avoid compilation gripes)
 (defvar wdired-col-perm) ;; Column where the permission bits start
 (defvar wdired-old-content)
+(defvar wdired-old-point)
 
 
 (defun wdired-mode ()
@@ -242,6 +243,7 @@ See `wdired-mode'."
   (interactive)
   (set (make-local-variable 'wdired-old-content)
        (buffer-substring (point-min) (point-max)))
+  (set (make-local-variable 'wdired-old-point) (point))
   (set (make-local-variable 'query-replace-skip-read-only) t)
   (use-local-map wdired-mode-map)
   (force-mode-line-update)
@@ -264,7 +266,8 @@ See `wdired-mode'."
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
   (run-mode-hooks 'wdired-mode-hook)
-  (message "%s" (substitute-command-keys "Press \\[wdired-finish-edit] when finished \
+  (message "%s" (substitute-command-keys
+		 "Press \\[wdired-finish-edit] when finished \
 or \\[wdired-abort-changes] to abort changes")))
 
 
@@ -348,7 +351,8 @@ non-nil means return old filename."
   (interactive)
   (let ((inhibit-read-only t))
     (erase-buffer)
-    (insert wdired-old-content))
+    (insert wdired-old-content)
+    (goto-char wdired-old-point))
   (wdired-change-to-dired-mode)
   (set-buffer-modified-p nil)
   (setq buffer-undo-list nil)
