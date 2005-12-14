@@ -1,3 +1,7 @@
+2005-12-14  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
+
+	* isearch.el (isearch-query-replace): Check for isearch-other-end.
+
 2005-12-14  Per Abrahamsen  <abraham@dina.kvl.dk>
 
 	* progmodes/cpp.el (cpp-face): New widget.
