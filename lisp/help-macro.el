@@ -139,8 +139,9 @@ and then returns."
 				(setq new-frame (window-frame (selected-window))
 				      config nil))
 			   (setq buffer-read-only nil)
-			   (erase-buffer)
-			   (insert help-screen)
+			   (let ((inhibit-read-only t))
+			     (erase-buffer)
+			     (insert help-screen))
 			   (help-mode)
 			   (goto-char (point-min))
 			   (while (or (memq char (append help-event-list
