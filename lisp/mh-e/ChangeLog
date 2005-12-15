@@ -1,3 +1,11 @@
+2005-12-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-delete-msg): Sync docstrings with manual.
+
+	* mh-seq.el (mh-delete-subject, mh-thread-next-sibling)
+	(mh-thread-previous-sibling, mh-thread-ancestor)
+	(mh-thread-delete, mh-thread-refile): Ditto.
+
 2005-12-14  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-speed-flists-interval): Rename to
