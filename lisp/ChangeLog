@@ -1,3 +1,10 @@
+2005-12-15  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-dialog-goto-first): Fix missing error
+	condition.
+	(recentf-edit-list, recentf-open-files): Signal an error when
+	there is no recent file.
+
 2005-12-14  Lennart Borgman  <lennart.borgman.073@student.lu.se>
 
 	* textmodes/texinfmt.el (texinfo-format-region): Set buffer to
