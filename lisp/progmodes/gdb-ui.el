@@ -51,7 +51,8 @@
 ;; annotations to GDB/MI.
 
 ;; This mode SHOULD WORK WITH GDB 5.0 onwards but you will NEED GDB 6.0
-;; onwards to use watch expressions.
+;; onwards to use watch expressions.  It works best with GDB 6.4 where
+;; watch expressions will update more quickly.
 
 ;;; Windows Platforms:
 
@@ -2577,6 +2578,8 @@ With arg, display additional buffers iff arg is positive."
 	(if (null arg)
 	    (not gdb-many-windows)
 	  (> (prefix-numeric-value arg) 0)))
+  (message (format "Display of other windows %sabled"
+		   (if gdb-many-windows "en" "dis")))
   (if (and gud-comint-buffer
 	   (buffer-name gud-comint-buffer))
       (condition-case nil
