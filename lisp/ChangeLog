@@ -1,3 +1,8 @@
+2005-12-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-many-windows): Echo new state in
+	minibuffer.
+
 2005-12-15  David Ponce  <david@dponce.com>
 
 	* recentf.el (recentf-dialog-goto-first): Fix missing error
