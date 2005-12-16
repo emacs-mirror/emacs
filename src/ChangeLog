@@ -1,3 +1,16 @@
+2005-12-16  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.c (Fminibuffer_completion_contents): New Lisp function
+	created from minibuffer_completion_contents.
+	(minibuffer_completion_contents): Remove.
+	(do_completion, Fminibuffer_complete_word)
+	(Fminibuffer_completion_help): Replace minibuffer_completion_contents
+	with Fminibuffer_completion_contents.
+	(syms_of_minibuf): Add Sminibuffer_completion_contents.
+	(Fdisplay_completion_list): Doc fix.
+	(display_completion_list_1): Use `nil' for second arg of
+	`Fdisplay_completion_list'.
+
 2005-12-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (compute_tip_xy): Handle negative dx and dy.

@@ -1,3 +1,29 @@
+2005-12-16  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (choose-completion): Use `buffer-substring-no-properties'
+	instead of `buffer-substring'.
+	(completion-common-substring): Doc fix.
+	(completion-setup-function): Use minibuffer-completion-contents
+	instead of minibuffer-contents.  Don't set common-string-length
+	initially.  Remove special handling of partial-completion-mode.
+	Move computation of completion-base-size into one cond.  Call
+	completion-base-size-function in mainbuf.  In computation of
+	completion-base-size for file name completion don't move point to
+	the end of the minibuffer.  Move computation of common-string-length
+	into one cond.  Start putting faces only when common-string-length>=0.
+	Add condition to put completions-common-part when common-string-length>0.
+
+	* complete.el (PC-do-completion): Remove `(equal (point) beg)' to
+	place point at the first different character in the minibuffer
+	even if this position is at the beginning of the minibuffer.
+
+	* info.el (Info-read-node-name-1): In completion-base-size-function's
+	lambda return 1 if common-substring or minibuffer-completion-contents
+	starts with (, and 0 otherwise.
+
+	* emacs-lisp/crm.el (crm-minibuffer-completion-help):
+	Use `crm-current-element' for second arg of `display-completion-list'.
+
 2005-12-16  Klaus Zeitler  <kzeitler@lucent.com>
 
 	* files.el (set-auto-mode): Look for an interpreter specified on

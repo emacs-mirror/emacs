@@ -1,3 +1,7 @@
+2005-12-16  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Minibuffer Contents): Add minibuffer-completion-contents.
+
 2005-12-14  Romain Francoise  <romain@orebokech.com>
 
 	* modes.texi (Customizing Keywords): Rename `append' to `how'.
