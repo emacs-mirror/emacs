@@ -1517,7 +1517,12 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 
 ;; Arrange to highlight the proper letters in the completion list buffer.
 (put 'Info-read-node-name-1 'completion-base-size-function
-     (lambda () 1))
+     (lambda ()
+       (if (string-match "\\`([^)]*\\'"
+			 (or completion-common-substring
+			     (minibuffer-completion-contents)))
+	   1
+	 0)))
 
 (defun Info-read-node-name (prompt &optional default)
   (let* ((completion-ignore-case t)
