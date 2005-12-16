@@ -209,7 +209,7 @@ Partial Completion mode extends the meaning of `completion-auto-help' (which
 see), so that if it is neither nil nor t, Emacs shows the `*Completions*'
 buffer only on the second attempt to complete.  That is, if TAB finds nothing
 to complete, the first TAB just says \"Next char not unique\" and the
-second TAB brings up the `*Completionsf'* buffer."
+second TAB brings up the `*Completions*' buffer."
   :global t :group 'partial-completion
   ;; Deal with key bindings...
   (PC-bindings partial-completion-mode)
@@ -612,8 +612,7 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 				    (insert (substring prefix i (1+ i)))
 				    (setq end (1+ end)))
 				  (setq i (1+ i)))
-				(or pt (equal (point) beg)
-				    (setq pt (point)))
+				(or pt (setq pt (point)))
 				(looking-at PC-delim-regex))
 			      (setq skip (concat skip
 						 (regexp-quote prefix)
