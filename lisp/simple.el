@@ -4787,7 +4787,7 @@ With prefix argument N, move N items (negative N means move backward)."
 	(error "No completion here"))
     (setq beg (previous-single-property-change beg 'mouse-face))
     (setq end (or (next-single-property-change end 'mouse-face) (point-max)))
-    (setq completion (buffer-substring beg end))
+    (setq completion (buffer-substring-no-properties beg end))
     (let ((owindow (selected-window)))
       (if (and (one-window-p t 'selected-frame)
 	       (window-dedicated-p (selected-window)))
@@ -4944,68 +4944,52 @@ of the differing parts is, by contrast, slightly highlighted."
   "Common prefix substring to use in `completion-setup-function' to put faces.
 The value is set by `display-completion-list' during running `completion-setup-hook'.
 
-To put faces, `completions-first-difference' and `completions-common-part'
-into \"*Completions*\* buffer, the common prefix substring in completions is
-needed as a hint. (Minibuffer is a special case. The content of minibuffer itself
-is the substring.)")
+To put faces `completions-first-difference' and `completions-common-part'
+in the `*Completions*' buffer, the common prefix substring in completions
+is needed as a hint.  (The minibuffer is a special case.  The content
+of the minibuffer before point is always the common substring.)")
 
 ;; This function goes in completion-setup-hook, so that it is called
 ;; after the text of the completion list buffer is written.
 (defun completion-setup-function ()
   (let* ((mainbuf (current-buffer))
-         (mbuf-contents (minibuffer-contents))
-         (common-string-length (length mbuf-contents)))
+         (mbuf-contents (minibuffer-completion-contents))
+         common-string-length)
     ;; When reading a file name in the minibuffer,
     ;; set default-directory in the minibuffer
     ;; so it will get copied into the completion list buffer.
     (if minibuffer-completing-file-name
 	(with-current-buffer mainbuf
 	  (setq default-directory (file-name-directory mbuf-contents))))
-    ;; If partial-completion-mode is on, point might not be after the
-    ;; last character in the minibuffer.
-    ;; FIXME: This hack should be moved to complete.el where we call
-    ;; display-completion-list.
-    (when partial-completion-mode
-      (setq common-string-length
-            (if (eq (char-after (field-beginning)) ?-)
-                ;; If the text to be completed starts with a `-', there is no
-                ;; common prefix.
-                ;; FIXME: this probably still doesn't do the right thing
-                ;; when completing file names.  It's not even clear what
-                ;; is TRT.
-                0
-              (- common-string-length (- (point-max) (point))))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (set (make-local-variable 'completion-reference-buffer) mainbuf)
       (setq completion-base-size
-            (if minibuffer-completing-file-name
-                ;; For file name completion, use the number of chars before
-                ;; the start of the last file name component.
-		(with-current-buffer mainbuf
-		  (save-excursion
-		    (goto-char (point-max))
-		    (skip-chars-backward completion-root-regexp)
-		    (- (point) (minibuffer-prompt-end))))
-              ;; Otherwise, in minibuffer, the whole input is being completed.
-              (if (minibufferp mainbuf) 0)))
-      (if (and (symbolp minibuffer-completion-table)
-               (get minibuffer-completion-table 'completion-base-size-function))
-          (setq completion-base-size
-                ;; FIXME: without any extra arg, how is this function
-                ;; expected to return anything else than a constant unless
-                ;; it redoes part of the work of all-completions?
-                ;; In most cases this value would better be computed and
-                ;; returned at the same time as the list of all-completions
-                ;; is computed.  --Stef
-                (funcall (get minibuffer-completion-table
-                              'completion-base-size-function))))
+	    (cond
+	     ((and (symbolp minibuffer-completion-table)
+		   (get minibuffer-completion-table 'completion-base-size-function))
+	      ;; To compute base size, a function can use the global value of
+	      ;; completion-common-substring or minibuffer-completion-contents.
+	      (with-current-buffer mainbuf
+		(funcall (get minibuffer-completion-table
+			      'completion-base-size-function))))
+	     (minibuffer-completing-file-name
+	      ;; For file name completion, use the number of chars before
+	      ;; the start of the file name component at point.
+	      (with-current-buffer mainbuf
+		(save-excursion
+		  (skip-chars-backward completion-root-regexp)
+		  (- (point) (minibuffer-prompt-end)))))
+	     ;; Otherwise, in minibuffer, the base size is 0.
+	     ((minibufferp mainbuf) 0)))
+      (setq common-string-length
+	    (cond
+	     (completion-common-substring
+	      (length completion-common-substring))
+	     (completion-base-size
+	      (- (length mbuf-contents) completion-base-size))))
       ;; Put faces on first uncommon characters and common parts.
-      (when (or completion-common-substring completion-base-size)
-        (setq common-string-length
-              (if completion-common-substring
-                  (length completion-common-substring)
-                (- common-string-length completion-base-size)))
+      (when (and (integerp common-string-length) (>= common-string-length 0))
 	(let ((element-start (point-min))
               (maxp (point-max))
               element-common-end)
@@ -5016,7 +5000,8 @@ is the substring.)")
                                (+ element-start common-string-length))
                          maxp))
 	    (when (get-char-property element-start 'mouse-face)
-	      (if (get-char-property (1- element-common-end) 'mouse-face)
+	      (if (and (> common-string-length 0)
+		       (get-char-property (1- element-common-end) 'mouse-face))
 		  (put-text-property element-start element-common-end
 				     'font-lock-face 'completions-common-part))
 	      (if (get-char-property element-common-end 'mouse-face)
