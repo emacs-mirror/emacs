@@ -1,3 +1,7 @@
+2005-12-16  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Minibuffer Contents): Minor cleanup.
+
 2005-12-16  Juri Linkov  <juri@jurta.org>
 
 	* minibuf.texi (Minibuffer Contents): Add minibuffer-completion-contents.
