@@ -1,3 +1,14 @@
+2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* bindings.el (last-buffer): Move to simple.el.
+	* simple.el (last-buffer): Move here.
+	(get-next-valid-buffer): New function.
+	(next-buffer): Use frame-local buffer list, maintain buried buffer list.
+	(prev-buffer): Ditto. Rename to `previous-buffer'.
+
+	* menu-bar.el (menu-bar-update-buffers): Update references to `prev-buffer'.
+	* bindings.el (global-map): Ditto.
+
 2005-12-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el: Introductory comment change.

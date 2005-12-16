@@ -52,25 +52,68 @@ wait this many seconds after Emacs becomes idle before doing an update."
   "Highlight (un)matching of parens and expressions."
   :group 'matching)
 
+(defun get-next-valid-buffer (list &optional buffer visible-ok frame) "\
+Search LIST for a valid buffer to display in FRAME.
+Return nil when all buffers in LIST are undesirable for display,
+otherwise return the first suitable buffer in LIST.
+
+Buffers not visible in windows are preferred to visible buffers,
+unless VISIBLE-OK is non-nil.
+If the optional argument FRAME is nil, it defaults to the selected frame.
+If BUFFER is non-nil, ignore occurances of that buffer in LIST."
+  ;; This logic is more or less copied from other-buffer.
+  (setq frame (or frame (selected-frame)))
+  (let ((pred (frame-parameter frame 'buffer-predicate))
+	found buf)
+    (while (and (not found) list)
+      (setq buf (car list))
+      (if (and (not (eq buffer buf))
+	       (buffer-live-p buf)
+	       (or (null pred) (funcall pred buf))
+	       (not (eq (aref (buffer-name buf) 0) ?\s))
+	       (or visible-ok (null (get-buffer-window buf 'visible))))
+	  (setq found buf)
+	(setq list (cdr list))))
+    (car list)))
+
+(defun last-buffer (&optional buffer visible-ok frame) "\
+Return the last non-hidden displayable buffer in the buffer list.
+If BUFFER is non-nil, last-buffer will ignore that buffer.
+Buffers not visible in windows are preferred to visible buffers,
+unless optional argument VISIBLE-OK is non-nil.
+If the optional third argument FRAME is non-nil, use that frame's
+buffer list instead of the selected frame's buffer list.
+If no other buffer exists, the buffer `*scratch*' is returned."
+  (setq frame (or frame (selected-frame)))
+  (or (get-next-valid-buffer (frame-parameter frame 'buried-buffer-list)
+			     buffer visible-ok frame)
+      (get-next-valid-buffer (nreverse (buffer-list frame))
+			     buffer visible-ok frame)
+      (progn
+	(set-buffer-major-mode (get-buffer-create "*scratch*"))
+	(get-buffer "*scratch*"))))
+
 (defun next-buffer ()
   "Switch to the next buffer in cyclic order."
   (interactive)
-  (let ((buffer (current-buffer)))
-    (switch-to-buffer (other-buffer buffer))
-    (bury-buffer buffer)))
+  (let ((buffer (current-buffer))
+	(bbl (frame-parameter nil 'buried-buffer-list)))
+    (switch-to-buffer (other-buffer buffer t))
+    (bury-buffer buffer)
+    (set-frame-parameter nil 'buried-buffer-list
+			 (cons buffer (delq buffer bbl)))))
 
-(defun prev-buffer ()
+(defun previous-buffer ()
   "Switch to the previous buffer in cyclic order."
   (interactive)
-  (let ((list (nreverse (buffer-list)))
-	found)
-    (while (and (not found) list)
-      (let ((buffer (car list)))
-	(if (and (not (get-buffer-window buffer))
-		 (not (string-match "\\` " (buffer-name buffer))))
-	    (setq found buffer)))
-      (setq list (cdr list)))
-    (switch-to-buffer found)))
+  (let ((buffer (last-buffer (current-buffer) t))
+	(bbl (frame-parameter nil 'buried-buffer-list)))
+    (switch-to-buffer buffer)
+    ;; Clean up buried-buffer-list up to and including the chosen buffer.
+    (while (and bbl (not (eq (car bbl) buffer)))
+      (setq bbl (cdr bbl)))
+    (set-frame-parameter nil 'buried-buffer-list bbl)))
+
 
 ;;; next-error support framework
 

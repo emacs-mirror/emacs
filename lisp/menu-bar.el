@@ -1662,10 +1662,10 @@ Buffers menu is regenerated."
 			     "Next Buffer"
 			     'next-buffer
 			     :help "Switch to the \"next\" buffer in a cyclic order")
-		       (list 'prev-buffer
+		       (list 'previous-buffer
 			     'menu-item
 			     "Previous Buffer"
-			     'prev-buffer
+			     'previous-buffer
 			     :help "Switch to the \"previous\" buffer in a cyclic order")
 		       (list 'select-named-buffer
 			     'menu-item
