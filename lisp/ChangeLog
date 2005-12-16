@@ -3544,7 +3544,7 @@
 
 	* mouse.el: Fix special handling of DEL after dragging a region:
 	(mouse-drag-region-1): Treat mouse-set-region like mouse-set-point.
-	(mouse-region-delete-keys): Add [backspace].
+	(mouse-region-delete-keys): Change to defcustom.  Add [backspace].
 
 	* mail/feedmail.el: Use insert-buffer-substring, not insert-buffer.
 
