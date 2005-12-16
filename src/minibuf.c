@@ -388,6 +388,19 @@ The current buffer must be a minibuffer.  */)
   return make_buffer_string (prompt_end, ZV, 0);
 }
 
+DEFUN ("minibuffer-completion-contents", Fminibuffer_completion_contents,
+       Sminibuffer_completion_contents, 0, 0, 0,
+       doc: /* Return the user input in a minibuffer before point as a string.
+That is what completion commands operate on.
+The current buffer must be a minibuffer.  */)
+     ()
+{
+  int prompt_end = XINT (Fminibuffer_prompt_end ());
+  if (PT < prompt_end)
+    error ("Cannot do completion in the prompt");
+  return make_buffer_string (prompt_end, PT, 1);
+}
+
 DEFUN ("delete-minibuffer-contents", Fdelete_minibuffer_contents,
        Sdelete_minibuffer_contents, 0, 0, 0,
        doc: /* Delete all user input in a minibuffer.
@@ -400,17 +413,6 @@ The current buffer must be a minibuffer.  */)
   return Qnil;
 }
 
-/* Get the text in the minibuffer before point.
-   That is what completion commands operate on.  */
-
-Lisp_Object
-minibuffer_completion_contents ()
-{
-  int prompt_end = XINT (Fminibuffer_prompt_end ());
-  if (PT < prompt_end)
-    error ("Cannot do completion in the prompt");
-  return make_buffer_string (prompt_end, PT, 1);
-}
 
 /* Read from the minibuffer using keymap MAP and initial contents INITIAL,
    putting point minus BACKUP_N bytes from the end of INITIAL,
@@ -1899,7 +1901,7 @@ do_completion ()
   Lisp_Object last;
   struct gcpro gcpro1, gcpro2;
 
-  completion = Ftry_completion (minibuffer_completion_contents (),
+  completion = Ftry_completion (Fminibuffer_completion_contents (),
 				Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   last = last_exact_completion;
@@ -1921,7 +1923,7 @@ do_completion ()
       return 1;
     }
 
-  string = minibuffer_completion_contents ();
+  string = Fminibuffer_completion_contents ();
 
   /* COMPLETEDP should be true if some completion was done, which
      doesn't include simply changing the case of the entered string.
@@ -1988,7 +1990,7 @@ do_completion ()
   last_exact_completion = completion;
   if (!NILP (last))
     {
-      tem = minibuffer_completion_contents ();
+      tem = Fminibuffer_completion_contents ();
       if (!NILP (Fequal (tem, last)))
 	Fminibuffer_completion_help ();
     }
@@ -2191,7 +2193,7 @@ Return nil if there is no valid completion, else t.  */)
   /* We keep calling Fbuffer_string rather than arrange for GC to
      hold onto a pointer to one of the strings thus made.  */
 
-  completion = Ftry_completion (minibuffer_completion_contents (),
+  completion = Ftry_completion (Fminibuffer_completion_contents (),
 				Vminibuffer_completion_table,
 				Vminibuffer_completion_predicate);
   if (NILP (completion))
@@ -2223,7 +2225,7 @@ Return nil if there is no valid completion, else t.  */)
     int buffer_nchars, completion_nchars;
 
     CHECK_STRING (completion);
-    tem = minibuffer_completion_contents ();
+    tem = Fminibuffer_completion_contents ();
     GCPRO2 (completion, tem);
     /* If reading a file name,
        expand any $ENVVAR refs in the buffer and in TEM.  */
@@ -2287,7 +2289,7 @@ Return nil if there is no valid completion, else t.  */)
   if (i == SCHARS (completion))
     {
       GCPRO1 (completion);
-      tem = Ftry_completion (concat2 (minibuffer_completion_contents (),
+      tem = Ftry_completion (concat2 (Fminibuffer_completion_contents (),
 				      build_string (" ")),
 			     Vminibuffer_completion_table,
 			     Vminibuffer_completion_predicate);
@@ -2299,7 +2301,7 @@ Return nil if there is no valid completion, else t.  */)
 	{
 	  GCPRO1 (completion);
 	  tem =
-	    Ftry_completion (concat2 (minibuffer_completion_contents (),
+	    Ftry_completion (concat2 (Fminibuffer_completion_contents (),
 				      build_string ("-")),
 			     Vminibuffer_completion_table,
 			     Vminibuffer_completion_predicate);
@@ -2371,8 +2373,8 @@ The optional second arg COMMON-SUBSTRING is a string.
 It is used to put faces, `completions-first-difference' and
 `completions-common-part' on the completion buffer. The
 `completions-common-part' face is put on the common substring
-specified by COMMON-SUBSTRING. If COMMON-SUBSTRING is nil,
-the faces are not put.
+specified by COMMON-SUBSTRING. If COMMON-SUBSTRING is nil
+and the current buffer is not the minibuffer, the faces are not put.
 Internally, COMMON-SUBSTRING is bound to `completion-common-substring'
 during running `completion-setup-hook'. */)
      (completions, common_substring)
@@ -2563,7 +2565,7 @@ static Lisp_Object
 display_completion_list_1 (list)
      Lisp_Object list;
 {
-  return Fdisplay_completion_list (list, minibuffer_completion_contents ());
+  return Fdisplay_completion_list (list, Qnil);
 }
 
 DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_completion_help,
@@ -2574,7 +2576,7 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
   Lisp_Object completions;
 
   message ("Making completion list...");
-  completions = Fall_completions (minibuffer_completion_contents (),
+  completions = Fall_completions (Fminibuffer_completion_contents (),
 				  Vminibuffer_completion_table,
 				  Vminibuffer_completion_predicate,
 				  Qt);
@@ -2883,6 +2885,7 @@ properties.  */);
   defsubr (&Sminibuffer_prompt_end);
   defsubr (&Sminibuffer_contents);
   defsubr (&Sminibuffer_contents_no_properties);
+  defsubr (&Sminibuffer_completion_contents);
   defsubr (&Sdelete_minibuffer_contents);
 
   defsubr (&Stry_completion);
