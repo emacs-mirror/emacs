@@ -307,9 +307,10 @@ a new Emacs.
 On 32bit machines, it is now 256M (i.e. 268435455).
 
 +++
-** You can now switch buffers in a cyclic order with C-x C-left and
-(prev-buffer) and C-x C-right (next-buffer).  C-x left and C-x right
-can be used as well.
+** You can now switch buffers in a cyclic order with C-x C-left
+(previous-buffer) and C-x C-right (next-buffer).  C-x left and 
+C-x right can be used as well.  The functions keep a different buffer
+cycle for each frame, using the frame-local buffer list.
 
 +++
 ** `undo-only' does an undo which does not redo any previous undo.
