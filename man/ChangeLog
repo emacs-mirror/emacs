@@ -1,3 +1,7 @@
+2005-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* org.texi (Internal Links): Add a missing comma after an @xref.
+
 2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* buffers.texi (Select Buffer): Change `prev-buffer' to
