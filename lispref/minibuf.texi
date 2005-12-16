@@ -1838,11 +1838,9 @@ properties, just the characters themselves.  @xref{Text Properties}.
 
 @defun minibuffer-completion-contents
 @tindex minibuffer-completion-contents
-This is like @code{minibuffer-contents}, except that it when point is
-not at the end of the minibuffer, it doesn't return the entire
-contents of the minibuffer.  It returns the contents of the minibuffer
-just before point.  That is what completion commands operate on.
-@xref{Minibuffer Completion}.
+This is like @code{minibuffer-contents}, except that it returns only
+the contents before point.  That is the part that completion commands
+operate on.  @xref{Minibuffer Completion}.
 @end defun
 
 @defun delete-minibuffer-contents
