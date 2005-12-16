@@ -4186,6 +4186,11 @@ for directories, and completion inside it shows only directories.
 ** Completion changes:
 
 +++
+*** The new function `minibuffer-completion-contents' returns the contents
+of the minibuffer just before point.  That is what completion commands
+operate on.
+
++++
 *** The functions `all-completions' and `try-completion' now accept lists
 of strings as well as hash-tables additionally to alists, obarrays
 and functions.  Furthermore, the function `test-completion' is now
