@@ -1,3 +1,9 @@
+2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* buffers.texi (Select Buffer): Change `prev-buffer' to
+	`previous-buffer'.  Indicate that these functions use a frame
+	local buffer list.
+
 2005-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
 	* faq.texi (Filling paragraphs with a single space): No need to
