@@ -3993,35 +3993,36 @@ comment at the start of cc-engine.el for more info."
   ;;
   ;; This function might do hidden buffer changes.
 
-  (save-excursion
-    (goto-char beg)
-    (when (or (looking-at "[<>]")
-	      (< (skip-chars-backward "<>") 0))
-
+  (save-match-data
+    (save-excursion
       (goto-char beg)
-      (c-beginning-of-current-token)
-      (when (and (< (point) beg)
-		 (looking-at c-<>-multichar-token-regexp)
-		 (< beg (setq beg (match-end 0))))
-	(while (progn (skip-chars-forward "^<>" beg)
-		      (< (point) beg))
-	  (c-clear-char-property (point) 'syntax-table)
-	  (forward-char))))
-
-    (when (< beg end)
-      (goto-char end)
       (when (or (looking-at "[<>]")
 		(< (skip-chars-backward "<>") 0))
 
-	(goto-char end)
+	(goto-char beg)
 	(c-beginning-of-current-token)
-	(when (and (< (point) end)
+	(when (and (< (point) beg)
 		   (looking-at c-<>-multichar-token-regexp)
-		   (< end (setq end (match-end 0))))
-	  (while (progn (skip-chars-forward "^<>" end)
-			(< (point) end))
+		   (< beg (setq beg (match-end 0))))
+	  (while (progn (skip-chars-forward "^<>" beg)
+			(< (point) beg))
 	    (c-clear-char-property (point) 'syntax-table)
-	    (forward-char)))))))
+	    (forward-char))))
+
+      (when (< beg end)
+	(goto-char end)
+	(when (or (looking-at "[<>]")
+		  (< (skip-chars-backward "<>") 0))
+
+	  (goto-char end)
+	  (c-beginning-of-current-token)
+	  (when (and (< (point) end)
+		     (looking-at c-<>-multichar-token-regexp)
+		     (< end (setq end (match-end 0))))
+	    (while (progn (skip-chars-forward "^<>" end)
+			  (< (point) end))
+	      (c-clear-char-property (point) 'syntax-table)
+	      (forward-char))))))))
 
 ;; Dynamically bound variable that instructs `c-forward-type' to also
 ;; treat possible types (i.e. those that it normally returns 'maybe or
