@@ -121,10 +121,11 @@
 ;; 6. rogue
 
 ;;    There is no standard value.  This means that the variable was
-;;    not defined with defcustom, nor handled in cus-start.el.  You
-;;    can not create a Custom buffer for such variables using the
-;;    normal interactive Custom commands.  However, such Custom
-;;    buffers can be created in other ways, for instance, by calling
+;;    not defined with defcustom, nor handled in cus-start.el.  Most
+;;    standard interactive Custom commands do not let you create a
+;;    Custom buffer containing such variables.  However, such Custom
+;;    buffers can be created, for instance, by calling
+;;    `customize-apropos' with a prefix arg or by calling
 ;;    `customize-option' non-interactively.
 
 ;; 7. hidden
@@ -1757,7 +1758,7 @@ something in this group has been changed outside customize.")
 SAVED and set." "\
 something in this group has been set and saved.")
     (rogue "@" custom-rogue "\
-NO CUSTOMIZATION DATA; you should not see this." "\
+NO CUSTOMIZATION DATA; not intended to be customized." "\
 something in this group is not prepared for customization.")
     (standard " " nil "\
 STANDARD." "\
