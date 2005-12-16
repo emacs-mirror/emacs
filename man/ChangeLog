@@ -1,3 +1,8 @@
+2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Tags): New section.
+	(Agenda Views): Chapter reorganized.
+
 2005-12-16  Ralf Angeli  <angeli@iwi.uni-sb.de>
 
 	* killing.texi (Killing by Lines): Document `kill-whole-line'
