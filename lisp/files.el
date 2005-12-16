@@ -2098,7 +2098,8 @@ only set the major mode, if that would change it."
 	      (setq done t)
 	      (or (set-auto-mode-0 mode keep-mode-if-same)
 		  ;; continuing would call minor modes again, toggling them off
-		  (throw 'nop nil)))))
+		  (throw 'nop nil))))))
+    (unless done
       ;; If we didn't, look for an interpreter specified in the first line.
       ;; As a special case, allow for things like "#!/bin/env perl", which
       ;; finds the interpreter anywhere in $PATH.
