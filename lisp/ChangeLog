@@ -1,3 +1,29 @@
+2005-12-15  Richard M. Stallman  <rms@gnu.org>
+
+	* tooltip.el: Delete defcustom variable :tag names.
+
+	* complete.el (partial-completion-mode): Doc fix.
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Use save-excursion to ensure we don't move backward in the
+	search loop, not even one character.
+	(flyspell-delete-all-overlays): Use remove-overlays directly.
+
+	* textmodes/ispell.el (ispell-current-personal-dictionary): New var.
+	(ispell-start-process): Set that variable.
+	Clear ispell-buffer-local-name.
+	(ispell-internal-change-dictionary):
+	Set ispell-current-dictionary after killing process.
+	(ispell-buffer-local-dict):
+	Don't set spell-personal-dictionary after killing process.
+	(ispell-buffer-local-words): Don't clear out ispell-buffer-local-name.
+	(ispell-tex-skip-alists)
+	(ispell-html-skip-alists, ispell-skip-region-alist): Mark as risky.
+
+	* net/newsticker.el (newsticker--retrieval-timer-list)
+	(newsticker--display-timer, newsticker-running-p)
+	(newsticker-ticker-running-p): Definitions moved up.
+
 2005-12-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-many-windows): Echo new state in
