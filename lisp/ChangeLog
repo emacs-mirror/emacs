@@ -1,3 +1,8 @@
+2005-12-16  Bill Wohler  <wohler@newt.com>
+
+	* menu-bar.el (kill-this-buffer): Set a good example by using menu
+	bar, not menubar in comment.
+
 2005-12-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cc-engine.el (c-after-change-check-<>-operators):

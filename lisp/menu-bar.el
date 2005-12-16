@@ -1432,7 +1432,7 @@ for the definition of the menu frame."
 		      (selected-frame))))
     (not (window-minibuffer-p (frame-selected-window menu-frame)))))
 
-(defun kill-this-buffer ()	; for the menubar
+(defun kill-this-buffer ()	; for the menu bar
   "Kill the current buffer."
   (interactive)
   (kill-buffer (current-buffer)))
