@@ -1,3 +1,8 @@
+2005-12-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el: Introductory comment change.
+	(custom-magic-alist): Change message string for the `rogue' state.
+
 2005-12-15  Richard M. Stallman  <rms@gnu.org>
 
 	* tooltip.el: Delete defcustom variable :tag names.
