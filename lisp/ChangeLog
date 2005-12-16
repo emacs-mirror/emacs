@@ -1,3 +1,8 @@
+2005-12-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-engine.el (c-after-change-check-<>-operators):
+	After-change-functions should not clobber the match data.
+
 2005-12-16  Juri Linkov  <juri@jurta.org>
 
 	* simple.el (choose-completion): Use `buffer-substring-no-properties'
@@ -6,12 +11,13 @@
 	(completion-setup-function): Use minibuffer-completion-contents
 	instead of minibuffer-contents.  Don't set common-string-length
 	initially.  Remove special handling of partial-completion-mode.
-	Move computation of completion-base-size into one cond.  Call
-	completion-base-size-function in mainbuf.  In computation of
+	Move computation of completion-base-size into one cond.
+	Call completion-base-size-function in mainbuf.  In computation of
 	completion-base-size for file name completion don't move point to
 	the end of the minibuffer.  Move computation of common-string-length
 	into one cond.  Start putting faces only when common-string-length>=0.
-	Add condition to put completions-common-part when common-string-length>0.
+	Add condition to put completions-common-part when
+	common-string-length>0.
 
 	* complete.el (PC-do-completion): Remove `(equal (point) beg)' to
 	place point at the first different character in the minibuffer
@@ -33,10 +39,9 @@
 2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-tags-match-list-sublevels): New option.
-	(org-open-at-point): implement tag searches as links
+	(org-open-at-point): Implement tag searches as links.
 	(org-fit-agenda-window, org-get-buffer-tags, org-get-tags)
-	(org-make-tags-matcher, org-scan-tags, org-activate-tags): New
-	functions
+	(org-make-tags-matcher, org-scan-tags, org-activate-tags): New funs.
 	(org-tags-sparse-tree, org-tags-view, org-set-tags)
 	(org-agenda-dispatch): New commands.
 	(org-use-tag-inheritance, org-tags-column): New options.
@@ -44,13 +49,13 @@
 	(org-tags): New customize group.
 	(org-start-icalendar-file): Get local time zone.
 	(org-tags-completion-function): New function.
-	(org-set-font-lock-defaults): make sure links will also be
+	(org-set-font-lock-defaults): Make sure links will also be
 	highlighted inside headlines.
 
 2005-12-16  Mark Plaksin  <happy@usg.edu>  (tiny change)
 
-	* term.el (term-emulate-terminal): Let
-	term-handle-ansi-terminal-messages override what Bash says about
+	* term.el (term-emulate-terminal):
+	Let term-handle-ansi-terminal-messages override what Bash says about
 	its current directory.
 
 2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
@@ -61,7 +66,7 @@
 	(next-buffer): Use frame-local buffer list, maintain buried buffer list.
 	(prev-buffer): Ditto. Rename to `previous-buffer'.
 
-	* menu-bar.el (menu-bar-update-buffers): Update references to `prev-buffer'.
+	* menu-bar.el (menu-bar-update-buffers): Update uses of `prev-buffer'.
 	* bindings.el (global-map): Ditto.
 
 2005-12-15  Luc Teirlinck  <teirllm@auburn.edu>
@@ -97,13 +102,11 @@
 
 2005-12-16  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-many-windows): Echo new state in
-	minibuffer.
+	* progmodes/gdb-ui.el (gdb-many-windows): Echo new state in minibuffer.
 
 2005-12-15  David Ponce  <david@dponce.com>
 
-	* recentf.el (recentf-dialog-goto-first): Fix missing error
-	condition.
+	* recentf.el (recentf-dialog-goto-first): Fix missing error condition.
 	(recentf-edit-list, recentf-open-files): Signal an error when
 	there is no recent file.
 
@@ -339,8 +342,8 @@
 
 2005-12-10  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
-	* align.el (align-regexp, align-highlight-rule): Use
-	region-beginning and region-end instead of point and mark, so that
+	* align.el (align-regexp, align-highlight-rule):
+	Use region-beginning and region-end instead of point and mark, so that
 	repetition (with `repeat-complex-command') recomputes the region
 	bounds.
 
@@ -360,8 +363,8 @@
 	(hi-lock-archaic-interface-deduce): New variables.
 	(turn-on-hi-lock-if-enabled, hi-lock-line-face-buffer)
 	(hi-lock-face-buffer, hi-lock-face-phrase-buffer)
-	(hi-lock-find-patterns, hi-lock-font-lock-hook): Replace
-	hi-lock-buffer-mode with hi-lock-mode.
+	(hi-lock-find-patterns, hi-lock-font-lock-hook):
+	Replace hi-lock-buffer-mode with hi-lock-mode.
 
 2005-12-10  Kevin Rodgers  <ihs_4664@ihs.com>
 
@@ -385,14 +388,14 @@
 
 2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* term/mac-win.el: Require url when compiling.  Call
-	mac-process-deferred-apple-events after loading init files.
+	* term/mac-win.el: Require url when compiling.
+	Call mac-process-deferred-apple-events after loading init files.
 	(mac-apple-event-map): New defvar.  Define event handlers in it.
 	(core-event, internet-event): New Apple event class symbols.
 	(open-application, reopen-application, open-documents)
 	(print-documents, open-contents, quit-application)
-	(application-died, show-preferences, autosave-now, get-url): New
-	Apple event ID symbols.
+	(application-died, show-preferences, autosave-now, get-url):
+	New Apple event ID symbols.
 	(about): New HICommand ID symbol.
 	(mac-event-spec, mac-event-ae): New macros.
 	(mac-ae-parameter, mac-ae-list, mac-bytes-to-integer)
@@ -404,9 +407,7 @@
 
 2005-12-10  Kenichi Handa  <handa@m17n.org>
 
-	* simple.el (zap-to-char): Translate CHAR by
-	translation-table-for-input.
-
+	* simple.el (zap-to-char):
 	* isearch.el (isearch-process-search-char): Translate CHAR by
 	translation-table-for-input.
 
