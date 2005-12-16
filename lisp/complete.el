@@ -206,11 +206,10 @@ specially in \\[find-file].  For example,
 See also the variable `PC-include-file-path'.
 
 Partial Completion mode extends the meaning of `completion-auto-help' (which
-see) so that if it is neither nil nor t, Emacs will show the  *Completions*
-buffer only on the second attempt to complete.  I.e. if TAB finds nothing
-to complete, the first TAB will just say \"Next char not unique\" without
-bringing up the *Completions* buffer, and the second TAB will then bring up
-the *Completions* buffer."
+see), so that if it is neither nil nor t, Emacs shows the `*Completions*'
+buffer only on the second attempt to complete.  That is, if TAB finds nothing
+to complete, the first TAB just says \"Next char not unique\" and the
+second TAB brings up the `*Completionsf'* buffer."
   :global t :group 'partial-completion
   ;; Deal with key bindings...
   (PC-bindings partial-completion-mode)
