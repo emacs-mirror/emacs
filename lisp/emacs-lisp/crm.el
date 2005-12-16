@@ -247,7 +247,9 @@ and return t."
       (if (null completions)
 	  (crm-temp-echo-area-glyphs " [No completions]")
 	(with-output-to-temp-buffer "*Completions*"
-	  (display-completion-list (sort completions 'string-lessp))))))
+	  (display-completion-list
+	   (sort completions 'string-lessp)
+	   crm-current-element)))))
   nil)
 
 (defun crm-do-completion ()
