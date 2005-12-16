@@ -1,3 +1,9 @@
+2005-12-16  Mark Plaksin  <happy@usg.edu>  (tiny change)
+
+	* term.el (term-emulate-terminal): Let
+	term-handle-ansi-terminal-messages override what Bash says about
+	its current directory.
+
 2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* bindings.el (last-buffer): Move to simple.el.
