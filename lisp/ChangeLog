@@ -1,7 +1,8 @@
 2005-12-16  Klaus Zeitler  <kzeitler@lucent.com>
 
-	* files.el (set-auto-mode): If search for mode specification
-	failed, look for an interpreter specified on the first line.
+	* files.el (set-auto-mode): Look for an interpreter specified on
+	the first line also if search for mode specification succeeded,
+	but the mode is not known.
 
 2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
 
