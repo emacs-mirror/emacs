@@ -2161,7 +2161,8 @@ when he invoked the menu."
     (when sibling
       (if (widget-value widget)
 	  (widget-apply sibling :activate)
-	(widget-apply sibling :deactivate)))))
+	(widget-apply sibling :deactivate))
+      (widget-clear-undo))))
 
 ;;; The `checklist' Widget.
 
