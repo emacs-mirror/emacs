@@ -182,6 +182,8 @@ bootstrap: bootstrap-emacs
 # Build a temacs with a sufficiently large PURESIZE to load the
 # Lisp files from loadup.el in source form.
 #
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
 bootstrap-temacs:
 	$(MAKE) $(MFLAGS) temacs CFLAGS=$(ARGQUOTE)$(CFLAGS) -DPURESIZE=5000000$(ARGQUOTE)
 
