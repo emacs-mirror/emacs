@@ -1,3 +1,10 @@
+2005-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap-temacs): Warn that parts of commands
+	enclosed in $(ARGQUOTE)s should not be split between two lines, as
+	that will break with GNU Make >3.80, when sh.exe is used and
+	arg quoting is with '..'.
+
 2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* print.c (print_preprocess): Just signal an error if print_depth
