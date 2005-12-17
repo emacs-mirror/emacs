@@ -163,6 +163,9 @@ $(SUBDIRS):
 .NO_PARALLEL: $(TIT) $(MISC_DIC)
 
 # Rule to generate quail/*.el from CXTERM-DIC/*.tit.
+#
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
 $(TIT):
 	$(RUN_EMACS) -l $(buildlisppath)/international/titdic-cnv \
 	    --eval $(ARGQUOTE)(batch-titdic-convert t)$(ARGQUOTE) \
@@ -177,6 +180,9 @@ $(MISC_DIC):
 	$(RUN_EMACS)  -l $(buildlisppath)/international/quail \
 	    -f batch-byte-compile $(MISC_DIC:.elc=.el)
 
+#
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
 leim-list.el: $(SUBDIRS) $(WORLD)
 	$(RUN_EMACS) -l $(buildlisppath)/international/quail \
 	    --eval $(ARGQUOTE)(update-leim-list-file $(DQUOTE).$(DQUOTE))$(ARGQUOTE)
