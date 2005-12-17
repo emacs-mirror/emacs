@@ -56,7 +56,8 @@
   :group 'comm)
 
 (defcustom tls-program '("gnutls-cli -p %p %h"
-			 "gnutls-cli -p %p %h --protocols ssl3")
+			 "gnutls-cli -p %p %h --protocols ssl3"
+			 "openssl s_client -connect %h:%p -no_ssl2")
   "List of strings containing commands to start TLS stream to a host.
 Each entry in the list is tried until a connection is successful.
 %s is replaced with server hostname, %p with port to connect to.
@@ -64,6 +65,7 @@ The program should read input on stdin and write output to
 stdout.  Also see `tls-success' for what the program should output
 after successful negotiation."
   :type '(repeat string)
+  :version "22.1"
   :group 'tls)
 
 (defcustom tls-process-connection-type nil
@@ -72,9 +74,10 @@ after successful negotiation."
   :type 'boolean
   :group 'tls)
 
-(defcustom tls-success "- Handshake was completed"
+(defcustom tls-success "- Handshake was completed\\|SSL handshake has read "
   "*Regular expression indicating completed TLS handshakes.
-The default is what GNUTLS's \"gnutls-cli\" outputs."
+The default is what GNUTLS's \"gnutls-cli\" or OpenSSL's
+\"openssl s_client\" outputs."
   :version "22.1"
   :type 'regexp
   :group 'tls)
@@ -109,11 +112,11 @@ Used by `tls-certificate-information'."
 	    (push (cons (match-string 1) (match-string 2)) vals))
 	  (nreverse vals))))))
 
-(defun open-tls-stream (name buffer host service)
-  "Open a TLS connection for a service to a host.
+(defun open-tls-stream (name buffer host port)
+  "Open a TLS connection for a port to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
-Args are NAME BUFFER HOST SERVICE.
+Args are NAME BUFFER HOST PORT.
 NAME is name for process.  It is modified if necessary to make it unique.
 BUFFER is the buffer (or buffer-name) to associate with the process.
  Process output goes at end of that buffer, unless you specify
@@ -121,8 +124,7 @@ BUFFER is the buffer (or buffer-name) to associate with the process.
  BUFFER may be also nil, meaning that this process is not associated
  with any buffer
 Third arg is name of the host to connect to, or its IP address.
-Fourth arg SERVICE is name of the service desired, or an integer
-specifying a port number to connect to."
+Fourth arg PORT is an integer specifying a port to connect to."
   (let ((cmds tls-program) cmd done)
     (message "Opening TLS connection to `%s'..." host)
     (while (and (not done) (setq cmd (pop cmds)))
@@ -134,9 +136,9 @@ specifying a port number to connect to."
 			cmd
 			(format-spec-make
 			 ?h host
-			 ?p (if (integerp service)
-				(int-to-string service)
-			      service)))))
+			 ?p (if (integerp port)
+				(int-to-string port)
+			      port)))))
 	     response)
 	(while (and process
 		    (memq (process-status process) '(open run))

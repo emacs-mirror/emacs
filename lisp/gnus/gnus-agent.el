@@ -214,11 +214,12 @@ unplugged."
   :type 'boolean)
 
 (defcustom gnus-agent-article-alist-save-format 1
-  "Indicates whether to use compression(2), verses no
-  compression(1), when writing agentview files.  The compressed
-  files do save space but load times are 6-7 times higher.  A
-  group must be opened then closed for the agentview to be
-  updated using the new format."
+  "Indicates whether to use compression(2), versus no
+compression(1), when writing agentview files.  The compressed
+files do save space but load times are 6-7 times higher.  A group
+must be opened then closed for the agentview to be updated using
+the new format."
+  ;; Wouldn't symbols instead numbers be nicer?  --rsteib
   :version "22.1"
   :group 'gnus-agent
   :type '(radio (const :format "Compressed" 2)

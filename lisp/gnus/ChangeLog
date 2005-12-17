@@ -1,3 +1,61 @@
+2005-12-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-signature-separator): Fix custom type.
+
+	* mm-decode.el (mm-inlined-types): Fix custom type.
+	(mm-keep-viewer-alive-types): Ditto.
+	(mm-automatic-display): Ditto.
+	(mm-attachment-override-types): Ditto.
+	(mm-inline-override-types): Ditto.
+	(mm-automatic-external-display): Ditto.
+
+2005-12-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-buttonized-mime-types): Mention addition of
+	multipart/alternative and add xref to mm-discouraged-alternatives
+	in doc string.
+
+	* mm-decode.el (mm-discouraged-alternatives): Add xref to
+	gnus-buttonized-mime-types in doc string.
+
+2005-12-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* rfc2047.el (rfc2047-charset-to-coding-system): Recognize
+	us-ascii as a MIME charset.
+
+	* mm-bodies.el (mm-decode-content-transfer-encoding): Protect
+	against the case where the 2nd arg TYPE is nil.
+
+2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-no-server-1): Mention
+	`gnus-level-default-subscribed' in doc string.
+
+2005-11-26  Dave Love  <fx@gnu.org>
+
+	* tls.el (open-tls-stream): Rename arg SERVICE to PORT.
+	(tls-program, tls-success): Provide openssl alternative.
+
+	* starttls.el: Doc fixes.
+	(starttls-open-stream-gnutls, starttls-open-stream): Rename arg
+	SERVICE to PORT.
+
+2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-start.el (gnus-start-draft-setup): Enforce
+	`gnus-draft-mode' for nndraft:drafts at startup.
+
+	* gnus.el (gnus-splash): Change custom group.
+	(gnus-group-get-parameter, gnus-group-parameter-value): Describe
+	allow-list argument.
+
+	* gnus-agent.el (gnus-agent-article-alist-save-format): Format doc
+	string.
+
+2005-12-09  ARISAWA Akihiro  <ari@mbf.ocn.ne.jp>  (tiny change)
+
+	* mm-decode.el (mm-display-external): Add lacked cdr.
+
 2005-12-12  Richard M. Stallman  <rms@gnu.org>
 
 	* mm-url.el (mm-url-load-url): Require url-parse and url-vars.
@@ -105,11 +163,6 @@
 	* gnus-start.el (gnus-dribble-read-file): Set file-precious-flag,
 	as a buffer-local variable.  This avoids creating truncated
 	dribble files as a result of a hang up, eg.
-
-2005-10-30  Chong Yidong  <cyd@stupidchicken.com>
-
-	* imap.el (imap-open): Handle case where buffer is a buffer
-	object.
 
 2005-11-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 

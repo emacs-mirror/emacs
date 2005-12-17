@@ -227,6 +227,7 @@ If TYPE is `text/plain' CRLF->LF translation may occur."
 	 (message "Error while decoding: %s" error)
 	 nil))
     (when (and
+	   type
 	   (memq encoding '(base64 x-uuencode x-uue x-binhex x-yenc))
 	   (string-match "\\`text/" type))
       (goto-char (point-min))

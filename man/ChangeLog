@@ -1,3 +1,13 @@
+2005-12-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (MIME Commands): Mention addition of
+	multipart/alternative to gnus-buttonized-mime-types and add xref
+	to mm-discouraged-alternatives.
+
+	* emacs-mime.texi (Display Customization): Mention addition of
+	"image/.*" and add xref to gnus-buttonized-mime-types in the
+	mm-discouraged-alternatives section.
+
 2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Tags): New section.
