@@ -97,6 +97,8 @@ doit:
 
 $(lisp)/cus-load.el:
 	touch $@
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
 custom-deps: $(lisp)/cus-load.el doit
 	@echo Directories: $(WINS)
 	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hook nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
@@ -150,13 +152,13 @@ loaddefs.el-CMD:
 # including a drive letter and any leading directories, so the generated
 # loaddefs.el will mention file names that on other machine reference
 # possibly non-existent directories.
+#
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
 autoloads: $(lisp)/loaddefs.el doit
 	@echo Directories: . $(WINS)
 	$(emacs) -l autoload \
-		--eval $(ARGQUOTE)(setq find-file-hook nil \
-			find-file-suppress-same-file-warnings t \
-			generated-autoload-file \
-			  $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) \
+		--eval $(ARGQUOTE)(setq find-file-hook nil find-file-suppress-same-file-warnings t generated-autoload-file $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) \
 		-f batch-update-autoloads . $(WINS)
 
 $(lisp)/subdirs.el:
