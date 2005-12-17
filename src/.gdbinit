@@ -768,6 +768,9 @@ set args -geometry 80x40+0+0
 # stdio stop working and therefore the `pr' command above as well.
 break abort
 
+# The MS-Windows build replaces abort with its own function.
+break w32_abort
+
 # If we are running in synchronous mode, we want a chance to look around
 # before Emacs exits.  Perhaps we should put the break somewhere else
 # instead...
