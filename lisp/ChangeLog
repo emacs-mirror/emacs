@@ -1,3 +1,7 @@
+2005-12-17  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* wid-edit.el (widget-checkbox-action): Clear undo info.
+
 2005-12-16  Bill Wohler  <wohler@newt.com>
 
 	* menu-bar.el (kill-this-buffer): Set a good example by using menu
