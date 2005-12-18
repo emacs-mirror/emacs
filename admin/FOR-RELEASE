@@ -175,7 +175,7 @@ lispref/calendar.texi    Joakim Verona <joakim@verona.se>  Chong Yidong
 lispref/commands.texi    "Luc Teirlinck"   Chong Yidong
 lispref/compile.texi     "Luc Teirlinck"   Chong Yidong
 lispref/control.texi     "Luc Teirlinck"   Chong Yidong
-lispref/customize.texi   Chong Yidong
+lispref/customize.texi   Chong Yidong      "Luc Teirlinck"
 lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi     Chong Yidong
 lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
