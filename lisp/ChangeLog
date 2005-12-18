@@ -1,5 +1,6 @@
 2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
+	* progmodes/sh-script.el (sh-mode): 
 	* language/ethio-util.el (ethio-fidel-to-sera-mail-or-marker):
 	* textmodes/picture.el (picture-mode): Update docstrings.
 

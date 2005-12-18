@@ -1336,7 +1336,7 @@ shell-specific features.
 The default style of this mode is that of Rosenblatt's Korn shell book.
 The syntax of the statements varies with the shell being used.  The
 following commands are available, based on the current shell's syntax:
-
+\\<sh-mode-map>
 \\[sh-case]	 case statement
 \\[sh-for]	 for loop
 \\[sh-function]	 function definition
