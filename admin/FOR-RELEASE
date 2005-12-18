@@ -50,8 +50,6 @@ invalid pointer from string_free_list.
 
 * BUGS
 
-** circle-printing bug from Stephen Berman; see my 5 Dec message.
-
 ** Ronan Keryell's Sep 23 bug about "tramp sudo:: and version control on RCS"
 
 ** TCP server processes do not work on Windows.
