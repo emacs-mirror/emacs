@@ -1,3 +1,8 @@
+2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* language/ethio-util.el (ethio-fidel-to-sera-mail-or-marker):
+	* textmodes/picture.el (picture-mode): Update docstrings.
+
 2005-12-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (autoloads, custom-deps): Warn that parts of
