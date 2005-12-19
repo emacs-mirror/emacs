@@ -5805,14 +5805,8 @@ make_lispy_event (event)
 	Lisp_Object head, position;
 	Lisp_Object files;
 
-	/* The frame_or_window field should be a cons of the frame in
-	   which the event occurred and a list of the filenames
-	   dropped.  */
-	if (! CONSP (event->frame_or_window))
-	  abort ();
-
-	f = XFRAME (XCAR (event->frame_or_window));
-	files = XCDR (event->frame_or_window);
+	f = XFRAME (event->frame_or_window);
+	files = event->arg;
 
 	/* Ignore mouse events that were made on frames that
 	   have been deleted.  */
