@@ -1265,7 +1265,8 @@ If ALL is `options', include only options.
 If ALL is `faces', include only faces.
 If ALL is `groups', include only groups.
 If ALL is t (interactively, with prefix arg), include variables
-that are not customizable options, as well as faces and groups."
+that are not customizable options, as well as faces and groups
+\(but we recommend using `apropos-variable' instead)."
   (interactive "sCustomize regexp: \nP")
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1293,7 +1294,8 @@ that are not customizable options, as well as faces and groups."
 ;;;###autoload
 (defun customize-apropos-options (regexp &optional arg)
   "Customize all loaded customizable options matching REGEXP.
-With prefix arg, include variables that are not customizable options."
+With prefix arg, include variables that are not customizable options
+\(but we recommend using `apropos-variable' instead)."
   (interactive "sCustomize regexp: \nP")
   (customize-apropos regexp (or arg 'options)))
 
