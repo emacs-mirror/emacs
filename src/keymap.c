@@ -3851,6 +3851,9 @@ keymaps have no binding for the current key sequence but
 `read-key-sequence' replaces the matching suffix with its binding, and
 continues with the new sequence.
 
+If the binding is a function, it is called with one argument (the prompt)
+and its return value (a key sequence) is used.
+
 The events that come from bindings in `function-key-map' are not
 themselves looked up in `function-key-map'.
 
