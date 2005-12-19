@@ -1314,7 +1314,7 @@ print_preprocess (obj)
   /* Give up if we go so deep that print_object will get an error.  */
   /* See similar code in print_object.  */
   if (print_depth >= PRINT_CIRCLE)
-    return;
+    error ("Apparently circular structure being printed");
 
   /* Avoid infinite recursion for circular nested structure
      in the case where Vprint_circle is nil.  */

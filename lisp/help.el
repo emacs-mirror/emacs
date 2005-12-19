@@ -183,8 +183,7 @@ specifies what to do when the user exits the help buffer."
 \(Use SPC or DEL to scroll through this text.  Type \\<help-map>\\[help-quit] to exit the Help command.)
 
 a  command-apropos.  Give a list of words or a regexp, to get a list of
-        commands whose names match (they contain two or more of the words,
-	or a match for the regexp).  See also the  apropos  command.
+        commands whose names match.  See also the  apropos  command.
 b  describe-bindings.  Display table of all key bindings.
 c  describe-key-briefly.  Type a command key sequence;
 	it prints the function name that sequence runs.

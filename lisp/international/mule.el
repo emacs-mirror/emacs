@@ -73,7 +73,9 @@ Return t if file exists."
 		(inhibit-file-name-operation nil))
 	    (save-excursion
 	      (set-buffer buffer)
-	      (insert-file-contents fullname)
+	      ;; Don't let deactivate-mark remain set.
+	      (let (deactivate-mark)
+		(insert-file-contents fullname))
 	      ;; If the loaded file was inserted with no-conversion or
 	      ;; raw-text coding system, make the buffer unibyte.
 	      ;; Otherwise, eval-buffer might try to interpret random

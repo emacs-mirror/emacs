@@ -1,4 +1,4 @@
-% Reference Card for Org Mode 3.23
+% Reference Card for Org Mode 4.00
 %
 %**start of header
 \newcount\columnsperpage
@@ -58,7 +58,7 @@
 % Thanks to Paul Rubin, Bob Chassell, Len Tower, and Richard Mlynarik
 % for their many good ideas.
 
-\def\orgversionnumber{3.23}
+\def\orgversionnumber{4.00}
 \def\year{2005}
 
 \def\shortcopyrightnotice{\vskip 1ex plus 2 fill
@@ -283,7 +283,6 @@ are preserved on all copies.
 (add-to-list 'auto-mode-alist '("\\\\.org\$" . org-mode))
 (define-key global-map "\\C-cl" 'org-store-link)$^2$
 (define-key global-map "\\C-ca" 'org-agenda)$^2$
-(define-key global-map "\\C-ct" 'org-todo-list)$^2$
 \endexample
 %
 \metax{For the many customization options try}{M-x org-customize}
@@ -335,8 +334,15 @@ To set archive location for current file, add a line like$^3$:
 \key{global TODO list in agenda mode}{C-c t$^2$}
 \key{create sparse tree with all deadlines due}{C-c C-w}
 \key{time sorted view of current org file}{C-c C-r}
-\key{agenda for the week}{C-c a$^2$}
-\key{agenda for date at cursor}{C-c C-o}
+%\key{agenda for the week}{C-c a$^2$}
+%\key{agenda for date at cursor}{C-c C-o}
+
+\section{Tags}
+
+\key{set tags for current heading}{C-c C-c}
+\key{realign tags in all headings}{C-u C-c C-c}
+\key{create sparse tree with matching tags}{C-c \\}
+\key{globally (agenda) match tags at cursor}{C-c C-o}
 
 \section{TODO Items}
 
@@ -516,19 +522,21 @@ introduces a column formula, \kbd{:=} a named-field formula.
 
 \centerline{(for version \orgversionnumber)}
 
-\section{Timeline, Agenda, Global TODO List}
-
-\key{show timeline of current org file}{C-c C-r}
-\key{... include past dates}{C-u C-c C-r}
+\section{Agenda Views}
 
 \key{add/move current file to front of agenda}{C-c [}
 \key{remove current file from your agenda}{C-c ]}
 \key{cycle through agenda file list}{C-,}
-\key{compile agenda for the current week}{C-c a$^2$}
+
+\key{compile agenda for the current week}{C-c a a$^2$}
+\key{compile global TODO list}{C-c a t$^2$}
+\key{compile TODO list for specific keyword}{C-c a T$^2$}
+\key{match tags in agenda files}{C-c a m$^2$}
 \key{agenda for date at cursor}{C-c C-o}
-\key{global TODO list}{C-c t$^2$}
+\key{show timeline of current org file}{C-c C-r}
+
 \vskip 1mm
-To set category for current file, add line$^3$:
+To set categories, add lines like$^3$:
 \vskip -1mm
 \beginexample%
 \#+CATEGORY: MyCateg
@@ -536,11 +544,11 @@ To set category for current file, add line$^3$:
 
 {\bf Commands available in an agenda buffer}
 
-{\bf View org file}
+{\bf View Org file}
 
 \key{show original location of item}{SPC}
 \key{... also available with}{mouse-3}
-\key{show and recenter window}{l}
+\key{show and recenter window}{L}
 \key{goto original location in other window}{TAB}
 \key{... also available with}{mouse-2}
 \key{goto original location, delete other windows}{RET}
@@ -553,6 +561,7 @@ To set category for current file, add line$^3$:
 \key{switch to daily view}{d}
 \key{toggle inclusion of diary entries}{D}
 \key{toggle time grid for daily schedule}{g}
+\key{toggle display of logbook entries}{l}
 \key{refresh agenda buffer with any changes}{r}
 \key{display the following \kbd{org-agenda-ndays}}{RIGHT}
 \key{display the previous \kbd{org-agenda-ndays}}{LEFT}
@@ -561,17 +570,14 @@ To set category for current file, add line$^3$:
 {\bf Remote editing}
 
 \key{digit argument}{0-9}
-
 \key{change state of current TODO item}{t}
 \key{set priority of current item}{p}
 \key{raise priority of current item}{S-UP$^4$}
 \key{lower priority of current item}{S-DOWN$^4$}
 \key{display weighted priority of current item}{P}
-
 \key{change timestamp to one day earlier}{S-LEFT$^4$}
 \key{change timestamp to one day later}{S-RIGHT$^4$}
 \key{change timestamp to today}{>}
-
 \key{insert new entry into diary}{i}
 
 {\bf Calendar commands}
@@ -658,8 +664,8 @@ Subtrees whose header starts with COMMENT are never exported.
 \section{Completion}
 
 In-buffer completion completes TODO keywords at headline start, TeX
-macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'', and
-dictionary words elsewhere.
+macros after ``{\tt \\}'', option keywords after ``{\tt \#-}'', TAGS
+after  ``{\tt :}'', and dictionary words elsewhere.
 
 \key{Complete word at point}{M-TAB}
 
@@ -672,14 +678,14 @@ To include entries from the Emacs diary in your Org-mode agenda:
 (setq org-agenda-include-diary t)
 \endexample
 
-To include your Org-mode agenda in your normal diary, make sure you're
+To include the Org-mode agenda in the normal diary, make sure you're
 using the fancy diary display
 %
 %\beginexample%
 %(add-hook 'diary-display-hook 'fancy-diary-display)
 %\endexample
 %
-and in your \kbd{~/diary} file add
+and in the \kbd{~/diary} file add
 
 \beginexample%
 \&\%\%(org-diary)

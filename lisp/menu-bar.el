@@ -831,18 +831,6 @@ mail status in mode line"))
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq fringe-mode nil))))
 
-(defun menu-bar-showhide-fringe-menu-customize-left ()
-  "Display fringes only on the left of each window."
-  (interactive)
-  (require 'fringe)
-  (customize-set-variable 'fringe-mode '(nil . 0)))
-
-(define-key menu-bar-showhide-fringe-menu [left]
-  '(menu-item "On the Left" menu-bar-showhide-fringe-menu-customize-left
-	      :help "Fringe only on the left side"
-	      :visible (display-graphic-p)
-	      :button (:radio . (equal fringe-mode '(nil . 0)))))
-
 (defun menu-bar-showhide-fringe-menu-customize-right ()
   "Display fringes only on the right of each window."
   (interactive)
@@ -854,6 +842,18 @@ mail status in mode line"))
 	      :help "Fringe only on the right side"
 	      :visible (display-graphic-p)
 	      :button (:radio . (equal fringe-mode '(0 . nil)))))
+
+(defun menu-bar-showhide-fringe-menu-customize-left ()
+  "Display fringes only on the left of each window."
+  (interactive)
+  (require 'fringe)
+  (customize-set-variable 'fringe-mode '(nil . 0)))
+
+(define-key menu-bar-showhide-fringe-menu [left]
+  '(menu-item "On the Left" menu-bar-showhide-fringe-menu-customize-left
+	      :help "Fringe only on the left side"
+	      :visible (display-graphic-p)
+	      :button (:radio . (equal fringe-mode '(nil . 0)))))
 
 (defun menu-bar-showhide-fringe-menu-customize-disable ()
   "Do not display window fringes."
@@ -1432,7 +1432,7 @@ for the definition of the menu frame."
 		      (selected-frame))))
     (not (window-minibuffer-p (frame-selected-window menu-frame)))))
 
-(defun kill-this-buffer ()	; for the menubar
+(defun kill-this-buffer ()	; for the menu bar
   "Kill the current buffer."
   (interactive)
   (kill-buffer (current-buffer)))
@@ -1662,10 +1662,10 @@ Buffers menu is regenerated."
 			     "Next Buffer"
 			     'next-buffer
 			     :help "Switch to the \"next\" buffer in a cyclic order")
-		       (list 'prev-buffer
+		       (list 'previous-buffer
 			     'menu-item
 			     "Previous Buffer"
-			     'prev-buffer
+			     'previous-buffer
 			     :help "Switch to the \"previous\" buffer in a cyclic order")
 		       (list 'select-named-buffer
 			     'menu-item

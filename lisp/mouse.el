@@ -594,14 +594,15 @@ resized by dragging their header-line."
 		((null (car (cdr mouse)))
 		 nil)
 		(t
-		 (save-selected-window
-		   ;; If the scroll bar is on the window's left,
-		   ;; adjust the window on the left.
-		   (unless (eq which-side 'right)
-		     (select-window (previous-window)))
+		 (let ((window
+			;; If the scroll bar is on the window's left,
+			;; adjust the window on the left.
+			(if (eq which-side 'right)
+			    (selected-window)
+			  (previous-window))))
 		   (setq x (- (car (cdr mouse))
 			      (if (eq which-side 'right) 0 2))
-			 edges (window-edges)
+			 edges (window-edges window)
 			 left (nth 0 edges)
 			 right (nth 2 edges))
 		   ;; scale back a move that would make the
@@ -609,19 +610,10 @@ resized by dragging their header-line."
 		   (if (< (- x left -1) window-min-width)
 		       (setq x (+ left window-min-width -1)))
 		   ;; compute size change needed
-		   (setq growth (- x right -1)
-			 wconfig (current-window-configuration))
-		   (enlarge-window growth t)
-		   ;; if this window's growth caused another
-		   ;; window to be deleted because it was too
-		   ;; thin, rescind the change.
-		   ;;
-		   ;; if size change caused space to be stolen
-		   ;; from a window to the left of this one,
-		   ;; rescind the change.
-		   (if (or (/= start-nwindows (count-windows t))
-			   (/= left (nth 0 (window-edges))))
-		       (set-window-configuration wconfig))))))))))
+		   (setq growth (- x right -1))
+		   (condition-case nil
+		       (adjust-window-trailing-edge window growth t)
+		     (error nil))))))))))
 
 (defun mouse-set-point (event)
   "Move point to the position clicked on with the mouse.

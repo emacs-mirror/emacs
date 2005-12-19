@@ -1,3 +1,66 @@
+2005-12-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (MIME Commands): Mention addition of
+	multipart/alternative to gnus-buttonized-mime-types and add xref
+	to mm-discouraged-alternatives.
+
+	* emacs-mime.texi (Display Customization): Mention addition of
+	"image/.*" and add xref to gnus-buttonized-mime-types in the
+	mm-discouraged-alternatives section.
+
+2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Tags): New section.
+	(Agenda Views): Chapter reorganized.
+
+2005-12-16  Ralf Angeli  <angeli@iwi.uni-sb.de>
+
+	* killing.texi (Killing by Lines): Document `kill-whole-line'
+	function.
+
+2005-12-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* org.texi (Internal Links): Add a missing comma after an @xref.
+
+2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* buffers.texi (Select Buffer): Change `prev-buffer' to
+	`previous-buffer'.  Indicate that these functions use a frame
+	local buffer list.
+
+2005-12-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* faq.texi (Filling paragraphs with a single space): No need to
+	change sentence-end now.
+
+2005-12-13  Romain Francoise  <romain@orebokech.com>
+
+	* faq.texi (Scrolling only one line): Use `scroll-conservatively'.
+
+2005-12-12  Jay Belanger  <belanger@truman.edu>
+
+	* faq.texi (Calc): Updated version number.
+
+2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Progress Logging): New section.
+
+2005-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Easy Customization): Change menu comment.
+	(Prefix Keymaps): Fix spelling of Control-X-prefix.
+
+	* help.texi (Apropos): Rewrite.  Talk about "apropos patterns".
+	(Help): Among the Apropos commands, describe only C-h a here.
+
+2005-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* programs.texi (Options for Comments): Comment-end starts with space.
+
+	* glossary.texi (Glossary): Minor cleanup.
+
+	* files.texi (Old Versions): Use @table.
+
 2005-12-10  Romain Francoise  <romain@orebokech.com>
 
 	Update the Emacs FAQ for the 22.1 release.

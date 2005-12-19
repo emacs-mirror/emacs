@@ -331,7 +331,8 @@ beginning of line's indentation.
 FILE can also have the form (FILE FORMAT...), where the FORMATs
 \(e.g. \"%s.c\") will be applied in turn to the recognized file
 name, until a file of that name is found.  Or FILE can also be a
-function to return the filename.
+function that returns (FILENAME) or (RELATIVE-FILENAME . DIRNAME).
+In the former case, FILENAME may be relative or absolute.
 
 LINE can also be of the form (LINE . END-LINE) meaning a range
 of lines.  COLUMN can also be of the form (COLUMN . END-COLUMN)

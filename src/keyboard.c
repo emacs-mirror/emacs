@@ -11587,17 +11587,12 @@ numeric keysym code (sans the \"system-specific\" bit 1<<28)
 and SYMBOL is its name.
 
 `system-key-alist' has a separate binding for each display device.
-See Info node `(elisp)Multiple displays'.
-
-Note that the currently selected frame has very little to do with
-which binding of this variable is active at any given moment.  If you
-need set or get the binding on a specific display, use
-`terminal-local-value' and `set-terminal-local-value'.  */);
+See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_KBOARD ("local-function-key-map", Vlocal_function_key_map,
-                 doc: /* Keymap mapping ASCII function key sequences onto their preferred forms.
-This allows Emacs to recognize function keys sent from ASCII
-terminals at any point in a key sequence.
+                 doc: /* Keymap that translates key sequences to key sequences during input.
+This is used mainly for mapping ASCII function key sequences into
+real Emacs function key events (symbols).
 
 The `read-key-sequence' function replaces any subsequence bound by
 `local-function-key-map' with its binding.  More precisely, when the
@@ -11618,12 +11613,7 @@ typing `ESC O P x' would return [f1 x].
 device.  See Info node `(elisp)Multiple displays'.  If you need to
 define a binding on all display devices, change `function-key-map'
 instead.  Initially, `local-function-key-map' is an empty keymap that
-has `function-key-map' as its parent on all display devices.
-
-Note that the currently selected frame has very little to do with
-which binding of this variable is active at any given moment.  If you
-need set or get the binding on a specific display, use
-`terminal-local-value' and `set-terminal-local-value'.  */);
+has `function-key-map' as its parent on all display devices.  */);
 
   DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
                doc: /* The parent keymap of all `local-function-key-map' instances.
@@ -11640,12 +11630,7 @@ and its non-prefix bindings override ordinary bindings.
 
 `key-translation-map' has a separate binding for each display device.
 (See Info node `(elisp)Multiple displays'.)  If you need to set a key
-translation on all devices, change `global-key-translation-map' instead.
-
-Note that the currently selected frame has very little to do with
-which binding of this variable is active at any given moment.  If you
-need set or get the binding on a specific display, use
-`terminal-local-value' and `set-terminal-local-value'.  */);
+translation on all devices, change `global-key-translation-map' instead.  */);
 
   DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
                doc: /* The parent keymap of all `local-key-translation-map' instances.

@@ -121,10 +121,11 @@
 ;; 6. rogue
 
 ;;    There is no standard value.  This means that the variable was
-;;    not defined with defcustom, nor handled in cus-start.el.  You
-;;    can not create a Custom buffer for such variables using the
-;;    normal interactive Custom commands.  However, such Custom
-;;    buffers can be created in other ways, for instance, by calling
+;;    not defined with defcustom, nor handled in cus-start.el.  Most
+;;    standard interactive Custom commands do not let you create a
+;;    Custom buffer containing such variables.  However, such Custom
+;;    buffers can be created, for instance, by calling
+;;    `customize-apropos' with a prefix arg or by calling
 ;;    `customize-option' non-interactively.
 
 ;; 7. hidden
@@ -1252,12 +1253,12 @@ suggest to customize that face, if it's customizable."
 
 ;;;###autoload
 (defun customize-apropos (regexp &optional all)
-  "Customize all user options matching REGEXP.
+  "Customize all loaded options, faces and groups matching REGEXP.
 If ALL is `options', include only options.
 If ALL is `faces', include only faces.
 If ALL is `groups', include only groups.
-If ALL is t (interactively, with prefix arg), include options which are not
-user-settable, as well as faces and groups."
+If ALL is t (interactively, with prefix arg), include variables
+that are not customizable options, as well as faces and groups."
   (interactive "sCustomize regexp: \nP")
   (let ((found nil))
     (mapatoms (lambda (symbol)
@@ -1270,11 +1271,11 @@ user-settable, as well as faces and groups."
 		    (push (list symbol 'custom-face) found))
 		  (when (and (not (memq all '(groups faces)))
 			     (boundp symbol)
+			     (eq (indirect-variable symbol) symbol)
 			     (or (get symbol 'saved-value)
 				 (custom-variable-p symbol)
-				 (if (memq all '(nil options))
-				     (user-variable-p symbol)
-				   (get symbol 'variable-documentation))))
+				 (and (not (memq all '(nil options)))
+				      (get symbol 'variable-documentation))))
 		    (push (list symbol 'custom-variable) found)))))
     (if (not found)
 	(error "No matches")
@@ -1284,20 +1285,20 @@ user-settable, as well as faces and groups."
 
 ;;;###autoload
 (defun customize-apropos-options (regexp &optional arg)
-  "Customize all user options matching REGEXP.
-With prefix arg, include options which are not user-settable."
+  "Customize all loaded customizable options matching REGEXP.
+With prefix arg, include variables that are not customizable options."
   (interactive "sCustomize regexp: \nP")
   (customize-apropos regexp (or arg 'options)))
 
 ;;;###autoload
 (defun customize-apropos-faces (regexp)
-  "Customize all user faces matching REGEXP."
+  "Customize all loaded faces matching REGEXP."
   (interactive "sCustomize regexp: \n")
   (customize-apropos regexp 'faces))
 
 ;;;###autoload
 (defun customize-apropos-groups (regexp)
-  "Customize all user groups matching REGEXP."
+  "Customize all loaded groups matching REGEXP."
   (interactive "sCustomize regexp: \n")
   (customize-apropos regexp 'groups))
 
@@ -1757,7 +1758,7 @@ something in this group has been changed outside customize.")
 SAVED and set." "\
 something in this group has been set and saved.")
     (rogue "@" custom-rogue "\
-NO CUSTOMIZATION DATA; you should not see this." "\
+NO CUSTOMIZATION DATA; not intended to be customized." "\
 something in this group is not prepared for customization.")
     (standard " " nil "\
 STANDARD." "\

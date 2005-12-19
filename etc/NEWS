@@ -307,9 +307,10 @@ a new Emacs.
 On 32bit machines, it is now 256M (i.e. 268435455).
 
 +++
-** You can now switch buffers in a cyclic order with C-x C-left and
-(prev-buffer) and C-x C-right (next-buffer).  C-x left and C-x right
-can be used as well.
+** You can now switch buffers in a cyclic order with C-x C-left
+(previous-buffer) and C-x C-right (next-buffer).  C-x left and 
+C-x right can be used as well.  The functions keep a different buffer
+cycle for each frame, using the frame-local buffer list.
 
 +++
 ** `undo-only' does an undo which does not redo any previous undo.
@@ -322,7 +323,7 @@ converts whitespace around point to N spaces.
 ** New commands to operate on pairs of open and close characters:
 `insert-pair', `delete-pair', `raise-sexp'.
 
----
++++
 ** New command `kill-whole-line' kills an entire line at once.
 By default, it is bound to C-S-<backspace>.
 
@@ -2539,6 +2540,10 @@ in multiple BibTeX files.
 *** The new command `bibtex-copy-summary-as-kill' pushes summary
 of BibTeX entry to kill ring (bound to C-c C-t).
 
+*** The new variables bibtex-expand-strings and
+bibtex-autokey-expand-strings control the expansion of strings when
+extracting the content of a BibTeX field.
+
 +++
 ** In Enriched mode, `set-left-margin' and `set-right-margin' are now
 by default bound to `C-c [' and `C-c ]' instead of the former `C-c C-l'
@@ -4179,6 +4184,11 @@ It is like `read-file-name' except that the defaulting works better
 for directories, and completion inside it shows only directories.
 
 ** Completion changes:
+
++++
+*** The new function `minibuffer-completion-contents' returns the contents
+of the minibuffer just before point.  That is what completion commands
+operate on.
 
 +++
 *** The functions `all-completions' and `try-completion' now accept lists

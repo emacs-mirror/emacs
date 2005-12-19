@@ -1332,10 +1332,9 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 	      (while keep
 		(if (search-forward word
 				    flyspell-large-region-end t)
-		    (progn
+		    (save-excursion
 		      (goto-char (- (point) 1))
-		      (let* ((match-point (point)) ; flyspell-get-word might move it
-			     (flyword-prev-l (flyspell-get-word nil))
+		      (let* ((flyword-prev-l (flyspell-get-word nil))
 			     (flyword-prev (car flyword-prev-l))
 			     (size-match (= (length flyword-prev) (length word))))
 			(when (or
@@ -1362,7 +1361,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 			  (setq keep nil)
 			  (flyspell-word)
 			  ;; Next search will begin from end of last match
-			  (setq flyspell-large-region-beg match-point))))
+			  )))
 		  ;; Record if misspelling is not found and try new one
 		  (add-to-list 'words-not-found
 			       (concat " -> " word " - "
@@ -1558,7 +1557,7 @@ FLYSPELL-BUFFER."
 
 (defun flyspell-delete-all-overlays ()
   "Delete all the overlays used by flyspell."
-  (flyspell-delete-region-overlays (point-min) (point-max)))
+  (remove-overlays (point-min) (point-max) 'flyspell-overlay t))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-unhighlight-at ...                                      */

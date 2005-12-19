@@ -169,6 +169,8 @@ leaving a single space.  @xref{Indentation,M-^}.
 @table @kbd
 @item C-k
 Kill rest of line or one or more lines (@code{kill-line}).
+@item C-S-backspace
+Kill an entire line at once (@code{kill-whole-line})
 @end table
 
 @kindex C-k
@@ -199,6 +201,13 @@ current line.
   If the variable @code{kill-whole-line} is non-@code{nil}, @kbd{C-k} at
 the very beginning of a line kills the entire line including the
 following newline.  This variable is normally @code{nil}.
+
+@kindex C-S-backspace
+@findex kill-whole-line
+  @kbd{C-S-backspace} (@code{kill-whole-line}) will kill a whole line
+including its newline regardless of the position of point within the
+line.  Note that many character terminals will prevent you from typing
+the key sequence @kbd{C-S-backspace}.
 
 @node Other Kill Commands
 @subsection Other Kill Commands

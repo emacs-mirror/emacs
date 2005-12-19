@@ -1161,6 +1161,10 @@ The variable `ispell-library-directory' defines the library location."
 This is passed to the ispell process using the `-d' switch and is
 used as key in `ispell-local-dictionary-alist' and `ispell-dictionary-alist'.")
 
+(defvar ispell-current-personal-dictionary nil
+  "The name of the current personal dictionary, or nil for the default.
+This is passed to the ispell process using the `-p' switch.")
+
 (defvar ispell-dictionary nil
   "Default dictionary to use if `ispell-local-dictionary' is nil.")
 
@@ -1339,7 +1343,7 @@ Valid forms include:
   (KEY . REGEXP) - skip to the end of REGEXP.  REGEXP may be string or symbol.
   (KEY REGEXP) - skip to end of REGEXP.  REGEXP must be a string.
   (KEY FUNCTION ARGS) - FUNCTION called with ARGS returns end of region.")
-
+(put 'ispell-skip-region-alist 'risky-local-variable t)
 
 
 ;;;###autoload
@@ -1369,6 +1373,7 @@ Second list has key placed inside \\begin{}.
 
 Delete or add any regions you want to be automatically selected
 for skipping in latex mode.")
+(put 'ispell-tex-skip-alist 'risky-local-variable t)
 
 
 ;;;###autoload
@@ -1385,7 +1390,7 @@ for skipping in latex mode.")
 Same format as `ispell-skip-region-alist'
 Note - substrings of other matches must come last
  (e.g. \"<[tT][tT]/\" and \"<[^ \\t\\n>]\").")
-
+(put 'ispell-html-skip-alists 'risky-local-variable t)
 
 (defvar ispell-local-pdict ispell-personal-dictionary
   "A buffer local variable containing the current personal dictionary.
@@ -2456,17 +2461,22 @@ Keeps argument list for future ispell invocations for no async support."
     ;; Local dictionary becomes the global dictionary in use.
     (setq ispell-current-dictionary
 	  (or ispell-local-dictionary ispell-dictionary))
+    (setq ispell-current-personal-dictionary
+	  (or ispell-local-pdict ispell-personal-dictionary))
     (setq args (ispell-get-ispell-args))
     (if (and ispell-current-dictionary	; use specified dictionary
 	     (not (member "-d" args)))	; only define if not overridden
 	(setq args
 	      (append (list "-d" ispell-current-dictionary) args)))
-    (if ispell-personal-dictionary	; use specified pers dict
+    (if ispell-current-personal-dictionary	; use specified pers dict
 	(setq args
 	      (append args
 		      (list "-p"
-			    (expand-file-name ispell-personal-dictionary)))))
+			    (expand-file-name ispell-current-personal-dictionary)))))
     (setq args (append args ispell-extra-args))
+
+    ;; Initially we don't know any buffer's local words.
+    (setq ispell-buffer-local-name nil)
 
     (if ispell-async-processp
 	(let ((process-connection-type ispell-use-ptys-p))
@@ -2619,8 +2629,8 @@ This may kill the Ispell process; if so,
 a new one will be started when needed."
   (let ((dict (or ispell-local-dictionary ispell-dictionary)))
     (unless (equal ispell-current-dictionary dict)
-      (setq ispell-current-dictionary dict)
-      (ispell-kill-ispell t))))
+      (ispell-kill-ispell t)
+      (setq ispell-current-dictionary dict))))
 
 
 ;;; Spelling of comments are checked when ispell-check-comments is non-nil.
@@ -3678,22 +3688,22 @@ Both should not be used to define a buffer-local dictionary."
 		(setq ispell-local-pdict
 		      (match-string-no-properties 1)))))))
   ;; Reload if new personal dictionary defined.
-  (if (and ispell-local-pdict
-	   (not (equal ispell-local-pdict ispell-personal-dictionary)))
-      (progn
-	(ispell-kill-ispell t)
-	(setq ispell-personal-dictionary ispell-local-pdict)))
+  (if (not (equal ispell-current-personal-dictionary
+		  (or ispell-local-pdict ispell-personal-dictionary)))
+      (ispell-kill-ispell t))
   ;; Reload if new dictionary defined.
   (ispell-internal-change-dictionary))
 
 
 (defun ispell-buffer-local-words ()
   "Loads the buffer-local dictionary in the current buffer."
+  ;; If there's an existing ispell process that's wrong for this use,
+  ;; kill it.
   (if (and ispell-buffer-local-name
 	   (not (equal ispell-buffer-local-name (buffer-name))))
-      (progn
-	(ispell-kill-ispell t)
-	(setq ispell-buffer-local-name nil)))
+      (ispell-kill-ispell t))
+  ;; Actually start a new ispell process, because we need
+  ;; to send commands now to specify the local words to it.
   (ispell-init-process)
   (save-excursion
     (goto-char (point-min))

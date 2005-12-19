@@ -59,14 +59,18 @@
   :type 'file
   :group 'cpp)
 
+(define-widget 'cpp-face 'lazy
+  "Either a face or the special symbol 'invisible'."
+  :type '(choice (const invisible) (face)))
+
 (defcustom cpp-known-face 'invisible
   "*Face used for known cpp symbols."
-  :type 'face
+  :type 'cpp-face
   :group 'cpp)
 
 (defcustom cpp-unknown-face 'highlight
   "*Face used for unknown cpp symbols."
-  :type 'face
+  :type 'cpp-face
   :group 'cpp)
 
 (defcustom cpp-face-type 'light
@@ -95,10 +99,12 @@ Each entry is a list with the following elements:
 1. Face used for text that is `ifdef' the macro.
 2. Face used for text that is `ifndef' the macro.
 3. t, nil, or `both' depending on what text may be edited."
-  :type '(repeat (list string face face
-		       (choice (const t)
-			       (const nil)
-			       (const both))))
+  :type '(repeat (list (string :tag "Macro")
+		       (cpp-face :tag "True")
+		       (cpp-face :tag "False")
+		       (choice (const :tag "True branch writable" t)
+			       (const :tag "False branch writeable" nil)
+			       (const :tag "Both branches writeable" both))))
   :group 'cpp)
 
 (defvar cpp-overlay-list nil)

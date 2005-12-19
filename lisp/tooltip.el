@@ -71,26 +71,22 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
 
 (defcustom tooltip-delay 0.7
   "Seconds to wait before displaying a tooltip the first time."
-  :tag "Delay"
   :type 'number
   :group 'tooltip)
 
 (defcustom tooltip-short-delay 0.1
   "Seconds to wait between subsequent tooltips on different items."
-  :tag "Short delay"
   :type 'number
   :group 'tooltip)
 
 (defcustom tooltip-recent-seconds 1
   "Display tooltips if changing tip items within this many seconds.
 Do so after `tooltip-short-delay'."
-  :tag "Recent seconds"
   :type 'number
   :group 'tooltip)
 
 (defcustom tooltip-hide-delay 10
   "Hide tooltips automatically after this many seconds."
-  :tag "Hide delay"
   :type 'number
   :group 'tooltip)
 
@@ -102,11 +98,10 @@ when it pops up.
 
 If `tooltip-frame-parameters' includes the `left' parameter,
 the value of `tooltip-x-offset' is ignored."
-  :tag "X offset"
   :type 'integer
   :group 'tooltip)
 
-(defcustom tooltip-y-offset +40
+(defcustom tooltip-y-offset +20
   "Y offset, in pixels, for the display of tooltips.
 The offset is relative to the position of the mouse.  It must
 be chosen so that the tooltip window doesn't contain the mouse
@@ -114,7 +109,6 @@ when it pops up.
 
 If `tooltip-frame-parameters' includes the `top' parameter,
 the value of `tooltip-y-offset' is ignored."
-  :tag "Y offset"
   :type 'integer
   :group 'tooltip)
 
@@ -127,7 +121,6 @@ the value of `tooltip-y-offset' is ignored."
 If `left' or `top' parameters are included, they specify the absolute
 position to pop up the tooltip."
   :type 'sexp
-  :tag "Frame Parameters"
   :group 'tooltip)
 
 (defface tooltip
@@ -144,7 +137,6 @@ position to pop up the tooltip."
 (defcustom tooltip-use-echo-area nil
   "Use the echo area instead of tooltip frames for help and GUD tooltips."
   :type 'boolean
-  :tag "Use echo area"
   :group 'tooltip)
 
 

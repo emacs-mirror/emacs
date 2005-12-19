@@ -448,8 +448,7 @@ Do the right thing if the file has been compressed or zipped."
       (or tail
 	  (error "Can't find %s or any compressed version of it" filename)))
     ;; check for conflict with jka-compr
-    (if (and (featurep 'jka-compr)
-	     (jka-compr-installed-p)
+    (if (and (jka-compr-installed-p)
 	     (jka-compr-get-compression-info fullname))
 	(setq decoder nil))
     (if decoder
@@ -698,9 +697,9 @@ it says do not attempt further (recursive) error recovery."
 
 ;;;###autoload
 (defun Info-on-current-buffer (&optional nodename)
-  "Use the `Info-mode' to browse the current Info buffer.
-If a prefix arg is provided, it queries for the NODENAME which
-else defaults to \"Top\"."
+  "Use Info mode to browse the current Info buffer.
+With a prefix arg, this queries for the node name to visit first;
+otherwise, that defaults to `Top'."
   (interactive
    (list (if current-prefix-arg
 	     (completing-read "Node name: " (Info-build-node-completions)
@@ -1518,7 +1517,12 @@ PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
 
 ;; Arrange to highlight the proper letters in the completion list buffer.
 (put 'Info-read-node-name-1 'completion-base-size-function
-     (lambda () 1))
+     (lambda ()
+       (if (string-match "\\`([^)]*\\'"
+			 (or completion-common-substring
+			     (minibuffer-completion-contents)))
+	   1
+	 0)))
 
 (defun Info-read-node-name (prompt &optional default)
   (let* ((completion-ignore-case t)

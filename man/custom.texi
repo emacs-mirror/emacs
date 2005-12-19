@@ -207,7 +207,7 @@ the active fields and other features.
 @menu
 * Groups: Customization Groups.   How options are classified in a structure.
 * Changing a Variable::      How to edit a value and set an option.
-* Saving Customizations::    Details of saving customizations.
+* Saving Customizations::    Specifying the file for saving customizations.
 * Face Customization::       How to edit the attributes of a face.
 * Specific Customization::   Making a customization buffer for specific
                                 variables, faces, or groups.
@@ -1293,7 +1293,7 @@ looking up the following event.  The definition can also be a Lisp
 symbol whose function definition is the following keymap; the effect is
 the same, but it provides a command name for the prefix key that can be
 used as a description of what the prefix key is for.  Thus, the binding
-of @kbd{C-x} is the symbol @code{Ctl-X-Prefix}, whose function
+of @kbd{C-x} is the symbol @code{Control-X-prefix}, whose function
 definition is the keymap for @kbd{C-x} commands.  The definitions of
 @kbd{C-c}, @kbd{C-x}, @kbd{C-h} and @key{ESC} as prefix keys appear in
 the global map, so these prefix keys are always available.

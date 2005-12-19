@@ -1780,19 +1780,10 @@ and enter the number of lines you'd like to see."
 
 ;;; The Speedbar (:group 'mh-speed)
 
-(defcustom mh-speed-flists-interval 60
-  "Time between calls to flists in seconds.
-If 0, flists is not called repeatedly."
+(defcustom mh-speed-update-interval 60
+  "Time between speedbar updates in seconds.
+Set to 0 to disable automatic update."
   :type 'integer
-  :group 'mh-speed)
-
-(defcustom mh-speed-run-flists-flag t
-  "Non-nil means flists is used.
-If non-nil, flists is executed every `mh-speed-flists-interval' seconds to
-update the display of the number of unseen and total messages in each folder.
-If resources are limited, this can be set to nil and the speedbar display can
-be updated manually with the \\[mh-speed-flists] command."
-  :type 'boolean
   :group 'mh-speed)
 
 

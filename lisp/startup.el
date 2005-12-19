@@ -47,14 +47,14 @@ The value is nil if the selected frame is on a text-only-terminal.")
   "Emacs start-up procedure."
   :group 'internal)
 
-(defcustom inhibit-startup-message nil
-  "*Non-nil inhibits the initial startup message.
+(defcustom inhibit-splash-screen nil
+  "*Non-nil inhibits the startup screen.
 This is for use in your personal init file, once you are familiar
-with the contents of the startup message."
+with the contents of the startup screen."
   :type 'boolean
   :group 'initialization)
 
-(defvaralias 'inhibit-splash-screen 'inhibit-startup-message)
+(defvaralias 'inhibit-startup-message 'inhibit-splash-screen)
 
 (defcustom inhibit-startup-echo-area-message nil
   "*Non-nil inhibits the initial startup echo area message.
@@ -648,15 +648,22 @@ opening the first frame (e.g. open a connection to an X server).")
   (set-locale-environment nil)
 
   ;; Convert preloaded file names to absolute.
-  (setq load-history
-	(mapcar (lambda (elt)
-		  (if (and (stringp (car elt))
-			   (not (file-name-absolute-p (car elt))))
-		      (cons (locate-file (car elt) load-path
-					 (append load-suffixes '("")))
-			    (cdr elt))
-		    elt))
-		load-history))
+  (let ((lisp-dir
+	 (file-name-directory
+	  (locate-file "simple" load-path
+		       load-suffixes))))
+
+    (setq load-history
+	  (mapcar (lambda (elt)
+		    (if (and (stringp (car elt))
+			     (not (file-name-absolute-p (car elt))))
+			(cons (concat lisp-dir
+				      (car elt)
+				      (if (string-match "[.]el$" (car elt))
+					  "" ".elc"))
+			      (cdr elt))
+		      elt))
+		  load-history)))
 
   ;; Convert the arguments to Emacs internal representation.
   (let ((args (cdr command-line-args)))
@@ -929,6 +936,10 @@ opening the first frame (e.g. open a connection to an X server).")
 	       (let ((pop-up-windows nil))
 		 (pop-to-buffer "*Messages*"))
 	       (setq init-file-had-error t)))))
+
+	(if (and deactivate-mark transient-mark-mode)
+	    (with-current-buffer (window-buffer)
+	      (deactivate-mark)))
 
 	;; If the user has a file of abbrevs, read it.
 	(if (file-exists-p abbrev-file-name)

@@ -936,10 +936,12 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
 
 ;;;###mh-autoload
 (defun mh-delete-subject ()
-  "Mark all following messages with same subject to be deleted.
-This puts the messages in a sequence named subject.  You can undo the last
-deletion marks using `mh-undo' with a prefix argument and then specifying the
-subject sequence."
+  "Delete messages with same subject\\<mh-folder-mode-map>.
+
+To delete messages faster, you can use this command to delete all the messages
+with the same subject as the current message. This command puts these messages
+in a sequence named \"subject\". You can undo this action by using \\[mh-undo]
+with a prefix argument and then specifying the \"subject\" sequence."
   (interactive)
   (let ((count (mh-subject-to-sequence nil)))
     (cond
@@ -954,11 +956,15 @@ subject sequence."
 
 ;;;###mh-autoload
 (defun mh-delete-subject-or-thread ()
-  "Mark messages for deletion intelligently.
-If the folder is threaded then `mh-thread-delete' is used to mark the current
-message and all its descendants for deletion. Otherwise `mh-delete-subject' is
-used to mark the current message and all messages following it with the same
-subject for deletion."
+  "Delete messages with same subject or thread\\<mh-folder-mode-map>.
+
+To delete messages faster, you can use this command to delete all the messages
+with the same subject as the current message. This command puts these messages
+in a sequence named \"subject\". You can undo this action by using \\[mh-undo]
+with a prefix argument and then specifying the \"subject\" sequence.
+
+However, if the buffer is displaying a threaded view of the folder then this
+command behaves like \\[mh-thread-delete]."
   (interactive)
   (if (memq 'unthread mh-view-ops)
       (mh-thread-delete)
@@ -1562,7 +1568,8 @@ MSG is the message being notated with NOTATION at OFFSET."
 
 ;;;###mh-autoload
 (defun mh-thread-next-sibling (&optional previous-flag)
-  "Jump to next sibling.
+  "Display next sibling.
+
 With non-nil optional argument PREVIOUS-FLAG jump to the previous sibling."
   (interactive)
   (cond ((not (memq 'unthread mh-view-ops))
@@ -1589,7 +1596,7 @@ With non-nil optional argument PREVIOUS-FLAG jump to the previous sibling."
 
 ;;;###mh-autoload
 (defun mh-thread-previous-sibling ()
-  "Jump to previous sibling."
+  "Display previous sibling."
   (interactive)
   (mh-thread-next-sibling t))
 
@@ -1610,9 +1617,11 @@ With non-nil optional argument PREVIOUS-FLAG jump to the previous sibling."
 
 ;;;###mh-autoload
 (defun mh-thread-ancestor (&optional thread-root-flag)
-  "Jump to the ancestor of current message.
-If optional argument THREAD-ROOT-FLAG is non-nil then jump to the root of the
-thread tree the message belongs to."
+  "Display ancestor of current message.
+
+If you do not care for the way a particular thread has turned, you can move up
+the chain of messages with this command. This command can also take a prefix
+argument THREAD-ROOT-FLAG to jump to the message that started everything."
   (interactive "P")
   (beginning-of-line)
   (cond ((not (memq 'unthread mh-view-ops))
@@ -1656,7 +1665,7 @@ start of the region and the second is the point at the end."
 
 ;;;###mh-autoload
 (defun mh-thread-delete ()
-  "Mark current message and all its children for subsequent deletion."
+  "Delete thread."
   (interactive)
   (cond ((not (memq 'unthread mh-view-ops))
          (error "Folder isn't threaded"))
@@ -1669,7 +1678,7 @@ start of the region and the second is the point at the end."
 
 ;;;###mh-autoload
 (defun mh-thread-refile (folder)
-  "Mark current message and all its children for refiling to FOLDER."
+  "Refile (output) thread into FOLDER."
   (interactive (list (intern (mh-prompt-for-refile-folder))))
   (cond ((not (memq 'unthread mh-view-ops))
          (error "Folder isn't threaded"))

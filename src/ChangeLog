@@ -1,3 +1,92 @@
+2005-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap-temacs): Warn that parts of commands
+	enclosed in $(ARGQUOTE)s should not be split between two lines, as
+	that will break with GNU Make >3.80, when sh.exe is used and
+	arg quoting is with '..'.
+
+2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* print.c (print_preprocess): Just signal an error if print_depth
+	is exceeded.
+
+2005-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Set a breakpoint on w32_abort.
+
+2005-12-16  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.c (Fminibuffer_completion_contents): New Lisp function
+	created from minibuffer_completion_contents.
+	(minibuffer_completion_contents): Remove.
+	(do_completion, Fminibuffer_complete_word)
+	(Fminibuffer_completion_help): Replace minibuffer_completion_contents
+	with Fminibuffer_completion_contents.
+	(syms_of_minibuf): Add Sminibuffer_completion_contents.
+	(Fdisplay_completion_list): Doc fix.
+	(display_completion_list_1): Use `nil' for second arg of
+	`Fdisplay_completion_list'.
+
+2005-12-14  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (compute_tip_xy): Handle negative dx and dy.
+
+	* w32fns.c (compute_tip_xy): Ditto
+
+	* macfns.c (compute_tip_xy): Ditto
+
+2005-12-14  Chong Yidong  <cyd@stupidchicken.com>
+
+	* print.c (print_preprocess): Go to a deeper print_depth to avoid
+	print_object loop.
+
+2005-12-14  Kyotaro HORIGUCHI  <horiguti@meadowy.org>  (tiny change)
+
+	* coding.c (code_convert_region_unwind): GCPRO arg.
+
+2005-12-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (compute_tip_xy): Calculate root_y the same way as root_x,
+	i.e. dy is offset from top of frame instead of bottom.
+
+	* macfns.c (compute_tip_xy): Ditto.
+
+	* w32fns.c (compute_tip_xy): Ditto.
+
+	* gtkutil.c (SSDATA): New macro to remove compiler warnings.
+	(xg_get_image_for_pixmap, xg_create_frame_widgets)
+	(xg_get_file_with_chooser): Use SSDATA instead of SDATA.
+
+	* xmenu.c (menubar_selection_callback): Do nothing if the callback
+	is for an unselected radio menu item.
+
+2005-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (syms_of_xdisp) <blink-cursor-alist>: Doc fix.
+
+	* lisp.h [! NO_UNION_TYPE] (EQ): Use == so args are computed just once.
+
+	* keymap.c (Fset_keymap_parent, store_in_keymap): Use CHECK_IMPURE.
+	(Flookup_key): Doc fix.
+	(syms_of_keymap) <function-key-map>: Doc fix.
+
+	* fns.c (Frequire): Treat evaluating from a source file
+	like loading the file.
+
+	* floatfns.c (Flog): Doc fix.
+
+	* fileio.c (Finsert_file_contents): Set Vdeactivate_mark
+	when we change the buffer.
+
+2005-12-11  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.c (display_completion_list_1):
+	Call `minibuffer_completion_contents' instead of using `nil' as
+	second arg of `Fdisplay_completion_list'.
+	(keys_of_minibuf): Unbind SPC in
+	Vminibuffer_local_filename_completion_map (see also related
+	change on 2005-12-06).
+
 2005-12-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacs.c (main) [MAC_OS8]: Undo previous change.

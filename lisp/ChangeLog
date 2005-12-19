@@ -1,3 +1,349 @@
+2005-12-17  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (autoloads, custom-deps): Warn that parts of
+	commands enclosed in $(ARGQUOTE)s should not be split between two
+	lines, as that will break with GNU Make >3.80, when sh.exe is used
+	and arg quoting is with '..'.
+	(autoloads): Don't break the quoted --eval expression between
+	several lines.
+
+2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs-lisp/edebug.el (edebug-safe-prin1-to-string): Capture
+	error from printing circular structures.
+
+2005-12-17  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* wid-edit.el (widget-checkbox-action): Clear undo info.
+
+2005-12-16  Bill Wohler  <wohler@newt.com>
+
+	* menu-bar.el (kill-this-buffer): Set a good example by using menu
+	bar, not menubar in comment.
+
+2005-12-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cc-engine.el (c-after-change-check-<>-operators):
+	After-change-functions should not clobber the match data.
+
+2005-12-16  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (choose-completion): Use `buffer-substring-no-properties'
+	instead of `buffer-substring'.
+	(completion-common-substring): Doc fix.
+	(completion-setup-function): Use minibuffer-completion-contents
+	instead of minibuffer-contents.  Don't set common-string-length
+	initially.  Remove special handling of partial-completion-mode.
+	Move computation of completion-base-size into one cond.
+	Call completion-base-size-function in mainbuf.  In computation of
+	completion-base-size for file name completion don't move point to
+	the end of the minibuffer.  Move computation of common-string-length
+	into one cond.  Start putting faces only when common-string-length>=0.
+	Add condition to put completions-common-part when
+	common-string-length>0.
+
+	* complete.el (PC-do-completion): Remove `(equal (point) beg)' to
+	place point at the first different character in the minibuffer
+	even if this position is at the beginning of the minibuffer.
+
+	* info.el (Info-read-node-name-1): In completion-base-size-function's
+	lambda return 1 if common-substring or minibuffer-completion-contents
+	starts with (, and 0 otherwise.
+
+	* emacs-lisp/crm.el (crm-minibuffer-completion-help):
+	Use `crm-current-element' for second arg of `display-completion-list'.
+
+2005-12-16  Klaus Zeitler  <kzeitler@lucent.com>
+
+	* files.el (set-auto-mode): Look for an interpreter specified on
+	the first line also if search for mode specification succeeded,
+	but the mode is not known.
+
+2005-12-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-tags-match-list-sublevels): New option.
+	(org-open-at-point): Implement tag searches as links.
+	(org-fit-agenda-window, org-get-buffer-tags, org-get-tags)
+	(org-make-tags-matcher, org-scan-tags, org-activate-tags): New funs.
+	(org-tags-sparse-tree, org-tags-view, org-set-tags)
+	(org-agenda-dispatch): New commands.
+	(org-use-tag-inheritance, org-tags-column): New options.
+	(org-tab-follows-link, org-return-follows-link): New options.
+	(org-tags): New customize group.
+	(org-start-icalendar-file): Get local time zone.
+	(org-tags-completion-function): New function.
+	(org-set-font-lock-defaults): Make sure links will also be
+	highlighted inside headlines.
+
+2005-12-16  Mark Plaksin  <happy@usg.edu>  (tiny change)
+
+	* term.el (term-emulate-terminal):
+	Let term-handle-ansi-terminal-messages override what Bash says about
+	its current directory.
+
+2005-12-16  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* bindings.el (last-buffer): Move to simple.el.
+	* simple.el (last-buffer): Move here.
+	(get-next-valid-buffer): New function.
+	(next-buffer): Use frame-local buffer list, maintain buried buffer list.
+	(prev-buffer): Ditto. Rename to `previous-buffer'.
+
+	* menu-bar.el (menu-bar-update-buffers): Update uses of `prev-buffer'.
+	* bindings.el (global-map): Ditto.
+
+2005-12-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el: Introductory comment change.
+	(custom-magic-alist): Change message string for the `rogue' state.
+
+2005-12-15  Richard M. Stallman  <rms@gnu.org>
+
+	* tooltip.el: Delete defcustom variable :tag names.
+
+	* complete.el (partial-completion-mode): Doc fix.
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Use save-excursion to ensure we don't move backward in the
+	search loop, not even one character.
+	(flyspell-delete-all-overlays): Use remove-overlays directly.
+
+	* textmodes/ispell.el (ispell-current-personal-dictionary): New var.
+	(ispell-start-process): Set that variable.
+	Clear ispell-buffer-local-name.
+	(ispell-internal-change-dictionary):
+	Set ispell-current-dictionary after killing process.
+	(ispell-buffer-local-dict):
+	Don't set spell-personal-dictionary after killing process.
+	(ispell-buffer-local-words): Don't clear out ispell-buffer-local-name.
+	(ispell-tex-skip-alists)
+	(ispell-html-skip-alists, ispell-skip-region-alist): Mark as risky.
+
+	* net/newsticker.el (newsticker--retrieval-timer-list)
+	(newsticker--display-timer, newsticker-running-p)
+	(newsticker-ticker-running-p): Definitions moved up.
+
+2005-12-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-many-windows): Echo new state in minibuffer.
+
+2005-12-15  David Ponce  <david@dponce.com>
+
+	* recentf.el (recentf-dialog-goto-first): Fix missing error condition.
+	(recentf-edit-list, recentf-open-files): Signal an error when
+	there is no recent file.
+
+2005-12-14  Lennart Borgman  <lennart.borgman.073@student.lu.se>
+
+	* textmodes/texinfmt.el (texinfo-format-region): Set buffer to
+	read-only except for texinfo-format-region evaluation.
+
+2005-12-14  Richard M. Stallman  <rms@gnu.org>
+
+	* vc.el (vc-default-previous-version, vc-default-next-version)
+	(vc-do-command): Doc fixes.
+
+2005-12-14  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-expand-strings)
+	(bibtex-autokey-expand-string, bibtex-name-part)
+	(bibtex-entry-type-whitespace, bibtex-entry-type-str)
+	(bibtex-any-entry-maybe-empty-head, bibtex-string-type)
+	(bibtex-preamble-prefix, bibtex-string-empty-key): New variables.
+	(bibtex-entry-type, bibtex-entry-head): Match only valid entries.
+	(bibtex-entry-postfix, bibtex-known-entry-type-re)
+	(bibtex-valid-entry-re, bibtex-any-valid-entry-re)
+	(bibtex-valid-entry-whitespace-re, bibtex-empty-field-re)
+	(bibtex-field-name-for-parsing, bibtex-remove-delimiters-string)
+	(bibtex-beginning-of-last-entry): Remove.
+	(bibtex-parse-field-name): Use bibtex-field-name.  Issue error
+	message if comma is missing but buffer is read-only.
+	(bibtex-parse-field-text): Handle whitespaces at the end of field
+	text.  Return 3-element list with beginning and end of field text
+	and end of field.
+	(bibtex-end-of-text-in-field, bibtex-end-of-field): Change accordingly.
+	(bibtex-parse-field): Remove arg name.  Use bibtex-field-name.
+	(bibtex-search-forward-field, bibtex-search-backward-field):
+	Search always delimited by limits of entry.  Use more efficient
+	search algorithms.
+	(bibtex-name-in-field): Use bibtex-start-of-name-in-field and
+	bibtex-end-of-name-in-field.
+	(bibtex-text-in-field-bounds): Handle BibTeX strings when
+	extracting the content of a field.
+	(bibtex-text-in-field): Use search limits.
+	(bibtex-parse-string-prefix): Handle empty string keys based on
+	bibtex-string-empty-key.
+	(bibtex-parse-string): Fix docstring.
+	(bibtex-text-in-string): Use bibtex-text-in-field-bounds.
+	(bibtex-preamble-prefix, bibtex-strings): New functions.
+	(bibtex-skip-to-valid-entry): Include preceding whitespace in
+	BibTeX entries (consistent with other BibTeX functions).
+	(bibtex-map-entries): Use bibtex-skip-to-valid-entry.
+	(bibtex-search-entry): Fix docstring.  Simplify.
+	(bibtex-flash-head, bibtex-complete-string-cleanup)
+	(bibtex-count-entries, bibtex-sort-buffer): Simplify.
+	(bibtex-beginning-of-first-entry): Use bibtex-skip-to-valid-entry.
+	(bibtex-parse-entry): New optional arg content.
+	(bibtex-format-entry, bibtex-autofill-entry, bibtex-url): Use it.
+	Use bibtex-text-in-field-bounds.
+	(bibtex-print-help-message): Handle BibTeX strings and preambles.
+	(bibtex-end-of-entry): Use bibtex-preamble-prefix and
+	bibtex-parse-string-postfix.
+	(bibtex-find-text-internal): New function.
+	(bibtex-remove-delimiters): Use it.
+	(bibtex-find-text): Use it.  New optional arg help.
+	(bibtex-complete): Handle BibTeX string and preamble entries.
+	(bibtex-Preamble): Fix order of closing delimiters.
+
+2005-12-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-default-revert): New fun.
+
+	* vc-mcvs.el (vc-mcvs-revert): Fix call to vc-default-revert.
+
+2005-12-14  Romain Francoise  <romain@orebokech.com>
+
+	* font-lock.el (font-lock-keywords-alist): Rename `append' to `how'.
+	(font-lock-add-keywords, font-lock-update-removed-keyword-alist):
+	(font-lock-remove-keywords): Likewise.
+
+2005-12-14  Juri Linkov  <juri@jurta.org>
+
+	* log-view.el (log-view-diff): Doc fix.
+
+	* isearch.el (isearch-query-replace): Use (mark) instead of
+	isearch-opoint if mark is active in transient-mark-mode.
+
+2005-12-14  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
+
+	* isearch.el (isearch-query-replace): Check for isearch-other-end.
+
+2005-12-14  Per Abrahamsen  <abraham@dina.kvl.dk>
+
+	* progmodes/cpp.el (cpp-face): New widget.
+	(cpp-known-face, cpp-unknown-face, cpp-edit-list): Use it.
+
+2005-12-14  Juri Linkov  <juri@jurta.org>
+
+	* help-macro.el (make-help-screen): Bind `inhibit-read-only' to t
+	around `erase-buffer' and `insert'.
+
+	* descr-text.el (describe-text-properties): Replace buffer name
+	"*Help-2*" with "*Help*<2>".
+	(describe-char): Add functions print-help-return-message,
+	toggle-read-only.  Use help-setup-xref with nil to not store
+	describe-char in help-xref-stack.  Use help-make-xrefs to
+	make [back] button.
+
+	* desktop.el (desktop-minor-mode-table): Add vc-dired-mode with nil.
+
+	* wdired.el (wdired-old-point): New internal variable.
+	(wdired-change-to-wdired-mode): Set it buffer-locally.
+	(wdired-abort-changes): Restore point after aborting changes.
+
+2005-12-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-do-command): Add a new value t for okstatus.
+
+	* vc-svn.el (vc-svn-registered): Use it to avoid popping up a spurious
+	frame in case of errors.
+
+2005-12-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-bar-showhide-fringe-menu): Move "On the Right"
+	so it comes after "On the Left" in the menu.
+
+2005-12-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-apropos, customize-apropos-options)
+	(customize-apropos-faces, customize-apropos-groups): Doc fixes.
+
+2005-12-12  Bill Wohler  <wohler@newt.com>
+
+	* vc-svn.el (vc-svn-registered): Fix problem of visiting
+	non-writable Subversion-controlled files by saving window
+	configuration before calling vc-do-command.  vc-do-command calls
+	pop-to-buffer on error which is unexpected during registration.
+
+2005-12-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc/README: Update the summary of changes.
+
+2005-12-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* descr-text.el (describe-char): Rework last fix to solve the problem
+	is the same way it's solved for everything else in that function
+	(i.e. by extracting the info before setting up the *Help* buffer).
+
+2005-12-12  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (version-regexp-alist): Allow space as separator before
+	non-numeric part, e.g. "1.0 alpha".
+	(version-to-list): Interpret .X.Y version as 0.X.Y version.
+
+2005-12-12  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-agenda, org-timeline, org-todo):
+	Implement Logging and the keep-modes setting.
+	(org-get-category): Make sure a string is returned.
+	(org-log-done): New function.
+	(org-log-done, org-closed-string): New options.
+
+2005-12-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* tooltip.el (tooltip-y-offset): Change default to 20.
+
+2005-12-12  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-drag-vertical-line): Use adjust-window-trailing-edge.
+
+	* frame.el (display-hourglass): Doc fix.
+
+	* help.el (help-for-help-internal): Simplify entry for `a'.
+
+	* info.el (Info-on-current-buffer): Doc fix.
+	(info-insert-file-contents): Don't test (featurep 'jka-compr).
+
+	* startup.el (inhibit-splash-screen): Make this the real name.
+	(inhibit-startup-message): Make this the alias.
+	(command-line): Find only simple.el, and use its directory
+	to fill in other preloaded files' names.
+	(command-line): Deactivate the mark if deactivate-mark is set.
+
+	* international/mule.el (load-with-code-conversion):
+	Bind deactivate-mark.
+
+	* progmodes/compile.el (compilation-error-regexp-alist): Doc fix.
+
+2005-12-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-apropos): Avoid listing an option more
+	than once under different aliases.  No longer list user options
+	that are not defined with defcustom (unless a prefix arg is given).
+	Doc fix.
+	(customize-apropos-options): Doc fix.
+
+2005-12-11  Juri Linkov  <juri@jurta.org>
+
+	* frame.el (set-background-color, set-foreground-color)
+	(set-cursor-color, set-mouse-color, set-border-color):
+	Add explicit prompts to read colors by `facemenu-read-color'.
+	(show-trailing-whitespace, blink-cursor-delay)
+	(blink-cursor-interval, display-hourglass, hourglass-delay):
+	Remove tags.
+	(display-hourglass, hourglass-delay): Doc fix.
+	(cursor-in-non-selected-windows): Capitalize words in tag.
+
+	* faces.el (frame-background-mode): Replace `choice-item' keywords
+	with `const' to not make [default] button.  Change default value tag
+	from `default' to `automatic'.  Doc fix.
+	(trailing-whitespace) <defface>: Change group `whitespace' to
+	`whitespace-faces'.
+
+2005-12-11  Richard M. Stallman  <rms@gnu.org>
+
+	* buff-menu.el (Buffer-menu-sort-column): Not a user variable.
+
 2005-12-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Create keymap for mac-apple-event-map.
@@ -19,8 +365,8 @@
 
 2005-12-10  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
-	* align.el (align-regexp, align-highlight-rule): Use
-	region-beginning and region-end instead of point and mark, so that
+	* align.el (align-regexp, align-highlight-rule):
+	Use region-beginning and region-end instead of point and mark, so that
 	repetition (with `repeat-complex-command') recomputes the region
 	bounds.
 
@@ -40,8 +386,8 @@
 	(hi-lock-archaic-interface-deduce): New variables.
 	(turn-on-hi-lock-if-enabled, hi-lock-line-face-buffer)
 	(hi-lock-face-buffer, hi-lock-face-phrase-buffer)
-	(hi-lock-find-patterns, hi-lock-font-lock-hook): Replace
-	hi-lock-buffer-mode with hi-lock-mode.
+	(hi-lock-find-patterns, hi-lock-font-lock-hook):
+	Replace hi-lock-buffer-mode with hi-lock-mode.
 
 2005-12-10  Kevin Rodgers  <ihs_4664@ihs.com>
 
@@ -65,14 +411,14 @@
 
 2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* term/mac-win.el: Require url when compiling.  Call
-	mac-process-deferred-apple-events after loading init files.
+	* term/mac-win.el: Require url when compiling.
+	Call mac-process-deferred-apple-events after loading init files.
 	(mac-apple-event-map): New defvar.  Define event handlers in it.
 	(core-event, internet-event): New Apple event class symbols.
 	(open-application, reopen-application, open-documents)
 	(print-documents, open-contents, quit-application)
-	(application-died, show-preferences, autosave-now, get-url): New
-	Apple event ID symbols.
+	(application-died, show-preferences, autosave-now, get-url):
+	New Apple event ID symbols.
 	(about): New HICommand ID symbol.
 	(mac-event-spec, mac-event-ae): New macros.
 	(mac-ae-parameter, mac-ae-list, mac-bytes-to-integer)
@@ -84,9 +430,7 @@
 
 2005-12-10  Kenichi Handa  <handa@m17n.org>
 
-	* simple.el (zap-to-char): Translate CHAR by
-	translation-table-for-input.
-
+	* simple.el (zap-to-char):
 	* isearch.el (isearch-process-search-char): Translate CHAR by
 	translation-table-for-input.
 
@@ -3016,6 +3360,26 @@
 
 	* replace.el (occur-engine): Add marker at end of line, too.
 
+2005-11-04 Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp-decrypt-region, pgg-pgp-sign-region): Use new name for
+	pgg-add-passphrase-to-cache function.
+
+	* pgg-pgp5.el (pgg-pgp5-encrypt-region, pgg-pgp5-decrypt-region)
+	(pgg-pgp5-encrypt-symmetric-region, pgg-pgp5-encrypt-symmetric)
+	(pgg-pgp5-encrypt, pgg-pgp5-decrypt-region, pgg-pgp5-decrypt)
+	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
+	function.
+
 2005-11-04  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* font-lock.el: Don't deal with font-lock-face-attributes here,
@@ -3301,7 +3665,7 @@
 
 	* mouse.el: Fix special handling of DEL after dragging a region:
 	(mouse-drag-region-1): Treat mouse-set-region like mouse-set-point.
-	(mouse-region-delete-keys): Add [backspace].
+	(mouse-region-delete-keys): Change to defcustom.  Add [backspace].
 
 	* mail/feedmail.el: Use insert-buffer-substring, not insert-buffer.
 
@@ -3594,6 +3958,76 @@
 	* jit-lock.el (jit-lock-function, jit-lock-stealth-fontify)
 	(jit-lock-deferred-fontify, jit-lock-context-fontify)
 	(jit-lock-after-change): Test memory-full.
+
+2005-10-29  Ken Manheimer  <ken.manheimer@gmail.com>
+
+	* pgg-gpg.el (pgg-gpg-select-matching-key): Fix: look at the right
+	part of the decoded armor to find the key-identifier.
+	(pgg-gpg-lookup-key-owner): New function to return the
+	human-readable identifier of a key owner.
+	(pgg-gpg-lookup-id-from-key-owner): Make it easy to identify the
+	key itself.
+	(pgg-gpg-decrypt-region): Prompt with the key owner (rather than
+	the key value) if we have a key and can match it against a secret
+	key.  Also, added a note pointing out fact that the prompt only
+	indicates the first matching key.
+
+	* pgg.el (pgg-decrypt): Passing along 'passphrase' in call to
+	pgg-decrypt-region.
+	(pgg-pending-timers): A new hash for tracking the passphrase cache
+	timers, so that new ones supercede old ones.
+	(pgg-add-passphrase-to-cache): Rename from
+	`pgg-add-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when new ones are added.
+	(pgg-remove-passphrase-from-cache): Rename from
+	`pgg-remove-passphrase-cache' to reduce confusion (all callers
+	changed).  Modified to cancel old timers when their keys are
+	removed from the cache.
+	(pgg-cancel-timer): In Emacs, an alias for cancel-timer; in
+	XEmacs, an indirection to delete-itimer.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase):
+	Extract pgg-read-passphrase-from-cache from pgg-read-passphrase so
+	users can only check cache without risk of prompting.  Correct bug in
+	notruncate behavior.
+	(pgg-read-passphrase-from-cache, pgg-read-passphrase)
+	(pgg-add-passphrase-cache, pgg-remove-passphrase-cache):
+	Add informative docstrings.
+	(pgg-decrypt): Convey provided passphrase in subordinate call to
+	pgg-decrypt-region.
+
+	* pgg.el (pgg-encrypt-region, pgg-encrypt-symmetric-region)
+	(pgg-encrypt-symmetric, pgg-encrypt, pgg-decrypt-region)
+	(pgg-decrypt, pgg-sign-region, pgg-sign): Add optional
+	'passphrase' argument, so the passphrase can be managed externally
+	and then passed in to the system.
+
+	* pgg.el (pgg-read-passphrase, pgg-add-passphrase-cache)
+	(pgg-remove-passphrase-cache): Add optional 'notruncate' argument,
+	so the passphrase cache can be used reliably with identifiers
+	besides a pgp packet's key id.
+
+	* pgg-gpg.el (pgg-pgp-encrypt-region)
+	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
+	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	argument to all these routines, so the passphrase can be managed
+	externally and passed in to the system.
+
+	* pgg-gpg.el (pgg-gpg-possibly-cache-passphrase): Add optional
+	'notruncate' argument, so the passphrase cache can be used
+	reliably with identifiers besides a pgp packet's key id.
+
+2005-10-29  Sascha Wilde  <swilde@sha-bang.de>
+
+	* pgg-gpg.el (pgg-gpg-encrypt-symmetric-region): New function for
+	symmetric encryption.
+	(pgg-gpg-symmetric-key-p): New function to check for an symmetric
+	encrypted session key.
+	(pgg-gpg-decrypt-region): When decrypting a symmetric encrypted
+	message ask for the passphrase in a proper way.
+
+	* pgg.el (pgg-encrypt-symmetric, pgg-encrypt-symmetric-region):
+	New user commands for symmetric encryption.
 
 2005-10-29  Roland Winkler  <roland.winkler@physik.uni-erlangen.de>
 

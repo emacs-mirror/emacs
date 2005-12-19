@@ -1,3 +1,7 @@
+2005-12-13  Bill Wohler  <wohler@newt.com>
+
+	* FOR-RELEASE: Ensure MH-E 8.0 has been released.
+
 2005-12-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* FOR-RELEASE (DOCUMENTATION): Remove message-mail, gnus-*

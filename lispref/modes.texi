@@ -2638,7 +2638,7 @@ Non-@code{nil} means that regular expression matching for the sake of
 search-based fontification rules to a major mode, and
 @code{font-lock-remove-keywords} to removes rules.
 
-@defun font-lock-add-keywords mode keywords &optional append
+@defun font-lock-add-keywords mode keywords &optional how
 This function adds highlighting @var{keywords}, for the current buffer
 or for major mode @var{mode}.  The argument @var{keywords} should be a
 list with the same format as the variable @code{font-lock-keywords}.
@@ -2654,11 +2654,10 @@ If @var{mode} is @code{nil}, this function adds @var{keywords} to
 @code{font-lock-add-keywords} is usually used in mode hook functions.
 
 By default, @var{keywords} are added at the beginning of
-@code{font-lock-keywords}.  If the optional argument @var{append} is
+@code{font-lock-keywords}.  If the optional argument @var{how} is
 @code{set}, they are used to replace the value of
-@code{font-lock-keywords}.  If @var{append} is any other
-non-@code{nil} value, they are added at the end of
-@code{font-lock-keywords}.
+@code{font-lock-keywords}.  If @var{how} is any other non-@code{nil}
+value, they are added at the end of @code{font-lock-keywords}.
 
 Some modes provide specialized support you can use in additional
 highlighting patterns.  See the variables
@@ -2677,7 +2676,7 @@ rules for search-based fontification by setting
 This function removes @var{keywords} from @code{font-lock-keywords}
 for the current buffer or for major mode @var{mode}.  As in
 @code{font-lock-add-keywords}, @var{mode} should be a major mode
-command name or @code{nil}.  All the caveats and requirments for
+command name or @code{nil}.  All the caveats and requirements for
 @code{font-lock-add-keywords} apply here too.
 @end defun
 

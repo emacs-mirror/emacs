@@ -1,3 +1,27 @@
+2005-12-16  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.texi (Minibuffer Contents): Minor cleanup.
+
+2005-12-16  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Minibuffer Contents): Add minibuffer-completion-contents.
+
+2005-12-14  Romain Francoise  <romain@orebokech.com>
+
+	* modes.texi (Customizing Keywords): Rename `append' to `how'.
+	Fix typo.
+
+2005-12-11  Juri Linkov  <juri@jurta.org>
+
+	* minibuf.texi (Completion Commands): Add mention of read-file-name
+	for filename completion keymaps.
+	(Reading File Names): Add mention of filename completion keymaps
+	for read-file-name and xref to `Completion Commands'.
+
+2005-12-10  Richard M. Stallman  <rms@gnu.org>
+
+	* customize.texi (Common Keywords): State caveats for use of :tag.
+
 2005-12-08  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Intro to Minibuffers): Replace list of local maps

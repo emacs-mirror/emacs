@@ -34,8 +34,16 @@ display one name.
 
 @table @code
 @item :tag @var{label}
-Use @var{label}, a string, instead of the item's name, to label the item
-in customization menus and buffers.
+Use @var{label}, a string, instead of the item's name, to label the
+item in customization menus and buffers.  @strong{Don't use a tag
+which is substantially different from the item's real name; that would
+cause confusion.}  One legitimate case for use of @code{:tag} is to
+specify a dash where normally a hyphen would be converted to a space:
+
+@example
+(defcustom cursor-in-non-selected-windows @dots{}
+  :tag "Cursor In Non-selected Windows"
+@end example
 
 @item :group @var{group}
 Put this customization item in group @var{group}.  When you use

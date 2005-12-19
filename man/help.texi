@@ -44,21 +44,11 @@ it is best to start with an apropos command, then try searching the
 manual index, then finally look in the FAQ and the package keywords.
 
 @table @kbd
-@item C-h a @var{topic} @key{RET}
-This searches for commands whose names match @var{topic}, which should
-be a list of words or a regular expression (@pxref{Regexps}).  Browse
-the buffer that this command displays to find what you are looking
-for.  @xref{Apropos}.
-
-@item M-x apropos @key{RET} @var{topic} @key{RET}
-This works like @kbd{C-h a}, but it also searches for noninteractive
-functions and for variables.  @xref{Apropos}.
-
-@item C-h d @var{topic} @key{RET}
-This searches the @emph{documentation strings} (the built-in short
-descriptions) of all variables and functions (not their names) for a
-match for @var{topic}, a list or words or a regular expression.
-@xref{Apropos}.
+@item C-h a @var{topics} @key{RET}
+This searches for commands whose names match @var{topics}, which
+should be a keyword, a list of keywords, or a regular expression
+(@pxref{Regexps}).  This command displays a the matches in a new
+buffer.  @xref{Apropos}.
 
 @item C-h i d m emacs @key{RET} i @var{topic} @key{RET}
 This looks up @var{topic} in the indices of the Emacs on-line manual.
@@ -113,9 +103,9 @@ command.
 pre-written file of information.
 
 @table @kbd
-@item C-h a @var{topic} @key{RET}
-Display a list of commands whose names match word list or regexp @var{topic}
-(@code{apropos-command}).
+@item C-h a @var{topics} @key{RET}
+Display a list of commands whose names match @var{topics}
+(@code{apropos-command}; @pxref{Apropos}).
 @item C-h b
 Display a table of all key bindings in effect now, in this order: minor
 mode bindings, major mode bindings, and global bindings
@@ -124,10 +114,9 @@ mode bindings, major mode bindings, and global bindings
 Show the name of the command that @var{key} runs
 (@code{describe-key-briefly}).  Here @kbd{c} stands for ``character.''
 For more extensive information on @var{key}, use @kbd{C-h k}.
-@item C-h d @var{topic} @key{RET}
-Display a list of commands and variables whose documentation match
-word list or regexp @var{topic}
-(@code{apropos-documentation}).
+@item C-h d @var{topics} @key{RET}
+Display a list of commands and variables whose documentation matches
+@var{topics} (@code{apropos-documentation}).
 @item C-h e
 Display the @code{*Messages*} buffer
 (@code{view-echo-area-messages}).
@@ -274,35 +263,69 @@ editor, you need to read the source code.
 @node Apropos
 @section Apropos
 
+  A more sophisticated sort of question to ask is, ``What are the
+commands for working with files?''  The @dfn{apropos} commands ask
+such questions---they look for things whose names match an
+@dfn{apropos pattern}, which means either a word, a list of words, or
+a regular expression.  Each apropos command displays a list of
+matching items in a special buffer.
+
+@table @kbd
+@item C-h a @var{pattern} @key{RET}
+Search for commands whose names match @var{pattern}.
+
+@item M-x apropos @key{RET} @var{pattern} @key{RET}
+Similar, but it searches for noninteractive functions and for
+variables, as well as commands.
+
+@item M-x apropos-variable @key{RET} @var{pattern} @key{RET}
+Similar, but it searches for variables only.
+
+@item M-x apropos-value @key{RET} @var{pattern} @key{RET}
+Similar, but it searches for variables based on their values, or
+functions based on their definitions.
+
+@item C-h d @var{pattern} @key{RET}
+Search the @emph{documentation strings} (the built-in short
+descriptions) of all variables and functions (not their names) for a
+match for @var{pattern}.
+@end table
+
 @kindex C-h a
 @findex apropos-command
 @cindex apropos
-  A more sophisticated sort of question to ask is, ``What are the
-commands for working with files?''  To ask this question, type @kbd{C-h
-a file @key{RET}}, which displays a list of all command names that
-contain @samp{file}, including @code{copy-file}, @code{find-file}, and
-so on.  With each command name appears a brief description of how to use
-the command, and what keys you can currently invoke it with.  For
-example, it would say that you can invoke @code{find-file} by typing
-@kbd{C-x C-f}.  The @kbd{a} in @kbd{C-h a} stands for ``Apropos'';
-@kbd{C-h a} runs the command @code{apropos-command}.  This command
-normally checks only commands (interactive functions); if you specify a
-prefix argument, it checks noninteractive functions as well.
+  To find the commands that work on files, type @kbd{C-h a file
+@key{RET}}.  This displays a list of all command names that contain
+@samp{file}, including @code{copy-file}, @code{find-file}, and so on.
+With each command name appears a brief description of how to use the
+command, and what keys you can currently invoke it with.  For example,
+it would say that you can invoke @code{find-file} by typing @kbd{C-x
+C-f}.  The @kbd{a} in @kbd{C-h a} stands for ``Apropos''; @kbd{C-h a}
+runs the command @code{apropos-command}.  This command normally checks
+only commands (interactive functions); if you specify a prefix
+argument, it checks noninteractive functions as well.
 
-  Because @kbd{C-h a} looks only for commands matching the string you
-specify, you may not find what you want on the first try.  In that
-case, don't just give up.  You can give Apropos a list of words to
-search for.  When more than one word is specified, at least two of
-those words must be present for an item to match.  If you are looking
-for commands to kill a chunk of text before point, try @kbd{C-h a kill
-back behind before @key{RET}}.  For even greater flexibility, you can
-also supply a regular expression to Apropos (@pxref{Regexps}).
+  If you want more information about a function definition, variable or
+symbol property listed in the Apropos buffer, you can click on it with
+@kbd{Mouse-1} or @kbd{Mouse-2}, or move there and type @key{RET}.
+
+  @kbd{C-h a} with a single word can find too many matches.  Don't
+just give up; you can give Apropos a list of words to search for.
+When you specify more than one word in the apropos pattern, a name
+must contain at least two of the words in order to match.  Thus, if
+you are looking for commands to kill a chunk of text before point, you
+could try @kbd{C-h a kill back backward behind before @key{RET}}.
+
+  For even greater flexibility, you can specify a regular expression
+(@pxref{Regexps}).  An apropos pattern is interpreted as a regular
+expression if it contains any of the regular expression special
+characters, @samp{^$*+?.\[}.
 
   Here is a set of arguments to give to @kbd{C-h a} that covers many
-classes of Emacs commands, since there are strong conventions for naming
-the standard Emacs commands.  By giving you a feel for the naming
-conventions, this set should also serve to aid you in developing a
-technique for picking @code{apropos} strings.
+classes of Emacs commands, since there are strong conventions for
+naming the standard Emacs commands.  By giving you a feel for the
+naming conventions, this set should also serve to aid you in
+developing a technique for picking Apropos keywords.
 
 @quotation
 char, line, word, sentence, paragraph, region, page, sexp, list, defun,
@@ -312,31 +335,29 @@ mark, insert, yank, fill, indent, case, change, set, what, list, find,
 view, describe, default.
 @end quotation
 
-@findex apropos-variable
-  To list all user variables that match a word list or regexp, use the
-command @kbd{M-x apropos-variable}.  By default, this command shows
-only variables meant for user customization; if you specify a prefix
-argument, it checks all variables.
-
 @findex apropos
-  To list all Lisp symbols that contain a match for a word list or
-regexp, not just the ones that are defined as commands, use the
-command @kbd{M-x apropos} instead of @kbd{C-h a}.  This command does
-not check key bindings by default; specify a numeric argument if you
-want it to check them.
+  To list all Lisp symbols that contain a match an Apropos pattern,
+not just the ones that are defined as commands, use the command
+@kbd{M-x apropos} instead of @kbd{C-h a}.  This command does not check
+key bindings by default; specify a numeric argument if you want it to
+check them.
+
+@findex apropos-variable
+  To list user-customizable variables that match an apropos pattern,
+use the command @kbd{M-x apropos-variable}.  If you specify a prefix
+argument, it checks all variables.
 
 @kindex C-h d
 @findex apropos-documentation
-  The @code{apropos-documentation} command is like @code{apropos} except
-that it searches documentation strings as well as symbol names for
-matches for the specified topic, a word list or regular expression.
+  The @code{apropos-documentation} command is like @code{apropos}
+except that it searches documentation strings instead of symbol names
+for matches for the specified Apropos pattern.
 
 @findex apropos-value
-  The @code{apropos-value} command is like @code{apropos} except that it
-searches symbols' values for matches for the specified word list or regular
-expression.  This command does not check function definitions or
-property lists by default; specify a numeric argument if you want it to
-check them.
+  The @code{apropos-value} command is like @code{apropos} except that
+it searches variables' values for matches for the pattern.  With a
+prefix argument, it also checks symbols' function definitions and
+property lists.
 
 @vindex apropos-do-all
   If the variable @code{apropos-do-all} is non-@code{nil}, the commands
@@ -351,13 +372,9 @@ most relevant ones first.
 
 @vindex apropos-documentation-sort-by-scores
   By default, Apropos lists the search results for
-  @code{apropos-documentation} in order of relevance.
-If the variable @code{apropos-documentation-sort-by-scores} is @code{nil},
-Apropos will list documentation in alphabetical order.
-
-  If you want more information about a function definition, variable or
-symbol property listed in the Apropos buffer, you can click on it with
-@kbd{Mouse-1} or @kbd{Mouse-2}, or move there and type @key{RET}.
+@code{apropos-documentation} in order of relevance of the match.  If
+the variable @code{apropos-documentation-sort-by-scores} is
+@code{nil}, Apropos lists the symbosl found in alphabetical order.
 
 @node Library Keywords
 @section Keyword Search for Lisp Libraries

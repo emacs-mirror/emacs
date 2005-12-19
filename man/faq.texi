@@ -2503,13 +2503,16 @@ consult the documentation of the variables @code{ps-printer-name},
 @cindex Scrolling only one line
 @cindex Reducing the increment when scrolling
 
-Place the following Lisp form in your @file{.emacs} file:
+Customize the @code{scroll-conservatively} variable with @kbd{M-x
+customize-variable @key{RET} scroll-conservatively @key{RET}} and set it
+to a large value like, say, 10000.  For an explanation of what this
+means, @inforef{Scrolling, Scrolling, emacs}.
+
+Alternatively, use the following Lisp form in your @file{.emacs}:
 
 @lisp
-(setq scroll-step 1)
+(setq scroll-conservatively most-positive-fixnum)
 @end lisp
-
-@inforef{Scrolling, Scrolling, emacs}.
 
 @node Replacing highlighted text, Editing MS-DOS files, Scrolling only one line, Common requests
 @section How can I replace highlighted text with what I type?
@@ -2565,11 +2568,9 @@ and MS-DOS have for delineating the end of a line.
 @cindex Single space following periods
 @cindex Periods, one space following
 
-@email{ulm@@vsnhd1.cern.ch, Ulrich Mueller} suggests adding the
-following two lines to your @file{.emacs} file:
+Add the following line to your @file{.emacs} file:
 
 @lisp
-(setq sentence-end "[.?!][]\"')@}]*\\($\\|[ \t]\\)[ \t\n]*")
 (setq sentence-end-double-space nil)
 @end lisp
 
@@ -3790,7 +3791,7 @@ Superyank is an old version of Supercite.
 @email{daveg@@csvax.cs.caltech.edu, Dave Gillespie}
 
 @item Latest version
-2.02g (part of Emacs since version 22.1)
+2.1 (part of Emacs since version 22.1)
 
 @item Distribution
 No separate distribution outside of Emacs.  Older versions

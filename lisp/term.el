@@ -2687,13 +2687,17 @@ See `term-prompt-regexp'."
 	   (buffer-undo-list t)
 	   (selected (selected-window))
 	   last-win
+           handled-ansi-message
 	   (str-length (length str)))
       (save-selected-window
 
 	;; Let's handle the messages. -mm
 
-	(setq str (term-handle-ansi-terminal-messages str))
-	(setq str-length (length str))
+        (let* ((newstr (term-handle-ansi-terminal-messages str)))
+          (if (not (eq str newstr))
+              (setq handled-ansi-message t
+                    str newstr)))
+        (setq str-length (length str))
 
 	(if (marker-buffer term-pending-delete-marker)
 	    (progn
@@ -2849,7 +2853,8 @@ See `term-prompt-regexp'."
 			 ((eq char ?\017))     ; Shift In - ignored
 			 ((eq char ?\^G) ;; (terminfo: bel)
 			  (beep t))
-			 ((eq char ?\032)
+			 ((and (eq char ?\032)
+                               (not handled-ansi-message))
 			  (let ((end (string-match "\r?$" str i)))
 			    (if end
 				(funcall term-command-hook

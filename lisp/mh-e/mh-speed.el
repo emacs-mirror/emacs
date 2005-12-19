@@ -76,7 +76,7 @@ BUFFER is the MH-E buffer for which the speedbar buffer is to be created."
      (line-beginning-position) (1+ (line-beginning-position))
      `(mh-folder nil mh-expanded nil mh-children-p t mh-level 0))
     (mh-speed-stealth-update t)
-    (when mh-speed-run-flists-flag
+    (when (> mh-speed-update-interval 0)
       (mh-speed-flists nil))))
 
 ;;;###mh-autoload
@@ -292,8 +292,8 @@ Do the right thing for the different kinds of buffers that MH-E uses."
 
 ;;;###mh-autoload
 (defun mh-speed-toggle (&rest args)
-  "Toggle the display of child folders.
-The otional ARGS are ignored and there for compatibilty with speedbar."
+  "Toggle the display of child folders in the speedbar.
+The optional ARGS from speedbar are ignored."
   (interactive)
   (declare (ignore args))
   (beginning-of-line)
@@ -335,8 +335,8 @@ The otional ARGS are ignored and there for compatibilty with speedbar."
 
 ;;;###mh-autoload
 (defun mh-speed-view (&rest args)
-  "View folder on current line.
-Optional ARGS are ignored."
+  "Visits the selected folder just as if you had used \\<mh-folder-mode-map>\\[mh-visit-folder].
+The optional ARGS from speedbar are ignored."
   (interactive)
   (declare (ignore args))
   (let* ((folder (get-text-property (line-beginning-position) 'mh-folder))
@@ -381,7 +381,9 @@ only for that one folder."
   (unless mh-speed-flists-timer
     (setq mh-speed-flists-timer
           (run-at-time
-           nil (and mh-speed-run-flists-flag mh-speed-flists-interval)
+           nil (if (> mh-speed-update-interval 0)
+                   mh-speed-update-interval
+                 nil)
            (lambda ()
              (unless (and (processp mh-speed-flists-process)
                           (not (eq (process-status mh-speed-flists-process)
@@ -502,9 +504,10 @@ next."
         (clrhash mh-sub-folders-cache)))))
 
 (defun mh-speed-refresh ()
-  "Refresh the speedbar.
-Use this function to refresh the speedbar if folders have been added or
-deleted or message ranges have been updated outside of MH-E."
+  "Regenerates the list of folders in the speedbar.
+
+Run this command if you've added or deleted a folder, or want to update the
+unseen message count before the next automatic update."
   (interactive)
   (mh-speed-flists t)
   (mh-speed-invalidate-map ""))

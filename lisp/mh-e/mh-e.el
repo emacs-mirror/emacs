@@ -535,7 +535,7 @@ the Emacs interface to the MH mail system."
 ;;; User executable MH-E commands:
 
 (defun mh-delete-msg (range)
-  "Delete message\\<mh-folder-mode-map>.
+  "Delete RANGE\\<mh-folder-mode-map>.
 
 To mark a message for deletion, use this command. A \"D\" is placed by the
 message in the scan window, and the next undeleted message is displayed. If

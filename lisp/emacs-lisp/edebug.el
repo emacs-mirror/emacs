@@ -3711,7 +3711,9 @@ Return the result of the last expression."
 	(print-level (or edebug-print-level print-level))
 	(print-circle (or edebug-print-circle print-circle))
 	(print-readably nil)) ;; lemacs uses this.
-    (edebug-prin1-to-string value)))
+    (condition-case nil
+	(edebug-prin1-to-string value)
+      (error "#Apparently circular structure#"))))
 
 (defun edebug-compute-previous-result (edebug-previous-value)
   (if edebug-unwrap-results
