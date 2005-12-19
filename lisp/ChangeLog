@@ -1,3 +1,9 @@
+2005-12-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Wrap while widened.
+	(longlines-decode-region, longlines-encode-region): Compute max
+	just once.
+
 2005-12-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* cus-edit.el (mac): New group.
@@ -21,6 +27,7 @@
 	* emacs-lisp/cl-extra.el (cl-macroexpand-all): Fix code-walk for
 	lexical-let when encountering ((lambda (...) ...) ...).
 
+>>>>>>> 1.8828
 2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/sh-script.el (sh-mode):
