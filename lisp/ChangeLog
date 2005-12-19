@@ -1,3 +1,10 @@
+2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-apropos, customize-apropos-options):
+	Docstring changes.
+
+	* font-lock.el (font-lock): Add tags to the links in the defgroup.
+
 2005-12-19  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-mode): Wrap while widened.
