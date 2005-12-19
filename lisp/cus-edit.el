@@ -459,6 +459,13 @@
   :link '(custom-manual "(emacs)Windows")
   :group 'environment)
 
+(defgroup mac nil
+  "Mac specific features."
+  :link '(custom-manual "(emacs)Mac OS")
+  :group 'environment
+  :version "22.1"
+  :prefix "mac-")
+
 ;;; Utilities.
 
 (defun custom-quote (sexp)
