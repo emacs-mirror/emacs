@@ -27,7 +27,6 @@
 	* emacs-lisp/cl-extra.el (cl-macroexpand-all): Fix code-walk for
 	lexical-let when encountering ((lambda (...) ...) ...).
 
->>>>>>> 1.8828
 2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
 	* progmodes/sh-script.el (sh-mode):
