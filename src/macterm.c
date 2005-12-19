@@ -10795,7 +10795,7 @@ button will be mouse-3.  */);
    doc: /* *If non-nil, allow anti-aliasing.
 The text will be rendered using Core Graphics text rendering which
 may anti-alias the text.  */);
-  mac_use_core_graphics = 1;
+  mac_use_core_graphics = 0;
 
   /* Register an entry for `mac-roman' so that it can be used when
      creating the terminal frame on Mac OS 9 before loading
