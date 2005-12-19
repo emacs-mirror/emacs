@@ -206,6 +206,7 @@ the active fields and other features.
 
 @menu
 * Groups: Customization Groups.   How options are classified in a structure.
+* Browsing: Browsing Custom.   Browsing and searching for options and faces.
 * Changing a Variable::      How to edit a value and set an option.
 * Saving Customizations::    Specifying the file for saving customizations.
 * Face Customization::       How to edit the attributes of a face.
@@ -275,9 +276,13 @@ Then you can use the customization buffer to set the options
 pertaining to that feature.  You can also go straight to a particular
 group by name, using the command @kbd{M-x customize-group}.
 
+@node Browsing Custom
+@subsection Browsing and Searching for Options and Faces
 @findex customize-browse
-  You can view the structure of customization groups on a larger scale
-with @kbd{M-x customize-browse}.  This command creates a special kind of
+You can use @kbd{M-x customize} to browse the groups and options, but
+often @kbd{M-x customize-browse} is a more efficient alternative.
+That is because it lets you view the structure of customization groups
+on a larger scale.  This command creates a special kind of
 customization buffer which shows only the names of the groups (and
 variables and faces), and their structure.
 
@@ -290,6 +295,13 @@ which says @samp{[Group]}, @samp{[Option]} or @samp{[Face]}.  Invoking
 that active field creates an ordinary customization buffer showing just
 that group and its contents, just that variable, or just that face.
 This is the way to set values in it.
+
+  If you can guess part of the name of the options you are interested
+in, then sometimes @kbd{M-x customize-apropos} can be another useful
+way to search for options.  However, unlike @code{customize} and
+@code{customize-browse}, @code{customize-apropos} can only find
+options that are loaded in the current Emacs session.  @xref{Specific
+Customization,, Customizing Specific Items}.
 
 @node Changing a Variable
 @subsection Changing a Variable
@@ -627,7 +639,9 @@ buffer, and you know its name, you can use the command @kbd{M-x
 customize-variable} and specify the variable name.  This sets up the
 customization buffer with just one variable---the one that you asked
 for.  Editing, setting and saving the value work as described above,
-but only for the specified variable.
+but only for the specified variable.  Minibuffer completion is very
+handy if you only know part of the name.  However, it only finds
+options that have been loaded in the current Emacs session.
 
 @findex customize-face
   Likewise, you can modify a specific face, chosen by name, using
@@ -638,15 +652,16 @@ on the character after point.
   You can also set up the customization buffer with a specific group,
 using @kbd{M-x customize-group}.  The immediate contents of the chosen
 group, including user options, faces, and other groups, all appear
-as well.  However, these subgroups' own contents are not included.
+as well (even if not already loaded).  However, the subgroups' own
+contents are not included.
 
 @findex customize-apropos
   To control more precisely what to customize, you can use @kbd{M-x
 customize-apropos}.  You specify a regular expression as argument; then
-all options, faces and groups whose names match this regular expression
-are set up in the customization buffer.  If you specify an empty regular
-expression, this includes @emph{all} groups, options and faces (but
-that takes a long time).
+all @emph{loaded} options, faces and groups whose names match this
+regular expression are set up in the customization buffer.  If you
+specify an empty regular expression, this includes @emph{all} groups,
+options and faces (but that takes a long time).
 
 @findex customize-changed-options
   When you upgrade to a new Emacs version, you might want to customize
@@ -654,7 +669,8 @@ new options and options whose meanings or default values have changed.
 To do this, use @kbd{M-x customize-changed-options} and specify a
 previous Emacs version number using the minibuffer.  It creates a
 customization buffer which shows all the options (and groups) whose
-definitions have been changed since the specified version.
+definitions have been changed since the specified version.  (Not just
+those that are already loaded.)
 
 @findex customize-saved
 @findex customize-customized
