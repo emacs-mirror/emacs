@@ -1,9 +1,13 @@
+2005-12-18  Aaron S. Hawley  <Aaron.Hawley@uvm.edu>
+
+	* files.texi (VC Status): Document log-view mode.
+
 2005-12-18  Bill Wohler  <wohler@newt.com>
 
 	* frames.texi (Tool Bars): Mention that you can turn off tool bars
 	permanently via the customize interface 
 
-2005-12-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+2005-12-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (MIME Commands): Mention addition of
 	multipart/alternative to gnus-buttonized-mime-types and add xref
