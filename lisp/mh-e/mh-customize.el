@@ -83,6 +83,11 @@
   (require 'mh-init)
   (require 'mh-identity))
 
+;; For compiler warnings...
+(eval-when-compile
+  (defvar mh-show-buffer)
+  (defvar mh-show-folder-buffer))
+
 (defun mh-customize (&optional delete-other-windows-flag)
   "Customize MH-E variables.
 If optional argument DELETE-OTHER-WINDOWS-FLAG is non-nil, other windows in
@@ -93,11 +98,6 @@ the frame are removed."
     (delete-other-windows)))
 
 
-
-;;; For compiler warnings...
-(eval-when-compile
-  (defvar mh-show-buffer)
-  (defvar mh-show-folder-buffer))
 
 ;;; MH-E Customization Groups
 
@@ -216,6 +216,8 @@ mailutils."
   :link '(custom-manual "(mh-e)Top")
   :prefix "mh-"
   :group 'mh-e)
+
+
 
 ;;; Faces
 
@@ -998,7 +1000,7 @@ default). If you need to scan just the message 200, then use the range
 
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
-;;; Forward definition to avoid compiler and runtime error.
+;; Forward definition to avoid compiler and runtime error.
 (defvar mh-scan-format-file t)
 
 (defun mh-adaptive-cmd-note-flag-check (symbol value)
@@ -1163,9 +1165,9 @@ See also `mh-reply'."
 
 ;;; Sequences (:group 'mh-sequences)
 
-;;; If `mh-unpropagated-sequences' becomes a defcustom, add the following to
-;;; the docstring: "Additional sequences that should not to be preserved can be
-;;; specified by setting `mh-unpropagated-sequences' appropriately." XXX
+;; If `mh-unpropagated-sequences' becomes a defcustom, add the following to
+;; the docstring: "Additional sequences that should not to be preserved can be
+;; specified by setting `mh-unpropagated-sequences' appropriately." XXX
 
 (defcustom mh-refile-preserves-sequences-flag t
   "*Non-nil means that sequences are preserved when messages are refiled.
@@ -2394,6 +2396,8 @@ will be removed from the unseen sequence."
 
 ;;; Faces (:group 'mh-*-faces + group where faces described)
 
+
+
 ;;; Faces Used in Scan Listing (:group 'mh-folder-faces)
 
 (defvar mh-folder-body-face 'mh-folder-body
@@ -2758,10 +2762,10 @@ The background and foreground is used in the image."
   "Face used for the current folder when it has unread messages."
   :group 'mh-speed-faces)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 778d2a20-82e2-4276-be9d-309386776a68
+;; arch-tag: 778d2a20-82e2-4276-be9d-309386776a68
 ;;; mh-customize.el ends here

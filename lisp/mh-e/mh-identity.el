@@ -282,10 +282,10 @@ If the field wasn't present, it is added to the bottom of the header."
 
 (provide 'mh-identity)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 07d66ef6-8726-4ac6-9ecf-e566cd5bfb45
+;; arch-tag: 07d66ef6-8726-4ac6-9ecf-e566cd5bfb45
 ;;; mh-identity.el ends here

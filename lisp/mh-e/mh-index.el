@@ -26,18 +26,18 @@
 
 ;;; Commentary:
 
-;;;  (1) The following search engines are supported:
-;;;        swish++
-;;;        swish-e
-;;;        mairix
-;;;        namazu
-;;;        pick
-;;;        grep
-;;;
-;;;  (2) To use this package, you first have to build an index. Please read
-;;;      the documentation for `mh-index-search' to get started. That
-;;;      documentation will direct you to the specific instructions for your
-;;;      particular indexer.
+;;  (1) The following search engines are supported:
+;;        swish++
+;;        swish-e
+;;        mairix
+;;        namazu
+;;        pick
+;;        grep
+;;
+;;  (2) To use this package, you first have to build an index. Please read
+;;      the documentation for `mh-index-search' to get started. That
+;;      documentation will direct you to the specific instructions for your
+;;      particular indexer.
 
 ;;; Change Log:
 
@@ -91,17 +91,17 @@
 
 
 
-;;; A few different checksum programs are supported. The supported programs
-;;; are:
-;;;   1. md5sum
-;;;   2. md5
-;;;   3. openssl
-;;;
-;;; To add support for your favorite checksum program add a clause to the cond
-;;; statement in mh-checksum-choose. This should set the variable
-;;; mh-checksum-cmd to the command line needed to run the checsum program and
-;;; should set mh-checksum-parser to a function which returns a cons cell
-;;; containing the message number and checksum string.
+;; A few different checksum programs are supported. The supported programs
+;; are:
+;;   1. md5sum
+;;   2. md5
+;;   3. openssl
+;;
+;; To add support for your favorite checksum program add a clause to the cond
+;; statement in mh-checksum-choose. This should set the variable
+;; mh-checksum-cmd to the command line needed to run the checsum program and
+;; should set mh-checksum-parser to a function which returns a cons cell
+;; containing the message number and checksum string.
 
 (defvar mh-checksum-cmd)
 (defvar mh-checksum-parser)
@@ -152,8 +152,7 @@
 
 
 
-;;; Make sure that we don't produce too long a command line.
-
+;; Make sure that we don't produce too long a command line.
 (defvar mh-index-max-cmdline-args 500
   "Maximum number of command line args.")
 
@@ -1653,10 +1652,10 @@ system."
 
 (provide 'mh-index)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 607762ad-0dff-4fe1-a27e-6c0dde0dcc47
+;; arch-tag: 607762ad-0dff-4fe1-a27e-6c0dde0dcc47
 ;;; mh-index ends here

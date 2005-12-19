@@ -1,3 +1,28 @@
+2005-12-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-acros.el:
+	* mh-alias.el:
+	* mh-comp.el:
+	* mh-customize.el:
+	* mh-e.el:
+	* mh-funcs.el:
+	* mh-gnus.el:
+	* mh-identity.el:
+	* mh-inc.el:
+	* mh-index.el:
+	* mh-init.el:
+	* mh-junk.el:
+	* mh-mime.el:
+	* mh-pick.el:
+	* mh-print.el:
+	* mh-seq.el:
+	* mh-speed.el:
+	* mh-utils.el:
+	Follow commenting conventions. Don't use ;;; form so much, except
+	for headings. Precede headings with page feed. This was mostly
+	already done, so I made it a convention. Did not update copyright
+	on a couple of files since this was an insignificant change.
+
 2005-12-18  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-toolbar): Rename to mh-tool-bar.

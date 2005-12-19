@@ -1,4 +1,4 @@
-;;; mh-init.el --- MH-E initialization.
+;;; mh-init.el --- MH-E initialization
 
 ;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
@@ -43,14 +43,14 @@
 (mh-require-cl)
 (require 'mh-utils)
 
-;;; Avoid compiler warnings.
+;; Avoid compiler warnings.
 (eval-when-compile (defvar image-load-path))
 
-;;; Set for local environment:
-;;; mh-progs and mh-lib used to be set in paths.el, which tried to
-;;; figure out at build time which of several possible directories MH
-;;; was installed into.  But if you installed MH after building Emacs,
-;;; this would almost certainly be wrong, so now we do it at run time.
+;; Set for local environment:
+;; mh-progs and mh-lib used to be set in paths.el, which tried to
+;; figure out at build time which of several possible directories MH
+;; was installed into.  But if you installed MH after building Emacs,
+;; this would almost certainly be wrong, so now we do it at run time.
 
 (defvar mh-progs nil
   "Directory containing MH commands, such as inc, repl, and rmm.")
@@ -350,10 +350,10 @@ single \"class\" requirement with a \"color\" item, renames the requirement to
 
 (provide 'mh-init)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
 ;; arch-tag: e8372aeb-d803-42b1-9c95-3c93ad22f63c
 ;;; mh-init.el ends here

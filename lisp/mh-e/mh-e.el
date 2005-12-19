@@ -105,11 +105,12 @@
 The string is displayed after the folder's name.  nil for no annotation.")
 
 
+
 ;;; Scan Line Formats
 
-;;; Parameterize MH-E to work with different scan formats.  The defaults work
-;;; with the standard MH scan listings, in which the first 4 characters on
-;;; the line are the message number, followed by two places for notations.
+;; Parameterize MH-E to work with different scan formats.  The defaults work
+;; with the standard MH scan listings, in which the first 4 characters on
+;; the line are the message number, followed by two places for notations.
 
 ;; The following scan formats are passed to the scan program if the setting of
 ;; `mh-scan-format-file' is t. They are identical except the later one makes
@@ -482,6 +483,8 @@ is done highlighting.")
                                         ;is overwritten by `mh-note-seq'.
 
 (defvar mh-colors-available-flag nil)   ;Are colors available?
+
+
 
 ;;; Macros and generic functions:
 
@@ -1507,14 +1510,16 @@ Make it the current folder."
     (mh-index-read-data))
   (mh-make-folder-mode-line))
 
-;;; Ensure new buffers won't get this mode if default-major-mode is nil.
+;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)
 
 
 
-;;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
-;;; Menus for folder mode: folder, message, sequence (in that order)
-;;; folder-mode "Sequence" menu
+;;; Build mh-folder-mode menu
+
+;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
+;; Menus for folder mode: folder, message, sequence (in that order)
+;; folder-mode "Sequence" menu
 (easy-menu-define
   mh-folder-sequence-menu mh-folder-mode-map "Menu for MH-E folder-sequence."
   '("Sequence"
@@ -1535,7 +1540,7 @@ Make it the current folder."
     "--"
     ["Push State Out to MH"             mh-update-sequences t]))
 
-;;; folder-mode "Message" menu
+;; folder-mode "Message" menu
 (easy-menu-define
   mh-folder-message-menu mh-folder-mode-map "Menu for MH-E folder-message."
   '("Message"
@@ -1568,7 +1573,7 @@ Make it the current folder."
     ["Unpack Uuencoded Message..."      mh-store-msg (mh-get-msg-num nil)]
     ["Burst Digest Message"             mh-burst-digest (mh-get-msg-num nil)]))
 
-;;; folder-mode "Folder" menu
+;; folder-mode "Folder" menu
 (easy-menu-define
   mh-folder-folder-menu mh-folder-mode-map  "Menu for MH-E folder."
   '("Folder"
@@ -1786,7 +1791,7 @@ DESKTOP-BUFFER-MISC holds a list of miscellaneous info used by the
   (mh-visit-folder desktop-buffer-name)
   (current-buffer))
 
-;;; desktop-buffer-mode-handlers appeared in Emacs 22.
+;; desktop-buffer-mode-handlers appeared in Emacs 22.
 (if (fboundp 'desktop-buffer-mode-handlers)
     (add-to-list 'desktop-buffer-mode-handlers
                  '(mh-folder-mode . mh-restore-desktop-buffer)))
@@ -2478,7 +2483,7 @@ If INCLUDE-INTERNAL-FLAG non-nil, include MH-E internal sequences in list."
 
 
 
-;;; Build the folder-mode keymap:
+;;; Build mh-folder-mode keymap:
 
 (suppress-keymap mh-folder-mode-map)
 
@@ -2631,15 +2636,15 @@ If INCLUDE-INTERNAL-FLAG non-nil, include MH-E internal sequences in list."
 
 ;;; Help Messages
 
-;;; If you add a new prefix, add appropriate text to the nil key.
-;;;
-;;; In general, messages are grouped logically. Taking the main commands for
-;;; example, the first line is "ways to view messages," the second line is
-;;; "things you can do with messages", and the third is "composing" messages.
-;;;
-;;; When adding a new prefix, ensure that the help message contains "what" the
-;;; prefix is for. For example, if the word "folder" were not present in the
-;;; `F' entry, it would not be clear what these commands operated upon.
+;; If you add a new prefix, add appropriate text to the nil key.
+;;
+;; In general, messages are grouped logically. Taking the main commands for
+;; example, the first line is "ways to view messages," the second line is
+;; "things you can do with messages", and the third is "composing" messages.
+;;
+;; When adding a new prefix, ensure that the help message contains "what" the
+;; prefix is for. For example, if the word "folder" were not present in the
+;; `F' entry, it would not be clear what these commands operated upon.
 (defvar mh-help-messages
   '((nil "[i]nc, [.]show, [,]show all, [n]ext, [p]revious,\n"
          "[d]elete, [o]refile, e[x]ecute,\n"
@@ -2682,10 +2687,10 @@ well.")
 
 (provide 'mh-e)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: cce884de-bd37-4104-9963-e4439d5ed22b
+;; arch-tag: cce884de-bd37-4104-9963-e4439d5ed22b
 ;;; mh-e.el ends here
