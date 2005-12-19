@@ -293,14 +293,14 @@ enum event_kind
   DRAG_N_DROP_EVENT,		/* A drag-n-drop event is generated when
 				   files selected outside of Emacs are dropped
 				   onto an Emacs window.
-				   Currently used only on Windows NT.
 				   .modifiers holds the state of the
 				   modifier keys.
 				   .x and .y give the mouse position,
 				   in characters, within the window.
-				   .frame_or_window is a cons of the frame
-				   in which the drop was made and a list of
-				   the filenames of the dropped files.
+				   .frame_or_window is the frame in
+				   which the drop was made.
+				   .arg is a platform-dependent
+				   representation of the dropped items.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the click.  */
   USER_SIGNAL_EVENT,		/* A user signal.
