@@ -93,8 +93,9 @@ Boston, MA 02110-1301, USA.  */
 
 Lisp_Object Vx_toolkit_scroll_bars;
 
-/* If Non-nil, the text will be rendered using Core Graphics text rendering which may anti-alias the text.  */
-Lisp_Object Vmac_use_core_graphics;
+/* If non-zero, the text will be rendered using Core Graphics text
+   rendering which may anti-alias the text.  */
+int mac_use_core_graphics;
 
 
 /* Non-zero means that a HELP_EVENT has been generated since Emacs
@@ -104,6 +105,10 @@ static int any_help_event_p;
 
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
+
+/* Non-zero means make use of UNDERLINE_POSITION font properties.
+   (Not yet supported.)  */
+int x_use_underline_position_properties;
 
 /* This is a chain of structures for all the X displays currently in
    use.  */
@@ -199,8 +204,7 @@ extern EMACS_INT extra_keyboard_modifiers;
 
 /* The keysyms to use for the various modifiers.  */
 
-static Lisp_Object Qalt, Qhyper, Qsuper, Qcontrol,
-  Qmeta, Qmodifier_value;
+static Lisp_Object Qalt, Qhyper, Qsuper, Qcontrol, Qmeta, Qmodifier_value;
 
 extern int inhibit_window_system;
 
@@ -687,7 +691,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
 {
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   UInt32 textFlags, savedFlags;
-  if (!NILP(Vmac_use_core_graphics)) {
+  if (mac_use_core_graphics) {
     textFlags = kQDUseCGTextRendering;
     savedFlags = SwapQDTextFlags(textFlags);
   }
@@ -723,7 +727,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
       if (err == noErr)
 	{
 #ifdef MAC_OSX
-	  if (NILP (Vmac_use_core_graphics))
+	  if (!mac_use_core_graphics)
 	    {
 #endif
 	      mac_begin_clip (GC_CLIP_REGION (gc));
@@ -802,7 +806,7 @@ mac_draw_string_common (f, gc, x, y, buf, nchars, mode, bytes_per_char)
   if (mode != srcOr)
     RGBBackColor (GC_BACK_COLOR (FRAME_NORMAL_GC (f)));
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-  if (!NILP(Vmac_use_core_graphics))
+  if (mac_use_core_graphics)
     SwapQDTextFlags(savedFlags);
 #endif
 }
@@ -895,7 +899,7 @@ mac_draw_string_cg (f, gc, x, y, buf, nchars)
   CGGlyph *glyphs;
   CGSize *advances;
 
-  if (NILP (Vmac_use_core_graphics) || GC_FONT (gc)->cg_font == NULL)
+  if (!mac_use_core_graphics || GC_FONT (gc)->cg_font == NULL)
     return 0;
 
   port = GetWindowPort (FRAME_MAC_WINDOW (f));
@@ -8109,17 +8113,17 @@ Lisp_Object Vmac_function_modifier;
 Lisp_Object Vmac_emulate_three_button_mouse;
 
 #if USE_CARBON_EVENTS
-/* True if the mouse wheel button (i.e. button 4) should map to
+/* Non-zero if the mouse wheel button (i.e. button 4) should map to
    mouse-2, instead of mouse-3.  */
-Lisp_Object Vmac_wheel_button_is_mouse_2;
+int mac_wheel_button_is_mouse_2;
 
-/* If Non-nil, the Mac "Command" key is passed on to the Mac Toolbox
+/* If non-zero, the Mac "Command" key is passed on to the Mac Toolbox
    for processing before Emacs sees it.  */
-Lisp_Object Vmac_pass_command_to_system;
+int mac_pass_command_to_system;
 
-/* If Non-nil, the Mac "Control" key is passed on to the Mac Toolbox
+/* If non-zero, the Mac "Control" key is passed on to the Mac Toolbox
    for processing before Emacs sees it.  */
-Lisp_Object Vmac_pass_control_to_system;
+int mac_pass_control_to_system;
 #endif
 
 /* Points to the variable `inev' in the function XTread_socket.  It is
@@ -8175,8 +8179,6 @@ mac_to_emacs_modifiers (EventModifiers mods)
   unsigned int result = 0;
   if (mods & shiftKey)
     result |= shift_modifier;
-
-
 
   /* Deactivated to simplify configuration:
      if Vmac_option_modifier is non-NIL, we fully process the Option
@@ -8265,10 +8267,10 @@ mac_get_mouse_btn (EventRef ref)
 	return mac_get_emulated_btn(mods);
       }
     case kEventMouseButtonSecondary:
-      return NILP (Vmac_wheel_button_is_mouse_2) ? 1 : 2;
+      return mac_wheel_button_is_mouse_2 ? 2 : 1;
     case kEventMouseButtonTertiary:
     case 4:  /* 4 is the number for the mouse wheel button */
-      return NILP (Vmac_wheel_button_is_mouse_2) ? 2 : 1;
+      return mac_wheel_button_is_mouse_2 ? 1 : 2;
     default:
       return 0;
     }
@@ -8779,10 +8781,8 @@ mac_handle_command_event (next_handler, event, data)
 					 kEventParamKeyModifiers};
 	static EventParamType types[] = {typeHICommand,
 					 typeUInt32};
-	static UInt32 sizes[] = {sizeof (HICommand),
-				 sizeof (UInt32)};
 	err = create_apple_event_from_event_ref (event, 2, names, types,
-						 sizes, &apple_event);
+						 &apple_event);
 	if (err == noErr)
 	  {
 	    err = mac_store_apple_event (class_key, id_key, &apple_event);
@@ -8966,8 +8966,8 @@ mac_store_services_event (event)
     {
     case kEventServicePaste:
       id_key = Qpaste;
-      err = create_apple_event_from_event_ref (event, 0, NULL,
-					       NULL, NULL, &apple_event);
+      err = create_apple_event_from_event_ref (event, 0, NULL, NULL,
+					       &apple_event);
       break;
 
     case kEventServicePerform:
@@ -8976,12 +8976,10 @@ mac_store_services_event (event)
 					 kEventParamServiceUserData};
 	static EventParamType types[] = {typeCFStringRef,
 					 typeCFStringRef};
-	static UInt32 sizes[] = {sizeof (CFStringRef),
-				 sizeof (CFStringRef)};
 
 	id_key = Qperform;
 	err = create_apple_event_from_event_ref (event, 2, names, types,
-						 sizes, &apple_event);
+						 &apple_event);
       }
       break;
 
@@ -9191,8 +9189,8 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       XSETINT (event.x, mouse.h);
       XSETINT (event.y, mouse.v);
       XSETFRAME (frame, f);
-      event.frame_or_window = Fcons (frame, file_list);
-      event.arg = Qnil;
+      event.frame_or_window = frame;
+      event.arg = file_list;
       /* Post to the interrupt queue */
       kbd_buffer_store_event (&event);
       /* MAC_TODO: Mimic behavior of windows by switching contexts to Emacs */
@@ -9411,10 +9409,12 @@ convert_fn_keycode (EventRef eventRef, int keyCode, int *newCode)
 static int
 backtranslate_modified_keycode(int mods, int keycode, int def)
 {
-  if  (mods &
-       (controlKey |
-	(NILP (Vmac_option_modifier) ? 0 : optionKey) |
-	cmdKey))
+  EventModifiers mapped_modifiers =
+    (NILP (Vmac_control_modifier) ? 0 : controlKey)
+    | (NILP (Vmac_option_modifier) ? 0 : optionKey)
+    | (NILP (Vmac_command_modifier) ? 0 : cmdKey);
+
+  if (mods & mapped_modifiers)
     {
       /* This code comes from Keyboard Resource,
 	 Appendix C of IM - Text.  This is necessary
@@ -9429,14 +9429,15 @@ backtranslate_modified_keycode(int mods, int keycode, int def)
 	 to preserve key combinations translated by the OS
 	 such as Alt-3.
       */
-      /* mask off option and command */
-      int new_modifiers = mods & 0xe600;
+      /* Mask off modifier keys that are mapped to some Emacs
+	 modifiers.  */
+      int new_modifiers = mods & ~mapped_modifiers;
       /* set high byte of keycode to modifier high byte*/
       int new_keycode = keycode | new_modifiers;
       Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
       unsigned long some_state = 0;
       return (int) KeyTranslate (kchr_ptr, new_keycode,
-			   &some_state) & 0xff;
+				 &some_state) & 0xff;
       /* TO DO: Recognize two separate resulting characters, "for
 	 example, when the user presses Option-E followed by N, you
 	 can map this through the KeyTranslate function using the
@@ -9990,9 +9991,9 @@ XTread_socket (sd, expected, hold_quit)
 	       will pass back noErr, otherwise it will pass back
 	       "eventNotHandledErr" and we can process it
 	       normally.  */
-	    if ((!NILP (Vmac_pass_command_to_system)
+	    if ((mac_pass_command_to_system
 		 || !(er.modifiers & cmdKey))
-		&& (!NILP (Vmac_pass_control_to_system)
+		&& (mac_pass_control_to_system
 		    || !(er.modifiers & controlKey))
 		&& (NILP (Vmac_option_modifier)
 		    || !(er.modifiers & optionKey)))
@@ -10061,12 +10062,10 @@ XTread_socket (sd, expected, hold_quit)
 		}
 	      else
 		{
-
 		  inev.code =
 		    backtranslate_modified_keycode(er.modifiers, keycode,
 						   er.message & charCodeMask);
 		  inev.kind = ASCII_KEYSTROKE_EVENT;
-
 		}
 	  }
 
@@ -10710,6 +10709,18 @@ syms_of_macterm ()
   atsu_font_id_hash = Qnil;
 #endif
 
+  /* We don't yet support this, but defining this here avoids whining
+     from cus-start.el and other places, like "M-x set-variable".  */
+  DEFVAR_BOOL ("x-use-underline-position-properties",
+	       &x_use_underline_position_properties,
+     doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+nil means ignore them.  If you encounter fonts with bogus
+UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
+to 4.1, set this to nil.
+
+NOTE: Not supported on Mac yet.  */);
+  x_use_underline_position_properties = 0;
+
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
 #ifdef USE_TOOLKIT_SCROLL_BARS
@@ -10724,35 +10735,35 @@ syms_of_macterm ()
 /* Variables to configure modifier key assignment.  */
 
   DEFVAR_LISP ("mac-control-modifier", &Vmac_control_modifier,
-    doc: /* Modifier key assumed when the Mac control key is pressed.
-The value can be `alt', `control', `hyper', or `super' for the
+    doc: /* *Modifier key assumed when the Mac control key is pressed.
+The value can be `control', `meta', `alt', `hyper', or `super' for the
 respective modifier.  The default is `control'.  */);
   Vmac_control_modifier = Qcontrol;
 
   DEFVAR_LISP ("mac-option-modifier", &Vmac_option_modifier,
-    doc: /* Modifier key assumed when the Mac alt/option key is pressed.
-The value can be `alt', `control', `hyper', or `super' for the
+    doc: /* *Modifier key assumed when the Mac alt/option key is pressed.
+The value can be `control', `meta', `alt', `hyper', or `super' for the
 respective modifier.  If the value is nil then the key will act as the
 normal Mac control modifier, and the option key can be used to compose
 characters depending on the chosen Mac keyboard setting.  */);
   Vmac_option_modifier = Qnil;
 
   DEFVAR_LISP ("mac-command-modifier", &Vmac_command_modifier,
-    doc: /* Modifier key assumed when the Mac command key is pressed.
-The value can be `alt', `control', `hyper', or `super' for the
+    doc: /* *Modifier key assumed when the Mac command key is pressed.
+The value can be `control', `meta', `alt', `hyper', or `super' for the
 respective modifier.  The default is `meta'.  */);
   Vmac_command_modifier = Qmeta;
 
   DEFVAR_LISP ("mac-function-modifier", &Vmac_function_modifier,
-    doc: /* Modifier key assumed when the Mac function key is pressed.
-The value can be `alt', `control', `hyper', or `super' for the
+    doc: /* *Modifier key assumed when the Mac function key is pressed.
+The value can be `control', `meta', `alt', `hyper', or `super' for the
 respective modifier.  Note that remapping the function key may lead to
 unexpected results for some keys on non-US/GB keyboards.  */);
   Vmac_function_modifier = Qnil;
 
   DEFVAR_LISP ("mac-emulate-three-button-mouse",
 	       &Vmac_emulate_three_button_mouse,
-    doc: /* Specify a way of three button mouse emulation.
+    doc: /* *Specify a way of three button mouse emulation.
 The value can be nil, t, or the symbol `reverse'.
 nil means that no emulation should be done and the modifiers should be
 placed on the mouse-1 event.
@@ -10764,27 +10775,27 @@ mouse-3 and the command-key will register for mouse-2.  */);
   Vmac_emulate_three_button_mouse = Qnil;
 
 #if USE_CARBON_EVENTS
-  DEFVAR_LISP ("mac-wheel-button-is-mouse-2", &Vmac_wheel_button_is_mouse_2,
-   doc: /* Non-nil if the wheel button is mouse-2 and the right click mouse-3.
+  DEFVAR_BOOL ("mac-wheel-button-is-mouse-2", &mac_wheel_button_is_mouse_2,
+   doc: /* *Non-nil if the wheel button is mouse-2 and the right click mouse-3.
 Otherwise, the right click will be treated as mouse-2 and the wheel
 button will be mouse-3.  */);
-  Vmac_wheel_button_is_mouse_2 = Qt;
+  mac_wheel_button_is_mouse_2 = 1;
 
-  DEFVAR_LISP ("mac-pass-command-to-system", &Vmac_pass_command_to_system,
-   doc: /* Non-nil if command key presses are passed on to the Mac Toolbox.  */);
-  Vmac_pass_command_to_system = Qt;
+  DEFVAR_BOOL ("mac-pass-command-to-system", &mac_pass_command_to_system,
+   doc: /* *Non-nil if command key presses are passed on to the Mac Toolbox.  */);
+  mac_pass_command_to_system = 1;
 
-  DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
-   doc: /* Non-nil if control key presses are passed on to the Mac Toolbox.  */);
-  Vmac_pass_control_to_system = Qt;
+  DEFVAR_BOOL ("mac-pass-control-to-system", &mac_pass_control_to_system,
+   doc: /* *Non-nil if control key presses are passed on to the Mac Toolbox.  */);
+  mac_pass_control_to_system = 1;
 
 #endif
 
-  DEFVAR_LISP ("mac-allow-anti-aliasing", &Vmac_use_core_graphics,
-   doc: /* If non-nil, allow anti-aliasing.
+  DEFVAR_BOOL ("mac-allow-anti-aliasing", &mac_use_core_graphics,
+   doc: /* *If non-nil, allow anti-aliasing.
 The text will be rendered using Core Graphics text rendering which
 may anti-alias the text.  */);
-  Vmac_use_core_graphics = Qnil;
+  mac_use_core_graphics = 1;
 
   /* Register an entry for `mac-roman' so that it can be used when
      creating the terminal frame on Mac OS 9 before loading
