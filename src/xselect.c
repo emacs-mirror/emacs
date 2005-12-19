@@ -2727,11 +2727,11 @@ x_handle_dnd_message (f, event, dpyinfo, bufp)
 
   mouse_position_for_drop (f, &x, &y);
   bufp->kind = DRAG_N_DROP_EVENT;
-  bufp->frame_or_window = Fcons (frame, vec);
+  bufp->frame_or_window = frame;
   bufp->timestamp = CurrentTime;
   bufp->x = make_number (x);
   bufp->y = make_number (y);
-  bufp->arg = Qnil;
+  bufp->arg = vec;
   bufp->modifiers = 0;
 
   return 1;
