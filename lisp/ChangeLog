@@ -1,6 +1,14 @@
+2005-12-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (lazy-completion-table): Don't be fooled if the var holds
+	a "list" (lambda ...) rather than a real completion list.
+
+	* emacs-lisp/cl-extra.el (cl-macroexpand-all): Fix code-walk for
+	lexical-let when encountering ((lambda (...) ...) ...).
+
 2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
-	* progmodes/sh-script.el (sh-mode): 
+	* progmodes/sh-script.el (sh-mode):
 	* language/ethio-util.el (ethio-fidel-to-sera-mail-or-marker):
 	* textmodes/picture.el (picture-mode): Update docstrings.
 
@@ -15,8 +23,8 @@
 
 2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/edebug.el (edebug-safe-prin1-to-string): Capture
-	error from printing circular structures.
+	* emacs-lisp/edebug.el (edebug-safe-prin1-to-string):
+	Capture error from printing circular structures.
 
 2005-12-17  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
