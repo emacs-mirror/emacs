@@ -586,7 +586,7 @@ extern Lisp_Object mac_aedesc_to_lisp P_ ((AEDesc *));
 extern OSErr create_apple_event_from_event_ref P_ ((EventRef, UInt32,
 						    EventParamName *,
 						    EventParamType *,
-						    UInt32 *, AppleEvent *));
+						    AppleEvent *));
 extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
 extern CFStringRef cfstring_create_with_string P_ ((Lisp_Object));
 extern Lisp_Object cfdata_to_lisp P_ ((CFDataRef));
