@@ -1,3 +1,18 @@
+2005-12-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-edit.el (mac): New group.
+
+	* cus-start.el (all): Add user options in macterm.c.  Add test for
+	Mac-related built-ins.  Fix test for GTK-related built-ins.
+
+	* term/mac-win.el (mac-handle-language-change)
+	(mac-ae-open-documents, mac-ae-get-url, mac-services-open-file)
+	(mac-services-open-selection, mac-services-mail-selection)
+	(mac-services-mail-to, mac-services-insert-text)
+	(mac-dispatch-apple-event): Add docstrings.
+	(x-get-selection, mac-select-convert-to-string): Select coding
+	system from `utf-16be' and `utf-16le' using `byteorder'.
+
 2005-12-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (lazy-completion-table): Don't be fooled if the var holds
