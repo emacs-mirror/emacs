@@ -994,7 +994,7 @@ When a message is composed, the hooks `text-mode-hook' and
   ;; Enable undo since a show-mode buffer might have been reused.
   (buffer-enable-undo)
   (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map)
-  (mh-funcall-if-exists mh-toolbar-init :letter)
+  (mh-funcall-if-exists mh-tool-bar-init :letter)
   (make-local-variable 'font-lock-defaults)
   (cond
    ((or (equal mh-highlight-citation-style 'font-lock)

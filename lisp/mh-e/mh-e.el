@@ -1742,7 +1742,7 @@ messages in that region.
   (easy-menu-add mh-folder-message-menu)
   (easy-menu-add mh-folder-folder-menu)
   (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)
-  (mh-funcall-if-exists mh-toolbar-init :folder)
+  (mh-funcall-if-exists mh-tool-bar-init :folder)
   (if (and mh-xemacs-flag
            font-lock-auto-fontify)
       (turn-on-font-lock)))             ; Force font-lock in XEmacs.

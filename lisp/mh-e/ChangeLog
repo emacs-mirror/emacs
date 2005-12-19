@@ -1,3 +1,32 @@
+2005-12-18  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-toolbar): Rename to mh-tool-bar.
+	(mh-tool-bar-search-function): Sync docstrings with manual.
+	(mh-tool-bar-customize): Replace toolbar with tool bar in
+	docstring.
+	(mh-tool-bar-letter-help): Fix manual reference.
+	(mh-xemacs-use-toolbar-flag): Rename to
+	mh-xemacs-use-tool-bar-flag. Initialize to
+	mh-xemacs-has-tool-bar-flag. Sync docstrings with manual.
+	(mh-xemacs-toolbar-position): Rename to
+	mh-xemacs-tool-bar-position. Initialize to nil. Drop "no tool bar"
+	option (redundant) and change "Same As Default Tool Bar" setting
+	to nil. Sync docstrings with manual.
+	(mh-tool-bar-define): Replace toolbar with tool-bar or tool bar
+	depending on context.
+	(mh-toolbar-init): Rename to mh-tool-bar-init. Simplified
+	condition for calling set-specifier. Only look at the value of
+	mh-xemacs-use-tool-bar-flag.
+	(mh-tool-bar-folder-buttons, mh-tool-bar-letter-buttons): Sync
+	docstrings with manual.
+
+	* mh-comp.el (mh-letter-mode): Use mh-tool-bar-init instead of
+	mh-toolbar-init.
+
+	* mh-e.el (mh-folder-mode): Ditto.
+
+	* mh-utils.el (mh-show-mode): Ditto.
+
 2005-12-15  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-delete-msg): Sync docstrings with manual.

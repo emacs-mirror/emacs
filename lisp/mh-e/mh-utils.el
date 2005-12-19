@@ -1120,7 +1120,7 @@ See also `mh-folder-mode'.
            font-lock-auto-fontify)
       (turn-on-font-lock))
   (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)
-  (mh-funcall-if-exists mh-toolbar-init :show)
+  (mh-funcall-if-exists mh-tool-bar-init :show)
   (when mh-decode-mime-flag
     (mh-make-local-hook 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook 'mh-mime-cleanup nil t))
