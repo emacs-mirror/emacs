@@ -1,3 +1,7 @@
+2005-12-20  David Kastrup  <dak@gnu.org>
+
+	* faq.texi (AUCTeX): Update version and mailing list info.
+
 2005-12-19  Richard M. Stallman  <rms@gnu.org>
 
 	* programs.texi (Electric C): Delete the info about newline control.
@@ -382,7 +386,7 @@
 	* help.texi (Help Echo): By default, help echos are only shown on
 	mouse-over, not on point-over.
 
-2005-11-04  J,bi(Br,bt(Bme Marant  <jerome@marant.org>
+2005-11-04  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
 
 	* misc.texi (Shell Mode): Describe how to activate password echoing.
 
@@ -4185,7 +4189,7 @@
 	(../info/ses, ses.dvi): New targets.
 	* ses.texi: New file.
 
-2002-09-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-09-06  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* texinfo.tex: Update to texinfo 4.2.
 
@@ -4193,7 +4197,7 @@
 
 	* reftex.texi: Update to RefTeX 4.19.
 
-2002-06-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+2002-06-17  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add Tramp.
 	(../info/tramp, tramp.dvi): New targets.

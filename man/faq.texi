@@ -3844,10 +3844,12 @@ better than the one distributed with Emacs:
 AUC@TeX{} is a set of sophisticated major modes for @TeX{}, LaTeX,
 ConTeXt, and Texinfo offering context-sensitive syntax highlighting,
 indentation, formatting and folding, macro completion, @TeX{} shell
-functionality, and debugging.  Some important supplemental packages are
-described in @ref{Introduction, RefTeX, Introduction, reftex, Ref@TeX{}
-User Manual}, and
-@uref{http://preview-latex.sourceforge.net,preview-latex}.
+functionality, and debugging.  Be also sure to check out
+@ref{Introduction, RefTeX, Introduction, reftex, Ref@TeX{} User Manual}.
+Current versions of AUC@TeX{} include the
+@uref{http://www.gnu.org/software/auctex/preview-latex,preview-latex}
+package for WYSIWYG previews of various LaTeX constructs in the Emacs
+source buffer.
 
 @table @b
 
@@ -3859,7 +3861,7 @@ User Manual}, and
 @email{dak@@gnu.org, David Kastrup}
 
 @item Latest version
-11.54
+11.82
 
 @item Distribution
 @uref{ftp://ftp.gnu.org/pub/gnu/auctex/}
@@ -3868,8 +3870,8 @@ User Manual}, and
 @uref{http://www.gnu.org/software/auctex/}
 
 @item Mailing list:
-Subscription requests to @email{auc-tex-subscribe@@sunsite.dk}@*
-Submissions to @email{auc-tex@@sunsite.dk}
+Subscription requests to @email{auctex-request@@gnu.org}@*
+Submissions to @email{auctex@@gnu.org}
 
 @end table
 
