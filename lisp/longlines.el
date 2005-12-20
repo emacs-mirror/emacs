@@ -111,7 +111,7 @@ are indicated with a symbol."
 	(add-hook 'before-revert-hook 'longlines-before-revert-hook nil t)
         (make-local-variable 'buffer-substring-filters)
 	(set (make-local-variable 'isearch-search-fun-function)
-	     'longlinges-search-function)
+	     'longlines-search-function)
         (add-to-list 'buffer-substring-filters 'longlines-encode-string)
         (when longlines-wrap-follows-window-size
           (set (make-local-variable 'fill-column)
@@ -424,7 +424,7 @@ This is called by `window-size-change-functions'."
 
 ;; Isearch
 
-(defun longlinges-search-function ()
+(defun longlines-search-function ()
   (cond
    (isearch-word
     (if isearch-forward 'word-search-forward 'word-search-backward))
