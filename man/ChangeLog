@@ -1,3 +1,9 @@
+2005-12-19  Richard M. Stallman  <rms@gnu.org>
+
+	* programs.texi (Electric C): Delete the info about newline control.
+	(Other C Commands): Minor cleanup.
+	(Left Margin Paren): Minor cleanup.
+
 2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Easy Customization): Add "Browsing Custom" to menu.
