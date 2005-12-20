@@ -29,7 +29,15 @@
 
 (defvar comint-prompt-regexp)
 
-;;; Customizable settings
+(defgroup tooltip nil
+  "Customization group for the `tooltip' package."
+  :group 'help
+  :group 'gud
+  :group 'mouse
+  :group 'tools
+  :version "21.1"
+  :tag "Tool Tips")
+
 ;;; Switching tooltips on/off
 
 ;; We don't set track-mouse globally because this is a big redisplay
@@ -60,14 +68,8 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
   (setq show-help-function
 	(if tooltip-mode 'tooltip-show-help nil)))
 
-(defgroup tooltip nil
-  "Customization group for the `tooltip' package."
-  :group 'help
-  :group 'gud
-  :group 'mouse
-  :group 'tools
-  :version "21.1"
-  :tag "Tool Tips")
+
+;;; Customizable settings
 
 (defcustom tooltip-delay 0.7
   "Seconds to wait before displaying a tooltip the first time."
@@ -92,9 +94,10 @@ Do so after `tooltip-short-delay'."
 
 (defcustom tooltip-x-offset 5
   "X offset, in pixels, for the display of tooltips.
-The offset is relative to the position of the mouse.  It must
-be chosen so that the tooltip window doesn't contain the mouse
-when it pops up.
+The offset is the distance between the X position of the mouse and
+the left border of the tooltip window.  It must be chosen so that the
+tooltip window doesn't contain the mouse when it pops up, or it may
+interfere with clicking where you wish.
 
 If `tooltip-frame-parameters' includes the `left' parameter,
 the value of `tooltip-x-offset' is ignored."
@@ -103,9 +106,10 @@ the value of `tooltip-x-offset' is ignored."
 
 (defcustom tooltip-y-offset +20
   "Y offset, in pixels, for the display of tooltips.
-The offset is relative to the position of the mouse.  It must
-be chosen so that the tooltip window doesn't contain the mouse
-when it pops up.
+The offset is the distance between the Y position of the mouse and
+the top border of the tooltip window.  It must be chosen so that the
+tooltip window doesn't contain the mouse when it pops up, or it may
+interfere with clicking where you wish.
 
 If `tooltip-frame-parameters' includes the `top' parameter,
 the value of `tooltip-y-offset' is ignored."
