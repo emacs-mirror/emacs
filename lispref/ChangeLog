@@ -1,4 +1,8 @@
-005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* customize.texi (Common Keywords): Fix Texinfo usage.
+	(Group Definitions, Variable Definitions): Update for new
+	conventions for using `*' in docstrings.
 
 	* tips.texi (Documentation Tips): Update for new conventions for
 	using `*' in docstrings.
