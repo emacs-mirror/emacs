@@ -1,3 +1,10 @@
+2005-12-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* customize.texi (Type Keywords): Delete xref to "Text help-echo",
+	because it is confusing.  If the :help-echo keyword is a function,
+	it is not directly used as the :help-echo overlay property, as the
+	xref seems to suggest (it does not take the appropriate args).
+
 2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* customize.texi (Common Keywords): Fix Texinfo usage.
