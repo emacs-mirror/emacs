@@ -85,34 +85,22 @@ If the optional third argument FRAME is non-nil, use that frame's
 buffer list instead of the selected frame's buffer list.
 If no other buffer exists, the buffer `*scratch*' is returned."
   (setq frame (or frame (selected-frame)))
-  (or (get-next-valid-buffer (frame-parameter frame 'buried-buffer-list)
-			     buffer visible-ok frame)
-      (get-next-valid-buffer (nreverse (buffer-list frame))
-			     buffer visible-ok frame)
+  (or (get-next-valid-buffer (nreverse (buffer-list frame))
+ 			     buffer visible-ok frame)
       (progn
 	(set-buffer-major-mode (get-buffer-create "*scratch*"))
 	(get-buffer "*scratch*"))))
-
 (defun next-buffer ()
   "Switch to the next buffer in cyclic order."
   (interactive)
-  (let ((buffer (current-buffer))
-	(bbl (frame-parameter nil 'buried-buffer-list)))
+  (let ((buffer (current-buffer)))
     (switch-to-buffer (other-buffer buffer t))
-    (bury-buffer buffer)
-    (set-frame-parameter nil 'buried-buffer-list
-			 (cons buffer (delq buffer bbl)))))
+    (bury-buffer buffer)))
 
 (defun previous-buffer ()
   "Switch to the previous buffer in cyclic order."
   (interactive)
-  (let ((buffer (last-buffer (current-buffer) t))
-	(bbl (frame-parameter nil 'buried-buffer-list)))
-    (switch-to-buffer buffer)
-    ;; Clean up buried-buffer-list up to and including the chosen buffer.
-    (while (and bbl (not (eq (car bbl) buffer)))
-      (setq bbl (cdr bbl)))
-    (set-frame-parameter nil 'buried-buffer-list bbl)))
+  (switch-to-buffer (last-buffer (current-buffer) t)))
 
 
 ;;; next-error support framework

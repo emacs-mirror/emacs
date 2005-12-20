@@ -161,6 +161,10 @@ struct frame
   /* List of buffers viewed in this frame, for other-buffer.  */
   Lisp_Object buffer_list;
 
+  /* List of buffers that were viewed, then buried in this frame.  The
+     most recently buried buffer is first.  For last-buffer.  */
+  Lisp_Object buried_buffer_list;
+  
   /* A dummy window used to display menu bars under X when no X
      toolkit support is available.  */
   Lisp_Object menu_bar_window;
@@ -981,7 +985,7 @@ extern Lisp_Object selected_frame;
 
 extern Lisp_Object Qauto_raise, Qauto_lower;
 extern Lisp_Object Qborder_color, Qborder_width;
-extern Lisp_Object Qbuffer_predicate, Qbuffer_list;
+extern Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 extern Lisp_Object Qcursor_color, Qcursor_type;
 extern Lisp_Object Qfont;
 extern Lisp_Object Qbackground_color, Qforeground_color;

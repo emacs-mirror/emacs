@@ -107,7 +107,7 @@ Lisp_Object Qtitle, Qname;
 Lisp_Object Qunsplittable;
 Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
 Lisp_Object Qleft_fringe, Qright_fringe;
-Lisp_Object Qbuffer_predicate, Qbuffer_list;
+Lisp_Object Qbuffer_predicate, Qbuffer_list, Qburied_buffer_list;
 Lisp_Object Qtty_color_mode;
 Lisp_Object Qtty, Qtty_type;
 Lisp_Object Qwindow_system;
@@ -303,6 +303,7 @@ make_frame (mini_p)
   f->menu_bar_items_used = 0;
   f->buffer_predicate = Qnil;
   f->buffer_list = Qnil;
+  f->buried_buffer_list = Qnil;
   f->namebuf = 0;
   f->title = Qnil;
   f->menu_bar_window = Qnil;
@@ -2134,7 +2135,7 @@ set_frame_buffer_list (frame, list)
   XFRAME (frame)->buffer_list = list;
 }
 
-/* Discard BUFFER from the buffer-list of each frame.  */
+/* Discard BUFFER from the buffer-list and buried-buffer-list of each frame.  */
 
 void
 frames_discard_buffer (buffer)
@@ -2146,6 +2147,8 @@ frames_discard_buffer (buffer)
     {
       XFRAME (frame)->buffer_list
 	= Fdelq (buffer, XFRAME (frame)->buffer_list);
+      XFRAME (frame)->buried_buffer_list
+        = Fdelq (buffer, XFRAME (frame)->buried_buffer_list);
     }
 }
 
@@ -2233,11 +2236,16 @@ store_frame_param (f, prop, val)
 {
   register Lisp_Object old_alist_elt;
 
-  /* The buffer-alist parameter is stored in a special place and is
-     not in the alist.  */
+  /* The buffer-list parameters are stored in a special place and not
+     in the alist.  */
   if (EQ (prop, Qbuffer_list))
     {
       f->buffer_list = val;
+      return;
+    }
+  if (EQ (prop, Qburied_buffer_list))
+    {
+      f->buried_buffer_list = val;
       return;
     }
 
@@ -2379,6 +2387,7 @@ If FRAME is omitted, return information on the currently selected frame.  */)
 		   : FRAME_MINIBUF_WINDOW (f)));
   store_in_alist (&alist, Qunsplittable, (FRAME_NO_SPLIT_P (f) ? Qt : Qnil));
   store_in_alist (&alist, Qbuffer_list, frame_buffer_list (frame));
+  store_in_alist (&alist, Qburied_buffer_list, XFRAME (frame)->buried_buffer_list);
 
   /* I think this should be done with a hook.  */
 #ifdef HAVE_WINDOW_SYSTEM
@@ -4199,6 +4208,8 @@ syms_of_frame ()
   staticpro (&Qbuffer_predicate);
   Qbuffer_list = intern ("buffer-list");
   staticpro (&Qbuffer_list);
+  Qburied_buffer_list = intern ("buried-buffer-list");
+  staticpro (&Qburied_buffer_list);
   Qdisplay_type = intern ("display-type");
   staticpro (&Qdisplay_type);
   Qbackground_mode = intern ("background-mode");

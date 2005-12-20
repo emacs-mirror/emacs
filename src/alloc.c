@@ -5373,6 +5373,7 @@ mark_object (arg)
 	  mark_object (ptr->menu_bar_vector);
 	  mark_object (ptr->buffer_predicate);
 	  mark_object (ptr->buffer_list);
+	  mark_object (ptr->buried_buffer_list);
 	  mark_object (ptr->menu_bar_window);
 	  mark_object (ptr->tool_bar_window);
 	  mark_face_cache (ptr->face_cache);
