@@ -1,3 +1,7 @@
+2005-12-20  Juri Linkov  <juri@jurta.org>
+
+	* files.texi (VC Status): Put P and N near p and n.
+
 2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Tags): Boolean logic documented.

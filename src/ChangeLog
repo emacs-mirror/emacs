@@ -1,3 +1,14 @@
+2005-12-20  Juri Linkov  <juri@jurta.org>
+
+	* xmenu.c (Fx_popup_menu): Set Vmenu_updating_frame to f if
+	position is non-nil, else set it to nil.
+
+	* macmenu.c (Fx_popup_menu): Add `else' to set
+	Vmenu_updating_frame to nil only if position is nil.
+
+	* w32menu.c (Fx_popup_menu): Add `else' to set
+	Vmenu_updating_frame to nil only if position is nil.
+
 2005-12-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* keyboard.c (make_lispy_event): Drag-and-drop items are now

@@ -1,3 +1,13 @@
+2005-12-20  Juri Linkov  <juri@jurta.org>
+
+	* tooltip.el (tooltip): Move defgroup before define-minor-mode.
+	(tooltip-x-offset, tooltip-y-offset): Doc fix.
+
+	* menu-bar.el (menu-bar-menu-frame-live-and-visible-p)
+	(menu-bar-non-minibuffer-window-p): Instead of checking
+	display-multi-frame-p, use selected-frame when menu-updating-frame
+	is nil.
+
 2005-12-20  Davis Herring  <herring@lanl.gov>  (tiny change)
 
 	* align.el (align-rules-list): Use [ \t] instead of \s-
