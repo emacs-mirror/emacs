@@ -1,3 +1,14 @@
+2005-12-19  Stephen Gildea
+
+	* mh-customize.el (mh-after-commands-processed-hook): New variable.
+	(mh-before-commands-processed-hook): mh-folder-updated-hook, renamed.
+
+	* mh-e.el (mh-process-commands): Rename mh-folder-updated-hook 
+	to mh-before-commands-processed-hook, call new
+	mh-after-commands-processed-hook.
+	(mh-folders-changed): New variable (for use in
+	mh-after-commands-processed-hook).
+
 2005-12-19  Bill Wohler  <wohler@newt.com>
 
 	* mh-acros.el:

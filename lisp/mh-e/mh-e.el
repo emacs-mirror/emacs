@@ -460,6 +460,8 @@ is done highlighting.")
 
 (defvar mh-refile-list nil)             ;List of folder names in mh-seq-list.
 
+(defvar mh-folders-changed nil)         ;For mh-after-commands-processed-hook.
+
 (defvar mh-next-direction 'forward)     ;Direction to move to next message.
 
 (defvar mh-view-ops ())                 ;Stack of ops that change the folder
@@ -2149,13 +2151,15 @@ Called by functions like `mh-sort-folder', so also invalidate show buffer."
 
 (defun mh-process-commands (folder)
   "Process outstanding commands for FOLDER.
-The value of `mh-folder-updated-hook' is a list of functions to be called,
-with no arguments, before the commands are processed."
+The value of `mh-before-commands-processed-hook' is a list of functions
+to be called, with no arguments, before the commands are processed.
+After all cammands are processed, the functions in
+`mh-after-commands-processed-hook' are called with no arguments."
   (message "Processing deletes and refiles for %s..." folder)
   (set-buffer folder)
   (with-mh-folder-updating (nil)
-    ;; Run the hook while the lists are still valid
-    (run-hooks 'mh-folder-updated-hook)
+    ;; Run the before hook -- the refile and delete lists are still valid
+    (run-hooks 'mh-before-commands-processed-hook)
 
     ;; Update the unseen sequence if it exists
     (mh-update-unseen)
@@ -2222,17 +2226,23 @@ with no arguments, before the commands are processed."
         (when (mh-speed-flists-active-p)
           (apply #'mh-speed-flists t folders-changed))
         (cond ((memq 'unthread mh-view-ops) (mh-thread-inc folder (point-max)))
-              (mh-index-data (mh-index-insert-folder-headers)))))
+              (mh-index-data (mh-index-insert-folder-headers))))
 
-    (and (buffer-file-name (get-buffer mh-show-buffer))
-         (not (file-exists-p (buffer-file-name (get-buffer mh-show-buffer))))
-         ;; If "inc" were to put a new msg in this file,
-         ;; we would not notice, so mark it invalid now.
-         (mh-invalidate-show-buffer))
+      (and (buffer-file-name (get-buffer mh-show-buffer))
+           (not (file-exists-p (buffer-file-name (get-buffer mh-show-buffer))))
+           ;; If "inc" were to put a new msg in this file,
+           ;; we would not notice, so mark it invalid now.
+           (mh-invalidate-show-buffer))
 
-    (setq mh-seq-list (mh-read-folder-sequences mh-current-folder nil))
-    (mh-remove-all-notation)
-    (mh-notate-user-sequences)
+      (setq mh-seq-list (mh-read-folder-sequences mh-current-folder nil))
+      (mh-remove-all-notation)
+      (mh-notate-user-sequences)
+
+      ;; Run the after hook -- now folders-changed is valid, 
+      ;; but not the lists of specific messages.
+      (let ((mh-folders-changed folders-changed))
+        (run-hooks 'mh-after-commands-processed-hook)))
+
     (message "Processing deletes and refiles for %s...done" folder)))
 
 (defun mh-update-unseen ()

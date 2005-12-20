@@ -2294,14 +2294,23 @@ on his mail usage."
   :group 'mh-hooks
   :group 'mh-folder)
 
-(defcustom mh-folder-updated-hook nil
-  "Invoked when the folder actions (such as moves and deletes) are performed.
+(defcustom mh-before-commands-processed-hook nil
+  "Invoked before the folder actions (such as moves and deletes) are performed.
 Variables that are useful in this hook include `mh-delete-list' and
-`mh-refile-list' which can be used to see which changes are being made to
+`mh-refile-list' which can be used to see which changes will be made to
 current folder, `mh-current-folder'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
+
+(defcustom mh-after-commands-processed-hook nil
+  "Invoked after the folder actions (such as moves and deletes) are performed.
+Variables that are useful in this hook include `mh-folders-changed',
+which lists which folders were affected by deletes and refiles.  This
+list will always include the current folder, which is also available
+in `mh-current-folder'."
+  :type 'hook
+  :group 'mh-hooks)
 
 (defcustom mh-forward-hook nil
   "Invoked on the forwarded letter by \\<mh-folder-mode-map>\\[mh-forward]."
