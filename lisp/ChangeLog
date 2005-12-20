@@ -1,3 +1,9 @@
+2005-12-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* help-mode.el (help-customize-variable, help-customize-face): 
+	Don't pop help-xref-stack as help-follow no longer pushes
+	anything on to it.
+
 2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-agenda-custom-commands): New option.
