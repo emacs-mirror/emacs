@@ -1,3 +1,8 @@
+005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Documentation Tips): Update for new conventions for
+	using `*' in docstrings.
+
 2005-12-16  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Minibuffer Contents): Minor cleanup.
