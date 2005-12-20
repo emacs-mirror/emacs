@@ -559,7 +559,7 @@ The possible settings for `align-region-separate' are:
     ;; With a numeric prefix argument, or C-u, space delimited text
     ;; tables will be aligned.
     (text-column
-     (regexp   . "\\(^\\|\\S-\\)\\(\\s-+\\)\\(\\S-\\|$\\)")
+     (regexp   . "\\(^\\|\\S-\\)\\([ \t]+\\)\\(\\S-\\|$\\)")
      (group    . 2)
      (modes    . align-text-modes)
      (repeat   . t)
