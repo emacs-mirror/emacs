@@ -166,7 +166,6 @@ are indicated with a symbol."
 	(widen)
 	(longlines-encode-region (point-min) (point-max))))
     (remove-hook 'change-major-mode-hook 'longlines-mode-off t)
-    (remove-hook 'before-kill-functions 'longlines-encode-region t)
     (remove-hook 'after-change-functions 'longlines-after-change-function t)
     (remove-hook 'post-command-hook 'longlines-post-command-function t)
     (remove-hook 'before-revert-hook 'longlines-before-revert-hook t)
