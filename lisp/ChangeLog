@@ -1,3 +1,9 @@
+2005-12-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-file-re, log-view-message-re): Use shy groups.
+	(log-view-font-lock-keywords): Ajust subgroup numbers.
+	(log-view-current-tag): Don't hard code the number of subgroups.
+
 2005-12-20  Juri Linkov  <juri@jurta.org>
 
 	* tooltip.el (tooltip): Move defgroup before define-minor-mode.
@@ -29,8 +35,7 @@
 	(org-set-tags): Efficiency improvements.
 	(org-auto-align-tags): New option.
 	(org-todo, org-demote, org-promote): Realign tags.
-	(org-tags-completion-function): Use also "&" and "|" as
-	separators.
+	(org-tags-completion-function): Use also "&" and "|" as separators.
 	(org-org-menu): Agenda commands simplified.
 
 2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
@@ -7292,7 +7297,7 @@
 2005-08-26  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (version-list-<, version-list-<=, version-list-=):
-	Renamed from integer-list-*.
+	Rename from integer-list-*.
 	(version-list-not-zero): Likewise.  Fix while loop.
 	(version=): Use version-list-= instead of string-equal.
 
@@ -12439,8 +12444,7 @@
 	(multiple-value-bind, multiple-value-setq, shiftf):
 	Improve argument/docstring consistency.
 
-	* subr.el (focus-frame, unfocus-frame):
-	Revert deletion on 2005-05-01.
+	* subr.el (focus-frame, unfocus-frame): Revert deletion on 2005-05-01.
 
 2005-05-22  Andre Spiegel  <spiegel@gnu.org>
 
@@ -12573,8 +12577,7 @@
 	(subst-if-not, nsubst, nsubst-if, nsubst-if-not, sublis)
 	(nsublis, tree-equal): Improve argument/docstring consistency.
 
-	* subr.el (send-string, send-region):
-	Remove obsolescence declaration.
+	* subr.el (send-string, send-region): Remove obsolescence declaration.
 	(window-dot, set-window-dot, read-input, show-buffer)
 	(eval-current-buffer, string-to-int):
 	Add release number to obsolescence declarations.
@@ -12651,8 +12654,8 @@
 	* emacs-lisp/byte-run.el (eval-when-compile): Doc fix.
 
 	* emacs-lisp/bytecomp.el
-	(byte-compile-file-form-custom-declare-variable): Call
-	byte-compile-nogroup-warn if appropriate.
+	(byte-compile-file-form-custom-declare-variable):
+	Call byte-compile-nogroup-warn if appropriate.
 
 	* progmodes/compile.el (compilation-finish-function): Mark obsolete.
 	(compilation-set-window): Don't call left-fringe-p; do it directly.
