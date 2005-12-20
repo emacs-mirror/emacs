@@ -166,10 +166,12 @@ override this default by setting this user option:
 If this user option is set to @code{t} (the default), opening
 parentheses or braces at column zero always start defuns.  When it's
 @code{nil}, defuns are found by searching for parens or braces at the
-outermost level.
+outermost level.  Some major modes, including C and related modes, set
+@code{open-paren-in-column-0-is-defun-start} buffer-locally to
+@code{nil}
 @end defvar
 
-In buffers where @code{open-paren-in-column-0-is-defun-start} is
+  In modes where @code{open-paren-in-column-0-is-defun-start} is
 @code{t}, @strong{don't put an opening delimiter at the left margin
 unless it is a defun start}.  For instance, never put an
 open-parenthesis at the left margin in a Lisp file unless it is the
@@ -198,11 +200,6 @@ starting a defun.  Here's an example:
 highlights confusing opening delimiters (those that ought to be
 quoted) in bold red.
 
-  Some major modes, including C and related modes, set
-@code{open-paren-in-column-0-is-defun-start} buffer-locally to
-@code{nil}, thus freeing you from all these restrictions.  This makes
-some commands run more slowly, though.
-
   In the earliest days, the original Emacs found defuns by moving
 upward a level of parentheses or braces until there were no more
 levels to go up.  This always required scanning all the way back to
@@ -211,7 +208,7 @@ the operation, we changed Emacs to assume that any opening delimiter
 at the left margin is the start of a defun.  This heuristic is nearly
 always right, and avoids the need to scan back to the beginning of the
 buffer.  However, now that modern computers are so powerful, this
-scanning is rarely slow enough to annoy, so we've given you a way to
+scanning is rarely slow enough to annoy, so we've provided a way to
 disable the heuristic.
 
 @node Moving by Defuns
@@ -985,16 +982,12 @@ the brace rather than at @code{comment-column}.  For full details see
 
   If you are typing a comment and wish to continue it on another line,
 you can use the command @kbd{C-M-j} or @kbd{M-j}
-(@code{comment-indent-new-line}).  This terminates the comment you are
-typing, creates a new blank line afterward, and begins a new comment
-indented under the old one.  Or, if the language syntax permits
-comments to extend beyond ends of lines, it may instead continue the
-existing comment on the new blank line---this is controlled by the
-setting of @code{comment-multi-line} (@pxref{Options for Comments}).
-If point is not at the end of the line when you type the command, the
-text on the rest of the line becomes part of the new comment line.
-When Auto Fill mode is on, going past the fill column while typing a
-comment causes the comment to be continued in just this fashion.
+(@code{comment-indent-new-line}).  If @code{comment-multi-line}
+(@pxref{Options for Comments}) is non-@code{nil}, it moves to a new
+line within the comment.  Otherwise it closes the comment and starts a
+new comment on a new line.  When Auto Fill mode is on, going past the
+fill column while typing a comment causes the comment to be continued
+in just this fashion.
 
 @kindex C-c C-c (C mode)
 @findex comment-region
@@ -1568,7 +1561,7 @@ With prefix argument @var{n}, move @var{n} times.
 reindent the current line, and optionally also insert newlines.  The
 ``electric'' characters are @kbd{@{}, @kbd{@}}, @kbd{:}, @kbd{#},
 @kbd{;}, @kbd{,}, @kbd{<}, @kbd{>}, @kbd{/}, @kbd{*}, @kbd{(}, and
-@kbd{)}.  @xref{Electric Keys,,, ccmode, The CC Mode Manual}.
+@kbd{)}.
 
   You might find electric indentation inconvenient if you are editing
 chaotically indented code.  If you are new to CC Mode, you might find
@@ -1599,124 +1592,9 @@ prefix argument, this command turns the auto-newline feature on if the
 argument is positive, and off if it is negative.
 @end table
 
-  Usually the CC Mode style system (@pxref{Styles,,, ccmode, The CC
-Mode Manual}) configures the exact circumstances in which Emacs
-inserts auto-newlines, but you can configure this directly instead.
-Full details are at @ref{Custom Auto-newlines,,, ccmode, The CC Mode
-Manual}, but there is a short summary below.
-
-  The colon character is electric because that is appropriate for a
-single colon.  But when you want to insert a double colon in C++, the
-electric behavior of colon is inconvenient.  You can insert a double
-colon with no reindentation or newlines by typing @kbd{C-c :}:
-
-@table @kbd
-@item C-c :
-@ifinfo
-@c This uses ``colon'' instead of a literal `:' because Info cannot
-@c cope with a `:' in a menu
-@kindex C-c @key{colon} @r{(C mode)}
-@end ifinfo
-@ifnotinfo
-@kindex C-c : @r{(C mode)}
-@end ifnotinfo
-@findex c-scope-operator
-Insert a double colon scope operator at point, without reindenting the
-line or adding any newlines (@code{c-scope-operator}).
-@end table
-
-@vindex c-electric-pound-behavior
-  The electric @kbd{#} key reindents the line if it appears to be the
-beginning of a preprocessor directive.  This happens when the value of
-@code{c-electric-pound-behavior} is @code{(alignleft)}.  You can turn
-this feature off by setting @code{c-electric-pound-behavior} to
-@code{nil}.
-
-@vindex c-hanging-braces-alist
-   The variable @code{c-hanging-braces-alist} controls the insertion of
-newlines before and after inserted braces.  It is an association list
-with elements of the following form: @code{(@var{syntactic-symbol}
-. @var{nl-list})}.  Most of the syntactic symbols that appear in
-@code{c-offsets-alist} are meaningful here as well.
-
-   The list @var{nl-list} may contain either of the symbols
-@code{before} or @code{after}, or both; or it may be @code{nil}.  When a
-brace is inserted, the syntactic context it defines is looked up in
-@code{c-hanging-braces-alist}; if it is found, the @var{nl-list} is used
-to determine where newlines are inserted: either before the brace,
-after, or both.  If not found, the default is to insert a newline both
-before and after braces.
-
-@vindex c-hanging-colons-alist
-   The variable @code{c-hanging-colons-alist} controls the insertion of
-newlines before and after inserted colons.  It is an association list
-with elements of the following form: @code{(@var{syntactic-symbol}
-. @var{nl-list})}.  The list @var{nl-list} may contain either of the
-symbols @code{before} or @code{after}, or both; or it may be @code{nil}.
-
-   When a colon is inserted, the syntactic symbol it defines is looked
-up in this list, and if found, the @var{nl-list} is used to determine
-where newlines are inserted: either before the brace, after, or both.
-If the syntactic symbol is not found in this list, no newlines are
-inserted.
-
-@vindex c-cleanup-list
-   Electric characters can also delete newlines automatically when the
-auto-newline feature is enabled.  This feature makes auto-newline more
-acceptable, by deleting the newlines in the most common cases where
-you do not want them.  Emacs can recognize several cases in which
-deleting a newline might be desirable; by setting the variable
-@code{c-cleanup-list}, you can specify @emph{which} of these cases
-that should happen.  @xref{Clean-ups,,, ccmode, The CC Mode Manual}.
-The variable's value is a list of symbols, each describing one case
-for possible deletion of a newline.  Here is a summary of the
-meaningful symbols and their meanings:
-
-@table @code
-@item brace-catch-brace
-Clean up @samp{@} catch (@var{condition}) @{} constructs by placing the
-entire construct on a single line.  The clean-up occurs when you type
-the @samp{@{}, if there is nothing between the braces aside from
-@code{catch} and @var{condition}.
-
-@item brace-else-brace
-Clean up @samp{@} else @{} constructs by placing the entire construct on
-a single line.  The clean-up occurs when you type the @samp{@{} after
-the @code{else}, but only if there is nothing but white space between
-the braces and the @code{else}.
-
-@item brace-elseif-brace
-Clean up @samp{@} else if (@dots{}) @{} constructs by placing the entire
-construct on a single line.  The clean-up occurs when you type the
-@samp{@{}, if there is nothing but white space between the @samp{@}} and
-@samp{@{} aside from the keywords and the @code{if}-condition.
-
-@item empty-defun-braces
-Clean up empty defun braces by placing the braces on the same
-line.  Clean-up occurs when you type the closing brace.
-
-@item defun-close-semi
-Clean up the semicolon after a @code{struct} or similar type
-declaration, by placing the semicolon on the same line as the closing
-brace.  Clean-up occurs when you type the semicolon.
-
-@item list-close-comma
-Clean up commas following braces in array and aggregate
-initializers.  Clean-up occurs when you type the comma.
-
-@item one-line-defun
-Remove space and newlines from a defun if this would leave it short
-enough to fit on a single line.  This is useful for AWK pattern/action
-pairs.  ``Short enough'' means not longer than the value of the user
-option @code{c-max-one-liner-length}.  Clean-up occurs when you type
-the closing brace.
-
-@item scope-operator
-Clean up double colons which may designate a C++ scope operator, by
-placing the colons together.  Clean-up occurs when you type the second
-colon, but only when the two colons are separated by nothing but
-whitespace.
-@end table
+  Usually the CC Mode style configures the exact circumstances in
+which Emacs inserts auto-newlines.  You can also configure this
+directly.  @xref{Custom Auto-newlines,,, ccmode, The CC Mode Manual}.
 
 @node Hungry Delete
 @subsection Hungry Delete Feature in C
@@ -1776,11 +1654,12 @@ hungry-delete feature is enabled.
 @item C-c C-w
 @itemx M-x c-subword-mode
 @findex c-subword-mode
-Enable (or disable) @dfn{subword mode} - Emacs's word commands then
-recognize upper case letters in @samp{StudlyCapsIdentifiers} as word
-boundaries.  This is indicated by the flag @samp{/w} on the mode line
-after the mode name (e.g. @samp{C/law}).  You can even use @kbd{M-x
-c-subword-mode} in non-CC Mode buffers.
+Enable (or disable) @dfn{subword mode}.  In subword mode, Emacs's word
+commands then recognize upper case letters in
+@samp{StudlyCapsIdentifiers} as word boundaries.  This is indicated by
+the flag @samp{/w} on the mode line after the mode name
+(e.g. @samp{C/law}).  You can even use @kbd{M-x c-subword-mode} in
+non-CC Mode buffers.
 
 @item M-x c-context-line-break
 @findex c-context-line-break
