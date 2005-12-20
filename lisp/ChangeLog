@@ -1,6 +1,11 @@
+2005-12-20  Davis Herring  <herring@lanl.gov>  (tiny change)
+
+	* align.el (align-rules-list): Use [ \t] instead of \s-
+	for column separators in text mode.
+
 2005-12-20  Nick Roberts  <nickrob@snap.net.nz>
 
-	* help-mode.el (help-customize-variable, help-customize-face): 
+	* help-mode.el (help-customize-variable, help-customize-face):
 	Don't pop help-xref-stack as help-follow no longer pushes
 	anything on to it.
 
