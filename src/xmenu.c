@@ -899,8 +899,11 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
       xpos += XINT (x);
       ypos += XINT (y);
+
+      XSETFRAME (Vmenu_updating_frame, f);
     }
-  Vmenu_updating_frame = Qnil;
+  else
+    Vmenu_updating_frame = Qnil;
 #endif /* HAVE_MENUS */
 
   record_unwind_protect (unuse_menu_items, Qnil);
