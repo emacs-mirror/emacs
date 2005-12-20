@@ -1,6 +1,6 @@
 2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Tags): Booolean logic documented.
+	* org.texi: (Tags): Boolean logic documented.
 	(Agenda Views): Document custom commands.
 
 2005-12-20  David Kastrup  <dak@gnu.org>
