@@ -240,7 +240,8 @@ to the FSF.
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
 
-** Support simultaneous tty and X frames.
+** Support simultaneous tty and X frames.  [See the multi-tty branch of Emacs 
+  at http://lorentey.hu/project/emacs.]
 
 ** Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
   not now feasible, given Gnus maintenance decisions.  fx looked at
