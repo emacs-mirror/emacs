@@ -1,3 +1,34 @@
+2005-12-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (Qmac_apple_event): Add extern.
+	(set_frame_menubar, mac_menu_show keymp_panes)
+	(single_keymap_panes, list_of_panes, list_of_item)
+	(single_menu_item): Add argument types to prototypes.
+	(mac_dialog_show) [HAVE_DIALOGS]: Likewise.
+	(struct skp): New struct (from xmenu.c).
+	(single_keymap_panes, single_menu_item, list_of_panes)
+	(list_of_item): Sync with xmenu.c.
+	(Fx_popup_menu, Fx_popup_dialog): Likewise.  Don't get window from
+	POSITION if it is mac-apple-event event.
+	(menubar_selection_callback): Don't use menu_command_in_progress.
+	(set_frame_menubar): First parse all submenus, then make
+	widget_value trees from them.  Don't allocate any widget_value
+	objects until we are done with the parsing.
+	(parse_single_submenu, digest_single_submenu): New functions.
+	(single_submenu): Function deleted, replaced by those two.
+	(install_menu_quit_handler) [HAVE_CANCELMENUTRACKING]: Don't
+	create or dispose of EventHandlerUPP.  Install hander to all submenus.
+	(mac_menu_show) [!HAVE_MULTILINGUAL_MENU]: Use ENCODE_MENU_STRING
+	instead of ENCODE_SYSTEM.
+	(free_frame_menubar, fill_submenu, fill_menu): Don't use NULL for
+	integer values.
+	[HAVE_DIALOGS] (mac_dialog_show): Sync with xdialog_show (in xmenu.c).
+	(add_menu_item) [TARGET_API_MAC_CARBON]: Use CFString functions to
+	format menu item string.  Don't use NULL for integer value.
+
+	* macterm.h (struct mac_output): Remove unused member
+	menu_command_in_progress.
+
 2005-12-20  Juri Linkov  <juri@jurta.org>
 
 	* xmenu.c (Fx_popup_menu): Set Vmenu_updating_frame to f if
