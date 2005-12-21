@@ -1,3 +1,8 @@
+2005-12-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-modes, gud-tooltip-display): 
+	Delete defcustom variable :tag names.
+
 2005-12-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-view.el (log-view-file-re, log-view-message-re): Use shy groups.
