@@ -322,9 +322,6 @@ struct mac_output {
   /* Nonzero means menubar is currently active.  */
   char menubar_active;
 
-  /* Nonzero means a menu command is being processed.  */
-  char menu_command_in_progress;
-
   /* Relief GCs, colors etc.  */
   struct relief
   {
