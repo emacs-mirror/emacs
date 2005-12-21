@@ -3263,7 +3263,6 @@ Treats actions as defuns."
 (defcustom gud-tooltip-modes '(gud-mode c-mode c++-mode fortran-mode)
   "List of modes for which to enable GUD tooltips."
   :type 'sexp
-  :tag "GUD modes"
   :group 'gud
   :group 'tooltip)
 
@@ -3275,7 +3274,6 @@ Treats actions as defuns."
 Forms in the list are combined with AND.  The default is to display
 only tooltips in the buffer containing the overlay arrow."
   :type 'sexp
-  :tag "GUD buffers predicate"
   :group 'gud
   :group 'tooltip)
 
