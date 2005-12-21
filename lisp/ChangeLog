@@ -1,6 +1,11 @@
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't call
+	delete-windows-on with an inexistent buffer.
+
 2005-12-22  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gud-tooltip-modes, gud-tooltip-display): 
+	* progmodes/gud.el (gud-tooltip-modes, gud-tooltip-display):
 	Delete defcustom variable :tag names.
 
 2005-12-20  Stefan Monnier  <monnier@iro.umontreal.ca>
