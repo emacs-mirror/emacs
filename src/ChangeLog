@@ -1,3 +1,8 @@
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Fdisplay_completion_list): Use XCAR/XCDR.
+	(Fminibuffer_completion_help): Remove duplicates before display.
+
 2005-12-21  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* print.c (print_preprocess): Don't loose print_depth levels while
@@ -61,15 +66,15 @@
 	(x_use_underline_position_properties): Undo 2005-07-13 change.
 	(syms_of_macterm) <x-use-underline-position-properties>: Likewise.
 	(mac_use_core_graphics, mac_wheel_button_is_mouse_2)
-	(mac_pass_command_to_system, mac_pass_control_to_system): New
-	boolean variables renamed from Lisp_Object ones
+	(mac_pass_command_to_system, mac_pass_control_to_system):
+	New boolean variables renamed from Lisp_Object ones
 	Vmac_use_core_graphics, Vmac_wheel_button_is_mouse_2,
-	Vmac_pass_command_to_system, and Vmac_pass_control_to_system.  All
-	uses changed.
+	Vmac_pass_command_to_system, and Vmac_pass_control_to_system.
+	All uses changed.
 	(syms_of_macterm): DEFVAR_BOOL them.  Remove previous DEFVAR_LISPs.
 	Make them user options.
-	(mac_handle_command_event, mac_store_services_event): Call
-	create_apple_event_from_event_ref without 5th argument.
+	(mac_handle_command_event, mac_store_services_event):
+	Call create_apple_event_from_event_ref without 5th argument.
 	(backtranslate_modified_keycode): Mask off modifier keys that are
 	mapped to some Emacs modifiers before passing it to KeyTranslate.
 	(syms_of_macterm): Make variables `mac-emulate-three-button-mouse',
@@ -77,8 +82,8 @@
 	Fix docstrings of `mac-*-modifier'.
 
 	* mac.c (create_apple_event_from_event_ref): Remove arg `types'.
-	(do_applescript): Change argument types to Lisp_Object.  All uses
-	changed.
+	(do_applescript): Change argument types to Lisp_Object.
+	All uses changed.
 
 	* macterm.h (create_apple_event_from_event_ref): Remove 5th
 	argument from extern.
@@ -121,9 +126,9 @@
 
 	* xfns.c (compute_tip_xy): Handle negative dx and dy.
 
-	* w32fns.c (compute_tip_xy): Ditto
+	* w32fns.c (compute_tip_xy): Ditto.
 
-	* macfns.c (compute_tip_xy): Ditto
+	* macfns.c (compute_tip_xy): Ditto.
 
 2005-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -201,8 +206,7 @@
 	* mac.c (Qundecoded_file_name): New variable.
 	(syms_of_mac): Initialize it.
 	(mac_aelist_to_lisp, mac_aedesc_to_lisp): New functions.
-	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): New
-	function.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): New fun.
 	(Fmac_coerce_ae_data): New defun.
 	(syms_of_mac): Defsubr it.
 
