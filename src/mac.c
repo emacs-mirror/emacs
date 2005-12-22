@@ -4114,9 +4114,12 @@ Each type should be a string of length 4 or the symbol
 	  CFRelease (url);
 	}
       if (data)
-	err = AECoercePtr (src_desc_type, CFDataGetBytePtr (data),
-			   CFDataGetLength (data),
-			   dst_desc_type, &dst_desc);
+	{
+	  err = AECoercePtr (src_desc_type, CFDataGetBytePtr (data),
+			     CFDataGetLength (data),
+			     dst_desc_type, &dst_desc);
+	  CFRelease (data);
+	}
       else
 	err = memFullErr;
 #else
