@@ -153,8 +153,8 @@
 ;;
 ;;  (add-hook 'foo-mode-hook
 ;;   (lambda ()
-;;     (make-local-variable 'font-lock-defaults)
-;;     (setq font-lock-defaults '(foo-font-lock-keywords t))))
+;;     (set (make-local-variable 'font-lock-defaults)
+;;          '(foo-font-lock-keywords t))))
 
 ;;; Adding Font Lock support for modes:
 
@@ -174,8 +174,8 @@
 ;;
 ;; and within `bar-mode' there could be:
 ;;
-;;  (make-local-variable 'font-lock-defaults)
-;;  (setq font-lock-defaults '(bar-font-lock-keywords nil t))
+;;  (set (make-local-variable 'font-lock-defaults)
+;;       '(bar-font-lock-keywords nil t))
 
 ;; What is fontification for?  You might say, "It's to make my code look nice."
 ;; I think it should be for adding information in the form of cues.  These cues
@@ -723,8 +723,8 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 					  (append keywords old)))))
 	   ;; If the keywords were compiled before, compile them again.
 	   (if was-compiled
-	       (set (make-local-variable 'font-lock-keywords)
-		    (font-lock-compile-keywords font-lock-keywords t)))))))
+	       (setq font-lock-keywords
+                     (font-lock-compile-keywords font-lock-keywords t)))))))
 
 (defun font-lock-update-removed-keyword-alist (mode keywords how)
   "Update `font-lock-removed-keywords-alist' when adding new KEYWORDS to MODE."
@@ -830,8 +830,8 @@ happens, so the major mode can be corrected."
 
 	   ;; If the keywords were compiled before, compile them again.
 	   (if was-compiled
-	       (set (make-local-variable 'font-lock-keywords)
-		    (font-lock-compile-keywords font-lock-keywords t)))))))
+	       (setq font-lock-keywords
+                     (font-lock-compile-keywords font-lock-keywords t)))))))
 
 ;;; Font Lock Support mode.
 
@@ -1001,8 +1001,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	(when verbose
 	  (format "Fontifying %s..." (buffer-name)))
       ;; Make sure we have the right `font-lock-keywords' etc.
-      (unless font-lock-mode
-	(font-lock-set-defaults))
+      (font-lock-set-defaults)
       ;; Make sure we fontify etc. in the whole buffer.
       (save-restriction
 	(widen)
@@ -1574,9 +1573,9 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
   (cond ((not (and (listp keywords) (symbolp (car keywords))))
 	 keywords)
 	((numberp level)
-	 (or (nth level keywords) (car (reverse keywords))))
+	 (or (nth level keywords) (car (last keywords))))
 	((eq level t)
-	 (car (reverse keywords)))
+	 (car (last keywords)))
 	(t
 	 (car keywords))))
 
@@ -1642,8 +1641,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 	(font-lock-remove-keywords nil removed-keywords))
       ;; Now compile the keywords.
       (unless (eq (car font-lock-keywords) t)
-	(set (make-local-variable 'font-lock-keywords)
-	     (font-lock-compile-keywords font-lock-keywords t))))))
+	(setq font-lock-keywords
+              (font-lock-compile-keywords font-lock-keywords t))))))
 
 ;;; Colour etc. support.
 

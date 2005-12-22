@@ -1,3 +1,13 @@
+2005-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-default-fontify-buffer): Try and set-defaults
+	even if font-lock-mode is non-nil since it may be t without having
+	turned on font-lock-mode-internal.
+	(font-lock-choose-keywords): Minor optimization.
+	(font-lock-add-keywords, font-lock-remove-keywords)
+	(font-lock-set-defaults): Don't call make-local-variable on a variable
+	that we know to already be local.
+
 2005-12-22  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't print progress
