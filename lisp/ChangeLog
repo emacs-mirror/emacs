@@ -1,3 +1,8 @@
+2005-12-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't print progress
+	messages if in the minibuffer.
+
 2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/flyspell.el (flyspell-check-word-p): Don't quote - in a RE.

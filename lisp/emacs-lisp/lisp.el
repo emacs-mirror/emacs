@@ -572,29 +572,34 @@ considered."
 	      ((not (string= pattern completion))
 	       (delete-region beg end)
 	       (insert completion)
-               ;; Don't leave around a completions buffer that's outofdate.
-               (let ((win (get-buffer-window "*Completions*" 0)))
-                 (if win (with-selected-window win (bury-buffer)))))
+	       ;; Don't leave around a completions buffer that's out of date.
+	       (let ((win (get-buffer-window "*Completions*" 0)))
+		 (if win (with-selected-window win (bury-buffer)))))
 	      (t
-	       (message "Making completion list...")
-	       (let ((list (all-completions pattern obarray predicate)))
-		 (setq list (sort list 'string<))
-		 (or (eq predicate 'fboundp)
-		     (let (new)
-		       (while list
-			 (setq new (cons (if (fboundp (intern (car list)))
-					     (list (car list) " <f>")
-					   (car list))
-					 new))
-			 (setq list (cdr list)))
-		       (setq list (nreverse new))))
-		 (if (> (length list) 1)
-		     (with-output-to-temp-buffer "*Completions*"
-		       (display-completion-list list pattern))
-                   ;; Don't leave around a completions buffer that's outofdate.
-                   (let ((win (get-buffer-window "*Completions*" 0)))
-                     (if win (with-selected-window win (bury-buffer))))))
-	       (message "Making completion list...%s" "done")))))))
+	       (let ((minibuf-is-in-use
+		      (eq (minibuffer-window) (selected-window))))
+		 (unless minibuf-is-in-use
+		   (message "Making completion list..."))
+		 (let ((list (all-completions pattern obarray predicate)))
+		   (setq list (sort list 'string<))
+		   (or (eq predicate 'fboundp)
+		       (let (new)
+			 (while list
+			   (setq new (cons (if (fboundp (intern (car list)))
+					       (list (car list) " <f>")
+					     (car list))
+					   new))
+			   (setq list (cdr list)))
+			 (setq list (nreverse new))))
+		   (if (> (length list) 1)
+		       (with-output-to-temp-buffer "*Completions*"
+			 (display-completion-list list pattern))
+		     ;; Don't leave around a completions buffer that's
+		     ;; out of date.
+		     (let ((win (get-buffer-window "*Completions*" 0)))
+		       (if win (with-selected-window win (bury-buffer))))))
+		 (unless minibuf-is-in-use
+		   (message "Making completion list...%s" "done")))))))))
 
 ;; arch-tag: aa7fa8a4-2e6f-4e9b-9cd9-fef06340e67e
 ;;; lisp.el ends here
