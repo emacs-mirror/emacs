@@ -1,3 +1,9 @@
+2005-12-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Select Buffer): Change order in table to make
+	"Similar" refer to the correct item.
+	(Indirect Buffers): Minor rewording.
+
 2005-12-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* widget.texi (atoms): Delete obsolete remark about `file' widget.
