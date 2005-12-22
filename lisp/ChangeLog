@@ -1,3 +1,7 @@
+2005-12-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* wid-edit.el (file, directory): Doc fixes for the `define-widget's.
+
 2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't call
