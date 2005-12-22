@@ -5,7 +5,7 @@
 
 2005-12-21  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
-	* print.c (print_preprocess): Don't loose print_depth levels while
+	* print.c (print_preprocess): Don't lose print_depth levels while
 	iterating.
 
 2005-12-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
