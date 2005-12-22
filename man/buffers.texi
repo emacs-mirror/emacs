@@ -67,16 +67,16 @@ megabytes.
 @table @kbd
 @item C-x b @var{buffer} @key{RET}
 Select or create a buffer named @var{buffer} (@code{switch-to-buffer}).
-@item C-x @key{LEFT}
-Select the previous buffer in the list of existing buffers.
-@item C-x @key{RIGHT}
-Select the next buffer in the list of existing buffers.
 @item C-x 4 b @var{buffer} @key{RET}
 Similar, but select @var{buffer} in another window
 (@code{switch-to-buffer-other-window}).
 @item C-x 5 b @var{buffer} @key{RET}
 Similar, but select @var{buffer} in a separate frame
 (@code{switch-to-buffer-other-frame}).
+@item C-x @key{LEFT}
+Select the previous buffer in the list of existing buffers.
+@item C-x @key{RIGHT}
+Select the next buffer in the list of existing buffers.
 @item C-u M-g M-g
 @itemx C-u M-g g
 Read a number @var{n} and move to line @var{n} in the most recently
@@ -530,11 +530,10 @@ outline.  @xref{Outline Views}.
 @kbd{M-x clone-indirect-buffer}.  It creates and selects an indirect
 buffer whose base buffer is the current buffer.  With a numeric
 argument, it prompts for the name of the indirect buffer; otherwise it
-defaults to the name of the current buffer, modifying it by adding a
-@samp{<@var{n}>} suffix if required.  @kbd{C-x 4 c}
-(@code{clone-indirect-buffer-other-window}) works like @kbd{M-x
-clone-indirect-buffer}, but it selects the new buffer in another
-window.
+uses the name of the current buffer, with a @samp{<@var{n}>} suffix
+added.  @kbd{C-x 4 c} (@code{clone-indirect-buffer-other-window})
+works like @kbd{M-x clone-indirect-buffer}, but it selects the new
+buffer in another window.
 
   The more general way to make an indirect buffer is with the command
 @kbd{M-x make-indirect-buffer}.  It creates an indirect buffer from
