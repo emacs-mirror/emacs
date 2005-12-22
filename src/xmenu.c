@@ -3343,6 +3343,11 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       return Qnil;
     }
 
+  /* Don't GC while we prepare and show the menu,
+     because we give the oldxmenu library pointers to the
+     contents of strings.  */
+  inhibit_garbage_collection ();
+
 #ifdef HAVE_X_WINDOWS
   /* Adjust coordinates to relative to the outer (window manager) window.  */
   x += FRAME_OUTER_TO_INNER_DIFF_X (f);
