@@ -1,3 +1,7 @@
+2005-12-20  Richard M. Stallman  <rms@gnu.org>
+
+	* help.texi (Help Functions): Update documentation of `apropos'.
+
 2005-12-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* customize.texi (Type Keywords): Delete xref to "Text help-echo",
