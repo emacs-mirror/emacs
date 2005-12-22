@@ -1,3 +1,29 @@
+2005-12-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (Fmac_coerce_ae_data) [MAC_OSX]: Fix memory leak.
+
+	* macgui.h (XCharStruct): Remove member `valid_p'.
+	(STORE_XCHARSTRUCT): Don't set member `valid_p'.
+	(XCharStructRow): New typedef.
+	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID): New
+	macros.
+	(struct MacFontStruct): Add member `bounds'.  Remove member
+	`per_char'.  All uses for QuichDraw Text fonts are changed to
+	`bounds.per_char'.  ATSUI font bounds are represented as an array
+	`bounds.rows' of XCharStructRow's, each of which consists of a
+	bitmap of valid entries and an array of char bounds.
+
+	* macterm.c (mac_per_char_metric): Add prototype.
+	(x_per_char_metric) [USE_CG_TEXT_DRAWING]: Remove prototype.
+	(mac_query_char_extents): New function.
+	(x_per_char_metric): Use it.
+	(XLoadQueryFont): Likewise.  Consolidate min/max_bounds calculations.
+	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg): Use
+	mac_per_char_metric instead of x_per_char_metric.
+	(mac_text_extents_16): New function.
+	(mac_compute_glyph_string_overhangs): Use it.
+	(mac_unload_font): Free member `bounds' in struct MacFontStruct.
+
 2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* minibuf.c (Fdisplay_completion_list): Use XCAR/XCDR.
