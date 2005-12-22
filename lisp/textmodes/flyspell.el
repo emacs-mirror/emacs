@@ -324,7 +324,7 @@ property of the major mode name.")
   "This function is used for `flyspell-generic-check-word-p' in LaTeX mode."
   (and
    (not (save-excursion
-	  (re-search-backward "^[ \t]*%%%[ \t]+Local" (point-min) t)))
+	  (re-search-backward "^[ \t]*%%%[ \t]+Local" nil t)))
    (not (save-excursion
 	  (let ((this (point-marker))
 		(e (progn (end-of-line) (point-marker))))
@@ -753,7 +753,7 @@ Mostly we check word delimiters."
 	   (backward-char 1)
 	   (and (looking-at (flyspell-get-not-casechars))
 		(or flyspell-consider-dash-as-word-delimiter-flag
-		    (not (looking-at "\\-"))))))
+		    (not (looking-at "-"))))))
     ;; yes because we have reached or typed a word delimiter.
     t)
    ((symbolp this-command)
@@ -1225,10 +1225,10 @@ Word syntax described by `flyspell-dictionary-alist' (which see)."
     ;; find the word
     (if (not (looking-at flyspell-casechars))
 	(if following
-	    (re-search-forward flyspell-casechars (point-max) t)
-	  (re-search-backward flyspell-casechars (point-min) t)))
+	    (re-search-forward flyspell-casechars nil t)
+	  (re-search-backward flyspell-casechars nil t)))
     ;; move to front of word
-    (re-search-backward flyspell-not-casechars (point-min) 'start)
+    (re-search-backward flyspell-not-casechars nil 'start)
     (while (and (or (and (not (string= "" ispell-otherchars))
 			 (looking-at ispell-otherchars))
 		    (and extra-otherchars (looking-at extra-otherchars)))
@@ -1240,15 +1240,15 @@ Word syntax described by `flyspell-dictionary-alist' (which see)."
 	  (progn
 	    (backward-char 1)
 	    (if (looking-at flyspell-casechars)
-		(re-search-backward flyspell-not-casechars (point-min) 'move)))
+		(re-search-backward flyspell-not-casechars nil 'move)))
 	(setq did-it-once t
 	      prevpt (point))
 	(backward-char 1)
 	(if (looking-at flyspell-casechars)
-	    (re-search-backward flyspell-not-casechars (point-min) 'move)
+	    (re-search-backward flyspell-not-casechars nil 'move)
 	  (backward-char -1))))
     ;; Now mark the word and save to string.
-    (if (not (re-search-forward word-regexp (point-max) t))
+    (if (not (re-search-forward word-regexp nil t))
 	nil
       (progn
 	(setq start (match-beginning 0)
@@ -1312,7 +1312,7 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
     (with-current-buffer flyspell-external-ispell-buffer
       (goto-char (point-min))
       ;; Loop over incorrect words.
-      (while (re-search-forward "\\([^\n]+\\)\n" (point-max) t)
+      (while (re-search-forward "\\([^\n]+\\)\n" nil t)
 	;; Bind WORD to the next one.
 	(let ((word (match-string 1)) (wordpos (point)))
 	  ;; Here there used to be code to see if WORD is the same

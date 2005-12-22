@@ -1,5 +1,9 @@
 2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/flyspell.el (flyspell-check-word-p): Don't quote - in a RE.
+	(tex-mode-flyspell-verify, flyspell-get-word)
+	(flyspell-external-point-words): Don't use point-min/max uselessly.
+
 	* emacs-lisp/lisp.el (lisp-complete-symbol): Mostly undo the change
 	by Kevin Rodgers.  Instead, just hide the completions buffer if we
 	don't need to show it.
