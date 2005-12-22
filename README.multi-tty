@@ -89,7 +89,7 @@ frames.  It has been changed open new Emacs frames by default.
 
 The multi-tty branch has been scheduled for inclusion in the next
 major release of Emacs (version 23).  I expect the merge into the
-development trunk to occur sometime during next year (2005), after the
+development trunk to occur sometime during next year (2006), after the
 merge of the Unicode branch.
 
 Tested on GNU/Linux, Solaris 8, FreeBSD and OpenBSD.  Please let me
@@ -140,36 +140,36 @@ Known problems:
   	  system-dependent source files need to be adapted
   	  accordingly.  The changes are mostly trivial, so almost
   	  anyone can help, if only by compiling the branch and
-  	  reporting the compiler errors.  (It is not worth to do this
-  	  yet, though.)
+  	  reporting the compiler errors.
 
 
 HOW TO GET THE BRANCH
 ---------------------
 
-The branch uses GNU Arch (http://www.gnuarch.org) for version control.
+The branch uses Bazaar 1 (http://bazaar.canonical.com) for version control.
 
 Retrieving the latest version of the branch:
 
-	tla register-archive -f http://lorentey.hu/arch/2004/
-	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
+	baz register-archive -f http://aszt.inf.elte.hu/~lorentey/mirror/arch/2004
+	baz get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
-This incantation uses my private archive mirror that is hosted on a
-relatively low-bandwidth site; if you are outside Hungary, you will
-probably want to you use my secondary mirror: (Note that the -f option
-will overwrite the archive location if you have previously registered
-the Hungarian one.)
+This incantation uses an archive mirror that is hosted on a
+high-bandwidth site.  Please note that on average there is a two-hour
+delay for commits to arrive on this mirror.  My primary mirror is on the
+low-bandwidth http://lorentey.hu/ site:
 
-	tla register-archive -f http://aszt.inf.elte.hu/~lorentey/mirror/arch/2004
-	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
+	baz register-archive -f http://lorentey.hu/arch/2004/
+	baz get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
-	http://aszt.inf.elte.hu/~lorentey/mirror/arch/2004
+This is "instantly" updated, but very slow from outside Hungary.
+(By "instantly" I mean as soon as I connect the notebook I work on to
+a network.  It could take days.)
 
 The Arch supermirror provides mirroring services for all public Arch
 repositories.  We have a mirror there, too, if you prefer.
 
-	tla register-archive -f http://mirrors.sourcecontrol.net/lorentey%40elte.hu--2004
-	tla get lorentey@elte.hu--2004/emacs--multi-tty <directory>
+	baz register-archive -f http://mirrors.sourcecontrol.net/lorentey%40elte.hu--2004
+	baz get lorentey@elte.hu--2004/emacs--multi-tty <directory>
 
 My GPG key id is 0FB27A3F; it is available from
 hkp://wwwkeys.eu.pgp.net/, or from my homepage at
@@ -179,15 +179,19 @@ Don't worry if the above checkout takes a few minutes to complete;
 once you have a source tree, updating it to the latest revision will
 be _much_ faster.  Use the following command for the update:
 
-	tla replay
+	baz replay
 
-You can find more information about Arch on http://wiki.gnuarch.org/.
-It's a wonderful source control system, I highly recommend it.
+You can find more information about Bazaar on
+http://bazaar.canonical.com/.  It's a distributed source control
+system that is somewhat less broken than competing projects.
 
-If you don't have tla, the branch has a homepage from which you can
+If you don't have Bazaar, the branch has a homepage from which you can
 download conventional patches against Emacs CVS HEAD:
 
 	http://lorentey.hu/project/emacs.html
+
+I suggest you use Bazaar whenever feasible.
+
 
 DEBIAN PACKAGES
 ---------------
@@ -244,9 +248,10 @@ finish editing the specified files (C-x #), but delete-frame (C-x 5 0)
 also works.  Of course, you can create frames on more than two tty
 devices.
 
-Creating new frames on the same tty with C-x 5 2 works, and they
-behave the same way as in previous Emacs versions.  If you exit emacs,
-all terminals should be restored to their previous states.
+Creating new frames on the same tty with C-x 5 2 (make-frame-command)
+works, and they behave the same way as in previous Emacs versions.  If
+you exit emacs, all terminals should be restored to their previous
+states.
 
 This is work in progress, and probably full of bugs.  It is a good
 idea to run emacs from gdb, so that you'll have a live instance to
@@ -384,6 +389,8 @@ For the NEWS file:  (Needs much, much work)
 
 *** talk.el has been extended for multiple tty support.
 
+*** C-z now invokes `suspend-frame', C-x C-c now invokes
+    `save-buffers-kill-frame'.
 
 * * *
 
@@ -392,6 +399,10 @@ is probably not very interesting for anyone else.)
 
 THINGS TO DO
 ------------
+
+** Search for `suspend-emacs' references and replace them with
+   `suspend-frame', if necessary.  Ditto for `save-buffers-kill-emacs'
+   vs. `save-buffers-kill-display'.
 
 ** Emacs crashes when a tty frame is resized so that there is no space
    for all its windows.  (Tom Schutzer-Weissmann)

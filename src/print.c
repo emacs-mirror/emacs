@@ -1343,7 +1343,7 @@ print_preprocess (obj)
 	  for (i = 0; i < print_number_index; i++)
 	    if (EQ (PRINT_NUMBER_OBJECT (Vprint_number_table, i), obj))
 	      {
-		/* OBJ appears more than once.  Let's remember that.  */
+		/* OBJ appears more than once.	Let's remember that.  */
 		PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
 		return;
 	      }

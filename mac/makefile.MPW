@@ -1021,6 +1021,7 @@ shortlisp = ¶
 	{Lisp}emacs-lisp:float-sup.elc ¶
 	{Lisp}format.elc ¶
 	{Lisp}frame.elc ¶
+	{Lisp}termdev.elc ¶
 	{Lisp}help.elc ¶
 	{Lisp}indent.elc ¶
 	{Lisp}isearch.elc ¶

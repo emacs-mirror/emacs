@@ -1429,7 +1429,7 @@ Copyright (C) 2005 Free Software Foundation, Inc."))
 	      ;; use precomputed string to save lots of time.
 	      (if (and (eq (key-binding "\C-h") 'help-command)
 		       (eq (key-binding "\C-xu") 'advertised-undo)
-		       (eq (key-binding "\C-x\C-c") 'save-buffers-kill-emacs)
+		       (eq (key-binding "\C-x\C-c") 'save-buffers-kill-display)
 		       (eq (key-binding "\C-ht") 'help-with-tutorial)
 		       (eq (key-binding "\C-hi") 'info)
 		       (eq (key-binding "\C-hr") 'info-emacs-manual)
@@ -1446,7 +1446,7 @@ Browse manuals     C-h i")
 Get help	   %s
 Emacs manual	   \\[info-emacs-manual]
 Emacs tutorial	   \\[help-with-tutorial]\tUndo changes\t\\[advertised-undo]
-Buy manuals        \\[view-order-manuals]\tExit Emacs\t\\[save-buffers-kill-emacs]
+Buy manuals        \\[view-order-manuals]\tExit Emacs\t\\[save-buffers-kill-display]
 Browse manuals     \\[info]"
 				 (let ((where (where-is-internal
 					       'help-command nil t)))

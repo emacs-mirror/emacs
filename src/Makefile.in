@@ -722,6 +722,7 @@ lisp= \
 	MOUSE_SUPPORT \
 	${lispsource}emacs-lisp/float-sup.elc \
 	${lispsource}frame.elc \
+	${lispsource}termdev.elc \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \
 	${lispsource}isearch.elc \
@@ -819,6 +820,7 @@ shortlisp= \
 	../lisp/emacs-lisp/float-sup.elc \
 	../lisp/format.elc \
 	../lisp/frame.elc \
+	../lisp/termdev.elc \
 	../lisp/help.elc \
 	../lisp/indent.elc \
 	../lisp/isearch.elc \

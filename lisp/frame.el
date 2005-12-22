@@ -598,15 +598,18 @@ The optional second argument PARAMETERS specifies additional frame parameters."
     (x-initialize-window-system))
   (make-frame `((window-system . x) (display . ,display) . ,parameters)))
 
-(defun make-frame-on-tty (device type &optional parameters)
-  "Make a frame on terminal DEVICE which is of type TYPE (e.g., \"xterm\").
-The optional third argument PARAMETERS specifies additional frame parameters."
+(defun make-frame-on-tty (tty type &optional parameters)
+  "Make a frame on terminal device TTY.
+TTY should be the file name of the tty device to use.  TYPE
+should be the terminal type string of TTY, for example \"xterm\"
+or \"vt100\".  The optional third argument PARAMETERS specifies
+additional frame parameters."
   (interactive "fOpen frame on tty device: \nsTerminal type of %s: ")
-  (unless device
+  (unless tty
     (error "Invalid terminal device"))
   (unless type
     (error "Invalid terminal type"))
-  (make-frame `((window-system . nil) (tty . ,device) (tty-type . ,type) . ,parameters)))
+  (make-frame `((window-system . nil) (tty . ,tty) (tty-type . ,type) . ,parameters)))
 
 (defun make-frame-command ()
   "Make a new frame, and select it if the terminal displays only one frame."
@@ -710,15 +713,15 @@ frame's terminal device."
 		   (eq (frame-display frame) terminal))))
     (filtered-frame-list func)))
 
-(defun framep-on-display (&optional display)
-  "Return the type of frames on DISPLAY.
-DISPLAY may be a display id, a display name or a frame.  If it is
-a frame, its type is returned.
-If DISPLAY is omitted or nil, it defaults to the selected frame's display.
-All frames on a given display are of the same type."
-  (or (display-live-p display)
-      (framep display)
-      (framep (car (frames-on-display-list display)))))
+(defun framep-on-display (&optional terminal)
+  "Return the type of frames on TERMINAL.
+TERMINAL may be a terminal id, a display name or a frame.  If it
+is a frame, its type is returned.  If TERMINAL is omitted or nil,
+it defaults to the selected frame's terminal device.  All frames
+on a given display are of the same type."
+  (or (display-live-p terminal)
+      (framep terminal)
+      (framep (car (frames-on-display-list terminal)))))
 
 (defun frame-remove-geometry-params (param-list)
   "Return the parameter list PARAM-LIST, but with geometry specs removed.
@@ -796,8 +799,8 @@ Otherwise, that variable should be nil."
 
 (defun suspend-frame ()
   "Do whatever is right to suspend the current frame.
-Calls `suspend-emacs' if invoked from the controlling terminal,
-`suspend-tty' from a secondary terminal, and
+Calls `suspend-emacs' if invoked from the controlling tty device,
+`suspend-tty' from a secondary tty device, and
 `iconify-or-deiconify-frame' from an X frame."
   (interactive)
   (let ((type (framep (selected-frame))))
@@ -808,7 +811,6 @@ Calls `suspend-emacs' if invoked from the controlling terminal,
 	  (suspend-emacs)
 	(suspend-tty)))
      (t (suspend-emacs)))))
-
 
 (defun make-frame-names-alist ()
   (let* ((current-frame (selected-frame))
@@ -1424,146 +1426,6 @@ Use Custom to set this variable to get the display updated."
 (define-key ctl-x-5-map "1" 'delete-other-frames)
 (define-key ctl-x-5-map "0" 'delete-frame)
 (define-key ctl-x-5-map "o" 'other-frame)
-
-(substitute-key-definition 'suspend-emacs 'suspend-frame global-map)
-
-
-(defun terminal-id (terminal)
-  "Return the numerical id of terminal TERMINAL.
-
-TERMINAL can be a terminal id (an integer), a frame, or
-nil (meaning the selected frame's terminal).  Alternatively,
-TERMINAL may be the name of an X display
-device (HOST.SERVER.SCREEN) or a tty device file."
-  (cond
-   ((integerp terminal)
-    (if (display-live-p terminal)
-	terminal
-      (signal 'wrong-type-argument (list 'display-live-p terminal))))
-   ((or (null terminal) (framep terminal))
-    (frame-display terminal))
-   ((stringp terminal)
-    (let ((f (car (filtered-frame-list (lambda (frame)
-					 (or (equal (frame-parameter frame 'display) terminal)
-					     (equal (frame-parameter frame 'tty) terminal)))))))
-      (or f (error "Display %s does not exist" terminal))
-      (frame-display f)))
-   (t
-    (error "Invalid argument %s in `terminal-id'" terminal))))
-
-(defvar terminal-parameter-alist nil
-  "An alist of terminal parameter alists.")
-
-(defun terminal-parameters (&optional terminal)
-  "Return the paramater-alist of terminal TERMINAL.
-It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
-  (cdr (assq (terminal-id terminal) terminal-parameter-alist)))
-
-(defun terminal-parameter-p (terminal parameter)
-  "Return non-nil if PARAMETER is a terminal parameter on TERMINAL.
-
-The actual value returned in that case is a cell (PARAMETER . VALUE),
-where VALUE is the current value of PARAMETER.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
-  (assq parameter (cdr (assq (terminal-id terminal) terminal-parameter-alist))))
-
-(defun terminal-parameter (terminal parameter)
-  "Return TERMINAL's value for parameter PARAMETER.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
-  (cdr (terminal-parameter-p terminal parameter)))
-
-(defun set-terminal-parameter (terminal parameter value)
-  "Set TERMINAL's value for parameter PARAMETER to VALUE.
-Returns the previous value of PARAMETER.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
-  (setq terminal (terminal-id terminal))
-  (let* ((alist (assq terminal terminal-parameter-alist))
-	 (pair (assq parameter (cdr alist)))
-	 (result (cdr pair)))
-    (cond
-     (pair (setcdr pair value))
-     (alist (setcdr alist (cons (cons parameter value) (cdr alist))))
-     (t (setq terminal-parameter-alist
-	      (cons (cons terminal
-			  (cons (cons parameter value)
-				nil))
-		    terminal-parameter-alist))))
-    result))
-
-(defun terminal-handle-delete-frame (frame)
-  "Clean up terminal parameters of FRAME, if it's the last frame on its terminal."
-  ;; XXX We assume that the display is closed immediately after the
-  ;; last frame is deleted on it.  It would be better to create a hook
-  ;; called `delete-display-functions', and use it instead.
-  (when (and (frame-live-p frame)
-	     (= 1 (length (frames-on-display-list (frame-display frame)))))
-    (setq terminal-parameter-alist
-	  (assq-delete-all (frame-display frame) terminal-parameter-alist))))
-
-(add-hook 'delete-frame-functions 'terminal-handle-delete-frame)
-
-(defun terminal-getenv (variable &optional terminal)
-  "Get the value of VARIABLE in the client environment of TERMINAL.
-VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
-the environment.  Otherwise, value is a string.
-
-If TERMINAL was created by an emacsclient invocation, then the
-variable is looked up in the environment of the emacsclient
-process; otherwise the function consults the environment of the
-Emacs process.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
-  (setq terminal (terminal-id terminal))
-  (if (not (terminal-parameter-p terminal 'environment))
-      (getenv variable)
-    (let ((env (terminal-parameter terminal 'environment))
-	  result entry)
-      (while (and env (null result))
-	(setq entry (car env)
-	      env (cdr env))
-	(if (and (> (length entry) (length variable))
-		 (eq ?= (aref entry (length variable)))
-		 (equal variable (substring entry 0 (length variable))))
-	    (setq result (substring entry (+ (length variable) 1)))))
-      (if (null result)
-	  (getenv variable)
-	result))))
-
-(defmacro with-terminal-environment (terminal vars &rest body)
-  "Evaluate BODY with environment variables VARS set to those of TERMINAL.
-The environment variables are then restored to their previous values.
-
-VARS should be a list of strings.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal).
-
-See also `terminal-getenv'."
-  (declare (indent 2))
-  (let ((oldvalues (make-symbol "oldvalues"))
-	(var (make-symbol "var"))
-	(value (make-symbol "value"))
-	(pair (make-symbol "pair")))
-    `(let (,oldvalues)
-       (dolist (,var ,vars)
-	 (let ((,value (terminal-getenv ,var ,terminal)))
-	   (setq ,oldvalues (cons (cons ,var (getenv ,var)) ,oldvalues))
-	   (setenv ,var ,value)))
-       (unwind-protect
-	   (progn ,@body)
-	 (dolist (,pair ,oldvalues)
-	   (setenv (car ,pair) (cdr ,pair)))))))
-
 
 (provide 'frame)
 

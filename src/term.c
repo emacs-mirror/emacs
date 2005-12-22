@@ -3270,23 +3270,23 @@ Display devices are represented by their integer identifiers. */)
 
 DEFUN ("suspend-tty", Fsuspend_tty, Ssuspend_tty, 0, 1, 0,
        doc: /* Suspend the terminal device TTY.
-The terminal is restored to its default state, and Emacs ceases all
-access to the terminal device.  Frames that use the device are not
-deleted, but input is not read from them and if they change, their
-display is not updated.
 
-TTY may be a display id, a frame, or nil for the display device of the
-currently selected frame.
+The device is restored to its default state, and Emacs ceases all
+access to the tty device.  Frames that use the device are not deleted,
+but input is not read from them and if they change, their display is
+not updated.
+
+TTY may be a terminal id, a frame, or nil for the terminal device of
+the currently selected frame.
 
 This function runs `suspend-tty-functions' after suspending the
 device.  The functions are run with one arg, the id of the suspended
-display device.
+terminal device.
 
-`suspend-tty' does nothing if it is called on an already suspended
-device.
+`suspend-tty' does nothing if it is called on a device that is already
+suspended.
 
-A suspended terminal device may be resumed by calling `resume-tty' on
-it. */)
+A suspended tty may be resumed by calling `resume-tty' on it.  */)
   (tty)
      Lisp_Object tty;
 {

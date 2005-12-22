@@ -132,6 +132,7 @@
 (load "indent")
 (load "window")
 (load "frame")
+(load "termdev")
 (load "term/tty-colors")
 (load "font-core")
 ;; facemenu must be loaded before font-lock, because `facemenu-keymap'
