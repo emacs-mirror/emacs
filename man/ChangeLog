@@ -1,3 +1,10 @@
+2005-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Easy Customization and subnodes):
+	Replace "active field" with "button".
+	Use "user option" only for variables.
+	Use "setting" for variable-or-face.
+
 2005-12-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffers.texi (Select Buffer): Change order in table to make

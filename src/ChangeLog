@@ -1,3 +1,7 @@
+2005-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (xmenu_show): Call inhibit_garbage_collection.
+
 2005-12-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (Fmac_coerce_ae_data) [MAC_OSX]: Fix memory leak.
