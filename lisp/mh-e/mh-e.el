@@ -523,7 +523,7 @@ This variable can be used by
   "Lists which folders were affected by deletes and refiles.
 This list will always include the current folder
 `mh-current-folder'. This variable can be used by
-`mh-before-commands-processed-hook'.")
+`mh-after-commands-processed-hook'.")
 
 (defvar mh-next-direction 'forward
   "Direction to move to next message.")

@@ -1,5 +1,7 @@
 2005-12-23  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (mh-folders-changed): Fix typo in docstring.
+
 	Follow MH-E Developers Guide conventions. Use `' quotes for Help
 	hyperlinks such as symbols, Info nodes, or URLs. Use \" quotes for
 	everything else. Otherwise, you can accidently get links to
