@@ -2230,7 +2230,7 @@ and selects that window."
 	  (setq beg (previous-single-property-change beg 'mouse-face))
 	  (setq end (or (next-single-property-change end 'mouse-face)
 			(point-max)))
-	  (setq choice (buffer-substring beg end)))))
+	  (setq choice (buffer-substring-no-properties beg end)))))
     (let ((owindow (selected-window)))
       (select-window (posn-window (event-start event)))
       (if (and (one-window-p t 'selected-frame)
