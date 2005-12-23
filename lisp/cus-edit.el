@@ -1065,19 +1065,21 @@ Show the buffer in another window, but don't select it."
     (unless (eq symbol basevar)
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
-(defvar customize-changed-options-previous-release "20.2"
+(defvar customize-changed-options-previous-release "21.1"
   "Version for `customize-changed-options' to refer back to by default.")
 
 ;;;###autoload
-(defun customize-changed-options (since-version)
-  "Customize all user option variables changed in Emacs itself.
-This includes new user option variables and faces, and new
-customization groups, as well as older options and faces whose default
-values have changed since the previous major Emacs release.
+(defalias 'customize-changed 'customize-changed-options)
 
-With argument SINCE-VERSION (a string), customize all user option
-variables that were added (or their meanings were changed) since that
-version."
+;;;###autoload
+(defun customize-changed-options (since-version)
+  "Customize all settings whose meanings have changed in Emacs itself.
+This includes new user option variables and faces, and new
+customization groups, as well as older options and faces whose meanings
+or default values have changed since the previous major Emacs release.
+
+With argument SINCE-VERSION (a string), customize all settings
+that were added or redefined since that version."
 
   (interactive "sCustomize options changed, since version (default all versions): ")
   (if (equal since-version "")
