@@ -1,3 +1,23 @@
+2005-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Remove unnecessary leading * in docstrings.
+	(vc-annotate-mode-map): Move initialization into declaration.
+	(vc-static-header-alist): Nitpick on the regexp.
+	(vc-default-init-version): New fun.
+	(vc-register): Use it.
+	(vc-insert-headers): Use dolist.
+	(vc-annotate-get-backend): Remove unused function.
+	(vc-annotate-add-menu): Remove.  Build the menu directly at toplevel.
+	(vc-annotate-mode): Remove corresponding call.
+	(vc-annotate-car-last-cons): Simplify.
+	(vc-annotate-buffers): Remove var.
+	(vc-annotate-backend): Make it buffer-local.
+	(vc-annotate): Move the interaction to the interactive spec.
+	Add a `buf' argument.
+	(vc-annotate-warp-version): Use this new `buf' argument to avoid
+	killing&creating a vc-annotate buffer, which is very disruptive when
+	the buffers are shown in dedicated frames.
+
 2005-12-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* descr-text.el: Add FSF as maintainer.
@@ -11,7 +31,7 @@
 	(describe-char-unicodedata-file): Make URL link in doc string.
 
 2005-12-22  Richard M. Stallman  <rms@gnu.org>
-	
+
 	* cus-edit.el (custom-variable-prompt): Say "variable" in prompt.
 	(custom-buffer-create-internal): Reword the top-of-buffer help intro.
 	Don't include buttons that write a file when there's no file.
