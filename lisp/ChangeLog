@@ -2,6 +2,18 @@
 
 	* vc.el (vc-annotate-car-last-cons): Defn moved up.
 
+2005-12-23  Juri Linkov  <juri@jurta.org>
+
+	* hi-lock.el (hi-lock-archaic-interface-message-used)
+	(hi-lock-archaic-interface-deduce, hi-lock-mode): Doc fix.
+	(hi-lock-mode): Display "Hi" in the mode line only when
+	hi-lock-interactive-patterns or hi-lock-file-patterns is non-nil.
+	(hi-lock-write-interactive-patterns):
+	Use hi-lock-file-patterns-prefix instead of hard-coded "Hi-lock".
+	(hi-lock-set-pattern, hi-lock-set-file-patterns)
+	(hi-lock-font-lock-hook): Set 3rd arg `how' of
+	font-lock-add-keywords to t.
+
 2005-12-23  David Koppelman  <koppel@ece.lsu.edu>
 
 	* hi-lock.el (hi-lock-highlight-range): New variable.

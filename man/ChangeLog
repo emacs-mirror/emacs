@@ -1,3 +1,8 @@
+2005-12-23  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Highlight Interactively): Use double space to
+	separate sentences.  Replace C-p with M-p, and C-n with M-n.
+
 2005-12-22  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.texi (Easy Customization and subnodes):
