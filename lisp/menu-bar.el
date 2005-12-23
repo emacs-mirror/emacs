@@ -178,6 +178,17 @@ A large number or nil slows down menu responsiveness."
 (define-key menu-bar-file-menu [separator-save]
   '(menu-item "--"))
 
+(defun menu-find-file-existing ()
+  "Edit the existing file FILENAME."
+  (interactive)
+  (let* ((mustmatch (not (and (fboundp 'x-uses-old-gtk-dialog)
+			      (x-uses-old-gtk-dialog))))
+	 (filename (car (find-file-read-args "Find file: " mustmatch))))
+    (if mustmatch
+	(find-file-existing filename)
+      (find-file filename))))
+
+
 (define-key menu-bar-file-menu [kill-buffer]
   '(menu-item "Close" kill-this-buffer
 	      :enable (kill-this-buffer-enabled-p)
@@ -191,7 +202,7 @@ A large number or nil slows down menu responsiveness."
 	      :enable (menu-bar-non-minibuffer-window-p)
 	      :help "Read a directory, to operate on its files"))
 (define-key menu-bar-file-menu [open-file]
-  '(menu-item "Open File..." find-file-existing
+  '(menu-item "Open File..." menu-find-file-existing
 	      :enable (menu-bar-non-minibuffer-window-p)
 	      :help "Read an existing file into an Emacs buffer"))
 (define-key menu-bar-file-menu [new-file]

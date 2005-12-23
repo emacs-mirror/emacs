@@ -1,3 +1,10 @@
+2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-find-file-existing): New function.
+	(menu-bar-file-menu): Use menu-find-file-existing for Open.
+
+	* tool-bar.el (tool-bar-setup): open changed to menu-find-file-existing.
+
 2005-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el: Remove unnecessary leading * in docstrings.
