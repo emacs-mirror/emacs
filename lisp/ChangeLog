@@ -1,15 +1,15 @@
 2005-12-22  Richard M. Stallman  <rms@gnu.org>
-
-	* cus-edit.el (customize-browse): Reword the top-of-buffer help intro.
-	(custom-buffer-create-internal): Fix previous change.
-
-2005-12-22  Richard M. Stallman  <rms@gnu.org>
 	
 	* cus-edit.el (custom-variable-prompt): Say "variable" in prompt.
 	(custom-buffer-create-internal): Reword the top-of-buffer help intro.
 	Don't include buttons that write a file when there's no file.
 	(custom-variable-menu, custom-face-menu, custom-group-menu):
 	Don't include commands that write a file when there's no file.
+	(customize-browse): Reword the top-of-buffer help intro.
+	(custom-buffer-create-internal): Fix previous change.
+	(customize-changed-options-previous-release): Prev release is 21.1.
+	(customize-changed-options): Doc fix.
+	(customize-changed): New alias.
 
 2005-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
