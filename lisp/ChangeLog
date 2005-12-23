@@ -10,6 +10,10 @@
 	(customize-changed-options-previous-release): Prev release is 21.1.
 	(customize-changed-options): Doc fix.
 	(customize-changed): New alias.
+	(custom-reset-menu, custom-magic-alist, Custom-mode-menu):
+	Say "standard values".
+	(Custom-reset-standard): Doc fix.
+	(custom-face-reset-standard): Doc fix.
 
 2005-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
