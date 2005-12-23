@@ -766,7 +766,7 @@ groups after non-groups, if nil do not order groups at all."
 (defvar custom-reset-menu
   '(("Current" . Custom-reset-current)
     ("Saved" . Custom-reset-saved)
-    ("Erase Customization (use standard settings)" . Custom-reset-standard))
+    ("Erase Customization (use standard values)" . Custom-reset-standard))
   "Alist of actions for the `Reset' button.
 The key is a string containing the name of the action, the value is a
 Lisp function taking the widget as an element which will be called
@@ -803,8 +803,8 @@ when the action is chosen.")
 
 (defun Custom-reset-standard (&rest ignore)
   "Erase all customization (either current or saved) for the group members.
-The immediate result is to restore them to their standard settings.
-This operation eliminates any saved settings for the group members,
+The immediate result is to restore them to their standard values.
+This operation eliminates any saved values for the group members,
 making them as if they had never been customized at all."
   (interactive)
   (let ((children custom-options))
@@ -1780,7 +1780,7 @@ NO CUSTOMIZATION DATA; not intended to be customized." "\
 something in this group is not prepared for customization.")
     (standard " " nil "\
 STANDARD." "\
-visible group members are all at standard settings."))
+visible group members are all at standard values."))
   "Alist of customize option states.
 Each entry is of the form (STATE MAGIC FACE ITEM-DESC [ GROUP-DESC ]), where
 
@@ -3402,8 +3402,8 @@ Optional EVENT is the location for the menu."
   (get (widget-value widget) 'face-defface-spec))
 
 (defun custom-face-reset-standard (widget)
-  "Restore WIDGET to the face's standard settings.
-This operation eliminates any saved setting for the face,
+  "Restore WIDGET to the face's standard attribute values.
+This operation eliminates any saved attributes for the face,
 restoring it to the state of a face that has never been customized."
   (let* ((symbol (widget-value widget))
 	 (child (car (widget-get widget :children)))
@@ -4341,7 +4341,7 @@ The format is suitable for use with `easy-menu-define'."
     ["Save" Custom-save t]
     ["Reset to Current" Custom-reset-current t]
     ["Reset to Saved" Custom-reset-saved t]
-    ["Reset to Standard Settings" Custom-reset-standard t]
+    ["Reset to Standard Values" Custom-reset-standard t]
     ["Info" (info "(emacs)Easy Customization") t]))
 
 (defun Custom-goto-parent ()
