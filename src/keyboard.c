@@ -10649,6 +10649,181 @@ quit_throw_to_read_char ()
   _longjmp (getcjmp, 1);
 }
 
+DEFUN ("set-input-interrupt-mode", Fset_input_interrupt_mode, Sset_input_interrupt_mode, 1, 1, 0,
+       doc: /* Set interrupt mode of reading keyboard input.
+If INTERRUPT is non-nil, Emacs will use input interrupts;
+otherwise Emacs uses CBREAK mode.
+
+See also `current-input-mode'.  */)
+     (interrupt)
+     Lisp_Object interrupt;
+{
+  int new_interrupt_input;
+#ifdef SIGIO
+/* Note SIGIO has been undef'd if FIONREAD is missing.  */
+  if (x_display_list != NULL)
+    {
+      /* When using X, don't give the user a real choice,
+	 because we haven't implemented the mechanisms to support it.  */
+#ifdef NO_SOCK_SIGIO
+      new_interrupt_input = 0;
+#else /* not NO_SOCK_SIGIO */
+      new_interrupt_input = 1;
+#endif /* NO_SOCK_SIGIO */
+    }
+  else
+    new_interrupt_input = !NILP (interrupt);
+#else /* not SIGIO */
+  new_interrupt_input = 0;
+#endif /* not SIGIO */
+
+/* Our VMS input only works by interrupts, as of now.  */
+#ifdef VMS
+  new_interrupt_input = 1;
+#endif
+
+  if (new_interrupt_input != interrupt_input) 
+    {
+#ifdef POLL_FOR_INPUT
+      stop_polling ();
+#endif
+#ifndef DOS_NT
+      /* this causes startup screen to be restored and messes with the mouse */
+      reset_all_sys_modes ();
+#endif
+      interrupt_input = new_interrupt_input;
+#ifndef DOS_NT
+      init_all_sys_modes ();
+#endif
+
+#ifdef POLL_FOR_INPUT
+      poll_suppress_count = 1;
+      start_polling ();
+#endif
+    }
+  return Qnil;
+}
+  
+DEFUN ("set-output-flow-control", Fset_output_flow_control, Sset_output_flow_control, 1, 2, 0,
+       doc: /* Enable or disable ^S/^Q flow control for output to TERMINAL.
+If FLOW is non-nil, flow control is enabled and you cannot use C-s or
+C-q in key sequences.
+
+This setting only has an effect on tty display devices and only when
+Emacs reads input in CBREAK mode; see `set-input-interrupt-mode'.
+
+See also `current-input-mode'.  */)
+       (flow, terminal)
+       Lisp_Object flow, terminal;
+{
+  struct device *d = get_device (terminal, 1);
+  struct tty_display_info *tty;
+  if (d == NULL || d->type != output_termcap)
+    return Qnil;
+  tty = d->display_info.tty;
+
+  if (tty->flow_control != !NILP (flow))
+    {
+#ifndef DOS_NT
+      /* this causes startup screen to be restored and messes with the mouse */
+      reset_sys_modes (tty);
+#endif
+
+      tty->flow_control = !NILP (flow);
+
+#ifndef DOS_NT
+      init_sys_modes (tty);
+#endif
+    }
+}
+
+DEFUN ("set-input-meta-mode", Fset_input_meta_mode, Sset_input_meta_mode, 1, 2, 0,
+       doc: /* Enable or disable 8-bit input on TERMINAL.
+If META is t, Emacs will accept 8-bit input, and interpret the 8th
+bit as the Meta modifier.
+
+If META is nil, Emacs will ignore the top bit, on the assumption it is
+parity.
+
+Otherwise, Emacs will accept and pass through 8-bit input without
+specially interpreting the top bit.
+
+This setting only has an effect on tty display devices.
+
+Optional parameter TERMINAL specifies the tty display device to use.
+It may be a terminal id, a frame, or nil for the terminal used by the
+currently selected frame.
+
+See also `current-input-mode'.  */)
+       (meta, terminal)
+       Lisp_Object meta, terminal;
+{
+  struct device *d = get_device (terminal, 1);
+  struct tty_display_info *tty;
+  int new_meta;
+  
+  if (d == NULL || d->type != output_termcap)
+    return Qnil;
+  tty = d->display_info.tty;
+
+  if (NILP (meta))
+    new_meta = 0;
+  else if (EQ (meta, Qt))
+    new_meta = 1;
+  else
+    new_meta = 2;
+
+  if (tty->meta_key != new_meta) 
+    {
+#ifndef DOS_NT
+      /* this causes startup screen to be restored and messes with the mouse */
+      reset_sys_modes (tty);
+#endif
+
+      tty->meta_key = new_meta;
+  
+#ifndef DOS_NT
+      init_sys_modes (tty);
+#endif
+    }
+  return Qnil;
+}
+
+DEFUN ("set-quit-char", Fset_quit_char, Sset_quit_char, 1, 1, 0,
+       doc: /* Specify character used for quitting.
+QUIT must be an ASCII character.
+
+This function only has an effect on the tty display on the controlling
+tty of the Emacs process.
+
+See also `current-input-mode'.  */)
+       (quit)
+       Lisp_Object quit;
+{
+  struct device *d = get_named_tty (NULL);
+  struct tty_display_info *tty;
+  if (d == NULL || d->type != output_termcap)
+    return Qnil;
+  tty = d->display_info.tty;
+
+#ifndef DOS_NT
+  /* this causes startup screen to be restored and messes with the mouse */
+  reset_sys_modes (tty);
+#endif
+  
+  if (NILP (quit) || !INTEGERP (quit) || XINT (quit) < 0 || XINT (quit) > 0400)
+    error ("QUIT must be an ASCII character");
+
+  /* Don't let this value be out of range.  */
+  quit_char = XINT (quit) & (tty->meta_key == 0 ? 0177 : 0377);
+
+#ifndef DOS_NT
+  init_sys_modes (tty);
+#endif
+
+  return Qnil;
+}
+       
 DEFUN ("set-input-mode", Fset_input_mode, Sset_input_mode, 3, 4, 0,
        doc: /* Set mode of reading keyboard input.
 First arg INTERRUPT non-nil means use input interrupts;
@@ -10663,73 +10838,10 @@ See also `current-input-mode'.  */)
      (interrupt, flow, meta, quit)
      Lisp_Object interrupt, flow, meta, quit;
 {
-  /* XXX This function needs to be revised for multi-device support.
-     Currently it compiles fine, but its semantics are wrong.  It sets
-     global parameters (e.g. interrupt_input) based on only the
-     current frame's device. */
-
-  if (!NILP (quit)
-      && (!INTEGERP (quit) || XINT (quit) < 0 || XINT (quit) > 0400))
-    error ("set-input-mode: QUIT must be an ASCII character");
-
-#ifdef POLL_FOR_INPUT
-  stop_polling ();
-#endif
-
-#ifndef DOS_NT
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
-    /* this causes startup screen to be restored and messes with the mouse */
-    reset_sys_modes (CURTTY ());
-#endif
-
-#ifdef SIGIO
-/* Note SIGIO has been undef'd if FIONREAD is missing.  */
-  if (FRAME_DEVICE (SELECTED_FRAME ())->read_socket_hook)
-    {
-      /* When using X, don't give the user a real choice,
-	 because we haven't implemented the mechanisms to support it.  */
-#ifdef NO_SOCK_SIGIO
-      interrupt_input = 0;
-#else /* not NO_SOCK_SIGIO */
-      interrupt_input = 1;
-#endif /* NO_SOCK_SIGIO */
-    }
-  else
-    interrupt_input = !NILP (interrupt);
-#else /* not SIGIO */
-  interrupt_input = 0;
-#endif /* not SIGIO */
-
-/* Our VMS input only works by interrupts, as of now.  */
-#ifdef VMS
-  interrupt_input = 1;
-#endif
-
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
-    {
-      struct tty_display_info *tty = CURTTY ();
-      tty->flow_control = !NILP (flow);
-      if (NILP (meta))
-        tty->meta_key = 0;
-      else if (EQ (meta, Qt))
-        tty->meta_key = 1;
-      else
-        tty->meta_key = 2;
-    }
-
-  if (!NILP (quit))
-    /* Don't let this value be out of range.  */
-    quit_char = XINT (quit) & (NILP (meta) ? 0177 : 0377);
-
-#ifndef DOS_NT
-  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
-    init_sys_modes (CURTTY ());
-#endif
-
-#ifdef POLL_FOR_INPUT
-  poll_suppress_count = 1;
-  start_polling ();
-#endif
+  Fset_input_interrupt_mode (interrupt);
+  Fset_output_flow_control (flow, Qnil);
+  Fset_input_meta_mode (meta, Qnil);
+  Fset_quit_char (quit);
   return Qnil;
 }
 
@@ -11281,6 +11393,10 @@ syms_of_keyboard ()
   defsubr (&Stop_level);
   defsubr (&Sdiscard_input);
   defsubr (&Sopen_dribble_file);
+  defsubr (&Sset_input_interrupt_mode);
+  defsubr (&Sset_output_flow_control);
+  defsubr (&Sset_input_meta_mode);
+  defsubr (&Sset_quit_char);
   defsubr (&Sset_input_mode);
   defsubr (&Scurrent_input_mode);
   defsubr (&Sexecute_extended_command);

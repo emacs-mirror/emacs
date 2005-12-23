@@ -276,25 +276,22 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 		  result)
 	      (set-keymap-parent keymap local-key-translation-map)
 	      (setq local-key-translation-map keymap)
-	      (unless (terminal-parameter nil 'encoded-kbd-saved-input-mode)
-		(set-terminal-parameter nil 'encoded-kbd-saved-input-mode cim))
+	      (unless (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)
+		(set-terminal-parameter nil 'encoded-kbd-saved-input-mode (nth 2 cim)))
 	      (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
 	      (if result
 		  (when (and (eq result 8)
 			     (memq (nth 2 cim) '(t nil)))
-		    (set-input-mode
-		     (nth 0 cim)
-		     (nth 1 cim)
-		     'use-8th-bit
-		     (nth 3 cim)))
-		(set-terminal-parameter nil 'encoded-kbd-saved-input-mode nil)
+		    (set-input-meta-mode 'use-8th-bit))
+		(set-terminal-parameter nil 'encoded-kbd-saved-input-meta-mode nil)
 		(error "Unsupported coding system in Encoded-kbd mode: %S"
 		       coding)))
 	  ;; We are turning off Encoded-kbd mode.
-	  (unless (equal (current-input-mode)
-			 (terminal-parameter nil 'encoded-kbd-saved-input-mode))
-	       (apply 'set-input-mode (terminal-parameter nil 'encoded-kbd-saved-input-mode)))
-	  (set-terminal-parameter nil 'saved-input-mode nil))))))
+	  (when (and (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)
+		     (not (equal (nth 2 (current-input-mode))
+				 (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode))))
+	    (set-input-meta-mode (terminal-parameter nil 'encoded-kbd-saved-input-meta-mode)))
+	  (set-terminal-parameter nil 'saved-input-meta-mode nil))))))
 
 (provide 'encoded-kb)
 

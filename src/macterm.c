@@ -10630,7 +10630,7 @@ mac_initialize ()
   any_help_event_p = 0;
 
   /* Try to use interrupt input; if we can't, then start polling.  */
-  Fset_input_mode (Qt, Qnil, Qt, Qnil);
+  Fset_input_interrupt_mode (Qt);
 
   BLOCK_INPUT;
 

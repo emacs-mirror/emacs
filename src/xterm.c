@@ -10868,7 +10868,7 @@ x_initialize ()
 #endif
 
   /* Try to use interrupt input; if we can't, then start polling.  */
-  Fset_input_mode (Qt, Qnil, Qt, Qnil);
+  Fset_input_interrupt_mode (Qt);
 
 #ifdef USE_X_TOOLKIT
   XtToolkitInitialize ();
