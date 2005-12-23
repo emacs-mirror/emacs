@@ -1,3 +1,35 @@
+2005-12-23  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/edebug.el (edebug-all-defs, edebug-all-forms):
+	Add autoload cookies.
+	(edebug-outside-d-c-i-n-s-w): New variable.
+	(edebug-display, edebug-outside-excursion): Use it to save the
+	original value of default-cursor-in-non-selected-windows.
+	Set default-cursor-in-non-selected-windows to t while Edebug
+	is active.
+	(edebug-mode, edebug-eval-mode): Doc fix.
+
+	* mouse.el (mouse-choose-completion): Replace `buffer-substring'
+	with `buffer-substring-no-properties' to remove common substring
+	highlighting.
+
+	* info.el (info-other-window, info): Rename function argument
+	`file' to `file-or-node'.
+	(Info-complete-menu-item): Use local variable `complete-nodes' to
+	keep the global value of `Info-complete-nodes' unchanged for
+	subsequent completions.
+	(info-tool-bar-map): Put `Info-index' icon just before `Info-search'.
+
+	* simple.el (get-next-valid-buffer, last-buffer)
+	(next-error-buffer-p, next-error-find-buffer)
+	(minibuffer-history-sexp-flag): Doc fix.
+
+	* savehist.el (savehist-mode-hook): Add `:group'.
+
+	* log-view.el: Call autoload for vc-find-version.
+	(log-view-current-file): Adjust subgroup numbers.
+	(log-view-current-tag): Add `length'.
+
 2005-12-23  Richard M. Stallman  <rms@gnu.org>
 
 	* vc.el (vc-annotate-car-last-cons): Defn moved up.
