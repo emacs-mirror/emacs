@@ -1,3 +1,15 @@
+2005-12-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* descr-text.el: Add FSF as maintainer.
+	(describe-text-mode, describe-text-mode-map)
+	(describe-text-mode-hook, describe-text-done): Delete.  Use normal
+	help-mode.
+	(describe-text-widget, describe-text-sexp)
+	(describe-property-list, describe-text-category)
+	(describe-text-properties, describe-text-properties-1)
+	(describe-char): Use help buttons instead of widgets.
+	(describe-char-unicodedata-file): Make URL link in doc string.
+
 2005-12-22  Richard M. Stallman  <rms@gnu.org>
 	
 	* cus-edit.el (custom-variable-prompt): Say "variable" in prompt.
