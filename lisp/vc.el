@@ -2936,6 +2936,10 @@ if present.  The current time is used as the offset."
    (if ratio (vc-annotate-time-span vc-annotate-color-map ratio)))
   (message "Redisplaying annotation...done"))
 
+(defun vc-annotate-car-last-cons (a-list)
+  "Return car of last cons in association list A-LIST."
+  (caar (last a-list)))
+
 (defun vc-annotate-display-autoscale (&optional full)
   "Highlight the output of \\[vc-annotate] using an autoscaled color map.
 Autoscaling means that the map is scaled from the current time to the
@@ -3238,10 +3242,6 @@ revision."
 	(goto-line (min oldline (progn (goto-char (point-max))
 				       (previous-line)
 				       (line-number-at-pos))))))))
-
-(defun vc-annotate-car-last-cons (a-list)
-  "Return car of last cons in association list A-LIST."
-  (caar (last a-list)))
 
 (defun vc-annotate-time-span (a-list span &optional quantize)
   "Apply factor SPAN to the time-span of association list A-LIST.
