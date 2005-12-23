@@ -64,7 +64,7 @@ This directory contains, among other things, the components file.")
 This directory contains, among other things, the mhl program.")
 
 (defvar mh-flists-present-flag nil
-  "Non-nil means that we have `flists'.")
+  "Non-nil means that we have \"flists\".")
 
 ;;;###autoload
 (put 'mh-progs 'risky-local-variable t)
@@ -101,14 +101,14 @@ is described by the variable `mh-variants'."
 (defvar mh-variant-in-use nil
   "The MH variant currently in use; a string with variant and version number.
 This differs from `mh-variant' when the latter is set to
-`autodetect'.")
+\"autodetect\".")
 
 ;;;###mh-autoload
 (defun mh-variant-set (variant)
   "Set the MH variant to VARIANT.
 Sets `mh-progs', `mh-lib', `mh-lib-progs' and
 `mh-flists-present-flag'.
-If the VARIANT is `autodetect', then first try nmh, then MH and
+If the VARIANT is \"autodetect\", then first try nmh, then MH and
 finally GNU mailutils."
   (interactive
    (list (completing-read
@@ -202,7 +202,7 @@ directories to the customizable variable `mh-path'.")
 (defun mh-variant-mh-info (dir)
   "Return info for MH variant in DIR assuming a temporary buffer is setup."
   ;; MH does not have the -version option.
-  ;; Its version number is included in the output of `-help' as:
+  ;; Its version number is included in the output of "-help" as:
   ;;
   ;; version: MH 6.8.4 #2[UCI] (burrito) of Fri Jan 15 20:01:39 EST 1999
   ;; options: [ATHENA] [BIND] [DUMB] [LIBLOCKFILE] [LOCALE] [MAILGROUP] [MHE]
@@ -306,7 +306,7 @@ This assumes that a temporary buffer is setup."
 (defun mh-image-load-path ()
   "Ensure that the MH-E images are accessible by `find-image'.
 Images for MH-E are found in ../../etc/images relative to the
-files in `lisp/mh-e'. If `image-load-path' exists (since Emacs
+files in \"lisp/mh-e\". If `image-load-path' exists (since Emacs
 22), then the images directory is added to it if isn't already
 there. Otherwise, the images directory is added to the
 `load-path' if it isn't already there."

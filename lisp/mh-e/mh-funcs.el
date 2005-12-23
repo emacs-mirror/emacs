@@ -303,7 +303,7 @@ the optional argument EXTRA-ARGS is given."
 
 ;;;###mh-autoload
 (defun mh-store-msg (directory)
-  "Unpack message created with `uudecode' or `shar'.
+  "Unpack message created with \"uudecode\" or \"shar\".
 
 The default DIRECTORY for extraction is the current directory;
 however, you have a chance to specify a different extraction
@@ -409,7 +409,7 @@ value of `mh-store-default-directory' or the current directory."
 (defun mh-prefix-help ()
   "Display cheat sheet for the commands of the current prefix in minibuffer."
   (interactive)
-  ;; We got here because the user pressed a `?', but he pressed a prefix key
+  ;; We got here because the user pressed a "?", but he pressed a prefix key
   ;; before that. Since the the key vector starts at index 0, the index of the
   ;; last keystroke is length-1 and thus the second to last keystroke is at
   ;; length-2. We use that information to obtain a suitable prefix character

@@ -1,4 +1,4 @@
-;;; mh-inc.el --- MH-E `inc' and separate mail spool handling
+;;; mh-inc.el --- MH-E "inc" and separate mail spool handling
 ;;
 ;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
@@ -28,7 +28,7 @@
 
 ;;  Support for inc. In addition to reading from the system mailbox, inc can
 ;;  also be used to incorporate mail from multiple spool files into separate
-;;  folders. See `C-h v mh-inc-spool-list'.
+;;  folders. See "C-h v mh-inc-spool-list".
 
 ;;; Change Log:
 

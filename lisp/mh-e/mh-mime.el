@@ -469,8 +469,8 @@ The effects of this command can be undone by running
   (run-hooks 'mh-mh-to-mime-hook))
 
 (defun mh-mh-quote-unescaped-sharp ()
-  "Quote `#' characters that haven't been quoted for \"mhbuild\".
-If the `#' character is present in the first column, but it isn't
+  "Quote \"#\" characters that haven't been quoted for \"mhbuild\".
+If the \"#\" character is present in the first column, but it isn't
 part of a MH-style directive then \"mhbuild\" gives an error.
 This function will quote all such characters."
   (save-excursion
@@ -604,7 +604,7 @@ media type if it cannot be determined automatically, a content
 description and the DISPOSITION of the attachment.
 
 This is basically `mml-attach-file' from Gnus, modified such that a prefix
-argument yields an `inline' disposition and Content-Type is determined
+argument yields an \"inline\" disposition and Content-Type is determined
 automatically."
   (let* ((file (mml-minibuffer-read-file "Attach file: "))
          (type (mh-minibuffer-read-type file))

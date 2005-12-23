@@ -282,7 +282,7 @@ When you want to widen the view to all your messages again, use
                         mh-show-seq-tool-bar-map))))
              (push 'widen mh-view-ops)))
           (t
-           (error "No messages in sequence `%s'" (symbol-name sequence))))))
+           (error "No messages in sequence \"%s\"" (symbol-name sequence))))))
 
 ;;;###mh-autoload
 (defun mh-put-msg-in-seq (range sequence)
@@ -302,7 +302,7 @@ use."
   (interactive (list (mh-interactive-range "Add messages from")
                      (mh-read-seq-default "Add to" nil)))
   (unless (mh-valid-seq-p sequence)
-    (error "Can't put message in invalid sequence `%s'" sequence))
+    (error "Can't put message in invalid sequence \"%s\"" sequence))
   (let* ((internal-seq-flag (mh-internal-seq sequence))
          (original-msgs (mh-seq-msgs (mh-find-seq sequence)))
          (folders (list mh-current-folder))
@@ -428,7 +428,7 @@ containing the current message."
                     (t (intern input))))
          (msgs (mh-seq-to-msgs seq)))
     (if (and (null msgs) not-empty)
-        (error "No messages in sequence `%s'" seq))
+        (error "No messages in sequence \"%s\"" seq))
     seq))
 
 
@@ -543,7 +543,7 @@ should be replaced with:
           ((assoc (intern input) seq-list)
            (cdr (assoc (intern input) seq-list)))
           ((setq msg-list (mh-translate-range folder input)) msg-list)
-          (t (error "No messages in range `%s'" input)))))
+          (t (error "No messages in range \"%s\"" input)))))
 
 ;;;###mh-autoload
 (defun mh-translate-range (folder expr)
@@ -884,7 +884,7 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
 
 ;;;###mh-autoload
 (defun mh-narrow-to-from (&optional pick-expr)
-  "Limit to messages with the same `From:' field.
+  "Limit to messages with the same \"From:\" field.
 With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
@@ -894,7 +894,7 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
 
 ;;;###mh-autoload
 (defun mh-narrow-to-cc (&optional pick-expr)
-  "Limit to messages with the same `Cc:' field.
+  "Limit to messages with the same \"Cc:\" field.
 With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
@@ -904,7 +904,7 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."
 
 ;;;###mh-autoload
 (defun mh-narrow-to-to (&optional pick-expr)
-  "Limit to messages with the same `To:' field.
+  "Limit to messages with the same \"To:\" field.
 With a prefix argument, edit PICK-EXPR.
 
 Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command."

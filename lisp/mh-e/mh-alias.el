@@ -70,7 +70,7 @@
   "*A list of system files which are a source of aliases.
 If these files are modified, they are automatically reread. This list
 need include only system aliases and the passwd file, since personal
-alias files listed in your `Aliasfile:' MH profile component are
+alias files listed in your \"Aliasfile:\" MH profile component are
 automatically included. You can update the alias list manually using
 \\[mh-alias-reload].")
 
@@ -146,7 +146,7 @@ COMMA-SEPARATOR is non-nil."
 
 (defun mh-alias-local-users ()
   "Return an alist of local users from /etc/passwd.
-Exclude all aliases already in `mh-alias-alist' from `ali'"
+Exclude all aliases already in `mh-alias-alist' from \"ali\""
   (let (passwd-alist)
     (save-excursion
       (set-buffer (get-buffer-create mh-temp-buffer))
@@ -188,7 +188,7 @@ Exclude all aliases already in `mh-alias-alist' from `ali'"
 
 Since aliases are updated frequently, MH-E reloads aliases
 automatically whenever an alias lookup occurs if an alias source has
-changed. Sources include files listed in your `Aliasfile:' profile
+changed. Sources include files listed in your \"Aliasfile:\" profile
 component and your password file if option `mh-alias-local-users' is
 turned on. However, you can reload your aliases manually by calling
 this command directly.
@@ -422,7 +422,7 @@ string is converted to lower case."
 (defun mh-alias-insert-file (&optional alias)
   "Return filename which should be used to add ALIAS.
 The value of the option `mh-alias-insert-file' is used if non-nil\;
-otherwise the value of the `Aliasfile:' profile component is used.
+otherwise the value of the \"Aliasfile:\" profile component is used.
 If the alias already exists, try to return the name of the file that
 contains it."
   (cond
@@ -449,7 +449,7 @@ contains it."
       (cond
        ((not autolist)
         (error "No writable alias file.
-Set `mh-alias-insert-file' or the Aliasfile profile component"))
+Set `mh-alias-insert-file' or the \"Aliasfile:\" profile component"))
        ((not (elt autolist 1))        ; Only one entry, use it
         (car autolist))
        ((or (not alias)

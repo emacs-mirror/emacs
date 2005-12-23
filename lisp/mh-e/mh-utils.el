@@ -113,14 +113,14 @@ variable is only consulted if `mh-scan-format-file' is set to
 (defvar mh-scan-msg-format-string "%d"
   "This is a format string for width of the message number in a scan format.
 
-Use `0%d' for zero-filled message numbers. This variable is only
+Use \"0%d\" for zero-filled message numbers. This variable is only
 consulted if `mh-scan-format-file' is set to \"Use MH-E scan
 Format\".")
 
 (defvar mh-scan-msg-search-regexp "^[^0-9]*%d[^0-9]"
   "This regular expression matches a particular message.
 
-It is a format string; use `%d' to represent the location of the
+It is a format string; use \"%d\" to represent the location of the
 message number within the expression as in the default of
 \"^[^0-9]*%d[^0-9]\".")
 
@@ -137,7 +137,7 @@ Note that columns in Emacs start with 0.")
 (defvar mh-note-seq ?%
   "Messages in a user-defined sequence are marked by this character.
 
-Messages in the `search' sequence are marked by this character as
+Messages in the \"search\" sequence are marked by this character as
 well.")
 
 
@@ -787,7 +787,7 @@ See `expand-file-name' for description of DEFAULT."
 If the buffer we start in is still visible and DONT-RETURN is nil
 then switch to it after that."
   `(defun ,function ()
-     ,(format "Calls %s from the message's folder.\n%s\nSee `%s' for more info.\n"
+     ,(format "Calls %s from the message's folder.\n%s\nSee \"%s\" for more info.\n"
               original-function
               (if dont-return ""
                 "When function completes, returns to the show buffer if it is
@@ -2107,7 +2107,7 @@ folder buffer are not updated."
 
 ;; Initialize mh-sub-folders-cache...
 (defun mh-collect-folder-names ()
-  "Collect folder names by running `flists'."
+  "Collect folder names by running \"flists\"."
   (unless mh-flists-process
     (setq mh-flists-process
           (mh-exec-cmd-daemon "folders" 'mh-collect-folder-names-filter

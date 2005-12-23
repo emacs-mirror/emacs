@@ -122,7 +122,7 @@ Return t if anything is deleted."
 (defun mh-identity-field-handler (field)
   "Return the handler for header FIELD or nil if none set.
 The field name is downcased. If the FIELD begins with the
-character `:', then it must have a special handler defined in
+character \":\", then it must have a special handler defined in
 `mh-identity-handlers', else return an error since it is not a
 valid header field."
   (or (cdr (mh-assoc-ignore-case field mh-identity-handlers))

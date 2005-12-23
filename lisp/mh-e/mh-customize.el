@@ -271,14 +271,14 @@ See `mh-variant'."
 (defcustom mh-variant 'autodetect
   "*Specifies the variant used by MH-E.
 
-The default setting of this option is `Auto-detect' which means
+The default setting of this option is \"Auto-detect\" which means
 that MH-E will automatically choose the first of nmh, MH, or GNU
 mailutils that it finds in the directories listed in
 `mh-path' (which you can customize), `mh-sys-path', and
 `exec-path'. If, for example, you have both nmh and mailutils
 installed and `mh-variant-in-use' was initialized to nmh but you
 want to use mailutils, then you can set this option to
-`mailutils'.
+\"mailutils\".
 
 When this variable is changed, MH-E resets `mh-progs', `mh-lib',
 `mh-lib-progs', `mh-flists-present-flag', and `mh-variant-in-use'
@@ -329,10 +329,10 @@ does not display a warning if the alias is not found."
 (defcustom mh-alias-insert-file nil
   "*Filename used to store a new MH-E alias.
 
-The default setting of this option is `Use Aliasfile Profile
-Component'. This option can also hold the name of a file or a
+The default setting of this option is \"Use Aliasfile Profile
+Component\". This option can also hold the name of a file or a
 list a file names. If this option is set to a list of file names,
-or the `Aliasfile:' profile component contains more than one file
+or the \"Aliasfile:\" profile component contains more than one file
 name, MH-E will prompt for one of them when MH-E adds an alias."
   :type '(choice (const :tag "Use Aliasfile Profile Component" nil)
                  (file :tag "Alias File")
@@ -342,9 +342,9 @@ name, MH-E will prompt for one of them when MH-E adds an alias."
 (defcustom mh-alias-insertion-location 'sorted
   "Specifies where new aliases are entered in alias files.
 
-This option is set to `Alphabetical' by default. If you organize
-your alias file in other ways, then adding aliases to the `Top'
-or `Bottom' of your alias file might be more appropriate."
+This option is set to \"Alphabetical\" by default. If you organize
+your alias file in other ways, then adding aliases to the \"Top\"
+or \"Bottom\" of your alias file might be more appropriate."
   :type '(choice (const :tag "Alphabetical" sorted)
                  (const :tag "Top" top)
                  (const :tag "Bottom" bottom))
@@ -353,12 +353,12 @@ or `Bottom' of your alias file might be more appropriate."
 (defcustom mh-alias-local-users t
   "*If on, local users are added to alias completion.
 
-Aliases are created from `/etc/passwd' entries with a user ID
+Aliases are created from \"/etc/passwd\" entries with a user ID
 larger than a magical number, typically 200. This can be a handy
 tool on a machine where you and co-workers exchange messages.
-These aliases have the form `local.first.last' if a real name is
+These aliases have the form \"local.first.last\" if a real name is
 present in the password file. Otherwise, the alias will have the
-form `local.login'.
+form \"local.login\".
 
 If you're on a system with thousands of users you don't know, and
 the loading of local aliases slows MH-E down noticeably, then
@@ -372,7 +372,7 @@ NIS password file."
 
 (defcustom mh-alias-local-users-prefix "local."
   "*String prefixed to the real names of users from the password file.
-This option can also be set to `Use Login'.
+This option can also be set to \"Use Login\".
 
 For example, consider the following password file entry:
 
@@ -474,11 +474,11 @@ an alternate view. For example, \"'(\"-nolimit\" \"-textfield\"
 ;;; Folder Selection (:group 'mh-folder-selection)
 
 (defcustom mh-default-folder-for-message-function nil
-  "Function to select a default folder for refiling or `Fcc'.
+  "Function to select a default folder for refiling or \"Fcc\".
 
 The current buffer is set to the message being refiled with point
 at the start of the message. This function should return the
-default folder as a string with a leading `+' sign. It can also
+default folder as a string with a leading \"+\" sign. It can also
 return nil so that the last folder name is used as the default,
 or an empty string to suppress the default entirely."
   :type 'function
@@ -489,7 +489,7 @@ or an empty string to suppress the default entirely."
 
 The folder name associated with the first address found in this
 list is used as the default for `mh-refile-msg' and similar
-functions. Each element in this list contains a `Check Recipient'
+functions. Each element in this list contains a \"Check Recipient\"
 item. If this item is turned on, then the address is checked
 against the recipient instead of the sender. This is useful for
 mailing lists.
@@ -530,35 +530,35 @@ for more information."
 (defcustom mh-identity-list nil
   "*List of identities.
 
-To customize this option, click on the `INS' button and enter a label
-such as `Home' or `Work'. Then click on the `INS' button with the
-label `Add at least one item below'. Then choose one of the items in
-the `Value Menu'.
+To customize this option, click on the \"INS\" button and enter a label
+such as \"Home\" or \"Work\". Then click on the \"INS\" button with the
+label \"Add at least one item below\". Then choose one of the items in
+the \"Value Menu\".
 
-You can specify an alternate `From:' header field using the `From
-Field' menu item. You must include a valid email address. A standard
-format is `First Last <login@@host.domain>'. If you use an initial
-with a period, then you must quote your name as in `\"First I. Last\"
+You can specify an alternate \"From:\" header field using the \"From
+Field\" menu item. You must include a valid email address. A standard
+format is \"First Last <login@@host.domain>\". If you use an initial
+with a period, then you must quote your name as in '\"First I. Last\"
 <login@@host.domain>'. People usually list the name of the company
-where they work using the `Organization Field' menu item. Set any
-arbitrary header field and value in the `Other Field' menu item.
+where they work using the \"Organization Field\" menu item. Set any
+arbitrary header field and value in the \"Other Field\" menu item.
 Unless the header field is a standard one, precede the name of your
-field's label with `X-', as in `X-Fruit-of-the-Day:'. The value of
-`Attribution Verb' overrides the setting of
+field's label with \"X-\", as in \"X-Fruit-of-the-Day:\". The value of
+\"Attribution Verb\" overrides the setting of
 `mh-extract-from-attribution-verb'. Set your signature with the
-`Signature' menu item. You can specify the contents of
+\"Signature\" menu item. You can specify the contents of
 `mh-signature-file-name', a file, or a function. Specify a different
-key to sign or encrypt messages with the `GPG Key ID' menu item.
+key to sign or encrypt messages with the \"GPG Key ID\" menu item.
 
 You can select the identities you have added via the menu called
-`Identity' in the MH-Letter buffer. You can also use
+\"Identity\" in the MH-Letter buffer. You can also use
 \\[mh-insert-identity]. To clear the fields and signature added by the
-identity, select the `None' identity.
+identity, select the \"None\" identity.
 
-The `Identity' menu contains two other items to save you from having
-to set the identity on every message. The menu item `Set Default for
-Session' can be used to set the default identity to the current
-identity until you exit Emacs. The menu item `Save as Default' sets
+The \"Identity\" menu contains two other items to save you from having
+to set the identity on every message. The menu item \"Set Default for
+Session\" can be used to set the default identity to the current
+identity until you exit Emacs. The menu item \"Save as Default\" sets
 the option `mh-identity-default' to the current identity setting. You
 can also customize the `mh-identity-default' option in the usual
 fashion."
@@ -597,31 +597,31 @@ fashion."
   "List of recipients for which header lines are automatically inserted.
 
 This option can be used to set the identity depending on the
-recipient. To customize this option, click on the `INS' button and
+recipient. To customize this option, click on the \"INS\" button and
 enter a regular expression for the recipient's address. Click on the
-`INS' button with the `Add at least one item below' label. Then choose
-one of the items in the `Value Menu'.
+\"INS\" button with the \"Add at least one item below\" label. Then choose
+one of the items in the \"Value Menu\".
 
-The `Identity' menu item is used to select an identity from those
+The \"Identity\" menu item is used to select an identity from those
 configured in `mh-identity-list'. All of the information for that
-identity will be added if the recipient matches. The `Fcc Field' menu
-item is used to select a folder that is used in the `Fcc:' header.
+identity will be added if the recipient matches. The \"Fcc Field\" menu
+item is used to select a folder that is used in the \"Fcc:\" header.
 When you send the message, MH will put a copy of your message in this
-folder. The `Mail-Followup-To Field' menu item is used to insert an
-`Mail-Followup-To:' header field with the recipients you provide. If
+folder. The \"Mail-Followup-To Field\" menu item is used to insert an
+\"Mail-Followup-To:\" header field with the recipients you provide. If
 the recipient's mail user agent supports this header field (as nmh
 does), then their replies will go to the addresses listed. This is
 useful if their replies go both to the list and to you and you don't
 have a mechanism to suppress duplicates. If you reply to someone not
-on the list, you must either remove the `Mail-Followup-To:' field, or
+on the list, you must either remove the \"Mail-Followup-To:\" field, or
 ensure the recipient is also listed there so that he receives replies
-to your reply. Other header fields may be added using the `Other
-Field' menu item.
+to your reply. Other header fields may be added using the \"Other
+Field\" menu item.
 
 These fields can only be added after the recipient is known. Once the
 header contains one or more recipients, run the
-\\[mh-insert-auto-fields] command or choose the `Identity -> Insert
-Auto Fields' menu item to insert these fields manually. However, you
+\\[mh-insert-auto-fields] command or choose the \"Identity -> Insert
+Auto Fields\" menu item to insert these fields manually. However, you
 can just send the message and the fields will be added automatically.
 You are given a chance to see these fields and to confirm them before
 the message is actually sent. You can do away with this confirmation
@@ -682,22 +682,22 @@ and attributions in `mh-identity-list' are added. To customize
 `mh-identity-handlers', replace the name of an existing handler
 function associated with the field you want to change with the
 name of a function you have written. You can also click on an
-`INS' button and insert a field of your choice and the name of
+\"INS\" button and insert a field of your choice and the name of
 the function you have written to handle it.
 
-The `Field' field can be any field that you've used in your
-`mh-identity-list'. The special fields `:attribution-verb',
-`:signature', or `:pgg-default-user-id' are used for the
-`mh-identity-list' choices `Attribution Verb', `Signature', and
-`GPG Key ID' respectively.
+The \"Field\" field can be any field that you've used in your
+`mh-identity-list'. The special fields \":attribution-verb\",
+\":signature\", or \":pgg-default-user-id\" are used for the
+`mh-identity-list' choices \"Attribution Verb\", \"Signature\", and
+\"GPG Key ID\" respectively.
 
-The handler associated with the `:default' field is used when no
+The handler associated with the \":default\" field is used when no
 other field matches.
 
 The handler functions are passed two or three arguments: the
-FIELD itself (for example, `From'), or one of the special
-fields (for example, `:signature'), and the ACTION `'remove' or
-`'add'. If the action is `'add', an additional argument
+FIELD itself (for example, \"From\"), or one of the special
+fields (for example, \":signature\"), and the ACTION 'remove or
+'add. If the action is 'add, an additional argument
 containing the VALUE for the field is given."
   :type '(repeat (cons (string :tag "Field") function))
   :group 'mh-identity)
@@ -712,7 +712,7 @@ containing the VALUE for the field is given."
 This program generates a one-line summary for each of the new
 messages. Unless it is an absolute pathname, the file is assumed
 to be in the `mh-progs' directory. You may also link a file to
-`inc' that uses a different format. You'll then need to modify
+\"inc\" that uses a different format. You'll then need to modify
 several scan line format variables appropriately."
   :type 'string
   :group 'mh-inc)
@@ -722,25 +722,25 @@ several scan line format variables appropriately."
 
 You can use the `mh-inc-spool-list' variable to direct MH-E to
 retrieve mail from arbitrary spool files other than your system
-mailbox, file it in folders other than your `+inbox', and assign
+mailbox, file it in folders other than your \"+inbox\", and assign
 key bindings to incorporate this mail.
 
-Suppose you are subscribed to the `mh-e-devel' mailing list and
-you use `procmail' to filter this mail into `~/mail/mh-e' with
-the following recipe in `.procmailrc':
+Suppose you are subscribed to the \"mh-e-devel\" mailing list and
+you use \"procmail\" to filter this mail into \"~/mail/mh-e\" with
+the following recipe in \".procmailrc\":
 
     MAILDIR=$HOME/mail
     :0:
     * ^From mh-e-devel-admin@stop.mail-abuse.org
     mh-e
 
-In order to incorporate `~/mail/mh-e' into `+mh-e' with an `I m'
-\(`mh-inc-spool-mh-e'\) command, customize this option, and click
-on the `INS' button. Enter a `Spool File' of `~/mail/mh-e', a
-`Folder' of `mh-e', and a `Key Binding' of `m'.
+In order to incorporate \"~/mail/mh-e\" into \"+mh-e\" with an
+\"I m\" (mh-inc-spool-mh-e) command, customize this option, and click
+on the \"INS\" button. Enter a \"Spool File\" of \"~/mail/mh-e\", a
+\"Folder\" of \"mh-e\", and a \"Key Binding\" of \"m\".
 
-You can use `xbuffy' to automate the incorporation of this mail
-using the `gnudoit' command in the `gnuserv' package as follows:
+You can use \"xbuffy\" to automate the incorporation of this mail
+using the \"gnudoit\" command in the \"gnuserv\" package as follows:
 
     box ~/mail/mh-e
         title mh-e
@@ -761,11 +761,11 @@ using the `gnudoit' command in the `gnuserv' package as follows:
 (defcustom mh-index-program nil
   "Indexing program that MH-E shall use.
 
-The default setting of this option is `Auto-detect' which means
+The default setting of this option is \"Auto-detect\" which means
 that MH-E will automatically choose one of swish++, swish-e,
 mairix, namazu, pick and grep in that order. If, for example, you
 have both swish++ and mairix installed and you want to use
-mairix, then you can set this option to `mairix'.
+mairix, then you can set this option to \"mairix\".
 
 More information about setting up an indexing program to use with
 MH-E can be found in the documentation of `mh-index-search'."
@@ -1269,7 +1269,7 @@ there isn't much advantage to that."
   :group 'mh-sequences)
 
 (defcustom mh-update-sequences-after-mh-show-flag t
-  "*Non-nil means flush MH sequences to disk after message is shown.
+  "*Non-nil means flush MH sequences to disk after message is shown\\<mh-folder-mode-map>.
 
 Three sequences are maintained internally by MH-E and pushed out
 to MH when a message is shown. They include the sequence
@@ -1277,8 +1277,8 @@ specified by your \"Unseen-Sequence:\" profile entry, \"cur\",
 and the sequence listed by the option `mh-tick-seq' which is
 \"tick\" by default. If you do not like this behavior, turn off
 this option. You can then update the state manually with the
-`\\[mh-execute-commands]', `\\[mh-quit]', or
-`\\[mh-update-sequences]' commands."
+\\[mh-execute-commands], \\[mh-quit], or \\[mh-update-sequences]
+commands."
   :type 'boolean
   :group 'mh-sequences)
 
@@ -1681,7 +1681,7 @@ See also `mh-clean-message-header-flag'."
 Header fields that you would like to hide that aren't listed in
 `mh-invisible-header-fields-default' can be added to this option
 with a couple of caveats. Regular expressions are not allowed.
-Unique fields should have a `:' suffix; otherwise, the element
+Unique fields should have a \":\" suffix; otherwise, the element
 can be used to render invisible an entire class of fields that
 start with the same prefix. If you think a header field should be
 generally ignored, report a bug (see URL
@@ -1862,8 +1862,8 @@ The option `mh-fetch-x-image-url' controls the fetching of the
   "*Default directory for \\<mh-folder-mode-map>\\[mh-store-msg].
 
 If you would like to change the initial default directory,
-customize this option, change the value from `Current' to
-`Directory', and then enter the name of the directory for storing
+customize this option, change the value from \"Current\" to
+\"Directory\", and then enter the name of the directory for storing
 the content of these messages."
   :type '(choice (const :tag "Current" nil)
                  directory)
@@ -2027,16 +2027,16 @@ where,
   FUNCTION is the name of the function that will be executed when
   the button is clicked.
 
-  MODES is a list of symbols. List elements must be from `folder',
-  `letter' and `sequence'. If `folder' is present then the button is
+  MODES is a list of symbols. List elements must be from \"folder\",
+  \"letter\" and \"sequence\". If \"folder\" is present then the button is
   available in the folder and show buffer. If the name of FUNCTION is
   of the form \"mh-foo\", where foo is some arbitrary string, then we
   check if the function `mh-show-foo' exists. If it exists then that
   function is used in the show buffer. Otherwise the original function
-  `mh-foo' is used in the show buffer as well. Presence of `sequence'
+  `mh-foo' is used in the show buffer as well. Presence of \"sequence\"
   is handled similar to the above. The only difference is that the
   button is shown only when the folder is narrowed to a sequence. If
-  `letter' is present in MODES, then the button is available during
+  \"letter\" is present in MODES, then the button is available during
   draft editing and runs FUNCTION when clicked.
 
   ICON is the icon that is drawn in the button.
@@ -2048,7 +2048,7 @@ where,
 
   Optional item ENABLE-EXPR is an arbitrary lisp expression. If it
   evaluates to nil, then the button is deactivated, otherwise it is
-  active. If is in't present then the button is always active."
+  active. If it isn't present then the button is always active."
   ;; The following variable names have been carefully chosen to make code
   ;; generation easier. Modifying the names should be done carefully.
   (let (folder-buttons folder-docs folder-button-setter sequence-button-setter

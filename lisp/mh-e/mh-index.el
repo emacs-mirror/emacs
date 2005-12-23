@@ -362,14 +362,14 @@ construct the base name."
 Use a prefix argument to repeat the search.
 
 Unlike regular searches, the prompt for the folder to search can be
-`all' to search all folders; in addition, the search works recursively
+\"all\" to search all folders; in addition, the search works recursively
 on the listed folder. The search criteria are entered in an MH-Pick
 buffer as described in `mh-search-folder'.
 
 To perform the search, type \\<mh-pick-mode-map>\\[mh-do-search].
 Another difference from the regular searches is that because the
 search operates on more than one folder, the messages that are found
-are put in a temporary sub-folder of `+mhe-index' and are displayed in
+are put in a temporary sub-folder of \"+mhe-index\" and are displayed in
 an MH-Folder buffer. This buffer is special because it displays
 messages from multiple folders; each set of messages from a given
 folder has a heading with the folder name.
@@ -554,7 +554,7 @@ search results."
   "Write index data to file."
   (ignore-errors
     (unless (eq major-mode 'mh-folder-mode)
-      (error "Can't be called from folder in `%s'" major-mode))
+      (error "Can't be called from folder in \"%s\"" major-mode))
     (let ((data mh-index-data)
           (msg-checksum-map mh-index-msg-checksum-map)
           (checksum-origin-map mh-index-checksum-origin-map)
@@ -576,7 +576,7 @@ search results."
   "Read index data from file."
   (ignore-errors
     (unless (eq major-mode 'mh-folder-mode)
-      (error "Can't be called from folder in `%s'" major-mode))
+      (error "Can't be called from folder in \"%s\"" major-mode))
     (let ((infile (concat buffer-file-name mh-index-data-file))
           t1 t2 t3 t4 t5)
       (with-temp-buffer
@@ -1352,9 +1352,9 @@ folders."
 (defun mh-index-new-messages (folders)
   "Display unseen messages.
 
-If you use a program such as `procmail' to use `rcvstore' to file
+If you use a program such as \"procmail\" to use \"rcvstore\" to file
 your incoming mail automatically, you can display new, unseen,
-messages using this command. All messages in the `unseen'
+messages using this command. All messages in the \"unseen\"
 sequence from the folders in `mh-new-messages-folders' are
 listed.
 

@@ -224,7 +224,7 @@ The hook `mh-pick-mode-hook' is called upon entry to this mode.
 
 Messages are searched for in the folder named in
 `mh-searching-folder'. Add the messages found to the sequence
-named `search'."
+named \"search\"."
   (interactive)
   (let ((pattern-list (mh-pick-parse-search-buffer))
         (folder mh-searching-folder)
@@ -337,9 +337,9 @@ COMPONENT is the component to search."
 ;; All implementations of pick have special options -cc, -date, -from and
 ;; -subject that allow to search for corresponding components. Any other
 ;; component is searched using option --COMPNAME, for example: `pick
-;; --x-mailer mh-e'. Mailutils `pick' supports this option using a certain
+;; --x-mailer mh-e'. Mailutils "pick" supports this option using a certain
 ;; kludge, but it prefers the following syntax for this purpose:
-;; `--component=COMPNAME --pattern=PATTERN'.
+;; "--component=COMPNAME --pattern=PATTERN".
 ;;                                           -- Sergey Poznyakoff, Aug 2003
 (defun mh-pick-regexp-builder (pattern-list)
   "Generate pick search expression from PATTERN-LIST."

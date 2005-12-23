@@ -32,7 +32,7 @@
 ;;
 ;;   (eval-when-compile (require 'mh-acros))
 ;;
-;; It is so named with a silent `m' so that it is compiled first. Otherwise,
+;; It is so named with a silent "m" so that it is compiled first. Otherwise,
 ;; "make recompile" in Emacs 21.4 fails.
 
 ;;; Change Log:
@@ -47,10 +47,10 @@
 ;; routines in their macro expansions. Use mh-require-cl to provide the cl
 ;; routines in the best way possible.
 (defmacro mh-require-cl ()
-  "Macro to load `cl' if needed.
-Some versions of `cl' produce code for the expansion of
-\(setf (gethash ...) ...) that uses functions in `cl' at run
-time. This macro recognizes that and loads `cl' where
+  "Macro to load \"cl\" if needed.
+Some versions of \"cl\" produce code for the expansion of
+\(setf (gethash ...) ...) that uses functions in \"cl\" at run
+time. This macro recognizes that and loads \"cl\" where
 appropriate."
   (if (eq (car (macroexpand '(setf (gethash foo bar) baz))) 'cl-puthash)
       `(require 'cl)
@@ -95,9 +95,9 @@ check if variable `transient-mark-mode' is active."
                (boundp 'mark-active) mark-active))))
 
 (defmacro mh-defstruct (name-spec &rest fields)
-  "Replacement for `defstruct' from the `cl' package.
-The `defstruct' in the `cl' library produces compiler warnings,
-and generates code that uses functions present in `cl' at
+  "Replacement for `defstruct' from the \"cl\" package.
+The `defstruct' in the \"cl\" library produces compiler warnings,
+and generates code that uses functions present in \"cl\" at
 run-time. This is a partial replacement, that avoids these
 issues.
 

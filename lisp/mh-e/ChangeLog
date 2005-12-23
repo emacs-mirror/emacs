@@ -1,3 +1,10 @@
+2005-12-23  Bill Wohler  <wohler@newt.com>
+
+	Follow MH-E Developers Guide conventions. Use `' quotes for Help
+	hyperlinks such as symbols, Info nodes, or URLs. Use \" quotes for
+	everything else. Otherwise, you can accidently get links to
+	nonsense symbols.
+	
 2005-12-22  Bill Wohler  <wohler@newt.com>
 
 	Follow Emacs coding conventions. Use default setting of

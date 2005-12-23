@@ -162,8 +162,8 @@ user's MH directory, then in the system MH lib directory.")
 
 (defvar mh-new-draft-cleaned-headers
   "^Date:\\|^Received:\\|^Message-Id:\\|^From:\\|^Sender:\\|^Errors-To:\\|^Delivery-Date:\\|^Return-Path:"
-  "Regexp of header lines to remove before offering a message as a new draft.
-Used by the \\<mh-folder-mode-map>`\\[mh-edit-again]' and `\\[mh-extract-rejected-mail]' commands.")
+  "Regexp of header lines to remove before offering a message as a new draft\\<mh-folder-mode-map>.
+Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
 
 (defvar mh-to-field-choices '(("t" . "To:") ("s" . "Subject:") ("c" . "Cc:")
                               ("b" . "Bcc:") ("f" . "Fcc:") ("r" . "From:")
