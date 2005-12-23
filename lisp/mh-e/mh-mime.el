@@ -657,7 +657,7 @@ The argument IGNORE is not used."
 A proper multipart message is created for you when you send the
 message. Use the \\[mh-mml-unsecure-message] command to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
-the possible security methods \(see `mh-mml-method-default')."
+the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
   (mh-secure-message method "sign" mh-identity-pgg-default-user-id))
 
@@ -668,7 +668,7 @@ the possible security methods \(see `mh-mml-method-default')."
 A proper multipart message is created for you when you send the
 message. Use the \\[mh-mml-unsecure-message] command to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
-the possible security methods \(see `mh-mml-method-default')."
+the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
   (mh-secure-message method "encrypt" mh-identity-pgg-default-user-id))
 
@@ -679,7 +679,7 @@ the possible security methods \(see `mh-mml-method-default')."
 A proper multipart message is created for you when you send the
 message. Use the \\[mh-mml-unsecure-message] command to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
-the possible security methods \(see `mh-mml-method-default')."
+the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
   (mh-secure-message method "signencrypt" mh-identity-pgg-default-user-id))
 

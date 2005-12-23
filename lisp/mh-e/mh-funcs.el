@@ -88,7 +88,7 @@ correct the \"To:\" field yourself."
   "Copy RANGE to FOLDER\\<mh-folder-mode-map>.
 
 If you wish to copy a message to another folder, you can use this
-command \(see the \"-link\" argument to \"refile\"). Like the
+command (see the \"-link\" argument to \"refile\"). Like the
 command \\[mh-refile-msg], this command prompts you for the name
 of the target folder and you can specify a range. Note that
 unlike the command \\[mh-refile-msg], the copy takes place

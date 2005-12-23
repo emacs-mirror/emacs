@@ -549,7 +549,7 @@ all runs \"repl -nocc all\", and a choice of \"to\" runs \"repl
 
 Two windows are then created. One window contains the message to
 which you are replying in an MH-Show buffer. Your draft, in
-MH-Letter mode \(see `mh-letter-mode'), is in the other window.
+MH-Letter mode (see `mh-letter-mode'), is in the other window.
 
 If you supply a prefix argument INCLUDEP, the message you are
 replying to is inserted in your reply after having first been run
@@ -1610,7 +1610,7 @@ yanked into your reply using `mh-yank-behavior'.
 If this isn't enough, you can gain full control over the
 appearance of the included text by setting `mail-citation-hook'
 to a function that modifies it. For example, if you set this hook
-to `trivial-cite' \(which is NOT part of Emacs), set
+to `trivial-cite' (which is NOT part of Emacs), set
 `mh-yank-behavior' to \"Body and Header\" (see URL
 `http://shasta.cs.uiuc.edu/~lrclause/tc.html').
 
@@ -1856,7 +1856,7 @@ Any match found replaces the text from BEGIN to END."
 (defun mh-letter-complete (arg)
   "Perform completion on header field or word preceding point.
 If the field contains addresses (for example, \"To:\" or \"Cc:\")
-or folders \(for example, \"Fcc:\") then this command will
+or folders (for example, \"Fcc:\") then this command will
 provide alias completion. In the body of the message, this
 command runs `mh-letter-complete-function' instead, which is set
 to \"'ispell-complete-word\" by default. This command takes a

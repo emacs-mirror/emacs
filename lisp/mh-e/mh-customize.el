@@ -935,7 +935,7 @@ otherwise, the default is \"None\". Other mechanisms include
 vanilla \"PGP\" and \"S/MIME\".
 
 The `pgg' customization group may have some settings which may
-interest you \(see Info node `(pgg)').
+interest you (see Info node `(pgg)').
 
 In particular, I set the option `pgg-encrypt-for-me' to t so that all
 messages I encrypt are encrypted with my public key as well. If you

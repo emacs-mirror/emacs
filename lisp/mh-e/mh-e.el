@@ -293,7 +293,7 @@ The first is expected to match the `Re:' string, if any. The
 second matches an optional bracketed number after `Re:', such as
 in `Re[2]:' (and is thus a sub-expression of the first
 expression) and the third is expected to match the subject line
-itself as in the default of \(broken on multiple lines for
+itself as in the default of (broken on multiple lines for
 readability):
 
   ^ *[0-9]+........[ ]*...................
