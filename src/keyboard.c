@@ -10661,7 +10661,11 @@ See also `current-input-mode'.  */)
   int new_interrupt_input;
 #ifdef SIGIO
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
-  if (x_display_list != NULL)
+  if (0
+#ifdef HAVE_X_WINDOWS
+      || x_display_list != NULL
+#endif
+      )
     {
       /* When using X, don't give the user a real choice,
 	 because we haven't implemented the mechanisms to support it.  */
