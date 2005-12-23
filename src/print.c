@@ -1345,6 +1345,7 @@ print_preprocess (obj)
 	      {
 		/* OBJ appears more than once.	Let's remember that.  */
 		PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qt;
+                print_depth--;
 		return;
 	      }
 
