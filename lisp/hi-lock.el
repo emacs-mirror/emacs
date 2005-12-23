@@ -199,14 +199,14 @@ calls."
   "Regexp for finding hi-lock patterns at top of file.")
 
 (defvar hi-lock-archaic-interface-message-used nil
-  "True if user alerted that global-hi-lock-mode is now the global switch.
-Earlier versions of hi-lock used hi-lock-mode as the global switch,
-the message is issued if it appears that hi-lock-mode is used assuming
+  "True if user alerted that `global-hi-lock-mode' is now the global switch.
+Earlier versions of hi-lock used `hi-lock-mode' as the global switch,
+the message is issued if it appears that `hi-lock-mode' is used assuming
 that older functionality.  This variable avoids multiple reminders.")
 
 (defvar hi-lock-archaic-interface-deduce nil
-  "If non-nil, sometimes assume that hi-lock-mode means global-hi-lock-mode.
-Assumption is made if hi-lock-mode used in the *scratch* buffer while
+  "If non-nil, sometimes assume that `hi-lock-mode' means `global-hi-lock-mode'.
+Assumption is made if `hi-lock-mode' used in the *scratch* buffer while
 a library is being loaded.")
 
 (make-variable-buffer-local 'hi-lock-interactive-patterns)
@@ -257,14 +257,13 @@ a library is being loaded.")
 
 ;; Visible Functions
 
-
 ;;;###autoload
 (define-minor-mode hi-lock-mode
   "Toggle minor mode for interactively adding font-lock highlighting patterns.
 
-If ARG positive turn hi-lock on.  Issuing a hi-lock command will also
-turn hi-lock on; to turn hi-lock on in all buffers use
-global-hi-lock-mode or in your .emacs file (global-hi-lock-mode 1).
+If ARG positive, turn hi-lock on.  Issuing a hi-lock command will also
+turn hi-lock on.  To turn hi-lock on in all buffers use
+`global-hi-lock-mode' or in your .emacs file (global-hi-lock-mode 1).
 When hi-lock is turned on, a \"Regexp Highlighting\" submenu is added
 to the \"Edit\" menu.  The commands in the submenu, which can be
 called interactively, are:
@@ -303,7 +302,9 @@ will be read until
  Hi-lock: end
 is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
   :group 'hi-lock
-  :lighter " H"
+  :lighter (:eval (if (or hi-lock-interactive-patterns
+			  hi-lock-file-patterns)
+		      " Hi" ""))
   :global nil
   :keymap hi-lock-map
   (when (and (equal (buffer-name) "*scratch*")
@@ -316,7 +317,7 @@ is found. A mode is excluded if it's in the list `hi-lock-exclude-modes'."
       (warn
        "Possible archaic use of (hi-lock-mode).
 Use (global-hi-lock-mode 1) in .emacs to enable hi-lock for all buffers,
-use (hi-lock-mode 1) for individual buffers. For compatibility with Emacs
+use (hi-lock-mode 1) for individual buffers.  For compatibility with Emacs
 versions before 22 use the following in your .emacs file:
 
         (if (functionp 'global-hi-lock-mode)
@@ -488,7 +489,9 @@ be found in variable `hi-lock-interactive-patterns'."
   (let ((beg (point)))
     (mapcar
      (lambda (pattern)
-       (insert (format "Hi-lock: (%s)\n" (prin1-to-string pattern))))
+       (insert (format "%s: (%s)\n"
+		       hi-lock-file-patterns-prefix
+		       (prin1-to-string pattern))))
      hi-lock-interactive-patterns)
     (comment-region beg (point)))
   (when (> (point) hi-lock-file-patterns-range)
@@ -538,7 +541,7 @@ not suitable."
   "Highlight REGEXP with face FACE."
   (let ((pattern (list regexp (list 0 (list 'quote face) t))))
     (unless (member pattern hi-lock-interactive-patterns)
-      (font-lock-add-keywords nil (list pattern))
+      (font-lock-add-keywords nil (list pattern) t)
       (push pattern hi-lock-interactive-patterns)
       (if font-lock-fontified
           (font-lock-fontify-buffer)
@@ -565,7 +568,7 @@ not suitable."
   (when (or hi-lock-file-patterns patterns)
     (font-lock-remove-keywords nil hi-lock-file-patterns)
     (setq hi-lock-file-patterns patterns)
-    (font-lock-add-keywords nil hi-lock-file-patterns)
+    (font-lock-add-keywords nil hi-lock-file-patterns t)
     (font-lock-fontify-buffer)))
 
 (defun hi-lock-find-patterns ()
@@ -594,8 +597,9 @@ not suitable."
 (defun hi-lock-font-lock-hook ()
   "Add hi lock patterns to font-lock's."
   (if font-lock-mode
-      (progn (font-lock-add-keywords nil hi-lock-file-patterns)
-	     (font-lock-add-keywords nil hi-lock-interactive-patterns))
+      (progn
+	(font-lock-add-keywords nil hi-lock-file-patterns t)
+	(font-lock-add-keywords nil hi-lock-interactive-patterns t))
     (hi-lock-mode -1)))
 
 (defvar hi-lock-string-serialize-hash
