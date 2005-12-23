@@ -4,6 +4,7 @@
 ;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
+;; Maintainer: FSF
 ;; Keywords: faces, i18n, Unicode, multilingual
 
 ;; This file is part of GNU Emacs.
@@ -31,50 +32,18 @@
 
 (eval-when-compile (require 'button) (require 'quail))
 
-(defun describe-text-done ()
-  "Delete the current window or bury the current buffer."
-  (interactive)
-  (if (> (count-windows) 1)
-      (delete-window)
-    (bury-buffer)))
-
-(defvar describe-text-mode-map
-  (let ((map (make-sparse-keymap)))
-    (set-keymap-parent map widget-keymap)
-    map)
-  "Keymap for `describe-text-mode'.")
-
-(defcustom describe-text-mode-hook nil
-  "List of hook functions ran by `describe-text-mode'."
-  :type 'hook
-  :group 'facemenu)
-
-(defun describe-text-mode ()
-  "Major mode for buffers created by `describe-char'.
-
-\\{describe-text-mode-map}
-Entry to this mode calls the value of `describe-text-mode-hook'
-if that value is non-nil."
-  (kill-all-local-variables)
-  (setq major-mode 'describe-text-mode
-	mode-name "Describe-Text")
-  (use-local-map describe-text-mode-map)
-  (widget-setup)
-  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
-  (run-mode-hooks 'describe-text-mode-hook))
-
 ;;; Describe-Text Utilities.
 
 (defun describe-text-widget (widget)
   "Insert text to describe WIDGET in the current buffer."
-  (widget-create 'link
-		 :notify `(lambda (&rest ignore)
-			    (widget-browse ',widget))
-		 (format "%S" (if (symbolp widget)
-				  widget
-				(car widget))))
-  (widget-insert " ")
-  (widget-create 'info-link :tag "widget" "(widget)Top"))
+  (insert-text-button
+   (symbol-name (if (symbolp widget) widget (car widget)))
+   'action `(lambda (&rest ignore)
+	      (widget-browse ',widget)))
+  (insert " ")
+  (insert-text-button "(widget)Top"
+		      'action (lambda (&rest ignore) (info "(widget)Top"))
+		      'help-echo "mouse-2, RET: read this Info node"))
 
 (defun describe-text-sexp (sexp)
   "Insert a short description of SEXP in the current buffer."
@@ -88,20 +57,19 @@ if that value is non-nil."
 	      ((> (length pp) (- (window-width) (current-column)))
 	       nil)
 	      (t t))
-	(widget-insert pp)
-      (widget-create 'push-button
-		     :tag "show"
-		     :action (lambda (widget &optional event)
-			       (with-output-to-temp-buffer
-				   "*Pp Eval Output*"
-				 (princ (widget-get widget :value))))
-		     pp))))
+	(insert pp)
+      (insert-text-button
+       "show" 'action `(lambda (&rest ignore)
+			(with-output-to-temp-buffer
+			    "*Pp Eval Output*"
+			  (princ ',pp)))
+       'help-echo "mouse-2, RET: pretty print value in another buffer"))))
 
 (defun describe-property-list (properties)
   "Insert a description of PROPERTIES in the current buffer.
 PROPERTIES should be a list of overlay or text properties.
 The `category', `face' and `font-lock-face' properties are made
-into widget buttons that call `describe-text-category' or
+into help buttons that call `describe-text-category' or
 `describe-face' when pushed."
   ;; Sort the properties by the size of their value.
   (dolist (elt (sort (let (ret)
@@ -112,23 +80,21 @@ into widget buttons that call `describe-text-category' or
 					    (prin1-to-string (nth 0 b) t)))))
     (let ((key (nth 0 elt))
 	  (value (nth 1 elt)))
-      (widget-insert (propertize (format "  %-20s " key)
-				 'font-lock-face 'italic))
+      (insert (propertize (format "  %-20s " key)
+			  'face 'italic))
       (cond ((eq key 'category)
-	     (widget-create 'link
-			    :notify `(lambda (&rest ignore)
-				       (describe-text-category ',value))
-			    (format "%S" value)))
+	     (insert-text-button (symbol-name value)
+				 'action `(lambda (&rest ignore)
+					    (describe-text-category ',value))
+				 'help-echo
+				 "mouse-2, RET: describe this category"))
             ((memq key '(face font-lock-face mouse-face))
-	     (widget-create 'link
-			    :notify `(lambda (&rest ignore)
-				       (describe-face ',value))
-			    (format "%S" value)))
+	     (insert (concat "`" (format "%S" value) "'")))
             ((widgetp value)
 	     (describe-text-widget value))
 	    (t
 	     (describe-text-sexp value))))
-    (widget-insert "\n")))
+    (insert "\n")))
 
 ;;; Describe-Text Commands.
 
@@ -138,9 +104,8 @@ into widget buttons that call `describe-text-category' or
   (save-excursion
     (with-output-to-temp-buffer "*Help*"
       (set-buffer standard-output)
-      (widget-insert "Category " (format "%S" category) ":\n\n")
+      (insert "Category " (format "%S" category) ":\n\n")
       (describe-property-list (symbol-plist category))
-      (describe-text-mode)
       (goto-char (point-min)))))
 
 ;;;###autoload
@@ -165,10 +130,9 @@ otherwise."
 	  (with-output-to-temp-buffer target-buffer
 	    (set-buffer standard-output)
 	    (setq output-buffer (current-buffer))
-	    (widget-insert "Text content at position " (format "%d" pos) ":\n\n")
+	    (insert "Text content at position " (format "%d" pos) ":\n\n")
 	    (with-current-buffer buffer
 	      (describe-text-properties-1 pos output-buffer))
-	    (describe-text-mode)
 	    (goto-char (point-min))))))))
 
 (defun describe-text-properties-1 (pos output-buffer)
@@ -186,33 +150,33 @@ otherwise."
       ;; Widgets
       (when (widgetp widget)
 	(newline)
-	(widget-insert (cond (wid-field "This is an editable text area")
-			     (wid-button "This is an active area")
-			     (wid-doc "This is documentation text")))
-	(widget-insert " of a ")
+	(insert (cond (wid-field "This is an editable text area")
+		      (wid-button "This is an active area")
+		      (wid-doc "This is documentation text")))
+	(insert " of a ")
 	(describe-text-widget widget)
-	(widget-insert ".\n\n"))
+	(insert ".\n\n"))
       ;; Buttons
       (when (and button (not (widgetp wid-button)))
 	(newline)
-	(widget-insert "Here is a " (format "%S" button-type)
-		       " button labeled `" button-label "'.\n\n"))
+	(insert "Here is a " (format "%S" button-type)
+		" button labeled `" button-label "'.\n\n"))
       ;; Overlays
       (when overlays
 	(newline)
 	(if (eq (length overlays) 1)
-	    (widget-insert "There is an overlay here:\n")
-	  (widget-insert "There are " (format "%d" (length overlays))
+	    (insert "There is an overlay here:\n")
+	  (insert "There are " (format "%d" (length overlays))
 			 " overlays here:\n"))
 	(dolist (overlay overlays)
-	  (widget-insert " From " (format "%d" (overlay-start overlay))
+	  (insert " From " (format "%d" (overlay-start overlay))
 			 " to " (format "%d" (overlay-end overlay)) "\n")
 	  (describe-property-list (overlay-properties overlay)))
-	(widget-insert "\n"))
+	(insert "\n"))
       ;; Text properties
       (when properties
 	(newline)
-	(widget-insert "There are text properties here:\n")
+	(insert "There are text properties here:\n")
 	(describe-property-list properties)))))
 
 (defcustom describe-char-unicodedata-file nil
@@ -223,8 +187,8 @@ looked up from it.  This facility is mostly of use to people doing
 multilingual development.
 
 This is a fairly large file, not typically present on GNU systems.  At
-the time of writing it is at
-<URL:http://www.unicode.org/Public/UNIDATA/UnicodeData.txt>."
+the time of writing it is at the URL
+`http://www.unicode.org/Public/UNIDATA/UnicodeData.txt'."
   :group 'mule
   :version "22.1"
   :type '(choice (const :tag "None" nil)
@@ -488,27 +452,28 @@ as well as widgets, buttons, overlays, and text properties."
 			 (format ", U+%04X" unicode)
 		       "")))
 	    ("charset"
-	     ,`(widget-create 'link
-			      :notify (lambda (&rest ignore)
-					(describe-character-set ',charset))
-			      ,(symbol-name charset))
+	     ,`(insert-text-button
+		(symbol-name charset)
+		'action `(lambda (&rest ignore)
+			   (describe-character-set ',charset))
+		'help-echo
+		"mouse-2, RET: describe this character set")
 	     ,(format "(%s)" (charset-description charset)))
 	    ("code point"
 	     ,(let ((split (split-char char)))
-		`(widget-create
-		  'link
-		  :notify (lambda (&rest ignore)
-			    (list-charset-chars ',charset)
-			    (with-selected-window
-				(get-buffer-window "*Character List*" 0)
-			      (goto-char (point-min))
+		`(insert-text-button ,(if (= (charset-dimension charset) 1)
+					  (format "%d" (nth 1 split))
+					(format "%d %d" (nth 1 split)
+						(nth 2 split)))
+		 'action (lambda (&rest ignore)
+			   (list-charset-chars ',charset)
+			   (with-selected-window
+			       (get-buffer-window "*Character List*" 0)
+			     (goto-char (point-min))
                               (forward-line 2) ;Skip the header.
                               (let ((case-fold-search nil))
                                 (search-forward ,(char-to-string char)
-                                                nil t))))
-		  ,(if (= (charset-dimension charset) 1)
-		       (format "%d" (nth 1 split))
-		     (format "%d %d" (nth 1 split) (nth 2 split))))))
+                                                nil t)))))))
 	    ("syntax"
 	     ,(let ((syntax (syntax-after pos)))
 		(with-temp-buffer
@@ -537,12 +502,11 @@ as well as widgets, buttons, overlays, and text properties."
 			   (mapconcat #'(lambda (x) (concat "\"" x "\""))
 				      key-list " or ")
 			   "with"
-			   `(widget-create
-			     'link
-			     :notify (lambda (&rest ignore)
+			   `(insert-text-button
+			     (symbol-name current-input-method)
+			     'action (lambda (&rest ignore)
 				       (describe-input-method
-					',current-input-method))
-			     ,(format "%s" current-input-method))))))
+					',current-input-method)))))))
 	    ("buffer code"
 	     ,(encoded-string-description
 	       (string-as-unibyte (char-to-string char)) nil))
@@ -611,11 +575,8 @@ as well as widgets, buttons, overlays, and text properties."
 			  ((and (< char 32) (not (memq char '(9 10))))
 			   'escape-glyph)))))
 		(if face (list (list "hardcoded face"
-				     `(widget-create
-				       'link
-				       :notify (lambda (&rest ignore)
-						 (describe-face ',face))
-				       ,(format "%s" face))))))
+				     '(insert
+				       (concat "`" (symbol-name face) "'"))))))
 	    ,@(let ((unicodedata (and unicode
 				      (describe-char-unicode-data unicode))))
 		(if unicodedata
@@ -623,17 +584,16 @@ as well as widgets, buttons, overlays, and text properties."
     (setq max-width (apply #'max (mapcar #'(lambda (x)
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
-    (with-output-to-temp-buffer "*Help*"
+    (help-setup-xref nil (interactive-p))
+    (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer standard-output
-	(let ((help-xref-following t))
-	  (help-setup-xref nil nil))
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
 	  (dolist (elt item-list)
 	    (when (cadr elt)
 	      (insert (format formatter (car elt)))
 	      (dolist (clm (cdr elt))
-		(if (eq (car-safe clm) 'widget-create)
+		(if (eq (car-safe clm) 'insert-text-button)
 		    (progn (insert " ") (eval clm))
 		  (when (>= (+ (current-column)
 			       (or (string-match "\n" clm)
@@ -673,17 +633,15 @@ as well as widgets, buttons, overlays, and text properties."
 			  "\n")
 		  (when (> (car (aref disp-vector i)) #x7ffff)
 		    (let* ((face-id (lsh (car (aref disp-vector i)) -19))
-			   (face (car (delq nil (mapcar (lambda (face)
-							  (and (eq (face-id face)
-								   face-id) face))
-							(face-list))))))
+			   (face (car (delq nil (mapcar
+						 (lambda (face)
+						   (and (eq (face-id face)
+							    face-id) face))
+						 (face-list))))))
 		      (when face
 			(insert (propertize " " 'display '(space :align-to 5))
 				"face: ")
-			(widget-create 'link
-				       :notify `(lambda (&rest ignore)
-						  (describe-face ',face))
-				       (format "%S" face))
+			(insert (concat "`" (symbol-name face) "'"))
 			(insert "\n"))))))
 	    (insert "these terminal codes:\n")
 	    (dotimes (i (length disp-vector))
@@ -729,9 +687,7 @@ as well as widgets, buttons, overlays, and text properties."
 		  "the meaning of the rule.\n"))
 
         (if text-props-desc (insert text-props-desc))
-	(describe-text-mode)
 	(toggle-read-only 1)
-	(help-make-xrefs (current-buffer))
 	(print-help-return-message)))))
 
 (defalias 'describe-char-after 'describe-char)
