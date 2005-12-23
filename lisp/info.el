@@ -521,22 +521,22 @@ Do the right thing if the file has been compressed or zipped."
 	       (Info-default-dirs)))))))
 
 ;;;###autoload
-(defun info-other-window (&optional file)
+(defun info-other-window (&optional file-or-node)
   "Like `info' but show the Info buffer in another window."
   (interactive (if current-prefix-arg
 		   (list (read-file-name "Info file name: " nil nil t))))
   (let (same-window-buffer-names same-window-regexps)
-    (info file)))
+    (info file-or-node)))
 
 ;;;###autoload (add-hook 'same-window-regexps "\\*info\\*\\(\\|<[0-9]+>\\)")
 
 ;;;###autoload (put 'info 'info-file "emacs")
 ;;;###autoload
-(defun info (&optional file buffer)
+(defun info (&optional file-or-node buffer)
   "Enter Info, the documentation browser.
-Optional argument FILE specifies the file to examine;
+Optional argument FILE-OR-NODE specifies the file to examine;
 the default is the top-level directory of Info.
-Called from a program, FILE may specify an Info node of the form
+Called from a program, FILE-OR-NODE may specify an Info node of the form
 `(FILENAME)NODENAME'.
 Optional argument BUFFER specifies the Info buffer name;
 the default buffer name is *info*.  If BUFFER exists,
@@ -559,15 +559,15 @@ in all the directories in that path."
   (pop-to-buffer (or buffer "*info*"))
   (if (and buffer (not (eq major-mode 'Info-mode)))
       (Info-mode))
-  (if file
+  (if file-or-node
       ;; If argument already contains parentheses, don't add another set
       ;; since the argument will then be parsed improperly.  This also
       ;; has the added benefit of allowing node names to be included
       ;; following the parenthesized filename.
       (Info-goto-node
-       (if (and (stringp file) (string-match "(.*)" file))
-           file
-         (concat "(" file ")")))
+       (if (and (stringp file-or-node) (string-match "(.*)" file-or-node))
+           file-or-node
+         (concat "(" file-or-node ")")))
     (if (zerop (buffer-size))
         (Info-directory))))
 
@@ -2260,7 +2260,8 @@ Because of ambiguities, this should be concatenated with something like
 	(let ((pattern (concat "\n\\* +\\("
 			       (regexp-quote string)
 			       Info-menu-entry-name-re "\\):" Info-node-spec-re))
-	      completions)
+	      completions
+	      (complete-nodes Info-complete-nodes))
 	  ;; Check the cache.
 	  (if (and (equal (nth 0 Info-complete-cache) Info-current-file)
 		   (equal (nth 1 Info-complete-cache) Info-current-node)
@@ -2281,9 +2282,9 @@ Because of ambiguities, this should be concatenated with something like
 		  (or (and Info-complete-next-re
 		           (setq nextnode (Info-extract-pointer "next" t))
 		           (string-match Info-complete-next-re nextnode))
-		      (and Info-complete-nodes
-		           (setq Info-complete-nodes (cdr Info-complete-nodes)
-		                 nextnode (car Info-complete-nodes)))))
+		      (and complete-nodes
+		           (setq complete-nodes (cdr complete-nodes)
+		                 nextnode (car complete-nodes)))))
 	      (Info-goto-node nextnode))
 	    ;; Go back to the start node (for the next completion).
 	    (unless (equal Info-current-node orignode)
@@ -3192,8 +3193,8 @@ if point is in a menu item description, follow that menu item."
 	(tool-bar-local-item-from-menu 'Info-next "next-node" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-up "up-node" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-top-node "home" map Info-mode-map)
-	(tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-goto-node "jump-to" map Info-mode-map)
+	(tool-bar-local-item-from-menu 'Info-index "index" map Info-mode-map)
 	(tool-bar-local-item-from-menu 'Info-search "search" map Info-mode-map)
 	map)))
 
