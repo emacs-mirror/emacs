@@ -850,7 +850,10 @@ to enter your own verb."
 The prefix \"> \" is the default setting of this option. I suggest that you
 not modify this option since it is used by many mailers and news readers:
 messages are far easier to read if several included messages have all been
-indented by the same string."
+indented by the same string.
+
+This prefix is not inserted if you use one of the supercite flavors of
+`mh-yank-behavior' or you have added a `mail-citation-hook'."
   :type 'string
   :group 'mh-letter)
 
@@ -890,21 +893,22 @@ that you can read the mail you write!"
 (defcustom mh-signature-file-name "~/.signature"
   "*Source of user's signature.
 
-By default, the text of your signature is taken from the file \"~/.signature\".
-You can read from other files by changing this option. This file may contain a
-vCard in which case an attachment is added with the vCard.
+By default, the text of your signature is taken from the file
+\"~/.signature\". You can read from other sources by changing this
+option. This file may contain a vCard in which case an attachment is
+added with the vCard.
 
-This option may also be a symbol, in which case that function is called. You
-may not want a signature separator to be added for you; instead you may want
-to insert one yourself. Options that you may find useful to do this include
-`mh-signature-separator' (when inserting a signature separator) and
-`mh-signature-separator-regexp' (for finding said separator). The function
-`mh-signature-separator-p', which reports t if the buffer contains a
-separator, may be useful as well.
+This option may also be a symbol, in which case that function is
+called. You may not want a signature separator to be added for you;
+instead you may want to insert one yourself. Options that you may find
+useful to do this include `mh-signature-separator' (when inserting a
+signature separator) and `mh-signature-separator-regexp' (for finding
+said separator). The function `mh-signature-separator-p', which
+reports t if the buffer contains a separator, may be useful as well.
 
 The signature is inserted into your message with the command
-\\<mh-letter-mode-map>\\[mh-insert-signature] or with the `mh-identity-list'
-option."
+\\<mh-letter-mode-map>\\[mh-insert-signature] or with the
+`mh-identity-list' option."
   :type 'file
   :group 'mh-letter)
 
@@ -972,7 +976,10 @@ never displayed.
 
 If the show buffer has a region, the `mh-yank-behavior' option is ignored
 unless its value is one of Attribution variants in which case the attribution
-is added to the yanked region."
+is added to the yanked region.
+
+If this option is set to one of the supercite flavors, the hook
+`mail-citation-hook' is ignored and `mh-ins-buf-prefix' is not inserted."
   :type '(choice (const :tag "Body and Header" t)
                  (const :tag "Body" body)
                  (const :tag "Below Point" nil)
@@ -2227,39 +2234,48 @@ This button runs `mh-previous-undeleted-msg'")
 
 ;;; Hooks (:group 'mh-hooks + group where hook described)
 
-(defcustom mail-citation-hook nil
-  "*Hook for modifying a citation just inserted in the mail buffer.
-You can gain full control over the appearance of the included text by setting
-this hook to a function that modifies it. This hook is ignored if the option
-`mh-yank-behavior' is set to one of the supercite flavors. Otherwise, this
-option controls how much of the message is passed to the hook. The function
-can find the citation between point and mark and it should leave point and
-mark around the modified citation text for the next hook function. The
-standard prefix `mh-ins-buf-prefix' is not added if this hook is set.
+(defcustom mh-after-commands-processed-hook nil
+  "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] after performing outstanding requests.
 
-For example, if you use the hook function trivial-cite (which is NOT part of
-Emacs), set `mh-yank-behavior' to \"Body and Header\" (see URL
-`http://shasta.cs.uiuc.edu/~lrclause/tc.html')."
+Variables that are useful in this hook include `mh-folders-changed',
+which lists which folders were affected by deletes and refiles. This
+list will always include the current folder, which is also available
+in `mh-current-folder'."
   :type 'hook
-  :options '(trivial-cite)
   :group 'mh-hooks
-  :group 'mh-letter)
+  :group 'mh-folder)
 
 (defcustom mh-alias-reloaded-hook nil
-  "Invoked by `mh-alias-reload' after reloading aliases."
+  "Hook run by `mh-alias-reload' after loading aliases."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-alias)
 
+(defcustom mh-before-commands-processed-hook nil
+  "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] before performing outstanding requests.
+
+Variables that are useful in this hook include `mh-delete-list' and
+`mh-refile-list' which can be used to see which changes will be made
+to the current folder, `mh-current-folder'."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-folder)
+
 (defcustom mh-before-quit-hook nil
-  "Invoked by \\<mh-folder-mode-map>`\\[mh-quit]' before quitting MH-E.
+  "Hook run by \\<mh-folder-mode-map>\\[mh-quit] before quitting MH-E.
+
+This hook is called before the quit occurs, so you might use it to
+perform any MH-E operations; you could perform some query and abort
+the quit or call `mh-execute-commands', for example.
+
 See also `mh-quit-hook'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
 
 (defcustom mh-before-send-letter-hook nil
-  "Invoked at the beginning of the \\<mh-letter-mode-map>\\[mh-send-letter] command.
+  "Hook run at the beginning of the \\<mh-letter-mode-map>\\[mh-send-letter] command.
+
 For example, if you want to check your spelling in your message before
 sending, add the `ispell-message' function."
   :type 'hook
@@ -2268,135 +2284,137 @@ sending, add the `ispell-message' function."
   :group 'mh-letter)
 
 (defcustom mh-delete-msg-hook nil
-  "Invoked after marking each message for deletion.
+  "Hook run by \\<mh-letter-mode-map>\\[mh-delete-msg] after marking each message for deletion.
 
-For example, a past maintainer of MH-E used this once when he kept statistics
-on his mail usage."
+For example, a past maintainer of MH-E used this once when he kept
+statistics on his mail usage."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show)
 
-(defcustom mh-mh-to-mime-hook nil
-  "Invoked on the formatted letter by \\<mh-letter-mode-map>\\[mh-mh-to-mime]."
-  :type 'hook
-  :group 'mh-hooks
-  :group 'mh-letter)
-
 (defcustom mh-find-path-hook nil
-  "Invoked by `mh-find-path' after reading the user's MH profile."
+  "Hook run by `mh-find-path' after reading the user's MH profile.
+
+This hook can be used the change the value of the variables that
+`mh-find-path' sets if you need to run with different values between
+MH and MH-E."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-e)
 
 (defcustom mh-folder-mode-hook nil
-  "Invoked in `mh-folder-mode' on a new folder."
+  "Hook run by `mh-folder-mode' when visiting a new folder."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
-
-(defcustom mh-before-commands-processed-hook nil
-  "Invoked before the folder actions (such as moves and deletes) are performed.
-Variables that are useful in this hook include `mh-delete-list' and
-`mh-refile-list' which can be used to see which changes will be made to
-current folder, `mh-current-folder'."
-  :type 'hook
-  :group 'mh-hooks
-  :group 'mh-folder)
-
-(defcustom mh-after-commands-processed-hook nil
-  "Invoked after the folder actions (such as moves and deletes) are performed.
-Variables that are useful in this hook include `mh-folders-changed',
-which lists which folders were affected by deletes and refiles.  This
-list will always include the current folder, which is also available
-in `mh-current-folder'."
-  :type 'hook
-  :group 'mh-hooks)
 
 (defcustom mh-forward-hook nil
-  "Invoked on the forwarded letter by \\<mh-folder-mode-map>\\[mh-forward]."
+  "Hook run by `mh-forward' on a forwarded letter."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-sending-mail)
 
 (defcustom mh-inc-folder-hook nil
-  "Invoked by \\<mh-folder-mode-map>`\\[mh-inc-folder]' after incorporating mail into a folder."
+  "Hook run by \\<mh-folder-mode-map>\\[mh-inc-folder] after incorporating mail into a folder."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-inc)
 
 (defcustom mh-insert-signature-hook nil
-  "Invoked after signature has been inserted.
+  "Hook run by \\<mh-letter-mode-map>\\[mh-insert-signature] after signature has been inserted.
 
-These functions may access the actual name of the file or the function used to
-insert the signature with `mh-signature-file-name'."
+Hook functions may access the actual name of the file or the function
+used to insert the signature with `mh-signature-file-name'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-letter)
 
-(defcustom mh-kill-folder-suppress-prompt-hook '(mh-index-p)
-  "Invoked at the beginning of the  \\<mh-folder-mode-map>`\\[mh-kill-folder]' command.
-This hook is a list of functions to be called, with no arguments, which should
-return a value of non-nil if you should not be asked if you're sure that you
-want to remove the folder. This is useful for folders that are easily
-regenerated.
+(defcustom mh-kill-folder-suppress-prompt-hooks '(mh-index-p)
+  "Abnormal hook run at the beginning of \\<mh-folder-mode-map>\\[mh-kill-folder].
 
-The default value of `mh-index-p' suppresses the prompt on folders generated
-by an index search.
+The hook functions are called with no arguments and should return a
+non-nil value to suppress the normal prompt when you remove a folder.
+This is useful for folders that are easily regenerated.
 
-WARNING: Use this hook with care. If there is a bug in your hook which returns
-t on +inbox and you hit \\<mh-folder-mode-map>`\\[mh-kill-folder]' by accident
-in the +inbox buffer, you will not be happy."
+The default value of `mh-index-p' suppresses the prompt on folders
+generated by an index search.
+
+WARNING: Use this hook with care. If there is a bug in your hook which
+returns t on \"+inbox\" and you hit \\[mh-kill-folder] by accident in
+the \"+inbox\" folder, you will not be happy."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
 
 (defcustom mh-letter-mode-hook nil
-  "Invoked by `mh-letter-mode' on a new letter."
+  "Hook run by `mh-letter-mode' on a new letter.
+
+This hook allows you to do some processing before editing a letter.
+For example, you may wish to modify the header after \"repl\" has done
+its work, or you may have a complicated \"components\" file and need
+to tell MH-E where the cursor should go."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-sending-mail)
 
+(defcustom mh-mh-to-mime-hook nil
+  "Hook run on the formatted letter by \\<mh-letter-mode-map>\\[mh-mh-to-mime]."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-letter)
+
 (defcustom mh-pick-mode-hook nil
-  "Invoked upon entry to `mh-pick-mode'."
+  "Hook run upon entry to `mh-pick-mode'\\<mh-folder-mode-map>.
+
+If you find that you do the same thing over and over when editing the
+search template, you may wish to bind some shortcuts to keys. This can
+be done with this hook which is called when \\[mh-search-folder] is
+run on a new pattern."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-index)
 
 (defcustom mh-quit-hook nil
-  "Invoked after \\<mh-folder-mode-map>`\\[mh-quit]' quits MH-E.
+  "Hook run by \\<mh-folder-mode-map>\\[mh-quit] after quitting MH-E.
+
+This hook is not run in an MH-E context, so you might use it to modify
+the window setup.
+
 See also `mh-before-quit-hook'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
 
 (defcustom mh-refile-msg-hook nil
-  "Invoked after marking each message for refiling."
+  "Hook run by \\<mh-folder-mode-map>\\[mh-refile-msg] after marking each message for refiling."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
 
 (defcustom mh-show-hook nil
-  "Invoked after \\<mh-folder-mode-map>\\[mh-show] shows a message.
+  "Hook run after \\<mh-folder-mode-map>\\[mh-show] shows a message.
 
-It is the last thing called after messages are displayed. It's used to affect
-the behavior of MH-E in general or when `mh-show-mode-hook' is too early."
+It is the last thing called after messages are displayed. It's used to
+affect the behavior of MH-E in general or when `mh-show-mode-hook' is
+too early."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show)
 
 (defcustom mh-show-mode-hook nil
-  "Invoked upon entry to `mh-show-mode'.
+  "Hook run upon entry to `mh-show-mode'.
 
-This hook is called early on in the process of the message display. It is
-usually used to perform some action on the message's content."
+This hook is called early on in the process of the message display. It
+is usually used to perform some action on the message's content."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show)
 
 (defcustom mh-unseen-updated-hook nil
-  "Invoked after the unseen sequence has been updated.
-The variable `mh-seen-list' can be used to obtain the list of messages which
-will be removed from the unseen sequence."
+  "Hook run after the unseen sequence has been updated.
+
+The variable `mh-seen-list' can be used by this hook to obtain the
+list of messages which were removed from the unseen sequence."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-sequences)

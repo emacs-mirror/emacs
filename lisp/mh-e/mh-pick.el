@@ -203,8 +203,7 @@ Each non-empty field must be matched for a message to be selected.
 To effect a logical \"or\", use \\[mh-search-folder] multiple times.
 When you have finished, type  \\[mh-pick-do-search]  to do the search.
 
-The value of `mh-pick-mode-hook' is a list of functions to be called,
-with no arguments, upon entry to this mode.
+The hook `mh-pick-mode-hook' is called upon entry to this mode.
 
 \\{mh-pick-mode-map}"
 

@@ -106,15 +106,18 @@ interactive use."
 
 ;;;###mh-autoload
 (defun mh-kill-folder ()
-  "Remove the current folder and all included messages.
-Removes all of the messages (files) within the specified current folder,
-and then removes the folder (directory) itself.
-The value of `mh-kill-folder-suppress-prompt-hook' is a list of functions to
-be called, with no arguments, which should return a value of non-nil if
-verification is not desired."
+  "Remove folder.
+
+Remove all of the messages (files) within the current folder, and then
+remove the folder (directory) itself.
+
+Run the abnormal hook `mh-kill-folder-suppress-prompt-hooks'. The hook
+functions are called with no arguments and should return a non-nil
+value to suppress the normal prompt when you remove a folder. This is
+useful for folders that are easily regenerated."
   (interactive)
   (if (or (run-hook-with-args-until-success
-           'mh-kill-folder-suppress-prompt-hook)
+           'mh-kill-folder-suppress-prompt-hooks)
           (yes-or-no-p (format "Remove folder %s (and all included messages)? "
                                mh-current-folder)))
       (let ((folder mh-current-folder)

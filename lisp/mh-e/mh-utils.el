@@ -566,25 +566,25 @@ about the fontification operation."
             (cons modeline-buffer-id-left-extent "XEmacs%N:"))
           (cons modeline-buffer-id-right-extent " %17b")))))
 
-;; This holds a documentation string used by describe-mode.
 (defun mh-showing-mode (&optional arg)
   "Change whether messages should be displayed.
-With arg, display messages iff ARG is positive."
+
+With ARG, display messages iff ARG is positive."
   (setq mh-showing-mode
         (if (null arg)
             (not mh-showing-mode)
           (> (prefix-numeric-value arg) 0))))
 
-;; The sequences of this folder.  An alist of (seq . msgs).
-(defvar mh-seq-list nil)
+(defvar mh-seq-list nil
+  "Alist of this folder's sequences.
+Elements have the form (SEQUENCE . MESSAGES).")
 
-;; List of displayed messages to be removed from the Unseen sequence.
-(defvar mh-seen-list nil)
+(defvar mh-seen-list nil
+  "List of displayed messages to be removed from the \"Unseen\" sequence.")
 
-;; If non-nil, show buffer contains message with all headers.
-;; If nil, show buffer contains message processed normally.
-;; Showing message with headers or normally.
-(defvar mh-showing-with-headers nil)
+(defvar mh-showing-with-headers nil
+  "If non-nil, MH-Show buffer contains message with all header fields.
+If nil, MH-Show buffer contains message processed normally.")
 
 
 
@@ -1108,8 +1108,9 @@ still visible.\n")
 
 (define-derived-mode mh-show-mode text-mode "MH-Show"
   "Major mode for showing messages in MH-E.\\<mh-show-mode-map>
-The value of `mh-show-mode-hook' is a list of functions to
-be called, with no arguments, upon entry to this mode.
+
+The hook `mh-show-mode-hook' is called upon entry to this mode.
+
 See also `mh-folder-mode'.
 
 \\{mh-show-mode-map}"
@@ -1610,8 +1611,9 @@ The current frame height is taken into consideration."
 
 (defun mh-show-msg (msg)
   "Show MSG.
-The value of `mh-show-hook' is a list of functions to be called, with no
-arguments, after the message has been displayed."
+
+The hook `mh-show-hook' is called after the message has been
+displayed."
   (if (not msg)
       (setq msg (mh-get-msg-num t)))
   (mh-showing-mode t)
@@ -1904,10 +1906,16 @@ Returns nil if the field is not in the buffer."
 
 (defun mh-find-path ()
   "Set variables from user's MH profile.
-Set `mh-user-path', `mh-draft-folder', `mh-unseen-seq', `mh-previous-seq',
-`mh-inbox' from user's MH profile.
-The value of `mh-find-path-hook' is a list of functions to be called, with no
-arguments, after these variable have been set."
+
+This function sets `mh-user-path' from your \"Path:\" MH profile
+component (but defaults to \"Mail\" if one isn't present),
+`mh-draft-folder' from \"Draft-Folder:\", `mh-unseen-seq' from
+\"Unseen-Sequence:\", `mh-previous-seq' from \"Previous-Sequence:\",
+and `mh-inbox' from \"Inbox:\" (defaults to \"+inbox\").
+
+The hook `mh-find-path-hook' is run after these variables have been
+set. This hook can be used the change the value of these variables if
+you need to run with different values between MH and MH-E."
   (mh-variants)
   (unless mh-find-path-run
     (setq mh-find-path-run t)

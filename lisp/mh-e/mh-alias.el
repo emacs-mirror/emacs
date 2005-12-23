@@ -183,14 +183,14 @@ Exclude all aliases already in `mh-alias-alist' from `ali'"
 (defun mh-alias-reload ()
   "Reload MH aliases.
 
-Since aliases are updated frequently, MH-E will reload aliases automatically
-whenever an alias lookup occurs if an alias source (a file listed in your
-`Aliasfile:' profile component and your password file if variable
-`mh-alias-local-users' is non-nil) has changed. However, you can reload your
-aliases manually by calling this command directly.
+Since aliases are updated frequently, MH-E reloads aliases automatically
+whenever an alias lookup occurs if an alias source has changed. Sources
+include files listed in your `Aliasfile:' profile component and your password
+file if option `mh-alias-local-users' is turned on. However, you can reload
+your aliases manually by calling this command directly.
 
-The value of `mh-alias-reloaded-hook' is a list of functions to be called,
-with no arguments, after the aliases have been loaded."
+This function runs `mh-alias-reloaded-hook' after the aliases have been
+loaded."
   (interactive)
   (save-excursion
     (message "Loading MH aliases...")

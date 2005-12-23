@@ -335,15 +335,18 @@ See also `mh-send'."
 (defun mh-forward (to cc &optional range)
   "Forward message.
 
-You are prompted for the TO and CC recipients. You are given a draft to edit
-that looks like it would if you had run the MH command \"forw\". You are given
-a chance to add some text.
+You are prompted for the TO and CC recipients. You are given a draft
+to edit that looks like it would if you had run the MH command
+\"forw\". You can then add some text.
 
-You can forward several messages by using a RANGE. Check the documentation of
+You can forward several messages by using a RANGE. All of the messages
+in the range are inserted into your draft. Check the documentation of
 `mh-interactive-range' to see how RANGE is read in interactive use.
 
-See also `mh-compose-forward-as-mime-flag', `mh-forward-subject-format',
-and `mh-send'."
+The hook `mh-forward-hook' is called on the draft.
+
+See also `mh-compose-forward-as-mime-flag',
+`mh-forward-subject-format', and `mh-send'."
   (interactive (list (mh-interactive-read-address "To: ")
                      (mh-interactive-read-address "Cc: ")
                      (mh-interactive-range "Forward")))
@@ -933,18 +936,19 @@ work better in MH-Letter mode (see `mh-letter-mode')."
 
 ;;;###autoload
 (define-derived-mode mh-letter-mode text-mode "MH-Letter"
-  "Mode for composing letters in MH-E.\\<mh-letter-mode-map>
+  "Mode for composing letters in MH-E\\<mh-letter-mode-map>.
 
-When you have finished composing, type \\[mh-send-letter] to send the message
-using the MH mail handling system.
+When you have finished composing, type \\[mh-send-letter] to send the
+message using the MH mail handling system.
 
-There are two types of tags used by MH-E when composing MIME messages: MML and
-MH. The option `mh-compose-insertion' controls what type of tags are inserted
-by MH-E commands. These tags can be converted to MIME body parts by running
-\\[mh-mh-to-mime] for MH-style directives or \\[mh-mml-to-mime] for MML tags.
+There are two types of tags used by MH-E when composing MIME messages:
+MML and MH. The option `mh-compose-insertion' controls what type of
+tags are inserted by MH-E commands. These tags can be converted to
+MIME body parts by running \\[mh-mh-to-mime] for MH-style directives
+or \\[mh-mml-to-mime] for MML tags.
 
-Options that control this mode can be changed with \\[customize-group];
-specify the \"mh-compose\" group.
+Options that control this mode can be changed with
+\\[customize-group]; specify the \"mh-compose\" group.
 
 When a message is composed, the hooks `text-mode-hook' and
 `mh-letter-mode-hook' are run.
@@ -1143,21 +1147,24 @@ the draft."
 ;;;###mh-autoload
 (defun mh-insert-signature (&optional file)
   "Insert signature in message.
+
 This command inserts your signature at the current cursor location.
 
 By default, the text of your signature is taken from the file
-\"~/.signature\". You can read from other sources by changing the option
-`mh-signature-file-name' or passing in a signature FILE.
+\"~/.signature\". You can read from other sources by changing the
+option `mh-signature-file-name'.
 
-A signature separator (\"-- \") will be added if the signature block does not
-contain one and `mh-signature-separator-flag' is on.
+A signature separator (\"-- \") will be added if the signature block
+does not contain one and `mh-signature-separator-flag' is on.
 
-The value of `mh-insert-signature-hook' is a list of functions to be
-called, with no arguments, after the signature is inserted. These functions
-may access the actual name of the file or the function used to insert the
-signature with `mh-signature-file-name'.
+The hook `mh-insert-signature-hook' is run after the signature is
+inserted. Hook functions may access the actual name of the file or the
+function used to insert the signature with `mh-signature-file-name'.
 
-The signature can also be inserted using Identities (see `mh-identity-list')"
+The signature can also be inserted using Identities (see
+`mh-identity-list').
+
+In a program, you can pass in a signature FILE."
   (interactive)
   (save-excursion
     (insert "\n")
@@ -1424,16 +1431,18 @@ there."
 ;;;###mh-autoload
 (defun mh-send-letter (&optional arg)
   "Save draft and send message.
-When you are all through editing a message, you send it with this command. You
-can give an argument ARG to monitor the first stage of the delivery\; this
-output can be found in a buffer called \"*MH-E Mail Delivery*\".
 
-The value of `mh-before-send-letter-hook' is a list of functions to be called
-at the beginning of this command. For example, if you want to check your
-spelling in your message before sending, add the `ispell-message' function.
+When you are all through editing a message, you send it with this
+command. You can give a prefix argument ARG to monitor the first stage
+of the delivery\; this output can be found in a buffer called \"*MH-E
+Mail Delivery*\".
 
-In case the MH \"send\" program is installed under a different name, use
-`mh-send-prog' to tell MH-E the name."
+The hook `mh-before-send-letter-hook' is run at the beginning of the
+this command. For example, if you want to check your spelling in your
+message before sending, add the `ispell-message' function.
+
+In case the MH \"send\" program is installed under a different name,
+use `mh-send-prog' to tell MH-E the name."
   (interactive "P")
   (run-hooks 'mh-before-send-letter-hook)
   (if (and (mh-insert-auto-fields t)
@@ -1567,7 +1576,14 @@ You can control how the message to which you are replying is yanked
 into your reply using `mh-yank-behavior'.
 
 If this isn't enough, you can gain full control over the appearance of the
-included text by setting `mail-citation-hook' to a function that modifies it."
+included text by setting `mail-citation-hook' to a function that modifies it.
+For example, if you set this hook to `trivial-cite' (which is NOT part of
+Emacs), set `mh-yank-behavior' to \"Body and Header\" (see URL
+`http://shasta.cs.uiuc.edu/~lrclause/tc.html').
+
+Note that if `mail-citation-hook' is set, `mh-ins-buf-prefix' is not inserted.
+If the option `mh-yank-behavior' is set to one of the supercite flavors, the
+hook `mail-citation-hook' is ignored and `mh-ins-buf-prefix' is not inserted."
   (interactive)
   (if (and mh-sent-from-folder
            (save-excursion (set-buffer mh-sent-from-folder) mh-show-buffer)

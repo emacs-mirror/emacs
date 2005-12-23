@@ -446,45 +446,66 @@ is done highlighting.")
 
 ;;; Internal variables:
 
-(defvar mh-last-destination nil)        ;Destination of last refile or write
-                                        ;command.
-(defvar mh-last-destination-folder nil) ;Destination of last refile command.
-(defvar mh-last-destination-write nil)  ;Destination of last write command.
+(defvar mh-last-destination nil
+  "Destination of last refile or write command.")
+
+(defvar mh-last-destination-folder nil
+  "Destination of last refile command.")
+
+(defvar mh-last-destination-write nil
+  "Destination of last write command.")
 
 (defvar mh-folder-mode-map (make-keymap)
   "Keymap for MH folders.")
 
-(defvar mh-arrow-marker nil)            ;Marker for arrow display in fringe.
+(defvar mh-arrow-marker nil
+  "Marker for arrow display in fringe.")
 
-(defvar mh-delete-list nil)             ;List of msg numbers to delete.
+(defvar mh-delete-list nil
+  "List of message numbers to delete.
+This variable can be used by `mh-before-commands-processed-hook'.")
 
-(defvar mh-refile-list nil)             ;List of folder names in mh-seq-list.
+(defvar mh-refile-list nil
+  "List of folder names in `mh-seq-list'.
+This variable can be used by `mh-before-commands-processed-hook'.")
 
-(defvar mh-folders-changed nil)         ;For mh-after-commands-processed-hook.
+(defvar mh-folders-changed nil
+  "Lists which folders were affected by deletes and refiles.
+This list will always include the current folder `mh-current-folder'.
+This variable can be used by `mh-before-commands-processed-hook'.")
 
-(defvar mh-next-direction 'forward)     ;Direction to move to next message.
+(defvar mh-next-direction 'forward
+  "Direction to move to next message.")
 
-(defvar mh-view-ops ())                 ;Stack of ops that change the folder
-                                        ;view (such as narrowing or threading).
-(defvar mh-folder-view-stack ())        ;Stack of previous folder views.
+(defvar mh-view-ops ()
+  "Stack of operations that change the folder view.
+These operations include narrowing or threading.")
 
-(defvar mh-index-data nil)              ;Info about index search results
+(defvar mh-folder-view-stack ()
+  "Stack of previous folder views.")
+
+(defvar mh-index-data nil
+  "Info about index search results.")
+
 (defvar mh-index-previous-search nil)
 (defvar mh-index-msg-checksum-map nil)
 (defvar mh-index-checksum-origin-map nil)
 (defvar mh-index-sequence-search-flag nil)
 
-(defvar mh-first-msg-num nil)           ;Number of first msg in buffer.
+(defvar mh-first-msg-num nil
+  "Number of first message in buffer.")
 
-(defvar mh-last-msg-num nil)            ;Number of last msg in buffer.
+(defvar mh-last-msg-num nil
+  "Number of last msg in buffer.")
 
-(defvar mh-mode-line-annotation nil)    ;Message range displayed in buffer.
+(defvar mh-mode-line-annotation nil
+  "Message range displayed in buffer.")
 
-(defvar mh-sequence-notation-history nil)
-                                        ;Rememeber original notation that
-                                        ;is overwritten by `mh-note-seq'.
+(defvar mh-sequence-notation-history nil
+  "Remember original notation that is overwritten by `mh-note-seq'.")
 
-(defvar mh-colors-available-flag nil)   ;Are colors available?
+(defvar mh-colors-available-flag nil
+  "Non-nil means colors are available.")
 
 
 
@@ -550,11 +571,16 @@ deleted. Use \\[mh-next-undeleted-msg] to force subsequent \\[mh-delete-msg]
 commands to move forward to the next undeleted message after deleting the
 message under the cursor.
 
+The hook `mh-delete-msg-hook' is called after you mark a message for deletion.
+For example, a past maintainer of MH-E used this once when he kept statistics
+on his mail usage.
+
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use."
   (interactive (list (mh-interactive-range "Delete")))
   (mh-delete-msg-no-motion range)
-  (if (looking-at mh-scan-deleted-msg-regexp) (mh-next-msg)))
+  (if (looking-at mh-scan-deleted-msg-regexp)
+      (mh-next-msg)))
 
 (defun mh-delete-msg-no-motion (range)
   "Delete RANGE, don't move to next message.
@@ -569,7 +595,18 @@ interactive use."
     (mh-delete-a-msg nil)))
 
 (defun mh-execute-commands ()
-  "Process outstanding delete and refile requests."
+  "Process outstanding delete and refile requests\\<mh-folder-mode-map>.
+
+If you've marked messages to be deleted or refiled and you want to go ahead
+and delete or refile the messages, use this command. Many MH-E commands that
+may affect the numbering of the messages (such as \\[mh-rescan-folder] or
+\\[mh-pack-folder]) will ask if you want to process refiles or deletes first
+and then either run this command for you or undo the pending refiles and
+deletes, which are lost.
+
+This function runs `mh-before-commands-processed-hook' before the commands are
+processed and `mh-after-commands-processed-hook' after the commands are
+processed."
   (interactive)
   (if mh-folder-view-stack (mh-widen t))
   (mh-process-commands mh-current-folder)
@@ -603,13 +640,18 @@ Use the command \\[mh-show] to show the message normally again."
     (setq mh-showing-with-headers t)))
 
 (defun mh-inc-folder (&optional maildrop-name folder)
-  "Inc(orporate)s new mail into the Inbox folder.
-Optional argument MAILDROP-NAME specifies an alternate maildrop from the
-default. The optional argument FOLDER specifies where to incorporate mail
-instead of the default named by `mh-inbox'.
-The value of `mh-inc-folder-hook' is a list of functions to be called, with no
-arguments, after incorporating new mail.
-Do not call this function from outside MH-E; use \\[mh-rmail] instead."
+  "Incorporate new mail into a folder.
+
+You can incorporate mail from any file into the current folder by
+specifying a prefix argument; you'll be prompted for the name of the
+file to use as well as the destination folder
+
+The hook `mh-inc-folder-hook' is run after incorporating new mail. Do
+not call this function from outside MH-E; use \\[mh-rmail] instead.
+
+In a program optional argument MAILDROP-NAME specifies an alternate
+maildrop from the default. The optional argument FOLDER specifies
+where to incorporate mail instead of the default named by `mh-inbox'."
   (interactive (list (if current-prefix-arg
                          (expand-file-name
                           (read-file-name "inc mail from file: "
@@ -760,8 +802,9 @@ refiled.
 Check the documentation of `mh-interactive-range' to see how RANGE is read in
 interactive use.
 
-If DONT-UPDATE-LAST-DESTINATION-FLAG is non-nil, then the variables
-`mh-last-destination' and `mh-last-destination-folder' are not updated."
+In a program, the variables `mh-last-destination' and
+`mh-last-destination-folder' are not updated if
+DONT-UPDATE-LAST-DESTINATION-FLAG is non-nil."
   (interactive (list (mh-interactive-range "Refile")
                      (intern (mh-prompt-for-refile-folder))))
   (unless dont-update-last-destination-flag
@@ -796,13 +839,19 @@ interactively."
 
 (defun mh-quit ()
   "Quit the current MH-E folder.
-Restore the previous window configuration, if one exists.
-The value of `mh-before-quit-hook' is a list of functions to be called, with
-no arguments, immediately upon entry to this function.
-The value of `mh-quit-hook' is a list of functions to be called, with no
-arguments, upon exit of this function.
-MH-E working buffers (whose name begins with \" *mh-\" or \"*MH-E \") are
-killed."
+
+When you want to quit using MH-E and go back to editing, you can use this
+command. This buries the buffers of the current MH-E folder and restores the
+buffers that were present when you first ran \\[mh-rmail]. It also removes any
+MH-E working buffers whose name begins with \" *mh-\" or \"*MH-E \". You can
+later restore your MH-E session by selecting the \"+inbox\" buffer or by
+running \\[mh-rmail] again.
+
+The two hooks `mh-before-quit-hook' and `mh-quit-hook' are called by this
+function. The former one is called before the quit occurs, so you might use it
+to perform any MH-E operations; you could perform some query and abort the
+quit or call `mh-execute-commands', for example. The latter is not run in an
+MH-E context, so you might use it to modify the window setup."
   (interactive)
   (run-hooks 'mh-before-quit-hook)
   (let ((show-buffer (get-buffer mh-show-buffer)))
@@ -1368,44 +1417,45 @@ option which is \"tick\" by default. The message at the cursor is used for
 
 ;;; Support routines.
 
-(defun mh-delete-a-msg (msg)
-  "Delete the MSG.
-If MSG is nil then the message at point is deleted.
+(defun mh-delete-a-msg (message)
+  "Delete MESSAGE.
+If MESSAGE is nil then the message at point is deleted.
 
-The value of `mh-delete-msg-hook' is a list of functions to be called, with no
-arguments, after the message has been deleted."
+The hook `mh-delete-msg-hook' is called after you mark a message for deletion.
+For example, a past maintainer of MH-E used this once when he kept statistics
+on his mail usage."
   (save-excursion
-    (if (numberp msg)
-        (mh-goto-msg msg nil t)
+    (if (numberp message)
+        (mh-goto-msg message nil t)
       (beginning-of-line)
-      (setq msg (mh-get-msg-num t)))
+      (setq message (mh-get-msg-num t)))
     (if (looking-at mh-scan-refiled-msg-regexp)
-        (error "Message %d is refiled.  Undo refile before deleting" msg))
+        (error "Message %d is refiled.  Undo refile before deleting" message))
     (if (looking-at mh-scan-deleted-msg-regexp)
         nil
       (mh-set-folder-modified-p t)
-      (setq mh-delete-list (cons msg mh-delete-list))
+      (setq mh-delete-list (cons message mh-delete-list))
       (mh-notate nil mh-note-deleted mh-cmd-note)
       (run-hooks 'mh-delete-msg-hook))))
 
-(defun mh-refile-a-msg (msg folder)
-  "Refile MSG in FOLDER.
-If MSG is nil then the message at point is refiled.
+(defun mh-refile-a-msg (message folder)
+  "Refile MESSAGE in FOLDER.
+If MESSAGE is nil then the message at point is refiled.
 
 Folder is a symbol, not a string.
-The value of `mh-refile-msg-hook' is a list of functions to be called, with no
-arguments, after the message has been refiled."
+The hook `mh-refile-msg-hook' is called after a message is marked to be
+refiled."
   (save-excursion
-    (if (numberp msg)
-        (mh-goto-msg msg nil t)
+    (if (numberp message)
+        (mh-goto-msg message nil t)
       (beginning-of-line)
-      (setq msg (mh-get-msg-num t)))
+      (setq message (mh-get-msg-num t)))
     (cond ((looking-at mh-scan-deleted-msg-regexp)
-           (error "Message %d is deleted.  Undo delete before moving" msg))
+           (error "Message %d is deleted.  Undo delete before moving" message))
           ((looking-at mh-scan-refiled-msg-regexp)
            (if (y-or-n-p
                 (format "Message %d already refiled.  Copy to %s as well? "
-                        msg folder))
+                        message folder))
                (mh-exec-cmd "refile" (mh-get-msg-num t) "-link"
                             "-src" mh-current-folder
                             (symbol-name folder))
@@ -1413,9 +1463,9 @@ arguments, after the message has been refiled."
           (t
            (mh-set-folder-modified-p t)
            (cond ((null (assoc folder mh-refile-list))
-                  (push (list folder msg) mh-refile-list))
-                 ((not (member msg (cdr (assoc folder mh-refile-list))))
-                  (push msg (cdr (assoc folder mh-refile-list)))))
+                  (push (list folder message) mh-refile-list))
+                 ((not (member message (cdr (assoc folder mh-refile-list))))
+                  (push message (cdr (assoc folder mh-refile-list)))))
            (mh-notate nil mh-note-refiled mh-cmd-note)
            (run-hooks 'mh-refile-msg-hook)))))
 
@@ -2151,10 +2201,10 @@ Called by functions like `mh-sort-folder', so also invalidate show buffer."
 
 (defun mh-process-commands (folder)
   "Process outstanding commands for FOLDER.
-The value of `mh-before-commands-processed-hook' is a list of functions
-to be called, with no arguments, before the commands are processed.
-After all cammands are processed, the functions in
-`mh-after-commands-processed-hook' are called with no arguments."
+
+This function runs `mh-before-commands-processed-hook' before the commands are
+processed and `mh-after-commands-processed-hook' after the commands are
+processed."
   (message "Processing deletes and refiles for %s..." folder)
   (set-buffer folder)
   (with-mh-folder-updating (nil)
@@ -2238,7 +2288,7 @@ After all cammands are processed, the functions in
       (mh-remove-all-notation)
       (mh-notate-user-sequences)
 
-      ;; Run the after hook -- now folders-changed is valid, 
+      ;; Run the after hook -- now folders-changed is valid,
       ;; but not the lists of specific messages.
       (let ((mh-folders-changed folders-changed))
         (run-hooks 'mh-after-commands-processed-hook)))
@@ -2248,8 +2298,8 @@ After all cammands are processed, the functions in
 (defun mh-update-unseen ()
   "Synchronize the unseen sequence with MH.
 Return non-nil iff the MH folder was set.
-The value of `mh-unseen-updated-hook' is a list of functions to be called,
-with no arguments, after the unseen sequence is updated."
+The hook `mh-unseen-updated-hook' is called after the unseen sequence
+is updated."
   (if mh-seen-list
       (let* ((unseen-seq (mh-find-seq mh-unseen-seq))
              (unseen-msgs (mh-seq-msgs unseen-seq)))

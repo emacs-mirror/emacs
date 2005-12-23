@@ -419,6 +419,7 @@ See also \\[mh-mh-to-mime]."
 ;;;###mh-autoload
 (defun mh-mh-to-mime (&optional extra-args)
   "Compose MIME message from MH-style directives.
+
 Typically, you send a message with attachments just like any other message.
 However, you may take a sneak preview of the MIME encoding if you wish by
 running this command.
@@ -431,8 +432,8 @@ you can build a consistency check into the message by setting
 message has been corrupted on the way. This command only consults this option
 when given a prefix argument EXTRA-ARGS.
 
-The value of `mh-mh-to-mime-hook' is a list of functions to be called after
-the message has been formatted.
+The hook `mh-mh-to-mime-hook' is called after the message has been
+formatted.
 
 The effects of this command can be undone by running \\[mh-mh-to-mime-undo]."
   (interactive "*P")
