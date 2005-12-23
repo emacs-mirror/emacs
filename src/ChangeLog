@@ -1,3 +1,9 @@
+2005-12-23  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* insdel.c (insert, insert_and_inherit, insert_before_markers)
+	(insert_before_markers_and_inherit): Make sure FROM is correct
+	when `after-change-functions' are called.
+
 2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c (Fx_uses_old_gtk_dialog): New function.
