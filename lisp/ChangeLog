@@ -1,3 +1,15 @@
+2005-12-23  David Koppelman  <koppel@ece.lsu.edu>
+
+	* hi-lock.el (hi-lock-highlight-range): New variable.
+	(hi-lock-mode, hi-lock-unface-buffer): Call font-lock-fontify-buffer
+	only if font-lock-fontified is non-nil.  Remove overlays.
+	(hi-lock-set-pattern): Call font-lock-fontify-buffer if
+	font-lock-fontified is non-nil, otherwise use overlays (instead of
+	text properties).
+	(hi-lock-string-serialize-hash, hi-lock-string-serialize-serial):
+	New variables.
+	(hi-lock-string-serialize) New function.
+
 2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* menu-bar.el (menu-find-file-existing): New function.
