@@ -97,6 +97,16 @@ of functions `hi-lock-mode' and `hi-lock-find-patterns'."
   :type 'integer
   :group 'hi-lock)
 
+(defcustom hi-lock-highlight-range 200000
+  "Size of area highlighted by hi-lock when font-lock not active.
+Font-lock is not active in buffers that do their own highlighting,
+such as the buffer created by `list-colors-display'.  In those buffers
+hi-lock patterns will only be applied over a range of
+`hi-lock-highlight-range' characters.  If font-lock is active then
+highlighting will be applied throughout the buffer."
+  :type 'integer
+  :group 'hi-lock)
+
 (defcustom hi-lock-exclude-modes
   '(rmail-mode mime/viewer-mode gnus-article-mode)
   "List of major modes in which hi-lock will not run.
@@ -330,8 +340,8 @@ versions before 22 use the following in your .emacs file:
       (when hi-lock-file-patterns
 	(font-lock-remove-keywords nil hi-lock-file-patterns)
 	(setq hi-lock-file-patterns nil))
-      (if font-lock-mode
-	  (font-lock-fontify-buffer)))
+      (remove-overlays nil nil 'hi-lock-overlay t)
+      (when font-lock-fontified (font-lock-fontify-buffer)))
     (define-key-after menu-bar-edit-menu [hi-lock] nil)
     (remove-hook 'font-lock-mode-hook 'hi-lock-font-lock-hook t)))
 
@@ -461,7 +471,9 @@ interactive functions.  \(See `hi-lock-interactive-patterns'.\)
       (font-lock-remove-keywords nil (list keyword))
       (setq hi-lock-interactive-patterns
             (delq keyword hi-lock-interactive-patterns))
-      (font-lock-fontify-buffer))))
+      (remove-overlays
+       nil nil 'hi-lock-overlay-regexp (hi-lock-string-serialize regexp))
+      (when font-lock-fontified (font-lock-fontify-buffer)))))
 
 ;;;###autoload
 (defun hi-lock-write-interactive-patterns ()
@@ -528,16 +540,25 @@ not suitable."
     (unless (member pattern hi-lock-interactive-patterns)
       (font-lock-add-keywords nil (list pattern))
       (push pattern hi-lock-interactive-patterns)
-      (let ((buffer-undo-list t)
-	    (inhibit-read-only t)
-	    (mod (buffer-modified-p)))
-	(save-excursion
-	  (goto-char (point-min))
-	  (while (re-search-forward regexp (point-max) t)
-	    (put-text-property
-	     (match-beginning 0) (match-end 0) 'face face)
-	    (goto-char (match-end 0))))
-	(set-buffer-modified-p mod)))))
+      (if font-lock-fontified
+          (font-lock-fontify-buffer)
+        (let* ((serial (hi-lock-string-serialize regexp))
+               (range-min (- (point) (/ hi-lock-highlight-range 2)))
+               (range-max (+ (point) (/ hi-lock-highlight-range 2)))
+               (search-start
+                (max (point-min)
+                     (- range-min (max 0 (- range-max (point-max))))))
+               (search-end
+                (min (point-max)
+                     (+ range-max (max 0 (- (point-min) range-min))))))
+          (save-excursion
+            (goto-char search-start)
+            (while (re-search-forward regexp search-end t)
+              (let ((overlay (make-overlay (match-beginning 0) (match-end 0))))
+                (overlay-put overlay 'hi-lock-overlay t)
+                (overlay-put overlay 'hi-lock-overlay-regexp serial)
+                (overlay-put overlay 'face face))
+              (goto-char (match-end 0)))))))))
 
 (defun hi-lock-set-file-patterns (patterns)
   "Replace file patterns list with PATTERNS and refontify."
@@ -576,6 +597,26 @@ not suitable."
       (progn (font-lock-add-keywords nil hi-lock-file-patterns)
 	     (font-lock-add-keywords nil hi-lock-interactive-patterns))
     (hi-lock-mode -1)))
+
+(defvar hi-lock-string-serialize-hash
+  (make-hash-table :test 'equal)
+  "Hash table used to assign unique numbers to strings.")
+
+(defvar hi-lock-string-serialize-serial 1
+  "Number assigned to last new string in call to `hi-lock-string-serialize'.
+A string is considered new if it had not previously been used in a call to
+`hi-lock-string-serialize'.")
+
+(defun hi-lock-string-serialize (string)
+  "Return unique serial number for STRING."
+  (interactive)
+  (let ((val (gethash string hi-lock-string-serialize-hash)))
+    (if val val
+      (puthash string
+               (setq hi-lock-string-serialize-serial
+                     (1+ hi-lock-string-serialize-serial))
+               hi-lock-string-serialize-hash)
+      hi-lock-string-serialize-serial)))
 
 (provide 'hi-lock)
 
