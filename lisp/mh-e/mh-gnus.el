@@ -41,9 +41,9 @@
 
 (defmacro mh-defun-compat (function arg-list &rest body)
   "This is a macro to define functions which are not defined.
-It is used for Gnus utility functions which were added recently. If FUNCTION
-is not defined then it is defined to have argument list, ARG-LIST and body,
-BODY."
+It is used for Gnus utility functions which were added recently.
+If FUNCTION is not defined then it is defined to have argument
+list, ARG-LIST and body, BODY."
   (let ((defined-p (fboundp function)))
     (unless defined-p
       `(defun ,function ,arg-list ,@body))))
@@ -51,9 +51,9 @@ BODY."
 
 (defmacro mh-defmacro-compat (function arg-list &rest body)
   "This is a macro to define functions which are not defined.
-It is used for Gnus utility functions which were added recently. If FUNCTION
-is not defined then it is defined to have argument list, ARG-LIST and body,
-BODY."
+It is used for Gnus utility functions which were added recently.
+If FUNCTION is not defined then it is defined to have argument
+list, ARG-LIST and body, BODY."
   (let ((defined-p (fboundp function)))
     (unless defined-p
       `(defmacro ,function ,arg-list ,@body))))

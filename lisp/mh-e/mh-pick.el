@@ -55,12 +55,12 @@
   "Search FOLDER for messages matching a pattern.
 
 With this command, you can search a folder for messages to or from a
-particular person or about a particular subject. In fact, you can also search
-for messages containing selected strings in any arbitrary header field or any
-string found within the messages.
+particular person or about a particular subject. In fact, you can also
+search for messages containing selected strings in any arbitrary
+header field or any string found within the messages.
 
-You are first prompted for the name of the folder to search and then placed in
-the following buffer in MH-Pick mode:
+You are first prompted for the name of the folder to search and then
+placed in the following buffer in MH-Pick mode:
 
      From:
      To:
@@ -69,24 +69,26 @@ the following buffer in MH-Pick mode:
      Subject:
      --------
 
-Edit this template by entering your search criteria in an appropriate header
-field that is already there, or create a new field yourself. If the string
-you're looking for could be anywhere in a message, then place the string
-underneath the row of dashes. The \\[mh-search-folder] command uses the MH
-command \"pick\" to do the real work.
+Edit this template by entering your search criteria in an appropriate
+header field that is already there, or create a new field yourself. If
+the string you're looking for could be anywhere in a message, then
+place the string underneath the row of dashes. The
+\\[mh-search-folder] command uses the MH command \"pick\" to do the
+real work.
 
-There are no semantics associated with the search criteria--they are simply
-treated as strings. Case is ignored when all lowercase is used, and regular
-expressions (a la \"ed\") are available. It is all right to specify several
-search criteria. What happens then is that a logical _and_ of the various
-fields is performed. If you prefer a logical _or_ operation, run
-\\[mh-search-folder] multiple times.
+There are no semantics associated with the search criteria--they are
+simply treated as strings. Case is ignored when all lowercase is used,
+and regular expressions (a la \"ed\") are available. It is all right
+to specify several search criteria. What happens then is that a
+logical _and_ of the various fields is performed. If you prefer a
+logical _or_ operation, run \\[mh-search-folder] multiple times.
 
-As an example, let's say that we want to find messages from Ginnean about
-horseback riding in the Kosciusko National Park (Australia) during January,
-1994. Normally we would start with a broad search and narrow it down if
-necessary to produce a manageable amount of data, but we'll cut to the chase
-and create a fairly restrictive set of criteria as follows:
+As an example, let's say that we want to find messages from Ginnean
+about horseback riding in the Kosciusko National Park (Australia)
+during January, 1994. Normally we would start with a broad search and
+narrow it down if necessary to produce a manageable amount of data,
+but we'll cut to the chase and create a fairly restrictive set of
+criteria as follows:
 
      From: ginnean
      To:
@@ -98,29 +100,32 @@ and create a fairly restrictive set of criteria as follows:
 As with MH-Letter mode, MH-Pick provides commands like
 \\<mh-pick-mode-map>\\[mh-to-field] to help you fill in the blanks.
 
-To perform the search, type \\[mh-do-search]. The selected messages are placed
-in the \"search\" sequence, which you can use later in forwarding, printing,
-or narrowing your field of view. Subsequent searches are appended to the
-\"search\" sequence. If, however, you wish to start with a clean slate, first
-delete the \"search\" sequence.
+To perform the search, type \\[mh-do-search]. The selected messages
+are placed in the \"search\" sequence, which you can use later in
+forwarding, printing, or narrowing your field of view. Subsequent
+searches are appended to the \"search\" sequence. If, however, you
+wish to start with a clean slate, first delete the \"search\"
+sequence.
 
-If you're searching in a folder that is already displayed in an MH-Folder
-buffer, only those messages contained in the buffer are used for the search.
-Therefore, if you want to search in all messages, first kill the folder's
-buffer with \\<mh-folder-mode-map>\\[kill-buffer] or scan the entire folder
-with \\[mh-rescan-folder].
+If you're searching in a folder that is already displayed in an
+MH-Folder buffer, only those messages contained in the buffer are used
+for the search. Therefore, if you want to search in all messages,
+first kill the folder's buffer with
+\\<mh-folder-mode-map>\\[kill-buffer] or scan the entire folder with
+\\[mh-rescan-folder].
 
-If you find that you do the same thing over and over when editing the search
-template, you may wish to bind some shortcuts to keys. This can be done with
-the variable `mh-pick-mode-hook', which is called when \\[mh-search-folder] is
-run on a new pattern.
+If you find that you do the same thing over and over when editing the
+search template, you may wish to bind some shortcuts to keys. This can
+be done with the variable `mh-pick-mode-hook', which is called when
+\\[mh-search-folder] is run on a new pattern.
 
-If you have run the \\[mh-index-search] command, but change your mind while
-entering the search criteria and actually want to run a regular search, then
-you can use the \\<mh-pick-mode-map>\\[mh-pick-do-search] command.
+If you have run the \\[mh-index-search] command, but change your mind
+while entering the search criteria and actually want to run a regular
+search, then you can use the \\<mh-pick-mode-map>\\[mh-pick-do-search]
+command.
 
-In a program, argument WINDOW-CONFIG is the current window configuration and
-is used when the search folder is dismissed."
+In a program, argument WINDOW-CONFIG is the current window
+configuration and is used when the search folder is dismissed."
   (interactive (list (mh-prompt-for-folder "Search" mh-current-folder nil nil t)
                      (current-window-configuration)))
   (let ((pick-folder (if (equal folder "+") mh-current-folder folder)))
@@ -182,26 +187,26 @@ is used when the search folder is dismissed."
      "where <field> is the first letter of the desired field."))
   "Key binding cheat sheet.
 
-This is an associative array which is used to show the most common commands.
-The key is a prefix char. The value is one or more strings which are
-concatenated together and displayed in the minibuffer if ? is pressed after
-the prefix character. The special key nil is used to display the
-non-prefixed commands.
+This is an associative array which is used to show the most common
+commands. The key is a prefix char. The value is one or more strings
+which are concatenated together and displayed in the minibuffer if ?
+is pressed after the prefix character. The special key nil is used to
+display the non-prefixed commands.
 
-The substitutions described in `substitute-command-keys' are performed as
-well.")
+The substitutions described in `substitute-command-keys' are performed
+as well.")
 
 (put 'mh-pick-mode 'mode-class 'special)
 
 (define-derived-mode mh-pick-mode fundamental-mode "MH-Pick"
   "Mode for creating search templates in MH-E.\\<mh-pick-mode-map>
 
-After each field name, enter the pattern to search for.  If a field's
-value does not matter for the search, leave it empty.  To search the
+After each field name, enter the pattern to search for. If a field's
+value does not matter for the search, leave it empty. To search the
 entire message, supply the pattern in the \"body\" of the template.
-Each non-empty field must be matched for a message to be selected.
-To effect a logical \"or\", use \\[mh-search-folder] multiple times.
-When you have finished, type  \\[mh-pick-do-search]  to do the search.
+Each non-empty field must be matched for a message to be selected. To
+effect a logical \"or\", use \\[mh-search-folder] multiple times. When
+you have finished, type \\[mh-pick-do-search] to do the search.
 
 The hook `mh-pick-mode-hook' is called upon entry to this mode.
 
@@ -216,8 +221,10 @@ The hook `mh-pick-mode-hook' is called upon entry to this mode.
 ;;;###mh-autoload
 (defun mh-pick-do-search ()
   "Find messages that match the qualifications in the current pattern buffer.
-Messages are searched for in the folder named in `mh-searching-folder'.
-Add the messages found to the sequence named `search'."
+
+Messages are searched for in the folder named in
+`mh-searching-folder'. Add the messages found to the sequence
+named `search'."
   (interactive)
   (let ((pattern-list (mh-pick-parse-search-buffer))
         (folder mh-searching-folder)
@@ -251,9 +258,11 @@ Add the messages found to the sequence named `search'."
 ;;;###mh-autoload
 (defun mh-do-search ()
   "Use the default searching function.
-If \\[mh-search-folder] was used to create the search pattern then pick is used
-to search the folder. Otherwise if \\[mh-index-search] was used then the
-indexing program specified in `mh-index-program' is used."
+
+If \\[mh-search-folder] was used to create the search pattern
+then pick is used to search the folder. Otherwise if
+\\[mh-index-search] was used then the indexing program specified
+in `mh-index-program' is used."
   (interactive)
   (if (symbolp mh-searching-function)
       (funcall mh-searching-function)
@@ -261,8 +270,8 @@ indexing program specified in `mh-index-program' is used."
 
 (defun mh-seq-from-command (folder seq command)
   "In FOLDER, make a sequence named SEQ by executing COMMAND.
-COMMAND is a list.  The first element is a program name
-and the subsequent elements are its arguments, all strings."
+COMMAND is a list. The first element is a program name and the
+subsequent elements are its arguments, all strings."
   (let ((msg)
         (msgs ())
         (case-fold-search t))
@@ -279,9 +288,9 @@ and the subsequent elements are its arguments, all strings."
 
 (defun mh-pick-parse-search-buffer ()
   "Parse the search buffer contents.
-The function returns a alist. The car of each element is either the header name
-to search in or nil to search the whole message. The cdr of the element is the
-pattern to search."
+The function returns a alist. The car of each element is either
+the header name to search in or nil to search the whole message.
+The cdr of the element is the pattern to search."
   (save-excursion
     (let ((pattern-list ())
           (in-body-flag nil)

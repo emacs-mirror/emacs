@@ -1,5 +1,8 @@
 2005-12-22  Bill Wohler  <wohler@newt.com>
 
+	Follow Emacs coding conventions. Use default setting of
+	emacs-lisp-docstring-fill-column which is 65.
+	
 	* mh-alias.el (mh-alias-reload): Sync docstrings with manual.
 
 	* mh-comp.el (mh-letter-mode): Use 60 column width.

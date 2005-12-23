@@ -57,17 +57,19 @@
 (defun mh-burst-digest ()
   "Break up digest into separate messages\\<mh-folder-mode-map>.
 
-This command uses the MH command \"burst\" to break out each message in the
-digest into its own message. Using this command, you can quickly delete
-unwanted messages, like this: Once the digest is split up, toggle out of
-MH-Folder Show mode with \\[mh-toggle-showing] so that the scan lines fill the
-screen and messages aren't displayed. Then use \\[mh-delete-msg] to quickly
-delete messages that you don't want to read (based on the \"Subject:\" header
-field). You can also burst the digest to reply directly to the people who
-posted the messages in the digest. One problem you may encounter is that the
-\"From:\" header fields are preceded with a \">\" so that your reply can't
-create the \"To:\" field correctly. In this case, you must correct the \"To:\"
-field yourself."
+This command uses the MH command \"burst\" to break out each
+message in the digest into its own message. Using this command,
+you can quickly delete unwanted messages, like this: Once the
+digest is split up, toggle out of MH-Folder Show mode with
+\\[mh-toggle-showing] so that the scan lines fill the screen and
+messages aren't displayed. Then use \\[mh-delete-msg] to quickly
+delete messages that you don't want to read (based on the
+\"Subject:\" header field). You can also burst the digest to
+reply directly to the people who posted the messages in the
+digest. One problem you may encounter is that the \"From:\"
+header fields are preceded with a \">\" so that your reply can't
+create the \"To:\" field correctly. In this case, you must
+correct the \"To:\" field yourself."
   (interactive)
   (let ((digest (mh-get-msg-num t)))
     (mh-process-or-undo-commands mh-current-folder)
@@ -85,15 +87,15 @@ field yourself."
 (defun mh-copy-msg (range folder)
   "Copy RANGE to FOLDER\\<mh-folder-mode-map>.
 
-If you wish to copy a message to another folder, you can use this command
-\(see the \"-link\" argument to \"refile\"). Like the command
-\\[mh-refile-msg], this command prompts you for the name of the target folder
-and you can specify a range. Note that unlike the command \\[mh-refile-msg],
-the copy takes place immediately. The original copy remains in the current
-folder.
+If you wish to copy a message to another folder, you can use this
+command \(see the \"-link\" argument to \"refile\"). Like the
+command \\[mh-refile-msg], this command prompts you for the name
+of the target folder and you can specify a range. Note that
+unlike the command \\[mh-refile-msg], the copy takes place
+immediately. The original copy remains in the current folder.
 
-Check the documentation of `mh-interactive-range' to see how RANGE is read in
-interactive use."
+Check the documentation of `mh-interactive-range' to see how
+RANGE is read in interactive use."
   (interactive (list (mh-interactive-range "Copy")
                      (mh-prompt-for-folder "Copy to" "" t)))
   (let ((msg-list (let ((result ()))
@@ -108,13 +110,13 @@ interactive use."
 (defun mh-kill-folder ()
   "Remove folder.
 
-Remove all of the messages (files) within the current folder, and then
-remove the folder (directory) itself.
+Remove all of the messages (files) within the current folder, and
+then remove the folder (directory) itself.
 
-Run the abnormal hook `mh-kill-folder-suppress-prompt-hooks'. The hook
-functions are called with no arguments and should return a non-nil
-value to suppress the normal prompt when you remove a folder. This is
-useful for folders that are easily regenerated."
+Run the abnormal hook `mh-kill-folder-suppress-prompt-hooks'. The
+hook functions are called with no arguments and should return a
+non-nil value to suppress the normal prompt when you remove a
+folder. This is useful for folders that are easily regenerated."
   (interactive)
   (if (or (run-hook-with-args-until-success
            'mh-kill-folder-suppress-prompt-hooks)
@@ -172,14 +174,15 @@ Display the results only if something went wrong."
 (defun mh-pack-folder (range)
   "Pack folder\\<mh-folder-mode-map>.
 
-This command packs the folder, removing gaps from the numbering sequence. If
-you don't want to rescan the entire folder afterward, this command will accept
-a RANGE. Check the documentation of `mh-interactive-range' to see how RANGE is
-read in interactive use.
+This command packs the folder, removing gaps from the numbering
+sequence. If you don't want to rescan the entire folder
+afterward, this command will accept a RANGE. Check the
+documentation of `mh-interactive-range' to see how RANGE is read
+in interactive use.
 
-This command will ask if you want to process refiles or deletes first and then
-either run \\[mh-execute-commands] for you or undo the pending refiles and
-deletes, which are lost."
+This command will ask if you want to process refiles or deletes
+first and then either run \\[mh-execute-commands] for you or undo
+the pending refiles and deletes, which are lost."
   (interactive (list (if current-prefix-arg
                          (mh-read-range "Scan" mh-current-folder t nil t
                                         mh-interpret-number-as-range-flag)
@@ -210,9 +213,10 @@ Display RANGE after packing, or the entire folder if RANGE is nil."
 (defun mh-pipe-msg (command include-header)
   "Pipe message through shell command COMMAND.
 
-You are prompted for the Unix command through which you wish to run your
-message. If you give an argument INCLUDE-HEADER to this command, the message
-header is included in the text passed to the command."
+You are prompted for the Unix command through which you wish to
+run your message. If you give an argument INCLUDE-HEADER to this
+command, the message header is included in the text passed to the
+command."
   (interactive
    (list (read-string "Shell command on message: ") current-prefix-arg))
   (let ((msg-file-to-pipe (mh-msg-filename (mh-get-msg-num t)))
@@ -263,9 +267,11 @@ header is included in the text passed to the command."
 ;;;###mh-autoload
 (defun mh-sort-folder (&optional extra-args)
   "Sort the messages in the current folder by date.
+
 Calls the MH program sortm to do the work.
-The arguments in the list `mh-sortm-args' are passed to sortm if the optional
-argument EXTRA-ARGS is given."
+
+The arguments in the list `mh-sortm-args' are passed to sortm if
+the optional argument EXTRA-ARGS is given."
   (interactive "P")
   (mh-process-or-undo-commands mh-current-folder)
   (setq mh-next-direction 'forward)
@@ -299,10 +305,11 @@ argument EXTRA-ARGS is given."
 (defun mh-store-msg (directory)
   "Unpack message created with `uudecode' or `shar'.
 
-The default DIRECTORY for extraction is the current directory; however, you
-have a chance to specify a different extraction directory. The next time you
-use this command, the default directory is the last directory you used. If you
-would like to change the initial default directory, customize the option
+The default DIRECTORY for extraction is the current directory;
+however, you have a chance to specify a different extraction
+directory. The next time you use this command, the default
+directory is the last directory you used. If you would like to
+change the initial default directory, customize the option
 `mh-store-default-directory'."
   (interactive (list (let ((udir (or mh-store-default-directory
                                      default-directory)))
@@ -318,9 +325,11 @@ would like to change the initial default directory, customize the option
 ;;;###mh-autoload
 (defun mh-store-buffer (directory)
   "Store the file(s) contained in the current buffer into DIRECTORY.
+
 The buffer can contain a shar file or uuencoded file.
-Default directory is the last directory used, or initially the value of
-`mh-store-default-directory' or the current directory."
+
+Default directory is the last directory used, or initially the
+value of `mh-store-default-directory' or the current directory."
   (interactive (list (let ((udir (or mh-store-default-directory
                                      default-directory)))
                        (read-file-name "Store buffer in directory: "
