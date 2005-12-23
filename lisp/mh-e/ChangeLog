@@ -10,8 +10,12 @@
 	use one of the supercite flavors of mh-yank-behavior. Sync
 	docstrings with manual.
 
-	* mh-customize.el (mh-ins-buf-prefix, mh-yank-behavior): Mention
-	that mh-ins-buf-prefix isn't used if you have added a
+	* mh-customize.el (mh-kill-folder-suppress-prompt-hooks): Rename
+	from mh-kill-folder-suppress-prompt-hook since it is an abnormal
+	hook. Use "Hook run by `function'..." instead of "Invoked...".
+	Sync docstrings with manual.
+	(mh-ins-buf-prefix, mh-yank-behavior): Mention that
+	mh-ins-buf-prefix isn't used if you have added a
 	mail-citation-hook and neither are used if you use one of the
 	supercite flavors of mh-yank-behavior. Sync docstrings with
 	manual.
@@ -21,11 +25,11 @@
 	(mh-before-quit-hook, mh-before-send-letter-hook)
 	(mh-delete-msg-hook, mh-find-path-hook, mh-folder-mode-hook)
 	(mh-forward-hook, mh-inc-folder-hook, mh-insert-signature-hook)
-	(mh-kill-folder-suppress-prompt-hooks, mh-letter-mode-hook)
+	(mh-letter-mode-hook)
 	(mh-mh-to-mime-hook, mh-pick-mode-hook, mh-quit-hook)
 	(mh-refile-msg-hook, mh-show-hook, mh-show-mode-hook)
-	(mh-unseen-updated-hook): Sync docstrings with manual. Use "Hook
-	run by `function'..." instead of "Invoked...".
+	(mh-unseen-updated-hook): Use "Hook run by `function'..." instead
+	of "Invoked...". Sync docstrings with manual.
 
 	* mh-e.el (mh-last-destination, mh-last-destination-folder)
 	(mh-last-destination-write, mh-folder-mode-map, mh-arrow-marker)
