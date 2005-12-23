@@ -1,3 +1,8 @@
+2005-12-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* text.texi (Undo): Remove dupliate descriptions of `apply
+	funname' and `apply delta' elements of the undo list.
+
 2005-12-20  Richard M. Stallman  <rms@gnu.org>
 
 	* help.texi (Help Functions): Update documentation of `apropos'.
