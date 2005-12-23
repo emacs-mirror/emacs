@@ -1430,14 +1430,14 @@ Otherwise use brackets."
 	(if description
 	    (widget-insert description))
 	(widget-insert (format ".
-%s indicate buttons; type RET or click mouse-1 to actuate one.
+%s buttons; type RET or click mouse-1 to actuate one.
 Editing a setting changes only the text in the buffer.
 Use the setting's State button to set it or save changes in it.
 Saving a change normally works by editing your Emacs init file.
 See "
 			       (if custom-raised-buttons
-				   "`Raised' buttons"
-				 "Square brackets")))
+				   "`Raised' text indicates"
+				 "Square brackets indicate")))
 	(widget-create 'info-link
 		       :tag "Custom file"
 		       "(emacs)Saving Customizations")
@@ -1562,10 +1562,15 @@ Un-customize all settings in this buffer--save them with standard values."
   (let ((name "*Customize Browser*"))
     (pop-to-buffer (custom-get-fresh-buffer name)))
   (custom-mode)
-  (widget-insert "\
-Square brackets show active fields; type RET or click mouse-1
-on an active field to invoke its action.
-Invoke [+] below to expand a group, and [-] to collapse an expanded group.\n")
+  (widget-insert (format "\
+%s buttons; type RET or click mouse-1
+on a button to invoke its action.
+Invoke [+] to expand a group, and [-] to collapse an expanded group.\n"
+			 (if custom-raised-buttons
+			     "`Raised' text indicates"
+			   "Square brackets indicate")))
+
+
   (if custom-browse-only-groups
       (widget-insert "\
 Invoke the [Group] button below to edit that item in another window.\n\n")
