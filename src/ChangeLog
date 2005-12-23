@@ -1,3 +1,12 @@
+2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_uses_old_gtk_dialog): New function.
+
+	* gtkutil.c (xg_uses_old_file_dialog): New function.
+	(xg_get_file_name): Use xg_uses_old_file_dialog.
+
+	* gtkutil.h: Declare xg_uses_old_file_dialog.
+
 2005-12-22  Richard M. Stallman  <rms@gnu.org>
 
 	* xmenu.c (xmenu_show): Call inhibit_garbage_collection.

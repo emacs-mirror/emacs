@@ -1155,6 +1155,27 @@ create_dialog (wv, select_cb, deactivate_cb)
 /***********************************************************************
                       File dialog functions
  ***********************************************************************/
+/* Return non-zero if the old file selection dialog is being used.
+   Return zero if not.  */
+
+int
+xg_uses_old_file_dialog ()
+{
+#ifdef HAVE_GTK_FILE_BOTH
+  extern int x_use_old_gtk_file_dialog;
+  return x_use_old_gtk_file_dialog;
+#else /* ! HAVE_GTK_FILE_BOTH */
+
+#ifdef HAVE_GTK_FILE_SELECTION_NEW
+  return 1;
+#else
+  return 0;
+#endif
+
+#endif /* ! HAVE_GTK_FILE_BOTH */
+}
+
+
 /* Function that is called when the file dialog pops down.
    W is the dialog widget, RESPONSE is the response code.
    USER_DATA is what we passed in to g_signal_connect (pointer to int).  */
@@ -1343,7 +1364,6 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
   char *fn = 0;
   int filesel_done = 0;
   xg_get_file_func func;
-  extern int x_use_old_gtk_file_dialog;
 
 #if defined (HAVE_GTK_AND_PTHREAD) && defined (__SIGRTMIN)
   /* I really don't know why this is needed, but without this the GLIBC add on
@@ -1354,7 +1374,7 @@ xg_get_file_name (f, prompt, default_filename, mustmatch_p, only_dir_p)
 
 #ifdef HAVE_GTK_FILE_BOTH
 
-  if (x_use_old_gtk_file_dialog)
+  if (xg_uses_old_file_dialog ())
     w = xg_get_file_with_selection (f, prompt, default_filename,
                                     mustmatch_p, only_dir_p, &func);
   else
