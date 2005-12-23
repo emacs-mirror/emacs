@@ -1,3 +1,8 @@
+2005-12-23  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Undo): Restore some explanation from the version
+	that was deleted.
+
 2005-12-23  Eli Zaretskii  <eliz@gnu.org>
 
 	* text.texi (Undo): Remove dupliate descriptions of `apply

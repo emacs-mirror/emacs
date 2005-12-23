@@ -1,3 +1,7 @@
+2005-12-23  Richard M. Stallman  <rms@gnu.org>
+
+	* vc.el (vc-annotate-car-last-cons): Defn moved up.
+
 2005-12-23  David Koppelman  <koppel@ece.lsu.edu>
 
 	* hi-lock.el (hi-lock-highlight-range): New variable.
