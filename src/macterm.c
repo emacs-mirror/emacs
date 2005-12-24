@@ -68,7 +68,6 @@ Boston, MA 02110-1301, USA.  */
 #include <errno.h>
 #include <setjmp.h>
 #include <sys/stat.h>
-#include <sys/param.h>
 
 #include "charset.h"
 #include "coding.h"
@@ -8201,6 +8200,7 @@ extern void init_apple_event_handler P_ ((void));
 extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
 					   Lisp_Object *, Lisp_Object *,
 					   Lisp_Object *));
+extern OSErr init_coercion_handler P_ ((void));
 
 #if TARGET_API_MAC_CARBON
 /* Drag and Drop */
@@ -9207,25 +9207,25 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
       if (result == noErr)
 	{
-#ifdef MAC_OSX
-	  FSRef fref;
-#endif
-	  char unix_path_name[MAXPATHLEN];
+	  OSErr err;
+	  AEDesc desc;
 
-	  GetFlavorData (theDrag, theItem, flavorTypeHFS, &data, &size, 0L);
-#ifdef MAC_OSX
-	  /* Use Carbon routines, otherwise it converts the file name
-	     to /Macintosh HD/..., which is not correct. */
-	  FSpMakeFSRef (&data.fileSpec, &fref);
-	  if (! FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name)));
-#else
-	  if (fsspec_to_posix_pathname (&data.fileSpec, unix_path_name,
-					sizeof (unix_path_name) - 1) == noErr)
-#endif
-	    /* x-dnd functions expect undecoded filenames.  */
-            file_list = Fcons (make_unibyte_string (unix_path_name,
-						    strlen (unix_path_name)),
-			       file_list);
+	  err = GetFlavorData (theDrag, theItem, flavorTypeHFS,
+			       &data, &size, 0L);
+	  if (err == noErr)
+	    err = AECoercePtr (typeFSS, &data.fileSpec, sizeof (FSSpec),
+			       TYPE_FILE_NAME, &desc);
+	  if (err == noErr)
+	    {
+	      Lisp_Object file;
+
+	      /* x-dnd functions expect undecoded filenames.  */
+	      file = make_uninit_string (AEGetDescDataSize (&desc));
+	      err = AEGetDescData (&desc, SDATA (file), SBYTES (file));
+	      if (err == noErr)
+		file_list = Fcons (file, file_list);
+	      AEDisposeDesc (&desc);
+	    }
 	}
     }
   /* If there are items in the list, construct an event and post it to
@@ -9316,6 +9316,8 @@ main (void)
   init_emacs_passwd_dir ();
 
   init_environ ();
+
+  init_coercion_handler ();
 
   initialize_applescript ();
 
@@ -10705,6 +10707,8 @@ mac_initialize ()
 #endif	/* USE_CARBON_EVENTS */
 
 #ifdef MAC_OSX
+  init_coercion_handler ();
+
   init_apple_event_handler ();
 
   if (!inhibit_window_system)
