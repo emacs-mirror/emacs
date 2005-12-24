@@ -940,7 +940,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
 				       current-prefix-arg))
   (funcall (or (get variable 'custom-set) 'set-default) variable value)
   (put variable 'saved-value (list (custom-quote value)))
-  (custom-push-theme 'theme-value variable 'user 'set (list (custom-quote value)))
+  (custom-push-theme 'theme-value variable 'user 'set (custom-quote value))
   (cond ((string= comment "")
  	 (put variable 'variable-comment nil)
  	 (put variable 'saved-variable-comment nil))
@@ -2670,7 +2670,7 @@ Optional EVENT is the location for the menu."
 	     (custom-comment-hide comment-widget))
 	   (custom-variable-backup-value widget)
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (widget-value child))
+			      'set (custom-quote (widget-value child)))
 	   (funcall set symbol (eval (setq val (widget-value child))))
 	   (put symbol 'customized-value (list val))
 	   (put symbol 'variable-comment comment)
@@ -2682,7 +2682,7 @@ Optional EVENT is the location for the menu."
 	     (custom-comment-hide comment-widget))
 	   (custom-variable-backup-value widget)
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (widget-value child))
+			      'set (custom-quote (widget-value child)))
 	   (funcall set symbol (setq val (widget-value child)))
 	   (put symbol 'customized-value (list (custom-quote val)))
 	   (put symbol 'variable-comment comment)
@@ -2712,7 +2712,7 @@ Optional EVENT is the location for the menu."
 	     (custom-comment-hide comment-widget))
 	   (put symbol 'saved-value (list (widget-value child)))
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (widget-value child))
+			      'set (custom-quote (widget-value child)))
 	   (funcall set symbol (eval (widget-value child)))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'saved-variable-comment comment))
@@ -2724,7 +2724,7 @@ Optional EVENT is the location for the menu."
 	   (put symbol 'saved-value
 		(list (custom-quote (widget-value child))))
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (widget-value child))
+			      'set (custom-quote (widget-value child)))
 	   (funcall set symbol (widget-value child))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'saved-variable-comment comment)))

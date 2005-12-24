@@ -637,14 +637,15 @@ set by three different themes.  Its `theme-value' property is:
    \(jonadab set underline)
    \(gnome2 set info-xref)
 
-The theme `subtle-hacker' says to use the same value for the variable as
-the theme `gnome2'.  The theme values set by each of these themes can be
-changed, but only the one defined by `subtle-hacker' takes effect, because
-the theme currently has the highest precedence.  To change the precedence
-of the themes, use `enable-theme'.
+The theme `subtle-hacker' says to use the same value for the
+variable as the theme `gnome2'.  Therefore, the theme value of
+the variable is `info-xref'.  The theme value defined by
+`subtle-hacker' is in effect, because that theme currently has
+the highest precedence.  To change the precedence of the themes,
+use `enable-theme'.
 
-The user has not customized the face; had he done that, the list would
-contain an entry for the `user' theme, too.
+The user has not customized the variable; had he done that, the
+list would contain an entry for the `user' theme, too.
 
 See `custom-known-themes' for a list of known themes."
   (unless (or (eq prop 'theme-value)
