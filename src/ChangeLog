@@ -1,3 +1,27 @@
+2005-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.h (TYPE_FILE_NAME): New define.
+	(posix_pathname_to_fsspec, fsspec_to_posix_pathname): Remove externs.
+
+	* mac.c (posix_pathname_to_fsspec, fsspec_to_posix_pathname): Add
+	prototypes.  Make static.
+	(mac_aedesc_to_lisp): Initialize err to noErr.
+	(mac_coerce_file_name_ptr, mac_coerce_file_name_desc)
+	(init_coercion_handler): New functions.
+	(Fmac_coerce_ae_data): Use coercion of Apple event data for
+	translation from/to file names.
+
+	* macterm.c: Don't include sys/param.h.
+	(init_coercion_handler): Add extern.
+	[MAC_OS8] (main): Call init_coercion_handler.
+	(mac_initialize) [MAC_OSX]: Likewise.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Use coercion of
+	Apple event data for translation from/to file names.
+
+	* macfns.c [TARGET_API_MAC_CARBON] (Fx_file_dialog): Likewise.
+
+	* image.c [MAC_OS] (find_image_fsspec): Likewise.
+
 2005-12-23  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
 	* insdel.c (insert, insert_and_inherit, insert_before_markers)
