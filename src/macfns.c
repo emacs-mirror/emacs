@@ -4226,21 +4226,13 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     /* Set the default location and continue*/
     if (status == noErr)
       {
+	Lisp_Object encoded_dir = ENCODE_FILE (dir);
 	AEDesc defLocAed;
-#ifdef MAC_OSX
-	FSRef defLoc;
-	status = FSPathMakeRef(SDATA(ENCODE_FILE(dir)), &defLoc, NULL);
-#else
-	FSSpec defLoc;
-	status = posix_pathname_to_fsspec (SDATA (ENCODE_FILE (dir)), &defLoc);
-#endif
+
+	status = AECreateDesc (TYPE_FILE_NAME, SDATA (encoded_dir),
+			       SBYTES (encoded_dir), &defLocAed);
 	if (status == noErr)
 	  {
-#ifdef MAC_OSX
-	    AECreateDesc(typeFSRef, &defLoc, sizeof(FSRef), &defLocAed);
-#else
-	    AECreateDesc(typeFSS, &defLoc, sizeof(FSSpec), &defLocAed);
-#endif
 	    NavCustomControl(dialogRef, kNavCtlSetLocation, (void*) &defLocAed);
 	    AEDisposeDesc(&defLocAed);
 	  }
@@ -4262,41 +4254,36 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	case kNavUserActionSaveAs:
 	  {
 	    NavReplyRecord reply;
-	    AEDesc aed;
-#ifdef MAC_OSX
-	    FSRef fsRef;
-#else
-	    FSSpec fs;
-#endif
-	    status = NavDialogGetReply(dialogRef, &reply);
+	    Size len;
 
-#ifdef MAC_OSX
-	    AECoerceDesc(&reply.selection, typeFSRef, &aed);
-	    AEGetDescData(&aed, (void *) &fsRef, sizeof (FSRef));
-	    FSRefMakePath(&fsRef, (UInt8 *) filename, sizeof (filename));
-#else
-	    AECoerceDesc (&reply.selection, typeFSS, &aed);
-	    AEGetDescData (&aed, (void *) &fs, sizeof (FSSpec));
-	    fsspec_to_posix_pathname (&fs, filename, sizeof (filename) - 1);
-#endif
-	    AEDisposeDesc(&aed);
-	    if (reply.saveFileName)
+	    status = NavDialogGetReply(dialogRef, &reply);
+	    if (status != noErr)
+	      break;
+	    status = AEGetNthPtr (&reply.selection, 1, TYPE_FILE_NAME,
+				  NULL, NULL, filename,
+				  sizeof (filename) - 1, &len);
+	    if (status == noErr)
 	      {
-		/* If it was a saved file, we need to add the file name */
-		int len = strlen(filename);
-		if (len && filename[len-1] != '/')
-		  filename[len++] = '/';
-		CFStringGetCString(reply.saveFileName, filename+len,
-				   sizeof (filename) - len,
+		len = min (len, sizeof (filename) - 1);
+		filename[len] = '\0';
+		if (reply.saveFileName)
+		  {
+		    /* If it was a saved file, we need to add the file name */
+		    if (len && len < sizeof (filename) - 1
+			&& filename[len-1] != '/')
+		      filename[len++] = '/';
+		    CFStringGetCString(reply.saveFileName, filename+len,
+				       sizeof (filename) - len,
 #if MAC_OSX
-				   kCFStringEncodingUTF8
+				       kCFStringEncodingUTF8
 #else
-				   CFStringGetSystemEncoding ()
+				       CFStringGetSystemEncoding ()
 #endif
-				   );
+				       );
+		  }
+		file = DECODE_FILE (make_unibyte_string (filename,
+							 strlen (filename)));
 	      }
-	    file = DECODE_FILE (make_unibyte_string (filename,
-						     strlen (filename)));
 	    NavDisposeReply(&reply);
 	  }
 	  break;
