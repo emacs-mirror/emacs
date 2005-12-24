@@ -569,14 +569,14 @@ extern Lisp_Object mac_make_lispy_event_code P_ ((int));
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
+#define TYPE_FILE_NAME 'fNam'
+
 /* Defined in macselect.c */
 
 extern void x_clear_frame_selections P_ ((struct frame *));
 
 /* Defined in mac.c.  */
 
-extern OSErr posix_pathname_to_fsspec P_ ((const char *, FSSpec *));
-extern OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
 extern void mac_clear_font_name_table P_ ((void));
 extern Lisp_Object mac_aedesc_to_lisp P_ ((AEDesc *));
 #if TARGET_API_MAC_CARBON
