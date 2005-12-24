@@ -8,7 +8,8 @@
 	customization" button one line up.
 	(custom-themed): New face.
 	(custom-magic-alist): New value, THEMED, for theme settings.
-	(custom-variable-state-set): Check theme-value.
+	(custom-variable-state-set, custom-face-state-set): Check
+	theme-value.
 	(custom-variable-reset-standard, custom-face-reset-standard):
 	Remove theme setting entirely.
 

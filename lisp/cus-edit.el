@@ -3308,7 +3308,12 @@ widget.  If FILTER is nil, ACTION is always valid.")
 		   (setq temp (get symbol 'saved-face-comment))
 		   (or tmp temp))
 		 (if (equal temp comment)
-		     'saved
+		     (cond
+		      ((eq 'user (caar (get symbol 'theme-face)))
+		       'saved)
+		      ((eq 'standard (caar (get symbol 'theme-face)))
+		       'changed)
+		      (t 'themed))
 		   'changed))
 		((get symbol 'face-defface-spec)
 		 (if (equal comment nil)
