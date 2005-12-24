@@ -158,8 +158,8 @@ loaddefs.el-CMD:
 autoloads: $(lisp)/loaddefs.el doit
 	@echo Directories: . $(WINS)
 	$(emacs) -l autoload \
-		--eval $(ARGQUOTE)(setq find-file-hook nil find-file-suppress-same-file-warnings t generated-autoload-file $(DQUOTE)$(lisp)/loaddefs.el$(DQUOTE))$(ARGQUOTE) \
-		-f batch-update-autoloads . $(WINS)
+		--eval $(ARGQUOTE)(setq find-file-hook nil find-file-suppress-same-file-warnings t)$(ARGQUOTE) \
+		-f w32-batch-update-autoloads "$(lisp)/loaddefs.el" . $(WINS)
 
 $(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
@@ -311,10 +311,10 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 	$(EMACS) $(EMACSOPT) \
 	   -l autoload \
 	   --eval "(setq generate-autoload-cookie \";;;###mh-autoload\")" \
-	   --eval "(setq generated-autoload-file \"$(lisp)/mh-e/mh-loaddefs.el\")" \
 	   --eval "(setq find-file-suppress-same-file-warnings t)" \
 	   --eval "(setq make-backup-files nil)" \
-	   -f batch-update-autoloads $(lisp)/mh-e
+	   -f w32-batch-update-autoloads \
+	   "$(lisp)/mh-e/mh-loaddefs.el" $(lisp)/mh-e
 
 pre-mh-loaddefs.el-SH:
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
