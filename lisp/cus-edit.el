@@ -2545,12 +2545,15 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 			     (error nil))
 			   'set
 			 'changed))
-		      ((progn (setq tmp (get symbol 'saved-value))
+		      ((progn (setq tmp (get symbol 'theme-value))
 			      (setq temp (get symbol 'saved-variable-comment))
 			      (or tmp temp))
 		       (if (condition-case nil
-			       (and (equal value (eval (car tmp)))
-				    (equal comment temp))
+			       (and (equal comment temp)
+				    (equal value
+					   (eval (car
+						  (custom-theme-value
+						   (caar tmp) tmp)))))
 			     (error nil))
 			   (cond
 			    ((eq 'user (caar (get symbol 'theme-value)))
@@ -2666,6 +2669,8 @@ Optional EVENT is the location for the menu."
 	     ;; Make the comment invisible by hand if it's empty
 	     (custom-comment-hide comment-widget))
 	   (custom-variable-backup-value widget)
+	   (custom-push-theme 'theme-value symbol 'user
+			      'set (widget-value child))
 	   (funcall set symbol (eval (setq val (widget-value child))))
 	   (put symbol 'customized-value (list val))
 	   (put symbol 'variable-comment comment)
@@ -2676,6 +2681,8 @@ Optional EVENT is the location for the menu."
 	     ;; Make the comment invisible by hand if it's empty
 	     (custom-comment-hide comment-widget))
 	   (custom-variable-backup-value widget)
+	   (custom-push-theme 'theme-value symbol 'user
+			      'set (widget-value child))
 	   (funcall set symbol (setq val (widget-value child)))
 	   (put symbol 'customized-value (list (custom-quote val)))
 	   (put symbol 'variable-comment comment)
@@ -2705,7 +2712,7 @@ Optional EVENT is the location for the menu."
 	     (custom-comment-hide comment-widget))
 	   (put symbol 'saved-value (list (widget-value child)))
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (list (widget-value child)))
+			      'set (widget-value child))
 	   (funcall set symbol (eval (widget-value child)))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'saved-variable-comment comment))
@@ -2717,8 +2724,8 @@ Optional EVENT is the location for the menu."
 	   (put symbol 'saved-value
 		(list (custom-quote (widget-value child))))
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (list (custom-quote (widget-value
-						  child))))
+			      'set (custom-quote (widget-value
+						  child)))
 	   (funcall set symbol (widget-value child))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'saved-variable-comment comment)))
@@ -2739,6 +2746,7 @@ becomes the backup value, so you can get it again."
     (cond ((or value comment)
 	   (put symbol 'variable-comment comment)
 	   (custom-variable-backup-value widget)
+	   (custom-push-theme 'theme-value symbol 'user 'set value)
 	   (condition-case nil
 	       (funcall set symbol (eval (car value)))
 	     (error nil)))
@@ -2759,17 +2767,15 @@ becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
 	 (set (or (get symbol 'custom-set) 'set-default)))
     (if (get symbol 'standard-value)
-	(progn
-	  (custom-variable-backup-value widget)
-	  (funcall set symbol (eval (car (get symbol 'standard-value)))))
+	(custom-variable-backup-value widget)
       (error "No standard setting known for %S" symbol))
     (put symbol 'variable-comment nil)
     (put symbol 'customized-value nil)
     (put symbol 'customized-variable-comment nil)
+    (custom-push-theme 'theme-value symbol 'user 'reset nil)
+    (custom-theme-recalc-variable symbol)
     (when (or (get symbol 'saved-value) (get symbol 'saved-variable-comment))
       (put symbol 'saved-value nil)
-      (custom-push-theme 'theme-value symbol 'user 'reset nil)
-      (custom-theme-recalc-variable symbol)
       (put symbol 'saved-variable-comment nil)
       (custom-save-all))
     (widget-put widget :custom-state 'unknown)
@@ -2801,6 +2807,7 @@ to switch between two values."
     (if value
 	(progn
 	  (custom-variable-backup-value widget)
+	  (custom-push-theme 'theme-value symbol 'user 'set value)
 	  (condition-case nil
 	      (funcall set symbol (car value))
 	     (error nil)))
@@ -3361,6 +3368,7 @@ Optional EVENT is the location for the menu."
       ;; face-set-spec ignores empty attribute lists, so just give it
       ;; something harmless instead.
       (face-spec-set symbol '((t :foreground unspecified))))
+    (custom-push-theme 'theme-face symbol 'user 'set value)
     (put symbol 'customized-face-comment comment)
     (put symbol 'face-comment comment)
     (custom-face-state-set widget)
@@ -3409,6 +3417,7 @@ Optional EVENT is the location for the menu."
       (error "No saved value for this face"))
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
+    (custom-push-theme 'theme-face symbol 'user 'set value)
     (face-spec-set symbol value)
     (put symbol 'face-comment comment)
     (widget-value-set child value)
@@ -3432,16 +3441,12 @@ restoring it to the state of a face that has never been customized."
       (error "No standard setting for this face"))
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
+    (custom-push-theme 'theme-face symbol 'user 'reset nil)
+    (custom-theme-recalc-face symbol)
     (when (or (get symbol 'saved-face) (get symbol 'saved-face-comment))
       (put symbol 'saved-face nil)
-      (custom-push-theme 'theme-face symbol 'user 'reset nil)
-      (custom-theme-recalc-face symbol)
-      ;; Do not explictly save resets to standards without themes.
-      (if (null (cdr (get symbol 'theme-face)))
-	  (put symbol  'theme-face nil))
       (put symbol 'saved-face-comment nil)
       (custom-save-all))
-    (face-spec-set symbol value)
     (put symbol 'face-comment nil)
     (widget-value-set child value)
     ;; This call manages the comment visibility

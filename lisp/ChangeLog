@@ -9,10 +9,14 @@
 	(custom-themed): New face.
 	(custom-magic-alist): New value, THEMED, for theme settings.
 	(custom-variable-state-set, custom-face-state-set): Check
-	theme-value.
+	theme-value instead of saved-value.
 	(custom-variable-reset-standard, custom-face-reset-standard):
 	Remove theme setting entirely.  Recalculate new values.
-
+	(custom-variable-set, custom-variable-set)
+	(custom-variable-reset-saved, custom-variable-reset-backup)
+	(custom-face-set, custom-face-reset-saved): Update `user' theme.
+	(custom-variable-save): Fix typos.
+	
 2005-12-23  Juri Linkov  <juri@jurta.org>
 
 	* emacs-lisp/edebug.el (edebug-all-defs, edebug-all-forms):
