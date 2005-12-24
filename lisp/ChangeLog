@@ -11,7 +11,7 @@
 	(custom-variable-state-set, custom-face-state-set): Check
 	theme-value.
 	(custom-variable-reset-standard, custom-face-reset-standard):
-	Remove theme setting entirely.
+	Remove theme setting entirely.  Recalculate new values.
 
 2005-12-23  Juri Linkov  <juri@jurta.org>
 

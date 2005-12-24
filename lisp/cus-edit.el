@@ -2769,6 +2769,7 @@ becomes the backup value, so you can get it again."
     (when (or (get symbol 'saved-value) (get symbol 'saved-variable-comment))
       (put symbol 'saved-value nil)
       (custom-push-theme 'theme-value symbol 'user 'reset nil)
+      (custom-theme-recalc-variable symbol)
       (put symbol 'saved-variable-comment nil)
       (custom-save-all))
     (widget-put widget :custom-state 'unknown)
@@ -3434,6 +3435,7 @@ restoring it to the state of a face that has never been customized."
     (when (or (get symbol 'saved-face) (get symbol 'saved-face-comment))
       (put symbol 'saved-face nil)
       (custom-push-theme 'theme-face symbol 'user 'reset nil)
+      (custom-theme-recalc-face symbol)
       ;; Do not explictly save resets to standards without themes.
       (if (null (cdr (get symbol 'theme-face)))
 	  (put symbol  'theme-face nil))
