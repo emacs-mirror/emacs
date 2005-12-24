@@ -2724,8 +2724,7 @@ Optional EVENT is the location for the menu."
 	   (put symbol 'saved-value
 		(list (custom-quote (widget-value child))))
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (custom-quote (widget-value
-						  child)))
+			      'set (widget-value child))
 	   (funcall set symbol (widget-value child))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'saved-variable-comment comment)))
