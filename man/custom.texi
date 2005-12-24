@@ -706,13 +706,12 @@ file @file{@var{foo}-theme.el}, in the directory @file{~/.emacs.d/}
 @findex enable-theme
 @findex disable-theme
 You can load the themes you've previously defined with the command
-@code{load-theme}.  It prompts for a theme name in the minibuffer,
-then loads that theme if it isn't already loaded.  It also
-@dfn{enables} the theme, which means putting its settings into effect.
-An enabled theme can be @dfn{disabled} with the command
-@kbd{M-x disable-theme}; this returns the options specified in the
-theme to their original values.  To re-enable the theme, use the
-command @kbd{M-x enable-theme}.
+@code{load-theme}.  It prompts for a theme name in the minibuffer, and
+loads that theme from the theme file.  It also @dfn{enables} the
+theme, which means putting its settings into effect.  An enabled theme
+can be @dfn{disabled} with the command @kbd{M-x disable-theme}; this
+returns the options specified in the theme to their original values.
+To re-enable the theme, use the command @kbd{M-x enable-theme}.
 
 To enable a Custom theme named @var{foo} whenever Emacs is started up,
 add the line @code{(load-theme '@var{foo})} to your @file{.emacs} file
