@@ -1,3 +1,17 @@
+2005-12-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-push-theme): Clarify docstring.  VALUE nil for
+	reset means to remove setting from theme entirely.  Don't keep
+	expanding theme-settings list; delete old entries if necessary.
+
+	* cus-edit.el (custom-buffer-create-internal): Move "Erase
+	customization" button one line up.
+	(custom-themed): New face.
+	(custom-magic-alist): New value, THEMED, for theme settings.
+	(custom-variable-state-set): Check theme-value.
+	(custom-variable-reset-standard, custom-face-reset-standard):
+	Remove theme setting entirely.
+
 2005-12-23  Juri Linkov  <juri@jurta.org>
 
 	* emacs-lisp/edebug.el (edebug-all-defs, edebug-all-forms):

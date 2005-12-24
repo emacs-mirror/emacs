@@ -1477,6 +1477,13 @@ This updates your Emacs initialization file or creates a new one."
 		       :mouse-down-action (lambda (&rest junk) t)
 		       :action (lambda (widget &optional event)
 				 (custom-reset event))))
+    (widget-insert " ")
+    (when (or custom-file user-init-file)
+      (widget-create 'push-button
+		     :tag "Erase Customization"
+		     :help-echo "\
+Un-customize all settings in this buffer--save them with standard values."
+		     :action 'Custom-reset-standard)))
     (widget-insert "\n ")
     (widget-create 'push-button
 		   :tag "Reset to Current"
@@ -1489,13 +1496,6 @@ Reset all edited text in this buffer to reflect current values."
 		   :help-echo "\
 Reset all settings in this buffer to their saved values."
 		   :action 'Custom-reset-saved)
-    (widget-insert " ")
-    (when (or custom-file user-init-file)
-      (widget-create 'push-button
-		     :tag "Erase Customization"
-		     :help-echo "\
-Un-customize all settings in this buffer--save them with standard values."
-		     :action 'Custom-reset-standard)))
   (if (not custom-buffer-verbose-help)
       (progn
 	(widget-insert " ")
@@ -1747,6 +1747,15 @@ item in another window.\n\n"))
 ;; backward-compatibility alias
 (put 'custom-changed-face 'face-alias 'custom-changed)
 
+(defface custom-themed '((((min-colors 88) (class color))
+			   (:foreground "white" :background "blue1"))
+			  (((class color))
+			   (:foreground "white" :background "blue"))
+			  (t
+			   (:slant italic)))
+  "Face used when the customize item has been set by a theme."
+  :group 'custom-magic-faces)
+
 (defface custom-saved '((t (:underline t)))
   "Face used when the customize item has been saved."
   :group 'custom-magic-faces)
@@ -1775,6 +1784,9 @@ something in this group has been changed outside customize.")
     (saved "!" custom-saved "\
 SAVED and set." "\
 something in this group has been set and saved.")
+    (themed "o" custom-themed "\
+THEMED." "\
+visible group members are all at standard values.")
     (rogue "@" custom-rogue "\
 NO CUSTOMIZATION DATA; not intended to be customized." "\
 something in this group is not prepared for customization.")
@@ -2540,7 +2552,12 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 			       (and (equal value (eval (car tmp)))
 				    (equal comment temp))
 			     (error nil))
-			   'saved
+			   (cond
+			    ((eq 'user (caar (get symbol 'theme-value)))
+			     'saved)
+			    ((eq 'standard (caar (get symbol 'theme-value)))
+			     'changed)
+			    (t 'themed))
 			 'changed))
 		      ((setq tmp (get symbol 'standard-value))
 		       (if (condition-case nil
@@ -2751,11 +2768,7 @@ becomes the backup value, so you can get it again."
     (put symbol 'customized-variable-comment nil)
     (when (or (get symbol 'saved-value) (get symbol 'saved-variable-comment))
       (put symbol 'saved-value nil)
-      (custom-push-theme 'theme-value symbol 'user 'reset 'standard)
-      ;; As a special optimizations we do not (explictly)
-      ;; save resets to standard when no theme set the value.
-      (if (null (cdr (get symbol 'theme-value)))
-	  (put symbol 'theme-value nil))
+      (custom-push-theme 'theme-value symbol 'user 'reset nil)
       (put symbol 'saved-variable-comment nil)
       (custom-save-all))
     (widget-put widget :custom-state 'unknown)
@@ -3415,7 +3428,7 @@ restoring it to the state of a face that has never been customized."
     (put symbol 'customized-face-comment nil)
     (when (or (get symbol 'saved-face) (get symbol 'saved-face-comment))
       (put symbol 'saved-face nil)
-      (custom-push-theme 'theme-face symbol 'user 'reset 'standard)
+      (custom-push-theme 'theme-face symbol 'user 'reset nil)
       ;; Do not explictly save resets to standards without themes.
       (if (null (cdr (get symbol 'theme-face)))
 	  (put symbol  'theme-face nil))
