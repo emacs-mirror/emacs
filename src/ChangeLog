@@ -1,3 +1,8 @@
+2005-12-25  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+
+	* m/amdx86-64.h [__FreeBSD__] (START_FILES, LIB_STANDARD):
+	define for FreeBSD on this platform.
+
 2005-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.h (TYPE_FILE_NAME): New define.

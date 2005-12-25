@@ -1,3 +1,7 @@
+2005-12-25  Giorgos Keramidas  <keramida@ceid.upatras.gr> (tiny change)
+
+	* configure.in: use amdx86-64 for freebsd on x86_64.
+
 2005-11-22  Romain Francoise  <romain@orebokech.com>
 
 	* make-dist: Add etc/images/icons.
