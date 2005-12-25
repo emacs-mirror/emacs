@@ -1,3 +1,7 @@
+2005-12-25  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/cpp.el (cpp-face-none-list): Use cpp-face instead of face.
+
 2005-12-25  Romain Francoise  <romain@orebokech.com>
 
 	* battery.el (battery-linux-proc-acpi): Also try
