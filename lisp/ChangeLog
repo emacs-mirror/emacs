@@ -1,5 +1,9 @@
 2005-12-25  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/delphi.el (delphi-other-face): Allow nil in type.
+
+	* locate.el (locate-header-face): Allow nil in type.
+
 	* progmodes/cpp.el (cpp-face-none-list): Use cpp-face instead of face.
 
 2005-12-25  Romain Francoise  <romain@orebokech.com>
