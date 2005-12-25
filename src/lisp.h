@@ -3184,6 +3184,9 @@ extern void syms_of_dired P_ ((void));
 extern void syms_of_term P_ ((void));
 extern void fatal () NO_RETURN;
 
+/* Defined in terminal.c */
+extern void syms_of_terminal P_ ((void));
+
 #ifdef HAVE_X_WINDOWS
 /* Defined in fontset.c */
 extern void syms_of_fontset P_ ((void));

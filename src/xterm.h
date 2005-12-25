@@ -995,6 +995,7 @@ extern void x_wm_set_size_hint P_ ((struct frame *, long, int));
 extern void x_wm_set_window_state P_ ((struct frame *, int));
 extern void x_wm_set_icon_pixmap P_ ((struct frame *, int));
 extern void x_delete_display P_ ((struct x_display_info *));
+extern void x_delete_device P_ ((struct device *device));
 extern void x_initialize P_ ((void));
 extern unsigned long x_copy_color P_ ((struct frame *, unsigned long));
 #ifdef USE_X_TOOLKIT

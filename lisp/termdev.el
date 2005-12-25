@@ -48,66 +48,6 @@ device (HOST.SERVER.SCREEN) or a tty device file."
    (t
     (error "Invalid argument %s in `terminal-id'" terminal))))
 
-(defvar terminal-parameter-alist nil
-  "An alist of terminal parameter alists.")
-
-(defun terminal-parameters (&optional terminal)
-  "Return the paramater-alist of terminal TERMINAL.
-It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
-  (cdr (assq (terminal-id terminal) terminal-parameter-alist)))
-
-(defun terminal-parameter-p (terminal parameter)
-  "Return non-nil if PARAMETER is a terminal parameter on TERMINAL.
-
-The actual value returned in that case is a cell (PARAMETER . VALUE),
-where VALUE is the current value of PARAMETER.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
-  (assq parameter (cdr (assq (terminal-id terminal) terminal-parameter-alist))))
-
-(defun terminal-parameter (terminal parameter)
-  "Return TERMINAL's value for parameter PARAMETER.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
-  (cdr (terminal-parameter-p terminal parameter)))
-
-(defun set-terminal-parameter (terminal parameter value)
-  "Set TERMINAL's value for parameter PARAMETER to VALUE.
-Returns the previous value of PARAMETER.
-
-TERMINAL can be a terminal id, a frame, or nil (meaning the
-selected frame's terminal)."
-  (setq terminal (terminal-id terminal))
-  (let* ((alist (assq terminal terminal-parameter-alist))
-	 (pair (assq parameter (cdr alist)))
-	 (result (cdr pair)))
-    (cond
-     (pair (setcdr pair value))
-     (alist (setcdr alist (cons (cons parameter value) (cdr alist))))
-     (t (setq terminal-parameter-alist
-	      (cons (cons terminal
-			  (cons (cons parameter value)
-				nil))
-		    terminal-parameter-alist))))
-    result))
-
-(defun terminal-handle-delete-frame (frame)
-  "Clean up terminal parameters of FRAME, if it's the last frame on its terminal."
-  ;; XXX We assume that the display is closed immediately after the
-  ;; last frame is deleted on it.  It would be better to create a hook
-  ;; called `delete-display-functions', and use it instead.
-  (when (and (frame-live-p frame)
-	     (= 1 (length (frames-on-display-list (frame-display frame)))))
-    (setq terminal-parameter-alist
-	  (assq-delete-all (frame-display frame) terminal-parameter-alist))))
-
-(add-hook 'delete-frame-functions 'terminal-handle-delete-frame)
-
 (defun terminal-getenv (variable &optional terminal global-ok)
   "Get the value of VARIABLE in the client environment of TERMINAL.
 VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
@@ -125,7 +65,7 @@ its value in the global environment instead.
 TERMINAL can be a terminal id, a frame, or nil (meaning the
 selected frame's terminal)."
   (setq terminal (terminal-id terminal))
-  (if (not (terminal-parameter-p terminal 'environment))
+  (if (null (terminal-parameter terminal 'environment))
       (getenv variable)
     (if (multibyte-string-p variable)
 	(setq variable (encode-coding-string variable locale-coding-system)))
@@ -156,7 +96,7 @@ process itself.
 
 TERMINAL can be a terminal id, a frame, or nil (meaning the
 selected frame's terminal)."
-  (if (not (terminal-parameter-p terminal 'environment))
+  (if (null (terminal-parameter terminal 'environment))
       (setenv variable value)
     (with-terminal-environment terminal variable
       (setenv variable value))))
@@ -222,7 +162,7 @@ then the new variable values will be remembered for TERMINAL, and
        (if (stringp ,v)
 	   (setq ,v (list ,v)))
        (cond
-	((not (terminal-parameter-p ,term 'environment))
+	((null (terminal-parameter ,term 'environment))
 	 ;; Not a remote terminal; nothing to do.
 	 (progn ,@body))
 	((eq ,v t)

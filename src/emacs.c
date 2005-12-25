@@ -1600,6 +1600,7 @@ main (argc, argv
       syms_of_frame ();
 #endif
       syms_of_syntax ();
+      syms_of_terminal ();
       syms_of_term ();
       syms_of_undo ();
 #ifdef HAVE_SOUND

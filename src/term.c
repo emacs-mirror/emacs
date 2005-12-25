@@ -80,14 +80,14 @@ extern int tgetnum P_ ((char *id));
 #define O_NOCTTY 0
 #endif
 
+static void tty_set_scroll_region P_ ((struct frame *f, int start, int stop));
 static void turn_on_face P_ ((struct frame *, int face_id));
 static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((struct tty_display_info *));
 static void tty_hide_cursor P_ ((struct tty_display_info *));
-
-void delete_initial_device P_ ((struct device *));
-void create_tty_output P_ ((struct frame *));
-void delete_tty_output P_ ((struct frame *));
+static void tty_background_highlight P_ ((struct tty_display_info *tty));
+static void dissociate_if_controlling_tty P_ ((int fd));
+static void delete_tty P_ ((struct device *));
 
 #define OUTPUT(tty, a)                                          \
   emacs_tputs ((tty), a,                                        \
@@ -113,21 +113,11 @@ void delete_tty_output P_ ((struct frame *));
 
 extern Lisp_Object Qspace, QCalign_to, QCwidth;
 
-/* Function to use to ring the bell.  */
-
-Lisp_Object Vring_bell_function;
-
 /* Functions to call after suspending a tty. */
 Lisp_Object Vsuspend_tty_functions;
 
 /* Functions to call after resuming a tty. */
 Lisp_Object Vresume_tty_functions;
-
-/* Chain of all displays currently in use. */
-struct device *device_list;
-
-/* The initial display device, created by initial_term_init. */
-struct device *initial_device;
 
 /* Chain of all tty device parameters. */
 struct tty_display_info *tty_list;
@@ -137,7 +127,6 @@ struct tty_display_info *tty_list;
    pages, where one page is used for Emacs and another for all
    else. */
 int no_redraw_on_reenter;
-
 
 /* Meaning of bits in no_color_video.  Each bit set means that the
    corresponding attribute cannot be combined with colors.  */
@@ -169,9 +158,6 @@ int max_frame_lines;
    should not open a frame on stdout. */
 static int no_controlling_tty;
 
-/* The first unallocated display id. */
-static int next_device_id;
-
 /* Provided for lisp packages.  */
 
 static int system_uses_terminfo;
@@ -192,35 +178,10 @@ extern char *tgetstr ();
 #define FRAME_TERMCAP_P(_f_) 0
 #endif /* WINDOWSNT */
 
-void
-ring_bell (struct frame *f)
-{
-  if (!NILP (Vring_bell_function))
-    {
-      Lisp_Object function;
-
-      /* Temporarily set the global variable to nil
-	 so that if we get an error, it stays nil
-	 and we don't call it over and over.
-
-	 We don't specbind it, because that would carefully
-	 restore the bad value if there's an error
-	 and make the loop of errors happen anyway.  */
-
-      function = Vring_bell_function;
-      Vring_bell_function = Qnil;
-
-      call0 (function);
-
-      Vring_bell_function = function;
-    }
-  else if (FRAME_DEVICE (f)->ring_bell_hook)
-    (*FRAME_DEVICE (f)->ring_bell_hook) (f);
-}
 
 /* Ring the bell on a tty. */
 
-void
+static void
 tty_ring_bell (struct frame *f)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
@@ -272,8 +233,8 @@ tty_reset_terminal_modes (struct device *display)
 
   if (tty->output)
     {
-      turn_off_highlight (tty);
-      turn_off_insert (tty);
+      tty_turn_off_highlight (tty);
+      tty_turn_off_insert (tty);
       OUTPUT_IF (tty, tty->TS_end_keypad_mode);
       OUTPUT_IF (tty, tty->TS_cursor_normal);
       OUTPUT_IF (tty, tty->TS_end_termcap_modes);
@@ -285,59 +246,33 @@ tty_reset_terminal_modes (struct device *display)
     }
 }
 
-void
-update_begin (struct frame *f)
-{
-  if (FRAME_DEVICE (f)->update_begin_hook)
-    (*FRAME_DEVICE (f)->update_begin_hook) (f);
-}
-
-void
-update_end (struct frame *f)
-{
-  if (FRAME_DEVICE (f)->update_end_hook)
-    (*FRAME_DEVICE (f)->update_end_hook) (f);
-}
-
 /* Flag the end of a display update on a termcap display. */
 
-void
+static void
 tty_update_end (struct frame *f)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (!XWINDOW (selected_window)->cursor_off_p)
     tty_show_cursor (tty);
-  turn_off_insert (tty);
-  background_highlight (tty);
-}
-
-/* Specify how many text lines, from the top of the window,
-   should be affected by insert-lines and delete-lines operations.
-   This, and those operations, are used only within an update
-   that is bounded by calls to update_begin and update_end.  */
-
-void
-set_terminal_window (struct frame *f, int size)
-{
-  if (FRAME_DEVICE (f)->set_terminal_window_hook)
-    (*FRAME_DEVICE (f)->set_terminal_window_hook) (f, size);
+  tty_turn_off_insert (tty);
+  tty_background_highlight (tty);
 }
 
 /* The implementation of set_terminal_window for termcap frames. */
 
-void
+static void
 tty_set_terminal_window (struct frame *f, int size)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
 
   tty->specified_window = size ? size : FRAME_LINES (f);
   if (FRAME_SCROLL_REGION_OK (f))
-    set_scroll_region (f, 0, tty->specified_window);
+    tty_set_scroll_region (f, 0, tty->specified_window);
 }
 
-void
-set_scroll_region (struct frame *f, int start, int stop)
+static void
+tty_set_scroll_region (struct frame *f, int start, int stop)
 {
   char *buf;
   struct tty_display_info *tty = FRAME_TTY (f);
@@ -359,7 +294,7 @@ set_scroll_region (struct frame *f, int start, int stop)
 
 
 static void
-turn_on_insert (struct tty_display_info *tty)
+tty_turn_on_insert (struct tty_display_info *tty)
 {
   if (!tty->insert_mode)
     OUTPUT (tty, tty->TS_insert_mode);
@@ -367,7 +302,7 @@ turn_on_insert (struct tty_display_info *tty)
 }
 
 void
-turn_off_insert (struct tty_display_info *tty)
+tty_turn_off_insert (struct tty_display_info *tty)
 {
   if (tty->insert_mode)
     OUTPUT (tty, tty->TS_end_insert_mode);
@@ -377,7 +312,7 @@ turn_off_insert (struct tty_display_info *tty)
 /* Handle highlighting.  */
 
 void
-turn_off_highlight (struct tty_display_info *tty)
+tty_turn_off_highlight (struct tty_display_info *tty)
 {
   if (tty->standout_mode)
     OUTPUT_IF (tty, tty->TS_end_standout_mode);
@@ -385,7 +320,7 @@ turn_off_highlight (struct tty_display_info *tty)
 }
 
 static void
-turn_on_highlight (struct tty_display_info *tty)
+tty_turn_on_highlight (struct tty_display_info *tty)
 {
   if (!tty->standout_mode)
     OUTPUT_IF (tty, tty->TS_standout_mode);
@@ -393,12 +328,12 @@ turn_on_highlight (struct tty_display_info *tty)
 }
 
 static void
-toggle_highlight (struct tty_display_info *tty)
+tty_toggle_highlight (struct tty_display_info *tty)
 {
   if (tty->standout_mode)
-    turn_off_highlight (tty);
+    tty_turn_off_highlight (tty);
   else
-    turn_on_highlight (tty);
+    tty_turn_on_highlight (tty);
 }
 
 
@@ -433,38 +368,31 @@ tty_show_cursor (struct tty_display_info *tty)
    empty space inside windows.  What this is,
    depends on the user option inverse-video.  */
 
-void
-background_highlight (struct tty_display_info *tty)
+static void
+tty_background_highlight (struct tty_display_info *tty)
 {
   if (inverse_video)
-    turn_on_highlight (tty);
+    tty_turn_on_highlight (tty);
   else
-    turn_off_highlight (tty);
+    tty_turn_off_highlight (tty);
 }
 
 /* Set standout mode to the mode specified for the text to be output.  */
 
 static void
-highlight_if_desired (struct tty_display_info *tty)
+tty_highlight_if_desired (struct tty_display_info *tty)
 {
   if (inverse_video)
-    turn_on_highlight (tty);
+    tty_turn_on_highlight (tty);
   else
-    turn_off_highlight (tty);
+    tty_turn_off_highlight (tty);
 }
 
 
 /* Move cursor to row/column position VPOS/HPOS.  HPOS/VPOS are
    frame-relative coordinates.  */
 
-void
-cursor_to (struct frame *f, int vpos, int hpos)
-{
-  if (FRAME_DEVICE (f)->cursor_to_hook)
-    (*FRAME_DEVICE (f)->cursor_to_hook) (f, vpos, hpos);
-}
-
-void
+static void
 tty_cursor_to (struct frame *f, int vpos, int hpos)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
@@ -478,22 +406,15 @@ tty_cursor_to (struct frame *f, int vpos, int hpos)
       && curX (tty) == hpos)
     return;
   if (!tty->TF_standout_motion)
-    background_highlight (tty);
+    tty_background_highlight (tty);
   if (!tty->TF_insmode_motion)
-    turn_off_insert (tty);
+    tty_turn_off_insert (tty);
   cmgoto (tty, vpos, hpos);
 }
 
 /* Similar but don't take any account of the wasted characters.  */
 
-void
-raw_cursor_to (struct frame *f, int row, int col)
-{
-  if (FRAME_DEVICE (f)->raw_cursor_to_hook)
-    (*FRAME_DEVICE (f)->raw_cursor_to_hook) (f, row, col);  
-}
-
-void
+static void
 tty_raw_cursor_to (struct frame *f, int row, int col)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
@@ -502,25 +423,17 @@ tty_raw_cursor_to (struct frame *f, int row, int col)
       && curX (tty) == col)
     return;
   if (!tty->TF_standout_motion)
-    background_highlight (tty);
+    tty_background_highlight (tty);
   if (!tty->TF_insmode_motion)
-    turn_off_insert (tty);
+    tty_turn_off_insert (tty);
   cmgoto (tty, row, col);
 }
 
 /* Erase operations */
 
-/* Clear from cursor to end of frame. */
-void
-clear_to_end (struct frame *f)
-{
-  if (FRAME_DEVICE (f)->clear_to_end_hook)
-    (*FRAME_DEVICE (f)->clear_to_end_hook) (f);
-}
-
 /* Clear from cursor to end of frame on a termcap device. */
 
-void
+static void
 tty_clear_to_end (struct frame *f)
 {
   register int i;
@@ -528,7 +441,7 @@ tty_clear_to_end (struct frame *f)
 
   if (tty->TS_clr_to_bottom)
     {
-      background_highlight (tty);
+      tty_background_highlight (tty);
       OUTPUT (tty, tty->TS_clr_to_bottom);
     }
   else
@@ -541,25 +454,16 @@ tty_clear_to_end (struct frame *f)
     }
 }
 
-/* Clear entire frame */
-
-void
-clear_frame (struct frame *f)
-{
-  if (FRAME_DEVICE (f)->clear_frame_hook)
-    (*FRAME_DEVICE (f)->clear_frame_hook) (f);
-}
-
 /* Clear an entire termcap frame. */
 
-void
+static void
 tty_clear_frame (struct frame *f)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
 
   if (tty->TS_clr_frame)
     {
-      background_highlight (tty);
+      tty_background_highlight (tty);
       OUTPUT (tty, tty->TS_clr_frame);
       cmat (tty, 0, 0);
     }
@@ -570,23 +474,11 @@ tty_clear_frame (struct frame *f)
     }
 }
 
-/* Clear from cursor to end of line.
-   Assume that the line is already clear starting at column first_unused_hpos.
-
-   Note that the cursor may be moved, on terminals lacking a `ce' string.  */
-
-void
-clear_end_of_line (struct frame *f, int first_unused_hpos)
-{
-  if (FRAME_DEVICE (f)->clear_end_of_line_hook)
-    (*FRAME_DEVICE (f)->clear_end_of_line_hook) (f, first_unused_hpos);
-}
-
 /* An implementation of clear_end_of_line for termcap frames.
 
    Note that the cursor may be moved, on terminals lacking a `ce' string.  */
 
-void
+static void
 tty_clear_end_of_line (struct frame *f, int first_unused_hpos)
 {
   register int i;
@@ -599,14 +491,14 @@ tty_clear_end_of_line (struct frame *f, int first_unused_hpos)
 
   if (curX (tty) >= first_unused_hpos)
     return;
-  background_highlight (tty);
+  tty_background_highlight (tty);
   if (tty->TS_clr_line)
     {
       OUTPUT1 (tty, tty->TS_clr_line);
     }
   else
     {			/* have to do it the hard way */
-      turn_off_insert (tty);
+      tty_turn_off_insert (tty);
 
       /* Do not write in last row last col with Auto-wrap on. */
       if (AutoWrap (tty)
@@ -743,19 +635,9 @@ encode_terminal_code (src, src_len, coding)
 }
 
 
-/* Output LEN glyphs starting at STRING at the nominal cursor position.
-   Advance the nominal cursor over the text.  */
-
-void
-write_glyphs (struct frame *f, struct glyph *string, int len)
-{
-  if (FRAME_DEVICE (f)->write_glyphs_hook)
-    (*FRAME_DEVICE (f)->write_glyphs_hook) (f, string, len);
-}
-
 /* An implementation of write_glyphs for termcap frames. */
 
-void
+static void
 tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 {
   unsigned char *conversion_buffer;
@@ -763,7 +645,7 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 
   struct tty_display_info *tty = FRAME_TTY (f);
 
-  turn_off_insert (tty);
+  tty_turn_off_insert (tty);
   tty_hide_cursor (tty);
 
   /* Don't dare write in last column of bottom line, if Auto-Wrap,
@@ -798,7 +680,7 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 	  break;
 
       /* Turn appearance modes of the face of the run on.  */
-      highlight_if_desired (tty);
+      tty_highlight_if_desired (tty);
       turn_on_face (f, face_id);
 
       if (n == len)
@@ -818,29 +700,15 @@ tty_write_glyphs (struct frame *f, struct glyph *string, int len)
 
       /* Turn appearance modes off.  */
       turn_off_face (f, face_id);
-      turn_off_highlight (tty);
+      tty_turn_off_highlight (tty);
     }
 
   cmcheckmagic (tty);
 }
 
-/* Insert LEN glyphs from START at the nominal cursor position.
-
-   If start is zero, insert blanks instead of a string at start */
-
-void
-insert_glyphs (struct frame *f, struct glyph *start, int len)
-{
-  if (len <= 0)
-    return;
-
-  if (FRAME_DEVICE (f)->insert_glyphs_hook)
-    (*FRAME_DEVICE (f)->insert_glyphs_hook) (f, start, len);
-}
-
 /* An implementation of insert_glyphs for termcap frames. */
 
-void
+static void
 tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 {
   char *buf;
@@ -861,7 +729,7 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
       return;
     }
 
-  turn_on_insert (tty);
+  tty_turn_on_insert (tty);
   cmplus (tty, len);
 
   if (! start)
@@ -886,7 +754,7 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 	}
       else
 	{
-	  highlight_if_desired (tty);
+	  tty_highlight_if_desired (tty);
 	  turn_on_face (f, start->face_id);
 	  glyph = start;
 	  ++start;
@@ -918,25 +786,16 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
       if (start)
 	{
 	  turn_off_face (f, glyph->face_id);
-	  turn_off_highlight (tty);
+	  tty_turn_off_highlight (tty);
 	}
     }
 
   cmcheckmagic (tty);
 }
 
-/* Delete N glyphs at the nominal cursor position. */
-
-void
-delete_glyphs (struct frame *f, int n)
-{
-  if (FRAME_DEVICE (f)->delete_glyphs_hook)
-    (*FRAME_DEVICE (f)->delete_glyphs_hook) (f, n);
-}
-
 /* An implementation of delete_glyphs for termcap frames. */
 
-void
+static void
 tty_delete_glyphs (struct frame *f, int n)
 {
   char *buf;
@@ -946,11 +805,11 @@ tty_delete_glyphs (struct frame *f, int n)
 
   if (tty->delete_in_insert_mode)
     {
-      turn_on_insert (tty);
+      tty_turn_on_insert (tty);
     }
   else
     {
-      turn_off_insert (tty);
+      tty_turn_off_insert (tty);
       OUTPUT_IF (tty, tty->TS_delete_mode);
     }
 
@@ -967,18 +826,9 @@ tty_delete_glyphs (struct frame *f, int n)
     OUTPUT_IF (tty, tty->TS_end_delete_mode);
 }
 
-/* Insert N lines at vpos VPOS.  If N is negative, delete -N lines.  */
-
-void
-ins_del_lines (struct frame *f, int vpos, int n)
-{
-  if (FRAME_DEVICE (f)->ins_del_lines_hook)
-    (*FRAME_DEVICE (f)->ins_del_lines_hook) (f, vpos, n);
-}
-
 /* An implementation of ins_del_lines for termcap frames. */
 
-void
+static void
 tty_ins_del_lines (struct frame *f, int vpos, int n)
 {
   struct tty_display_info *tty = FRAME_TTY (f);
@@ -1006,7 +856,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
   if (multi)
     {
       raw_cursor_to (f, vpos, 0);
-      background_highlight (tty);
+      tty_background_highlight (tty);
       buf = tparam (multi, 0, 0, i);
       OUTPUT (tty, buf);
       xfree (buf);
@@ -1014,7 +864,7 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
   else if (single)
     {
       raw_cursor_to (f, vpos, 0);
-      background_highlight (tty);
+      tty_background_highlight (tty);
       while (--i >= 0)
         OUTPUT (tty, single);
       if (tty->TF_teleray)
@@ -1022,15 +872,15 @@ tty_ins_del_lines (struct frame *f, int vpos, int n)
     }
   else
     {
-      set_scroll_region (f, vpos, tty->specified_window);
+      tty_set_scroll_region (f, vpos, tty->specified_window);
       if (n < 0)
         raw_cursor_to (f, tty->specified_window - 1, 0);
       else
         raw_cursor_to (f, vpos, 0);
-      background_highlight (tty);
+      tty_background_highlight (tty);
       while (--i >= 0)
         OUTPUTL (tty, scroll, tty->specified_window - vpos);
-      set_scroll_region (f, 0, tty->specified_window);
+      tty_set_scroll_region (f, 0, tty->specified_window);
     }
   
   if (!FRAME_SCROLL_REGION_OK (f)
@@ -1331,7 +1181,7 @@ static Lisp_Object term_get_fkeys_1 ();
    This function scans the termcap function key sequence entries, and
    adds entries to Vfunction_key_map for each function key it finds.  */
 
-void
+static void
 term_get_fkeys (address, kboard)
      char **address;
      KBOARD *kboard;
@@ -1805,13 +1655,13 @@ turn_on_face (f, face_id)
 	    {
 	      if (fg == FACE_TTY_DEFAULT_FG_COLOR
 		  || bg == FACE_TTY_DEFAULT_BG_COLOR)
-		toggle_highlight (tty);
+		tty_toggle_highlight (tty);
 	    }
 	  else
 	    {
 	      if (fg == FACE_TTY_DEFAULT_BG_COLOR
 		  || bg == FACE_TTY_DEFAULT_FG_COLOR)
-		toggle_highlight (tty);
+		tty_toggle_highlight (tty);
 	    }
 	}
       else
@@ -1822,13 +1672,13 @@ turn_on_face (f, face_id)
 	    {
 	      if (fg == FACE_TTY_DEFAULT_FG_COLOR
 		  || bg == FACE_TTY_DEFAULT_BG_COLOR)
-		toggle_highlight (tty);
+		tty_toggle_highlight (tty);
 	    }
 	  else
 	    {
 	      if (fg == FACE_TTY_DEFAULT_BG_COLOR
 		  || bg == FACE_TTY_DEFAULT_FG_COLOR)
-		toggle_highlight (tty);
+		tty_toggle_highlight (tty);
 	    }
 	}
     }
@@ -2031,7 +1881,7 @@ tty_default_color_capabilities (struct tty_display_info *tty, int save)
    MODE's value is generally the number of colors which we want to
    support; zero means set up for the default capabilities, the ones
    we saw at init_tty time; -1 means turn off color support.  */
-void
+static void
 tty_setup_colors (struct tty_display_info *tty, int mode)
 {
   /* Canonicalize all negative values of MODE.  */
@@ -2124,43 +1974,6 @@ set_tty_color_mode (f, val)
 
 
 
-/* Return the display object specified by DEVICE.  DEVICE may be a
-   display id, a frame, or nil for the display device of the current
-   frame.  If THROW is zero, return NULL for failure, otherwise throw
-   an error.  */
-
-struct device *
-get_device (Lisp_Object device, int throw)
-{
-  struct device *result = NULL;
-
-  if (NILP (device))
-    device = selected_frame;
-
-  if (INTEGERP (device))
-    {
-      struct device *d;
-
-      for (d = device_list; d; d = d->next_device)
-        {
-          if (d->id == XINT (device))
-            {
-              result = d;
-              break;
-            }
-        }
-    }
-  else if (FRAMEP (device))
-    {
-      result = FRAME_DEVICE (XFRAME (device));
-    }
-
-  if (result == NULL && throw)
-    wrong_type_argument (Qdisplay_live_p, device);
-
-  return result;
-}
-
 /* Return the tty display object specified by DEVICE. */
 
 struct device *
@@ -2204,24 +2017,6 @@ get_named_tty (name)
 }
 
 
-
-DEFUN ("display-name", Fdisplay_name, Sdisplay_name, 0, 1, 0,
-       doc: /* Return the name of the display device DEVICE.
-It is not guaranteed that the returned value is unique among opened devices.
-
-DEVICE may be a display device id, a frame, or nil (meaning the
-selected frame's display device). */)
-  (device)
-     Lisp_Object device;
-{
-  struct device *d = get_device (device, 1);
-
-  if (d->name)
-    return build_string (d->name);
-  else
-    return Qnil;
-}
-
 DEFUN ("display-tty-type", Fdisplay_tty_type, Sdisplay_tty_type, 0, 1, 0,
        doc: /* Return the type of the tty device that DEVICE uses.
 
@@ -2275,47 +2070,166 @@ selected frame's display device).  */)
   return Qnil;
 }
 
+
+
+DEFUN ("suspend-tty", Fsuspend_tty, Ssuspend_tty, 0, 1, 0,
+       doc: /* Suspend the terminal device TTY.
+
+The device is restored to its default state, and Emacs ceases all
+access to the tty device.  Frames that use the device are not deleted,
+but input is not read from them and if they change, their display is
+not updated.
+
+TTY may be a terminal id, a frame, or nil for the terminal device of
+the currently selected frame.
+
+This function runs `suspend-tty-functions' after suspending the
+device.  The functions are run with one arg, the id of the suspended
+terminal device.
+
+`suspend-tty' does nothing if it is called on a device that is already
+suspended.
+
+A suspended tty may be resumed by calling `resume-tty' on it.  */)
+     (tty)
+     Lisp_Object tty;
+{
+  struct device *d = get_tty_device (tty);
+  FILE *f;
+  
+  if (!d)
+    error ("Unknown tty device");
+
+  f = d->display_info.tty->input;
+  
+  if (f)
+    {
+      reset_sys_modes (d->display_info.tty);
+
+      delete_keyboard_wait_descriptor (fileno (f));
+      
+      fclose (f);
+      if (f != d->display_info.tty->output)
+        fclose (d->display_info.tty->output);
+      
+      d->display_info.tty->input = 0;
+      d->display_info.tty->output = 0;
+
+      if (FRAMEP (d->display_info.tty->top_frame))
+        FRAME_SET_VISIBLE (XFRAME (d->display_info.tty->top_frame), 0);
+      
+      /* Run `suspend-tty-functions'.  */
+      if (!NILP (Vrun_hooks))
+        {
+          Lisp_Object args[2];
+          args[0] = intern ("suspend-tty-functions");
+          args[1] = make_number (d->id);
+          Frun_hook_with_args (2, args);
+        }
+    }
+
+  return Qnil;
+}
+
+DEFUN ("resume-tty", Fresume_tty, Sresume_tty, 0, 1, 0,
+       doc: /* Resume the previously suspended terminal device TTY.
+The terminal is opened and reinitialized.  Frames that are on the
+suspended display are revived.
+
+It is an error to resume a display while another display is active on
+the same device.
+
+This function runs `resume-tty-functions' after resuming the device.
+The functions are run with one arg, the id of the resumed display
+device.
+
+`resume-tty' does nothing if it is called on a device that is not
+suspended.
+
+TTY may be a display device id, a frame, or nil for the display device
+of the currently selected frame. */)
+     (tty)
+     Lisp_Object tty;
+{
+  struct device *d = get_tty_device (tty);
+  int fd;
+
+  if (!d)
+    error ("Unknown tty device");
+
+  if (!d->display_info.tty->input)
+    {
+      if (get_named_tty (d->display_info.tty->name))
+        error ("Cannot resume display while another display is active on the same device");
+
+      fd = emacs_open (d->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
+
+      /* XXX What if open fails? */
+
+      dissociate_if_controlling_tty (fd);
+      
+      d->display_info.tty->output = fdopen (fd, "w+");
+      d->display_info.tty->input = d->display_info.tty->output;
+    
+      add_keyboard_wait_descriptor (fd);
+
+      if (FRAMEP (d->display_info.tty->top_frame))
+        FRAME_SET_VISIBLE (XFRAME (d->display_info.tty->top_frame), 1);
+
+      init_sys_modes (d->display_info.tty);
+
+      /* Run `suspend-tty-functions'.  */
+      if (!NILP (Vrun_hooks))
+        {
+          Lisp_Object args[2];
+          args[0] = intern ("resume-tty-functions");
+          args[1] = make_number (d->id);
+          Frun_hook_with_args (2, args);
+        }
+    }
+
+  return Qnil;
+}
 
 
 /***********************************************************************
 			    Initialization
  ***********************************************************************/
 
-/* Create the bootstrap display device for the initial frame.
-   Returns a device of type output_initial.  */
-
-struct device *
-init_initial_device (void)
-{
-  if (initialized || device_list || tty_list)
-    abort ();
-
-  initial_device = create_device ();
-  initial_device->type = output_initial;
-  initial_device->name = xstrdup ("initial_device");
-  initial_device->kboard = initial_kboard;
-
-  initial_device->delete_device_hook = &delete_initial_device;
-  /* All other hooks are NULL. */
-
-  return initial_device;
-}
-
-/* Deletes the bootstrap display device.
-   Called through delete_device_hook. */
+/* Initialize the tty-dependent part of frame F.  The frame must
+   already have its device initialized. */
 
 void
-delete_initial_device (struct device *device)
+create_tty_output (struct frame *f)
 {
-  if (device != initial_device)
+  struct tty_output *t;
+
+  if (! FRAME_TERMCAP_P (f))
     abort ();
 
-  delete_device (device);
-  initial_device = NULL;
+  t = xmalloc (sizeof (struct tty_output));
+  bzero (t, sizeof (struct tty_output));
+
+  t->display_info = FRAME_DEVICE (f)->display_info.tty;
+
+  f->output_data.tty = t;
 }
+
+/* Delete the tty-dependent part of frame F. */
+
+static void
+delete_tty_output (struct frame *f)
+{
+  if (! FRAME_TERMCAP_P (f))
+    abort ();
+
+  xfree (f->output_data.tty);
+}
+
+
 
 /* Drop the controlling terminal if fd is the same device. */
-void
+static void
 dissociate_if_controlling_tty (int fd)
 {
   int pgid;
@@ -2974,7 +2888,7 @@ static int deleting_tty = 0;
 
 /* Delete the given terminal device, closing all frames on it. */
 
-void
+static void
 delete_tty (struct device *device)
 {
   struct tty_display_info *tty;
@@ -3066,44 +2980,11 @@ delete_tty (struct device *device)
 
 
 
-/* Initialize the tty-dependent part of frame F.  The frame must
-   already have its device initialized. */
-
-void
-create_tty_output (struct frame *f)
-{
-  struct tty_output *t;
-
-  if (! FRAME_TERMCAP_P (f))
-    abort ();
-
-  t = xmalloc (sizeof (struct tty_output));
-  bzero (t, sizeof (struct tty_output));
-
-  t->display_info = FRAME_DEVICE (f)->display_info.tty;
-
-  f->output_data.tty = t;
-}
-
-/* Delete the tty-dependent part of frame F. */
-
-void
-delete_tty_output (struct frame *f)
-{
-  if (! FRAME_TERMCAP_P (f))
-    abort ();
-
-  xfree (f->output_data.tty);
-}
-
-
-
-
 /* Mark the pointers in the tty_display_info objects.
    Called by the Fgarbage_collector.  */
 
 void
-mark_ttys ()
+mark_ttys (void)
 {
   struct tty_display_info *tty;
 
@@ -3116,279 +2997,6 @@ mark_ttys ()
 
 
 
-/* Create a new device object and add it to the device list. */
-
-struct device *
-create_device (void)
-{
-  struct device *device = (struct device *) xmalloc (sizeof (struct device));
-  
-  bzero (device, sizeof (struct device));
-  device->next_device = device_list;
-  device_list = device;
-
-  device->id = next_device_id++;
-
-  device->keyboard_coding =
-    (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  device->terminal_coding =
-    (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  
-  setup_coding_system (Qnil, device->keyboard_coding);
-  setup_coding_system (Qnil, device->terminal_coding);
-  
-  return device;
-}
-
-/* Remove a device from the device list and free its memory. */
-
-void
-delete_device (struct device *device)
-{
-  struct device **dp;
-  Lisp_Object tail, frame;
-  
-  /* Check for and close live frames that are still on this
-     device. */
-  FOR_EACH_FRAME (tail, frame)
-    {
-      struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && f->device == device)
-        {
-          Fdelete_frame (frame, Qt);
-        }
-    }
-
-  for (dp = &device_list; *dp != device; dp = &(*dp)->next_device)
-    if (! *dp)
-      abort ();
-  *dp = device->next_device;
-
-  if (device->keyboard_coding)
-    xfree (device->keyboard_coding);
-  if (device->terminal_coding)
-    xfree (device->terminal_coding);
-  if (device->name)
-    xfree (device->name);
-  
-#ifdef MULTI_KBOARD
-  if (device->kboard && --device->kboard->reference_count == 0)
-    delete_kboard (device->kboard);
-#endif
-  
-  bzero (device, sizeof (struct device));
-  xfree (device);
-}
-
-DEFUN ("delete-display", Fdelete_display, Sdelete_display, 0, 2, 0,
-       doc: /* Delete DEVICE by deleting all frames on it and closing the device.
-DEVICE may be a display device id, a frame, or nil (meaning the
-selected frame's display device).
-
-Normally, you may not delete a display if all other displays are suspended,
-but if the second argument FORCE is non-nil, you may do so. */)
-  (device, force)
-     Lisp_Object device, force;
-{
-  struct device *d, *p;
-
-  d = get_device (device, 0);
-
-  if (!d)
-    return Qnil;
-
-  p = device_list;
-  while (p && (p == d || !DEVICE_ACTIVE_P (p)))
-    p = p->next_device;
-  
-  if (NILP (force) && !p)
-    error ("Attempt to delete the sole active display device");
-
-  if (d->delete_device_hook)
-    (*d->delete_device_hook) (d);
-  else
-    delete_device (d);
-
-  return Qnil;
-}
-
-DEFUN ("display-live-p", Fdisplay_live_p, Sdisplay_live_p, 1, 1, 0,
-       doc: /* Return non-nil if OBJECT is a device which has not been deleted.
-Value is nil if OBJECT is not a live display device.
-If object is a live display device, the return value indicates what
-sort of output device it uses.  See the documentation of `framep' for
-possible return values.
-
-Display devices are represented by their integer identifiers. */)
-  (object)
-     Lisp_Object object;
-{
-  struct device *d;
-  
-  if (!INTEGERP (object))
-    return Qnil;
-
-  d = get_device (object, 0);
-
-  if (!d)
-    return Qnil;
-
-  switch (d->type)
-    {
-    case output_initial: /* The initial frame is like a termcap frame. */
-    case output_termcap:
-      return Qt;
-    case output_x_window:
-      return Qx;
-    case output_w32:
-      return Qw32;
-    case output_msdos_raw:
-      return Qpc;
-    case output_mac:
-      return Qmac;
-    default:
-      abort ();
-    }
-}
-
-DEFUN ("display-list", Fdisplay_list, Sdisplay_list, 0, 0, 0,
-       doc: /* Return a list of all display devices.
-Display devices are represented by their integer identifiers. */)
-  ()
-{
-  Lisp_Object devices = Qnil;
-  struct device *d;
-
-  for (d = device_list; d; d = d->next_device)
-    devices = Fcons (make_number (d->id), devices);
-
-  return devices;
-}
-
-            
-
-
-DEFUN ("suspend-tty", Fsuspend_tty, Ssuspend_tty, 0, 1, 0,
-       doc: /* Suspend the terminal device TTY.
-
-The device is restored to its default state, and Emacs ceases all
-access to the tty device.  Frames that use the device are not deleted,
-but input is not read from them and if they change, their display is
-not updated.
-
-TTY may be a terminal id, a frame, or nil for the terminal device of
-the currently selected frame.
-
-This function runs `suspend-tty-functions' after suspending the
-device.  The functions are run with one arg, the id of the suspended
-terminal device.
-
-`suspend-tty' does nothing if it is called on a device that is already
-suspended.
-
-A suspended tty may be resumed by calling `resume-tty' on it.  */)
-  (tty)
-     Lisp_Object tty;
-{
-  struct device *d = get_tty_device (tty);
-  FILE *f;
-  
-  if (!d)
-    error ("Unknown tty device");
-
-  f = d->display_info.tty->input;
-  
-  if (f)
-    {
-      reset_sys_modes (d->display_info.tty);
-
-      delete_keyboard_wait_descriptor (fileno (f));
-      
-      fclose (f);
-      if (f != d->display_info.tty->output)
-        fclose (d->display_info.tty->output);
-      
-      d->display_info.tty->input = 0;
-      d->display_info.tty->output = 0;
-
-      if (FRAMEP (d->display_info.tty->top_frame))
-        FRAME_SET_VISIBLE (XFRAME (d->display_info.tty->top_frame), 0);
-      
-      /* Run `suspend-tty-functions'.  */
-      if (!NILP (Vrun_hooks))
-        {
-          Lisp_Object args[2];
-          args[0] = intern ("suspend-tty-functions");
-          args[1] = make_number (d->id);
-          Frun_hook_with_args (2, args);
-        }
-    }
-
-  return Qnil;
-}
-
-
-DEFUN ("resume-tty", Fresume_tty, Sresume_tty, 0, 1, 0,
-       doc: /* Resume the previously suspended terminal device TTY.
-The terminal is opened and reinitialized.  Frames that are on the
-suspended display are revived.
-
-It is an error to resume a display while another display is active on
-the same device.
-
-This function runs `resume-tty-functions' after resuming the device.
-The functions are run with one arg, the id of the resumed display
-device.
-
-`resume-tty' does nothing if it is called on a device that is not
-suspended.
-
-TTY may be a display device id, a frame, or nil for the display device
-of the currently selected frame. */)
-  (tty)
-     Lisp_Object tty;
-{
-  struct device *d = get_tty_device (tty);
-  int fd;
-
-  if (!d)
-    error ("Unknown tty device");
-
-  if (!d->display_info.tty->input)
-    {
-      if (get_named_tty (d->display_info.tty->name))
-        error ("Cannot resume display while another display is active on the same device");
-
-      fd = emacs_open (d->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
-
-      /* XXX What if open fails? */
-
-      dissociate_if_controlling_tty (fd);
-      
-      d->display_info.tty->output = fdopen (fd, "w+");
-      d->display_info.tty->input = d->display_info.tty->output;
-    
-      add_keyboard_wait_descriptor (fd);
-
-      if (FRAMEP (d->display_info.tty->top_frame))
-        FRAME_SET_VISIBLE (XFRAME (d->display_info.tty->top_frame), 1);
-
-      init_sys_modes (d->display_info.tty);
-
-      /* Run `suspend-tty-functions'.  */
-      if (!NILP (Vrun_hooks))
-        {
-          Lisp_Object args[2];
-          args[0] = intern ("resume-tty-functions");
-          args[1] = make_number (d->id);
-          Frun_hook_with_args (2, args);
-        }
-    }
-
-  return Qnil;
-}
-
-
 void
 syms_of_term ()
 {
@@ -3400,11 +3008,6 @@ This variable can be used by terminal emulator packages.  */);
 #else
   system_uses_terminfo = 0;
 #endif
-
-  DEFVAR_LISP ("ring-bell-function", &Vring_bell_function,
-    doc: /* Non-nil means call this function to ring the bell.
-The function should accept no arguments.  */);
-  Vring_bell_function = Qnil;
 
   DEFVAR_LISP ("suspend-tty-functions", &Vsuspend_tty_functions,
     doc: /* Functions to be run after suspending a tty.
@@ -3422,17 +3025,10 @@ See `resume-tty'.  */);
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
   defsubr (&Stty_no_underline);
-  defsubr (&Sdisplay_name);
   defsubr (&Sdisplay_tty_type);
   defsubr (&Sdisplay_controlling_tty_p);
-  defsubr (&Sdelete_display);
-  defsubr (&Sdisplay_live_p);
-  defsubr (&Sdisplay_list);
   defsubr (&Ssuspend_tty);
   defsubr (&Sresume_tty);
-
-  Fprovide (intern ("multi-tty"), Qnil);
-
 }
 
 

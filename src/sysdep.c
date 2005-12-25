@@ -1972,7 +1972,7 @@ reset_sys_modes (tty_out)
   else
     {			/* have to do it the hard way */
       int i;
-      turn_off_insert (tty_out);
+      tty_turn_off_insert (tty_out);
       
       for (i = curX (tty_out); i < FrameCols (tty_out) - 1; i++)
         {

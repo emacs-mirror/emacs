@@ -401,6 +401,41 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** Implement automatic forwarding of client environment variables to
+   forked processes, as discussed on the multi-tty list.  Terminal
+   parameters are now accessible in C code, so the biggest obstacle is
+   gone.  The `getenv_internal' and `child_setup' functions in
+   callproc.c must be changed to support the following variable:
+
+	terminal-local-environment-variables is a variable defined in ...
+
+	Enable or disable terminal-local environment variables.
+
+	If set to t, `getenv', `setenv' and subprocess creation
+	functions use the environment variables of the emacsclient
+	process that created the selected frame, ignoring
+	`process-environment'.
+
+	If set to nil, Emacs uses `process-environment' and ignores
+	the client environment.
+
+	Otherwise, `terminal-local-environment-variables' should be a
+	list of variable names (represented by Lisp strings) to look
+	up in the client environment.  The rest will come from
+	`process-environment'.
+
+** (Possibly) create hooks in struct device for creating frames on a
+   specific terminal, and eliminate the hackish terminal-related frame
+   parameters (display, tty, tty-type).
+
+   	make_terminal_frame
+		create_tty_output
+	
+
+** Move Fsend_string_to_terminal to term.c, and declare get_named_tty
+   as static, removing it from dispextern.h.
+   Move fatal to emacs.c and declare it somewhere.
+
 ** Search for `suspend-emacs' references and replace them with
    `suspend-frame', if necessary.  Ditto for `save-buffers-kill-emacs'
    vs. `save-buffers-kill-display'.
@@ -449,6 +484,11 @@ THINGS TO DO
 
 ** I think `(set-)terminal-local-value' and the terminal parameter
    mechanism should be integrated into a single framework.
+
+   (Update: `(set-)terminal-local-value' is now eliminated, but the
+   terminal-local variables should still be accessible as terminal
+   parameters.  This also applies to `display-name' and similar
+   functions.)
 
 ** Add the following hooks: after-delete-frame-hook (for server.el,
    instead of delete-frame-functions),

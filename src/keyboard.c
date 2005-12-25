@@ -1136,7 +1136,6 @@ pop_kboard ()
 #ifdef MULTI_KBOARD
   struct device *d;
   struct kboard_stack *p = kboard_stack;
-  int ok = 0;
   current_kboard = NULL;
   for (d = device_list; d; d = d->next_device)
     {
@@ -10739,6 +10738,7 @@ See also `current-input-mode'.  */)
       init_sys_modes (tty);
 #endif
     }
+  return Qnil;
 }
 
 DEFUN ("set-input-meta-mode", Fset_input_meta_mode, Sset_input_meta_mode, 1, 2, 0,

@@ -5323,10 +5323,8 @@ call `normal-erase-is-backspace-mode' (which see) instead."
   "Set up `normal-erase-is-backspace-mode' on FRAME, if necessary."
   (unless frame (setq frame (selected-frame)))
   (with-selected-frame frame
-    (unless (terminal-parameter-p nil 'normal-erase-is-backspace)
-      (if (cond ((terminal-parameter-p nil 'normal-erase-is-backspace)
-		 (terminal-parameter nil 'normal-erase-is-backspace))
-		((eq normal-erase-is-backspace 'maybe)
+    (unless (terminal-parameter nil 'normal-erase-is-backspace)
+      (if (cond ((eq normal-erase-is-backspace 'maybe)
 		 (and (not noninteractive)
 		      (or (memq system-type '(ms-dos windows-nt))
 			  (eq window-system 'mac)
@@ -5376,9 +5374,10 @@ See also `normal-erase-is-backspace'."
   (interactive "P")
   (set-terminal-parameter
    nil 'normal-erase-is-backspace
-   (if arg
-       (> (prefix-numeric-value arg) 0)
-     (not (terminal-parameter nil 'normal-erase-is-backspace))))
+   (if (or (and arg (> (prefix-numeric-value arg) 0))
+	   (not (eq 1 (terminal-parameter nil 'normal-erase-is-backspace))))
+       0
+     1))
 
   (cond ((or (memq window-system '(x w32 mac pc))
 	     (memq system-type '(ms-dos windows-nt)))
@@ -5390,7 +5389,7 @@ See also `normal-erase-is-backspace'."
 		    [C-delete] [C-backspace])))
 		(old-state (lookup-key local-function-key-map [delete])))
 
-	   (if (terminal-parameter nil 'normal-erase-is-backspace)
+	   (if (eq 1 (terminal-parameter nil 'normal-erase-is-backspace))
 	       (progn
 		 (define-key local-function-key-map [delete] [?\C-d])
 		 (define-key local-function-key-map [kp-delete] [?\C-d])
@@ -5412,7 +5411,7 @@ See also `normal-erase-is-backspace'."
 		   (define-key map key1 binding2)
 		   (define-key map key2 binding1)))))))
 	 (t
-	  (if (terminal-parameter nil 'normal-erase-is-backspace)
+	  (if (eq 1 (terminal-parameter nil 'normal-erase-is-backspace))
 	      (progn
 		(keyboard-translate ?\C-h ?\C-?)
 		(keyboard-translate ?\C-? ?\C-d))
@@ -5422,7 +5421,8 @@ See also `normal-erase-is-backspace'."
   (run-hooks 'normal-erase-is-backspace-hook)
   (if (interactive-p)
       (message "Delete key deletes %s"
-	       (if normal-erase-is-backspace "forward" "backward"))))
+	       (if (terminal-parameter nil 'normal-erase-is-backspace)
+		   "forward" "backward"))))
 
 (defvar vis-mode-saved-buffer-invisibility-spec nil
   "Saved value of `buffer-invisibility-spec' when Visible mode is on.")

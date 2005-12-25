@@ -330,6 +330,9 @@ struct device
      the function `set-keyboard-coding-system'.  */
   struct coding_system *keyboard_coding;
 
+  /* Parameter alist of this terminal.  */
+  Lisp_Object param_alist;
+  
   /* Terminal characteristics. */
   /* XXX Are these really used on non-termcap displays? */
   

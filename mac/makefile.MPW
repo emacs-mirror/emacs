@@ -118,6 +118,7 @@ EmacsObjects = ¶
 	"{Src}sysdep.c.x" ¶
 	"{Src}term.c.x" ¶
 	"{Src}termcap.c.x" ¶
+	"{Src}terminal.c.x" ¶
 	"{Src}textprop.c.x" ¶
 	"{Src}tparam.c.x" ¶
 	"{Src}undo.c.x" ¶
@@ -791,6 +792,16 @@ buildobj.lst Ä
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
 	"{Includes}sys:file.h"
+
+{Src}terminal.c.x Ä ¶
+	{CONFIG_H_GROUP} ¶
+	"{Src}lisp.h" ¶
+	"{Src}frame.h" ¶
+	"{Src}termchar.h" ¶
+	"{Src}termhooks.h" ¶
+	"{Src}charset.h" ¶
+	"{Src}coding.h" ¶
+	"{Src}keyboard.h"
 
 {Src}textproc.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶

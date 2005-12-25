@@ -577,7 +577,7 @@ emacsappsrc = ${srcdir}/../mac/Emacs.app/
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
 	charset.o coding.o category.o ccl.o \
-	cm.o term.o xfaces.o $(XOBJ) $(GTK_OBJ)\
+	cm.o term.o terminal.o xfaces.o $(XOBJ) $(GTK_OBJ)\
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
 	minibuf.o fileio.o dired.o filemode.o \
@@ -1171,6 +1171,8 @@ term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
    disptab.h dispextern.h keyboard.h charset.h coding.h ccl.h msdos.h \
    window.h keymap.h
 termcap.o: termcap.c $(config_h)
+terminal.o: terminal.c frame.h termchar.h termhooks.h charset.h coding.h \
+   keyboard.h $(config_h)
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
 undo.o: undo.c buffer.h commands.h $(config_h)
@@ -1250,7 +1252,7 @@ sunfns.o: sunfns.c buffer.h window.h dispextern.h termhooks.h $(config_h)
 #ifdef HAVE_CARBON
 abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
   fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
-  scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
+  scroll.o sysdep.o term.o terminal.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
   xterm.o xselect.o sound.o: macgui.h
 mac.o: mac.c process.h sysselect.h blockinput.h atimer.h systime.h charset.h \
   coding.h ccl.h $(config_h)

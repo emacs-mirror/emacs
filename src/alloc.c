@@ -324,6 +324,7 @@ Lisp_Object Vgc_elapsed;	/* accumulated elapsed time in GC  */
 EMACS_INT gcs_done;		/* accumulated GCs  */
 
 static void mark_buffer P_ ((Lisp_Object));
+extern void mark_devices P_ ((void));
 extern void mark_kboards P_ ((void));
 extern void mark_ttys P_ ((void));
 extern void mark_backtrace P_ ((void));
@@ -4937,6 +4938,7 @@ returns nil, because real GC can't be done.  */)
       mark_object (bind->symbol);
       mark_object (bind->old_value);
     }
+  mark_devices ();
   mark_kboards ();
   mark_ttys ();
 

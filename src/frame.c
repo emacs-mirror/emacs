@@ -638,6 +638,33 @@ make_terminal_frame (struct device *device)
   return f;
 }
 
+/* Get a suitable value for frame parameter PARAMETER for a newly
+   created frame, based on (1) the user-supplied frame parameter
+   alist SUPPLIED_PARMS, (2) CURRENT_VALUE, and finally, if all else
+   fails, (3) Vdefault_frame_alist.  */
+
+static Lisp_Object
+get_future_frame_param (Lisp_Object parameter,
+                        Lisp_Object supplied_parms,
+                        char *current_value)
+{
+  Lisp_Object result;
+
+  result = Fassq (parameter, supplied_parms);
+  if (NILP (result))
+    result = Fassq (parameter, XFRAME (selected_frame)->param_alist);
+  if (NILP (result) && current_value != NULL)
+    result = build_string (current_value);
+  if (NILP (result))
+    result = Fassq (parameter, Vdefault_frame_alist);
+  if (!NILP (result) && !STRINGP (result))
+    result = XCDR (result);
+  if (NILP (result) || !STRINGP (result))
+    result = Qnil;
+
+  return result;
+}
+
 DEFUN ("make-terminal-frame", Fmake_terminal_frame, Smake_terminal_frame,
        1, 1, 0,
        doc: /* Create an additional terminal frame, possibly on another terminal.
@@ -662,8 +689,6 @@ affects all frames on the same terminal device.  */)
   struct device *d = NULL;
   Lisp_Object frame, tem;
   struct frame *sf = SELECTED_FRAME ();
-  Lisp_Object tty, tty_type;
-  struct gcpro gcpro1, gcpro2;
 
 #ifdef MSDOS
   if (sf->output_method != output_msdos_raw
@@ -697,41 +722,24 @@ affects all frames on the same terminal device.  */)
   if (!d)
     { 
       char *name = 0, *type = 0;
+      Lisp_Object tty, tty_type;
 
-      tty = Fassq (Qtty, parms);
-      if (EQ (tty, Qnil))
-        tty = Fassq (Qtty, XFRAME (selected_frame)->param_alist);
-      if (EQ (tty, Qnil) && FRAME_TERMCAP_P (XFRAME (selected_frame))
-          && FRAME_TTY (XFRAME (selected_frame))->name)
-        tty = build_string (FRAME_TTY (XFRAME (selected_frame))->name);
-      if (EQ (tty, Qnil))
-        tty = Fassq (Qtty, Vdefault_frame_alist);
-      if (! EQ (tty, Qnil) && ! STRINGP (tty))
-        tty = XCDR (tty);
-      if (EQ (tty, Qnil) || !STRINGP (tty))
-        tty = Qnil;
-
-      tty_type = Fassq (Qtty_type, parms);
-      if (EQ (tty_type, Qnil))
-        tty_type = Fassq (Qtty_type, XFRAME (selected_frame)->param_alist);
-      if (EQ (tty_type, Qnil) && FRAME_TERMCAP_P (XFRAME (selected_frame))
-          && FRAME_TTY (XFRAME (selected_frame))->type)
-        tty_type = build_string (FRAME_TTY (XFRAME (selected_frame))->type);
-      if (EQ (tty_type, Qnil))
-        tty_type = Fassq (Qtty_type, Vdefault_frame_alist);
-      if (! EQ (tty_type, Qnil) && ! STRINGP (tty_type))
-        tty_type = XCDR (tty_type);
-      if (EQ (tty_type, Qnil) || !STRINGP (tty_type))
-        tty_type = Qnil;
-
-      if (! EQ (tty, Qnil))
+      tty = get_future_frame_param
+        (Qtty, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
+                       ? FRAME_TTY (XFRAME (selected_frame))->name
+                       : NULL));
+      if (!NILP (tty))
         {
           name = (char *) alloca (SBYTES (tty) + 1);
           strncpy (name, SDATA (tty), SBYTES (tty));
           name[SBYTES (tty)] = 0;
         }
       
-      if (! EQ (tty_type, Qnil))
+      tty_type = get_future_frame_param
+        (Qtty_type, parms, (FRAME_TERMCAP_P (XFRAME (selected_frame))
+                            ? FRAME_TTY (XFRAME (selected_frame))->type
+                            : NULL));
+      if (!NILP (tty_type))
         {
           type = (char *) alloca (SBYTES (tty_type) + 1);
           strncpy (type, SDATA (tty_type), SBYTES (tty_type));
@@ -752,13 +760,15 @@ affects all frames on the same terminal device.  */)
   adjust_glyphs (f);
   calculate_costs (f);
   XSETFRAME (frame, f);
-  GCPRO2 (tty_type, tty);
   Fmodify_frame_parameters (frame, Vdefault_frame_alist);
   Fmodify_frame_parameters (frame, parms);
   Fmodify_frame_parameters (frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
-  Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty_type, tty_type), Qnil));
-  Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty, tty), Qnil));
-  UNGCPRO;
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty_type,
+                                                 build_string (d->display_info.tty->type)),
+                                          Qnil));
+  Fmodify_frame_parameters (frame, Fcons (Fcons (Qtty,
+                                                 build_string (d->display_info.tty->name)),
+                                          Qnil));
   
   /* Make the frame face alist be frame-specific, so that each
      frame could change its face definitions independently.  */
