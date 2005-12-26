@@ -1,3 +1,9 @@
+2005-12-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* undo.c: include keyboard.h.
+
+	* keyboard.h: extern last_point_position_window.
+
 2005-12-26  Richard M. Stallman  <rms@gnu.org>
 
 	* undo.c: Depend on window.h.
