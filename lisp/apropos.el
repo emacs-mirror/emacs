@@ -511,21 +511,22 @@ or a regexp (using some regexp special characters).  If it is a word,
 search for matches for that word as a substring.  If it is a list of words,
 search for matches for any two (or more) of those words.
 
-With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil, also
-show unbound symbols and key bindings, which is a little more
-time-consuming.  Returns list of symbols and documentation found."
+With \\[universal-argument] prefix, or if `apropos-do-all' is non-nil,
+consider all symbols (if they match PATTERN).
+
+Returns list of symbols and documentation found."
   (interactive (list (apropos-read-pattern "symbol")
 		     current-prefix-arg))
   (apropos-parse-pattern pattern)
   (apropos-symbols-internal
    (apropos-internal apropos-regexp
-			  (and (not do-all)
-			       (not apropos-do-all)
-			       (lambda (symbol)
-				 (or (fboundp symbol)
-				     (boundp symbol)
-				     (facep symbol)
-				     (symbol-plist symbol)))))
+		     (and (not do-all)
+			  (not apropos-do-all)
+			  (lambda (symbol)
+			    (or (fboundp symbol)
+				(boundp symbol)
+				(facep symbol)
+				(symbol-plist symbol)))))
    (or do-all apropos-do-all)))
 
 (defun apropos-symbols-internal (symbols keys &optional text)
