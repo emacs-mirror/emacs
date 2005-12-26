@@ -1044,13 +1044,15 @@ At most `bibtex-entry-kill-ring-max' items are kept here.")
 
 (defvar bibtex-strings
   (lazy-completion-table bibtex-strings
-                         bibtex-parse-strings (bibtex-string-files-init))
+                         (lambda ()
+                           (bibtex-parse-strings (bibtex-string-files-init))))
   "Completion table for BibTeX string keys.
 Initialized from `bibtex-predefined-strings' and `bibtex-string-files'.")
 (make-variable-buffer-local 'bibtex-strings)
 
 (defvar bibtex-reference-keys
-  (lazy-completion-table bibtex-reference-keys bibtex-parse-keys nil t)
+  (lazy-completion-table bibtex-reference-keys
+                         (lambda () (bibtex-parse-keys nil t)))
   "Completion table for BibTeX reference keys.
 The CDRs of the elements are t for header keys and nil for crossref keys.")
 (make-variable-buffer-local 'bibtex-reference-keys)
