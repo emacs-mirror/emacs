@@ -84,6 +84,8 @@ extern int errno;
 #include "syssignal.h"
 #include "systty.h"
 #include "blockinput.h"
+#include "frame.h"
+#include "termhooks.h"
 
 #ifdef MSDOS
 #include "msdos.h"
@@ -116,6 +118,7 @@ Lisp_Object Vprocess_environment;
 #ifdef DOS_NT
 Lisp_Object Qbuffer_file_type;
 #endif /* DOS_NT */
+Lisp_Object Qenvironment;
 
 /* True iff we are about to fork off a synchronous process or if we
    are waiting for it.  */
@@ -130,6 +133,10 @@ int synch_process_termsig;
 /* If synch_process_death is zero,
    this is exit code of synchronous subprocess.  */
 int synch_process_retcode;
+
+/* List of environment variables to look up in emacsclient.  */
+Lisp_Object Vlocal_environment_variables;
+
 
 /* Clean up when exiting Fcall_process.
    On MSDOS, delete the temporary file on any kind of termination.
@@ -1264,9 +1271,25 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     register Lisp_Object tem;
     register char **new_env;
     register int new_length;
+    Lisp_Object environment = Vprocess_environment;
+    Lisp_Object local;
 
     new_length = 0;
-    for (tem = Vprocess_environment;
+
+    if (!NILP (Vlocal_environment_variables))
+      {
+        local = get_terminal_param (FRAME_DEVICE (XFRAME (selected_frame)),
+                                    Qenvironment);
+        if (EQ (Vlocal_environment_variables, Qt)
+            && !NILP (local))
+          environment = local;
+        else if (CONSP (local))
+          {
+            new_length += Fsafe_length (Vlocal_environment_variables);
+          }
+      }
+
+    for (tem = environment;
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
       new_length++;
@@ -1279,8 +1302,42 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
     if (getenv ("PWD"))
       *new_env++ = pwd_var;
 
-    /* Copy the Vprocess_environment strings into new_env.  */
-    for (tem = Vprocess_environment;
+    /* Get the local environment variables first. */
+    for (tem = Vlocal_environment_variables;
+         CONSP (tem) && STRINGP (XCAR (tem));
+         tem = XCDR (tem))
+      {
+        char **ep = env;
+        char *string = egetenv (SDATA (XCAR (tem)));
+        int ok = 1;
+        if (string == NULL)
+          continue;
+
+	/* See if this string duplicates any string already in the env.
+	   If so, don't put it in.
+	   When an env var has multiple definitions,
+	   we keep the definition that comes first in process-environment.  */
+        for (; ep != new_env; ep++)
+          {
+	    char *p = *ep, *q = string;
+	    while (ok)
+	      {
+		if (*q == 0)
+                  /* The string is malformed; might as well drop it.  */
+                  ok = 0;
+		if (*q != *p)
+		  break;
+		if (*q == '=')
+                  ok = 0;
+		p++, q++;
+	      }
+          }
+        if (ok)
+          *new_env++ = string;
+      }
+
+    /* Copy the environment strings into new_env.  */
+    for (tem = environment;
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
       {
@@ -1423,29 +1480,68 @@ relocate_fd (fd, minfd)
 }
 
 static int
-getenv_internal (var, varlen, value, valuelen)
+getenv_internal (var, varlen, value, valuelen, terminal)
      char *var;
      int varlen;
      char **value;
      int *valuelen;
+     Lisp_Object terminal;
 {
   Lisp_Object scan;
+  Lisp_Object environment = Vprocess_environment;
 
-  for (scan = Vprocess_environment; CONSP (scan); scan = XCDR (scan))
+  /* Find the environment in which to search the variable. */
+  if (!NILP (terminal))
+    {
+      Lisp_Object local = get_terminal_param (get_device (terminal, 1));
+      /* Use Vprocess_environment if there is no local environment.  */
+      if (!NILP (local))
+        environment = local;
+    }
+  else if (!NILP (Vlocal_environment_variables)) 
+    {
+      Lisp_Object local = get_terminal_param (FRAME_DEVICE (XFRAME (selected_frame)),
+                                              Qenvironment);
+      if (EQ (Vlocal_environment_variables, Qt)
+          && !NILP (local))
+        environment = local;
+      else if (CONSP (local))
+        {
+          for (scan = Vlocal_environment_variables; CONSP (scan); scan = XCDR (scan))
+            {
+              Lisp_Object entry = XCAR (scan);
+              if (STRINGP (entry)
+                  && SBYTES (entry) == varlen
+#ifdef WINDOWSNT
+                  /* NT environment variables are case insensitive.  */
+                  && ! strnicmp (SDATA (entry), var, varlen)
+#else  /* not WINDOWSNT */
+                  && ! bcmp (SDATA (entry), var, varlen)
+#endif /* not WINDOWSNT */
+                  )
+                {
+                  environment = local;
+                  break;
+                } 
+            }
+        }
+    }
+
+  for (scan = environment; CONSP (scan); scan = XCDR (scan))
     {
       Lisp_Object entry;
 
       entry = XCAR (scan);
       if (STRINGP (entry)
-	  && SBYTES (entry) > varlen
-	  && SREF (entry, varlen) == '='
+          && SBYTES (entry) > varlen
+          && SREF (entry, varlen) == '='
 #ifdef WINDOWSNT
-	  /* NT environment variables are case insensitive.  */
-	  && ! strnicmp (SDATA (entry), var, varlen)
+          /* NT environment variables are case insensitive.  */
+          && ! strnicmp (SDATA (entry), var, varlen)
 #else  /* not WINDOWSNT */
-	  && ! bcmp (SDATA (entry), var, varlen)
+          && ! bcmp (SDATA (entry), var, varlen)
 #endif /* not WINDOWSNT */
-	  )
+          )
 	{
 	  *value    = (char *) SDATA (entry) + (varlen + 1);
 	  *valuelen = SBYTES (entry) - (varlen + 1);
@@ -1456,19 +1552,30 @@ getenv_internal (var, varlen, value, valuelen)
   return 0;
 }
 
-DEFUN ("getenv-internal", Fgetenv_internal, Sgetenv_internal, 1, 1, 0,
+DEFUN ("getenv-internal", Fgetenv_internal, Sgetenv_internal, 1, 2, 0,
        doc: /* Return the value of environment variable VAR, as a string.
-VAR should be a string.  Value is nil if VAR is undefined in the environment.
-This function consults the variable ``process-environment'' for its value.  */)
-     (var)
-     Lisp_Object var;
+VAR should be a string.  Value is nil if VAR is undefined in the
+environment.
+
+If optional parameter TERMINAL is non-nil, then it should be a
+terminal id or a frame.  If the specified terminal device has its own
+set of environment variables, this function will look up VAR in it.
+
+Otherwise, if `local-environment-variables' specifies that VAR is a
+local environment variable, then this function consults the
+environment variables belonging to the terminal device of the selected
+frame.
+
+Otherwise, the value of VAR will come from `process-environment'.  */)
+     (var, terminal)
+     Lisp_Object var, terminal;
 {
   char *value;
   int valuelen;
 
   CHECK_STRING (var);
   if (getenv_internal (SDATA (var), SBYTES (var),
-		       &value, &valuelen))
+		       &value, &valuelen, terminal))
     return make_string (value, valuelen);
   else
     return Qnil;
@@ -1483,7 +1590,7 @@ egetenv (var)
   char *value;
   int valuelen;
 
-  if (getenv_internal (var, strlen (var), &value, &valuelen))
+  if (getenv_internal (var, strlen (var), &value, &valuelen, Qnil))
     return value;
   else
     return 0;
@@ -1707,6 +1814,23 @@ See `setenv' and `getenv'.  */);
   defsubr (&Sgetenv_internal);
 #endif
   defsubr (&Scall_process_region);
+
+  DEFVAR_LISP ("local-environment-variables", &Vlocal_environment_variables,
+               doc: /* 	Enable or disable terminal-local environment variables.
+If set to t, `getenv', `setenv' and subprocess creation functions use
+the environment variables of the emacsclient process that created the
+selected frame, ignoring `process-environment'.
+
+If set to nil, Emacs uses `process-environment' and ignores the client
+environment.
+
+Otherwise, `terminal-local-environment-variables' should be a list of
+variable names (represented by Lisp strings) to look up in the client
+environment.  The rest will come from `process-environment'.  */);
+  Vlocal_environment_variables = Qnil;
+
+  Qenvironment = intern ("environment");
+  staticpro (&Qenvironment);
 }
 
 /* arch-tag: 769b8045-1df7-4d2b-8968-e3fb49017f95

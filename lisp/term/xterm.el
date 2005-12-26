@@ -192,8 +192,8 @@
   ;; rxvt terminals sometimes set the TERM variable to "xterm", but
   ;; rxvt's keybindings that are incompatible with xterm's. It is
   ;; better in that case to use rxvt's initializion function.
-  (if (and (terminal-getenv "COLORTERM")
-	   (string-match "\\`rxvt" (terminal-getenv "COLORTERM")))
+  (if (and (getenv "COLORTERM" (terminal-id))
+	   (string-match "\\`rxvt" (getenv "COLORTERM" (terminal-id))))
       (progn
 	(eval-and-compile (load "term/rxvt"))
 	(terminal-init-rxvt))

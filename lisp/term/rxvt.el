@@ -291,7 +291,7 @@ for the currently selected frame."
 ;; intelligent way than the default guesswork in startup.el.
 (defun rxvt-set-background-mode ()
   "Set background mode as appropriate for the default rxvt colors."
-  (let ((fgbg (terminal-getenv "COLORFGBG"))
+  (let ((fgbg (getenv "COLORFGBG" (terminal-id)))
 	bg rgb)
     (setq default-frame-background-mode 'light)
     (when (and fgbg

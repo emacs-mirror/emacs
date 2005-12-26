@@ -401,28 +401,10 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
-** Implement automatic forwarding of client environment variables to
-   forked processes, as discussed on the multi-tty list.  Terminal
-   parameters are now accessible in C code, so the biggest obstacle is
-   gone.  The `getenv_internal' and `child_setup' functions in
-   callproc.c must be changed to support the following variable:
-
-	terminal-local-environment-variables is a variable defined in ...
-
-	Enable or disable terminal-local environment variables.
-
-	If set to t, `getenv', `setenv' and subprocess creation
-	functions use the environment variables of the emacsclient
-	process that created the selected frame, ignoring
-	`process-environment'.
-
-	If set to nil, Emacs uses `process-environment' and ignores
-	the client environment.
-
-	Otherwise, `terminal-local-environment-variables' should be a
-	list of variable names (represented by Lisp strings) to look
-	up in the client environment.  The rest will come from
-	`process-environment'.
+** Trouble: `setenv' doesn't actually set environment variables in the
+   Emacs process.  This defeats the purpose of the elaborate
+   `server-with-environment' magic around the `tgetent' call in
+   `init_tty'.  D'oh.
 
 ** (Possibly) create hooks in struct device for creating frames on a
    specific terminal, and eliminate the hackish terminal-related frame
@@ -1347,6 +1329,34 @@ DIARY OF CHANGES
 -- Disable connecting to a new X display when we use the GTK toolkit.
 
    (Disabled in patch-450.)
+
+-- Implement automatic forwarding of client environment variables to
+   forked processes, as discussed on the multi-tty list.  Terminal
+   parameters are now accessible in C code, so the biggest obstacle is
+   gone.  The `getenv_internal' and `child_setup' functions in
+   callproc.c must be changed to support the following variable:
+
+	terminal-local-environment-variables is a variable defined in ...
+
+	Enable or disable terminal-local environment variables.
+
+	If set to t, `getenv', `setenv' and subprocess creation
+	functions use the environment variables of the emacsclient
+	process that created the selected frame, ignoring
+	`process-environment'.
+
+	If set to nil, Emacs uses `process-environment' and ignores
+	the client environment.
+
+	Otherwise, `terminal-local-environment-variables' should be a
+	list of variable names (represented by Lisp strings) to look
+	up in the client environment.  The rest will come from
+	`process-environment'.
+
+   (Implemented in patch-461; `terminal-getenv', `terminal-setenv' and
+   `with-terminal-environment' are now replaced by extensions to
+   `getenv' and `setenv', and the new `local-environment-variables'
+   facility.  Yay!)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 

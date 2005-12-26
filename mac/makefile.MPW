@@ -261,8 +261,8 @@ buildobj.lst Ä
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h" ¶
 	"{Includes}sys:file.h" ¶
-		"{Includes}sys:types.h" ¶
-		"{Includes}sys:stat.h" ¶
+	"{Includes}sys:types.h" ¶
+	"{Includes}sys:stat.h" ¶
 	"{Src}lisp.h" ¶
 	"{Src}commands.h" ¶
 	"{Src}buffer.h" ¶
@@ -274,7 +274,9 @@ buildobj.lst Ä
 	"{Src}process.h" ¶
 	"{Src}syssignal.h" ¶
 	"{Src}systty.h" ¶
-		"{Includes}termio.h"
+	"{Includes}termio.h" ¶
+	"{Src}frame.h" ¶
+	"{Src}termhooks.h"
 
 {Src}casefiddle Ä ¶
 	{CONFIG_H_GROUP} ¶

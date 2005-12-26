@@ -52,7 +52,8 @@ If it is also not t, RET does not exit if it does non-null completion."
 					locale-coding-system t)
 				     (substring enventry 0
 						(string-match "=" enventry)))))
-			   process-environment)
+			   (append (terminal-parameter nil 'environment)
+				   process-environment))
 		   nil mustmatch nil 'read-envvar-name-history))
 
 ;; History list for VALUE argument to setenv.
@@ -90,7 +91,7 @@ Use `$$' to insert a single dollar sign."
 
 ;; Fixme: Should `process-environment' be recoded if LC_CTYPE &c is set?
 
-(defun setenv (variable &optional value unset substitute-env-vars)
+(defun setenv (variable &optional value unset substitute-env-vars terminal)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE should be a string.  VALUE is optional; if not provided or
 nil, the environment variable VARIABLE will be removed.  UNSET
@@ -105,7 +106,14 @@ Interactively, the current value (if any) of the variable
 appears at the front of the history list when you type in the new value.
 Interactively, always replace environment variables in the new value.
 
-This function works by modifying `process-environment'.
+If optional parameter TERMINAL is non-nil, then it should be a
+terminal id or a frame.  If the specified terminal device has its own
+set of environment variables, this function will modify VAR in it.
+
+Otherwise, this function works by modifying either
+`process-environment' or the environment belonging to the
+terminal device of the selected frame, depending on the value of
+`local-environment-variables'.
 
 As a special case, setting variable `TZ' calls `set-time-zone-rule' as
 a side-effect."
@@ -138,36 +146,58 @@ a side-effect."
   (if (and value (multibyte-string-p value))
       (setq value (encode-coding-string value locale-coding-system)))
   (if (string-match "=" variable)
-      (error "Environment variable name `%s' contains `='" variable)
-    (let ((pattern (concat "\\`" (regexp-quote (concat variable "="))))
-	  (case-fold-search nil)
-	  (scan process-environment)
-	  found)
-      (if (string-equal "TZ" variable)
-	  (set-time-zone-rule value))
-      (while scan
-	(cond ((string-match pattern (car scan))
-	       (setq found t)
-	       (if (eq nil value)
+      (error "Environment variable name `%s' contains `='" variable))
+  (let* ((pattern (concat "\\`" (regexp-quote (concat variable "="))))
+	 (case-fold-search nil)
+	 (local-var-p (and (terminal-parameter terminal 'environment)
+			   (or terminal
+			       (eq t local-environment-variables)
+			       (member variable local-environment-variables))))
+	 (scan (if local-var-p
+		   (terminal-parameter terminal 'environment)
+		 process-environment))
+	 found)
+    (if (string-equal "TZ" variable)
+	(set-time-zone-rule value))
+    (while scan
+      (cond ((string-match pattern (car scan))
+	     (setq found t)
+	     (if (eq nil value)
+		 (if local-var-p
+		     (set-terminal-parameter terminal 'environment
+					     (delq (car scan)
+						   (terminal-parameter terminal 'environment)))
 		   (setq process-environment (delq (car scan)
-						   process-environment))
-		 (setcar scan (concat variable "=" value)))
-	       (setq scan nil)))
-	(setq scan (cdr scan)))
-      (or found
-	  (if value
+						   process-environment)))
+	       (setcar scan (concat variable "=" value)))
+	     (setq scan nil)))
+      (setq scan (cdr scan)))
+    (or found
+	(if value
+	    (if local-var-p
+		(set-terminal-parameter nil 'environment
+					(cons (concat variable "=" value)
+					      (terminal-parameter nil 'environment)))
 	      (setq process-environment
 		    (cons (concat variable "=" value)
 			  process-environment))))))
   value)
 
-(defun getenv (variable)
+(defun getenv (variable &optional terminal)
   "Get the value of environment variable VARIABLE.
 VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.
 
-This function consults the variable `process-environment'
-for its value."
+If optional parameter TERMINAL is non-nil, then it should be a
+terminal id or a frame.  If the specified terminal device has its own
+set of environment variables, this function will look up VAR in it.
+
+Otherwise, if `local-environment-variables' specifies that VAR is a
+local environment variable, then this function consults the
+environment variables belonging to the terminal device of the selected
+frame.
+
+Otherwise, the value of VAR will come from `process-environment'."
   (interactive (list (read-envvar-name "Get environment variable: " t)))
   (let ((value (getenv-internal (if (multibyte-string-p variable)
 				    (encode-coding-string

@@ -595,6 +595,8 @@ extern struct device *device_list;
 /* Return true if the display device is not suspended. */
 #define DEVICE_ACTIVE_P(d) ((d)->type != output_termcap || (d)->display_info.tty->input)
 
+extern Lisp_Object get_terminal_param P_ ((struct device *, Lisp_Object));
+
 extern struct device *create_device P_ ((void));
 extern void delete_device P_ ((struct device *));
 

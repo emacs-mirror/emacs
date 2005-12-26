@@ -2460,7 +2460,7 @@ See also `locale-charset-language-names', `locale-language-names',
       (let ((vars '("LC_ALL" "LC_CTYPE" "LANG")))
 	(while (and vars
 		    (= 0 (length locale))) ; nil or empty string
-	  (setq locale (terminal-getenv (pop vars))))))
+	  (setq locale (getenv (pop vars) display)))))
 
     (unless locale
       ;; The two tests are kept separate so the byte-compiler sees
@@ -2573,7 +2573,7 @@ See also `locale-charset-language-names', `locale-language-names',
       ;; Mac OS X's Terminal.app by default uses utf-8 regardless of
       ;; the locale.
       (when (and (null window-system)
-		 (equal (terminal-getenv "TERM_PROGRAM") "Apple_Terminal"))
+		 (equal (getenv "TERM_PROGRAM" display) "Apple_Terminal"))
 	(set-terminal-coding-system 'utf-8)
 	(set-keyboard-coding-system 'utf-8)))
 
@@ -2591,7 +2591,7 @@ See also `locale-charset-language-names', `locale-language-names',
 	      (setq ps-paper-type 'a4)))
 	  (let ((vars '("LC_ALL" "LC_PAPER" "LANG")))
 	    (while (and vars (= 0 (length locale)))
-	      (setq locale (terminal-getenv (pop vars)))))
+	      (setq locale (getenv (pop vars) display))))
 	  (when locale
 	    ;; As of glibc 2.2.5, these are the only US Letter locales,
 	    ;; and the rest are A4.

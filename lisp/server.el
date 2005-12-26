@@ -624,7 +624,7 @@ The following commands are accepted by the client:
 					(list (cons 'client proc)))))
 			  (setq frame (make-frame-on-display
 				       (or display
-					   (frame-parameter nil 'device)
+					   (frame-parameter nil 'display)
 					   (getenv "DISPLAY")
 					   (error "Please specify display"))
 				       params))
