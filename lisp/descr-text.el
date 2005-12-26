@@ -586,9 +586,11 @@ as well as widgets, buttons, overlays, and text properties."
     (setq max-width (apply #'max (mapcar #'(lambda (x)
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
-    (help-setup-xref
-     (list #'describe-char pos (if buf buf (current-buffer)))
-     (interactive-p))
+    (let ((buffer (current-buffer)))
+      (with-current-buffer help-buffer
+	(help-setup-xref
+	 (list #'describe-char pos (if buf buf buffer))
+	 (interactive-p))))
     (with-output-to-temp-buffer help-buffer
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
