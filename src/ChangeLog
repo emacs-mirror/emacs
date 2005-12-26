@@ -1,3 +1,11 @@
+2005-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.h: Undo previous change.
+
+	* Makefile.in (undo.o): Undo previous change.
+
+	* undo.c: Undo previous change.
+
 2005-12-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keyboard.h: extern last_point_position_window.
@@ -7,6 +15,8 @@
 	* Makefile.in (undo.o): Depend on keyboard.h.
 
 2005-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.h (last_point_position_window): Declare.
 
 	* undo.c: Depend on window.h.
 	(record_point): Save old point from the correct window.
