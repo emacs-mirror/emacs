@@ -2939,8 +2939,6 @@ extern void insert_glyphs P_ ((struct frame *, struct glyph *, int));
 extern void delete_glyphs P_ ((struct frame *, int));
 extern void ins_del_lines P_ ((struct frame *, int, int));
 
-extern struct device *get_device P_ ((Lisp_Object display, int));
-
 extern struct device *init_initial_device P_ ((void));
 
 

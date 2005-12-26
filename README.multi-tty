@@ -462,7 +462,11 @@ THINGS TO DO
    changed in CVS, and frame.el in multi-tty has not yet been adapted
    for the changes.  (It needs to look at
    default-frame-background-mode.)  (Update: maybe it is fixed now;
-   needs testing.)
+   needs testing.) (Note that the byte compiler has this to say about
+   term/rxvt.el:)
+
+	term/rxvt.el:309:17:Warning: assignment to free variable
+	    `default-frame-background-mode'
 
 ** I think `(set-)terminal-local-value' and the terminal parameter
    mechanism should be integrated into a single framework.

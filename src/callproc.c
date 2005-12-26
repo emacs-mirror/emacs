@@ -1493,7 +1493,7 @@ getenv_internal (var, varlen, value, valuelen, terminal)
   /* Find the environment in which to search the variable. */
   if (!NILP (terminal))
     {
-      Lisp_Object local = get_terminal_param (get_device (terminal, 1));
+      Lisp_Object local = get_terminal_param (get_device (terminal, 1), Qenvironment);
       /* Use Vprocess_environment if there is no local environment.  */
       if (!NILP (local))
         environment = local;

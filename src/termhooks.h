@@ -596,7 +596,7 @@ extern struct device *device_list;
 #define DEVICE_ACTIVE_P(d) ((d)->type != output_termcap || (d)->display_info.tty->input)
 
 extern Lisp_Object get_terminal_param P_ ((struct device *, Lisp_Object));
-
+extern struct device *get_device P_ ((Lisp_Object display, int));
 extern struct device *create_device P_ ((void));
 extern void delete_device P_ ((struct device *));
 
