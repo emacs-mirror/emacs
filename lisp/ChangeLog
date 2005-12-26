@@ -1,3 +1,20 @@
+2005-12-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* descr-text.el (describe-char): Add optional argument for buffer.
+	Set buffer appropriately.  Call help-setup-xref.
+	Suggested by Stefan Monnier.
+
+2005-12-27  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (help-fns): Require.  Don't require button for
+	byte compilation.
+	(describe-text-widget): Add help echo for first button.  Use
+	'help-info for second.
+	(describe-property-list): Use 'help-argument-name instead of 'italic.
+	(describe-text-category): Prompt in minibuffer.  Call help-setup-xref.
+	(describe-char): Use 'help-character-set.  Add help echo.  Use
+	'help-input-method.  Remove superfluous insert.
+
 2005-12-25  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/cc-defs.el (c-emacs-features): Do parse-partial-sexp
