@@ -768,13 +768,13 @@ in this list, with @code{case-fold-search} (@pxref{Searching and Case})
 bound to the value of @code{completion-ignore-case}.
 @end defvar
 
-@defmac lazy-completion-table var fun &rest args
+@defmac lazy-completion-table var fun
 This macro provides a way to initialize the variable @var{var} as a
 collection for completion in a lazy way, not computing its actual
 contents until they are first needed.  You use this macro to produce a
 value that you store in @var{var}.  The actual computation of the
 proper value is done the first time you do completion using @var{var}.
-It is done by calling @var{fun} with the arguments @var{args}.  The
+It is done by calling @var{fun} with no arguments.  The
 value @var{fun} returns becomes the permanent value of @var{var}.
 
 Here are two examples of use:

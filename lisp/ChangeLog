@@ -1,3 +1,10 @@
+2005-12-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (lazy-completion-table): Remove argument `args'.
+
+	* textmodes/bibtex.el (bibtex-strings, bibtex-reference-keys):
+	Don't use the `args' argument of lazy-completion-table.
+
 2005-12-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* descr-text.el (describe-char): Add optional argument for buffer.
@@ -8,12 +15,12 @@
 
 	* descr-text.el (help-fns): Require.  Don't require button for
 	byte compilation.
-	(describe-text-widget): Add help echo for first button.  Use
-	'help-info for second.
+	(describe-text-widget): Add help echo for first button.
+	Use 'help-info for second.
 	(describe-property-list): Use 'help-argument-name instead of 'italic.
 	(describe-text-category): Prompt in minibuffer.  Call help-setup-xref.
-	(describe-char): Use 'help-character-set.  Add help echo.  Use
-	'help-input-method.  Remove superfluous insert.
+	(describe-char): Use 'help-character-set.  Add help echo.
+	Use 'help-input-method.  Remove superfluous insert.
 
 2005-12-25  Richard M. Stallman  <rms@gnu.org>
 
@@ -35,16 +42,16 @@
 
 	* custom.el (custom-push-theme): Fix docstring.
 
-	* cus-edit.el (custom-variable-set, custom-variable-save,
-	custom-variable-save): Custom-quote widget values.
+	* cus-edit.el (custom-variable-set, custom-variable-save)
+	(custom-variable-save): Custom-quote widget values.
 	(customize-save-variable): Fix custom-push-theme call.
 
 2005-12-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32-fns.el (w32-batch-update-autoloads): New function.
 
-	* makefile.w32-in (autoloads, $(lisp)/mh-e/mh-loaddefs.el): Use
-	w32-batch-update-autoloads, and don't setq generated-autoload-file
+	* makefile.w32-in (autoloads, $(lisp)/mh-e/mh-loaddefs.el):
+	Use w32-batch-update-autoloads, and don't setq generated-autoload-file
 	from the command line.
 
 2005-12-23  Chong Yidong  <cyd@stupidchicken.com>
@@ -57,15 +64,15 @@
 	customization" button one line up.
 	(custom-themed): New face.
 	(custom-magic-alist): New value, THEMED, for theme settings.
-	(custom-variable-state-set, custom-face-state-set): Check
-	theme-value instead of saved-value.
+	(custom-variable-state-set, custom-face-state-set):
+	Check theme-value instead of saved-value.
 	(custom-variable-reset-standard, custom-face-reset-standard):
 	Remove theme setting entirely.  Recalculate new values.
 	(custom-variable-set, custom-variable-set)
 	(custom-variable-reset-saved, custom-variable-reset-backup)
 	(custom-face-set, custom-face-reset-saved): Update `user' theme.
 	(custom-variable-save): Fix typos.
-	
+
 2005-12-23  Juri Linkov  <juri@jurta.org>
 
 	* emacs-lisp/edebug.el (edebug-all-defs, edebug-all-forms):
