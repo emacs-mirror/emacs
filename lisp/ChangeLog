@@ -16,11 +16,11 @@
 	* descr-text.el (help-fns): Require.  Don't require button for
 	byte compilation.
 	(describe-text-widget): Add help echo for first button.
-	Use 'help-info for second.
-	(describe-property-list): Use 'help-argument-name instead of 'italic.
+	Use `help-info' for second.
+	(describe-property-list): Use `help-argument-name' instead of `italic'.
 	(describe-text-category): Prompt in minibuffer.  Call help-setup-xref.
-	(describe-char): Use 'help-character-set.  Add help echo.
-	Use 'help-input-method.  Remove superfluous insert.
+	(describe-char): Use `help-character-set'.  Add help echo.
+	Use `help-input-method'.  Remove superfluous insert.
 
 2005-12-25  Richard M. Stallman  <rms@gnu.org>
 
@@ -1411,7 +1411,7 @@
 	5D.1 and 5D.2 removed since they aren't trigged anymore (case 5B.1
 	covers all cases now).
 
-	* progmodes/cc-defs.el (c-point): Added 'bosws and 'eosws.
+	* progmodes/cc-defs.el (c-point): Added `bosws' and `eosws'.
 
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
@@ -1481,7 +1481,7 @@
 	* progmodes/cc-engine.el, cc-fonts.el (c-forward-keyword-clause):
 	Specify which submatch to use.
 
-	* progmodes/cc-langs.el (c-symbol-start): Include '@' in ObjC.
+	* progmodes/cc-langs.el (c-symbol-start): Include `@' in ObjC.
 
 	(c-decl-start-re): No no longer any need for special treatment of
 	ObjC due to the above.
@@ -1680,7 +1680,7 @@
 
 	(c-decl-start-re): New language variable to make
 	`c-font-lock-declarations' stop for the special protection labels
-	in Objective-C that start with '@'.
+	in Objective-C that start with `@'.
 
 	(c-label-key): Removed since it's no longer used.
 
@@ -1870,7 +1870,7 @@
 	has now taken the place of this function.
 
 	* progmodes/cc-vars.el (c-emacs-features): Removed compatibility
-	with older emacsen: We now require 'pps-extended-state.
+	with older emacsen: We now require `pps-extended-state'.
 
 2005-12-08  Alan Mackenzie  <bug-cc-mode@gnu.org>
 
@@ -2047,21 +2047,21 @@
 	(cua-rectangle-modifier-key): ... this.  New defcustom.  Can now
 	select either meta, hyper, or super modifier for rectangle commands.
 	(cua--rectangle-modifier-key): New defvar.
-	(cua--M/H-key): Use it.  Remove special case for 'space.
+	(cua--M/H-key): Use it.  Remove special case for `space'.
 	(cua--init-keymaps): Initialize it from cua-rectangle-modifier-key
 	on X, to meta otherwise.  Always bind C-return to toggle
-	rectangle.  Pass ?\s instead of 'space to cua--M/H-key.
+	rectangle.  Pass ?\s instead of `space' to cua--M/H-key.
 
 	* emulation/cua-rect.el (cua-help-for-rectangle): Use
 	cua--rectangle-modifier-key.  Handle super modifier too.
 	(cua--init-rectangles): Always bind C-return to toggle rectangle.
-	Pass ?\s instead of 'space to cua--M/H-key and cua--rect-M/H-key.
+	Pass ?\s instead of `space' to cua--M/H-key and cua--rect-M/H-key.
 
 	* ido.el: Move Acknowledgements and History after Commentary.
 	Minor changes to Commentary.
 
 	* emulation/cua-base.el (cua--select-keymaps): Enable repeat
-	keymap if cua--prefix-override-timer equals 'shift.
+	keymap if cua--prefix-override-timer is `shift'.
 	(cua--shift-control-prefix): New function; emulate "type prefix
 	key twice" functionality to handle shifted prefix key override.
 	(cua--shift-control-c-prefix, cua--shift-control-x-prefix): New
@@ -2357,7 +2357,7 @@
 
 2005-12-02  Ken Manheimer  <ken.manheimer@gmail.com>
 
-	* allout.el:(eval-when-compile): Remove unnecessary load of 'cl.
+	* allout.el:(eval-when-compile): Remove unnecessary load of cl.
 	Add fset of allout-real-isearch-abort during compile to fix
 	byte-compilation warnings.
 	(allout-mode-p): Move definition of this macro above all uses, or
@@ -3494,7 +3494,7 @@
 	* jka-cmpr-hook.el (jka-compr-install): Use push and dolist.
 	Add jka-compr-load-suffixes to load-suffixes.
 
-	* jka-compr.el: Require 'jka-cmpr-hook.
+	* jka-compr.el: Require jka-cmpr-hook.
 	(jka-compr-info-compress-message, jka-compr-info-compress-program)
 	(jka-compr-info-compress-args, jka-compr-info-uncompress-message)
 	(jka-compr-info-uncompress-program, jka-compr-info-uncompress-args)
@@ -3677,7 +3677,7 @@
 	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
 	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
-	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 	(pgg-pgp-decrypt-region, pgg-pgp-sign-region): Use new name for
@@ -3686,7 +3686,7 @@
 	* pgg-pgp5.el (pgg-pgp5-encrypt-region, pgg-pgp5-decrypt-region)
 	(pgg-pgp5-encrypt-symmetric-region, pgg-pgp5-encrypt-symmetric)
 	(pgg-pgp5-encrypt, pgg-pgp5-decrypt-region, pgg-pgp5-decrypt)
-	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
+	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
@@ -3870,7 +3870,7 @@
 	Change defvar to defcustom.
 	(rcirc-update-prompt): Add optional ALL arg, which will update
 	prompts in all rcirc buffers.  Regexp quote replacement text.
-	(rcirc-fill-column): Accept 'frame-width as a value.
+	(rcirc-fill-column): Accept frame-width as a value.
 	(rcirc-set-changed): Add function.
 	(rcirc-next-active-buffer): Write more meaningful messages.
 	(rcirc-faces): Add customization group.
@@ -3881,7 +3881,7 @@
 	(rcirc-debug-buffer): Rename from `rcirc-log-buffer'.
 	(rcirc-debug-flag): Rename from `rcirc-log-p'.
 	(rcirc-debug): Rename from `rcirc-log'.
-	(rcirc-format-response-string): Do not print '-' chars for a
+	(rcirc-format-response-string): Do not print `-' chars for a
 	NOTICE with no sender.  Simplify output of server responses.
 
 2005-11-04  Henrik Enberg  <henrik.enberg@telia.com>
@@ -3899,7 +3899,7 @@
 	* pgg-pgp.el (pgg-pgp-encrypt-region, pgg-pgp-decrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
 	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
-	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 	(pgg-pgp-decrypt-region, pgg-pgp-sign-region): Use new name for
@@ -3908,7 +3908,7 @@
 	* pgg-pgp5.el (pgg-pgp5-encrypt-region, pgg-pgp5-decrypt-region)
 	(pgg-pgp5-encrypt-symmetric-region, pgg-pgp5-encrypt-symmetric)
 	(pgg-pgp5-encrypt, pgg-pgp5-decrypt-region, pgg-pgp5-decrypt)
-	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional 'passphrase'
+	(pgg-pgp5-sign-region, pgg-pgp5-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 	(pgg-pgp5-sign-region): Use new name of	pgg-add-passphrase-to-cache
@@ -3923,7 +3923,7 @@
 
 	* textmodes/org.el (org-read-date, org-goto-calendar)
 	(org-recenter-calendar, org-agenda-goto-calendar):
-	Temporarily clear 'calendar-move-hook'.
+	Temporarily clear `calendar-move-hook'.
 
 2005-11-04  Michael Kifer  <kifer@cs.stonybrook.edu>
 
@@ -4284,7 +4284,7 @@
 	key.  Also, added a note pointing out fact that the prompt only
 	indicates the first matching key.
 
-	* pgg.el (pgg-decrypt): Passing along 'passphrase' in call to
+	* pgg.el (pgg-decrypt): Passing along PASSPHRASE in call to
 	pgg-decrypt-region.
 	(pgg-pending-timers): A new hash for tracking the passphrase cache
 	timers, so that new ones supercede old ones.
@@ -4314,14 +4314,14 @@
 	and then passed in to the system.
 
 	* pgg.el (pgg-read-passphrase, pgg-add-passphrase-cache)
-	(pgg-remove-passphrase-cache): Add optional 'notruncate' argument,
+	(pgg-remove-passphrase-cache): Add optional NOTRUNCATE argument,
 	so the passphrase cache can be used reliably with identifiers
 	besides a pgp packet's key id.
 
 	* pgg-gpg.el (pgg-pgp-encrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
 	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
-	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 
@@ -4370,7 +4370,7 @@
 	key.  Also, added a note pointing out fact that the prompt only
 	indicates the first matching key.
 
-	* pgg.el (pgg-decrypt): Passing along 'passphrase' in call to
+	* pgg.el (pgg-decrypt): Passing along PASSPHRASE in call to
 	pgg-decrypt-region.
 	(pgg-pending-timers): A new hash for tracking the passphrase cache
 	timers, so that new ones supercede old ones.
@@ -4402,14 +4402,14 @@
 	and then passed in to the system.
 
 	* pgg.el (pgg-read-passphrase, pgg-add-passphrase-cache)
-	(pgg-remove-passphrase-cache): Add optional 'notruncate' argument,
+	(pgg-remove-passphrase-cache): Add optional NOTRUNCATE argument,
 	so the passphrase cache can be used reliably with identifiers
 	besides a pgp packet's key id.
 
 	* pgg-gpg.el (pgg-pgp-encrypt-region)
 	(pgg-pgp-encrypt-symmetric-region, pgg-pgp-encrypt-symmetric)
 	(pgg-pgp-encrypt, pgg-pgp-decrypt-region, pgg-pgp-decrypt)
-	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional 'passphrase'
+	(pgg-pgp-sign-region, pgg-pgp-sign): Add optional PASSPHRASE
 	argument to all these routines, so the passphrase can be managed
 	externally and passed in to the system.
 
@@ -5047,7 +5047,7 @@
 	* allout.el: Add autoloads of crypt++ and mailcrypt routines, all
 	for encryption functionality.
 	Move allout customization subgroup from `editing' to `outlines' group.
-	Fix commentary 'keywords' to legitimate ones.
+	Fix commentary keywords to legitimate ones.
 	Update author info (using my current email address, obscurified).
 	(allout-encrypt-string, allout-encryption-produce-work-buffer)
 	(allout-encrypted-topic-p, allout-encrypted-text-type)
@@ -5088,9 +5088,9 @@
 	any universal argument provokes now prompt for bullet, defaulting
 	to the bullet of the previous topic.
 	(allout-plain-bullets-string, allout-distinctive-bullets-string):
-	Plain bullet alternates '.' period and ',' comma only.  All other
+	Plain bullet alternates `.' period and `,' comma only.  All other
 	bullets are relegated to special status (but customizable).
-	(allout-end-of-entry): Rename from 'allout-end-of-current-entry
+	(allout-end-of-entry): Rename from allout-end-of-current-entry
 	since it actually operates w.r.t. most immediately containing
 	entry, visible or not.
 	(allout-hide-current-entry, allout-show-current-entry): Use the
@@ -5111,8 +5111,8 @@
 	(allout-isearch-rectification): Refine condition for isearching.
 	(allout-isearch-abort, allout-enwrap-isearch)
 	(allout-flag-region, my-region-active-p): Relocate some macros.
-	(allout-title): Fallback title is '(buffer-name)', not
-	non-existing '(current-buffer-name)'.
+	(allout-title): Fallback title is (buffer-name), not
+	non-existing (current-buffer-name).
 	(subst-char-in-string): Define if absent (for some XEmacs versions).
 
 2005-10-20  Jari Aalto  <jari.aalto@cante.net>
@@ -5627,10 +5627,10 @@
 	(math-super-types): Add sqmatrix type.
 
 	* calc/calc-mode.el (calc-matrix-mode, math-get-modes-vec): Change the
-	mode name `square' to 'sqmatrix'.
+	mode name `square' to `sqmatrix'.
 
 	* calc/calc.el (calc-matrix-mode, calc-set-mode-line): Change the
-	mode name `square' to 'sqmatrix'.
+	mode name `square' to `sqmatrix'.
 
 2005-10-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -7220,7 +7220,7 @@
 	(vhdl-trailer-re): Add "record" keyword (better indentation).
 	(vhdl-fixup-whitespace-region): "[^ \t\"-]+" instead of
 	"[^ \t-\"]+".
-	(vhdl-font-lock-keywords-2): Not highlight formal parameter after '|'.
+	(vhdl-font-lock-keywords-2): Not highlight formal parameter after `|'.
 	(vhdl-testbench-entity-file-name)
 	(vhdl-testbench-architecture-file-name): Allow separate
 	customization of testbench file names.
@@ -7830,8 +7830,8 @@
 	* subr.el (insert-for-yank-1): Doc fix.
 
 	* ido.el (ido-enter-matching-directory): Rename from
-	ido-enter-single-matching-directory.  Change 'slash choice to
-	'only. 	Add 'first choice.
+	ido-enter-single-matching-directory.  Change `slash' choice to
+	`only'.  Add `first' choice.
 	(ido-exhibit): Adapt to above changes.
 
 2005-08-16  Luc Teirlinck  <teirllm@auburn.edu>
@@ -12091,7 +12091,7 @@
 	included diary buffer if it was not already being visited.
 	Reported by Stephen Berman <Stephen.Berman@gmx.net>.
 
-	* calendar/icalendar.el (top-level): Do not require 'appt.
+	* calendar/icalendar.el (top-level): Do not require appt.
 
 	* mail/supercite.el (sc-select-attribution): Only use a list
 	element from sc-attrib-selection-list if it returns a string.
@@ -15398,7 +15398,7 @@
 
 	* calendar/cal-x.el (calendar-one-frame-setup)
 	(calendar-only-one-frame-setup, calendar-two-frame-setup): Use t
-	rather than 'symbol for set-window-dedicated-p.
+	rather than `symbol' for set-window-dedicated-p.
 
 	* calendar/appt.el (appt-buffer-name): Make it a constant.
 	(appt-add): Doc fix.
@@ -18027,10 +18027,10 @@
 	(reftex-index-region-phrases): Add slave parameter to call of
 	`reftex-index-this-phrase'.
 	(reftex-display-index): New argument redo.
-	(reftex-index-rescan): Add 'redo to arguments of
+	(reftex-index-rescan): Add `redo' to arguments of
 	`reftex-display-index'.
 	(reftex-index-Rescan, reftex-index-revert)
-	(reftex-index-switch-index-tag): Add 'redo to arguments of
+	(reftex-index-switch-index-tag): Add `redo' to arguments of
 	`reftex-display-index'.
 	(reftex-index-make-phrase-regexp): Fix bug with case-sensitive
 	indexing.  Fix bug with matching is there is a quote before or
@@ -18097,8 +18097,8 @@
 
 	* xt-mouse.el (xterm-mouse-translate, xterm-mouse-event):
 	Enable mouse clicks on mode-line, header-line and margin.
-	(event-type): Give mouse event symbols an 'event-kind property
-	with value 'mouse-click.
+	(event-type): Give mouse event symbols an `event-kind' property
+	with value `mouse-click'.
 
 2005-01-12  Juri Linkov  <juri@jurta.org>
 
