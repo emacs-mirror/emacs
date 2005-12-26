@@ -1,8 +1,10 @@
 2005-12-26  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* keyboard.h: extern last_point_position_window.
+
 	* undo.c: include keyboard.h.
 
-	* keyboard.h: extern last_point_position_window.
+	* Makefile.in (undo.o): Depend on keyboard.h.
 
 2005-12-26  Richard M. Stallman  <rms@gnu.org>
 
