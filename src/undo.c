@@ -25,6 +25,7 @@ Boston, MA 02110-1301, USA.  */
 #include "buffer.h"
 #include "commands.h"
 #include "window.h"
+#include "keyboard.h"
 
 /* Limits controlling how much undo information to keep.  */
 
