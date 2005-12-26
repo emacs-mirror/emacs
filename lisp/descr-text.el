@@ -30,7 +30,8 @@
 
 ;;; Code:
 
-(eval-when-compile (require 'button) (require 'quail))
+(eval-when-compile (require 'quail))
+(require 'help-fns)
 
 ;;; Describe-Text Utilities.
 
@@ -39,11 +40,11 @@
   (insert-text-button
    (symbol-name (if (symbolp widget) widget (car widget)))
    'action `(lambda (&rest ignore)
-	      (widget-browse ',widget)))
+	      (widget-browse ',widget))
+   'help-echo "mouse-2, RET: browse this widget")
   (insert " ")
-  (insert-text-button "(widget)Top"
-		      'action (lambda (&rest ignore) (info "(widget)Top"))
-		      'help-echo "mouse-2, RET: read this Info node"))
+  (insert-text-button
+   "(widget)Top" 'type 'help-info 'help-args '("(widget)Top")))
 
 (defun describe-text-sexp (sexp)
   "Insert a short description of SEXP in the current buffer."
@@ -81,13 +82,13 @@ into help buttons that call `describe-text-category' or
     (let ((key (nth 0 elt))
 	  (value (nth 1 elt)))
       (insert (propertize (format "  %-20s " key)
-			  'face 'italic))
+			  'face 'help-argument-name))
       (cond ((eq key 'category)
-	     (insert-text-button (symbol-name value)
-				 'action `(lambda (&rest ignore)
-					    (describe-text-category ',value))
-				 'help-echo
-				 "mouse-2, RET: describe this category"))
+	     (insert-text-button
+	      (symbol-name value)
+	      'action `(lambda (&rest ignore)
+			 (describe-text-category ',value))
+	      'help-echo "mouse-2, RET: describe this category"))
             ((memq key '(face font-lock-face mouse-face))
 	     (insert (concat "`" (format "%S" value) "'")))
             ((widgetp value)
@@ -100,7 +101,8 @@ into help buttons that call `describe-text-category' or
 
 (defun describe-text-category (category)
   "Describe a text property category."
-  (interactive "S")
+  (interactive "SCategory: ")
+  (help-setup-xref (list #'describe-text-category category) (interactive-p))
   (save-excursion
     (with-output-to-temp-buffer "*Help*"
       (set-buffer standard-output)
@@ -402,13 +404,15 @@ character)")
 
 
 ;;;###autoload
-(defun describe-char (pos)
+(defun describe-char (pos &optional buf)
   "Describe the character after POS (interactively, the character after point).
 The information includes character code, charset and code points in it,
 syntax, category, how the character is encoded in a file,
 character composition information (if relevant),
 as well as widgets, buttons, overlays, and text properties."
   (interactive "d")
+  (let ((help-buffer (help-buffer)))
+  (with-current-buffer  (if buf buf (current-buffer))
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (let* ((char (char-after pos))
@@ -428,13 +432,13 @@ as well as widgets, buttons, overlays, and text properties."
 				 (single-key-description char)
 			       (string-to-multibyte
 				(char-to-string char)))))
-         (text-props-desc
-          (let ((tmp-buf (generate-new-buffer " *text-props*")))
-            (unwind-protect
-                (progn
-                  (describe-text-properties pos tmp-buf)
-                  (with-current-buffer tmp-buf (buffer-string)))
-              (kill-buffer tmp-buf))))
+	 (text-props-desc
+	  (let ((tmp-buf (generate-new-buffer " *text-props*")))
+	    (unwind-protect
+		(progn
+		  (describe-text-properties pos tmp-buf)
+		  (with-current-buffer tmp-buf (buffer-string)))
+	      (kill-buffer tmp-buf))))
 	 item-list max-width unicode)
 
     (if (or (< char 256)
@@ -444,36 +448,36 @@ as well as widgets, buttons, overlays, and text properties."
 			  (encode-char char 'ucs))))
     (setq item-list
 	  `(("character"
-	    ,(format "%s (%d, #o%o, #x%x%s)"
-		     (apply 'propertize char-description
-			    (text-properties-at pos))
-		     char char char
-		     (if unicode
-			 (format ", U+%04X" unicode)
-		       "")))
+	     ,(format "%s (%d, #o%o, #x%x%s)"
+		      (apply 'propertize char-description
+			     (text-properties-at pos))
+		      char char char
+		      (if unicode
+			  (format ", U+%04X" unicode)
+			"")))
 	    ("charset"
 	     ,`(insert-text-button
-		(symbol-name charset)
-		'action `(lambda (&rest ignore)
-			   (describe-character-set ',charset))
-		'help-echo
-		"mouse-2, RET: describe this character set")
+		,(symbol-name charset)
+		'type 'help-character-set 'help-args '(,charset))
 	     ,(format "(%s)" (charset-description charset)))
 	    ("code point"
 	     ,(let ((split (split-char char)))
-		`(insert-text-button ,(if (= (charset-dimension charset) 1)
-					  (format "%d" (nth 1 split))
-					(format "%d %d" (nth 1 split)
-						(nth 2 split)))
-		 'action (lambda (&rest ignore)
-			   (list-charset-chars ',charset)
-			   (with-selected-window
-			       (get-buffer-window "*Character List*" 0)
-			     (goto-char (point-min))
-                              (forward-line 2) ;Skip the header.
-                              (let ((case-fold-search nil))
-                                (search-forward ,(char-to-string char)
-                                                nil t)))))))
+		`(insert-text-button
+		  ,(if (= (charset-dimension charset) 1)
+		       (format "%d" (nth 1 split))
+		     (format "%d %d" (nth 1 split)
+			     (nth 2 split)))
+		  'action (lambda (&rest ignore)
+			    (list-charset-chars ',charset)
+			    (with-selected-window
+				(get-buffer-window "*Character List*" 0)
+			      (goto-char (point-min))
+			      (forward-line 2) ;Skip the header.
+			      (let ((case-fold-search nil))
+				(search-forward ,(char-to-string char)
+						nil t))))
+		  'help-echo
+		  "mouse-2, RET: show this character in its character set")))
 	    ("syntax"
 	     ,(let ((syntax (syntax-after pos)))
 		(with-temp-buffer
@@ -503,10 +507,9 @@ as well as widgets, buttons, overlays, and text properties."
 				      key-list " or ")
 			   "with"
 			   `(insert-text-button
-			     (symbol-name current-input-method)
-			     'action (lambda (&rest ignore)
-				       (describe-input-method
-					',current-input-method)))))))
+			     ,(symbol-name current-input-method)
+			     'type 'help-input-method
+			     'help-args '(,current-input-method))))))
 	    ("buffer code"
 	     ,(encoded-string-description
 	       (string-as-unibyte (char-to-string char)) nil))
@@ -575,8 +578,7 @@ as well as widgets, buttons, overlays, and text properties."
 			  ((and (< char 32) (not (memq char '(9 10))))
 			   'escape-glyph)))))
 		(if face (list (list "hardcoded face"
-				     '(insert
-				       (concat "`" (symbol-name face) "'"))))))
+				     (concat "`" (symbol-name face) "'")))))
 	    ,@(let ((unicodedata (and unicode
 				      (describe-char-unicode-data unicode))))
 		(if unicodedata
@@ -584,8 +586,10 @@ as well as widgets, buttons, overlays, and text properties."
     (setq max-width (apply #'max (mapcar #'(lambda (x)
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
-    (help-setup-xref nil (interactive-p))
-    (with-output-to-temp-buffer (help-buffer)
+    (help-setup-xref
+     (list #'describe-char pos (if buf buf (current-buffer)))
+     (interactive-p))
+    (with-output-to-temp-buffer help-buffer
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
@@ -688,7 +692,7 @@ as well as widgets, buttons, overlays, and text properties."
 
         (if text-props-desc (insert text-props-desc))
 	(toggle-read-only 1)
-	(print-help-return-message)))))
+        (print-help-return-message)))))))
 
 (defalias 'describe-char-after 'describe-char)
 (make-obsolete 'describe-char-after 'describe-char "22.1")
