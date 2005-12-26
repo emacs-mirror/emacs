@@ -52,7 +52,9 @@
 (defvar mh-mml-mode-default)
 (defvar mh-identity-menu)
 
+
 ;;; Autoloads
+
 (autoload 'mail-mode-fill-paragraph "sendmail")
 (autoload 'mm-handle-displayed-p "mm-decode")
 
@@ -80,6 +82,8 @@ For Emacs 19's, the region need not be active (and typically isn't
 when this function is called.  Also, the hook `sc-pre-hook' is run
 before, and `sc-post-hook' is run after the guts of this function.")
 
+
+
 ;;; Site customization (see also mh-utils.el):
 
 (defvar mh-send-prog "send"
@@ -90,6 +94,8 @@ Some sites need to change this because of a name conflict.")
   "If non-nil redist will be done in background like send.
 This allows transaction log to be visible if -watch, -verbose or -snoop are
 used.")
+
+
 
 ;;; Scan Line Formats
 
@@ -824,7 +830,7 @@ Returns t if found, nil if not."
 
 (put 'mh-letter-mode 'mode-class 'special)
 
-;;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
+;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
 (eval-when-compile (defvar mh-letter-menu nil))
 (easy-menu-define
   mh-letter-menu mh-letter-mode-map "Menu for MH-E letter mode."
@@ -874,8 +880,11 @@ Returns t if found, nil if not."
      mh-mh-to-mime-undo (equal mh-compose-insertion 'mh)]
     ["Kill This Draft"          mh-fully-kill-draft t]))
 
+
+
 ;;; Help Messages
-;;; Group messages logically, more or less.
+
+;; Group messages logically, more or less.
 (defvar mh-letter-mode-help-messages
   '((nil
      "Send letter:          \\[mh-send-letter]"
@@ -994,7 +1003,7 @@ When a message is composed, the hooks `text-mode-hook' and
   ;; Enable undo since a show-mode buffer might have been reused.
   (buffer-enable-undo)
   (set (make-local-variable 'tool-bar-map) mh-letter-tool-bar-map)
-  (mh-funcall-if-exists mh-toolbar-init :letter)
+  (mh-funcall-if-exists mh-tool-bar-init :letter)
   (make-local-variable 'font-lock-defaults)
   (cond
    ((or (equal mh-highlight-citation-style 'font-lock)
@@ -2026,8 +2035,11 @@ Otherwise return the empty string."
     (goto-char (point-max))
     (mh-letter-next-header-field)))
 
-;;; Build the letter-mode keymap:
-;;; If this changes, modify mh-letter-mode-help-messages accordingly, above.
+
+
+;;; Build mh-letter-mode keymap
+
+;; If this changes, modify mh-letter-mode-help-messages accordingly, above.
 (gnus-define-keys  mh-letter-mode-map
   " "                   mh-letter-complete-or-space
   ","                   mh-letter-confirm-address
@@ -2089,10 +2101,10 @@ Otherwise return the empty string."
 
 (provide 'mh-comp)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 62865511-e610-4923-b0b5-f45a8ab70a34
+;; arch-tag: 62865511-e610-4923-b0b5-f45a8ab70a34
 ;;; mh-comp.el ends here

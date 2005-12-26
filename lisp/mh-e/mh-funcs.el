@@ -39,6 +39,8 @@
 (mh-require-cl)
 (require 'mh-e)
 
+
+
 ;;; Scan Line Formats
 
 (defvar mh-note-copied "C"
@@ -46,6 +48,8 @@
 
 (defvar mh-note-printed "P"
   "Messages that have been printed are marked by this character.")
+
+
 
 ;;; Functions
 
@@ -411,10 +415,10 @@ Default directory is the last directory used, or initially the value of
 
 (provide 'mh-funcs)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 1936c4f1-4843-438e-bc4b-a63bb75a7762
+;; arch-tag: 1936c4f1-4843-438e-bc4b-a63bb75a7762
 ;;; mh-funcs.el ends here

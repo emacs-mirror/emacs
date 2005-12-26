@@ -1,3 +1,7 @@
+2005-12-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (macselect.c.x): Depend on keymap.h.
+
 2005-12-10  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Emacs.app/Contents/Info.plist: Add CFBundleURLTypes key and

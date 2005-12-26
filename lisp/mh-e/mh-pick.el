@@ -158,15 +158,22 @@ is used when the search folder is dismissed."
   (add-text-properties (point) (1- (line-end-position)) '(read-only t))
   (goto-char (point-max)))
 
-;;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
+
+
+;;; Build mh-pick-mode menu
+
+;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
 (easy-menu-define
   mh-pick-menu mh-pick-mode-map "Menu for MH-E pick-mode"
   '("Pick"
     ["Execute the Search"       mh-pick-do-search t]))
 
 
+
+
 ;;; Help Messages
-;;; Group messages logically, more or less.
+
+;; Group messages logically, more or less.
 (defvar mh-pick-mode-help-messages
   '((nil
      "Search messages using pick:  \\[mh-pick-do-search]\n"
@@ -351,7 +358,8 @@ COMPONENT is the component to search."
 
 
 ;;; Build the pick-mode keymap:
-;;; If this changes, modify mh-pick-mode-help-messages accordingly, above.
+
+;; If this changes, modify mh-pick-mode-help-messages accordingly, above.
 (gnus-define-keys  mh-pick-mode-map
   "\C-c?"               mh-help
   "\C-c\C-i"            mh-index-do-search
@@ -374,10 +382,10 @@ COMPONENT is the component to search."
 
 (provide 'mh-pick)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: aef2b271-7768-42bd-a782-9a14ba9f83f7
+;; arch-tag: aef2b271-7768-42bd-a782-9a14ba9f83f7
 ;;; mh-pick.el ends here

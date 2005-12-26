@@ -399,19 +399,17 @@ mac_aedesc_to_lisp (desc)
 
 #if TARGET_API_MAC_CARBON
 OSErr
-create_apple_event_from_event_ref (event, num_params, names,
-				   types, sizes, result)
+create_apple_event_from_event_ref (event, num_params, names, types, result)
      EventRef event;
      UInt32 num_params;
      EventParamName *names;
      EventParamType *types;
-     UInt32 *sizes;
      AppleEvent *result;
 {
   OSErr err;
   static const ProcessSerialNumber psn = {0, kCurrentProcess};
   AEAddressDesc address_desc;
-  UInt32 i;
+  UInt32 i, size;
   CFStringRef string;
   CFDataRef data;
   char *buf;
@@ -452,13 +450,17 @@ create_apple_event_from_event_ref (event, num_params, names,
 #endif
 
       default:
-	buf = xmalloc (sizes[i]);
+	err = GetEventParameter (event, names[i], types[i], NULL,
+				 0, &size, NULL);
+	if (err != noErr)
+	  break;
+	buf = xmalloc (size);
 	if (buf == NULL)
 	  break;
 	err = GetEventParameter (event, names[i], types[i], NULL,
-				 sizes[i], NULL, buf);
+				 size, NULL, buf);
 	if (err == noErr)
-	  AEPutParamPtr (result, names[i], types[i], buf, sizes[i]);
+	  AEPutParamPtr (result, names[i], types[i], buf, size);
 	xfree (buf);
 	break;
       }
@@ -3189,7 +3191,10 @@ mystrcpy (char *to, char *from)
    wildcard filename expansion.  Since we don't really have a shell on
    the Mac, this case is detected and the starting of the shell is
    by-passed.  We really need to add code here to do filename
-   expansion to support such functionality. */
+   expansion to support such functionality.
+
+   We can't use this strategy in Carbon because the High Level Event
+   APIs are not available.  */
 
 int
 run_mac_command (argv, workdir, infn, outfn, errfn)
@@ -3933,84 +3938,53 @@ CODE must be a 4-character string.  Return non-nil if successful.  */)
 
 /* Compile and execute the AppleScript SCRIPT and return the error
    status as function value.  A zero is returned if compilation and
-   execution is successful, in which case RESULT returns a pointer to
-   a string containing the resulting script value.  Otherwise, the Mac
-   error code is returned and RESULT returns a pointer to an error
-   string.  In both cases the caller should deallocate the storage
-   used by the string pointed to by RESULT if it is non-NULL.  For
-   documentation on the MacOS scripting architecture, see Inside
-   Macintosh - Interapplication Communications: Scripting Components.  */
+   execution is successful, in which case *RESULT is set to a Lisp
+   string containing the resulting script value.  Otherwise, the Mac
+   error code is returned and *RESULT is set to an error Lisp string.
+   For documentation on the MacOS scripting architecture, see Inside
+   Macintosh - Interapplication Communications: Scripting
+   Components.  */
 
 static long
-do_applescript (char *script, char **result)
+do_applescript (script, result)
+     Lisp_Object script, *result;
 {
-  AEDesc script_desc, result_desc, error_desc;
+  AEDesc script_desc, result_desc, error_desc, *desc = NULL;
   OSErr error;
   OSAError osaerror;
-  long length;
 
-  *result = 0;
+  *result = Qnil;
 
   if (!as_scripting_component)
     initialize_applescript();
 
-  error = AECreateDesc (typeChar, script, strlen(script), &script_desc);
+  error = AECreateDesc (typeChar, SDATA (script), SBYTES (script),
+			&script_desc);
   if (error)
     return error;
 
   osaerror = OSADoScript (as_scripting_component, &script_desc, kOSANullScript,
 			  typeChar, kOSAModeNull, &result_desc);
 
-  if (osaerror == errOSAScriptError)
-    {
-      /* error executing AppleScript: retrieve error message */
-      if (!OSAScriptError (as_scripting_component, kOSAErrorMessage, typeChar,
-			   &error_desc))
-        {
-#if TARGET_API_MAC_CARBON
-          length = AEGetDescDataSize (&error_desc);
-          *result = (char *) xmalloc (length + 1);
-          if (*result)
-            {
-              AEGetDescData (&error_desc, *result, length);
-              *(*result + length) = '\0';
-            }
-#else /* not TARGET_API_MAC_CARBON */
-          HLock (error_desc.dataHandle);
-          length = GetHandleSize(error_desc.dataHandle);
-          *result = (char *) xmalloc (length + 1);
-          if (*result)
-            {
-              memcpy (*result, *(error_desc.dataHandle), length);
-              *(*result + length) = '\0';
-            }
-          HUnlock (error_desc.dataHandle);
-#endif /* not TARGET_API_MAC_CARBON */
-          AEDisposeDesc (&error_desc);
-        }
-    }
-  else if (osaerror == noErr)  /* success: retrieve resulting script value */
+  if (osaerror == noErr)
+    /* success: retrieve resulting script value */
+    desc = &result_desc;
+  else if (osaerror == errOSAScriptError)
+    /* error executing AppleScript: retrieve error message */
+    if (!OSAScriptError (as_scripting_component, kOSAErrorMessage, typeChar,
+			 &error_desc))
+      desc = &error_desc;
+
+  if (desc)
     {
 #if TARGET_API_MAC_CARBON
-      length = AEGetDescDataSize (&result_desc);
-      *result = (char *) xmalloc (length + 1);
-      if (*result)
-        {
-          AEGetDescData (&result_desc, *result, length);
-          *(*result + length) = '\0';
-        }
+      *result = make_uninit_string (AEGetDescDataSize (desc));
+      AEGetDescData (desc, SDATA (*result), SBYTES (*result));
 #else /* not TARGET_API_MAC_CARBON */
-      HLock (result_desc.dataHandle);
-      length = GetHandleSize(result_desc.dataHandle);
-      *result = (char *) xmalloc (length + 1);
-      if (*result)
-        {
-          memcpy (*result, *(result_desc.dataHandle), length);
-          *(*result + length) = '\0';
-        }
-      HUnlock (result_desc.dataHandle);
+      *result = make_uninit_string (GetHandleSize (desc->dataHandle));
+      memcpy (SDATA (*result), *(desc->dataHandle), SBYTES (*result));
 #endif /* not TARGET_API_MAC_CARBON */
-      AEDisposeDesc (&result_desc);
+      AEDisposeDesc (desc);
     }
 
   AEDisposeDesc (&script_desc);
@@ -4028,38 +4002,20 @@ component.  */)
     (script)
     Lisp_Object script;
 {
-  char *result, *temp;
-  Lisp_Object lisp_result;
+  Lisp_Object result;
   long status;
 
   CHECK_STRING (script);
 
   BLOCK_INPUT;
-  status = do_applescript (SDATA (script), &result);
+  status = do_applescript (script, &result);
   UNBLOCK_INPUT;
-  if (status)
-    {
-      if (!result)
-        error ("AppleScript error %d", status);
-      else
-        {
-          /* Unfortunately only OSADoScript in do_applescript knows how
-             how large the resulting script value or error message is
-             going to be and therefore as caller memory must be
-             deallocated here.  It is necessary to free the error
-             message before calling error to avoid a memory leak.  */
-          temp = (char *) alloca (strlen (result) + 1);
-          strcpy (temp, result);
-          xfree (result);
-          error (temp);
-        }
-    }
+  if (status == 0)
+    return result;
+  else if (!STRINGP (result))
+    error ("AppleScript error %d", status);
   else
-    {
-      lisp_result = build_string (result);
-      xfree (result);
-      return lisp_result;
-    }
+    error ("%s", SDATA (result));
 }
 
 

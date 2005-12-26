@@ -2280,7 +2280,7 @@ from which the minibuffer was entered.  The return value of
   (let ((str (make-symbol "string")))
     `(dynamic-completion-table
       (lambda (,str)
-        (unless (listp ,var)
+        (when (functionp ,var)
           (setq ,var (,fun ,@args)))
         ,var))))
 

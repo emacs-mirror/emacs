@@ -640,11 +640,10 @@ first blank line.  If you wish, you can choose which information to
 include before the first blank line so as to make this display useful.
 
 @item
-A variable's documentation string should start with @samp{*} if the
-variable is one that users would often want to set interactively.  If
-the value is a long list, or a function, or if the variable would be set
-only in init files, then don't start the documentation string with
-@samp{*}.  @xref{Defining Variables}.
+When you define a variable that users ought to set interactively, you
+normally should use @code{defcustom}.  However, if for some reason you
+use @code{defvar} instead, start the doc string with a @samp{*}.
+@xref{Defining Variables}.
 
 @item
 The documentation string for a variable that is a yes-or-no flag should

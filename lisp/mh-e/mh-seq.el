@@ -78,7 +78,10 @@
 ;; Shush the byte-compiler
 (defvar tool-bar-mode)
 
+
+
 ;;; Data structures (used in message threading)...
+
 (mh-defstruct (mh-thread-message (:conc-name mh-message-)
                                  (:constructor mh-thread-make-message))
   (id nil)
@@ -91,15 +94,20 @@
   message parent children
   (real-child-p t))
 
+
 
 ;;; Internal variables:
+
 (defvar mh-last-seq-used nil
   "Name of seq to which a msg was last added.")
 
 (defvar mh-non-seq-mode-line-annotation nil
   "Saved value of `mh-mode-line-annotation' when narrowed to a seq.")
 
+
+
 ;;; Maps and hashes...
+
 (defvar mh-thread-id-hash nil
   "Hashtable used to canonicalize message identifiers.")
 (defvar mh-thread-subject-hash nil
@@ -377,9 +385,10 @@ refiled are present in `mh-refile-list'."
 
 
 
-;;; Commands to manipulate sequences.  Sequences are stored in an alist
-;;; of the form:
-;;;     ((seq-name msgs ...) (seq-name msgs ...) ...)
+;;; Commands to manipulate sequences.
+
+;; Sequences are stored in an alist of the form:
+;;     ((seq-name msgs ...) (seq-name msgs ...) ...)
 
 (defvar mh-sequence-history ())
 
@@ -412,7 +421,10 @@ defaults to the first sequence containing the current message."
         (error "No messages in sequence `%s'" seq))
     seq))
 
+
+
 ;;; Functions to read ranges with completion...
+
 (defvar mh-range-seq-names)
 (defvar mh-range-history ())
 (defvar mh-range-completion-map (copy-keymap minibuffer-local-completion-map))
@@ -702,11 +714,10 @@ a uniform interface to MH-E functions."
 
 
 
-;;; Commands to handle new 'subject sequence.
-;;; Or "Poor man's threading" by psg.
+;;; Commands to handle new 'subject sequence ("Poor man's threading" by psg)
 
-;;; XXX: The function mh-subject-to-sequence-unthreaded uses the magic number
-;;;  41 for the max size of the subject part. Avoiding this would be desirable.
+;; XXX: The function mh-subject-to-sequence-unthreaded uses the magic number
+;;  41 for the max size of the subject part. Avoiding this would be desirable.
 (defun mh-subject-to-sequence (all)
   "Put all following messages with same subject in sequence 'subject.
 If arg ALL is t, move to beginning of folder buffer to collect all messages.
@@ -969,6 +980,8 @@ command behaves like \\[mh-thread-delete]."
   (if (memq 'unthread mh-view-ops)
       (mh-thread-delete)
     (mh-delete-subject)))
+
+
 
 ;;; Message threading:
 
@@ -1745,10 +1758,10 @@ messages. When you want to widen the view to all your messages again, use
 
 (provide 'mh-seq)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 8e952711-01a2-485b-bf21-c9e3ad4de942
+;; arch-tag: 8e952711-01a2-485b-bf21-c9e3ad4de942
 ;;; mh-seq.el ends here

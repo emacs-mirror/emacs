@@ -62,7 +62,10 @@
 (defvar font-lock-defaults)
 (defvar mark-active)
 
+
+
 ;;; Autoloads
+
 (autoload 'gnus-article-highlight-citation "gnus-cite")
 (autoload 'message-fetch-field "message")
 (autoload 'message-tokenize-header "message")
@@ -70,7 +73,10 @@
 (unless (fboundp 'make-hash-table)
   (autoload 'make-hash-table "cl"))
 
+
+
 ;;; CL Replacements
+
 (defun mh-search-from-end (char string)
   "Return the position of last occurrence of CHAR in STRING.
 If CHAR is not present in STRING then return nil. The function is used in lieu
@@ -79,10 +85,11 @@ of `search' in the CL package."
         when (equal (aref string index) char) return index
         finally return nil))
 
-;;; Additional header fields that might someday be added:
-;;; "Sender: " "Reply-to: "
+;; Additional header fields that might someday be added:
+;; "Sender: " "Reply-to: "
 
 
+
 ;;; Scan Line Formats
 
 (defvar mh-scan-msg-number-regexp "^ *\\([0-9]+\\)"
@@ -171,7 +178,8 @@ Use `mh-signature-separator-regexp' when searching for a separator.")
                                         ; this number
   (part-index-hash (make-hash-table)))  ; Avoid incrementing the part number
                                         ; for nested messages
-;;; This has to be a macro, since we do: (setf (mh-buffer-data) ...)
+
+;; This has to be a macro, since we do: (setf (mh-buffer-data) ...)
 (defmacro mh-buffer-data ()
   "Convenience macro to get the MIME data structures of the current buffer."
   `(gethash (current-buffer) mh-globals-hash))
@@ -457,6 +465,8 @@ about the fontification operation."
       (gnus-article-highlight-citation t)
       (set-buffer-modified-p modified))))
 
+
+
 ;;; Internal bookkeeping variables:
 
 ;; Cached value of the `Path:' component in the user's MH profile.
@@ -510,6 +520,8 @@ about the fontification operation."
 ;;Non-nil means next SPC or whatever goes to next undeleted message.
 (defvar mh-page-to-next-msg-flag nil)
 
+
+
 ;;; Internal variables local to a folder.
 
 ;; Name of current folder, a string.
@@ -554,7 +566,7 @@ about the fontification operation."
             (cons modeline-buffer-id-left-extent "XEmacs%N:"))
           (cons modeline-buffer-id-right-extent " %17b")))))
 
-;;; This holds a documentation string used by describe-mode.
+;; This holds a documentation string used by describe-mode.
 (defun mh-showing-mode (&optional arg)
   "Change whether messages should be displayed.
 With arg, display messages iff ARG is positive."
@@ -573,6 +585,8 @@ With arg, display messages iff ARG is positive."
 ;; If nil, show buffer contains message processed normally.
 ;; Showing message with headers or normally.
 (defvar mh-showing-with-headers nil)
+
+
 
 ;;; MH-E macros
 
@@ -740,10 +754,10 @@ See `expand-file-name' for description of DEFAULT."
                         (mh-expand-file-name folder)
                       mh-folder-filename)))
 
-;;; Infrastructure to generate show-buffer functions from folder functions
-;;; XEmacs does not have deactivate-mark? What is the equivalent of
-;;; transient-mark-mode for XEmacs? Should we be restoring the mark in the
-;;; folder buffer after the operation has been carried out.
+;; Infrastructure to generate show-buffer functions from folder functions
+;; XEmacs does not have deactivate-mark? What is the equivalent of
+;; transient-mark-mode for XEmacs? Should we be restoring the mark in the
+;; folder buffer after the operation has been carried out.
 (defmacro mh-defun-show-buffer (function original-function
                                          &optional dont-return)
   "Define FUNCTION to run ORIGINAL-FUNCTION in folder buffer.
@@ -784,8 +798,8 @@ still visible.\n")
                                            (get-buffer cur-buffer-name))))
                       (pop-to-buffer (get-buffer cur-buffer-name) nil)))))))))
 
-;;; Generate interactive functions for the show buffer from the corresponding
-;;; folder functions.
+;; Generate interactive functions for the show buffer from the corresponding
+;; folder functions.
 (mh-defun-show-buffer mh-show-previous-undeleted-msg
                       mh-previous-undeleted-msg)
 (mh-defun-show-buffer mh-show-next-undeleted-msg
@@ -883,7 +897,10 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-display-with-external-viewer
                       mh-display-with-external-viewer)
 
-;;; Populate mh-show-mode-map
+
+
+;;; Build mh-show-mode keymaps
+
 (gnus-define-keys mh-show-mode-map
   " "    mh-show-page-msg
   "!"    mh-show-refile-or-write-again
@@ -1081,7 +1098,7 @@ still visible.\n")
     ["Quit MH-E"                        mh-quit t]))
 
 
-;;; Ensure new buffers won't get this mode if default-major-mode is nil.
+;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
 
 ;; Avoid compiler warnings in XEmacs and Emacs 20
@@ -1120,7 +1137,7 @@ See also `mh-folder-mode'.
            font-lock-auto-fontify)
       (turn-on-font-lock))
   (set (make-local-variable 'tool-bar-map) mh-show-tool-bar-map)
-  (mh-funcall-if-exists mh-toolbar-init :show)
+  (mh-funcall-if-exists mh-tool-bar-init :show)
   (when mh-decode-mime-flag
     (mh-make-local-hook 'kill-buffer-hook)
     (add-hook 'kill-buffer-hook 'mh-mime-cleanup nil t))
@@ -1260,10 +1277,10 @@ is used."
 
 
 
-;; Picon display
+;;; Picon display
 
-;;; XXX: This should be customizable. As a side-effect of setting this
-;;;   variable, arrange to reset mh-picon-existing-directory-list to 'unset.
+;; XXX: This should be customizable. As a side-effect of setting this
+;;   variable, arrange to reset mh-picon-existing-directory-list to 'unset.
 (defvar mh-picon-directory-list
   '("~/.picons" "~/.picons/users" "~/.picons/usenix" "~/.picons/news"
     "~/.picons/domains" "~/.picons/misc"
@@ -2388,6 +2405,8 @@ The function returns the size of the final size of the log buffer."
       (insert "\n\n"))
     (buffer-size)))
 
+
+
 ;;; Issue commands to MH.
 
 (defun mh-exec-cmd (command &rest args)
@@ -2593,10 +2612,10 @@ older versions of Gnus."
 
 (provide 'mh-utils)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 1af39fdf-f66f-4b06-9b48-18a7656c8e36
+;; arch-tag: 1af39fdf-f66f-4b06-9b48-18a7656c8e36
 ;;; mh-utils.el ends here

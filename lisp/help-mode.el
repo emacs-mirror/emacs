@@ -136,16 +136,12 @@ The format is (FUNCTION ARGS...).")
 (define-button-type 'help-customize-variable
   :supertype 'help-xref
   'help-function (lambda (v)
-		   (if help-xref-stack
-		       (pop help-xref-stack))
 		   (customize-variable v))
   'help-echo (purecopy "mouse-2, RET: customize variable"))
 
 (define-button-type 'help-customize-face
   :supertype 'help-xref
   'help-function (lambda (v)
-		   (if help-xref-stack
-		       (pop help-xref-stack))
 		   (customize-face v))
   'help-echo (purecopy "mouse-2, RET: customize face"))
 

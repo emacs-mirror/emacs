@@ -1418,8 +1418,7 @@ key, a click, or a menu-item"))
 (defun menu-bar-menu-frame-live-and-visible-p ()
   "Return non-nil if the menu frame is alive and visible.
 The menu frame is the frame for which we are updating the menu."
-  (let ((menu-frame (if (display-multi-frame-p) menu-updating-frame
-		      (selected-frame))))
+  (let ((menu-frame (or menu-updating-frame (selected-frame))))
     (and (frame-live-p menu-frame)
 	 (frame-visible-p menu-frame))))
 
@@ -1428,8 +1427,7 @@ The menu frame is the frame for which we are updating the menu."
 
 See the documentation of `menu-bar-menu-frame-live-and-visible-p'
 for the definition of the menu frame."
-  (let ((menu-frame (if (display-multi-frame-p) menu-updating-frame
-		      (selected-frame))))
+  (let ((menu-frame (or menu-updating-frame (selected-frame))))
     (not (window-minibuffer-p (frame-selected-window menu-frame)))))
 
 (defun kill-this-buffer ()	; for the menu bar

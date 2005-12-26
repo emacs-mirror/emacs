@@ -219,9 +219,9 @@ Obsolete; use `mailcap-mime-types'.
 
 See also \\[mh-mh-to-mime].")
 
-;;; Delete mh-minibuffer-read-type and mh-mime-content-types and use
-;;; mml-minibuffer-read-type when Emacs20 is no longer supported unless we
-;;; think (mh-file-mime-type) is better than (mm-default-file-encoding).
+;; Delete mh-minibuffer-read-type and mh-mime-content-types and use
+;; mml-minibuffer-read-type when Emacs20 is no longer supported unless we
+;; think (mh-file-mime-type) is better than (mm-default-file-encoding).
 
 (defun mh-minibuffer-read-type (filename &optional default)
   "Return the content type associated with the given FILENAME.
@@ -1347,9 +1347,9 @@ Parameter EL is unused."
     (mm-set-handle-multipart-parameter
      handle 'mh-region (cons (point-min-marker) (point-max-marker)))))
 
-;;; I rewrote the security part because Gnus doesn't seem to ever minimize
-;;; the button. That is once the mime-security button is pressed there seems
-;;; to be no way of getting rid of the inserted text.
+;; I rewrote the security part because Gnus doesn't seem to ever minimize
+;; the button. That is once the mime-security button is pressed there seems
+;; to be no way of getting rid of the inserted text.
 (defun mh-mime-security-show-details (handle)
   "Toggle display of detailed security info for HANDLE."
   (let ((details (mm-handle-multipart-ctl-parameter handle 'gnus-details)))
@@ -1509,10 +1509,10 @@ message multiple times."
 
 (provide 'mh-mime)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 0dd36518-1b64-4a84-8f4e-59f422d3f002
+;; arch-tag: 0dd36518-1b64-4a84-8f4e-59f422d3f002
 ;;; mh-mime.el ends here

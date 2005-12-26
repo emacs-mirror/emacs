@@ -183,7 +183,7 @@ best. You change this setting permanently by customizing the option
      (setq mh-ps-print-color-option nil)
      (message "Colors will not be printed"))))
 
-;;; Old non-PS based printing
+;; Old non-PS based printing
 ;;;###mh-autoload
 (defun mh-print-msg (range)
   "Print RANGE the old fashioned way\\<mh-folder-mode-map>.
@@ -242,10 +242,10 @@ Consider using \\[mh-ps-print-msg] instead."
 
 (provide 'mh-print)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
 ;; arch-tag: 8d84d50b-2a49-4d0d-b51e-ba9c9b6fc679
 ;;; mh-print.el ends here

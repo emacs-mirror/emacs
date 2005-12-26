@@ -1,3 +1,85 @@
+2005-12-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* log-view.el (log-view-file-re, log-view-message-re): Use shy groups.
+	(log-view-font-lock-keywords): Ajust subgroup numbers.
+	(log-view-current-tag): Don't hard code the number of subgroups.
+
+2005-12-20  Juri Linkov  <juri@jurta.org>
+
+	* tooltip.el (tooltip): Move defgroup before define-minor-mode.
+	(tooltip-x-offset, tooltip-y-offset): Doc fix.
+
+	* menu-bar.el (menu-bar-menu-frame-live-and-visible-p)
+	(menu-bar-non-minibuffer-window-p): Instead of checking
+	display-multi-frame-p, use selected-frame when menu-updating-frame
+	is nil.
+
+2005-12-20  Davis Herring  <herring@lanl.gov>  (tiny change)
+
+	* align.el (align-rules-list): Use [ \t] instead of \s-
+	for column separators in text mode.
+
+2005-12-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* help-mode.el (help-customize-variable, help-customize-face):
+	Don't pop help-xref-stack as help-follow no longer pushes
+	anything on to it.
+
+2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-agenda-custom-commands): New option.
+	(org-agenda): Offer custom commands on splash screen.
+	(org-make-tags-matcher): Parser for Boolean logic added.
+	(org-agenda-set-tags): New command.
+	(org-agenda-menu, org-agenda-mode-map): Add `org-agenda-set-tags'.
+	(org-set-tags): Efficiency improvements.
+	(org-auto-align-tags): New option.
+	(org-todo, org-demote, org-promote): Realign tags.
+	(org-tags-completion-function): Use also "&" and "|" as separators.
+	(org-org-menu): Agenda commands simplified.
+
+2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-apropos, customize-apropos-options):
+	Docstring changes.
+
+	* font-lock.el (font-lock): Add tags to the links in the defgroup.
+
+2005-12-19  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-mode): Wrap while widened.
+	(longlines-decode-region, longlines-encode-region): Compute max
+	just once.
+
+2005-12-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* cus-edit.el (mac): New group.
+
+	* cus-start.el (all): Add user options in macterm.c.  Add test for
+	Mac-related built-ins.  Fix test for GTK-related built-ins.
+
+	* term/mac-win.el (mac-handle-language-change)
+	(mac-ae-open-documents, mac-ae-get-url, mac-services-open-file)
+	(mac-services-open-selection, mac-services-mail-selection)
+	(mac-services-mail-to, mac-services-insert-text)
+	(mac-dispatch-apple-event): Add docstrings.
+	(x-get-selection, mac-select-convert-to-string): Select coding
+	system from `utf-16be' and `utf-16le' using `byteorder'.
+
+2005-12-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (lazy-completion-table): Don't be fooled if the var holds
+	a "list" (lambda ...) rather than a real completion list.
+
+	* emacs-lisp/cl-extra.el (cl-macroexpand-all): Fix code-walk for
+	lexical-let when encountering ((lambda (...) ...) ...).
+
+2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/sh-script.el (sh-mode):
+	* language/ethio-util.el (ethio-fidel-to-sera-mail-or-marker):
+	* textmodes/picture.el (picture-mode): Update docstrings.
+
 2005-12-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (autoloads, custom-deps): Warn that parts of
@@ -9,8 +91,8 @@
 
 2005-12-17  Chong Yidong  <cyd@stupidchicken.com>
 
-	* emacs-lisp/edebug.el (edebug-safe-prin1-to-string): Capture
-	error from printing circular structures.
+	* emacs-lisp/edebug.el (edebug-safe-prin1-to-string):
+	Capture error from printing circular structures.
 
 2005-12-17  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
@@ -7215,7 +7297,7 @@
 2005-08-26  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (version-list-<, version-list-<=, version-list-=):
-	Renamed from integer-list-*.
+	Rename from integer-list-*.
 	(version-list-not-zero): Likewise.  Fix while loop.
 	(version=): Use version-list-= instead of string-equal.
 
@@ -12362,8 +12444,7 @@
 	(multiple-value-bind, multiple-value-setq, shiftf):
 	Improve argument/docstring consistency.
 
-	* subr.el (focus-frame, unfocus-frame):
-	Revert deletion on 2005-05-01.
+	* subr.el (focus-frame, unfocus-frame): Revert deletion on 2005-05-01.
 
 2005-05-22  Andre Spiegel  <spiegel@gnu.org>
 
@@ -12496,8 +12577,7 @@
 	(subst-if-not, nsubst, nsubst-if, nsubst-if-not, sublis)
 	(nsublis, tree-equal): Improve argument/docstring consistency.
 
-	* subr.el (send-string, send-region):
-	Remove obsolescence declaration.
+	* subr.el (send-string, send-region): Remove obsolescence declaration.
 	(window-dot, set-window-dot, read-input, show-buffer)
 	(eval-current-buffer, string-to-int):
 	Add release number to obsolescence declarations.
@@ -12574,8 +12654,8 @@
 	* emacs-lisp/byte-run.el (eval-when-compile): Doc fix.
 
 	* emacs-lisp/bytecomp.el
-	(byte-compile-file-form-custom-declare-variable): Call
-	byte-compile-nogroup-warn if appropriate.
+	(byte-compile-file-form-custom-declare-variable):
+	Call byte-compile-nogroup-warn if appropriate.
 
 	* progmodes/compile.el (compilation-finish-function): Mark obsolete.
 	(compilation-set-window): Don't call left-fringe-p; do it directly.

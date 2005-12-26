@@ -1,3 +1,19 @@
+2005-12-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* customize.texi (Type Keywords): Delete xref to "Text help-echo",
+	because it is confusing.  If the :help-echo keyword is a function,
+	it is not directly used as the :help-echo overlay property, as the
+	xref seems to suggest (it does not take the appropriate args).
+
+2005-12-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* customize.texi (Common Keywords): Fix Texinfo usage.
+	(Group Definitions, Variable Definitions): Update for new
+	conventions for using `*' in docstrings.
+
+	* tips.texi (Documentation Tips): Update for new conventions for
+	using `*' in docstrings.
+
 2005-12-16  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.texi (Minibuffer Contents): Minor cleanup.

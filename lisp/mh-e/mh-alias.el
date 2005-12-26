@@ -38,7 +38,10 @@
 					; completing-read-multiple.
 (eval-when-compile (defvar mail-abbrev-syntax-table))
 
+
+
 ;;; Autoloads
+
 (eval-when (compile load eval)
   (ignore-errors
     (require 'mailabbrev)
@@ -71,6 +74,7 @@ listed in your `Aliasfile:' MH profile component are automatically included.
 You can update the alias list manually using \\[mh-alias-reload].")
 
 
+
 ;;; Alias Loading
 
 (defun mh-alias-tstamp (arg)
@@ -228,6 +232,7 @@ with no arguments, after the aliases have been loaded."
       (mh-alias-reload)))
 
 
+
 ;;; Alias Expansion
 
 (defun mh-alias-ali (alias &optional user)
@@ -312,6 +317,7 @@ Blind aliases or users from /etc/passwd are not expanded."
         (delete-region begin end)
         (insert expansion)))))
 
+
 ;;; Adding addresses to alias file.
 
 (defun mh-alias-suggest-alias (string &optional no-comma-swap)
@@ -653,10 +659,10 @@ name hint when filing messages."
 
 (provide 'mh-alias)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 49879e46-5aa3-4569-bece-e5a58731d690
+;; arch-tag: 49879e46-5aa3-4569-bece-e5a58731d690
 ;;; mh-alias.el ends here

@@ -1,3 +1,57 @@
+2005-12-20  Juri Linkov  <juri@jurta.org>
+
+	* xmenu.c (Fx_popup_menu): Set Vmenu_updating_frame to f if
+	position is non-nil, else set it to nil.
+
+	* macmenu.c (Fx_popup_menu): Add `else' to set
+	Vmenu_updating_frame to nil only if position is nil.
+
+	* w32menu.c (Fx_popup_menu): Add `else' to set
+	Vmenu_updating_frame to nil only if position is nil.
+
+2005-12-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (make_lispy_event): Drag-and-drop items are now
+	stored in member `args' of struct input_event.
+
+	* termhooks.h (struct input_event): Fix comment for DRAG_N_DROP_EVENT.
+
+	* xselect.c (x_handle_dnd_message): Drag-and-drop items are now
+	stored in member `args' of struct input_event.
+
+	* w32term.c (construct_drag_n_drop): Likewise.
+
+	* macterm.c (mac_do_receive_drag): Likewise.
+	(x_use_underline_position_properties): Undo 2005-07-13 change.
+	(syms_of_macterm) <x-use-underline-position-properties>: Likewise.
+	(mac_use_core_graphics, mac_wheel_button_is_mouse_2)
+	(mac_pass_command_to_system, mac_pass_control_to_system): New
+	boolean variables renamed from Lisp_Object ones
+	Vmac_use_core_graphics, Vmac_wheel_button_is_mouse_2,
+	Vmac_pass_command_to_system, and Vmac_pass_control_to_system.  All
+	uses changed.
+	(syms_of_macterm): DEFVAR_BOOL them.  Remove previous DEFVAR_LISPs.
+	Make them user options.
+	(mac_handle_command_event, mac_store_services_event): Call
+	create_apple_event_from_event_ref without 5th argument.
+	(backtranslate_modified_keycode): Mask off modifier keys that are
+	mapped to some Emacs modifiers before passing it to KeyTranslate.
+	(syms_of_macterm): Make variables `mac-emulate-three-button-mouse',
+	`mac-wheel-button-is-mouse-2', and `mac-*-modifier' user options.
+	Fix docstrings of `mac-*-modifier'.
+
+	* mac.c (create_apple_event_from_event_ref): Remove arg `types'.
+	(do_applescript): Change argument types to Lisp_Object.  All uses
+	changed.
+
+	* macterm.h (create_apple_event_from_event_ref): Remove 5th
+	argument from extern.
+
+2005-12-18  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* xfns.c (Fx_backspace_delete_keys_p): In case we cannot determine
+	the answer, return `lambda', not nil.
+
 2005-12-17  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (bootstrap-temacs): Warn that parts of commands

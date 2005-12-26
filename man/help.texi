@@ -47,7 +47,7 @@ manual index, then finally look in the FAQ and the package keywords.
 @item C-h a @var{topics} @key{RET}
 This searches for commands whose names match @var{topics}, which
 should be a keyword, a list of keywords, or a regular expression
-(@pxref{Regexps}).  This command displays a the matches in a new
+(@pxref{Regexps}).  This command displays all the matches in a new
 buffer.  @xref{Apropos}.
 
 @item C-h i d m emacs @key{RET} i @var{topic} @key{RET}
@@ -336,7 +336,7 @@ view, describe, default.
 @end quotation
 
 @findex apropos
-  To list all Lisp symbols that contain a match an Apropos pattern,
+  To list all Lisp symbols that contain a match for an Apropos pattern,
 not just the ones that are defined as commands, use the command
 @kbd{M-x apropos} instead of @kbd{C-h a}.  This command does not check
 key bindings by default; specify a numeric argument if you want it to
@@ -374,7 +374,7 @@ most relevant ones first.
   By default, Apropos lists the search results for
 @code{apropos-documentation} in order of relevance of the match.  If
 the variable @code{apropos-documentation-sort-by-scores} is
-@code{nil}, Apropos lists the symbosl found in alphabetical order.
+@code{nil}, Apropos lists the symbols found in alphabetical order.
 
 @node Library Keywords
 @section Keyword Search for Lisp Libraries

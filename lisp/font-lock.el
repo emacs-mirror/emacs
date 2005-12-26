@@ -212,8 +212,8 @@
 ;; Define core `font-lock' group.
 (defgroup font-lock '((jit-lock custom-group))
   "Font Lock mode text highlighting package."
-  :link '(custom-manual "(emacs)Font Lock")
-  :link '(custom-manual "(elisp)Font Lock Mode")
+  :link '(custom-manual :tag "Emacs Manual" "(emacs)Font Lock")
+  :link '(custom-manual :tag "Elisp Manual" "(elisp)Font Lock Mode")
   :group 'faces)
 
 (defgroup font-lock-faces nil

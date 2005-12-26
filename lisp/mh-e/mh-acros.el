@@ -55,7 +55,7 @@ recognizes that and loads `cl' where appropriate."
       `(require 'cl)
     `(eval-when-compile (require 'cl))))
 
-;;; Macros to generate correct code for different emacs variants
+;; Macros to generate correct code for different emacs variants
 
 (defmacro mh-do-in-gnu-emacs (&rest body)
   "Execute BODY if in GNU Emacs."
@@ -144,11 +144,11 @@ Emacs 22."
 
 (provide 'mh-acros)
 
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; no-byte-compile: t
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
 ;; arch-tag: b383b49a-494f-4ed0-a30a-cb6d5d2da4ff
 ;;; mh-acros.el ends here

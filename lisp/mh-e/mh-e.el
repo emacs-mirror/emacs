@@ -105,11 +105,12 @@
 The string is displayed after the folder's name.  nil for no annotation.")
 
 
+
 ;;; Scan Line Formats
 
-;;; Parameterize MH-E to work with different scan formats.  The defaults work
-;;; with the standard MH scan listings, in which the first 4 characters on
-;;; the line are the message number, followed by two places for notations.
+;; Parameterize MH-E to work with different scan formats.  The defaults work
+;; with the standard MH scan listings, in which the first 4 characters on
+;; the line are the message number, followed by two places for notations.
 
 ;; The following scan formats are passed to the scan program if the setting of
 ;; `mh-scan-format-file' is t. They are identical except the later one makes
@@ -459,6 +460,8 @@ is done highlighting.")
 
 (defvar mh-refile-list nil)             ;List of folder names in mh-seq-list.
 
+(defvar mh-folders-changed nil)         ;For mh-after-commands-processed-hook.
+
 (defvar mh-next-direction 'forward)     ;Direction to move to next message.
 
 (defvar mh-view-ops ())                 ;Stack of ops that change the folder
@@ -482,6 +485,8 @@ is done highlighting.")
                                         ;is overwritten by `mh-note-seq'.
 
 (defvar mh-colors-available-flag nil)   ;Are colors available?
+
+
 
 ;;; Macros and generic functions:
 
@@ -1507,14 +1512,16 @@ Make it the current folder."
     (mh-index-read-data))
   (mh-make-folder-mode-line))
 
-;;; Ensure new buffers won't get this mode if default-major-mode is nil.
+;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-folder-mode 'mode-class 'special)
 
 
 
-;;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
-;;; Menus for folder mode: folder, message, sequence (in that order)
-;;; folder-mode "Sequence" menu
+;;; Build mh-folder-mode menu
+
+;; Menu extracted from mh-menubar.el V1.1 (31 July 2001)
+;; Menus for folder mode: folder, message, sequence (in that order)
+;; folder-mode "Sequence" menu
 (easy-menu-define
   mh-folder-sequence-menu mh-folder-mode-map "Menu for MH-E folder-sequence."
   '("Sequence"
@@ -1535,7 +1542,7 @@ Make it the current folder."
     "--"
     ["Push State Out to MH"             mh-update-sequences t]))
 
-;;; folder-mode "Message" menu
+;; folder-mode "Message" menu
 (easy-menu-define
   mh-folder-message-menu mh-folder-mode-map "Menu for MH-E folder-message."
   '("Message"
@@ -1568,7 +1575,7 @@ Make it the current folder."
     ["Unpack Uuencoded Message..."      mh-store-msg (mh-get-msg-num nil)]
     ["Burst Digest Message"             mh-burst-digest (mh-get-msg-num nil)]))
 
-;;; folder-mode "Folder" menu
+;; folder-mode "Folder" menu
 (easy-menu-define
   mh-folder-folder-menu mh-folder-mode-map  "Menu for MH-E folder."
   '("Folder"
@@ -1742,7 +1749,7 @@ messages in that region.
   (easy-menu-add mh-folder-message-menu)
   (easy-menu-add mh-folder-folder-menu)
   (set (make-local-variable 'tool-bar-map) mh-folder-tool-bar-map)
-  (mh-funcall-if-exists mh-toolbar-init :folder)
+  (mh-funcall-if-exists mh-tool-bar-init :folder)
   (if (and mh-xemacs-flag
            font-lock-auto-fontify)
       (turn-on-font-lock)))             ; Force font-lock in XEmacs.
@@ -1786,7 +1793,7 @@ DESKTOP-BUFFER-MISC holds a list of miscellaneous info used by the
   (mh-visit-folder desktop-buffer-name)
   (current-buffer))
 
-;;; desktop-buffer-mode-handlers appeared in Emacs 22.
+;; desktop-buffer-mode-handlers appeared in Emacs 22.
 (if (fboundp 'desktop-buffer-mode-handlers)
     (add-to-list 'desktop-buffer-mode-handlers
                  '(mh-folder-mode . mh-restore-desktop-buffer)))
@@ -2144,13 +2151,15 @@ Called by functions like `mh-sort-folder', so also invalidate show buffer."
 
 (defun mh-process-commands (folder)
   "Process outstanding commands for FOLDER.
-The value of `mh-folder-updated-hook' is a list of functions to be called,
-with no arguments, before the commands are processed."
+The value of `mh-before-commands-processed-hook' is a list of functions
+to be called, with no arguments, before the commands are processed.
+After all cammands are processed, the functions in
+`mh-after-commands-processed-hook' are called with no arguments."
   (message "Processing deletes and refiles for %s..." folder)
   (set-buffer folder)
   (with-mh-folder-updating (nil)
-    ;; Run the hook while the lists are still valid
-    (run-hooks 'mh-folder-updated-hook)
+    ;; Run the before hook -- the refile and delete lists are still valid
+    (run-hooks 'mh-before-commands-processed-hook)
 
     ;; Update the unseen sequence if it exists
     (mh-update-unseen)
@@ -2217,17 +2226,23 @@ with no arguments, before the commands are processed."
         (when (mh-speed-flists-active-p)
           (apply #'mh-speed-flists t folders-changed))
         (cond ((memq 'unthread mh-view-ops) (mh-thread-inc folder (point-max)))
-              (mh-index-data (mh-index-insert-folder-headers)))))
+              (mh-index-data (mh-index-insert-folder-headers))))
 
-    (and (buffer-file-name (get-buffer mh-show-buffer))
-         (not (file-exists-p (buffer-file-name (get-buffer mh-show-buffer))))
-         ;; If "inc" were to put a new msg in this file,
-         ;; we would not notice, so mark it invalid now.
-         (mh-invalidate-show-buffer))
+      (and (buffer-file-name (get-buffer mh-show-buffer))
+           (not (file-exists-p (buffer-file-name (get-buffer mh-show-buffer))))
+           ;; If "inc" were to put a new msg in this file,
+           ;; we would not notice, so mark it invalid now.
+           (mh-invalidate-show-buffer))
 
-    (setq mh-seq-list (mh-read-folder-sequences mh-current-folder nil))
-    (mh-remove-all-notation)
-    (mh-notate-user-sequences)
+      (setq mh-seq-list (mh-read-folder-sequences mh-current-folder nil))
+      (mh-remove-all-notation)
+      (mh-notate-user-sequences)
+
+      ;; Run the after hook -- now folders-changed is valid, 
+      ;; but not the lists of specific messages.
+      (let ((mh-folders-changed folders-changed))
+        (run-hooks 'mh-after-commands-processed-hook)))
+
     (message "Processing deletes and refiles for %s...done" folder)))
 
 (defun mh-update-unseen ()
@@ -2478,7 +2493,7 @@ If INCLUDE-INTERNAL-FLAG non-nil, include MH-E internal sequences in list."
 
 
 
-;;; Build the folder-mode keymap:
+;;; Build mh-folder-mode keymap:
 
 (suppress-keymap mh-folder-mode-map)
 
@@ -2631,15 +2646,15 @@ If INCLUDE-INTERNAL-FLAG non-nil, include MH-E internal sequences in list."
 
 ;;; Help Messages
 
-;;; If you add a new prefix, add appropriate text to the nil key.
-;;;
-;;; In general, messages are grouped logically. Taking the main commands for
-;;; example, the first line is "ways to view messages," the second line is
-;;; "things you can do with messages", and the third is "composing" messages.
-;;;
-;;; When adding a new prefix, ensure that the help message contains "what" the
-;;; prefix is for. For example, if the word "folder" were not present in the
-;;; `F' entry, it would not be clear what these commands operated upon.
+;; If you add a new prefix, add appropriate text to the nil key.
+;;
+;; In general, messages are grouped logically. Taking the main commands for
+;; example, the first line is "ways to view messages," the second line is
+;; "things you can do with messages", and the third is "composing" messages.
+;;
+;; When adding a new prefix, ensure that the help message contains "what" the
+;; prefix is for. For example, if the word "folder" were not present in the
+;; `F' entry, it would not be clear what these commands operated upon.
 (defvar mh-help-messages
   '((nil "[i]nc, [.]show, [,]show all, [n]ext, [p]revious,\n"
          "[d]elete, [o]refile, e[x]ecute,\n"
@@ -2682,10 +2697,10 @@ well.")
 
 (provide 'mh-e)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: cce884de-bd37-4104-9963-e4439d5ed22b
+;; arch-tag: cce884de-bd37-4104-9963-e4439d5ed22b
 ;;; mh-e.el ends here

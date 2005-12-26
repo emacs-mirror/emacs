@@ -5524,7 +5524,8 @@ DEFUN ("x-backspace-delete-keys-p", Fx_backspace_delete_keys_p,
        doc: /* Check if both Backspace and Delete keys are on the keyboard of FRAME.
 FRAME nil means use the selected frame.
 Value is t if we know that both keys are present, and are mapped to the
-usual X keysyms.  */)
+usual X keysyms.  Value is `lambda' if we cannot determine if both keys are
+present and mapped to the usual X keysyms.  */)
      (frame)
      Lisp_Object frame;
 {
@@ -5543,7 +5544,7 @@ usual X keysyms.  */)
   if (!XkbLibraryVersion (&major, &minor))
     {
       UNBLOCK_INPUT;
-      return Qnil;
+      return Qlambda;
     }
 
   /* Check that the server supports XKB.  */
@@ -5552,7 +5553,7 @@ usual X keysyms.  */)
   if (!XkbQueryExtension (dpy, &op, &event, &error, &major, &minor))
     {
       UNBLOCK_INPUT;
-      return Qnil;
+      return Qlambda;
     }
 
   /* In this code we check that the keyboard has physical keys with names
@@ -5607,7 +5608,7 @@ usual X keysyms.  */)
   UNBLOCK_INPUT;
   return have_keys;
 #else /* not HAVE_XKBGETKEYBOARD */
-  return Qnil;
+  return Qlambda;
 #endif /* not HAVE_XKBGETKEYBOARD */
 }
 

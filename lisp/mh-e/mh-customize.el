@@ -83,6 +83,11 @@
   (require 'mh-init)
   (require 'mh-identity))
 
+;; For compiler warnings...
+(eval-when-compile
+  (defvar mh-show-buffer)
+  (defvar mh-show-folder-buffer))
+
 (defun mh-customize (&optional delete-other-windows-flag)
   "Customize MH-E variables.
 If optional argument DELETE-OTHER-WINDOWS-FLAG is non-nil, other windows in
@@ -93,11 +98,6 @@ the frame are removed."
     (delete-other-windows)))
 
 
-
-;;; For compiler warnings...
-(eval-when-compile
-  (defvar mh-show-buffer)
-  (defvar mh-show-folder-buffer))
 
 ;;; MH-E Customization Groups
 
@@ -198,9 +198,9 @@ mailutils."
   :link '(custom-manual "(mh-e)Threading")
   :group 'mh-e)
 
-(defgroup mh-toolbar nil
-  "The toolbar"
-  :link '(custom-manual "(mh-e)Toolbar")
+(defgroup mh-tool-bar nil
+  "The tool bar"
+  :link '(custom-manual "(mh-e)Tool Bar")
   :prefix "mh-"
   :group 'mh-e)
 
@@ -216,6 +216,8 @@ mailutils."
   :link '(custom-manual "(mh-e)Top")
   :prefix "mh-"
   :group 'mh-e)
+
+
 
 ;;; Faces
 
@@ -998,7 +1000,7 @@ default). If you need to scan just the message 200, then use the range
 
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
-;;; Forward definition to avoid compiler and runtime error.
+;; Forward definition to avoid compiler and runtime error.
 (defvar mh-scan-format-file t)
 
 (defun mh-adaptive-cmd-note-flag-check (symbol value)
@@ -1163,9 +1165,9 @@ See also `mh-reply'."
 
 ;;; Sequences (:group 'mh-sequences)
 
-;;; If `mh-unpropagated-sequences' becomes a defcustom, add the following to
-;;; the docstring: "Additional sequences that should not to be preserved can be
-;;; specified by setting `mh-unpropagated-sequences' appropriately." XXX
+;; If `mh-unpropagated-sequences' becomes a defcustom, add the following to
+;; the docstring: "Additional sequences that should not to be preserved can be
+;; specified by setting `mh-unpropagated-sequences' appropriately." XXX
 
 (defcustom mh-refile-preserves-sequences-flag t
   "*Non-nil means that sequences are preserved when messages are refiled.
@@ -1801,15 +1803,18 @@ only if the number of messages being threaded is less than `mh-large-folder'."
 
 
 
-;;; The Toolbar (:group 'mh-toolbar)
+;;; The Tool Bar (:group 'mh-tool-bar)
 
 (defcustom mh-tool-bar-search-function 'mh-search-folder
-  "*Function called by the tool-bar search button.
-See `mh-search-folder' and `mh-index-search' for details."
+  "*Function called by the tool bar search button.
+
+Available functions include `mh-search-folder', the default, and
+`mh-index-search'. You can also choose \"Other Function\" from the \"Value
+Menu\" and enter a function of your own choosing."
   :type '(choice (const mh-search-folder)
                  (const mh-index-search)
-                 (function :tag "Other function"))
-  :group 'mh-toolbar)
+                 (function :tag "Other Function"))
+  :group 'mh-tool-bar)
 
 ;; Functions called from the tool bar
 (defun mh-tool-bar-search (&optional arg)
@@ -1819,7 +1824,7 @@ Optional argument ARG is not used."
   (call-interactively mh-tool-bar-search-function))
 
 (defun mh-tool-bar-customize ()
-  "Call `mh-customize' from the toolbar."
+  "Call `mh-customize' from the tool bar."
   (interactive)
   (mh-customize t))
 
@@ -1830,9 +1835,9 @@ Optional argument ARG is not used."
   (delete-other-windows))
 
 (defun mh-tool-bar-letter-help ()
-  "Visit \"(mh-e)Draft Editing\"."
+  "Visit \"(mh-e)Editing Drafts\"."
   (interactive)
-  (info "(mh-e)Draft Editing")
+  (info "(mh-e)Editing Drafts")
   (delete-other-windows))
 
 (defmacro mh-tool-bar-reply-generator (function recipient folder-buffer-flag)
@@ -1855,45 +1860,35 @@ When INCLUDE-FLAG is non-nil, include message body being replied to."
 
 ;; XEmacs has a couple of extra customizations...
 (mh-do-in-xemacs
-  (defcustom mh-xemacs-use-toolbar-flag (if (and (featurep 'toolbar)
-                                                 (featurep 'xpm)
-                                                 (device-on-window-system-p))
-                                            t
-                                          nil)
-    "*If non-nil, use toolbar.
+  (defcustom mh-xemacs-use-tool-bar-flag mh-xemacs-has-tool-bar-flag
+    "*If non-nil, use tool bar.
 
-This will default to t if you are in an environment that supports
-toolbars and xpm."
+This option controls whether to show the MH-E icons at all. By default, this
+option is turned on if the window system supports tool bars. If your system
+doesn't support tool bars, then you won't be able to turn on this option."
     :type 'boolean
-    :group 'mh-toolbar)
+    :group 'mh-tool-bar
+    :set (lambda (symbol value)
+           (if (and (eq value t)
+                    (not mh-xemacs-has-tool-bar-flag))
+               (error "Tool bar not supported"))
+           (set-default symbol value)))
 
-  (defcustom mh-xemacs-toolbar-position (if mh-xemacs-use-toolbar-flag
-                                            'default
-                                          nil)
-    "*Where to put the toolbar.
+  (defcustom mh-xemacs-tool-bar-position nil
+    "*Tool bar location.
 
-Valid non-nil values are \"default\", \"top\", \"bottom\", \"left\",
-\"right\".  These match the four edges of the frame, with \"default\"
-meaning \"use the same position as the default-toolbar\".
-
-A nil value means do not use a toolbar.
-
-If this variable is set to anything other than \"default\" and the
-default-toolbar has a different positional setting from the value of
-this variable, then two toolbars will be displayed.  The MH-E toolbar
-and the default-toolbar."
-    :type '(radio (const :tag "Same position as the \"default-toolbar\""
-                         :value default)
-                  (const :tag "Along the top edge of the frame"
-                         :value top)
-                  (const :tag "Along the bottom edge of the frame"
-                         :value bottom)
-                  (const :tag "Along the left edge of the frame"
-                         :value left)
-                  (const :tag "Along the right edge of the frame"
-                         :value right)
-                  (const :tag "Don't use a toolbar" nil))
-    :group 'mh-toolbar))
+This option controls the placement of the tool bar along the four edges of the
+frame. You can choose from one of \"Same As Default Tool Bar\", \"Top\",
+\"Bottom\", \"Left\", or \"Right\". If this variable is set to anything other
+than \"Same As Default Tool Bar\" and the default tool bar is in a different
+location, then two tool bars will be displayed: the MH-E tool bar and the
+default tool bar."
+    :type '(radio (const :tag "Same As Default Tool Bar" :value nil)
+                  (const :tag "Top" :value top)
+                  (const :tag "Bottom" :value bottom)
+                  (const :tag "Left" :value left)
+                  (const :tag "Right" :value right))
+    :group 'mh-tool-bar))
 
 (defun mh-buffer-exists-p (mode)
   "Test whether a buffer with major mode MODE is present."
@@ -1996,7 +1991,7 @@ where,
                                     (t 'folder-vectors)))
                  (list (cond ((eq type :letter) 'mh-tool-bar-letter-buttons)
                              (t 'mh-tool-bar-folder-buttons)))
-                 (key (intern (concat "mh-" type1 "toolbar-" name-str)))
+                 (key (intern (concat "mh-" type1 "tool-bar-" name-str)))
                  (setter (intern (concat type1 "-button-setter")))
                  (mbuttons (cond ((eq type :letter) 'letter-buttons)
                                  ((eq type :show) 'show-buttons)
@@ -2063,89 +2058,87 @@ where,
                      tool-bar-map))))
          ;; Custom setter functions
          (defun mh-tool-bar-folder-buttons-set (symbol value)
-           "Construct toolbar for `mh-folder-mode' and `mh-show-mode'."
+           "Construct tool bar for `mh-folder-mode' and `mh-show-mode'."
            (set-default symbol value)
            (mh-tool-bar-folder-buttons-init))
          (defun mh-tool-bar-letter-buttons-set (symbol value)
-           "Construct toolbar for `mh-letter-mode'."
+           "Construct tool bar for `mh-letter-mode'."
            (set-default symbol value)
            (mh-tool-bar-letter-buttons-init)))
        ;; XEmacs specific code
        (mh-do-in-xemacs
-         (defvar mh-toolbar-folder-vector-map
+         (defvar mh-tool-bar-folder-vector-map
            ',(loop for button in folder-buttons
                    for vector in folder-vectors
                    collect (cons button vector)))
-         (defvar mh-toolbar-show-vector-map
+         (defvar mh-tool-bar-show-vector-map
            ',(loop for button in show-buttons
                    for vector in show-vectors
                    collect (cons button vector)))
-         (defvar mh-toolbar-letter-vector-map
+         (defvar mh-tool-bar-letter-vector-map
            ',(loop for button in letter-buttons
                    for vector in letter-vectors
                    collect (cons button vector)))
-         (defvar mh-toolbar-folder-buttons nil)
-         (defvar mh-toolbar-show-buttons nil)
-         (defvar mh-toolbar-letter-buttons nil)
+         (defvar mh-tool-bar-folder-buttons nil)
+         (defvar mh-tool-bar-show-buttons nil)
+         (defvar mh-tool-bar-letter-buttons nil)
          ;; Custom setter functions
          (defun mh-tool-bar-letter-buttons-set (symbol value)
            (set-default symbol value)
-           (when mh-xemacs-has-toolbar-flag
-             (setq mh-toolbar-letter-buttons
+           (when mh-xemacs-has-tool-bar-flag
+             (setq mh-tool-bar-letter-buttons
                    (loop for b in value
-                         collect (cdr (assoc b mh-toolbar-letter-vector-map))))))
+                         collect (cdr (assoc b mh-tool-bar-letter-vector-map))))))
          (defun mh-tool-bar-folder-buttons-set (symbol value)
            (set-default symbol value)
-           (when mh-xemacs-has-toolbar-flag
-             (setq mh-toolbar-folder-buttons
+           (when mh-xemacs-has-tool-bar-flag
+             (setq mh-tool-bar-folder-buttons
                    (loop for b in value
-                         collect (cdr (assoc b mh-toolbar-folder-vector-map))))
-             (setq mh-toolbar-show-buttons
+                         collect (cdr (assoc b mh-tool-bar-folder-vector-map))))
+             (setq mh-tool-bar-show-buttons
                    (loop for b in value
-                         collect (cdr (assoc b mh-toolbar-show-vector-map))))))
-         ;; Initialize toolbar
-         (defun mh-toolbar-init (mode)
-           "Install toolbar in MODE."
-           (let ((toolbar (cond ((eq mode :folder) mh-toolbar-folder-buttons)
-                                ((eq mode :letter) mh-toolbar-letter-buttons)
-                                ((eq mode :show) mh-toolbar-show-buttons)))
+                         collect (cdr (assoc b mh-tool-bar-show-vector-map))))))
+         (defun mh-tool-bar-init (mode)
+           "Install tool bar in MODE."
+           (let ((tool-bar (cond ((eq mode :folder) mh-tool-bar-folder-buttons)
+                                ((eq mode :letter) mh-tool-bar-letter-buttons)
+                                ((eq mode :show) mh-tool-bar-show-buttons)))
                  (height 37)
                  (width 40)
                  (buffer (current-buffer)))
-             (when (and mh-xemacs-toolbar-position mh-xemacs-use-toolbar-flag
-                        mh-xemacs-has-toolbar-flag)
+             (when mh-xemacs-use-tool-bar-flag
                (cond
-                ((eq mh-xemacs-toolbar-position 'top)
-                 (set-specifier top-toolbar toolbar buffer)
+                ((eq mh-xemacs-tool-bar-position 'top)
+                 (set-specifier top-toolbar tool-bar buffer)
                  (set-specifier top-toolbar-visible-p t)
                  (set-specifier top-toolbar-height height))
-                ((eq mh-xemacs-toolbar-position 'bottom)
-                 (set-specifier bottom-toolbar toolbar buffer)
+                ((eq mh-xemacs-tool-bar-position 'bottom)
+                 (set-specifier bottom-toolbar tool-bar buffer)
                  (set-specifier bottom-toolbar-visible-p t)
                  (set-specifier bottom-toolbar-height height))
-                ((eq mh-xemacs-toolbar-position 'left)
-                 (set-specifier left-toolbar toolbar buffer)
+                ((eq mh-xemacs-tool-bar-position 'left)
+                 (set-specifier left-toolbar tool-bar buffer)
                  (set-specifier left-toolbar-visible-p t)
                  (set-specifier left-toolbar-width width))
-                ((eq mh-xemacs-toolbar-position 'right)
-                 (set-specifier right-toolbar toolbar buffer)
+                ((eq mh-xemacs-tool-bar-position 'right)
+                 (set-specifier right-toolbar tool-bar buffer)
                  (set-specifier right-toolbar-visible-p t)
                  (set-specifier right-toolbar-width width))
-                (t (set-specifier default-toolbar toolbar buffer)))))))
-       ;; Declare customizable toolbars
+                (t (set-specifier default-toolbar tool-bar buffer)))))))
+       ;; Declare customizable tool bars
        (custom-declare-variable
         'mh-tool-bar-folder-buttons
         '(list ,@(mapcar (lambda (x) `(quote ,x)) folder-defaults))
-        "Choose buttons to include in MH-E folder/show toolbar."
-        :group 'mh-toolbar :set 'mh-tool-bar-folder-buttons-set
+        "List of buttons to include in MH-Folder tool bar."
+        :group 'mh-tool-bar :set 'mh-tool-bar-folder-buttons-set
         :type '(set ,@(loop for x in folder-buttons
                             for y in folder-docs
                             collect `(const :tag ,y ,x))))
        (custom-declare-variable
         'mh-tool-bar-letter-buttons
         '(list ,@(mapcar (lambda (x) `(quote ,x)) letter-defaults))
-        "Choose buttons to include in MH-E letter toolbar."
-        :group 'mh-toolbar :set 'mh-tool-bar-letter-buttons-set
+        "List of buttons to include in MH-Letter tool bar."
+        :group 'mh-tool-bar :set 'mh-tool-bar-letter-buttons-set
         :type '(set ,@(loop for x in letter-buttons
                             for y in letter-docs
                             collect `(const :tag ,y ,x)))))))
@@ -2301,14 +2294,23 @@ on his mail usage."
   :group 'mh-hooks
   :group 'mh-folder)
 
-(defcustom mh-folder-updated-hook nil
-  "Invoked when the folder actions (such as moves and deletes) are performed.
+(defcustom mh-before-commands-processed-hook nil
+  "Invoked before the folder actions (such as moves and deletes) are performed.
 Variables that are useful in this hook include `mh-delete-list' and
-`mh-refile-list' which can be used to see which changes are being made to
+`mh-refile-list' which can be used to see which changes will be made to
 current folder, `mh-current-folder'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
+
+(defcustom mh-after-commands-processed-hook nil
+  "Invoked after the folder actions (such as moves and deletes) are performed.
+Variables that are useful in this hook include `mh-folders-changed',
+which lists which folders were affected by deletes and refiles.  This
+list will always include the current folder, which is also available
+in `mh-current-folder'."
+  :type 'hook
+  :group 'mh-hooks)
 
 (defcustom mh-forward-hook nil
   "Invoked on the forwarded letter by \\<mh-folder-mode-map>\\[mh-forward]."
@@ -2402,6 +2404,8 @@ will be removed from the unseen sequence."
 
 
 ;;; Faces (:group 'mh-*-faces + group where faces described)
+
+
 
 ;;; Faces Used in Scan Listing (:group 'mh-folder-faces)
 
@@ -2767,10 +2771,10 @@ The background and foreground is used in the image."
   "Face used for the current folder when it has unread messages."
   :group 'mh-speed-faces)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 778d2a20-82e2-4276-be9d-309386776a68
+;; arch-tag: 778d2a20-82e2-4276-be9d-309386776a68
 ;;; mh-customize.el ends here

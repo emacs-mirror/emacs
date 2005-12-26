@@ -963,7 +963,7 @@ XPM icons if Emacs was built with XPM support.  Otherwise, the tool
 bar uses monochrome icons (PBM or XBM format).
 
   You can turn display of tool bars on or off with @kbd{M-x
-tool-bar-mode}.
+tool-bar-mode} or by customizing the option @code{tool-bar-mode}.
 
 @node Dialog Boxes
 @section Using Dialog Boxes

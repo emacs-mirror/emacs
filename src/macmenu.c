@@ -746,7 +746,8 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
       XSETFRAME (Vmenu_updating_frame, f);
     }
-  Vmenu_updating_frame = Qnil;
+  else
+    Vmenu_updating_frame = Qnil;
 #endif /* HAVE_MENUS */
 
   title = Qnil;

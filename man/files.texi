@@ -1788,7 +1788,46 @@ Display version control state and change history.
   To view the detailed version control status and history of a file,
 type @kbd{C-x v l} (@code{vc-print-log}).  It displays the history of
 changes to the current file, including the text of the log entries.  The
-output appears in a separate window.
+output appears in a separate window.  The point is centered at the
+revision of the file that is currently being visited.
+
+From the change log buffer, the following keys are used to move
+between the logs of revisions and files, to view past revisions, and
+to view diffs:
+
+@table @kbd
+@item p
+Move to the previous revision-item in the buffer.  (Revision entries in the log
+buffer are usually in reverse-chronological order, so the previous
+revision-item usually corresponds to a newer revision.)  A numeric
+prefix argument is a repeat count.
+
+@item n
+Move to the next revision-item (which most often corresponds to the
+previous revision of the file).  A numeric prefix argument is a repeat
+count.
+
+@item P
+Move to the log of the previous file, when the logs of multiple files
+are in the log buffer (@pxref{VC Dired Mode}).  Otherwise, just move
+to the beginning of the log.  A numeric prefix argument is a repeat
+count, so @kbd{C-u 10 P} would move backward 10 files.
+
+@item N
+Move to the log of the next file, when the logs of multiple files are
+in the log buffer (@pxref{VC Dired Mode}).  It also takes a numeric
+prefix argument as a repeat count.
+
+@item f
+Visit the revision indicated at the current line, like typing @kbd{C-x
+v ~} and specifying this revision's number (@pxref{Old Versions}).
+
+@item d
+Display the diff (@pxref{Comparing Files}) between the revision
+indicated at the current line and the next earlier revision.  This is
+useful to see what actually changed when the revision indicated on the
+current line was committed.
+@end table
 
 @node VC Undo
 @subsubsection Undoing Version Control Actions

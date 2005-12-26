@@ -5854,14 +5854,8 @@ make_lispy_event (event)
 	Lisp_Object head, position;
 	Lisp_Object files;
 
-	/* The frame_or_window field should be a cons of the frame in
-	   which the event occurred and a list of the filenames
-	   dropped.  */
-	if (! CONSP (event->frame_or_window))
-	  abort ();
-
-	f = XFRAME (XCAR (event->frame_or_window));
-	files = XCDR (event->frame_or_window);
+	f = XFRAME (event->frame_or_window);
+	files = event->arg;
 
 	/* Ignore mouse events that were made on frames that
 	   have been deleted.  */
@@ -11720,6 +11714,9 @@ active keymaps have no binding for the current key sequence but
 `local-function-key-map' binds a suffix of the sequence to a vector or
 string, `read-key-sequence' replaces the matching suffix with its
 binding, and continues with the new sequence.
+
+If the binding is a function, it is called with one argument (the prompt)
+and its return value (a key sequence) is used.
 
 The events that come from bindings in `local-function-key-map' are not
 themselves looked up in `local-function-key-map'.

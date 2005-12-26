@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar, wp
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 4.00
+;; Version: 4.01
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -81,6 +81,13 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 4.01
+;;    - Tags can also be set remotely from agenda buffer.
+;;    - Boolean logic for tag searches.
+;;    - Additional agenda commands can be configured through the variable
+;;      `org-agenda-custom-commands'.
+;;    - Minor bug fixes.
+;;
 ;; Version 4.00
 ;;    - Headlines can contain TAGS, and Org-mode can produced a list
 ;;      of matching headlines based on a TAG search expression.
@@ -199,7 +206,7 @@
 ;;    - Cleanup.
 ;;
 ;; Version 3.07
-;;    - Some folding incinsistencies removed.
+;;    - Some folding inconsistencies removed.
 ;;    - BBDB links to company-only entries.
 ;;    - Bug fixes and global cleanup.
 ;;
@@ -266,7 +273,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "4.00"
+(defvar org-version "4.01"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -593,6 +600,23 @@ Entries are added to this list with \\[org-agenda-file-to-front] and removed wit
 \\[org-remove-file].  You can also use customize to edit the list."
   :group 'org-agenda
   :type '(repeat file))
+
+(defcustom org-agenda-custom-commands
+  '(("w" todo "WAITING")
+    ("u" tags "+WORK+URGENT-BOSS"))
+  "Custom commands for the agenda.
+These commands will be offered on the splash screen displayed by the
+agenda dispatcher \\[org-agenda].  Each entry is a list of 3 items:
+
+key    The key (as a string) to be associated with the command.
+type   The command type, either `todo' for a todo list with a specific
+       todo keyword, or `tags' for a tags search.
+match  What to search for.  Either a TODO keyword, or a tags match query."
+  :group 'org-agenda
+  :type '(repeat
+	  (list (string :tag "Key")
+		(choice :tag "Type" (const tags) (const todo))
+		(string :tag "Match"))))
 
 (defcustom org-select-timeline-window t
   "Non-nil means, after creating a timeline, move cursor into Timeline window.
@@ -981,7 +1005,7 @@ first line, so it is probably best to use this in combinations with
   :tag "Org Tags"
   :group 'org)
 
-(defcustom org-tags-column 40
+(defcustom org-tags-column 48
   "The column to which tags should be indented in a headline.
 If this number is positive, it specified the column.  If it is negative,
 it means that the tags should be flushright to that column.  For example,
@@ -989,9 +1013,19 @@ it means that the tags should be flushright to that column.  For example,
   :group 'org-tags
   :type 'integer)
 
+(defcustom org-auto-align-tags t
+  "Non-nil means, realign tags after pro/demotion of TODO state change.
+These operations change the length of a headline and therefore shift
+the tags around.  With this options turned on, after each such operation
+the tags are again aligned to `org-tags-column'."
+  :group 'org-tags
+  :type 'boolean)
+
 (defcustom org-use-tag-inheritance t
   "Non-nil means, tags in levels apply also for sublevels.
-When nil, only the tags directly give in a specific line apply there."
+When nil, only the tags directly give in a specific line apply there.
+If you turn off this option, you very likely want to turn on the
+companion option `org-tags-match-list-sublevels'."
   :group 'org-tags
   :type 'boolean)
 
@@ -1000,7 +1034,9 @@ When nil, only the tags directly give in a specific line apply there."
 Because of tag inheritance (see variable `org-use-tag-inheritance'),
 the sublevels of a headline matching a tag search often also match
 the same search.  Listing all of them can create very long lists.
-Setting this variable to nil causes subtrees to be skipped."
+Setting this variable to nil causes subtrees to be skipped.
+This option is off by default, because inheritance in on.  If you turn
+inheritance off, you very likely want to turn this option on."
   :group 'org-tags
   :type 'boolean)
 
@@ -2721,6 +2757,8 @@ in the region."
 	 (up-head (make-string (1- level) ?*)))
     (if (= level 1) (error "Cannot promote to level 0. UNDO to recover"))
     (replace-match up-head nil t)
+    ;; Fixup tag positioning
+    (and org-auto-align-tags (org-set-tags nil t))
     (if org-adapt-indentation
 	(org-fixup-indentation "^ " "" "^ ?\\S-"))))
 
@@ -2732,6 +2770,8 @@ in the region."
   (let* ((level (save-match-data (funcall outline-level)))
 	 (down-head (make-string (1+ level) ?*)))
     (replace-match down-head nil t)
+    ;; Fixup tag positioning
+    (and org-auto-align-tags (org-set-tags nil t))
     (if org-adapt-indentation
 	(org-fixup-indentation "^ " "  " "^\\S-"))))
 
@@ -3467,6 +3507,8 @@ prefix arg, switch to that state."
 	    (org-log-done)
 	  (if (not this)
 	      (org-log-done t))))
+      ;; Fixup tag positioning
+      (and org-auto-align-tags (org-set-tags nil t))
       (run-hooks 'org-after-todo-state-change-hook)))
   ;; Fixup cursor location if close to the keyword
   (if (and (outline-on-heading-p)
@@ -4226,6 +4268,7 @@ The following commands are available:
 (define-key org-agenda-mode-map "o"        'delete-other-windows)
 (define-key org-agenda-mode-map "L"        'org-agenda-recenter)
 (define-key org-agenda-mode-map "t"        'org-agenda-todo)
+(define-key org-agenda-mode-map ":"        'org-agenda-set-tags)
 (define-key org-agenda-mode-map "."        'org-agenda-goto-today)
 (define-key org-agenda-mode-map "d"        'org-agenda-day-view)
 (define-key org-agenda-mode-map "w"        'org-agenda-week-view)
@@ -4293,6 +4336,7 @@ The following commands are available:
      :style toggle :selected org-agenda-follow-mode :active t]
     "--"
     ["Cycle TODO" org-agenda-todo t]
+    ["Set Tags" org-agenda-set-tags t]
     ("Reschedule"
      ["Reschedule +1 day" org-agenda-date-later t]
      ["Reschedule -1 day" org-agenda-date-earlier t]
@@ -4338,7 +4382,7 @@ The following commands are available:
 (defun org-agenda (arg)
   "Dispatch agenda commands to collect entries to the agenda buffer.
 Prompts for a character to select a command.  Any prefix arg will be passed
-on to the selected command.  Possible selections are:
+on to the selected command.  The default selections are:
 
 a     Call `org-agenda' to display the agenda for the current day or week.
 t     Call `org-todo-list' to display the global todo list.
@@ -4349,35 +4393,70 @@ m     Call `org-tags-view' to display headlines with tags matching
       selections, like `+WORK+URGENT-WITHBOSS'.
 M     like `m', but select only TODO entries, no ordinary headlines.
 
+More commands can be added by configuring the variable
+`org-agenda-custom-commands'.
+
 If the current buffer is in Org-mode and visiting a file, you can also
 first press `1' to indicate that the agenda should be temporarily
 restricted to the current file."
   (interactive "P")
-  (let ((restrict-ok (and (buffer-file-name) (eq major-mode 'org-mode)))
-	c)
-    (put 'org-agenda-files 'org-restrict nil)
-    (message"[a]genda [t]odoList [T]odoKwd [m]atchTags [M]atchTagsTodo%s"
-	    (if restrict-ok " [1]JustThisFile" ""))
-    (setq c (read-char-exclusive))
-    (message "")
-    (when (equal c ?1)
-      (if restrict-ok
-	  (put 'org-agenda-files 'org-restrict (list (buffer-file-name)))
-	(error "Cannot restrict agenda to current buffer"))
-      (message "Single file: [a]genda [t]odoList [T]odoKwd [m]atchTags [M]atchTagsTodo")
-      (setq c (read-char-exclusive))
-      (message ""))
-    (cond
-     ((equal c ?a) (call-interactively 'org-agenda-list))
-     ((equal c ?t) (call-interactively 'org-todo-list))
-     ((equal c ?T)
-      (setq current-prefix-arg (or arg '(4)))
-      (call-interactively 'org-todo-list))
-     ((equal c ?m) (call-interactively 'org-tags-view))
-     ((equal c ?M)
-      (setq current-prefix-arg (or arg '(4)))
-      (call-interactively 'org-tags-view))
-     (t (error "Invalid key")))))
+  (catch 'exit
+    (let ((restrict-ok (and (buffer-file-name) (eq major-mode 'org-mode)))
+	  (custom org-agenda-custom-commands)
+	  c entry key type string)
+      (put 'org-agenda-files 'org-restrict nil)
+      (save-window-excursion
+	(delete-other-windows)
+	(switch-to-buffer-other-window " *Agenda Commands*")
+	(erase-buffer)
+	(insert
+	 "Press key for an agenda command:
+--------------------------------
+a   Agenda for current week or day
+t   List of all TODO entries             T   Entries with special TODO kwd
+m   Match a TAGS query                   M   Like m, but only TODO entries.
+C   Configure your own agenda commands")
+	(while (setq entry (pop custom))
+	  (setq key (car entry) type (nth 1 entry) string (nth 2 entry))
+	  (insert (format "\n%-4s%-12s: %s"
+			  key
+			  (if (eq type 'tags) "Tags query" "TODO keyword")
+			  string)))
+	(goto-char (point-min))
+	(fit-window-to-buffer)
+	(message "Press key for agenda command%s"
+		(if restrict-ok ", or [1] to restrict to current file" ""))
+	(setq c (read-char-exclusive))
+	(message "")
+	(when (equal c ?1)
+	  (if restrict-ok
+	      (put 'org-agenda-files 'org-restrict (list (buffer-file-name)))
+	    (error "Cannot restrict agenda to current buffer"))
+	  (message "Press key for agenda command%s"
+		   (if restrict-ok " (restricted to current file)" ""))
+	  (setq c (read-char-exclusive))
+	  (message "")))
+      (require 'calendar)  ; FIXME: can we avoid this for some commands?
+      (cond
+       ((equal c ?C) (customize-variable 'org-agenda-custom-commands))
+       ((equal c ?a) (call-interactively 'org-agenda-list))
+       ((equal c ?t) (call-interactively 'org-todo-list))
+       ((equal c ?T)
+	(setq current-prefix-arg (or arg '(4)))
+	(call-interactively 'org-todo-list))
+       ((equal c ?m) (call-interactively 'org-tags-view))
+       ((equal c ?M)
+	(setq current-prefix-arg (or arg '(4)))
+	(call-interactively 'org-tags-view))
+       ((setq entry (assoc (char-to-string c) org-agenda-custom-commands))
+	(setq type (nth 1 entry) string (nth 2 entry))
+	(cond
+	 ((eq type 'tags)
+	  (org-tags-view current-prefix-arg string))
+	 ((eq type 'todo)
+	  (org-todo-list string))
+	 (t (error "Invalid custom agenda command type %s" type))))
+       (t (error "Invalid key"))))))
 
 (defun org-fit-agenda-window ()
   "Fit the window to the buffer size."
@@ -4667,7 +4746,8 @@ for a keyword.  A numeric prefix directly selects the Nth keyword in
 	 (kwds org-todo-keywords)
 	 (completion-ignore-case t)
 	 (org-select-this-todo-keyword
-	  (and arg (integerp arg) (nth (1- arg) org-todo-keywords)))
+	  (if (stringp arg) arg
+	    (and arg (integerp arg) (nth (1- arg) org-todo-keywords))))
 	 rtn rtnall files file pos)
     (when (equal arg '(4))
       (setq org-select-this-todo-keyword
@@ -6005,6 +6085,30 @@ the same tree node, and the headline of the tree node in the Org-mode file."
     (org-agenda-change-all-lines newhead hdmarker)
     (beginning-of-line 1)))
 
+(defun org-agenda-set-tags ()
+  "Set tags for the current headline."
+  (interactive)
+  (org-agenda-check-no-diary)
+  (let* ((marker (or (get-text-property (point) 'org-marker)
+		     (org-agenda-error)))
+	 (hdmarker (get-text-property (point) 'org-hd-marker))
+	 (buffer (marker-buffer hdmarker))
+	 (pos (marker-position hdmarker))
+	 (buffer-read-only nil)
+	 newhead)
+    (with-current-buffer buffer
+      (widen)
+      (goto-char pos)
+      (org-show-hidden-entry)
+      (save-excursion
+	(and (outline-next-heading)
+	     (org-flag-heading nil)))   ; show the next heading
+      (call-interactively 'org-set-tags)
+      (end-of-line 1)
+      (setq newhead (org-get-heading)))
+    (org-agenda-change-all-lines newhead hdmarker)
+    (beginning-of-line 1)))
+
 (defun org-agenda-date-later (arg &optional what)
   "Change the date of this item to one day later."
   (interactive "p")
@@ -6269,21 +6373,34 @@ MATCH can contain positive and negative selection of tags, like
 (defun org-make-tags-matcher (match)
   "Create the TAGS matcher form for the tags-selecting string MATCH."
   (unless match
+    ;; Get a new match request, with completion
     (setq org-last-tags-completion-table
 	  (or (org-get-buffer-tags)
 	      org-last-tags-completion-table))
     (setq match (completing-read
 		 "Tags: " 'org-tags-completion-function nil nil nil
 		 'org-tags-history)))
-  (let ((match0 match) minus tag mm matcher)
-    (while (string-match "^\\([-+:]\\)?\\([A-Za-z_]+\\)" match)
-      (setq minus (and (match-end 1) (equal (string-to-char match) ?-))
-	    tag (match-string 2 match)
-	    match (substring match (match-end 0))
-	    mm (list 'member (downcase tag) 'tags-list)
-	    mm (if minus (list 'not mm) mm))
-      (push mm matcher))
-    (cons match0 (cons 'and matcher))))
+  ;; parse the string and create a lisp form
+  (let ((match0 match) minus tag mm matcher orterms term orlist)
+    (setq orterms (org-split-string match "|"))
+    (while (setq term (pop orterms))
+      (while (string-match "^&?\\([-+:]\\)?\\([A-Za-z_]+\\)" term)
+	(setq minus (and (match-end 1)
+			 (equal (match-string 1 term) "-"))
+	      tag (match-string 2 term)
+	      term (substring term (match-end 0))
+	      mm (list 'member (downcase tag) 'tags-list)
+	      mm (if minus (list 'not mm) mm))
+	(push mm matcher))
+      (push (if (> (length matcher) 1) (cons 'and matcher) (car matcher))
+	    orlist)
+      (setq matcher nil))
+    (setq matcher (if (> (length orlist) 1) (cons 'or orlist) (car orlist)))
+    ;; Return the string and lisp forms of the matcher
+    (cons match0 matcher)))
+
+;;(org-make-tags-matcher "&hello&-you")
+
 
 ;;;###autoload
 (defun org-tags-view (&optional todo-only match keep-modes)
@@ -6368,32 +6485,35 @@ With prefix ARG, realign all tags in headings in the current buffer."
       (if just-align
 	  (setq tags current)
 	(setq org-last-tags-completion-table
-	      (or (org-get-buffer-tags);; FIXME: replace +- with :, so that we can use history stuff???
+	      (or (org-get-buffer-tags)
 		  org-last-tags-completion-table))
 	(setq tags
 	      (let ((org-add-colon-after-tag-completion t))
 		(completing-read "Tags: " 'org-tags-completion-function
 				 nil nil current 'org-tags-history)))
-	(while (string-match "[-+]" tags)
+	(while (string-match "[-+&]+" tags)
 	  (setq tags (replace-match ":" t t tags)))
 	(unless (string-match ":$" tags) (setq tags (concat tags ":")))
 	(unless (string-match "^:" tags) (setq tags (concat ":" tags))))
-      (beginning-of-line 1)
-      (looking-at (concat "\\(.*\\)\\(" (regexp-quote current) "\\)[ \t]*"))
-      (setq hd (save-match-data (org-trim (match-string 1))))
-      (delete-region (match-beginning 0) (match-end 0))
-      (insert hd " ")
-      (move-to-column (max (current-column)
-			   (if (> org-tags-column 0)
-			       org-tags-column
-			     (- org-tags-column (length tags))))
-		      t)
-      (insert tags)
+      (if (equal current "")
+	  (end-of-line 1)
+	(beginning-of-line 1)
+	(looking-at (concat "\\(.*\\)\\(" (regexp-quote current) "\\)[ \t]*"))
+	(setq hd (match-string 1))
+	(delete-region (match-beginning 0) (match-end 0))
+	(insert (org-trim hd) " "))
+      (unless (equal tags "")
+	(move-to-column (max (current-column)
+			     (if (> org-tags-column 0)
+				 org-tags-column
+			       (- (- org-tags-column) (length tags))))
+			t)
+	(insert tags))
       (move-to-column col))))
 
 (defun org-tags-completion-function (string predicate &optional flag)
   (let (s1 s2 rtn (ctable org-last-tags-completion-table))
-    (if (string-match "^\\(.*[-+:]\\)\\([^-+:]*\\)$" string)
+    (if (string-match "^\\(.*[-+:&|]\\)\\([^-+:&|]*\\)$" string)
         (setq s1 (match-string 1 string)
               s2 (match-string 2 string))
       (setq s1 "" s2 string)) 
@@ -11610,19 +11730,13 @@ See the individual commands for more information."
      ["Goto Calendar" org-goto-calendar t]
      ["Date from Calendar" org-date-from-calendar t])
     "--"
-    ("Agenda/Summary Views"
-     "Current File"
+    ["Agenda Command" org-agenda t]
+    ("File List for Agenda")
+    ("Special views current file"
      ["TODO Tree"  org-show-todo-tree t]
      ["Check Deadlines" org-check-deadlines t]
      ["Timeline" org-timeline t]
-     ["Tags Tree" org-tags-sparse-tree t]
-     "--"
-     "All Agenda Files"
-     ["Command Dispatcher" org-agenda t]
-     ["TODO list" org-todo-list t]
-     ["Agenda" org-agenda-list t]
-     ["Tags View" org-tags-view t])
-    ("File List for Agenda")
+     ["Tags Tree" org-tags-sparse-tree t])
     "--"
     ("Hyperlinks"
      ["Store Link (Global)" org-store-link t]
@@ -12011,5 +12125,3 @@ Show the heading too, if it is currently invisible."
 
 ;; arch-tag: e77da1a7-acc7-4336-b19e-efa25af3f9fd
 ;;; org.el ends here
-
-

@@ -903,6 +903,7 @@ buildobj.lst Ä
 	"{Src}macterm.h" ¶
 		"{Src}macgui.h" ¶
 		"{Src}frame.h" ¶
+	"{Src}keymap.h" ¶
 	{BLOCKINPUT_H_GROUP}
 
 {Src}mac.c Ä ¶

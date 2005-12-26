@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 4.00
+@set VERSION 4.01
 @set DATE December 2005
 
 @dircategory Emacs
@@ -229,7 +229,7 @@ ways, for example
 
 @example
 @r{@bullet{} as an outline extension with visibility cycling and structure editing}
-@r{@bullet{} as an ASCII system and table editor to take structured notes}
+@r{@bullet{} as an ASCII system and table editor for taking structured notes}
 @r{@bullet{} as an ASCII table editor with spreadsheet-like capabilities}
 @r{@bullet{} as a simple hypertext system, with HTML export}
 @r{@bullet{} as a TODO list editor}
@@ -532,7 +532,7 @@ functionality.
 @node Archiving, Sparse trees, Structure editing, Document Structure
 @section Archiving
 @cindex archiving
-@cindex filing subtries
+@cindex filing subtrees
 
 When a project represented by a (sub)tree is finished, you may want
 to move the tree to an archive place, either in the same file under a
@@ -618,12 +618,24 @@ well.  For example, in the list
 
 @example
 * Meeting with the French group      :WORK:
-** Summary by Frank                  :BOSS:
+** Summary by Frank                  :BOSS:NOTES:
 *** TODO Prepare slides for him      :ACTION:
 @end example
 @noindent
-the final heading will have the tags @samp{:WORK:}, @samp{:BOSS:}, and
-@samp{:ACTION:}.
+the final heading will have the tags @samp{:WORK:}, @samp{:BOSS:},
+@samp{:NOTES:}, and @samp{:ACTION:}.  When executing tag searches and
+Org-mode finds that a certain headline matches the search criterion,
+it will not check any sublevel headline, assuming that these likely
+also match, and that the list of matches can become very long.  You
+can influence inheritance and searching using the variables
+@code{org-use-tag-inheritance} and
+@code{org-tags-match-list-sublevels}.
+
+@kindex M-@key{TAB}
+Tags can simply be typed into the buffer.  After a colon,
+@kbd{M-@key{TAB}} offers completion on all tags being used in the
+current buffer.  There are also special commands for inserting tags,
+and for executing searches based on tags.
 
 @table @kbd
 @kindex C-c C-c
@@ -631,28 +643,32 @@ the final heading will have the tags @samp{:WORK:}, @samp{:BOSS:}, and
 @cindex completion, of tags
 Enter new tags for the current headline.  The minibuffer will prompt
 for a list of tags and offer completion with respect to all other tags
-used in the current buffer.  After pressing @key{RET}, the tags will
+used in the current buffer.  Several tags, separated by colons, may be
+specified at the prompt.  After pressing @key{RET}, the tags will
 be inserted and aligned to @code{org-tags-column}.  When called with a
 @kbd{C-u} prefix, align all tags in the current buffer to that column,
-just to make things look nice.  Tags can also be just typed into the
-buffer, with @kbd{M-@key{TAB}} support.
-@cindex M-@key{TAB}
-@item M-@key{TAB}
-Tags can also be typed directly into the buffer, using
-@kbd{M-@key{TAB}} completion.
+just to make things look nice.  TAGS are automatically realigned after
+promotion, demotion, and TODO state changes (@pxref{TODO basics}).
 @kindex C-c \
 @item C-c \
-Create a sparse tree with all headlines matching a given set of tags.
-The command prompts for the tags to match.  The criterion is just a
-list of tags separated by @samp{+} or @samp{-} for positive and
-negative selection.  For example, @samp{+WORK-BOSS} would select all
-headlines that are tagged @samp{:WORK:}, but discard those also tagged
-@samp{:BOSS:}.
+Create a sparse tree with all headlines matching a tags search.
 @kindex C-c a m
 @item C-c a m
 Create a global list of tag matches from all agenda files.
 @xref{Matching headline tags}.
 @end table
+
+A tags search string can use Boolean operators @samp{&} for AND and
+@samp{|} for OR.  @samp{&} binds more strongly than
+@samp{|}. Parenthesis are currently no implemented.  A tag may also be
+preceded by @samp{-}, to select against it, and @samp{+} is syntactic
+sugar for positive selection.  The AND operator @samp{&} is optional
+when @samp{+} or @samp{-} is present.  For example, @samp{+WORK-BOSS}
+would select all headlines that are tagged @samp{:WORK:}, but discard
+those also tagged @samp{:BOSS:}.  The search string @samp{WORK|LAPTOP}
+selects all lines tagged @samp{:WORK:} or @samp{:LAPTOP:}. The string
+@samp{WORK|LAPTOP&NIGHT} requires that the @samp{:LAPTOP:} lines are
+also tagged @samp{NIGHT}.
 
 @node Plain Lists,  , Tags, Document Structure
 @section Plain Lists
@@ -692,7 +708,7 @@ My favorite scenes are (in this order)
 @end example
 
 Org-mode supports these lists by tuning filling and wrapping commands
-to correctly deal with them.  Futhermore, the following commands act
+to correctly deal with them.  Furthermore, the following commands act
 on items when the cursor is in the first line of an item (the line
 with the bullet or number).
 
@@ -1322,11 +1338,11 @@ links to other files, Usenet articles, emails and much more.
 
 Similar to Wiki implementations, Org-mode interprets words spelled in
 CamelCase (i.e. mixed case with at least one capital letter following
-on a small letter inside the word) as links.  While in Wiki
-implementations these links usually point to another file, in Org-mode
-they point to a target in the current file.  Targets are CamelCased
-words in double angular brackets, and may be located anywhere, also in
-a comment line.  For example
+on a small letter inside the word) as links.  While in Wiki these
+links usually point to another file, in Org-mode they point to a
+target in the current file.  Targets are CamelCased words in double
+angular brackets, and may be located anywhere, also in a comment line.
+For example
 @example
 # <<MyTarget>>
 @end example
@@ -2020,32 +2036,16 @@ Choose date in calendar (only if nothing typed into minibuffer).
 @chapter Agenda Views
 @cindex agenda views
 
-@ignore
-We have already described three commands to filter important
-information in an org file into a sparse tree (@pxref{Sparse trees}):
-
-@cindex sparse trees
-@itemize @bullet
-@item
-The TODO tree, (@kbd{C-c C-v}), see @ref{TODO items}.
-@item
-The occur tree @kbd{C-c /}, see @ref{TODO items}.
-@item
-Checking upcoming deadlines with @kbd{C-c C-w}, see @ref{Creating
-timestamps}.
-@end itemize
-@noindent
-@end ignore
-
-Org-mode can collect and sort selected items into a separate buffer.
-The information to be listed is collected from all @emph{agenda
-files}, the files listed in the variable @code{org-agenda-files}.
-Thus even if you only work with a single Org-mode file, this file must
-be put into that list@footnote{When using the dispatcher pressing
-@kbd{1} before selecting a command will actually limit the command to
-the current file, and ignore @code{org-agenda-files} until the next
-dispatcher command.}.  You can customize this variable, but the easiest
-way to maintain it is through the following commands
+Org-mode can select items based of various criteria, and display them
+in a separate buffer.  The information to be shown is collected from
+all @emph{agenda files}, the files listed in the variable
+@code{org-agenda-files}.  Thus even if you only work with a single
+Org-mode file, this file must be put into that list@footnote{When
+using the dispatcher pressing @kbd{1} before selecting a command will
+actually limit the command to the current file, and ignore
+@code{org-agenda-files} until the next dispatcher command.}.  You can
+customize @code{org-agenda-files}, but the easiest way to maintain it
+is through the following commands
 
 @cindex files, adding to agenda list
 @table @kbd
@@ -2084,11 +2084,21 @@ buffer}.  This buffer is read-only, but provides commands to visit the
 corresponding locations in the original Org-mode files, and even to
 edit these files remotely.
 
+@cindex custom agenda commands
+@cindex agenda commands, custom
 The views are created through a dispatcher that should be bound to a
 global key, for example @kbd{C-c a} (@pxref{Installation and
 Activation}).  In the following we will assume that @kbd{C-c a} is
 indeed how the dispatcher is accessed and list keyboard access to
-commands accordingly.
+commands accordingly.  The dispatcher offers a number of default
+commands, for example to create a TODO list or a the calendar-like
+agenda.  You can also define a number of custom searches for tags and
+specific TODO keywords through the variable
+@code{org-agenda-custom-commands}.
+@kindex C-c a C
+These commands will be offered by the dispatcher just like the default
+commands.  If you press @kbd{C-c a C}, you will get a customization
+buffer for this variable.
 
 @menu
 * Agenda::                      Your weekly planner
@@ -2230,7 +2240,7 @@ a prefix argument to this command to change the selected TODO keyword,
 for example @kbd{3 r}.
 @end table
 
-Remote editing of TDOD items means that you can change the state of a
+Remote editing of TODO items means that you can change the state of a
 TODO entry with a single key press.  The commands available in the
 TODO list are described in @ref{Agenda commands}.
 
@@ -2241,15 +2251,15 @@ TODO list are described in @ref{Agenda commands}.
 
 If headlines in the agenda files are marked with @emph{tags}
 (@pxref{Tags}), you can select headlines based on the tags that apply
-to them and collect them into an ageenda buffer.
+to them and collect them into an agenda buffer.
 
 @table @kbd
 @kindex C-c a m
 @item C-c a m
 Produce a list of all headlines that match a given set of tags.  The
-command prompts for a selection criterion, which is a simple list of
-TAGS with positive and negative selection, like
-@samp{+WORK+URGENT-WITHBOSS}.
+command prompts for a selection criterion, which is a boolean logic
+expression with tags, like @samp{+WORK+URGENT-WITHBOSS} or
+@samp{WORK|HOME} (@pxref{Tags}).
 @kindex C-c a M
 @item C-c a M
 Like @kbd{C-c a m}, but only select headlines that are also TODO
@@ -2395,6 +2405,10 @@ Digit argument.
 @item t
 Change the TODO state of the item, both in the agenda and in the
 original org file.
+
+@kindex :
+@item :
+Set tags for the current headline.
 
 @kindex ,
 @item ,
@@ -2900,7 +2914,7 @@ After @samp{\}, complete @TeX{} symbols supported by the exporter.
 After @samp{*}, complete CamelCase versions of all headlines in the
 buffer.
 @item
-After @samp{:}, complete tags used elswhere in the buffer.
+After @samp{:}, complete tags used elsewhere in the buffer.
 @item
 After @samp{#+}, complete the special keywords like @samp{TYP_TODO} or
 @samp{OPTIONS} which set file-specific options for Org-mode.  When the
@@ -2917,11 +2931,11 @@ Elsewhere, complete dictionary words using ispell.
 @cindex options, for customization
 @cindex variables, for customization
 
-There is a large number of variables which can be used to customize
+There are more than 100 variables that can be used to customize
 Org-mode.  For the sake of compactness of the manual, we are not
-describing the variables here.  For an overview of customization
-variables, use @kbd{M-x org-customize}.  Or select @code{Browse Org
-Group} from the @code{Org->Customization} menu.
+describing the variables here.  A structured overview of customization
+variables is available with @kbd{M-x org-customize}.  Or select
+@code{Browse Org Group} from the @code{Org->Customization} menu.
 
 @node FAQ, Interaction, Customization, Miscellaneous
 @section Frequently asked questions
@@ -3167,22 +3181,40 @@ The exporters work well, but could be made more efficient.
 
 Org-mode was written by Carsten Dominik, who still maintains it at the
 Org-mode homepage @uref{http://www.astro.uva.nl/~dominik/Tools/org/}.
-The following people have helped the development along with ideas,
-suggestions and patches.
+The following people (in alphabetic order) have helped the development
+along with ideas, suggestions and patches.  Many thanks to all of you,
+Org-mode would not be what it is without your input.
 
 @itemize @bullet
+@item
+Pavel Chalmoviansky reported bugs and suggested improvements
+related to the agenda treatment of items with specified time.
+@item
+Sacha Chua, the current maintainer of Planner, suggested to copy
+linking code from Planner (I took code for RMAIL and Wanderlust).
+@item
+Christian Egli converted the documentation into TeXInfo format and
+patched basic CSS formatting support into the HTML exporter.  He also
+inspired the agenda by showing me his plans for a multifile summary.
+@item
+Kai Grossjohann pointed out that a number of key bindings in Org-mode
+conflict with other packages.
+@item
+Stefan Monnier provided a patch with lots of little fixes to keep the
+Emacs-Lisp compiler happy.
+@item
+Tim O'Callaghan suggested in-file links, search options for
+general file links, and TAGS.
+@item
+Oliver Oppitz made useful suggestions.
+@item
+Pete Phillips helped the development of the TAGS feature with beta
+testing and suggestions.
 @item
 Matthias Rempe (Oelde) provided ideas, a patch introducing Windows
 NT/2000 support, and quality control.
 @item
 Kevin Rogers contributed code to access VM files on remote hosts.
-@item
-Juergen Vollmer contributed code generating the table of contents
-in HTML output, and other export improvements.
-@item
-Christian Egli converted the documentation into TeXInfo format and
-patched basic CSS formatting support into the HTML exporter.  He also
-inspired the agenda by showing me his plans for a multifile summary.
 @item
 Philip Rooke created the Org-mode reference card.  He also helped with
 beta testing and contributed a number of very useful ideas.
@@ -3190,36 +3222,22 @@ beta testing and contributed a number of very useful ideas.
 Christian Schlauer proposed angular brackets around links, among other
 things.
 @item
-David Wainberg suggested to implement an archiving mechanism and helped
-testing.
-@item
 Linking to VM/BBDB/GNUS was inspired by Tom Shannon's
 @file{organizer-mode.el}.
 @item
+Juergen Vollmer contributed code generating the table of contents
+in HTML output, and other export improvements.
+@item
+David Wainberg suggested to implement an archiving mechanism and helped
+testing.
+@item
 Scheduling TODO items was inspired by John Wiegley's @file{planner.el}.
-@item
-Sacha Chua, the current maintainer of Planner, suggested to copy
-linking code from Planner (I took code for RMAIL and Wanderlust).
-@item
-Oliver Oppitz made useful suggestions.
 @item
 Carsten Wimmer suggested some changes and helped fix a bug in linking
 to GNUS.
-@item
-Pavel Chalmoviansky reported bugs and suggested improvements related
-to the agenda treatment of items with specified time.
-@item
-Stefan Monnier provided a patch with lots of little fixes to keep the
-Emacs-Lisp compiler happy.
-@item
-Kai Grossjohann pointed out that a number of key bindings in Org-mode
-conflict with other packages.
 @item 
 Roland Winkler pointed out that additional keybindings are needed to
 use Org-mode on a tty.
-@item
-Tim O'Callaghan suggested in-file links, search options for
-general file links, and TAGS.
 @c @item
 @c Nic Ferrier and Christian Egli implemented XML export.
 @end itemize

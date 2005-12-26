@@ -420,10 +420,10 @@ See `mh-spamprobe-blacklist' for more information."
 
 (provide 'mh-junk)
 
-;;; Local Variables:
-;;; indent-tabs-mode: nil
-;;; sentence-end-double-space: nil
-;;; End:
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; sentence-end-double-space: nil
+;; End:
 
-;;; arch-tag: 603335f1-77ff-4306-8828-5d3dad51abe1
+;; arch-tag: 603335f1-77ff-4306-8828-5d3dad51abe1
 ;;; mh-junk.el ends here
