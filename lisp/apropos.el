@@ -502,7 +502,10 @@ while a list of strings is used as a word list."
 
 ;;;###autoload
 (defun apropos (pattern &optional do-all)
-  "Show all bound symbols whose names match PATTERN.
+  "Show all meaningful Lisp symbols whose names match PATTERN.
+Symbols are shown if they are defined as functions, variables, or
+faces, or if they have nonempty property lists.
+
 PATTERN can be a word, a list of words (separated by spaces),
 or a regexp (using some regexp special characters).  If it is a word,
 search for matches for that word as a substring.  If it is a list of words,
@@ -571,7 +574,7 @@ time-consuming.  Returns list of symbols and documentation found."
 
 ;;;###autoload
 (defun apropos-value (pattern &optional do-all)
-  "Show all symbols whose value's printed image matches PATTERN.
+  "Show all symbols whose value's printed representation matches PATTERN.
 PATTERN can be a word, a list of words (separated by spaces),
 or a regexp (using some regexp special characters).  If it is a word,
 search for matches for that word as a substring.  If it is a list of words,
@@ -616,7 +619,7 @@ Returns list of symbols and values found."
 
 ;;;###autoload
 (defun apropos-documentation (pattern &optional do-all)
-  "Show symbols whose documentation contain matches for PATTERN.
+  "Show symbols whose documentation contains matches for PATTERN.
 PATTERN can be a word, a list of words (separated by spaces),
 or a regexp (using some regexp special characters).  If it is a word,
 search for matches for that word as a substring.  If it is a list of words,
