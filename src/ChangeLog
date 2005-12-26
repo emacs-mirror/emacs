@@ -1,3 +1,10 @@
+2005-12-25  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (un_autoload): Expect (0 . OFEATURES) in Vautoload_queue
+	to undo a `provide'.
+
+	* fns.c (Fprovide): Store (0 . OFEATURES) in Vautoload_queue.
+
 2005-12-25  Giorgos Keramidas  <keramida@ceid.upatras.gr>
 
 	* m/amdx86-64.h [__FreeBSD__] (START_FILES, LIB_STANDARD):

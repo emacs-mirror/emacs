@@ -1,5 +1,8 @@
 2005-12-25  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/cc-defs.el (c-emacs-features): Do parse-partial-sexp
+	at point, in case of narrowing.
+
 	* progmodes/delphi.el (delphi-other-face): Allow nil in type.
 
 	* locate.el (locate-header-face): Allow nil in type.
