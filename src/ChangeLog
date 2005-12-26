@@ -1,3 +1,14 @@
+2005-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* undo.c: Depend on window.h.
+	(record_point): Save old point from the correct window.
+
+	* keyboard.c (last_point_position_window): New variable.
+	(command_loop_1): Set last_point_position_window.
+	(syms_of_keyboard): Init it.
+
+	* Makefile.in (undo.o): Depend on window.h.
+
 2005-12-25  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (un_autoload): Expect (0 . OFEATURES) in Vautoload_queue
