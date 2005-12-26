@@ -4214,13 +4214,13 @@ entered.  `dynamic-completion-table' then computes the completion.
 *** The new macro `lazy-completion-table' initializes a variable
 as a lazy completion table.
 
-  (lazy-completion-table VAR FUN &rest ARGS)
+  (lazy-completion-table VAR FUN)
 
 If the completion table VAR is used for the first time (e.g., by passing VAR
-as an argument to `try-completion'), the function FUN is called with arguments
-ARGS. FUN must return the completion table that will be stored in VAR. If
-completion is requested in the minibuffer, FUN will be called in the buffer
-from which the minibuffer was entered. The return value of
+as an argument to `try-completion'), the function FUN is called with no
+arguments.  FUN must return the completion table that will be stored in VAR.
+If completion is requested in the minibuffer, FUN will be called in the buffer
+from which the minibuffer was entered.  The return value of
 `lazy-completion-table' must be used to initialize the value of VAR.
 
 +++
