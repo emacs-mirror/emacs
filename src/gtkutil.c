@@ -1220,6 +1220,19 @@ xg_get_file_name_from_chooser (w)
   return gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (w));
 }
 
+static void
+xg_toggle_visibility_cb(widget, data)
+     GtkWidget *widget;
+     gpointer data;
+{
+  GtkFileChooser *dialog = GTK_FILE_CHOOSER (data);
+  gboolean visible;
+  extern int x_gtk_show_hidden_files;
+  g_object_get (G_OBJECT (dialog), "show-hidden", &visible, NULL);
+  g_object_set (G_OBJECT (dialog), "show-hidden", !visible, NULL);
+  x_gtk_show_hidden_files = !visible;
+}
+
 /* Read a file name from the user using a file chooser dialog.
    F is the current frame.
    PROMPT is a prompt to show to the user.  May not be NULL.
@@ -1239,11 +1252,14 @@ xg_get_file_with_chooser (f, prompt, default_filename,
      int mustmatch_p, only_dir_p;
      xg_get_file_func *func;
 {
-  GtkWidget *filewin;
+  char message[1024];
+
+  GtkWidget *filewin, *wtoggle, *wbox, *wmessage;
   GtkWindow *gwin = GTK_WINDOW (FRAME_GTK_OUTER_WIDGET (f));
   GtkFileChooserAction action = (mustmatch_p ?
                                  GTK_FILE_CHOOSER_ACTION_OPEN :
                                  GTK_FILE_CHOOSER_ACTION_SAVE);
+  extern int x_gtk_show_hidden_files;
 
   if (only_dir_p)
     action = GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER;
@@ -1255,6 +1271,39 @@ xg_get_file_with_chooser (f, prompt, default_filename,
                                          GTK_RESPONSE_OK,
                                          NULL);
   gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (filewin), TRUE);
+
+  wbox = gtk_vbox_new (FALSE, 0);
+  gtk_widget_show (wbox);
+  wtoggle = gtk_check_button_new_with_label ("Show hidden files.");
+  
+  if (x_gtk_show_hidden_files) 
+    {
+      g_object_set (G_OBJECT (filewin), "show-hidden", TRUE, NULL);
+      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (wtoggle), TRUE);
+    }
+  gtk_widget_show (wtoggle);
+  g_signal_connect (G_OBJECT (wtoggle), "clicked",
+                    G_CALLBACK (xg_toggle_visibility_cb), G_OBJECT(filewin));
+
+#ifdef HAVE_GTK_FILE_SELECTION_NEW
+  strcpy (message, "If you find this file dialog inconvinient "
+          "you can customize x-use-old-gtk-file-dialog\n"
+          "to get the old file dialog, or you can customize "
+          "use-file-dialog to disable file dialogs, or just\n"
+          "use C-x C-f to open files.");
+#else
+  strcpy (message, "If you find this file dialog inconvinient"
+          "you can customize use-file-dialog to disable file dialogs,\n"
+          "or just use C-x C-f to open files.");
+#endif
+  if (action == GTK_FILE_CHOOSER_ACTION_OPEN)
+    strcat (message, "\nUse C-l to bring up a text input area.");
+
+  wmessage = gtk_label_new (message);
+  gtk_widget_show (wmessage);
+  gtk_box_pack_start (GTK_BOX (wbox), wtoggle, FALSE, FALSE, 0);
+  gtk_box_pack_start (GTK_BOX (wbox), wmessage, FALSE, FALSE, 0);
+  gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (filewin), wbox);
 
   if (default_filename)
     {
