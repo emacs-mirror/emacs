@@ -404,15 +404,13 @@ character)")
 
 
 ;;;###autoload
-(defun describe-char (pos &optional buf)
+(defun describe-char (pos)
   "Describe the character after POS (interactively, the character after point).
 The information includes character code, charset and code points in it,
 syntax, category, how the character is encoded in a file,
 character composition information (if relevant),
 as well as widgets, buttons, overlays, and text properties."
   (interactive "d")
-  (let ((help-buffer (help-buffer)))
-  (with-current-buffer  (if buf buf (current-buffer))
   (if (>= pos (point-max))
       (error "No character follows specified position"))
   (let* ((char (char-after pos))
@@ -586,12 +584,8 @@ as well as widgets, buttons, overlays, and text properties."
     (setq max-width (apply #'max (mapcar #'(lambda (x)
 					     (if (cadr x) (length (car x)) 0))
 					 item-list)))
-    (let ((buffer (current-buffer)))
-      (with-current-buffer help-buffer
-	(help-setup-xref
-	 (list #'describe-char pos (if buf buf buffer))
-	 (interactive-p))))
-    (with-output-to-temp-buffer help-buffer
+    (help-setup-xref nil (interactive-p))
+    (with-output-to-temp-buffer (help-buffer)
       (with-current-buffer standard-output
 	(set-buffer-multibyte multibyte-p)
 	(let ((formatter (format "%%%ds:" max-width)))
@@ -693,8 +687,9 @@ as well as widgets, buttons, overlays, and text properties."
 		  "the meaning of the rule.\n"))
 
         (if text-props-desc (insert text-props-desc))
+  	(setq help-xref-stack-item (list 'help-insert-string (buffer-string)))
 	(toggle-read-only 1)
-        (print-help-return-message)))))))
+	(print-help-return-message)))))
 
 (defalias 'describe-char-after 'describe-char)
 (make-obsolete 'describe-char-after 'describe-char "22.1")
