@@ -1,5 +1,7 @@
 2005-12-27  Richard M. Stallman  <rms@gnu.org>
 
+	* progmodes/glasses.el (glasses-face): More specific custom type.
+
 	* files.el (set-visited-file-name): Doc fix.
 
 	* textmodes/flyspell.el (flyspell-external-point-words):
