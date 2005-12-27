@@ -1,5 +1,8 @@
 2005-12-26  Richard M. Stallman  <rms@gnu.org>
 
+	* replace.el (perform-replace): Calculate match-again
+	before skipping read-only matches.
+
 	* paren.el (paren-showing-faces): New group.
 	(show-paren-match, show-paren-mismatch): Move to that group.
 
