@@ -2382,7 +2382,6 @@ optional argument DEFAULT-STRING is non-nil, use it in the prompt
 instead of DEFAULT. If ALLOW-ROOT-FOLDER-FLAG is non-nil then the
 function will accept the folder +, which means all folders when
 used in searching."
-  ;; FIXME: can-create is unused!
   (if (null default)
       (setq default ""))
   (let* ((default-string (cond (default-string (format " (default %s)" default-string))
@@ -2417,6 +2416,7 @@ used in searching."
     (let ((new-file-flag
            (not (file-exists-p (mh-expand-file-name folder-name)))))
       (cond ((and new-file-flag
+                  can-create
                   (y-or-n-p
                    (format "Folder %s does not exist.  Create it? "
                            folder-name)))
@@ -2427,7 +2427,7 @@ used in searching."
                (mh-speed-add-folder folder-name))
              (message "Creating %s...done" folder-name))
             (new-file-flag
-             (error "Folder %s is not created" folder-name))
+             (error "Folder %s does not exist" folder-name))
             ((not (file-directory-p (mh-expand-file-name folder-name)))
              (error "\"%s\" is not a directory"
                     (mh-expand-file-name folder-name)))))
