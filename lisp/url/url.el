@@ -47,7 +47,6 @@
 (require 'url-util)
 
 ;; Fixme: customize? convert-standard-filename?
-;;;###autoload
 (defvar url-configuration-directory
   (cond
    ((file-directory-p "~/.url") "~/.url")
