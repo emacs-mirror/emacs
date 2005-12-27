@@ -1221,7 +1221,7 @@ xg_get_file_name_from_chooser (w)
 }
 
 static void
-xg_toggle_visibility_cb(widget, data)
+xg_toggle_visibility_cb (widget, data)
      GtkWidget *widget;
      gpointer data;
 {
@@ -1287,13 +1287,14 @@ xg_get_file_with_chooser (f, prompt, default_filename,
 
 #ifdef HAVE_GTK_FILE_SELECTION_NEW
   strcpy (message, "If you find this file dialog inconvinient "
-          "you can customize x-use-old-gtk-file-dialog\n"
-          "to get the old file dialog, or you can customize "
-          "use-file-dialog to disable file dialogs, or just\n"
-          "use C-x C-f to open files.");
+          "you can customize\n"
+          "x-use-old-gtk-file-dialog to get the old file dialog,\n"
+          "or you can customize use-file-dialog to disable file dialogs,\n"
+          "or just use C-x C-f to open files.");
 #else
-  strcpy (message, "If you find this file dialog inconvinient"
-          "you can customize use-file-dialog to disable file dialogs,\n"
+  strcpy (message, "If you find this file dialog inconvinient "
+          "you can customize\n"
+          "use-file-dialog to disable file dialogs,\n"
           "or just use C-x C-f to open files.");
 #endif
   if (action == GTK_FILE_CHOOSER_ACTION_OPEN)
