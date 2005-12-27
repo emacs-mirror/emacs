@@ -1,5 +1,7 @@
 2005-12-27  Richard M. Stallman  <rms@gnu.org>
 
+	* files.el (set-visited-file-name): Doc fix.
+
 	* textmodes/flyspell.el (flyspell-external-point-words):
 	Use local var buffer-scan-pos to advance scan for next misspelling.
 	Advance it only after we find the misspelling.
