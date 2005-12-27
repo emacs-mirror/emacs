@@ -1,3 +1,14 @@
+2005-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	Use local var buffer-scan-pos to advance scan for next misspelling.
+	Advance it only after we find the misspelling.
+
+2005-12-27  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/flyspell.el (flyspell-external-point-words):
+	New criteria for finding the misspelling in the buffer.
+
 2005-12-28  Nick Roberts  <nickrob@snap.net.nz>
 	    Juri Linkov  <juri@jurta.org>
 
