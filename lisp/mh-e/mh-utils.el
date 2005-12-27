@@ -2312,7 +2312,7 @@ three arguments so we bind this variable to t or nil.
 This variable should never be set.")
 
 (defvar mh-folder-completion-map (copy-keymap minibuffer-local-completion-map))
-(define-key mh-folder-completion-map " " 'minibuffer-complete)
+(define-key mh-folder-completion-map " " 'minibuffer-complete)  ;Why???
 
 (defvar mh-speed-flists-inhibit-flag nil)
 
@@ -2382,6 +2382,7 @@ optional argument DEFAULT-STRING is non-nil, use it in the prompt
 instead of DEFAULT. If ALLOW-ROOT-FOLDER-FLAG is non-nil then the
 function will accept the folder +, which means all folders when
 used in searching."
+  ;; FIXME: can-create is unused!
   (if (null default)
       (setq default ""))
   (let* ((default-string (cond (default-string (format " (default %s)" default-string))
@@ -2532,9 +2533,9 @@ ARGS are passed to COMMAND as command line arguments."
   "PROCESS daemon that puts OUTPUT into a temporary buffer.
 Any output from the process is displayed in an asynchronous
 pop-up window."
-  (set-buffer (get-buffer-create mh-log-buffer))
-  (insert-before-markers output)
-  (display-buffer mh-log-buffer))
+  (with-current-buffer (get-buffer-create mh-log-buffer)
+    (insert-before-markers output)
+    (display-buffer mh-log-buffer)))
 
 (defun mh-exec-cmd-quiet (raise-error command &rest args)
   "Signal RAISE-ERROR if COMMAND with ARGS fails.
