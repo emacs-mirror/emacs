@@ -1,3 +1,13 @@
+2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c: x_show_hidden_files, new variable.
+	(syms_of_xfns): Defvar it.
+
+	* gtkutil.c (xg_toggle_visibility_cb): New function.
+	(xg_get_file_with_chooser): Add toggle hidden files and a message
+	to the new file chooser dialog.  Show hidden files if
+	x_show_hidden_files is non-zero.
+
 2005-12-26  Richard M. Stallman  <rms@gnu.org>
 
 	* keyboard.h: Undo previous change.
