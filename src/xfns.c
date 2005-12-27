@@ -154,6 +154,10 @@ int display_hourglass_p;
 
 int x_use_old_gtk_file_dialog;
 
+/* If non-zero, by default show hidden files in the GTK file chooser.  */
+
+int x_gtk_show_hidden_files;
+
 /* The background and shape of the mouse pointer, and shape when not
    over text or in the modeline.  */
 
@@ -5787,6 +5791,12 @@ If nil or if the file selection dialog is not available, the new GTK file
 chooser is used instead.  To turn off all file dialogs set the
 variable `use-file-dialog'.  */);
   x_use_old_gtk_file_dialog = 0;
+
+  DEFVAR_BOOL ("x-gtk-show-hidden-files", &x_gtk_show_hidden_files,
+    doc: /* *If non-nil, the GTK file chooser will by default show hidden files.
+Note that this is just the default, there is a toggle button on the file
+chooser to show or not show hidden files on a case by case basis.  */);
+  x_gtk_show_hidden_files = 0;
 
   Fprovide (intern ("x"), Qnil);
 
