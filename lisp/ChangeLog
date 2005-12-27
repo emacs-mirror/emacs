@@ -1,3 +1,7 @@
+2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* cus-start.el (all): Add x-gtk-show-hidden-files.
+
 2005-12-26  Richard M. Stallman  <rms@gnu.org>
 
 	* replace.el (perform-replace): Calculate match-again
