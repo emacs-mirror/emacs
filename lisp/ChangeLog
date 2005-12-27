@@ -1,3 +1,13 @@
+2005-12-28  Nick Roberts  <nickrob@snap.net.nz>
+	    Juri Linkov  <juri@jurta.org>
+
+	* help-mode.el (help-insert-string): New function.  Save buffer
+	contents in cases where it is impossible to recompute the old
+	contents.
+
+	* descr-text.el (describe-char): Set help-xref-stack-item
+	explicitly after buffer has been generated.
+
 2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* cus-start.el (all): Add x-gtk-show-hidden-files.
