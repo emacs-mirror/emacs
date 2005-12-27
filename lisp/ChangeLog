@@ -6,7 +6,8 @@
 	contents.
 
 	* descr-text.el (describe-char): Set help-xref-stack-item
-	explicitly after buffer has been generated.
+	explicitly after buffer has been generated.  Revert previous
+	changes for optional  buffer argument.
 
 2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
