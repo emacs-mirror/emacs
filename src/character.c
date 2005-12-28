@@ -442,6 +442,10 @@ lisp_string_width (string, precision, nchars, nbytes)
      int precision, *nchars, *nbytes;
 {
   int len = SCHARS (string);
+  /* This set multibyte to 0 even if STRING is multibyte when it
+     contains only ascii and eight-bit-graphic, but that's
+     intentional.  */
+  int multibyte = len < SBYTES (string);
   unsigned char *str = SDATA (string);
   int i = 0, i_byte = 0;
   int width = 0;
@@ -462,23 +466,27 @@ lisp_string_width (string, precision, nchars, nbytes)
 	  chars = end - i;
 	  bytes = string_char_to_byte (string, end) - i_byte;
 	}
-      else if (dp)
-	{
-	  int c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
-
-	  chars = 1;
-	  val = DISP_CHAR_VECTOR (dp, c);
-	  if (VECTORP (val))
-	    thiswidth = XVECTOR (val)->size;
-	  else
-	    thiswidth = CHAR_WIDTH (c);
-	}
       else
 	{
-	  int c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
+	  int c;
 
+	  if (multibyte)
+	    c = STRING_CHAR_AND_LENGTH (str + i_byte, len - i_byte, bytes);
+	  else
+	    c = str[i_byte], bytes = 1;
 	  chars = 1;
-	  thiswidth = CHAR_WIDTH (c);
+	  if (dp)
+	    {
+	      val = DISP_CHAR_VECTOR (dp, c);
+	      if (VECTORP (val))
+		thiswidth = XVECTOR (val)->size;
+	      else
+		thiswidth = CHAR_WIDTH (c);
+	    }
+	  else
+	    {
+	      thiswidth = CHAR_WIDTH (c);
+	    }
 	}
 
       if (precision > 0
