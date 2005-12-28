@@ -1,6 +1,7 @@
 2005-12-28  Bill Wohler  <wohler@newt.com>
 
-	* mh-comp.el (mh-e-user-agent): Move here from simple.el.
+	* mh-comp.el (mh-e-user-agent): Move here from simple.el. Use
+	mh-user-agent-compose instead of mh-smail-batch.
 
 2005-12-27  Bill Wohler  <wohler@newt.com>
 
