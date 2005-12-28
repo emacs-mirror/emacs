@@ -123,7 +123,7 @@ nil means let mailer mail back a message to report errors."
   :type 'regexp
   :group 'sendmail)
 
-;; Revent problems with `window-system' not having the correct value
+;; Prevent problems with `window-system' not having the correct value
 ;; when loaddefs.el is loaded. `custom-reevaluate-setting' needs the
 ;; standard value.
 ;;;###autoload
