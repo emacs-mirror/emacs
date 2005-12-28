@@ -60,7 +60,7 @@
 	      (t t))
 	(insert pp)
       (insert-text-button
-       "show" 'action `(lambda (&rest ignore)
+       "[Show]" 'action `(lambda (&rest ignore)
 			(with-output-to-temp-buffer
 			    "*Pp Eval Output*"
 			  (princ ',pp)))
@@ -90,7 +90,9 @@ into help buttons that call `describe-text-category' or
 			 (describe-text-category ',value))
 	      'help-echo "mouse-2, RET: describe this category"))
             ((memq key '(face font-lock-face mouse-face))
-	     (insert (concat "`" (format "%S" value) "'")))
+	     (insert-text-button
+	      (format "%S" value)
+	      'type 'help-face 'help-args (list value)))
             ((widgetp value)
 	     (describe-text-widget value))
 	    (t
@@ -161,8 +163,8 @@ otherwise."
       ;; Buttons
       (when (and button (not (widgetp wid-button)))
 	(newline)
-	(insert "Here is a " (format "%S" button-type)
-		" button labeled `" button-label "'.\n\n"))
+	(insert "Here is a `" (format "%S" button-type)
+		"' button labeled `" button-label "'.\n\n"))
       ;; Overlays
       (when overlays
 	(newline)
@@ -462,8 +464,8 @@ as well as widgets, buttons, overlays, and text properties."
 	     ,(let ((split (split-char char)))
 		`(insert-text-button
 		  ,(if (= (charset-dimension charset) 1)
-		       (format "%d" (nth 1 split))
-		     (format "%d %d" (nth 1 split)
+		       (format "#x%02X" (nth 1 split))
+		     (format "#x%02X #x%02X" (nth 1 split)
 			     (nth 2 split)))
 		  'action (lambda (&rest ignore)
 			    (list-charset-chars ',charset)
@@ -505,7 +507,7 @@ as well as widgets, buttons, overlays, and text properties."
 				      key-list " or ")
 			   "with"
 			   `(insert-text-button
-			     ,(symbol-name current-input-method)
+			     ,current-input-method
 			     'type 'help-input-method
 			     'help-args '(,current-input-method))))))
 	    ("buffer code"
@@ -576,7 +578,9 @@ as well as widgets, buttons, overlays, and text properties."
 			  ((and (< char 32) (not (memq char '(9 10))))
 			   'escape-glyph)))))
 		(if face (list (list "hardcoded face"
-				     (concat "`" (symbol-name face) "'")))))
+				     `(insert-text-button
+				       ,(symbol-name face)
+				       'type 'help-face 'help-args '(,face))))))
 	    ,@(let ((unicodedata (and unicode
 				      (describe-char-unicode-data unicode))))
 		(if unicodedata
@@ -687,7 +691,7 @@ as well as widgets, buttons, overlays, and text properties."
 		  "the meaning of the rule.\n"))
 
         (if text-props-desc (insert text-props-desc))
-  	(setq help-xref-stack-item (list 'help-insert-string (buffer-string)))
+	(setq help-xref-stack-item (list 'help-insert-string (buffer-string)))
 	(toggle-read-only 1)
 	(print-help-return-message)))))
 
