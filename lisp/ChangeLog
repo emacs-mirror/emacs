@@ -1,5 +1,15 @@
 2005-12-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* vc.el (vc-annotate-display): Replace optional arg `color-map' with
+	compulsory arg `ratio'.  Inline body of vc-annotate-time-span.
+	(vc-annotate-display-autoscale): Adjust call.
+	(vc-annotate-display-default): Adjust call.  Make arg compulsory.
+	Fix interactive spec.
+	(vc-annotate-time-span): Remove.
+	(vc-annotate-oldest-in-map): Rename from vc-annotate-car-last-cons.
+	(vc-annotate-mode-menu, vc-annotate-display-autoscale)
+	(vc-annotate-display-select): Use new name.
+
 	* vc.el (vc-annotate-mode-map): Remove obsolete binding.
 	(vc-annotate-mode-menu): Remove left-over redundant declaration.
 	Correct the construction of span entries.  Simplify.
