@@ -1,3 +1,17 @@
+2005-12-28  Juri Linkov  <juri@jurta.org>
+
+	* descr-text.el (describe-text-sexp): Use square brackets for
+	button [Show] to distinguish it from the property value `show'.
+	(describe-property-list): Use `insert-text-button' with
+	`help-face' type instead of putting face in quotes, because button
+	is not created automatically for a list of faces.
+	(describe-text-properties-1): Put button-type value in quotes to
+	distinguish from plain text "button".
+	(describe-char): Display code point values in hex.  Don't use
+	`symbol-name' for `current-input-method' because it is a string.
+	Use `insert-text-button' with `help-face' type instead of putting
+	hardcoded face in quotes, because button is not created automatically.
+
 2005-12-27  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/glasses.el (glasses-face): More specific custom type.
@@ -14,15 +28,21 @@
 	New criteria for finding the misspelling in the buffer.
 
 2005-12-28  Nick Roberts  <nickrob@snap.net.nz>
-	    Juri Linkov  <juri@jurta.org>
+
+	* help-mode.el (help-insert-string): Set help-xref-stack-item
+	rather than call help-setup-xref.
+
+	* descr-text.el (describe-char): Revert previous changes for
+	optional buffer argument.
+
+2005-12-28  Juri Linkov  <juri@jurta.org>
 
 	* help-mode.el (help-insert-string): New function.  Save buffer
 	contents in cases where it is impossible to recompute the old
 	contents.
 
 	* descr-text.el (describe-char): Set help-xref-stack-item
-	explicitly after buffer has been generated.  Revert previous
-	changes for optional  buffer argument.
+	explicitly after buffer has been generated.
 
 2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -58,14 +78,15 @@
 
 2005-12-27  Juri Linkov  <juri@jurta.org>
 
-	* descr-text.el (help-fns): Require.  Don't require button for
-	byte compilation.
-	(describe-text-widget): Add help echo for first button.
+	* descr-text.el: Require `help-fns' at runtime.  Don't require
+	`button' for byte compilation.
+	(describe-text-widget): Add `help-echo' for first button.
 	Use `help-info' for second.
 	(describe-property-list): Use `help-argument-name' instead of `italic'.
-	(describe-text-category): Prompt in minibuffer.  Call help-setup-xref.
-	(describe-char): Use `help-character-set'.  Add help echo.
-	Use `help-input-method'.  Remove superfluous insert.
+	(describe-text-category): Add prompt to interactive spec.
+	Call `help-setup-xref'.
+	(describe-char): Use `help-character-set'.  Add `help-echo' for
+	code point.  Use `help-input-method'.  Remove superfluous insert.
 
 2005-12-25  Richard M. Stallman  <rms@gnu.org>
 
