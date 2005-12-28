@@ -1002,25 +1002,30 @@ at the same position."
                          (or end-point
                              (= (window-start start-window)
                                 start-window-start)))
-                (if (and on-link
-                         (or (not end-point) (= end-point start-point))
-                         (consp event)
-                         (or remap-double-click
-                             (and
-                              (not (eq mouse-1-click-follows-link 'double))
-                              (= click-count 0)
-                              (= (event-click-count event) 1)
-                              (not (input-pending-p))
-                              (or (not (integerp mouse-1-click-follows-link))
-                                  (let ((t0 (posn-timestamp (event-start start-event)))
-                                        (t1 (posn-timestamp (event-end event))))
-                                    (and (integerp t0) (integerp t1)
-                                         (if (> mouse-1-click-follows-link 0)
-                                             (<= (- t1 t0) mouse-1-click-follows-link)
-                                           (< (- t0 t1) mouse-1-click-follows-link))))))))
-		    (if (or (vectorp on-link) (stringp on-link))
-			(setq event (aref on-link 0))
-		      (setcar event 'mouse-2)))
+                (when (and on-link
+			   (or (not end-point) (= end-point start-point))
+			   (consp event)
+			   (or remap-double-click
+			       (and
+				(not (eq mouse-1-click-follows-link 'double))
+				(= click-count 0)
+				(= (event-click-count event) 1)
+				(not (input-pending-p))
+				(or (not (integerp mouse-1-click-follows-link))
+				    (let ((t0 (posn-timestamp (event-start start-event)))
+					  (t1 (posn-timestamp (event-end event))))
+				      (and (integerp t0) (integerp t1)
+					   (if (> mouse-1-click-follows-link 0)
+					       (<= (- t1 t0) mouse-1-click-follows-link)
+					     (< (- t0 t1) mouse-1-click-follows-link))))))))
+		  ;; Reselect previous selected window,
+		  ;; so that the mouse-2 event runs in the same
+		  ;; situation as if user had clicked it directly.
+		  ;; Fixes the bug reported by juri@jurta.org on 2005-12-27.
+		  (select-window original-window)
+		  (if (or (vectorp on-link) (stringp on-link))
+		      (setq event (aref on-link 0))
+		    (setcar event 'mouse-2)))
 		(push event unread-command-events))))
 
         ;; Case where the end-event is not a cons cell (it's just a boring
