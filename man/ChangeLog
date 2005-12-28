@@ -1,3 +1,9 @@
+2005-12-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* org.texi: Remove blank line in @direntry.  It is non-standard
+	and recursively produces blank lines all over the dir file (when
+	using Texinfo 4.8).
+
 2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* frames.texi (Dialog Boxes): Add x-gtk-show-hidden-files.
