@@ -2271,7 +2271,7 @@ that can be used as the ALIST argument to `try-completion' and
   ;;     (lazy-completion-table var (lambda () (fun x y))))
   ;; depending on the behavior they want.
   "Initialize variable VAR as a lazy completion table.
-If the completion table VAR is used for the first tidme (e.g., by passing VAR
+If the completion table VAR is used for the first time (e.g., by passing VAR
 as an argument to `try-completion'), the function FUN is called with no
 arguments.  FUN must return the completion table that will be stored in VAR.
 If completion is requested in the minibuffer, FUN will be called in the buffer
