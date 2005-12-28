@@ -1,3 +1,13 @@
+2005-12-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el (vc-annotate-mode-map): Remove obsolete binding.
+	(vc-annotate-mode-menu): Remove left-over redundant declaration.
+	Correct the construction of span entries.  Simplify.
+	(vc-annotate-display-select): Fix the nil case.
+	(vc-annotate): Remove obsolete (and now broken) code.
+	(vc-annotate-extract-revision-at-line): Remove obsolete code.
+	(vc-annotate-time-span): Remove unused arg `quantize'.  Simplify.
+
 2005-12-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (lazy-completion-table): Correct typo in docstring.
@@ -9,8 +19,8 @@
 
 2005-12-05  Ralf Angeli  <angeli@iwi.uni-sb.de>
 
-	* mail/smtpmail.el (smtpmail-try-auth-methods): Send
-	credentials together with "AUTH PLAIN" command.
+	* mail/smtpmail.el (smtpmail-try-auth-methods):
+	Send credentials together with "AUTH PLAIN" command.
 
 2005-12-27  Richard M. Stallman  <rms@gnu.org>
 
@@ -58,8 +68,7 @@
 2005-12-27  Juri Linkov  <juri@jurta.org>
 
 	* help-mode.el (help-insert-string): New function.  Save buffer
-	contents in cases where it is impossible to recompute the old
-	contents.
+	contents in cases where it is impossible to recompute the old contents.
 
 	* descr-text.el (describe-char): Set help-xref-stack-item
 	explicitly after buffer has been generated.

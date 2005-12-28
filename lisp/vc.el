@@ -659,7 +659,6 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
 
 (defvar vc-annotate-mode-map
   (let ((m (make-sparse-keymap)))
-    (define-key m [menu-bar] (make-sparse-keymap "VC-Annotate"))
     (define-key m "A" 'vc-annotate-revision-previous-to-line)
     (define-key m "D" 'vc-annotate-show-diff-revision-at-line)
     (define-key m "J" 'vc-annotate-revision-at-line)
@@ -669,9 +668,6 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
     (define-key m "W" 'vc-annotate-workfile-version)
     m)
   "Local keymap used for VC-Annotate mode.")
-
-(defvar vc-annotate-mode-menu nil
-  "Local keymap used for VC-Annotate mode's menu bar menu.")
 
 ;; Header-insertion hair
 
@@ -2964,7 +2960,7 @@ cover the range from the oldest annotation to the newest."
     (vc-annotate-display
      (vc-annotate-time-span		;return the scaled colormap.
       vc-annotate-color-map
-      (/ (-  (if full newest current) oldest)
+      (/ (- (if full newest current) oldest)
 	 (vc-annotate-car-last-cons vc-annotate-color-map)))
      (if full newest))
     (message "Redisplaying annotation...done \(%s\)"
@@ -2985,19 +2981,14 @@ cover the range from the oldest annotation to the newest."
     ,@(let ((oldest-in-map (vc-annotate-car-last-cons vc-annotate-color-map)))
         (mapcar (lambda (element)
                   (let ((days (* element oldest-in-map)))
-                    `([,(format "Span %.1f days" days)
-                       (unless (and (numberp vc-annotate-display-mode)
-                                    (= vc-annotate-display-mode ,days))
-                         (vc-annotate-display-select nil ,days))
-                       :style toggle :selected
-                       (and (numberp vc-annotate-display-mode)
-                            (= vc-annotate-display-mode ,days)) ])))
+                    `[,(format "Span %.1f days" days)
+                      (vc-annotate-display-select nil ,days)
+                      :style toggle :selected
+                      (eql vc-annotate-display-mode ,days) ]))
                 vc-annotate-menu-elements))
     ["Span ..."
-     (let ((days
-            (float (string-to-number
-                    (read-string "Span how many days? ")))))
-       (vc-annotate-display-select nil days)) t]
+     (vc-annotate-display-select
+      nil (float (string-to-number (read-string "Span how many days? "))))]
     "--"
     ["Span to Oldest"
      (unless (eq vc-annotate-display-mode 'scale)
@@ -3031,6 +3022,8 @@ use; you may override this using the second optional arg MODE."
   (if (not vc-annotate-parent-rev)
       (vc-annotate-mode))
   (cond ((null vc-annotate-display-mode)
+         ;; The ratio is global, thus relative to the global color-map.
+         (kill-local-variable 'vc-annotate-color-map)
 	 (vc-annotate-display-default vc-annotate-ratio))
 	;; One of the auto-scaling modes
 	((eq vc-annotate-display-mode 'scale)
@@ -3100,9 +3093,6 @@ colors. `vc-annotate-background' specifies the background color."
 	      (rename-buffer temp-buffer-name t)
 	      ;; In case it had to be uniquified.
 	      (setq temp-buffer-name (buffer-name))))
-    (if (not (vc-find-backend-function vc-annotate-backend 'annotate-command))
-	(error "Sorry, annotating is not implemented for %s"
-	       vc-annotate-backend))
     (with-output-to-temp-buffer temp-buffer-name
       (vc-call annotate-command file (get-buffer temp-buffer-name) rev))
     (with-current-buffer temp-buffer-name
@@ -3143,9 +3133,6 @@ versions after."
 (defun vc-annotate-extract-revision-at-line ()
   "Extract the revision number of the current line."
   ;; This function must be invoked from a buffer in vc-annotate-mode
-  (save-window-excursion
-    (vc-ensure-vc-buffer)
-    (setq vc-annotate-backend (vc-backend buffer-file-name)))
   (vc-call-backend vc-annotate-backend 'annotate-extract-revision-at-line))
 
 (defun vc-annotate-revision-at-line ()
@@ -3243,17 +3230,12 @@ revision."
 				       (previous-line)
 				       (line-number-at-pos))))))))
 
-(defun vc-annotate-time-span (a-list span &optional quantize)
+(defun vc-annotate-time-span (a-list span)
   "Apply factor SPAN to the time-span of association list A-LIST.
-Return the new alist.
-Optionally quantize to the factor of QUANTIZE."
+Return the new alist."
   ;; Apply span to each car of every cons
-  (if (not (eq nil a-list))
-      (append (list (cons (* (car (car a-list)) span)
-			  (cdr (car a-list))))
-	      (vc-annotate-time-span (nthcdr (or quantize ; optional
-						 1) ; Default to cdr
-					     a-list) span quantize))))
+  (mapcar (lambda (elem) (cons (* (car elem) span) (cdr elem)))
+          a-list))
 
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.
