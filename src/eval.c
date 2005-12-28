@@ -2069,7 +2069,7 @@ do_autoload (fundef, funname)
       second = Fcdr (first);
       first = Fcar (first);
 
-      if (CONSP (second) && EQ (XCAR (second), Qautoload))
+      if (SYMBOLP (first) && CONSP (second) && EQ (XCAR (second), Qautoload))
 	Fput (first, Qautoload, (XCDR (second)));
 
       queue = XCDR (queue);
