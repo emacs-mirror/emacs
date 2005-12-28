@@ -1,3 +1,8 @@
+2005-12-28  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Register characters in
+	auto-fill-chars.  Put nospace-between-words to more charsets.
+
 2005-10-27  Zhang Wei  <id.brep@gmail.com>  (tiny change)
 
 	* international/mule-cmds.el (locale-language-names): Add entries
