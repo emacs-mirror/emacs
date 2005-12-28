@@ -484,6 +484,8 @@
 	 (zerop (% c 2))
 	 (set-case-syntax-pair (1- c) c tbl))
     (setq c (1+ c)))
+  (set-downcase-syntax  ?İ ?i tbl)
+  (set-upcase-syntax    ?I ?ı tbl)
   (set-case-syntax-pair ?Ĳ ?ĳ tbl)
   (set-case-syntax-pair ?Ĵ ?ĵ tbl)
   (set-case-syntax-pair ?Ķ ?ķ tbl)
@@ -868,11 +870,22 @@
 ;; Setup auto-fill-chars for charsets that should invoke auto-filling.
 ;; SPACE and NEWLINE are already set.  Also put `nospace-between-words'
 ;; property on the charsets.
+
+(set-char-table-range auto-fill-chars '(#x3041 . #x30FF) t)
+(set-char-table-range auto-fill-chars '(#x3400 . #x4DB5) t)
+(set-char-table-range auto-fill-chars '(#x4e00 . #x9fbb) t)
+(set-char-table-range auto-fill-chars '(#xF900 . #xFAFF) t)
+(set-char-table-range auto-fill-chars '(#xFF00 . #xFF9F) t)
+(set-char-table-range auto-fill-chars '(#x20000 . #x2FFFF) t)
+
 (let ((l '(katakana-jisx0201
 	   japanese-jisx0208 japanese-jisx0212
-	   chinese-gb2312 chinese-big5-1 chinese-big5-2)))
+	   japanese-jisx0213-1 japanese-jisx0213-2
+	   chinese-gb2312 chinese-gbk chinese-big5-1 chinese-big5-2
+	   chinese-cns11643-1 chinese-cns11643-2 chinese-cns11643-3
+	   chinese-cns11643-4 chinese-cns11643-5 chinese-cns11643-6
+	   chinese-cns11643-7)))
   (while l
-    ;;(aset auto-fill-chars (make-char (car l)) t)
     (put-charset-property (car l) 'nospace-between-words t)
     (setq l (cdr l))))
 
