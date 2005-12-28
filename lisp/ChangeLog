@@ -1,3 +1,12 @@
+2005-12-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (lazy-completion-table): Correct typo in docstring.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' for
+	`send-mail-function'.
+
+	* mail/sendmail.el (send-mail-function): Autoload the standard-value.
+
 2005-12-05  Ralf Angeli  <angeli@iwi.uni-sb.de>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Send
