@@ -600,6 +600,10 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   minibuffer = get_minibuffer (minibuf_level);
   Fset_buffer (minibuffer);
 
+  /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
+  if (inherit_input_method)
+    current_buffer->enable_multibyte_characters = enable_multibyte;
+
   /* The current buffer's default directory is usually the right thing
      for our minibuffer here.  However, if you're typing a command at
      a minibuffer-only frame when minibuf_level is zero, then buf IS
@@ -670,10 +674,6 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
     }
 
   minibuf_prompt_width = (int) current_column (); /* iftc */
-
-  /* If appropriate, copy enable-multibyte-characters into the minibuffer.  */
-  if (inherit_input_method)
-    current_buffer->enable_multibyte_characters = enable_multibyte;
 
   /* Put in the initial input.  */
   if (!NILP (initial))
@@ -1238,11 +1238,11 @@ is used to further constrain the set of candidates.  */)
   int bestmatchsize = 0;
   /* These are in bytes, too.  */
   int compare, matchsize;
-  int type = HASH_TABLE_P (alist) ? 3
-    : VECTORP (alist) ? 2
-    : NILP (alist) || (CONSP (alist)
-		       && (!SYMBOLP (XCAR (alist))
-			   || NILP (XCAR (alist))));
+  int type = (HASH_TABLE_P (alist) ? 3
+	      : VECTORP (alist) ? 2
+	      : NILP (alist) || (CONSP (alist)
+				 && (!SYMBOLP (XCAR (alist))
+				     || NILP (XCAR (alist)))));
   int index = 0, obsize = 0;
   int matchcount = 0;
   int bindcount = -1;
@@ -2686,7 +2686,7 @@ temp_echo_area_glyphs (string)
 DEFUN ("minibuffer-message", Fminibuffer_message, Sminibuffer_message,
        1, 1, 0,
        doc: /* Temporarily display STRING at the end of the minibuffer.
-The text is displayed for two seconds,
+The text is displayed for a period controlled by `minibuffer-message-timeout',
 or until the next input event arrives, whichever comes first.  */)
      (string)
      Lisp_Object string;
