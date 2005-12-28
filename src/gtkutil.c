@@ -1285,20 +1285,11 @@ xg_get_file_with_chooser (f, prompt, default_filename,
   g_signal_connect (G_OBJECT (wtoggle), "clicked",
                     G_CALLBACK (xg_toggle_visibility_cb), G_OBJECT(filewin));
 
-#ifdef HAVE_GTK_FILE_SELECTION_NEW
-  strcpy (message, "If you find this file dialog inconvinient "
-          "you can customize\n"
-          "x-use-old-gtk-file-dialog to get the old file dialog,\n"
-          "or you can customize use-file-dialog to disable file dialogs,\n"
-          "or just use C-x C-f to open files.");
-#else
-  strcpy (message, "If you find this file dialog inconvinient "
-          "you can customize\n"
-          "use-file-dialog to disable file dialogs,\n"
-          "or just use C-x C-f to open files.");
-#endif
-  if (action == GTK_FILE_CHOOSER_ACTION_OPEN)
-    strcat (message, "\nUse C-l to bring up a text input area.");
+  message[0] = '\0';
+  if (action != GTK_FILE_CHOOSER_ACTION_SAVE)
+    strcat (message, "\nType C-l to display a file name text entry box.\n");
+  strcat (message, "\nIf you don't like this file selector, customize "
+          "use-file-dialog\nto turn it off, or type C-x C-f to visit files.");
 
   wmessage = gtk_label_new (message);
   gtk_widget_show (wmessage);
