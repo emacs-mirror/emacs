@@ -1,3 +1,7 @@
+2005-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (lisp_string_width): Check multibyteness of STRING.
+
 2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfns.c: x_show_hidden_files, new variable.
