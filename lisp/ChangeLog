@@ -1,4 +1,10 @@
-2005-12-28  Juri Linkov  <juri@jurta.org>
+2005-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-drag-region-1): When remapping mouse-1 to
+	mouse-2, go back to previously selected window, so it's selected
+	when mouse-2 command runs.
+
+2005-12-27  Juri Linkov  <juri@jurta.org>
 
 	* descr-text.el (describe-text-sexp): Use square brackets for
 	button [Show] to distinguish it from the property value `show'.
@@ -27,7 +33,7 @@
 	* textmodes/flyspell.el (flyspell-external-point-words):
 	New criteria for finding the misspelling in the buffer.
 
-2005-12-28  Nick Roberts  <nickrob@snap.net.nz>
+2005-12-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* help-mode.el (help-insert-string): Set help-xref-stack-item
 	rather than call help-setup-xref.
@@ -35,7 +41,7 @@
 	* descr-text.el (describe-char): Revert previous changes for
 	optional buffer argument.
 
-2005-12-28  Juri Linkov  <juri@jurta.org>
+2005-12-27  Juri Linkov  <juri@jurta.org>
 
 	* help-mode.el (help-insert-string): New function.  Save buffer
 	contents in cases where it is impossible to recompute the old
@@ -70,13 +76,13 @@
 	* textmodes/bibtex.el (bibtex-strings, bibtex-reference-keys):
 	Don't use the `args' argument of lazy-completion-table.
 
-2005-12-27  Nick Roberts  <nickrob@snap.net.nz>
+2005-12-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* descr-text.el (describe-char): Add optional argument for buffer.
 	Set buffer appropriately.  Call help-setup-xref.
 	Suggested by Stefan Monnier.
 
-2005-12-27  Juri Linkov  <juri@jurta.org>
+2005-12-26  Juri Linkov  <juri@jurta.org>
 
 	* descr-text.el: Require `help-fns' at runtime.  Don't require
 	`button' for byte compilation.
