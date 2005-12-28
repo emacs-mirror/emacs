@@ -1,3 +1,8 @@
+2005-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* e/eterm-color.ti: Temporarily disable the ri entry.
+	* e/eterm-color: Regenerate.
+	
 2005-12-21  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
 
 	* TODO: Add note on the multi-tty branch.
