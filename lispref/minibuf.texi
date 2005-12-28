@@ -777,13 +777,10 @@ proper value is done the first time you do completion using @var{var}.
 It is done by calling @var{fun} with no arguments.  The
 value @var{fun} returns becomes the permanent value of @var{var}.
 
-Here are two examples of use:
+Here is an example of use:
 
 @smallexample
-(defvar foo (lazy-completion-table foo make-my-alist 'global))
-
-(make-local-variable 'bar)
-(setq bar (lazy-completion-table foo make-my-alist 'local)
+(defvar foo (lazy-completion-table foo make-my-alist))
 @end smallexample
 @end defmac
 
@@ -954,7 +951,7 @@ uses this to highlight text in the completion list for better visual
 feedback.  This is not needed in the minibuffer; for minibuffer
 completion, you can pass @code{nil}.
 
-This function is called by @code{minibuffer-completion-help}.  The 
+This function is called by @code{minibuffer-completion-help}.  The
 most common way to use it is together with
 @code{with-output-to-temp-buffer}, like this:
 
