@@ -1,3 +1,7 @@
+2005-12-28  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-e-user-agent): Move here from simple.el.
+
 2005-12-27  Bill Wohler  <wohler@newt.com>
 
 	* mh-utils.el (mh-prompt-for-folder): Use can-create argument to

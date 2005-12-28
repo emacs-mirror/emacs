@@ -1,3 +1,8 @@
+2005-12-28  Bill Wohler  <wohler@newt.com>
+
+	* simple.el (mh-e-user-agent): Move to mh-e/mh-comp.el and
+	autoload.
+
 2005-12-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc.el (vc-annotate-display): Replace optional arg `color-map' with

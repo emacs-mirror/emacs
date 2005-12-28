@@ -4569,10 +4569,6 @@ See also `read-mail-command' concerning reading mail."
 	(insert body))
       t)))
 
-(define-mail-user-agent 'mh-e-user-agent
-  'mh-smail-batch 'mh-send-letter 'mh-fully-kill-draft
-  'mh-before-send-letter-hook)
-
 (defun compose-mail (&optional to subject other-headers continue
 			       switch-function yank-action send-actions)
   "Start composing a mail message to send.
