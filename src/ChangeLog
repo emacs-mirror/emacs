@@ -1,3 +1,8 @@
+2005-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (do_autoload): Ignore elements of Vautoload_queue
+	where car is not symbol.
+
 2005-12-27  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (lisp_string_width): Check multibyteness of STRING.
