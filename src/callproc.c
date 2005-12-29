@@ -1877,6 +1877,7 @@ Non-ASCII characters are encoded according to the initial value of
 use.
 
 See `setenv' and `getenv'.  */);
+  Vprocess_environment = Qnil;
 
 #ifndef VMS
   defsubr (&Scall_process);
