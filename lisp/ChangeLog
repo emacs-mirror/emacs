@@ -1,3 +1,14 @@
+2005-12-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-tooltip-print, gdb-tooltip-print-1):
+	Display name of expression instead of convenience variable.
+	(gdb-post-prompt): Only call gdb-get-changed-registers if needed.
+
+	* progmodes/gud.el (gud-tooltip-dereference): Rename from
+	toggle-gud-tooltip-dereference.
+	(gud-tooltip-print-command): Move concatenation of "*" to expr to...
+	(gud-tooltip-tips): ...here when dereferencing..
+
 2005-12-28  Bill Wohler  <wohler@newt.com>
 
 	* simple.el (mh-e-user-agent): Move to mh-e/mh-comp.el and
