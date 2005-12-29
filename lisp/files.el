@@ -2434,6 +2434,7 @@ is specified, returning t if it is specified."
 (put 'mode-line-format 'risky-local-variable t)
 (put 'mode-line-modified 'risky-local-variable t)
 (put 'mode-line-mule-info 'risky-local-variable t)
+(put 'mode-line-client 'risky-local-variable t)
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (put 'mode-line-modes 'risky-local-variable t)
 (put 'mode-line-position 'risky-local-variable t)

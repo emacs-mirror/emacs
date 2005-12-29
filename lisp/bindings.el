@@ -170,6 +170,14 @@ corresponding to the mode line clicked."
       (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
       desc)))
 
+(defvar mode-line-client
+  `(""
+    (:propertize ("" (:eval (if (frame-parameter nil 'client) "@" "")))
+		 help-echo "Emacsclient frame"
+		 local-map ,mode-line-input-method-map
+		 mouse-face mode-line-highlight))
+  "Mode-line control for identifying Emacsclient frames.")
+
 (defvar mode-line-mule-info
   `(""
     (current-input-method
@@ -294,6 +302,7 @@ Keymap to display on minor modes.")
      "%e"
      (propertize "-" 'help-echo help-echo)
      'mode-line-mule-info
+     'mode-line-client
      'mode-line-modified
      'mode-line-frame-identification
      'mode-line-buffer-identification
