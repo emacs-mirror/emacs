@@ -1415,9 +1415,9 @@ If `bibtex-expand-strings' is non-nil, also expand BibTeX strings."
           (while (< (setq opoint (point)) epoint)
             (if (looking-at bibtex-field-const)
                 (let ((mtch (match-string-no-properties 0)))
-                  (push (if bibtex-expand-strings
-                            (cdr (assoc-string mtch (bibtex-strings) t))
-                          mtch) content)
+                  (push (or (if bibtex-expand-strings
+                                (cdr (assoc-string mtch (bibtex-strings) t)))
+                            mtch) content)
                   (goto-char (match-end 0)))
               (let ((bounds (bibtex-parse-field-string)))
                 (push (buffer-substring-no-properties
