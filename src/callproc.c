@@ -1600,9 +1600,9 @@ that frame has its own set of environment variables, this function
 will look up VARIABLE in there.
 
 Otherwise, this function searches `process-environment' for VARIABLE.
-If it was not found there, then it continues the search in either
-`global-environment' or the local environment list of the current
-frame, depending on the value of `local-environment-variables'.  */)
+If it is not found there, then it continues the search in either
+`global-environment' or the environment list of the selected frame,
+depending on the value of `local-environment-variables'.  */)
      (variable, frame)
      Lisp_Object variable, frame;
 {
@@ -1843,8 +1843,9 @@ Emacs starts.
 
 Some frames may have their own local list of environment variables in
 their 'environment parameter, which may override this global list; see
-`local-environment-variables'.  See `process-environment' for a way to
-modify an environment variable on all frames.
+`local-environment-variables' and `frame-with-environment'.  See
+`process-environment' for a way to modify an environment variable on
+all frames.
 
 If multiple entries define the same variable, the first one always
 takes precedence.
@@ -1858,12 +1859,12 @@ See `setenv' and `getenv'.  */);
 Each element should be a string of the form ENVVARNAME=VALUE.
 
 Entries in this list take precedence to those in `global-environment'
-or the frame-local environment.  (See `local-environment-variables'.)
-Therefore, let-binding `process-environment' is an easy way to
-temporarily change the value of an environment variable, irrespective
-of where it comes from.  To use `process-environment' to remove an
-environment variable, include only its name in the list, without
-"=VALUE".
+or the frame-local environments.  (See `local-environment-variables'
+and `frame-with-environment'.)  Therefore, let-binding
+`process-environment' is an easy way to temporarily change the value
+of an environment variable, irrespective of where it comes from.  To
+use `process-environment' to remove an environment variable, include
+only its name in the list, without "=VALUE".
 
 This variable is set to nil when Emacs starts.
 
@@ -1894,7 +1895,10 @@ frame-local environment.
 
 Otherwise, `local-environment-variables' should be a list of variable
 names (represented by Lisp strings) to look up in the frame's
-environment.  The rest will come from `global-environment'.  */);
+environment.  The rest will come from `global-environment'.
+
+The frame-local environment is stored in the 'environment frame
+parameter.  See `frame-with-environment'.  */);
   Vlocal_environment_variables = Qnil;
 }
 

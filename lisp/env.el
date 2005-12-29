@@ -97,17 +97,18 @@ Use `$$' to insert a single dollar sign."
 (defun setenv (variable &optional value unset substitute-env-vars frame)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE should be a string.  VALUE is optional; if not provided or
-nil, the environment variable VARIABLE will be removed.  UNSET
-if non-nil means to remove VARIABLE from the environment.
+nil, the environment variable VARIABLE will be removed.
+UNSET if non-nil means to remove VARIABLE from the environment.
 SUBSTITUTE-ENV-VARS, if non-nil, means to substitute environment
 variables in VALUE with `substitute-env-vars', where see.
 Value is the new value if VARIABLE, or nil if removed from the
 environment.
 
-Interactively, a prefix argument means to unset the variable.
-Interactively, the current value (if any) of the variable
-appears at the front of the history list when you type in the new value.
-Interactively, always replace environment variables in the new value.
+Interactively, a prefix argument means to unset the variable, and
+otherwise the current value (if any) of the variable appears at
+the front of the history list when you type in the new value.
+This function always replaces environment variables in the new
+value when called interactively.
 
 If VARIABLE is set in `process-environment', then this function
 modifies its value there.  Otherwise, this function works by
@@ -212,11 +213,11 @@ VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.
 
 If optional parameter FRAME is non-nil, then it should be a
-frame.  If the specified terminal device has its own set of
-environment variables, this function will look up VARIABLE in it.
+frame.  If that frame has its own set of environment variables,
+this function will look up VARIABLE in there.
 
 Otherwise, this function searches `process-environment' for
-VARIABLE.  If it was not found there, then it continues the
+VARIABLE.  If it is not found there, then it continues the
 search in either `global-environment' or the environment list of
 the selected frame, depending on the value of
 `local-environment-variables'."
