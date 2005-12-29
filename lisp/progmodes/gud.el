@@ -3343,16 +3343,19 @@ For C this would dereference a pointer expression.")
   "The mouse movement event that led to a tooltip display.
 This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 
-(defun toggle-gud-tooltip-dereference ()
-  "Toggle whether tooltips should show `* expr' or `expr'."
-  (interactive)
-  (setq gud-tooltip-dereference (not gud-tooltip-dereference))
-  (when (interactive-p)
-    (message "Dereferencing is now %s."
-	     (if gud-tooltip-dereference "on" "off"))))
+(defun gud-tooltip-dereference ()
+  "Toggle whether tooltips should show `* expr' or `expr'.
+With arg, dereference expr iff arg is positive."
+ (interactive "P")
+  (setq gud-tooltip-dereference
+	(if (null arg)
+	    (not gud-tooltip-dereference)
+	  (> (prefix-numeric-value arg) 0)))
+  (message "Dereferencing is now %s."
+	   (if gud-tooltip-dereference "on" "off")))
 
 (define-obsolete-function-alias 'tooltip-gud-toggle-dereference
-                                'toggle-gud-tooltip-dereference "22.1")
+                                'gud-tooltip-dereference "22.1")
 
 ; This will only display data that comes in one chunk.
 ; Larger arrays (say 400 elements) are displayed in
@@ -3367,10 +3370,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 		(or gud-tooltip-echo-area tooltip-use-echo-area)))
 
 (defun gud-tooltip-print-command (expr)
-  "Return a suitable command to print the expression EXPR.
-If GUD-TOOLTIP-DEREFERENCE is t, also prepend a `*' to EXPR."
-  (when gud-tooltip-dereference
-    (setq expr (concat "*" expr)))
+  "Return a suitable command to print the expression EXPR."
   (case gud-minor-mode
 	(gdba (concat "server print " expr))
 	((dbx gdbmi) (concat "print " expr))
@@ -3412,6 +3412,8 @@ This function must return nil if it doesn't handle EVENT."
 		       (cdr define-elt)
 		       (or gud-tooltip-echo-area tooltip-use-echo-area))
 		      expr))))
+	    (when gud-tooltip-dereference
+	      (setq expr (concat "*" expr)))
 	    (let ((cmd (gud-tooltip-print-command expr)))
 	      (when (and gud-tooltip-mode (eq gud-minor-mode 'gdb))
 		(gud-tooltip-mode -1)
