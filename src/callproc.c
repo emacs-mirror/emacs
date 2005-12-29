@@ -1899,7 +1899,7 @@ environment.  The rest will come from `global-environment'.
 
 The frame-local environment is stored in the 'environment frame
 parameter.  See `frame-with-environment'.  */);
-  Vlocal_environment_variables = Qnil;
+  Vlocal_environment_variables = Qt;
 }
 
 /* arch-tag: 769b8045-1df7-4d2b-8968-e3fb49017f95
