@@ -1,3 +1,51 @@
+2005-12-29  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-entry-type-whitespace)
+	(bibtex-entry-type-str, bibtex-empty-field-re)
+	(bibtex-search-backward-string, bibtex-preamble-prefix)
+	(bibtex-search-entry, bibtex-enclosing-entry-maybe-empty-head):
+	Removed.
+	(bibtex-any-valid-entry-type): New variable.
+	(bibtex-parse-field-name): Simplify.
+	(bibtex-parse-string, bibtex-search-forward-string): New arg
+	empty-key.
+	(bibtex-preamble-prefix): Include left delimiter.
+	(bibtex-search-forward-field, bibtex-search-backward-field): Allow
+	unbounded search past entry boundaries (required by bibtex-pop).
+	(bibtex-text-in-field-bounds): Use push.
+	(bibtex-text-in-field): Do not use bibtex-narrow-to-entry.
+	(bibtex-parse-preamble, bibtex-valid-entry)
+	(bibtex-beginning-first-field): New functions.
+	(bibtex-skip-to-valid-entry): Use bibtex-valid-entry.  Fix regexp.
+	(bibtex-map-entries): Fix docstring.
+	(bibtex-flash-head): New arg prompt. Simplify.
+	(bibtex-enclosing-field): Include code of bibtex-inside-field.
+	(bibtex-insert-kill): Simplify.  Always insert text past the
+	current field or entry.
+	(bibtex-format-entry): Use bibtex-parse-field.
+	(bibtex-pop): Use bibtex-beginning-of-entry and
+	bibtex-end-of-entry to initiate the search.  Insert empty field if
+	we found ourselves.
+	(bibtex-print-help-message): New args field and comma.  Handle
+	entry keys.
+	(bibtex-make-field): Use bibtex-beginning-of-entry.
+	(bibtex-end-of-entry): Use bibtex-valid-entry.  Recognize any
+	invalid entry.
+	(bibtex-validate): Use bibtex-valid-entry and bibtex-parse-string.
+	Handle preambles.  Simplify code for thorough test.
+	(bibtex-next-field, bibtex-find-text, bibtex-find-text-internal):
+	New arg comma.  Handle entry heads.
+	(bibtex-remove-OPT-or-ALT, bibtex-remove-delimiters)
+	(bibtex-kill-field, bibtex-copy-field-as-kil, bibtex-empty-field):
+	New arg comma.
+	(bibtex-kill-entry): Use bibtex-any-entry-maybe-empty-head.
+	(bibtex-fill-field): Simplify.
+	(bibtex-fill-entry): Use bibtex-beginning-first-field and
+	bibtex-parse-field.
+	(bibtex-convert-alien): Do not wait before calling
+	bibtex-validate.
+	(bibtex-complete): Use bibtex-parse-preamble.
+
 2005-12-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-tooltip-print, gdb-tooltip-print-1):
