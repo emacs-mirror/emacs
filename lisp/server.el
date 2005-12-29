@@ -752,6 +752,13 @@ The following commands are accepted by the client:
 		(setq buffers (server-visit-files files client nowait))
 		(run-hooks 'post-command-hook))
 
+	      (with-selected-frame frame
+		(switch-to-buffer (or (car buffers)
+				      (get-buffer-create "*scratch*")))
+		(unless inhibit-splash-screen
+		  (display-splash-screen))
+		(display-startup-echo-area-message))
+
 	      ;; Delete the client if necessary.
 	      (cond
 	       (nowait

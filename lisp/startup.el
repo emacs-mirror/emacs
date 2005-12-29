@@ -1344,7 +1344,8 @@ mouse."
 	  (cancel-timer timer)
 	  (setq display-hourglass old-hourglass
 		minor-mode-map-alist old-minor-mode-map-alist)
-	  (kill-buffer splash-buffer))))))
+	  (kill-buffer splash-buffer)
+	  (switch-to-buffer fancy-splash-outer-buffer))))))
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
