@@ -620,8 +620,8 @@ The following commands are accepted by the client:
 					  ;; emacsclient quits while also preventing
 					  ;; `server-save-buffers-kill-display' from unexpectedly
 					  ;; killing emacs on that frame.
-					  (list (cons 'client 'nowait))
-					(list (cons 'client proc)))))
+					  (list (cons 'client 'nowait) (cons 'environment env))
+					(list (cons 'client proc) (cons 'environment env)))))
 			  (setq frame (make-frame-on-display
 				       (or display
 					   (frame-parameter nil 'display)
@@ -637,7 +637,6 @@ The following commands are accepted by the client:
 			  (select-frame frame)
 			  (server-client-set client 'frame frame)
 			  (server-client-set client 'device (frame-display frame))
-			  (set-terminal-parameter frame 'environment env)
 			  (setq dontkill t))
 		      ;; This emacs does not support X.
 		      (server-log "Window system unsupported" proc)
@@ -684,12 +683,12 @@ The following commands are accepted by the client:
 			(setq frame (make-frame-on-tty tty type
 						       ;; Ignore nowait here; we always need to clean
 						       ;; up opened ttys when the client dies.
-						       `((client . ,proc)))))
+						       `((client . ,proc)
+							 (environment . ,env)))))
 		      (select-frame frame)
 		      (server-client-set client 'frame frame)
 		      (server-client-set client 'tty (display-name frame))
 		      (server-client-set client 'device (frame-display frame))
-		      (set-terminal-parameter frame 'environment env)
 
 		      ;; Reply with our pid.
 		      (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
@@ -740,8 +739,7 @@ The following commands are accepted by the client:
 		 ;; -env NAME=VALUE:  An environment variable.
 		 ((and (equal "-env" arg) (string-match "\\([^ ]+\\) " request))
 		  (let ((var (server-unquote-arg (match-string 1 request))))
-		    (when coding-system
-		      (setq var (decode-coding-string var coding-system)))
+		    ;; XXX Variables should be encoded as in getenv/setenv.
 		    (setq request (substring request (match-end 0)))
 		    (setq env (cons var env))))
 

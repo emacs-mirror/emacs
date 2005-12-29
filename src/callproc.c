@@ -119,7 +119,6 @@ Lisp_Object Vprocess_environment;
 #ifdef DOS_NT
 Lisp_Object Qbuffer_file_type;
 #endif /* DOS_NT */
-Lisp_Object Qenvironment;
 
 /* True iff we are about to fork off a synchronous process or if we
    are waiting for it.  */
@@ -1319,8 +1318,8 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
 
     if (!NILP (Vlocal_environment_variables))
       {
-        local = get_terminal_param (FRAME_DEVICE (XFRAME (selected_frame)),
-                                    Qenvironment);
+        local = get_frame_param (XFRAME (Fframe_with_environment (selected_frame)),
+                                 Qenvironment);
         if (EQ (Vlocal_environment_variables, Qt)
             && !NILP (local))
           environment = local;
@@ -1356,7 +1355,7 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
       new_env = add_env (env, new_env, egetenv (SDATA (XCAR (tem))));
 
     /* The rest of the environment (either Vglobal_environment or the
-       'environment terminal parameter).  */
+       'environment frame parameter).  */
     for (tem = environment;
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
@@ -1488,12 +1487,12 @@ relocate_fd (fd, minfd)
 }
 
 static int
-getenv_internal (var, varlen, value, valuelen, terminal)
+getenv_internal (var, varlen, value, valuelen, frame)
      char *var;
      int varlen;
      char **value;
      int *valuelen;
-     Lisp_Object terminal;
+     Lisp_Object frame;
 {
   Lisp_Object scan;
   Lisp_Object environment = Vglobal_environment;
@@ -1528,17 +1527,19 @@ getenv_internal (var, varlen, value, valuelen, terminal)
     }
 
   /* Find the environment in which to search the variable. */
-  if (!NILP (terminal))
+  if (!NILP (frame))
     {
-      Lisp_Object local = get_terminal_param (get_device (terminal, 1), Qenvironment);
+      CHECK_FRAME (frame);
+      frame = Fframe_with_environment (frame);
+      Lisp_Object local = get_frame_param (XFRAME (frame), Qenvironment);
       /* Use Vglobal_environment if there is no local environment.  */
       if (!NILP (local))
         environment = local;
     }
   else if (!NILP (Vlocal_environment_variables)) 
     {
-      Lisp_Object local = get_terminal_param (FRAME_DEVICE (XFRAME (selected_frame)),
-                                              Qenvironment);
+      Lisp_Object local = get_frame_param (XFRAME (Fframe_with_environment (selected_frame)),
+                                           Qenvironment);
       if (EQ (Vlocal_environment_variables, Qt)
           && !NILP (local))
         environment = local;
@@ -1594,25 +1595,23 @@ DEFUN ("getenv-internal", Fgetenv_internal, Sgetenv_internal, 1, 2, 0,
 VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.
 
-If optional parameter TERMINAL is non-nil, then it should be a
-terminal id or a frame.  If the specified terminal device has its own
-set of environment variables, this function will look up VARIABLE in
-it.
+If optional parameter FRAME is non-nil, then it should be a frame.  If
+that frame has its own set of environment variables, this function
+will look up VARIABLE in there.
 
 Otherwise, this function searches `process-environment' for VARIABLE.
 If it was not found there, then it continues the search in either
 `global-environment' or the local environment list of the current
-terminal device, depending on the value of
-`local-environment-variables'.  */)
-     (variable, terminal)
-     Lisp_Object variable, terminal;
+frame, depending on the value of `local-environment-variables'.  */)
+     (variable, frame)
+     Lisp_Object variable, frame;
 {
   char *value;
   int valuelen;
 
   CHECK_STRING (variable);
   if (getenv_internal (SDATA (variable), SBYTES (variable),
-		       &value, &valuelen, terminal))
+		       &value, &valuelen, frame))
     return make_string (value, valuelen);
   else
     return Qnil;
@@ -1842,11 +1841,10 @@ Each element should be a string of the form ENVVARNAME=VALUE.
 The environment which Emacs inherits is placed in this variable when
 Emacs starts.
 
-Some terminal devices may have their own local list of environment
-variables in their 'environment parameter, which may override this
-global list; see `local-environment-variables'.  See
-`process-environment' for a way to modify an environment variable on
-all terminals.
+Some frames may have their own local list of environment variables in
+their 'environment parameter, which may override this global list; see
+`local-environment-variables'.  See `process-environment' for a way to
+modify an environment variable on all frames.
 
 If multiple entries define the same variable, the first one always
 takes precedence.
@@ -1860,12 +1858,12 @@ See `setenv' and `getenv'.  */);
 Each element should be a string of the form ENVVARNAME=VALUE.
 
 Entries in this list take precedence to those in `global-environment'
-or the terminal environment.  (See `local-environment-variables' for
-an explanation of the terminal-local environment.)  Therefore,
-let-binding `process-environment' is an easy way to temporarily change
-the value of an environment variable, irrespective of where it comes
-from.  To use `process-environment' to remove an environment variable,
-include only its name in the list, without "=VALUE".
+or the frame-local environment.  (See `local-environment-variables'.)
+Therefore, let-binding `process-environment' is an easy way to
+temporarily change the value of an environment variable, irrespective
+of where it comes from.  To use `process-environment' to remove an
+environment variable, include only its name in the list, without
+"=VALUE".
 
 This variable is set to nil when Emacs starts.
 
@@ -1886,21 +1884,18 @@ See `setenv' and `getenv'.  */);
   defsubr (&Scall_process_region);
 
   DEFVAR_LISP ("local-environment-variables", &Vlocal_environment_variables,
-               doc: /* 	Enable or disable terminal-local environment variables.
+               doc: /* 	Enable or disable frame-local environment variables.
 If set to t, `getenv', `setenv' and subprocess creation functions use
-the local environment of the terminal device of the selected frame,
-ignoring `global-environment'.
+the local environment of the selected frame, ignoring
+`global-environment'.
 
 If set to nil, Emacs uses `global-environment' and ignores the
-terminal environment.
+frame-local environment.
 
 Otherwise, `local-environment-variables' should be a list of variable
-names (represented by Lisp strings) to look up in the terminal's
+names (represented by Lisp strings) to look up in the frame's
 environment.  The rest will come from `global-environment'.  */);
   Vlocal_environment_variables = Qnil;
-
-  Qenvironment = intern ("environment");
-  staticpro (&Qenvironment);
 }
 
 /* arch-tag: 769b8045-1df7-4d2b-8968-e3fb49017f95

@@ -412,7 +412,10 @@ THINGS TO DO
 
    	make_terminal_frame
 		create_tty_output
-	
+
+** Decide whether to keep the C implementation of terminal parameters,
+   or revert to the previous, purely Lisp code.  It turned out that
+   local environments do not need terminal parameters after all.
 
 ** Move Fsend_string_to_terminal to term.c, and declare get_named_tty
    as static, removing it from dispextern.h.
@@ -1361,6 +1364,17 @@ DIARY OF CHANGES
    `with-terminal-environment' are now replaced by extensions to
    `getenv' and `setenv', and the new `local-environment-variables'
    facility.  Yay!)
+
+   (Updated in patch-465 to fix the semantics of let-binding
+   `process-environment'.  `process-environment' was changed to
+   override all local/global environment variables, and a new variable
+   `global-environment' was introduced to have `process-environment's
+   old meaning.)
+
+   (Updated in patch-466 to fix the case when two emacsclient sessions
+   share the same terminal, but have different environment.  The local
+   environment lists are now stored as frame parameters, so the
+   C-level terminal parameters are not strictly necessary any more.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 

@@ -674,12 +674,20 @@ setup is for focus to follow the pointer."
 	      (cdr (assq 'window-system parameters)))
 	     (t window-system)))
 	 (frame-creation-function (cdr (assq w frame-creation-function-alist)))
+	 (oldframe (selected-frame))
 	 frame)
     (unless frame-creation-function
       (error "Don't know how to create a frame on window system %s" w))
     (run-hooks 'before-make-frame-hook)
     (setq frame (funcall frame-creation-function (append parameters (cdr (assq w window-system-default-frame-alist)))))
     (normal-erase-is-backspace-setup-frame frame)
+    ;; Set up the frame-local environment, if needed.
+    (when (eq (frame-display frame) (frame-display oldframe))
+      (let ((env (frame-parameter oldframe 'environment)))
+	(if (not (framep env))
+	    (setq env oldframe))
+	(if env
+	    (set-frame-parameter frame 'environment env))))
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 

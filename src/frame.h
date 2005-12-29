@@ -781,6 +781,7 @@ typedef struct frame *FRAME_PTR;
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
 extern Lisp_Object Qdevice, Qdisplay_live_p;
+extern Lisp_Object Qenvironment;
 
 extern struct frame *last_nonminibuf_frame;
 

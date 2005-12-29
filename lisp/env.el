@@ -55,7 +55,7 @@ If it is also not t, RET does not exit if it does non-null completion."
 				     (substring enventry 0
 						(string-match "=" enventry)))))
 			   (append process-environment
-				   (terminal-parameter nil 'environment)
+				   (frame-parameter (frame-with-environment) 'environment)
 				   global-environment))
 		   nil mustmatch nil 'read-envvar-name-history))
 
@@ -94,7 +94,7 @@ Use `$$' to insert a single dollar sign."
 
 ;; Fixme: Should the environment be recoded if LC_CTYPE &c is set?
 
-(defun setenv (variable &optional value unset substitute-env-vars terminal)
+(defun setenv (variable &optional value unset substitute-env-vars frame)
   "Set the value of the environment variable named VARIABLE to VALUE.
 VARIABLE should be a string.  VALUE is optional; if not provided or
 nil, the environment variable VARIABLE will be removed.  UNSET
@@ -112,12 +112,15 @@ Interactively, always replace environment variables in the new value.
 If VARIABLE is set in `process-environment', then this function
 modifies its value there.  Otherwise, this function works by
 modifying either `global-environment' or the environment
-belonging to the terminal device of the selected frame, depending
-on the value of `local-environment-variables'.
+belonging to the selected frame, depending on the value of
+`local-environment-variables'.
 
-If optional parameter TERMINAL is non-nil, then it should be a
-terminal id or a frame.  If the specified terminal device has its own
-set of environment variables, this function will modify VAR in it.
+If optional parameter FRAME is non-nil, then it should be a a
+frame.  If the specified frame has its own set of environment
+variables, this function will modify VARIABLE in it.  Note that
+frames on the same terminal device usually share their
+environment, so calling `setenv' on one of them affects the
+others as well.
 
 As a special case, setting variable `TZ' calls `set-time-zone-rule' as
 a side-effect."
@@ -153,9 +156,11 @@ a side-effect."
       (error "Environment variable name `%s' contains `='" variable))
   (let ((pattern (concat "\\`" (regexp-quote variable) "\\(=\\|\\'\\)"))
 	(case-fold-search nil)
-	(terminal-env (terminal-parameter terminal 'environment))
+	(frame-env (frame-parameter (frame-with-environment frame) 'environment))
+	(frame-forced (not frame))
 	(scan process-environment)
 	found)
+    (setq frame (frame-with-environment frame))
     (if (string-equal "TZ" variable)
 	(set-time-zone-rule value))
     (block nil
@@ -166,55 +171,54 @@ a side-effect."
 	      (setcar scan (concat variable "=" value))
 	    ;; Leave unset variables in `process-environment',
 	    ;; otherwise the overridden value in `global-environment'
-	    ;; or terminal-env would become unmasked.
+	    ;; or frame-env would become unmasked.
 	    (setcar scan variable))
 	  (return value))
 	(setq scan (cdr scan)))
 
       ;; Look in the local or global environment, whichever is relevant.
-      (let ((local-var-p (and terminal-env
-			      (or terminal
+      (let ((local-var-p (and frame-env
+			      (or frame-forced
 				  (eq t local-environment-variables)
 				  (member variable local-environment-variables)))))
 	(setq scan (if local-var-p
-		       terminal-env
+		       frame-env
 		     global-environment))
 	(while scan
 	  (when (string-match pattern (car scan))
 	    (if value
 		(setcar scan (concat variable "=" value))
 	      (if local-var-p
-		  (set-terminal-parameter terminal 'environment
-					  (delq (car scan) terminal-env))
-		(setq global-environment (delq (car scan) global-environment)))
-	      (return value)))
+		  (set-frame-parameter frame 'environment
+				       (delq (car scan) frame-env))
+		(setq global-environment (delq (car scan) global-environment))))
+	    (return value))
 	  (setq scan (cdr scan)))
 
 	;; VARIABLE is not in any environment list.
 	(if value
 	    (if local-var-p
-		(set-terminal-parameter nil 'environment
-					(cons (concat variable "=" value)
-					      terminal-env))
+		(set-frame-parameter frame 'environment
+				     (cons (concat variable "=" value)
+					   frame-env))
 	      (setq global-environment
 		    (cons (concat variable "=" value)
 			  global-environment))))
 	(return value)))))
 
-(defun getenv (variable &optional terminal)
+(defun getenv (variable &optional frame)
   "Get the value of environment variable VARIABLE.
 VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
 the environment.  Otherwise, value is a string.
 
-If optional parameter TERMINAL is non-nil, then it should be a
-terminal id or a frame.  If the specified terminal device has its own
-set of environment variables, this function will look up VARIABLE in
-it.
+If optional parameter FRAME is non-nil, then it should be a
+frame.  If the specified terminal device has its own set of
+environment variables, this function will look up VARIABLE in it.
 
-Otherwise, this function searches `process-environment' for VARIABLE.
-If it was not found there, then it continues the search in either
-`global-environment' or the local environment list of the current
-terminal device, depending on the value of
+Otherwise, this function searches `process-environment' for
+VARIABLE.  If it was not found there, then it continues the
+search in either `global-environment' or the environment list of
+the selected frame, depending on the value of
 `local-environment-variables'."
   (interactive (list (read-envvar-name "Get environment variable: " t)))
   (let ((value (getenv-internal (if (multibyte-string-p variable)
@@ -236,21 +240,23 @@ variables, only read them.  See `setenv' to do that.
 
 The list is constructed from elements of `process-environment',
 `global-environment' and the local environment list of the
-current terminal, as specified by `local-environment-variables'.
+selected frame, as specified by `local-environment-variables'.
 
 Non-ASCII characters are encoded according to the initial value of
 `locale-coding-system', i.e. the elements must normally be decoded for use.
 See `setenv' and `getenv'."
-  (let ((env (cond ((or (not local-environment-variables)
-			(not (terminal-parameter nil 'environment)))
-		    (append process-environment global-environment nil))
-		   ((consp local-environment-variables)
-		    (let ((e (reverse process-environment)))
-		      (dolist (entry local-environment-variables)
-			(setq e (cons (getenv entry) e)))
-		      (append (nreverse e) global-environment nil)))
-		   (t
-		    (append process-environment (terminal-parameter nil 'environment) nil))))
+  (let ((env (let ((local-env (frame-parameter (frame-with-environment)
+					       'environment)))
+	       (cond ((or (not local-environment-variables)
+			  (not local-env))
+		      (append process-environment global-environment nil))
+		     ((consp local-environment-variables)
+		      (let ((e (reverse process-environment)))
+			(dolist (entry local-environment-variables)
+			  (setq e (cons (getenv entry) e)))
+			(append (nreverse e) global-environment nil)))
+		     (t
+		      (append process-environment local-env nil)))))
 	scan seen)
     ;; Find the first valid entry in env.
     (while (and env (stringp (car env))
