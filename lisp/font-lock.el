@@ -1996,7 +1996,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
      `(;; Control structures.  Emacs Lisp forms.
        (,(concat
 	  "(" (regexp-opt
-	       '("cond" "if" "while" "while-no-input" "let" "let*"
+	       '("cond" "if" "while" "while-no-input" "let" "let*" "let-environment"
 		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
 		 "inline" "lambda" "save-restriction" "save-excursion"
 		 "save-window-excursion" "save-selected-window"

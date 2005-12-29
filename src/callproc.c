@@ -113,6 +113,7 @@ Lisp_Object Vtemp_file_name_pattern;
 
 Lisp_Object Vshell_file_name;
 
+Lisp_Object Vglobal_environment;
 Lisp_Object Vprocess_environment;
 
 #ifdef DOS_NT
@@ -1165,6 +1166,40 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
 
 static int relocate_fd ();
 
+static char **
+add_env (char **env, char **new_env, char *string)
+{
+  char **ep;
+  int ok = 1;
+  if (string == NULL)
+    return new_env;
+
+  /* See if this string duplicates any string already in the env.
+     If so, don't put it in.
+     When an env var has multiple definitions,
+     we keep the definition that comes first in process-environment.  */
+  for (ep = env; ok && ep != new_env; ep++)
+    {
+      char *p = *ep, *q = string;
+      while (ok)
+        {
+          if (*q != *p)
+            break;
+          if (*q == 0)
+            /* The string is a lone variable name; keep it for now, we
+               will remove it later.  It is a placeholder for a
+               variable that is not to be included in the environment.  */
+            break;
+          if (*q == '=')
+            ok = 0;
+          p++, q++;
+        }
+    }
+  if (ok)
+    *new_env++ = string;
+  return new_env;
+}
+
 /* This is the last thing run in a newly forked inferior
    either synchronous or asynchronous.
    Copy descriptors IN, OUT and ERR as descriptors 0, 1 and 2.
@@ -1266,15 +1301,21 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
       temp[--i] = 0;
   }
 
-  /* Set `env' to a vector of the strings in Vprocess_environment.  */
+  /* Set `env' to a vector of the strings in the environment.  */
   {
     register Lisp_Object tem;
     register char **new_env;
+    char **p, **q;
     register int new_length;
-    Lisp_Object environment = Vprocess_environment;
+    Lisp_Object environment = Vglobal_environment;
     Lisp_Object local;
 
     new_length = 0;
+
+    for (tem = Vprocess_environment;
+         CONSP (tem) && STRINGP (XCAR (tem));
+         tem = XCDR (tem))
+      new_length++;
 
     if (!NILP (Vlocal_environment_variables))
       {
@@ -1301,71 +1342,38 @@ child_setup (in, out, err, new_argv, set_pgrp, current_dir)
        but with corrected value.  */
     if (getenv ("PWD"))
       *new_env++ = pwd_var;
+ 
+    /* Overrides.  */
+    for (tem = Vprocess_environment;
+	 CONSP (tem) && STRINGP (XCAR (tem));
+	 tem = XCDR (tem))
+      new_env = add_env (env, new_env, SDATA (XCAR (tem)));
 
-    /* Get the local environment variables first. */
+    /* Local part of environment, if Vlocal_environment_variables is a list.  */
     for (tem = Vlocal_environment_variables;
          CONSP (tem) && STRINGP (XCAR (tem));
          tem = XCDR (tem))
-      {
-        char **ep = env;
-        char *string = egetenv (SDATA (XCAR (tem)));
-        int ok = 1;
-        if (string == NULL)
-          continue;
+      new_env = add_env (env, new_env, egetenv (SDATA (XCAR (tem))));
 
-	/* See if this string duplicates any string already in the env.
-	   If so, don't put it in.
-	   When an env var has multiple definitions,
-	   we keep the definition that comes first in process-environment.  */
-        for (; ep != new_env; ep++)
-          {
-	    char *p = *ep, *q = string;
-	    while (ok)
-	      {
-		if (*q == 0)
-                  /* The string is malformed; might as well drop it.  */
-                  ok = 0;
-		if (*q != *p)
-		  break;
-		if (*q == '=')
-                  ok = 0;
-		p++, q++;
-	      }
-          }
-        if (ok)
-          *new_env++ = string;
-      }
-
-    /* Copy the environment strings into new_env.  */
+    /* The rest of the environment (either Vglobal_environment or the
+       'environment terminal parameter).  */
     for (tem = environment;
 	 CONSP (tem) && STRINGP (XCAR (tem));
 	 tem = XCDR (tem))
-      {
-	char **ep = env;
-	char *string = (char *) SDATA (XCAR (tem));
-	/* See if this string duplicates any string already in the env.
-	   If so, don't put it in.
-	   When an env var has multiple definitions,
-	   we keep the definition that comes first in process-environment.  */
-	for (; ep != new_env; ep++)
-	  {
-	    char *p = *ep, *q = string;
-	    while (1)
-	      {
-		if (*q == 0)
-		  /* The string is malformed; might as well drop it.  */
-		  goto duplicate;
-		if (*q != *p)
-		  break;
-		if (*q == '=')
-		  goto duplicate;
-		p++, q++;
-	      }
-	  }
-	*new_env++ = string;
-      duplicate: ;
-      }
+      new_env = add_env (env, new_env, SDATA (XCAR (tem)));
+
     *new_env = 0;
+
+    /* Remove variable names without values.  */
+    p = q = env;
+    while (*p != 0)
+      {
+        while (*q != 0 && strchr (*q, '=') == NULL)
+          *q++;
+        *p = *q++;
+        if (*p != 0)
+          p++;
+      }
   }
 #ifdef WINDOWSNT
   prepare_standard_handles (in, out, err, handles);
@@ -1488,13 +1496,42 @@ getenv_internal (var, varlen, value, valuelen, terminal)
      Lisp_Object terminal;
 {
   Lisp_Object scan;
-  Lisp_Object environment = Vprocess_environment;
+  Lisp_Object environment = Vglobal_environment;
+
+  /* Try to find VAR in Vprocess_environment first.  */
+  for (scan = Vprocess_environment; CONSP (scan); scan = XCDR (scan))
+    {
+      Lisp_Object entry = XCAR (scan);
+      if (STRINGP (entry)
+          && SBYTES (entry) >= varlen
+#ifdef WINDOWSNT
+          /* NT environment variables are case insensitive.  */
+          && ! strnicmp (SDATA (entry), var, varlen)
+#else  /* not WINDOWSNT */
+          && ! bcmp (SDATA (entry), var, varlen)
+#endif /* not WINDOWSNT */
+          )
+        {
+          if (SBYTES (entry) > varlen && SREF (entry, varlen) == '=')
+            {
+              *value = (char *) SDATA (entry) + (varlen + 1);
+              *valuelen = SBYTES (entry) - (varlen + 1);
+              return 1;
+            }
+          else if (SBYTES (entry) == varlen)
+            {
+              /* Lone variable names in Vprocess_environment mean that
+                 variable should be removed from the environment. */
+              return 0;
+            }
+        }
+    }
 
   /* Find the environment in which to search the variable. */
   if (!NILP (terminal))
     {
       Lisp_Object local = get_terminal_param (get_device (terminal, 1), Qenvironment);
-      /* Use Vprocess_environment if there is no local environment.  */
+      /* Use Vglobal_environment if there is no local environment.  */
       if (!NILP (local))
         environment = local;
     }
@@ -1553,36 +1590,36 @@ getenv_internal (var, varlen, value, valuelen, terminal)
 }
 
 DEFUN ("getenv-internal", Fgetenv_internal, Sgetenv_internal, 1, 2, 0,
-       doc: /* Return the value of environment variable VAR, as a string.
-VAR should be a string.  Value is nil if VAR is undefined in the
-environment.
+       doc: /* Get the value of environment variable VARIABLE.
+VARIABLE should be a string.  Value is nil if VARIABLE is undefined in
+the environment.  Otherwise, value is a string.
 
 If optional parameter TERMINAL is non-nil, then it should be a
 terminal id or a frame.  If the specified terminal device has its own
-set of environment variables, this function will look up VAR in it.
+set of environment variables, this function will look up VARIABLE in
+it.
 
-Otherwise, if `local-environment-variables' specifies that VAR is a
-local environment variable, then this function consults the
-environment variables belonging to the terminal device of the selected
-frame.
-
-Otherwise, the value of VAR will come from `process-environment'.  */)
-     (var, terminal)
-     Lisp_Object var, terminal;
+Otherwise, this function searches `process-environment' for VARIABLE.
+If it was not found there, then it continues the search in either
+`global-environment' or the local environment list of the current
+terminal device, depending on the value of
+`local-environment-variables'.  */)
+     (variable, terminal)
+     Lisp_Object variable, terminal;
 {
   char *value;
   int valuelen;
 
-  CHECK_STRING (var);
-  if (getenv_internal (SDATA (var), SBYTES (var),
+  CHECK_STRING (variable);
+  if (getenv_internal (SDATA (variable), SBYTES (variable),
 		       &value, &valuelen, terminal))
     return make_string (value, valuelen);
   else
     return Qnil;
 }
 
-/* A version of getenv that consults process_environment, easily
-   callable from C.  */
+/* A version of getenv that consults the Lisp environment lists,
+   easily callable from C.  */
 char *
 egetenv (var)
      char *var;
@@ -1730,17 +1767,17 @@ init_callproc ()
 }
 
 void
-set_process_environment ()
+set_global_environment ()
 {
   register char **envp;
 
-  Vprocess_environment = Qnil;
+  Vglobal_environment = Qnil;
 #ifndef CANNOT_DUMP
   if (initialized)
 #endif
     for (envp = environ; *envp; envp++)
-      Vprocess_environment = Fcons (build_string (*envp),
-				    Vprocess_environment);
+      Vglobal_environment = Fcons (build_string (*envp),
+				    Vglobal_environment);
 }
 
 void
@@ -1798,15 +1835,47 @@ If this variable is nil, then Emacs is unable to use a shared directory.  */);
 This is used by `call-process-region'.  */);
   /* This variable is initialized in init_callproc.  */
 
-  DEFVAR_LISP ("process-environment", &Vprocess_environment,
-	       doc: /* List of environment variables for subprocesses to inherit.
+  DEFVAR_LISP ("global-environment", &Vglobal_environment,
+	       doc: /* Global list of environment variables for subprocesses to inherit.
 Each element should be a string of the form ENVVARNAME=VALUE.
+
+The environment which Emacs inherits is placed in this variable when
+Emacs starts.
+
+Some terminal devices may have their own local list of environment
+variables in their 'environment parameter, which may override this
+global list; see `local-environment-variables'.  See
+`process-environment' for a way to modify an environment variable on
+all terminals.
+
 If multiple entries define the same variable, the first one always
 takes precedence.
-The environment which Emacs inherits is placed in this variable
-when Emacs starts.
+
 Non-ASCII characters are encoded according to the initial value of
 `locale-coding-system', i.e. the elements must normally be decoded for use.
+See `setenv' and `getenv'.  */);
+
+  DEFVAR_LISP ("process-environment", &Vprocess_environment,
+	       doc: /* List of overridden environment variables for subprocesses to inherit.
+Each element should be a string of the form ENVVARNAME=VALUE.
+
+Entries in this list take precedence to those in `global-environment'
+or the terminal environment.  (See `local-environment-variables' for
+an explanation of the terminal-local environment.)  Therefore,
+let-binding `process-environment' is an easy way to temporarily change
+the value of an environment variable, irrespective of where it comes
+from.  To use `process-environment' to remove an environment variable,
+include only its name in the list, without "=VALUE".
+
+This variable is set to nil when Emacs starts.
+
+If multiple entries define the same variable, the first one always
+takes precedence.
+
+Non-ASCII characters are encoded according to the initial value of
+`locale-coding-system', i.e. the elements must normally be decoded for
+use.
+
 See `setenv' and `getenv'.  */);
 
 #ifndef VMS
@@ -1818,15 +1887,15 @@ See `setenv' and `getenv'.  */);
   DEFVAR_LISP ("local-environment-variables", &Vlocal_environment_variables,
                doc: /* 	Enable or disable terminal-local environment variables.
 If set to t, `getenv', `setenv' and subprocess creation functions use
-the environment variables of the emacsclient process that created the
-selected frame, ignoring `process-environment'.
+the local environment of the terminal device of the selected frame,
+ignoring `global-environment'.
 
-If set to nil, Emacs uses `process-environment' and ignores the client
-environment.
+If set to nil, Emacs uses `global-environment' and ignores the
+terminal environment.
 
-Otherwise, `terminal-local-environment-variables' should be a list of
-variable names (represented by Lisp strings) to look up in the client
-environment.  The rest will come from `process-environment'.  */);
+Otherwise, `local-environment-variables' should be a list of variable
+names (represented by Lisp strings) to look up in the terminal's
+environment.  The rest will come from `global-environment'.  */);
   Vlocal_environment_variables = Qnil;
 
   Qenvironment = intern ("environment");

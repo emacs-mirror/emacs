@@ -1515,10 +1515,10 @@ main (argc, argv
   /* egetenv is a pretty low-level facility, which may get called in
      many circumstances; it seems flimsy to put off initializing it
      until calling init_callproc.  */
-  set_process_environment ();
+  set_global_environment ();
   /* AIX crashes are reported in system versions 3.2.3 and 3.2.4
-     if this is not done.  Do it after set_process_environment so that we
-     don't pollute Vprocess_environment.  */
+     if this is not done.  Do it after set_global_environment so that we
+     don't pollute Vglobal_environment.  */
   /* Setting LANG here will defeat the startup locale processing...  */
 #ifdef AIX3_2
   putenv ("LANG=C");
