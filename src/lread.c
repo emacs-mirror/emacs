@@ -1345,10 +1345,20 @@ readevalloop (readcharfun, stream, sourcename, evalfun,
       if (b != 0 && NILP (b->name))
 	error ("Reading from killed buffer");
 
+
       if (!NILP (start))
 	{
+	  /* Switch to the buffer we are reading from.  */
 	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  set_buffer_internal (b);
+
+	  /* Save point in it.  */
+	  record_unwind_protect (save_excursion_restore, save_excursion_save ());
+	  /* Save ZV in it.  */
 	  record_unwind_protect (save_restriction_restore, save_restriction_save ());
+	  /* Those get unbound after we read one expression.  */
+
+	  /* Set point and ZV around stuff to be read.  */
 	  Fgoto_char (start);
 	  Fnarrow_to_region (make_number (BEGV), end);
 	}

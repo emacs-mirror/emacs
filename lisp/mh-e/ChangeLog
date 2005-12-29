@@ -1,3 +1,17 @@
+2005-12-28  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-e-user-agent): Move here from simple.el. Use
+	mh-user-agent-compose instead of mh-smail-batch.
+
+2005-12-27  Bill Wohler  <wohler@newt.com>
+
+	* mh-utils.el (mh-prompt-for-folder): Use can-create argument to
+	suppress creation of folder if it doesn't exist.
+
+2005-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mh-utils.el (mh-process-daemon): Don't change buffer in proc-filter.
+
 2005-12-23  Bill Wohler  <wohler@newt.com>
 
 	* mh-e.el (mh-folders-changed): Fix typo in docstring.
@@ -6,12 +20,12 @@
 	hyperlinks such as symbols, Info nodes, or URLs. Use \" quotes for
 	everything else. Otherwise, you can accidently get links to
 	nonsense symbols.
-	
+
 2005-12-22  Bill Wohler  <wohler@newt.com>
 
 	Follow Emacs coding conventions. Use default setting of
 	emacs-lisp-docstring-fill-column which is 65.
-	
+
 	* mh-alias.el (mh-alias-reload): Sync docstrings with manual.
 
 	* mh-comp.el (mh-letter-mode): Use 60 column width.
@@ -50,8 +64,8 @@
 	(mh-index-data, mh-first-msg-num, mh-last-msg-num)
 	(mh-mode-line-annotation, mh-sequence-notation-history)
 	(mh-colors-available-flag): Move comment into docstring.
-	(mh-delete-msg, mh-execute-commands, mh-inc-folder, mh-quit,
-	mh-process-commands): Sync docstrings with manual.
+	(mh-delete-msg, mh-execute-commands, mh-inc-folder, mh-quit)
+	(mh-process-commands): Sync docstrings with manual.
 	(mh-refile-msg): Small doc edit.
 	(mh-delete-a-msg, mh-refile-a-msg): Sync docstrings with manual.
 	Rename msg argument to message.
@@ -62,7 +76,7 @@
 	`foo-hook' is a list of functions to be called, with no arguments,
 	...," but rather just "The hook foo-hook is called...".
 
-	* mh-mime.el (mh-mh-to-mime): Ditto
+	* mh-mime.el (mh-mh-to-mime): Ditto.
 
 	* mh-pick.el (mh-pick-mode): Ditto.
 
@@ -73,13 +87,15 @@
 	(mh-show-mode, mh-show-msg, mh-find-path): Sync docstrings with
 	manual.
 
-2005-12-19  Stephen Gildea
+2005-12-19  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
-	* mh-customize.el (mh-after-commands-processed-hook): New variable.
-	(mh-before-commands-processed-hook): mh-folder-updated-hook, renamed.
+	* mh-customize.el (mh-after-commands-processed-hook): New
+	variable.
+	(mh-before-commands-processed-hook): Rename
+	mh-folder-updated-hook.
 
-	* mh-e.el (mh-process-commands): Rename mh-folder-updated-hook 
-	to mh-before-commands-processed-hook, call new
+	* mh-e.el (mh-process-commands): Rename mh-folder-updated-hook to
+	mh-before-commands-processed-hook, call new
 	mh-after-commands-processed-hook.
 	(mh-folders-changed): New variable (for use in
 	mh-after-commands-processed-hook).
@@ -125,8 +141,8 @@
 	to nil. Sync docstrings with manual.
 	(mh-tool-bar-define): Replace toolbar with tool-bar or tool bar
 	depending on context.
-	(mh-toolbar-init): Rename to mh-tool-bar-init. Simplified
-	condition for calling set-specifier. Only look at the value of
+	(mh-toolbar-init): Rename to mh-tool-bar-init. Simplify condition
+	for calling set-specifier. Only look at the value of
 	mh-xemacs-use-tool-bar-flag.
 	(mh-tool-bar-folder-buttons, mh-tool-bar-letter-buttons): Sync
 	docstrings with manual.
@@ -172,7 +188,7 @@
 	* mh-customize.el (mh-sortm-args): Sync docstrings with manual.
 	(mh-invisible-header-fields-internal): Add X-Bugzilla-* and
 	X-Virus-Scanned.
- 	
+
 	* mh-customize.el (mh-insert-signature-hook): Rename
 	mh-letter-insert-signature-hook to mh-insert-signature-hook.
 
@@ -189,7 +205,7 @@
 	mh-index-new-messages-folders.
 	(mh-ticked-messages-folders): Rename from
 	mh-index-ticked-messages-folders.
-	
+
 	* mh-index.el (mh-index-sequenced-messages)
 	(mh-index-new-messages): Ditto.
 
@@ -218,12 +234,11 @@
 	* mh-seq.el (mh-put-msg-in-seq, mh-range-to-msg-list)
 	(mh-narrow-to-range, mh-toggle-tick): Ditto.
 
-
 2005-12-01  Bill Wohler  <wohler@newt.com>
 
 	Rewrote Reading Mail chapter in manual which affected mh-show
 	customization group and related functions.
-	
+
 	* mh-comp.el (mh-letter-mode): Use mh-highlight-citation-style
 	instead of mh-highlight-citation-p.
 	(mh-letter-toggle-header-field-display): "Ellipsed" isn't a word,
@@ -269,7 +284,7 @@
 	(mh-show-use-xface-flag, mh-store-default-directory)
 	(mh-summary-height, mh-delete-msg-hook
 	(mh-show-hook, mh-show-mode-hook): Sync docstrings with manual.
-	
+
 	* mh-e.el
 	(mh-scan-format-mh, mh-scan-good-msg-regexp)
 	(mh-scan-deleted-msg-regexp, mh-scan-refiled-msg-regexp)
@@ -288,7 +303,7 @@
 	to no-header. Sync docstrings with manual.
 	(mh-ps-print-map): Delete keybindings for deleted commands
 	mh-ps-print-toggle-mime and mh-ps-print-msg-show.
-	(mh-help-messages): Updated printing help.
+	(mh-help-messages): Update printing help.
 	(mh-delete-msg, mh-delete-msg-no-motion, mh-first-msg)
 	(mh-last-msg, mh-previous-unread-msg, mh-next-button)
 	(mh-prev-button, mh-folder-toggle-mime-part)
@@ -296,8 +311,8 @@
 	(mh-next-unread-msg, mh-toggle-mime-buttons): Sync docstrings with
 	manual.
 
-	* mh-funcs.el (mh-sortm-args): Now a customization option and
-	in mh-customize.el.
+	* mh-funcs.el (mh-sortm-args): Now a customization option and in
+	mh-customize.el.
 	(mh-pipe-msg): Rename include-headers to include-header. Sync
 	docstrings with manual.
 	(mh-burst-digest, mh-page-digest, mh-page-digest-backwards)
@@ -314,13 +329,13 @@
 	minibuffer. Sync docstrings with manual.
 
 	* mh-print.el: (mh-ps-print-mime, mh-ps-print-toggle-mime):
-	Deleted.
+	Delete.
 	(mh-ps-print-color-option): Incorporate docstring from
 	ps-print-color-p.
 	(mh-ps-spool-buffer): Remove unused code. Fix indent. Slimline
 	docstring.
 	(mh-ps-spool-msg): Slimline docstring. Rename from
-	mh-ps-spool-a-msg. Rewrote to use existing show buffer when
+	mh-ps-spool-a-msg. Rewrite to use existing show buffer when
 	available.
 	(mh-ps-print-range): Extract method from common code in
 	mh-ps-print-msg and mh-ps-print-msg-file.
@@ -334,9 +349,9 @@
 	(mh-ps-print-toggle-faces, mh-ps-print-toggle-color): Sync
 	docstrings with manual.
 	
-	* mh-utils.el (mh-show-ps-print-msg-show,
+	* mh-utils.el (mh-show-ps-print-msg-show)
 	mh-show-ps-print-toggle-mime): Delete.
-	(mh-show-ps-print-map): Updated accordingly.
+	(mh-show-ps-print-map): Update accordingly.
 	(mh-show-mode): Use mh-highlight-citation-style instead of
 	mh-highlight-citation-p.
 	(mh-show-xface, mh-display-msg): Use mh-mhl-format-file instead of
@@ -361,16 +376,16 @@
 
 	* mh-init.el: Modify commentary since file is used for load and
 	initialization as well as setting and getting the variant.
-	(mh-min-colors-defined-flag, mh-defface-compat): Move
-	here from mh-customize.el. 
+	(mh-min-colors-defined-flag, mh-defface-compat): Move here from
+	mh-customize.el.
 
 	* mh-customize.el: Refactor faces. Move grayscale requirements
 	last before t. Use uniform line breaks.
 	(mh-min-colors-defined-flag): New variable.
 	(mh-defface-compat): New function. Provides backward compatibility
 	for face specs.
-	(mh-show-header, mh-show-date, mh-show-cc, mh-folder-to) 
-	(mh-folder-refiled, mh-folder-cur-msg-number, mh-folder-cur-msg) 
+	(mh-show-header, mh-show-date, mh-show-cc, mh-folder-to)
+	(mh-folder-refiled, mh-folder-cur-msg-number, mh-folder-cur-msg)
 	(mh-folder-body): Use mh-defface-compat.
 
 2005-11-03  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -388,7 +403,7 @@
 
 	* mh-e.el (mh-update-sequences): Sync docstrings with manual.
 
-	* mh-seq.el (mh-delete-seq, mh-list-sequences, mh-narrow-to-seq) 
+	* mh-seq.el (mh-delete-seq, mh-list-sequences, mh-narrow-to-seq)
 	(mh-widen, mh-toggle-tick, mh-narrow-to-tick): Sync docstrings
 	with manual.
 
@@ -410,15 +425,15 @@
 	(mh-reply-show-message-flag, mh-letter-mode-hook): Sync docstrings
 	with manual.
 
-	* mh-print.el (mh-ps-spool-buffer, mh-ps-spool-a-msg) 
+	* mh-print.el (mh-ps-spool-buffer, mh-ps-spool-a-msg)
 	(mh-ps-print-msg): Remove debugging messages.
-	(mh-ps-print-msg-show, mh-ps-print-msg-show) 
+	(mh-ps-print-msg-show, mh-ps-print-msg-show)
 	(mh-ps-print-toggle-color, mh-ps-print-toggle-mime): Remove period
 	after message per conventions.
 
 2005-10-30  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el (mh-scan-good-msg-regexp, mh-scan-deleted-msg-regexp) 
+	* mh-e.el (mh-scan-good-msg-regexp, mh-scan-deleted-msg-regexp)
 	(mh-scan-refiled-msg-regexp, mh-scan-cur-msg-number-regexp): Sync
 	docstrings with manual.
 
@@ -459,7 +474,7 @@
 	column, not a width.
 	(mh-add-sequence-notation, mh-remove-sequence-notation): Use new
 	variable mh-scan-field-destination-offset rather than hard-coding
-	1. 
+	1.
 
 	* mh-utils.el (mh-cmd-note) Synced docstring with manual.
 	(mh-notate): Use new variable mh-scan-field-destination-offset
@@ -470,8 +485,8 @@
 	* mh-customize.el (mh-x-face-file, mh-show-use-xface-flag)
 	(mail-citation-hook): Quote URLs in docstrings and precede with
 	`URL'. The former will suppress checkdoc warnings, the latter will
-	turn them into hyperlinks in Emacs 22 (I just added the code
-	to do that today).
+	turn them into hyperlinks in Emacs 22 (I just added the code to do
+	that today).
 	(mh-scan-format-file): Checkdoc fix.
 
 2005-10-27  Bill Wohler  <wohler@newt.com>
@@ -503,10 +518,10 @@
 	Checkdoc fixes.
 
 	* mh-customize.el (mh-compose-insertion, mh-x-face-file): Ditto.
-	
-	* mh-mime.el (mh-mh-to-mime, mh-mml-attach-file) 
-	(mh-mml-secure-message-sign, mh-mml-secure-message-encrypt) 
-	(mh-mml-secure-message-signencrypt): Ditto
+
+	* mh-mime.el (mh-mh-to-mime, mh-mml-attach-file)
+	(mh-mml-secure-message-sign, mh-mml-secure-message-encrypt)
+	(mh-mml-secure-message-signencrypt): Ditto.
 
 2005-10-24  Bill Wohler  <wohler@newt.com>
 
@@ -610,7 +625,7 @@
 	(mh-yank-from-start-of-msg): Rename to mh-yank-behavior.
 	(mh-compose-insertion): Rename values from 'gnus and 'mhn to 'mh
 	and user-visible values from mhn and Gnus to MH and MML.
-	(mh-before-send-letter-hook): Added 'ispell-message option.
+	(mh-before-send-letter-hook): Add 'ispell-message option.
 	(mh-mml-method-default): Rename mh-gnus-pgp-support-flag to
 	mh-pgp-support-flag.
 	(mh-compose-insertion, mh-compose-space-does-completion-flag)
@@ -652,14 +667,13 @@
 	(mh-mh-compose-external-type, mh-mh-forward-message)
 	(mh-mml-attach-file): Use mml-minibuffer-read-description,
 	mh-minibuffer-read-type.
-	(mh-mime-content-types): Moved comment about only being used in
+	(mh-mime-content-types): Move comment about only being used in
 	Emacs 20 to docstring.
 	(mh-mh-compose-external-type): Rename extra-param argument to
 	parameters.
-	(mh-mml-to-mime, mh-secure-message)
-	(mh-mml-unsecure-message, mh-mime-display-part)
-	(mh-mime-display-single): Rename mh-gnus-pgp-support-flag to
-	mh-pgp-support-flag.
+	(mh-mml-to-mime, mh-secure-message, mh-mml-unsecure-message)
+	(mh-mime-display-part, mh-mime-display-single): Rename
+	mh-gnus-pgp-support-flag to mh-pgp-support-flag.
 	(mh-compose-insertion): Rename mh-mhn-compose-insertion to
 	mh-mh-attach-file.
 	(mh-compose-forward): Rename mh-mhn-compose-forw to
@@ -671,7 +685,7 @@
 	(mh-mh-compose-anon-ftp, mh-mh-compose-external-compressed-tar)
 	(mh-mh-compose-external-compressed-tar)
 	(mh-mh-compose-external-type, mh-mh-forward-message)
-	(mh-mh-to-mime, mh-mh-quote-unescaped-sharp,
+	(mh-mh-to-mime, mh-mh-quote-unescaped-sharp)
 	(mh-mh-to-mime-undo, mh-mh-directive-present-p, mh-mml-to-mime)
 	(mh-mml-attach-file, mh-secure-message, mh-mml-unsecure-message)
 	(mh-mml-secure-message-sign, mh-mml-secure-message-encrypt)
@@ -690,10 +704,10 @@
 
 2005-10-17  Bill Wohler  <wohler@newt.com>
 
-	* mh-customize.el (mh-folder-tool-bar-map): Renamed image file
+	* mh-customize.el (mh-folder-tool-bar-map): Rename image file
 	left_arrow to left-arrow, right_arrow to right-arrow, mail_compose
 	to mail/compose, fld_open to fld-open.
-	(mh-letter-tool-bar-map): Renamed image file mail_send to
+	(mh-letter-tool-bar-map): Rename image file mail_send to
 	mail/send.
 
 2005-10-16  Bill Wohler  <wohler@newt.com>
@@ -718,14 +732,14 @@
 
 2005-10-16  Masatake YAMATO  <jet@gyve.org>
 
-	* mh-comp.el (mh-complete-word): Pass the common
-	prefix substring of completion to `display-completion-list'.
+	* mh-comp.el (mh-complete-word): Pass the common prefix substring
+	of completion to `display-completion-list'.
 
 2005-10-15  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-init.el (mh-image-load-path-called-flag): New variable which
 	is used by mh-image-load-path so that it runs only once.
-	(mh-image-load-path): Modified so that it gets run only once. Also
+	(mh-image-load-path): Modify so that it gets run only once. Also
 	flatten out heavily nested if statements to make it clearer.
 
 	* mh-e.el (mh-folder-mode): Call mh-image-load-path to allow Emacs
@@ -735,29 +749,29 @@
 
 2005-10-14  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el (Version, mh-version): Added +cvs to version.
+	* mh-e.el (Version, mh-version): Add +cvs to version.
 
 2005-10-14  Bill Wohler	 <wohler@newt.com>
 
 	Released MH-E version 7.85.
-	  
-	* mh-e.el (Version, mh-version): Updated for release 7.85.
-	
+
+	* mh-e.el (Version, mh-version): Update for release 7.85.
+
 2005-10-14  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el, mh-funcs.el, mh-init.el, mh-mime.el, mh-pick.el:
-	* mh-seq.el, mh-utils.el: Ran mh-unit. Continued copyright lines
-	need to be indented. 
-	
+	* mh-e.el, mh-funcs.el, mh-init.el, mh-mime.el, mh-pick.el: *
+	mh-seq.el, mh-utils.el: Ran mh-unit. Continued copyright lines
+	need to be indented.
+
 	* mh-e.el: mh-folder-tick-face had been renamed to mh-folder-tick
 	but the code that invoked the face had not been updated. Tick
 	highlighting working again.
 
-	* mh-seq.el (mh-non-seq-mode-line-annotation): Moved
+	* mh-seq.el (mh-non-seq-mode-line-annotation): Move
 	make-variable-buffer-local call to top level to avoid warnings in
 	CVS Emacs.
 
-	* mh-comp.el (mh-insert-letter): Replaced deprecated read-input
+	* mh-comp.el (mh-insert-letter): Replace deprecated read-input
 	with read-string.
 
 2005-10-09  Bill Wohler  <wohler@newt.com>
@@ -771,8 +785,8 @@
 
 2005-10-04  Bill Wohler  <wohler@newt.com>
 
-	* ChangeLog: Moved contents into ChangeLog.1 and trimmed.
-	
+	* ChangeLog: Move contents into ChangeLog.1 and trim.
+
 	* ChangeLog.1: New file. Contains old ChangeLog.
 
 
@@ -781,5 +795,9 @@
   Copying and distribution of this file, with or without modification,
   are permitted in any medium without royalty provided the copyright
   notice and this notice are preserved.
+
+;; Local Variables:
+;; sentence-end-double-space: nil
+;; End:
 
 ;;; arch-tag: 87324964-69b6-4925-a3c2-9c1df53d7d51

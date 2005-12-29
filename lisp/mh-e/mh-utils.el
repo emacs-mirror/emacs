@@ -2312,7 +2312,7 @@ three arguments so we bind this variable to t or nil.
 This variable should never be set.")
 
 (defvar mh-folder-completion-map (copy-keymap minibuffer-local-completion-map))
-(define-key mh-folder-completion-map " " 'minibuffer-complete)
+(define-key mh-folder-completion-map " " 'minibuffer-complete)  ;Why???
 
 (defvar mh-speed-flists-inhibit-flag nil)
 
@@ -2416,6 +2416,7 @@ used in searching."
     (let ((new-file-flag
            (not (file-exists-p (mh-expand-file-name folder-name)))))
       (cond ((and new-file-flag
+                  can-create
                   (y-or-n-p
                    (format "Folder %s does not exist.  Create it? "
                            folder-name)))
@@ -2426,7 +2427,7 @@ used in searching."
                (mh-speed-add-folder folder-name))
              (message "Creating %s...done" folder-name))
             (new-file-flag
-             (error "Folder %s is not created" folder-name))
+             (error "Folder %s does not exist" folder-name))
             ((not (file-directory-p (mh-expand-file-name folder-name)))
              (error "\"%s\" is not a directory"
                     (mh-expand-file-name folder-name)))))
@@ -2532,9 +2533,9 @@ ARGS are passed to COMMAND as command line arguments."
   "PROCESS daemon that puts OUTPUT into a temporary buffer.
 Any output from the process is displayed in an asynchronous
 pop-up window."
-  (set-buffer (get-buffer-create mh-log-buffer))
-  (insert-before-markers output)
-  (display-buffer mh-log-buffer))
+  (with-current-buffer (get-buffer-create mh-log-buffer)
+    (insert-before-markers output)
+    (display-buffer mh-log-buffer)))
 
 (defun mh-exec-cmd-quiet (raise-error command &rest args)
   "Signal RAISE-ERROR if COMMAND with ARGS fails.

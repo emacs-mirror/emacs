@@ -228,18 +228,28 @@ thus is suitable for use by programs that want to create a mail
 buffer. Users should use \\[mh-smail] to compose mail.
 
 Optional arguments for setting certain fields include TO,
-SUBJECT, and OTHER-HEADERS. Additional arguments are IGNORED."
+SUBJECT, and OTHER-HEADERS. Additional arguments are IGNORED.
+
+This function remains for Emacs 21 compatibility. New
+applications should use `mh-user-agent-compose'."
   (mh-find-path)
   (let ((mh-error-if-no-draft t))
     (mh-send (or to "") "" (or subject ""))))
 
-;; XEmacs needs this:
+;;;###autoload
+(define-mail-user-agent 'mh-e-user-agent
+  'mh-user-agent-compose 'mh-send-letter 'mh-fully-kill-draft
+  'mh-before-send-letter-hook)
+
 ;;;###autoload
 (defun mh-user-agent-compose (&optional to subject other-headers continue
                                         switch-function yank-action
                                         send-actions)
   "Set up mail composition draft with the MH mail system.
-This is `mail-user-agent' entry point to MH-E.
+This is the `mail-user-agent' entry point to MH-E. This function
+conforms to the contract specified by `define-mail-user-agent'
+which means that this function should accept the same arguments
+as `compose-mail'.
 
 The optional arguments TO and SUBJECT specify recipients and the
 initial Subject field, respectively.

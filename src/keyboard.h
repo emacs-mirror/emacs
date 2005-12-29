@@ -312,7 +312,6 @@ extern Lisp_Object Vfunction_key_map;
 /* Parent keymap of terminal-local key-translation-map instances.  */
 extern Lisp_Object Vkey_translation_map;
 
-
 extern int parse_menu_item P_ ((Lisp_Object, int, int));
 
 extern void echo_now P_ ((void));

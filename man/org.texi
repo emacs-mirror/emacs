@@ -9,8 +9,7 @@
 
 @dircategory Emacs
 @direntry
-* Org Mode: (org).	outline-based notes management and organizer
-
+* Org Mode: (org).	outline-based notes management and organizer.
 @end direntry
 
 @c Version and Contact Info

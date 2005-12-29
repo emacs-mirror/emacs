@@ -2268,20 +2268,33 @@ that can be used as the ALIST argument to `try-completion' and
           ((not ,mode) (try-completion ,string (,fun ,string) ,predicate))
           (t (test-completion ,string (,fun ,string) ,predicate)))))))
 
-(defmacro lazy-completion-table (var fun &rest args)
+(defmacro lazy-completion-table (var fun)
+  ;; We used to have `&rest args' where `args' were evaluated late (at the
+  ;; time of the call to `fun'), which was counter intuitive.  But to get
+  ;; them to be evaluated early, we have to either use lexical-let (which is
+  ;; not available in subr.el) or use `(lambda (,str) ...) which prevents the use
+  ;; of lexical-let in the callers.
+  ;; So we just removed the argument.  Callers can then simply use either of:
+  ;;   (lazy-completion-table var (lambda () (fun x y)))
+  ;; or
+  ;;   (lazy-completion-table var `(lambda () (fun ',x ',y)))
+  ;; or
+  ;;   (lexical-let ((x x)) ((y y))
+  ;;     (lazy-completion-table var (lambda () (fun x y))))
+  ;; depending on the behavior they want.
   "Initialize variable VAR as a lazy completion table.
 If the completion table VAR is used for the first time (e.g., by passing VAR
-as an argument to `try-completion'), the function FUN is called with arguments
-ARGS.  FUN must return the completion table that will be stored in VAR.
+as an argument to `try-completion'), the function FUN is called with no
+arguments.  FUN must return the completion table that will be stored in VAR.
 If completion is requested in the minibuffer, FUN will be called in the buffer
 from which the minibuffer was entered.  The return value of
 `lazy-completion-table' must be used to initialize the value of VAR."
-  (declare (debug (symbol lambda-expr def-body)))
+  (declare (debug (symbol lambda-expr)))
   (let ((str (make-symbol "string")))
     `(dynamic-completion-table
       (lambda (,str)
         (when (functionp ,var)
-          (setq ,var (,fun ,@args)))
+          (setq ,var (,fun)))
         ,var))))
 
 (defmacro complete-in-turn (a b)

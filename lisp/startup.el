@@ -781,6 +781,7 @@ opening the first frame (e.g. open a connection to an X server).")
   (custom-reevaluate-setting 'mouse-wheel-down-event)
   (custom-reevaluate-setting 'mouse-wheel-up-event)
   (custom-reevaluate-setting 'file-name-shadow-mode)
+  (custom-reevaluate-setting 'send-mail-function)
 
   (normal-erase-is-backspace-setup-frame)
 

@@ -1308,10 +1308,12 @@ The list of incorrect words should be in `flyspell-external-ispell-buffer'.
 \(We finish by killing that buffer and setting the variable to nil.)
 The buffer to mark them in is `flyspell-large-region-buffer'."
   (let (words-not-found
-	(ispell-otherchars (ispell-get-otherchars)))
+	(ispell-otherchars (ispell-get-otherchars))
+	(buffer-scan-pos flyspell-large-region-beg))
     (with-current-buffer flyspell-external-ispell-buffer
       (goto-char (point-min))
-      ;; Loop over incorrect words.
+      ;; Loop over incorrect words, in the order they were reported,
+      ;; which is also the order they appear in the buffer being checked.
       (while (re-search-forward "\\([^\n]+\\)\n" nil t)
 	;; Bind WORD to the next one.
 	(let ((word (match-string 1)) (wordpos (point)))
@@ -1325,43 +1327,53 @@ The buffer to mark them in is `flyspell-large-region-buffer'."
 		       (* 100 (/ (float (point)) (point-max)))
 		       word))
 	  (with-current-buffer flyspell-large-region-buffer
-	    (goto-char flyspell-large-region-beg)
+	    (goto-char buffer-scan-pos)
 	    (let ((keep t))
 	      ;; Iterate on string search until string is found as word,
 	      ;; not as substring
 	      (while keep
 		(if (search-forward word
 				    flyspell-large-region-end t)
-		    (save-excursion
-		      (goto-char (- (point) 1))
-		      (let* ((flyword-prev-l (flyspell-get-word nil))
-			     (flyword-prev (car flyword-prev-l))
-			     (size-match (= (length flyword-prev) (length word))))
-			(when (or
-			       ;; size matches, we are done
-			       size-match
-			       ;; Matches as part of a boundary-char separated word
-			       (member word
-				       (split-string flyword-prev ispell-otherchars))
-			       ;; ispell treats beginning of some TeX
-			       ;; commands as nroff control sequences
-			       ;; and strips them in the list of
-			       ;; misspelled words thus giving a
-			       ;; non-existent word.  Skip if ispell
-			       ;; is used, string is a TeX command
-			       ;; (char before beginning of word is
-			       ;; backslash) and none of the previous
-			       ;; contitions match
-			       (and (not ispell-really-aspell)
-				    (save-excursion
-				      (goto-char (- (nth 1 flyword-prev-l) 1))
-				      (if (looking-at "[\\]" )
-					  t
-					nil))))
-			  (setq keep nil)
-			  (flyspell-word)
-			  ;; Next search will begin from end of last match
-			  )))
+		    (let* ((found-list
+			    (save-excursion
+			      ;; Move back into the match
+			      ;; so flyspell-get-word will find it.
+			      (forward-char -1)
+			      (flyspell-get-word nil)))
+			   (found (car found-list))
+			   (found-length (length found))
+			   (misspell-length (length word)))
+		      (when (or
+			     ;; Size matches, we really found it.
+			     (= found-length misspell-length)
+			     ;; Matches as part of a boundary-char separated word
+			     (member word
+				     (split-string found ispell-otherchars))
+			     ;; Misspelling has higher length than
+			     ;; what flyspell considers the
+			     ;; word.  Caused by boundary-chars
+			     ;; mismatch.  Validating seems safe.
+			     (< found-length misspell-length)
+			     ;; ispell treats beginning of some TeX
+			     ;; commands as nroff control sequences
+			     ;; and strips them in the list of
+			     ;; misspelled words thus giving a
+			     ;; non-existent word.  Skip if ispell
+			     ;; is used, string is a TeX command
+			     ;; (char before beginning of word is
+			     ;; backslash) and none of the previous
+			     ;; contitions match
+			     (and (not ispell-really-aspell)
+				  (save-excursion
+				    (goto-char (- (nth 1 found-list) 1))
+				    (if (looking-at "[\\]" )
+					t
+				      nil))))
+			(setq keep nil)
+			(flyspell-word)
+			;; Search for next misspelled word will begin from
+			;; end of last validated match.
+			(setq buffer-scan-pos (point))))
 		  ;; Record if misspelling is not found and try new one
 		  (add-to-list 'words-not-found
 			       (concat " -> " word " - "

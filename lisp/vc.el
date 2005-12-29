@@ -659,7 +659,6 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
 
 (defvar vc-annotate-mode-map
   (let ((m (make-sparse-keymap)))
-    (define-key m [menu-bar] (make-sparse-keymap "VC-Annotate"))
     (define-key m "A" 'vc-annotate-revision-previous-to-line)
     (define-key m "D" 'vc-annotate-show-diff-revision-at-line)
     (define-key m "J" 'vc-annotate-revision-at-line)
@@ -669,9 +668,6 @@ List of factors, used to expand/compress the time scale.  See `vc-annotate'."
     (define-key m "W" 'vc-annotate-workfile-version)
     m)
   "Local keymap used for VC-Annotate mode.")
-
-(defvar vc-annotate-mode-menu nil
-  "Local keymap used for VC-Annotate mode's menu bar menu.")
 
 ;; Header-insertion hair
 
@@ -2926,19 +2922,19 @@ menu items."
        '(vc-annotate-font-lock-keywords t))
   (view-mode 1))
 
-(defun vc-annotate-display-default (&optional ratio)
+(defun vc-annotate-display-default (ratio)
   "Display the output of \\[vc-annotate] using the default color range.
-The color range is given by `vc-annotate-color-map', scaled by RATIO
-if present.  The current time is used as the offset."
-  (interactive "e")
+The color range is given by `vc-annotate-color-map', scaled by RATIO.
+The current time is used as the offset."
+  (interactive (progn (kill-local-variable 'vc-annotate-color-map) '(1.0)))
   (message "Redisplaying annotation...")
-  (vc-annotate-display
-   (if ratio (vc-annotate-time-span vc-annotate-color-map ratio)))
+  (vc-annotate-display ratio)
   (message "Redisplaying annotation...done"))
 
-(defun vc-annotate-car-last-cons (a-list)
-  "Return car of last cons in association list A-LIST."
-  (caar (last a-list)))
+(defun vc-annotate-oldest-in-map (color-map)
+  "Return the oldest time in the COLOR-MAP."
+  ;; Since entries should be sorted, we can just use the last one.
+  (caar (last color-map)))
 
 (defun vc-annotate-display-autoscale (&optional full)
   "Highlight the output of \\[vc-annotate] using an autoscaled color map.
@@ -2962,10 +2958,8 @@ cover the range from the oldest annotation to the newest."
 	(if (< date oldest)
 	    (setq oldest date))))
     (vc-annotate-display
-     (vc-annotate-time-span		;return the scaled colormap.
-      vc-annotate-color-map
-      (/ (-  (if full newest current) oldest)
-	 (vc-annotate-car-last-cons vc-annotate-color-map)))
+     (/ (- (if full newest current) oldest)
+        (vc-annotate-oldest-in-map vc-annotate-color-map))
      (if full newest))
     (message "Redisplaying annotation...done \(%s\)"
 	     (if full
@@ -2982,22 +2976,17 @@ cover the range from the oldest annotation to the newest."
                  (setq vc-annotate-display-mode nil)
                  (vc-annotate-display-select))
      :style toggle :selected (null vc-annotate-display-mode)]
-    ,@(let ((oldest-in-map (vc-annotate-car-last-cons vc-annotate-color-map)))
+    ,@(let ((oldest-in-map (vc-annotate-oldest-in-map vc-annotate-color-map)))
         (mapcar (lambda (element)
                   (let ((days (* element oldest-in-map)))
-                    `([,(format "Span %.1f days" days)
-                       (unless (and (numberp vc-annotate-display-mode)
-                                    (= vc-annotate-display-mode ,days))
-                         (vc-annotate-display-select nil ,days))
-                       :style toggle :selected
-                       (and (numberp vc-annotate-display-mode)
-                            (= vc-annotate-display-mode ,days)) ])))
+                    `[,(format "Span %.1f days" days)
+                      (vc-annotate-display-select nil ,days)
+                      :style toggle :selected
+                      (eql vc-annotate-display-mode ,days) ]))
                 vc-annotate-menu-elements))
     ["Span ..."
-     (let ((days
-            (float (string-to-number
-                    (read-string "Span how many days? ")))))
-       (vc-annotate-display-select nil days)) t]
+     (vc-annotate-display-select
+      nil (float (string-to-number (read-string "Span how many days? "))))]
     "--"
     ["Span to Oldest"
      (unless (eq vc-annotate-display-mode 'scale)
@@ -3031,22 +3020,20 @@ use; you may override this using the second optional arg MODE."
   (if (not vc-annotate-parent-rev)
       (vc-annotate-mode))
   (cond ((null vc-annotate-display-mode)
-	 (vc-annotate-display-default vc-annotate-ratio))
-	;; One of the auto-scaling modes
+         ;; The ratio is global, thus relative to the global color-map.
+         (kill-local-variable 'vc-annotate-color-map)
+	 (vc-annotate-display-default (or vc-annotate-ratio 1.0)))
+        ;; One of the auto-scaling modes
 	((eq vc-annotate-display-mode 'scale)
 	 (vc-annotate-display-autoscale))
 	((eq vc-annotate-display-mode 'fullscale)
 	 (vc-annotate-display-autoscale t))
 	((numberp vc-annotate-display-mode) ; A fixed number of days lookback
 	 (vc-annotate-display-default
-	  (/ vc-annotate-display-mode (vc-annotate-car-last-cons
-				       vc-annotate-color-map))))
+	  (/ vc-annotate-display-mode
+             (vc-annotate-oldest-in-map vc-annotate-color-map))))
 	(t (error "No such display mode: %s"
 		  vc-annotate-display-mode))))
-
-;;;; (defun vc-BACKEND-annotate-command (file buffer) ...)
-;;;;  Execute "annotate" on FILE by using `call-process' and insert
-;;;;  the contents in BUFFER.
 
 ;;;###autoload
 (defun vc-annotate (file rev &optional display-mode buf)
@@ -3100,9 +3087,6 @@ colors. `vc-annotate-background' specifies the background color."
 	      (rename-buffer temp-buffer-name t)
 	      ;; In case it had to be uniquified.
 	      (setq temp-buffer-name (buffer-name))))
-    (if (not (vc-find-backend-function vc-annotate-backend 'annotate-command))
-	(error "Sorry, annotating is not implemented for %s"
-	       vc-annotate-backend))
     (with-output-to-temp-buffer temp-buffer-name
       (vc-call annotate-command file (get-buffer temp-buffer-name) rev))
     (with-current-buffer temp-buffer-name
@@ -3143,9 +3127,6 @@ versions after."
 (defun vc-annotate-extract-revision-at-line ()
   "Extract the revision number of the current line."
   ;; This function must be invoked from a buffer in vc-annotate-mode
-  (save-window-excursion
-    (vc-ensure-vc-buffer)
-    (setq vc-annotate-backend (vc-backend buffer-file-name)))
   (vc-call-backend vc-annotate-backend 'annotate-extract-revision-at-line))
 
 (defun vc-annotate-revision-at-line ()
@@ -3243,18 +3224,6 @@ revision."
 				       (previous-line)
 				       (line-number-at-pos))))))))
 
-(defun vc-annotate-time-span (a-list span &optional quantize)
-  "Apply factor SPAN to the time-span of association list A-LIST.
-Return the new alist.
-Optionally quantize to the factor of QUANTIZE."
-  ;; Apply span to each car of every cons
-  (if (not (eq nil a-list))
-      (append (list (cons (* (car (car a-list)) span)
-			  (cdr (car a-list))))
-	      (vc-annotate-time-span (nthcdr (or quantize ; optional
-						 1) ; Default to cdr
-					     a-list) span quantize))))
-
 (defun vc-annotate-compcar (threshold a-list)
   "Test successive cons cells of A-LIST against THRESHOLD.
 Return the first cons cell with a car that is not less than THRESHOLD,
@@ -3289,12 +3258,14 @@ or OFFSET if present."
 
 (defvar vc-annotate-offset nil)
 
-(defun vc-annotate-display (&optional color-map offset)
+(defun vc-annotate-display (ratio &optional offset)
   "Highlight `vc-annotate' output in the current buffer.
-COLOR-MAP, if present, overrides `vc-annotate-color-map'.
+RATIO, is the expansion that should be applied to `vc-annotate-color-map'.
 The annotations are relative to the current time, unless overridden by OFFSET."
-  (if (and color-map (not (eq color-map vc-annotate-color-map)))
-      (set (make-local-variable 'vc-annotate-color-map) color-map))
+  (if (/= ratio 1.0)
+      (set (make-local-variable 'vc-annotate-color-map)
+           (mapcar (lambda (elem) (cons (* (car elem) ratio) (cdr elem)))
+                   vc-annotate-color-map)))
   (set (make-local-variable 'vc-annotate-offset) offset)
   (font-lock-mode 1))
 

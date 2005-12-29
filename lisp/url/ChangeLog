@@ -1,3 +1,10 @@
+2005-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-cache.el (url-store-in-cache): Use save-current-buffer.
+
+	* url.el (url-configuration-directory): Don't autoload because the
+	default value needs to be computed at run-time, not dump-time.
+
 2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-cookie.el (url-cookie-write-file): Create parent dir.

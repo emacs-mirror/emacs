@@ -1,3 +1,69 @@
+2005-12-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_file_with_chooser): Changed message shown
+	in file chooser.
+
+2005-12-27  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (readevalloop): Set PT and ZV in the proper buffer,
+	not the current one.
+
+	* minibuf.c (Fminibuffer_message): Doc fix.
+	(read_minibuf): Set current_buffer->enable_multibyte_characters sooner.
+
+	* eval.c (do_autoload): Ignore elements of Vautoload_queue
+	where car is not symbol.
+
+2005-12-27  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (lisp_string_width): Check multibyteness of STRING.
+
+2005-12-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c: x_show_hidden_files, new variable.
+	(syms_of_xfns): Defvar it.
+
+	* gtkutil.c (xg_toggle_visibility_cb): New function.
+	(xg_get_file_with_chooser): Add toggle hidden files and a message
+	to the new file chooser dialog.  Show hidden files if
+	x_show_hidden_files is non-zero.
+
+2005-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.h: Undo previous change.
+
+	* Makefile.in (undo.o): Undo previous change.
+
+	* undo.c: Undo previous change.
+
+2005-12-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.h: extern last_point_position_window.
+
+	* undo.c: include keyboard.h.
+
+	* Makefile.in (undo.o): Depend on keyboard.h.
+
+2005-12-26  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.h (last_point_position_window): Declare.
+
+	* undo.c: Depend on window.h.
+	(record_point): Save old point from the correct window.
+
+	* keyboard.c (last_point_position_window): New variable.
+	(command_loop_1): Set last_point_position_window.
+	(syms_of_keyboard): Init it.
+
+	* Makefile.in (undo.o): Depend on window.h.
+
+2005-12-25  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (un_autoload): Expect (0 . OFEATURES) in Vautoload_queue
+	to undo a `provide'.
+
+	* fns.c (Fprovide): Store (0 . OFEATURES) in Vautoload_queue.
+
 2005-12-25  Giorgos Keramidas  <keramida@ceid.upatras.gr>
 
 	* m/amdx86-64.h [__FreeBSD__] (START_FILES, LIB_STANDARD):
