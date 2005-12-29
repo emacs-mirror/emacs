@@ -60,6 +60,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'pcvs-util)
+(autoload 'vc-find-version "vc")
 (autoload 'vc-version-diff "vc")
 
 (defvar cvs-minor-wrap-function)
@@ -168,7 +169,7 @@
     (forward-line 1)
     (or (re-search-backward log-view-file-re nil t)
 	(re-search-forward log-view-file-re))
-    (let* ((file (or (match-string 2) (match-string 3)))
+    (let* ((file (or (match-string 1) (match-string 2)))
 	   (cvsdir (and (re-search-backward log-view-dir-re nil t)
 			(match-string 1)))
 	   (pcldir (and (boundp 'cvs-pcl-cvs-dirchange-re)
@@ -188,7 +189,7 @@
       (when (re-search-backward log-view-message-re nil t)
         (let (rev)
           ;; Find the subgroup that matched.
-          (dotimes (i (/ (match-data 'integers) 2))
+          (dotimes (i (/ (length (match-data 'integers)) 2))
             (setq rev (or rev (match-string (1+ i)))))
 	  (unless (re-search-forward log-view-file-re pt t)
 	    rev))))))

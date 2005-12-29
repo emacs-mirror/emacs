@@ -79,6 +79,8 @@ static ComponentInstance as_scripting_component;
 /* The single script context used for all script executions.  */
 static OSAID as_script_context;
 
+static OSErr posix_pathname_to_fsspec P_ ((const char *, FSSpec *));
+static OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
 
 /* When converting from Mac to Unix pathnames, /'s in folder names are
    converted to :'s.  This function, used in copying folder names,
@@ -333,7 +335,7 @@ Lisp_Object
 mac_aedesc_to_lisp (desc)
      AEDesc *desc;
 {
-  OSErr err;
+  OSErr err = noErr;
   DescType desc_type = desc->descriptorType;
   Lisp_Object result;
 
@@ -395,6 +397,277 @@ mac_aedesc_to_lisp (desc)
 
   desc_type = EndianU32_NtoB (desc_type);
   return Fcons (make_unibyte_string ((char *) &desc_type, 4), result);
+}
+
+static pascal OSErr
+mac_coerce_file_name_ptr (type_code, data_ptr, data_size,
+			  to_type, handler_refcon, result)
+     DescType type_code;
+     const void *data_ptr;
+     Size data_size;
+     DescType to_type;
+     long handler_refcon;
+     AEDesc *result;
+{
+  OSErr err;
+
+  if (type_code == TYPE_FILE_NAME)
+    /* Coercion from undecoded file name.  */
+    switch (to_type)
+      {
+      case typeAlias:
+      case typeFSS:
+      case typeFSRef:
+#ifdef MAC_OSX
+      case typeFileURL:
+#endif
+	{
+#ifdef MAC_OSX
+	  CFStringRef str;
+	  CFURLRef url = NULL;
+	  CFDataRef data = NULL;
+
+	  str = CFStringCreateWithBytes (NULL, data_ptr, data_size,
+					 kCFStringEncodingUTF8, false);
+	  if (str)
+	    {
+	      url = CFURLCreateWithFileSystemPath (NULL, str,
+						   kCFURLPOSIXPathStyle, false);
+	      CFRelease (str);
+	    }
+	  if (url)
+	    {
+	      data = CFURLCreateData (NULL, url, kCFStringEncodingUTF8, true);
+	      CFRelease (url);
+	    }
+	  if (data)
+	    {
+	      err = AECoercePtr (typeFileURL, CFDataGetBytePtr (data),
+				 CFDataGetLength (data), to_type, result);
+	      CFRelease (data);
+	    }
+	else
+	  err = memFullErr;
+#else
+	  FSSpec fs;
+	  char *buf;
+
+	  buf = xmalloc (data_size + 1);
+	  if (buf)
+	    {
+	      memcpy (buf, data_ptr, data_size);
+	      buf[data_size] = '\0';
+	      err = posix_pathname_to_fsspec (buf, &fs);
+	      xfree (buf);
+	    }
+	  else
+	    err = memFullErr;
+	  if (err == noErr)
+	    err = AECoercePtr (typeFSS, &fs, sizeof (FSSpec),
+			       to_type, result);
+#endif
+	}
+	break;
+
+      case TYPE_FILE_NAME:
+      case typeWildCard:
+	err = AECreateDesc (TYPE_FILE_NAME, data_ptr, data_size, result);
+	break;
+
+      default:
+	err = errAECoercionFail;
+	break;
+      }
+  else if (to_type == TYPE_FILE_NAME)
+    /* Coercion to undecoded file name.  */
+    switch (type_code)
+      {
+      case typeAlias:
+      case typeFSS:
+      case typeFSRef:
+#ifdef MAC_OSX
+      case typeFileURL:
+#endif
+	{
+	  AEDesc desc;
+#ifdef MAC_OSX
+	  Size size;
+	  char *buf;
+	  CFURLRef url = NULL;
+	  CFStringRef str = NULL;
+	  CFDataRef data = NULL;
+
+	  err = AECoercePtr (type_code, data_ptr, data_size,
+			     typeFileURL, &desc);
+	  if (err == noErr)
+	    {
+	      size = AEGetDescDataSize (&desc);
+	      buf = xmalloc (size);
+	      if (buf)
+		{
+		  err = AEGetDescData (&desc, buf, size);
+		  if (err == noErr)
+		    url = CFURLCreateWithBytes (NULL, buf, size,
+						kCFStringEncodingUTF8, NULL);
+		  xfree (buf);
+		}
+	      AEDisposeDesc (&desc);
+	    }
+	  if (url)
+	    {
+	      str = CFURLCopyFileSystemPath (url, kCFURLPOSIXPathStyle);
+	      CFRelease (url);
+	    }
+	  if (str)
+	    {
+	      data =
+		CFStringCreateExternalRepresentation (NULL, str,
+						      kCFStringEncodingUTF8,
+						      '\0');
+	      CFRelease (str);
+	    }
+	  if (data)
+	    {
+	      err = AECreateDesc (TYPE_FILE_NAME, CFDataGetBytePtr (data),
+				  CFDataGetLength (data), result);
+	      CFRelease (data);
+	    }
+	  else
+	    err = memFullErr;
+#else
+	  FSSpec fs;
+	  char file_name[MAXPATHLEN];
+
+	  err = AECoercePtr (type_code, data_ptr, data_size,
+			     typeFSS, &desc);
+	  if (err == noErr)
+	    {
+#if TARGET_API_MAC_CARBON
+	      err = AEGetDescData (&desc, &fs, sizeof (FSSpec));
+#else
+	      fs = *(FSSpec *)(*(desc.dataHandle));
+#endif
+	      if (err == noErr)
+		err = fsspec_to_posix_pathname (&fs, file_name,
+						sizeof (file_name) - 1);
+	      if (err == noErr)
+		err = AECreateDesc (TYPE_FILE_NAME, file_name,
+				    strlen (file_name), result);
+	      AEDisposeDesc (&desc);
+	    }
+#endif
+	}
+	break;
+
+      default:
+	err = errAECoercionFail;
+	break;
+      }
+  else
+    abort ();
+
+  if (err != noErr)
+    return errAECoercionFail;
+  return noErr;
+}
+
+static pascal OSErr
+mac_coerce_file_name_desc (from_desc, to_type, handler_refcon, result)
+     const AEDesc *from_desc;
+     DescType to_type;
+     long handler_refcon;
+     AEDesc *result;
+{
+  OSErr err = noErr;
+  DescType from_type = from_desc->descriptorType;
+
+  if (from_type == TYPE_FILE_NAME)
+    {
+      if (to_type != TYPE_FILE_NAME && to_type != typeWildCard
+	  && to_type != typeAlias && to_type != typeFSS
+	  && to_type != typeFSRef
+#ifdef MAC_OSX
+	  && to_type != typeFileURL
+#endif
+	  )
+	return errAECoercionFail;
+    }
+  else if (to_type == TYPE_FILE_NAME)
+    {
+      if (from_type != typeAlias && from_type != typeFSS
+	  && from_type != typeFSRef
+#ifdef MAC_OSX
+	  && from_type != typeFileURL
+#endif
+	  )
+	return errAECoercionFail;
+    }
+  else
+    abort ();
+
+  if (from_type == to_type || to_type == typeWildCard)
+    err = AEDuplicateDesc (from_desc, result);
+  else
+    {
+      char *data_ptr;
+      Size data_size;
+
+#if TARGET_API_MAC_CARBON
+      data_size = AEGetDescDataSize (from_desc);
+#else
+      data_size = GetHandleSize (from_desc->dataHandle);
+#endif
+      data_ptr = xmalloc (data_size);
+      if (data_ptr)
+	{
+#if TARGET_API_MAC_CARBON
+	  err = AEGetDescData (from_desc, data_ptr, data_size);
+#else
+	  memcpy (data_ptr, *(from_desc->dataHandle), data_size);
+#endif
+	  if (err == noErr)
+	    err = mac_coerce_file_name_ptr (from_type, data_ptr,
+					    data_size, to_type,
+					    handler_refcon, result);
+	  xfree (data_ptr);
+	}
+      else
+	err = memFullErr;
+    }
+
+  if (err != noErr)
+    return errAECoercionFail;
+  return noErr;
+}
+
+OSErr
+init_coercion_handler ()
+{
+  OSErr err;
+
+  static AECoercePtrUPP coerce_file_name_ptrUPP = NULL;
+  static AECoerceDescUPP coerce_file_name_descUPP = NULL;
+
+  if (coerce_file_name_ptrUPP == NULL)
+    {
+      coerce_file_name_ptrUPP = NewAECoercePtrUPP (mac_coerce_file_name_ptr);
+      coerce_file_name_descUPP = NewAECoerceDescUPP (mac_coerce_file_name_desc);
+    }
+
+  err = AEInstallCoercionHandler (TYPE_FILE_NAME, typeWildCard,
+				  (AECoercionHandlerUPP)
+				  coerce_file_name_ptrUPP, 0, false, false);
+  if (err == noErr)
+    err = AEInstallCoercionHandler (typeWildCard, TYPE_FILE_NAME,
+				    (AECoercionHandlerUPP)
+				    coerce_file_name_ptrUPP, 0, false, false);
+  if (err == noErr)
+    err = AEInstallCoercionHandler (TYPE_FILE_NAME, typeWildCard,
+				    coerce_file_name_descUPP, 0, true, false);
+  if (err == noErr)
+    err = AEInstallCoercionHandler (typeWildCard, TYPE_FILE_NAME,
+				    coerce_file_name_descUPP, 0, true, false);
+  return err;
 }
 
 #if TARGET_API_MAC_CARBON
@@ -2602,7 +2875,7 @@ path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
 }
 
 
-OSErr
+static OSErr
 posix_pathname_to_fsspec (ufn, fs)
      const char *ufn;
      FSSpec *fs;
@@ -2618,7 +2891,7 @@ posix_pathname_to_fsspec (ufn, fs)
     }
 }
 
-OSErr
+static OSErr
 fsspec_to_posix_pathname (fs, ufn, ufnbuflen)
      const FSSpec *fs;
      char *ufn;
@@ -4072,89 +4345,21 @@ Each type should be a string of length 4 or the symbol
 
   CHECK_STRING (src_data);
   if (EQ (src_type, Qundecoded_file_name))
-    {
-#ifdef MAC_OSX
-      src_desc_type = typeFileURL;
-#else
-      src_desc_type = typeFSS;
-#endif
-    }
+    src_desc_type = TYPE_FILE_NAME;
   else
     src_desc_type = mac_get_code_from_arg (src_type, 0);
 
   if (EQ (dst_type, Qundecoded_file_name))
-    {
-#ifdef MAC_OSX
-    dst_desc_type = typeFSRef;
-#else
-    dst_desc_type = typeFSS;
-#endif
-    }
+    dst_desc_type = TYPE_FILE_NAME;
   else
     dst_desc_type = mac_get_code_from_arg (dst_type, 0);
 
   BLOCK_INPUT;
-  if (EQ (src_type, Qundecoded_file_name))
-    {
-#ifdef MAC_OSX
-      CFStringRef str;
-      CFURLRef url = NULL;
-      CFDataRef data = NULL;
-
-      str = cfstring_create_with_utf8_cstring (SDATA (src_data));
-      if (str)
-	{
-	  url = CFURLCreateWithFileSystemPath (NULL, str,
-					       kCFURLPOSIXPathStyle, false);
-	  CFRelease (str);
-	}
-      if (url)
-	{
-	  data = CFURLCreateData (NULL, url, kCFStringEncodingUTF8, true);
-	  CFRelease (url);
-	}
-      if (data)
-	err = AECoercePtr (src_desc_type, CFDataGetBytePtr (data),
-			   CFDataGetLength (data),
-			   dst_desc_type, &dst_desc);
-      else
-	err = memFullErr;
-#else
-      err = posix_pathname_to_fsspec (SDATA (src_data), &fs);
-      if (err == noErr)
-	AECoercePtr (src_desc_type, &fs, sizeof (FSSpec),
+  err = AECoercePtr (src_desc_type, SDATA (src_data), SBYTES (src_data),
 		     dst_desc_type, &dst_desc);
-#endif
-    }
-  else
-    err = AECoercePtr (src_desc_type, SDATA (src_data), SBYTES (src_data),
-		       dst_desc_type, &dst_desc);
-
   if (err == noErr)
     {
-      if (EQ (dst_type, Qundecoded_file_name))
-	{
-	  char file_name[MAXPATHLEN];
-
-#ifdef MAC_OSX
-	  err = AEGetDescData (&dst_desc, &fref, sizeof (FSRef));
-	  if (err == noErr)
-	    err = FSRefMakePath (&fref, file_name, sizeof (file_name));
-#else
-#if TARGET_API_MAC_CARBON
-	  err = AEGetDescData (&dst_desc, &fs, sizeof (FSSpec));
-#else
-	  memcpy (&fs, *(dst_desc.dataHandle), sizeof (FSSpec));
-#endif
-	  if (err == noErr)
-	    err = fsspec_to_posix_pathname (&fs, file_name,
-					    sizeof (file_name) - 1);
-#endif
-	  if (err == noErr)
-	    result = make_unibyte_string (file_name, strlen (file_name));
-	}
-      else
-	result = Fcdr (mac_aedesc_to_lisp (&dst_desc));
+      result = Fcdr (mac_aedesc_to_lisp (&dst_desc));
       AEDisposeDesc (&dst_desc);
     }
   UNBLOCK_INPUT;

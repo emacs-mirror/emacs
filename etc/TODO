@@ -240,10 +240,8 @@ to the FSF.
 ** Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
   but it's a valuable feature worth making more general.
 
-** Support simultaneous tty and X frames.  [For a partial
-  implementation, see tla branch
-  lorentey@elte.hu--2004/emacs--multi-tty--0 at
-  http://lorentey.hu/arch/2004]
+** Support simultaneous tty and X frames.  [See the multi-tty branch of Emacs 
+  at http://lorentey.hu/project/emacs.]
 
 ** Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
   not now feasible, given Gnus maintenance decisions.  fx looked at
@@ -418,6 +416,12 @@ when the body only calls primitives.
 
 ** Provide the toolbar on ttys. This could map a bit like tmm-menubar
    for the menubar and buttons could look a bit like those used by customize.
+
+** Improve Help buffers: Change the face of previously visited links (like
+   Info, but also with regard to namespace), add a forward button to make the
+   Help buffer more browser like and gives the value of lisp expressions
+   e.g auto-mode-alist, the right face. [nickrob@snap.net.nz has a patch
+   for this for inclusion after 22.1].
 
 * Internal changes
 

@@ -2410,7 +2410,7 @@ during running `completion-setup-hook'. */)
   else
     {
       write_string ("Possible completions are:", -1);
-      for (tail = completions, i = 0; !NILP (tail); tail = Fcdr (tail), i++)
+      for (tail = completions, i = 0; CONSP (tail); tail = XCDR (tail), i++)
 	{
 	  Lisp_Object tem, string;
 	  int length;
@@ -2418,7 +2418,7 @@ during running `completion-setup-hook'. */)
 
 	  startpos = Qnil;
 
-	  elt = Fcar (tail);
+	  elt = XCAR (tail);
 	  if (SYMBOLP (elt))
 	    elt = SYMBOL_NAME (elt);
 	  /* Compute the length of this element.  */
@@ -2594,9 +2594,21 @@ DEFUN ("minibuffer-completion-help", Fminibuffer_completion_help, Sminibuffer_co
       temp_echo_area_glyphs (build_string (" [No completions]"));
     }
   else
-    internal_with_output_to_temp_buffer ("*Completions*",
-					 display_completion_list_1,
-					 Fsort (completions, Qstring_lessp));
+    {
+      /* Sort and remove duplicates.  */
+      Lisp_Object tmp = completions = Fsort (completions, Qstring_lessp);
+      while (CONSP (tmp))
+	{
+	  if (CONSP (XCDR (tmp))
+	      && !NILP (Fequal (XCAR (tmp), XCAR (XCDR (tmp)))))
+	    XSETCDR (tmp, XCDR (XCDR (tmp)));
+	  else
+	    tmp = XCDR (tmp);
+	}
+      internal_with_output_to_temp_buffer ("*Completions*",
+					   display_completion_list_1,
+					   completions);
+    }
   return Qnil;
 }
 

@@ -48,7 +48,11 @@
 
 ;; Fixme: customize? convert-standard-filename?
 ;;;###autoload
-(defvar url-configuration-directory "~/.url")
+(defvar url-configuration-directory
+  (cond
+   ((file-directory-p "~/.url") "~/.url")
+   ((file-directory-p "~/.emacs.d") "~/.emacs.d/url")
+   (t "~/.url")))
 
 (defun url-do-setup ()
   "Setup the url package.

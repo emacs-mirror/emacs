@@ -191,7 +191,7 @@ EMACS_EXTRA_C_FLAGS = -DUSE_CRT_DLL=1
 
 # see comments in allocate_heap in w32heap.c before changing any of the
 # -stack, -heap, or -image-base settings.
-TEMACS_EXTRA_LINK = -Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 -g $(SUBSYSTEM_CONSOLE) -Wl,-entry,__start -Wl,-Map,$(BLD)/temacs.map
+TEMACS_EXTRA_LINK = -Wl,-stack,0x00800000 -Wl,-heap,0x00100000 -Wl,-image-base,0x01000000 $(SUBSYSTEM_CONSOLE) -Wl,-entry,__start -Wl,-Map,$(BLD)/temacs.map
 
 ifdef NOOPT
 OBJDIR          = oo
@@ -242,8 +242,8 @@ ifdef NODEBUG
 DEBUG_FLAG =
 DEBUG_LINK =
 else
-DEBUG_FLAG = -g
-DEBUG_LINK = -g
+DEBUG_FLAG = -gstabs+ -g3
+DEBUG_LINK = -gstabs+ -g3
 endif
 
 ifdef NOCYGWIN

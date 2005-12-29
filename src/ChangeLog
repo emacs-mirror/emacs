@@ -1,3 +1,118 @@
+2005-12-25  Giorgos Keramidas  <keramida@ceid.upatras.gr>
+
+	* m/amdx86-64.h [__FreeBSD__] (START_FILES, LIB_STANDARD):
+	define for FreeBSD on this platform.
+
+2005-12-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.h (TYPE_FILE_NAME): New define.
+	(posix_pathname_to_fsspec, fsspec_to_posix_pathname): Remove externs.
+
+	* mac.c (posix_pathname_to_fsspec, fsspec_to_posix_pathname): Add
+	prototypes.  Make static.
+	(mac_aedesc_to_lisp): Initialize err to noErr.
+	(mac_coerce_file_name_ptr, mac_coerce_file_name_desc)
+	(init_coercion_handler): New functions.
+	(Fmac_coerce_ae_data): Use coercion of Apple event data for
+	translation from/to file names.
+
+	* macterm.c: Don't include sys/param.h.
+	(init_coercion_handler): Add extern.
+	[MAC_OS8] (main): Call init_coercion_handler.
+	(mac_initialize) [MAC_OSX]: Likewise.
+	[TARGET_API_MAC_CARBON] (mac_do_receive_drag): Use coercion of
+	Apple event data for translation from/to file names.
+
+	* macfns.c [TARGET_API_MAC_CARBON] (Fx_file_dialog): Likewise.
+
+	* image.c [MAC_OS] (find_image_fsspec): Likewise.
+
+2005-12-23  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* insdel.c (insert, insert_and_inherit, insert_before_markers)
+	(insert_before_markers_and_inherit): Make sure FROM is correct
+	when `after-change-functions' are called.
+
+2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfns.c (Fx_uses_old_gtk_dialog): New function.
+
+	* gtkutil.c (xg_uses_old_file_dialog): New function.
+	(xg_get_file_name): Use xg_uses_old_file_dialog.
+
+	* gtkutil.h: Declare xg_uses_old_file_dialog.
+
+2005-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (xmenu_show): Call inhibit_garbage_collection.
+
+2005-12-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (Fmac_coerce_ae_data) [MAC_OSX]: Fix memory leak.
+
+	* macgui.h (XCharStruct): Remove member `valid_p'.
+	(STORE_XCHARSTRUCT): Don't set member `valid_p'.
+	(XCharStructRow): New typedef.
+	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID): New
+	macros.
+	(struct MacFontStruct): Add member `bounds'.  Remove member
+	`per_char'.  All uses for QuichDraw Text fonts are changed to
+	`bounds.per_char'.  ATSUI font bounds are represented as an array
+	`bounds.rows' of XCharStructRow's, each of which consists of a
+	bitmap of valid entries and an array of char bounds.
+
+	* macterm.c (mac_per_char_metric): Add prototype.
+	(x_per_char_metric) [USE_CG_TEXT_DRAWING]: Remove prototype.
+	(mac_query_char_extents): New function.
+	(x_per_char_metric): Use it.
+	(XLoadQueryFont): Likewise.  Consolidate min/max_bounds calculations.
+	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg): Use
+	mac_per_char_metric instead of x_per_char_metric.
+	(mac_text_extents_16): New function.
+	(mac_compute_glyph_string_overhangs): Use it.
+	(mac_unload_font): Free member `bounds' in struct MacFontStruct.
+
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* minibuf.c (Fdisplay_completion_list): Use XCAR/XCDR.
+	(Fminibuffer_completion_help): Remove duplicates before display.
+
+2005-12-21  L$,1 q(Brentey K,Aa(Broly  <lorentey@elte.hu>
+
+	* print.c (print_preprocess): Don't lose print_depth levels while
+	iterating.
+
+2005-12-21  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macmenu.c (Qmac_apple_event): Add extern.
+	(set_frame_menubar, mac_menu_show keymp_panes)
+	(single_keymap_panes, list_of_panes, list_of_item)
+	(single_menu_item): Add argument types to prototypes.
+	(mac_dialog_show) [HAVE_DIALOGS]: Likewise.
+	(struct skp): New struct (from xmenu.c).
+	(single_keymap_panes, single_menu_item, list_of_panes)
+	(list_of_item): Sync with xmenu.c.
+	(Fx_popup_menu, Fx_popup_dialog): Likewise.  Don't get window from
+	POSITION if it is mac-apple-event event.
+	(menubar_selection_callback): Don't use menu_command_in_progress.
+	(set_frame_menubar): First parse all submenus, then make
+	widget_value trees from them.  Don't allocate any widget_value
+	objects until we are done with the parsing.
+	(parse_single_submenu, digest_single_submenu): New functions.
+	(single_submenu): Function deleted, replaced by those two.
+	(install_menu_quit_handler) [HAVE_CANCELMENUTRACKING]: Don't
+	create or dispose of EventHandlerUPP.  Install hander to all submenus.
+	(mac_menu_show) [!HAVE_MULTILINGUAL_MENU]: Use ENCODE_MENU_STRING
+	instead of ENCODE_SYSTEM.
+	(free_frame_menubar, fill_submenu, fill_menu): Don't use NULL for
+	integer values.
+	[HAVE_DIALOGS] (mac_dialog_show): Sync with xdialog_show (in xmenu.c).
+	(add_menu_item) [TARGET_API_MAC_CARBON]: Use CFString functions to
+	format menu item string.  Don't use NULL for integer value.
+
+	* macterm.h (struct mac_output): Remove unused member
+	menu_command_in_progress.
+
 2005-12-20  Juri Linkov  <juri@jurta.org>
 
 	* xmenu.c (Fx_popup_menu): Set Vmenu_updating_frame to f if
@@ -25,15 +140,15 @@
 	(x_use_underline_position_properties): Undo 2005-07-13 change.
 	(syms_of_macterm) <x-use-underline-position-properties>: Likewise.
 	(mac_use_core_graphics, mac_wheel_button_is_mouse_2)
-	(mac_pass_command_to_system, mac_pass_control_to_system): New
-	boolean variables renamed from Lisp_Object ones
+	(mac_pass_command_to_system, mac_pass_control_to_system):
+	New boolean variables renamed from Lisp_Object ones
 	Vmac_use_core_graphics, Vmac_wheel_button_is_mouse_2,
-	Vmac_pass_command_to_system, and Vmac_pass_control_to_system.  All
-	uses changed.
+	Vmac_pass_command_to_system, and Vmac_pass_control_to_system.
+	All uses changed.
 	(syms_of_macterm): DEFVAR_BOOL them.  Remove previous DEFVAR_LISPs.
 	Make them user options.
-	(mac_handle_command_event, mac_store_services_event): Call
-	create_apple_event_from_event_ref without 5th argument.
+	(mac_handle_command_event, mac_store_services_event):
+	Call create_apple_event_from_event_ref without 5th argument.
 	(backtranslate_modified_keycode): Mask off modifier keys that are
 	mapped to some Emacs modifiers before passing it to KeyTranslate.
 	(syms_of_macterm): Make variables `mac-emulate-three-button-mouse',
@@ -41,8 +156,8 @@
 	Fix docstrings of `mac-*-modifier'.
 
 	* mac.c (create_apple_event_from_event_ref): Remove arg `types'.
-	(do_applescript): Change argument types to Lisp_Object.  All uses
-	changed.
+	(do_applescript): Change argument types to Lisp_Object.
+	All uses changed.
 
 	* macterm.h (create_apple_event_from_event_ref): Remove 5th
 	argument from extern.
@@ -85,9 +200,9 @@
 
 	* xfns.c (compute_tip_xy): Handle negative dx and dy.
 
-	* w32fns.c (compute_tip_xy): Ditto
+	* w32fns.c (compute_tip_xy): Ditto.
 
-	* macfns.c (compute_tip_xy): Ditto
+	* macfns.c (compute_tip_xy): Ditto.
 
 2005-12-14  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -165,8 +280,7 @@
 	* mac.c (Qundecoded_file_name): New variable.
 	(syms_of_mac): Initialize it.
 	(mac_aelist_to_lisp, mac_aedesc_to_lisp): New functions.
-	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): New
-	function.
+	[TARGET_API_MAC_CARBON] (create_apple_event_from_event_ref): New fun.
 	(Fmac_coerce_ae_data): New defun.
 	(syms_of_mac): Defsubr it.
 

@@ -347,6 +347,14 @@ The following %-sequences are provided:
 			   (when (re-search-forward
 				  "temperature: +\\([0-9]+\\) C$" nil t)
 			     (match-string 1))))
+		       (when (file-exists-p
+			      "/proc/acpi/thermal_zone/THM0/temperature")
+			 (with-temp-buffer
+			   (insert-file-contents
+			    "/proc/acpi/thermal_zone/THM0/temperature")
+			   (when (re-search-forward
+				  "temperature: +\\([0-9]+\\) C$" nil t)
+			     (match-string 1))))
 		       "N/A"))
 	  (cons ?r (or (and rate (concat (number-to-string rate) " "
 					 rate-type)) "N/A"))

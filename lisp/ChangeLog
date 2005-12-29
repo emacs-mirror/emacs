@@ -1,3 +1,206 @@
+2005-12-25  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/delphi.el (delphi-other-face): Allow nil in type.
+
+	* locate.el (locate-header-face): Allow nil in type.
+
+	* progmodes/cpp.el (cpp-face-none-list): Use cpp-face instead of face.
+
+2005-12-25  Romain Francoise  <romain@orebokech.com>
+
+	* battery.el (battery-linux-proc-acpi): Also try
+	`/proc/acpi/thermal_zone/THM0/temperature'.
+
+2005-12-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-push-theme): Fix docstring.
+
+	* cus-edit.el (custom-variable-set, custom-variable-save,
+	custom-variable-save): Custom-quote widget values.
+	(customize-save-variable): Fix custom-push-theme call.
+
+2005-12-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32-fns.el (w32-batch-update-autoloads): New function.
+
+	* makefile.w32-in (autoloads, $(lisp)/mh-e/mh-loaddefs.el): Use
+	w32-batch-update-autoloads, and don't setq generated-autoload-file
+	from the command line.
+
+2005-12-23  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el (custom-push-theme): Clarify docstring.  VALUE nil for
+	reset means to remove setting from theme entirely.  Don't keep
+	expanding theme-settings list; delete old entries if necessary.
+
+	* cus-edit.el (custom-buffer-create-internal): Move "Erase
+	customization" button one line up.
+	(custom-themed): New face.
+	(custom-magic-alist): New value, THEMED, for theme settings.
+	(custom-variable-state-set, custom-face-state-set): Check
+	theme-value instead of saved-value.
+	(custom-variable-reset-standard, custom-face-reset-standard):
+	Remove theme setting entirely.  Recalculate new values.
+	(custom-variable-set, custom-variable-set)
+	(custom-variable-reset-saved, custom-variable-reset-backup)
+	(custom-face-set, custom-face-reset-saved): Update `user' theme.
+	(custom-variable-save): Fix typos.
+	
+2005-12-23  Juri Linkov  <juri@jurta.org>
+
+	* emacs-lisp/edebug.el (edebug-all-defs, edebug-all-forms):
+	Add autoload cookies.
+	(edebug-outside-d-c-i-n-s-w): New variable.
+	(edebug-display, edebug-outside-excursion): Use it to save the
+	original value of default-cursor-in-non-selected-windows.
+	Set default-cursor-in-non-selected-windows to t while Edebug
+	is active.
+	(edebug-mode, edebug-eval-mode): Doc fix.
+
+	* mouse.el (mouse-choose-completion): Replace `buffer-substring'
+	with `buffer-substring-no-properties' to remove common substring
+	highlighting.
+
+	* info.el (info-other-window, info): Rename function argument
+	`file' to `file-or-node'.
+	(Info-complete-menu-item): Use local variable `complete-nodes' to
+	keep the global value of `Info-complete-nodes' unchanged for
+	subsequent completions.
+	(info-tool-bar-map): Put `Info-index' icon just before `Info-search'.
+
+	* simple.el (get-next-valid-buffer, last-buffer)
+	(next-error-buffer-p, next-error-find-buffer)
+	(minibuffer-history-sexp-flag): Doc fix.
+
+	* savehist.el (savehist-mode-hook): Add `:group'.
+
+	* log-view.el: Call autoload for vc-find-version.
+	(log-view-current-file): Adjust subgroup numbers.
+	(log-view-current-tag): Add `length'.
+
+2005-12-23  Richard M. Stallman  <rms@gnu.org>
+
+	* vc.el (vc-annotate-car-last-cons): Defn moved up.
+
+2005-12-23  Juri Linkov  <juri@jurta.org>
+
+	* hi-lock.el (hi-lock-archaic-interface-message-used)
+	(hi-lock-archaic-interface-deduce, hi-lock-mode): Doc fix.
+	(hi-lock-mode): Display "Hi" in the mode line only when
+	hi-lock-interactive-patterns or hi-lock-file-patterns is non-nil.
+	(hi-lock-write-interactive-patterns):
+	Use hi-lock-file-patterns-prefix instead of hard-coded "Hi-lock".
+	(hi-lock-set-pattern, hi-lock-set-file-patterns)
+	(hi-lock-font-lock-hook): Set 3rd arg `how' of
+	font-lock-add-keywords to t.
+
+2005-12-23  David Koppelman  <koppel@ece.lsu.edu>
+
+	* hi-lock.el (hi-lock-highlight-range): New variable.
+	(hi-lock-mode, hi-lock-unface-buffer): Call font-lock-fontify-buffer
+	only if font-lock-fontified is non-nil.  Remove overlays.
+	(hi-lock-set-pattern): Call font-lock-fontify-buffer if
+	font-lock-fontified is non-nil, otherwise use overlays (instead of
+	text properties).
+	(hi-lock-string-serialize-hash, hi-lock-string-serialize-serial):
+	New variables.
+	(hi-lock-string-serialize) New function.
+
+2005-12-23  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* menu-bar.el (menu-find-file-existing): New function.
+	(menu-bar-file-menu): Use menu-find-file-existing for Open.
+
+	* tool-bar.el (tool-bar-setup): open changed to menu-find-file-existing.
+
+2005-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* vc.el: Remove unnecessary leading * in docstrings.
+	(vc-annotate-mode-map): Move initialization into declaration.
+	(vc-static-header-alist): Nitpick on the regexp.
+	(vc-default-init-version): New fun.
+	(vc-register): Use it.
+	(vc-insert-headers): Use dolist.
+	(vc-annotate-get-backend): Remove unused function.
+	(vc-annotate-add-menu): Remove.  Build the menu directly at toplevel.
+	(vc-annotate-mode): Remove corresponding call.
+	(vc-annotate-car-last-cons): Simplify.
+	(vc-annotate-buffers): Remove var.
+	(vc-annotate-backend): Make it buffer-local.
+	(vc-annotate): Move the interaction to the interactive spec.
+	Add a `buf' argument.
+	(vc-annotate-warp-version): Use this new `buf' argument to avoid
+	killing&creating a vc-annotate buffer, which is very disruptive when
+	the buffers are shown in dedicated frames.
+
+2005-12-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* descr-text.el: Add FSF as maintainer.
+	(describe-text-mode, describe-text-mode-map)
+	(describe-text-mode-hook, describe-text-done): Delete.  Use normal
+	help-mode.
+	(describe-text-widget, describe-text-sexp)
+	(describe-property-list, describe-text-category)
+	(describe-text-properties, describe-text-properties-1)
+	(describe-char): Use help buttons instead of widgets.
+	(describe-char-unicodedata-file): Make URL link in doc string.
+
+2005-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-edit.el (custom-variable-prompt): Say "variable" in prompt.
+	(custom-buffer-create-internal): Reword the top-of-buffer help intro.
+	Don't include buttons that write a file when there's no file.
+	(custom-variable-menu, custom-face-menu, custom-group-menu):
+	Don't include commands that write a file when there's no file.
+	(customize-browse): Reword the top-of-buffer help intro.
+	(custom-buffer-create-internal): Fix previous change.
+	(customize-changed-options-previous-release): Prev release is 21.1.
+	(customize-changed-options): Doc fix.
+	(customize-changed): New alias.
+	(custom-reset-menu, custom-magic-alist, Custom-mode-menu):
+	Say "standard values".
+	(Custom-reset-standard): Doc fix.
+	(custom-face-reset-standard): Doc fix.
+
+2005-12-22  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-default-fontify-buffer): Try and set-defaults
+	even if font-lock-mode is non-nil since it may be t without having
+	turned on font-lock-mode-internal.
+	(font-lock-choose-keywords): Minor optimization.
+	(font-lock-add-keywords, font-lock-remove-keywords)
+	(font-lock-set-defaults): Don't call make-local-variable on a variable
+	that we know to already be local.
+
+2005-12-22  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't print progress
+	messages if in the minibuffer.
+
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-check-word-p): Don't quote - in a RE.
+	(tex-mode-flyspell-verify, flyspell-get-word)
+	(flyspell-external-point-words): Don't use point-min/max uselessly.
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Mostly undo the change
+	by Kevin Rodgers.  Instead, just hide the completions buffer if we
+	don't need to show it.
+
+2005-12-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* wid-edit.el (file, directory): Doc fixes for the `define-widget's.
+
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp.el (lisp-complete-symbol): Don't call
+	delete-windows-on with an inexistent buffer.
+
+2005-12-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-modes, gud-tooltip-display):
+	Delete defcustom variable :tag names.
+
 2005-12-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-view.el (log-view-file-re, log-view-message-re): Use shy groups.
@@ -5506,7 +5709,7 @@
 	* progmodes/gud.el (gud-speedbar-menu-items): Use :visible
 	instead of :active.
 
-2005-10-08  Eric Hanchrow  <offby1@blarg.net>
+2005-10-08  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* textmodes/ispell.el (ispell-check-version):
 	Ignore hyphen, and all that follows, in aspell's version text.

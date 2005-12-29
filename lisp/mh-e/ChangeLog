@@ -1,3 +1,78 @@
+2005-12-23  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (mh-folders-changed): Fix typo in docstring.
+
+	Follow MH-E Developers Guide conventions. Use `' quotes for Help
+	hyperlinks such as symbols, Info nodes, or URLs. Use \" quotes for
+	everything else. Otherwise, you can accidently get links to
+	nonsense symbols.
+	
+2005-12-22  Bill Wohler  <wohler@newt.com>
+
+	Follow Emacs coding conventions. Use default setting of
+	emacs-lisp-docstring-fill-column which is 65.
+	
+	* mh-alias.el (mh-alias-reload): Sync docstrings with manual.
+
+	* mh-comp.el (mh-letter-mode): Use 60 column width.
+	(mh-forward, mh-insert-signature, mh-send-letter): Sync docstrings
+	with manual.
+	(mh-yank-cur-msg): Mention that mh-ins-buf-prefix isn't used if
+	you have added a mail-citation-hook and neither are used if you
+	use one of the supercite flavors of mh-yank-behavior. Sync
+	docstrings with manual.
+
+	* mh-customize.el (mh-kill-folder-suppress-prompt-hooks): Rename
+	from mh-kill-folder-suppress-prompt-hook since it is an abnormal
+	hook. Use "Hook run by `function'..." instead of "Invoked...".
+	Sync docstrings with manual.
+	(mh-ins-buf-prefix, mh-yank-behavior): Mention that
+	mh-ins-buf-prefix isn't used if you have added a
+	mail-citation-hook and neither are used if you use one of the
+	supercite flavors of mh-yank-behavior. Sync docstrings with
+	manual.
+	(mail-citation-hook): Delete. Use one in sendmail.el.
+	(mh-signature-file-name, mh-after-commands-processed-hook)
+	(mh-alias-reloaded-hook, mh-before-commands-processed-hook)
+	(mh-before-quit-hook, mh-before-send-letter-hook)
+	(mh-delete-msg-hook, mh-find-path-hook, mh-folder-mode-hook)
+	(mh-forward-hook, mh-inc-folder-hook, mh-insert-signature-hook)
+	(mh-letter-mode-hook)
+	(mh-mh-to-mime-hook, mh-pick-mode-hook, mh-quit-hook)
+	(mh-refile-msg-hook, mh-show-hook, mh-show-mode-hook)
+	(mh-unseen-updated-hook): Use "Hook run by `function'..." instead
+	of "Invoked...". Sync docstrings with manual.
+
+	* mh-e.el (mh-last-destination, mh-last-destination-folder)
+	(mh-last-destination-write, mh-folder-mode-map, mh-arrow-marker)
+	(mh-delete-list, mh-refile-list, mh-folders-changed)
+	(mh-next-direction, mh-view-ops, mh-folder-view-stack)
+	(mh-index-data, mh-first-msg-num, mh-last-msg-num)
+	(mh-mode-line-annotation, mh-sequence-notation-history)
+	(mh-colors-available-flag): Move comment into docstring.
+	(mh-delete-msg, mh-execute-commands, mh-inc-folder, mh-quit,
+	mh-process-commands): Sync docstrings with manual.
+	(mh-refile-msg): Small doc edit.
+	(mh-delete-a-msg, mh-refile-a-msg): Sync docstrings with manual.
+	Rename msg argument to message.
+
+	* mh-funcs.el (mh-kill-folder): Sync docstrings with manual.
+
+	* mh-e.el (mh-update-unseen): No longer say "The value of
+	`foo-hook' is a list of functions to be called, with no arguments,
+	...," but rather just "The hook foo-hook is called...".
+
+	* mh-mime.el (mh-mh-to-mime): Ditto
+
+	* mh-pick.el (mh-pick-mode): Ditto.
+
+	* mh-utils.el (mh-showing-mode): Use uppercase for argument in
+	docstring.
+	(mh-seq-list, mh-seen-list, mh-showing-with-headers): Move comment
+	into docstring.
+	(mh-show-mode, mh-show-msg, mh-find-path): Sync docstrings with
+	manual.
+
 2005-12-19  Stephen Gildea
 
 	* mh-customize.el (mh-after-commands-processed-hook): New variable.

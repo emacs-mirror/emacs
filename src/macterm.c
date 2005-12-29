@@ -68,7 +68,6 @@ Boston, MA 02110-1301, USA.  */
 #include <errno.h>
 #include <setjmp.h>
 #include <sys/stat.h>
-#include <sys/param.h>
 
 #include "charset.h"
 #include "coding.h"
@@ -259,7 +258,7 @@ static void x_scroll_bar_report_motion P_ ((struct frame **, Lisp_Object *,
 					    unsigned long *));
 
 static int is_emacs_window P_ ((WindowPtr));
-
+static XCharStruct *mac_per_char_metric P_ ((XFontStruct *, XChar2b *, int));
 static void XSetFont P_ ((Display *, GC, XFontStruct *));
 
 /* Defined in macmenu.h.  */
@@ -868,9 +867,159 @@ mac_draw_image_string_16 (f, gc, x, y, buf, nchars)
 }
 
 
-#if USE_CG_TEXT_DRAWING
-static XCharStruct *x_per_char_metric P_ ((XFontStruct *, XChar2b *));
+/* Mac replacement for XQueryTextExtents, but takes a character.  If
+   STYLE is NULL, measurement is done by QuickDraw Text routines for
+   the font of the current graphics port.  If CG_GLYPH is not NULL,
+   *CG_GLYPH is set to the glyph ID or 0 if it cannot be obtained.  */
 
+static OSErr
+mac_query_char_extents (style, c,
+			font_ascent_return, font_descent_return,
+			overall_return, cg_glyph)
+#if USE_ATSUI
+     ATSUStyle style;
+#else
+     void *style;
+#endif
+     int c;
+     int *font_ascent_return, *font_descent_return;
+     XCharStruct *overall_return;
+#if USE_CG_TEXT_DRAWING
+     CGGlyph *cg_glyph;
+#else
+     void *cg_glyph;
+#endif
+{
+  OSErr err = noErr;
+  int width;
+  Rect char_bounds;
+
+#if USE_ATSUI
+  if (style)
+    {
+      ATSUTextLayout text_layout;
+      UniChar ch = c;
+
+      err = atsu_get_text_layout_with_text_ptr (&ch, 1, style, &text_layout);
+      if (err == noErr)
+	{
+	  ATSTrapezoid glyph_bounds;
+
+	  err = ATSUGetGlyphBounds (text_layout, 0, 0,
+				    kATSUFromTextBeginning, kATSUToTextEnd,
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
+				    kATSUseFractionalOrigins,
+#else
+				    kATSUseDeviceOrigins,
+#endif
+				    1, &glyph_bounds, NULL);
+	  if (err == noErr)
+	    {
+	      xassert (glyph_bounds.lowerRight.x - glyph_bounds.lowerLeft.x
+		       == glyph_bounds.upperRight.x - glyph_bounds.upperLeft.x);
+
+	      width = Fix2Long (glyph_bounds.upperRight.x
+				- glyph_bounds.upperLeft.x);
+	      if (font_ascent_return)
+		*font_ascent_return = -Fix2Long (glyph_bounds.upperLeft.y);
+	      if (font_descent_return)
+		*font_descent_return = Fix2Long (glyph_bounds.lowerLeft.y);
+	    }
+	}
+      if (err == noErr && overall_return)
+	{
+	  err = ATSUMeasureTextImage (text_layout,
+				      kATSUFromTextBeginning, kATSUToTextEnd,
+				      0, 0, &char_bounds);
+	  if (err == noErr)
+	    STORE_XCHARSTRUCT (*overall_return, width, char_bounds);
+#if USE_CG_TEXT_DRAWING
+	  if (err == noErr && cg_glyph)
+	    {
+	      OSErr err1;
+	      ATSUGlyphInfoArray glyph_info_array;
+	      ByteCount count = sizeof (ATSUGlyphInfoArray);
+
+	      err1 = ATSUMatchFontsToText (text_layout, kATSUFromTextBeginning,
+					   kATSUToTextEnd, NULL, NULL, NULL);
+	      if (err1 == noErr)
+		err1 = ATSUGetGlyphInfo (text_layout, kATSUFromTextBeginning,
+					 kATSUToTextEnd, &count,
+					 &glyph_info_array);
+	      if (err1 == noErr)
+		{
+		  xassert (glyph_info_array.glyphs[0].glyphID);
+		  *cg_glyph = glyph_info_array.glyphs[0].glyphID;
+		}
+	      else
+		*cg_glyph = 0;
+	    }
+#endif
+	}
+    }
+  else
+#endif
+    {
+      if (font_ascent_return || font_descent_return)
+	{
+	  FontInfo font_info;
+
+	  GetFontInfo (&font_info);
+	  if (font_ascent_return)
+	    *font_ascent_return = font_info.ascent;
+	  if (font_descent_return)
+	    *font_descent_return = font_info.descent;
+	}
+      if (overall_return)
+	{
+	  char ch = c;
+
+	  width = CharWidth (ch);
+	  QDTextBounds (1, &ch, &char_bounds);
+	  STORE_XCHARSTRUCT (*overall_return, width, char_bounds);
+	}
+    }
+
+  return err;
+}
+
+
+/* Mac replacement for XTextExtents16.  Only sets horizontal metrics.  */
+
+static int
+mac_text_extents_16 (font_struct, string, nchars, overall_return)
+     XFontStruct *font_struct;
+     XChar2b *string;
+     int nchars;
+     XCharStruct *overall_return;
+{
+  int i;
+  short width = 0, lbearing = 0, rbearing = 0;
+  XCharStruct *pcm;
+
+  for (i = 0; i < nchars; i++)
+    {
+      pcm = mac_per_char_metric (font_struct, string, 0);
+      if (pcm == NULL)
+	width += FONT_WIDTH (font_struct);
+      else
+	{
+	  lbearing = min (lbearing, width + pcm->lbearing);
+	  rbearing = max (rbearing, width + pcm->rbearing);
+	  width += pcm->width;
+	}
+      string++;
+    }
+
+  overall_return->lbearing = lbearing;
+  overall_return->rbearing = rbearing;
+  overall_return->width = width;
+
+  /* What's the meaning of the return value of XTextExtents16?  */
+}
+
+
+#if USE_CG_TEXT_DRAWING
 static int cg_text_anti_aliasing_threshold = 8;
 
 static void
@@ -910,7 +1059,9 @@ mac_draw_string_cg (f, gc, x, y, buf, nchars)
   advances = xmalloc (sizeof (CGSize) * nchars);
   for (i = 0; i < nchars; i++)
     {
-      advances[i].width = x_per_char_metric (GC_FONT (gc), buf)->width;
+      XCharStruct *pcm = mac_per_char_metric (GC_FONT (gc), buf, 0);
+
+      advances[i].width = pcm->width;
       advances[i].height = 0;
       glyphs[i] = GC_FONT (gc)->cg_glyphs[buf->byte2];
       buf++;
@@ -1724,63 +1875,32 @@ x_per_char_metric (font, char2b)
 #if USE_ATSUI
   if (font->mac_style)
     {
-      if (char2b->byte1 >= font->min_byte1
-	  && char2b->byte1 <= font->max_byte1
-	  && char2b->byte2 >= font->min_char_or_byte2
-	  && char2b->byte2 <= font->max_char_or_byte2)
+      XCharStructRow **row = font->bounds.rows + char2b->byte1;
+
+      if (*row == NULL)
 	{
-	  pcm = (font->per_char
-		 + ((font->max_char_or_byte2 - font->min_char_or_byte2 + 1)
-		    * (char2b->byte1 - font->min_byte1))
-		 + (char2b->byte2 - font->min_char_or_byte2));
+	  *row = xmalloc (sizeof (XCharStructRow));
+	  if (*row)
+	    bzero (*row, sizeof (XCharStructRow));
 	}
-
-      if (pcm && !pcm->valid_p)
+      if (*row)
 	{
-	  OSErr err;
-	  ATSUTextLayout text_layout;
-	  UniChar c;
-	  int char_width;
-	  ATSTrapezoid glyph_bounds;
-	  Rect char_bounds;
-
-	  c = (char2b->byte1 << 8) + char2b->byte2;
-	  BLOCK_INPUT;
-	  err = atsu_get_text_layout_with_text_ptr (&c, 1,
-						    font->mac_style,
-						    &text_layout);
-	  if (err == noErr)
-	    err = ATSUMeasureTextImage (text_layout,
-					kATSUFromTextBeginning, kATSUToTextEnd,
-					0, 0, &char_bounds);
-
-	  if (err == noErr)
-	    err = ATSUGetGlyphBounds (text_layout, 0, 0,
-				      kATSUFromTextBeginning, kATSUToTextEnd,
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-				      kATSUseFractionalOrigins,
-#else
-				      kATSUseDeviceOrigins,
-#endif
-				      1, &glyph_bounds, NULL);
-	  UNBLOCK_INPUT;
-	  if (err != noErr)
-	    pcm = NULL;
-	  else
+	  pcm = (*row)->per_char + char2b->byte2;
+	  if (!XCHARSTRUCTROW_CHAR_VALID_P (*row, char2b->byte2))
 	    {
-	      xassert (glyph_bounds.lowerRight.x - glyph_bounds.lowerLeft.x
-		       == glyph_bounds.upperRight.x - glyph_bounds.upperLeft.x);
-
-	      char_width = Fix2Long (glyph_bounds.upperRight.x
-				     - glyph_bounds.upperLeft.x);
-	      STORE_XCHARSTRUCT (*pcm, char_width, char_bounds);
+	      BLOCK_INPUT;
+	      mac_query_char_extents (font->mac_style,
+				      (char2b->byte1 << 8) + char2b->byte2,
+				      NULL, NULL, pcm, NULL);
+	      UNBLOCK_INPUT;
+	      XCHARSTRUCTROW_SET_CHAR_VALID (*row, char2b->byte2);
 	    }
 	}
     }
   else
     {
 #endif
-  if (font->per_char != NULL)
+  if (font->bounds.per_char != NULL)
     {
       if (font->min_byte1 == 0 && font->max_byte1 == 0)
 	{
@@ -1793,7 +1913,8 @@ x_per_char_metric (font, char2b)
 	  if (char2b->byte1 == 0
 	      && char2b->byte2 >= font->min_char_or_byte2
 	      && char2b->byte2 <= font->max_char_or_byte2)
-	    pcm = font->per_char + char2b->byte2 - font->min_char_or_byte2;
+	    pcm = font->bounds.per_char
+	      + (char2b->byte2 - font->min_char_or_byte2);
 	}
       else
 	{
@@ -1815,7 +1936,7 @@ x_per_char_metric (font, char2b)
 	      && char2b->byte2 >= font->min_char_or_byte2
 	      && char2b->byte2 <= font->max_char_or_byte2)
 	    {
-	      pcm = (font->per_char
+	      pcm = (font->bounds.per_char
 		     + ((font->max_char_or_byte2 - font->min_char_or_byte2 + 1)
 			* (char2b->byte1 - font->min_byte1))
 		     + (char2b->byte2 - font->min_char_or_byte2));
@@ -2157,67 +2278,32 @@ mac_compute_glyph_string_overhangs (s)
 {
   if (s->cmp == NULL
       && s->first_glyph->type == CHAR_GLYPH)
-    {
-      Rect r;
-      MacFontStruct *font = s->font;
-
+    if (!s->two_byte_p
 #if USE_ATSUI
-      if (font->mac_style)
-	{
-	  OSErr err;
-	  ATSUTextLayout text_layout;
-	  UniChar *buf;
-	  int i;
-
-	  SetRect (&r, 0, 0, 0, 0);
-	  buf = xmalloc (sizeof (UniChar) * s->nchars);
-	  if (buf)
-	    {
-	      for (i = 0; i < s->nchars; i++)
-		buf[i] = (s->char2b[i].byte1 << 8) + s->char2b[i].byte2;
-
-	      err = atsu_get_text_layout_with_text_ptr (buf, s->nchars,
-							font->mac_style,
-							&text_layout);
-	      if (err == noErr)
-		err = ATSUMeasureTextImage (text_layout,
-					    kATSUFromTextBeginning,
-					    kATSUToTextEnd,
-					    0, 0, &r);
-	      xfree (buf);
-	    }
-	}
-      else
-	{
+	|| s->font->mac_style
 #endif
-      TextFont (font->mac_fontnum);
-      TextSize (font->mac_fontsize);
-      TextFace (font->mac_fontface);
+	)
+      {
+	XCharStruct cs;
 
-      if (s->two_byte_p)
+	mac_text_extents_16 (s->font, s->char2b, s->nchars, &cs);
+	s->right_overhang = cs.rbearing > cs.width ? cs.rbearing - cs.width : 0;
+	s->left_overhang = cs.lbearing < 0 ? -cs.lbearing : 0;
+      }
+    else
+      {
+	Rect r;
+	MacFontStruct *font = s->font;
+
+	TextFont (font->mac_fontnum);
+	TextSize (font->mac_fontsize);
+	TextFace (font->mac_fontface);
+
 	QDTextBounds (s->nchars * 2, (char *)s->char2b, &r);
-      else
-	{
-	  int i;
-	  char *buf = xmalloc (s->nchars);
 
-	  if (buf == NULL)
-	    SetRect (&r, 0, 0, 0, 0);
-	  else
-	    {
-	      for (i = 0; i < s->nchars; ++i)
-		buf[i] = s->char2b[i].byte2;
-	      QDTextBounds (s->nchars, buf, &r);
-	      xfree (buf);
-	    }
-	}
-#if USE_ATSUI
-        }
-#endif
-
-      s->right_overhang = r.right > s->width ? r.right - s->width : 0;
-      s->left_overhang = r.left < 0 ? -r.left : 0;
-    }
+	s->right_overhang = r.right > s->width ? r.right - s->width : 0;
+	s->left_overhang = r.left < 0 ? -r.left : 0;
+      }
 }
 
 
@@ -7375,7 +7461,7 @@ is_fully_specified_xlfd (char *p)
 static MacFontStruct *
 XLoadQueryFont (Display *dpy, char *fontname)
 {
-  int i, size, char_width;
+  int size;
   char *name;
   Str255 family;
   Str31 charset;
@@ -7392,6 +7478,7 @@ XLoadQueryFont (Display *dpy, char *fontname)
   short scriptcode;
 #endif
   MacFontStruct *font;
+  XCharStruct *space_bounds = NULL, *pcm;
 
   if (is_fully_specified_xlfd (fontname))
     name = fontname;
@@ -7488,19 +7575,27 @@ XLoadQueryFont (Display *dpy, char *fontname)
   if (font->mac_style)
     {
       OSErr err;
-      ATSUTextLayout text_layout;
-      UniChar c = 0x20;
-      Rect char_bounds, min_bounds, max_bounds;
-      int min_width, max_width;
-      ATSTrapezoid glyph_bounds;
+      UniChar c;
 
-      font->per_char = xmalloc (sizeof (XCharStruct) * 0x10000);
-      if (font->per_char == NULL)
+      font->min_byte1 = 0;
+      font->max_byte1 = 0xff;
+      font->min_char_or_byte2 = 0;
+      font->max_char_or_byte2 = 0xff;
+
+      font->bounds.rows = xmalloc (sizeof (XCharStructRow *) * 0x100);
+      if (font->bounds.rows == NULL)
 	{
 	  mac_unload_font (&one_mac_display_info, font);
 	  return NULL;
 	}
-      bzero (font->per_char, sizeof (XCharStruct) * 0x10000);
+      bzero (font->bounds.rows, sizeof (XCharStructRow *) * 0x100);
+      font->bounds.rows[0] = xmalloc (sizeof (XCharStructRow));
+      if (font->bounds.rows[0] == NULL)
+	{
+	  mac_unload_font (&one_mac_display_info, font);
+	  return NULL;
+	}
+      bzero (font->bounds.rows[0], sizeof (XCharStructRow));
 
 #if USE_CG_TEXT_DRAWING
       {
@@ -7525,108 +7620,58 @@ XLoadQueryFont (Display *dpy, char *fontname)
       if (font->cg_glyphs)
 	bzero (font->cg_glyphs, sizeof (CGGlyph) * 0x100);
 #endif
-
-      err = atsu_get_text_layout_with_text_ptr (&c, 1,
-						font->mac_style,
-						&text_layout);
+      space_bounds = font->bounds.rows[0]->per_char + 0x20;
+      err = mac_query_char_extents (font->mac_style, 0x20,
+				    &font->ascent, &font->descent,
+				    space_bounds,
+#if USE_CG_TEXT_DRAWING
+				    (font->cg_glyphs ? font->cg_glyphs + 0x20
+				     : NULL)
+#else
+				    NULL
+#endif
+				    );
       if (err != noErr)
 	{
 	  mac_unload_font (&one_mac_display_info, font);
 	  return NULL;
 	}
+      XCHARSTRUCTROW_SET_CHAR_VALID (font->bounds.rows[0], 0x20);
 
-      for (c = 0x20; c <= 0xff; c++)
+      pcm = font->bounds.rows[0]->per_char;
+      for (c = 0x21; c <= 0xff; c++)
 	{
 	  if (c == 0xad)
 	    /* Soft hyphen is not supported in ATSUI.  */
 	    continue;
 	  else if (c == 0x7f)
 	    {
-	      STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
-	      STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
 	      c = 0x9f;
 	      continue;
 	    }
 
-	  err = ATSUClearLayoutCache (text_layout, kATSUFromTextBeginning);
-	  if (err == noErr)
-	    err = ATSUMeasureTextImage (text_layout,
-					kATSUFromTextBeginning, kATSUToTextEnd,
-					0, 0, &char_bounds);
-	  if (err == noErr)
-	    err = ATSUGetGlyphBounds (text_layout, 0, 0,
-				      kATSUFromTextBeginning, kATSUToTextEnd,
-#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
-				      kATSUseFractionalOrigins,
-#else
-				      kATSUseDeviceOrigins,
-#endif
-				      1, &glyph_bounds, NULL);
-	  if (err == noErr)
-	    {
-	      xassert (glyph_bounds.lowerRight.x - glyph_bounds.lowerLeft.x
-		       == glyph_bounds.upperRight.x - glyph_bounds.upperLeft.x);
-
-	      char_width = Fix2Long (glyph_bounds.upperRight.x
-				     - glyph_bounds.upperLeft.x);
-	      STORE_XCHARSTRUCT (font->per_char[c],
-				 char_width, char_bounds);
-	      if (c == 0x20)
-		{
-		  min_width = max_width = char_width;
-		  min_bounds = max_bounds = char_bounds;
-		  font->ascent = -Fix2Long (glyph_bounds.upperLeft.y);
-		  font->descent = Fix2Long (glyph_bounds.lowerLeft.y);
-		}
-	      else
-		{
-		  if (char_width > 0)
-		    {
-		      min_width = min (min_width, char_width);
-		      max_width = max (max_width, char_width);
-		    }
-		  if (!EmptyRect (&char_bounds))
-		    {
-		      SetRect (&min_bounds,
-			       max (min_bounds.left, char_bounds.left),
-			       max (min_bounds.top, char_bounds.top),
-			       min (min_bounds.right, char_bounds.right),
-			       min (min_bounds.bottom, char_bounds.bottom));
-		      UnionRect (&max_bounds, &char_bounds, &max_bounds);
-		    }
-		}
-	    }
+	  mac_query_char_extents (font->mac_style, c, NULL, NULL, pcm + c,
 #if USE_CG_TEXT_DRAWING
-	  if (err == noErr && char_width > 0 && font->cg_font)
-	    {
-	      ATSUGlyphInfoArray glyph_info_array;
-	      ByteCount count = sizeof (ATSUGlyphInfoArray);
+				  (font->cg_glyphs ? font->cg_glyphs + c
+				   : NULL)
+#else
+				    NULL
+#endif
+				  );
+	  XCHARSTRUCTROW_SET_CHAR_VALID (font->bounds.rows[0], c);
 
-	      err = ATSUMatchFontsToText (text_layout, kATSUFromTextBeginning,
-					  kATSUToTextEnd, NULL, NULL, NULL);
-	      if (err == noErr)
-		err = ATSUGetGlyphInfo (text_layout, kATSUFromTextBeginning,
-					kATSUToTextEnd, &count,
-					&glyph_info_array);
-	      if (err == noErr)
-		font->cg_glyphs[c] = glyph_info_array.glyphs[0].glyphID;
-	      else
-		{
-		  /* Don't use CG text drawing if font substitution
-		     occurs in ASCII or Latin-1 characters.  */
-		  CGFontRelease (font->cg_font);
-		  font->cg_font = NULL;
-		  xfree (font->cg_glyphs);
-		  font->cg_glyphs = NULL;
-		}
+#if USE_CG_TEXT_DRAWING
+	  if (font->cg_glyphs && font->cg_glyphs[c] == 0)
+	    {
+	      /* Don't use CG text drawing if font substitution occurs in
+		 ASCII or Latin-1 characters.  */
+	      CGFontRelease (font->cg_font);
+	      font->cg_font = NULL;
+	      xfree (font->cg_glyphs);
+	      font->cg_glyphs = NULL;
 	    }
 #endif
 	}
-
-      font->min_byte1 = 0;
-      font->max_byte1 = 0xff;
-      font->min_char_or_byte2 = 0;
-      font->max_char_or_byte2 = 0xff;
     }
   else
 #endif
@@ -7665,6 +7710,8 @@ XLoadQueryFont (Display *dpy, char *fontname)
 
       if (is_two_byte_font)
 	{
+	  int char_width;
+
 	  font->min_byte1 = 0xa1;
 	  font->max_byte1 = 0xfe;
 	  font->min_char_or_byte2 = 0xa1;
@@ -7693,21 +7740,8 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	      char_width = StringWidth("\p\xa1\xa1");
 	      break;
 	    }
-	}
-      else
-	{
-	  font->min_byte1 = font->max_byte1 = 0;
-	  font->min_char_or_byte2 = 0x20;
-	  font->max_char_or_byte2 = 0xff;
 
-	  /* Do this instead of use the_fontinfo.widMax, which
-	     incorrectly returns 15 for 12-point Monaco! */
-	  char_width = CharWidth ('m');
-	}
-
-      if (is_two_byte_font)
-	{
-	  font->per_char = NULL;
+	  font->bounds.per_char = NULL;
 
 	  if (fontface & italic)
 	    font->max_bounds.rbearing = char_width + 1;
@@ -7722,60 +7756,74 @@ XLoadQueryFont (Display *dpy, char *fontname)
 	}
       else
 	{
-	  int c, min_width, max_width;
-	  Rect char_bounds, min_bounds, max_bounds;
-	  char ch;
+	  int c;
 
-	  font->per_char = xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
-	  bzero (font->per_char, sizeof (XCharStruct) * (0xff - 0x20 + 1));
+	  font->min_byte1 = font->max_byte1 = 0;
+	  font->min_char_or_byte2 = 0x20;
+	  font->max_char_or_byte2 = 0xff;
 
-	  min_width = max_width = char_width;
-	  SetRect (&min_bounds, -32767, -32767, 32767, 32767);
-	  SetRect (&max_bounds, 0, 0, 0, 0);
-	  for (c = 0x20; c <= 0xff; c++)
+	  font->bounds.per_char =
+	    xmalloc (sizeof (XCharStruct) * (0xff - 0x20 + 1));
+	  if (font->bounds.per_char == NULL)
 	    {
-	      if (c == 0x7f)
-		{
-		  STORE_XCHARSTRUCT (font->min_bounds, min_width, min_bounds);
-		  STORE_XCHARSTRUCT (font->max_bounds, max_width, max_bounds);
-		  continue;
-		}
+	      mac_unload_font (&one_mac_display_info, font);
+	      return NULL;
+	    }
+	  bzero (font->bounds.per_char,
+		 sizeof (XCharStruct) * (0xff - 0x20 + 1));
 
-	      ch = c;
-	      char_width = CharWidth (ch);
-	      QDTextBounds (1, &ch, &char_bounds);
-	      STORE_XCHARSTRUCT (font->per_char[c - 0x20],
-				 char_width, char_bounds);
-	      /* Some Japanese fonts (in SJIS encoding) return 0 as
-		 the character width of 0x7f.  */
-	      if (char_width > 0)
-		{
-		  min_width = min (min_width, char_width);
-		  max_width = max (max_width, char_width);
-		}
-	      if (!EmptyRect (&char_bounds))
-		{
-		  SetRect (&min_bounds,
-			   max (min_bounds.left, char_bounds.left),
-			   max (min_bounds.top, char_bounds.top),
-			   min (min_bounds.right, char_bounds.right),
-			   min (min_bounds.bottom, char_bounds.bottom));
-		  UnionRect (&max_bounds, &char_bounds, &max_bounds);
-		}
-	    }
-	  if (min_width == max_width
-	      && max_bounds.left >= 0 && max_bounds.right <= max_width)
-	    {
-	      /* Fixed width and no overhangs.  */
-	      xfree (font->per_char);
-	      font->per_char = NULL;
-	    }
+	  space_bounds = font->bounds.per_char;
+	  mac_query_char_extents (NULL, 0x20, &font->ascent, &font->descent,
+				  space_bounds, NULL);
+
+	  for (c = 0x21, pcm = space_bounds + 1; c <= 0xff; c++, pcm++)
+	    mac_query_char_extents (NULL, c, NULL, NULL, pcm, NULL);
 	}
 
       /* Restore previous font number, size and face.  */
       TextFont (old_fontnum);
       TextSize (old_fontsize);
       TextFace (old_fontface);
+    }
+
+  if (space_bounds)
+    {
+      int c;
+
+      font->min_bounds = font->max_bounds = *space_bounds;
+      for (c = 0x21, pcm = space_bounds + 1; c <= 0x7f; c++, pcm++)
+	if (pcm->width > 0)
+	  {
+	    font->min_bounds.lbearing = min (font->min_bounds.lbearing,
+					     pcm->lbearing);
+	    font->min_bounds.rbearing = min (font->min_bounds.rbearing,
+					     pcm->rbearing);
+	    font->min_bounds.width    = min (font->min_bounds.width,
+					     pcm->width);
+	    font->min_bounds.ascent   = min (font->min_bounds.ascent,
+					     pcm->ascent);
+
+	    font->max_bounds.lbearing = max (font->max_bounds.lbearing,
+					     pcm->lbearing);
+	    font->max_bounds.rbearing = max (font->max_bounds.rbearing,
+					     pcm->rbearing);
+	    font->max_bounds.width    = max (font->max_bounds.width,
+					     pcm->width);
+	    font->max_bounds.ascent   = max (font->max_bounds.ascent,
+					     pcm->ascent);
+	  }
+      if (
+#if USE_ATSUI
+	  font->mac_style == NULL &&
+#endif
+	  font->max_bounds.width == font->min_bounds.width
+	  && font->min_bounds.lbearing >= 0
+	  && font->max_bounds.rbearing <= font->max_bounds.width)
+	{
+	  /* Fixed width and no overhangs.  */
+	  xfree (font->bounds.per_char);
+	  font->bounds.per_char = NULL;
+	}
     }
 
 #if !defined (MAC_OS8) || USE_ATSUI
@@ -7797,17 +7845,26 @@ mac_unload_font (dpyinfo, font)
      XFontStruct *font;
 {
   xfree (font->full_name);
-  if (font->per_char)
-    xfree (font->per_char);
 #if USE_ATSUI
   if (font->mac_style)
-    ATSUDisposeStyle (font->mac_style);
+    {
+      int i;
+
+      for (i = font->min_byte1; i <= font->max_byte1; i++)
+	if (font->bounds.rows[i])
+	  xfree (font->bounds.rows[i]);
+      xfree (font->bounds.rows);
+      ATSUDisposeStyle (font->mac_style);
+    }
+  else
+#endif
+    if (font->bounds.per_char)
+      xfree (font->bounds.per_char);
 #if USE_CG_TEXT_DRAWING
   if (font->cg_font)
     CGFontRelease (font->cg_font);
   if (font->cg_glyphs)
     xfree (font->cg_glyphs);
-#endif
 #endif
   xfree (font);
 }
@@ -8143,6 +8200,7 @@ extern void init_apple_event_handler P_ ((void));
 extern void mac_find_apple_event_spec P_ ((AEEventClass, AEEventID,
 					   Lisp_Object *, Lisp_Object *,
 					   Lisp_Object *));
+extern OSErr init_coercion_handler P_ ((void));
 
 #if TARGET_API_MAC_CARBON
 /* Drag and Drop */
@@ -9149,25 +9207,25 @@ mac_do_receive_drag (WindowPtr window, void *handlerRefCon,
       result = GetFlavorFlags (theDrag, theItem, flavorTypeHFS, &theFlags);
       if (result == noErr)
 	{
-#ifdef MAC_OSX
-	  FSRef fref;
-#endif
-	  char unix_path_name[MAXPATHLEN];
+	  OSErr err;
+	  AEDesc desc;
 
-	  GetFlavorData (theDrag, theItem, flavorTypeHFS, &data, &size, 0L);
-#ifdef MAC_OSX
-	  /* Use Carbon routines, otherwise it converts the file name
-	     to /Macintosh HD/..., which is not correct. */
-	  FSpMakeFSRef (&data.fileSpec, &fref);
-	  if (! FSRefMakePath (&fref, unix_path_name, sizeof (unix_path_name)));
-#else
-	  if (fsspec_to_posix_pathname (&data.fileSpec, unix_path_name,
-					sizeof (unix_path_name) - 1) == noErr)
-#endif
-	    /* x-dnd functions expect undecoded filenames.  */
-            file_list = Fcons (make_unibyte_string (unix_path_name,
-						    strlen (unix_path_name)),
-			       file_list);
+	  err = GetFlavorData (theDrag, theItem, flavorTypeHFS,
+			       &data, &size, 0L);
+	  if (err == noErr)
+	    err = AECoercePtr (typeFSS, &data.fileSpec, sizeof (FSSpec),
+			       TYPE_FILE_NAME, &desc);
+	  if (err == noErr)
+	    {
+	      Lisp_Object file;
+
+	      /* x-dnd functions expect undecoded filenames.  */
+	      file = make_uninit_string (AEGetDescDataSize (&desc));
+	      err = AEGetDescData (&desc, SDATA (file), SBYTES (file));
+	      if (err == noErr)
+		file_list = Fcons (file, file_list);
+	      AEDisposeDesc (&desc);
+	    }
 	}
     }
   /* If there are items in the list, construct an event and post it to
@@ -9258,6 +9316,8 @@ main (void)
   init_emacs_passwd_dir ();
 
   init_environ ();
+
+  init_coercion_handler ();
 
   initialize_applescript ();
 
@@ -10648,6 +10708,8 @@ mac_initialize ()
 #endif	/* USE_CARBON_EVENTS */
 
 #ifdef MAC_OSX
+  init_coercion_handler ();
+
   init_apple_event_handler ();
 
   if (!inhibit_window_system)

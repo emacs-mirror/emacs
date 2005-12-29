@@ -149,7 +149,7 @@
 
 (defcustom locate-header-face nil
   "*Face used to highlight the locate header."
-  :type 'face
+  :type '(choice face (const nil))
   :group 'locate)
 
 ;;;###autoload

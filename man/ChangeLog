@@ -1,10 +1,36 @@
+2005-12-24  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.texi (Custom Themes): `load-theme' always loads.
+
+2005-12-23  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Highlight Interactively): Use double space to
+	separate sentences.  Replace C-p with M-p, and C-n with M-n.
+
+2005-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* custom.texi (Easy Customization and subnodes):
+	Replace "active field" with "button".
+	Use "user option" only for variables.
+	Use "setting" for variable-or-face.
+
+2005-12-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Select Buffer): Change order in table to make
+	"Similar" refer to the correct item.
+	(Indirect Buffers): Minor rewording.
+
+2005-12-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* widget.texi (atoms): Delete obsolete remark about `file' widget.
+
 2005-12-20  Juri Linkov  <juri@jurta.org>
 
 	* files.texi (VC Status): Put P and N near p and n.
 
 2005-12-20  Carsten Dominik  <dominik@science.uva.nl>
 
-	* org.texi: (Tags): Boolean logic documented.
+	* org.texi (Tags): Boolean logic documented.
 	(Agenda Views): Document custom commands.
 
 2005-12-20  David Kastrup  <dak@gnu.org>

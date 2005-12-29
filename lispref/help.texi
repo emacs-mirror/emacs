@@ -520,7 +520,8 @@ definition as a function, variable, or face, or has properties.
 The function returns a list of elements that look like this:
 
 @example
-(@var{symbol} @var{score} @var{fn-doc} @var{var-doc} @var{plist-doc} @var{widget-doc} @var{face-doc} @var{group-doc})
+(@var{symbol} @var{score} @var{fn-doc} @var{var-doc}
+ @var{plist-doc} @var{widget-doc} @var{face-doc} @var{group-doc})
 @end example
 
 Here, @var{score} is an integer measure of how important the symbol

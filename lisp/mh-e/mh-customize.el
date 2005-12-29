@@ -90,8 +90,8 @@
 
 (defun mh-customize (&optional delete-other-windows-flag)
   "Customize MH-E variables.
-If optional argument DELETE-OTHER-WINDOWS-FLAG is non-nil, other windows in
-the frame are removed."
+If optional argument DELETE-OTHER-WINDOWS-FLAG is non-nil, other
+windows in the frame are removed."
   (interactive "P")
   (customize-group 'mh-e)
   (when delete-other-windows-flag
@@ -103,8 +103,8 @@ the frame are removed."
 
 (defgroup mh-e nil
   "Emacs interface to the MH mail system.
-MH is the Rand Mail Handler. Other implementations include nmh and GNU
-mailutils."
+MH is the Rand Mail Handler. Other implementations include nmh
+and GNU mailutils."
   :link '(custom-manual "(mh-e)Top")
   :group 'mail)
 
@@ -271,12 +271,14 @@ See `mh-variant'."
 (defcustom mh-variant 'autodetect
   "*Specifies the variant used by MH-E.
 
-The default setting of this option is `Auto-detect' which means that MH-E will
-automatically choose the first of nmh, MH, or GNU mailutils that it finds in
-the directories listed in `mh-path' (which you can customize), `mh-sys-path',
-and `exec-path'. If, for example, you have both nmh and mailutils installed
-and `mh-variant-in-use' was initialized to nmh but you want to use mailutils,
-then you can set this option to `mailutils'.
+The default setting of this option is \"Auto-detect\" which means
+that MH-E will automatically choose the first of nmh, MH, or GNU
+mailutils that it finds in the directories listed in
+`mh-path' (which you can customize), `mh-sys-path', and
+`exec-path'. If, for example, you have both nmh and mailutils
+installed and `mh-variant-in-use' was initialized to nmh but you
+want to use mailutils, then you can set this option to
+\"mailutils\".
 
 When this variable is changed, MH-E resets `mh-progs', `mh-lib',
 `mh-lib-progs', `mh-flists-present-flag', and `mh-variant-in-use'
@@ -295,26 +297,30 @@ accordingly."
 
 (defcustom mh-alias-completion-ignore-case-flag t
   "*Non-nil means don't consider case significant in MH alias completion.
-As MH ignores case in the aliases, so too does MH-E. However, you may turn
-this option off to make case significant which can be used to segregate
-completion of your aliases. You might use lowercase for mailing lists and
-uppercase for people."
+
+As MH ignores case in the aliases, so too does MH-E. However, you
+may turn this option off to make case significant which can be
+used to segregate completion of your aliases. You might use
+lowercase for mailing lists and uppercase for people."
   :type 'boolean
   :group 'mh-alias)
 
 (defcustom mh-alias-expand-aliases-flag nil
   "*Non-nil means to expand aliases entered in the minibuffer.
-In other words, aliases entered in the minibuffer will be expanded to the full
-address in the message draft. By default, this expansion is not performed."
+
+In other words, aliases entered in the minibuffer will be
+expanded to the full address in the message draft. By default,
+this expansion is not performed."
   :type 'boolean
   :group 'mh-alias)
 
 (defcustom mh-alias-flash-on-comma t
   "*Specify whether to flash address or warn on translation.
-This option controls the behavior when a [comma] is pressed while entering
-aliases or addresses. The default setting flashes the address associated with
-an address in the minibuffer briefly, but does not display a warning if the
-alias is not found."
+
+This option controls the behavior when a [comma] is pressed while
+entering aliases or addresses. The default setting flashes the
+address associated with an address in the minibuffer briefly, but
+does not display a warning if the alias is not found."
   :type '(choice (const :tag "Flash but Don't Warn If No Alias" t)
                  (const :tag "Flash and Warn If No Alias" 1)
                  (const :tag "Don't Flash Nor Warn If No Alias" nil))
@@ -322,11 +328,12 @@ alias is not found."
 
 (defcustom mh-alias-insert-file nil
   "*Filename used to store a new MH-E alias.
-The default setting of this option is `Use Aliasfile Profile Component'. This
-option can also hold the name of a file or a list a file names. If this option
-is set to a list of file names, or the `Aliasfile:' profile component contains
-more than one file name, MH-E will prompt for one of them when MH-E adds an
-alias."
+
+The default setting of this option is \"Use Aliasfile Profile
+Component\". This option can also hold the name of a file or a
+list a file names. If this option is set to a list of file names,
+or the \"Aliasfile:\" profile component contains more than one file
+name, MH-E will prompt for one of them when MH-E adds an alias."
   :type '(choice (const :tag "Use Aliasfile Profile Component" nil)
                  (file :tag "Alias File")
                  (repeat :tag "List of Alias Files" file))
@@ -334,9 +341,10 @@ alias."
 
 (defcustom mh-alias-insertion-location 'sorted
   "Specifies where new aliases are entered in alias files.
-This option is set to `Alphabetical' by default. If you organize your alias
-file in other ways, then adding aliases to the `Top' or `Bottom' of your alias
-file might be more appropriate."
+
+This option is set to \"Alphabetical\" by default. If you organize
+your alias file in other ways, then adding aliases to the \"Top\"
+or \"Bottom\" of your alias file might be more appropriate."
   :type '(choice (const :tag "Alphabetical" sorted)
                  (const :tag "Top" top)
                  (const :tag "Bottom" bottom))
@@ -345,46 +353,52 @@ file might be more appropriate."
 (defcustom mh-alias-local-users t
   "*If on, local users are added to alias completion.
 
-Aliases are created from `/etc/passwd' entries with a user ID larger than
-a magical number, typically 200. This can be a handy tool on a machine where
-you and co-workers exchange messages. These aliases have the form
-`local.first.last' if a real name is present in the password file.
-Otherwise, the alias will have the form `local.login'.
+Aliases are created from \"/etc/passwd\" entries with a user ID
+larger than a magical number, typically 200. This can be a handy
+tool on a machine where you and co-workers exchange messages.
+These aliases have the form \"local.first.last\" if a real name is
+present in the password file. Otherwise, the alias will have the
+form \"local.login\".
 
-If you're on a system with thousands of users you don't know, and the loading
-of local aliases slows MH-E down noticeably, then turn this option off.
+If you're on a system with thousands of users you don't know, and
+the loading of local aliases slows MH-E down noticeably, then
+turn this option off.
 
-This option also takes a string which is executed to generate the password
-file. For example, use \"ypcat passwd\" to obtain the NIS password file."
+This option also takes a string which is executed to generate the
+password file. For example, use \"ypcat passwd\" to obtain the
+NIS password file."
   :type '(choice (boolean) (string))
   :group 'mh-alias)
 
 (defcustom mh-alias-local-users-prefix "local."
   "*String prefixed to the real names of users from the password file.
-This option can also be set to `Use Login'.
+This option can also be set to \"Use Login\".
 
 For example, consider the following password file entry:
 
     psg:x:1000:1000:Peter S Galbraith,,,:/home/psg:/bin/tcsh
 
-The following settings of this option will produce the associated aliases:
+The following settings of this option will produce the associated
+aliases:
 
     \"local.\"                  local.peter.galbraith
     \"\"                        peter.galbraith
     Use Login                   psg
 
-This option has no effect if variable `mh-alias-local-users' is turned off."
+This option has no effect if variable `mh-alias-local-users' is
+turned off."
   :type '(choice (const :tag "Use Login" nil)
                  (string))
   :group 'mh-alias)
 
 (defcustom mh-alias-passwd-gecos-comma-separator-flag t
   "*Non-nil means the gecos field in the password file uses a comma separator.
-In the example in `mh-alias-local-users-prefix', commas are used to separate
-different values within the so-called gecos field. This is a fairly common
-usage. However, in the rare case that the gecos field in your password file is
-not separated by commas and whose contents may contain commas, you can turn
-this option off."
+
+In the example in `mh-alias-local-users-prefix', commas are used
+to separate different values within the so-called gecos field.
+This is a fairly common usage. However, in the rare case that the
+gecos field in your password file is not separated by commas and
+whose contents may contain commas, you can turn this option off."
   :type 'boolean
   :group 'mh-alias)
 
@@ -395,9 +409,10 @@ this option off."
 (defcustom mh-new-messages-folders t
   "Folders searched for the \"unseen\" sequence.
 
-Set this option to \"Inbox\" to search the \"+inbox\" folder or \"All\" to
-search all of the top level folders. Otherwise, list the folders that should
-be searched with the \"Choose Folders\" menu item.
+Set this option to \"Inbox\" to search the \"+inbox\" folder or
+\"All\" to search all of the top level folders. Otherwise, list
+the folders that should be searched with the \"Choose Folders\"
+menu item.
 
 See also `mh-recursive-folders-flag'."
   :type '(choice (const :tag "Inbox" t)
@@ -408,9 +423,10 @@ See also `mh-recursive-folders-flag'."
 (defcustom mh-ticked-messages-folders t
   "Folders searched for `mh-tick-seq'.
 
-Set this option to \"Inbox\" to search the \"+inbox\" folder or \"All\" to
-search all of the top level folders. Otherwise, list the folders that should
-be searched with the \"Choose Folders\" menu item.
+Set this option to \"Inbox\" to search the \"+inbox\" folder or
+\"All\" to search all of the top level folders. Otherwise, list
+the folders that should be searched with the \"Choose Folders\"
+menu item.
 
 See also `mh-recursive-folders-flag'."
   :type '(choice (const :tag "Inbox" t)
@@ -420,17 +436,20 @@ See also `mh-recursive-folders-flag'."
 
 (defcustom mh-large-folder 200
   "The number of messages that indicates a large folder.
-If a folder is deemed to be large, that is the number of messages in it exceed
-this value, then confirmation is needed when it is visited. Even when
-`mh-show-threads-flag' is non-nil, the folder is not automatically threaded, if
-it is large. If set to nil all folders are treated as if they are small."
+
+If a folder is deemed to be large, that is the number of messages
+in it exceed this value, then confirmation is needed when it is
+visited. Even when `mh-show-threads-flag' is non-nil, the folder
+is not automatically threaded, if it is large. If set to nil all
+folders are treated as if they are small."
   :type '(choice (const :tag "No Limit") integer)
   :group 'mh-folder)
 
 (defcustom mh-recenter-summary-flag nil
   "*Non-nil means to recenter the summary window.
-If this option is turned on, recenter the summary window when the show window
-is toggled off."
+
+If this option is turned on, recenter the summary window when the
+show window is toggled off."
   :type 'boolean
   :group 'mh-folder)
 
@@ -443,9 +462,10 @@ is toggled off."
   "*Additional arguments for \"sortm\"\\<mh-folder-mode-map>.
 
 This option is consulted when a prefix argument is used with
-\\[mh-sort-folder]. Normally default arguments to \"sortm\" are specified in
-the MH profile. This option may be used to provide an alternate view. For
-example, \"'(\"-nolimit\" \"-textfield\" \"subject\")\" is a useful setting."
+\\[mh-sort-folder]. Normally default arguments to \"sortm\" are
+specified in the MH profile. This option may be used to provide
+an alternate view. For example, \"'(\"-nolimit\" \"-textfield\"
+\"subject\")\" is a useful setting."
   :type 'string
   :group 'mh-folder)
 
@@ -454,24 +474,28 @@ example, \"'(\"-nolimit\" \"-textfield\" \"subject\")\" is a useful setting."
 ;;; Folder Selection (:group 'mh-folder-selection)
 
 (defcustom mh-default-folder-for-message-function nil
-  "Function to select a default folder for refiling or `Fcc'.
-The current buffer is set to the message being refiled with point at the start
-of the message. This function should return the default folder as a string
-with a leading `+' sign. It can also return nil so that the last folder name
-is used as the default, or an empty string to suppress the default entirely."
+  "Function to select a default folder for refiling or \"Fcc\".
+
+The current buffer is set to the message being refiled with point
+at the start of the message. This function should return the
+default folder as a string with a leading \"+\" sign. It can also
+return nil so that the last folder name is used as the default,
+or an empty string to suppress the default entirely."
   :type 'function
   :group 'mh-folder-selection)
 
 (defcustom mh-default-folder-list nil
   "*List of addresses and folders.
-The folder name associated with the first address found in this list is used
-as the default for `mh-refile-msg' and similar functions. Each element in this
-list contains a `Check Recipient' item. If this item is turned on, then the
-address is checked against the recipient instead of the sender. This is useful
-for mailing lists.
 
-See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
-information."
+The folder name associated with the first address found in this
+list is used as the default for `mh-refile-msg' and similar
+functions. Each element in this list contains a \"Check Recipient\"
+item. If this item is turned on, then the address is checked
+against the recipient instead of the sender. This is useful for
+mailing lists.
+
+See `mh-prompt-for-refile-folder' and `mh-folder-from-address'
+for more information."
   :type '(repeat (list (regexp :tag "Address")
                        (string :tag "Folder")
                        (boolean :tag "Check Recipient")))
@@ -479,13 +503,14 @@ information."
 
 (defcustom mh-default-folder-must-exist-flag t
   "*Non-nil means guessed folder name must exist to be used.
-If the derived folder does not exist, and this option is on, then the last
-folder name used is suggested. This is useful if you get mail from various
-people for whom you have an alias, but file them all in the same project
-folder.
 
-See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
-information."
+If the derived folder does not exist, and this option is on, then
+the last folder name used is suggested. This is useful if you get
+mail from various people for whom you have an alias, but file
+them all in the same project folder.
+
+See `mh-prompt-for-refile-folder' and `mh-folder-from-address'
+for more information."
   :type 'boolean
   :group 'mh-folder-selection)
 
@@ -493,8 +518,8 @@ information."
   "*Prefix used for folder names generated from aliases.
 The prefix is used to prevent clutter in your mail directory.
 
-See `mh-prompt-for-refile-folder' and `mh-folder-from-address' for more
-information."
+See `mh-prompt-for-refile-folder' and `mh-folder-from-address'
+for more information."
   :type 'string
   :group 'mh-folder-selection)
 
@@ -505,34 +530,38 @@ information."
 (defcustom mh-identity-list nil
   "*List of identities.
 
-To customize this option, click on the `INS' button and enter a label such as
-`Home' or `Work'. Then click on the `INS' button with the label `Add at least
-one item below'. Then choose one of the items in the `Value Menu'.
+To customize this option, click on the \"INS\" button and enter a label
+such as \"Home\" or \"Work\". Then click on the \"INS\" button with the
+label \"Add at least one item below\". Then choose one of the items in
+the \"Value Menu\".
 
-You can specify an alternate `From:' header field using the `From Field' menu
-item. You must include a valid email address. A standard format is `First Last
-<login@@host.domain>'. If you use an initial with a period, then you must
-quote your name as in `\"First I. Last\" <login@@host.domain>'. People usually
-list the name of the company where they work using the `Organization Field'
-menu item. Set any arbitrary header field and value in the `Other Field' menu
-item. Unless the header field is a standard one, precede the name of your
-field's label with `X-', as in `X-Fruit-of-the-Day:'. The value of
-`Attribution Verb' overrides the setting of
-`mh-extract-from-attribution-verb'. Set your signature with the `Signature'
-menu item. You can specify the contents of `mh-signature-file-name', a file,
-or a function. Specify a different key to sign or encrypt messages with the
-`GPG Key ID' menu item.
+You can specify an alternate \"From:\" header field using the \"From
+Field\" menu item. You must include a valid email address. A standard
+format is \"First Last <login@@host.domain>\". If you use an initial
+with a period, then you must quote your name as in '\"First I. Last\"
+<login@@host.domain>'. People usually list the name of the company
+where they work using the \"Organization Field\" menu item. Set any
+arbitrary header field and value in the \"Other Field\" menu item.
+Unless the header field is a standard one, precede the name of your
+field's label with \"X-\", as in \"X-Fruit-of-the-Day:\". The value of
+\"Attribution Verb\" overrides the setting of
+`mh-extract-from-attribution-verb'. Set your signature with the
+\"Signature\" menu item. You can specify the contents of
+`mh-signature-file-name', a file, or a function. Specify a different
+key to sign or encrypt messages with the \"GPG Key ID\" menu item.
 
-You can select the identities you have added via the menu called `Identity' in
-the MH-Letter buffer. You can also use \\[mh-insert-identity]. To clear the
-fields and signature added by the identity, select the `None' identity.
+You can select the identities you have added via the menu called
+\"Identity\" in the MH-Letter buffer. You can also use
+\\[mh-insert-identity]. To clear the fields and signature added by the
+identity, select the \"None\" identity.
 
-The `Identity' menu contains two other items to save you from having to set
-the identity on every message. The menu item `Set Default for Session' can be
-used to set the default identity to the current identity until you exit Emacs.
-The menu item `Save as Default' sets the option `mh-identity-default' to the
-current identity setting. You can also customize the `mh-identity-default'
-option in the usual fashion."
+The \"Identity\" menu contains two other items to save you from having
+to set the identity on every message. The menu item \"Set Default for
+Session\" can be used to set the default identity to the current
+identity until you exit Emacs. The menu item \"Save as Default\" sets
+the option `mh-identity-default' to the current identity setting. You
+can also customize the `mh-identity-default' option in the usual
+fashion."
   :type '(repeat (list :tag ""
                        (string :tag "Label")
                        (repeat :tag "Add at least one item below"
@@ -567,37 +596,40 @@ option in the usual fashion."
 (defcustom mh-auto-fields-list nil
   "List of recipients for which header lines are automatically inserted.
 
-This option can be used to set the identity depending on the recipient. To
-customize this option, click on the `INS' button and enter a regular
-expression for the recipient's address. Click on the `INS' button with the
-`Add at least one item below' label. Then choose one of the items in the
-`Value Menu'.
+This option can be used to set the identity depending on the
+recipient. To customize this option, click on the \"INS\" button and
+enter a regular expression for the recipient's address. Click on the
+\"INS\" button with the \"Add at least one item below\" label. Then choose
+one of the items in the \"Value Menu\".
 
-The `Identity' menu item is used to select an identity from those configured
-in `mh-identity-list'. All of the information for that identity will be added
-if the recipient matches. The `Fcc Field' menu item is used to select a folder
-that is used in the `Fcc:' header. When you send the message, MH will put a
-copy of your message in this folder. The `Mail-Followup-To Field' menu item is
-used to insert an `Mail-Followup-To:' header field with the recipients you
-provide. If the recipient's mail user agent supports this header field (as nmh
-does), then their replies will go to the addresses listed. This is useful if
-their replies go both to the list and to you and you don't have a mechanism to
-suppress duplicates. If you reply to someone not on the list, you must either
-remove the `Mail-Followup-To:' field, or ensure the recipient is also listed
-there so that he receives replies to your reply. Other header fields may be
-added using the `Other Field' menu item.
+The \"Identity\" menu item is used to select an identity from those
+configured in `mh-identity-list'. All of the information for that
+identity will be added if the recipient matches. The \"Fcc Field\" menu
+item is used to select a folder that is used in the \"Fcc:\" header.
+When you send the message, MH will put a copy of your message in this
+folder. The \"Mail-Followup-To Field\" menu item is used to insert an
+\"Mail-Followup-To:\" header field with the recipients you provide. If
+the recipient's mail user agent supports this header field (as nmh
+does), then their replies will go to the addresses listed. This is
+useful if their replies go both to the list and to you and you don't
+have a mechanism to suppress duplicates. If you reply to someone not
+on the list, you must either remove the \"Mail-Followup-To:\" field, or
+ensure the recipient is also listed there so that he receives replies
+to your reply. Other header fields may be added using the \"Other
+Field\" menu item.
 
-These fields can only be added after the recipient is known. Once the header
-contains one or more recipients, run the \\[mh-insert-auto-fields] command or
-choose the `Identity -> Insert Auto Fields' menu item to insert these fields
-manually. However, you can just send the message and the fields will be added
-automatically. You are given a chance to see these fields and to confirm them
-before the message is actually sent. You can do away with this confirmation by
-turning off the option `mh-auto-fields-prompt-flag'.
+These fields can only be added after the recipient is known. Once the
+header contains one or more recipients, run the
+\\[mh-insert-auto-fields] command or choose the \"Identity -> Insert
+Auto Fields\" menu item to insert these fields manually. However, you
+can just send the message and the fields will be added automatically.
+You are given a chance to see these fields and to confirm them before
+the message is actually sent. You can do away with this confirmation
+by turning off the option `mh-auto-fields-prompt-flag'.
 
-You should avoid using the same header field in `mh-auto-fields-list' and
-`mh-identity-list' definitions that may apply to the same message as the
-result is undefined."
+You should avoid using the same header field in `mh-auto-fields-list'
+and `mh-identity-list' definitions that may apply to the same message
+as the result is undefined."
   :type `(repeat
           (list :tag ""
                 (string :tag "Recipient")
@@ -645,25 +677,28 @@ See `mh-identity-list'."
     (":pgg-default-user-id" . mh-identity-handler-gpg-identity))
   "Handler functions for fields in `mh-identity-list'.
 
-This option is used to change the way that fields, signatures, and
-attributions in `mh-identity-list' are added. To customize
-`mh-identity-handlers', replace the name of an existing handler function
-associated with the field you want to change with the name of a function you
-have written. You can also click on an `INS' button and insert a field of your
-choice and the name of the function you have written to handle it.
+This option is used to change the way that fields, signatures,
+and attributions in `mh-identity-list' are added. To customize
+`mh-identity-handlers', replace the name of an existing handler
+function associated with the field you want to change with the
+name of a function you have written. You can also click on an
+\"INS\" button and insert a field of your choice and the name of
+the function you have written to handle it.
 
-The `Field' field can be any field that you've used in your
-`mh-identity-list'. The special fields `:attribution-verb', `:signature', or
-`:pgg-default-user-id' are used for the `mh-identity-list' choices
-`Attribution Verb', `Signature', and `GPG Key ID' respectively.
+The \"Field\" field can be any field that you've used in your
+`mh-identity-list'. The special fields \":attribution-verb\",
+\":signature\", or \":pgg-default-user-id\" are used for the
+`mh-identity-list' choices \"Attribution Verb\", \"Signature\", and
+\"GPG Key ID\" respectively.
 
-The handler associated with the `:default' field is used when no other field
-matches.
+The handler associated with the \":default\" field is used when no
+other field matches.
 
-The handler functions are passed two or three arguments: the FIELD itself (for
-example, `From'), or one of the special fields (for example, `:signature'),
-and the ACTION `'remove' or `'add'. If the action is `'add', an additional
-argument containing the VALUE for the field is given."
+The handler functions are passed two or three arguments: the
+FIELD itself (for example, \"From\"), or one of the special
+fields (for example, \":signature\"), and the ACTION 'remove or
+'add. If the action is 'add, an additional argument
+containing the VALUE for the field is given."
   :type '(repeat (cons (string :tag "Field") function))
   :group 'mh-identity)
 
@@ -674,36 +709,38 @@ argument containing the VALUE for the field is given."
 (defcustom mh-inc-prog "inc"
   "*Program to incorporate new mail into a folder.
 
-This program generates a one-line summary for each of the new messages. Unless
-it is an absolute pathname, the file is assumed to be in the `mh-progs'
-directory. You may also link a file to `inc' that uses a different format.
-You'll then need to modify several scan line format variables appropriately."
+This program generates a one-line summary for each of the new
+messages. Unless it is an absolute pathname, the file is assumed
+to be in the `mh-progs' directory. You may also link a file to
+\"inc\" that uses a different format. You'll then need to modify
+several scan line format variables appropriately."
   :type 'string
   :group 'mh-inc)
 
 (defcustom mh-inc-spool-list nil
   "*Alternate spool files.
 
-You can use the `mh-inc-spool-list' variable to direct MH-E to retrieve mail
-from arbitrary spool files other than your system mailbox, file it in folders
-other than your `+inbox', and assign key bindings to incorporate this mail.
+You can use the `mh-inc-spool-list' variable to direct MH-E to
+retrieve mail from arbitrary spool files other than your system
+mailbox, file it in folders other than your \"+inbox\", and assign
+key bindings to incorporate this mail.
 
-Suppose you are subscribed to the `mh-e-devel' mailing list and you use
-`procmail' to filter this mail into `~/mail/mh-e' with the following recipe in
-`.procmailrc':
+Suppose you are subscribed to the \"mh-e-devel\" mailing list and
+you use \"procmail\" to filter this mail into \"~/mail/mh-e\" with
+the following recipe in \".procmailrc\":
 
     MAILDIR=$HOME/mail
     :0:
     * ^From mh-e-devel-admin@stop.mail-abuse.org
     mh-e
 
-In order to incorporate `~/mail/mh-e' into `+mh-e' with an `I m'
-\(`mh-inc-spool-mh-e'\) command, customize this option, and click on the `INS'
-button. Enter a `Spool File' of `~/mail/mh-e', a `Folder' of `mh-e', and a
-`Key Binding' of `m'.
+In order to incorporate \"~/mail/mh-e\" into \"+mh-e\" with an
+\"I m\" (mh-inc-spool-mh-e) command, customize this option, and click
+on the \"INS\" button. Enter a \"Spool File\" of \"~/mail/mh-e\", a
+\"Folder\" of \"mh-e\", and a \"Key Binding\" of \"m\".
 
-You can use `xbuffy' to automate the incorporation of this mail using the
-`gnudoit' command in the `gnuserv' package as follows:
+You can use \"xbuffy\" to automate the incorporation of this mail
+using the \"gnudoit\" command in the \"gnuserv\" package as follows:
 
     box ~/mail/mh-e
         title mh-e
@@ -723,13 +760,15 @@ You can use `xbuffy' to automate the incorporation of this mail using the
 
 (defcustom mh-index-program nil
   "Indexing program that MH-E shall use.
-The default setting of this option is `Auto-detect' which means that MH-E will
-automatically choose one of swish++, swish-e, mairix, namazu, pick and grep in
-that order. If, for example, you have both swish++ and mairix installed and
-you want to use mairix, then you can set this option to `mairix'.
 
-More information about setting up an indexing program to use with MH-E can be
-found in the documentation of `mh-index-search'."
+The default setting of this option is \"Auto-detect\" which means
+that MH-E will automatically choose one of swish++, swish-e,
+mairix, namazu, pick and grep in that order. If, for example, you
+have both swish++ and mairix installed and you want to use
+mairix, then you can set this option to \"mairix\".
+
+More information about setting up an indexing program to use with
+MH-E can be found in the documentation of `mh-index-search'."
   :type '(choice (const :tag "Auto-detect" nil)
                  (const :tag "swish++" swish++)
                  (const :tag "swish-e" swish)
@@ -752,13 +791,17 @@ found in the documentation of `mh-index-search'."
     (bogofilter mh-bogofilter-blacklist mh-bogofilter-whitelist)
     (spamprobe mh-spamprobe-blacklist mh-spamprobe-whitelist))
   "Available choices of spam programs to use.
-This is an alist. For each element there are functions that blacklist a message
-as spam and whitelist a message incorrectly classified as spam.")
+
+This is an alist. For each element there are functions that
+blacklist a message as spam and whitelist a message incorrectly
+classified as spam.")
 
 (defun mh-junk-choose (symbol value)
   "Choose spam program to use.
-The function is always called with SYMBOL bound to `mh-junk-program' and VALUE
-bound to the new value of `mh-junk-program'. The function sets the variable
+
+The function is always called with SYMBOL bound to
+`mh-junk-program' and VALUE bound to the new value of
+`mh-junk-program'. The function sets the variable
 `mh-junk-choice' in addition to `mh-junk-program'."
   (set symbol value)
   (setq mh-junk-choice
@@ -770,9 +813,11 @@ bound to the new value of `mh-junk-program'. The function sets the variable
 ;; User customizable variables
 (defcustom mh-junk-background nil
   "If on, spam programs are run in background.
-By default, the programs are run in the foreground, but this can be slow when
-junking large numbers of messages. If you have enough memory or don't junk
-that many messages at the same time, you might try turning on this option."
+
+By default, the programs are run in the foreground, but this can
+be slow when junking large numbers of messages. If you have
+enough memory or don't junk that many messages at the same time,
+you might try turning on this option."
   :type '(choice (const :tag "Off" nil)
                  (const :tag "On" 0))
   :group 'mh-junk)
@@ -786,11 +831,11 @@ that many messages at the same time, you might try turning on this option."
 (defcustom mh-junk-program nil
   "Spam program that MH-E should use.
 
-The default setting of this option is \"Auto-detect\" which means that MH-E
-will automatically choose one of SpamAssassin, bogofilter, or SpamProbe in
-that order. If, for example, you have both SpamAssassin and bogofilter
-installed and you want to use bogofilter, then you can set this option to
-\"Bogofilter\"."
+The default setting of this option is \"Auto-detect\" which means
+that MH-E will automatically choose one of SpamAssassin,
+bogofilter, or SpamProbe in that order. If, for example, you have
+both SpamAssassin and bogofilter installed and you want to use
+bogofilter, then you can set this option to \"Bogofilter\"."
   :type '(choice (const :tag "Auto-detect" nil)
                  (const :tag "SpamAssassin" spamassassin)
                  (const :tag "Bogofilter" bogofilter)
@@ -804,11 +849,13 @@ installed and you want to use bogofilter, then you can set this option to
 
 (defcustom mh-compose-insertion (if (locate-library "mml") 'mml 'mh)
   "Type of tags used when composing MIME messages.
-In addition to MH-style directives, MH-E also supports MML (MIME Meta
-Language) tags. (see Info node `(emacs-mime)Composing'). This option can be
-used to choose between them. By default, this option is set to \"MML\" if it
-is supported since it provides a lot more functionality. This option can also
-be set to \"MH\" if MH-style directives are preferred."
+
+In addition to MH-style directives, MH-E also supports MML (MIME
+Meta Language) tags. (see Info node `(emacs-mime)Composing').
+This option can be used to choose between them. By default, this
+option is set to \"MML\" if it is supported since it provides a
+lot more functionality. This option can also be set to \"MH\" if
+MH-style directives are preferred."
   :type '(choice (const :tag "MML" mml)
                  (const :tag "MH"  mh))
   :group 'mh-letter)
@@ -827,18 +874,20 @@ be set to \"MH\" if MH-style directives are preferred."
 
 (defcustom mh-delete-yanked-msg-window-flag nil
   "*Non-nil means delete any window displaying the message.
-This deletes the window containing the original message after yanking it with
-\\<mh-letter-mode-map>\\[mh-yank-cur-msg] to make more room on your screen for
-your reply."
+
+This deletes the window containing the original message after
+yanking it with \\<mh-letter-mode-map>\\[mh-yank-cur-msg] to make
+more room on your screen for your reply."
   :type 'boolean
   :group 'mh-letter)
 
 (defcustom mh-extract-from-attribution-verb "wrote:"
   "*Verb to use for attribution when a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
-The attribution consists of the sender's name and email address followed by
-the content of this option. This option can be set to \"wrote:\", \"a
-écrit:\", and \"schrieb:\". You can also use the \"Custom String\" menu item
-to enter your own verb."
+
+The attribution consists of the sender's name and email address
+followed by the content of this option. This option can be set to
+\"wrote:\", \"a écrit:\", and \"schrieb:\". You can also use the
+\"Custom String\" menu item to enter your own verb."
   :type '(choice (const "wrote:")
                  (const "a écrit:")
                  (const "schrieb:")
@@ -847,40 +896,51 @@ to enter your own verb."
 
 (defcustom mh-ins-buf-prefix "> "
   "*String to put before each line of a yanked or inserted message.
-The prefix \"> \" is the default setting of this option. I suggest that you
-not modify this option since it is used by many mailers and news readers:
-messages are far easier to read if several included messages have all been
-indented by the same string."
+
+The prefix \"> \" is the default setting of this option. I
+suggest that you not modify this option since it is used by many
+mailers and news readers: messages are far easier to read if
+several included messages have all been indented by the same
+string.
+
+This prefix is not inserted if you use one of the supercite
+flavors of `mh-yank-behavior' or you have added a
+`mail-citation-hook'."
   :type 'string
   :group 'mh-letter)
 
 (defcustom mh-letter-complete-function 'ispell-complete-word
   "*Function to call when completing outside of address or folder fields.
-In the body of the message, \\<mh-letter-mode-map>\\[mh-letter-complete] runs
-this function, which is set to \"ispell-complete-word\" by default."
+
+In the body of the message,
+\\<mh-letter-mode-map>\\[mh-letter-complete] runs this function,
+which is set to \"ispell-complete-word\" by default."
   :type '(choice function (const nil))
   :group 'mh-letter)
 
 (defcustom mh-letter-fill-column 72
   "*Fill column to use in MH Letter mode.
-By default, this option is 72 to allow others to quote your message without
-line wrapping."
+
+By default, this option is 72 to allow others to quote your
+message without line wrapping."
   :type 'integer
   :group 'mh-letter)
 
 (defcustom mh-mml-method-default (if mh-pgp-support-flag "pgpmime" "none")
   "Default method to use in security tags.
-This option is used to select between a variety of mail security mechanisms.
-The default is \"PGP (MIME)\" if it is supported\; otherwise, the default is
-\"None\". Other mechanisms include vanilla \"PGP\" and \"S/MIME\".
 
-The `pgg' customization group may have some settings which may interest you
-\(see Info node `(pgg)').
+This option is used to select between a variety of mail security
+mechanisms. The default is \"PGP (MIME)\" if it is supported\;
+otherwise, the default is \"None\". Other mechanisms include
+vanilla \"PGP\" and \"S/MIME\".
 
-In particular, I set the option `pgg-encrypt-for-me' to t so that all messages
-I encrypt are encrypted with my public key as well. If you keep a copy of all
-of your outgoing mail with a \"Fcc:\" header field, this setting is vital so
-that you can read the mail you write!"
+The `pgg' customization group may have some settings which may
+interest you (see Info node `(pgg)').
+
+In particular, I set the option `pgg-encrypt-for-me' to t so that all
+messages I encrypt are encrypted with my public key as well. If you
+keep a copy of all of your outgoing mail with a \"Fcc:\" header field,
+this setting is vital so that you can read the mail you write!"
   :type '(choice (const :tag "PGP (MIME)" "pgpmime")
                  (const :tag "PGP" "pgp")
                  (const :tag "S/MIME" "smime")
@@ -890,89 +950,97 @@ that you can read the mail you write!"
 (defcustom mh-signature-file-name "~/.signature"
   "*Source of user's signature.
 
-By default, the text of your signature is taken from the file \"~/.signature\".
-You can read from other files by changing this option. This file may contain a
-vCard in which case an attachment is added with the vCard.
+By default, the text of your signature is taken from the file
+\"~/.signature\". You can read from other sources by changing this
+option. This file may contain a vCard in which case an attachment is
+added with the vCard.
 
-This option may also be a symbol, in which case that function is called. You
-may not want a signature separator to be added for you; instead you may want
-to insert one yourself. Options that you may find useful to do this include
-`mh-signature-separator' (when inserting a signature separator) and
-`mh-signature-separator-regexp' (for finding said separator). The function
-`mh-signature-separator-p', which reports t if the buffer contains a
-separator, may be useful as well.
+This option may also be a symbol, in which case that function is
+called. You may not want a signature separator to be added for you;
+instead you may want to insert one yourself. Options that you may find
+useful to do this include `mh-signature-separator' (when inserting a
+signature separator) and `mh-signature-separator-regexp' (for finding
+said separator). The function `mh-signature-separator-p', which
+reports t if the buffer contains a separator, may be useful as well.
 
 The signature is inserted into your message with the command
-\\<mh-letter-mode-map>\\[mh-insert-signature] or with the `mh-identity-list'
-option."
+\\<mh-letter-mode-map>\\[mh-insert-signature] or with the
+`mh-identity-list' option."
   :type 'file
   :group 'mh-letter)
 
 (defcustom mh-signature-separator-flag t
   "*Non-nil means a signature separator should be inserted.
-It is not recommended that you change this option since various mail user
-agents, including MH-E, use the separator to present the signature
-differently, and to suppress the signature when replying or yanking a letter
-into a draft."
+
+It is not recommended that you change this option since various
+mail user agents, including MH-E, use the separator to present
+the signature differently, and to suppress the signature when
+replying or yanking a letter into a draft."
   :type 'boolean
   :group 'mh-letter)
 
 (defcustom mh-x-face-file "~/.face"
   "*File containing face header field to insert in outgoing mail.
 
-If the file starts with either of the strings \"X-Face:\", \"Face:\" or
-\"X-Image-URL:\" then the contents are added to the message header verbatim.
-Otherwise it is assumed that the file contains the value of the \"X-Face:\"
-header field.
+If the file starts with either of the strings \"X-Face:\", \"Face:\"
+or \"X-Image-URL:\" then the contents are added to the message header
+verbatim. Otherwise it is assumed that the file contains the value of
+the \"X-Face:\" header field.
 
-The \"X-Face:\" header field, which is a low-resolution, black
-and white image, can be generated using the \"compface\" command
-\(see URL `ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z').
-The \"Online X-Face Converter\" is a useful resource for quick
-conversion of images into \"X-Face:\" header fields (see URL
+The \"X-Face:\" header field, which is a low-resolution, black and
+white image, can be generated using the \"compface\" command (see URL
+`ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.Z'). The
+\"Online X-Face Converter\" is a useful resource for quick conversion
+of images into \"X-Face:\" header fields (see URL
 `http://www.dairiki.org/xface/').
 
-Use the \"make-face\" script to convert a JPEG image to the
-higher resolution, color, \"Face:\" header field (see URL
+Use the \"make-face\" script to convert a JPEG image to the higher
+resolution, color, \"Face:\" header field (see URL
 `http://quimby.gnus.org/circus/face/make-face').
 
 The URL of any image can be used for the \"X-Image-URL:\" field and no
 processing of the image is required.
 
 To prevent the setting of any of these header fields, either set
-`mh-x-face-file' to nil, or simply ensure that the file defined by this option
-doesn't exist."
+`mh-x-face-file' to nil, or simply ensure that the file defined by
+this option doesn't exist."
   :type 'file
   :group 'mh-letter)
 
 (defcustom mh-yank-behavior 'attribution
   "*Controls which part of a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
 
-To include the entire message, including the entire header, use \"Body and
-Header\". Use \"Body\" to yank just the body without the header. To yank only
-the portion of the message following the point, set this option to \"Below
-Point\".
+To include the entire message, including the entire header, use \"Body
+and Header\". Use \"Body\" to yank just the body without the header.
+To yank only the portion of the message following the point, set this
+option to \"Below Point\".
 
-Choose \"Invoke supercite\" to pass the entire message and header through
-supercite.
+Choose \"Invoke supercite\" to pass the entire message and header
+through supercite.
 
-If the \"Body With Attribution\" setting is used, then the message minus the
-header is yanked and a simple attribution line is added at the top using the
-value of the `mh-extract-from-attribution-verb' option. This is the default.
+If the \"Body With Attribution\" setting is used, then the message
+minus the header is yanked and a simple attribution line is added at
+the top using the value of the `mh-extract-from-attribution-verb'
+option. This is the default.
 
-If the \"Invoke supercite\" or \"Body With Attribution\" settings are used,
-the \"-noformat\" argument is passed to the \"repl\" program to override a
-\"-filter\" or \"-format\" argument. These settings also have
-\"Automatically\" variants that perform the action automatically when you
-reply so that you don't need to use \\[mh-yank-cur-msg] at all. Note that this
-automatic action is only performed if the show buffer matches the message
-being replied to. People who use the automatic variants tend to turn on the
-`mh-delete-yanked-msg-window-flag' option as well so that the show window is
-never displayed.
+If the \"Invoke supercite\" or \"Body With Attribution\" settings are
+used, the \"-noformat\" argument is passed to the \"repl\" program to
+override a \"-filter\" or \"-format\" argument. These settings also
+have \"Automatically\" variants that perform the action automatically
+when you reply so that you don't need to use \\[mh-yank-cur-msg] at
+all. Note that this automatic action is only performed if the show
+buffer matches the message being replied to. People who use the
+automatic variants tend to turn on the
+`mh-delete-yanked-msg-window-flag' option as well so that the show
+window is never displayed.
 
-If the show buffer has a region, the `mh-yank-behavior' option is ignored
-unless its value is one of Attribution variants in which case the attribution
-is added to the yanked region."
+If the show buffer has a region, the `mh-yank-behavior' option is
+ignored unless its value is one of Attribution variants in which case
+the attribution is added to the yanked region.
+
+If this option is set to one of the supercite flavors, the hook
+`mail-citation-hook' is ignored and `mh-ins-buf-prefix' is not
+inserted."
   :type '(choice (const :tag "Body and Header" t)
                  (const :tag "Body" body)
                  (const :tag "Below Point" nil)
@@ -989,10 +1057,11 @@ is added to the yanked region."
 
 (defcustom mh-interpret-number-as-range-flag t
   "*Non-nil means interpret a number as a range.
-Since one of the most frequent ranges used is \"last:N\", MH-E will interpret
-input such as \"200\" as \"last:200\" if this option is on (which is the
-default). If you need to scan just the message 200, then use the range
-\"200:200\"."
+
+Since one of the most frequent ranges used is \"last:N\", MH-E
+will interpret input such as \"200\" as \"last:200\" if this
+option is on (which is the default). If you need to scan just the
+message 200, then use the range \"200:200\"."
   :type 'boolean
   :group 'mh-ranges)
 
@@ -1005,8 +1074,9 @@ default). If you need to scan just the message 200, then use the range
 
 (defun mh-adaptive-cmd-note-flag-check (symbol value)
   "Check if desired setting is legal.
-Throw an error if user tries to turn on `mh-adaptive-cmd-note-flag' when
-`mh-scan-format-file' isn't t. Otherwise, set SYMBOL to VALUE."
+Throw an error if user tries to turn on
+`mh-adaptive-cmd-note-flag' when `mh-scan-format-file' isn't t.
+Otherwise, set SYMBOL to VALUE."
   (if (and value
            (not (eq mh-scan-format-file t)))
       (error "%s %s" "Can't turn on unless mh-scan-format-file"
@@ -1015,8 +1085,9 @@ Throw an error if user tries to turn on `mh-adaptive-cmd-note-flag' when
 
 (defun mh-scan-format-file-check (symbol value)
   "Check if desired setting is legal.
-Throw an error if user tries to set `mh-scan-format-file' to anything but t
-when `mh-adaptive-cmd-note-flag' is on. Otherwise, set SYMBOL to VALUE."
+Throw an error if user tries to set `mh-scan-format-file' to
+anything but t when `mh-adaptive-cmd-note-flag' is on. Otherwise,
+set SYMBOL to VALUE."
   (if (and (not (eq value t))
            (eq mh-adaptive-cmd-note-flag t))
       (error "%s %s" "You must turn off mh-adaptive-cmd-note-flag"
@@ -1025,16 +1096,17 @@ when `mh-adaptive-cmd-note-flag' is on. Otherwise, set SYMBOL to VALUE."
 
 (defcustom mh-adaptive-cmd-note-flag t
   "*Non-nil means that the message number width is determined dynamically.
-If you've created your own format to handle long message numbers, you'll be
-pleased to know you no longer need it since MH-E adapts its internal format
-based upon the largest message number if this option is on (the default).
-This option may only be turned on when `mh-scan-format-file' is set to \"Use
-MH-E scan Format\".
 
-If you prefer fixed-width message numbers, turn off this option and call
-`mh-set-cmd-note' with the width specified by your format file
-\(see `mh-scan-format-file'). For example, the default width is 4, so you would
-use \"(mh-set-cmd-note 4)\"."
+If you've created your own format to handle long message numbers,
+you'll be pleased to know you no longer need it since MH-E adapts its
+internal format based upon the largest message number if this option
+is on (the default). This option may only be turned on when
+`mh-scan-format-file' is set to \"Use MH-E scan Format\".
+
+If you prefer fixed-width message numbers, turn off this option and
+call `mh-set-cmd-note' with the width specified by your format file
+\(see `mh-scan-format-file'). For example, the default width is 4, so
+you would use \"(mh-set-cmd-note 4)\"."
   :type 'boolean
   :group 'mh-scan-line-formats
   :set 'mh-adaptive-cmd-note-flag-check)
@@ -1042,22 +1114,24 @@ use \"(mh-set-cmd-note 4)\"."
 (defcustom mh-scan-format-file t
   "Specifies the format file to pass to the scan program.
 
-The default setting for this option is \"Use MH-E scan Format\". This means
-that the format string will be taken from the either `mh-scan-format-mh' or
-`mh-scan-format-nmh' depending on whether MH or nmh (or GNU mailutils) is in
-use. This setting also enables you to turn on the `mh-adaptive-cmd-note-flag'
-option.
+The default setting for this option is \"Use MH-E scan Format\". This
+means that the format string will be taken from the either
+`mh-scan-format-mh' or `mh-scan-format-nmh' depending on whether MH or
+nmh (or GNU mailutils) is in use. This setting also enables you to
+turn on the `mh-adaptive-cmd-note-flag' option.
 
 You can also set this option to \"Use Default scan Format\" to get the
-same output as you would get if you ran \"scan\" from the shell. If you have a
-format file that you want MH-E to use but not MH, you can set this option to
-\"Specify a scan Format File\" and enter the name of your format file.
+same output as you would get if you ran \"scan\" from the shell. If
+you have a format file that you want MH-E to use but not MH, you can
+set this option to \"Specify a scan Format File\" and enter the name
+of your format file.
 
-If you change the format of the scan lines you'll need to tell MH-E how to
-parse the new format. As you will see, quite a lot of variables are involved
-to do that. Use \"\\[apropos] RET mh-scan.*regexp\" to obtain a list of these
-variables. You will also have to call `mh-set-cmd-note' if your notations are
-not in column 4 (columns in Emacs start with 0)."
+If you change the format of the scan lines you'll need to tell MH-E
+how to parse the new format. As you will see, quite a lot of variables
+are involved to do that. Use \"\\[apropos] RET mh-scan.*regexp\" to
+obtain a list of these variables. You will also have to call
+`mh-set-cmd-note' if your notations are not in column 4 (columns in
+Emacs start with 0)."
   :type '(choice (const :tag "Use MH-E scan Format" t)
                  (const :tag "Use Default scan Format" nil)
                  (file  :tag "Specify a scan Format File"))
@@ -1066,10 +1140,12 @@ not in column 4 (columns in Emacs start with 0)."
 
 (defcustom mh-scan-prog "scan"
   "*Program used to scan messages.
-The name of the program that generates a listing of one line per message is
-held in this option. Unless this variable contains an absolute pathname, it is
-assumed to be in the `mh-progs' directory. You may link another program to
-`scan' (see \"mh-profile(5)\") to produce a different type of listing."
+
+The name of the program that generates a listing of one line per
+message is held in this option. Unless this variable contains an
+absolute pathname, it is assumed to be in the `mh-progs'
+directory. You may link another program to `scan' (see
+\"mh-profile(5)\") to produce a different type of listing."
   :type 'string
   :group 'mh-scan-line-formats)
 (make-variable-buffer-local 'mh-scan-prog)
@@ -1081,24 +1157,26 @@ assumed to be in the `mh-progs' directory. You may link another program to
 (defcustom mh-compose-forward-as-mime-flag t
   "*Non-nil means that messages are forwarded as attachments.
 
-By default, this option is on which means that the forwarded messages are
-included as attachments. If you would prefer to forward your messages verbatim
-\(as text, inline), then turn off this option. Forwarding messages verbatim
-works well for short, textual messages, but your recipient won't be able to
-view any non-textual attachments that were in the forwarded message. Be aware
-that if you have \"forw: -mime\" in your MH profile, then forwarded messages
-will always be included as attachments regardless of the settings of this
-option."
+By default, this option is on which means that the forwarded
+messages are included as attachments. If you would prefer to
+forward your messages verbatim (as text, inline), then turn off
+this option. Forwarding messages verbatim works well for short,
+textual messages, but your recipient won't be able to view any
+non-textual attachments that were in the forwarded message. Be
+aware that if you have \"forw: -mime\" in your MH profile, then
+forwarded messages will always be included as attachments
+regardless of the settings of this option."
   :type 'boolean
   :group 'mh-sending-mail)
 
 (defcustom mh-compose-letter-function nil
   "Invoked when starting a new draft.
 
-However, it is the last function called before you edit your message. The
-consequence of this is that you can write a function to write and send the
-message for you. This function is passed three arguments: the contents of the
-TO, SUBJECT, and CC header fields."
+However, it is the last function called before you edit your
+message. The consequence of this is that you can write a function
+to write and send the message for you. This function is passed
+three arguments: the contents of the TO, SUBJECT, and CC header
+fields."
   :type '(choice (const nil) function)
   :group 'mh-sending-mail)
 
@@ -1110,40 +1188,40 @@ TO, SUBJECT, and CC header fields."
 (defcustom mh-forward-subject-format "%s: %s"
   "*Format string for forwarded message subject.
 
-This option is a string which includes two escapes (\"%s\"). The first \"%s\"
-is replaced with the sender of the original message, and the second one is
-replaced with the original \"Subject:\"."
+This option is a string which includes two escapes (\"%s\"). The
+first \"%s\" is replaced with the sender of the original message,
+and the second one is replaced with the original \"Subject:\"."
   :type 'string
   :group 'mh-sending-mail)
 
 (defcustom mh-insert-x-mailer-flag t
   "*Non-nil means append an \"X-Mailer:\" header field to the header.
 
-This header field includes the version of MH-E and Emacs that you are using.
-If you don't want to participate in our marketing, you can turn this option
-off."
+This header field includes the version of MH-E and Emacs that you
+are using. If you don't want to participate in our marketing, you
+can turn this option off."
   :type 'boolean
   :group 'mh-sending-mail)
 
 (defcustom mh-redist-full-contents-flag nil
   "*Non-nil means the \"dist\" command needs entire letter for redistribution.
 
-This option must be turned on if \"dist\" requires the whole letter for
-redistribution, which is the case if \"send\" is compiled with the BERK option
-\(which many people abhor). If you find that MH will not allow you to
-redistribute a message that has been redistributed before, turn off this
-option."
+This option must be turned on if \"dist\" requires the whole
+letter for redistribution, which is the case if \"send\" is
+compiled with the BERK option (which many people abhor). If you
+find that MH will not allow you to redistribute a message that
+has been redistributed before, turn off this option."
   :type 'boolean
   :group 'mh-sending-mail)
 
 (defcustom mh-reply-default-reply-to nil
   "*Sets the person or persons to whom a reply will be sent.
 
-This option is set to \"Prompt\" by default so that you are prompted for the
-recipient of a reply. If you find that most of the time that you specify
-\"cc\" when you reply to a message, set this option to \"cc\". Other choices
-include \"from\", \"to\", or \"all\". You can always edit the recipients in
-the draft."
+This option is set to \"Prompt\" by default so that you are
+prompted for the recipient of a reply. If you find that most of
+the time that you specify \"cc\" when you reply to a message, set
+this option to \"cc\". Other choices include \"from\", \"to\", or
+\"all\". You can always edit the recipients in the draft."
   :type '(choice (const :tag "Prompt" nil)
                  (const "from")
                  (const "to")
@@ -1154,8 +1232,8 @@ the draft."
 (defcustom mh-reply-show-message-flag t
   "*Non-nil means the MH-Show buffer is displayed when replying.
 
-If you include the message automatically, you can hide the MH-Show
-buffer by turning off this option.
+If you include the message automatically, you can hide the
+MH-Show buffer by turning off this option.
 
 See also `mh-reply'."
   :type 'boolean
@@ -1172,32 +1250,34 @@ See also `mh-reply'."
 (defcustom mh-refile-preserves-sequences-flag t
   "*Non-nil means that sequences are preserved when messages are refiled.
 
-If a message is in any sequence (except \"Previous-Sequence:\" and \"cur\")
-when it is refiled, then it will still be in those sequences in the
-destination folder. If this behavior is not desired, then turn off this
-option."
+If a message is in any sequence (except \"Previous-Sequence:\"
+and \"cur\") when it is refiled, then it will still be in those
+sequences in the destination folder. If this behavior is not
+desired, then turn off this option."
   :type 'boolean
   :group 'mh-sequences)
 
 (defcustom mh-tick-seq 'tick
   "The name of the MH sequence for ticked messages.
 
-You can customize this option if you already use the \"tick\" sequence for
-your own use. You can also disable all of the ticking functions by choosing
-the \"Disable Ticking\" item but there isn't much advantage to that."
+You can customize this option if you already use the \"tick\"
+sequence for your own use. You can also disable all of the
+ticking functions by choosing the \"Disable Ticking\" item but
+there isn't much advantage to that."
   :type '(choice (const :tag "Disable Ticking" nil)
                  symbol)
   :group 'mh-sequences)
 
 (defcustom mh-update-sequences-after-mh-show-flag t
-  "*Non-nil means flush MH sequences to disk after message is shown.
+  "*Non-nil means flush MH sequences to disk after message is shown\\<mh-folder-mode-map>.
 
-Three sequences are maintained internally by MH-E and pushed out to MH when a
-message is shown. They include the sequence specified by your
-\"Unseen-Sequence:\" profile entry, \"cur\", and the sequence listed by the
-option `mh-tick-seq' which is \"tick\" by default. If you do not like this
-behavior, turn off this option. You can then update the state manually with
-the `\\[mh-execute-commands]', `\\[mh-quit]', or `\\[mh-update-sequences]'
+Three sequences are maintained internally by MH-E and pushed out
+to MH when a message is shown. They include the sequence
+specified by your \"Unseen-Sequence:\" profile entry, \"cur\",
+and the sequence listed by the option `mh-tick-seq' which is
+\"tick\" by default. If you do not like this behavior, turn off
+this option. You can then update the state manually with the
+\\[mh-execute-commands], \\[mh-quit], or \\[mh-update-sequences]
 commands."
   :type 'boolean
   :group 'mh-sequences)
@@ -1209,10 +1289,10 @@ commands."
 (defcustom mh-bury-show-buffer-flag t
   "*Non-nil means show buffer is buried.
 
-One advantage of not burying the show buffer is that one can delete the show
-buffer more easily in an electric buffer list because of its proximity to its
-associated MH-Folder buffer. Try running \\[electric-buffer-list] to see what
-I mean."
+One advantage of not burying the show buffer is that one can
+delete the show buffer more easily in an electric buffer list
+because of its proximity to its associated MH-Folder buffer. Try
+running \\[electric-buffer-list] to see what I mean."
   :type 'boolean
   :group 'mh-show)
 
@@ -1227,45 +1307,47 @@ See also `mh-invisible-header-fields-default' and
 (defcustom mh-decode-mime-flag (not (not (locate-library "mm-decode")))
   "*Non-nil means attachments are handled\\<mh-folder-mode-map>.
 
-MH-E can handle attachments as well if the Gnus `mm-decode' library is
-present. If so, this option will be on. Otherwise, you'll see the MIME body
-parts rather than text or attachments. There isn't much point in turning off
-this option; however, you can inspect it if it appears that the body parts are
-not being interpreted correctly or toggle it with the command
+MH-E can handle attachments as well if the Gnus `mm-decode'
+library is present. If so, this option will be on. Otherwise,
+you'll see the MIME body parts rather than text or attachments.
+There isn't much point in turning off this option; however, you
+can inspect it if it appears that the body parts are not being
+interpreted correctly or toggle it with the command
 \\[mh-toggle-mh-decode-mime-flag] to view the raw message.
 
-This option also controls the display of quoted-printable messages and other
-graphical widgets. See the options `mh-graphical-smileys-flag' and
-`mh-graphical-emphasis-flag'."
+This option also controls the display of quoted-printable
+messages and other graphical widgets. See the options
+`mh-graphical-smileys-flag' and `mh-graphical-emphasis-flag'."
   :type 'boolean
   :group 'mh-show)
 
 (defcustom mh-display-buttons-for-alternatives-flag nil
   "*Non-nil means display buttons for all alternative attachments.
 
-Sometimes, a mail program will produce multiple alternatives of the attachment
-in increasing degree of faithfulness to the original content. By default, only
-the preferred alternative is displayed. If this option is on, then the
-preferred part is shown inline and buttons are shown for each of the other
-alternatives."
+Sometimes, a mail program will produce multiple alternatives of
+the attachment in increasing degree of faithfulness to the
+original content. By default, only the preferred alternative is
+displayed. If this option is on, then the preferred part is shown
+inline and buttons are shown for each of the other alternatives."
   :type 'boolean
   :group 'mh-show)
 
 (defcustom mh-display-buttons-for-inline-parts-flag nil
   "*Non-nil means display buttons for all inline attachments\\<mh-folder-mode-map>.
 
-The sender can request that attachments should be viewed inline so that they
-do not really appear like an attachment at all to the reader. Most of the
-time, this is desirable, so by default MH-E suppresses the buttons for inline
-attachments. On the other hand, you may receive code or HTML which the sender
-has added to his message as inline attachments so that you can read them in
-MH-E. In this case, it is useful to see the buttons so that you know you don't
-have to cut and paste the code into a file; you can simply save the
-attachment.
+The sender can request that attachments should be viewed inline so
+that they do not really appear like an attachment at all to the
+reader. Most of the time, this is desirable, so by default MH-E
+suppresses the buttons for inline attachments. On the other hand, you
+may receive code or HTML which the sender has added to his message as
+inline attachments so that you can read them in MH-E. In this case, it
+is useful to see the buttons so that you know you don't have to cut
+and paste the code into a file; you can simply save the attachment.
 
-If you want to make the buttons visible for inline attachments, you can use
-the command \\[mh-toggle-mime-buttons] to toggle the visibility of these
-buttons. You can turn on these buttons permanently by turning on this option.
+If you want to make the buttons visible for inline attachments, you
+can use the command \\[mh-toggle-mime-buttons] to toggle the
+visibility of these buttons. You can turn on these buttons permanently
+by turning on this option.
 
 MH-E cannot display all attachments inline however. It can display
 text (including HTML) and images."
@@ -1275,42 +1357,44 @@ text (including HTML) and images."
 (defcustom mh-do-not-confirm-flag nil
   "*Non-nil means non-reversible commands do not prompt for confirmation.
 
-Commands such as `mh-pack-folder' prompt to confirm whether to process
-outstanding moves and deletes or not before continuing. Turning on this option
-means that these actions will be performed--which is usually desired but
-cannot be retracted--without question."
+Commands such as `mh-pack-folder' prompt to confirm whether to
+process outstanding moves and deletes or not before continuing.
+Turning on this option means that these actions will be
+performed--which is usually desired but cannot be
+retracted--without question."
   :type 'boolean
   :group 'mh-show)
 
 (defcustom mh-fetch-x-image-url nil
   "*Control fetching of \"X-Image-URL:\" header field image.
 
-Ths option controls the fetching of the \"X-Image-URL:\" header field image
-with the following values:
+Ths option controls the fetching of the \"X-Image-URL:\" header
+field image with the following values:
 
 Ask Before Fetching
-     You are prompted before the image is fetched. MH-E will remember
-     your reply and will either use the already fetched image the next
-     time the same URL is encountered or silently skip it if you didn't
-     fetch it the first time. This is a good setting.
+     You are prompted before the image is fetched. MH-E will
+     remember your reply and will either use the already fetched
+     image the next time the same URL is encountered or silently
+     skip it if you didn't fetch it the first time. This is a
+     good setting.
 
 Never Fetch
-     Images are never fetched and only displayed if they are already
-     present in the cache. This is the default.
+     Images are never fetched and only displayed if they are
+     already present in the cache. This is the default.
 
 There isn't a value of \"Always Fetch\" for privacy and DOS (denial of
-service) reasons. For example, fetching a URL can tip off a spammer that
-you've read his email (which is why you shouldn't blindly answer yes if you've
-set this option to \"Ask Before Fetching\"). Someone may also flood your
-network and fill your disk drive by sending a torrent of messages, each
-specifying a unique URL to a very large file.
+service) reasons. For example, fetching a URL can tip off a spammer
+that you've read his email (which is why you shouldn't blindly answer
+yes if you've set this option to \"Ask Before Fetching\"). Someone may
+also flood your network and fill your disk drive by sending a torrent
+of messages, each specifying a unique URL to a very large file.
 
-The cache of images is found in the directory \".mhe-x-image-cache\" within
-your MH directory. You can add your own face to the \"From:\" field too. See
-Info node `(mh-e)Picture'.
+The cache of images is found in the directory \".mhe-x-image-cache\"
+within your MH directory. You can add your own face to the \"From:\"
+field too. See Info node `(mh-e)Picture'.
 
-This setting only has effect if the option `mh-show-use-xface-flag' is turned
-on."
+This setting only has effect if the option `mh-show-use-xface-flag' is
+turned on."
 
   :type '(choice (const :tag "Ask Before Fetching" ask)
                  (const :tag "Never Fetch" nil))
@@ -1319,37 +1403,42 @@ on."
 (defcustom mh-graphical-smileys-flag t
   "*Non-nil means graphical smileys are displayed.
 
-It is a long standing custom to inject body language using a cornucopia of
-punctuation, also known as the \"smileys\". MH-E can render these as graphical
-widgets if this option is turned on, which it is by default. Smileys include
-patterns such as :-) and ;-).
+It is a long standing custom to inject body language using a
+cornucopia of punctuation, also known as the \"smileys\". MH-E
+can render these as graphical widgets if this option is turned
+on, which it is by default. Smileys include patterns such as :-)
+and ;-).
 
-This option is disabled if the option `mh-decode-mime-flag' is turned off."
+This option is disabled if the option `mh-decode-mime-flag' is
+turned off."
   :type 'boolean
   :group 'mh-show)
 
 (defcustom mh-graphical-emphasis-flag t
   "*Non-nil means graphical emphasis is displayed.
 
-A few typesetting features are indicated in ASCII text with certain
-characters. If your terminal supports it, MH-E can render these typesetting
-directives naturally if this option is turned on, which it is by default. For
-example, _underline_ will be underlined, *bold* will appear in bold, /italics/
-will appear in italics, and so on. See the option `gnus-emphasis-alist' for
-the whole list.
+A few typesetting features are indicated in ASCII text with
+certain characters. If your terminal supports it, MH-E can render
+these typesetting directives naturally if this option is turned
+on, which it is by default. For example, _underline_ will be
+underlined, *bold* will appear in bold, /italics/ will appear in
+italics, and so on. See the option `gnus-emphasis-alist' for the
+whole list.
 
-This option is disabled if the option `mh-decode-mime-flag' is turned off."
+This option is disabled if the option `mh-decode-mime-flag' is
+turned off."
   :type 'boolean
   :group 'mh-show)
 
 (defcustom mh-highlight-citation-style 'gnus
   "Style for highlighting citations.
 
-If the sender of the message has cited other messages in his message, then
-MH-E will highlight these citations to emphasize the sender's actual response.
-This option can be customized to change the highlighting style. The
-\"Multicolor\" method uses a different color for each indentation while the
-\"Monochrome\" method highlights all citations in red. To disable highlighting
+If the sender of the message has cited other messages in his
+message, then MH-E will highlight these citations to emphasize
+the sender's actual response. This option can be customized to
+change the highlighting style. The \"Multicolor\" method uses a
+different color for each indentation while the \"Monochrome\"
+method highlights all citations in red. To disable highlighting
 of citations entirely, choose \"None\"."
   :type '(choice (const :tag "Multicolor" gnus)
                  (const :tag "Monochrome" font-lock)
@@ -1531,9 +1620,11 @@ of citations entirely, choose \"None\"."
     "X400-"                             ; X400
     "Xref:")
   "List of default header fields that are not to be shown.
-Do not alter this variable directly.  Instead, add entries from here that you
-would like to be displayed in `mh-invisible-header-fields-default'
-and add entries to hide in `mh-invisible-header-fields'.")
+
+Do not alter this variable directly. Instead, add entries from
+here that you would like to be displayed in
+`mh-invisible-header-fields-default' and add entries to hide in
+`mh-invisible-header-fields'.")
 
 (defvar mh-invisible-header-fields-compiled nil
   "*Regexp matching lines in a message header that are not to be shown.
@@ -1544,9 +1635,9 @@ hidden that you wish to display, and add extra entries to hide in
 
 (defun mh-invisible-headers ()
   "Make or remake the variable `mh-invisible-header-fields-compiled'.
-Done using `mh-invisible-header-fields-internal' as input, from which entries
-from `mh-invisible-header-fields-default' are removed and entries
-from `mh-invisible-header-fields' are added."
+Done using `mh-invisible-header-fields-internal' as input, from
+which entries from `mh-invisible-header-fields-default' are
+removed and entries from `mh-invisible-header-fields' are added."
   (let ((fields mh-invisible-header-fields-internal))
     (when mh-invisible-header-fields-default
       ;; Remove entries from `mh-invisible-header-fields-default'
@@ -1570,11 +1661,11 @@ from `mh-invisible-header-fields' are added."
 (defcustom mh-invisible-header-fields-default nil
   "*List of hidden header fields.
 
-The header fields listed in this option are hidden, although you can check off
-any field that you would like to see.
+The header fields listed in this option are hidden, although you
+can check off any field that you would like to see.
 
-Header fields that you would like to hide that aren't listed can be added to
-the option `mh-invisible-header-fields'.
+Header fields that you would like to hide that aren't listed can
+be added to the option `mh-invisible-header-fields'.
 
 See also `mh-clean-message-header-flag'."
   :type `(set ,@(mapcar (lambda (x) `(const ,x))
@@ -1588,11 +1679,12 @@ See also `mh-clean-message-header-flag'."
   "*Additional header fields to hide.
 
 Header fields that you would like to hide that aren't listed in
-`mh-invisible-header-fields-default' can be added to this option with a couple
-of caveats. Regular expressions are not allowed. Unique fields should have a
-`:' suffix; otherwise, the element can be used to render invisible an entire
-class of fields that start with the same prefix. If you think a header field
-should be generally ignored, report a bug (see URL
+`mh-invisible-header-fields-default' can be added to this option
+with a couple of caveats. Regular expressions are not allowed.
+Unique fields should have a \":\" suffix; otherwise, the element
+can be used to render invisible an entire class of fields that
+start with the same prefix. If you think a header field should be
+generally ignored, report a bug (see URL
 `https://sourceforge.net/tracker/?group_id=13357&atid=113357').
 
 See also `mh-clean-message-header-flag'."
@@ -1606,12 +1698,13 @@ See also `mh-clean-message-header-flag'."
 (defcustom mh-lpr-command-format "lpr -J '%s'"
   "*Command used to print\\<mh-folder-mode-map>.
 
-This option contains the Unix command line which performs the actual printing
-for the \\[mh-print-msg] command. The string can contain one escape, \"%s\",
-which is replaced by the name of the folder and the message number and is
-useful for print job names. I use \"mpage -h'%s' -b Letter -H1of -mlrtb -P\"
-which produces a nice header and adds a bit of margin so the text fits within
-my printer's margins.
+This option contains the Unix command line which performs the
+actual printing for the \\[mh-print-msg] command. The string can
+contain one escape, \"%s\", which is replaced by the name of the
+folder and the message number and is useful for print job names.
+I use \"mpage -h'%s' -b Letter -H1of -mlrtb -P\" which produces a
+nice header and adds a bit of margin so the text fits within my
+printer's margins.
 
 This options is not used by the commands \\[mh-ps-print-msg] or
 \\[mh-ps-print-msg-file]."
@@ -1621,48 +1714,51 @@ This options is not used by the commands \\[mh-ps-print-msg] or
 (defcustom mh-max-inline-image-height nil
   "*Maximum inline image height if \"Content-Disposition:\" is not present.
 
-Some older mail programs do not insert this needed plumbing to tell
-MH-E whether to display the attachments inline or not. If this is the
-case, MH-E will display these images inline if they are smaller than
-the window. However, you might want to allow larger images to be
-displayed inline. To do this, you can change the options
-`mh-max-inline-image-width' and `mh-max-inline-image-height' from their
-default value of zero to a large number. The size of your screen is a
-good choice for these numbers."
+Some older mail programs do not insert this needed plumbing to
+tell MH-E whether to display the attachments inline or not. If
+this is the case, MH-E will display these images inline if they
+are smaller than the window. However, you might want to allow
+larger images to be displayed inline. To do this, you can change
+the options `mh-max-inline-image-width' and
+`mh-max-inline-image-height' from their default value of zero to
+a large number. The size of your screen is a good choice for
+these numbers."
   :type '(choice (const nil) integer)
   :group 'mh-show)
 
 (defcustom mh-max-inline-image-width nil
   "*Maximum inline image width if \"Content-Disposition:\" is not present.
 
-Some older mail programs do not insert this needed plumbing to tell
-MH-E whether to display the attachments inline or not. If this is the
-case, MH-E will display these images inline if they are smaller than
-the window. However, you might want to allow larger images to be
-displayed inline. To do this, you can change the options
-`mh-max-inline-image-width' and `mh-max-inline-image-height' from their
-default value of zero to a large number. The size of your screen is a
-good choice for these numbers."
+Some older mail programs do not insert this needed plumbing to
+tell MH-E whether to display the attachments inline or not. If
+this is the case, MH-E will display these images inline if they
+are smaller than the window. However, you might want to allow
+larger images to be displayed inline. To do this, you can change
+the options `mh-max-inline-image-width' and
+`mh-max-inline-image-height' from their default value of zero to
+a large number. The size of your screen is a good choice for
+these numbers."
   :type '(choice (const nil) integer)
   :group 'mh-show)
 
 (defcustom mh-mhl-format-file nil
   "*Specifies the format file to pass to the \"mhl\" program.
 
-Normally MH-E takes care of displaying messages itself (rather than calling an
-MH program to do the work). If you'd rather have \"mhl\" display the
-message (within MH-E), change this option from its default value of \"Use
-Default mhl Format (Printing Only)\".
+Normally MH-E takes care of displaying messages itself (rather than
+calling an MH program to do the work). If you'd rather have \"mhl\"
+display the message (within MH-E), change this option from its default
+value of \"Use Default mhl Format (Printing Only)\".
 
-You can set this option to \"Use Default mhl Format\" to get the same output
-as you would get if you ran \"mhl\" from the shell.
+You can set this option to \"Use Default mhl Format\" to get the same
+output as you would get if you ran \"mhl\" from the shell.
 
-If you have a format file that you want MH-E to use, you can set this option
-to \"Specify an mhl Format File\" and enter the name of your format file. Your
-format file should specify a non-zero value for \"overflowoffset\" to allow
-MH-E to parse the header. Note that \"mhl\" is always used for printing and
-forwarding; in this case, the value of this option is consulted if you have
-specified a format file."
+If you have a format file that you want MH-E to use, you can set this
+option to \"Specify an mhl Format File\" and enter the name of your
+format file. Your format file should specify a non-zero value for
+\"overflowoffset\" to allow MH-E to parse the header. Note that
+\"mhl\" is always used for printing and forwarding; in this case, the
+value of this option is consulted if you have specified a format
+file."
   :type '(choice (const :tag "Use Default mhl Format (Printing Only)" nil)
                  (const :tag "Use Default mhl Format" t)
                  (file :tag "Specify an mhl Format File"))
@@ -1671,12 +1767,13 @@ specified a format file."
 (defcustom mh-mime-save-parts-default-directory t
   "Default directory to use for \\<mh-folder-mode-map>\\[mh-mime-save-parts].
 
-The default value for this option is \"Prompt Always\" so that you are always
-prompted for the directory in which to save the attachments. However, if you
-usually use the same directory within a session, then you can set this option
-to \"Prompt the First Time\" to avoid the prompt each time. you can make this
-directory permanent by choosing \"Directory\" and entering the directory's
-name."
+The default value for this option is \"Prompt Always\" so that
+you are always prompted for the directory in which to save the
+attachments. However, if you usually use the same directory
+within a session, then you can set this option to \"Prompt the
+First Time\" to avoid the prompt each time. you can make this
+directory permanent by choosing \"Directory\" and entering the
+directory's name."
   :type '(choice (const :tag "Prompt the First Time" nil)
                  (const :tag "Prompt Always" t)
                  directory)
@@ -1685,11 +1782,12 @@ name."
 (defcustom mh-print-background-flag nil
   "*Non-nil means messages should be printed in the background\\<mh-folder-mode-map>.
 
-Normally messages are printed in the foreground. If this is slow on your
-system, you may elect to turn off this option to print in the background.
+Normally messages are printed in the foreground. If this is slow on
+your system, you may elect to turn off this option to print in the
+background.
 
-WARNING: If you do this, do not delete the message until it is printed or else
-the output may be truncated.
+WARNING: If you do this, do not delete the message until it is printed
+or else the output may be truncated.
 
 This option is not used by the commands \\[mh-ps-print-msg] or
 \\[mh-ps-print-msg-file]."
@@ -1699,9 +1797,9 @@ This option is not used by the commands \\[mh-ps-print-msg] or
 (defcustom mh-show-maximum-size 0
   "*Maximum size of message (in bytes) to display automatically.
 
-This option provides an opportunity to skip over large messages which may be
-slow to load. The default value of 0 means that all message are shown
-regardless of size."
+This option provides an opportunity to skip over large messages
+which may be slow to load. The default value of 0 means that all
+message are shown regardless of size."
   :type 'integer
   :group 'mh-show)
 
@@ -1709,12 +1807,12 @@ regardless of size."
                                            goto-address-highlight-p)
   "*Non-nil means highlight URLs and email addresses\\<goto-address-highlight-keymap>.
 
-To send a message using the highlighted email address or to view the web page
-for the highlighted URL, use the middle mouse button or
-\\[goto-address-at-point].
+To send a message using the highlighted email address or to view
+the web page for the highlighted URL, use the middle mouse button
+or \\[goto-address-at-point].
 
-See Info node `(mh-e)Sending Mail' to see how to configure Emacs to send the
-message using MH-E.
+See Info node `(mh-e)Sending Mail' to see how to configure Emacs
+to send the message using MH-E.
 
 The default value of this option comes from the value of
 `goto-address-highlight-p'."
@@ -1724,33 +1822,36 @@ The default value of this option comes from the value of
 (defcustom mh-show-use-xface-flag (>= emacs-major-version 21)
   "*Non-nil means display face images in MH-show buffers.
 
-MH-E can display the content of \"Face:\", \"X-Face:\", and \"X-Image-URL:\"
-header fields. If any of these fields occur in the header of your message, the
-sender's face will appear in the \"From:\" header field. If more than one of
-these fields appear, then the first field found in the order \"Face:\",
-\"X-Face:\", and \"X-Image-URL:\" will be used.
+MH-E can display the content of \"Face:\", \"X-Face:\", and
+\"X-Image-URL:\" header fields. If any of these fields occur in the
+header of your message, the sender's face will appear in the \"From:\"
+header field. If more than one of these fields appear, then the first
+field found in the order \"Face:\", \"X-Face:\", and \"X-Image-URL:\"
+will be used.
 
-The option `mh-show-use-xface-flag' is used to turn this feature on and off.
-This feature will be turned on by default if your system supports it.
+The option `mh-show-use-xface-flag' is used to turn this feature on
+and off. This feature will be turned on by default if your system
+supports it.
 
-The first header field used, if present, is the Gnus-specific \"Face:\" field.
-The \"Face:\" field appeared in GNU Emacs 21 and XEmacs. For more information,
-see URL `http://quimby.gnus.org/circus/face/'. Next is the traditional
+The first header field used, if present, is the Gnus-specific
+\"Face:\" field. The \"Face:\" field appeared in GNU Emacs 21 and
+XEmacs. For more information, see URL
+`http://quimby.gnus.org/circus/face/'. Next is the traditional
 \"X-Face:\" header field. The display of this field requires the
 \"uncompface\" program (see URL
-`ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.z'). Recent versions
-of XEmacs have internal support for \"X-Face:\" images. If your version of
-XEmacs does not, then you'll need both \"uncompface\" and the x-face
-package (see URL `ftp://ftp.jpl.org/pub/elisp/').
+`ftp://ftp.cs.indiana.edu/pub/faces/compface/compface.tar.z'). Recent
+versions of XEmacs have internal support for \"X-Face:\" images. If
+your version of XEmacs does not, then you'll need both \"uncompface\"
+and the x-face package (see URL `ftp://ftp.jpl.org/pub/elisp/').
 
-Finally, MH-E will display images referenced by the \"X-Image-URL:\" header
-field if neither the \"Face:\" nor the \"X-Face:\" fields are present. The
-display of the images requires \"wget\" (see URL
-`http://www.gnu.org/software/wget/wget.html'), \"fetch\", or \"curl\" to fetch
-the image and the \"convert\" program from the ImageMagick suite (see URL
-`http://www.imagemagick.org/'). Of the three header fields this is the most
-efficient in terms of network usage since the image doesn't need to be
-transmitted with every single mail.
+Finally, MH-E will display images referenced by the \"X-Image-URL:\"
+header field if neither the \"Face:\" nor the \"X-Face:\" fields are
+present. The display of the images requires \"wget\" (see URL
+`http://www.gnu.org/software/wget/wget.html'), \"fetch\", or \"curl\"
+to fetch the image and the \"convert\" program from the ImageMagick
+suite (see URL `http://www.imagemagick.org/'). Of the three header
+fields this is the most efficient in terms of network usage since the
+image doesn't need to be transmitted with every single mail.
 
 The option `mh-fetch-x-image-url' controls the fetching of the
 \"X-Image-URL:\" header field image."
@@ -1760,9 +1861,10 @@ The option `mh-fetch-x-image-url' controls the fetching of the
 (defcustom mh-store-default-directory nil
   "*Default directory for \\<mh-folder-mode-map>\\[mh-store-msg].
 
-If you would like to change the initial default directory, customize this
-option, change the value from `Current' to `Directory', and then enter the
-name of the directory for storing the content of these messages."
+If you would like to change the initial default directory,
+customize this option, change the value from \"Current\" to
+\"Directory\", and then enter the name of the directory for storing
+the content of these messages."
   :type '(choice (const :tag "Current" nil)
                  directory)
   :group 'mh-show)
@@ -1770,10 +1872,11 @@ name of the directory for storing the content of these messages."
 (defcustom mh-summary-height nil
   "*Number of lines in MH-Folder buffer (including the mode line).
 
-The default value of this option is \"Automatic\" which means that the
-MH-Folder buffer will maintain the same proportional size if the frame is
-resized. If you'd prefer a fixed height, then choose the \"Fixed Size\" option
-and enter the number of lines you'd like to see."
+The default value of this option is \"Automatic\" which means
+that the MH-Folder buffer will maintain the same proportional
+size if the frame is resized. If you'd prefer a fixed height,
+then choose the \"Fixed Size\" option and enter the number of
+lines you'd like to see."
   :type '(choice (const :tag "Automatic" nil)
                  (integer :tag "Fixed Size"))
   :group 'mh-show)
@@ -1795,9 +1898,10 @@ Set to 0 to disable automatic update."
 (defcustom mh-show-threads-flag nil
   "*Non-nil means new folders start in threaded mode.
 
-Threading large number of messages can be time consuming so this option is
-turned off by default. If you turn this option on, then threading will be done
-only if the number of messages being threaded is less than `mh-large-folder'."
+Threading large number of messages can be time consuming so this
+option is turned off by default. If you turn this option on, then
+threading will be done only if the number of messages being
+threaded is less than `mh-large-folder'."
   :type 'boolean
   :group 'mh-thread)
 
@@ -1809,8 +1913,8 @@ only if the number of messages being threaded is less than `mh-large-folder'."
   "*Function called by the tool bar search button.
 
 Available functions include `mh-search-folder', the default, and
-`mh-index-search'. You can also choose \"Other Function\" from the \"Value
-Menu\" and enter a function of your own choosing."
+`mh-index-search'. You can also choose \"Other Function\" from
+the \"Value Menu\" and enter a function of your own choosing."
   :type '(choice (const mh-search-folder)
                  (const mh-index-search)
                  (function :tag "Other Function"))
@@ -1842,7 +1946,7 @@ Optional argument ARG is not used."
 
 (defmacro mh-tool-bar-reply-generator (function recipient folder-buffer-flag)
   "Generate FUNCTION that replies to RECIPIENT.
-If FOLDER-BUFFER-FLAG is nil then the function generated
+If FOLDER-BUFFER-FLAG is nil then the function generated...
 When INCLUDE-FLAG is non-nil, include message body being replied to."
   `(defun ,function (&optional arg)
      ,(format "Reply to \"%s\".\nWhen ARG is non-nil include message in reply."
@@ -1863,9 +1967,10 @@ When INCLUDE-FLAG is non-nil, include message body being replied to."
   (defcustom mh-xemacs-use-tool-bar-flag mh-xemacs-has-tool-bar-flag
     "*If non-nil, use tool bar.
 
-This option controls whether to show the MH-E icons at all. By default, this
-option is turned on if the window system supports tool bars. If your system
-doesn't support tool bars, then you won't be able to turn on this option."
+This option controls whether to show the MH-E icons at all. By
+default, this option is turned on if the window system supports
+tool bars. If your system doesn't support tool bars, then you
+won't be able to turn on this option."
     :type 'boolean
     :group 'mh-tool-bar
     :set (lambda (symbol value)
@@ -1877,11 +1982,12 @@ doesn't support tool bars, then you won't be able to turn on this option."
   (defcustom mh-xemacs-tool-bar-position nil
     "*Tool bar location.
 
-This option controls the placement of the tool bar along the four edges of the
-frame. You can choose from one of \"Same As Default Tool Bar\", \"Top\",
-\"Bottom\", \"Left\", or \"Right\". If this variable is set to anything other
-than \"Same As Default Tool Bar\" and the default tool bar is in a different
-location, then two tool bars will be displayed: the MH-E tool bar and the
+This option controls the placement of the tool bar along the four
+edges of the frame. You can choose from one of \"Same As Default
+Tool Bar\", \"Top\", \"Bottom\", \"Left\", or \"Right\". If this
+variable is set to anything other than \"Same As Default Tool
+Bar\" and the default tool bar is in a different location, then
+two tool bars will be displayed: the MH-E tool bar and the
 default tool bar."
     :type '(radio (const :tag "Same As Default Tool Bar" :value nil)
                   (const :tag "Top" :value top)
@@ -1900,47 +2006,49 @@ default tool bar."
 
 (defmacro mh-tool-bar-define (defaults &rest buttons)
   "Define a tool bar for MH-E.
-DEFAULTS is the list of buttons that are present by default. It is a list of
-lists where the sublists are of the following form:
+DEFAULTS is the list of buttons that are present by default. It
+is a list of lists where the sublists are of the following form:
 
   (:KEYWORD FUNC1 FUNC2 FUNC3 ...)
 
-Here :KEYWORD is one of :folder or :letter. If it is :folder then the default
-buttons in the folder and show mode buffers are being specified. If it is
-:letter then the default buttons in the letter mode are listed. FUNC1, FUNC2,
-FUNC3, ... are the names of the functions that the buttons would execute.
+Here :KEYWORD is one of :folder or :letter. If it is :folder then
+the default buttons in the folder and show mode buffers are being
+specified. If it is :letter then the default buttons in the
+letter mode are listed. FUNC1, FUNC2, FUNC3, ... are the names of
+the functions that the buttons would execute.
 
-Each element of BUTTONS is a list consisting of four mandatory items and one
-optional item as follows:
+Each element of BUTTONS is a list consisting of four mandatory
+items and one optional item as follows:
 
   (FUNCTION MODES ICON DOC &optional ENABLE-EXPR)
 
 where,
 
-  FUNCTION is the name of the function that will be executed when the button
-  is clicked.
+  FUNCTION is the name of the function that will be executed when
+  the button is clicked.
 
-  MODES is a list of symbols. List elements must be from `folder', `letter' and
-  `sequence'. If `folder' is present then the button is available in the
-  folder and show buffer. If the name of FUNCTION is of the form \"mh-foo\",
-  where foo is some arbitrary string, then we check if the function
-  `mh-show-foo' exists. If it exists then that function is used in the show
-  buffer. Otherwise the original function `mh-foo' is used in the show buffer
-  as well. Presence of `sequence' is handled similar to the above. The only
-  difference is that the button is shown only when the folder is narrowed to a
-  sequence. If `letter' is present in MODES, then the button is available
-  during draft editing and runs FUNCTION when clicked.
+  MODES is a list of symbols. List elements must be from \"folder\",
+  \"letter\" and \"sequence\". If \"folder\" is present then the button is
+  available in the folder and show buffer. If the name of FUNCTION is
+  of the form \"mh-foo\", where foo is some arbitrary string, then we
+  check if the function `mh-show-foo' exists. If it exists then that
+  function is used in the show buffer. Otherwise the original function
+  `mh-foo' is used in the show buffer as well. Presence of \"sequence\"
+  is handled similar to the above. The only difference is that the
+  button is shown only when the folder is narrowed to a sequence. If
+  \"letter\" is present in MODES, then the button is available during
+  draft editing and runs FUNCTION when clicked.
 
   ICON is the icon that is drawn in the button.
 
-  DOC is the documentation for the button. It is used in tool-tips and in
-  providing other help to the user. GNU Emacs uses only the first line of the
-  string. So the DOC should be formatted such that the first line is useful and
-  complete without the rest of the string.
+  DOC is the documentation for the button. It is used in tool-tips and
+  in providing other help to the user. GNU Emacs uses only the first
+  line of the string. So the DOC should be formatted such that the
+  first line is useful and complete without the rest of the string.
 
-  Optional item ENABLE-EXPR is an arbitrary lisp expression. If it evaluates
-  to nil, then the button is deactivated, otherwise it is active. If is in't
-  present then the button is always active."
+  Optional item ENABLE-EXPR is an arbitrary lisp expression. If it
+  evaluates to nil, then the button is deactivated, otherwise it is
+  active. If it isn't present then the button is always active."
   ;; The following variable names have been carefully chosen to make code
   ;; generation easier. Modifying the names should be done carefully.
   (let (folder-buttons folder-docs folder-button-setter sequence-button-setter
@@ -2227,176 +2335,191 @@ This button runs `mh-previous-undeleted-msg'")
 
 ;;; Hooks (:group 'mh-hooks + group where hook described)
 
-(defcustom mail-citation-hook nil
-  "*Hook for modifying a citation just inserted in the mail buffer.
-You can gain full control over the appearance of the included text by setting
-this hook to a function that modifies it. This hook is ignored if the option
-`mh-yank-behavior' is set to one of the supercite flavors. Otherwise, this
-option controls how much of the message is passed to the hook. The function
-can find the citation between point and mark and it should leave point and
-mark around the modified citation text for the next hook function. The
-standard prefix `mh-ins-buf-prefix' is not added if this hook is set.
+(defcustom mh-after-commands-processed-hook nil
+  "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] after performing outstanding requests.
 
-For example, if you use the hook function trivial-cite (which is NOT part of
-Emacs), set `mh-yank-behavior' to \"Body and Header\" (see URL
-`http://shasta.cs.uiuc.edu/~lrclause/tc.html')."
+Variables that are useful in this hook include
+`mh-folders-changed', which lists which folders were affected by
+deletes and refiles. This list will always include the current
+folder, which is also available in `mh-current-folder'."
   :type 'hook
-  :options '(trivial-cite)
   :group 'mh-hooks
-  :group 'mh-letter)
+  :group 'mh-folder)
 
 (defcustom mh-alias-reloaded-hook nil
-  "Invoked by `mh-alias-reload' after reloading aliases."
+  "Hook run by `mh-alias-reload' after loading aliases."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-alias)
 
+(defcustom mh-before-commands-processed-hook nil
+  "Hook run by \\<mh-folder-mode-map>\\[mh-execute-commands] before performing outstanding requests.
+
+Variables that are useful in this hook include `mh-delete-list'
+and `mh-refile-list' which can be used to see which changes will
+be made to the current folder, `mh-current-folder'."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-folder)
+
 (defcustom mh-before-quit-hook nil
-  "Invoked by \\<mh-folder-mode-map>`\\[mh-quit]' before quitting MH-E.
+  "Hook run by \\<mh-folder-mode-map>\\[mh-quit] before quitting MH-E.
+
+This hook is called before the quit occurs, so you might use it
+to perform any MH-E operations; you could perform some query and
+abort the quit or call `mh-execute-commands', for example.
+
 See also `mh-quit-hook'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
 
 (defcustom mh-before-send-letter-hook nil
-  "Invoked at the beginning of the \\<mh-letter-mode-map>\\[mh-send-letter] command.
-For example, if you want to check your spelling in your message before
-sending, add the `ispell-message' function."
+  "Hook run at the beginning of the \\<mh-letter-mode-map>\\[mh-send-letter] command.
+
+For example, if you want to check your spelling in your message
+before sending, add the `ispell-message' function."
   :type 'hook
   :options '(ispell-message)
   :group 'mh-hooks
   :group 'mh-letter)
 
 (defcustom mh-delete-msg-hook nil
-  "Invoked after marking each message for deletion.
+  "Hook run by \\<mh-letter-mode-map>\\[mh-delete-msg] after marking each message for deletion.
 
-For example, a past maintainer of MH-E used this once when he kept statistics
-on his mail usage."
+For example, a past maintainer of MH-E used this once when he
+kept statistics on his mail usage."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show)
 
-(defcustom mh-mh-to-mime-hook nil
-  "Invoked on the formatted letter by \\<mh-letter-mode-map>\\[mh-mh-to-mime]."
-  :type 'hook
-  :group 'mh-hooks
-  :group 'mh-letter)
-
 (defcustom mh-find-path-hook nil
-  "Invoked by `mh-find-path' after reading the user's MH profile."
+  "Hook run by `mh-find-path' after reading the user's MH profile.
+
+This hook can be used the change the value of the variables that
+`mh-find-path' sets if you need to run with different values
+between MH and MH-E."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-e)
 
 (defcustom mh-folder-mode-hook nil
-  "Invoked in `mh-folder-mode' on a new folder."
+  "Hook run by `mh-folder-mode' when visiting a new folder."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
-
-(defcustom mh-before-commands-processed-hook nil
-  "Invoked before the folder actions (such as moves and deletes) are performed.
-Variables that are useful in this hook include `mh-delete-list' and
-`mh-refile-list' which can be used to see which changes will be made to
-current folder, `mh-current-folder'."
-  :type 'hook
-  :group 'mh-hooks
-  :group 'mh-folder)
-
-(defcustom mh-after-commands-processed-hook nil
-  "Invoked after the folder actions (such as moves and deletes) are performed.
-Variables that are useful in this hook include `mh-folders-changed',
-which lists which folders were affected by deletes and refiles.  This
-list will always include the current folder, which is also available
-in `mh-current-folder'."
-  :type 'hook
-  :group 'mh-hooks)
 
 (defcustom mh-forward-hook nil
-  "Invoked on the forwarded letter by \\<mh-folder-mode-map>\\[mh-forward]."
+  "Hook run by `mh-forward' on a forwarded letter."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-sending-mail)
 
 (defcustom mh-inc-folder-hook nil
-  "Invoked by \\<mh-folder-mode-map>`\\[mh-inc-folder]' after incorporating mail into a folder."
+  "Hook run by \\<mh-folder-mode-map>\\[mh-inc-folder] after incorporating mail into a folder."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-inc)
 
 (defcustom mh-insert-signature-hook nil
-  "Invoked after signature has been inserted.
+  "Hook run by \\<mh-letter-mode-map>\\[mh-insert-signature] after signature has been inserted.
 
-These functions may access the actual name of the file or the function used to
-insert the signature with `mh-signature-file-name'."
+Hook functions may access the actual name of the file or the
+function used to insert the signature with
+`mh-signature-file-name'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-letter)
 
-(defcustom mh-kill-folder-suppress-prompt-hook '(mh-index-p)
-  "Invoked at the beginning of the  \\<mh-folder-mode-map>`\\[mh-kill-folder]' command.
-This hook is a list of functions to be called, with no arguments, which should
-return a value of non-nil if you should not be asked if you're sure that you
-want to remove the folder. This is useful for folders that are easily
-regenerated.
+(defcustom mh-kill-folder-suppress-prompt-hooks '(mh-index-p)
+  "Abnormal hook run at the beginning of \\<mh-folder-mode-map>\\[mh-kill-folder].
 
-The default value of `mh-index-p' suppresses the prompt on folders generated
-by an index search.
+The hook functions are called with no arguments and should return
+a non-nil value to suppress the normal prompt when you remove a
+folder. This is useful for folders that are easily regenerated.
 
-WARNING: Use this hook with care. If there is a bug in your hook which returns
-t on +inbox and you hit \\<mh-folder-mode-map>`\\[mh-kill-folder]' by accident
-in the +inbox buffer, you will not be happy."
+The default value of `mh-index-p' suppresses the prompt on
+folders generated by an index search.
+
+WARNING: Use this hook with care. If there is a bug in your hook
+which returns t on \"+inbox\" and you hit \\[mh-kill-folder] by
+accident in the \"+inbox\" folder, you will not be happy."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
 
 (defcustom mh-letter-mode-hook nil
-  "Invoked by `mh-letter-mode' on a new letter."
+  "Hook run by `mh-letter-mode' on a new letter.
+
+This hook allows you to do some processing before editing a
+letter. For example, you may wish to modify the header after
+\"repl\" has done its work, or you may have a complicated
+\"components\" file and need to tell MH-E where the cursor should
+go."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-sending-mail)
 
+(defcustom mh-mh-to-mime-hook nil
+  "Hook run on the formatted letter by \\<mh-letter-mode-map>\\[mh-mh-to-mime]."
+  :type 'hook
+  :group 'mh-hooks
+  :group 'mh-letter)
+
 (defcustom mh-pick-mode-hook nil
-  "Invoked upon entry to `mh-pick-mode'."
+  "Hook run upon entry to `mh-pick-mode'\\<mh-folder-mode-map>.
+
+If you find that you do the same thing over and over when editing
+the search template, you may wish to bind some shortcuts to keys.
+This can be done with this hook which is called when
+\\[mh-search-folder] is run on a new pattern."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-index)
 
 (defcustom mh-quit-hook nil
-  "Invoked after \\<mh-folder-mode-map>`\\[mh-quit]' quits MH-E.
+  "Hook run by \\<mh-folder-mode-map>\\[mh-quit] after quitting MH-E.
+
+This hook is not run in an MH-E context, so you might use it to
+modify the window setup.
+
 See also `mh-before-quit-hook'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
 
 (defcustom mh-refile-msg-hook nil
-  "Invoked after marking each message for refiling."
+  "Hook run by \\<mh-folder-mode-map>\\[mh-refile-msg] after marking each message for refiling."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-folder)
 
 (defcustom mh-show-hook nil
-  "Invoked after \\<mh-folder-mode-map>\\[mh-show] shows a message.
+  "Hook run after \\<mh-folder-mode-map>\\[mh-show] shows a message.
 
-It is the last thing called after messages are displayed. It's used to affect
-the behavior of MH-E in general or when `mh-show-mode-hook' is too early."
+It is the last thing called after messages are displayed. It's
+used to affect the behavior of MH-E in general or when
+`mh-show-mode-hook' is too early."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show)
 
 (defcustom mh-show-mode-hook nil
-  "Invoked upon entry to `mh-show-mode'.
+  "Hook run upon entry to `mh-show-mode'.
 
-This hook is called early on in the process of the message display. It is
-usually used to perform some action on the message's content."
+This hook is called early on in the process of the message
+display. It is usually used to perform some action on the
+message's content."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show)
 
 (defcustom mh-unseen-updated-hook nil
-  "Invoked after the unseen sequence has been updated.
-The variable `mh-seen-list' can be used to obtain the list of messages which
-will be removed from the unseen sequence."
+  "Hook run after the unseen sequence has been updated.
+
+The variable `mh-seen-list' can be used by this hook to obtain
+the list of messages which were removed from the unseen
+sequence."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-sequences)
@@ -2675,7 +2798,8 @@ will be removed from the unseen sequence."
 
 (defvar mh-show-pgg-unknown-face 'mh-show-pgg-unknown
   "Face used to highlight a PGG signature whose status is unknown.
-This face is also used for a signature when the signer is untrusted.")
+This face is also used for a signature when the signer is
+untrusted.")
 (defface mh-show-pgg-unknown
   '((t
      (:bold t :foreground "DarkGoldenrod2")))

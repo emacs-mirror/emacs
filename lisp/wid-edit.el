@@ -2988,7 +2988,7 @@ as the value."
 
 (define-widget 'file 'string
   "A file widget.
-It will read a file name from the minibuffer when invoked."
+It reads a file name from an editable text field."
   :complete-function 'widget-file-complete
   :prompt-value 'widget-file-prompt-value
   :format "%{%t%}: %v"
@@ -3050,7 +3050,7 @@ It will read a file name from the minibuffer when invoked."
 ;; Fixme: use file-name-as-directory.
 (define-widget 'directory 'file
   "A directory widget.
-It will read a directory name from the minibuffer when invoked."
+It reads a directory name from an editable text field."
   :tag "Directory")
 
 (defvar widget-symbol-prompt-value-history nil

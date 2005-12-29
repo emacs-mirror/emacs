@@ -456,6 +456,18 @@ they were unset."
 (setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-get-selection-value)
 
+
+;;;; Support for build process
+(defun w32-batch-update-autoloads ()
+  "Like `batch-update-autoloads', but takes the name of the autoloads file
+from the command line.
+
+This is required because some Windows build environments, such as MSYS,
+munge command-line arguments that include file names to a horrible mess
+that Emacs is unable to cope with."
+  (let ((generated-autoload-file
+	 (expand-file-name (pop command-line-args-left))))
+    (batch-update-autoloads)))
 
 ;;; arch-tag: c49b48cc-0f4f-454f-a274-c2dc34815e14
 ;;; w32-fns.el ends here

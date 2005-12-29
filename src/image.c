@@ -2259,23 +2259,25 @@ find_image_fsspec (specified_file, file, fss)
      Lisp_Object specified_file, *file;
      FSSpec *fss;
 {
-#if MAC_OSX
-  FSRef fsr;
-#endif
   OSErr err;
+  AEDesc desc;
 
   *file = x_find_image_file (specified_file);
   if (!STRINGP (*file))
     return fnfErr;		/* file or directory not found;
 				   incomplete pathname */
   /* Try to open the image file.  */
-#if MAC_OSX
-  err = FSPathMakeRef (SDATA (*file), &fsr, NULL);
+  err = AECoercePtr (TYPE_FILE_NAME, SDATA (*file),
+		     SBYTES (*file), typeFSS, &desc);
   if (err == noErr)
-    err = FSGetCatalogInfo (&fsr, kFSCatInfoNone, NULL, NULL, fss, NULL);
+    {
+#if TARGET_API_MAC_CARBON
+      err = AEGetDescData (&desc, fss, sizeof (FSSpec));
 #else
-  err = posix_pathname_to_fsspec (SDATA (*file), fss);
+      *fss = *(FSSpec *)(*(desc.dataHandle));
 #endif
+      AEDisposeDesc (&desc);
+    }
   return err;
 }
 

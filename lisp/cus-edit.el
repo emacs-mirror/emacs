@@ -506,8 +506,8 @@ Return a list suitable for use in `interactive'."
 	  (enable-recursive-minibuffers t)
 	  val)
      (setq val (completing-read
-		(if default (format "Customize option (default %s): " default)
-		  "Customize option: ")
+		(if default (format "Customize variable (default %s): " default)
+		  "Customize variable: ")
 		obarray 'custom-variable-p t nil nil default))
      (list (if (equal val "")
 	       (if (symbolp v) v nil)
@@ -766,7 +766,7 @@ groups after non-groups, if nil do not order groups at all."
 (defvar custom-reset-menu
   '(("Current" . Custom-reset-current)
     ("Saved" . Custom-reset-saved)
-    ("Erase Customization (use standard settings)" . Custom-reset-standard))
+    ("Erase Customization (use standard values)" . Custom-reset-standard))
   "Alist of actions for the `Reset' button.
 The key is a string containing the name of the action, the value is a
 Lisp function taking the widget as an element which will be called
@@ -803,8 +803,8 @@ when the action is chosen.")
 
 (defun Custom-reset-standard (&rest ignore)
   "Erase all customization (either current or saved) for the group members.
-The immediate result is to restore them to their standard settings.
-This operation eliminates any saved settings for the group members,
+The immediate result is to restore them to their standard values.
+This operation eliminates any saved values for the group members,
 making them as if they had never been customized at all."
   (interactive)
   (let ((children custom-options))
@@ -940,7 +940,7 @@ If given a prefix (or a COMMENT argument), also prompt for a comment."
 				       current-prefix-arg))
   (funcall (or (get variable 'custom-set) 'set-default) variable value)
   (put variable 'saved-value (list (custom-quote value)))
-  (custom-push-theme 'theme-value variable 'user 'set (list (custom-quote value)))
+  (custom-push-theme 'theme-value variable 'user 'set (custom-quote value))
   (cond ((string= comment "")
  	 (put variable 'variable-comment nil)
  	 (put variable 'saved-variable-comment nil))
@@ -1065,19 +1065,21 @@ Show the buffer in another window, but don't select it."
     (unless (eq symbol basevar)
       (message "`%s' is an alias for `%s'" symbol basevar))))
 
-(defvar customize-changed-options-previous-release "20.2"
+(defvar customize-changed-options-previous-release "21.1"
   "Version for `customize-changed-options' to refer back to by default.")
 
 ;;;###autoload
-(defun customize-changed-options (since-version)
-  "Customize all user option variables changed in Emacs itself.
-This includes new user option variables and faces, and new
-customization groups, as well as older options and faces whose default
-values have changed since the previous major Emacs release.
+(defalias 'customize-changed 'customize-changed-options)
 
-With argument SINCE-VERSION (a string), customize all user option
-variables that were added (or their meanings were changed) since that
-version."
+;;;###autoload
+(defun customize-changed-options (since-version)
+  "Customize all settings whose meanings have changed in Emacs itself.
+This includes new user option variables and faces, and new
+customization groups, as well as older options and faces whose meanings
+or default values have changed since the previous major Emacs release.
+
+With argument SINCE-VERSION (a string), customize all settings
+that were added or redefined since that version."
 
   (interactive "sCustomize options changed, since version (default all versions): ")
   (if (equal since-version "")
@@ -1430,25 +1432,25 @@ Otherwise use brackets."
 	(if description
 	    (widget-insert description))
 	(widget-insert (format ".
-%s show active fields; type RET or click mouse-1
-on an active field to invoke its action.  Editing an option value
-changes only the text in the buffer.  Invoke the State button to set or
-save the option value.  Saving an option normally edits your init file.
-Invoke "
+%s buttons; type RET or click mouse-1 to actuate one.
+Editing a setting changes only the text in the buffer.
+Use the setting's State button to set it or save changes in it.
+Saving a change normally works by editing your Emacs init file.
+See "
 			       (if custom-raised-buttons
-				   "`Raised' buttons"
-				 "Square brackets")))
+				   "`Raised' text indicates"
+				 "Square brackets indicate")))
 	(widget-create 'info-link
 		       :tag "Custom file"
 		       "(emacs)Saving Customizations")
 	(widget-insert
-	 " for information on how to save in a different file.
-Invoke ")
+	 " for information on how to save in a different file.\n
+See ")
 	(widget-create 'info-link
 		       :tag "Help"
 		       :help-echo "Read the online help."
 		       "(emacs)Easy Customization")
-	(widget-insert " for general information.\n\n")
+	(widget-insert " for more information.\n\n")
 	(widget-insert "Operate on everything in this buffer:\n "))
     (widget-insert " "))
   (widget-create 'push-button
@@ -1457,14 +1459,15 @@ Invoke ")
 Make your editing in this buffer take effect for this session."
 		 :action (lambda (widget &optional event)
 			   (Custom-set)))
-  (widget-insert " ")
-  (widget-create 'push-button
-		 :tag "Save for Future Sessions"
-		 :help-echo "\
+  (when (or custom-file user-init-file)
+    (widget-insert " ")
+    (widget-create 'push-button
+		   :tag "Save for Future Sessions"
+		   :help-echo "\
 Make your editing in this buffer take effect for future Emacs sessions.
 This updates your Emacs initialization file or creates a new one."
-		 :action (lambda (widget &optional event)
-			   (Custom-save)))
+		   :action (lambda (widget &optional event)
+			     (Custom-save))))
   (if custom-reset-button-menu
       (progn
 	(widget-insert " ")
@@ -1474,6 +1477,13 @@ This updates your Emacs initialization file or creates a new one."
 		       :mouse-down-action (lambda (&rest junk) t)
 		       :action (lambda (widget &optional event)
 				 (custom-reset event))))
+    (widget-insert " ")
+    (when (or custom-file user-init-file)
+      (widget-create 'push-button
+		     :tag "Erase Customization"
+		     :help-echo "\
+Un-customize all settings in this buffer--save them with standard values."
+		     :action 'Custom-reset-standard)))
     (widget-insert "\n ")
     (widget-create 'push-button
 		   :tag "Reset to Current"
@@ -1484,14 +1494,8 @@ Reset all edited text in this buffer to reflect current values."
     (widget-create 'push-button
 		   :tag "Reset to Saved"
 		   :help-echo "\
-Reset all values in this buffer to their saved settings."
+Reset all settings in this buffer to their saved values."
 		   :action 'Custom-reset-saved)
-    (widget-insert " ")
-    (widget-create 'push-button
-		   :tag "Erase Customization"
-		   :help-echo "\
-Un-customize all values in this buffer.  They get their standard settings."
-		   :action 'Custom-reset-standard))
   (if (not custom-buffer-verbose-help)
       (progn
 	(widget-insert " ")
@@ -1560,10 +1564,15 @@ Un-customize all values in this buffer.  They get their standard settings."
   (let ((name "*Customize Browser*"))
     (pop-to-buffer (custom-get-fresh-buffer name)))
   (custom-mode)
-  (widget-insert "\
-Square brackets show active fields; type RET or click mouse-1
-on an active field to invoke its action.
-Invoke [+] below to expand a group, and [-] to collapse an expanded group.\n")
+  (widget-insert (format "\
+%s buttons; type RET or click mouse-1
+on a button to invoke its action.
+Invoke [+] to expand a group, and [-] to collapse an expanded group.\n"
+			 (if custom-raised-buttons
+			     "`Raised' text indicates"
+			   "Square brackets indicate")))
+
+
   (if custom-browse-only-groups
       (widget-insert "\
 Invoke the [Group] button below to edit that item in another window.\n\n")
@@ -1738,6 +1747,15 @@ item in another window.\n\n"))
 ;; backward-compatibility alias
 (put 'custom-changed-face 'face-alias 'custom-changed)
 
+(defface custom-themed '((((min-colors 88) (class color))
+			   (:foreground "white" :background "blue1"))
+			  (((class color))
+			   (:foreground "white" :background "blue"))
+			  (t
+			   (:slant italic)))
+  "Face used when the customize item has been set by a theme."
+  :group 'custom-magic-faces)
+
 (defface custom-saved '((t (:underline t)))
   "Face used when the customize item has been saved."
   :group 'custom-magic-faces)
@@ -1766,12 +1784,15 @@ something in this group has been changed outside customize.")
     (saved "!" custom-saved "\
 SAVED and set." "\
 something in this group has been set and saved.")
+    (themed "o" custom-themed "\
+THEMED." "\
+visible group members are all at standard values.")
     (rogue "@" custom-rogue "\
 NO CUSTOMIZATION DATA; not intended to be customized." "\
 something in this group is not prepared for customization.")
     (standard " " nil "\
 STANDARD." "\
-visible group members are all at standard settings."))
+visible group members are all at standard values."))
   "Alist of customize option states.
 Each entry is of the form (STATE MAGIC FACE ITEM-DESC [ GROUP-DESC ]), where
 
@@ -2524,14 +2545,22 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 			     (error nil))
 			   'set
 			 'changed))
-		      ((progn (setq tmp (get symbol 'saved-value))
+		      ((progn (setq tmp (get symbol 'theme-value))
 			      (setq temp (get symbol 'saved-variable-comment))
 			      (or tmp temp))
 		       (if (condition-case nil
-			       (and (equal value (eval (car tmp)))
-				    (equal comment temp))
+			       (and (equal comment temp)
+				    (equal value
+					   (eval (car
+						  (custom-theme-value
+						   (caar tmp) tmp)))))
 			     (error nil))
-			   'saved
+			   (cond
+			    ((eq 'user (caar (get symbol 'theme-value)))
+			     'saved)
+			    ((eq 'standard (caar (get symbol 'theme-value)))
+			     'changed)
+			    (t 'themed))
 			 'changed))
 		      ((setq tmp (get symbol 'standard-value))
 		       (if (condition-case nil
@@ -2547,12 +2576,13 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
   (get (widget-value widget) 'standard-value))
 
 (defvar custom-variable-menu
-  '(("Set for Current Session" custom-variable-set
+  `(("Set for Current Session" custom-variable-set
      (lambda (widget)
        (eq (widget-get widget :custom-state) 'modified)))
-    ("Save for Future Sessions" custom-variable-save
-     (lambda (widget)
-       (memq (widget-get widget :custom-state) '(modified set changed rogue))))
+    ,@(when (or custom-file user-init-file)
+	'(("Save for Future Sessions" custom-variable-save
+	   (lambda (widget)
+	     (memq (widget-get widget :custom-state) '(modified set changed rogue))))))
     ("Reset to Current" custom-redraw
      (lambda (widget)
        (and (default-boundp (widget-value widget))
@@ -2563,11 +2593,12 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
 		(get (widget-value widget) 'saved-variable-comment))
 	    (memq (widget-get widget :custom-state)
 		  '(modified set changed rogue)))))
-    ("Erase Customization" custom-variable-reset-standard
-     (lambda (widget)
-       (and (get (widget-value widget) 'standard-value)
-	    (memq (widget-get widget :custom-state)
-		  '(modified set changed saved rogue)))))
+    ,@(when (or custom-file user-init-file)
+	'(("Erase Customization" custom-variable-reset-standard
+	   (lambda (widget)
+	     (and (get (widget-value widget) 'standard-value)
+		  (memq (widget-get widget :custom-state)
+			'(modified set changed saved rogue)))))))
     ("Use Backup Value" custom-variable-reset-backup
      (lambda (widget)
        (get (widget-value widget) 'backup-value)))
@@ -2638,6 +2669,8 @@ Optional EVENT is the location for the menu."
 	     ;; Make the comment invisible by hand if it's empty
 	     (custom-comment-hide comment-widget))
 	   (custom-variable-backup-value widget)
+	   (custom-push-theme 'theme-value symbol 'user
+			      'set (custom-quote (widget-value child)))
 	   (funcall set symbol (eval (setq val (widget-value child))))
 	   (put symbol 'customized-value (list val))
 	   (put symbol 'variable-comment comment)
@@ -2648,6 +2681,8 @@ Optional EVENT is the location for the menu."
 	     ;; Make the comment invisible by hand if it's empty
 	     (custom-comment-hide comment-widget))
 	   (custom-variable-backup-value widget)
+	   (custom-push-theme 'theme-value symbol 'user
+			      'set (custom-quote (widget-value child)))
 	   (funcall set symbol (setq val (widget-value child)))
 	   (put symbol 'customized-value (list (custom-quote val)))
 	   (put symbol 'variable-comment comment)
@@ -2677,7 +2712,7 @@ Optional EVENT is the location for the menu."
 	     (custom-comment-hide comment-widget))
 	   (put symbol 'saved-value (list (widget-value child)))
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (list (widget-value child)))
+			      'set (custom-quote (widget-value child)))
 	   (funcall set symbol (eval (widget-value child)))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'saved-variable-comment comment))
@@ -2689,8 +2724,7 @@ Optional EVENT is the location for the menu."
 	   (put symbol 'saved-value
 		(list (custom-quote (widget-value child))))
 	   (custom-push-theme 'theme-value symbol 'user
-			      'set (list (custom-quote (widget-value
-						  child))))
+			      'set (custom-quote (widget-value child)))
 	   (funcall set symbol (widget-value child))
 	   (put symbol 'variable-comment comment)
 	   (put symbol 'saved-variable-comment comment)))
@@ -2711,6 +2745,7 @@ becomes the backup value, so you can get it again."
     (cond ((or value comment)
 	   (put symbol 'variable-comment comment)
 	   (custom-variable-backup-value widget)
+	   (custom-push-theme 'theme-value symbol 'user 'set value)
 	   (condition-case nil
 	       (funcall set symbol (eval (car value)))
 	     (error nil)))
@@ -2731,20 +2766,15 @@ becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
 	 (set (or (get symbol 'custom-set) 'set-default)))
     (if (get symbol 'standard-value)
-	(progn
-	  (custom-variable-backup-value widget)
-	  (funcall set symbol (eval (car (get symbol 'standard-value)))))
+	(custom-variable-backup-value widget)
       (error "No standard setting known for %S" symbol))
     (put symbol 'variable-comment nil)
     (put symbol 'customized-value nil)
     (put symbol 'customized-variable-comment nil)
+    (custom-push-theme 'theme-value symbol 'user 'reset nil)
+    (custom-theme-recalc-variable symbol)
     (when (or (get symbol 'saved-value) (get symbol 'saved-variable-comment))
       (put symbol 'saved-value nil)
-      (custom-push-theme 'theme-value symbol 'user 'reset 'standard)
-      ;; As a special optimizations we do not (explictly)
-      ;; save resets to standard when no theme set the value.
-      (if (null (cdr (get symbol 'theme-value)))
-	  (put symbol 'theme-value nil))
       (put symbol 'saved-variable-comment nil)
       (custom-save-all))
     (widget-put widget :custom-state 'unknown)
@@ -2776,6 +2806,7 @@ to switch between two values."
     (if value
 	(progn
 	  (custom-variable-backup-value widget)
+	  (custom-push-theme 'theme-value symbol 'user 'set value)
 	  (condition-case nil
 	      (funcall set symbol (car value))
 	     (error nil)))
@@ -3218,15 +3249,17 @@ SPEC must be a full face spec."
 	     (message "Creating face editor...done"))))))
 
 (defvar custom-face-menu
-  '(("Set for Current Session" custom-face-set)
-    ("Save for Future Sessions" custom-face-save-command)
+  `(("Set for Current Session" custom-face-set)
+    ,@(when (or custom-file user-init-file)
+	'(("Save for Future Sessions" custom-face-save-command)))
     ("Reset to Saved" custom-face-reset-saved
      (lambda (widget)
        (or (get (widget-value widget) 'saved-face)
 	   (get (widget-value widget) 'saved-face-comment))))
-    ("Erase Customization" custom-face-reset-standard
-     (lambda (widget)
-       (get (widget-value widget) 'face-defface-spec)))
+    ,@(when (or custom-file user-init-file)
+	'(("Erase Customization" custom-face-reset-standard
+	   (lambda (widget)
+	     (get (widget-value widget) 'face-defface-spec)))))
     ("---" ignore ignore)
     ("Add Comment" custom-comment-show custom-comment-invisible-p)
     ("---" ignore ignore)
@@ -3282,7 +3315,12 @@ widget.  If FILTER is nil, ACTION is always valid.")
 		   (setq temp (get symbol 'saved-face-comment))
 		   (or tmp temp))
 		 (if (equal temp comment)
-		     'saved
+		     (cond
+		      ((eq 'user (caar (get symbol 'theme-face)))
+		       'saved)
+		      ((eq 'standard (caar (get symbol 'theme-face)))
+		       'changed)
+		      (t 'themed))
 		   'changed))
 		((get symbol 'face-defface-spec)
 		 (if (equal comment nil)
@@ -3329,6 +3367,7 @@ Optional EVENT is the location for the menu."
       ;; face-set-spec ignores empty attribute lists, so just give it
       ;; something harmless instead.
       (face-spec-set symbol '((t :foreground unspecified))))
+    (custom-push-theme 'theme-face symbol 'user 'set value)
     (put symbol 'customized-face-comment comment)
     (put symbol 'face-comment comment)
     (custom-face-state-set widget)
@@ -3377,6 +3416,7 @@ Optional EVENT is the location for the menu."
       (error "No saved value for this face"))
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
+    (custom-push-theme 'theme-face symbol 'user 'set value)
     (face-spec-set symbol value)
     (put symbol 'face-comment comment)
     (widget-value-set child value)
@@ -3389,8 +3429,8 @@ Optional EVENT is the location for the menu."
   (get (widget-value widget) 'face-defface-spec))
 
 (defun custom-face-reset-standard (widget)
-  "Restore WIDGET to the face's standard settings.
-This operation eliminates any saved setting for the face,
+  "Restore WIDGET to the face's standard attribute values.
+This operation eliminates any saved attributes for the face,
 restoring it to the state of a face that has never been customized."
   (let* ((symbol (widget-value widget))
 	 (child (car (widget-get widget :children)))
@@ -3400,15 +3440,12 @@ restoring it to the state of a face that has never been customized."
       (error "No standard setting for this face"))
     (put symbol 'customized-face nil)
     (put symbol 'customized-face-comment nil)
+    (custom-push-theme 'theme-face symbol 'user 'reset nil)
+    (custom-theme-recalc-face symbol)
     (when (or (get symbol 'saved-face) (get symbol 'saved-face-comment))
       (put symbol 'saved-face nil)
-      (custom-push-theme 'theme-face symbol 'user 'reset 'standard)
-      ;; Do not explictly save resets to standards without themes.
-      (if (null (cdr (get symbol 'theme-face)))
-	  (put symbol  'theme-face nil))
       (put symbol 'saved-face-comment nil)
       (custom-save-all))
-    (face-spec-set symbol value)
     (put symbol 'face-comment nil)
     (widget-value-set child value)
     ;; This call manages the comment visibility
@@ -3808,21 +3845,23 @@ Creating group members... %2d%%"
 	   (insert "/\n")))))
 
 (defvar custom-group-menu
-  '(("Set for Current Session" custom-group-set
+  `(("Set for Current Session" custom-group-set
      (lambda (widget)
        (eq (widget-get widget :custom-state) 'modified)))
-    ("Save for Future Sessions" custom-group-save
-     (lambda (widget)
-       (memq (widget-get widget :custom-state) '(modified set))))
+    ,@(when (or custom-file user-init-file)
+	'(("Save for Future Sessions" custom-group-save
+	   (lambda (widget)
+	     (memq (widget-get widget :custom-state) '(modified set))))))
     ("Reset to Current" custom-group-reset-current
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified))))
     ("Reset to Saved" custom-group-reset-saved
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified set))))
-    ("Reset to standard setting" custom-group-reset-standard
-     (lambda (widget)
-       (memq (widget-get widget :custom-state) '(modified set saved)))))
+    ,@(when (or custom-file user-init-file)
+	'(("Reset to standard setting" custom-group-reset-standard
+	   (lambda (widget)
+	     (memq (widget-get widget :custom-state) '(modified set saved)))))))
   "Alist of actions for the `custom-group' widget.
 Each entry has the form (NAME ACTION FILTER) where NAME is the name of
 the menu entry, ACTION is the function to call on the widget when the
@@ -4326,7 +4365,7 @@ The format is suitable for use with `easy-menu-define'."
     ["Save" Custom-save t]
     ["Reset to Current" Custom-reset-current t]
     ["Reset to Saved" Custom-reset-saved t]
-    ["Reset to Standard Settings" Custom-reset-standard t]
+    ["Reset to Standard Values" Custom-reset-standard t]
     ["Info" (info "(emacs)Easy Customization") t]))
 
 (defun Custom-goto-parent ()

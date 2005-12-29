@@ -5238,8 +5238,27 @@ Value is t if tooltip was open, nil otherwise.  */)
 			File selection dialog
  ***********************************************************************/
 
-#ifdef USE_MOTIF
+DEFUN ("x-uses-old-gtk-dialog", Fx_uses_old_gtk_dialog,
+       Sx_uses_old_gtk_dialog,
+       0, 0, 0,
+       doc: /* Return t if the old Gtk+ file selection dialog is used.  */)
+     ()
+{
+#ifdef USE_GTK
+  extern int use_dialog_box;
+  extern int use_file_dialog;
 
+  if (use_dialog_box
+      && use_file_dialog
+      && have_menus_p ()
+      && xg_uses_old_file_dialog ())
+    return Qt;
+#endif
+  return Qnil;
+}
+
+
+#ifdef USE_MOTIF
 /* Callback for "OK" and "Cancel" on file selection dialog.  */
 
 static void
@@ -5859,6 +5878,7 @@ variable `use-file-dialog'.  */);
   last_show_tip_args = Qnil;
   staticpro (&last_show_tip_args);
 
+  defsubr (&Sx_uses_old_gtk_dialog);
 #if defined (USE_MOTIF) || defined (USE_GTK)
   defsubr (&Sx_file_dialog);
 #endif

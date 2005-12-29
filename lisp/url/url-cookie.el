@@ -148,6 +148,8 @@ telling Microsoft that."
 ;;;###autoload
 (defun url-cookie-write-file (&optional fname)
   (setq fname (or fname url-cookie-file))
+  (unless (file-directory-p (file-name-directory fname))
+    (ignore-errors (make-directory (file-name-directory fname))))
   (cond
    ((not url-cookies-changed-since-last-save) nil)
    ((not (file-writable-p fname))
@@ -155,8 +157,7 @@ telling Microsoft that."
    (t
     (url-cookie-clean-up)
     (url-cookie-clean-up t)
-    (save-excursion
-      (set-buffer (get-buffer-create " *cookies*"))
+    (with-current-buffer (get-buffer-create " *cookies*")
       (erase-buffer)
       (fundamental-mode)
       (insert ";; Emacs-W3 HTTP cookies file\n"

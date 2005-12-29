@@ -626,63 +626,75 @@ by `custom-theme-value'.
 
 MODE can be either the symbol `set' or the symbol `reset'.  If it is the
 symbol `set', then VALUE is the value to use.  If it is the symbol
-`reset', then VALUE is another theme, whose value for this face or
-variable should be used.
+`reset', then VALUE is either another theme, which means to use the
+value defined by that theme; or nil, which means to remove SYMBOL from
+THEME entirely.
 
-In the following example for the variable `goto-address-url-face', the
-theme `subtle-hacker' uses the same value for the variable as the theme
-`gnome2':
+In the following example, the variable `goto-address-url-face' has been
+set by three different themes.  Its `theme-value' property is:
 
-  \((standard set bold)
-   \(gnome2 set info-xref)
+  \((subtle-hacker reset gnome2)
    \(jonadab set underline)
-   \(subtle-hacker reset gnome2))
+   \(gnome2 set info-xref)
 
+The theme value defined by `subtle-hacker' is in effect, because
+that theme currently has the highest precedence.  The theme
+`subtle-hacker' says to use the same value for the variable as
+the theme `gnome2'.  Therefore, the theme value of the variable
+is `info-xref'.  To change the precedence of the themes, use
+`enable-theme'.
 
-If a value has been stored for themes A B and C, and a new value
-is to be stored for theme C, then the old value of C is discarded.
-If a new value is to be stored for theme B, however, the old value
-of B is not discarded because B is not the car of the list.
+The user has not customized the variable; had he done that, the
+list would contain an entry for the `user' theme, too.
 
-For variables, list property PROP is `theme-value'.
-For faces, list property PROP is `theme-face'.
-This is used in `custom-do-theme-reset', for example.
-
-The list looks the same in any case; the examples shows a possible
-value of the `theme-face' property for the face `region':
-
-  \((gnome2 set ((t (:foreground \"cyan\" :background \"dark cyan\"))))
-   \(standard set ((((class color) (background dark))
-		   \(:background \"blue\"))
-		  \(t (:background \"gray\")))))
-
-This records values for the `standard' and the `gnome2' themes.
-The user has not customized the face; had he done that,
-the list would contain an entry for the `user' theme, too.
 See `custom-known-themes' for a list of known themes."
+  (unless (or (eq prop 'theme-value)
+	      (eq prop 'theme-face))
+    (error "Unknown theme property"))
   (let* ((old (get symbol prop))
-	 (setting (assq theme old)))
-    ;; Alter an existing theme-setting for the symbol,
-    ;; or add a new one.
-    (if setting
-	(progn
-	  (setcar (cdr setting) mode)
-	  (setcar (cddr setting) value))
-      ;; If no custom theme has been applied yet, first save the
-      ;; current values to the 'standard theme.
-      (if (null old)
-	  (if (and (eq prop 'theme-value)
-		   (boundp symbol))
-	      (setq old
-		    (list (list 'standard 'set (symbol-value symbol))))
-	    (if (facep symbol)
-		(setq old (list (list 'standard 'set (list
-		  (append '(t) (custom-face-attributes-get symbol nil)))))))))
-      (put symbol prop (cons (list theme mode value) old)))
-    ;; Record, for each theme, all its settings.
-    (put theme 'theme-settings
-	 (cons (list prop symbol theme mode value)
-	       (get theme 'theme-settings)))))
+	 (setting (assq theme old))
+	 (theme-settings (get theme 'theme-settings)))
+    (if (and (eq mode 'reset) (null value))
+	;; Remove a setting.
+	(when setting
+	  (let (res)
+	    (dolist (theme-setting theme-settings)
+	      (if (and (eq (car  theme-setting) prop)
+		       (eq (cadr theme-setting) symbol))
+		  (setq res theme-setting)))
+	    (put theme 'theme-settings (delq res theme-settings)))
+	  (put symbol prop (delq setting old)))
+      (if setting
+	  ;; Alter an existing setting.
+	  (let (res)
+	    (dolist (theme-setting theme-settings)
+	      (if (and (eq (car  theme-setting) prop)
+		       (eq (cadr theme-setting) symbol))
+		  (setq res theme-setting)))
+	    (put theme 'theme-settings
+		 (cons (list prop symbol theme mode value)
+		       (delq res theme-settings)))
+	    (setcar (cdr setting) mode)
+	    (setcar (cddr setting) value))
+	;; Add a new setting.
+	;; If the user changed the value outside of Customize, we
+	;; first save the current value to a fake theme, `standard'.
+	;; This ensures that the user-set value comes back if the
+	;; theme is later disabled.
+	(if (null old)
+	    (if (and (eq prop 'theme-value)
+		     (boundp symbol)
+		     (or (null (get symbol 'standard-value))
+			 (not (equal (eval (car (get symbol 'standard-value)))
+				     (symbol-value symbol)))))
+		(setq old (list (list 'standard 'set (symbol-value symbol))))
+	      (if (facep symbol)
+		  (setq old (list (list 'standard 'set (list
+		    (append '(t) (custom-face-attributes-get symbol nil)))))))))
+	(put symbol prop (cons (list theme mode value) old))
+	(put theme 'theme-settings
+	     (cons (list prop symbol theme mode value)
+		   theme-settings))))))
 
 (defvar custom-local-buffer nil
   "Non-nil, in a Customization buffer, means customize a specific buffer.

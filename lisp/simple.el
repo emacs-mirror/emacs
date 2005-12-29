@@ -52,15 +52,15 @@ wait this many seconds after Emacs becomes idle before doing an update."
   "Highlight (un)matching of parens and expressions."
   :group 'matching)
 
-(defun get-next-valid-buffer (list &optional buffer visible-ok frame) "\
-Search LIST for a valid buffer to display in FRAME.
+(defun get-next-valid-buffer (list &optional buffer visible-ok frame)
+  "Search LIST for a valid buffer to display in FRAME.
 Return nil when all buffers in LIST are undesirable for display,
 otherwise return the first suitable buffer in LIST.
 
 Buffers not visible in windows are preferred to visible buffers,
 unless VISIBLE-OK is non-nil.
 If the optional argument FRAME is nil, it defaults to the selected frame.
-If BUFFER is non-nil, ignore occurances of that buffer in LIST."
+If BUFFER is non-nil, ignore occurrences of that buffer in LIST."
   ;; This logic is more or less copied from other-buffer.
   (setq frame (or frame (selected-frame)))
   (let ((pred (frame-parameter frame 'buffer-predicate))
@@ -76,8 +76,8 @@ If BUFFER is non-nil, ignore occurances of that buffer in LIST."
 	(setq list (cdr list))))
     (car list)))
 
-(defun last-buffer (&optional buffer visible-ok frame) "\
-Return the last non-hidden displayable buffer in the buffer list.
+(defun last-buffer (&optional buffer visible-ok frame)
+  "Return the last non-hidden displayable buffer in the buffer list.
 If BUFFER is non-nil, last-buffer will ignore that buffer.
 Buffers not visible in windows are preferred to visible buffers,
 unless optional argument VISIBLE-OK is non-nil.
@@ -184,7 +184,7 @@ The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffer
 that normally would not qualify.  If it returns t, the buffer
 in question is treated as usable.
 
-The function EXTRA-TEST-EXCLUSIVE, if non-nil is called in each buffer
+The function EXTRA-TEST-EXCLUSIVE, if non-nil, is called in each buffer
 that would normally be considered usable.  If it returns nil,
 that buffer is rejected."
   (and (buffer-name buffer)		;First make sure it's live.
@@ -203,6 +203,7 @@ that buffer is rejected."
 					 extra-test-inclusive
 					 extra-test-exclusive)
   "Return a `next-error' capable buffer.
+
 If AVOID-CURRENT is non-nil, treat the current buffer
 as an absolute last resort only.
 
@@ -210,7 +211,7 @@ The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffer
 that normally would not qualify.  If it returns t, the buffer
 in question is treated as usable.
 
-The function EXTRA-TEST-EXCLUSIVE, if non-nil is called in each buffer
+The function EXTRA-TEST-EXCLUSIVE, if non-nil, is called in each buffer
 that would normally be considered usable.  If it returns nil,
 that buffer is rejected."
   (or
@@ -1137,7 +1138,7 @@ except when an alternate history list is specified.")
   "Control whether history list elements are expressions or strings.
 If the value of this variable equals current minibuffer depth,
 they are expressions; otherwise they are strings.
-\(That convention is designed to do the right thing fora
+\(That convention is designed to do the right thing for
 recursive uses of the minibuffer.)")
 (setq minibuffer-history-variable 'minibuffer-history)
 (setq minibuffer-history-position nil)

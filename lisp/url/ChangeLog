@@ -1,3 +1,9 @@
+2005-12-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-cookie.el (url-cookie-write-file): Create parent dir.
+
+	* url.el (url-configuration-directory): Use ~/.emacs.d if possible.
+
 2005-12-07  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
 
 	* url-cookie.el (url-cookie-save-interval): Simplify.

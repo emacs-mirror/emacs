@@ -129,7 +129,8 @@ If set to nil, disables timer-based autosaving."
 
 (defcustom savehist-mode-hook nil
   "Hook called when `savehist-mode' is turned on."
-  :type 'hook)
+  :type 'hook
+  :group 'savehist)
 
 (defcustom savehist-save-hook nil
   "Hook called by `savehist-save' before saving the variables.
