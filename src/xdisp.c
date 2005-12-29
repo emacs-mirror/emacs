@@ -7304,8 +7304,8 @@ message2_nolog (m, nbytes, multibyte)
       do_pending_window_change (0);
       echo_area_display (1);
       do_pending_window_change (0);
-      if (FRAME_DEVICE (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
-	(*FRAME_DEVICE (f)->frame_up_to_date_hook) (f);
+      if (FRAME_TERMINAL (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
+	(*FRAME_TERMINAL (f)->frame_up_to_date_hook) (f);
     }
 }
 
@@ -7408,8 +7408,8 @@ message3_nolog (m, nbytes, multibyte)
       do_pending_window_change (0);
       echo_area_display (1);
       do_pending_window_change (0);
-      if (FRAME_DEVICE (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
-	(*FRAME_DEVICE (f)->frame_up_to_date_hook) (f);
+      if (FRAME_TERMINAL (f)->frame_up_to_date_hook != 0 && ! gc_in_progress)
+	(*FRAME_TERMINAL (f)->frame_up_to_date_hook) (f);
     }
 }
 
@@ -10940,16 +10940,16 @@ redisplay_internal (preserve_echo_area)
 
 	      /* Mark all the scroll bars to be removed; we'll redeem
 		 the ones we want when we redisplay their windows.  */
-	      if (FRAME_DEVICE (f)->condemn_scroll_bars_hook)
-		FRAME_DEVICE (f)->condemn_scroll_bars_hook (f);
+	      if (FRAME_TERMINAL (f)->condemn_scroll_bars_hook)
+		FRAME_TERMINAL (f)->condemn_scroll_bars_hook (f);
 
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		redisplay_windows (FRAME_ROOT_WINDOW (f));
 
 	      /* Any scroll bars which redisplay_windows should have
 		 nuked should now go away.  */
-	      if (FRAME_DEVICE (f)->judge_scroll_bars_hook)
-		FRAME_DEVICE (f)->judge_scroll_bars_hook (f);
+	      if (FRAME_TERMINAL (f)->judge_scroll_bars_hook)
+		FRAME_TERMINAL (f)->judge_scroll_bars_hook (f);
 
 	      /* If fonts changed, display again.  */
 	      /* ??? rms: I suspect it is a mistake to jump all the way
@@ -10999,8 +10999,8 @@ redisplay_internal (preserve_echo_area)
               if (f->updated_p)
                 {
                   mark_window_display_accurate (f->root_window, 1);
-                  if (FRAME_DEVICE (f)->frame_up_to_date_hook)
-                    FRAME_DEVICE (f)->frame_up_to_date_hook (f);
+                  if (FRAME_TERMINAL (f)->frame_up_to_date_hook)
+                    FRAME_TERMINAL (f)->frame_up_to_date_hook (f);
                 }
 	    }
 	}
@@ -11086,8 +11086,8 @@ redisplay_internal (preserve_echo_area)
 	  /* Say overlay arrows are up to date.  */
 	  update_overlay_arrows (1);
 
-	  if (FRAME_DEVICE (sf)->frame_up_to_date_hook != 0)
-	    FRAME_DEVICE (sf)->frame_up_to_date_hook (sf);
+	  if (FRAME_TERMINAL (sf)->frame_up_to_date_hook != 0)
+	    FRAME_TERMINAL (sf)->frame_up_to_date_hook (sf);
 	}
 
       update_mode_lines = 0;
@@ -12343,8 +12343,8 @@ set_vertical_scroll_bar (w)
     start = end = whole = 0;
 
   /* Indicate what this scroll bar ought to be displaying now.  */
-  if (FRAME_DEVICE (XFRAME (w->frame))->set_vertical_scroll_bar_hook)
-    (*FRAME_DEVICE (XFRAME (w->frame))->set_vertical_scroll_bar_hook)
+  if (FRAME_TERMINAL (XFRAME (w->frame))->set_vertical_scroll_bar_hook)
+    (*FRAME_TERMINAL (XFRAME (w->frame))->set_vertical_scroll_bar_hook)
       (w, end - start, whole, start);
 }
 
@@ -13083,8 +13083,8 @@ redisplay_window (window, just_this_one_p)
 
       /* Note that we actually used the scroll bar attached to this
 	 window, so it shouldn't be deleted at the end of redisplay.  */
-      if (FRAME_DEVICE (f)->redeem_scroll_bar_hook)
-        (*FRAME_DEVICE (f)->redeem_scroll_bar_hook) (w);
+      if (FRAME_TERMINAL (f)->redeem_scroll_bar_hook)
+        (*FRAME_TERMINAL (f)->redeem_scroll_bar_hook) (w);
     }
 
   /* Restore current_buffer and value of point in it.  */

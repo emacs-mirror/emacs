@@ -4879,7 +4879,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 	   (funcall confirm-kill-emacs "Really exit Emacs? "))
        (kill-emacs)))
 
-(defun save-buffers-kill-display (&optional arg)
+(defun save-buffers-kill-terminal (&optional arg)
   "Offer to save each buffer, then kill the current connection.
 If the current frame has no client, kill Emacs itself.
 
@@ -4892,7 +4892,7 @@ only these files will be asked to be saved."
 	(frame (selected-frame)))
     (if (null proc)
 	(save-buffers-kill-emacs)
-      (server-save-buffers-kill-display proc arg))))
+      (server-save-buffers-kill-terminal proc arg))))
 
 
 ;; We use /: as a prefix to "quote" a file name
@@ -4991,7 +4991,7 @@ only these files will be asked to be saved."
 (define-key ctl-x-map "i" 'insert-file)
 (define-key esc-map "~" 'not-modified)
 (define-key ctl-x-map "\C-d" 'list-directory)
-(define-key ctl-x-map "\C-c" 'save-buffers-kill-display)
+(define-key ctl-x-map "\C-c" 'save-buffers-kill-terminal)
 (define-key ctl-x-map "\C-q" 'toggle-read-only)
 
 (define-key ctl-x-4-map "f" 'find-file-other-window)

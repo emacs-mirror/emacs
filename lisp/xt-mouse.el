@@ -197,18 +197,18 @@ down the SHIFT key while pressing the mouse button."
 
 (defun turn-on-xterm-mouse-tracking-on-terminal (terminal)
   "Enable xterm mouse tracking on TERMINAL."
-  (when (and xterm-mouse-mode (eq t (display-live-p terminal)))
+  (when (and xterm-mouse-mode (eq t (terminal-live-p terminal)))
     (send-string-to-terminal "\e[?1000h" terminal)))
 
 (defun turn-off-xterm-mouse-tracking-on-terminal (terminal)
   "Disable xterm mouse tracking on TERMINAL."
-  (when (and xterm-mouse-mode (eq t (display-live-p terminal)))
+  (when (and xterm-mouse-mode (eq t (terminal-live-p terminal)))
     (send-string-to-terminal "\e[?1000l" terminal)))
 
 (defun xterm-mouse-handle-delete-frame (frame)
   "Turn off xterm mouse tracking if FRAME is the last frame on its device."
   (when (and (eq t (frame-live-p frame))
-	     (<= 1 (length (frames-on-display-list (frame-display frame)))))
+	     (<= 1 (length (frames-on-display-list (frame-terminal frame)))))
     (turn-off-xterm-mouse-tracking-on-terminal frame)))
 
 ;; Frame creation and deletion.

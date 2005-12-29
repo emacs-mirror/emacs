@@ -34,17 +34,17 @@ TERMINAL may be the name of an X display
 device (HOST.SERVER.SCREEN) or a tty device file."
   (cond
    ((integerp terminal)
-    (if (display-live-p terminal)
+    (if (terminal-live-p terminal)
 	terminal
-      (signal 'wrong-type-argument (list 'display-live-p terminal))))
+      (signal 'wrong-type-argument (list 'terminal-live-p terminal))))
    ((or (null terminal) (framep terminal))
-    (frame-display terminal))
+    (frame-terminal terminal))
    ((stringp terminal)
     (let ((f (car (filtered-frame-list (lambda (frame)
 					 (or (equal (frame-parameter frame 'display) terminal)
 					     (equal (frame-parameter frame 'tty) terminal)))))))
       (or f (error "Display %s does not exist" terminal))
-      (frame-display f)))
+      (frame-terminal f)))
    (t
     (error "Invalid argument %s in `terminal-id'" terminal))))
 

@@ -1010,7 +1010,7 @@ x_handle_selection_clear (event)
      to see if this Emacs job now owns the selection
      through that display.  */
   for (t_dpyinfo = x_display_list; t_dpyinfo; t_dpyinfo = t_dpyinfo->next)
-    if (t_dpyinfo->device->kboard == dpyinfo->device->kboard)
+    if (t_dpyinfo->terminal->kboard == dpyinfo->terminal->kboard)
       {
 	Window owner_window
 	  = XGetSelectionOwner (t_dpyinfo->display, selection);

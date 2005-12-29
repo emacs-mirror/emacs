@@ -87,7 +87,7 @@ static void tty_show_cursor P_ ((struct tty_display_info *));
 static void tty_hide_cursor P_ ((struct tty_display_info *));
 static void tty_background_highlight P_ ((struct tty_display_info *tty));
 static void dissociate_if_controlling_tty P_ ((int fd));
-static void delete_tty P_ ((struct device *));
+static void delete_tty P_ ((struct terminal *));
 
 #define OUTPUT(tty, a)                                          \
   emacs_tputs ((tty), a,                                        \
@@ -198,9 +198,9 @@ tty_ring_bell (struct frame *f)
 /* Set up termcap modes for Emacs. */
 
 void
-tty_set_terminal_modes (struct device *display)
+tty_set_terminal_modes (struct terminal *terminal)
 {
-  struct tty_display_info *tty = display->display_info.tty;
+  struct tty_display_info *tty = terminal->display_info.tty;
   
   if (tty->output)
     {
@@ -227,9 +227,9 @@ tty_set_terminal_modes (struct device *display)
 /* Reset termcap modes before exiting Emacs. */
 
 void
-tty_reset_terminal_modes (struct device *display)
+tty_reset_terminal_modes (struct terminal *terminal)
 {
-  struct tty_display_info *tty = display->display_info.tty;
+  struct tty_display_info *tty = terminal->display_info.tty;
 
   if (tty->output)
     {
@@ -246,7 +246,7 @@ tty_reset_terminal_modes (struct device *display)
     }
 }
 
-/* Flag the end of a display update on a termcap display. */
+/* Flag the end of a display update on a termcap terminal. */
 
 static void
 tty_update_end (struct frame *f)
@@ -1809,30 +1809,37 @@ tty_capable_p (tty, caps, fg, bg)
 
 DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
        0, 1, 0,
-       doc: /* Return non-nil if the display device DEVICE can display colors.
-DEVICE must be a tty device.  */)
-     (device)
-     Lisp_Object device;
+       doc: /* Return non-nil if the tty device TERMINAL can display colors.
+
+TERMINAL can be a terminal id, a frame or nil (meaning the selected
+frame's terminal).  This function always returns nil if TERMINAL
+is not on a tty device.  */)
+     (terminal)
+     Lisp_Object terminal;
 {
-  struct device *d = get_tty_device (device);
-  if (!d)
+  struct terminal *t = get_tty_terminal (terminal);
+  if (!t)
     return Qnil;
   else
-    return d->display_info.tty->TN_max_colors > 0 ? Qt : Qnil;
+    return t->display_info.tty->TN_max_colors > 0 ? Qt : Qnil;
 }
 
 /* Return the number of supported colors.  */
 DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
        Stty_display_color_cells, 0, 1, 0,
-       doc: /* Return the number of colors supported by the tty device DEVICE.  */)
-     (device)
-     Lisp_Object device;
+       doc: /* Return the number of colors supported by the tty device TERMINAL.
+
+TERMINAL can be a terminal id, a frame or nil (meaning the selected
+frame's terminal).  This function always returns nil if TERMINAL
+is not on a tty device.  */)
+     (terminal)
+     Lisp_Object terminal;
 {
-  struct device *d = get_tty_device (device);
-  if (!d)
+  struct terminal *t = get_tty_terminal (terminal);
+  if (!t)
     return make_number (0);
   else
-    return make_number (d->display_info.tty->TN_max_colors);
+    return make_number (t->display_info.tty->TN_max_colors);
 }
 
 #ifndef WINDOWSNT
@@ -1974,20 +1981,20 @@ set_tty_color_mode (f, val)
 
 
 
-/* Return the tty display object specified by DEVICE. */
+/* Return the tty display object specified by TERMINAL. */
 
-struct device *
-get_tty_device (Lisp_Object terminal)
+struct terminal *
+get_tty_terminal (Lisp_Object terminal)
 {
-  struct device *d = get_device (terminal, 0);
+  struct terminal *t = get_terminal (terminal, 0);
 
-  if (d && d->type == output_initial)
-    d = NULL;
+  if (t && t->type == output_initial)
+    t = NULL;
 
-  if (d && d->type != output_termcap)
-    error ("Device %d is not a termcap display device", d->id);
+  if (t && t->type != output_termcap)
+    error ("Device %d is not a termcap terminal device", t->id);
 
-  return d;
+  return t;
 }
 
 /* Return the active termcap device that uses the tty device with the
@@ -1998,75 +2005,77 @@ get_tty_device (Lisp_Object terminal)
 
    Returns NULL if the named terminal device is not opened.  */
  
-struct device *
+struct terminal *
 get_named_tty (name)
      char *name;
 {
-  struct device *d;
+  struct terminal *t;
 
-  for (d = device_list; d; d = d->next_device) {
-    if (d->type == output_termcap
-        && ((d->display_info.tty->name == 0 && name == 0)
-            || (name && d->display_info.tty->name
-                && !strcmp (d->display_info.tty->name, name)))
-        && DEVICE_ACTIVE_P (d))
-      return d;
+  for (t = terminal_list; t; t = t->next_terminal) {
+    if (t->type == output_termcap
+        && ((t->display_info.tty->name == 0 && name == 0)
+            || (name && t->display_info.tty->name
+                && !strcmp (t->display_info.tty->name, name)))
+        && TERMINAL_ACTIVE_P (t))
+      return t;
   };
 
   return 0;
 }
 
 
-DEFUN ("display-tty-type", Fdisplay_tty_type, Sdisplay_tty_type, 0, 1, 0,
-       doc: /* Return the type of the tty device that DEVICE uses.
+DEFUN ("tty-type", Ftty_type, Stty_type, 0, 1, 0,
+       doc: /* Return the type of the tty device that TERMINAL uses.
 
-DEVICE may be a display device id, a frame, or nil (meaning the
-selected frame's display device). */)
-  (device)
-     Lisp_Object device;
+TERMINAL can be a terminal id, a frame or nil (meaning the selected
+frame's terminal).  */)
+     (terminal)
+     Lisp_Object terminal;
 {
-  struct device *d = get_device (device, 1);
+  struct terminal *t = get_terminal (terminal, 1);
 
-  if (d->type != output_termcap)
-    error ("Display %d is not a termcap display", d->id);
+  if (t->type != output_termcap)
+    error ("Terminal %d is not a termcap terminal", t->id);
            
-  if (d->display_info.tty->type)
-    return build_string (d->display_info.tty->type);
+  if (t->display_info.tty->type)
+    return build_string (t->display_info.tty->type);
   else
     return Qnil;
 }
 
-DEFUN ("display-controlling-tty-p", Fdisplay_controlling_tty_p, Sdisplay_controlling_tty_p, 0, 1, 0,
-       doc: /* Return non-nil if DEVICE is on the controlling tty of the Emacs process.
+DEFUN ("controlling-tty-p", Fcontrolling_tty_p, Scontrolling_tty_p, 0, 1, 0,
+       doc: /* Return non-nil if TERMINAL is on the controlling tty of the Emacs process.
 
-DEVICE may be a display device id, a frame, or nil (meaning the
-selected frame's display device).  */)
-  (device)
-     Lisp_Object device;
+TERMINAL can be a terminal id, a frame or nil (meaning the selected
+frame's terminal).  This function always returns nil if TERMINAL
+is not on a tty device.  */)
+     (terminal)
+     Lisp_Object terminal;
 {
-  struct device *d = get_device (device, 1);
+  struct terminal *t = get_terminal (terminal, 1);
 
-  if (d->type != output_termcap || d->display_info.tty->name)
+  if (t->type != output_termcap || t->display_info.tty->name)
     return Qnil;
   else
     return Qt;
 }
 
 DEFUN ("tty-no-underline", Ftty_no_underline, Stty_no_underline, 0, 1, 0,
-       doc: /* Declare that the tty used by DEVICE does not handle underlining.
+       doc: /* Declare that the tty used by TERMINAL does not handle underlining.
 This is used to override the terminfo data, for certain terminals that
 do not really do underlining, but say that they do.  This function has
-no effect if used on a non-tty display.
+no effect if used on a non-tty terminal.
 
-DEVICE may be a display device id, a frame, or nil (meaning the
-selected frame's display device).  */)
-  (device)
-     Lisp_Object device;
+TERMINAL can be a terminal id, a frame or nil (meaning the selected
+frame's terminal).  This function always returns nil if TERMINAL
+is not on a tty device.  */)
+  (terminal)
+     Lisp_Object terminal;
 {
-  struct device *d = get_device (device, 1);
+  struct terminal *t = get_terminal (terminal, 1);
 
-  if (d->type == output_termcap)
-    d->display_info.tty->TS_enter_underline_mode = 0;
+  if (t->type == output_termcap)
+    t->display_info.tty->TS_enter_underline_mode = 0;
   return Qnil;
 }
 
@@ -2094,36 +2103,36 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
      (tty)
      Lisp_Object tty;
 {
-  struct device *d = get_tty_device (tty);
+  struct terminal *t = get_tty_terminal (tty);
   FILE *f;
   
-  if (!d)
+  if (!t)
     error ("Unknown tty device");
 
-  f = d->display_info.tty->input;
+  f = t->display_info.tty->input;
   
   if (f)
     {
-      reset_sys_modes (d->display_info.tty);
+      reset_sys_modes (t->display_info.tty);
 
       delete_keyboard_wait_descriptor (fileno (f));
       
       fclose (f);
-      if (f != d->display_info.tty->output)
-        fclose (d->display_info.tty->output);
+      if (f != t->display_info.tty->output)
+        fclose (t->display_info.tty->output);
       
-      d->display_info.tty->input = 0;
-      d->display_info.tty->output = 0;
+      t->display_info.tty->input = 0;
+      t->display_info.tty->output = 0;
 
-      if (FRAMEP (d->display_info.tty->top_frame))
-        FRAME_SET_VISIBLE (XFRAME (d->display_info.tty->top_frame), 0);
+      if (FRAMEP (t->display_info.tty->top_frame))
+        FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 0);
       
       /* Run `suspend-tty-functions'.  */
       if (!NILP (Vrun_hooks))
         {
           Lisp_Object args[2];
           args[0] = intern ("suspend-tty-functions");
-          args[1] = make_number (d->id);
+          args[1] = make_number (t->id);
           Frun_hook_with_args (2, args);
         }
     }
@@ -2134,56 +2143,56 @@ A suspended tty may be resumed by calling `resume-tty' on it.  */)
 DEFUN ("resume-tty", Fresume_tty, Sresume_tty, 0, 1, 0,
        doc: /* Resume the previously suspended terminal device TTY.
 The terminal is opened and reinitialized.  Frames that are on the
-suspended display are revived.
+suspended terminal are revived.
 
-It is an error to resume a display while another display is active on
-the same device.
+It is an error to resume a terminal while another terminal is active
+on the same device.
 
-This function runs `resume-tty-functions' after resuming the device.
-The functions are run with one arg, the id of the resumed display
+This function runs `resume-tty-functions' after resuming the terminal.
+The functions are run with one arg, the id of the resumed terminal
 device.
 
 `resume-tty' does nothing if it is called on a device that is not
 suspended.
 
-TTY may be a display device id, a frame, or nil for the display device
-of the currently selected frame. */)
+TTY may be a terminal id, a frame, or nil for the terminal device of
+the currently selected frame. */)
      (tty)
      Lisp_Object tty;
 {
-  struct device *d = get_tty_device (tty);
+  struct terminal *t = get_tty_terminal (tty);
   int fd;
 
-  if (!d)
+  if (!t)
     error ("Unknown tty device");
 
-  if (!d->display_info.tty->input)
+  if (!t->display_info.tty->input)
     {
-      if (get_named_tty (d->display_info.tty->name))
+      if (get_named_tty (t->display_info.tty->name))
         error ("Cannot resume display while another display is active on the same device");
 
-      fd = emacs_open (d->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
+      fd = emacs_open (t->display_info.tty->name, O_RDWR | O_NOCTTY, 0);
 
       /* XXX What if open fails? */
 
       dissociate_if_controlling_tty (fd);
       
-      d->display_info.tty->output = fdopen (fd, "w+");
-      d->display_info.tty->input = d->display_info.tty->output;
+      t->display_info.tty->output = fdopen (fd, "w+");
+      t->display_info.tty->input = t->display_info.tty->output;
     
       add_keyboard_wait_descriptor (fd);
 
-      if (FRAMEP (d->display_info.tty->top_frame))
-        FRAME_SET_VISIBLE (XFRAME (d->display_info.tty->top_frame), 1);
+      if (FRAMEP (t->display_info.tty->top_frame))
+        FRAME_SET_VISIBLE (XFRAME (t->display_info.tty->top_frame), 1);
 
-      init_sys_modes (d->display_info.tty);
+      init_sys_modes (t->display_info.tty);
 
       /* Run `suspend-tty-functions'.  */
       if (!NILP (Vrun_hooks))
         {
           Lisp_Object args[2];
           args[0] = intern ("resume-tty-functions");
-          args[1] = make_number (d->id);
+          args[1] = make_number (t->id);
           Frun_hook_with_args (2, args);
         }
     }
@@ -2210,7 +2219,7 @@ create_tty_output (struct frame *f)
   t = xmalloc (sizeof (struct tty_output));
   bzero (t, sizeof (struct tty_output));
 
-  t->display_info = FRAME_DEVICE (f)->display_info.tty;
+  t->display_info = FRAME_TERMINAL (f)->display_info.tty;
 
   f->output_data.tty = t;
 }
@@ -2271,7 +2280,7 @@ static void maybe_fatal();
 
    If MUST_SUCCEED is true, then all errors are fatal. */
 
-struct device *
+struct terminal *
 init_tty (char *name, char *terminal_type, int must_succeed)
 {
   char *area;
@@ -2281,72 +2290,72 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   register char *p;
   int status;
   struct tty_display_info *tty;
-  struct device *device;
+  struct terminal *terminal;
 
   if (!terminal_type)
     maybe_fatal (must_succeed, 0, 0,
                  "Unknown terminal type",
                  "Unknown terminal type");
 
-  /* If we already have a display on the given device, use that.  If
-     all such displays are suspended, create a new one instead.  */
+  /* If we already have a terminal on the given device, use that.  If
+     all such terminals are suspended, create a new one instead.  */
   /* XXX Perhaps this should be made explicit by having init_tty
-     always create a new display and separating device and frame
+     always create a new terminal and separating terminal and frame
      creation on Lisp level.  */
-  device = get_named_tty (name);
-  if (device)
-    return device;
+  terminal = get_named_tty (name);
+  if (terminal)
+    return terminal;
 
-  device = create_device ();
+  terminal = create_terminal ();
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
   bzero (tty, sizeof (struct tty_display_info));
   tty->next = tty_list;
   tty_list = tty;
 
-  device->type = output_termcap;
-  device->display_info.tty = tty;
-  tty->device = device;
+  terminal->type = output_termcap;
+  terminal->display_info.tty = tty;
+  tty->terminal = terminal;
 
   tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
   Wcm_clear (tty);
 
-  device->rif = 0; /* ttys don't support window-based redisplay. */
+  terminal->rif = 0; /* ttys don't support window-based redisplay. */
 
-  device->cursor_to_hook = &tty_cursor_to;
-  device->raw_cursor_to_hook = &tty_raw_cursor_to;
+  terminal->cursor_to_hook = &tty_cursor_to;
+  terminal->raw_cursor_to_hook = &tty_raw_cursor_to;
 
-  device->clear_to_end_hook = &tty_clear_to_end;
-  device->clear_frame_hook = &tty_clear_frame;
-  device->clear_end_of_line_hook = &tty_clear_end_of_line;
+  terminal->clear_to_end_hook = &tty_clear_to_end;
+  terminal->clear_frame_hook = &tty_clear_frame;
+  terminal->clear_end_of_line_hook = &tty_clear_end_of_line;
 
-  device->ins_del_lines_hook = &tty_ins_del_lines;
+  terminal->ins_del_lines_hook = &tty_ins_del_lines;
 
-  device->insert_glyphs_hook = &tty_insert_glyphs;
-  device->write_glyphs_hook = &tty_write_glyphs;
-  device->delete_glyphs_hook = &tty_delete_glyphs;
+  terminal->insert_glyphs_hook = &tty_insert_glyphs;
+  terminal->write_glyphs_hook = &tty_write_glyphs;
+  terminal->delete_glyphs_hook = &tty_delete_glyphs;
 
-  device->ring_bell_hook = &tty_ring_bell;
+  terminal->ring_bell_hook = &tty_ring_bell;
   
-  device->reset_terminal_modes_hook = &tty_reset_terminal_modes;
-  device->set_terminal_modes_hook = &tty_set_terminal_modes;
-  device->update_begin_hook = 0; /* Not needed. */
-  device->update_end_hook = &tty_update_end;
-  device->set_terminal_window_hook = &tty_set_terminal_window;
+  terminal->reset_terminal_modes_hook = &tty_reset_terminal_modes;
+  terminal->set_terminal_modes_hook = &tty_set_terminal_modes;
+  terminal->update_begin_hook = 0; /* Not needed. */
+  terminal->update_end_hook = &tty_update_end;
+  terminal->set_terminal_window_hook = &tty_set_terminal_window;
 
-  device->mouse_position_hook = 0; /* Not needed. */
-  device->frame_rehighlight_hook = 0; /* Not needed. */
-  device->frame_raise_lower_hook = 0; /* Not needed. */
+  terminal->mouse_position_hook = 0; /* Not needed. */
+  terminal->frame_rehighlight_hook = 0; /* Not needed. */
+  terminal->frame_raise_lower_hook = 0; /* Not needed. */
 
-  device->set_vertical_scroll_bar_hook = 0; /* Not needed. */
-  device->condemn_scroll_bars_hook = 0; /* Not needed. */
-  device->redeem_scroll_bar_hook = 0; /* Not needed. */
-  device->judge_scroll_bars_hook = 0; /* Not needed. */
+  terminal->set_vertical_scroll_bar_hook = 0; /* Not needed. */
+  terminal->condemn_scroll_bars_hook = 0; /* Not needed. */
+  terminal->redeem_scroll_bar_hook = 0; /* Not needed. */
+  terminal->judge_scroll_bars_hook = 0; /* Not needed. */
 
-  device->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
-  device->frame_up_to_date_hook = 0; /* Not needed. */
+  terminal->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
+  terminal->frame_up_to_date_hook = 0; /* Not needed. */
   
-  device->delete_frame_hook = &delete_tty_output;
-  device->delete_device_hook = &delete_tty;
+  terminal->delete_frame_hook = &delete_tty_output;
+  terminal->delete_terminal_hook = &delete_tty;
   
   if (name)
     {
@@ -2370,7 +2379,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
       if (fd < 0)
         {
-          delete_tty (device);
+          delete_tty (terminal);
           error ("Could not open file: %s", name);
         }
       if (!isatty (fd))
@@ -2383,7 +2392,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
       
       file = fdopen (fd, "w+");
       tty->name = xstrdup (name);
-      device->name = xstrdup (name);
+      terminal->name = xstrdup (name);
       tty->input = file;
       tty->output = file;
     }
@@ -2396,7 +2405,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
           error ("There is no controlling terminal any more");
         }
       tty->name = 0;
-      device->name = xstrdup (ttyname (0));
+      terminal->name = xstrdup (ttyname (0));
       tty->input = stdin;
       tty->output = stdout;
     }
@@ -2418,16 +2427,16 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   FrameCols (tty) = FRAME_COLS (f);  /* XXX */
   tty->specified_window = FRAME_LINES (f); /* XXX */
 
-  tty->device->delete_in_insert_mode = 1;
+  tty->terminal->delete_in_insert_mode = 1;
 
   UseTabs (tty) = 0;
-  device->scroll_region_ok = 0;
+  terminal->scroll_region_ok = 0;
 
   /* Seems to insert lines when it's not supposed to, messing up the
-     device.  In doing a trace, it didn't seem to be called much, so I
+     display.  In doing a trace, it didn't seem to be called much, so I
      don't think we're losing anything by turning it off.  */
-  device->line_ins_del_ok = 0;
-  device->char_ins_del_ok = 1;
+  terminal->line_ins_del_ok = 0;
+  terminal->char_ins_del_ok = 1;
 
   baud_rate = 19200;
 
@@ -2435,7 +2444,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none; /* XXX */
   TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 
-  return device;
+  return terminal;
 #else  /* not WINDOWSNT */
 
   Wcm_clear (tty);
@@ -2451,11 +2460,11 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   if (status < 0)
     {
 #ifdef TERMINFO
-      maybe_fatal (must_succeed, buffer, device,
+      maybe_fatal (must_succeed, buffer, terminal,
                    "Cannot open terminfo database file",
                    "Cannot open terminfo database file");
 #else
-      maybe_fatal (must_succeed, buffer, device,
+      maybe_fatal (must_succeed, buffer, terminal,
                    "Cannot open termcap database file",
                    "Cannot open termcap database file");
 #endif
@@ -2463,7 +2472,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   if (status == 0)
     {
 #ifdef TERMINFO
-      maybe_fatal (must_succeed, buffer, device,
+      maybe_fatal (must_succeed, buffer, terminal,
                    "Terminal type %s is not defined",
                    "Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
@@ -2472,7 +2481,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
                    terminal_type);
 #else
-      maybe_fatal (must_succeed, buffer, device,
+      maybe_fatal (must_succeed, buffer, terminal,
                    "Terminal type %s is not defined",
                    "Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
@@ -2594,9 +2603,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
      the former flag imply the latter.  */
   AutoWrap (tty) = MagicWrap (tty) || tgetflag ("am");
-  device->memory_below_frame = tgetflag ("db");
+  terminal->memory_below_frame = tgetflag ("db");
   tty->TF_hazeltine = tgetflag ("hz");
-  device->must_write_spaces = tgetflag ("in");
+  terminal->must_write_spaces = tgetflag ("in");
   tty->meta_key = tgetflag ("km") || tgetflag ("MT");
   tty->TF_insmode_motion = tgetflag ("mi");
   tty->TF_standout_motion = tgetflag ("ms");
@@ -2604,19 +2613,19 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   tty->TF_teleray = tgetflag ("xt");
 
 #ifdef MULTI_KBOARD
-  device->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
-  init_kboard (device->kboard);
-  device->kboard->next_kboard = all_kboards;
-  all_kboards = device->kboard;
-  device->kboard->reference_count++;
+  terminal->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  init_kboard (terminal->kboard);
+  terminal->kboard->next_kboard = all_kboards;
+  all_kboards = terminal->kboard;
+  terminal->kboard->reference_count++;
   /* Don't let the initial kboard remain current longer than necessary.
      That would cause problems if a file loaded on startup tries to
      prompt in the mini-buffer.  */
   if (current_kboard == initial_kboard)
-    current_kboard = device->kboard;
+    current_kboard = terminal->kboard;
 #endif
 
-  term_get_fkeys (address, device->kboard);
+  term_get_fkeys (address, terminal->kboard);
 
   /* Get frame size from system, or else from termcap.  */
   {
@@ -2632,13 +2641,13 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     FrameRows (tty) = tgetnum ("li");
 
   if (FrameRows (tty) < 3 || FrameCols (tty) < 3)
-    maybe_fatal (must_succeed, NULL, device,
+    maybe_fatal (must_succeed, NULL, terminal,
                  "Screen size %dx%d is too small"
                  "Screen size %dx%d is too small",
                  FrameCols (tty), FrameRows (tty));
 
 #if 0  /* This is not used anywhere. */
-  tty->device->min_padding_speed = tgetnum ("pb");
+  tty->terminal->min_padding_speed = tgetnum ("pb");
 #endif
 
   TabWidth (tty) = tgetnum ("tw");
@@ -2716,7 +2725,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (!strcmp (terminal_type, "supdup"))
     {
-      device->memory_below_frame = 1;
+      terminal->memory_below_frame = 1;
       tty->Wcm->cm_losewrap = 1;
     }
   if (!strncmp (terminal_type, "c10", 3)
@@ -2743,7 +2752,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	    tty->TS_set_window = "\033v%C %C %C %C ";
 	}
       /* Termcap entry often fails to have :in: flag */
-      device->must_write_spaces = 1;
+      terminal->must_write_spaces = 1;
       /* :ti string typically fails to have \E^G! in it */
       /* This limits scope of insert-char to one line.  */
       strcpy (area, tty->TS_termcap_modes);
@@ -2765,7 +2774,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (Wcm_init (tty) == -1)	/* can't do cursor motion */
     {
-      maybe_fatal (must_succeed, NULL, device,
+      maybe_fatal (must_succeed, NULL, terminal,
                    "Terminal type \"%s\" is not powerful enough to run Emacs",
 #ifdef VMS
                    "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
@@ -2794,7 +2803,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     }
 
   if (FrameRows (tty) <= 0 || FrameCols (tty) <= 0)
-    maybe_fatal (must_succeed, NULL, device,
+    maybe_fatal (must_succeed, NULL, terminal,
                  "Could not determine the frame size",
                  "Could not determine the frame size");
 
@@ -2808,30 +2817,30 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   UseTabs (tty) = tabs_safe_p (fileno (tty->input)) && TabWidth (tty) == 8;
 
-  device->scroll_region_ok
+  terminal->scroll_region_ok
     = (tty->Wcm->cm_abs
        && (tty->TS_set_window || tty->TS_set_scroll_region || tty->TS_set_scroll_region_1));
 
-  device->line_ins_del_ok
+  terminal->line_ins_del_ok
     = (((tty->TS_ins_line || tty->TS_ins_multi_lines)
         && (tty->TS_del_line || tty->TS_del_multi_lines))
-       || (device->scroll_region_ok
+       || (terminal->scroll_region_ok
            && tty->TS_fwd_scroll && tty->TS_rev_scroll));
 
-  device->char_ins_del_ok
+  terminal->char_ins_del_ok
     = ((tty->TS_ins_char || tty->TS_insert_mode
         || tty->TS_pad_inserted_char || tty->TS_ins_multi_chars)
        && (tty->TS_del_char || tty->TS_del_multi_chars));
 
-  device->fast_clear_end_of_line = tty->TS_clr_line != 0;
+  terminal->fast_clear_end_of_line = tty->TS_clr_line != 0;
 
   init_baud_rate (fileno (tty->input));
 
 #ifdef AIXHFT
   /* The HFT system on AIX doesn't optimize for scrolling, so it's
      really ugly at times.  */
-  device->line_ins_del_ok = 0;
-  device->char_ins_del_ok = 0;
+  terminal->line_ins_del_ok = 0;
+  terminal->char_ins_del_ok = 0;
 #endif
 
   /* Don't do this.  I think termcap may still need the buffer. */
@@ -2840,26 +2849,26 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
   init_sys_modes (tty);
 
-  return device;
+  return terminal;
 #endif /* not WINDOWSNT */
 }
 
 /* Auxiliary error-handling function for init_tty.
-   Free BUFFER and delete DEVICE, then call error or fatal
+   Free BUFFER and delete TERMINAL, then call error or fatal
    with str1 or str2, respectively, according to MUST_SUCCEED.  */
 
 static void
-maybe_fatal (must_succeed, buffer, device, str1, str2, arg1, arg2)
+maybe_fatal (must_succeed, buffer, terminal, str1, str2, arg1, arg2)
      int must_succeed;
      char *buffer;
-     struct device *device;
+     struct terminal *terminal;
      char *str1, *str2, *arg1, *arg2;
 {
   if (buffer)
     xfree (buffer);
 
-  if (device)
-    delete_tty (device);
+  if (terminal)
+    delete_tty (terminal);
   
   if (must_succeed)
     fatal (str2, arg1, arg2);
@@ -2886,38 +2895,38 @@ fatal (str, arg1, arg2)
 static int deleting_tty = 0;
 
 
-/* Delete the given terminal device, closing all frames on it. */
+/* Delete the given tty terminal, closing all frames on it. */
 
 static void
-delete_tty (struct device *device)
+delete_tty (struct terminal *terminal)
 {
   struct tty_display_info *tty;
   Lisp_Object tail, frame;
   char *tty_name;
-  int last_device;
+  int last_terminal;
   
   if (deleting_tty)
     /* We get a recursive call when we delete the last frame on this
-       device. */
+       terminal. */
     return;
 
-  if (device->type != output_termcap)
+  if (terminal->type != output_termcap)
     abort ();
 
-  tty = device->display_info.tty;
+  tty = terminal->display_info.tty;
   
-  last_device = 1;
+  last_terminal = 1;
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
       if (FRAME_LIVE_P (f) && (!FRAME_TERMCAP_P (f) || FRAME_TTY (f) != tty))
         {
-          last_device = 0;
+          last_terminal = 0;
           break;
         }
     }
-  if (last_device)
-      error ("Attempt to delete the sole display device with live frames");
+  if (last_terminal)
+      error ("Attempt to delete the sole terminal device with live frames");
   
   if (tty == tty_list)
     tty_list = tty->next;
@@ -2947,10 +2956,10 @@ delete_tty (struct device *device)
     }
 
   /* reset_sys_modes needs a valid device, so this call needs to be
-     before delete_device. */
+     before delete_terminal. */
   reset_sys_modes (tty);
 
-  delete_device (device);
+  delete_terminal (terminal);
 
   tty_name = tty->name;
   if (tty->type)
@@ -3025,8 +3034,8 @@ See `resume-tty'.  */);
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
   defsubr (&Stty_no_underline);
-  defsubr (&Sdisplay_tty_type);
-  defsubr (&Sdisplay_controlling_tty_p);
+  defsubr (&Stty_type);
+  defsubr (&Scontrolling_tty_p);
   defsubr (&Ssuspend_tty);
   defsubr (&Sresume_tty);
 }

@@ -651,7 +651,7 @@ You cannot specify either `width' or `height', you must use neither or both.
  (window-system . nil)	The frame should be displayed on a terminal device.
  (window-system . x)	The frame should be displayed in an X window.
 
- (device . ID)          The frame should use the display device identified by ID.
+ (terminal . ID)          The frame should use the terminal identified by ID.
 
 Before the frame is created (via `frame-creation-function-alist'), functions on the
 hook `before-make-frame-hook' are run.  After the frame is created, functions
@@ -664,11 +664,11 @@ instance if the frame appears under the mouse pointer and your
 setup is for focus to follow the pointer."
   (interactive)
   (let* ((w (cond
-	     ((assq 'device parameters)
-	      (let ((type (display-live-p (cdr (assq 'device parameters)))))
+	     ((assq 'terminal parameters)
+	      (let ((type (terminal-live-p (cdr (assq 'terminal parameters)))))
 		(cond
 		 ((eq type t) nil)
-		 ((eq type nil) (error "Display %s does not exist" (cdr (assq 'device parameters))))
+		 ((eq type nil) (error "Terminal %s does not exist" (cdr (assq 'terminal parameters))))
 		 (t type))))
 	     ((assq 'window-system parameters)
 	      (cdr (assq 'window-system parameters)))
@@ -682,7 +682,7 @@ setup is for focus to follow the pointer."
     (setq frame (funcall frame-creation-function (append parameters (cdr (assq w window-system-default-frame-alist)))))
     (normal-erase-is-backspace-setup-frame frame)
     ;; Set up the frame-local environment, if needed.
-    (when (eq (frame-display frame) (frame-display oldframe))
+    (when (eq (frame-terminal frame) (frame-terminal oldframe))
       (let ((env (frame-parameter oldframe 'environment)))
 	(if (not (framep env))
 	    (setq env oldframe))
@@ -718,7 +718,7 @@ If TERMINAL is omitted or nil, it defaults to the selected
 frame's terminal device."
   (let* ((terminal (terminal-id terminal))
 	 (func #'(lambda (frame)
-		   (eq (frame-display frame) terminal))))
+		   (eq (frame-terminal frame) terminal))))
     (filtered-frame-list func)))
 
 (defun framep-on-display (&optional terminal)
@@ -727,7 +727,7 @@ TERMINAL may be a terminal id, a display name or a frame.  If it
 is a frame, its type is returned.  If TERMINAL is omitted or nil,
 it defaults to the selected frame's terminal device.  All frames
 on a given display are of the same type."
-  (or (display-live-p terminal)
+  (or (terminal-live-p terminal)
       (framep terminal)
       (framep (car (frames-on-display-list terminal)))))
 
@@ -815,7 +815,7 @@ Calls `suspend-emacs' if invoked from the controlling tty device,
     (cond
      ((eq type 'x) (iconify-or-deiconify-frame))
      ((eq type t)
-      (if (display-controlling-tty-p)
+      (if (controlling-tty-p)
 	  (suspend-emacs)
 	(suspend-tty)))
      (t (suspend-emacs)))))
@@ -1068,9 +1068,9 @@ bars (top, bottom, or nil)."
     (cons vert hor)))
 
 ;;;; Frame/display capabilities.
-(defun selected-display ()
-  "Return the display that is now selected."
-  (frame-display (selected-frame)))
+(defun selected-terminal ()
+  "Return the terminal that is now selected."
+  (frame-terminal (selected-frame)))
 
 (defun display-mouse-p (&optional display)
   "Return non-nil if DISPLAY has a mouse available.

@@ -3064,7 +3064,7 @@ EXFUN (Fcall_process, MANY);
 extern int child_setup P_ ((int, int, int, char **, int, Lisp_Object));
 extern void init_callproc_1 P_ ((void));
 extern void init_callproc P_ ((void));
-extern void set_process_environment P_ ((void));
+extern void set_global_environment P_ ((void));
 extern void syms_of_callproc P_ ((void));
 
 /* defined in doc.c */
@@ -3130,7 +3130,7 @@ extern void syms_of_xmenu P_ ((void));
 struct tty_display_info;
 
 /* defined in termhooks.h */
-struct device;
+struct terminal;
 
 /* defined in sysdep.c */
 #ifndef HAVE_GET_CURRENT_DIR_NAME

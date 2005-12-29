@@ -21,8 +21,9 @@ Boston, MA 02110-1301, USA.  */
 
 /* Length of echobuf field in each KBOARD.  */
 
-/* Each KBOARD represents one logical input stream from which Emacs gets input.
-   If we are using ordinary terminals, it has one KBOARD object for each terminal device.
+/* Each KBOARD represents one logical input stream from which Emacs
+   gets input.  If we are using ordinary terminals, it has one KBOARD
+   object for each terminal device.
    Usually each X display screen has its own KBOARD,
    but when two of them are on the same X server,
    we assume they share a keyboard and give them one KBOARD in common.
@@ -356,7 +357,7 @@ extern void kbd_buffer_store_help_event P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object menu_item_eval_property P_ ((Lisp_Object));
 extern int  kbd_buffer_events_waiting P_ ((int));
 
-extern int tty_read_avail_input P_ ((struct device *, int,
+extern int tty_read_avail_input P_ ((struct terminal *, int,
                                      struct input_event *));
 
 /* arch-tag: 769cbade-1ba9-4950-b886-db265b061aa3

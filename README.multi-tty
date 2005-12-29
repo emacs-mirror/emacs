@@ -9,7 +9,7 @@ Some use cases:
 Emacs is notoriously slow at startup, so most people use another
 editor or emacsclient for quick editing jobs from the console.
 Unfortunately, emacsclient was very awkward to use, because it did not
-support opening a new Emacs frame on the current virtual console.
+support opening a new Emacs frame on the current virtual tty.
 Now, with multi-tty support, it can do that.  (Emacsclient starts up
 faster than vi!)
 
@@ -86,7 +86,7 @@ major problems have been fixed, only a few minor issues remain.  (It
 still needs to be ported to Windows/Mac/DOS, though.)  Both multiple
 tty device support and simultaneous X and tty frame support works
 fine.  Emacsclient has been extended to support opening new tty and X
-frames.  It has been changed open new Emacs frames by default.
+frames.  It has been changed to open new Emacs frames by default.
 
 The multi-tty branch has been scheduled for inclusion in the next
 major release of Emacs (version 23).  I expect the merge into the
@@ -250,9 +250,8 @@ also works.  Of course, you can create frames on more than two tty
 devices.
 
 Creating new frames on the same tty with C-x 5 2 (make-frame-command)
-works, and they behave the same way as in previous Emacs versions.  If
-you exit emacs, all terminals should be restored to their previous
-states.
+works, and behaves the same way as in previous Emacs versions.  If you
+exit emacs, all terminals should be restored to their previous states.
 
 This is work in progress, and probably full of bugs.  It is a good
 idea to run emacs from gdb, so that you'll have a live instance to
@@ -350,48 +349,49 @@ NEWS
 
 For the NEWS file:  (Needs much, much work)
 
-** Support for multiple terminal devices has been added.
+** Support for multiple terminal devices and simultaneous graphical
+   and tty frames has been added.  You can test for the presence of
+   this feature in your Lisp code by testing for the `multi-tty'
+   feature.
+
+*** The `window-system' variable has been made frame-local. The new
+    `initial-window-system' variable contains the `window-system'
+    value for the first frame.
 
 *** You can specify a terminal device (`tty' parameter) and a terminal
     type (`tty-type' parameter) to `make-terminal-frame'.
 
-*** You can test for the presence of multiple terminal support by
-    testing for the `multi-tty' feature.
+*** The new function `make-frame-on-tty' allows you to create a new
+    frame on another tty device interactively.
+
+*** The function `make-frame-on-display' now works during a tty
+    session, and `make-frame-on-tty' works during a graphical session.
 
 *** Emacsclient has been extended to support opening a new terminal
     frame. Its behaviour has been changed to open a new Emacs frame by
     default.  Use the -c option to get the old behavior of opening
     files in the currently selected Emacs frame.
 
-*** A make-frame-on-tty function has been added to make it easier to
-    create frames on new terminals.
+*** C-z now invokes `suspend-frame', C-x C-c now invokes
+    `save-buffers-kill-terminal'.
 
 *** New functions: frame-tty-name, frame-tty-type, delete-tty,
-    terminal-local-value, set-terminal-local-value
+    suspend-tty, resume-tty, terminal-id, terminal-parameters,
+    terminal-parameter, set-terminal-parameter,
+    modify-terminal-parameters, environment, let-environment
 
-    terminal-id, terminal-parameters, terminal-parameter,
-    set-terminal-parameter
+*** New variables: local-key-translation-map, local-function-key-map
 
-*** New variables: global-key-translation-map
+*** The `keyboard-translate-table' variable and the terminal and
+    keyboard coding systems have been made terminal-local.
 
-*** The keymaps key-translation-map and function-key-map are now
-    terminal-local.
-
-** Support for simultaneous graphical and terminal frames has been
-   added.
-
-*** The function `make-frame-on-display' now works during a terminal
-    session, and `make-frame-on-tty' works during a graphical session.
-
-*** The `window-system' variable has been made frame-local.
-
-*** The new `initial-window-system' variable contains the
-    `window-system' value for the first frame.
+*** In addition to the global key-translation-map and
+    function-key-map, Emacs has terminal-local
+    local-key-translation-map and local-function-key-map variables,
+    and uses them instead of the global keymaps to set up translations
+    and function key sequences relevant to a specific terminal device.
 
 *** talk.el has been extended for multiple tty support.
-
-*** C-z now invokes `suspend-frame', C-x C-c now invokes
-    `save-buffers-kill-frame'.
 
 * * *
 
@@ -518,15 +518,16 @@ THINGS TO DO
     frames-on-display-list		frames-on-terminal-list
 
    The following functions were introduced in the multi-tty branch, and
-   can be renamed without aliases:
+   were renamed without aliases:
 
-    display-controlling-tty-p           terminal-controlling-tty-p
+    delete-display			delete-terminal
+    display-controlling-tty-p           controlling-tty-p
     display-list                        terminal-list
     display-live-p                      terminal-live-p
     display-name                        terminal-name
-    display-tty-type                    terminal-tty-type
-    frame-display                       terminal-of-frame
-    delete-display			delete-terminal
+    display-tty-type                    tty-type
+    frame-display                       frame-terminal
+    selected-display			selected-terminal
 
 ** The single-keyboard mode of MULTI_KBOARD is extremely confusing
    sometimes; Emacs does not respond to stimuli from other keyboards.

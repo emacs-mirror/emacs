@@ -28,19 +28,19 @@ Boston, MA 02110-1301, USA.  */
 #include "coding.h"
 #include "keyboard.h"
 
-/* Chain of all displays currently in use. */
-struct device *device_list;
+/* Chain of all terminals currently in use. */
+struct terminal *terminal_list;
 
-/* The first unallocated display id. */
-static int next_device_id;
+/* The first unallocated terminal id. */
+static int next_terminal_id;
 
-/* The initial display device, created by initial_term_init. */
-struct device *initial_device;
+/* The initial terminal device, created by initial_term_init. */
+struct terminal *initial_terminal;
 
 /* Function to use to ring the bell.  */
 Lisp_Object Vring_bell_function;
 
-void delete_initial_device P_ ((struct device *));
+static void delete_initial_terminal P_ ((struct terminal *));
 
 
 
@@ -66,22 +66,22 @@ ring_bell (struct frame *f)
 
       Vring_bell_function = function;
     }
-  else if (FRAME_DEVICE (f)->ring_bell_hook)
-    (*FRAME_DEVICE (f)->ring_bell_hook) (f);
+  else if (FRAME_TERMINAL (f)->ring_bell_hook)
+    (*FRAME_TERMINAL (f)->ring_bell_hook) (f);
 }
 
 void
 update_begin (struct frame *f)
 {
-  if (FRAME_DEVICE (f)->update_begin_hook)
-    (*FRAME_DEVICE (f)->update_begin_hook) (f);
+  if (FRAME_TERMINAL (f)->update_begin_hook)
+    (*FRAME_TERMINAL (f)->update_begin_hook) (f);
 }
 
 void
 update_end (struct frame *f)
 {
-  if (FRAME_DEVICE (f)->update_end_hook)
-    (*FRAME_DEVICE (f)->update_end_hook) (f);
+  if (FRAME_TERMINAL (f)->update_end_hook)
+    (*FRAME_TERMINAL (f)->update_end_hook) (f);
 }
 
 /* Specify how many text lines, from the top of the window,
@@ -92,8 +92,8 @@ update_end (struct frame *f)
 void
 set_terminal_window (struct frame *f, int size)
 {
-  if (FRAME_DEVICE (f)->set_terminal_window_hook)
-    (*FRAME_DEVICE (f)->set_terminal_window_hook) (f, size);
+  if (FRAME_TERMINAL (f)->set_terminal_window_hook)
+    (*FRAME_TERMINAL (f)->set_terminal_window_hook) (f, size);
 }
 
 /* Move cursor to row/column position VPOS/HPOS.  HPOS/VPOS are
@@ -102,8 +102,8 @@ set_terminal_window (struct frame *f, int size)
 void
 cursor_to (struct frame *f, int vpos, int hpos)
 {
-  if (FRAME_DEVICE (f)->cursor_to_hook)
-    (*FRAME_DEVICE (f)->cursor_to_hook) (f, vpos, hpos);
+  if (FRAME_TERMINAL (f)->cursor_to_hook)
+    (*FRAME_TERMINAL (f)->cursor_to_hook) (f, vpos, hpos);
 }
 
 /* Similar but don't take any account of the wasted characters.  */
@@ -111,8 +111,8 @@ cursor_to (struct frame *f, int vpos, int hpos)
 void
 raw_cursor_to (struct frame *f, int row, int col)
 {
-  if (FRAME_DEVICE (f)->raw_cursor_to_hook)
-    (*FRAME_DEVICE (f)->raw_cursor_to_hook) (f, row, col);  
+  if (FRAME_TERMINAL (f)->raw_cursor_to_hook)
+    (*FRAME_TERMINAL (f)->raw_cursor_to_hook) (f, row, col);  
 }
 
 /* Erase operations */
@@ -121,8 +121,8 @@ raw_cursor_to (struct frame *f, int row, int col)
 void
 clear_to_end (struct frame *f)
 {
-  if (FRAME_DEVICE (f)->clear_to_end_hook)
-    (*FRAME_DEVICE (f)->clear_to_end_hook) (f);
+  if (FRAME_TERMINAL (f)->clear_to_end_hook)
+    (*FRAME_TERMINAL (f)->clear_to_end_hook) (f);
 }
 
 /* Clear entire frame */
@@ -130,8 +130,8 @@ clear_to_end (struct frame *f)
 void
 clear_frame (struct frame *f)
 {
-  if (FRAME_DEVICE (f)->clear_frame_hook)
-    (*FRAME_DEVICE (f)->clear_frame_hook) (f);
+  if (FRAME_TERMINAL (f)->clear_frame_hook)
+    (*FRAME_TERMINAL (f)->clear_frame_hook) (f);
 }
 
 /* Clear from cursor to end of line.
@@ -142,8 +142,8 @@ clear_frame (struct frame *f)
 void
 clear_end_of_line (struct frame *f, int first_unused_hpos)
 {
-  if (FRAME_DEVICE (f)->clear_end_of_line_hook)
-    (*FRAME_DEVICE (f)->clear_end_of_line_hook) (f, first_unused_hpos);
+  if (FRAME_TERMINAL (f)->clear_end_of_line_hook)
+    (*FRAME_TERMINAL (f)->clear_end_of_line_hook) (f, first_unused_hpos);
 }
 
 /* Output LEN glyphs starting at STRING at the nominal cursor position.
@@ -152,8 +152,8 @@ clear_end_of_line (struct frame *f, int first_unused_hpos)
 void
 write_glyphs (struct frame *f, struct glyph *string, int len)
 {
-  if (FRAME_DEVICE (f)->write_glyphs_hook)
-    (*FRAME_DEVICE (f)->write_glyphs_hook) (f, string, len);
+  if (FRAME_TERMINAL (f)->write_glyphs_hook)
+    (*FRAME_TERMINAL (f)->write_glyphs_hook) (f, string, len);
 }
 
 /* Insert LEN glyphs from START at the nominal cursor position.
@@ -166,8 +166,8 @@ insert_glyphs (struct frame *f, struct glyph *start, int len)
   if (len <= 0)
     return;
 
-  if (FRAME_DEVICE (f)->insert_glyphs_hook)
-    (*FRAME_DEVICE (f)->insert_glyphs_hook) (f, start, len);
+  if (FRAME_TERMINAL (f)->insert_glyphs_hook)
+    (*FRAME_TERMINAL (f)->insert_glyphs_hook) (f, start, len);
 }
 
 /* Delete N glyphs at the nominal cursor position. */
@@ -175,8 +175,8 @@ insert_glyphs (struct frame *f, struct glyph *start, int len)
 void
 delete_glyphs (struct frame *f, int n)
 {
-  if (FRAME_DEVICE (f)->delete_glyphs_hook)
-    (*FRAME_DEVICE (f)->delete_glyphs_hook) (f, n);
+  if (FRAME_TERMINAL (f)->delete_glyphs_hook)
+    (*FRAME_TERMINAL (f)->delete_glyphs_hook) (f, n);
 }
 
 /* Insert N lines at vpos VPOS.  If N is negative, delete -N lines.  */
@@ -184,185 +184,209 @@ delete_glyphs (struct frame *f, int n)
 void
 ins_del_lines (struct frame *f, int vpos, int n)
 {
-  if (FRAME_DEVICE (f)->ins_del_lines_hook)
-    (*FRAME_DEVICE (f)->ins_del_lines_hook) (f, vpos, n);
+  if (FRAME_TERMINAL (f)->ins_del_lines_hook)
+    (*FRAME_TERMINAL (f)->ins_del_lines_hook) (f, vpos, n);
 }
 
 
 
 
-/* Return the display object specified by DEVICE.  DEVICE may be a
-   display id, a frame, or nil for the display device of the current
+/* Return the terminal object specified by TERMINAL.  TERMINAL may be a
+   terminal id, a frame, or nil for the terminal device of the current
    frame.  If THROW is zero, return NULL for failure, otherwise throw
    an error.  */
 
-struct device *
-get_device (Lisp_Object device, int throw)
+struct terminal *
+get_terminal (Lisp_Object terminal, int throw)
 {
-  struct device *result = NULL;
+  struct terminal *result = NULL;
 
-  if (NILP (device))
-    device = selected_frame;
+  if (NILP (terminal))
+    terminal = selected_frame;
 
-  if (INTEGERP (device))
+  if (INTEGERP (terminal))
     {
-      struct device *d;
+      struct terminal *t;
 
-      for (d = device_list; d; d = d->next_device)
+      for (t = terminal_list; t; t = t->next_terminal)
         {
-          if (d->id == XINT (device))
+          if (t->id == XINT (terminal))
             {
-              result = d;
+              result = t;
               break;
             }
         }
     }
-  else if (FRAMEP (device))
+  else if (FRAMEP (terminal))
     {
-      result = FRAME_DEVICE (XFRAME (device));
+      result = FRAME_TERMINAL (XFRAME (terminal));
     }
 
   if (result == NULL && throw)
-    wrong_type_argument (Qdisplay_live_p, device);
+    wrong_type_argument (Qterminal_live_p, terminal);
 
   return result;
 }
 
 
 
-/* Create a new device object and add it to the device list. */
+/* Create a new terminal object and add it to the terminal list. */
 
-struct device *
-create_device (void)
+struct terminal *
+create_terminal (void)
 {
-  struct device *device = (struct device *) xmalloc (sizeof (struct device));
+  struct terminal *terminal = (struct terminal *) xmalloc (sizeof (struct terminal));
   
-  bzero (device, sizeof (struct device));
-  device->next_device = device_list;
-  device_list = device;
+  bzero (terminal, sizeof (struct terminal));
+  terminal->next_terminal = terminal_list;
+  terminal_list = terminal;
 
-  device->id = next_device_id++;
+  terminal->id = next_terminal_id++;
 
-  device->keyboard_coding =
+  terminal->keyboard_coding =
     (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  device->terminal_coding =
+  terminal->terminal_coding =
     (struct coding_system *) xmalloc (sizeof (struct coding_system));
 
-  setup_coding_system (Qnil, device->keyboard_coding);
-  setup_coding_system (Qnil, device->terminal_coding);
+  setup_coding_system (Qnil, terminal->keyboard_coding);
+  setup_coding_system (Qnil, terminal->terminal_coding);
 
-  device->param_alist = Qnil;
-  return device;
+  terminal->param_alist = Qnil;
+  return terminal;
 }
 
 /* Mark the Lisp pointers in the terminal objects.
    Called by the Fgarbage_collector.  */
 
 void
-mark_devices (void)
+mark_terminals (void)
 {
-  struct device *d;
-  for (d = device_list; d; d = d->next_device)
+  struct terminal *t;
+  for (t = terminal_list; t; t = t->next_terminal)
     {
-      mark_object (d->param_alist);
+      mark_object (t->param_alist);
     }
 }
 
 
-/* Remove a device from the device list and free its memory. */
+/* Remove a terminal from the terminal list and free its memory. */
 
 void
-delete_device (struct device *device)
+delete_terminal (struct terminal *terminal)
 {
-  struct device **dp;
+  struct terminal **tp;
   Lisp_Object tail, frame;
   
   /* Check for and close live frames that are still on this
-     device. */
+     terminal. */
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && f->device == device)
+      if (FRAME_LIVE_P (f) && f->terminal == terminal)
         {
           Fdelete_frame (frame, Qt);
         }
     }
 
-  for (dp = &device_list; *dp != device; dp = &(*dp)->next_device)
-    if (! *dp)
+  for (tp = &terminal_list; *tp != terminal; tp = &(*tp)->next_terminal)
+    if (! *tp)
       abort ();
-  *dp = device->next_device;
+  *tp = terminal->next_terminal;
 
-  if (device->keyboard_coding)
-    xfree (device->keyboard_coding);
-  if (device->terminal_coding)
-    xfree (device->terminal_coding);
-  if (device->name)
-    xfree (device->name);
+  if (terminal->keyboard_coding)
+    xfree (terminal->keyboard_coding);
+  if (terminal->terminal_coding)
+    xfree (terminal->terminal_coding);
+  if (terminal->name)
+    xfree (terminal->name);
   
 #ifdef MULTI_KBOARD
-  if (device->kboard && --device->kboard->reference_count == 0)
-    delete_kboard (device->kboard);
+  if (terminal->kboard && --terminal->kboard->reference_count == 0)
+    delete_kboard (terminal->kboard);
 #endif
   
-  bzero (device, sizeof (struct device));
-  xfree (device);
+  bzero (terminal, sizeof (struct terminal));
+  xfree (terminal);
 }
 
-DEFUN ("delete-display", Fdelete_display, Sdelete_display, 0, 2, 0,
-       doc: /* Delete DEVICE by deleting all frames on it and closing the device.
-DEVICE may be a display device id, a frame, or nil (meaning the
-selected frame's display device).
+DEFUN ("delete-terminal", Fdelete_terminal, Sdelete_terminal, 0, 2, 0,
+       doc: /* Delete TERMINAL by deleting all frames on it and closing the terminal.
+TERMINAL may be a terminal id, a frame, or nil (meaning the selected
+frame's terminal).
 
 Normally, you may not delete a display if all other displays are suspended,
 but if the second argument FORCE is non-nil, you may do so. */)
-  (device, force)
-     Lisp_Object device, force;
+  (terminal, force)
+     Lisp_Object terminal, force;
 {
-  struct device *d, *p;
+  struct terminal *t, *p;
 
-  d = get_device (device, 0);
+  t = get_terminal (terminal, 0);
 
-  if (!d)
+  if (!t)
     return Qnil;
 
-  p = device_list;
-  while (p && (p == d || !DEVICE_ACTIVE_P (p)))
-    p = p->next_device;
+  p = terminal_list;
+  while (p && (p == t || !TERMINAL_ACTIVE_P (p)))
+    p = p->next_terminal;
   
   if (NILP (force) && !p)
-    error ("Attempt to delete the sole active display device");
+    error ("Attempt to delete the sole active display terminal");
 
-  if (d->delete_device_hook)
-    (*d->delete_device_hook) (d);
+  if (t->delete_terminal_hook)
+    (*t->delete_terminal_hook) (t);
   else
-    delete_device (d);
+    delete_terminal (t);
 
   return Qnil;
 }
 
-DEFUN ("display-live-p", Fdisplay_live_p, Sdisplay_live_p, 1, 1, 0,
-       doc: /* Return non-nil if OBJECT is a device which has not been deleted.
-Value is nil if OBJECT is not a live display device.
-If object is a live display device, the return value indicates what
-sort of output device it uses.  See the documentation of `framep' for
+
+DEFUN ("frame-terminal", Fframe_terminal, Sframe_terminal, 0, 1, 0,
+       doc: /* Return the terminal that FRAME is displayed on.
+If FRAME is nil, the selected frame is used.
+
+The terminal device is represented by its integer identifier.  */)
+  (frame)
+     Lisp_Object frame;
+{
+  struct terminal *t;
+
+  if (NILP (frame))
+    frame = selected_frame;
+
+  CHECK_LIVE_FRAME (frame);
+
+  t = get_terminal (frame, 0);
+
+  if (!t)
+    return Qnil;
+  else
+    return make_number (t->id);
+}
+
+DEFUN ("terminal-live-p", Fterminal_live_p, Sterminal_live_p, 1, 1, 0,
+       doc: /* Return non-nil if OBJECT is a terminal which has not been deleted.
+Value is nil if OBJECT is not a live display terminal.
+If object is a live display terminal, the return value indicates what
+sort of output terminal it uses.  See the documentation of `framep' for
 possible return values.
 
-Display devices are represented by their integer identifiers. */)
+Display terminals are represented by their integer identifiers. */)
      (object)
      Lisp_Object object;
 {
-  struct device *d;
+  struct terminal *t;
   
   if (!INTEGERP (object))
     return Qnil;
 
-  d = get_device (object, 0);
+  t = get_terminal (object, 0);
 
-  if (!d)
+  if (!t)
     return Qnil;
 
-  switch (d->type)
+  switch (t->type)
     {
     case output_initial: /* The initial frame is like a termcap frame. */
     case output_termcap:
@@ -380,64 +404,64 @@ Display devices are represented by their integer identifiers. */)
     }
 }
 
-DEFUN ("display-list", Fdisplay_list, Sdisplay_list, 0, 0, 0,
-       doc: /* Return a list of all display devices.
-Display devices are represented by their integer identifiers. */)
+DEFUN ("terminal-list", Fterminal_list, Sterminal_list, 0, 0, 0,
+       doc: /* Return a list of all terminal devices.
+Terminal devices are represented by their integer identifiers. */)
   ()
 {
-  Lisp_Object devices = Qnil;
-  struct device *d;
+  Lisp_Object terminals = Qnil;
+  struct terminal *t;
 
-  for (d = device_list; d; d = d->next_device)
-    devices = Fcons (make_number (d->id), devices);
+  for (t = terminal_list; t; t = t->next_terminal)
+    terminals = Fcons (make_number (t->id), terminals);
 
-  return devices;
+  return terminals;
 }
 
-DEFUN ("display-name", Fdisplay_name, Sdisplay_name, 0, 1, 0,
-       doc: /* Return the name of the display device DEVICE.
+DEFUN ("terminal-name", Fterminal_name, Sterminal_name, 0, 1, 0,
+       doc: /* Return the name of the terminal device TERMINAL.
 It is not guaranteed that the returned value is unique among opened devices.
 
-DEVICE may be a display device id, a frame, or nil (meaning the
-selected frame's display device). */)
-  (device)
-     Lisp_Object device;
+TERMINAL may be a terminal id, a frame, or nil (meaning the
+selected frame's terminal). */)
+  (terminal)
+     Lisp_Object terminal;
 {
-  struct device *d = get_device (device, 1);
+  struct terminal *t = get_terminal (terminal, 1);
 
-  if (d->name)
-    return build_string (d->name);
+  if (t->name)
+    return build_string (t->name);
   else
     return Qnil;
 }
 
 
 
-/* Return the value of terminal parameter PARAM in device D.  */
+/* Return the value of terminal parameter PARAM in terminal T.  */
 Lisp_Object
-get_terminal_param (d, param)
-     struct device *d;
+get_terminal_param (t, param)
+     struct terminal *t;
      Lisp_Object param;
 {
-  Lisp_Object tem = Fassq (param, d->param_alist);
+  Lisp_Object tem = Fassq (param, t->param_alist);
   if (EQ (tem, Qnil))
     return tem;
   return Fcdr (tem);
 }
 
-/* Set the value of terminal parameter PARAMETER in device D to VALUE.
+/* Set the value of terminal parameter PARAMETER in terminal D to VALUE.
    Return the previous value.  */
 
 Lisp_Object
-store_terminal_param (d, parameter, value)
-     struct device *d;
+store_terminal_param (t, parameter, value)
+     struct terminal *t;
      Lisp_Object parameter;
      Lisp_Object value;
 {
-  Lisp_Object old_alist_elt = Fassq (parameter, d->param_alist);
+  Lisp_Object old_alist_elt = Fassq (parameter, t->param_alist);
   if (EQ (old_alist_elt, Qnil))
     {
-      d->param_alist = Fcons (Fcons (parameter, value), d->param_alist);
+      t->param_alist = Fcons (Fcons (parameter, value), t->param_alist);
       return Qnil;
     }
   else
@@ -454,27 +478,27 @@ DEFUN ("terminal-parameters", Fterminal_parameters, Sterminal_parameters, 0, 1, 
 The value is a list of elements of the form (PARM . VALUE), where PARM
 is a symbol.
 
-TERMINAL can be a terminal if, a frame or nil (meaning the selected
+TERMINAL can be a terminal id, a frame or nil (meaning the selected
 frame's terminal).  */)
      (terminal)
      Lisp_Object terminal;
 {
-  struct device *d = get_device (terminal, 1);
-  return Fcopy_alist (d->param_alist);
+  struct terminal *t = get_terminal (terminal, 1);
+  return Fcopy_alist (t->param_alist);
 }
 
 DEFUN ("terminal-parameter", Fterminal_parameter, Sterminal_parameter, 2, 2, 0,
        doc: /* Return TERMINAL's value for parameter PARAMETER.
-TERMINAL can be a terminal if, a frame or nil (meaning the selected
+TERMINAL can be a terminal id, a frame or nil (meaning the selected
 frame's terminal).  */)
      (terminal, parameter)
      Lisp_Object terminal;
      Lisp_Object parameter;
 {
   Lisp_Object value;
-  struct device *d = get_device (terminal, 1);
+  struct terminal *t = get_terminal (terminal, 1);
   CHECK_SYMBOL (parameter);
-  value = Fcdr (Fassq (parameter, d->param_alist));
+  value = Fcdr (Fassq (parameter, t->param_alist));
   return value;
 }
 
@@ -484,14 +508,14 @@ DEFUN ("modify-terminal-parameters", Fmodify_terminal_parameters,
 ALIST is an alist of parameters to change and their new values.
 Each element of ALIST has the form (PARM . VALUE), where PARM is a symbol.
 
-TERMINAL can be a terminal if, a frame or nil (meaning the selected
+TERMINAL can be a terminal id, a frame or nil (meaning the selected
 frame's terminal).  */)
      (terminal, alist)
      Lisp_Object terminal;
      Lisp_Object alist;
 {
   Lisp_Object tail, prop, val;
-  struct device *d = get_device (terminal, 1);
+  struct terminal *t = get_terminal (terminal, 1);
   int length = XINT (Fsafe_length (alist));
   int i;
   Lisp_Object *parms = (Lisp_Object *) alloca (length * sizeof (Lisp_Object));
@@ -515,7 +539,7 @@ frame's terminal).  */)
     {
       prop = parms[i];
       val = values[i];
-      store_terminal_param (d, prop, val);
+      store_terminal_param (t, prop, val);
     }
   return Qnil;
 }
@@ -525,50 +549,50 @@ DEFUN ("set-terminal-parameter", Fset_terminal_parameter,
        doc: /* Set TERMINAL's value for parameter PARAMETER to VALUE.
 Return the previous value of PARAMETER.
 
-TERMINAL can be a terminal if, a frame or nil (meaning the selected
+TERMINAL can be a terminal id, a frame or nil (meaning the selected
 frame's terminal).  */)
      (terminal, parameter, value)
      Lisp_Object terminal;
      Lisp_Object parameter;
      Lisp_Object value;
 {
-  struct device *d = get_device (terminal, 1);
-  return store_terminal_param (d, parameter, value);
+  struct terminal *t = get_terminal (terminal, 1);
+  return store_terminal_param (t, parameter, value);
 }
 
 
 
-/* Create the bootstrap display device for the initial frame.
-   Returns a device of type output_initial.  */
+/* Create the bootstrap display terminal for the initial frame.
+   Returns a terminal of type output_initial.  */
 
-struct device *
-init_initial_device (void)
+struct terminal *
+init_initial_terminal (void)
 {
-  if (initialized || device_list || tty_list)
+  if (initialized || terminal_list || tty_list)
     abort ();
 
-  initial_device = create_device ();
-  initial_device->type = output_initial;
-  initial_device->name = xstrdup ("initial_device");
-  initial_device->kboard = initial_kboard;
+  initial_terminal = create_terminal ();
+  initial_terminal->type = output_initial;
+  initial_terminal->name = xstrdup ("initial_terminal");
+  initial_terminal->kboard = initial_kboard;
 
-  initial_device->delete_device_hook = &delete_initial_device;
+  initial_terminal->delete_terminal_hook = &delete_initial_terminal;
   /* All other hooks are NULL. */
 
-  return initial_device;
+  return initial_terminal;
 }
 
-/* Deletes the bootstrap display device.
-   Called through delete_device_hook. */
+/* Deletes the bootstrap terminal device.
+   Called through delete_terminal_hook. */
 
-void
-delete_initial_device (struct device *device)
+static void
+delete_initial_terminal (struct terminal *terminal)
 {
-  if (device != initial_device)
+  if (terminal != initial_terminal)
     abort ();
 
-  delete_device (device);
-  initial_device = NULL;
+  delete_terminal (terminal);
+  initial_terminal = NULL;
 }
 
 void
@@ -580,10 +604,11 @@ syms_of_terminal ()
 The function should accept no arguments.  */);
   Vring_bell_function = Qnil;
 
-  defsubr (&Sdelete_display);
-  defsubr (&Sdisplay_live_p);
-  defsubr (&Sdisplay_list);
-  defsubr (&Sdisplay_name);
+  defsubr (&Sdelete_terminal);
+  defsubr (&Sframe_terminal);
+  defsubr (&Sterminal_live_p);
+  defsubr (&Sterminal_list);
+  defsubr (&Sterminal_name);
   defsubr (&Sterminal_parameters);
   defsubr (&Sterminal_parameter);
   defsubr (&Smodify_terminal_parameters);

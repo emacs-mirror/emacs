@@ -1350,7 +1350,7 @@ struct glyph_string
 	DESCENT = FONT->descent
 	HEIGHT = FONT_HEIGHT (FONT)
 	F_DESCENT = (FRAME_FONT (F)->descent
-		     - F->device->output_data.x->baseline_offset)
+		     - F->terminal->output_data.x->baseline_offset)
 	F_HEIGHT = FRAME_LINE_HEIGHT (F)
 */
 
@@ -2927,11 +2927,8 @@ extern void update_begin P_ ((struct frame *));
 extern void update_end P_ ((struct frame *));
 extern void set_terminal_window P_ ((struct frame *, int));
 extern void cursor_to P_ ((struct frame *, int, int));
-
-/* Was not declared before: */
 extern void raw_cursor_to P_ ((struct frame *, int, int));
 extern void clear_to_end P_ ((struct frame *));
-
 extern void clear_frame P_ ((struct frame *));
 extern void clear_end_of_line P_ ((struct frame *, int));
 extern void write_glyphs P_ ((struct frame *, struct glyph *, int));
@@ -2939,13 +2936,13 @@ extern void insert_glyphs P_ ((struct frame *, struct glyph *, int));
 extern void delete_glyphs P_ ((struct frame *, int));
 extern void ins_del_lines P_ ((struct frame *, int, int));
 
-extern struct device *init_initial_device P_ ((void));
+extern struct terminal *init_initial_terminal P_ ((void));
 
 
 /* Defined in term.c */
 
-extern void tty_set_terminal_modes P_ ((struct device *));
-extern void tty_reset_terminal_modes P_ ((struct device *));
+extern void tty_set_terminal_modes P_ ((struct terminal *));
+extern void tty_reset_terminal_modes P_ ((struct terminal *));
 extern void tty_turn_off_insert P_ ((struct tty_display_info *));
 extern void tty_turn_off_highlight P_ ((struct tty_display_info *));
 extern int string_cost P_ ((char *));
@@ -2955,11 +2952,11 @@ extern void produce_glyphs P_ ((struct it *));
 extern void produce_special_glyphs P_ ((struct it *, enum display_element_type));
 extern int tty_capable_p P_ ((struct tty_display_info *, unsigned, unsigned long, unsigned long));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
-extern struct device *get_tty_device P_ ((Lisp_Object terminal));
-extern struct device *get_named_tty P_ ((char *));
-EXFUN (Fdisplay_tty_type, 1);
+extern struct terminal *get_tty_terminal P_ ((Lisp_Object terminal));
+extern struct terminal *get_named_tty P_ ((char *));
+EXFUN (Ftty_type, 1);
 extern void create_tty_output P_ ((struct frame *));
-extern struct device *init_tty P_ ((char *, char *, int));
+extern struct terminal *init_tty P_ ((char *, char *, int));
 
 
 /* Defined in scroll.c */

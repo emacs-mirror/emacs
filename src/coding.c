@@ -7351,11 +7351,11 @@ Return the corresponding character code in Big5.  */)
 DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_internal,
        Sset_terminal_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system, device)
+     (coding_system, terminal)
      Lisp_Object coding_system;
-     Lisp_Object device;
+     Lisp_Object terminal;
 {
-  struct coding_system *terminal_coding = DEVICE_TERMINAL_CODING (get_device (device, 1));
+  struct coding_system *terminal_coding = TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1));
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system), terminal_coding);
   /* We had better not send unsafe characters to terminal.  */
@@ -7389,41 +7389,41 @@ DEFUN ("set-safe-terminal-coding-system-internal", Fset_safe_terminal_coding_sys
 
 DEFUN ("terminal-coding-system", Fterminal_coding_system,
        Sterminal_coding_system, 0, 1, 0,
-       doc: /* Return coding system specified for terminal output on the given device.
-DEVICE may be a display device id, a frame, or nil for the selected
-frame's display device.  */)
-     (device)
-     Lisp_Object device;
+       doc: /* Return coding system specified for terminal output on the given terminal.
+TERMINAL may be a terminal id, a frame, or nil for the selected
+frame's terminal device.  */)
+     (terminal)
+     Lisp_Object terminal;
 {
-  return DEVICE_TERMINAL_CODING (get_device (device, 1))->symbol;
+  return TERMINAL_TERMINAL_CODING (get_terminal (terminal, 1))->symbol;
 }
 
 DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_internal,
        Sset_keyboard_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system, device)
+     (coding_system, terminal)
      Lisp_Object coding_system;
-     Lisp_Object device;
+     Lisp_Object terminal;
 {
-  struct device *d = get_device (device, 1);
+  struct terminal *t = get_terminal (terminal, 1);
   CHECK_SYMBOL (coding_system);
 
   setup_coding_system (Fcheck_coding_system (coding_system),
-                       DEVICE_KEYBOARD_CODING (d));
+                       TERMINAL_KEYBOARD_CODING (t));
   /* Character composition should be disabled.  */
-  DEVICE_KEYBOARD_CODING (d)->composing = COMPOSITION_DISABLED;
+  TERMINAL_KEYBOARD_CODING (t)->composing = COMPOSITION_DISABLED;
   return Qnil;
 }
 
 DEFUN ("keyboard-coding-system", Fkeyboard_coding_system,
        Skeyboard_coding_system, 0, 1, 0,
-       doc: /* Return coding system for decoding keyboard input on DEVICE.
-DEVICE may be a display device id, a frame, or nil for the selected
-frame's display device.  */)
-     (device)
-     Lisp_Object device;
+       doc: /* Return coding system for decoding keyboard input on TERMINAL.
+TERMINAL may be a terminal id, a frame, or nil for the selected
+frame's terminal device.  */)
+     (terminal)
+     Lisp_Object terminal;
 {
-  return DEVICE_KEYBOARD_CODING (get_device (device, 1))->symbol;
+  return TERMINAL_KEYBOARD_CODING (get_terminal (terminal, 1))->symbol;
 }
 
 

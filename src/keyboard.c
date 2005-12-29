@@ -1130,19 +1130,19 @@ void
 push_frame_kboard (f)
      FRAME_PTR f;
 {
-  push_kboard (f->device->kboard);
+  push_kboard (f->terminal->kboard);
 }
 
 void
 pop_kboard ()
 {
 #ifdef MULTI_KBOARD
-  struct device *d;
+  struct terminal *t;
   struct kboard_stack *p = kboard_stack;
   current_kboard = NULL;
-  for (d = device_list; d; d = d->next_device)
+  for (t = terminal_list; t; t = t->next_terminal)
     {
-      if (d->kboard == p->kboard)
+      if (t->kboard == p->kboard)
         {
           current_kboard = p->kboard;
           break;
@@ -1150,7 +1150,7 @@ pop_kboard ()
     }
   if (current_kboard == NULL)
     {
-      /* The display we remembered has been deleted.  */
+      /* The terminal we remembered has been deleted.  */
       current_kboard = FRAME_KBOARD (SELECTED_FRAME ());
     }
   kboard_stack = p->next;
@@ -4205,15 +4205,15 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       unsigned long time;
 
       *kbp = current_kboard;
-      /* Note that this uses F to determine which display to look at.
+      /* Note that this uses F to determine which terminal to look at.
 	 If there is no valid info, it does not store anything
 	 so x remains nil.  */
       x = Qnil;
 
       /* XXX Can f or mouse_position_hook be NULL here? */
-      if (f && FRAME_DEVICE (f)->mouse_position_hook)
-        (*FRAME_DEVICE (f)->mouse_position_hook) (&f, 0, &bar_window,
-                                                  &part, &x, &y, &time);
+      if (f && FRAME_TERMINAL (f)->mouse_position_hook)
+        (*FRAME_TERMINAL (f)->mouse_position_hook) (&f, 0, &bar_window,
+                                                    &part, &x, &y, &time);
 
       obj = Qnil;
 
@@ -6749,15 +6749,15 @@ read_avail_input (expected)
 {
   int nread = 0;
   int err = 0;
-  struct device *d;
+  struct terminal *t;
 
-  /* Loop through the available devices, and call their input hooks. */
-  d = device_list;
-  while (d)
+  /* Loop through the available terminals, and call their input hooks. */
+  t = terminal_list;
+  while (t)
     {
-      struct device *next = d->next_device;
+      struct terminal *next = t->next_terminal;
 
-      if (d->read_socket_hook)
+      if (t->read_socket_hook)
         {
           int nr;
           struct input_event hold_quit;
@@ -6766,7 +6766,7 @@ read_avail_input (expected)
           hold_quit.kind = NO_EVENT;
 
           /* No need for FIONREAD or fcntl; just say don't wait.  */
-          while (nr = (*d->read_socket_hook) (d, expected, &hold_quit), nr > 0)
+          while (nr = (*t->read_socket_hook) (t, expected, &hold_quit), nr > 0)
             {
               nread += nr;
               expected = 0;
@@ -6778,10 +6778,10 @@ read_avail_input (expected)
             }
           else if (nr == -2)          /* Non-transient error. */
             {
-              /* The display device terminated; it should be closed. */
+              /* The terminal device terminated; it should be closed. */
               
-              /* Kill Emacs if this was our last display. */
-              if (! device_list->next_device)
+              /* Kill Emacs if this was our last terminal. */
+              if (!terminal_list->next_terminal)
                 /* Formerly simply reported no input, but that
                    sometimes led to a failure of Emacs to terminate.
                    SIGHUP seems appropriate if we can't reach the
@@ -6792,18 +6792,18 @@ read_avail_input (expected)
                    alone in its group.  */
                 kill (getpid (), SIGHUP);
               
-              /* XXX Is calling delete_device safe here?  It calls Fdelete_frame. */
-              if (d->delete_device_hook)
-                (*d->delete_device_hook) (d);
+              /* XXX Is calling delete_terminal safe here?  It calls Fdelete_frame. */
+              if (t->delete_terminal_hook)
+                (*t->delete_terminal_hook) (t);
               else
-                delete_device (d);
+                delete_terminal (t);
             }
 
           if (hold_quit.kind != NO_EVENT)
             kbd_buffer_store_event (&hold_quit);
         }
 
-      d = next;
+      t = next;
     }
 
   if (err && !nread)
@@ -6814,12 +6814,12 @@ read_avail_input (expected)
 
 /* This is the tty way of reading available input.
 
-   Note that each terminal device has its own `struct device' object,
+   Note that each terminal device has its own `struct terminal' object,
    and so this function is called once for each individual termcap
-   display.  The first parameter indicates which device to read from.  */
+   terminal.  The first parameter indicates which terminal to read from.  */
 
 int
-tty_read_avail_input (struct device *device,
+tty_read_avail_input (struct terminal *terminal,
                       int expected,
                       struct input_event *hold_quit)
 {
@@ -6828,10 +6828,10 @@ tty_read_avail_input (struct device *device,
      of characters on some systems when input is stuffed at us.  */
   unsigned char cbuf[KBD_BUFFER_SIZE - 1];
   int n_to_read, i;
-  struct tty_display_info *tty = device->display_info.tty;
+  struct tty_display_info *tty = terminal->display_info.tty;
   int nread = 0;
 
-  if (device->type != output_termcap)
+  if (terminal->type != output_termcap)
     abort ();
 
   /* XXX I think the following code should be moved to separate hook
@@ -6861,7 +6861,7 @@ tty_read_avail_input (struct device *device,
   if (ioctl (fileno (tty->input), FIONREAD, &n_to_read) < 0)
     {
       if (! noninteractive)
-        return -2;          /* Close this device. */
+        return -2;          /* Close this terminal. */
       else
         n_to_read = 0;
     }
@@ -6890,14 +6890,14 @@ tty_read_avail_input (struct device *device,
          when the control tty is taken away.
          Jeffrey Honig <jch@bsdi.com> says this is generally safe. */
       if (nread == -1 && errno == EIO)
-        return -2;          /* Close this device. */
+        return -2;          /* Close this terminal. */
 #if defined (AIX) && (! defined (aix386) && defined (_BSD))
       /* The kernel sometimes fails to deliver SIGHUP for ptys.
          This looks incorrect, but it isn't, because _BSD causes
          O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
          and that causes a value other than 0 when there is no input.  */
       if (nread == 0)
-        return -2;          /* Close this device. */
+        return -2;          /* Close this terminal. */
 #endif
     }
   while (
@@ -10440,7 +10440,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 {
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
-  struct device *device;
+  struct terminal *terminal;
 
 #if defined (USG) && !defined (POSIX_SIGNALS)
   /* USG systems forget handlers when they are used;
@@ -10451,9 +10451,9 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 
   SIGNAL_THREAD_CHECK (signalnum);
 
-  /* See if we have an active display on our controlling terminal. */
-  device = get_named_tty (NULL);
-  if (!device)
+  /* See if we have an active terminal on our controlling tty. */
+  terminal = get_named_tty (NULL);
+  if (!terminal)
     {
       /* If there are no frames there, let's pretend that we are a
          well-behaving UN*X program and quit. */
@@ -10467,7 +10467,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
          controlling tty, if we have a frame there.  We disable the
          interrupt key on secondary ttys, so the SIGINT must have come
          from the controlling tty.  */
-      internal_last_event_frame = device->display_info.tty->top_frame;
+      internal_last_event_frame = terminal->display_info.tty->top_frame;
 
       handle_interrupt ();
     }
@@ -10710,18 +10710,18 @@ DEFUN ("set-output-flow-control", Fset_output_flow_control, Sset_output_flow_con
 If FLOW is non-nil, flow control is enabled and you cannot use C-s or
 C-q in key sequences.
 
-This setting only has an effect on tty display devices and only when
+This setting only has an effect on tty terminals and only when
 Emacs reads input in CBREAK mode; see `set-input-interrupt-mode'.
 
 See also `current-input-mode'.  */)
        (flow, terminal)
        Lisp_Object flow, terminal;
 {
-  struct device *d = get_device (terminal, 1);
+  struct terminal *t = get_terminal (terminal, 1);
   struct tty_display_info *tty;
-  if (d == NULL || d->type != output_termcap)
+  if (t == NULL || t->type != output_termcap)
     return Qnil;
-  tty = d->display_info.tty;
+  tty = t->display_info.tty;
 
   if (tty->flow_control != !NILP (flow))
     {
@@ -10750,9 +10750,9 @@ parity.
 Otherwise, Emacs will accept and pass through 8-bit input without
 specially interpreting the top bit.
 
-This setting only has an effect on tty display devices.
+This setting only has an effect on tty terminal devices.
 
-Optional parameter TERMINAL specifies the tty display device to use.
+Optional parameter TERMINAL specifies the tty terminal device to use.
 It may be a terminal id, a frame, or nil for the terminal used by the
 currently selected frame.
 
@@ -10760,13 +10760,13 @@ See also `current-input-mode'.  */)
        (meta, terminal)
        Lisp_Object meta, terminal;
 {
-  struct device *d = get_device (terminal, 1);
+  struct terminal *t = get_terminal (terminal, 1);
   struct tty_display_info *tty;
   int new_meta;
   
-  if (d == NULL || d->type != output_termcap)
+  if (t == NULL || t->type != output_termcap)
     return Qnil;
-  tty = d->display_info.tty;
+  tty = t->display_info.tty;
 
   if (NILP (meta))
     new_meta = 0;
@@ -10795,18 +10795,18 @@ DEFUN ("set-quit-char", Fset_quit_char, Sset_quit_char, 1, 1, 0,
        doc: /* Specify character used for quitting.
 QUIT must be an ASCII character.
 
-This function only has an effect on the tty display on the controlling
+This function only has an effect on the terminal on the controlling
 tty of the Emacs process.
 
 See also `current-input-mode'.  */)
        (quit)
        Lisp_Object quit;
 {
-  struct device *d = get_named_tty (NULL);
+  struct terminal *t = get_named_tty (NULL);
   struct tty_display_info *tty;
-  if (d == NULL || d->type != output_termcap)
+  if (t == NULL || t->type != output_termcap)
     return Qnil;
-  tty = d->display_info.tty;
+  tty = t->display_info.tty;
 
 #ifndef DOS_NT
   /* this causes startup screen to be restored and messes with the mouse */
@@ -11025,7 +11025,7 @@ delete_kboard (kb)
       && FRAMEP (selected_frame)
       && FRAME_LIVE_P (XFRAME (selected_frame)))
     {
-      current_kboard = XFRAME (selected_frame)->device->kboard;
+      current_kboard = XFRAME (selected_frame)->terminal->kboard;
       if (current_kboard == kb)
 	abort ();
     }
@@ -11463,7 +11463,7 @@ command exit.
 The value `kill-region' is special; it means that the previous command
 was a kill command.
 
-`last-command' has a separate binding for each display device.
+`last-command' has a separate binding for each terminal device.
 See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
@@ -11589,8 +11589,8 @@ untranslated.  In a vector, an element which is nil means "no translation".
 This is applied to the characters supplied to input methods, not their
 output.  See also `translation-table-for-input'.
 
-`local-keyboard-translate-table' has a separate binding for each
-terminal.  See Info node `(elisp)Multiple displays'.  */);
+This variable has a separate binding for each terminal.  See Info node
+`(elisp)Multiple displays'.  */);
 
   DEFVAR_BOOL ("cannot-suspend", &cannot_suspend,
 	       doc: /* Non-nil means to always spawn a subshell instead of suspending.
@@ -11677,7 +11677,8 @@ It also replaces `overriding-local-map'.
 This variable is intended to let commands such as `universal-argument'
 set up a different keymap for reading the next command.
 
-`overriding-terminal-local-map' has a separate binding for each display device.
+`overriding-terminal-local-map' has a separate binding for each
+terminal device.
 See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
@@ -11705,7 +11706,7 @@ Each element should have the form (N . SYMBOL) where N is the
 numeric keysym code (sans the \"system-specific\" bit 1<<28)
 and SYMBOL is its name.
 
-`system-key-alist' has a separate binding for each display device.
+`system-key-alist' has a separate binding for each terminal device.
 See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_KBOARD ("local-function-key-map", Vlocal_function_key_map,
@@ -11731,15 +11732,15 @@ Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
 `C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix key,
 typing `ESC O P x' would return [f1 x].
 
-`local-function-key-map' has a separate binding for each display
+`local-function-key-map' has a separate binding for each terminal
 device.  See Info node `(elisp)Multiple displays'.  If you need to
-define a binding on all display devices, change `function-key-map'
+define a binding on all terminals, change `function-key-map'
 instead.  Initially, `local-function-key-map' is an empty keymap that
-has `function-key-map' as its parent on all display devices.  */);
+has `function-key-map' as its parent on all terminal devices.  */);
 
   DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
                doc: /* The parent keymap of all `local-function-key-map' instances.
-Function key definitions that apply to all display devices should go
+Function key definitions that apply to all terminal devices should go
 here.  If a mapping is defined in both the current
 `local-function-key-map' binding and this variable, then the local
 definition will take precendence.  */);
@@ -11750,13 +11751,13 @@ definition will take precendence.  */);
 This keymap works like `function-key-map', but comes after that,
 and its non-prefix bindings override ordinary bindings.
 
-`key-translation-map' has a separate binding for each display device.
+`key-translation-map' has a separate binding for each terminal device.
 (See Info node `(elisp)Multiple displays'.)  If you need to set a key
-translation on all devices, change `global-key-translation-map' instead.  */);
+translation on all terminals, change `global-key-translation-map' instead.  */);
 
   DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
                doc: /* The parent keymap of all `local-key-translation-map' instances.
-Key translations that apply to all display devices should go here.  */);
+Key translations that apply to all terminal devices should go here.  */);
   Vkey_translation_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,

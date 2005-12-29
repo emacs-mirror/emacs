@@ -58,9 +58,9 @@ struct tty_display_info
 
   int reference_count;          /* Number of frames that are on this display. */
 
-  struct device *device;        /* Points back to the generic display device
+  struct terminal *terminal;    /* Points back to the generic terminal
                                    structure.  This is sometimes handy. */
-  
+
   /* Info on cursor positioning.  */
   struct cm *Wcm;
 
@@ -194,7 +194,7 @@ extern struct tty_display_info *tty_list;
 
 #define FRAME_TTY(f)                            \
   ((f)->output_method == output_termcap         \
-   ? (f)->device->display_info.tty              \
+   ? (f)->terminal->display_info.tty            \
    : (abort(), (struct tty_display_info *) 0))
 
 #define CURTTY() FRAME_TTY (SELECTED_FRAME())

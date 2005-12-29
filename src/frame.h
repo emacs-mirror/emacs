@@ -70,7 +70,7 @@ enum text_cursor_kinds
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->background_pixel)
 
-struct device;
+struct terminal;
 
 struct frame
 {
@@ -267,12 +267,12 @@ struct frame
 
   /* The output method says how the contents of this frame are
      displayed.  It could be using termcap, or using an X window.
-     This must be the same as the device->type. */
+     This must be the same as the terminal->type. */
   enum output_method output_method;
 
-  /* The display device that this frame uses.  If this is NULL, then
+  /* The terminal device that this frame uses.  If this is NULL, then
      the frame has been deleted. */
-  struct device *device;
+  struct terminal *terminal;
   
   /* Device-dependent, frame-local auxiliary data used for displaying
      the contents.  When the frame is deleted, this data is deleted as
@@ -458,7 +458,7 @@ struct frame
 };
 
 #ifdef MULTI_KBOARD
-#define FRAME_KBOARD(f) ((f)->device->kboard)
+#define FRAME_KBOARD(f) ((f)->terminal->kboard)
 #else
 #define FRAME_KBOARD(f) (&the_only_kboard)
 #endif
@@ -496,7 +496,7 @@ typedef struct frame *FRAME_PTR;
 #endif
 
 /* Nonzero if frame F is still alive (not deleted).  */
-#define FRAME_LIVE_P(f) ((f)->device != 0)
+#define FRAME_LIVE_P(f) ((f)->terminal != 0)
 
 /* Nonzero if frame F is a minibuffer-only frame.  */
 #define FRAME_MINIBUF_ONLY_P(f) \
@@ -780,13 +780,13 @@ typedef struct frame *FRAME_PTR;
 
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
-extern Lisp_Object Qdevice, Qdisplay_live_p;
+extern Lisp_Object Qterminal, Qterminal_live_p;
 extern Lisp_Object Qenvironment;
 
 extern struct frame *last_nonminibuf_frame;
 
 extern struct frame *make_initial_frame P_ ((void));
-extern struct frame *make_terminal_frame P_ ((struct device *));
+extern struct frame *make_terminal_frame P_ ((struct terminal *));
 extern struct frame *make_frame P_ ((int));
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame P_ ((void));

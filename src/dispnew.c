@@ -3345,7 +3345,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   update_begin (f);
 #ifdef MSDOS
   if (FRAME_MSDOS_P (f))
-    set_terminal_modes (FRAME_DEVICE (f));
+    set_terminal_modes (FRAME_TERMINAL (f));
 #endif
   clear_frame (f);
   clear_current_matrices (f);
@@ -6304,23 +6304,23 @@ DEFUN ("send-string-to-terminal", Fsend_string_to_terminal,
        doc: /* Send STRING to the terminal without alteration.
 Control characters in STRING will have terminal-dependent effects.
 
-Optional parameter TERMINAL specifies the tty display device to use.
+Optional parameter TERMINAL specifies the tty terminal device to use.
 It may be a terminal id, a frame, or nil for the terminal used by the
 currently selected frame.  */)
-  (string, display)
+  (string, terminal)
      Lisp_Object string;
-     Lisp_Object display;
+     Lisp_Object terminal;
 {
-  struct device *d = get_tty_device (display);
+  struct terminal *t = get_tty_terminal (terminal);
   struct tty_display_info *tty;
 
   /* ??? Perhaps we should do something special for multibyte strings here.  */
   CHECK_STRING (string);
 
-  if (!d)
-    error ("Unknown display device");
+  if (!t)
+    error ("Unknown terminal device");
 
-  tty = d->display_info.tty;
+  tty = t->display_info.tty;
   
   if (tty->termscript)
     {
@@ -6783,34 +6783,34 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 #endif /* VMS */
 
   {
-    struct device *d;
+    struct terminal *t;
     struct frame *f = XFRAME (selected_frame);
 
     /* Open a display on the controlling tty. */
-    d = init_tty (0, terminal_type, 1); /* Errors are fatal. */
+    t = init_tty (0, terminal_type, 1); /* Errors are fatal. */
 
     /* Convert the initial frame to use the new display. */
     if (f->output_method != output_initial)
       abort ();
-    f->output_method = d->type;
-    f->device = d;
+    f->output_method = t->type;
+    f->terminal = t;
 
-    d->reference_count++;
-    d->display_info.tty->top_frame = selected_frame;
+    t->reference_count++;
+    t->display_info.tty->top_frame = selected_frame;
     change_frame_size (XFRAME (selected_frame),
-                       FrameRows (d->display_info.tty),
-                       FrameCols (d->display_info.tty), 0, 0, 1);
+                       FrameRows (t->display_info.tty),
+                       FrameCols (t->display_info.tty), 0, 0, 1);
 
-    /* Delete the initial display. */
-    if (--initial_device->reference_count == 0
-        && initial_device->delete_device_hook)
-      (*initial_device->delete_device_hook) (initial_device);
+    /* Delete the initial terminal. */
+    if (--initial_terminal->reference_count == 0
+        && initial_terminal->delete_terminal_hook)
+      (*initial_terminal->delete_terminal_hook) (initial_terminal);
 
     /* Update frame parameters to reflect the new type. */
     Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qwindow_system, Qnil), Qnil));
     Fmodify_frame_parameters
       (selected_frame, Fcons (Fcons (Qtty_type,
-                                     Fdisplay_tty_type (selected_frame)), Qnil));
+                                     Ftty_type (selected_frame)), Qnil));
     Fmodify_frame_parameters (selected_frame, Fcons (Fcons (Qtty, Qnil), Qnil));
   }
   

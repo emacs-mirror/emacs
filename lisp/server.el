@@ -247,7 +247,7 @@ ENV should be in the same format as `process-environment'."
 	   (setenv (car ,pair) (cdr ,pair)))))))
 
 (defun server-delete-client (client &optional noframe)
-  "Delete CLIENT, including its buffers, devices and frames.
+  "Delete CLIENT, including its buffers, terminals and frames.
 If NOFRAME is non-nil, let the frames live.  (To be used from
 `delete-frame-functions'."
   ;; Force a new lookup of client (prevents infinite recursion).
@@ -271,9 +271,9 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 	      (kill-buffer (current-buffer))))))
 
       ;; Delete the client's tty.
-      (let ((device (server-client-get client 'device)))
-	(when (eq (display-live-p device) t)
-	  (delete-display device)))
+      (let ((terminal (server-client-get client 'terminal)))
+	(when (eq (terminal-live-p terminal) t)
+	  (delete-terminal terminal)))
 
       ;; Delete the client's frames.
       (unless noframe
@@ -323,18 +323,18 @@ message."
 		   ;; there are other frames on it.
 		   (< 0 (let ((frame-num 0))
 			  (mapc (lambda (f)
-				  (when (eq (frame-display f)
-					    (frame-display frame))
+				  (when (eq (frame-terminal f)
+					    (frame-terminal frame))
 				    (setq frame-num (1+ frame-num))))
 				(frame-list))
 			  frame-num))))
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
-(defun server-handle-suspend-tty (device)
+(defun server-handle-suspend-tty (terminal)
   "Notify the emacsclient process to suspend itself when its tty device is suspended."
-  (dolist (proc (server-clients-with 'device device))
-    (server-log (format "server-handle-suspend-tty, device %s" device) proc)
+  (dolist (proc (server-clients-with 'terminal terminal))
+    (server-log (format "server-handle-suspend-tty, terminal %s" terminal) proc)
     (condition-case err
 	(server-send-string proc "-suspend \n")
       (file-error (condition-case nil (server-delete-client proc) (error nil))))))
@@ -618,7 +618,7 @@ The following commands are accepted by the client:
 					  ;; Flag frame as client-created, but use a dummy client.
 					  ;; This will prevent the frame from being deleted when
 					  ;; emacsclient quits while also preventing
-					  ;; `server-save-buffers-kill-display' from unexpectedly
+					  ;; `server-save-buffers-kill-terminal' from unexpectedly
 					  ;; killing emacs on that frame.
 					  (list (cons 'client 'nowait) (cons 'environment env))
 					(list (cons 'client proc) (cons 'environment env)))))
@@ -636,7 +636,7 @@ The following commands are accepted by the client:
 			  (modify-frame-parameters frame params)
 			  (select-frame frame)
 			  (server-client-set client 'frame frame)
-			  (server-client-set client 'device (frame-display frame))
+			  (server-client-set client 'terminal (frame-terminal frame))
 			  (setq dontkill t))
 		      ;; This emacs does not support X.
 		      (server-log "Window system unsupported" proc)
@@ -645,19 +645,19 @@ The following commands are accepted by the client:
 
 		 ;; -resume:  Resume a suspended tty frame.
 		 ((equal "-resume" arg)
-		  (let ((device (server-client-get client 'device)))
+		  (let ((terminal (server-client-get client 'terminal)))
 		    (setq dontkill t)
-		    (when (eq (display-live-p device) t)
-		      (resume-tty device))))
+		    (when (eq (terminal-live-p terminal) t)
+		      (resume-tty terminal))))
 
 		 ;; -suspend:  Suspend the client's frame.  (In case we
 		 ;; get out of sync, and a C-z sends a SIGTSTP to
 		 ;; emacsclient.)
 		 ((equal "-suspend" arg)
-		  (let ((device (server-client-get client 'device)))
+		  (let ((terminal (server-client-get client 'terminal)))
 		    (setq dontkill t)
-		    (when (eq (display-live-p device) t)
-		      (suspend-tty device))))
+		    (when (eq (terminal-live-p terminal) t)
+		      (suspend-tty terminal))))
 
 		 ;; -ignore COMMENT:  Noop; useful for debugging emacsclient.
 		 ;; (The given comment appears in the server log.)
@@ -687,8 +687,8 @@ The following commands are accepted by the client:
 							 (environment . ,env)))))
 		      (select-frame frame)
 		      (server-client-set client 'frame frame)
-		      (server-client-set client 'tty (display-name frame))
-		      (server-client-set client 'device (frame-display frame))
+		      (server-client-set client 'tty (terminal-name frame))
+		      (server-client-set client 'terminal (frame-terminal frame))
 
 		      ;; Reply with our pid.
 		      (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
@@ -1037,8 +1037,8 @@ done that."
 	       (get-window-with-predicate
 		(lambda (w)
 		  (and (not (window-dedicated-p w))
-		       (equal (frame-parameter (window-frame w) 'device)
-			      (frame-parameter (selected-frame) 'device))))
+		       (equal (frame-terminal (window-frame w))
+			      (frame-terminal (selected-frame)))))
 		'nomini 'visible (selected-window))))
 	    (condition-case nil
 		(switch-to-buffer next-buffer)
@@ -1047,7 +1047,7 @@ done that."
 	      (error (pop-to-buffer next-buffer)))))))))
 
 ;;;###autoload
-(defun server-save-buffers-kill-display (proc &optional arg)
+(defun server-save-buffers-kill-terminal (proc &optional arg)
   "Offer to save each buffer, then kill PROC.
 
 With prefix arg, silently save all file-visiting buffers, then kill.
