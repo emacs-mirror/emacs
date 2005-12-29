@@ -1,5 +1,10 @@
 2005-12-29  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
+	* textmodes/bibtex.el (bibtex-text-in-field-bounds): Handle case
+	that assoc-string returns nil.
+
+2005-12-29  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
 	* textmodes/bibtex.el (bibtex-entry-type-whitespace)
 	(bibtex-entry-type-str, bibtex-empty-field-re)
 	(bibtex-search-backward-string, bibtex-preamble-prefix)
