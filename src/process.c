@@ -3558,7 +3558,7 @@ FLAGS is the current flags of the interface.  */)
       int fnum;
 
       any++;
-      for (fp = ifflag_table; flags != 0 && fp; fp++)
+      for (fp = ifflag_table; flags != 0 && fp->flag_sym; fp++)
 	{
 	  if (flags & fp->flag_bit)
 	    {
