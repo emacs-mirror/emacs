@@ -1,3 +1,21 @@
+2005-12-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-copy-buffer-to-temp-buffer): Simplify.
+	(flymake-parse-output-and-residual): Remove `source-buffer' argument.
+	(flymake-process-filter): Switch to buffer before calling it instead.
+	(flymake-post-syntax-check, flymake-highlight-err-lines)
+	(flymake-delete-own-overlays, flymake-parse-err-lines)
+	(flymake-start-syntax-check, flymake-start-syntax-check-process)
+	(flymake-count-lines, flymake-parse-residual):
+	Remove constant buffer argument.
+	(flymake-start-syntax-check-for-current-buffer): Remove.
+	Update callers to use flymake-start-syntax-check instead.
+	(flymake-display-err-menu-for-current-line):
+	Remove unused var `mouse-pos'.
+	(flymake-restore-formatting): Comment out unused function.
+	(flymake-report-status, flymake-report-fatal-status): Remove buffer
+	argument, use current-buffer instead.  Update callers.
+
 2005-12-30  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-mode): Make completion-ignore-case
@@ -11,8 +29,7 @@
 
 2005-12-30  Andreas Schwab  <schwab@suse.de>
 
-	* progmodes/cc-defs.el: Ignore errors from
-	font-lock-compile-keywords.
+	* progmodes/cc-defs.el: Ignore errors from font-lock-compile-keywords.
 
 2005-12-30  Eli Zaretskii  <eliz@gnu.org>
 
