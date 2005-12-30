@@ -1290,7 +1290,6 @@ where FACE is a valid face specification, as it can be used with
     (force-mode-line-update)
     (setq fancy-current-text (cdr fancy-current-text))))
 
-
 (defun fancy-splash-default-action ()
   "Stop displaying the splash screen buffer.
 This is an internal function used to turn off the splash screen after
@@ -1306,6 +1305,17 @@ mouse."
     (push last-command-event unread-command-events))
   (throw 'exit nil))
 
+(defun fancy-splash-exit ()
+  "Exit the splash screen."
+  (if (get-buffer "GNU Emacs")
+      (throw 'stop-splashing nil)))
+
+(defun fancy-splash-delete-frame (frame)
+  "Exit the splash screen after the frame is deleted."
+  ;; We can not throw from `delete-frame-events', so we set up a timer
+  ;; to exit the recursive edit as soon as Emacs is idle again.
+  (if (frame-live-p frame)
+      (run-at-time 0 nil 'fancy-splash-exit)))
 
 (defun fancy-splash-screens ()
   "Display fancy splash screens when Emacs starts."
@@ -1323,12 +1333,17 @@ mouse."
       (setq splash-buffer (current-buffer))
       (catch 'stop-splashing
 	(unwind-protect
-	    (let ((map (make-sparse-keymap)))
-	      (use-local-map map)
-	      (define-key map [switch-frame] 'ignore)
+	    (let* ((map (make-sparse-keymap))
+		   (overriding-terminal-local-map map)
+		   ;; Catch if our frame is deleted; the delete-frame
+		   ;; event is unreliable and is handled by
+		   ;; `special-event-map' anyway.
+		   (delete-frame-functions (cons 'fancy-splash-delete-frame
+						 delete-frame-functions)))
 	      (define-key map [t] 'fancy-splash-default-action)
 	      (define-key map [mouse-movement] 'ignore)
 	      (define-key map [mode-line t] 'ignore)
+	      (define-key map [select-window] 'ignore)
 	      (setq cursor-type nil
 		    display-hourglass nil
 		    minor-mode-map-alist nil
@@ -1345,7 +1360,9 @@ mouse."
 	  (setq display-hourglass old-hourglass
 		minor-mode-map-alist old-minor-mode-map-alist)
 	  (kill-buffer splash-buffer)
-	  (switch-to-buffer fancy-splash-outer-buffer))))))
+	  (when (frame-live-p frame)
+	    (select-frame frame)
+	    (switch-to-buffer fancy-splash-outer-buffer)))))))
 
 (defun fancy-splash-frame ()
   "Return the frame to use for the fancy splash screen.
@@ -1381,10 +1398,9 @@ we put it on this frame."
   (let ((prev-buffer (current-buffer)))
     (unwind-protect
 	(with-current-buffer (get-buffer-create "GNU Emacs")
-	  (let ((tab-width 8)
-		(mode-line-format (propertize "---- %b %-"
-					      'face '(:weight bold))))
-
+	  (setq mode-line-format (propertize "---- %b %-"
+					     'face '(:weight bold)))
+	  (let ((tab-width 8))
 	    (if pure-space-overflow
 		(insert "Warning Warning  Pure space overflow   Warning Warning\n"))
 
@@ -1538,10 +1554,11 @@ Type \\[describe-distribution] for information on getting the latest version."))
 Fancy splash screens are used on graphic displays,
 normal otherwise."
   (interactive)
-  (if (use-fancy-splash-screens-p)
-      (fancy-splash-screens)
-    (normal-splash-screen)))
-
+  ;; Prevent recursive calls from server-process-filter.
+  (if (not (get-buffer "GNU Emacs"))
+      (if (use-fancy-splash-screens-p)
+	  (fancy-splash-screens)
+	(normal-splash-screen))))
 
 (defun command-line-1 (command-line-args-left)
   (or noninteractive (input-pending-p) init-file-had-error

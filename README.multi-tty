@@ -401,6 +401,31 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** `delete-frame' events are handled by `special-event-map'
+   immediately when read by `read_char'.  This is fine but it prevents
+   higher-level keymaps from binding that event to get notified of the
+   deleted frame.
+
+   Sometimes it would be useful for Lisp code to be notified of frame
+   deletions after they have happened, usually because they want to
+   clean up after the deleted frame.  Not all frame-local states can
+   be stored as a frame parameter.  For example,
+   `display-splash-screen' uses `recursive-edit' with a special keymap
+   override to create its buffer---and it leads to all kinds of
+   nastiness if Emacs stays in this recursive edit mode after the
+   frame containing the splash screen is deleted.  Basically, the
+   splash-screen implementation wants to throw out of the recursive
+   edit when the frame is deleted; however, it is not legal to throw
+   from `delete-frame-functions' because `delete-frame' must not fail.
+   (Introducing `delete-frame-after-functions' would not help either
+   because `delete-frame' may not fail at that time either.)
+
+   Currently `fancy-splash-screens' installs a
+   `delete-frame-functions' hook that sets up a timer to exit the
+   recursive edit.  This is an adequate solution, but it would perhaps
+   be better to have something like a `frame-deleted' event that could
+   be bound in the normal way.
+
 ** Trouble: `setenv' doesn't actually set environment variables in the
    Emacs process.  This defeats the purpose of the elaborate
    `server-with-environment' magic around the `tgetent' call in
@@ -1376,6 +1401,13 @@ DIARY OF CHANGES
    share the same terminal, but have different environment.  The local
    environment lists are now stored as frame parameters, so the
    C-level terminal parameters are not strictly necessary any more.)
+
+-- `Fdelete_frame' is called from various critical places where it is
+   not acceptable for the frame deletion to fail, e.g. from
+   x_connection_closed after an X error.  `Fdelete_frame' now protects
+   against `delete-frame-functions' throwing an error and preventing a
+   frame delete. (patch-475)
+
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
 
