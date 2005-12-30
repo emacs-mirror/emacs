@@ -2735,6 +2735,8 @@ from the specified range of text.  Here's an example:
 @example
 (set-text-properties @var{start} @var{end} nil)
 @end example
+
+Do not rely on the return value of this function.
 @end defun
 
   The easiest way to make a string with text properties
