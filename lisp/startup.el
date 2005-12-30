@@ -1334,7 +1334,7 @@ mouse."
       (catch 'stop-splashing
 	(unwind-protect
 	    (let* ((map (make-sparse-keymap))
-		   (overriding-terminal-local-map map)
+		   (overriding-local-map map)
 		   ;; Catch if our frame is deleted; the delete-frame
 		   ;; event is unreliable and is handled by
 		   ;; `special-event-map' anyway.

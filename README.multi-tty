@@ -401,6 +401,12 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** Let-binding `overriding-terminal-local-map' on a brand new frame
+   does not seem to work correctly.  (See `fancy-splash-screens'.)
+   The keymap seems to be set up right, but events go to another
+   terminal.  Or is it `unread-command-events' that gets Emacs
+   confused?  Investigate.
+
 ** `delete-frame' events are handled by `special-event-map'
    immediately when read by `read_char'.  This is fine but it prevents
    higher-level keymaps from binding that event to get notified of the
