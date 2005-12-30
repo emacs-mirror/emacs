@@ -1014,6 +1014,13 @@ terminal itself blinks the cursor, and Emacs has no control over it.)
 You can control how the cursor appears when it blinks off by setting
 the variable @code{blink-cursor-alist}.
 
+@vindex visible-cursor
+  Some text terminals offer two different cursors: the normal cursor
+and the very visible cursor, where the latter may be e.g. bigger or
+blinking.  By default Emacs uses the very visible cursor.  Setting the
+variable @code{visible-cursor} to @code{nil} makes it use the
+normal cursor.
+
 @cindex cursor in non-selected windows
 @vindex cursor-in-non-selected-windows
   Normally, the cursor appears in non-selected windows in the ``off''
