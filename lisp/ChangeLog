@@ -1,5 +1,7 @@
 2005-12-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* cus-start.el: Add `visible-cursor'.
+
 	* progmodes/flymake.el (flymake-copy-buffer-to-temp-buffer): Simplify.
 	(flymake-parse-output-and-residual): Remove `source-buffer' argument.
 	(flymake-process-filter): Switch to buffer before calling it instead.

@@ -274,6 +274,8 @@ Leaving \"Default\" unchecked is equivalent with specifying a default of
 	     (words-include-escapes editing-basics boolean)
 	     (open-paren-in-column-0-is-defun-start editing-basics boolean
 						    "21.1")
+             ;; term.c
+             (visible-cursor cursor boolean "22.1")
 	     ;; undo.c
 	     (undo-limit undo integer)
 	     (undo-strong-limit undo integer)
