@@ -1,5 +1,10 @@
 2005-12-29  Richard M. Stallman  <rms@gnu.org>
 
+	* lread.c (readevalloop): Test for reading a whole buffer
+	before actually reading anything.  Handle all cases, including
+	START = END = nil and an already-narrowed buffer.
+	Convert END to a marker if it is a number.
+
 	* keymap.c (describe_map): Put sparse map elements into an array,
 	sort them, then output a sequence of identical bindings on one line.
 	(struct describe_map_elt): New data type.
