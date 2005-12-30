@@ -1891,7 +1891,7 @@ get_glyph_string_clip_rects (s, rects, n)
     }
 
   if ((s->for_overlaps & OVERLAPS_BOTH) == 0
-      || (s->for_overlaps & OVERLAPS_BOTH) == OVERLAPS_BOTH && n == 1)
+      || ((s->for_overlaps & OVERLAPS_BOTH) == OVERLAPS_BOTH && n == 1))
     {
 #ifdef CONVERT_FROM_XRECT
       CONVERT_FROM_XRECT (r, *rects);
@@ -1917,23 +1917,27 @@ get_glyph_string_clip_rects (s, rects, n)
 	{
 	  rs[i] = r;
 	  if (r.y + r.height > row_y)
-	    if (r.y < row_y)
-	      rs[i].height = row_y - r.y;
-	    else
-	      rs[i].height = 0;
+	    {
+	      if (r.y < row_y)
+		rs[i].height = row_y - r.y;
+	      else
+		rs[i].height = 0;
+	    }
 	  i++;
 	}
       if (s->for_overlaps & OVERLAPS_SUCC)
 	{
 	  rs[i] = r;
 	  if (r.y < row_y + s->row->visible_height)
-	    if (r.y + r.height > row_y + s->row->visible_height)
-	      {
-		rs[i].y = row_y + s->row->visible_height;
-		rs[i].height = r.y + r.height - rs[i].y;
-	      }
-	    else
-	      rs[i].height = 0;
+	    {
+	      if (r.y + r.height > row_y + s->row->visible_height)
+		{
+		  rs[i].y = row_y + s->row->visible_height;
+		  rs[i].height = r.y + r.height - rs[i].y;
+		}
+	      else
+		rs[i].height = 0;
+	    }
 	  i++;
 	}
 
@@ -18010,6 +18014,8 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
   if (NILP (prop))
     return OK_PIXELS (0);
 
+  xassert (FRAME_LIVE_P (it->f));
+
   if (SYMBOLP (prop))
     {
       if (SCHARS (SYMBOL_NAME (prop)) == 2)
@@ -18126,7 +18132,8 @@ calc_pixel_width_or_height (res, it, prop, font, width_p, align_to)
       if (SYMBOLP (car))
 	{
 #ifdef HAVE_WINDOW_SYSTEM
-	  if (valid_image_p (prop))
+	  if (FRAME_WINDOW_P (it->f)
+	      && valid_image_p (prop))
 	    {
 	      int id = lookup_image (it->f, prop);
 	      struct image *img = IMAGE_FROM_ID (it->f, id);
