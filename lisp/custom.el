@@ -1120,12 +1120,6 @@ All the themes loaded for BY-THEME are recorded in BY-THEME's property
 	     (load-theme theme)))
       (push theme themes-loaded))
     (put by-theme 'theme-loads-themes themes-loaded)))
-
-(defun custom-load-themes (&rest body)
-  "Load themes for the USER theme as specified by BODY.
-
-See `custom-theme-load-themes' for more information on BODY."
-  (apply 'custom-theme-load-themes 'user body))
 
 ;;; Enabling and disabling loaded themes.
 
