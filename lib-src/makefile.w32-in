@@ -202,6 +202,11 @@ lisp1= \
 	$(lispsource)international/latin-5.el \
 	$(lispsource)international/latin-8.el \
 	$(lispsource)international/latin-9.el \
+	$(lispsource)image.elc \
+	$(lispsource)international/fontset.elc \
+	$(lispsource)dnd.elc \
+	$(lispsource)mwheel.elc \
+	$(lispsource)tool-bar.elc \
 	$(lispsource)case-table.elc
 
 lisp2 = \
