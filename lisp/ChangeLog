@@ -1,3 +1,7 @@
+2005-12-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (noreturn, 1value): Doc fixes.
+
 2005-12-29  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-text-in-field-bounds): Handle case
