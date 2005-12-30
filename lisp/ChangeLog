@@ -1,3 +1,8 @@
+2005-12-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-compile-keywords): Signal an error when
+	font-lock-set-defaults hasn't been called.
+
 2005-12-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (noreturn, 1value): Doc fixes.
@@ -12,15 +17,13 @@
 	* textmodes/bibtex.el (bibtex-entry-type-whitespace)
 	(bibtex-entry-type-str, bibtex-empty-field-re)
 	(bibtex-search-backward-string, bibtex-preamble-prefix)
-	(bibtex-search-entry, bibtex-enclosing-entry-maybe-empty-head):
-	Removed.
+	(bibtex-search-entry, bibtex-enclosing-entry-maybe-empty-head): Remove.
 	(bibtex-any-valid-entry-type): New variable.
 	(bibtex-parse-field-name): Simplify.
-	(bibtex-parse-string, bibtex-search-forward-string): New arg
-	empty-key.
+	(bibtex-parse-string, bibtex-search-forward-string): New arg empty-key.
 	(bibtex-preamble-prefix): Include left delimiter.
-	(bibtex-search-forward-field, bibtex-search-backward-field): Allow
-	unbounded search past entry boundaries (required by bibtex-pop).
+	(bibtex-search-forward-field, bibtex-search-backward-field):
+	Allow unbounded search past entry boundaries (required by bibtex-pop).
 	(bibtex-text-in-field-bounds): Use push.
 	(bibtex-text-in-field): Do not use bibtex-narrow-to-entry.
 	(bibtex-parse-preamble, bibtex-valid-entry)
@@ -35,8 +38,8 @@
 	(bibtex-pop): Use bibtex-beginning-of-entry and
 	bibtex-end-of-entry to initiate the search.  Insert empty field if
 	we found ourselves.
-	(bibtex-print-help-message): New args field and comma.  Handle
-	entry keys.
+	(bibtex-print-help-message): New args field and comma.
+	Handle entry keys.
 	(bibtex-make-field): Use bibtex-beginning-of-entry.
 	(bibtex-end-of-entry): Use bibtex-valid-entry.  Recognize any
 	invalid entry.
@@ -51,8 +54,7 @@
 	(bibtex-fill-field): Simplify.
 	(bibtex-fill-entry): Use bibtex-beginning-first-field and
 	bibtex-parse-field.
-	(bibtex-convert-alien): Do not wait before calling
-	bibtex-validate.
+	(bibtex-convert-alien): Do not wait before calling bibtex-validate.
 	(bibtex-complete): Use bibtex-parse-preamble.
 
 2005-12-29  Nick Roberts  <nickrob@snap.net.nz>
@@ -68,8 +70,7 @@
 
 2005-12-28  Bill Wohler  <wohler@newt.com>
 
-	* simple.el (mh-e-user-agent): Move to mh-e/mh-comp.el and
-	autoload.
+	* simple.el (mh-e-user-agent): Move to mh-e/mh-comp.el and autoload.
 
 2005-12-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
