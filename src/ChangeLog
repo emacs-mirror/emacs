@@ -1,3 +1,10 @@
+2005-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (describe_map): Put sparse map elements into an array,
+	sort them, then output a sequence of identical bindings on one line.
+	(struct describe_map_elt): New data type.
+	(describe_map_compare): New function.
+
 2005-12-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_file_with_chooser): Changed message shown
