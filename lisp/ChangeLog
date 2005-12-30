@@ -1,7 +1,6 @@
 2005-12-30  Richard M. Stallman  <rms@gnu.org>
 
-	* cus-edit.el (custom-save-loaded-themes): Call custom-save-delete.
-	(custom-save-all): Call custom-save-loaded-themes.
+	* cus-edit.el (custom-save-loaded-themes): Function deleted.
 	(custom-save-variables): Don't delete or add custom-load-themes call.
 
 2005-12-30  Stefan Monnier  <monnier@iro.umontreal.ca>
