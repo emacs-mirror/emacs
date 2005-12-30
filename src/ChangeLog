@@ -1,3 +1,8 @@
+2005-12-30  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Tell users not to worry about GDB warnings that some
+	functions do not exist in the binary.
+
 2005-12-30  Andreas Schwab  <schwab@suse.de>
 
 	* process.c (Fnetwork_interface_info): Correctly terminate the
