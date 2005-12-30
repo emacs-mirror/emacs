@@ -1057,9 +1057,9 @@ The first one is always `user'.")
   (memq theme custom-enabled-themes))
 
 (defun provide-theme (theme)
-  "Indicate that this file provides THEME.
-Add THEME to `custom-loaded-themes', and `provide' whatever
-feature name is stored in THEME's property `theme-feature'.
+  "Indicate that this file provides THEME, and mark it as enabled.
+Add THEME to `custom-loaded-themes' and `custom-enabled-themes',
+and `provide' the feature name stored in THEME's property `theme-feature'.
 
 Usually the `theme-feature' property contains a symbol created
 by `custom-make-theme-feature'."
@@ -1138,8 +1138,8 @@ This signals an error if THEME does not specify any theme
 settings.  Theme settings are set using `load-theme'."
   (interactive "SEnable Custom theme: ")
   (let ((settings (get theme 'theme-settings)))
-    (if (and (not (eq theme 'user)) (null settings))
-	(error "No theme settings defined in %s." (symbol-name theme)))
+    (unless (or (eq theme 'user) (memq theme custom-loaded-themes))
+      (error "Theme %s not defined" (symbol-name theme)))
     (dolist (s settings)
       (let* ((prop (car s))
 	     (symbol (cadr s))
@@ -1157,17 +1157,18 @@ settings.  Theme settings are set using `load-theme'."
 
 (defun disable-theme (theme)
   "Disable all variable and face settings defined by THEME.
-See `custom-known-themes' for a list of known themes."
+See `custom-enabled-themes' for a list of known themes."
   (interactive "SDisable Custom theme: ")
-  (let ((settings (get theme 'theme-settings)))
-    (dolist (s settings)
-      (let* ((prop (car s))
-	     (symbol (cadr s))
-	     (spec-list (get symbol prop)))
-	(put symbol prop (assq-delete-all theme spec-list))
-	(if (eq prop 'theme-value)
-	    (custom-theme-recalc-variable symbol)
-	  (custom-theme-recalc-face symbol)))))
+  (when (memq theme custom-enabled-themes)
+    (let ((settings (get theme 'theme-settings)))
+      (dolist (s settings)
+	(let* ((prop (car s))
+	       (symbol (cadr s))
+	       (spec-list (get symbol prop)))
+	  (put symbol prop (assq-delete-all theme spec-list))
+	  (if (eq prop 'theme-value)
+	      (custom-theme-recalc-variable symbol)
+	    (custom-theme-recalc-face symbol))))))
   (setq custom-enabled-themes
 	(delq theme custom-enabled-themes)))
 
