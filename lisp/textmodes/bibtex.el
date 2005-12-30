@@ -2470,6 +2470,7 @@ already set."
   "Complete word fragment before point to longest prefix of COMPLETIONS.
 COMPLETIONS is an alist of strings.  If point is not after the part
 of a word, all strings are listed.  Return completion."
+  ;; Return value is used by cleanup functions.
   (let* ((case-fold-search t)
          (beg (save-excursion
                 (re-search-backward "[ \t{\"]")
@@ -2492,7 +2493,6 @@ of a word, all strings are listed.  Return completion."
              (display-completion-list (all-completions part-of-word completions)
 				      part-of-word))
            (message "Making completion list...done")
-           ;; return value is handled by choose-completion-string-functions
            nil))))
 
 (defun bibtex-complete-string-cleanup (str compl)
@@ -2783,6 +2783,7 @@ if that value is non-nil.
         (list (list nil bibtex-entry-head bibtex-key-in-head))
         imenu-case-fold-search t)
   (make-local-variable 'choose-completion-string-functions)
+  (make-local-variable 'completion-ignore-case)
   ;; XEmacs needs easy-menu-add, Emacs does not care
   (easy-menu-add bibtex-edit-menu)
   (easy-menu-add bibtex-entry-menu)
@@ -4152,41 +4153,53 @@ An error is signaled if point is outside key or BibTeX field."
 
     (cond ((eq compl 'key)
            ;; key completion: no cleanup needed
-           (let (completion-ignore-case)
-             (bibtex-complete-internal (bibtex-global-key-alist))))
+           (setq choose-completion-string-functions nil
+                 completion-ignore-case nil)
+           (bibtex-complete-internal (bibtex-global-key-alist)))
 
           ((eq compl 'crossref-key)
            ;; crossref key completion
-           (let (completion-ignore-case)
-             (setq choose-completion-string-functions
-                   (lambda (choice buffer mini-p base-size)
-                     (let ((choose-completion-string-functions nil))
-                       (choose-completion-string choice buffer base-size))
-                     (bibtex-complete-crossref-cleanup choice)
-                     ;; return t (needed by choose-completion-string-functions)
-                     t))
-             (bibtex-complete-crossref-cleanup (bibtex-complete-internal
-                                                (bibtex-global-key-alist)))))
+           ;;
+           ;; If we quit the *Completions* buffer without requesting
+           ;; a completion, `choose-completion-string-functions' is still
+           ;; non-nil. Therefore, `choose-completion-string-functions' is
+           ;; always set (either to non-nil or nil) when a new completion
+           ;; is requested.
+           ;; Also, `choose-completion-delete-max-match' requires
+           ;; that we set `completion-ignore-case' (i.e., binding via `let'
+           ;; is not sufficient).
+           (setq completion-ignore-case nil
+                 choose-completion-string-functions
+                 (lambda (choice buffer mini-p base-size)
+                   (setq choose-completion-string-functions nil)
+                   (choose-completion-string choice buffer base-size)
+                   (bibtex-complete-crossref-cleanup choice)
+                   t)) ; needed by choose-completion-string-functions
+
+           (bibtex-complete-crossref-cleanup (bibtex-complete-internal
+                                              (bibtex-global-key-alist))))
 
           ((eq compl 'string)
            ;; string key completion: no cleanup needed
-           (let ((completion-ignore-case t))
-             (bibtex-complete-internal bibtex-strings)))
+           (setq choose-completion-string-functions nil
+                 completion-ignore-case t)
+           (bibtex-complete-internal bibtex-strings))
 
           (compl
            ;; string completion
-           (let ((completion-ignore-case t))
-             (setq choose-completion-string-functions
-                   `(lambda (choice buffer mini-p base-size)
-                      (let ((choose-completion-string-functions nil))
-                        (choose-completion-string choice buffer base-size))
-                      (bibtex-complete-string-cleanup choice ',compl)
-                      ;; return t (needed by choose-completion-string-functions)
-                      t))
-             (bibtex-complete-string-cleanup (bibtex-complete-internal compl)
-                                             compl)))
+           (setq completion-ignore-case t
+                 choose-completion-string-functions
+                 `(lambda (choice buffer mini-p base-size)
+                    (setq choose-completion-string-functions nil)
+                    (choose-completion-string choice buffer base-size)
+                    (bibtex-complete-string-cleanup choice ',compl)
+                    t)) ; needed by choose-completion-string-functions
+           (bibtex-complete-string-cleanup (bibtex-complete-internal compl)
+                                             compl))
 
-          (t (error "Point outside key or BibTeX field")))))
+          (t (setq choose-completion-string-functions nil
+                   completion-ignore-case nil) ; default
+             (error "Point outside key or BibTeX field")))))
 
 (defun bibtex-Article ()
   "Insert a new BibTeX @Article entry; see also `bibtex-entry'."
