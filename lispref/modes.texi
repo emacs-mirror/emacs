@@ -1522,7 +1522,7 @@ minor modes.
 @menu
 * Base: Mode Line Basics. Basic ideas of mode line control.
 * Data: Mode Line Data.   The data structure that controls the mode line.
-* Top: Mode LIne Top.     The top level variable, mode-line-format.
+* Top: Mode Line Top.     The top level variable, mode-line-format.
 * Mode Line Variables::   Variables used in that data structure.
 * %-Constructs::          Putting information into a mode line.
 * Properties in Mode::    Using text properties in the mode line.
