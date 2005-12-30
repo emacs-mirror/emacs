@@ -1324,6 +1324,14 @@ other_visible_frames (f)
   return 1;
 }
 
+/* Error handler for `delete-frame-functions'. */
+static Lisp_Object
+delete_frame_handler (Lisp_Object arg)
+{
+  add_to_log ("Error during `delete-frame': %s", arg, Qnil);
+  return Qnil;
+}
+
 DEFUN ("delete-frame", Fdelete_frame, Sdelete_frame, 0, 2, "",
        doc: /* Delete FRAME, permanently eliminating it from use.
 If omitted, FRAME defaults to the selected frame.
@@ -1398,10 +1406,18 @@ The functions are run with one arg, the frame to be deleted.  */)
   if (!NILP (Vrun_hooks)
       && NILP (Fframe_parameter (frame, intern ("tooltip"))))
     {
+      int count = SPECPDL_INDEX ();
       Lisp_Object args[2];
+      struct gcpro gcpro1, gcpro2;
+
+      /* Don't let a rogue function in `delete-frame-functions'
+	 prevent the frame deletion. */
+      GCPRO2 (args[0], args[1]);
       args[0] = intern ("delete-frame-functions");
       args[1] = frame;
-      Frun_hook_with_args (2, args);
+      internal_condition_case_2 (Frun_hook_with_args, 2, args,
+				 Qt, delete_frame_handler);
+      UNGCPRO;
     }
 
   /* The hook may sometimes (indirectly) cause the frame to be deleted.  */
