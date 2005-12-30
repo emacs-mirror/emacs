@@ -4018,12 +4018,40 @@ if only the first line of the docstring is shown."))
 	 (old-buffer (find-buffer-visiting filename)))
     (with-current-buffer (or old-buffer (find-file-noselect filename))
       (let ((inhibit-read-only t))
+	(custom-save-loaded-themes)
 	(custom-save-variables)
 	(custom-save-faces))
       (let ((file-precious-flag t))
 	(save-buffer))
       (unless old-buffer
 	(kill-buffer (current-buffer))))))
+
+;;;###autoload
+(defun customize-save-customized ()
+  "Save all user options which have been set in this session."
+  (interactive)
+  (mapatoms (lambda (symbol)
+	      (let ((face (get symbol 'customized-face))
+		    (value (get symbol 'customized-value))
+		    (face-comment (get symbol 'customized-face-comment))
+		    (variable-comment
+		     (get symbol 'customized-variable-comment)))
+		(when face
+		  (put symbol 'saved-face face)
+		  (custom-push-theme 'theme-face symbol 'user 'set value)
+		  (put symbol 'customized-face nil))
+		(when value
+		  (put symbol 'saved-value value)
+		  (custom-push-theme 'theme-value symbol 'user 'set value)
+		  (put symbol 'customized-value nil))
+		(when variable-comment
+		  (put symbol 'saved-variable-comment variable-comment)
+		  (put symbol 'customized-variable-comment nil))
+		(when face-comment
+		  (put symbol 'saved-face-comment face-comment)
+		  (put symbol 'customized-face-comment nil)))))
+  ;; We really should update all custom buffers here.
+  (custom-save-all))
 
 ;; Editing the custom file contents in a buffer.
 
@@ -4069,10 +4097,8 @@ This function does not save the buffer."
 (defun custom-save-variables ()
   "Save all customized variables in `custom-file'."
   (save-excursion
-    (custom-save-delete 'custom-load-themes)
     (custom-save-delete 'custom-reset-variables)
     (custom-save-delete 'custom-set-variables)
-    (custom-save-loaded-themes)
     (custom-save-resets 'theme-value 'custom-reset-variables nil)
     (let ((standard-output (current-buffer))
 	  (saved-list (make-list 1 0))
@@ -4131,6 +4157,33 @@ This function does not save the buffer."
       (unless (looking-at "\n")
 	(princ "\n")))))
 
+(defun custom-save-resets (property setter special)
+  (let (started-writing ignored-special)
+    ;; (custom-save-delete setter) Done by caller
+    (let ((standard-output (current-buffer))
+	  (mapper `(lambda (object)
+		    (let ((spec (car-safe (get object (quote ,property)))))
+		      (when (and (not (memq object ignored-special))
+				 (eq (nth 0 spec) 'user)
+				 (eq (nth 1 spec) 'reset))
+			;; Do not write reset statements unless necessary.
+			(unless started-writing
+			  (setq started-writing t)
+			  (unless (bolp)
+			    (princ "\n"))
+			(princ "(")
+			(princ (quote ,setter))
+			(princ "\n '(")
+			(prin1 object)
+			(princ " ")
+			(prin1 (nth 3 spec))
+			(princ ")")))))))
+      (mapc mapper special)
+      (setq ignored-special special)
+      (mapatoms mapper)
+      (when started-writing
+	(princ ")\n")))))
+
 (defun custom-save-faces ()
   "Save all customized faces in `custom-file'."
   (save-excursion
@@ -4188,34 +4241,9 @@ This function does not save the buffer."
       (unless (looking-at "\n")
 	(princ "\n")))))
 
-(defun custom-save-resets (property setter special)
-  (let (started-writing ignored-special)
-    ;; (custom-save-delete setter) Done by caller
-    (let ((standard-output (current-buffer))
-	  (mapper `(lambda (object)
-		    (let ((spec (car-safe (get object (quote ,property)))))
-		      (when (and (not (memq object ignored-special))
-				 (eq (nth 0 spec) 'user)
-				 (eq (nth 1 spec) 'reset))
-			;; Do not write reset statements unless necessary.
-			(unless started-writing
-			  (setq started-writing t)
-			  (unless (bolp)
-			    (princ "\n"))
-			(princ "(")
-			(princ (quote ,setter))
-			(princ "\n '(")
-			(prin1 object)
-			(princ " ")
-			(prin1 (nth 3 spec))
-			(princ ")")))))))
-      (mapc mapper special)
-      (setq ignored-special special)
-      (mapatoms mapper)
-      (when started-writing
-	(princ ")\n")))))
-
 (defun custom-save-loaded-themes ()
+  "Update the `custom-load-themes' call in the buffer."
+  (custom-save-delete 'custom-load-themes)
   (let ((themes (reverse (get 'user 'theme-loads-themes)))
 	(standard-output (current-buffer)))
     (when themes
@@ -4225,33 +4253,6 @@ This function does not save the buffer."
 	      (princ "\n   '")
 	      (prin1 theme)) themes)
       (princ " )\n"))))
-
-;;;###autoload
-(defun customize-save-customized ()
-  "Save all user options which have been set in this session."
-  (interactive)
-  (mapatoms (lambda (symbol)
-	      (let ((face (get symbol 'customized-face))
-		    (value (get symbol 'customized-value))
-		    (face-comment (get symbol 'customized-face-comment))
-		    (variable-comment
-		     (get symbol 'customized-variable-comment)))
-		(when face
-		  (put symbol 'saved-face face)
-		  (custom-push-theme 'theme-face symbol 'user 'set value)
-		  (put symbol 'customized-face nil))
-		(when value
-		  (put symbol 'saved-value value)
-		  (custom-push-theme 'theme-value symbol 'user 'set value)
-		  (put symbol 'customized-value nil))
-		(when variable-comment
-		  (put symbol 'saved-variable-comment variable-comment)
-		  (put symbol 'customized-variable-comment nil))
-		(when face-comment
-		  (put symbol 'saved-face-comment face-comment)
-		  (put symbol 'customized-face-comment nil)))))
-  ;; We really should update all custom buffers here.
-  (custom-save-all))
 
 ;;; The Customize Menu.
 
