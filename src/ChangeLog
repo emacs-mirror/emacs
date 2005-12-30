@@ -1,3 +1,9 @@
+2005-12-30  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textprop.c (set_text_properties): Reword description of return value.
+	Return Qnil if caller wants to remove all text properties from a
+	string and the string already has no intervals.
+
 2005-12-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* term.c (visible_cursor): New boolean var.
