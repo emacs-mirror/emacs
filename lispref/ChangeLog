@@ -1,3 +1,8 @@
+2005-12-30  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Changing Properties):
+	Don't use return value of set-text-properties.
+
 2005-12-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* modes.texi (Mode Line Format): Correct typo in menu.
