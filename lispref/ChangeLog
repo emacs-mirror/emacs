@@ -1,3 +1,7 @@
+2005-12-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Mode Line Format): Correct typo in menu.
+
 2005-12-29  Richard M. Stallman  <rms@gnu.org>
 
 	* modes.texi (Mode Line Top): New node.
