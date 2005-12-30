@@ -764,6 +764,12 @@ show environment DISPLAY
 show environment TERM
 set args -geometry 80x40+0+0
 
+# People get bothered when they see messages about non-existent functions...
+echo \n
+echo  If you see messages below about functions not being defined,\n
+echo  don\'t worry about them.  Nothing is wrong.\n
+echo \n
+
 # Don't let abort actually run, as it will make
 # stdio stop working and therefore the `pr' command above as well.
 break abort
