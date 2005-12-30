@@ -1,3 +1,21 @@
+2005-12-30  Juri Linkov  <juri@jurta.org>
+
+	* locate.el (locate-fcodes-file, locate-header-face)
+	* progmodes/delphi.el (delphi-other-face)
+	* progmodes/glasses.el (glasses-face): Add tag "None" to const nil.
+
+	* paren.el (show-paren-match, show-paren-mismatch): Use existing
+	group `paren-showing-faces'.
+
+	* net/goto-addr.el (goto-address-highlight-keymap): Fix docstring.
+	(goto-address): Fix docstring.
+
+	* net/webjump.el (webjump-sample-sites): Update URLs.
+
+	* textmodes/fill.el (fill-single-word-nobreak-p): Use `sentence-end'.
+
+	* subr.el (cancel-change-group): Add listp around pending-undo-list.
+
 2005-12-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-compile-keywords): Signal an error when

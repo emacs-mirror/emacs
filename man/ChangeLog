@@ -1,3 +1,7 @@
+2005-12-30  Juri Linkov  <juri@jurta.org>
+
+	* basic.texi (Position Info): Update example.
+
 2005-12-29  Romain Francoise  <romain@orebokech.com>
 
 	* faq.texi (Using Customize): New node.
