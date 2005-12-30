@@ -1,3 +1,13 @@
+2005-12-29  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Mode Line Top): New node.
+	(Mode Line Data): Some text moved to new node.
+	Explain the data structure more concretely.
+	(Mode Line Basics): Clarifications.
+	(Mode Line Variables): Clarify intro paragraph.
+	(%-Constructs): Clarify intro paragraph.
+	(Mode Line Format): Update menu.
+
 2005-12-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* minibuf.texi (Basic Completion): Update lazy-completion-table
