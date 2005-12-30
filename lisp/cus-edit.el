@@ -4018,7 +4018,6 @@ if only the first line of the docstring is shown."))
 	 (old-buffer (find-buffer-visiting filename)))
     (with-current-buffer (or old-buffer (find-file-noselect filename))
       (let ((inhibit-read-only t))
-	(custom-save-loaded-themes)
 	(custom-save-variables)
 	(custom-save-faces))
       (let ((file-precious-flag t))
@@ -4240,19 +4239,6 @@ This function does not save the buffer."
       (princ ")")
       (unless (looking-at "\n")
 	(princ "\n")))))
-
-(defun custom-save-loaded-themes ()
-  "Update the `custom-load-themes' call in the buffer."
-  (custom-save-delete 'custom-load-themes)
-  (let ((themes (reverse (get 'user 'theme-loads-themes)))
-	(standard-output (current-buffer)))
-    (when themes
-      (unless (bolp) (princ "\n"))
-      (princ "(custom-load-themes")
-      (mapc (lambda (theme)
-	      (princ "\n   '")
-	      (prin1 theme)) themes)
-      (princ " )\n"))))
 
 ;;; The Customize Menu.
 
