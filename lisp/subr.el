@@ -1684,7 +1684,7 @@ This finishes the change group by reverting all of its changes."
 	(when (and (consp elt) (not (eq elt (last pending-undo-list))))
 	  (error "Undoing to some unrelated state"))
 	;; Undo it all.
-	(while pending-undo-list (undo-more 1))
+	(while (listp pending-undo-list) (undo-more 1))
 	;; Reset the modified cons cell ELT to its original content.
 	(when (consp elt)
 	  (setcar elt old-car)
