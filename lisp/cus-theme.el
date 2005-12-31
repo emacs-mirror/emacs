@@ -35,7 +35,20 @@
   "Major mode for the buffer created by `customize-create-theme'.
 Do not call this mode function yourself.  It is only meant for internal
 use by `customize-create-theme'."
-  (set-keymap-parent custom-new-theme-mode-map widget-keymap))
+  (set-keymap-parent custom-new-theme-mode-map widget-keymap)
+  (set (make-local-variable 'widget-documentation-face) 'custom-documentation)
+  (set (make-local-variable 'widget-button-face) custom-button)
+  (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
+  (if custom-raised-buttons
+      (set (make-local-variable 'widget-mouse-face) custom-button))
+
+  ;; When possible, use relief for buttons, not bracketing.  This test
+  ;; may not be optimal.
+  (when custom-raised-buttons
+    (set (make-local-variable 'widget-push-button-prefix) "")
+    (set (make-local-variable 'widget-push-button-suffix) "")
+    (set (make-local-variable 'widget-link-prefix) "")
+    (set (make-local-variable 'widget-link-suffix) "")))
 (put 'custom-new-theme-mode 'mode-class 'special)
 
 (defvar custom-theme-name)
