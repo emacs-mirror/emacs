@@ -1,3 +1,7 @@
+2005-12-31  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs.c (gdb_pvec_type): A dummy variable for GDB's sake.
+
 2005-12-30  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* textprop.c (set_text_properties): Reword description of return value.
