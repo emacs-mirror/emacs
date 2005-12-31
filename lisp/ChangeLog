@@ -1,6 +1,7 @@
 2005-12-30  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-theme.el (custom-new-theme-mode): Use cus-edit faces.
+	(custom-new-theme-mode-map): New variable.
 
 2005-12-30  Richard M. Stallman  <rms@gnu.org>
 
