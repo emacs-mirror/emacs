@@ -119,6 +119,9 @@ update-subdirs: doit
 
 updates: update-subdirs autoloads mh-autoloads finder-data custom-deps
 
+# This is useful after "cvs up".
+cvs-update: recompile autoloads finder-data custom-deps
+
 # Update the AUTHORS file.
 
 update-authors:
