@@ -2596,7 +2596,7 @@ The frame-local environment variable list is normally shared between
 frames that were created in the same Emacsclient session.  The
 environment list is stored in a single frame's 'environment parameter;
 the other frames' 'environment parameter is set to this frame.  This
-function follows to chain of 'environment references to reach the
+function follows the chain of 'environment references to reach the
 frame that stores the actual local environment list, and returns that
 frame.  */)
      (frame)
