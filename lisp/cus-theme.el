@@ -41,9 +41,6 @@ use by `customize-create-theme'."
   (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
   (if custom-raised-buttons
       (set (make-local-variable 'widget-mouse-face) custom-button))
-
-  ;; When possible, use relief for buttons, not bracketing.  This test
-  ;; may not be optimal.
   (when custom-raised-buttons
     (set (make-local-variable 'widget-push-button-prefix) "")
     (set (make-local-variable 'widget-push-button-suffix) "")
