@@ -112,6 +112,9 @@ EMACS_INT gdb_data_seg_bits = 0;
 #endif
 EMACS_INT PVEC_FLAG = PSEUDOVECTOR_FLAG;
 EMACS_INT gdb_array_mark_flag = ARRAY_MARK_FLAG;
+/* GDB might say "No enum type named pvec_type" if we don't have at
+   least one symbol with that type, and then xbacktrace could fail.  */
+enum pvec_type gdb_pvec_type = PVEC_TYPE_MASK;
 
 /* Command line args from shell, as list of strings.  */
 Lisp_Object Vcommand_line_args;
