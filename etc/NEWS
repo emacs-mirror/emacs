@@ -818,7 +818,7 @@ appears in.
 of the recognized cursor types.
 
 +++
-*** In text terminals, the variable `visible-cursor' controls whether Emacs
+*** On text terminals, the variable `visible-cursor' controls whether Emacs
 uses the "very visible" cursor (the default) or the normal cursor.
 
 ** New faces:
