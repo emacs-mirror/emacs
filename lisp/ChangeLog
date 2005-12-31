@@ -1,5 +1,11 @@
 2005-12-31  Chong Yidong  <cyd@stupidchicken.com>
 
+	* custom.el (provide-theme): Ban `user' theme name.
+	(custom-enabling-themes): New variable.
+	(enable-theme): Don't enable user if custom-enabling-themes is t.
+	(custom-enabled-themes): Make it a defcustom.
+	(custom-theme-recalc-face): No-op if face is undefined.
+
 	* cus-edit.el (custom-button-mouse): New variable.
 	(custom-button-mouse): New face.
 	(custom-raised-buttons, custom-mode): Use it.
