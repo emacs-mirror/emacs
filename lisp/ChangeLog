@@ -1,3 +1,11 @@
+2005-12-31  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-button-mouse): New variable.
+	(custom-button-mouse): New face.
+	(custom-raised-buttons, custom-mode): Use it.
+
+	* cus-theme.el (custom-new-theme-mode): Use custom-button-mouse.
+
 2005-12-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/gud.el (gud-display-line): Support hl-line in the

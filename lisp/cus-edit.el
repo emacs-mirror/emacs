@@ -1405,6 +1405,9 @@ This button will have a menu with all three reset operations."
 (defvar custom-button nil
   "Face used for buttons in customization buffers.")
 
+(defvar custom-button-mouse nil
+  "Mouse face used for buttons in customization buffers.")
+
 (defvar custom-button-pressed nil
   "Face used for pressed buttons in customization buffers.")
 
@@ -1419,6 +1422,8 @@ Otherwise use brackets."
 	 (custom-set-default variable value)
 	 (setq custom-button
 	       (if value 'custom-button 'custom-button-unraised))
+	 (setq custom-button-mouse
+	       (if value 'custom-button-mouse 'highlight))
 	 (setq custom-button-pressed
 	       (if value
 		   'custom-button-pressed
@@ -1960,6 +1965,16 @@ and `face'."
 ;; backward-compatibility alias
 (put 'custom-button-face 'face-alias 'custom-button)
 
+(defface custom-button-mouse
+  '((((type x w32 mac) (class color))
+     (:box (:line-width 2 :style released-button)
+	   :background "grey90" :foreground "black"))
+    (t
+     nil))
+  "Mouse face for custom buffer buttons if `custom-raised-buttons' is non-nil."
+  :version "22.1"
+  :group 'custom-faces)
+
 (defface custom-button-unraised
   '((((min-colors 88)
       (class color) (background light)) :foreground "blue1" :underline t)
@@ -1974,6 +1989,9 @@ and `face'."
 
 (setq custom-button
       (if custom-raised-buttons 'custom-button 'custom-button-unraised))
+
+(setq custom-button-mouse
+      (if custom-raised-buttons 'custom-button-mouse 'highlight))
 
 (defface custom-button-pressed
   '((((type x w32 mac) (class color))
@@ -4407,8 +4425,7 @@ if that value is non-nil."
   (make-local-variable 'widget-button-face)
   (setq widget-button-face custom-button)
   (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
-  (if custom-raised-buttons
-      (set (make-local-variable 'widget-mouse-face) custom-button))
+  (set (make-local-variable 'widget-mouse-face) custom-button-mouse)
 
   ;; When possible, use relief for buttons, not bracketing.  This test
   ;; may not be optimal.
