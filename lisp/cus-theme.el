@@ -32,9 +32,6 @@
   (require 'wid-edit))
 
 (defvar custom-new-theme-mode-map
-  ;; This keymap should be dense, but a dense keymap would prevent inheriting
-  ;; "\r" bindings from the parent map.
-  ;; Actually, this misfeature of dense keymaps was fixed on 2001-11-26.
   (let ((map (make-keymap)))
     (set-keymap-parent map widget-keymap)
     (suppress-keymap map)
