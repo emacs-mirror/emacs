@@ -1032,7 +1032,11 @@ at the same position."
 		  (select-window original-window)
 		  (if (or (vectorp on-link) (stringp on-link))
 		      (setq event (aref on-link 0))
-		    (setcar event 'mouse-2)))
+		    (setcar event 'mouse-2)
+		    ;; If this mouse click has never been done by
+		    ;; the user, it doesn't have the necessary
+		    ;; property to be interpreted correctly.
+		    (put 'mouse-2 'event-kind 'mouse-click)))
 		(push event unread-command-events))))
 
         ;; Case where the end-event is not a cons cell (it's just a boring
