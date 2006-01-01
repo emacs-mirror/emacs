@@ -1,3 +1,66 @@
+2006-01-01  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el: Sync docstrings with manual for faces and sort
+	them alphabetically.
+	(mh-faces): Move below mh-hooks.
+	(mh-folder-faces, mh-index-faces, mh-letter-faces)
+	(mh-show-faces, mh-speed-faces): Delete. Organize faces like
+	hooks.
+	(mh-speed-update-interval): Fix group (mh-speedbar, not mh-speed).
+	(facemenu-unlisted-faces): Might as well ignore all MH-E faces.
+	(mh-folder-body-face, mh-folder-cur-msg-face)
+	(mh-folder-cur-msg-number-face, mh-folder-date-face)
+	(mh-folder-followup-face, mh-folder-msg-number-face)
+	(mh-folder-deleted-face, mh-folder-refiled-face)
+	(mh-folder-subject-face, mh-folder-address-face)
+	(mh-folder-scan-format-face, mh-folder-to-face)
+	(mh-index-folder-face, mh-show-cc-face, mh-show-date-face)
+	(mh-show-header-face, mh-show-pgg-good-face)
+	(mh-show-pgg-unknown-face, mh-show-pgg-bad-face)
+	(mh-show-to-face, mh-show-from-face, mh-show-subject-face):
+	Delete.
+	(mh-folder-cur-msg): Unused. Delete.
+	(mh-folder-address): Use defface; inherit from mh-folder-subject.
+	(mh-folder-body, mh-folder-cur-msg-number, mh-folder-date):
+	Inherit from mh-folder-msg-number.
+	(mh-folder-deleted): Use defface. Inherit from
+	mh-folder-msg-number.
+	(mh-folder-sent-to-me-hint): New face. Inherit from
+	mh-folder-date.
+	(mh-folder-sent-to-me-sender): Rename from mh-folder-scan-format.
+	Use defface. Inherit from mh-folder-followup.
+	(mh-show-xface): Inherit from mh-show-from and highlight.
+	(bw-face-generation, bw-toggle-faces)
+	(bw-new-face-to-old, bw-old-face-to-new): New (tempoarary)
+	variables, functions for toggling between old and new faces.
+
+	* mh-e.el (font-lock-auto-fontify, font-lock-defaults): Hide in
+	eval-when-compile. We should probably do this throughout.
+	(mh-scan-good-msg-regexp, mh-scan-deleted-msg-regexp)
+	(mh-scan-refiled-msg-regexp, mh-scan-cur-msg-number-regexp)
+	(mh-scan-date-regexp, mh-scan-rcpt-regexp, mh-scan-body-regexp)
+	(mh-scan-subject-regexp): Sync docstrings with manual
+	(mh-scan-format-regexp): Rename to
+	mh-scan-sent-to-me-sender-regexp. Drop date parenthesized
+	expression. Make expression more like the others (anchored at the
+	beginning of line). Sync docstrings with manual.
+	(mh-folder-font-lock-keywords): Use faces directly rather than
+	-face variables. Use mh-scan-sent-to-me-sender-regexp instead of
+	mh-scan-format-regexp, and within that expression, use faces
+	mh-folder-sent-to-me-hint and mh-folder-sent-to-me-sender instead
+	of mh-folder-date-face and mh-folder-scan-format-face which were
+	misleading.
+
+	* mh-mime.el (mh-mime-security-button-face): Use faces directly
+	rather than -face variables.
+
+	* mh-utils.el (mh-show-font-lock-keywords): Use faces directly
+	rather than -face variables.
+	(mh-face-foreground-compat, mh-face-background-compat): New macros.
+	(mh-face-display-function): Use mh-face-foreground-compat and
+	mh-face-background-compat to use inherited attributes of
+	mh-show-xface on Emacs 22 while still working on Emacs 21.
+
 2005-12-28  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-e-user-agent): Move here from simple.el. Use

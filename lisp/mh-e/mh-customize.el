@@ -204,57 +204,18 @@ and GNU mailutils."
   :prefix "mh-"
   :group 'mh-e)
 
-(defgroup mh-faces nil
-  "Faces used in MH-E."
-  :link '(custom-manual "(mh-e)Top")
-  :prefix "mh-"
-  :group 'faces
-  :group 'mh-e)
-
 (defgroup mh-hooks nil
   "MH-E hooks."
   :link '(custom-manual "(mh-e)Top")
   :prefix "mh-"
   :group 'mh-e)
 
-
-
-;;; Faces
-
-(defgroup mh-folder-faces nil
-  "Faces used in scan listing."
-  :link '(custom-manual "(mh-e)Folders")
+(defgroup mh-faces nil
+  "Faces used in MH-E."
+  :link '(custom-manual "(mh-e)Top")
   :prefix "mh-"
-  :group 'mh-faces
-  :group 'mh-folder)
-
-(defgroup mh-index-faces nil
-  "Faces used in searching."
-  :link '(custom-manual "(mh-e)Searching")
-  :prefix "mh-"
-  :group 'mh-faces
-  :group 'mh-index)
-
-(defgroup mh-letter-faces nil
-  "Faces used in message drafts."
-  :link '(custom-manual "(mh-e)Editing Drafts")
-  :prefix "mh-"
-  :group 'mh-faces
-  :group 'mh-letter)
-
-(defgroup mh-show-faces nil
-  "Faces used in message display."
-  :link '(custom-manual "(mh-e)Reading Mail")
-  :prefix "mh-"
-  :group 'mh-faces
-  :group 'mh-show)
-
-(defgroup mh-speed-faces nil
-  "Faces used in speedbar."
-  :link '(custom-manual "(mh-e)Speedbar")
-  :prefix "mh-"
-  :group 'mh-faces
-  :group 'mh-speed)
+  :group 'faces
+  :group 'mh-e)
 
 
 
@@ -1883,13 +1844,13 @@ lines you'd like to see."
 
 
 
-;;; The Speedbar (:group 'mh-speed)
+;;; The Speedbar (:group 'mh-speedbar)
 
 (defcustom mh-speed-update-interval 60
   "Time between speedbar updates in seconds.
 Set to 0 to disable automatic update."
   :type 'integer
-  :group 'mh-speed)
+  :group 'mh-speedbar)
 
 
 
@@ -2526,81 +2487,42 @@ sequence."
 
 
 
-;;; Faces (:group 'mh-*-faces + group where faces described)
+;;; Faces (:group 'mh-faces + group where faces described)
 
-
+(if (boundp 'facemenu-unlisted-faces)
+    (add-to-list 'facemenu-unlisted-faces "^mh-"))
 
-;;; Faces Used in Scan Listing (:group 'mh-folder-faces)
+(defface mh-folder-address '((t (:inherit mh-folder-subject)))
+  "Recipient face."
+  :group 'mh-faces
+  :group 'mh-folder)
 
-(defvar mh-folder-body-face 'mh-folder-body
-  "Face used to highlight body text in MH-Folder buffers.")
 (defface mh-folder-body
-  (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
-      (:foreground "RosyBrown"))
-     (((class color) (min-colors 88) (background dark))
-      (:foreground "LightSalmon"))
-     (((class color))
-      (:foreground "green"))
-     (((class grayscale) (background light))
-      (:foreground "DimGray" :italic t))
-     (((class grayscale) (background dark))
-      (:foreground "LightGray" :italic t))
-     (t
-      (:italic t))))
-  "Face used to highlight body text in MH-Folder buffers."
-  :group 'mh-folder-faces)
-
-(defvar mh-folder-cur-msg-face 'mh-folder-cur-msg
-  "Face used for the current message line in MH-Folder buffers.")
-(defface mh-folder-cur-msg
-  (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
-      (:background "LightGreen")        ;Use this for solid background colour
-      ;;  (:underline t)                 ;Use this for underlining
-      )
-     (((class color) (min-colors 88) (background dark))
-      (:background "DarkOliveGreen4"))
-     (((class color))
-      (:background "LightGreen"))
-     (t
-      (:underline t))))
-  "Face used for the current message line in MH-Folder buffers."
-  :group 'mh-folder-faces)
-
-(defvar mh-folder-cur-msg-number-face 'mh-folder-cur-msg-number
-  "Face used to highlight the current message in MH-Folder buffers.")
-(defface mh-folder-cur-msg-number
-  (mh-defface-compat
-   '((((class color) (min-colors 88) (background light))
-      (:foreground "Purple"))
-     (((class color) (min-colors 88) (background dark))
-      (:foreground "Cyan"))
-     (((class color))
-      (:foreground "cyan" :weight bold))
-     (((class grayscale) (background light))
-      (:foreground "LightGray" :bold t))
-     (((class grayscale) (background dark))
-      (:foreground "DimGray" :bold t))
-     (t
-      (:bold t))))
-  "Face used to highlight the current message in MH-Folder buffers."
-  :group 'mh-folder-faces)
-
-(defvar mh-folder-date-face 'mh-folder-date
-  "Face used to highlight the date in MH-Folder buffers.")
-(defface mh-folder-date
-  '((((class color) (background light))
-     (:foreground "snow4"))
-    (((class color) (background dark))
-     (:foreground "snow3"))
+  '((((class color))
+     (:inherit mh-folder-msg-number))
     (t
-     (:bold t)))
-  "Face used to highlight the date in MH-Folder buffers."
-  :group 'mh-folder-faces)
+     (:inherit mh-folder-msg-number :italic t)))
+  "Body text face."
+  :group 'mh-faces
+  :group 'mh-folder)
 
-(defvar mh-folder-followup-face 'mh-folder-followup
-  "Face used to highlight Re: subject text in MH-Folder buffers.")
+(defface mh-folder-cur-msg-number
+  '((t
+     (:inherit mh-folder-msg-number :bold t)))
+  "Current message number face."
+  :group 'mh-faces
+  :group 'mh-folder)
+
+(defface mh-folder-date '((t (:inherit mh-folder-msg-number)))
+  "Date face."
+  :group 'mh-faces
+  :group 'mh-folder)
+
+(defface mh-folder-deleted '((t (:inherit mh-folder-msg-number)))
+  "Deleted message face."
+  :group 'mh-faces
+  :group 'mh-folder)
+
 (defface mh-folder-followup
   '((((class color) (background light))
      (:foreground "blue3"))
@@ -2608,27 +2530,19 @@ sequence."
      (:foreground "LightGoldenRod"))
     (t
      (:bold t)))
-  "Face used to highlight Re: subject text in MH-Folder buffers."
-  :group 'mh-folder-faces)
+  "\"Re:\" face."
+  :group 'mh-faces
+  :group 'mh-folder)
 
-(defvar mh-folder-msg-number-face 'mh-folder-msg-number
-  "Face used to highlight the message number in MH-Folder buffers.")
 (defface mh-folder-msg-number
   '((((class color) (background light))
      (:foreground "snow4"))
     (((class color) (background dark))
-     (:foreground "snow3"))
-    (t
-     (:bold t)))
-  "Face used to highlight the message number in MH-Folder buffers."
-  :group 'mh-folder-faces)
+     (:foreground "snow3")))
+  "Message number face."
+  :group 'mh-faces
+  :group 'mh-folder)
 
-(defvar mh-folder-deleted-face 'mh-folder-deleted
-  "Face used to highlight deleted messages in MH-Folder buffers.")
-(copy-face 'mh-folder-msg-number 'mh-folder-deleted)
-
-(defvar mh-folder-refiled-face 'mh-folder-refiled
-  "Face used to highlight refiled messages in MH-Folder buffers.")
 (defface mh-folder-refiled
   (mh-defface-compat
    '((((class color) (min-colors 88) (background light))
@@ -2643,13 +2557,26 @@ sequence."
       (:foreground "DimGray" :bold t :italic t))
      (t
       (:bold t :italic t))))
-  "Face used to highlight refiled messages in MH-Folder buffers."
-  :group 'mh-folder-faces)
+  "Refiled message face."
+  :group 'mh-faces
+  :group 'mh-folder)
 
-(defvar mh-folder-subject-face 'mh-folder-subject
-  "Face used to highlight subject text in MH-Folder buffers.")
-(if (boundp 'facemenu-unlisted-faces)
-    (add-to-list 'facemenu-unlisted-faces "^mh-folder"))
+(defface mh-folder-sent-to-me-hint '((t (:inherit mh-folder-date)))
+  "Fontification hint face in messages sent directly to us.
+The detection of messages sent to us is governed by the scan
+format `mh-scan-format-nmh' and the regular expression
+`mh-scan-sent-to-me-sender-regexp'."
+  :group 'mh-faces
+  :group 'mh-folder)
+
+(defface mh-folder-sent-to-me-sender '((t (:inherit mh-folder-followup)))
+  "Sender face in messages sent directly to us.
+The detection of messages sent to us is governed by the scan
+format `mh-scan-format-nmh' and the regular expression
+`mh-scan-sent-to-me-sender-regexp'."
+  :group 'mh-faces
+  :group 'mh-folder)
+
 (defface mh-folder-subject
   '((((class color) (background light))
      (:foreground "blue4"))
@@ -2657,8 +2584,9 @@ sequence."
      (:foreground "yellow"))
     (t
      (:bold t)))
-  "Face used to highlight subject text in MH-Folder buffers."
-  :group 'mh-folder-faces)
+  "Subject face."
+  :group 'mh-faces
+  :group 'mh-folder)
 
 (defface mh-folder-tick
   '((((class color) (background dark))
@@ -2667,19 +2595,10 @@ sequence."
      (:background "#dddf7e"))
     (t
      (:underline t)))
-  "Face used to show ticked messages."
-  :group 'mh-folder-faces)
+  "Ticked message face."
+  :group 'mh-faces
+  :group 'mh-folder)
 
-(defvar mh-folder-address-face 'mh-folder-address
-  "Face used to highlight the address in MH-Folder buffers.")
-(copy-face 'mh-folder-subject 'mh-folder-address)
-
-(defvar mh-folder-scan-format-face 'mh-folder-scan-format
-  "Face used to highlight `mh-scan-format-regexp' matches in MH-Folder buffers.")
-(copy-face 'mh-folder-followup 'mh-folder-scan-format)
-
-(defvar mh-folder-to-face 'mh-folder-to
-  "Face used to highlight the To: string in MH-Folder buffers.")
 (defface mh-folder-to
   (mh-defface-compat
    '((((class color) (min-colors 88) (background light))
@@ -2694,15 +2613,10 @@ sequence."
       (:foreground "LightGray" :italic t))
      (t
       (:italic t))))
-  "Face used to highlight the To: string in MH-Folder buffers."
-  :group 'mh-folder-faces)
+  "\"To:\" face."
+  :group 'mh-faces
+  :group 'mh-folder)
 
-
-
-;;; Faces Used in Searching (:group 'mh-index-faces)
-
-(defvar mh-index-folder-face 'mh-index-folder
-  "Face used to highlight folders in MH-Index buffers.")
 (defface mh-index-folder
   '((((class color) (background light))
      (:foreground "dark green" :bold t))
@@ -2710,12 +2624,9 @@ sequence."
      (:foreground "indian red" :bold t))
     (t
      (:bold t)))
-  "Face used to highlight folders in MH-Index buffers."
-  :group 'mh-index-faces)
-
-
-
-;;; Faces Used in Message Drafts (:group 'mh-letter-faces)
+  "Folder heading face in MH-Folder buffers created by searches."
+  :group 'mh-faces
+  :group 'mh-index)
 
 (defface mh-letter-header-field
   '((((class color) (background light))
@@ -2724,15 +2635,10 @@ sequence."
      (:background "gray10"))
     (t
      (:bold t)))
-  "Face used to display header fields in draft buffers."
-  :group 'mh-letter-faces)
+  "Editable header field value face in draft buffers."
+  :group 'mh-faces
+  :group 'mh-letter)
 
-
-
-;;; Faces Used in Message Display (:group 'mh-show-faces)
-
-(defvar mh-show-cc-face 'mh-show-cc
-  "Face used to highlight cc: header fields.")
 (defface mh-show-cc
   (mh-defface-compat
    '((((class color) (min-colors 88) (background light))
@@ -2747,11 +2653,10 @@ sequence."
       (:foreground "DimGray" :bold t :italic t))
      (t
       (:bold t :italic t))))
-  "Face used to highlight cc: header fields."
-  :group 'mh-show-faces)
+  "Face used to highlight \"cc:\" header fields."
+  :group 'mh-faces
+  :group 'mh-show)
 
-(defvar mh-show-date-face 'mh-show-date
-  "Face used to highlight the Date: header field.")
 (defface mh-show-date
   (mh-defface-compat
    '((((class color) (min-colors 88) (background light))
@@ -2766,11 +2671,21 @@ sequence."
       (:foreground "DimGray" :bold t))
      (t
       (:bold t :underline t))))
-  "Face used to highlight the Date: header field."
-  :group 'mh-show-faces)
+  "Face used to highlight \"Date:\" header fields."
+  :group 'mh-faces
+  :group 'mh-show)
 
-(defvar mh-show-header-face 'mh-show-header
-  "Face used to deemphasize unspecified header fields.")
+(defface mh-show-from
+  '((((class color) (background light))
+     (:foreground "red3"))
+    (((class color) (background dark))
+     (:foreground "cyan"))
+    (t
+     (:bold t)))
+  "Face used to highlight \"From:\" header fields."
+  :group 'mh-faces
+  :group 'mh-show)
+
 (defface mh-show-header
   (mh-defface-compat
    '((((class color) (min-colors 88) (background light))
@@ -2785,46 +2700,35 @@ sequence."
       (:foreground "LightGray" :italic t))
      (t
       (:italic t))))
-  "Face used to deemphasize unspecified header fields."
-  :group 'mh-show-faces)
+  "Face used to deemphasize less interesting header fields."
+  :group 'mh-faces
+  :group 'mh-show)
 
-(defvar mh-show-pgg-good-face 'mh-show-pgg-good
-  "Face used to highlight a good PGG signature.")
-(defface mh-show-pgg-good
-  '((t
-     (:bold t :foreground "LimeGreen")))
-  "Face used to highlight a good PGG signature."
-  :group 'mh-show-faces)
+(defface mh-show-pgg-bad '((t (:bold t :foreground "DeepPink1")))
+  "Bad PGG signature face."
+  :group 'mh-faces
+  :group 'mh-show)
 
-(defvar mh-show-pgg-unknown-face 'mh-show-pgg-unknown
-  "Face used to highlight a PGG signature whose status is unknown.
-This face is also used for a signature when the signer is
-untrusted.")
-(defface mh-show-pgg-unknown
-  '((t
-     (:bold t :foreground "DarkGoldenrod2")))
-  "Face used to highlight a PGG signature whose status is unknown.
-This face is also used for a signature when the signer is untrusted."
-  :group 'mh-show-faces)
+(defface mh-show-pgg-good '((t (:bold t :foreground "LimeGreen")))
+  "Good PGG signature face."
+  :group 'mh-faces
+  :group 'mh-show)
 
-(defvar mh-show-pgg-bad-face 'mh-show-pgg-bad
-  "Face used to highlight a bad PGG signature.")
-(defface mh-show-pgg-bad
-  '((t
-     (:bold t :foreground "DeepPink1")))
-  "Face used to highlight a bad PGG signature."
-  :group 'mh-show-faces)
+(defface mh-show-pgg-unknown '((t (:bold t :foreground "DarkGoldenrod2")))
+  "Unknown or untrusted PGG signature face."
+  :group 'mh-faces
+  :group 'mh-show)
 
-(defface mh-show-signature
-  '((t
-     (:italic t)))
-  "Face used to highlight the message signature."
-  :group 'mh-show-faces)
+(defface mh-show-signature '((t (:italic t)))
+  "Signature face."
+  :group 'mh-faces
+  :group 'mh-show)
 
-(defvar mh-show-to-face 'mh-show-to
-  "Face used to highlight the To: header field.")
-(if (boundp 'facemenu-unlisted-faces)
-    (add-to-list 'facemenu-unlisted-faces "^mh-show"))
+(defface mh-show-subject '((t (:inherit mh-folder-subject)))
+  "Face used to highlight \"Subject:\" header fields."
+  :group 'mh-faces
+  :group 'mh-show)
+
 (defface mh-show-to
   '((((class color) (background light))
      (:foreground "SaddleBrown"))
@@ -2835,43 +2739,31 @@ This face is also used for a signature when the signer is untrusted."
     (((class grayscale) (background dark))
      (:foreground "LightGray" :underline t))
     (t (:underline t)))
-  "Face used to highlight the To: header field."
-  :group 'mh-show-faces)
+  "Face used to highlight \"To:\" header fields."
+  :group 'mh-faces
+  :group 'mh-show)
 
-(defvar mh-show-from-face 'mh-show-from
-  "Face used to highlight the From: header field.")
-(defface mh-show-from
-  '((((class color) (background light))
-     (:foreground "red3"))
-    (((class color) (background dark))
-     (:foreground "cyan"))
-    (t
-     (:bold t)))
-  "Face used to highlight the From: header field."
-  :group 'mh-show-faces)
-
-(defface mh-show-xface
-  '((t
-     (:foreground "black" :background "white")))
-  "Face used to display the X-Face image.
-The background and foreground is used in the image."
-  :group 'mh-show-faces)
-
-(defvar mh-show-subject-face 'mh-show-subject
-  "Face used to highlight the Subject: header field.")
-(copy-face 'mh-folder-subject 'mh-show-subject)
-
-
-
-;;; Faces Used in Speedbar (:group 'mh-speed-faces)
+(defface mh-show-xface '((t (:inherit (mh-show-from highlight))))
+  "X-Face image face.
+The background and foreground are used in the image."
+  :group 'mh-faces
+  :group 'mh-show)
 
 (defface mh-speedbar-folder
   '((((class color) (background light))
      (:foreground "blue4"))
     (((class color) (background dark))
      (:foreground "light blue")))
-  "Face used for folders in the speedbar buffer."
-  :group 'mh-speed-faces)
+  "Basic folder face."
+  :group 'mh-faces
+  :group 'mh-speedbar)
+
+(defface mh-speedbar-folder-with-unseen-messages
+  '((t
+     (:inherit mh-speedbar-folder :bold t)))
+  "Folder face when folder contains unread messages."
+  :group 'mh-faces
+  :group 'mh-speedbar)
 
 (defface mh-speedbar-selected-folder
   '((((class color) (background light))
@@ -2880,20 +2772,111 @@ The background and foreground is used in the image."
      (:foreground "red1" :underline t))
     (t
      (:underline t)))
-  "Face used for the current folder."
-  :group 'mh-speed-faces)
-
-(defface mh-speedbar-folder-with-unseen-messages
-  '((t
-     (:inherit mh-speedbar-folder :bold t)))
-  "Face used for folders in the speedbar buffer which have unread messages."
-  :group 'mh-speed-faces)
+  "Selected folder face."
+  :group 'mh-faces
+  :group 'mh-speedbar)
 
 (defface mh-speedbar-selected-folder-with-unseen-messages
   '((t
      (:inherit mh-speedbar-selected-folder :bold t)))
-  "Face used for the current folder when it has unread messages."
-  :group 'mh-speed-faces)
+  "Selected folder face when folder contains unread messages."
+  :group 'mh-faces
+  :group 'mh-speedbar)
+
+;;; XXX Temporary function for comparing old and new faces. Delete
+;;; when everybody is happy.
+(defvar bw-face-generation 'new)
+
+(defun bw-toggle-faces ()
+  "Toggle between old and new faces."
+  (interactive)
+  (cond ((eq bw-face-generation 'new)
+         (message "Going from new to old...")
+         (bw-new-face-to-old)
+         (message "Going from new to old...done")
+         (setq bw-face-generation 'old))
+        ((eq bw-face-generation 'old)
+         (message "Going from old to new...")
+         (bw-old-face-to-new)
+         (message "Going from old to new...done")
+         (setq bw-face-generation 'new))))
+
+(defun bw-new-face-to-old ()
+  "Sets old faces."
+  (face-spec-set 'mh-folder-body
+    (mh-defface-compat
+     '((((class color) (min-colors 88) (background light))
+        (:foreground "RosyBrown"))
+       (((class color) (min-colors 88) (background dark))
+        (:foreground "LightSalmon"))
+       (((class color))
+        (:foreground "green"))
+       (((class grayscale) (background light))
+        (:foreground "DimGray" :italic t))
+       (((class grayscale) (background dark))
+        (:foreground "LightGray" :italic t))
+       (t
+        (:italic t)))))
+
+  (face-spec-set 'mh-folder-msg-number
+    '((((class color) (background light))
+       (:foreground "snow4"))
+      (((class color) (background dark))
+       (:foreground "snow3"))
+      (t
+       (:bold t))))
+
+  (face-spec-set 'mh-folder-cur-msg-number
+    (mh-defface-compat
+     '((((class color) (min-colors 88) (background light))
+        (:foreground "Purple"))
+       (((class color) (min-colors 88) (background dark))
+        (:foreground "Cyan"))
+       (((class color))
+        (:foreground "cyan" :weight bold))
+       (((class grayscale) (background light))
+        (:foreground "LightGray" :bold t))
+       (((class grayscale) (background dark))
+        (:foreground "DimGray" :bold t))
+       (t
+        (:bold t)))))
+
+  (face-spec-set 'mh-folder-date
+    '((((class color) (background light))
+       (:foreground "snow4"))
+      (((class color) (background dark))
+       (:foreground "snow3"))
+      (t
+       (:bold t))))
+
+  (face-spec-set 'mh-folder-msg-number
+    '((((class color) (background light))
+       (:foreground "snow4"))
+      (((class color) (background dark))
+       (:foreground "snow3"))
+      (t
+       (:bold t)))))
+
+(defun bw-old-face-to-new ()
+  "Sets new faces."
+  (face-spec-set 'mh-folder-body
+    '((((class color))
+       (:inherit mh-folder-msg-number))
+      (t
+       (:inherit mh-folder-msg-number :italic t))))
+
+  (face-spec-set 'mh-folder-cur-msg-number
+    '((t
+       (:inherit mh-folder-msg-number :bold t))))
+
+  (face-spec-set 'mh-folder-date '((t (:inherit mh-folder-msg-number))))
+
+  (face-spec-set 'mh-folder-msg-number
+    '((((class color) (background light))
+       (:foreground "snow4"))
+      (((class color) (background dark))
+       (:foreground "snow3")))))
+
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil

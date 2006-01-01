@@ -1407,14 +1407,15 @@ Parameter EL is unused."
 (defun mh-mime-security-button-face (info)
   "Return the button face to use for encrypted/signed mail based on INFO."
   (cond ((string-match "OK" info)       ;Decrypted mail
-         mh-show-pgg-good-face)
+         'mh-show-pgg-good)
         ((string-match "Failed" info)   ;Decryption failed or signature invalid
-         mh-show-pgg-bad-face)
+         'mh-show-pgg-bad)
         ((string-match "Undecided" info);Unprocessed mail
-         mh-show-pgg-unknown-face)
+         'mh-show-pgg-unknown)
         ((string-match "Untrusted" info);Key not trusted
-         mh-show-pgg-unknown-face)
-        (t mh-show-pgg-good-face)))
+         'mh-show-pgg-unknown)
+        (t
+         'mh-show-pgg-good)))
 
 (defun mh-mime-security-press-button (handle)
   "Callback from security button for part HANDLE."

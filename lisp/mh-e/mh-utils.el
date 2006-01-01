@@ -402,18 +402,30 @@ Argument LIMIT limits search."
 (eval-and-compile
   ;; Otherwise byte-compilation fails on `mh-show-font-lock-keywords-with-cite'
   (defvar mh-show-font-lock-keywords
-    '(("^\\(From:\\|Sender:\\)\\(.*\\)"  (1 'default) (2 mh-show-from-face))
-      (mh-header-to-font-lock            (0 'default) (1 mh-show-to-face))
-      (mh-header-cc-font-lock            (0 'default) (1 mh-show-cc-face))
+    '(("^\\(From:\\|Sender:\\)\\(.*\\)"
+       (1 'default)
+       (2 'mh-show-from))
+      (mh-header-to-font-lock
+       (0 'default)
+       (1 'mh-show-to))
+      (mh-header-cc-font-lock
+       (0 'default)
+       (1 'mh-show-cc))
       ("^\\(Reply-To:\\|Return-Path:\\)\\(.*\\)$"
-       (1 'default) (2 mh-show-from-face))
-      (mh-header-subject-font-lock       (0 'default) (1 mh-show-subject-face))
+       (1 'default)
+       (2 'mh-show-from))
+      (mh-header-subject-font-lock
+       (0 'default)
+       (1 'mh-show-subject))
       ("^\\(Apparently-To:\\|Newsgroups:\\)\\(.*\\)"
-       (1 'default) (2 mh-show-cc-face))
+       (1 'default)
+       (2 'mh-show-cc))
       ("^\\(In-reply-to\\|Date\\):\\(.*\\)$"
-       (1 'default) (2 mh-show-date-face))
-      (mh-letter-header-font-lock        (0 mh-show-header-face append t)))
-    "Additional expressions to highlight in MH-show mode."))
+       (1 'default)
+       (2 'mh-show-date))
+      (mh-letter-header-font-lock
+       (0 'mh-show-header append t)))
+    "Additional expressions to highlight in MH-Show buffers."))
 
 (defvar mh-show-font-lock-keywords-with-cite
   (eval-when-compile
@@ -432,11 +444,13 @@ Argument LIMIT limits search."
            (beginning-of-line) (end-of-line)
            (2 font-lock-constant-face nil t)
            (4 font-lock-comment-face nil t)))))))
-  "Additional expressions to highlight in MH-show mode.")
+  "Additional expressions to highlight in MH-Show buffers.")
 
 (defvar mh-letter-font-lock-keywords
   `(,@mh-show-font-lock-keywords-with-cite
-    (mh-font-lock-field-data (1 'mh-letter-header-field prepend t))))
+    (mh-font-lock-field-data
+     (1 'mh-letter-header-field prepend t)))
+  "Additional expressions to highlight in MH-Letter buffers.")
 
 (defun mh-show-font-lock-fontify-region (beg end loudly)
   "Limit font-lock in `mh-show-mode' to the header.
@@ -1229,6 +1243,32 @@ See also `mh-folder-mode'.
 
 (mh-do-in-xemacs (defvar default-enable-multibyte-characters))
 
+(defmacro mh-face-foreground-compat (face &optional frame inherit)
+  "Return the foreground color name of FACE, or nil if unspecified.
+See documentation for `face-foreground' for a description of the
+arguments FACE, FRAME, and INHERIT.
+
+Calls `face-foreground' correctly in older environments. Versions
+of Emacs prior to version 22 lacked an INHERIT argument which
+when t tells `face-foreground' to consider an inherited value for
+the foreground if the face does not define one itself."
+  (if (>= emacs-major-version 22)
+      `(face-foreground ,face ,frame ,inherit)
+    `(face-foreground ,face ,frame)))
+
+(defmacro mh-face-background-compat (face &optional frame inherit)
+  "Return the background color name of face, or nil if unspecified.
+See documentation for `back-foreground' for a description of the
+arguments FACE, FRAME, and INHERIT.
+
+Calls `face-background' correctly in older environments. Versions
+of Emacs prior to version 22 lacked an INHERIT argument which
+when t tells `face-background' to consider an inherited value for
+the background if the face does not define one itself."
+  (if (>= emacs-major-version 22)
+      `(face-background ,face ,frame ,inherit)
+    `(face-background ,face ,frame)))
+
 (defun mh-face-display-function ()
   "Display a Face, X-Face, or X-Image-URL header field.
 If more than one of these are present, then the first one found
@@ -1259,9 +1299,11 @@ in this order is used."
               (mh-funcall-if-exists
                insert-image (create-image
                              raw type t
-                             :foreground (face-foreground 'mh-show-xface)
-                             :background (face-background 'mh-show-xface))
-                            " ")))
+                             :foreground
+                             (mh-face-foreground-compat 'mh-show-xface nil t)
+                             :background
+                             (mh-face-background-compat 'mh-show-xface nil t))
+               " ")))
           ;; XEmacs
           (mh-do-in-xemacs
             (cond
