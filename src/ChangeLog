@@ -1,3 +1,8 @@
+2006-01-01  Ken Raeburn  <raeburn@gnu.org>
+
+	* callproc.c (Fcall_process_region): Bind file-name-handler-alist
+	to nil for the call to Fwrite_region.
+
 2005-12-31  Richard M. Stallman  <rms@gnu.org>
 
 	* minibuf.c (read_minibuf): Clear out all other minibuffer windows.
