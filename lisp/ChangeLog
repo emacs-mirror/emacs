@@ -1,3 +1,8 @@
+2006-01-01  Richard M. Stallman  <rms@gnu.org>
+
+	* mouse.el (mouse-drag-region-1): When following link via mouse-2,
+	put on event-kind property.
+
 2005-12-31  Chong Yidong  <cyd@stupidchicken.com>
 
 	* custom.el (provide-theme): Ban `user' theme name.
