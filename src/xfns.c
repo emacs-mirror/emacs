@@ -4064,13 +4064,14 @@ An insecure way to solve the problem may be to use `xhost'.\n",
 
 DEFUN ("x-close-connection", Fx_close_connection,
        Sx_close_connection, 1, 1, 0,
-       doc: /* Close the connection to DISPLAY's X server.
-For DISPLAY, specify either a frame or a display name (a string).
-If DISPLAY is nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+       doc: /* Close the connection to TERMINAL's X server.
+For TERMINAL, specify a terminal id, a frame or a display name (a
+string).  If TERMINAL is nil, that stands for the selected frame's
+terminal.  */)
+     (terminal)
+     Lisp_Object terminal;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
   if (dpyinfo->reference_count > 0)
     error ("Display still has frames on it");
@@ -4099,13 +4100,13 @@ If ON is nil, allow buffering of requests.
 Turning on synchronization prohibits the Xlib routines from buffering
 requests and seriously degrades performance, but makes debugging much
 easier.
-The optional second argument DISPLAY specifies which display to act on.
-DISPLAY should be either a frame or a display name (a string).
-If DISPLAY is omitted or nil, that stands for the selected frame's display.  */)
-     (on, display)
-    Lisp_Object display, on;
+The optional second argument TERMINAL specifies which display to act on.
+TERMINAL should be a terminal id, a frame or a display name (a string).
+If TERMINAL is omitted or nil, that stands for the selected frame's display.  */)
+     (on, terminal)
+    Lisp_Object terminal, on;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (terminal);
 
   XSynchronize (dpyinfo->display, !EQ (on, Qnil));
 
