@@ -1,3 +1,7 @@
+2005-12-31  Richard M. Stallman  <rms@gnu.org>
+
+	* minibuf.c (read_minibuf): Clear out all other minibuffer windows.
+
 2005-12-31  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs.c (gdb_pvec_type): A dummy variable for GDB's sake.
