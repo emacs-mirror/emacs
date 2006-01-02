@@ -1139,16 +1139,17 @@ pop_kboard ()
 #ifdef MULTI_KBOARD
   struct terminal *t;
   struct kboard_stack *p = kboard_stack;
-  current_kboard = NULL;
+  int found = 0;
   for (t = terminal_list; t; t = t->next_terminal)
     {
       if (t->kboard == p->kboard)
         {
           current_kboard = p->kboard;
+          found = 1;
           break;
         }
     }
-  if (current_kboard == NULL)
+  if (!found)
     {
       /* The terminal we remembered has been deleted.  */
       current_kboard = FRAME_KBOARD (SELECTED_FRAME ());
@@ -1168,10 +1169,15 @@ temporarily_switch_to_single_kboard (k)
 {
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
-  if (k != NULL)
-    push_kboard (k);
-  else
-    push_kboard (current_kboard);
+  if (was_locked)
+    {
+      if (k != NULL)
+        push_kboard (k);
+      else
+        push_kboard (current_kboard);
+    }
+  else if (k != NULL)
+    current_kboard = k;
   single_kboard_state ();
   record_unwind_protect (restore_kboard_configuration,
                          (was_locked ? Qt : Qnil));
@@ -1181,7 +1187,8 @@ temporarily_switch_to_single_kboard (k)
 void
 record_single_kboard_state ()
 {
-  push_kboard (current_kboard);
+  if (single_kboard)
+    push_kboard (current_kboard);
   record_unwind_protect (restore_kboard_configuration,
                          (single_kboard ? Qt : Qnil));
 }
@@ -1193,8 +1200,10 @@ restore_kboard_configuration (was_locked)
   if (NILP (was_locked))
     any_kboard_state ();
   else
-    single_kboard_state ();
-  pop_kboard ();
+    {
+      single_kboard_state ();
+      pop_kboard ();
+    }
   return Qnil;
 }
 
