@@ -599,6 +599,112 @@ This recursively follows aliases."
 	      ((equal load "cus-edit"))
 	      (t (condition-case nil (load load) (error nil))))))))
 
+(defvar custom-local-buffer nil
+  "Non-nil, in a Customization buffer, means customize a specific buffer.
+If this variable is non-nil, it should be a buffer,
+and it means customize the local bindings of that buffer.
+This variable is a permanent local, and it normally has a local binding
+in every Customization buffer.")
+(put 'custom-local-buffer 'permanent-local t)
+
+(defun custom-set-default (variable value)
+  "Default :set function for a customizable variable.
+Normally, this sets the default value of VARIABLE to VALUE,
+but if `custom-local-buffer' is non-nil,
+this sets the local binding in that buffer instead."
+  (if custom-local-buffer
+      (with-current-buffer custom-local-buffer
+	(set variable value))
+    (set-default variable value)))
+
+(defun custom-set-minor-mode (variable value)
+  ":set function for minor mode variables.
+Normally, this sets the default value of VARIABLE to nil if VALUE
+is nil and to t otherwise,
+but if `custom-local-buffer' is non-nil,
+this sets the local binding in that buffer instead."
+  (if custom-local-buffer
+      (with-current-buffer custom-local-buffer
+	(funcall variable (if value 1 0)))
+    (funcall variable (if value 1 0))))
+
+(defun custom-quote (sexp)
+  "Quote SEXP iff it is not self quoting."
+  (if (or (memq sexp '(t nil))
+	  (keywordp sexp)
+	  (and (listp sexp)
+	       (memq (car sexp) '(lambda)))
+	  (stringp sexp)
+	  (numberp sexp)
+	  (vectorp sexp)
+;;;  	  (and (fboundp 'characterp)
+;;;  	       (characterp sexp))
+	  )
+      sexp
+    (list 'quote sexp)))
+
+(defun customize-mark-to-save (symbol)
+  "Mark SYMBOL for later saving.
+
+If the default value of SYMBOL is different from the standard value,
+set the `saved-value' property to a list whose car evaluates to the
+default value.  Otherwise, set it to nil.
+
+To actually save the value, call `custom-save-all'.
+
+Return non-nil iff the `saved-value' property actually changed."
+  (let* ((get (or (get symbol 'custom-get) 'default-value))
+	 (value (funcall get symbol))
+	 (saved (get symbol 'saved-value))
+	 (standard (get symbol 'standard-value))
+	 (comment (get symbol 'customized-variable-comment)))
+    ;; Save default value iff different from standard value.
+    (if (or (null standard)
+	    (not (equal value (condition-case nil
+				  (eval (car standard))
+				(error nil)))))
+	(put symbol 'saved-value (list (custom-quote value)))
+      (put symbol 'saved-value nil))
+    ;; Clear customized information (set, but not saved).
+    (put symbol 'customized-value nil)
+    ;; Save any comment that might have been set.
+    (when comment
+      (put symbol 'saved-variable-comment comment))
+    (not (equal saved (get symbol 'saved-value)))))
+
+(defun customize-mark-as-set (symbol)
+  "Mark current value of SYMBOL as being set from customize.
+
+If the default value of SYMBOL is different from the saved value if any,
+or else if it is different from the standard value, set the
+`customized-value' property to a list whose car evaluates to the
+default value.  Otherwise, set it to nil.
+
+Return non-nil iff the `customized-value' property actually changed."
+  (let* ((get (or (get symbol 'custom-get) 'default-value))
+	 (value (funcall get symbol))
+	 (customized (get symbol 'customized-value))
+	 (old (or (get symbol 'saved-value) (get symbol 'standard-value))))
+    ;; Mark default value as set iff different from old value.
+    (if (or (null old)
+	    (not (equal value (condition-case nil
+				  (eval (car old))
+				(error nil)))))
+	(put symbol 'customized-value (list (custom-quote value)))
+      (put symbol 'customized-value nil))
+    ;; Changed?
+    (not (equal customized (get symbol 'customized-value)))))
+
+(defun custom-reevaluate-setting (symbol)
+  "Reset the value of SYMBOL by re-evaluating its saved or standard value.
+Use the :set function to do so.  This is useful for customizable options
+that are defined before their standard value can really be computed.
+E.g. dumped variables whose default depends on run-time information."
+  (funcall (or (get symbol 'custom-set) 'set-default)
+	   symbol
+	   (eval (car (or (get symbol 'saved-value) (get symbol 'standard-value))))))
+
+
 ;;; Custom Themes
 
 ;; Custom themes are collections of settings that can be enabled or
@@ -718,15 +824,8 @@ See `custom-known-themes' for a list of known themes."
 	(put theme 'theme-settings
 	     (cons (list prop symbol theme value)
 		   theme-settings))))))
-
-(defvar custom-local-buffer nil
-  "Non-nil, in a Customization buffer, means customize a specific buffer.
-If this variable is non-nil, it should be a buffer,
-and it means customize the local bindings of that buffer.
-This variable is a permanent local, and it normally has a local binding
-in every Customization buffer.")
-(put 'custom-local-buffer 'permanent-local t)
 
+
 (defun custom-set-variables (&rest args)
   "Install user customizations of variable values specified in ARGS.
 These settings are registered as theme `user'.
@@ -743,15 +842,6 @@ handle SYMBOL properly.
 COMMENT is a comment string about SYMBOL."
   (apply 'custom-theme-set-variables 'user args))
 
-(defun custom-reevaluate-setting (symbol)
-  "Reset the value of SYMBOL by re-evaluating its saved or standard value.
-Use the :set function to do so.  This is useful for customizable options
-that are defined before their standard value can really be computed.
-E.g. dumped variables whose default depends on run-time information."
-  (funcall (or (get symbol 'custom-set) 'set-default)
-	   symbol
-	   (eval (car (or (get symbol 'saved-value) (get symbol 'standard-value))))))
-
 (defun custom-theme-set-variables (theme &rest args)
   "Initialize variables for theme THEME according to settings in ARGS.
 Each of the arguments in ARGS should be a list of this form:
@@ -765,16 +855,6 @@ the default value for the SYMBOL to the value of EXP.
 REQUEST is a list of features we must require in order to
 handle SYMBOL properly.
 COMMENT is a comment string about SYMBOL.
-
-Several properties of THEME and SYMBOL are used in the process:
-
-If THEME's property `theme-immediate' is non-nil, this is equivalent of
-providing the NOW argument to all symbols in the argument list:
-evaluate each EXP and set the corresponding SYMBOL.  However,
-there's a difference in the handling of SYMBOL's property
-`force-value': if NOW is non-nil, SYMBOL's property `force-value' is set to
-the symbol `rogue', else if THEME's property `theme-immediate' is non-nil,
-SYMBOL's property `force-value' is set to the symbol `immediate'.
 
 EXP itself is saved unevaluated as SYMBOL property `saved-value' and
 in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
@@ -838,93 +918,6 @@ in SYMBOL's list property `theme-value' \(using `custom-push-theme')."
 	  (custom-push-theme 'theme-value symbol theme 'set value))
 	(setq args (cdr (cdr args)))))))
 
-(defun custom-set-default (variable value)
-  "Default :set function for a customizable variable.
-Normally, this sets the default value of VARIABLE to VALUE,
-but if `custom-local-buffer' is non-nil,
-this sets the local binding in that buffer instead."
-  (if custom-local-buffer
-      (with-current-buffer custom-local-buffer
-	(set variable value))
-    (set-default variable value)))
-
-(defun custom-set-minor-mode (variable value)
-  ":set function for minor mode variables.
-Normally, this sets the default value of VARIABLE to nil if VALUE
-is nil and to t otherwise,
-but if `custom-local-buffer' is non-nil,
-this sets the local binding in that buffer instead."
-  (if custom-local-buffer
-      (with-current-buffer custom-local-buffer
-	(funcall variable (if value 1 0)))
-    (funcall variable (if value 1 0))))
-
-(defun custom-quote (sexp)
-  "Quote SEXP iff it is not self quoting."
-  (if (or (memq sexp '(t nil))
-	  (keywordp sexp)
-	  (and (listp sexp)
-	       (memq (car sexp) '(lambda)))
-	  (stringp sexp)
-	  (numberp sexp)
-	  (vectorp sexp)
-;;;  	  (and (fboundp 'characterp)
-;;;  	       (characterp sexp))
-	  )
-      sexp
-    (list 'quote sexp)))
-
-(defun customize-mark-to-save (symbol)
-  "Mark SYMBOL for later saving.
-
-If the default value of SYMBOL is different from the standard value,
-set the `saved-value' property to a list whose car evaluates to the
-default value.  Otherwise, set it to nil.
-
-To actually save the value, call `custom-save-all'.
-
-Return non-nil iff the `saved-value' property actually changed."
-  (let* ((get (or (get symbol 'custom-get) 'default-value))
-	 (value (funcall get symbol))
-	 (saved (get symbol 'saved-value))
-	 (standard (get symbol 'standard-value))
-	 (comment (get symbol 'customized-variable-comment)))
-    ;; Save default value iff different from standard value.
-    (if (or (null standard)
-	    (not (equal value (condition-case nil
-				  (eval (car standard))
-				(error nil)))))
-	(put symbol 'saved-value (list (custom-quote value)))
-      (put symbol 'saved-value nil))
-    ;; Clear customized information (set, but not saved).
-    (put symbol 'customized-value nil)
-    ;; Save any comment that might have been set.
-    (when comment
-      (put symbol 'saved-variable-comment comment))
-    (not (equal saved (get symbol 'saved-value)))))
-
-(defun customize-mark-as-set (symbol)
-  "Mark current value of SYMBOL as being set from customize.
-
-If the default value of SYMBOL is different from the saved value if any,
-or else if it is different from the standard value, set the
-`customized-value' property to a list whose car evaluates to the
-default value.  Otherwise, set it to nil.
-
-Return non-nil iff the `customized-value' property actually changed."
-  (let* ((get (or (get symbol 'custom-get) 'default-value))
-	 (value (funcall get symbol))
-	 (customized (get symbol 'customized-value))
-	 (old (or (get symbol 'saved-value) (get symbol 'standard-value))))
-    ;; Mark default value as set iff different from old value.
-    (if (or (null old)
-	    (not (equal value (condition-case nil
-				  (eval (car old))
-				(error nil)))))
-	(put symbol 'customized-value (list (custom-quote value)))
-      (put symbol 'customized-value nil))
-    ;; Changed?
-    (not (equal customized (get symbol 'customized-value)))))
 
 ;;; Defining themes.
 
