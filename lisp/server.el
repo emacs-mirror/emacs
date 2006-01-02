@@ -322,7 +322,7 @@ message."
     (when (and (frame-live-p frame)
 	       proc
 	       ;; See if this is the last frame for this client.
-	       (< 1 (let ((frame-num 0))
+	       (>= 1 (let ((frame-num 0))
 		      (dolist (f (frame-list))
 			(when (eq proc (frame-parameter f 'client))
 			  (setq frame-num (1+ frame-num))))
