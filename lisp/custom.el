@@ -750,8 +750,6 @@ E.g. dumped variables whose default depends on run-time information."
 ;; `theme-face' properties, but the theme's own `theme-settings'
 ;; property remains unchanged.
 
-;;; Defining themes
-
 (defvar custom-known-themes '(user changed)
    "Themes that have been defined with `deftheme'.
 The default value is the list (user changed).  The theme `changed'
