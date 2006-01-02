@@ -2,7 +2,7 @@
 
 	* cus-edit.el (Custom-set, Custom-save): Ask for confirmation.
 	(Custom-reset-current, Custom-reset-saved): Likewise.
-	(Custom-reset-standard): Likewise.
+	(Custom-reset-standard): Show message if aborted.
 	(custom-mode): Doc fix, describing those commands.
 
 	* mouse.el (mouse-drag-region-1): When following link via mouse-2,
