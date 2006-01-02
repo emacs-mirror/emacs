@@ -323,7 +323,7 @@ message."
 	       proc
 	       ;; See if this is the last frame for this client.
 	       (< 1 (let ((frame-num 0))
-		      (dolist ((f (frame-list)))
+		      (dolist (f (frame-list))
 			(when (eq proc (frame-parameter f 'client))
 			  (setq frame-num (1+ frame-num))))
 		      frame-num)))
@@ -755,9 +755,9 @@ The following commands are accepted by the client:
 		(with-selected-frame frame
 		  (switch-to-buffer (or (car buffers)
 					(get-buffer-create "*scratch*")))
+		  (display-startup-echo-area-message))
 		  (unless inhibit-splash-screen
-		    (display-splash-screen))
-		  (display-startup-echo-area-message)))
+		    (display-splash-screen)))
 
 	      ;; Delete the client if necessary.
 	      (cond
