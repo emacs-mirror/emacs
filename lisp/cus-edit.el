@@ -746,22 +746,26 @@ groups after non-groups, if nil do not order groups at all."
 (defun Custom-set ()
   "Set changes in all modified options."
   (interactive)
-  (let ((children custom-options))
-    (mapc (lambda (child)
-	    (when (eq (widget-get child :custom-state) 'modified)
-	      (widget-apply child :custom-set)))
-	    children)))
+  (if (y-or-n-p "Set all values according to this buffer? ")
+      (let ((children custom-options))
+	(mapc (lambda (child)
+		(when (eq (widget-get child :custom-state) 'modified)
+		  (widget-apply child :custom-set)))
+	      children))
+    (message "Aborted")))
 
 (defun Custom-save ()
   "Set all modified group members and save them."
   (interactive)
-  (let ((children custom-options))
-    (mapc (lambda (child)
-	    (when (memq (widget-get child :custom-state)
-			'(modified set changed rogue))
-	      (widget-apply child :custom-save)))
-	    children))
-  (custom-save-all))
+  (if (yes-or-no-p "Save all settings in this buffer? ")
+      (let ((children custom-options))
+	(mapc (lambda (child)
+		(when (memq (widget-get child :custom-state)
+			    '(modified set changed rogue))
+		  (widget-apply child :custom-save)))
+	      children)
+	(custom-save-all))
+    (message "Aborted")))
 
 (defvar custom-reset-menu
   '(("Current" . Custom-reset-current)
@@ -784,22 +788,26 @@ when the action is chosen.")
 (defun Custom-reset-current (&rest ignore)
   "Reset all modified group members to their current value."
   (interactive)
-  (let ((children custom-options))
-    (mapc (lambda (widget)
-	    (if (memq (widget-get widget :custom-state)
-		      '(modified changed))
-		(widget-apply widget :custom-reset-current)))
-	  children)))
+  (if (y-or-n-p "Update buffer text to show all current settings? ")
+      (let ((children custom-options))
+	(mapc (lambda (widget)
+		(if (memq (widget-get widget :custom-state)
+			  '(modified changed))
+		    (widget-apply widget :custom-reset-current)))
+	      children))
+    (message "Aborted")))
 
 (defun Custom-reset-saved (&rest ignore)
   "Reset all modified or set group members to their saved value."
   (interactive)
-  (let ((children custom-options))
-    (mapc (lambda (widget)
-	    (if (memq (widget-get widget :custom-state)
-		      '(modified set changed rogue))
-		(widget-apply widget :custom-reset-saved)))
-	  children)))
+  (if (y-or-n-p "Update buffer text to show all saved settings? ")
+      (let ((children custom-options))
+	(mapc (lambda (widget)
+		(if (memq (widget-get widget :custom-state)
+			  '(modified set changed rogue))
+		    (widget-apply widget :custom-reset-saved)))
+	      children))
+    (message "Aborted")))
 
 (defun Custom-reset-standard (&rest ignore)
   "Erase all customization (either current or saved) for the group members.
@@ -807,19 +815,21 @@ The immediate result is to restore them to their standard values.
 This operation eliminates any saved values for the group members,
 making them as if they had never been customized at all."
   (interactive)
-  (let ((children custom-options))
-    (when (or (and (= 1 (length children))
-		   (memq (widget-type (car children))
-			 '(custom-variable custom-face)))
-	      (yes-or-no-p "Really erase all customizations in this buffer? "))
-      (mapc (lambda (widget)
-	      (and (if (widget-get widget :custom-standard-value)
-		       (widget-apply widget :custom-standard-value)
-		     t)
-		   (memq (widget-get widget :custom-state)
-			 '(modified set changed saved rogue))
-		   (widget-apply widget :custom-reset-standard)))
-	    children))))
+  (if (yes-or-no-p "Eliminate saved values for all settings in this buffer? ")
+      (let ((children custom-options))
+	(when (or (and (= 1 (length children))
+		       (memq (widget-type (car children))
+			     '(custom-variable custom-face)))
+		  (yes-or-no-p "Really erase all customizations in this buffer? "))
+	  (mapc (lambda (widget)
+		  (and (if (widget-get widget :custom-standard-value)
+			   (widget-apply widget :custom-standard-value)
+			 t)
+		       (memq (widget-get widget :custom-state)
+			     '(modified set changed saved rogue))
+		       (widget-apply widget :custom-reset-standard)))
+		children)))
+    (message "Aborted")))
 
 ;;; The Customize Commands
 
@@ -4405,11 +4415,12 @@ Complete content of editable text field.   \\[widget-complete]
 \\<custom-mode-map>\
 Invoke button under the mouse pointer.     \\[Custom-move-and-invoke]
 Invoke button under point.		   \\[widget-button-press]
-Set all modifications.			   \\[Custom-set]
-Make all modifications default.		   \\[Custom-save]
-Reset all modified options. 		   \\[Custom-reset-current]
-Reset all modified or set options.	   \\[Custom-reset-saved]
-Reset all options.			   \\[Custom-reset-standard]
+Set all options from current text.         \\[Custom-set]
+Make values in current text permanent.     \\[Custom-save]
+Make text match actual option values.	   \\[Custom-reset-current]
+Reset options to permanent settings.	   \\[Custom-reset-saved]
+Erase customizations; set options
+  and buffer text to the standard values.  \\[Custom-reset-standard]
 
 Entry to this mode calls the value of `custom-mode-hook'
 if that value is non-nil."
