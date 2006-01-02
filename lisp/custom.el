@@ -1142,7 +1142,7 @@ Each of the arguments ARGS has this form:
 
     (VARIABLE IGNORED)
 
-This means reset VARIABLE.  (The argument IGNORED is ignored."
+This means reset VARIABLE.  (The argument IGNORED is ignored)."
   (custom-check-theme theme)
   (dolist (arg args)
     (custom-push-theme 'theme-value (car arg) theme 'reset)))
@@ -1155,7 +1155,7 @@ Each of the arguments ARGS has this form:
 
     (VARIABLE IGNORED)
 
-This means reset VARIABLE.  (The argument IGNORED is ignored."
+This means reset VARIABLE.  (The argument IGNORED is ignored)."
     (apply 'custom-theme-reset-variables 'user args))
 
 ;;; The End.
