@@ -619,7 +619,7 @@ used.
 This is used for guessing the type of variables not declared with
 customize."
   :type '(repeat (group (regexp :tag "Match") (sexp :tag "Type")))
-  :group 'customize)
+  :group 'custom-buffer)
 
 (defcustom custom-guess-doc-alist
   '(("\\`\\*?Non-nil " boolean))
@@ -633,7 +633,7 @@ matches the name of the symbol will be used.
 This is used for guessing the type of variables not declared with
 customize."
   :type '(repeat (group (regexp :tag "Match") (sexp :tag "Type")))
-  :group 'customize)
+  :group 'custom-buffer)
 
 (defun custom-guess-type (symbol)
   "Guess a widget suitable for editing the value of SYMBOL.
