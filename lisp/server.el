@@ -270,17 +270,20 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 			   (server-temp-file-p)))
 	      (kill-buffer (current-buffer))))))
 
+      ;; Delete the client's frames.
+      (unless noframe
+	(dolist (frame (frame-list))
+	  (when (and (frame-live-p frame)
+		     (equal proc (frame-parameter frame 'client)))
+	    ;; Prevent `server-handle-delete-frame' from calling us
+	    ;; recursively.
+	    (set-frame-parameter frame 'client nil)
+	    (delete-frame frame))))
+
       ;; Delete the client's tty.
       (let ((terminal (server-client-get client 'terminal)))
 	(when (eq (terminal-live-p terminal) t)
 	  (delete-terminal terminal)))
-
-      ;; Delete the client's frames.
-      (unless noframe
-	(dolist (frame (frame-list))
-	  (if (and (frame-live-p frame)
-		   (equal (car client) (frame-parameter frame 'client)))
-	      (delete-frame frame))))
 
       ;; Delete the client's process.
       (if (eq (process-status (car client)) 'open)
@@ -318,16 +321,12 @@ message."
   (let ((proc (frame-parameter frame 'client)))
     (when (and (frame-live-p frame)
 	       proc
-	       (or (window-system frame)
-		   ;; A terminal device must not yet be deleted if
-		   ;; there are other frames on it.
-		   (< 0 (let ((frame-num 0))
-			  (mapc (lambda (f)
-				  (when (eq (frame-terminal f)
-					    (frame-terminal frame))
-				    (setq frame-num (1+ frame-num))))
-				(frame-list))
-			  frame-num))))
+	       ;; See if this is the last frame for this client.
+	       (< 1 (let ((frame-num 0))
+		      (dolist ((f (frame-list)))
+			(when (eq proc (frame-parameter f 'client))
+			  (setq frame-num (1+ frame-num))))
+		      frame-num)))
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 

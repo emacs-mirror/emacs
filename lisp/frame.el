@@ -681,13 +681,16 @@ setup is for focus to follow the pointer."
     (run-hooks 'before-make-frame-hook)
     (setq frame (funcall frame-creation-function (append parameters (cdr (assq w window-system-default-frame-alist)))))
     (normal-erase-is-backspace-setup-frame frame)
-    ;; Set up the frame-local environment, if needed.
+    ;; Inherit the 'environment and 'client parameters, if needed.
     (when (eq (frame-terminal frame) (frame-terminal oldframe))
-      (let ((env (frame-parameter oldframe 'environment)))
+      (let ((env (frame-parameter oldframe 'environment))
+	    (client (frame-parameter oldframe 'client)))
 	(if (not (framep env))
 	    (setq env oldframe))
-	(if env
-	    (set-frame-parameter frame 'environment env))))
+	(if (and env (not (assq 'environment parameters)))
+	    (set-frame-parameter frame 'environment env))
+	(if (and client (not (assq 'client parameters)))
+	    (set-frame-parameter frame 'client client))))
     (run-hook-with-args 'after-make-frame-functions frame)
     frame))
 

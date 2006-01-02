@@ -1299,7 +1299,7 @@ mouse."
   (if (and (memq 'down (event-modifiers last-command-event))
 	   (eq (posn-window (event-start last-command-event))
 	       (selected-window)))
-      ;; This is a mouse-down event in the spash screen window.
+      ;; This is a mouse-down event in the splash screen window.
       ;; Ignore it and consume the corresponding mouse-up event.
       (read-event)
     (push last-command-event unread-command-events))
