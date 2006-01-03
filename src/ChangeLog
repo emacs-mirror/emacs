@@ -1,3 +1,9 @@
+2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (describe_map_compare): Yet another int/Lisp_Object mixup.
+
+	* window.h (Fwindow_minibuffer_p): Declare (for use in minibuf.c).
+
 2006-01-03  Romain Francoise  <romain@orebokech.com>
 
 	* emacs.c (main): Update copyright year.
@@ -57,7 +63,7 @@
 
 2005-12-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (xg_get_file_with_chooser): Changed message shown
+	* gtkutil.c (xg_get_file_with_chooser): Change message shown
 	in file chooser.
 
 2005-12-27  Richard M. Stallman  <rms@gnu.org>
@@ -131,8 +137,8 @@
 	* macterm.h (TYPE_FILE_NAME): New define.
 	(posix_pathname_to_fsspec, fsspec_to_posix_pathname): Remove externs.
 
-	* mac.c (posix_pathname_to_fsspec, fsspec_to_posix_pathname): Add
-	prototypes.  Make static.
+	* mac.c (posix_pathname_to_fsspec, fsspec_to_posix_pathname):
+	Add prototypes.  Make static.
 	(mac_aedesc_to_lisp): Initialize err to noErr.
 	(mac_coerce_file_name_ptr, mac_coerce_file_name_desc)
 	(init_coercion_handler): New functions.
@@ -176,8 +182,8 @@
 	* macgui.h (XCharStruct): Remove member `valid_p'.
 	(STORE_XCHARSTRUCT): Don't set member `valid_p'.
 	(XCharStructRow): New typedef.
-	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID): New
-	macros.
+	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID):
+	New macros.
 	(struct MacFontStruct): Add member `bounds'.  Remove member
 	`per_char'.  All uses for QuichDraw Text fonts are changed to
 	`bounds.per_char'.  ATSUI font bounds are represented as an array
@@ -189,8 +195,8 @@
 	(mac_query_char_extents): New function.
 	(x_per_char_metric): Use it.
 	(XLoadQueryFont): Likewise.  Consolidate min/max_bounds calculations.
-	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg): Use
-	mac_per_char_metric instead of x_per_char_metric.
+	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg):
+	Use mac_per_char_metric instead of x_per_char_metric.
 	(mac_text_extents_16): New function.
 	(mac_compute_glyph_string_overhangs): Use it.
 	(mac_unload_font): Free member `bounds' in struct MacFontStruct.
@@ -444,11 +450,11 @@
 	[MAC_OS8] (main): Call init_apple_event_handler instead of
 	init_required_apple_events.
 	(mac_initialize) [MAC_OSX]: Likewise.
-	[!USE_CARBON_EVENTS] (mac_wait_next_event): Use
-	mac_ready_for_apple_events instead of Qmac_ready_for_drag_n_drop.
+	[!USE_CARBON_EVENTS] (mac_wait_next_event):
+	Use mac_ready_for_apple_events instead of Qmac_ready_for_drag_n_drop.
 
-	* macterm.h (mac_make_lispy_event_code, mac_aedesc_to_lisp): Add
-	externs.
+	* macterm.h (mac_make_lispy_event_code, mac_aedesc_to_lisp):
+	Add externs.
 	(create_apple_event_from_event_ref) [TARGET_API_MAC_CARBON]: Likewise.
 	(Fmac_get_preference): Add EXFUN.
 
@@ -488,11 +494,9 @@
 
 2005-12-06  Ken Raeburn  <raeburn@gnu.org>
 
-	* buffer.c (Fkill_buffer): Avoid dangerous side effects in NILP
-	argument.
+	* buffer.c (Fkill_buffer): Avoid dangerous side effects in NILP args.
 	* bytecode.c (Fbyte_code): Likewise.
-	* fileio.c (internal_delete_file, Fread_file_name_internal):
-	Likewise.
+	* fileio.c (internal_delete_file, Fread_file_name_internal): Likewise.
 	* minibuf.c (Fminibuffer_complete_and_exit): Likewise.
 	* undo.c (truncate_undo_list): Likewise.
 
