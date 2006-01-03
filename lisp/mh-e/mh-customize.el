@@ -2536,10 +2536,14 @@ sequence."
   :group 'mh-folder)
 
 (defface mh-folder-msg-number
-  '((((class color) (background light))
-     (:foreground "snow4"))
-    (((class color) (background dark))
-     (:foreground "snow3")))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "snow4"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "snow3"))
+     (((class color))
+      (:foreground "cyan"))))
+    
   "Message number face."
   :group 'mh-faces
   :group 'mh-folder)
@@ -2876,7 +2880,9 @@ The background and foreground are used in the image."
     '((((class color) (background light))
        (:foreground "snow4"))
       (((class color) (background dark))
-       (:foreground "snow3")))))
+       (:foreground "snow3"))
+      (((class color))
+       (:foreground "cyan")))))
 
 
 ;; Local Variables:

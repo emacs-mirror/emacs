@@ -1,5 +1,15 @@
 2006-01-03  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el (mh-folder-msg-number): Snow is actually
+	off-white on low color displays which turns to white when bold.
+	This is unreadable on white backgrounds. Use snow with min-colors
+	requirement. Use cyan on low-color displays.
+
+	* mh-init.el (mh-defface-compat): On low-color displays, delete
+	the high-color display rather than simply strip the min-colors
+	requirement since the existing algorithm shadowed the desired
+	display on low-color displays.
+
 	* mh-alias.el (mh-alias-add-alias): Remove leading * from
 	docstring.
 
