@@ -1,5 +1,12 @@
 2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/flymake.el (flymake-temp-source-file-name)
+	(flymake-master-file-name, flymake-temp-master-file-name)
+	(flymake-base-dir): New buffer-local vars.
+	(flymake-buffer-data, flymake-get-buffer-value)
+	(flymake-set-buffer-value): Replace those hash-tables by the new
+	buffer-local vars.  Update callers.
+
 	* progmodes/flymake.el (flymake-check-start-time)
 	(flymake-check-was-interrupted, flymake-err-info, flymake-is-running)
 	(flymake-last-change-time, flymake-new-err-info, flymake-timer):

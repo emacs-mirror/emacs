@@ -240,17 +240,6 @@ are the string substitutions (see `format')."
 (defvar flymake-processes nil
   "List of currently active flymake processes.")
 
-(defvar flymake-buffer-data nil
-  "Data specific to syntax check tool, in name-value pairs.")
-
-(make-variable-buffer-local 'flymake-buffer-data)
-
-(defun flymake-get-buffer-value (buffer name)
-  (gethash name (with-current-buffer buffer flymake-buffer-data)))
-
-(defun flymake-set-buffer-value (buffer name value)
-  (puthash name value (with-current-buffer buffer flymake-buffer-data)))
-
 (defvar flymake-output-residual nil)
 
 (make-variable-buffer-local 'flymake-output-residual)
@@ -1178,7 +1167,6 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
       (flymake-clear-project-include-dirs-cache)
 
       (setq flymake-check-was-interrupted nil)
-      (setq flymake-buffer-data (flymake-makehash 'equal))
 
       (let* ((source-file-name  buffer-file-name)
              (init-f (flymake-get-init-function source-file-name))
@@ -1576,19 +1564,33 @@ With arg, turn Flymake mode on if and only if arg is positive."
 	  (setq suffix (substring suffix 0 slash-pos))
 	(setq suffix "")))))
 
+(defvar flymake-temp-source-file-name nil)
+(make-variable-buffer-local 'flymake-temp-source-file-name)
+
+(defvar flymake-master-file-name nil)
+(make-variable-buffer-local 'flymake-master-file-name)
+
+(defvar flymake-temp-master-file-name nil)
+(make-variable-buffer-local 'flymake-temp-master-file-name)
+
+(defvar flymake-base-dir nil)
+(make-variable-buffer-local 'flymake-base-dir)
+
 (defun flymake-init-create-temp-buffer-copy (buffer create-temp-f)
   "Make a temporary copy of the current buffer, save its name in buffer data and return the name."
   (let*  ((source-file-name       (buffer-file-name buffer))
 	  (temp-source-file-name  (funcall create-temp-f source-file-name "flymake")))
 
     (flymake-save-buffer-in-file buffer temp-source-file-name)
-    (flymake-set-buffer-value buffer "temp-source-file-name" temp-source-file-name)
+    (with-current-buffer buffer
+      (setq flymake-temp-source-file-name temp-source-file-name))
     temp-source-file-name))
 
 (defun flymake-simple-cleanup (buffer)
   "Do cleanup after `flymake-init-create-temp-buffer-copy'.
 Delete temp file."
-  (let* ((temp-source-file-name (flymake-get-buffer-value buffer "temp-source-file-name")))
+  (let* ((temp-source-file-name (with-current-buffer buffer
+                                  flymake-temp-source-file-name)))
     (flymake-safe-delete-file temp-source-file-name)
     (with-current-buffer buffer
       (setq flymake-last-change-time nil))))
@@ -1598,12 +1600,16 @@ Delete temp file."
 Return full-name.  Names are real, not patched."
   (let* ((real-name              nil)
 	 (source-file-name       (buffer-file-name buffer))
-	 (master-file-name       (flymake-get-buffer-value buffer "master-file-name"))
-	 (temp-source-file-name  (flymake-get-buffer-value buffer "temp-source-file-name"))
-	 (temp-master-file-name  (flymake-get-buffer-value buffer "temp-master-file-name"))
-	 (base-dirs              (list (flymake-get-buffer-value buffer "base-dir")
-				       (file-name-directory source-file-name)
-				       (if master-file-name (file-name-directory master-file-name) nil)))
+	 (master-file-name
+          (with-current-buffer buffer flymake-master-file-name))
+	 (temp-source-file-name
+          (with-current-buffer buffer flymake-temp-source-file-name))
+	 (temp-master-file-name
+          (with-current-buffer buffer flymake-temp-master-file-name))
+	 (base-dirs
+          (list (with-current-buffer buffer flymake-base-dir)
+                (file-name-directory source-file-name)
+                (if master-file-name (file-name-directory master-file-name))))
 	 (files                  (list (list source-file-name       source-file-name)
 				       (list temp-source-file-name  source-file-name)
 				       (list master-file-name       master-file-name)
@@ -1657,25 +1663,22 @@ Return full-name.  Names are real, not patched."
 
 (defun flymake-init-find-buildfile-dir (buffer source-file-name buildfile-name)
   "Find buildfile, store its dir in buffer data and return its dir, if found."
-  (let* ((buildfile-dir  (flymake-find-buildfile buildfile-name
-						 (file-name-directory source-file-name)
-						 flymake-buildfile-dirs)))
-    (if (not buildfile-dir)
-	(progn
-	  (flymake-log 1 "no buildfile (%s) for %s" buildfile-name source-file-name)
-          (with-current-buffer buffer
-            (flymake-report-fatal-status "NOMK" (format "No buildfile (%s) found for %s" buildfile-name source-file-name)))
-	  )
-      (progn
-	(flymake-set-buffer-value buffer "base-dir" buildfile-dir)))
-    buildfile-dir))
+  (let* ((buildfile-dir
+          (flymake-find-buildfile buildfile-name
+                                  (file-name-directory source-file-name)
+                                  flymake-buildfile-dirs)))
+    (if buildfile-dir
+        (with-current-buffer buffer (setq flymake-base-dir buildfile-dir))
+      (flymake-log 1 "no buildfile (%s) for %s" buildfile-name source-file-name)
+      (with-current-buffer buffer
+        (flymake-report-fatal-status
+         "NOMK" (format "No buildfile (%s) found for %s"
+                        buildfile-name source-file-name))))))
 
 (defun flymake-init-create-temp-source-and-master-buffer-copy (buffer get-incl-dirs-f create-temp-f master-file-masks include-regexp-list)
   "Find master file (or buffer), create it's copy along with a copy of the source file."
   (let* ((source-file-name       (buffer-file-name buffer))
 	 (temp-source-file-name  (flymake-init-create-temp-buffer-copy buffer create-temp-f))
-	 (master-file-name       nil)
-	 (temp-master-file-name  nil)
 	 (master-and-temp-master (flymake-create-master-file
 				  source-file-name temp-source-file-name
 				  get-incl-dirs-f create-temp-f
@@ -1687,18 +1690,14 @@ Return full-name.  Names are real, not patched."
           (when (bufferp buffer)
             (with-current-buffer buffer
               (flymake-report-status "!" "")))	; NOMASTER
-	  )
-      (progn
-	(setq master-file-name       (nth 0 master-and-temp-master))
-	(setq temp-master-file-name  (nth 1 master-and-temp-master))
-	(flymake-set-buffer-value buffer "master-file-name"      master-file-name)
-	(flymake-set-buffer-value buffer "temp-master-file-name" temp-master-file-name)
-	))
-    temp-master-file-name))
+          nil)
+      (with-current-buffer buffer
+        (setq flymake-master-file-name (nth 0 master-and-temp-master))
+        (setq flymake-temp-master-file-name (nth 1 master-and-temp-master))))))
 
 (defun flymake-master-cleanup (buffer)
   (flymake-simple-cleanup buffer)
-  (flymake-safe-delete-file (flymake-get-buffer-value buffer "temp-master-file-name")))
+  (flymake-safe-delete-file (with-current-buffer buffer flymake-temp-master-file-name)))
 
 ;;;; make-specific init-cleanup routines
 (defun flymake-get-syntax-check-program-args (source-file-name base-dir use-relative-base-dir use-relative-source get-cmd-line-f)
@@ -1778,7 +1777,8 @@ Use CREATE-TEMP-F for creating temp copy."
 
 (defun flymake-simple-java-cleanup (buffer)
   "Cleanup after `flymake-simple-make-java-init' -- delete temp file and dirs."
-  (let* ((temp-source-file-name (flymake-get-buffer-value buffer "temp-source-file-name")))
+  (let* ((temp-source-file-name (with-current-buffer buffer
+                                  flymake-temp-source-file-name)))
     (flymake-safe-delete-file temp-source-file-name)
     (when temp-source-file-name
       (flymake-delete-temp-directory (file-name-directory temp-source-file-name)))))
