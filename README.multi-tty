@@ -401,12 +401,6 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
-** Let-binding `overriding-terminal-local-map' on a brand new frame
-   does not seem to work correctly.  (See `fancy-splash-screens'.)
-   The keymap seems to be set up right, but events go to another
-   terminal.  Or is it `unread-command-events' that gets Emacs
-   confused?  Investigate.
-
 ** `delete-frame' events are handled by `special-event-map'
    immediately when read by `read_char'.  This is fine but it prevents
    higher-level keymaps from binding that event to get notified of the
@@ -466,6 +460,10 @@ THINGS TO DO
    Emacs with GTK support.  If you want to play around with GTK
    multidisplay (and don't mind core dumps), you can edit src/config.h
    and define HAVE_GTK_MULTIDISPLAY there by hand.
+   
+   Update: Han reports that GTK+ version 2.8.9 almost gets display
+   disconnects right.  GTK will probably be fully fixed by the time
+   multi-tty gets into the trunk.
 
 ** Audit `face-valid-attribute-values' usage in customize and
    elsewhere.  Its return value depends on the current window system.
@@ -476,10 +474,6 @@ THINGS TO DO
    C.f. (emacs)Emergency Escape.
 
 ** frames-on-display-list should also accept frames.
-
-** I smell something funny around pop_kboard's "deleted kboard" case.
-   Determine what are the circumstances of this case, and fix any
-   bug that comes to light.
 
 ** Consider the `tty-type' frame parameter and the `display-tty-type'
    function.  They serve the exact same purpose.  I think it may be
@@ -513,10 +507,6 @@ THINGS TO DO
 ** Add the following hooks: after-delete-frame-hook (for server.el,
    instead of delete-frame-functions),
    after-delete-terminal-functions, after-create-terminal-functions.
-
-** Fix set-input-mode for multi-tty.  It's a truly horrible interface;
-   what if we'd blow it up into several separate functions (with a
-   compatibility definition)?
 
 ** BULK RENAME: The `display-' prefix of new Lisp-level functions
    conflicts with stuff like `display-time-mode'.  Use `device-'
@@ -582,6 +572,8 @@ THINGS TO DO
    Alternatively, it might be good enough to signal single_kboard mode
    by changing the modelines or some other frame-local display element
    on the locked out displays.
+
+   Update: In fact struct kboard does have an echo_string slot.
 
 ** The session management module is prone to crashes when the X
    connection is closed and then later I try to connect to a new X
@@ -669,6 +661,9 @@ THINGS TO DO
 ** Very strange bug: visible-bell does not work on secondary
    terminals in xterm and konsole.  The screen does flicker a bit,
    but it's so quick it isn't noticable.
+
+   (Update: This is probably some problem with padding or whatnot on
+   the secondary terminals.)
 
 ** Move baud_rate to struct display.
 
@@ -1413,6 +1408,32 @@ DIARY OF CHANGES
    x_connection_closed after an X error.  `Fdelete_frame' now protects
    against `delete-frame-functions' throwing an error and preventing a
    frame delete. (patch-475)
+
+-- Fix set-input-mode for multi-tty.  It's a truly horrible interface;
+   what if we'd blow it up into several separate functions (with a
+   compatibility definition)?
+
+   (Done.  See `set-input-interrupt-mode', `set-output-flow-control',
+   `set-input-meta-mode' and `set-quit-char'.) (patch-457)
+
+-- Let-binding `overriding-terminal-local-map' on a brand new frame
+   does not seem to work correctly.  (See `fancy-splash-screens'.)
+   The keymap seems to be set up right, but events go to another
+   terminal.  Or is it `unread-command-events' that gets Emacs
+   confused?  Investigate.
+
+   (Emacs was confused because a process filter entered
+   `recursive-edit' while Emacs was reading input.  I added support
+   for this in the input system.) (patch-489)
+
+-- I smell something funny around pop_kboard's "deleted kboard" case.
+   Determine what are the circumstances of this case, and fix any
+   bug that comes to light.
+
+   (It happens simply because single_kboard's terminal is sometimes
+   deleted while executing a command on it, for example the one that
+   kills the terminal.  There was no bug here, but I rewrote the whole
+   single_kboard mess anyway.) (patch-489)
 
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

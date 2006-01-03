@@ -10549,14 +10549,14 @@ redisplay_internal (preserve_echo_area)
     ++windows_or_buffers_changed;
 
   if (FRAME_TERMCAP_P (sf)
-      && FRAME_TTY (sf)->previous_terminal_frame != sf)
+      && FRAME_TTY (sf)->previous_frame != sf)
     {
       /* Since frames on a single ASCII terminal share the same
 	 display area, displaying a different frame means redisplay
 	 the whole thing.  */
       windows_or_buffers_changed++;
       SET_FRAME_GARBAGED (sf);
-      FRAME_TTY (sf)->previous_terminal_frame = sf;
+      FRAME_TTY (sf)->previous_frame = sf;
     }
 
   /* Set the visible flags for all frames.  Do this before checking
@@ -16194,7 +16194,7 @@ display_mode_line (w, face_id, format)
   /* Temporarily make frame's keyboard the current kboard so that
      kboard-local variables in the mode_line_format will get the right
      values.  */
-  push_frame_kboard (it.f);
+  push_kboard (FRAME_KBOARD (it.f));
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
   pop_kboard ();
 
@@ -16908,7 +16908,7 @@ are the selected window and the window's buffer).  */)
 	= (NILP (face) ? Qnil : Fcons (Qface, Fcons (face, Qnil)));
     }
 
-  push_frame_kboard (it.f);
+  push_kboard (FRAME_KBOARD (it.f));
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
   pop_kboard ();
 

@@ -1406,7 +1406,6 @@ The functions are run with one arg, the frame to be deleted.  */)
   if (!NILP (Vrun_hooks)
       && NILP (Fframe_parameter (frame, intern ("tooltip"))))
     {
-      int count = SPECPDL_INDEX ();
       Lisp_Object args[2];
       struct gcpro gcpro1, gcpro2;
 

@@ -68,8 +68,8 @@ struct tty_display_info
 
   Lisp_Object top_frame;        /* The topmost frame on this tty. */
   
-  /* The previous terminal frame we displayed on this tty.  */
-  struct frame *previous_terminal_frame;
+  /* The previous frame we displayed on this tty.  */
+  struct frame *previous_frame;
 
   /* Strings, numbers and flags taken from the termcap entry.  */
 

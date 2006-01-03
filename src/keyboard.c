@@ -670,7 +670,6 @@ static void save_getcjmp ();
 static void restore_getcjmp P_ ((jmp_buf));
 static Lisp_Object apply_modifiers P_ ((int, Lisp_Object));
 static void clear_event P_ ((struct input_event *));
-static void any_kboard_state P_ ((void));
 static Lisp_Object restore_kboard_configuration P_ ((Lisp_Object));
 static SIGTYPE interrupt_signal P_ ((int signalnum));
 static void handle_interrupt P_ ((void));
@@ -1034,7 +1033,8 @@ This function is called by the editor initialization to begin editing.  */)
      like it is done in the splash screen display, we have to
      make sure that we restore single_kboard as command_loop_1
      would have done if it were left normally.  */
-  temporarily_switch_to_single_kboard (FRAME_KBOARD (SELECTED_FRAME ()));
+  if (command_loop_level > 0)
+    temporarily_switch_to_single_kboard (SELECTED_FRAME ());
   record_unwind_protect (recursive_edit_unwind, buffer);
 
   recursive_edit_1 ();
@@ -1054,6 +1054,8 @@ recursive_edit_unwind (buffer)
 }
 
 
+#if 0  /* These two functions are now replaced with
+          temporarily_switch_to_single_kboard. */
 static void
 any_kboard_state ()
 {
@@ -1084,6 +1086,7 @@ single_kboard_state ()
   single_kboard = 1;
 #endif
 }
+#endif
 
 /* If we're in single_kboard state for kboard KBOARD,
    get out of it.  */
@@ -1127,13 +1130,6 @@ push_kboard (k)
 }
 
 void
-push_frame_kboard (f)
-     FRAME_PTR f;
-{
-  push_kboard (f->terminal->kboard);
-}
-
-void
 pop_kboard ()
 {
 #ifdef MULTI_KBOARD
@@ -1153,37 +1149,55 @@ pop_kboard ()
     {
       /* The terminal we remembered has been deleted.  */
       current_kboard = FRAME_KBOARD (SELECTED_FRAME ());
+      single_kboard = 0;
     }
   kboard_stack = p->next;
   xfree (p);
 #endif
 }
 
-/* Switch to single_kboard mode.  If K is non-nil, set it as the
-  current keyboard.  Use record_unwind_protect to return to the
-  previous state later.  */
+/* Switch to single_kboard mode, making current_kboard the only KBOARD
+  from which further input is accepted.  If F is non-nil, set its
+  KBOARD as the current keyboard.
+
+  This function uses record_unwind_protect to return to the previous
+  state later.
+
+  If Emacs is already in single_kboard mode, and F's keyboard is
+  locked, then this function will throw an errow.  */
 
 void
-temporarily_switch_to_single_kboard (k)
-     struct kboard *k;
+temporarily_switch_to_single_kboard (f)
+     struct frame *f;
 {
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
   if (was_locked)
     {
-      if (k != NULL)
-        push_kboard (k);
+      if (f != NULL && FRAME_KBOARD (f) != current_kboard)
+        /* We can not switch keyboards while in single_kboard mode.
+           This can legally happen when Lisp code calls
+           `recursive-edit' (or `read-minibuffer' or `y-or-n-p') after
+           it switched to a locked frame.  This kind of situation is
+           likely to happen when server.el connects to a new
+           terminal.  */
+        error ("Terminal %d is locked, cannot read from it",
+               FRAME_TERMINAL (f)->id);
       else
+        /* This call is unnecessary, but helps
+           `restore_kboard_configuration' discover if somebody changed
+           `current_kboard' behind our back.  */
         push_kboard (current_kboard);
     }
-  else if (k != NULL)
-    current_kboard = k;
-  single_kboard_state ();
+  else if (f != NULL)
+    current_kboard = FRAME_KBOARD (f);
+  single_kboard = 1;
   record_unwind_protect (restore_kboard_configuration,
                          (was_locked ? Qt : Qnil));
 #endif
 }
 
+#if 0 /* This function is not needed anymore.  */
 void
 record_single_kboard_state ()
 {
@@ -1192,17 +1206,22 @@ record_single_kboard_state ()
   record_unwind_protect (restore_kboard_configuration,
                          (single_kboard ? Qt : Qnil));
 }
+#endif
 
 static Lisp_Object
 restore_kboard_configuration (was_locked)
      Lisp_Object was_locked;
 {
   if (NILP (was_locked))
-    any_kboard_state ();
+    single_kboard = 0;
   else
     {
-      single_kboard_state ();
+      struct kboard *prev = current_kboard;
+      single_kboard = 1;
       pop_kboard ();
+      /* The pop should not change the kboard.  */
+      if (single_kboard && current_kboard != prev)
+        abort ();
     }
   return Qnil;
 }
@@ -1253,9 +1272,11 @@ cmd_error (data)
   Vquit_flag = Qnil;
 
   Vinhibit_quit = Qnil;
+#if 0 /* This shouldn't be necessary anymore. --lorentey */
 #ifdef MULTI_KBOARD
   if (command_loop_level == 0 && minibuf_level == 0)
     any_kboard_state ();
+#endif
 #endif
 
   return make_number (0);
@@ -1340,10 +1361,12 @@ command_loop ()
     while (1)
       {
 	internal_catch (Qtop_level, top_level_1, Qnil);
+#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
         /* Reset single_kboard in case top-level set it while
            evaluating an -f option, or we are stuck there for some
            other reason. */
         any_kboard_state ();
+#endif
 	internal_catch (Qtop_level, command_loop_2, Qnil);
 	executing_kbd_macro = Qnil;
 
@@ -1460,9 +1483,11 @@ command_loop_1 ()
   int no_direct;
   int prev_modiff = 0;
   struct buffer *prev_buffer = NULL;
+#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
 #ifdef MULTI_KBOARD
   int was_locked = single_kboard;
 #endif
+#endif  
   int already_adjusted = 0;
 
   current_kboard->Vprefix_arg = Qnil;
@@ -1919,10 +1944,11 @@ command_loop_1 ()
       if (!NILP (current_kboard->defining_kbd_macro)
 	  && NILP (current_kboard->Vprefix_arg))
 	finalize_kbd_macro_chars ();
-
+#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
 #ifdef MULTI_KBOARD
       if (!was_locked)
-	any_kboard_state ();
+        any_kboard_state ();
+#endif
 #endif
     }
 }
@@ -2405,10 +2431,6 @@ Lisp_Object print_help ();
 static Lisp_Object kbd_buffer_get_event ();
 static void record_char ();
 
-#ifdef MULTI_KBOARD
-static jmp_buf wrong_kboard_jmpbuf;
-#endif
-
 #define STOP_POLLING					\
 do { if (! polling_stopped_here) stop_polling ();	\
        polling_stopped_here = 1; } while (0)
@@ -2435,15 +2457,19 @@ do { if (polling_stopped_here) start_polling ();	\
    if we used a mouse menu to read the input, or zero otherwise.  If
    USED_MOUSE_MENU is null, we don't dereference it.
 
+   WRONG_KBOARD_JMPBUF should be a stack context to longjmp to in case
+   we find input on another keyboard.
+   
    Value is t if we showed a menu and the user rejected it.  */
 
 Lisp_Object
-read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
+read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_jmpbuf)
      int commandflag;
      int nmaps;
      Lisp_Object *maps;
      Lisp_Object prev_event;
      int *used_mouse_menu;
+     jmp_buf *wrong_kboard_jmpbuf;
 {
   volatile Lisp_Object c;
   int count;
@@ -2456,6 +2482,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   volatile int reread;
   struct gcpro gcpro1, gcpro2;
   int polling_stopped_here = 0;
+  struct kboard *orig_kboard = current_kboard;
 
   also_record = Qnil;
 
@@ -2711,7 +2738,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	    /* This is going to exit from read_char
 	       so we had better get rid of this frame's stuff.  */
 	    UNGCPRO;
-	    longjmp (wrong_kboard_jmpbuf, 1);
+            if (wrong_kboard_jmpbuf == NULL)
+              abort ();
+	    longjmp (*wrong_kboard_jmpbuf, 1);
 	  }
       }
 #endif
@@ -2845,6 +2874,20 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	}
     }
 
+  /* Notify the caller if a timer or sentinel or filter in the sit_for
+     calls above have changed the current kboard.  This could happen
+     if they start a recursive edit, like the fancy splash screen in
+     server.el's filter.  If this longjmp wasn't here,
+     read_key_sequence would interpret the next key sequence using the
+     wrong translation tables and function keymaps.  */
+  if (NILP (c) && current_kboard != orig_kboard)
+    {
+      UNGCPRO;
+      if (wrong_kboard_jmpbuf == NULL)
+        abort ();
+      longjmp (*wrong_kboard_jmpbuf, 1);
+    }
+
   /* If this has become non-nil here, it has been set by a timer
      or sentinel or filter.  */
   if (CONSP (Vunread_command_events))
@@ -2893,7 +2936,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	    /* This is going to exit from read_char
 	       so we had better get rid of this frame's stuff.  */
 	    UNGCPRO;
-	    longjmp (wrong_kboard_jmpbuf, 1);
+            if (wrong_kboard_jmpbuf == NULL)
+              abort ();
+	    longjmp (*wrong_kboard_jmpbuf, 1);
 	  }
     }
 #endif
@@ -2940,7 +2985,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	  /* This is going to exit from read_char
 	     so we had better get rid of this frame's stuff.  */
 	  UNGCPRO;
-	  longjmp (wrong_kboard_jmpbuf, 1);
+          if (wrong_kboard_jmpbuf == NULL)
+            abort ();
+	  longjmp (*wrong_kboard_jmpbuf, 1);
 	}
 #endif
     }
@@ -2994,8 +3041,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (!NILP (tem))
     {
+#if 0 /* This shouldn't be necessary anymore. --lorentey  */
       int was_locked = single_kboard;
-
+      int count = SPECPDL_INDEX ();
+      record_single_kboard_state ();
+#endif
+      
       last_input_char = c;
       Fcommand_execute (tem, Qnil, Fvector (1, &last_input_char), Qt);
 
@@ -3006,9 +3057,12 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	   example banishing the mouse under mouse-avoidance-mode.  */
 	timer_resume_idle ();
 
+#if 0 /* This shouldn't be necessary anymore. --lorentey  */
       /* Resume allowing input from any kboard, if that was true before.  */
       if (!was_locked)
 	any_kboard_state ();
+      unbind_to (count, Qnil);
+#endif
 
       goto retry;
     }
@@ -3251,7 +3305,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
       cancel_echoing ();
       do
-	c = read_char (0, 0, 0, Qnil, 0);
+	c = read_char (0, 0, 0, Qnil, 0, &wrong_kboard_jmpbuf);
       while (BUFFERP (c));
       /* Remove the help from the frame */
       unbind_to (count, Qnil);
@@ -3261,7 +3315,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	{
 	  cancel_echoing ();
 	  do
-	    c = read_char (0, 0, 0, Qnil, 0);
+	    c = read_char (0, 0, 0, Qnil, 0, &wrong_kboard_jmpbuf);
 	  while (BUFFERP (c));
 	}
     }
@@ -4522,10 +4576,11 @@ timer_check (do_it_now)
 	      int count = SPECPDL_INDEX ();
 	      Lisp_Object old_deactivate_mark = Vdeactivate_mark;
 
+#if 0 /* This shouldn't be necessary anymore.  --lorentey  */
 	      /* On unbind_to, resume allowing input from any kboard, if that
                  was true before.  */
               record_single_kboard_state ();
-
+#endif
 	      /* Mark the timer as triggered to prevent problems if the lisp
 		 code fails to reschedule it right.  */
 	      vector[0] = Qt;
@@ -8739,6 +8794,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   int junk;
 #endif
 
+  jmp_buf *volatile wrong_kboard_jmpbuf = alloca (sizeof (jmp_buf));
+
   struct gcpro gcpro1;
 
   GCPRO1 (fake_prefixed_keys);
@@ -8775,7 +8832,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   /* Read the first char of the sequence specially, before setting
      up any keymaps, in case a filter runs and switches buffers on us.  */
   first_event = read_char (NILP (prompt), 0, submaps, last_nonmenu_event,
-			   &junk);
+			   &junk, NULL);
 #endif /* GOBBLE_FIRST_EVENT */
 
   orig_local_map = get_local_map (PT, current_buffer, Qlocal_map);
@@ -8951,8 +9008,17 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 #ifdef MULTI_KBOARD
 	    KBOARD *interrupted_kboard = current_kboard;
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
-	    if (setjmp (wrong_kboard_jmpbuf))
+	    if (setjmp (*wrong_kboard_jmpbuf))
 	      {
+                int found = 0;
+                struct kboard *k;
+
+                for (k = all_kboards; k; k = k->next_kboard)
+                  if (k == interrupted_kboard)
+                    found = 1;
+                if (!found)
+                  abort ();
+
 		if (!NILP (delayed_switch_frame))
 		  {
 		    interrupted_kboard->kbd_queue
@@ -8986,7 +9052,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 #endif
 	    key = read_char (NILP (prompt), nmaps,
 			     (Lisp_Object *) submaps, last_nonmenu_event,
-			     &used_mouse_menu);
+			     &used_mouse_menu, wrong_kboard_jmpbuf);
 	  }
 
 	  /* read_char returns t when it shows a menu and the user rejects it.
@@ -10466,7 +10532,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
     {
       /* If there are no frames there, let's pretend that we are a
          well-behaving UN*X program and quit. */
-      fatal_error_signal (SIGTERM);
+      Fkill_emacs (Qnil);
     }
   else
     {
@@ -11034,7 +11100,8 @@ delete_kboard (kb)
       && FRAMEP (selected_frame)
       && FRAME_LIVE_P (XFRAME (selected_frame)))
     {
-      current_kboard = XFRAME (selected_frame)->terminal->kboard;
+      current_kboard = FRAME_KBOARD (XFRAME (selected_frame));
+      single_kboard = 0;
       if (current_kboard == kb)
 	abort ();
     }

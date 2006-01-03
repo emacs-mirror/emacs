@@ -305,7 +305,6 @@ struct input_event;
 
 extern Lisp_Object parse_modifiers P_ ((Lisp_Object));
 extern Lisp_Object reorder_modifiers P_ ((Lisp_Object));
-extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
 
 /* Parent keymap of terminal-local function-key-map instances.  */
 extern Lisp_Object Vfunction_key_map;
@@ -318,13 +317,11 @@ extern int parse_menu_item P_ ((Lisp_Object, int, int));
 extern void echo_now P_ ((void));
 extern void init_kboard P_ ((KBOARD *));
 extern void delete_kboard P_ ((KBOARD *));
-extern void single_kboard_state P_ ((void));
 extern void not_single_kboard_state P_ ((KBOARD *));
 extern void push_kboard P_ ((struct kboard *));
 extern void push_frame_kboard P_ ((struct frame *));
 extern void pop_kboard P_ ((void));
-extern void temporarily_switch_to_single_kboard P_ ((struct kboard *));
-extern void record_single_kboard_state P_ ((void));
+extern void temporarily_switch_to_single_kboard P_ ((struct frame *));
 extern void record_asynch_buffer_change P_ ((void));
 extern SIGTYPE input_poll_signal P_ ((int));
 extern void start_polling P_ ((void));

@@ -875,12 +875,11 @@ If KEYS is omitted or nil, the return value of `this-command-keys' is used.  */)
   real_this_command= save_real_this_command;
   current_kboard->Vlast_command = save_last_command;
 
-  temporarily_switch_to_single_kboard (NULL);
-
   {
     Lisp_Object val;
     specbind (Qcommand_debug_status, Qnil);
 
+    temporarily_switch_to_single_kboard (NULL);
     val = Ffuncall (count + 1, args);
     UNGCPRO;
     return unbind_to (speccount, val);

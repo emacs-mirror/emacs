@@ -552,7 +552,7 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   if (minibuffer_auto_raise)
     Fraise_frame (mini_frame);
 
-  temporarily_switch_to_single_kboard (XFRAME (mini_frame)->terminal->kboard);
+  temporarily_switch_to_single_kboard (XFRAME (mini_frame));
 
   /* We have to do this after saving the window configuration
      since that is what restores the current buffer.  */

@@ -27,6 +27,7 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/stat.h>
 #include <sys/file.h>
 #include <errno.h>
+#include <setjmp.h>
 #include "lisp.h"
 #include "intervals.h"
 #include "buffer.h"
@@ -434,7 +435,7 @@ static void substitute_in_interval P_ ((INTERVAL, Lisp_Object));
 
 /* Get a character from the tty.  */
 
-extern Lisp_Object read_char ();
+extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *, jmp_buf *));
 
 /* Read input events until we get one that's acceptable for our purposes.
 
@@ -459,7 +460,8 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 		     input_method)
      int no_switch_frame, ascii_required, error_nonascii, input_method;
 {
-  register Lisp_Object val, delayed_switch_frame;
+  volatile register Lisp_Object val, delayed_switch_frame;
+  jmp_buf *volatile wrong_kboard_jmpbuf = alloca (sizeof (jmp_buf));
 
 #ifdef HAVE_WINDOW_SYSTEM
   if (display_hourglass_p)
@@ -470,10 +472,12 @@ read_filtered_event (no_switch_frame, ascii_required, error_nonascii,
 
   /* Read until we get an acceptable event.  */
  retry:
+  setjmp (*wrong_kboard_jmpbuf);
+
   val = read_char (0, 0, 0,
 		   (input_method ? Qnil : Qt),
-		   0);
-
+		   0, wrong_kboard_jmpbuf);
+ 
   if (BUFFERP (val))
     goto retry;
 

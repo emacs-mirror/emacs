@@ -3308,7 +3308,7 @@ is nil and `use-dialog-box' is non-nil.  */)
 	  Fraise_frame (mini_frame);
 	}
 
-      temporarily_switch_to_single_kboard (FRAME_KBOARD (SELECTED_FRAME ()));
+      temporarily_switch_to_single_kboard (SELECTED_FRAME ());
       obj = read_filtered_event (1, 0, 0, 0);
 
       cursor_in_echo_area = 0;
