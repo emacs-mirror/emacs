@@ -3196,8 +3196,8 @@ describe_map_compare (aa, bb)
   if (INTEGERP (a->event) && !INTEGERP (b->event))
     return -1;
   if (SYMBOLP (a->event) && SYMBOLP (b->event))
-    return (Fstring_lessp (a->event, b->event) ? -1
-	    : Fstring_lessp (b->event, a->event) ? 1
+    return (!NILP (Fstring_lessp (a->event, b->event)) ? -1
+	    : !NILP (Fstring_lessp (b->event, a->event)) ? 1
 	    : 0);
   return 0;
 }
