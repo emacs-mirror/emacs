@@ -1,7 +1,7 @@
 ;;; mh-seq.el --- MH-E sequences support
 
 ;; Copyright (C) 1993, 1995,
-;;  2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -177,6 +177,7 @@ you want to delete the messages, use \"\\[universal-argument]
 ;;;###mh-autoload
 (defun mh-list-sequences ()
   "List all sequences in folder.
+
 The list appears in a buffer named \"*MH-E Sequences*\"."
   (interactive)
   (let ((folder mh-current-folder)
@@ -219,6 +220,7 @@ The list appears in a buffer named \"*MH-E Sequences*\"."
 ;;;###mh-autoload
 (defun mh-msg-is-in-seq (message)
   "Display the sequences in which the current message appears.
+
 Use a prefix argument to display the sequences in which another
 MESSAGE appears."
   (interactive "P")
@@ -329,8 +331,10 @@ OP is one of 'widen and 'unthread."
 ;;;###mh-autoload
 (defun mh-widen (&optional all-flag)
   "Remove last restriction.
-If optional prefix argument ALL-FLAG is non-nil, remove all
-limits."
+
+Each limit or sequence restriction can be undone in turn with
+this command. Give this command a prefix argument ALL-FLAG to
+remove all limits and sequence restrictions."
   (interactive "P")
   (let ((msg (mh-get-msg-num nil)))
     (when mh-folder-view-stack

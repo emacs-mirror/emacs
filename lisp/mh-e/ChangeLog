@@ -1,3 +1,52 @@
+2006-01-02  Bill Wohler  <wohler@newt.com>
+
+	* mh-alias.el (mh-alias-grab-from-field): Remove leading * from
+	docstring. Does this mean something in a defun?
+
+	* mh-customize.el (bw-new-face-to-old, bw-old-face-to-new):
+	Checkdoc fix.
+
+	* mh-e.el (mh-inc-folder): Rename maildrop-name argument to file
+	so it reads better in docstring and manual. Sync docstring with
+	manual.
+
+	* mh-init.el (mh-defface-compat): Remove trailing space (checkdoc).
+
+	* mh-alias.el (mh-alias-apropos): Sync docstring with manual.
+
+	* mh-comp.el (mh-redistribute, mh-to-field, mh-to-fcc)
+	(mh-insert-auto-fields, mh-send-letter, mh-yank-cur-msg)
+	(mh-fully-kill-draft, mh-open-line, mh-letter-complete)
+	(mh-letter-complete-or-space, mh-letter-confirm-address)
+	(mh-letter-next-header-field-or-indent)
+	(mh-letter-previous-header-field): Ditto.
+
+	* mh-customize.el (mh-alias-completion-ignore-case-flag)
+	(mh-default-folder-for-message-function, mh-mml-method-default)
+	(mh-signature-file-name, mh-yank-behavior, mh-show-hook)
+	(mh-show-mode-hook) Ditto.
+
+	* mh-e.el (mh-refile-or-write-again, mh-toggle-showing): Ditto.
+
+	* mh-funcs.el (mh-pipe-msg, mh-sort-folder, mh-undo-folder)
+	(mh-store-msg, mh-store-buffer): Ditto
+
+	* mh-index.el (mh-index-search, mh-index-do-search)
+	(mh-index-next-folder, mh-index-sequenced-messages): Ditto.
+
+	* mh-junk.el (mh-spamassassin-blacklist): Ditto.
+
+	* mh-mime.el (mh-mh-compose-external-compressed-tar)
+	(mh-mh-compose-external-type, mh-mh-to-mime, mh-mh-to-mime-undo)
+	(mh-mml-secure-message-sign, mh-mml-secure-message-encrypt)
+	(mh-mml-secure-message-signencrypt): Ditto
+
+	* mh-pick.el (mh-search-folder): Ditto.
+
+	* mh-seq.el (mh-widen): Ditto.
+
+	* mh-utils.el (mh-show, mh-modify): Ditto.
+
 2006-01-02  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-mime.el (mh-mml-unsecure-message): Remove unused argument.

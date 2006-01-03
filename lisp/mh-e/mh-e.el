@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1988,
 ;;  1990, 1992, 1993, 1994, 1995, 1997, 1999,
-;;  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -711,21 +711,18 @@ Use the command \\[mh-show] to show the message normally again."
       (mh-recenter 0))
     (setq mh-showing-with-headers t)))
 
-(defun mh-inc-folder (&optional maildrop-name folder)
+(defun mh-inc-folder (&optional file folder)
   "Incorporate new mail into a folder.
 
 You can incorporate mail from any file into the current folder by
 specifying a prefix argument; you'll be prompted for the name of
-the file to use as well as the destination folder
+the FILE to use as well as the destination FOLDER
 
 The hook `mh-inc-folder-hook' is run after incorporating new
-mail. Do not call this function from outside MH-E; use
-\\[mh-rmail] instead.
+mail.
 
-In a program optional argument MAILDROP-NAME specifies an
-alternate maildrop from the default. The optional argument FOLDER
-specifies where to incorporate mail instead of the default named
-by `mh-inbox'."
+Do not call this function from outside MH-E; use \\[mh-rmail]
+instead."
   (interactive (list (if current-prefix-arg
                          (expand-file-name
                           (read-file-name "inc mail from file: "
@@ -745,7 +742,7 @@ by `mh-inbox'."
             ((not (eq (current-buffer) (get-buffer folder)))
              (switch-to-buffer folder)
              (setq mh-previous-window-config config))))
-    (mh-get-new-mail maildrop-name)
+    (mh-get-new-mail file)
     (when (and threading-needed-flag
                (save-excursion
                  (goto-char (point-min))
@@ -892,8 +889,10 @@ DONT-UPDATE-LAST-DESTINATION-FLAG is non-nil."
 (defun mh-refile-or-write-again (range &optional interactive-flag)
   "Repeat last output command.
 
-If you are refiling several messages into the same folder, you can use
-this command to repeat the last refile or write. You can use a range.
+If you are refiling several messages into the same folder, you
+can use this command to repeat the last
+refile (\\[mh-refile-msg]) or write (\\[mh-write-msg-to-file]).
+You can use a range.
 
 Check the documentation of `mh-interactive-range' to see how RANGE is
 read in interactive use.
@@ -1255,7 +1254,14 @@ the command \\[mh-refile-or-write-again]."
       (append-to-file (point) (point-max) output-file))))
 
 (defun mh-toggle-showing ()
-  "Toggle the scanning mode/showing mode of displaying messages."
+  "Toggle between MH-Folder and MH-Folder Show modes.
+
+This command switches between MH-Folder mode and MH-Folder Show
+mode. MH-Folder mode turns off the associated show buffer so that
+you can perform operations on the messages quickly without
+reading them. This is an excellent way to prune out your junk
+mail or to refile a group of messages to another folder for later
+examination."
   (interactive)
   (if mh-showing-mode
       (mh-set-scan-mode)

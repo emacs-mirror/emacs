@@ -1,7 +1,7 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 ;;
 ;; Copyright (C) 1994, 1995, 1996, 1997,
-;;  2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -580,7 +580,7 @@ filing messages."
 
 ;;;###mh-autoload
 (defun mh-alias-grab-from-field ()
-  "*Add alias for the sender of the current message."
+  "Add alias for the sender of the current message."
   (interactive)
   (mh-alias-reload-maybe)
   (save-excursion
@@ -609,7 +609,7 @@ filing messages."
 
 ;;;###mh-autoload
 (defun mh-alias-apropos (regexp)
-  "Show all aliases or addresses that match REGEXP."
+  "Show all aliases or addresses that match a regular expression REGEXP."
   (interactive "sAlias regexp: ")
   (if mh-alias-local-users
       (mh-alias-reload-maybe))

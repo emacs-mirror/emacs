@@ -1,7 +1,7 @@
 ;;; mh-utils.el --- MH-E code needed for both sending and reading
 
 ;; Copyright (C) 1993, 1995, 1997,
-;;  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -1647,6 +1647,14 @@ scrolls to the beginning of the message. MH-E normally hides a lot of
 the superfluous header fields that mailers add to a message, but if
 you wish to see all of them, use the command \\[mh-header-display].
 
+Two hooks can be used to control how messages are displayed. The
+first hook, `mh-show-mode-hook', is called early on in the
+process of the message display. It is usually used to perform
+some action on the message's content. The second hook,
+`mh-show-hook', is the last thing called after messages are
+displayed. It's used to affect the behavior of MH-E in general or
+when `mh-show-mode-hook' is too early.
+
 From a program, optional argument MESSAGE can be used to display an
 alternative message. The optional argument REDISPLAY-FLAG forces the
 redisplay of the message even if the show buffer was already
@@ -1728,7 +1736,7 @@ this with this command. It displays the raw message in an
 editable buffer. When you are done editing, save and kill the
 buffer as you would any other.
 
-From a program, edit MESSAGE instead if it is non-nil."
+From a program, edit MESSAGE; nil means edit current message."
   (interactive)
   (let* ((message (or message (mh-get-msg-num t)))
          (msg-filename (mh-msg-filename message))

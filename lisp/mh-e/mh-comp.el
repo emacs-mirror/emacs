@@ -1,7 +1,7 @@
 ;;; mh-comp.el --- MH-E functions for composing messages
 
 ;; Copyright (C) 1993, 1995, 1997,
-;;  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -462,7 +462,7 @@ the message had come from the original sender. When you run this
 command, you are prompted for the TO and CC recipients. The
 default MESSAGE is the current message.
 
-Also investigate the \\[mh-edit-again] command for another way to
+Also investigate the command \\[mh-edit-again] for another way to
 redistribute messages.
 
 See also `mh-redist-full-contents-flag'."
@@ -1114,10 +1114,12 @@ lines."
 ;;;###mh-autoload
 (defun mh-to-field ()
   "Move to specified header field.
-The field is indicated by the previous keystroke (the last keystroke
-of the command) according to the list in the variable
-`mh-to-field-choices'. Create the field if it does not exist. Set the
-mark to point before moving."
+
+The field is indicated by the previous keystroke (the last
+keystroke of the command) according to the list in the variable
+`mh-to-field-choices'.
+Create the field if it does not exist.
+Set the mark to point before moving."
   (interactive)
   (expand-abbrev)
   (let ((target (cdr (or (assoc (char-to-string (logior last-input-char ?`))
@@ -1146,8 +1148,9 @@ mark to point before moving."
 ;;;###mh-autoload
 (defun mh-to-fcc (&optional folder)
   "Move to \"Fcc:\" header field.
-This command will prompt you for the FOLDER name in which to file a
-copy of the draft."
+
+This command will prompt you for the FOLDER name in which to file
+a copy of the draft."
   (interactive)
   (or folder
       (setq folder (mh-prompt-for-folder
@@ -1333,10 +1336,9 @@ The versions of MH-E, Emacs, and MH are shown."
 (defun mh-insert-auto-fields (&optional non-interactive)
   "Insert custom fields if recipient is found in `mh-auto-fields-list'.
 
-Sets buffer-local `mh-insert-auto-fields-done-local' when done
-and inserted something. If NON-INTERACTIVE is non-nil, do not be
-verbose and only attempt matches if
-`mh-insert-auto-fields-done-local' is nil.
+Sets buffer-local `mh-insert-auto-fields-done-local' if header
+fields were added. If NON-INTERACTIVE is non-nil, perform actions
+quietly and only if `mh-insert-auto-fields-done-local' is nil.
 
 An `identity' entry is skipped if one was already entered
 manually.
@@ -1476,9 +1478,9 @@ command. You can give a prefix argument ARG to monitor the first stage
 of the delivery\; this output can be found in a buffer called \"*MH-E
 Mail Delivery*\".
 
-The hook `mh-before-send-letter-hook' is run at the beginning of the
-this command. For example, if you want to check your spelling in your
-message before sending, add the `ispell-message' function.
+The hook `mh-before-send-letter-hook' is run at the beginning of
+this command. For example, if you want to check your spelling in
+your message before sending, add the function `ispell-message'.
 
 In case the MH \"send\" program is installed under a different name,
 use `mh-send-prog' to tell MH-E the name."
@@ -1607,12 +1609,13 @@ text from the message to which you're replying, and inserting
 `mh-ins-buf-prefix' (`> ') before each line.
 
 The attribution consists of the sender's name and email address
-followed by the content of the `mh-extract-from-attribution-verb'
-option.
+followed by the content of the option
+`mh-extract-from-attribution-verb'.
 
-You can also turn on the `mh-delete-yanked-msg-window-flag'
-option to delete the window containing the original message after
-yanking it to make more room on your screen for your reply.
+You can also turn on the option
+`mh-delete-yanked-msg-window-flag' to delete the window
+containing the original message after yanking it to make more
+room on your screen for your reply.
 
 You can control how the message to which you are replying is
 yanked into your reply using `mh-yank-behavior'.
@@ -1741,9 +1744,10 @@ Otherwise, simply insert MH-INS-STRING before each line."
 ;;;###mh-autoload
 (defun mh-fully-kill-draft ()
   "Quit editing and delete draft message.
+
 If for some reason you are not happy with the draft, you can use
-the this command to kill the draft buffer and delete the draft
-message. Use the \\[kill-buffer] command if you don't want to
+this command to kill the draft buffer and delete the draft
+message. Use the command \\[kill-buffer] if you don't want to
 delete the draft message."
   (interactive)
   (if (y-or-n-p "Kill draft message? ")
@@ -1771,9 +1775,9 @@ delete the draft message."
 
 ;;;###mh-autoload
 (defun mh-open-line ()
-  "Insert a newline and leave point after it.
+  "Insert a newline and leave point before it.
 
-This command is similar to the \\[open-line] command in that it
+This command is similar to the command \\[open-line] in that it
 inserts a newline after point. It differs in that it also inserts
 the right number of quoting characters and spaces so that the
 next line begins in the same column as it was. This is useful
@@ -1865,12 +1869,13 @@ Any match found replaces the text from BEGIN to END."
 
 (defun mh-letter-complete (arg)
   "Perform completion on header field or word preceding point.
+
 If the field contains addresses (for example, \"To:\" or \"Cc:\")
-or folders (for example, \"Fcc:\") then this command will
-provide alias completion. In the body of the message, this
-command runs `mh-letter-complete-function' instead, which is set
-to \"'ispell-complete-word\" by default. This command takes a
-prefix argument ARG that is passed to the
+or folders (for example, \"Fcc:\") then this command will provide
+alias completion. In the body of the message, this command runs
+`mh-letter-complete-function' instead, which is set to
+`ispell-complete-word' by default. This command takes a prefix
+argument ARG that is passed to the
 `mh-letter-complete-function'."
   (interactive "P")
   (let ((func nil))
@@ -1883,11 +1888,11 @@ prefix argument ARG that is passed to the
 
 (defun mh-letter-complete-or-space (arg)
   "Perform completion or insert space.
-Turn on the `mh-compose-space-does-completion-flag' option to use
-this command to perform completion in the header. Otherwise, a
-space is inserted.
 
-ARG is the number of spaces inserted."
+Turn on the option `mh-compose-space-does-completion-flag' to use
+this command to perform completion in the header. Otherwise, a
+space is inserted; use a prefix argument ARG to specify more than
+one space."
   (interactive "p")
   (let ((func nil)
         (end-of-prev (save-excursion
@@ -1904,9 +1909,10 @@ ARG is the number of spaces inserted."
 
 (defun mh-letter-confirm-address ()
   "Flash alias expansion.
-Addresses are separated by a comma\; and when you press the
-comma, this command flashes the alias expansion in the minibuffer
-if `mh-alias-flash-on-comma' is turned on."
+
+Addresses are separated by a comma\; when you press the comma,
+this command flashes the alias expansion in the minibuffer if
+`mh-alias-flash-on-comma' is turned on."
   (interactive)
   (cond ((not (mh-in-header-p)) (self-insert-command 1))
         ((eq (cdr (assoc (mh-letter-header-field-at-point)
@@ -1929,9 +1935,11 @@ downcasing the field name."
 
 ;;;###mh-autoload
 (defun mh-letter-next-header-field-or-indent (arg)
-  "Move to next field or indent depending on point.
+  "Cycle to next field.
+
 Within the header of the message, this command moves between
-fields, but skips those fields listed in
+fields that are highlighted with the face
+`mh-letter-header-field', skipping those fields listed in
 `mh-compose-skipped-header-fields'. After the last field, this
 command then moves point to the message body before cycling back
 to the first field. If point is already past the first line of
@@ -1969,10 +1977,11 @@ body."
 ;;;###mh-autoload
 (defun mh-letter-previous-header-field ()
   "Cycle to the previous header field.
+
 This command moves backwards between the fields and cycles to the
-body of the message after the first field. Unlike the
-\\[mh-letter-next-header-field-or-indent] command, it will always
-take point to the last field from anywhere in the body."
+body of the message after the first field. Unlike the command
+\\[mh-letter-next-header-field-or-indent], it will always take
+point to the last field from anywhere in the body."
   (interactive)
   (let ((header-end (mh-mail-header-end)))
     (if (>= (point) header-end)

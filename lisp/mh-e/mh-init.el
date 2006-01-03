@@ -334,7 +334,7 @@ there. Otherwise, the images directory is added to the
 
 (defun mh-defface-compat (spec)
   "Convert SPEC for defface if necessary to run on older platforms.
-Modifies SPEC in place and returns it. See `defface' for the spec definition. 
+Modifies SPEC in place and returns it. See `defface' for the spec definition.
 
 When `mh-min-colors-defined-flag' is nil, this function finds a
 display with a single \"class\" requirement with a \"color\"
