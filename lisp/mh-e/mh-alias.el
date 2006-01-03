@@ -548,7 +548,8 @@ folder name hint when filing messages."
 
 ;;;###mh-autoload
 (defun mh-alias-add-alias (alias address)
-  "*Add ALIAS for ADDRESS in personal alias file.
+  "Add ALIAS for ADDRESS in personal alias file.
+
 This function prompts you for an alias and address. If the alias
 exists already, you will have the choice of inserting the new
 alias before or after the old alias. In the former case, this
