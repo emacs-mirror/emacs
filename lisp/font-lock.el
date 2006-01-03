@@ -1,7 +1,7 @@
 ;;; font-lock.el --- Electric font lock mode
 
 ;; Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2001, 2002, 2003, 2004 2005 Free Software Foundation, Inc.
+;;   2000, 2001, 2002, 2003, 2004, 2005, 2006  Free Software Foundation, Inc.
 
 ;; Author: jwz, then rms, then sm
 ;; Maintainer: FSF
@@ -980,6 +980,7 @@ The value of this variable is used when Font Lock mode is turned on."
 (defun font-lock-fontify-buffer ()
   "Fontify the current buffer the way the function `font-lock-mode' would."
   (interactive)
+  (font-lock-set-defaults)
   (let ((font-lock-verbose (or font-lock-verbose (interactive-p))))
     (funcall font-lock-fontify-buffer-function)))
 
@@ -987,6 +988,7 @@ The value of this variable is used when Font Lock mode is turned on."
   (funcall font-lock-unfontify-buffer-function))
 
 (defun font-lock-fontify-region (beg end &optional loudly)
+  (font-lock-set-defaults)
   (funcall font-lock-fontify-region-function beg end loudly))
 
 (defun font-lock-unfontify-region (beg end)
@@ -1000,8 +1002,6 @@ The value of this variable is used when Font Lock mode is turned on."
     (with-temp-message
 	(when verbose
 	  (format "Fontifying %s..." (buffer-name)))
-      ;; Make sure we have the right `font-lock-keywords' etc.
-      (font-lock-set-defaults)
       ;; Make sure we fontify etc. in the whole buffer.
       (save-restriction
 	(widen)

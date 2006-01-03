@@ -1,3 +1,11 @@
+2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-fontify-buffer, font-lock-fontify-region):
+	Make sure we've setup font-lock's vars.  It may influence which
+	function we then call.
+	(font-lock-default-fontify-buffer): Don't bother calling set-defaults
+	here since it's too late anyway.
+
 2006-01-03  Romain Francoise  <romain@orebokech.com>
 
 	* startup.el (fancy-splash-tail, normal-splash-screen):
@@ -42,8 +50,8 @@
 	(custom-theme-reset-variables, custom-reset-variables): Mark as
 	XEmacs compatibility functions.  We don't actually use these.
 
-	* cus-edit.el (custom-variable-state-set): Use
-	custom-variable-theme-value instead of custom-theme-value.
+	* cus-edit.el (custom-variable-state-set):
+	Use custom-variable-theme-value instead of custom-theme-value.
 	(custom-face-state-set): Rename `standard' theme to `changed'.
 	(custom-save-variables, custom-save-faces): Delete unneeded
 	references to custom-reset-variables.
