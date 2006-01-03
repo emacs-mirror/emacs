@@ -1,5 +1,8 @@
 2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defalias):
+	Optimize the body of a defalias like any other code.
+
 	* font-lock.el (font-lock-fontify-buffer, font-lock-fontify-region):
 	Make sure we've setup font-lock's vars.  It may influence which
 	function we then call.
@@ -13,10 +16,10 @@
 
 2006-01-02  J.D. Smith  <jdsmith@as.arizona.edu>
 
-	* mouse.el (mouse-drag-track): Renamed, from
+	* mouse.el (mouse-drag-track): Rename, from
 	`mouse-drag-region-1'.  Includes optional argument required to
-	enable post-drag event processing (e.g. delete region keys).  Can
-	be used without this argument to track a mouse region and operate
+	enable post-drag event processing (e.g. delete region keys).
+	Can be used without this argument to track a mouse region and operate
 	on it as soon as the drag completes.
 	(mouse-drag-region): Use `mouse-drag-track'.
 
