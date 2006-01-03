@@ -690,44 +690,54 @@ such collections from one computer to another.
   To define a Custom theme, use the command @kbd{M-x
 customize-create-theme}, which brings up a buffer named @samp{*New
 Custom Theme*}.  At the top of the buffer is an editable field where
-you can specify the name of the theme.  To add a customization option
-to the theme, click on the @samp{INS} button to open up a field where
-you can insert the name of the option.  The current value of that
-option is applied to the theme.  After adding as many options as you
-like, click on @samp{Done} to save the Custom theme.
+you can specify the name of the theme.  Click on the button labelled
+@samp{Insert Variable} to add a variable to the theme, and click on
+@samp{Insert Face} to add a face.  You can edit these values in the
+@samp{*New Custom Theme*} buffer like in an ordinary Customize buffer.
+To remove an option from the theme, click on its @samp{State} button
+and select @samp{Delete}.
 
 @vindex custom-theme-directory
-  Saving a Custom theme named @var{foo} writes its definition into the
-file @file{@var{foo}-theme.el}, in the directory @file{~/.emacs.d/}
-(you can specify the directory by setting
-@code{custom-theme-directory}).
+  After adding the desired options, click on @samp{Save Theme} to save
+the Custom theme.  This writes the theme definition to a file
+@file{@var{foo}-theme.el} (where @var{foo} is the theme name you
+supplied), in the directory @file{~/.emacs.d/}.  You can specify the
+directory by setting @code{custom-theme-directory}.
+
+  You can view and edit the settings of a previously-defined theme by
+clicking on @samp{Visit Theme} and specifying the theme name.  You can
+also import the variables and faces that you have set using Customize
+by visiting the ``special'' theme named @var{user}.  This theme, which
+records all the options that you set in the ordinary customization
+buffer, is always enabled, and always takes precedence over all other
+enabled Custom themes.  Additionally, the @samp{user} theme is
+recorded in your @file{.emacs} file, rather than a
+@file{user-theme.el} file.
+
+@vindex custom-enabled-themes
+  Once you have defined a Custom theme, you can use it by customizing
+the variable @code{custom-enabled-themes}.  This is a list of Custom
+themes that are @dfn{enabled}, or put into effect.  If you set
+@code{custom-enabled-themes} using the Customize interface, the theme
+definitions are automatically loaded from the theme files, if they
+aren't already.  If you save the value of @code{custom-enabled-themes}
+for future Emacs sessions, those Custom themes will be enabled
+whenever Emacs is started up.
+
+  If two enabled themes specify different values for an option, the
+theme occurring earlier in @code{custom-enabled-themes} takes effect.
 
 @findex load-theme
 @findex enable-theme
 @findex disable-theme
-You can load the themes you've previously defined with the command
-@code{load-theme}.  It prompts for a theme name in the minibuffer, and
-loads that theme from the theme file.  It also @dfn{enables} the
-theme, which means putting its settings into effect.  An enabled theme
+  You can also enable a Custom theme with @kbd{M-x enable-theme}.
+This prompts for a theme name in the minibuffer, loads the theme from
+the theme file if necessary, and enables the theme.  An enabled theme
 can be @dfn{disabled} with the command @kbd{M-x disable-theme}; this
 returns the options specified in the theme to their original values.
-To re-enable the theme, use the command @kbd{M-x enable-theme}.
-
-To enable a Custom theme named @var{foo} whenever Emacs is started up,
-add the line @code{(load-theme '@var{foo})} to your @file{.emacs} file
-(@pxref{Init File}).
-
-Enabling a custom theme does not disable the themes already enabled;
-instead, they are all enabled together.  If two enabled Custom themes
-specify different values for an option, the last theme to be enabled
-takes effect.
-
-The options that you set in the ordinary customization buffer
-(@pxref{Easy Customization}) are also considered part of a Custom
-theme, called @samp{user}.  The @samp{user} theme is always enabled,
-and always takes precedence over all other enabled Custom themes.
-Additionally, the @samp{user} theme is recorded in your @file{.emacs}
-file, rather than a @file{user-theme.el} file.
+To re-enable the theme, call @kbd{M-x enable-theme} again.  If a theme
+file is changed during your Emacs session, you can reload it by
+calling @kbd{M-x load-theme}.  This also enables the theme.
 
 @node Variables
 @section Variables
