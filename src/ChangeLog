@@ -1,3 +1,7 @@
+2006-01-03  Romain Francoise  <romain@orebokech.com>
+
+	* emacs.c (main): Update copyright year.
+
 2006-01-03  Ken Raeburn  <raeburn@mit.edu>
 
 	* callproc.c (delete_temp_file): Bind file-name-handler-alist to
