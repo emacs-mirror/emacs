@@ -1507,6 +1507,13 @@ Here each COMPILED is of the form (MATCHER HIGHLIGHT ...) as shown in the
 `font-lock-keywords' doc string.
 If REGEXP is non-nil, it means these keywords are used for
 `font-lock-keywords' rather than for `font-lock-syntactic-keywords'."
+  (if (not font-lock-set-defaults)
+      ;; This should never happen.  But some external packages sometimes
+      ;; call font-lock in unexpected and incorrect ways.  It's important to
+      ;; stop processing at this point, otherwise we may end up changing the
+      ;; global value of font-lock-keywords and break highlighting in many
+      ;; other buffers.
+      (error "Font-lock trying to use keywords before setting them up"))
   (if (eq (car-safe keywords) t)
       keywords
     (setq keywords

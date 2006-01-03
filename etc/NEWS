@@ -817,6 +817,10 @@ appears in.
 *** The variable `cursor-in-non-selected-windows' can now be set to any
 of the recognized cursor types.
 
++++
+*** On text terminals, the variable `visible-cursor' controls whether Emacs
+uses the "very visible" cursor (the default) or the normal cursor.
+
 ** New faces:
 
 +++

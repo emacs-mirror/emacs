@@ -1,3 +1,11 @@
+2006-01-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (url-retrieve-synchronously): Don't autoload.
+
+	* url.el (url-retrieve, url-retrieve-synchronously): Autoload.
+
+	* url-cache.el: Require `url'.
+
 2005-12-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-cache.el (url-store-in-cache): Use save-current-buffer.

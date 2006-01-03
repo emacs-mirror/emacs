@@ -31,11 +31,31 @@
 (eval-when-compile
   (require 'wid-edit))
 
+(defvar custom-new-theme-mode-map
+  (let ((map (make-keymap)))
+    (set-keymap-parent map widget-keymap)
+    (suppress-keymap map)
+    (define-key map "n" 'widget-forward)
+    (define-key map "p" 'widget-backward)
+    (define-key map [mouse-1] 'widget-move-and-invoke)
+    map)
+  "Keymap for `custom-new-theme-mode'.")
+
 (define-derived-mode custom-new-theme-mode nil "New-Theme"
   "Major mode for the buffer created by `customize-create-theme'.
 Do not call this mode function yourself.  It is only meant for internal
 use by `customize-create-theme'."
-  (set-keymap-parent custom-new-theme-mode-map widget-keymap))
+  (use-local-map custom-new-theme-mode-map)
+  (define-key custom-new-theme-mode-map [mouse-1] 'widget-move-and-invoke)
+  (set (make-local-variable 'widget-documentation-face) 'custom-documentation)
+  (set (make-local-variable 'widget-button-face) custom-button)
+  (set (make-local-variable 'widget-button-pressed-face) custom-button-pressed)
+  (set (make-local-variable 'widget-mouse-face) custom-button-mouse)
+  (when custom-raised-buttons
+    (set (make-local-variable 'widget-push-button-prefix) "")
+    (set (make-local-variable 'widget-push-button-suffix) "")
+    (set (make-local-variable 'widget-link-prefix) "")
+    (set (make-local-variable 'widget-link-suffix) "")))
 (put 'custom-new-theme-mode 'mode-class 'special)
 
 (defvar custom-theme-name)

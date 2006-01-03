@@ -1,7 +1,7 @@
 ;;; url-cache.el --- Uniform Resource Locator retrieval tool
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006  Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -26,6 +26,7 @@
 
 (require 'url-parse)
 (require 'url-util)
+(require 'url)                        ;E.g. for url-configuration-directory.
 
 (defcustom url-cache-directory
   (expand-file-name "cache" url-configuration-directory)

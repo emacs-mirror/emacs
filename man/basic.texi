@@ -717,14 +717,14 @@ displays the character as @samp{@`A}), and which has font-lock-mode
 
 @smallexample
   character: @`A (2240, #o4300, #x8c0, U+00C0)
-    charset: [latin-iso8859-1]
+    charset: latin-iso8859-1
              (Right-Hand Part of Latin Alphabet 1@dots{}
- code point: [64]
+ code point: #x40
      syntax: w 	which means: word
    category: l:Latin
-   to input: type "`A" with [latin-1-prefix]
+   to input: type "`A" with latin-1-prefix
 buffer code: #x81 #xC0
-  file code: ESC #x2C #x41 #x40 (encoded by coding system iso-2022-7bit)
+  file code: #xC0 (encoded by coding system iso-latin-1)
     display: terminal code #xC0
 
 There are text properties here:

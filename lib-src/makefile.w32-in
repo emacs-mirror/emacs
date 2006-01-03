@@ -154,7 +154,7 @@ obj=    sunfns.o dosfns.o msdos.o \
 #
 lispsource = ../lisp/
 
-MOUSE_SUPPORT = $(lispsource)select.elc $(lispsource)scroll-bar.elc $(lispsource)mouse.elc
+MOUSE_SUPPORT = $(lispsource)select.elc $(lispsource)scroll-bar.elc $(lispsource)mouse.elc $(lispsource)tooltip.elc
 WINNT_SUPPORT = $(lispsource)ls-lisp.elc $(lispsource)disp-table.elc $(lispsource)w32-fns.elc $(lispsource)dos-w32.elc $(lispsource)w32-vars.elc
 
 # lisp files that are loaded up on other platforms
@@ -166,33 +166,35 @@ lisp1= \
 	$(lispsource)buff-menu.elc \
 	$(lispsource)button.elc \
 	$(lispsource)emacs-lisp/byte-run.elc \
+	$(lispsource)cus-face.elc \
 	$(lispsource)cus-start.elc \
 	$(lispsource)custom.elc \
 	$(lispsource)emacs-lisp/backquote.elc \
 	$(lispsource)emacs-lisp/lisp-mode.elc \
 	$(lispsource)emacs-lisp/lisp.elc \
-	$(lispsource)env.elc \
-	$(lispsource)faces.elc \
-	$(lispsource)files.elc \
-	$(lispsource)format.elc \
 	$(lispsource)facemenu.elc \
 	$(MOUSE_SUPPORT) \
+	$(lispsource)faces.elc \
+	$(lispsource)files.elc \
 	$(lispsource)emacs-lisp/float-sup.elc \
+	$(lispsource)format.elc \
 	$(lispsource)frame.elc \
 	$(lispsource)help.elc \
 	$(lispsource)indent.elc \
 	$(lispsource)isearch.elc \
+	$(lispsource)rfn-eshadow.elc \
 	$(lispsource)loadup.el \
 	$(lispsource)loaddefs.el \
 	$(lispsource)bindings.elc \
 	$(lispsource)emacs-lisp/map-ynp.elc \
-	$(lispsource)menu-bar.elc \
+	$(lispsource)env.elc \
 	$(lispsource)international/mule.elc \
 	$(lispsource)international/mule-conf.el \
 	$(lispsource)international/mule-cmds.elc \
 	$(lispsource)international/characters.elc \
 	$(lispsource)international/ucs-tables.elc \
 	$(lispsource)international/utf-8.elc \
+	$(lispsource)international/utf-16.elc \
 	$(lispsource)international/latin-1.el \
 	$(lispsource)international/latin-2.el \
 	$(lispsource)international/latin-3.el \
@@ -200,6 +202,11 @@ lisp1= \
 	$(lispsource)international/latin-5.el \
 	$(lispsource)international/latin-8.el \
 	$(lispsource)international/latin-9.el \
+	$(lispsource)image.elc \
+	$(lispsource)international/fontset.elc \
+	$(lispsource)dnd.elc \
+	$(lispsource)mwheel.elc \
+	$(lispsource)tool-bar.elc \
 	$(lispsource)case-table.elc
 
 lisp2 = \
@@ -207,6 +214,7 @@ lisp2 = \
 	$(lispsource)language/cyrillic.elc \
 	$(lispsource)language/indian.elc \
 	$(lispsource)language/devanagari.el \
+	$(lispsource)language/kannada.el \
 	$(lispsource)language/malayalam.el \
 	$(lispsource)language/tamil.el \
 	$(lispsource)language/english.el \
@@ -226,6 +234,7 @@ lisp2 = \
 	$(lispsource)language/misc-lang.el \
 	$(lispsource)language/utf-8-lang.el \
 	$(lispsource)language/georgian.el \
+	$(lispsource)menu-bar.elc \
 	$(lispsource)paths.el \
 	$(lispsource)register.elc \
 	$(lispsource)replace.elc \
@@ -234,11 +243,16 @@ lisp2 = \
 	$(lispsource)subr.elc \
 	$(lispsource)term/tty-colors.elc \
 	$(lispsource)font-core.elc \
+	$(lispsource)emacs-lisp/syntax.elc \
+	$(lispsource)font-lock.elc \
+	$(lispsource)jit-lock.elc \
 	$(lispsource)textmodes/fill.elc \
 	$(lispsource)textmodes/page.elc \
 	$(lispsource)textmodes/paragraphs.elc \
 	$(lispsource)textmodes/text-mode.elc \
+	$(lispsource)emacs-lisp/timer.elc \
 	$(lispsource)vc-hooks.elc \
+	$(lispsource)jka-cmpr-hook.elc \
 	$(lispsource)ediff-hook.elc \
 	$(VMS_SUPPORT) \
 	$(MSDOS_SUPPORT) \

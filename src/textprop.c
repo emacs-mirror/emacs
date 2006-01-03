@@ -1316,8 +1316,8 @@ the designated part of OBJECT.  */)
    properties PROPERTIES.  OBJECT is the buffer or string containing
    the text.  OBJECT nil means use the current buffer.
    SIGNAL_AFTER_CHANGE_P nil means don't signal after changes.  Value
-   is non-nil if properties were replaced; it is nil if there weren't
-   any properties to replace.  */
+   is nil if the function _detected_ that it did not replace any
+   properties, non-nil otherwise.  */
 
 Lisp_Object
 set_text_properties (start, end, properties, object, signal_after_change_p)
@@ -1341,7 +1341,7 @@ set_text_properties (start, end, properties, object, signal_after_change_p)
       && XFASTINT (end) == SCHARS (object))
     {
       if (! STRING_INTERVALS (object))
-	return Qt;
+	return Qnil;
 
       STRING_SET_INTERVALS (object, NULL_INTERVAL);
       return Qt;

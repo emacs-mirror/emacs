@@ -1133,6 +1133,9 @@ usage: (call-process-region START END PROGRAM &optional DELETE BUFFER DISPLAY &r
     int count1 = SPECPDL_INDEX ();
 
     specbind (intern ("coding-system-for-write"), val);
+    /* POSIX lets mk[s]temp use "."; don't invoke jka-compr if we
+       happen to get a ".Z" suffix.  */
+    specbind (intern ("file-name-handler-alist"), Qnil);
     Fwrite_region (start, end, filename_string, Qnil, Qlambda, Qnil, Qnil);
 
     unbind_to (count1, Qnil);

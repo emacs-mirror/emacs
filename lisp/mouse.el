@@ -355,14 +355,21 @@ This command must be bound to a mouse click."
 (defun mouse-drag-window-above (window)
   "Return the (or a) window directly above WINDOW.
 That means one whose bottom edge is at the same height as WINDOW's top edge."
-  (let ((top (nth 1 (window-edges window)))
+  (let ((start-top   (nth 1 (window-edges window)))
+        (start-left  (nth 0 (window-edges window)))
+        (start-right (nth 2 (window-edges window)))
 	(start-window window)
 	above-window)
     (setq window (previous-window window 0))
     (while (and (not above-window) (not (eq window start-window)))
-      (if (= (+ (window-height window) (nth 1 (window-edges window)))
-	     top)
-	  (setq above-window window))
+      (let ((left  (nth 0 (window-edges window)))
+            (right (nth 2 (window-edges window))))
+        (when (and (= (+ (window-height window) (nth 1 (window-edges window)))
+                      start-top)
+                   (or (and (<= left start-left)  (<= start-right right))
+                       (and (<= start-left left)  (<= left start-right))
+                       (and (<= start-left right) (<= right start-right))))
+          (setq above-window window)))
       (setq window (previous-window window)))
     above-window))
 
@@ -1025,7 +1032,11 @@ at the same position."
 		  (select-window original-window)
 		  (if (or (vectorp on-link) (stringp on-link))
 		      (setq event (aref on-link 0))
-		    (setcar event 'mouse-2)))
+		    (setcar event 'mouse-2)
+		    ;; If this mouse click has never been done by
+		    ;; the user, it doesn't have the necessary
+		    ;; property to be interpreted correctly.
+		    (put 'mouse-2 'event-kind 'mouse-click)))
 		(push event unread-command-events))))
 
         ;; Case where the end-event is not a cons cell (it's just a boring

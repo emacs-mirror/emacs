@@ -648,8 +648,7 @@ The user has not customized the variable; had he done that, the
 list would contain an entry for the `user' theme, too.
 
 See `custom-known-themes' for a list of known themes."
-  (unless (or (eq prop 'theme-value)
-	      (eq prop 'theme-face))
+  (unless (memq prop '(theme-value theme-face))
     (error "Unknown theme property"))
   (let* ((old (get symbol prop))
 	 (setting (assq theme old))
@@ -1048,21 +1047,15 @@ into this directory."
   "Return non-nil if THEME has been loaded."
   (memq theme custom-loaded-themes))
 
-(defvar custom-enabled-themes '(user)
-  "Custom themes currently enabled, highest precedence first.
-The first one is always `user'.")
-
-(defun custom-theme-enabled-p (theme)
-  "Return non-nil if THEME is enabled."
-  (memq theme custom-enabled-themes))
-
 (defun provide-theme (theme)
-  "Indicate that this file provides THEME.
-Add THEME to `custom-loaded-themes', and `provide' whatever
-feature name is stored in THEME's property `theme-feature'.
+  "Indicate that this file provides THEME, and mark it as enabled.
+Add THEME to `custom-loaded-themes' and `custom-enabled-themes',
+and `provide' the feature name stored in THEME's property `theme-feature'.
 
 Usually the `theme-feature' property contains a symbol created
 by `custom-make-theme-feature'."
+  (if (eq theme 'user)
+      (error "Custom theme cannot be named `user'"))
   (custom-check-theme theme)
   (provide (get theme 'theme-feature))
   (push theme custom-loaded-themes)
@@ -1120,14 +1113,10 @@ All the themes loaded for BY-THEME are recorded in BY-THEME's property
 	     (load-theme theme)))
       (push theme themes-loaded))
     (put by-theme 'theme-loads-themes themes-loaded)))
-
-(defun custom-load-themes (&rest body)
-  "Load themes for the USER theme as specified by BODY.
-
-See `custom-theme-load-themes' for more information on BODY."
-  (apply 'custom-theme-load-themes 'user body))
 
 ;;; Enabling and disabling loaded themes.
+
+(defvar custom-enabling-themes nil)
 
 (defun enable-theme (theme)
   "Reenable all variable and face settings defined by THEME.
@@ -1137,9 +1126,9 @@ If it is already enabled, just give it highest precedence (after `user').
 This signals an error if THEME does not specify any theme
 settings.  Theme settings are set using `load-theme'."
   (interactive "SEnable Custom theme: ")
+  (unless (or (eq theme 'user) (memq theme custom-loaded-themes))
+    (error "Theme %s not defined" (symbol-name theme)))
   (let ((settings (get theme 'theme-settings)))
-    (if (and (not (eq theme 'user)) (null settings))
-	(error "No theme settings defined in %s." (symbol-name theme)))
     (dolist (s settings)
       (let* ((prop (car s))
 	     (symbol (cadr s))
@@ -1147,29 +1136,58 @@ settings.  Theme settings are set using `load-theme'."
 	(put symbol prop (cons (cddr s) (assq-delete-all theme spec-list)))
 	(if (eq prop 'theme-value)
 	    (custom-theme-recalc-variable symbol)
-	  (if (facep symbol)
-	      (custom-theme-recalc-face symbol))))))
-  (setq custom-enabled-themes
-        (cons theme (delq theme custom-enabled-themes)))
-  ;; `user' must always be the highest-precedence enabled theme.
+	  (custom-theme-recalc-face symbol)))))
   (unless (eq theme 'user)
-    (enable-theme 'user)))
+    (setq custom-enabled-themes
+	  (cons theme (delq theme custom-enabled-themes)))
+    (unless custom-enabling-themes
+      (enable-theme 'user))))
+
+(defcustom custom-enabled-themes nil
+  "List of enabled Custom Themes, highest precedence first.
+
+This does not include the `user' theme, which is set by Customize,
+and always takes precedence over other Custom Themes."
+  :group 'customize
+  :type  '(repeat symbol)
+  :set (lambda (symbol themes)
+	 ;; Avoid an infinite loop when custom-enabled-themes is
+	 ;; defined in a theme (e.g. `user').  Enabling the theme sets
+	 ;; custom-enabled-themes, which enables the theme...
+	 (unless custom-enabling-themes
+	   (let ((custom-enabling-themes t))
+	     (setq themes (delq 'user (delete-dups themes)))
+	     (if (boundp symbol)
+		 (dolist (theme (symbol-value symbol))
+		   (if (not (memq theme themes))
+		       (disable-theme theme))))
+	     (dolist (theme (reverse themes))
+	       (if (or (custom-theme-loaded-p theme) (eq theme 'user))
+		   (enable-theme theme)
+		 (load-theme theme)))
+	     (enable-theme 'user)
+	     (custom-set-default symbol themes)))))
+
+(defun custom-theme-enabled-p (theme)
+  "Return non-nil if THEME is enabled."
+  (memq theme custom-enabled-themes))
 
 (defun disable-theme (theme)
   "Disable all variable and face settings defined by THEME.
-See `custom-known-themes' for a list of known themes."
+See `custom-enabled-themes' for a list of enabled themes."
   (interactive "SDisable Custom theme: ")
-  (let ((settings (get theme 'theme-settings)))
-    (dolist (s settings)
-      (let* ((prop (car s))
-	     (symbol (cadr s))
-	     (spec-list (get symbol prop)))
-	(put symbol prop (assq-delete-all theme spec-list))
-	(if (eq prop 'theme-value)
-	    (custom-theme-recalc-variable symbol)
-	  (custom-theme-recalc-face symbol)))))
-  (setq custom-enabled-themes
-	(delq theme custom-enabled-themes)))
+  (when (memq theme custom-enabled-themes)
+    (let ((settings (get theme 'theme-settings)))
+      (dolist (s settings)
+	(let* ((prop (car s))
+	       (symbol (cadr s))
+	       (spec-list (get symbol prop)))
+	  (put symbol prop (assq-delete-all theme spec-list))
+	  (if (eq prop 'theme-value)
+	      (custom-theme-recalc-variable symbol)
+	    (custom-theme-recalc-face symbol)))))
+    (setq custom-enabled-themes
+	  (delq theme custom-enabled-themes))))
 
 (defun custom-theme-value (theme setting-list)
   "Determine the value specified for THEME according to SETTING-LIST.
@@ -1217,9 +1235,10 @@ This function returns nil if no custom theme specifies a value for VARIABLE."
 
 (defun custom-theme-recalc-face (face)
   "Set FACE according to currently enabled custom themes."
-  (let ((theme-faces (reverse (get face 'theme-face))))
-    (dolist (spec theme-faces)
-      (face-spec-set face (car (cddr spec))))))
+  (if (facep face)
+      (let ((theme-faces (reverse (get face 'theme-face))))
+	(dolist (spec theme-faces)
+	  (face-spec-set face (car (cddr spec)))))))
 
 (defun custom-theme-reset-variables (theme &rest args)
   "Reset the specs in THEME of some variables to their values in other themes.

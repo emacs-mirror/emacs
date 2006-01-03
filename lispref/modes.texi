@@ -1520,8 +1520,9 @@ information displayed in the mode line relates to the enabled major and
 minor modes.
 
 @menu
-* Mode Line Basics::
-* Mode Line Data::        The data structure that controls the mode line.
+* Base: Mode Line Basics. Basic ideas of mode line control.
+* Data: Mode Line Data.   The data structure that controls the mode line.
+* Top: Mode Line Top.     The top level variable, mode-line-format.
 * Mode Line Variables::   Variables used in that data structure.
 * %-Constructs::          Putting information into a mode line.
 * Properties in Mode::    Using text properties in the mode line.
@@ -1533,12 +1534,13 @@ minor modes.
 @subsection Mode Line Basics
 
   @code{mode-line-format} is a buffer-local variable that holds a
-template used to display the mode line of the current buffer.  All
-windows for the same buffer use the same @code{mode-line-format}, so
-their mode lines appear the same---except for scrolling percentages, and
-line and column numbers, since those depend on point and on how the
-window is scrolled.  @code{header-line-format} is used likewise for
-header lines.
+@dfn{mode line construct}, a kind of template, which controls the
+display the mode line of the current buffer.  All windows for the same
+buffer use the same @code{mode-line-format}, so their mode lines
+appear the same---except for scrolling percentages, and line and
+column numbers, since those depend on point and on how the window is
+scrolled.  The value of @code{header-line-format} specifies the
+buffer's header line in the same way, with a mode line construct.
 
   For efficiency, Emacs does not recompute the mode line and header
 line of a window in every redisplay.  It does so when circumstances
@@ -1567,61 +1569,36 @@ and the frame title.
 color using the face @code{mode-line}.  Other windows' mode lines
 appear in the face @code{mode-line-inactive} instead.  @xref{Faces}.
 
-  A window that is just one line tall does not display either a mode
-line or a header line, even if the variables call for one.  A window
-that is two lines tall cannot display both a mode line and a header
-line at once; if the variables call for both, only the mode line
-actually appears.
-
 @node Mode Line Data
 @subsection The Data Structure of the Mode Line
 @cindex mode-line construct
 
-  The mode-line contents are controlled by a data structure of lists,
-strings, symbols, and numbers kept in buffer-local variables.  The data
-structure is called a @dfn{mode-line construct}, and it is built in
-recursive fashion out of simpler mode-line constructs.  The same data
-structure is used for constructing frame titles (@pxref{Frame Titles})
-and header lines (@pxref{Header Lines}).
+  The mode-line contents are controlled by a data structure called a
+@dfn{mode-line construct}, made up of lists, strings, symbols, and
+numbers kept in buffer-local variables.  Each data type has a specific
+meaning for the mode-line appearance, as described below.  The same
+data structure is used for constructing frame titles (@pxref{Frame
+Titles}) and header lines (@pxref{Header Lines}).
 
-@defvar mode-line-format
-The value of this variable is a mode-line construct with overall
-responsibility for the mode-line format.  The value of this variable
-controls which other variables are used to form the mode-line text, and
-where they appear.
+  A mode-line construct may be as simple as a fixed string of text,
+but it usually specifies how to combine fixed strings with variables'
+values to construct the text.  Many of these variables are themselves
+defined to have mode-line constructs as their values.
 
-If you set this variable to @code{nil} in a buffer, that buffer does not
-have a mode line.
-@end defvar
-
-  A mode-line construct may be as simple as a fixed string of text, but
-it usually specifies how to use other variables to construct the text.
-Many of these variables are themselves defined to have mode-line
-constructs as their values.
-
-  The default value of @code{mode-line-format} incorporates the values
-of variables such as @code{mode-line-position} and
-@code{mode-line-modes} (which in turn incorporates the values of the
-variables @code{mode-name} and @code{minor-mode-alist}).  Because of
-this, very few modes need to alter @code{mode-line-format} itself.  For
-most purposes, it is sufficient to alter some of the variables that
-@code{mode-line-format} either directly or indirectly refers to.
-
-  A mode-line construct may be a list, a symbol, or a string.  If the
-value is a list, each element may be a list, a symbol, or a string.
-
-  The mode line can display various faces, if the strings that control
-it have the @code{face} property.  @xref{Properties in Mode}.  In
-addition, the face @code{mode-line} is used as a default for the whole
-mode line (@pxref{Standard Faces,,, emacs, The GNU Emacs Manual}).
+  Here are the meanings of various data types as mode-line constructs:
 
 @table @code
 @cindex percent symbol in mode line
 @item @var{string}
-A string as a mode-line construct is displayed verbatim in the mode line
-except for @dfn{@code{%}-constructs}.  Decimal digits after the @samp{%}
-specify the field width for space filling on the right (i.e., the data
-is left justified).  @xref{%-Constructs}.
+A string as a mode-line construct appears verbatim in the mode line
+except for @dfn{@code{%}-constructs} in it.  These stand for
+substitution of other data; see @ref{%-Constructs}.
+
+If the string has @code{face} properties, they are copied into the
+mode line contents too (@pxref{Properties in Mode}).  Any characters
+in the mode line which have no @code{face} properties are displayed,
+by default, in the face @code{mode-line} or @code{mode-line-inactive}
+(@pxref{Standard Faces,,, emacs, The GNU Emacs Manual}).
 
 @item @var{symbol}
 A symbol as a mode-line construct stands for its value.  The value of
@@ -1633,11 +1610,13 @@ There is one exception: if the value of @var{symbol} is a string, it is
 displayed verbatim: the @code{%}-constructs are not recognized.
 
 Unless @var{symbol} is marked as ``risky'' (i.e., it has a
-non-@code{nil} @code{risky-local-variable} property), all properties in
-any strings, as well as all @code{:eval} and @code{:propertize} forms in
-the value of that symbol will be ignored.
+non-@code{nil} @code{risky-local-variable} property), all text
+properties specified in @var{symbol}'s value are ignored.  This
+includes the text properties of strings in @var{symbol}'s value, as
+well as all @code{:eval} and @code{:propertize} forms in it.
 
-@item (@var{string} @var{rest}@dots{}) @r{or} (@var{list} @var{rest}@dots{})
+@item (@var{string} @var{rest}@dots{})
+@itemx (@var{list} @var{rest}@dots{})
 A list whose first element is a string or list means to process all the
 elements recursively and concatenate the results.  This is the most
 common form of mode-line construct.
@@ -1650,7 +1629,7 @@ recursion.
 
 @item (:propertize @var{elt} @var{props}@dots{})
 A list whose first element is the symbol @code{:propertize} says to
-process the mode-line construct @var{elt} recursively and add the text
+process the mode-line construct @var{elt} recursively, then add the text
 properties specified by @var{props} to the result.  The argument
 @var{props} should consist of zero or more pairs @var{text-property}
 @var{value}.  (This feature is new as of Emacs 22.1.)
@@ -1676,6 +1655,29 @@ space filled on the right if its width is less than @var{width}.  When
 For example, the usual way to show what percentage of a buffer is above
 the top of the window is to use a list like this: @code{(-3 "%p")}.
 @end table
+
+@node Mode Line Top
+@subsection The Top Level of Mode Line Control
+
+  The variable in overall control of the mode line is
+@code{mode-line-format}.
+
+@defvar mode-line-format
+The value of this variable is a mode-line construct that controls the
+contents of the mode-line.  It is always buffer-local in all buffers.
+
+If you set this variable to @code{nil} in a buffer, that buffer does
+not have a mode line.  (A window that is just one line tall never
+displays a mode line.)
+@end defvar
+
+  The default value of @code{mode-line-format} is designed to use the
+values of other variables such as @code{mode-line-position} and
+@code{mode-line-modes} (which in turn incorporates the values of the
+variables @code{mode-name} and @code{minor-mode-alist}).  Very few
+modes need to alter @code{mode-line-format} itself.  For most
+purposes, it is sufficient to alter some of the variables that
+@code{mode-line-format} either directly or indirectly refers to.
 
   If you do alter @code{mode-line-format} itself, the new value should
 use the same variables that appear in the default value (@pxref{Mode
@@ -1730,11 +1732,14 @@ these variable names are also the minor mode command names.)
 @node Mode Line Variables
 @subsection Variables Used in the Mode Line
 
-  This section describes variables incorporated by the
-standard value of @code{mode-line-format} into the text of the mode
-line.  There is nothing inherently special about these variables; any
-other variables could have the same effects on the mode line if
-@code{mode-line-format} were changed to use them.
+  This section describes variables incorporated by the standard value
+of @code{mode-line-format} into the text of the mode line.  There is
+nothing inherently special about these variables; any other variables
+could have the same effects on the mode line if
+@code{mode-line-format}'s value were changed to use them.  However,
+various parts of Emacs set these variables on the understanding that
+they will control parts of the mode line; therefore, practically
+speaking, it is essential for the mode line to use them.
 
 @defvar mode-line-mule-info
 This variable holds the value of the mode-line construct that displays
@@ -1907,10 +1912,12 @@ specifies addition of text properties.
 @node %-Constructs
 @subsection @code{%}-Constructs in the Mode Line
 
-  The following table lists the recognized @code{%}-constructs and what
-they mean.  In any construct except @samp{%%}, you can add a decimal
-integer after the @samp{%} to specify a minimum field width.  If the
-width is less, the field is padded with spaces to the right.
+  Strings used as mode-line constructs can use certain
+@code{%}-constructs to substitute various kinds of data.  Here is a
+list of the defined @code{%}-constructs, and what they mean.  In any
+construct except @samp{%%}, you can add a decimal integer after the
+@samp{%} to specify a minimum field width.  If the width is less, the
+field is padded with spaces to the right.
 
 @table @code
 @item %b
@@ -2077,6 +2084,11 @@ that do not override it.  This is the same as @code{(default-value
 
 It is normally @code{nil}, so that ordinary buffers have no header line.
 @end defvar
+
+  A window that is just one line tall never displays a header line.  A
+window that is two lines tall cannot display both a mode line and a
+header line at once; if it has a mode line, then it does not display a
+header line.
 
 @node Emulating Mode Line
 @subsection Emulating Mode-Line Formatting

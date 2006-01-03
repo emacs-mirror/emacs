@@ -1,4 +1,8 @@
-2005-12-25  Giorgos Keramidas  <keramida@ceid.upatras.gr> (tiny change)
+2005-12-29  Andreas Schwab  <schwab@suse.de>
+
+	* config.guess, config.sub: Updated from master source.
+
+2005-12-25  Giorgos Keramidas  <keramida@ceid.upatras.gr>  (tiny change)
 
 	* configure.in: use amdx86-64 for freebsd on x86_64.
 

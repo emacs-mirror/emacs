@@ -2735,6 +2735,7 @@ Obeying it means displaying in another window the specified file and line."
 	 (window (and buffer (or (get-buffer-window buffer)
 				   (display-buffer buffer))))
 	 (pos))
+    (message "%s %s" (current-buffer) buffer)
     (if buffer
 	(progn
 	  (with-current-buffer buffer
@@ -2750,7 +2751,15 @@ Obeying it means displaying in another window the specified file and line."
 	      (setq pos (point))
 	      (or gud-overlay-arrow-position
 		  (setq gud-overlay-arrow-position (make-marker)))
-	      (set-marker gud-overlay-arrow-position (point) (current-buffer)))
+	      (set-marker gud-overlay-arrow-position (point) (current-buffer))
+	      ;; If they turned on hl-line, move the hl-line highlight to
+	      ;; the arrow's line.
+	      (when (featurep 'hl-line)
+		(cond
+		 (global-hl-line-mode
+		  (global-hl-line-highlight))
+		 ((and hl-line-mode hl-line-sticky-flag)
+		  (hl-line-highlight)))))
 	    (cond ((or (< pos (point-min)) (> pos (point-max)))
 		   (widen)
 		   (goto-char pos))))

@@ -109,6 +109,10 @@ static void delete_tty P_ ((struct terminal *));
 
 #define OUTPUT1_IF(tty, a) do { if (a) emacs_tputs ((tty), a, 1, cmputc); } while (0)
 
+/* If true, use "vs", otherwise use "ve" to make the cursor visible.  */
+
+static int visible_cursor;
+
 /* Display space properties */
 
 extern Lisp_Object Qspace, QCalign_to, QCwidth;
@@ -217,7 +221,7 @@ tty_set_terminal_modes (struct terminal *terminal)
         }
 
       OUTPUT_IF (tty, tty->TS_termcap_modes);
-      OUTPUT_IF (tty, tty->TS_cursor_visible);
+      OUTPUT_IF (tty, visible_cursor ? tty->TS_cursor_visible : tty->TS_cursor_normal);
       OUTPUT_IF (tty, tty->TS_keypad_mode);
       losecursor (tty);
       fflush (tty->output);
@@ -359,7 +363,8 @@ tty_show_cursor (struct tty_display_info *tty)
     {
       tty->cursor_hidden = 0;
       OUTPUT_IF (tty, tty->TS_cursor_normal);
-      OUTPUT_IF (tty, tty->TS_cursor_visible);
+      if (visible_cursor)
+        OUTPUT_IF (tty, tty->TS_cursor_visible);
     }
 }
 
@@ -3030,6 +3035,13 @@ See `suspend-tty'.  */);
 The functions are run with one argument, the name of the tty that was revived.
 See `resume-tty'.  */);
   Vresume_tty_functions = Qnil;
+
+  DEFVAR_BOOL ("visible-cursor", &visible_cursor,
+	       doc: /* Non-nil means to make the cursor very visible.
+This only has an effect when running in a text terminal.
+What means \"very visible\" is up to your terminal.  It may make the cursor
+bigger, or it may make it blink, or it may do nothing at all.  */);
+  visible_cursor = 1;
 
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);

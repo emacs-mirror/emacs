@@ -1,6 +1,6 @@
 ;;; mh-init.el --- MH-E initialization
 
-;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -334,7 +334,7 @@ there. Otherwise, the images directory is added to the
 
 (defun mh-defface-compat (spec)
   "Convert SPEC for defface if necessary to run on older platforms.
-See `defface' for the spec definition.
+Modifies SPEC in place and returns it. See `defface' for the spec definition. 
 
 When `mh-min-colors-defined-flag' is nil, this function finds a
 display with a single \"class\" requirement with a \"color\"
@@ -351,7 +351,8 @@ requirements."
     (loop for entry in spec do
           (when (not (eq (car entry) t))
             (if (assoc 'min-colors (car entry))
-                (delq (assoc 'min-colors (car entry)) (car entry)))))))
+                (delq (assoc 'min-colors (car entry)) (car entry))))))
+  spec)
 
 (provide 'mh-init)
 

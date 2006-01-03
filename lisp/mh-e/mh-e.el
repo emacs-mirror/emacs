@@ -95,8 +95,9 @@
 (require 'easymenu)
 
 ;; Shush the byte-compiler
-(defvar font-lock-auto-fontify)
-(defvar font-lock-defaults)
+(eval-when-compile
+  (defvar font-lock-auto-fontify)
+  (defvar font-lock-defaults))
 
 (defconst mh-version "7.85+cvs" "Version number of MH-E.")
 
@@ -194,7 +195,8 @@ matches the message number as in the default of
   \"^\\\\( *[0-9]+\\\\)[^D^0-9]\".
 
 This expression includes the leading space within the parenthesis
-since it looks better to highlight it as well. This regular
+since it looks better to highlight it as well. The highlighting
+is done with the face `mh-folder-msg-number'. This regular
 expression should be correct as it is needed by non-fontification
 functions.")
 
@@ -209,7 +211,8 @@ matches the message number as in the default of
   \"^\\\\( *[0-9]+\\\\)D\".
 
 This expression includes the leading space within the parenthesis
-since it looks better to highlight it as well. This regular
+since it looks better to highlight it as well. The highlighting
+is done with the face `mh-folder-deleted'. This regular
 expression should be correct as it is needed by non-fontification
 functions. See also `mh-note-deleted'.")
 
@@ -224,7 +227,8 @@ matches the message number as in the default of
   \"^\\\\( *[0-9]+\\\\)\\\\^\".
 
 This expression includes the leading space within the parenthesis
-since it looks better to highlight it as well. This regular
+since it looks better to highlight it as well. The highlighting
+is done with the face `mh-folder-refiled'. This regular
 expression should be correct as it is needed by non-fontification
 functions. See also `mh-note-refiled'.")
 
@@ -246,9 +250,10 @@ matches the message number as in the default of
 
 This expression includes the leading space and current message
 marker \"+\" within the parenthesis since it looks better to
-highlight these items as well. This regular expression should be
-correct as it is needed by non-fontification functions. See also
-`mh-note-cur'.")
+highlight these items as well. The highlighting is done with the
+face `mh-folder-cur-msg-number'. This regular expression should
+be correct as it is needed by non-fontification functions. See
+also `mh-note-cur'.")
 
 (defvar mh-scan-date-regexp "\\([0-9][0-9]/[0-9][0-9]\\)"
   "This regular expression matches a valid date.
@@ -258,8 +263,8 @@ Note that the default setting of `mh-folder-font-lock-keywords'
 expects this expression to contain only one parenthesized
 expression which matches the date field as in the default of
 \"\\\\([0-9][0-9]/[0-9][0-9]\\\\)\"}. If this regular expression
-is not correct, the date will not be highlighted. See also
-`mh-scan-format-regexp'.")
+is not correct, the date will not be highlighted with the face
+`mh-folder-date'.")
 
 (defvar mh-scan-rcpt-regexp  "\\(To:\\)\\(..............\\)"
   "This regular expression specifies the recipient in messages you sent.
@@ -270,8 +275,9 @@ The first is expected to match the \"To:\" that the default scan
 format file generates. The second is expected to match the
 recipient's name as in the default of
 \"\\\\(To:\\\\)\\\\(..............\\\\)\". If this regular
-expression is not correct, the recipient will not be
-highlighted.")
+expression is not correct, the \"To:\" string will not be
+highlighted with the face `mh-folder-to' and the recipient will
+not be highlighted with the face `mh-folder-address'")
 
 (defvar mh-scan-body-regexp "\\(<<\\([^\n]+\\)?\\)"
   "This regular expression matches the message body fragment.
@@ -280,7 +286,8 @@ Note that the default setting of `mh-folder-font-lock-keywords'
 expects this expression to contain at least one parenthesized
 expression which matches the body text as in the default of
 \"\\\\(<<\\\\([^\\n]+\\\\)?\\\\)\". If this regular expression is
-not correct, the body fragment will not be highlighted.")
+not correct, the body fragment will not be highlighted with the
+face `mh-folder-body'.")
 
 (defvar mh-scan-subject-regexp
   "^ *[0-9]+........[ ]*...................\\([Rr][Ee]\\(\\[[0-9]+\\]\\)?:\\s-*\\)*\\([^<\n]*\\)"
@@ -289,12 +296,13 @@ not correct, the body fragment will not be highlighted.")
 It must match from the beginning of the line. Note that the
 default setting of `mh-folder-font-lock-keywords' expects this
 expression to contain at least three parenthesized expressions.
-The first is expected to match the \"Re:\" string, if any. The
-second matches an optional bracketed number after \"Re:\", such as
-in \"Re[2]:\" (and is thus a sub-expression of the first
-expression) and the third is expected to match the subject line
-itself as in the default of (broken on multiple lines for
-readability):
+The first is expected to match the \"Re:\" string, if any, and is
+highlighted with the face `mh-folder-followup'. The second
+matches an optional bracketed number after \"Re:\", such as in
+\"Re[2]:\" (and is thus a sub-expression of the first expression)
+and the third is expected to match the subject line itself which
+is highlighted with the face `mh-folder-subject'. For example,
+the default (broken on multiple lines for readability) is
 
   ^ *[0-9]+........[ ]*...................
   \\\\([Rr][Ee]\\\\(\\\\\\=[[0-9]+\\\\]\\\\)?:\\\\s-*\\\\)*
@@ -303,22 +311,22 @@ readability):
 This regular expression should be correct as it is needed by
 non-fontification functions.")
 
-(defvar mh-scan-format-regexp
-  (concat "\\([bct]\\)" mh-scan-date-regexp " *\\(..................\\)")
-  "This regular expression matches the output of scan.
+(defvar mh-scan-sent-to-me-sender-regexp
+  "^ *[0-9]+.\\([bct]\\).....[ ]*\\(..................\\)"
+  "This regular expression matches messages sent to us.
 
 Note that the default setting of `mh-folder-font-lock-keywords'
-expects this expression to contain at least three parenthesized
+expects this expression to contain at least two parenthesized
 expressions. The first should match the fontification hint (see
-`mh-scan-format-nmh'), the second is found in
-`mh-scan-date-regexp', and the third should match the user name
+`mh-scan-format-nmh') and the second should match the user name
 as in the default of
 
-  \"(concat \"\\\\([bct]\\\\)\" mh-scan-date-regexp
-            \"*\\\\(..................\\\\)\")\".
+  ^ *[0-9]+.\\\\([bct]\\\\).....[ ]*\\\\(..................\\\\)
 
-If this regular expression is not correct, the notation hints and
-the sender will not be highlighted.")
+If this regular expression is not correct, the notation hints
+will not be highlighted with the face
+`mh-mh-folder-sent-to-me-hint' and the sender will not be
+highlighted with the face `mh-folder-sent-to-me-sender'.")
 
 
 
@@ -326,31 +334,37 @@ the sender will not be highlighted.")
   (list
    ;; Folders when displaying index buffer
    (list "^\\+.*"
-         '(0 mh-index-folder-face))
+         '(0 'mh-index-folder))
    ;; Marked for deletion
    (list (concat mh-scan-deleted-msg-regexp ".*")
-         '(0 mh-folder-deleted-face))
+         '(0 'mh-folder-deleted))
    ;; Marked for refile
    (list (concat mh-scan-refiled-msg-regexp ".*")
-         '(0 mh-folder-refiled-face))
-   ;;after subj
-   (list mh-scan-body-regexp '(1 mh-folder-body-face nil t))
+         '(0 'mh-folder-refiled))
+   ;; After subject
+   (list mh-scan-body-regexp
+         '(1 'mh-folder-body nil t))
+   ;; Subject
    '(mh-folder-font-lock-subject
-     (1 mh-folder-followup-face append t)
-     (2 mh-folder-subject-face append t))
-   ;;current msg
+     (1 'mh-folder-followup append t)
+     (2 'mh-folder-subject append t))
+   ;; Current message number
    (list mh-scan-cur-msg-number-regexp
-         '(1 mh-folder-cur-msg-number-face))
+         '(1 'mh-folder-cur-msg-number))
+   ;; Message number
    (list mh-scan-good-msg-regexp
-         '(1 mh-folder-msg-number-face)) ;; Msg number
-   (list mh-scan-date-regexp '(1 mh-folder-date-face)) ;; Date
+         '(1 'mh-folder-msg-number))
+   ;; Date
+   (list mh-scan-date-regexp
+         '(1 'mh-folder-date))
+   ;; Messages from me (To:)
    (list mh-scan-rcpt-regexp
-         '(1 mh-folder-to-face) ;; To:
-         '(2 mh-folder-address-face)) ;; address
-   ;; scan font-lock name
-   (list mh-scan-format-regexp
-         '(1 mh-folder-date-face)
-         '(3 mh-folder-scan-format-face)))
+         '(1 'mh-folder-to)
+         '(2 'mh-folder-address))
+   ;; Messages to me
+   (list mh-scan-sent-to-me-sender-regexp
+         '(1 'mh-folder-sent-to-me-hint)
+         '(2 'mh-folder-sent-to-me-sender)))
   "Keywords (regular expressions) used to fontify the MH-Folder buffer.")
 
 (defvar mh-scan-cmd-note-width 1

@@ -464,6 +464,9 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   /* String to add to the history.  */
   Lisp_Object histstring;
 
+  Lisp_Object empty_minibuf;
+  Lisp_Object dummy, frame;
+
   extern Lisp_Object Qfront_sticky;
   extern Lisp_Object Qrear_nonsticky;
 
@@ -641,6 +644,22 @@ read_minibuf (map, initial, prompt, backup_n, expflag,
   Vminibuf_scroll_window = selected_window;
   if (minibuf_level == 1 || !EQ (minibuf_window, selected_window))
     minibuf_selected_window = selected_window;
+
+  /* Empty out the minibuffers of all frames other than the one
+     where we are going to display one now.
+     Set them to point to ` *Minibuf-0*', which is always empty.  */
+  empty_minibuf = Fget_buffer (build_string (" *Minibuf-0*"));
+
+  FOR_EACH_FRAME (dummy, frame)
+    {
+      Lisp_Object root_window = Fframe_root_window (frame);
+      Lisp_Object mini_window = XWINDOW (root_window)->next;
+
+      if (! NILP (mini_window) && !NILP (Fwindow_minibuffer_p (mini_window)))
+	Fset_window_buffer (mini_window, empty_minibuf, Qnil);
+    }
+
+  /* Display this minibuffer in the proper window.  */
   Fset_window_buffer (minibuf_window, Fcurrent_buffer (), Qnil);
   Fselect_window (minibuf_window, Qnil);
   XSETFASTINT (XWINDOW (minibuf_window)->hscroll, 0);

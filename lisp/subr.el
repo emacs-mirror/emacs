@@ -42,17 +42,15 @@ Each element of this list holds the arguments to one call to `defcustom'.")
 (defalias 'not 'null)
 
 (defmacro noreturn (form)
-  "Evaluates FORM, with the expectation that the evaluation will signal an error
-instead of returning to its caller.  If FORM does return, an error is
-signaled."
+  "Evaluate FORM, expecting it not to return.
+If FORM does return, signal an error."
   `(prog1 ,form
      (error "Form marked with `noreturn' did return")))
 
 (defmacro 1value (form)
-  "Evaluates FORM, with the expectation that the same value will be returned
-from all evaluations of FORM.  This is the global do-nothing
-version of `1value'.  There is also `testcover-1value' that
-complains if FORM ever does return differing values."
+  "Evaluate FORM, expecting a constant return value.
+This is the global do-nothing version.  There is also `testcover-1value'
+that complains if FORM ever does return differing values."
   form)
 
 (defmacro lambda (&rest cdr)
@@ -1686,7 +1684,7 @@ This finishes the change group by reverting all of its changes."
 	(when (and (consp elt) (not (eq elt (last pending-undo-list))))
 	  (error "Undoing to some unrelated state"))
 	;; Undo it all.
-	(while pending-undo-list (undo-more 1))
+	(while (listp pending-undo-list) (undo-more 1))
 	;; Reset the modified cons cell ELT to its original content.
 	(when (consp elt)
 	  (setcar elt old-car)

@@ -72,7 +72,9 @@
 (eval-after-load "font-lock"
   '(if (and (not (featurep 'cc-fix)) ; only load the file once.
             (let (font-lock-keywords)
-              (font-lock-compile-keywords '("\\<\\>"))
+              (condition-case nil
+		  (font-lock-compile-keywords '("\\<\\>"))
+		(error nil))
 	      font-lock-keywords))     ; did the previous call foul this up?
        (load "cc-fix")))
 
@@ -83,7 +85,9 @@
 	   (progn
 	     (require 'font-lock)
 	     (let (font-lock-keywords)
-	       (font-lock-compile-keywords '("\\<\\>"))
+	       (condition-case nil
+		   (font-lock-compile-keywords '("\\<\\>"))
+		 (error nil))
 	       font-lock-keywords)))
       (cc-load "cc-fix")))
 
