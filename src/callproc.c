@@ -1013,9 +1013,11 @@ static Lisp_Object
 delete_temp_file (name)
      Lisp_Object name;
 {
-  /* Use Fdelete_file (indirectly) because that runs a file name handler.
-     We did that when writing the file, so we should do so when deleting.  */
+  /* Suppress jka-compr handling, etc.  */
+  int count = SPECPDL_INDEX ();
+  specbind (intern ("file-name-handler-alist"), Qnil);
   internal_delete_file (name);
+  unbind_to (count, Qnil);
   return Qnil;
 }
 
