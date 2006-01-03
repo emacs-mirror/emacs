@@ -1,3 +1,7 @@
+2006-01-02  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-mime.el (mh-mml-unsecure-message): Remove unused argument.
+
 2006-01-01  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el: Sync docstrings with manual for faces and sort

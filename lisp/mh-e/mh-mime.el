@@ -642,10 +642,9 @@ IDENTITY is optionally the default-user-id to use."
             (mml-insert-tag 'secure 'method method 'mode mode)))))))
 
 ;;;###mh-autoload
-(defun mh-mml-unsecure-message (&optional ignore)
-  "Remove any secure message tags.
-The argument IGNORE is not used."
-  (interactive "P")
+(defun mh-mml-unsecure-message ()
+  "Remove any secure message tags."
+  (interactive)
   (if (not mh-pgp-support-flag)
       (error "Your version of Gnus does not support PGP/GPG")
     (mml-unsecure-message)))
