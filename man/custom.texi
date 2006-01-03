@@ -706,7 +706,7 @@ directory by setting @code{custom-theme-directory}.
   You can view and edit the settings of a previously-defined theme by
 clicking on @samp{Visit Theme} and specifying the theme name.  You can
 also import the variables and faces that you have set using Customize
-by visiting the ``special'' theme named @var{user}.  This theme, which
+by visiting the ``special'' theme named @samp{user}.  This theme, which
 records all the options that you set in the ordinary customization
 buffer, is always enabled, and always takes precedence over all other
 enabled Custom themes.  Additionally, the @samp{user} theme is
