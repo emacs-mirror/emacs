@@ -1,5 +1,21 @@
 2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/flymake.el (flymake-check-start-time)
+	(flymake-check-was-interrupted, flymake-err-info, flymake-is-running)
+	(flymake-last-change-time, flymake-new-err-info, flymake-timer):
+	Move definition, so we can remove redundant earlier declaration.
+	(flymake-replace-regexp-in-string, flymake-split-string)
+	(flymake-get-temp-dir): Use defalias.
+	(flymake-popup-menu): Remove `pos' argument.  Use posn-at-point.
+	(flymake-xemacs-window-edges): Remove unused function.
+	(flymake-get-point-pixel-pos): Move.
+	(flymake-pid-to-names, flymake-reg-names)
+	(flymake-get-source-buffer-name, flymake-unreg-names): Remove.
+	Replace by a simple list flymake-processes and by process-buffer.
+	Update callers.  Other than simplify the code, it uses buffers rather
+	than buffer-names so it doesn't get confused by uniquify.
+	(flymake-buffer-data): The global value should just be nil.
+
 	* emacs-lisp/bytecomp.el (byte-compile-file-form-defalias):
 	Optimize the body of a defalias like any other code.
 
