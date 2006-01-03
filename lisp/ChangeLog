@@ -1,5 +1,23 @@
 2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/flymake.el (flymake-create-temp-with-folder-structure):
+	Use expand-file-name.
+	(flymake-delete-temp-directory): Use expand-file-name,
+	file-name-directory, and directory-file-name.
+	(flymake-strrchr): Delete.
+	(flymake-start-syntax-check): Don't pass the redundant buffer argument
+	to the init-f function.
+	(flymake-save-buffer-in-file, flymake-init-create-temp-buffer-copy)
+	(flymake-init-find-buildfile-dir)
+	(flymake-init-create-temp-source-and-master-buffer-copy)
+	(flymake-simple-make-init-impl, flymake-simple-make-init)
+	(flymake-master-make-init, flymake-master-make-header-init)
+	(flymake-simple-make-java-init, flymake-simple-ant-java-init)
+	(flymake-perl-init, flymake-simple-tex-init, flymake-master-tex-init)
+	(flymake-xml-init): Remove corresponding redundant buffer argument.
+	(flymake-allowed-file-name-masks): Remove last elems that are equal to
+	the default anyway.  Clean up regexps.
+
 	* progmodes/flymake.el (flymake-temp-source-file-name)
 	(flymake-master-file-name, flymake-temp-master-file-name)
 	(flymake-base-dir): New buffer-local vars.
