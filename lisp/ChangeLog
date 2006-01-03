@@ -11,6 +11,15 @@
 	* startup.el (fancy-splash-tail, normal-splash-screen):
 	Update copyright year.
 
+2006-01-02  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* mouse.el (mouse-drag-track): Renamed, from
+	`mouse-drag-region-1'.  Includes optional argument required to
+	enable post-drag event processing (e.g. delete region keys).  Can
+	be used without this argument to track a mouse region and operate
+	on it as soon as the drag completes.
+	(mouse-drag-region): Use `mouse-drag-track'.
+
 2006-01-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-guess-name-alist, custom-guess-doc-alist):
