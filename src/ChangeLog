@@ -2,7 +2,7 @@
 
 	* emacs.c (main): Update copyright year.
 
-2006-01-03  Ken Raeburn  <raeburn@mit.edu>
+2006-01-03  Ken Raeburn  <raeburn@gnu.org>
 
 	* callproc.c (delete_temp_file): Bind file-name-handler-alist to
 	nil for the call to internal_delete_file.
