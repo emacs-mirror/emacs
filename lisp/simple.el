@@ -5369,57 +5369,57 @@ have both Backspace, Delete and F1 keys.
 
 See also `normal-erase-is-backspace'."
   (interactive "P")
-  (set-terminal-parameter
-   nil 'normal-erase-is-backspace
-   (if (or (and arg (> (prefix-numeric-value arg) 0))
-	   (not (eq 1 (terminal-parameter nil 'normal-erase-is-backspace))))
-       0
-     1))
+  (let ((enabled (or (and arg (> (prefix-numeric-value arg) 0))
+		     (and (not arg)
+			  (not (eq 1 (terminal-parameter
+				      nil 'normal-erase-is-backspace)))))))
+    (set-terminal-parameter nil 'normal-erase-is-backspace
+			    (if enabled 1 0))
 
-  (cond ((or (memq window-system '(x w32 mac pc))
-	     (memq system-type '(ms-dos windows-nt)))
-	 (let* ((bindings
-		 `(([C-delete] [C-backspace])
-		   ([M-delete] [M-backspace])
-		   ([C-M-delete] [C-M-backspace])
-		   (,esc-map
-		    [C-delete] [C-backspace])))
-		(old-state (lookup-key local-function-key-map [delete])))
+    (cond ((or (memq window-system '(x w32 mac pc))
+	       (memq system-type '(ms-dos windows-nt)))
+	   (let* ((bindings
+		   `(([C-delete] [C-backspace])
+		     ([M-delete] [M-backspace])
+		     ([C-M-delete] [C-M-backspace])
+		     (,esc-map
+		      [C-delete] [C-backspace])))
+		  (old-state (lookup-key local-function-key-map [delete])))
 
-	   (if (eq 1 (terminal-parameter nil 'normal-erase-is-backspace))
+	     (if enabled
+		 (progn
+		   (define-key local-function-key-map [delete] [?\C-d])
+		   (define-key local-function-key-map [kp-delete] [?\C-d])
+		   (define-key local-function-key-map [backspace] [?\C-?]))
+	       (define-key local-function-key-map [delete] [?\C-?])
+	       (define-key local-function-key-map [kp-delete] [?\C-?])
+	       (define-key local-function-key-map [backspace] [?\C-?]))
+
+	     ;; Maybe swap bindings of C-delete and C-backspace, etc.
+	     (unless (equal old-state (lookup-key local-function-key-map [delete]))
+	       (dolist (binding bindings)
+		 (let ((map global-map))
+		   (when (keymapp (car binding))
+		     (setq map (car binding) binding (cdr binding)))
+		   (let* ((key1 (nth 0 binding))
+			  (key2 (nth 1 binding))
+			  (binding1 (lookup-key map key1))
+			  (binding2 (lookup-key map key2)))
+		     (define-key map key1 binding2)
+		     (define-key map key2 binding1)))))))
+	  (t
+	   (if enabled
 	       (progn
-		 (define-key local-function-key-map [delete] [?\C-d])
-		 (define-key local-function-key-map [kp-delete] [?\C-d])
-		 (define-key local-function-key-map [backspace] [?\C-?]))
-	     (define-key local-function-key-map [delete] [?\C-?])
-	     (define-key local-function-key-map [kp-delete] [?\C-?])
-	     (define-key local-function-key-map [backspace] [?\C-?]))
+		 (keyboard-translate ?\C-h ?\C-?)
+		 (keyboard-translate ?\C-? ?\C-d))
+	     (keyboard-translate ?\C-h ?\C-h)
+	     (keyboard-translate ?\C-? ?\C-?))))
 
-	   ;; Maybe swap bindings of C-delete and C-backspace, etc.
-	   (unless (equal old-state (lookup-key local-function-key-map [delete]))
-	     (dolist (binding bindings)
-	       (let ((map global-map))
-		 (when (keymapp (car binding))
-		   (setq map (car binding) binding (cdr binding)))
-		 (let* ((key1 (nth 0 binding))
-			(key2 (nth 1 binding))
-			(binding1 (lookup-key map key1))
-			(binding2 (lookup-key map key2)))
-		   (define-key map key1 binding2)
-		   (define-key map key2 binding1)))))))
-	 (t
-	  (if (eq 1 (terminal-parameter nil 'normal-erase-is-backspace))
-	      (progn
-		(keyboard-translate ?\C-h ?\C-?)
-		(keyboard-translate ?\C-? ?\C-d))
-	    (keyboard-translate ?\C-h ?\C-h)
-	    (keyboard-translate ?\C-? ?\C-?))))
-
-  (run-hooks 'normal-erase-is-backspace-hook)
-  (if (interactive-p)
-      (message "Delete key deletes %s"
-	       (if (terminal-parameter nil 'normal-erase-is-backspace)
-		   "forward" "backward"))))
+    (run-hooks 'normal-erase-is-backspace-hook)
+    (if (interactive-p)
+	(message "Delete key deletes %s"
+		 (if (terminal-parameter nil 'normal-erase-is-backspace)
+		     "forward" "backward")))))
 
 (defvar vis-mode-saved-buffer-invisibility-spec nil
   "Saved value of `buffer-invisibility-spec' when Visible mode is on.")
