@@ -1,3 +1,8 @@
+2006-01-03  Romain Francoise  <romain@orebokech.com>
+
+	* startup.el (fancy-splash-tail, normal-splash-screen):
+	Update copyright year.
+
 2006-01-02  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (custom-guess-name-alist, custom-guess-doc-alist):
