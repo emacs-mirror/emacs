@@ -782,7 +782,15 @@ else
   # If we are running in synchronous mode, we want a chance to look around
   # before Emacs exits.  Perhaps we should put the break somewhere else
   # instead...
-  break x_error_quitter
+  xgetptr Vwindow_system
+  set $tem = (struct Lisp_Symbol *) $ptr
+  xgetptr $tem->xname
+  set $tem = (struct Lisp_String *) $ptr
+  set $tem = (char *) $tem->data
+  # x_error_quitter is defined only on X
+  if $tem[0] == 'x' && $tem[1] == '\0'
+    break x_error_quitter
+  end
 end
 
 # arch-tag: 12f34321-7bfa-4240-b77a-3cd3a1696dfe
