@@ -1,3 +1,9 @@
+2006-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (custom-buffer-create-internal): Move
+	"Erase Customization" button back to same position it occupies in
+	the individual State menus.
+
 2006-01-04  Kim F. Storm  <storm@cua.dk>
 
 	* wid-edit.el (key-sequence): Rework widget to read key binding
