@@ -1,5 +1,20 @@
 2006-01-04  Kim F. Storm  <storm@cua.dk>
 
+	* process.c: Add IPv6 support.
+	(Qipv4, Qipv6): New vars.
+	(syms_of_process): Intern and staticpro them.
+	(Fformat_network_address): Handle 9 or 8 element vector as IPv6 address
+	with or without port number.  Handle 4 element vector as IPv4 address
+	without port number.
+	(conv_sockaddr_to_lisp, get_lisp_to_sockaddr_size)
+	(conv_lisp_to_sockaddr): Handle IPv6 addresses.
+	(Fmake_network_process): Use :family 'ipv4 and 'ipv6 to explicitly
+	request that address family only.  :family nil or omitted means to
+	determine address family from the specified :host and :service.
+	(ifflag_table): Add missing OpenBSD IFF_ flags.
+	(server_accept_connection): Handle IPv6 addresses.
+	(init_process): Add (:family ipv4) and (:family ipv6) sub-features.
+
 	* .gdbinit: Undo last change.  Instead, look at Vsystem_type to
 	determine which breakpoints to set.
 

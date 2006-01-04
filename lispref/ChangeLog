@@ -1,3 +1,9 @@
+2006-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Make Network): Add IPv6 addresses and handling.
+	(Network Feature Testing): Mention (:family ipv6).
+	(Misc Network): Add IPv6 formats to format-network-address.
+
 2005-12-30  Richard M. Stallman  <rms@gnu.org>
 
 	* text.texi (Changing Properties):

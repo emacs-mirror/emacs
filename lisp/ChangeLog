@@ -1,3 +1,13 @@
+2006-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* wid-edit.el (key-sequence): Rework widget to read key binding
+	using `kbd' syntax.  Use C-q to insert literal key, event, or code.
+	(widget-key-sequence-default-value): Default value for empty sequence.
+	(widget-key-sequence-map): New map for reading key binding.  Bind C-q.
+	(widget-key-sequence-read-event): New command for C-q.
+	(widget-key-sequence-validate, widget-key-sequence-value-to-internal)
+	(widget-key-sequence-value-to-external): New functions.
+
 2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/flymake.el (flymake-create-temp-with-folder-structure):
