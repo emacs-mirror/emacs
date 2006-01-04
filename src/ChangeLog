@@ -1,5 +1,8 @@
 2006-01-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* .gdbinit: Avoid a warning message when x_error_quitter is not
+	compiled in.
+
 	* process.c [WINDOWSNT]: Undef AF_INET6 to disable IPv6 support
 	for w32.
 
