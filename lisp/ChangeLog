@@ -1,6 +1,6 @@
 2006-01-03  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* cus-edit.el (custom-buffer-create-internal): Move
+	* cus-edit.el (custom-buffer-create-internal): Move whole buffer
 	"Erase Customization" button back to same position it occupies in
 	the individual State menus.
 
