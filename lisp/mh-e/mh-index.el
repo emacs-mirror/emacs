@@ -1168,7 +1168,7 @@ SEARCH-REGEXP-LIST is used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-mairix-binary
-    (error "Set mh-mairix-binary appropriately"))
+    (error "Set `mh-mairix-binary appropriately'"))
   (apply #'call-process mh-mairix-binary nil '(t nil) nil
          "-r" "-f" (format "%s%s/config" mh-user-path mh-mairix-directory)
          search-regexp-list)
@@ -1446,7 +1446,7 @@ is used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-swish-binary
-    (error "Set mh-swish-binary appropriately"))
+    (error "Set `mh-swish-binary' appropriately"))
   (call-process mh-swish-binary nil '(t nil) nil
                 "-w" search-regexp
                 "-f" (format "%s%s/index" mh-user-path mh-swish-directory))
@@ -1535,7 +1535,7 @@ used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-swish++-binary
-    (error "Set mh-swish++-binary appropriately"))
+    (error "Set `mh-swish++-binary' appropriately"))
   (call-process mh-swish++-binary nil '(t nil) nil
                 "-m" "10000"
                 (format "-i%s%s/swish++.index"
@@ -1614,7 +1614,7 @@ is used to search."
     (unless (file-exists-p namazu-index-directory)
       (error "Namazu directory %s not present" namazu-index-directory))
     (unless (executable-find mh-namazu-binary)
-      (error "Set mh-namazu-binary appropriately"))
+      (error "Set `mh-namazu-binary' appropriately"))
     (set-buffer (get-buffer-create mh-index-temp-buffer))
     (erase-buffer)
     (call-process mh-namazu-binary nil '(t nil) nil

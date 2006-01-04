@@ -571,7 +571,7 @@ filing messages."
     (cond
      ((and (equal alias address-alias)
            (equal address alias-address))
-      (message "Already defined as: %s" alias-address))
+      (message "Already defined as %s" alias-address))
      (address-alias
       (if (y-or-n-p (format "Address has alias %s; set new one? "
                             address-alias))

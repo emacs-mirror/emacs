@@ -1,6 +1,6 @@
 ;;; mh-identity.el --- Multiple identify support for MH-E.
 
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -127,7 +127,7 @@ character \":\", then it must have a special handler defined in
 valid header field."
   (or (cdr (mh-assoc-ignore-case field mh-identity-handlers))
       (and (eq (aref field 0) ?:)
-           (error "Field %s - unknown mh-identity-handler" field))
+           (error "Field %s not found in `mh-identity-handlers'" field))
       (cdr (assoc ":default" mh-identity-handlers))
       'mh-identity-handler-default))
 

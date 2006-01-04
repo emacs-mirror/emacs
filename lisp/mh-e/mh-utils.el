@@ -1582,7 +1582,7 @@ The argument CHANGE is ignored."
       (cond
        ;; Check if we have `convert'
        ((eq mh-x-image-scaling-function 'ignore)
-        (message "The `convert' program is needed to display X-Image-URL")
+        (message "The \"convert\" program is needed to display X-Image-URL")
         (mh-x-image-set-download-state cache-filename 'try-again))
        ;; Scale fetched image
        ((and (funcall mh-x-image-scaling-function temp-file cache-filename)
@@ -2479,7 +2479,7 @@ used in searching."
             (new-file-flag
              (error "Folder %s does not exist" folder-name))
             ((not (file-directory-p (mh-expand-file-name folder-name)))
-             (error "\"%s\" is not a directory"
+             (error "%s is not a directory"
                     (mh-expand-file-name folder-name)))))
     folder-name))
 
@@ -2663,7 +2663,7 @@ Set mark after inserted text."
         (set-buffer (get-buffer-create mh-log-buffer))
         (mh-truncate-log-buffer)
         (insert error-message)))
-    (error "%s failed, check %s buffer for error message"
+    (error "%s failed, check buffer %s for error message"
            command mh-log-buffer)))
 
 (defun mh-list-to-string (l)
@@ -2684,7 +2684,7 @@ Set mark after inserted text."
             ((listp (car l))
              (setq new-list (nconc (mh-list-to-string-1 (car l))
                                    new-list)))
-            (t (error "Bad element in mh-list-to-string: %s" (car l))))
+            (t (error "Bad element in `mh-list-to-string': %s" (car l))))
       (setq l (cdr l)))
     new-list))
 

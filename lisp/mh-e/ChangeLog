@@ -1,5 +1,40 @@
 2006-01-03  Bill Wohler  <wohler@newt.com>
 
+	* mh-alias.el (mh-alias-add-alias): Grand message and error string
+	unification. Use single sentence if possible by using semicolon.
+	Don't end message with punctuation. Don't need format with
+	message. Quote messages as in docstrings: use `' around symbols,
+	\" for option choices. Don't use quotes around %s.
+	
+	* mh-comp.el (mh-complete-word): Ditto.
+
+	* mh-customize.el (mh-adaptive-cmd-note-flag-check)
+	(mh-scan-format-file-check): Ditto.
+
+	* mh-e.el (mh-refile-or-write-again, mh-previous-unread-msg)
+	(mh-delete-a-msg, mh-refile-a-msg, mh-next-unread-msg)
+	(mh-msg-num-width-to-column): Ditto.
+
+	* mh-identity.el (mh-identity-field-handler): Ditto.
+
+	* mh-index.el (mh-mairix-execute-search)
+	(mh-swish-execute-search, mh-swish++-execute-search)
+	(mh-namazu-execute-search): Ditto.
+
+	* mh-init.el (mh-variant-set): Ditto.
+
+	* mh-mime.el (mh-mh-to-mime-undo, mh-mml-forward-message)
+	(mh-secure-message, mh-mime-display): Ditto.
+
+	* mh-pick.el (mh-search-folder, mh-pick-construct-regexp): Ditto.
+
+	* mh-seq.el (mh-narrow-to-seq, mh-put-msg-in-seq, mh-read-seq)
+	(mh-read-range, mh-thread-container-subject): Ditto.
+
+	* mh-utils.el (mh-x-image-scale-and-display)
+	(mh-prompt-for-folder, mh-handle-process-error)
+	(mh-list-to-string-1): Ditto.
+
 	* mh-comp.el (mh-reply): Use standard default notation in
 	prompts (closes SF #1275933).
 

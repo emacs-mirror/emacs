@@ -1818,7 +1818,7 @@ Any match found replaces the text from BEGIN to END."
           ((null completion)
            (ignore-errors
              (kill-buffer completions-buffer))
-           (message "No completion for `%s'" word))
+           (message "No completion for %s" word))
           ((stringp completion)
            (if (equal word completion)
                (with-output-to-temp-buffer completions-buffer

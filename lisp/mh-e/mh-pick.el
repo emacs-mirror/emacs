@@ -143,7 +143,7 @@ configuration and is used when the search folder is dismissed."
                         'mh-previous-window-config window-config)
     (message "%s" (substitute-command-keys
                    (concat "Type \\[mh-do-search] to search messages, "
-                           "\\[mh-help] for help.")))))
+                           "\\[mh-help] for help")))))
 
 (defun mh-make-pick-template ()
   "Initialize the current buffer with a template for a pick pattern."
@@ -335,7 +335,7 @@ COMPONENT is the component to search."
         ((eq (car expr) 'not)
          `("-lbrace" "-not" ,@(mh-pick-construct-regexp (cadr expr) component)
            "-rbrace"))
-        (t (error "Unknown operator '%s' seen" (car expr)))))
+        (t (error "Unknown operator %s seen" (car expr)))))
 
 ;; All implementations of pick have special options -cc, -date, -from and
 ;; -subject that allow to search for corresponding components. Any other

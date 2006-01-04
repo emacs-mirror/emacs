@@ -904,8 +904,7 @@ called interactively."
       (error "No previous refile or write"))
   (cond ((eq (car mh-last-destination) 'refile)
          (mh-refile-msg range (cdr mh-last-destination))
-         (message "%s" (format "Destination folder: %s"
-                               (cdr mh-last-destination))))
+         (message "Destination folder: %s" (cdr mh-last-destination)))
         (t
          (mh-iterate-on-range msg range
            (apply 'mh-write-msg-to-file msg (cdr mh-last-destination)))
@@ -1005,7 +1004,7 @@ This command can be given a prefix argument COUNT to specify how
 many unread messages to skip."
   (interactive "p")
   (unless (> count 0)
-    (error "The function mh-previous-unread-msg expects positive argument"))
+    (error "The function `mh-previous-unread-msg' expects positive argument"))
   (setq count (1- count))
   (let ((unread-sequence (cdr (assoc mh-unseen-seq mh-seq-list)))
         (cur-msg (mh-get-msg-num nil)))
@@ -1527,7 +1526,7 @@ once when he kept statistics on his mail usage."
       (beginning-of-line)
       (setq message (mh-get-msg-num t)))
     (if (looking-at mh-scan-refiled-msg-regexp)
-        (error "Message %d is refiled.  Undo refile before deleting" message))
+        (error "Message %d is refiled;  undo refile before deleting" message))
     (if (looking-at mh-scan-deleted-msg-regexp)
         nil
       (mh-set-folder-modified-p t)
@@ -1547,10 +1546,10 @@ be refiled."
       (beginning-of-line)
       (setq message (mh-get-msg-num t)))
     (cond ((looking-at mh-scan-deleted-msg-regexp)
-           (error "Message %d is deleted.  Undo delete before moving" message))
+           (error "Message %d is deleted; undo delete before moving" message))
           ((looking-at mh-scan-refiled-msg-regexp)
            (if (y-or-n-p
-                (format "Message %d already refiled.  Copy to %s as well? "
+                (format "Message %d already refiled; copy to %s as well? "
                         message folder))
                (mh-exec-cmd "refile" (mh-get-msg-num t) "-link"
                             "-src" mh-current-folder
@@ -1581,7 +1580,7 @@ This command can be given a prefix argument COUNT to specify how
 many unread messages to skip."
   (interactive "p")
   (unless (> count 0)
-    (error "The function mh-next-unread-msg expects positive argument"))
+    (error "The function `mh-next-unread-msg' expects positive argument"))
   (setq count (1- count))
   (let ((unread-sequence (reverse (cdr (assoc mh-unseen-seq mh-seq-list))))
         (cur-msg (mh-get-msg-num nil)))
@@ -1989,8 +1988,8 @@ columns contain the message number, and the column for notations
 comes after that."
   (if (eq mh-scan-format-file t)
       (max (1+ width) 2)
-    (error "%s %s" "Can't call mh-msg-num-width-to-column"
-           "when mh-scan-format-file is not t")))
+    (error "%s %s" "Can't call `mh-msg-num-width-to-column' when"
+           "`mh-scan-format-file' is not set to \"Use MH-E scan Format\"")))
 
 (defun mh-set-cmd-note (column)
   "Set `mh-cmd-note' to COLUMN.

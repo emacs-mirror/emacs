@@ -505,7 +505,7 @@ a prefix argument NOCONFIRM."
                                     ".orig")))))
       (setq backup-strings (cdr backup-strings)))
     (or backup-strings
-        (error "Backup file for %s no longer exists!" buffer-file-name))
+        (error "Backup file for %s no longer exists" buffer-file-name))
     (or noconfirm
         (yes-or-no-p (format "Revert buffer from file %s? "
                              backup-file))
@@ -585,7 +585,7 @@ MESSAGE number."
                                       mh-user-path (substring folder 1) msg)
                               "message/rfc822"
                               description)))
-          (t (error "The message number, %s is not a integer!" msg)))))
+          (t (error "The message number, %s, is not a integer" msg)))))
 
 (defvar mh-mml-cryptographic-method-history ())
 
@@ -633,9 +633,9 @@ IDENTITY is optionally the default-user-id to use."
     (let ((valid-methods (list "pgpmime" "pgp" "smime"))
           (valid-modes (list "sign" "encrypt" "signencrypt" "none")))
       (if (not (member method valid-methods))
-          (error "Method \"%s\" is invalid" method))
+          (error "Method %s is invalid" method))
       (if (not (member mode valid-modes))
-          (error "Mode \"%s\" is invalid" mode))
+          (error "Mode %s is invalid" mode))
       (mml-unsecure-message)
       (if (not (string= mode "none"))
         (save-excursion
@@ -967,7 +967,7 @@ parsed and then displayed."
                    (mh-mime-display-part handles))
                   (t (mh-signature-highlight))))
         (error
-         (message "Please report this error. The error message is:\n %s"
+         (message "Please report this error:\n %s"
                   (error-message-string err))
          (delete-region (point-min) (point-max))
          (insert raw-message-data))))))

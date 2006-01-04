@@ -284,7 +284,7 @@ When you want to widen the view to all your messages again, use
                         mh-show-seq-tool-bar-map))))
              (push 'widen mh-view-ops)))
           (t
-           (error "No messages in sequence \"%s\"" (symbol-name sequence))))))
+           (error "No messages in sequence %s" (symbol-name sequence))))))
 
 ;;;###mh-autoload
 (defun mh-put-msg-in-seq (range sequence)
@@ -304,7 +304,7 @@ use."
   (interactive (list (mh-interactive-range "Add messages from")
                      (mh-read-seq-default "Add to" nil)))
   (unless (mh-valid-seq-p sequence)
-    (error "Can't put message in invalid sequence \"%s\"" sequence))
+    (error "Can't put message in invalid sequence %s" sequence))
   (let* ((internal-seq-flag (mh-internal-seq sequence))
          (original-msgs (mh-seq-msgs (mh-find-seq sequence)))
          (folders (list mh-current-folder))
@@ -432,7 +432,7 @@ containing the current message."
                     (t (intern input))))
          (msgs (mh-seq-to-msgs seq)))
     (if (and (null msgs) not-empty)
-        (error "No messages in sequence \"%s\"" seq))
+        (error "No messages in sequence %s" seq))
     seq))
 
 
@@ -549,7 +549,7 @@ should be replaced with:
           ((assoc (intern input) seq-list)
            (cdr (assoc (intern input) seq-list)))
           ((setq msg-list (mh-translate-range folder input)) msg-list)
-          (t (error "No messages in range \"%s\"" input)))))
+          (t (error "No messages in range %s" input)))))
 
 ;;;###mh-autoload
 (defun mh-translate-range (folder expr)
@@ -1176,7 +1176,7 @@ children."
                           (mh-message-id (mh-container-message kid)))
                  (let ((kid-message (mh-container-message kid)))
                    (return (mh-message-subject kid-message)))))
-             (error "This can't happen!")))))
+             (error "This can't happen")))))
 
 (defun mh-thread-rewind-pruning ()
   "Restore the thread tree to its state before pruning."

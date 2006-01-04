@@ -1041,7 +1041,7 @@ Throw an error if user tries to turn on
 Otherwise, set SYMBOL to VALUE."
   (if (and value
            (not (eq mh-scan-format-file t)))
-      (error "%s %s" "Can't turn on unless mh-scan-format-file"
+      (error "%s %s" "Can't turn on unless `mh-scan-format-file'"
              "is set to \"Use MH-E scan Format\"")
     (set-default symbol value)))
 
@@ -1052,7 +1052,7 @@ anything but t when `mh-adaptive-cmd-note-flag' is on. Otherwise,
 set SYMBOL to VALUE."
   (if (and (not (eq value t))
            (eq mh-adaptive-cmd-note-flag t))
-      (error "%s %s" "You must turn off mh-adaptive-cmd-note-flag"
+      (error "%s %s" "You must turn off `mh-adaptive-cmd-note-flag'"
              "unless you use \"Use MH-E scan Format\"")
     (set-default symbol value)))
 

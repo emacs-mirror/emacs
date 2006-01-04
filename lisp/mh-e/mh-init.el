@@ -127,13 +127,13 @@ finally GNU mailutils."
        ((mh-variant-set-variant 'mu-mh)
         (message "%s installed as MH variant" mh-variant-in-use))
        (t
-        (message "No MH variant found on the system!"))))
+        (message "No MH variant found on the system"))))
      ((member variant valid-list)
       (when (not (mh-variant-set-variant variant))
-        (message "Warning: %s variant not found.  Autodetecting..." variant)
+        (message "Warning: %s variant not found. Autodetecting..." variant)
         (mh-variant-set 'autodetect)))
      (t
-      (message "Unknown variant.  Use %s"
+      (message "Unknown variant; use %s"
                (mapconcat '(lambda (x) (format "%s" (car x)))
                           mh-variants " or "))))))
 
