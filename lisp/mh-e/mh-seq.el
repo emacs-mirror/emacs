@@ -420,9 +420,9 @@ Prompt with PROMPT, raise an error if the sequence is empty and
 the NOT-EMPTY flag is non-nil, and supply an optional DEFAULT
 sequence. A reply of '%' defaults to the first sequence
 containing the current message."
-  (let* ((input (completing-read (format "%s %s %s" prompt "sequence:"
+  (let* ((input (completing-read (format "%s sequence%s: " prompt
                                          (if default
-                                             (format "[%s] " default)
+                                             (format " (default %s)" default)
                                            ""))
                                  (mh-seq-names mh-seq-list)
                                  nil nil nil 'mh-sequence-history))
@@ -513,20 +513,22 @@ should be replaced with:
                     (car (mh-seq-containing-msg (mh-get-msg-num nil) t)))
         prompt (format "%s range" prompt))
   (let* ((folder (or folder mh-current-folder))
-         (default (cond ((or (eq default t) (stringp default)) default)
-                        ((symbolp default) (symbol-name default))))
          (guess (eq default t))
          (counts (and guess (mh-folder-size folder)))
          (unseen (and counts (> (cadr counts) 0)))
          (large (and counts mh-large-folder (> (car counts) mh-large-folder)))
-         (str (cond ((and guess large
-                          (setq default (format "last:%s" mh-large-folder)
-                                prompt (format "%s (folder has %s messages)"
-                                               prompt (car counts)))
-                          nil))
-                    ((and guess (not large) (setq default "all") nil))
-                    ((eq default nil) "")
-                    (t (format "[%s] " default))))
+         (default (cond ((and guess large) (format "last:%s" mh-large-folder))
+                        ((and guess (not large)) "all")
+                        ((stringp default) default)
+                        ((symbolp default) (symbol-name default))))
+         (prompt (cond ((and guess large default)
+                        (format "%s (folder has %s messages, default %s)"
+                                prompt (car counts) default))
+                       ((and guess large)
+                        (format "%s (folder has %s messages)"
+                                prompt (car counts)))
+                       (default
+                         (format "%s (default %s)" prompt default))))
          (minibuffer-local-completion-map mh-range-completion-map)
          (seq-list (if (eq folder mh-current-folder)
                        mh-seq-list
@@ -536,7 +538,7 @@ should be replaced with:
                   (mh-seq-names seq-list)))
          (input (cond ((and (not ask-flag) unseen) (symbol-name mh-unseen-seq))
                       ((and (not ask-flag) (not large)) "all")
-                      (t (completing-read (format "%s: %s" prompt str)
+                      (t (completing-read (format "%s: " prompt)
                                           'mh-range-completion-function nil nil
                                           nil 'mh-range-history default))))
          msg-list)

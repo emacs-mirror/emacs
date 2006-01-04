@@ -857,7 +857,7 @@ do the work."
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
            (read-file-name (format
-                            "Store in directory: [%s] "
+                            "Store in directory (default %s): "
                             mh-mime-save-parts-directory)
                            "" mh-mime-save-parts-directory t ""))
           ((stringp mh-mime-save-parts-default-directory)

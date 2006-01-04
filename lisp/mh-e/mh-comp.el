@@ -582,7 +582,7 @@ See also `mh-reply-show-message-flag',
                 (let ((minibuffer-help-form
                        "from => Sender only\nto => Sender and primary recipients\ncc or all => Sender and all recipients"))
                   (or mh-reply-default-reply-to
-                      (completing-read "Reply to whom: [from] "
+                      (completing-read "Reply to whom (default from): "
                                        '(("from") ("to") ("cc") ("all"))
                                        nil
                                        t)))

@@ -1,5 +1,12 @@
 2006-01-03  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-reply): Use standard default notation in
+	prompts (closes SF #1275933).
+
+	* mh-mime.el (mh-mime-save-parts): Ditto.
+
+	* mh-seq.el (mh-read-seq, mh-read-range): Ditto.
+
 	* mh-customize.el (mh-folder-msg-number): Snow is actually
 	off-white on low color displays which turns to white when bold.
 	This is unreadable on white backgrounds. Use snow with min-colors
