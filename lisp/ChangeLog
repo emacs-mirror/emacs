@@ -1,10 +1,11 @@
 2006-01-04  Chong Yidong  <cyd@stupidchicken.com>
 
-	* cus-edit.el (custom-reset-menu, custom-reset, Custom-mode-menu)
-	(custom-variable-menu, custom-face-menu, custom-group-menu)
-	(custom-buffer-create-internal): Change "Reset" to "Show".
+	* cus-edit.el (custom-reset-menu, Custom-mode-menu)
+	(custom-variable-menu, custom-face-menu, custom-group-menu):
 	Reorder menu items.
-	(custom-link): New face for Info links.
+	(Custom-reset-current, Custom-reset-saved)
+	(Custom-reset-standard): Fix y-or-n-p messages.
+	(custom-link): New face for links.
 	(custom-buffer-create-internal, custom-manual): Use it.
 
 	* wid-edit.el (widget-default-mouse-face-get): New function.

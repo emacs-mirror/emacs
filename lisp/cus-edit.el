@@ -768,8 +768,8 @@ groups after non-groups, if nil do not order groups at all."
     (message "Aborted")))
 
 (defvar custom-reset-menu
-  '(("Show current settings" . Custom-reset-current)
-    ("Show saved settings" . Custom-reset-saved)
+  '(("Reset to current settings" . Custom-reset-current)
+    ("Reset to saved settings" . Custom-reset-saved)
     ("Erase Customization (use standard values)" . Custom-reset-standard))
   "Alist of actions for the `Reset' button.
 The key is a string containing the name of the action, the value is a
@@ -788,7 +788,7 @@ when the action is chosen.")
 (defun Custom-reset-current (&rest ignore)
   "Reset all modified group members to their current value."
   (interactive)
-  (if (y-or-n-p "Update buffer text to show all current settings? ")
+  (if (y-or-n-p "Reset buffer to show current settings? ")
       (let ((children custom-options))
 	(mapc (lambda (widget)
 		(if (memq (widget-get widget :custom-state)
@@ -800,7 +800,7 @@ when the action is chosen.")
 (defun Custom-reset-saved (&rest ignore)
   "Reset all modified or set group members to their saved value."
   (interactive)
-  (if (y-or-n-p "Update buffer text to show all saved settings? ")
+  (if (y-or-n-p "Reset all settings to saved values? ")
       (let ((children custom-options))
 	(mapc (lambda (widget)
 		(if (memq (widget-get widget :custom-state)
@@ -819,7 +819,7 @@ making them as if they had never been customized at all."
     (if (or (and (= 1 (length children))
 		 (memq (widget-type (car children))
 		       '(custom-variable custom-face)))
-	    (yes-or-no-p "Really erase all customizations in this buffer? "))
+	    (yes-or-no-p "Erase all customizations in this buffer? "))
 	(mapc (lambda (widget)
 		(and (if (widget-get widget :custom-standard-value)
 			 (widget-apply widget :custom-standard-value)
@@ -1482,13 +1482,13 @@ See ")
 				 (custom-reset event))))
     (widget-insert "\n ")
     (widget-create 'push-button
-		   :tag "Show Current Settings"
+		   :tag "Reset to Current"
 		   :help-echo "\
 Reset all edited text in this buffer to reflect current values."
 		   :action 'Custom-reset-current)
     (widget-insert " ")
     (widget-create 'push-button
-		   :tag "Show Saved Settings"
+		   :tag "Reset to Saved"
 		   :help-echo "\
 Reset all settings in this buffer to their saved values."
 		   :action 'Custom-reset-saved)
@@ -1497,7 +1497,7 @@ Reset all settings in this buffer to their saved values."
       (widget-create 'push-button
 		     :tag "Erase Customization"
 		     :help-echo "\
-Un-customize all settings in this buffer--save them with standard values."
+Un-customize all settings in this buffer and save them with standard values."
 		     :action 'Custom-reset-standard)))
   (widget-insert "\n ")
   (widget-create 'push-button
@@ -2227,6 +2227,8 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 		  (insert " ")
 		  (push (widget-create-child-and-convert
 			 widget 'custom-group-link
+			 :button-face 'custom-link
+			 :mouse-face 'highlight
 			 :tag (custom-unlispify-tag-name symbol)
 			 symbol)
 			buttons)
@@ -2621,27 +2623,27 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
   (get (widget-value widget) 'standard-value))
 
 (defvar custom-variable-menu
-  `(("Show current value" custom-redraw
-     (lambda (widget)
-       (and (default-boundp (widget-value widget))
-	    (memq (widget-get widget :custom-state) '(modified changed)))))
-    ("Show saved value" custom-variable-reset-saved
-     (lambda (widget)
-       (and (or (get (widget-value widget) 'saved-value)
-		(get (widget-value widget) 'saved-variable-comment))
-	    (memq (widget-get widget :custom-state)
-		  '(modified set changed rogue)))))
-    ("Show backup value" custom-variable-reset-backup
-     (lambda (widget)
-       (get (widget-value widget) 'backup-value)))
-    ("---" ignore ignore)
-    ("Add comment" custom-comment-show custom-comment-invisible-p)
+  `(("Add comment" custom-comment-show custom-comment-invisible-p)
     ("Show value widget" custom-variable-edit
      (lambda (widget)
        (eq (widget-get widget :custom-form) 'lisp)))
     ("Show Lisp expression" custom-variable-edit-lisp
      (lambda (widget)
        (eq (widget-get widget :custom-form) 'edit)))
+    ("---" ignore ignore)
+    ("Reset to current value" custom-redraw
+     (lambda (widget)
+       (and (default-boundp (widget-value widget))
+	    (memq (widget-get widget :custom-state) '(modified changed)))))
+    ("Reset to saved value" custom-variable-reset-saved
+     (lambda (widget)
+       (and (or (get (widget-value widget) 'saved-value)
+		(get (widget-value widget) 'saved-variable-comment))
+	    (memq (widget-get widget :custom-state)
+		  '(modified set changed rogue)))))
+    ("Reset to backup value" custom-variable-reset-backup
+     (lambda (widget)
+       (get (widget-value widget) 'backup-value)))
     ("---" ignore ignore)
     ,@(when (or custom-file user-init-file)
 	'(("Erase customization" custom-variable-reset-standard
@@ -3294,12 +3296,7 @@ SPEC must be a full face spec."
 	     (message "Creating face editor...done"))))))
 
 (defvar custom-face-menu
-  `(("Show saved face" custom-face-reset-saved
-     (lambda (widget)
-       (or (get (widget-value widget) 'saved-face)
-	   (get (widget-value widget) 'saved-face-comment))))
-    ("---" ignore ignore)
-    ("Add comment" custom-comment-show custom-comment-invisible-p)
+  `(("Add comment" custom-comment-show custom-comment-invisible-p)
     ("Show all attributes" custom-face-edit-all
      (lambda (widget)
        (not (eq (widget-get widget :custom-form) 'all))))
@@ -3310,6 +3307,10 @@ SPEC must be a full face spec."
      (lambda (widget)
        (not (eq (widget-get widget :custom-form) 'lisp))))
     ("---" ignore ignore)
+    ("Reset to saved face" custom-face-reset-saved
+     (lambda (widget)
+       (or (get (widget-value widget) 'saved-face)
+	   (get (widget-value widget) 'saved-face-comment))))
     ,@(when (or custom-file user-init-file)
 	'(("Erase customization" custom-face-reset-standard
 	   (lambda (widget)
@@ -3775,6 +3776,8 @@ If GROUPS-ONLY non-nil, return only those members that are groups."
 	   (if (eq custom-buffer-style 'links)
 	       (push (widget-create-child-and-convert
 		      widget 'custom-group-link
+		      :button-face 'custom-link
+		      :mouse-face 'highlight
 		      :tag "Go to Group"
 		      symbol)
 		     buttons)
@@ -3890,14 +3893,14 @@ Creating group members... %2d%%"
 	   (insert "/\n")))))
 
 (defvar custom-group-menu
-  `(("Show current settings" custom-group-reset-current
+  `(("Reset to current settings" custom-group-reset-current
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified))))
-    ("Show saved settings" custom-group-reset-saved
+    ("Reset to saved settings" custom-group-reset-saved
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified set))))
     ,@(when (or custom-file user-init-file)
-	'(("Show standard settings" custom-group-reset-standard
+	'(("Reset to standard settings" custom-group-reset-standard
 	   (lambda (widget)
 	     (memq (widget-get widget :custom-state) '(modified set saved))))))
     ("---" ignore ignore)
@@ -4364,8 +4367,8 @@ The format is suitable for use with `easy-menu-define'."
     ,(customize-menu-create 'customize)
     ["Set" Custom-set t]
     ["Save" Custom-save t]
-    ["Show current settings" Custom-reset-current t]
-    ["Show saved settings" Custom-reset-saved t]
+    ["Reset to current settings" Custom-reset-current t]
+    ["Reset to saved settings" Custom-reset-saved t]
     ["Erase customizations" Custom-reset-standard t]
     ["Info" (info "(emacs)Easy Customization") t]))
 
