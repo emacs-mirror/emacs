@@ -3435,6 +3435,7 @@ Optional EVENT is the location for the menu."
       (setq comment nil)
       ;; Make the comment invisible by hand if it's empty
       (custom-comment-hide comment-widget))
+    (custom-push-theme 'theme-face symbol 'user 'set value)
     (if (face-spec-choose value)
 	(face-spec-set symbol value)
       ;; face-set-spec ignores empty attribute lists, so just give it
@@ -3442,7 +3443,6 @@ Optional EVENT is the location for the menu."
       (face-spec-set symbol '((t :foreground unspecified))))
     (unless (eq (widget-get widget :custom-state) 'standard)
       (put symbol 'saved-face value))
-    (custom-push-theme 'theme-face symbol 'user 'set value)
     (put symbol 'customized-face nil)
     (put symbol 'face-comment comment)
     (put symbol 'customized-face-comment nil)

@@ -7,6 +7,7 @@
 	(Custom-reset-standard): Fix y-or-n-p messages.
 	(custom-link): New face for links.
 	(custom-buffer-create-internal, custom-manual): Use it.
+	(custom-face-save): Push to theme-face before setting face spec.
 
 	* wid-edit.el (widget-default-mouse-face-get): New function.
 	(widget-specify-button): Handle mouse-face like button-face.
