@@ -1007,11 +1007,17 @@ property `theme-feature' (which is usually a symbol created by
     (enable-theme 'user)))
 
 (defun load-theme (theme)
-  "Try to load a theme's settings from its file.
+  "Load a theme's settings from its file.
 This also enables the theme; use `disable-theme' to disable it."
   ;; Note we do no check for validity of the theme here.
   ;; This allows to pull in themes by a file-name convention
   (interactive "SCustom theme name: ")
+  ;; If reloading, clear out the old theme settings.
+  (when (custom-theme-p theme)
+    (disable-theme theme)
+    (put theme 'theme-settings nil)
+    (put theme 'theme-feature nil)
+    (put theme 'theme-documentation nil))
   (let ((load-path (if (file-directory-p custom-theme-directory)
 		       (cons custom-theme-directory load-path)
 		     load-path)))

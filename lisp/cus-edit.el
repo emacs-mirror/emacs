@@ -768,8 +768,8 @@ groups after non-groups, if nil do not order groups at all."
     (message "Aborted")))
 
 (defvar custom-reset-menu
-  '(("Current" . Custom-reset-current)
-    ("Saved" . Custom-reset-saved)
+  '(("Show current settings" . Custom-reset-current)
+    ("Show saved settings" . Custom-reset-saved)
     ("Erase Customization (use standard values)" . Custom-reset-standard))
   "Alist of actions for the `Reset' button.
 The key is a string containing the name of the action, the value is a
@@ -779,7 +779,7 @@ when the action is chosen.")
 (defun custom-reset (event)
   "Select item from reset menu."
   (let* ((completion-ignore-case t)
-	 (answer (widget-choose "Reset to"
+	 (answer (widget-choose "Reset buffer"
 				custom-reset-menu
 				event)))
     (if answer
@@ -1456,50 +1456,39 @@ See "
 				 "Square brackets indicate")))
 	(widget-create 'info-link
 		       :tag "Custom file"
+		       :button-face 'custom-link
+		       :mouse-face 'highlight
 		       "(emacs)Saving Customizations")
 	(widget-insert
 	 " for information on how to save in a different file.\n
 See ")
 	(widget-create 'info-link
 		       :tag "Help"
+		       :button-face 'custom-link
+		       :mouse-face 'highlight
 		       :help-echo "Read the online help."
 		       "(emacs)Easy Customization")
 	(widget-insert " for more information.\n\n")
 	(widget-insert "Operate on everything in this buffer:\n "))
     (widget-insert " "))
-  (widget-create 'push-button
-		 :tag "Set for Current Session"
-		 :help-echo "\
-Make your editing in this buffer take effect for this session."
-		 :action (lambda (widget &optional event)
-			   (Custom-set)))
-  (when (or custom-file user-init-file)
-    (widget-insert " ")
-    (widget-create 'push-button
-		   :tag "Save for Future Sessions"
-		   :help-echo "\
-Make your editing in this buffer take effect for future Emacs sessions.
-This updates your Emacs initialization file or creates a new one."
-		   :action (lambda (widget &optional event)
-			     (Custom-save))))
   (if custom-reset-button-menu
       (progn
 	(widget-insert " ")
 	(widget-create 'push-button
-		       :tag "Reset"
+		       :tag "Reset buffer"
 		       :help-echo "Show a menu with reset operations."
 		       :mouse-down-action (lambda (&rest junk) t)
 		       :action (lambda (widget &optional event)
 				 (custom-reset event))))
     (widget-insert "\n ")
     (widget-create 'push-button
-		   :tag "Reset to Current"
+		   :tag "Show Current Settings"
 		   :help-echo "\
 Reset all edited text in this buffer to reflect current values."
 		   :action 'Custom-reset-current)
     (widget-insert " ")
     (widget-create 'push-button
-		   :tag "Reset to Saved"
+		   :tag "Show Saved Settings"
 		   :help-echo "\
 Reset all settings in this buffer to their saved values."
 		   :action 'Custom-reset-saved)
@@ -1510,13 +1499,31 @@ Reset all settings in this buffer to their saved values."
 		     :help-echo "\
 Un-customize all settings in this buffer--save them with standard values."
 		     :action 'Custom-reset-standard)))
+  (widget-insert "\n ")
+  (widget-create 'push-button
+		 :tag "Set for Current Session"
+		 :help-echo "\
+Make your editing in this buffer take effect for this session."
+		 :action (lambda (widget &optional event)
+			   (Custom-set)))
   (if (not custom-buffer-verbose-help)
       (progn
 	(widget-insert " ")
 	(widget-create 'info-link
 		       :tag "Help"
+		       :button-face 'custom-link
+		       :mouse-face 'highlight
 		       :help-echo "Read the online help."
 		       "(emacs)Easy Customization")))
+  (when (or custom-file user-init-file)
+    (widget-insert " ")
+    (widget-create 'push-button
+		   :tag "Save for Future Sessions"
+		   :help-echo "\
+Make your editing in this buffer take effect for future Emacs sessions.
+This updates your Emacs initialization file or creates a new one."
+		   :action (lambda (widget &optional event)
+			     (Custom-save))))
   (widget-insert "   ")
   (widget-create 'push-button
 		 :tag "Finish"
@@ -1701,6 +1708,8 @@ item in another window.\n\n"))
 (define-widget 'custom-manual 'info-link
   "Link to the manual entry for this customization option."
   :help-echo "Read the manual entry for this option."
+  :button-face 'custom-link
+  :mouse-face 'highlight
   :tag "Manual")
 
 ;;; The `custom-magic' Widget.
@@ -2044,6 +2053,17 @@ and `face'."
   :group 'custom-faces)
 ;; backward-compatibility alias
 (put 'custom-state-face 'face-alias 'custom-state)
+
+(defface custom-link
+  '((((min-colors 88)
+      (class color) (background light)) :foreground "blue1" :underline t)
+    (((class color) (background light)) :foreground "blue" :underline t)
+    (((min-colors 88)
+      (class color) (background dark)) :foreground "cyan1" :underline t)
+    (((class color) (background dark)) :foreground "cyan" :underline t)
+    (t :underline t))
+  "Face for Info links in customization buffers."
+  :group 'info)
 
 (define-widget 'custom 'default
   "Customize a user option."
@@ -2601,41 +2621,42 @@ Otherwise, look up symbol in `custom-guess-type-alist'."
   (get (widget-value widget) 'standard-value))
 
 (defvar custom-variable-menu
-  `(("Set for Current Session" custom-variable-set
-     (lambda (widget)
-       (eq (widget-get widget :custom-state) 'modified)))
-    ,@(when (or custom-file user-init-file)
-	'(("Save for Future Sessions" custom-variable-save
-	   (lambda (widget)
-	     (memq (widget-get widget :custom-state) '(modified set changed rogue))))))
-    ("Reset to Current" custom-redraw
+  `(("Show current value" custom-redraw
      (lambda (widget)
        (and (default-boundp (widget-value widget))
 	    (memq (widget-get widget :custom-state) '(modified changed)))))
-    ("Reset to Saved" custom-variable-reset-saved
+    ("Show saved value" custom-variable-reset-saved
      (lambda (widget)
        (and (or (get (widget-value widget) 'saved-value)
 		(get (widget-value widget) 'saved-variable-comment))
 	    (memq (widget-get widget :custom-state)
 		  '(modified set changed rogue)))))
+    ("Show backup value" custom-variable-reset-backup
+     (lambda (widget)
+       (get (widget-value widget) 'backup-value)))
+    ("---" ignore ignore)
+    ("Add comment" custom-comment-show custom-comment-invisible-p)
+    ("Show value widget" custom-variable-edit
+     (lambda (widget)
+       (eq (widget-get widget :custom-form) 'lisp)))
+    ("Show Lisp expression" custom-variable-edit-lisp
+     (lambda (widget)
+       (eq (widget-get widget :custom-form) 'edit)))
+    ("---" ignore ignore)
     ,@(when (or custom-file user-init-file)
-	'(("Erase Customization" custom-variable-reset-standard
+	'(("Erase customization" custom-variable-reset-standard
 	   (lambda (widget)
 	     (and (get (widget-value widget) 'standard-value)
 		  (memq (widget-get widget :custom-state)
 			'(modified set changed saved rogue)))))))
-    ("Use Backup Value" custom-variable-reset-backup
+    ("Set for current session" custom-variable-set
      (lambda (widget)
-       (get (widget-value widget) 'backup-value)))
-    ("---" ignore ignore)
-    ("Add Comment" custom-comment-show custom-comment-invisible-p)
-    ("---" ignore ignore)
-    ("Don't show as Lisp expression" custom-variable-edit
-     (lambda (widget)
-       (eq (widget-get widget :custom-form) 'lisp)))
-    ("Show initial Lisp expression" custom-variable-edit-lisp
-     (lambda (widget)
-       (eq (widget-get widget :custom-form) 'edit))))
+       (eq (widget-get widget :custom-state) 'modified)))
+    ,@(when (or custom-file user-init-file)
+	'(("Save for future sessions" custom-variable-save
+	   (lambda (widget)
+	     (memq (widget-get widget :custom-state)
+		   '(modified set changed rogue)))))))
   "Alist of actions for the `custom-variable' widget.
 Each entry has the form (NAME ACTION FILTER) where NAME is the name of
 the menu entry, ACTION is the function to call on the widget when the
@@ -3273,29 +3294,29 @@ SPEC must be a full face spec."
 	     (message "Creating face editor...done"))))))
 
 (defvar custom-face-menu
-  `(("Set for Current Session" custom-face-set)
-    ,@(when (or custom-file user-init-file)
-	'(("Save for Future Sessions" custom-face-save-command)))
-    ("Reset to Saved" custom-face-reset-saved
+  `(("Show saved face" custom-face-reset-saved
      (lambda (widget)
        (or (get (widget-value widget) 'saved-face)
 	   (get (widget-value widget) 'saved-face-comment))))
-    ,@(when (or custom-file user-init-file)
-	'(("Erase Customization" custom-face-reset-standard
-	   (lambda (widget)
-	     (get (widget-value widget) 'face-defface-spec)))))
     ("---" ignore ignore)
-    ("Add Comment" custom-comment-show custom-comment-invisible-p)
-    ("---" ignore ignore)
-    ("Show all display specs" custom-face-edit-all
+    ("Add comment" custom-comment-show custom-comment-invisible-p)
+    ("Show all attributes" custom-face-edit-all
      (lambda (widget)
        (not (eq (widget-get widget :custom-form) 'all))))
-    ("Just current attributes" custom-face-edit-selected
+    ("Show current attributes" custom-face-edit-selected
      (lambda (widget)
        (not (eq (widget-get widget :custom-form) 'selected))))
-    ("Show as Lisp expression" custom-face-edit-lisp
+    ("Show Lisp expression" custom-face-edit-lisp
      (lambda (widget)
-       (not (eq (widget-get widget :custom-form) 'lisp)))))
+       (not (eq (widget-get widget :custom-form) 'lisp))))
+    ("---" ignore ignore)
+    ,@(when (or custom-file user-init-file)
+	'(("Erase customization" custom-face-reset-standard
+	   (lambda (widget)
+	     (get (widget-value widget) 'face-defface-spec)))))
+    ("Set for current session" custom-face-set)
+    ,@(when (or custom-file user-init-file)
+	'(("Save for future sessions" custom-face-save-command))))
   "Alist of actions for the `custom-face' widget.
 Each entry has the form (NAME ACTION FILTER) where NAME is the name of
 the menu entry, ACTION is the function to call on the widget when the
@@ -3869,23 +3890,24 @@ Creating group members... %2d%%"
 	   (insert "/\n")))))
 
 (defvar custom-group-menu
-  `(("Set for Current Session" custom-group-set
-     (lambda (widget)
-       (eq (widget-get widget :custom-state) 'modified)))
-    ,@(when (or custom-file user-init-file)
-	'(("Save for Future Sessions" custom-group-save
-	   (lambda (widget)
-	     (memq (widget-get widget :custom-state) '(modified set))))))
-    ("Reset to Current" custom-group-reset-current
+  `(("Show current settings" custom-group-reset-current
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified))))
-    ("Reset to Saved" custom-group-reset-saved
+    ("Show saved settings" custom-group-reset-saved
      (lambda (widget)
        (memq (widget-get widget :custom-state) '(modified set))))
     ,@(when (or custom-file user-init-file)
-	'(("Reset to standard setting" custom-group-reset-standard
+	'(("Show standard settings" custom-group-reset-standard
 	   (lambda (widget)
-	     (memq (widget-get widget :custom-state) '(modified set saved)))))))
+	     (memq (widget-get widget :custom-state) '(modified set saved))))))
+    ("---" ignore ignore)
+    ("Set for current session" custom-group-set
+     (lambda (widget)
+       (eq (widget-get widget :custom-state) 'modified)))
+    ,@(when (or custom-file user-init-file)
+	'(("Save for future sessions" custom-group-save
+	   (lambda (widget)
+	     (memq (widget-get widget :custom-state) '(modified set)))))))
   "Alist of actions for the `custom-group' widget.
 Each entry has the form (NAME ACTION FILTER) where NAME is the name of
 the menu entry, ACTION is the function to call on the widget when the
@@ -4342,9 +4364,9 @@ The format is suitable for use with `easy-menu-define'."
     ,(customize-menu-create 'customize)
     ["Set" Custom-set t]
     ["Save" Custom-save t]
-    ["Reset to Current" Custom-reset-current t]
-    ["Reset to Saved" Custom-reset-saved t]
-    ["Reset to Standard Values" Custom-reset-standard t]
+    ["Show current settings" Custom-reset-current t]
+    ["Show saved settings" Custom-reset-saved t]
+    ["Erase customizations" Custom-reset-standard t]
     ["Info" (info "(emacs)Easy Customization") t]))
 
 (defun Custom-goto-parent ()

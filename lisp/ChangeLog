@@ -1,3 +1,17 @@
+2006-01-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-reset-menu, custom-reset, Custom-mode-menu)
+	(custom-variable-menu, custom-face-menu, custom-group-menu)
+	(custom-buffer-create-internal): Change "Reset" to "Show".
+	Reorder menu items.
+	(custom-link): New face for Info links.
+	(custom-buffer-create-internal, custom-manual): Use it.
+
+	* wid-edit.el (widget-default-mouse-face-get): New function.
+	(widget-specify-button): Handle mouse-face like button-face.
+
+	* custom.el (load-theme): Clear old theme settings if reloading.
+
 2006-01-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (custom-buffer-create-internal): Move whole buffer

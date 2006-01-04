@@ -403,7 +403,8 @@ new value.")
     ;; We want to avoid the face with image buttons.
     (unless (widget-get widget :suppress-face)
       (overlay-put overlay 'face (widget-apply widget :button-face-get))
-      (overlay-put overlay 'mouse-face widget-mouse-face))
+      (overlay-put overlay 'mouse-face 
+		   (widget-apply widget :mouse-face-get)))
     (overlay-put overlay 'pointer 'hand)
     (overlay-put overlay 'follow-link follow-link)
     (overlay-put overlay 'help-echo help-echo)))
@@ -1391,6 +1392,7 @@ The value of the :type attribute should be an unconverted widget type."
   :offset 0
   :format-handler 'widget-default-format-handler
   :button-face-get 'widget-default-button-face-get
+  :mouse-face-get 'widget-default-mouse-face-get
   :sample-face-get 'widget-default-sample-face-get
   :delete 'widget-default-delete
   :copy 'identity
@@ -1534,6 +1536,14 @@ If that does not exists, call the value of `widget-complete-field'."
 	(if parent
 	    (widget-apply parent :button-face-get)
 	  widget-button-face))))
+
+(defun widget-default-mouse-face-get (widget)
+  ;; Use :mouse-face or widget-mouse-face
+  (or (widget-get widget :mouse-face)
+      (let ((parent (widget-get widget :parent)))
+	(if parent
+	    (widget-apply parent :mouse-face-get)
+	  widget-mouse-face))))
 
 (defun widget-default-sample-face-get (widget)
   ;; Use :sample-face.
