@@ -1491,13 +1491,6 @@ This updates your Emacs initialization file or creates a new one."
 		       :mouse-down-action (lambda (&rest junk) t)
 		       :action (lambda (widget &optional event)
 				 (custom-reset event))))
-    (widget-insert " ")
-    (when (or custom-file user-init-file)
-      (widget-create 'push-button
-		     :tag "Erase Customization"
-		     :help-echo "\
-Un-customize all settings in this buffer--save them with standard values."
-		     :action 'Custom-reset-standard)))
     (widget-insert "\n ")
     (widget-create 'push-button
 		   :tag "Reset to Current"
@@ -1510,6 +1503,13 @@ Reset all edited text in this buffer to reflect current values."
 		   :help-echo "\
 Reset all settings in this buffer to their saved values."
 		   :action 'Custom-reset-saved)
+    (widget-insert " ")
+    (when (or custom-file user-init-file)
+      (widget-create 'push-button
+		     :tag "Erase Customization"
+		     :help-echo "\
+Un-customize all settings in this buffer--save them with standard values."
+		     :action 'Custom-reset-standard)))
   (if (not custom-buffer-verbose-help)
       (progn
 	(widget-insert " ")
