@@ -1,3 +1,9 @@
+2006-01-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): If the image is from a file,
+	let GTK do all image processing.  Importing Emacs own pixmaps to GTK
+	looks bad for inactive tool bar items with some Gnome themes.
+
 2006-01-04  Eli Zaretskii  <eliz@gnu.org>
 
 	* .gdbinit: Avoid a warning message when x_error_quitter is not
