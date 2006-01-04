@@ -1,3 +1,8 @@
+2006-01-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* process.c [WINDOWSNT]: Undef AF_INET6 to disable IPv6 support
+	for w32.
+
 2006-01-04  Kim F. Storm  <storm@cua.dk>
 
 	* process.c: Add IPv6 support.
