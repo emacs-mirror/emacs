@@ -1782,8 +1782,10 @@ the system select an unused port number.
 
 @item :family @var{family}
 @var{family} specifies the address (and protocol) family for
-communication.  @code{nil} stands for IPv4.  @code{local} specifies a
-Unix socket, in which case @var{host} is ignored.
+communication.  @code{nil} stands for automatically determine a the
+proper address family for the given @var{host} and @var{service}.
+@code{local} specifies a Unix socket, in which case @var{host} is ignored.
+@code{ipv4} and @code{ipv6} specify to use IPv4 and IPv6 respectively.
 
 @item :local @var{local-address}
 For a server process, @var{local-address} is the address to listen on.
@@ -1803,9 +1805,18 @@ the address family:
 
 @itemize -
 @item
-An IPv4 address is represented as a vector of integers @code{[@var{a}
-@var{b} @var{c} @var{d} @var{p}]} corresponding to numeric IP address
-@var{a}.@var{b}.@var{c}.@var{d} and port number @var{p}.
+An IPv4 address is represented as a five-element vector of four 8-bit
+integers and one 16-bit integer
+@code{[@var{a} @var{b} @var{c} @var{d} @var{p}]} corresponding to
+numeric IPv4 address @var{a}.@var{b}.@var{c}.@var{d} and port number
+@var{p}.
+
+@item
+An IPv6 address is represented as a nine-element vector of 16-bit
+integers @code{[@var{a} @var{b} @var{c} @var{d} @var{e} @var{f}
+@var{g} @var{h} @var{p}]} corresponding to numeric IPv6 address
+@var{a}:@var{b}:@var{c}:@var{d}:@var{e}:@var{f}:@var{g}:@var{h} and
+port number @var{p}.
 
 @item
 A local address is represented as a string which specifies the address
@@ -1979,6 +1990,8 @@ Non-@code{nil} if non-blocking connect is supported.
 Non-@code{nil} if datagrams are supported.
 @item (:family local)
 Non-@code{nil} if local (aka ``UNIX domain'') sockets are supported.
+@item (:family ipv6)
+Non-@code{nil} if IPv6 is supported.
 @item (:service t)
 Non-@code{nil} if the system can select the port for a server.
 @end table
@@ -2041,14 +2054,19 @@ The current flags of the interface.
 
 @defun format-network-address address &optional omit-port
 This function converts the Lisp representation of a network address to
-a string.  For example, a five-element vector @code{[@var{a} @var{b}
-@var{c} @var{d} @var{p}]} represents an IP address
+a string.
+  A five-element vector @code{[@var{a} @var{b}
+@var{c} @var{d} @var{p}]} represents an IPv4 address
 @var{a}.@var{b}.@var{c}.@var{d} and port number @var{p}.
 @code{format-network-address} converts that to the string
 @code{"@var{a}.@var{b}.@var{c}.@var{d}:@var{p}"}.
+  A nine-element vector @code{[@var{a} @var{b} @var{c} @var{d} @var{e}
+@var{f} @var{g} @var{h} @var{p}]} represents an IPv6 address and port
+number.  @code{format-network-address} converts that to the string
+@code{"[@var{a}:@var{b}:@var{c}:@var{d}:@var{e}:@var{f}:@var{g}:@var{h}]:@var{p}"}.
 
 If @var{omit-port} is non-@code{nil}, the value does not include
-the port number.
+the port number, or the port number is ignored if it does.
 @end defun
 
 @node Byte Packing
