@@ -1168,7 +1168,7 @@ SEARCH-REGEXP-LIST is used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-mairix-binary
-    (error "Set `mh-mairix-binary appropriately'"))
+    (error "Set `mh-mairix-binary' appropriately"))
   (apply #'call-process mh-mairix-binary nil '(t nil) nil
          "-r" "-f" (format "%s%s/config" mh-user-path mh-mairix-directory)
          search-regexp-list)

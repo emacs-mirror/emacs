@@ -1526,7 +1526,7 @@ once when he kept statistics on his mail usage."
       (beginning-of-line)
       (setq message (mh-get-msg-num t)))
     (if (looking-at mh-scan-refiled-msg-regexp)
-        (error "Message %d is refiled;  undo refile before deleting" message))
+        (error "Message %d is refiled; undo refile before deleting" message))
     (if (looking-at mh-scan-deleted-msg-regexp)
         nil
       (mh-set-folder-modified-p t)
