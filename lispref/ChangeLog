@@ -1,3 +1,7 @@
+2006-01-04  Richard M. Stallman  <rms@gnu.org>
+
+	* processes.texi (Misc Network, Make Network): Minor cleanups.
+
 2006-01-04  Kim F. Storm  <storm@cua.dk>
 
 	* processes.texi (Make Network): Add IPv6 addresses and handling.
