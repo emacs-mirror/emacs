@@ -3,6 +3,8 @@
 	* Makefile.in (compile-always): Add mh-autoloads dependency.
 	(bootstrap): Remove mh-autoloads dependency, as compile dependency
 	provides it.
+	(updates): Remove mh-autoloads dependency, since it probably has
+	already run recently (via recompile).
 
 2006-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
