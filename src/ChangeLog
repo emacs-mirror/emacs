@@ -1,3 +1,8 @@
+2006-01-05  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fmake_network_process): Use AF_INET instead of
+	AF_UNSPEC when AF_INET6	is not defined.
+
 2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c (mac_coerce_file_name_ptr, mac_coerce_file_name_desc):
