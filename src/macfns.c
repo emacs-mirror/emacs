@@ -2880,24 +2880,37 @@ If omitted or nil, that stands for the selected frame's display.  */)
      (display)
      Lisp_Object display;
 {
-  int mac_major_version;
-  SInt32 response;
+  UInt32 response, major, minor, bugfix;
   OSErr err;
 
   BLOCK_INPUT;
   err = Gestalt (gestaltSystemVersion, &response);
+  if (err == noErr)
+    if (response >= 0x00001040)
+      {
+	err = Gestalt ('sys1', &major); /* gestaltSystemVersionMajor */
+	if (err == noErr)
+	  err = Gestalt ('sys2', &minor); /* gestaltSystemVersionMinor */
+	if (err == noErr)
+	  err = Gestalt ('sys3', &bugfix); /* gestaltSystemVersionBugFix */
+      }
+    else
+      {
+	bugfix = response & 0xf;
+	response >>= 4;
+	minor = response & 0xf;
+	response >>= 4;
+	/* convert BCD to int */
+	major = response - (response >> 4) * 6;
+      }
   UNBLOCK_INPUT;
 
   if (err != noErr)
     error ("Cannot get Mac OS version");
 
-  mac_major_version = (response >> 8) & 0xff;
-  /* convert BCD to int */
-  mac_major_version -= (mac_major_version >> 4) * 6;
-
-  return Fcons (make_number (mac_major_version),
-		Fcons (make_number ((response >> 4) & 0xf),
-		       Fcons (make_number (response & 0xf),
+  return Fcons (make_number (major),
+		Fcons (make_number (minor),
+		       Fcons (make_number (bugfix),
 			      Qnil)));
 }
 
