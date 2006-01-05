@@ -1,3 +1,17 @@
+2006-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-cookie.el (url-cookie-parse-file): Don't complain of missing file.
+	(url-cookie-parse-file, url-cookie-write-file, url-cookie-retrieve)
+	(url-cookie-generate-header-lines, url-cookie-handle-set-cookie)
+	(url-cookie-setup-save-timer): Remove autoload cookies.
+	They're only called from files that require url-cookie anyway.
+
+	* url-history.el (url-history-setup-save-timer)
+	(url-history-parse-history, url-history-save-history):
+	Remove autoload cookies.  They're only called from url.el which requires
+	url-history anyway.
+	(url-history-parse-history): Don't complain if the file is missing.
+
 2006-01-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-handlers.el (url-retrieve-synchronously): Don't autoload.
