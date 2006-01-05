@@ -1,7 +1,7 @@
 ;;; flyspell.el --- on-the-fly spell checker
 
 ;; Copyright (C) 1998, 2000, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Manuel Serrano <Manuel.Serrano@sophia.inria.fr>
 ;; Maintainer: FSF
@@ -504,11 +504,11 @@ in your .emacs file.
 (defvar flyspell-last-buffer nil
   "The buffer in which the last flyspell operation took place.")
 
-(defun flyspell-accept-buffer-local-defs ()
+(defun flyspell-accept-buffer-local-defs (&optional force)
   ;; When flyspell-word is used inside a loop (e.g. when processing
   ;; flyspell-changes), the calls to `ispell-accept-buffer-local-defs' end
   ;; up dwarfing everything else, so only do it when the buffer has changed.
-  (unless (eq flyspell-last-buffer (current-buffer))
+  (when (or force (not (eq flyspell-last-buffer (current-buffer))))
     (setq flyspell-last-buffer (current-buffer))
     ;; Strange problem:  If buffer in current window has font-lock turned on,
     ;; but SET-BUFFER was called to point to an invisible buffer, this ispell
@@ -539,7 +539,9 @@ in your .emacs file.
   ;; we have to force ispell to accept the local definition or
   ;; otherwise it could be too late, the local dictionary may
   ;; be forgotten!
-  (flyspell-accept-buffer-local-defs)
+  ;; Pass the `force' argument for the case where flyspell was active already
+  ;; but the buffer's local-defs have been edited.
+  (flyspell-accept-buffer-local-defs 'force)
   ;; we put the `flyspell-delayed' property on some commands
   (flyspell-delay-commands)
   ;; we put the `flyspell-deplacement' property on some commands

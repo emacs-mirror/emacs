@@ -1,5 +1,9 @@
 2006-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/flyspell.el (flyspell-accept-buffer-local-defs): Add an
+	argument `force' to disable the flyspell-last-buffer optimization.
+	(flyspell-mode-on): Use it.
+
 	* progmodes/flymake.el (flymake-get-cleanup-function): Default to
 	flymake-simple-cleanup.
 	(flymake-allowed-file-name-masks): Use this new default.
