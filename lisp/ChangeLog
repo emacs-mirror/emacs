@@ -1,5 +1,8 @@
 2006-01-05  Richard M. Stallman  <rms@gnu.org>
 
+	* info.el (Info-find-node): Don't record previous node if have none.
+	(info): Go to directory only if history is empty.
+
 	* simple.el (mark): Doc fix.
 
 2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>

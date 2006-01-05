@@ -1,3 +1,7 @@
+2006-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* markers.texi (The Mark): Fix in `mark'.
+
 2006-01-04  Richard M. Stallman  <rms@gnu.org>
 
 	* processes.texi (Misc Network, Make Network): Minor cleanups.
