@@ -141,18 +141,18 @@ mainly used by applications on Mac OS X.
 converted to the encoding specified by the selection coding system
 using the converter in the Mac OS system, and then decoded into the
 Emacs internal encoding using the converter in Emacs.  If the first
-conversion failed, then the UTF-16 data is converted similarly but via
-UTF-8.  Copying UTF-16 text to the clipboard goes through the inverse
-path.  The reason for this two-pass decoding is to avoid subtle
-differences in Unicode mappings between the Mac OS system and Emacs
-such as various kinds of hyphens, to deal with UTF-16 data in native
-byte order with no byte order mark, and to minimize users'
-customization.  For example, users that mainly use Latin characters
-would prefer Greek characters to be decoded into the
-@code{mule-unicode-0100-24ff} charset, but Japanese users would prefer
-them to be decoded into the @code{japanese-jisx0208} charset.  Since
-the coding system for selection is automatically set according to the
-system locale setting, users usually don't have to set it manually.
+conversion failed, then the UTF-16 data is directly converted to Emacs
+internal encoding using the converter in Emacs.  Copying UTF-16 text
+to the clipboard goes through the inverse path.  The reason for this
+two-pass decoding is to avoid subtle differences in Unicode mappings
+between the Mac OS system and Emacs such as various kinds of hyphens,
+and to minimize users' customization.  For example, users that mainly
+use Latin characters would prefer Greek characters to be decoded into
+the @code{mule-unicode-0100-24ff} charset, but Japanese users would
+prefer them to be decoded into the @code{japanese-jisx0208} charset.
+Since the coding system for selection is automatically set according
+to the system locale setting, users usually don't have to set it
+manually.
 
   The default language environment (@pxref{Language Environments}) is
 set according to the locale setting at the startup time.  On Mac OS,
