@@ -1,3 +1,18 @@
+2006-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-get-cleanup-function): Default to
+	flymake-simple-cleanup.
+	(flymake-allowed-file-name-masks): Use this new default.
+	All the functions are now called in the right buffer rather than
+	passing the buffer as argument.
+	(flymake-process-sentinel): Switch to buffer before calling cleanup.
+	(flymake-parse-err-lines): Remove redundant buffer arg.
+	(flymake-get-program-dir): Comment out unused function.
+	(flymake-start-syntax-check, flymake-start-syntax-check-process):
+	Remove redundant buffer argument.
+	(flymake-get-real-file-name, flymake-simple-java-cleanup)
+	(flymake-simple-cleanup, flymake-master-cleanup): Remove buffer arg.
+
 2006-01-05  Richard M. Stallman  <rms@gnu.org>
 
 	* info.el (Info-find-node): Don't record previous node if have none.
@@ -16,8 +31,8 @@
 2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-end-of-subtree): New function.
-	(org-cycle, org-subtree-end-visible-p, org-scan-tags): Use
-	`org-end-of-subtree'.
+	(org-cycle, org-subtree-end-visible-p, org-scan-tags):
+	Use `org-end-of-subtree'.
 	(org-agenda, org-agenda-convert-date): Protect calls to
 	`fit-window-to-buffer'.
 	(org-tags-view): Force matching of sublevels when doing a
@@ -26,8 +41,8 @@
 	(org-agenda-redo): Display message.
 	(org-check-for-org-mode): New function.
 	(org-agenda-type): New variable.
-	(org-timeline, org-agenda-list, org-todo-list, org-tags-view): Set
-	`org-agenda-type'.
+	(org-timeline, org-agenda-list, org-todo-list, org-tags-view):
+	Set `org-agenda-type'.
 	(org-agenda-check-type): New function.
 	(org-agenda-goto-today, org-agenda-later, org-agenda-earlier)
 	(org-agenda-week-view, org-agenda-day-view)
@@ -36,11 +51,11 @@
 	(org-agenda-toggle-time-grid, org-agenda-date-later)
 	(org-agenda-date-prompt, org-agenda-diary-entry)
 	(org-agenda-execute-calendar-command, org-agenda-goto-calendar)
-	(org-agenda-convert-date, org-agenda-menu): Use
-	`org-agenda-check-type'.
+	(org-agenda-convert-date, org-agenda-menu):
+	Use `org-agenda-check-type'.
 	(org-make-overlay, org-delete-overlay)
-	(org-detatch-overlay, org-move-overlay, org-overlay-put): New
-	compatibility functions.
+	(org-detatch-overlay, org-move-overlay, org-overlay-put):
+	New compatibility functions.
 	(org-calendar-select-mouse): New command.
 
 2006-01-04  Chong Yidong  <cyd@stupidchicken.com>
