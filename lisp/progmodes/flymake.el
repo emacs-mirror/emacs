@@ -245,17 +245,17 @@ are the string substitutions (see `format')."
 (make-variable-buffer-local 'flymake-output-residual)
 
 (defcustom flymake-allowed-file-name-masks
-  '(("\\.c\\'" flymake-simple-make-init flymake-simple-cleanup)
-    ("\\.cpp\\'" flymake-simple-make-init flymake-simple-cleanup)
-    ("\\.xml\\'" flymake-xml-init flymake-simple-cleanup)
-    ("\\.html?\\'" flymake-xml-init flymake-simple-cleanup)
-    ("\\.cs\\'" flymake-simple-make-init flymake-simple-cleanup)
-    ("\\.pl\\'" flymake-perl-init flymake-simple-cleanup)
+  '(("\\.c\\'" flymake-simple-make-init)
+    ("\\.cpp\\'" flymake-simple-make-init)
+    ("\\.xml\\'" flymake-xml-init)
+    ("\\.html?\\'" flymake-xml-init)
+    ("\\.cs\\'" flymake-simple-make-init)
+    ("\\.pl\\'" flymake-perl-init)
     ("\\.h\\'" flymake-master-make-header-init flymake-master-cleanup)
     ("\\.java\\'" flymake-simple-make-java-init flymake-simple-java-cleanup)
     ("[0-9]+\\.tex\\'" flymake-master-tex-init flymake-master-cleanup)
-    ("\\.tex\\'" flymake-simple-tex-init flymake-simple-cleanup)
-    ("\\.idl\\'" flymake-simple-make-init flymake-simple-cleanup)
+    ("\\.tex\\'" flymake-simple-tex-init)
+    ("\\.idl\\'" flymake-simple-make-init)
     ;; ("\\.cpp\\'" 1)
     ;; ("\\.java\\'" 3)
     ;; ("\\.h\\'" 2 ("\\.cpp\\'" "\\.c\\'")
@@ -297,7 +297,8 @@ Return nil if we cannot, non-nil if we can."
 
 (defun flymake-get-cleanup-function (file-name)
   "Return cleanup function to be used for the file."
-  (nth 1 (flymake-get-file-name-mode-and-masks file-name)))
+  (or (nth 1 (flymake-get-file-name-mode-and-masks file-name))
+      'flymake-simple-cleanup))
 
 (defun flymake-get-real-file-name-function (file-name)
   (or (nth 2 (flymake-get-file-name-mode-and-masks file-name))
@@ -621,34 +622,36 @@ It's flymake process filter."
 
 (defun flymake-process-sentinel (process event)
   "Sentinel for syntax check buffers."
-  (if (memq (process-status process) '(signal exit))
-      (let*((exit-status       (process-exit-status process))
-	    (command           (process-command process))
-	    (source-buffer     (process-buffer process))
-	    (cleanup-f         (flymake-get-cleanup-function (buffer-file-name source-buffer))))
+  (when (memq (process-status process) '(signal exit))
+    (let* ((exit-status       (process-exit-status process))
+           (command           (process-command process))
+           (source-buffer     (process-buffer process))
+           (cleanup-f         (flymake-get-cleanup-function (buffer-file-name source-buffer))))
 
-	(flymake-log 2 "process %d exited with code %d"
-                     (process-id process) exit-status)
-	(condition-case err
-	    (progn
-	      (flymake-log 3 "cleaning up using %s" cleanup-f)
-	      (funcall cleanup-f source-buffer)
+      (flymake-log 2 "process %d exited with code %d"
+                   (process-id process) exit-status)
+      (condition-case err
+          (progn
+            (flymake-log 3 "cleaning up using %s" cleanup-f)
+            (when (buffer-live-p source-buffer)
+              (with-current-buffer source-buffer
+                (funcall cleanup-f)))
 
-	      (delete-process process)
-              (setq flymake-processes (delq process flymake-processes))
+            (delete-process process)
+            (setq flymake-processes (delq process flymake-processes))
 
-	      (when source-buffer
-		(with-current-buffer source-buffer
+            (when (buffer-live-p source-buffer)
+              (with-current-buffer source-buffer
 
-		  (flymake-parse-residual)
-		  (flymake-post-syntax-check exit-status command)
-		  (setq flymake-is-running nil))))
-	  (error
-	   (let ((err-str (format "Error in process sentinel for buffer %s: %s"
-				  source-buffer (error-message-string err))))
-	     (flymake-log 0 err-str)
-	     (with-current-buffer source-buffer
-	       (setq flymake-is-running nil))))))))
+                (flymake-parse-residual)
+                (flymake-post-syntax-check exit-status command)
+                (setq flymake-is-running nil))))
+        (error
+         (let ((err-str (format "Error in process sentinel for buffer %s: %s"
+                                source-buffer (error-message-string err))))
+           (flymake-log 0 err-str)
+           (with-current-buffer source-buffer
+             (setq flymake-is-running nil))))))))
 
 (defun flymake-post-syntax-check (exit-status command)
   (setq flymake-err-info flymake-new-err-info)
@@ -894,7 +897,8 @@ Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
     (while (< idx count)
       (setq line-err-info (flymake-parse-line (nth idx lines)))
       (when line-err-info
-	(setq real-file-name (funcall get-real-file-name-f (current-buffer) (flymake-ler-get-file line-err-info)))
+	(setq real-file-name (funcall get-real-file-name-f
+                                      (flymake-ler-get-file line-err-info)))
 	(setq line-err-info (flymake-ler-set-full-file line-err-info real-file-name))
 
 	(if (flymake-same-files real-file-name source-file-name)
@@ -1128,12 +1132,12 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 ;;   "Remove any formatting made by flymake."
 ;;   )
 
-(defun flymake-get-program-dir (buffer)
-  "Get dir to start program in."
-  (unless (bufferp buffer)
-    (error "Invalid buffer"))
-  (with-current-buffer buffer
-    default-directory))
+;; (defun flymake-get-program-dir (buffer)
+;;   "Get dir to start program in."
+;;   (unless (bufferp buffer)
+;;     (error "Invalid buffer"))
+;;   (with-current-buffer buffer
+;;     default-directory))
 
 (defun flymake-safe-delete-file (file-name)
   (when (and file-name (file-exists-p file-name))
@@ -1176,7 +1180,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
         (if (not cmd-and-args)
             (progn
               (flymake-log 0 "init function %s for %s failed, cleaning up" init-f source-file-name)
-              (funcall cleanup-f (current-buffer)))
+              (funcall cleanup-f))
           (progn
             (setq flymake-last-change-time nil)
             (flymake-start-syntax-check-process cmd args dir)))))))
@@ -1209,7 +1213,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
 	      (source-file-name buffer-file-name)
 	      (cleanup-f        (flymake-get-cleanup-function source-file-name)))
 	 (flymake-log 0 err-str)
-	 (funcall cleanup-f (current-buffer))
+	 (funcall cleanup-f)
 	 (flymake-report-fatal-status "PROCERR" err-str))))))
 
 (defun flymake-kill-process (proc)
@@ -1576,34 +1580,28 @@ With arg, turn Flymake mode on if and only if arg is positive."
     (setq flymake-temp-source-file-name temp-source-file-name)
     temp-source-file-name))
 
-(defun flymake-simple-cleanup (buffer)
+(defun flymake-simple-cleanup ()
   "Do cleanup after `flymake-init-create-temp-buffer-copy'.
 Delete temp file."
-  (let* ((temp-source-file-name (with-current-buffer buffer
-                                  flymake-temp-source-file-name)))
-    (flymake-safe-delete-file temp-source-file-name)
-    (with-current-buffer buffer
-      (setq flymake-last-change-time nil))))
+  (flymake-safe-delete-file flymake-temp-source-file-name)
+  (setq flymake-last-change-time nil))
 
-(defun flymake-get-real-file-name (buffer file-name-from-err-msg)
+(defun flymake-get-real-file-name (file-name-from-err-msg)
   "Translate file name from error message to \"real\" file name.
 Return full-name.  Names are real, not patched."
-  (let* ((real-name              nil)
-	 (source-file-name       (buffer-file-name buffer))
-	 (master-file-name
-          (with-current-buffer buffer flymake-master-file-name))
-	 (temp-source-file-name
-          (with-current-buffer buffer flymake-temp-source-file-name))
-	 (temp-master-file-name
-          (with-current-buffer buffer flymake-temp-master-file-name))
+  (let* ((real-name		nil)
+	 (source-file-name	buffer-file-name)
+	 (master-file-name	flymake-master-file-name)
+	 (temp-source-file-name	flymake-temp-source-file-name)
+	 (temp-master-file-name	flymake-temp-master-file-name)
 	 (base-dirs
-          (list (with-current-buffer buffer flymake-base-dir)
+          (list flymake-base-dir
                 (file-name-directory source-file-name)
                 (if master-file-name (file-name-directory master-file-name))))
-	 (files                  (list (list source-file-name       source-file-name)
-				       (list temp-source-file-name  source-file-name)
-				       (list master-file-name       master-file-name)
-				       (list temp-master-file-name  master-file-name))))
+	 (files (list (list source-file-name       source-file-name)
+                      (list temp-source-file-name  source-file-name)
+                      (list master-file-name       master-file-name)
+                      (list temp-master-file-name  master-file-name))))
 
     (when (equal 0 (length file-name-from-err-msg))
       (setq file-name-from-err-msg source-file-name))
@@ -1666,7 +1664,7 @@ Return full-name.  Names are real, not patched."
 
 (defun flymake-init-create-temp-source-and-master-buffer-copy (get-incl-dirs-f create-temp-f master-file-masks include-regexp-list)
   "Find master file (or buffer), create it's copy along with a copy of the source file."
-  (let* ((source-file-name       buffer-file-name buffer)
+  (let* ((source-file-name       buffer-file-name)
 	 (temp-source-file-name  (flymake-init-create-temp-buffer-copy create-temp-f))
 	 (master-and-temp-master (flymake-create-master-file
 				  source-file-name temp-source-file-name
@@ -1681,9 +1679,9 @@ Return full-name.  Names are real, not patched."
       (setq flymake-master-file-name (nth 0 master-and-temp-master))
       (setq flymake-temp-master-file-name (nth 1 master-and-temp-master)))))
 
-(defun flymake-master-cleanup (buffer)
-  (flymake-simple-cleanup buffer)
-  (flymake-safe-delete-file (with-current-buffer buffer flymake-temp-master-file-name)))
+(defun flymake-master-cleanup ()
+  (flymake-simple-cleanup)
+  (flymake-safe-delete-file flymake-temp-master-file-name))
 
 ;;;; make-specific init-cleanup routines
 (defun flymake-get-syntax-check-program-args (source-file-name base-dir use-relative-base-dir use-relative-source get-cmd-line-f)
@@ -1760,13 +1758,12 @@ Use CREATE-TEMP-F for creating temp copy."
 (defun flymake-simple-ant-java-init ()
   (flymake-simple-make-init-impl 'flymake-create-temp-with-folder-structure nil nil "build.xml" 'flymake-get-ant-cmdline))
 
-(defun flymake-simple-java-cleanup (buffer)
+(defun flymake-simple-java-cleanup ()
   "Cleanup after `flymake-simple-make-java-init' -- delete temp file and dirs."
-  (let* ((temp-source-file-name (with-current-buffer buffer
-                                  flymake-temp-source-file-name)))
-    (flymake-safe-delete-file temp-source-file-name)
-    (when temp-source-file-name
-      (flymake-delete-temp-directory (file-name-directory temp-source-file-name)))))
+  (flymake-safe-delete-file flymake-temp-source-file-name)
+  (when flymake-temp-source-file-name
+    (flymake-delete-temp-directory
+     (file-name-directory flymake-temp-source-file-name))))
 
 ;;;; perl-specific init-cleanup routines
 (defun flymake-perl-init ()
