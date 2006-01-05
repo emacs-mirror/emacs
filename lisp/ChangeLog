@@ -1,3 +1,11 @@
+2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-parameter): Don't coerce data if it is
+	already of desired type.
+	(mac-ae-list): Coerce parameter to "list" type.
+	(mac-dispatch-apple-event): Replace cadr part of event with a
+	dummy position so that event-start returns it.
+
 2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-end-of-subtree): New function.

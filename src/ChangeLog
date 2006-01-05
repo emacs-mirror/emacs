@@ -1,3 +1,12 @@
+2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (mac_coerce_file_name_ptr, mac_coerce_file_name_desc):
+	Don't check that the other type is known file-related one.
+
+	* macfns.c (Fx_server_version): Use gestaltSystemVersionMajor,
+	gestaltSystemVersionMinor, and gestaltSystemVersionBugFix on Mac
+	OS X 10.4 and later.
+
 2006-01-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_get_image_for_pixmap): If the image is from a file,
