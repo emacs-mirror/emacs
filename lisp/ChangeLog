@@ -1,3 +1,33 @@
+2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-end-of-subtree): New function.
+	(org-cycle, org-subtree-end-visible-p, org-scan-tags): Use
+	`org-end-of-subtree'.
+	(org-agenda, org-agenda-convert-date): Protect calls to
+	`fit-window-to-buffer'.
+	(org-tags-view): Force matching of sublevels when doing a
+	todo-only search.  Define the correct redo command, including the
+	arguments.
+	(org-agenda-redo): Display message.
+	(org-check-for-org-mode): New function.
+	(org-agenda-type): New variable.
+	(org-timeline, org-agenda-list, org-todo-list, org-tags-view): Set
+	`org-agenda-type'.
+	(org-agenda-check-type): New function.
+	(org-agenda-goto-today, org-agenda-later, org-agenda-earlier)
+	(org-agenda-week-view, org-agenda-day-view)
+	(org-agenda-next-date-line, org-agenda-previous-date-line)
+	(org-agenda-log-mode, org-agenda-toggle-diary)
+	(org-agenda-toggle-time-grid, org-agenda-date-later)
+	(org-agenda-date-prompt, org-agenda-diary-entry)
+	(org-agenda-execute-calendar-command, org-agenda-goto-calendar)
+	(org-agenda-convert-date, org-agenda-menu): Use
+	`org-agenda-check-type'.
+	(org-make-overlay, org-delete-overlay)
+	(org-detatch-overlay, org-move-overlay, org-overlay-put): New
+	compatibility functions.
+	(org-calendar-select-mouse): New command.
+
 2006-01-04  Chong Yidong  <cyd@stupidchicken.com>
 
 	* cus-edit.el (Custom-reset-current, Custom-reset-saved)
