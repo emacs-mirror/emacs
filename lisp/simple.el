@@ -3069,10 +3069,12 @@ it is possible that the region may have changed")
   "Hook run when the mark becomes inactive.")
 
 (defun mark (&optional force)
-  "Return this buffer's mark value as integer; error if mark inactive.
-If optional argument FORCE is non-nil, access the mark value
-even if the mark is not currently active, and return nil
-if there is no mark at all.
+  "Return this buffer's mark value as integer, or nil if never set.
+
+In Transient Mark mode, this function signals an error if
+the mark is not active.  However, if `mark-even-if-inactive' is non-nil,
+or the argument FORCE is non-nil, it disregards whether the mark
+is active, and returns an integer or nil in the usual way.
 
 If you are using this in an editing command, you are most likely making
 a mistake; see the documentation of `set-mark'."
@@ -3687,15 +3689,13 @@ and `current-column' to be able to ignore invisible text."
 	    (goto-char (previous-char-property-change (point) line-beg))))))))
 
 (defun move-end-of-line (arg)
-  "Move point to end of current line.
+  "Move point to end of current line as displayed.
+\(If there's an image in the line, this disregards newlines
+which are part of the text that the image rests on.)
+
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
-
-This command does not move point across a field boundary unless doing so
-would move beyond there to a different line; if ARG is nil or 1, and
-point starts at a field boundary, point does not move.  To ignore field
-boundaries bind `inhibit-field-text-motion' to t."
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "p")
   (or arg (setq arg 1))
   (let (done)
@@ -3723,15 +3723,13 @@ boundaries bind `inhibit-field-text-motion' to t."
 	    (setq done t)))))))
 
 (defun move-beginning-of-line (arg)
-  "Move point to beginning of current display line.
+  "Move point to beginning of current line as displayed.
+\(If there's an image in the line, this disregards newlines
+which are part of the text that the image rests on.)
+
 With argument ARG not nil or 1, move forward ARG - 1 lines first.
 If point reaches the beginning or end of buffer, it stops there.
-To ignore intangibility, bind `inhibit-point-motion-hooks' to t.
-
-This command does not move point across a field boundary unless doing so
-would move beyond there to a different line; if ARG is nil or 1, and
-point starts at a field boundary, point does not move.  To ignore field
-boundaries bind `inhibit-field-text-motion' to t."
+To ignore intangibility, bind `inhibit-point-motion-hooks' to t."
   (interactive "p")
   (or arg (setq arg 1))
   (if (/= arg 1)
