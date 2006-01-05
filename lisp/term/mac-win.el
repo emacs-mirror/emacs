@@ -1381,7 +1381,7 @@ in `selection-converter-alist', which see."
 (put 'core-event     'mac-apple-event-class "aevt") ; kCoreEventClass
 (put 'internet-event 'mac-apple-event-class "GURL") ; kAEInternetEventClass
 
-;;; Event IDs 
+;;; Event IDs
 ;; kCoreEventClass
 (put 'open-application   'mac-apple-event-id "oapp") ; kAEOpenApplication
 (put 'reopen-application 'mac-apple-event-id "rapp") ; kAEReopenApplication
@@ -1409,14 +1409,14 @@ in `selection-converter-alist', which see."
       (error "Not an Apple event: %S" ae)
     (let ((type-data (cdr (assoc keyword (cdr ae))))
 	  data)
-      (when (and type type-data)
+      (when (and type type-data (not (equal type (car type-data))))
 	(setq data (mac-coerce-ae-data (car type-data) (cdr type-data) type))
 	(setq type-data (if data (cons type data) nil)))
       type-data)))
 
 (defun mac-ae-list (ae &optional keyword type)
   (or keyword (setq keyword "----")) ;; Direct object.
-  (let ((desc (mac-ae-parameter ae keyword)))
+  (let ((desc (mac-ae-parameter ae keyword "list")))
     (cond ((null desc)
 	   nil)
 	  ((not (equal (car desc) "list"))
@@ -1588,6 +1588,9 @@ Currently the `mailto' scheme is supported."
       (setq service-message
 	    (intern (decode-coding-string service-message 'utf-8)))
       (setq binding (lookup-key binding (vector service-message))))
+    ;; Replace (cadr event) with a dummy position so that event-start
+    ;; returns it.
+    (setcar (cdr event) (list (selected-window) (point) '(0 . 0) 0))
     (call-interactively binding)))
 
 (global-set-key [mac-apple-event] 'mac-dispatch-apple-event)
