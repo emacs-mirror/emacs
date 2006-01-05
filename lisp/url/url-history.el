@@ -1,7 +1,7 @@
 ;;; url-history.el --- Global history tracking for URL package
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -80,7 +80,6 @@ to run the `url-history-setup-save-timer' function manually."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;###autoload
 (defun url-history-setup-save-timer ()
   "Reset the history list timer."
   (interactive)
@@ -92,14 +91,15 @@ to run the `url-history-setup-save-timer' function manually."
 					   url-history-save-interval
 					   'url-history-save-history))))
 
-;;;###autoload
 (defun url-history-parse-history (&optional fname)
   "Parse a history file stored in FNAME."
   ;; Parse out the mosaic global history file for completions, etc.
   (or fname (setq fname (expand-file-name url-history-file)))
   (cond
    ((not (file-exists-p fname))
-    (message "%s does not exist." fname))
+    ;; It's completely normal for this file not to exist, so don't complain.
+    ;; (message "%s does not exist." fname)
+    )
    ((not (file-readable-p fname))
     (message "%s is unreadable." fname))
    (t
@@ -113,7 +113,6 @@ to run the `url-history-setup-save-timer' function manually."
   (setq url-history-changed-since-last-save t)
   (puthash (if (vectorp url) (url-recreate-url url) url) time url-history-hash-table))
 
-;;;###autoload
 (defun url-history-save-history (&optional fname)
   "Write the global history file into `url-history-file'.
 The type of data written is determined by what is in the file to begin
