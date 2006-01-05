@@ -2921,7 +2921,7 @@ usage: (make-network-process &rest ARGS)  */)
   tem = Fplist_get (contact, QCfamily);
   if (NILP (tem))
     {
-#ifdef HAVE_GETADDRINFO
+#if defined(HAVE_GETADDRINFO) && defined(AF_INET6)
       family = AF_UNSPEC;
 #else
       family = AF_INET;
