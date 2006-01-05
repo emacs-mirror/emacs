@@ -796,7 +796,7 @@ commands
   # around before Emacs exits.  Perhaps we should put the break
   # somewhere else instead...
   if $tem[0] == 'x' && $tem[1] == '\0'
-    break abort
+    break x_error_quitter
   end
   continue
 end
