@@ -2876,10 +2876,11 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu, wrong_kboard_j
 
   /* Notify the caller if a timer or sentinel or filter in the sit_for
      calls above have changed the current kboard.  This could happen
-     if they start a recursive edit, like the fancy splash screen in
-     server.el's filter.  If this longjmp wasn't here,
-     read_key_sequence would interpret the next key sequence using the
-     wrong translation tables and function keymaps.  */
+     if they use the minibuffer or start a recursive edit, like the
+     fancy splash screen in server.el's filter.  If this longjmp
+     wasn't here, read_key_sequence would interpret the next key
+     sequence using the wrong translation tables and function
+     keymaps.  */
   if (NILP (c) && current_kboard != orig_kboard)
     {
       UNGCPRO;
@@ -9010,14 +9011,20 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 	    struct frame *interrupted_frame = SELECTED_FRAME ();
 	    if (setjmp (*wrong_kboard_jmpbuf))
 	      {
-                int found = 0;
-                struct kboard *k;
+		int found = 0;
+		struct kboard *k;
 
-                for (k = all_kboards; k; k = k->next_kboard)
-                  if (k == interrupted_kboard)
-                    found = 1;
-                if (!found)
-                  abort ();
+		for (k = all_kboards; k; k = k->next_kboard)
+		  if (k == interrupted_kboard)
+		    found = 1;
+
+		if (!found)
+		  {
+		    /* Don't touch interrupted_kboard when it's been
+		       deleted. */
+		    delayed_switch_frame = Qnil;
+		    goto replay_sequence;
+		  }
 
 		if (!NILP (delayed_switch_frame))
 		  {
@@ -9026,6 +9033,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 			       interrupted_kboard->kbd_queue);
 		    delayed_switch_frame = Qnil;
 		  }
+
 		while (t > 0)
 		  interrupted_kboard->kbd_queue
 		    = Fcons (keybuf[--t], interrupted_kboard->kbd_queue);
