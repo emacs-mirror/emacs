@@ -1,3 +1,8 @@
+2006-01-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* flymake.texi (Obtaining Flymake): Update Flymake's CVS
+	repository URL.
+
 2006-01-06  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Removed the accidentally re-added empty line in the
