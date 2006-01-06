@@ -78,15 +78,16 @@ Prompts for bug subject.  Leaves you in a mail buffer."
   (interactive (reverse (list (recent-keys) (read-string "Bug Subject: "))))
   ;; If there are four numbers in emacs-version, this is a pretest
   ;; version.
-  (let ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
+  (let* ((pretest-p (string-match "\\..*\\..*\\." emacs-version))
 	(from-buffer (current-buffer))
+	(reporting-address (if pretest-p
+			       report-emacs-bug-pretest-address
+			     report-emacs-bug-address))
 	user-point prompt-beg-point message-end-point)
     (setq message-end-point
 	  (with-current-buffer (get-buffer-create "*Messages*")
 	    (point-max-marker)))
-    (compose-mail (if pretest-p
-		      report-emacs-bug-pretest-address
-		    report-emacs-bug-address)
+    (compose-mail reporting-address
 		  topic)
     ;; The rest of this does not execute
     ;; if the user was asked to confirm and said no.
@@ -100,20 +101,19 @@ Prompts for bug subject.  Leaves you in a mail buffer."
     (setq prompt-beg-point (point))
     (unless report-emacs-bug-no-explanations
       ;; Insert warnings for novice users.
-      (insert "This bug report will be sent to the Free Software Foundation,\n")
-      (let ((pos (point)))
-	(insert "not to your local site managers!")
-	(put-text-property pos (point) 'face 'highlight))
-      (insert "\nPlease write in ")
+      (when (string-match "@gnu\\.org^" reporting-address)
+	(insert "This bug report will be sent to the Free Software Foundation,\n")
+	(let ((pos (point)))
+	  (insert "not to your local site managers!")
+	  (put-text-property pos (point) 'face 'highlight)))
+	(insert "\nPlease write in ")
       (let ((pos (point)))
 	(insert "English")
 	(put-text-property pos (point) 'face 'highlight))
       (insert " if possible, because the Emacs maintainers
 usually do not have translators to read other languages for them.\n\n")
       (insert (format "Your bug report will be posted to the %s mailing list"
-		      (if pretest-p
-			  report-emacs-bug-pretest-address
-			report-emacs-bug-address)))
+		      reporting-address))
       (if pretest-p
 	  (insert ".\n\n")
 	(insert ",\nand to the gnu.emacs.bug news group.\n\n")))
