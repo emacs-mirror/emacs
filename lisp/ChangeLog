@@ -1,3 +1,14 @@
+2006-01-01  Michael Ernst  <mernst@alum.mit.edu>  (tiny changes)
+
+	* textmodes/tildify.el: Fix typos (misspellings) in the commentary.
+
+	* emacs-lisp/find-func.el (find-definition-noselect): Fix typo in
+	the doc string: "functoin" => "function".
+	ldefs-boot.el: Likewise.
+
+	* textmodes/bibtex.el (bibtex-validate-globally): Fix typo in a
+	message text: "Duplicat" => "Duplicate".
+
 2006-01-06  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
 
 	* files.el (basic-save-buffer-2): If backing-up failed, reset
