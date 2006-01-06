@@ -1,6 +1,6 @@
 ;;; mh-junk.el --- Interface to anti-spam measures
 
-;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>,
 ;;         Bill Wohler <wohler@newt.com>
@@ -108,10 +108,12 @@ RANGE is read in interactive use."
 (defun mh-spamassassin-blacklist (msg)
   "Blacklist MSG with SpamAssassin.
 
-SpamAssassin is one of the more popular spam filtering programs. Get
-it from your local distribution or from http://spamassassin.org/.
+SpamAssassin is one of the more popular spam filtering programs.
+Get it from your local distribution or from
+http://spamassassin.org/.
 
-To use SpamAssassin, add the following recipes to \".procmailrc\":
+To use SpamAssassin, add the following recipes to
+\".procmailrc\":
 
     MAILDIR=$HOME/`mhparam Path`
 
@@ -130,56 +132,59 @@ To use SpamAssassin, add the following recipes to \".procmailrc\":
 
 If you don't use \"spamc\", use \"spamassassin -P -a\".
 
-Note that one of the recipes above throws away messages with a score
-greater than or equal to 10. Here's how you can determine a value that
-works best for you.
+Note that one of the recipes above throws away messages with a
+score greater than or equal to 10. Here's how you can determine a
+value that works best for you.
 
-First, run \"spamassassin -t\" on every mail message in your archive and
-use Gnumeric to verify that the average plus the standard deviation of
-good mail is under 5, the SpamAssassin default for \"spam\".
+First, run \"spamassassin -t\" on every mail message in your
+archive and use Gnumeric to verify that the average plus the
+standard deviation of good mail is under 5, the SpamAssassin
+default for \"spam\".
 
-Using Gnumeric, sort the messages by score and view the messages with
-the highest score. Determine the score which encompasses all of your
-interesting messages and add a couple of points to be conservative.
-Add that many dots to the \"X-Spam-Level:\" header field above to send
-messages with that score down the drain.
+Using Gnumeric, sort the messages by score and view the messages
+with the highest score. Determine the score which encompasses all
+of your interesting messages and add a couple of points to be
+conservative. Add that many dots to the \"X-Spam-Level:\" header
+field above to send messages with that score down the drain.
 
-In the example above, messages with a score of 5-9 are set aside in
-the \"+spam\" folder for later review. The major weakness of rules-based
-filters is a plethora of false positives so it is worthwhile to check.
+In the example above, messages with a score of 5-9 are set aside
+in the \"+spam\" folder for later review. The major weakness of
+rules-based filters is a plethora of false positives so it is
+worthwhile to check.
 
-If SpamAssassin classifies a message incorrectly, or is unsure, you
-can use the MH-E commands \\[mh-junk-blacklist] and
+If SpamAssassin classifies a message incorrectly, or is unsure,
+you can use the MH-E commands \\[mh-junk-blacklist] and
 \\[mh-junk-whitelist].
 
-The \\[mh-junk-blacklist] command adds a \"blacklist_from\" entry to
-\"~/spamassassin/user_prefs\", deletes the message, and sends the
-message to the Razor, so that others might not see this spam. If the
-\"sa-learn\" command is available, the message is also recategorized as
-spam.
+The command \\[mh-junk-blacklist] adds a \"blacklist_from\" entry
+to \"~/spamassassin/user_prefs\", deletes the message, and sends
+the message to the Razor, so that others might not see this spam.
+If the \"sa-learn\" command is available, the message is also
+recategorized as spam.
 
-The \\[mh-junk-whitelist] command adds a \"whitelist_from\" rule to the
-\"~/.spamassassin/user_prefs\" file. If the \"sa-learn\" command is
-available, the message is also recategorized as ham.
+The command \\[mh-junk-whitelist] adds a \"whitelist_from\" rule
+to the \"~/.spamassassin/user_prefs\" file. If the \"sa-learn\"
+command is available, the message is also recategorized as ham.
 
 Over time, you'll observe that the same host or domain occurs
-repeatedly in the \"blacklist_from\" entries, so you might think that
-you could avoid future spam by blacklisting all mail from a particular
-domain. The utility function `mh-spamassassin-identify-spammers' helps
-you do precisely that. This function displays a frequency count of the
-hosts and domains in the \"blacklist_from\" entries from the last blank
-line in \"~/.spamassassin/user_prefs\" to the end of the file. This
+repeatedly in the \"blacklist_from\" entries, so you might think
+that you could avoid future spam by blacklisting all mail from a
+particular domain. The utility function
+`mh-spamassassin-identify-spammers' helps you do precisely that.
+This function displays a frequency count of the hosts and domains
+in the \"blacklist_from\" entries from the last blank line in
+\"~/.spamassassin/user_prefs\" to the end of the file. This
 information can be used so that you can replace multiple
 \"blacklist_from\" entries with a single wildcard entry such as:
 
     blacklist_from *@*amazingoffersdirect2u.com
 
 In versions of SpamAssassin (2.50 and on) that support a Bayesian
-classifier, \\[mh-junk-blacklist] uses the \"sa-learn\" program to
-recategorize the message as spam. Neither MH-E, nor SpamAssassin,
-rebuilds the database after adding words, so you will need to run
-\"sa-learn --rebuild\" periodically. This can be done by adding the
-following to your crontab:
+classifier, \\[mh-junk-blacklist] uses the program \"sa-learn\"
+to recategorize the message as spam. Neither MH-E, nor
+SpamAssassin, rebuilds the database after adding words, so you
+will need to run \"sa-learn --rebuild\" periodically. This can be
+done by adding the following to your crontab:
 
     0 * * * *	sa-learn --rebuild > /dev/null 2>&1"
   (unless mh-spamassassin-executable

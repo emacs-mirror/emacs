@@ -103,7 +103,7 @@
 ;;;###autoload
 (defun malayalam-composition-function (from to pattern  &optional string)
   "Compose Malayalam characters in REGION, or STRING if specified.
-Assume that the REGION or STRING must fully match the composable 
+Assume that the REGION or STRING must fully match the composable
 PATTERN regexp."
   (if string (malayalam-compose-syllable-string string)
     (malayalam-compose-syllable-region from to))
@@ -239,7 +239,7 @@ PATTERN regexp."
     ("$,1@H@m@E(B" . "$,47Y(B")
     ("$,1@H@m@Q(B" . "$,47b(B")
     ("$,1@H@a(B" . "$,47k(B")
-    ("$,1@H@m@H@a(B" . "$,47l(B") 
+    ("$,1@H@m@H@a(B" . "$,47l(B")
 
     ("$,1@J(B" . "$,46=(B")
     ("$,1@J@m@J(B" . "$,478(B") ;; duplicate
@@ -401,7 +401,7 @@ PATTERN regexp."
                (apply
                 'nconc
                 (mapcar
-                 (function 
+                 (function
                   (lambda (x) (list '(5 . 3) x))) ;; default ref. point.
                  glyph-str))))
         (compose-region from to glyph-str)))))

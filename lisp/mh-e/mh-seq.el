@@ -1,7 +1,7 @@
 ;;; mh-seq.el --- MH-E sequences support
 
 ;; Copyright (C) 1993, 1995,
-;;  2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -177,6 +177,7 @@ you want to delete the messages, use \"\\[universal-argument]
 ;;;###mh-autoload
 (defun mh-list-sequences ()
   "List all sequences in folder.
+
 The list appears in a buffer named \"*MH-E Sequences*\"."
   (interactive)
   (let ((folder mh-current-folder)
@@ -219,6 +220,7 @@ The list appears in a buffer named \"*MH-E Sequences*\"."
 ;;;###mh-autoload
 (defun mh-msg-is-in-seq (message)
   "Display the sequences in which the current message appears.
+
 Use a prefix argument to display the sequences in which another
 MESSAGE appears."
   (interactive "P")
@@ -282,7 +284,7 @@ When you want to widen the view to all your messages again, use
                         mh-show-seq-tool-bar-map))))
              (push 'widen mh-view-ops)))
           (t
-           (error "No messages in sequence \"%s\"" (symbol-name sequence))))))
+           (error "No messages in sequence %s" (symbol-name sequence))))))
 
 ;;;###mh-autoload
 (defun mh-put-msg-in-seq (range sequence)
@@ -302,7 +304,7 @@ use."
   (interactive (list (mh-interactive-range "Add messages from")
                      (mh-read-seq-default "Add to" nil)))
   (unless (mh-valid-seq-p sequence)
-    (error "Can't put message in invalid sequence \"%s\"" sequence))
+    (error "Can't put message in invalid sequence %s" sequence))
   (let* ((internal-seq-flag (mh-internal-seq sequence))
          (original-msgs (mh-seq-msgs (mh-find-seq sequence)))
          (folders (list mh-current-folder))
@@ -329,8 +331,10 @@ OP is one of 'widen and 'unthread."
 ;;;###mh-autoload
 (defun mh-widen (&optional all-flag)
   "Remove last restriction.
-If optional prefix argument ALL-FLAG is non-nil, remove all
-limits."
+
+Each limit or sequence restriction can be undone in turn with
+this command. Give this command a prefix argument ALL-FLAG to
+remove all limits and sequence restrictions."
   (interactive "P")
   (let ((msg (mh-get-msg-num nil)))
     (when mh-folder-view-stack
@@ -416,9 +420,9 @@ Prompt with PROMPT, raise an error if the sequence is empty and
 the NOT-EMPTY flag is non-nil, and supply an optional DEFAULT
 sequence. A reply of '%' defaults to the first sequence
 containing the current message."
-  (let* ((input (completing-read (format "%s %s %s" prompt "sequence:"
+  (let* ((input (completing-read (format "%s sequence%s: " prompt
                                          (if default
-                                             (format "[%s] " default)
+                                             (format " (default %s)" default)
                                            ""))
                                  (mh-seq-names mh-seq-list)
                                  nil nil nil 'mh-sequence-history))
@@ -428,7 +432,7 @@ containing the current message."
                     (t (intern input))))
          (msgs (mh-seq-to-msgs seq)))
     (if (and (null msgs) not-empty)
-        (error "No messages in sequence \"%s\"" seq))
+        (error "No messages in sequence %s" seq))
     seq))
 
 
@@ -509,20 +513,22 @@ should be replaced with:
                     (car (mh-seq-containing-msg (mh-get-msg-num nil) t)))
         prompt (format "%s range" prompt))
   (let* ((folder (or folder mh-current-folder))
-         (default (cond ((or (eq default t) (stringp default)) default)
-                        ((symbolp default) (symbol-name default))))
          (guess (eq default t))
          (counts (and guess (mh-folder-size folder)))
          (unseen (and counts (> (cadr counts) 0)))
          (large (and counts mh-large-folder (> (car counts) mh-large-folder)))
-         (str (cond ((and guess large
-                          (setq default (format "last:%s" mh-large-folder)
-                                prompt (format "%s (folder has %s messages)"
-                                               prompt (car counts)))
-                          nil))
-                    ((and guess (not large) (setq default "all") nil))
-                    ((eq default nil) "")
-                    (t (format "[%s] " default))))
+         (default (cond ((and guess large) (format "last:%s" mh-large-folder))
+                        ((and guess (not large)) "all")
+                        ((stringp default) default)
+                        ((symbolp default) (symbol-name default))))
+         (prompt (cond ((and guess large default)
+                        (format "%s (folder has %s messages, default %s)"
+                                prompt (car counts) default))
+                       ((and guess large)
+                        (format "%s (folder has %s messages)"
+                                prompt (car counts)))
+                       (default
+                         (format "%s (default %s)" prompt default))))
          (minibuffer-local-completion-map mh-range-completion-map)
          (seq-list (if (eq folder mh-current-folder)
                        mh-seq-list
@@ -532,7 +538,7 @@ should be replaced with:
                   (mh-seq-names seq-list)))
          (input (cond ((and (not ask-flag) unseen) (symbol-name mh-unseen-seq))
                       ((and (not ask-flag) (not large)) "all")
-                      (t (completing-read (format "%s: %s" prompt str)
+                      (t (completing-read (format "%s: " prompt)
                                           'mh-range-completion-function nil nil
                                           nil 'mh-range-history default))))
          msg-list)
@@ -543,7 +549,7 @@ should be replaced with:
           ((assoc (intern input) seq-list)
            (cdr (assoc (intern input) seq-list)))
           ((setq msg-list (mh-translate-range folder input)) msg-list)
-          (t (error "No messages in range \"%s\"" input)))))
+          (t (error "No messages in range %s" input)))))
 
 ;;;###mh-autoload
 (defun mh-translate-range (folder expr)
@@ -1170,7 +1176,7 @@ children."
                           (mh-message-id (mh-container-message kid)))
                  (let ((kid-message (mh-container-message kid)))
                    (return (mh-message-subject kid-message)))))
-             (error "This can't happen!")))))
+             (error "This can't happen")))))
 
 (defun mh-thread-rewind-pruning ()
   "Restore the thread tree to its state before pruning."

@@ -1,7 +1,7 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 ;;
 ;; Copyright (C) 1994, 1995, 1996, 1997,
-;;  2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -548,7 +548,8 @@ folder name hint when filing messages."
 
 ;;;###mh-autoload
 (defun mh-alias-add-alias (alias address)
-  "*Add ALIAS for ADDRESS in personal alias file.
+  "Add ALIAS for ADDRESS in personal alias file.
+
 This function prompts you for an alias and address. If the alias
 exists already, you will have the choice of inserting the new
 alias before or after the old alias. In the former case, this
@@ -570,7 +571,7 @@ filing messages."
     (cond
      ((and (equal alias address-alias)
            (equal address alias-address))
-      (message "Already defined as: %s" alias-address))
+      (message "Already defined as %s" alias-address))
      (address-alias
       (if (y-or-n-p (format "Address has alias %s; set new one? "
                             address-alias))
@@ -580,7 +581,7 @@ filing messages."
 
 ;;;###mh-autoload
 (defun mh-alias-grab-from-field ()
-  "*Add alias for the sender of the current message."
+  "Add alias for the sender of the current message."
   (interactive)
   (mh-alias-reload-maybe)
   (save-excursion
@@ -609,7 +610,7 @@ filing messages."
 
 ;;;###mh-autoload
 (defun mh-alias-apropos (regexp)
-  "Show all aliases or addresses that match REGEXP."
+  "Show all aliases or addresses that match a regular expression REGEXP."
   (interactive "sAlias regexp: ")
   (if mh-alias-local-users
       (mh-alias-reload-maybe))

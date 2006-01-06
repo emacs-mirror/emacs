@@ -765,7 +765,7 @@ If the click is in the echo area, display the `*Messages*' buffer."
 	  (display-buffer (current-buffer)))
       ;; Give temporary modes such as isearch a chance to turn off.
       (run-hooks 'mouse-leave-buffer-hook)
-      (mouse-drag-region-1 start-event))))
+      (mouse-drag-track start-event t))))
 
 
 (defun mouse-on-link-p (pos)
@@ -865,7 +865,12 @@ at the same position."
   (let ((range (mouse-start-end start end mode)))
     (move-overlay ol (car range) (nth 1 range))))
 
-(defun mouse-drag-region-1 (start-event)
+(defun mouse-drag-track (start-event  &optional 
+				      do-mouse-drag-region-post-process)
+    "Track mouse drags by highlighting area between point and cursor.
+The region will be defined with mark and point, and the overlay
+will be deleted after return.  DO-MOUSE-DRAG-REGION-POST-PROCESS
+should only be used by mouse-drag-region."
   (mouse-minibuffer-check start-event)
   (setq mouse-selection-click-count-buffer (current-buffer))
   (let* ((original-window (selected-window))
@@ -949,12 +954,15 @@ at the same position."
 		 (integer-or-marker-p end-point))
         (mouse-move-drag-overlay mouse-drag-overlay start-point end-point click-count))
 
+      ;; Handle the terminating event
       (if (consp event)
 	  (let* ((fun (key-binding (vector (car event))))
 		 (do-multi-click   (and (> (event-click-count event) 0)
 					(functionp fun)
-					(not (memq fun '(mouse-set-point mouse-set-region))))))
-            ;; Run the binding of the terminating up-event, if possible.
+					(not (memq fun 
+						   '(mouse-set-point 
+						     mouse-set-region))))))
+	    ;; Run the binding of the terminating up-event, if possible.
 	    (if (and (not (= (overlay-start mouse-drag-overlay)
 			     (overlay-end mouse-drag-overlay)))
 		     (not do-multi-click))
@@ -965,31 +973,34 @@ at the same position."
 		       ;; The end that comes from where we ended the drag.
 		       ;; Point goes here.
 		       (region-termination
-                        (if (and stop-point (< stop-point start-point))
-                            (overlay-start mouse-drag-overlay)
-                          (overlay-end mouse-drag-overlay)))
-                       ;; The end that comes from where we started the drag.
-                       ;; Mark goes there.
-                       (region-commencement
-                        (- (+ (overlay-end mouse-drag-overlay)
-                              (overlay-start mouse-drag-overlay))
-                           region-termination))
-                       last-command this-command)
-                  (push-mark region-commencement t t)
-                  (goto-char region-termination)
-                  ;; Don't let copy-region-as-kill set deactivate-mark.
-                  (when mouse-drag-copy-region
-                    (let (deactivate-mark)
-                      (copy-region-as-kill (point) (mark t))))
-                  (let ((buffer (current-buffer)))
-                    (mouse-show-mark)
-                    ;; mouse-show-mark can call read-event,
-                    ;; and that means the Emacs server could switch buffers
-                    ;; under us.  If that happened,
-                    ;; avoid trying to use the region.
-                    (and (mark t) mark-active
-                         (eq buffer (current-buffer))
-                         (mouse-set-region-1))))
+			(if (and stop-point (< stop-point start-point))
+			    (overlay-start mouse-drag-overlay)
+			  (overlay-end mouse-drag-overlay)))
+		       ;; The end that comes from where we started the drag.
+		       ;; Mark goes there.
+		       (region-commencement
+			(- (+ (overlay-end mouse-drag-overlay)
+			      (overlay-start mouse-drag-overlay))
+			   region-termination))
+		       last-command this-command)
+		  (push-mark region-commencement t t)
+		  (goto-char region-termination)
+		  (if (not do-mouse-drag-region-post-process)
+		      ;; Skip all post-event handling, return immediately.
+		      (delete-overlay mouse-drag-overlay)
+		    ;; Don't let copy-region-as-kill set deactivate-mark.
+		    (when mouse-drag-copy-region
+		      (let (deactivate-mark)
+			(copy-region-as-kill (point) (mark t))))
+		    (let ((buffer (current-buffer)))
+		      (mouse-show-mark)
+		      ;; mouse-show-mark can call read-event,
+		      ;; and that means the Emacs server could switch buffers
+		      ;; under us.  If that happened,
+		      ;; avoid trying to use the region.
+		      (and (mark t) mark-active
+			   (eq buffer (current-buffer))
+			   (mouse-set-region-1)))))
               ;; Run the binding of the terminating up-event.
 	      ;; If a multiple click is not bound to mouse-set-point,
 	      ;; cancel the effects of mouse-move-drag-overlay to
@@ -997,18 +1008,18 @@ at the same position."
 	      (if do-multi-click (goto-char start-point))
               (delete-overlay mouse-drag-overlay)
               (when (and (functionp fun)
-                         (= start-hscroll (window-hscroll start-window))
-                         ;; Don't run the up-event handler if the
-                         ;; window start changed in a redisplay after
-                         ;; the mouse-set-point for the down-mouse
-                         ;; event at the beginning of this function.
-                         ;; When the window start has changed, the
-                         ;; up-mouse event will contain a different
-                         ;; position due to the new window contents,
-                         ;; and point is set again.
-                         (or end-point
-                             (= (window-start start-window)
-                                start-window-start)))
+	      (= start-hscroll (window-hscroll start-window))
+	      ;; Don't run the up-event handler if the
+	      ;; window start changed in a redisplay after
+	      ;; the mouse-set-point for the down-mouse
+	      ;; event at the beginning of this function.
+	      ;; When the window start has changed, the
+	      ;; up-mouse event will contain a different
+	      ;; position due to the new window contents,
+	      ;; and point is set again.
+	      (or end-point
+		  (= (window-start start-window)
+		     start-window-start)))
                 (when (and on-link
 			   (or (not end-point) (= end-point start-point))
 			   (consp event)

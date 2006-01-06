@@ -322,42 +322,42 @@ xg_get_image_for_pixmap (f, img, widget, old_widget)
   GdkPixmap *gmask;
   GdkDisplay *gdpy;
 
-  /* If we are on a one bit display, let GTK do all the image handling.
+  /* If we have a file, let GTK do all the image handling.
      This seems to be the only way to make insensitive and activated icons
-     look good.  */
-  if (x_screen_planes (f) == 1)
+     look good in all cases.  */
+  Lisp_Object specified_file = Qnil;
+  Lisp_Object tail;
+  extern Lisp_Object QCfile;
+
+  for (tail = XCDR (img->spec);
+       NILP (specified_file) && CONSP (tail) && CONSP (XCDR (tail));
+       tail = XCDR (XCDR (tail)))
+    if (EQ (XCAR (tail), QCfile))
+      specified_file = XCAR (XCDR (tail));
+
+  if (STRINGP (specified_file))
     {
-      Lisp_Object specified_file = Qnil;
-      Lisp_Object tail;
-      extern Lisp_Object QCfile;
+      Lisp_Object file = Qnil;
+      struct gcpro gcpro1;
+      GCPRO1 (file);
 
-      for (tail = XCDR (img->spec);
-	   NILP (specified_file) && CONSP (tail) && CONSP (XCDR (tail));
-	   tail = XCDR (XCDR (tail)))
-	if (EQ (XCAR (tail), QCfile))
-	  specified_file = XCAR (XCDR (tail));
+      file = x_find_image_file (specified_file);
+      /* We already loaded the image once before calling this
+         function, so this should not fail.  */
+      xassert (STRINGP (file) != 0);
 
-	if (STRINGP (specified_file))
-	  {
+      if (! old_widget)
+        old_widget = GTK_IMAGE (gtk_image_new_from_file (SSDATA (file)));
+      else
+        gtk_image_set_from_file (old_widget, SSDATA (file));
 
-	    Lisp_Object file = Qnil;
-	    struct gcpro gcpro1;
-	    GCPRO1 (file);
-
-	    file = x_find_image_file (specified_file);
-	    /* We already loaded the image once before calling this
-	       function, so this should not fail.  */
-	    xassert (STRINGP (file) != 0);
-
-	    if (! old_widget)
-	      old_widget = GTK_IMAGE (gtk_image_new_from_file (SSDATA (file)));
-	    else
-	      gtk_image_set_from_file (old_widget, SSDATA (file));
-
-	    UNGCPRO;
-	    return GTK_WIDGET (old_widget);
-	  }
+      UNGCPRO;
+      return GTK_WIDGET (old_widget);
     }
+
+  /* No file, do the image handling ourselves.  This will look very bad
+     on a monochrome display, and sometimes bad on all displays with
+     certain themes.  */
 
   gdpy = gdk_x11_lookup_xdisplay (FRAME_X_DISPLAY (f));
   gpix = gdk_pixmap_foreign_new_for_display (gdpy, img->pixmap);

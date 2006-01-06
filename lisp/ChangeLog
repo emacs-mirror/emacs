@@ -1,3 +1,221 @@
+2006-01-05  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (compile-always): Add mh-autoloads dependency.
+	(bootstrap): Remove mh-autoloads dependency, as compile dependency
+	provides it.
+	(updates): Remove mh-autoloads dependency, since it probably has
+	already run recently (via recompile).
+
+2006-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-accept-buffer-local-defs): Add an
+	argument `force' to disable the flyspell-last-buffer optimization.
+	(flyspell-mode-on): Use it.
+
+	* progmodes/flymake.el (flymake-get-cleanup-function): Default to
+	flymake-simple-cleanup.
+	(flymake-allowed-file-name-masks): Use this new default.
+	All the functions are now called in the right buffer rather than
+	passing the buffer as argument.
+	(flymake-process-sentinel): Switch to buffer before calling cleanup.
+	(flymake-parse-err-lines): Remove redundant buffer arg.
+	(flymake-get-program-dir): Comment out unused function.
+	(flymake-start-syntax-check, flymake-start-syntax-check-process):
+	Remove redundant buffer argument.
+	(flymake-get-real-file-name, flymake-simple-java-cleanup)
+	(flymake-simple-cleanup, flymake-master-cleanup): Remove buffer arg.
+
+2006-01-05  Richard M. Stallman  <rms@gnu.org>
+
+	* info.el (Info-find-node): Don't record previous node if have none.
+	(info): Go to directory only if history is empty.
+
+	* simple.el (mark): Doc fix.
+
+2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-ae-parameter): Don't coerce data if it is
+	already of desired type.
+	(mac-ae-list): Coerce parameter to "list" type.
+	(mac-dispatch-apple-event): Replace cadr part of event with a
+	dummy position so that event-start returns it.
+
+2006-01-05  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: (org-end-of-subtree): New function.
+	(org-cycle, org-subtree-end-visible-p, org-scan-tags):
+	Use `org-end-of-subtree'.
+	(org-agenda, org-agenda-convert-date): Protect calls to
+	`fit-window-to-buffer'.
+	(org-tags-view): Force matching of sublevels when doing a
+	todo-only search.  Define the correct redo command, including the
+	arguments.
+	(org-agenda-redo): Display message.
+	(org-check-for-org-mode): New function.
+	(org-agenda-type): New variable.
+	(org-timeline, org-agenda-list, org-todo-list, org-tags-view):
+	Set `org-agenda-type'.
+	(org-agenda-check-type): New function.
+	(org-agenda-goto-today, org-agenda-later, org-agenda-earlier)
+	(org-agenda-week-view, org-agenda-day-view)
+	(org-agenda-next-date-line, org-agenda-previous-date-line)
+	(org-agenda-log-mode, org-agenda-toggle-diary)
+	(org-agenda-toggle-time-grid, org-agenda-date-later)
+	(org-agenda-date-prompt, org-agenda-diary-entry)
+	(org-agenda-execute-calendar-command, org-agenda-goto-calendar)
+	(org-agenda-convert-date, org-agenda-menu):
+	Use `org-agenda-check-type'.
+	(org-make-overlay, org-delete-overlay)
+	(org-detatch-overlay, org-move-overlay, org-overlay-put):
+	New compatibility functions.
+	(org-calendar-select-mouse): New command.
+
+2006-01-04  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (Custom-reset-current, Custom-reset-saved)
+	(Custom-reset-standard): Fix y-or-n-p messages.
+	(custom-link): New face for links.
+	(custom-buffer-create-internal, custom-manual): Use it.
+	(custom-face-save): Push to theme-face before setting face spec.
+
+	* wid-edit.el (widget-default-mouse-face-get): New function.
+	(widget-specify-button): Handle mouse-face like button-face.
+
+	* custom.el (load-theme): Clear old theme settings if reloading.
+
+2006-01-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (custom-buffer-create-internal): Move whole buffer
+	"Erase Customization" button back to same position it occupies in
+	the individual State menus.
+
+2006-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* wid-edit.el (key-sequence): Rework widget to read key binding
+	using `kbd' syntax.  Use C-q to insert literal key, event, or code.
+	(widget-key-sequence-default-value): Default value for empty sequence.
+	(widget-key-sequence-map): New map for reading key binding.  Bind C-q.
+	(widget-key-sequence-read-event): New command for C-q.
+	(widget-key-sequence-validate, widget-key-sequence-value-to-internal)
+	(widget-key-sequence-value-to-external): New functions.
+
+2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-create-temp-with-folder-structure):
+	Use expand-file-name.
+	(flymake-delete-temp-directory): Use expand-file-name,
+	file-name-directory, and directory-file-name.
+	(flymake-strrchr): Delete.
+	(flymake-start-syntax-check): Don't pass the redundant buffer argument
+	to the init-f function.
+	(flymake-save-buffer-in-file, flymake-init-create-temp-buffer-copy)
+	(flymake-init-find-buildfile-dir)
+	(flymake-init-create-temp-source-and-master-buffer-copy)
+	(flymake-simple-make-init-impl, flymake-simple-make-init)
+	(flymake-master-make-init, flymake-master-make-header-init)
+	(flymake-simple-make-java-init, flymake-simple-ant-java-init)
+	(flymake-perl-init, flymake-simple-tex-init, flymake-master-tex-init)
+	(flymake-xml-init): Remove corresponding redundant buffer argument.
+	(flymake-allowed-file-name-masks): Remove last elems that are equal to
+	the default anyway.  Clean up regexps.
+
+	* progmodes/flymake.el (flymake-temp-source-file-name)
+	(flymake-master-file-name, flymake-temp-master-file-name)
+	(flymake-base-dir): New buffer-local vars.
+	(flymake-buffer-data, flymake-get-buffer-value)
+	(flymake-set-buffer-value): Replace those hash-tables by the new
+	buffer-local vars.  Update callers.
+
+	* progmodes/flymake.el (flymake-check-start-time)
+	(flymake-check-was-interrupted, flymake-err-info, flymake-is-running)
+	(flymake-last-change-time, flymake-new-err-info, flymake-timer):
+	Move definition, so we can remove redundant earlier declaration.
+	(flymake-replace-regexp-in-string, flymake-split-string)
+	(flymake-get-temp-dir): Use defalias.
+	(flymake-popup-menu): Remove `pos' argument.  Use posn-at-point.
+	(flymake-xemacs-window-edges): Remove unused function.
+	(flymake-get-point-pixel-pos): Move.
+	(flymake-pid-to-names, flymake-reg-names)
+	(flymake-get-source-buffer-name, flymake-unreg-names): Remove.
+	Replace by a simple list flymake-processes and by process-buffer.
+	Update callers.  Other than simplify the code, it uses buffers rather
+	than buffer-names so it doesn't get confused by uniquify.
+	(flymake-buffer-data): The global value should just be nil.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-defalias):
+	Optimize the body of a defalias like any other code.
+
+	* font-lock.el (font-lock-fontify-buffer, font-lock-fontify-region):
+	Make sure we've setup font-lock's vars.  It may influence which
+	function we then call.
+	(font-lock-default-fontify-buffer): Don't bother calling set-defaults
+	here since it's too late anyway.
+
+2006-01-03  Romain Francoise  <romain@orebokech.com>
+
+	* startup.el (fancy-splash-tail, normal-splash-screen):
+	Update copyright year.
+
+2006-01-02  J.D. Smith  <jdsmith@as.arizona.edu>
+
+	* mouse.el (mouse-drag-track): Rename, from
+	`mouse-drag-region-1'.  Includes optional argument required to
+	enable post-drag event processing (e.g. delete region keys).
+	Can be used without this argument to track a mouse region and operate
+	on it as soon as the drag completes.
+	(mouse-drag-region): Use `mouse-drag-track'.
+
+2006-01-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* cus-edit.el (custom-guess-name-alist, custom-guess-doc-alist):
+	Move to `custom-buffer' group.
+
+	* cus-theme.el: Rewrite the Custom New Theme Mode interface.
+	(custom-new-theme-mode-map, custom-theme-insert-variable-marker)
+	(custom-theme-insert-face-marker, custom-theme-variable-menu)
+	(custom-theme-face-menu): New variables.
+	(custom-theme-add-variable, custom-theme-variable-action)
+	(custom-variable-reset-theme, custom-theme-delete-variable)
+	(custom-face-reset-theme, custom-theme-face-action)
+	(custom-theme-delete-face, custom-theme-merge-theme)
+	(custom-theme-add-face, custom-theme-visit-theme): New functions.
+
+2006-01-01  Chong Yidong  <cyd@stupidchicken.com>
+
+	* custom.el: Move Custom Themes commentary to start of theme code.
+	(custom-known-themes): Rename `standard' theme to `changed'.
+	(custom-push-theme): Caller no longer specifies what theme to use
+	when doing `reset'---the setting is simply removed from the theme.
+	Delete MODE from `theme-value' and `theme-settings' properties.
+	(custom-declare-theme): Ignore &rest args since we don't use them.
+
+	(custom-loaded-themes): Delete variable.
+	(custom-theme-load-themes, custom-theme-loaded-p)
+	(custom-theme-value): Delete functions.
+
+	(custom-declare-theme): Signal error on invalid theme names.
+	(provide-theme): custom-loaded-themes was deleted.
+	(load-theme): Load the file unconditionally.
+	(enable-theme): Call `load-theme' if theme is undefined.
+	(custom-enabled-themes): Only update value for successful loads.
+	(disable-theme): Complete from enabled themes when interactive.
+	(custom-variable-theme-value): Calculate theme value directly.
+
+	(custom-theme-reset-variables, custom-reset-variables): Mark as
+	XEmacs compatibility functions.  We don't actually use these.
+
+	* cus-edit.el (custom-variable-state-set):
+	Use custom-variable-theme-value instead of custom-theme-value.
+	(custom-face-state-set): Rename `standard' theme to `changed'.
+	(custom-save-variables, custom-save-faces): Delete unneeded
+	references to custom-reset-variables.
+	(custom-save-resets): Delete function.
+	(custom-save-variables, custom-save-faces): MODE argument deleted.
+	(custom-save-variables, custom-save-faces): Ignore theme values.
+
+	* cus-face.el (custom-theme-reset-faces): Mark as XEmacs
+	compatibility function.
+
 2006-01-01  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (Custom-set, Custom-save): Ask for confirmation.

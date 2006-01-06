@@ -1,3 +1,74 @@
+2006-01-06  Nick Roberts  <nickrob@snap.net.nz>
+
+	* .gdbinit: Fix typo.
+
+2006-01-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Fix last change.
+
+2006-01-05  Kim F. Storm  <storm@cua.dk>
+
+	* process.c (Fmake_network_process): Use AF_INET instead of
+	AF_UNSPEC when AF_INET6	is not defined.
+
+2006-01-05  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (mac_coerce_file_name_ptr, mac_coerce_file_name_desc):
+	Don't check that the other type is known file-related one.
+
+	* macfns.c (Fx_server_version): Use gestaltSystemVersionMajor,
+	gestaltSystemVersionMinor, and gestaltSystemVersionBugFix on Mac
+	OS X 10.4 and later.
+
+2006-01-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_get_image_for_pixmap): If the image is from a file,
+	let GTK do all image processing.  Importing Emacs own pixmaps to GTK
+	looks bad for inactive tool bar items with some Gnome themes.
+
+2006-01-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* .gdbinit: Avoid a warning message when x_error_quitter is not
+	compiled in.
+
+	* process.c [WINDOWSNT]: Undef AF_INET6 to disable IPv6 support
+	for w32.
+
+2006-01-04  Kim F. Storm  <storm@cua.dk>
+
+	* process.c: Add IPv6 support.
+	(Qipv4, Qipv6): New vars.
+	(syms_of_process): Intern and staticpro them.
+	(Fformat_network_address): Handle 9 or 8 element vector as IPv6 address
+	with or without port number.  Handle 4 element vector as IPv4 address
+	without port number.
+	(conv_sockaddr_to_lisp, get_lisp_to_sockaddr_size)
+	(conv_lisp_to_sockaddr): Handle IPv6 addresses.
+	(Fmake_network_process): Use :family 'ipv4 and 'ipv6 to explicitly
+	request that address family only.  :family nil or omitted means to
+	determine address family from the specified :host and :service.
+	(ifflag_table): Add missing OpenBSD IFF_ flags.
+	(server_accept_connection): Handle IPv6 addresses.
+	(init_process): Add (:family ipv4) and (:family ipv6) sub-features.
+
+	* .gdbinit: Undo last change.  Instead, look at Vsystem_type to
+	determine which breakpoints to set.
+
+2006-01-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* keymap.c (describe_map_compare): Yet another int/Lisp_Object mixup.
+
+	* window.h (Fwindow_minibuffer_p): Declare (for use in minibuf.c).
+
+2006-01-03  Romain Francoise  <romain@orebokech.com>
+
+	* emacs.c (main): Update copyright year.
+
+2006-01-03  Ken Raeburn  <raeburn@gnu.org>
+
+	* callproc.c (delete_temp_file): Bind file-name-handler-alist to
+	nil for the call to internal_delete_file.
+
 2006-01-01  Ken Raeburn  <raeburn@gnu.org>
 
 	* callproc.c (Fcall_process_region): Bind file-name-handler-alist
@@ -48,7 +119,7 @@
 
 2005-12-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* gtkutil.c (xg_get_file_with_chooser): Changed message shown
+	* gtkutil.c (xg_get_file_with_chooser): Change message shown
 	in file chooser.
 
 2005-12-27  Richard M. Stallman  <rms@gnu.org>
@@ -122,8 +193,8 @@
 	* macterm.h (TYPE_FILE_NAME): New define.
 	(posix_pathname_to_fsspec, fsspec_to_posix_pathname): Remove externs.
 
-	* mac.c (posix_pathname_to_fsspec, fsspec_to_posix_pathname): Add
-	prototypes.  Make static.
+	* mac.c (posix_pathname_to_fsspec, fsspec_to_posix_pathname):
+	Add prototypes.  Make static.
 	(mac_aedesc_to_lisp): Initialize err to noErr.
 	(mac_coerce_file_name_ptr, mac_coerce_file_name_desc)
 	(init_coercion_handler): New functions.
@@ -167,8 +238,8 @@
 	* macgui.h (XCharStruct): Remove member `valid_p'.
 	(STORE_XCHARSTRUCT): Don't set member `valid_p'.
 	(XCharStructRow): New typedef.
-	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID): New
-	macros.
+	(XCHARSTRUCTROW_CHAR_VALID_P, XCHARSTRUCTROW_SET_CHAR_VALID):
+	New macros.
 	(struct MacFontStruct): Add member `bounds'.  Remove member
 	`per_char'.  All uses for QuichDraw Text fonts are changed to
 	`bounds.per_char'.  ATSUI font bounds are represented as an array
@@ -180,8 +251,8 @@
 	(mac_query_char_extents): New function.
 	(x_per_char_metric): Use it.
 	(XLoadQueryFont): Likewise.  Consolidate min/max_bounds calculations.
-	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg): Use
-	mac_per_char_metric instead of x_per_char_metric.
+	[USE_CG_TEXT_DRAWING] (mac_draw_string_cg):
+	Use mac_per_char_metric instead of x_per_char_metric.
 	(mac_text_extents_16): New function.
 	(mac_compute_glyph_string_overhangs): Use it.
 	(mac_unload_font): Free member `bounds' in struct MacFontStruct.
@@ -435,11 +506,11 @@
 	[MAC_OS8] (main): Call init_apple_event_handler instead of
 	init_required_apple_events.
 	(mac_initialize) [MAC_OSX]: Likewise.
-	[!USE_CARBON_EVENTS] (mac_wait_next_event): Use
-	mac_ready_for_apple_events instead of Qmac_ready_for_drag_n_drop.
+	[!USE_CARBON_EVENTS] (mac_wait_next_event):
+	Use mac_ready_for_apple_events instead of Qmac_ready_for_drag_n_drop.
 
-	* macterm.h (mac_make_lispy_event_code, mac_aedesc_to_lisp): Add
-	externs.
+	* macterm.h (mac_make_lispy_event_code, mac_aedesc_to_lisp):
+	Add externs.
 	(create_apple_event_from_event_ref) [TARGET_API_MAC_CARBON]: Likewise.
 	(Fmac_get_preference): Add EXFUN.
 
@@ -479,11 +550,9 @@
 
 2005-12-06  Ken Raeburn  <raeburn@gnu.org>
 
-	* buffer.c (Fkill_buffer): Avoid dangerous side effects in NILP
-	argument.
+	* buffer.c (Fkill_buffer): Avoid dangerous side effects in NILP args.
 	* bytecode.c (Fbyte_code): Likewise.
-	* fileio.c (internal_delete_file, Fread_file_name_internal):
-	Likewise.
+	* fileio.c (internal_delete_file, Fread_file_name_internal): Likewise.
 	* minibuf.c (Fminibuffer_complete_and_exit): Likewise.
 	* undo.c (truncate_undo_list): Likewise.
 

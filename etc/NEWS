@@ -308,7 +308,7 @@ On 32bit machines, it is now 256M (i.e. 268435455).
 
 +++
 ** You can now switch buffers in a cyclic order with C-x C-left
-(previous-buffer) and C-x C-right (next-buffer).  C-x left and 
+(previous-buffer) and C-x C-right (next-buffer).  C-x left and
 C-x right can be used as well.  The functions keep a different buffer
 cycle for each frame, using the frame-local buffer list.
 
@@ -4426,6 +4426,8 @@ create a stream or datagram server inside emacs.
 - Datagram connection is selected using :type 'datagram arg.
 - A server can open on a random port using :service t arg.
 - Local sockets are supported using :family 'local arg.
+- IPv6 is supported (when available).  You may explicitly select IPv6
+  using :family 'ipv6 arg.
 - Non-blocking connect is supported using :nowait t arg.
 - The process' property list can be initialized using :plist PLIST arg;
   a copy of the server process' property list is automatically inherited
@@ -4433,6 +4435,7 @@ create a stream or datagram server inside emacs.
 
 To test for the availability of a given feature, use featurep like this:
   (featurep 'make-network-process '(:type datagram))
+  (featurep 'make-network-process '(:family ipv6))
 
 *** The old `open-network-stream' now uses `make-network-process'.
 

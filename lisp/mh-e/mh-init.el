@@ -127,13 +127,13 @@ finally GNU mailutils."
        ((mh-variant-set-variant 'mu-mh)
         (message "%s installed as MH variant" mh-variant-in-use))
        (t
-        (message "No MH variant found on the system!"))))
+        (message "No MH variant found on the system"))))
      ((member variant valid-list)
       (when (not (mh-variant-set-variant variant))
-        (message "Warning: %s variant not found.  Autodetecting..." variant)
+        (message "Warning: %s variant not found. Autodetecting..." variant)
         (mh-variant-set 'autodetect)))
      (t
-      (message "Unknown variant.  Use %s"
+      (message "Unknown variant; use %s"
                (mapconcat '(lambda (x) (format "%s" (car x)))
                           mh-variants " or "))))))
 
@@ -334,25 +334,30 @@ there. Otherwise, the images directory is added to the
 
 (defun mh-defface-compat (spec)
   "Convert SPEC for defface if necessary to run on older platforms.
-Modifies SPEC in place and returns it. See `defface' for the spec definition. 
+Modifies SPEC in place and returns it. See `defface' for the spec definition.
 
-When `mh-min-colors-defined-flag' is nil, this function finds a
-display with a single \"class\" requirement with a \"color\"
-item, renames the requirement to \"tty\" and moves it to the
-beginning of the list. It then strips any \"min-colors\"
-requirements."
-  (when (not mh-min-colors-defined-flag)
-    ;; Insert ((class tty)) display with ((class color)) attributes.
-    (let ((attributes (cdr (assoc '((class color)) spec))))
-      (cons (cons '((class tty)) attributes) spec))
-    ;; Delete ((class color)) display.
-    (delq (assoc '((class color)) spec) spec)
-    ;; Strip min-colors.
-    (loop for entry in spec do
-          (when (not (eq (car entry) t))
-            (if (assoc 'min-colors (car entry))
-                (delq (assoc 'min-colors (car entry)) (car entry))))))
-  spec)
+When `mh-min-colors-defined-flag' is nil, this function finds
+display entries with \"min-colors\" requirements and either
+removes the \"min-colors\" requirement or strips the display
+entirely if the display does not support the number of specified
+colors."
+  (if mh-min-colors-defined-flag
+      spec
+    (let ((cells (display-color-cells))
+          new-spec)
+      ;; Remove entries with min-colors, or delete them if we have fewer colors
+      ;; than they specify.
+      (loop for entry in (reverse spec) do
+            (let ((requirement (if (eq (car entry) t)
+                                   nil
+                                 (assoc 'min-colors (car entry)))))
+              (if requirement
+                  (when (>= cells (nth 1 requirement))
+                    (setq new-spec (cons (cons (delq requirement (car entry))
+                                               (cdr entry))
+                                         new-spec)))
+                (setq new-spec (cons entry new-spec)))))
+      new-spec)))
 
 (provide 'mh-init)
 

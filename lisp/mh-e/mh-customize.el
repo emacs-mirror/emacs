@@ -1,6 +1,6 @@
 ;;; mh-customize.el --- MH-E customization
 
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -260,7 +260,7 @@ accordingly."
   "*Non-nil means don't consider case significant in MH alias completion.
 
 As MH ignores case in the aliases, so too does MH-E. However, you
-may turn this option off to make case significant which can be
+may turn off this option to make case significant which can be
 used to segregate completion of your aliases. You might use
 lowercase for mailing lists and uppercase for people."
   :type 'boolean
@@ -435,7 +435,7 @@ an alternate view. For example, \"'(\"-nolimit\" \"-textfield\"
 ;;; Folder Selection (:group 'mh-folder-selection)
 
 (defcustom mh-default-folder-for-message-function nil
-  "Function to select a default folder for refiling or \"Fcc\".
+  "Function to select a default folder for refiling or \"Fcc:\".
 
 The current buffer is set to the message being refiled with point
 at the start of the message. This function should return the
@@ -898,10 +898,11 @@ vanilla \"PGP\" and \"S/MIME\".
 The `pgg' customization group may have some settings which may
 interest you (see Info node `(pgg)').
 
-In particular, I set the option `pgg-encrypt-for-me' to t so that all
-messages I encrypt are encrypted with my public key as well. If you
-keep a copy of all of your outgoing mail with a \"Fcc:\" header field,
-this setting is vital so that you can read the mail you write!"
+In particular, I turn on the option `pgg-encrypt-for-me' so that
+all messages I encrypt are encrypted with my public key as well.
+If you keep a copy of all of your outgoing mail with a \"Fcc:\"
+header field, this setting is vital so that you can read the mail
+you write!"
   :type '(choice (const :tag "PGP (MIME)" "pgpmime")
                  (const :tag "PGP" "pgp")
                  (const :tag "S/MIME" "smime")
@@ -925,8 +926,8 @@ said separator). The function `mh-signature-separator-p', which
 reports t if the buffer contains a separator, may be useful as well.
 
 The signature is inserted into your message with the command
-\\<mh-letter-mode-map>\\[mh-insert-signature] or with the
-`mh-identity-list' option."
+\\<mh-letter-mode-map>\\[mh-insert-signature] or with the option
+`mh-identity-list'."
   :type 'file
   :group 'mh-letter)
 
@@ -971,33 +972,33 @@ this option doesn't exist."
 (defcustom mh-yank-behavior 'attribution
   "*Controls which part of a message is yanked by \\<mh-letter-mode-map>\\[mh-yank-cur-msg].
 
-To include the entire message, including the entire header, use \"Body
-and Header\". Use \"Body\" to yank just the body without the header.
-To yank only the portion of the message following the point, set this
-option to \"Below Point\".
+To include the entire message, including the entire header, use
+\"Body and Header\". Use \"Body\" to yank just the body without
+the header. To yank only the portion of the message following the
+point, set this option to \"Below Point\".
 
 Choose \"Invoke supercite\" to pass the entire message and header
 through supercite.
 
-If the \"Body With Attribution\" setting is used, then the message
-minus the header is yanked and a simple attribution line is added at
-the top using the value of the `mh-extract-from-attribution-verb'
-option. This is the default.
+If the \"Body With Attribution\" setting is used, then the
+message minus the header is yanked and a simple attribution line
+is added at the top using the value of the option
+`mh-extract-from-attribution-verb'. This is the default.
 
-If the \"Invoke supercite\" or \"Body With Attribution\" settings are
-used, the \"-noformat\" argument is passed to the \"repl\" program to
-override a \"-filter\" or \"-format\" argument. These settings also
-have \"Automatically\" variants that perform the action automatically
-when you reply so that you don't need to use \\[mh-yank-cur-msg] at
-all. Note that this automatic action is only performed if the show
-buffer matches the message being replied to. People who use the
-automatic variants tend to turn on the
-`mh-delete-yanked-msg-window-flag' option as well so that the show
-window is never displayed.
+If the \"Invoke supercite\" or \"Body With Attribution\" settings
+are used, the \"-noformat\" argument is passed to the \"repl\"
+program to override a \"-filter\" or \"-format\" argument. These
+settings also have \"Automatically\" variants that perform the
+action automatically when you reply so that you don't need to use
+\\[mh-yank-cur-msg] at all. Note that this automatic action is
+only performed if the show buffer matches the message being
+replied to. People who use the automatic variants tend to turn on
+the option `mh-delete-yanked-msg-window-flag' as well so that the
+show window is never displayed.
 
-If the show buffer has a region, the `mh-yank-behavior' option is
-ignored unless its value is one of Attribution variants in which case
-the attribution is added to the yanked region.
+If the show buffer has a region, the option `mh-yank-behavior' is
+ignored unless its value is one of Attribution variants in which
+case the attribution is added to the yanked region.
 
 If this option is set to one of the supercite flavors, the hook
 `mail-citation-hook' is ignored and `mh-ins-buf-prefix' is not
@@ -1040,7 +1041,7 @@ Throw an error if user tries to turn on
 Otherwise, set SYMBOL to VALUE."
   (if (and value
            (not (eq mh-scan-format-file t)))
-      (error "%s %s" "Can't turn on unless mh-scan-format-file"
+      (error "%s %s" "Can't turn on unless `mh-scan-format-file'"
              "is set to \"Use MH-E scan Format\"")
     (set-default symbol value)))
 
@@ -1051,7 +1052,7 @@ anything but t when `mh-adaptive-cmd-note-flag' is on. Otherwise,
 set SYMBOL to VALUE."
   (if (and (not (eq value t))
            (eq mh-adaptive-cmd-note-flag t))
-      (error "%s %s" "You must turn off mh-adaptive-cmd-note-flag"
+      (error "%s %s" "You must turn off `mh-adaptive-cmd-note-flag'"
              "unless you use \"Use MH-E scan Format\"")
     (set-default symbol value)))
 
@@ -2460,7 +2461,7 @@ See also `mh-before-quit-hook'."
 
 It is the last thing called after messages are displayed. It's
 used to affect the behavior of MH-E in general or when
-`mh-show-mode-hook' is too early."
+`mh-show-mode-hook' is too early. See `mh-show-mode-hook'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show)
@@ -2470,7 +2471,7 @@ used to affect the behavior of MH-E in general or when
 
 This hook is called early on in the process of the message
 display. It is usually used to perform some action on the
-message's content."
+message's content. See `mh-show-hook'."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-show)
@@ -2535,10 +2536,14 @@ sequence."
   :group 'mh-folder)
 
 (defface mh-folder-msg-number
-  '((((class color) (background light))
-     (:foreground "snow4"))
-    (((class color) (background dark))
-     (:foreground "snow3")))
+  (mh-defface-compat
+   '((((class color) (min-colors 88) (background light))
+      (:foreground "snow4"))
+     (((class color) (min-colors 88) (background dark))
+      (:foreground "snow3"))
+     (((class color))
+      (:foreground "cyan"))))
+    
   "Message number face."
   :group 'mh-faces
   :group 'mh-folder)
@@ -2802,7 +2807,7 @@ The background and foreground are used in the image."
          (setq bw-face-generation 'new))))
 
 (defun bw-new-face-to-old ()
-  "Sets old faces."
+  "Set old faces."
   (face-spec-set 'mh-folder-body
     (mh-defface-compat
      '((((class color) (min-colors 88) (background light))
@@ -2858,7 +2863,7 @@ The background and foreground are used in the image."
        (:bold t)))))
 
 (defun bw-old-face-to-new ()
-  "Sets new faces."
+  "Set new faces."
   (face-spec-set 'mh-folder-body
     '((((class color))
        (:inherit mh-folder-msg-number))
@@ -2875,7 +2880,9 @@ The background and foreground are used in the image."
     '((((class color) (background light))
        (:foreground "snow4"))
       (((class color) (background dark))
-       (:foreground "snow3")))))
+       (:foreground "snow3"))
+      (((class color))
+       (:foreground "cyan")))))
 
 
 ;; Local Variables:

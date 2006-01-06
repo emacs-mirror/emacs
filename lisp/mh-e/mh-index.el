@@ -1,6 +1,6 @@
 ;;; mh-index  --  MH-E interface to indexing programs
 
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -359,46 +359,52 @@ construct the base name."
                         &optional window-config)
   "Perform an indexed search in an MH mail folder.
 
-Use a prefix argument to repeat the search.
+Use a prefix argument to repeat the last search.
 
-Unlike regular searches, the prompt for the folder to search can be
-\"all\" to search all folders; in addition, the search works recursively
-on the listed folder. The search criteria are entered in an MH-Pick
-buffer as described in `mh-search-folder'.
+Unlike regular searches, the prompt for the folder to search can
+be \"all\" to search all folders; in addition, the search works
+recursively on the listed folder. The search criteria are entered
+in an MH-Pick buffer as described in `mh-search-folder'.\\<mh-pick-mode-map>
 
-To perform the search, type \\<mh-pick-mode-map>\\[mh-do-search].
-Another difference from the regular searches is that because the
-search operates on more than one folder, the messages that are found
-are put in a temporary sub-folder of \"+mhe-index\" and are displayed in
-an MH-Folder buffer. This buffer is special because it displays
+To perform the search, type \\[mh-do-search]. Another difference
+from the regular searches is that because the search operates on
+more than one folder, the messages that are found are put in a
+temporary sub-folder of \"+mhe-index\" and are displayed in an
+MH-Folder buffer. This buffer is special because it displays
 messages from multiple folders; each set of messages from a given
-folder has a heading with the folder name.
+folder has a heading with the folder name.\\<mh-folder-mode-map>
 
-In addition, the \\<mh-folder-mode-map>\\[mh-index-visit-folder]
-command can be used to visit the folder of the message at point.
-Initially, only the messages that matched the search criteria are
-displayed in the folder. While the temporary buffer has its own set of
-message numbers, the actual messages numbers are shown in the visited
-folder. Thus, the \\[mh-index-visit-folder] command is useful to find
-the actual message number of an interesting message, or to view
-surrounding messages with the \\[mh-rescan-folder] command.
+The appearance of the heading can be modified by customizing the
+face `mh-index-folder'. You can jump back and forth between the
+headings using the commands \\[mh-index-next-folder] and
+\\[mh-index-previous-folder].
 
-Because this folder is temporary, you'll probably get in the habit of
-killing it when you're done with \\[mh-kill-folder].
+In addition, the command \\[mh-index-visit-folder] can be used to
+visit the folder of the message at point. Initially, only the
+messages that matched the search criteria are displayed in the
+folder. While the temporary buffer has its own set of message
+numbers, the actual messages numbers are shown in the visited
+folder. Thus, the command \\[mh-index-visit-folder] is useful to
+find the actual message number of an interesting message, or to
+view surrounding messages with the command \\[mh-rescan-folder].
 
-If you have run the \\[mh-search-folder] command, but change your mind
-while entering the search criteria and actually want to run an indexed
-search, then you can use the
-\\<mh-pick-mode-map>\\[mh-index-do-search] command in the MH-Pick
-buffer.
+Because this folder is temporary, you'll probably get in the
+habit of killing it when you're done with
+\\[mh-kill-folder].
 
-The \\<mh-folder-mode-map>\\[mh-index-search] command runs the command
-defined by the `mh-index-program' option. The default value is
-\"Auto-detect\" which means that MH-E will automatically choose one of
+If you have run the command \\[mh-search-folder], but change your
+mind while entering the search criteria and actually want to run
+an indexed search, then you can use the command
+\\<mh-pick-mode-map>\\[mh-index-do-search] in the MH-Pick
+buffer.\\<mh-folder-mode-map>
+
+The command \\[mh-index-search] runs the command defined by the
+option `mh-index-program'. The default value is \"Auto-detect\"
+which means that MH-E will automatically choose one of
 \"swish++\", \"swish-e\", \"mairix\", \"namazu\", \"pick\" and
-\"grep\" in that order. If, for example, you have both \"swish++\" and
-\"mairix\" installed and you want to use \"mairix\", then you can set
-this option to \"mairix\".
+\"grep\" in that order. If, for example, you have both
+\"swish++\" and \"mairix\" installed and you want to use
+\"mairix\", then you can set this option to \"mairix\".
 
                                 *NOTE*
 
@@ -621,7 +627,7 @@ PROC is used to convert the value to actual data."
 
 ;;;###mh-autoload
 (defun mh-index-do-search ()
-  "Construct appropriate regexp and call `mh-index-search'."
+  "Find messages that match the qualifications in the current pattern buffer."
   (interactive)
   (unless (mh-index-choose) (error "No indexing program found"))
   (let* ((regexp-list (mh-pick-parse-search-buffer))
@@ -736,8 +742,7 @@ parsed."
 ;;;###mh-autoload
 (defun mh-index-next-folder (&optional backward-flag)
   "Jump to the next folder marker.
-The function is only applicable to folders displaying index search
-results.
+
 With non-nil optional argument BACKWARD-FLAG, jump to the previous
 group of results."
   (interactive "P")
@@ -1163,7 +1168,7 @@ SEARCH-REGEXP-LIST is used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-mairix-binary
-    (error "Set mh-mairix-binary appropriately"))
+    (error "Set `mh-mairix-binary' appropriately"))
   (apply #'call-process mh-mairix-binary nil '(t nil) nil
          "-r" "-f" (format "%s%s/config" mh-user-path mh-mairix-directory)
          search-regexp-list)
@@ -1305,11 +1310,12 @@ recursively. All parameters ARGS are ignored."
 
 ;;;###mh-autoload
 (defun mh-index-sequenced-messages (folders sequence)
-  "Display messages from FOLDERS in SEQUENCE.
-All messages in the sequence you provide from the folders in
-`mh-new-messages-folders' are listed. With a prefix argument,
-enter a space-separated list of folders, or nothing to search all
-folders."
+  "Display messages in any sequence.
+
+All messages from the FOLDERS in `mh-new-messages-folders' in the
+SEQUENCE you provide are listed. With a prefix argument, enter a
+space-separated list of folders at the prompt, or nothing to
+search all folders."
   (interactive
    (list (if current-prefix-arg
              (split-string (read-string "Search folder(s) (default all): "))
@@ -1440,7 +1446,7 @@ is used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-swish-binary
-    (error "Set mh-swish-binary appropriately"))
+    (error "Set `mh-swish-binary' appropriately"))
   (call-process mh-swish-binary nil '(t nil) nil
                 "-w" search-regexp
                 "-f" (format "%s%s/index" mh-user-path mh-swish-directory))
@@ -1529,7 +1535,7 @@ used to search."
   (set-buffer (get-buffer-create mh-index-temp-buffer))
   (erase-buffer)
   (unless mh-swish++-binary
-    (error "Set mh-swish++-binary appropriately"))
+    (error "Set `mh-swish++-binary' appropriately"))
   (call-process mh-swish++-binary nil '(t nil) nil
                 "-m" "10000"
                 (format "-i%s%s/swish++.index"
@@ -1608,7 +1614,7 @@ is used to search."
     (unless (file-exists-p namazu-index-directory)
       (error "Namazu directory %s not present" namazu-index-directory))
     (unless (executable-find mh-namazu-binary)
-      (error "Set mh-namazu-binary appropriately"))
+      (error "Set `mh-namazu-binary' appropriately"))
     (set-buffer (get-buffer-create mh-index-temp-buffer))
     (erase-buffer)
     (call-process mh-namazu-binary nil '(t nil) nil

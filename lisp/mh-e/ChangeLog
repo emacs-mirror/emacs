@@ -1,3 +1,118 @@
+2006-01-03  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-e.el (mh-delete-a-msg): Fix whitespace nit.
+	* mh-index.el (mh-mairix-execute-search): Fix symbol quote.
+
+2006-01-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-alias.el (mh-alias-add-alias): Grand message and error string
+	unification. Use single sentence if possible by using semicolon.
+	Don't end message with punctuation. Don't need format with
+	message. Quote messages as in docstrings: use `' around symbols,
+	\" for option choices. Don't use quotes around %s.
+	
+	* mh-comp.el (mh-complete-word): Ditto.
+
+	* mh-customize.el (mh-adaptive-cmd-note-flag-check)
+	(mh-scan-format-file-check): Ditto.
+
+	* mh-e.el (mh-refile-or-write-again, mh-previous-unread-msg)
+	(mh-delete-a-msg, mh-refile-a-msg, mh-next-unread-msg)
+	(mh-msg-num-width-to-column): Ditto.
+
+	* mh-identity.el (mh-identity-field-handler): Ditto.
+
+	* mh-index.el (mh-mairix-execute-search)
+	(mh-swish-execute-search, mh-swish++-execute-search)
+	(mh-namazu-execute-search): Ditto.
+
+	* mh-init.el (mh-variant-set): Ditto.
+
+	* mh-mime.el (mh-mh-to-mime-undo, mh-mml-forward-message)
+	(mh-secure-message, mh-mime-display): Ditto.
+
+	* mh-pick.el (mh-search-folder, mh-pick-construct-regexp): Ditto.
+
+	* mh-seq.el (mh-narrow-to-seq, mh-put-msg-in-seq, mh-read-seq)
+	(mh-read-range, mh-thread-container-subject): Ditto.
+
+	* mh-utils.el (mh-x-image-scale-and-display)
+	(mh-prompt-for-folder, mh-handle-process-error)
+	(mh-list-to-string-1): Ditto.
+
+	* mh-comp.el (mh-reply): Use standard default notation in
+	prompts (closes SF #1275933).
+
+	* mh-mime.el (mh-mime-save-parts): Ditto.
+
+	* mh-seq.el (mh-read-seq, mh-read-range): Ditto.
+
+	* mh-customize.el (mh-folder-msg-number): Snow is actually
+	off-white on low color displays which turns to white when bold.
+	This is unreadable on white backgrounds. Use snow with min-colors
+	requirement. Use cyan on low-color displays.
+
+	* mh-init.el (mh-defface-compat): On low-color displays, delete
+	the high-color display rather than simply strip the min-colors
+	requirement since the existing algorithm shadowed the desired
+	display on low-color displays.
+
+	* mh-alias.el (mh-alias-add-alias): Remove leading * from
+	docstring.
+
+2006-01-02  Bill Wohler  <wohler@newt.com>
+
+	* mh-alias.el (mh-alias-grab-from-field): Remove leading * from
+	docstring. Does this mean something in a defun?
+
+	* mh-customize.el (bw-new-face-to-old, bw-old-face-to-new):
+	Checkdoc fix.
+
+	* mh-e.el (mh-inc-folder): Rename maildrop-name argument to file
+	so it reads better in docstring and manual. Sync docstring with
+	manual.
+
+	* mh-init.el (mh-defface-compat): Remove trailing space (checkdoc).
+
+	* mh-alias.el (mh-alias-apropos): Sync docstring with manual.
+
+	* mh-comp.el (mh-redistribute, mh-to-field, mh-to-fcc)
+	(mh-insert-auto-fields, mh-send-letter, mh-yank-cur-msg)
+	(mh-fully-kill-draft, mh-open-line, mh-letter-complete)
+	(mh-letter-complete-or-space, mh-letter-confirm-address)
+	(mh-letter-next-header-field-or-indent)
+	(mh-letter-previous-header-field): Ditto.
+
+	* mh-customize.el (mh-alias-completion-ignore-case-flag)
+	(mh-default-folder-for-message-function, mh-mml-method-default)
+	(mh-signature-file-name, mh-yank-behavior, mh-show-hook)
+	(mh-show-mode-hook) Ditto.
+
+	* mh-e.el (mh-refile-or-write-again, mh-toggle-showing): Ditto.
+
+	* mh-funcs.el (mh-pipe-msg, mh-sort-folder, mh-undo-folder)
+	(mh-store-msg, mh-store-buffer): Ditto
+
+	* mh-index.el (mh-index-search, mh-index-do-search)
+	(mh-index-next-folder, mh-index-sequenced-messages): Ditto.
+
+	* mh-junk.el (mh-spamassassin-blacklist): Ditto.
+
+	* mh-mime.el (mh-mh-compose-external-compressed-tar)
+	(mh-mh-compose-external-type, mh-mh-to-mime, mh-mh-to-mime-undo)
+	(mh-mml-secure-message-sign, mh-mml-secure-message-encrypt)
+	(mh-mml-secure-message-signencrypt): Ditto
+
+	* mh-pick.el (mh-search-folder): Ditto.
+
+	* mh-seq.el (mh-widen): Ditto.
+
+	* mh-utils.el (mh-show, mh-modify): Ditto.
+
+2006-01-02  Mark D. Baushke  <mdb@gnu.org>
+
+	* mh-mime.el (mh-mml-unsecure-message): Remove unused argument.
+
 2006-01-01  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el: Sync docstrings with manual for faces and sort

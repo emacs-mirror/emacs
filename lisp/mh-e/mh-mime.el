@@ -1,7 +1,7 @@
 ;;; mh-mime.el --- MH-E support for composing MIME messages
 
 ;; Copyright (C) 1993, 1995,
-;;  2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -318,9 +318,10 @@ set of ATTRIBUTES and an optional COMMENT can also be included."
 ;;;###mh-autoload
 (defun mh-mh-compose-anon-ftp (host filename type description)
   "Add tag to include anonymous ftp reference to a file.
-You can even have your message initiate an \"ftp\" transfer when
-the recipient reads the message. You are prompted for the remote
-HOST and FILENAME, the media TYPE, and the content DESCRIPTION.
+
+You can have your message initiate an \"ftp\" transfer when the
+recipient reads the message. You are prompted for the remote HOST
+and FILENAME, the media TYPE, and the content DESCRIPTION.
 
 See also \\[mh-mh-to-mime]."
   (interactive (list
@@ -334,8 +335,9 @@ See also \\[mh-mh-to-mime]."
 ;;;###mh-autoload
 (defun mh-mh-compose-external-compressed-tar (host filename description)
   "Add tag to include anonymous ftp reference to a compressed tar file.
+
 In addition to retrieving the file via anonymous \"ftp\" as per
-the \\[mh-mh-compose-anon-ftp] command, the file will also be
+the command \\[mh-mh-compose-anon-ftp], the file will also be
 uncompressed and untarred. You are prompted for the remote HOST
 and FILENAME and the content DESCRIPTION.
 
@@ -356,6 +358,7 @@ See also \\[mh-mh-to-mime]."
                                                 attributes parameters
                                                 comment)
   "Add tag to refer to a remote file.
+
 This command is a general utility for referencing external files.
 In fact, all of the other commands that insert directives to
 access external files call this command. You are prompted for the
@@ -435,14 +438,14 @@ Typically, you send a message with attachments just like any other
 message. However, you may take a sneak preview of the MIME encoding if
 you wish by running this command.
 
-If you wish to pass additional arguments to \"mhbuild\" (\"mhn\") to
-affect how it builds your message, use the `mh-mh-to-mime-args'
-option. For example, you can build a consistency check into the
-message by setting `mh-mh-to-mime-args' to \"-check\". The recipient
-of your message can then run \"mhbuild -check\" on the
-message--\"mhbuild\" (\"mhn\") will complain if the message has been
-corrupted on the way. This command only consults this option when
-given a prefix argument EXTRA-ARGS.
+If you wish to pass additional arguments to \"mhbuild\" (\"mhn\")
+to affect how it builds your message, use the option
+`mh-mh-to-mime-args'. For example, you can build a consistency
+check into the message by setting `mh-mh-to-mime-args' to
+\"-check\". The recipient of your message can then run \"mhbuild
+-check\" on the message--\"mhbuild\" (\"mhn\") will complain if
+the message has been corrupted on the way. This command only
+consults this option when given a prefix argument EXTRA-ARGS.
 
 The hook `mh-mh-to-mime-hook' is called after the message has been
 formatted.
@@ -484,8 +487,10 @@ This function will quote all such characters."
 ;;;###mh-autoload
 (defun mh-mh-to-mime-undo (noconfirm)
   "Undo effects of \\[mh-mh-to-mime].
-Optional non-nil argument NOCONFIRM means don't ask for
-confirmation."
+
+It does this by reverting to a backup file. You are prompted to
+confirm this action, but you can avoid the confirmation by adding
+a prefix argument NOCONFIRM."
   (interactive "*P")
   (if (null buffer-file-name)
       (error "Buffer does not seem to be associated with any file"))
@@ -500,7 +505,7 @@ confirmation."
                                     ".orig")))))
       (setq backup-strings (cdr backup-strings)))
     (or backup-strings
-        (error "Backup file for %s no longer exists!" buffer-file-name))
+        (error "Backup file for %s no longer exists" buffer-file-name))
     (or noconfirm
         (yes-or-no-p (format "Revert buffer from file %s? "
                              backup-file))
@@ -580,7 +585,7 @@ MESSAGE number."
                                       mh-user-path (substring folder 1) msg)
                               "message/rfc822"
                               description)))
-          (t (error "The message number, %s is not a integer!" msg)))))
+          (t (error "The message number, %s, is not a integer" msg)))))
 
 (defvar mh-mml-cryptographic-method-history ())
 
@@ -628,9 +633,9 @@ IDENTITY is optionally the default-user-id to use."
     (let ((valid-methods (list "pgpmime" "pgp" "smime"))
           (valid-modes (list "sign" "encrypt" "signencrypt" "none")))
       (if (not (member method valid-methods))
-          (error "Method \"%s\" is invalid" method))
+          (error "Method %s is invalid" method))
       (if (not (member mode valid-modes))
-          (error "Mode \"%s\" is invalid" mode))
+          (error "Mode %s is invalid" mode))
       (mml-unsecure-message)
       (if (not (string= mode "none"))
         (save-excursion
@@ -642,10 +647,9 @@ IDENTITY is optionally the default-user-id to use."
             (mml-insert-tag 'secure 'method method 'mode mode)))))))
 
 ;;;###mh-autoload
-(defun mh-mml-unsecure-message (&optional ignore)
-  "Remove any secure message tags.
-The argument IGNORE is not used."
-  (interactive "P")
+(defun mh-mml-unsecure-message ()
+  "Remove any secure message tags."
+  (interactive)
   (if (not mh-pgp-support-flag)
       (error "Your version of Gnus does not support PGP/GPG")
     (mml-unsecure-message)))
@@ -655,7 +659,7 @@ The argument IGNORE is not used."
   "Add tag to sign the message.
 
 A proper multipart message is created for you when you send the
-message. Use the \\[mh-mml-unsecure-message] command to remove
+message. Use the command \\[mh-mml-unsecure-message] to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
 the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
@@ -666,7 +670,7 @@ the possible security methods (see `mh-mml-method-default')."
   "Add tag to encrypt the message.
 
 A proper multipart message is created for you when you send the
-message. Use the \\[mh-mml-unsecure-message] command to remove
+message. Use the command \\[mh-mml-unsecure-message] to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
 the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
@@ -677,7 +681,7 @@ the possible security methods (see `mh-mml-method-default')."
   "Add tag to encrypt and sign the message.
 
 A proper multipart message is created for you when you send the
-message. Use the \\[mh-mml-unsecure-message] command to remove
+message. Use the command \\[mh-mml-unsecure-message] to remove
 this tag. Use a prefix argument METHOD to be prompted for one of
 the possible security methods (see `mh-mml-method-default')."
   (interactive (list (mh-mml-query-cryptographic-method)))
@@ -853,7 +857,7 @@ do the work."
                     (equal t mh-mime-save-parts-default-directory))
                 mh-mime-save-parts-directory)
            (read-file-name (format
-                            "Store in directory: [%s] "
+                            "Store in directory (default %s): "
                             mh-mime-save-parts-directory)
                            "" mh-mime-save-parts-directory t ""))
           ((stringp mh-mime-save-parts-default-directory)
@@ -963,7 +967,7 @@ parsed and then displayed."
                    (mh-mime-display-part handles))
                   (t (mh-signature-highlight))))
         (error
-         (message "Please report this error. The error message is:\n %s"
+         (message "Please report this error:\n %s"
                   (error-message-string err))
          (delete-region (point-min) (point-max))
          (insert raw-message-data))))))

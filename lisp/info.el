@@ -568,8 +568,10 @@ in all the directories in that path."
        (if (and (stringp file-or-node) (string-match "(.*)" file-or-node))
            file-or-node
          (concat "(" file-or-node ")")))
-    (if (zerop (buffer-size))
-        (Info-directory))))
+    (if (and (zerop (buffer-size))
+	     (null Info-history))
+	;; If we just created the Info buffer, go to the directory.
+	(Info-directory))))
 
 ;;;###autoload
 (defun info-emacs-manual ()
@@ -688,11 +690,12 @@ it says do not attempt further (recursive) error recovery."
   (setq filename (Info-find-file filename))
   ;; Go into Info buffer.
   (or (eq major-mode 'Info-mode) (pop-to-buffer "*info*"))
-  ;; Record the node we are leaving.
-  (if (not no-going-back)
-      (setq Info-history
-            (cons (list Info-current-file Info-current-node (point))
-                  Info-history)))
+  ;; Record the node we are leaving, if we were in one.
+  (and (not no-going-back)
+       Info-current-file
+       (setq Info-history
+	     (cons (list Info-current-file Info-current-node (point))
+		   Info-history)))
   (Info-find-node-2 filename nodename no-going-back))
 
 ;;;###autoload

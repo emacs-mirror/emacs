@@ -1,7 +1,7 @@
 ;;; mh-pick.el --- make a search pattern and search for a message in MH-E
 
 ;; Copyright (C) 1993, 1995,
-;;  2001, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -54,13 +54,14 @@
 (defun mh-search-folder (folder window-config)
   "Search FOLDER for messages matching a pattern.
 
-With this command, you can search a folder for messages to or from a
-particular person or about a particular subject. In fact, you can also
-search for messages containing selected strings in any arbitrary
-header field or any string found within the messages.
+With this command, you can search a folder for messages to or
+from a particular person or about a particular subject. In fact,
+you can also search for messages containing selected strings in
+any arbitrary header field or any string found within the
+messages.
 
-You are first prompted for the name of the folder to search and then
-placed in the following buffer in MH-Pick mode:
+You are first prompted for the name of the folder to search and
+then placed in the following buffer in MH-Pick mode:
 
      From:
      To:
@@ -69,26 +70,27 @@ placed in the following buffer in MH-Pick mode:
      Subject:
      --------
 
-Edit this template by entering your search criteria in an appropriate
-header field that is already there, or create a new field yourself. If
-the string you're looking for could be anywhere in a message, then
-place the string underneath the row of dashes. The
-\\[mh-search-folder] command uses the MH command \"pick\" to do the
-real work.
+Edit this template by entering your search criteria in an
+appropriate header field that is already there, or create a new
+field yourself. If the string you're looking for could be
+anywhere in a message, then place the string underneath the row
+of dashes. The command \\[mh-search-folder] uses the MH command
+\"pick\" to do the real work.
 
-There are no semantics associated with the search criteria--they are
-simply treated as strings. Case is ignored when all lowercase is used,
-and regular expressions (a la \"ed\") are available. It is all right
-to specify several search criteria. What happens then is that a
-logical _and_ of the various fields is performed. If you prefer a
-logical _or_ operation, run \\[mh-search-folder] multiple times.
+There are no semantics associated with the search criteria--they
+are simply treated as strings. Case is ignored when all lowercase
+is used, and regular expressions (a la \"ed\") are available. It
+is all right to specify several search criteria. What happens
+then is that a logical _and_ of the various fields is performed.
+If you prefer a logical _or_ operation, run \\[mh-search-folder]
+multiple times.
 
-As an example, let's say that we want to find messages from Ginnean
-about horseback riding in the Kosciusko National Park (Australia)
-during January, 1994. Normally we would start with a broad search and
-narrow it down if necessary to produce a manageable amount of data,
-but we'll cut to the chase and create a fairly restrictive set of
-criteria as follows:
+As an example, let's say that we want to find messages from
+Ginnean about horseback riding in the Kosciusko National
+Park (Australia) during January, 1994. Normally we would start
+with a broad search and narrow it down if necessary to produce a
+manageable amount of data, but we'll cut to the chase and create
+a fairly restrictive set of criteria as follows:
 
      From: ginnean
      To:
@@ -98,31 +100,32 @@ criteria as follows:
      --------
 
 As with MH-Letter mode, MH-Pick provides commands like
-\\<mh-pick-mode-map>\\[mh-to-field] to help you fill in the blanks.
+\\<mh-pick-mode-map>\\[mh-to-field] to help you fill in the
+blanks.
 
-To perform the search, type \\[mh-do-search]. The selected messages
-are placed in the \"search\" sequence, which you can use later in
-forwarding, printing, or narrowing your field of view. Subsequent
-searches are appended to the \"search\" sequence. If, however, you
-wish to start with a clean slate, first delete the \"search\"
-sequence.
+To perform the search, type \\[mh-do-search]. The selected
+messages are placed in the \"search\" sequence, which you can use
+later in forwarding, printing, or narrowing your field of view.
+Subsequent searches are appended to the \"search\" sequence. If,
+however, you wish to start with a clean slate, first delete the
+\"search\" sequence.
 
 If you're searching in a folder that is already displayed in an
-MH-Folder buffer, only those messages contained in the buffer are used
-for the search. Therefore, if you want to search in all messages,
-first kill the folder's buffer with
-\\<mh-folder-mode-map>\\[kill-buffer] or scan the entire folder with
-\\[mh-rescan-folder].
+MH-Folder buffer, only those messages contained in the buffer are
+used for the search. Therefore, if you want to search in all
+messages, first kill the folder's buffer with
+\\<mh-folder-mode-map>\\[kill-buffer] or scan the entire folder
+with \\[mh-rescan-folder].
 
-If you find that you do the same thing over and over when editing the
-search template, you may wish to bind some shortcuts to keys. This can
-be done with the variable `mh-pick-mode-hook', which is called when
-\\[mh-search-folder] is run on a new pattern.
+If you find that you do the same thing over and over when editing
+the search template, you may wish to bind some shortcuts to keys.
+This can be done with the variable `mh-pick-mode-hook', which is
+called when \\[mh-search-folder] is run on a new pattern.
 
-If you have run the \\[mh-index-search] command, but change your mind
-while entering the search criteria and actually want to run a regular
-search, then you can use the \\<mh-pick-mode-map>\\[mh-pick-do-search]
-command.
+If you have run the \\[mh-index-search] command, but change your
+mind while entering the search criteria and actually want to run
+a regular search, then you can use the command
+\\<mh-pick-mode-map>\\[mh-pick-do-search] in the MH-Pick buffer.
 
 In a program, argument WINDOW-CONFIG is the current window
 configuration and is used when the search folder is dismissed."
@@ -140,7 +143,7 @@ configuration and is used when the search folder is dismissed."
                         'mh-previous-window-config window-config)
     (message "%s" (substitute-command-keys
                    (concat "Type \\[mh-do-search] to search messages, "
-                           "\\[mh-help] for help.")))))
+                           "\\[mh-help] for help")))))
 
 (defun mh-make-pick-template ()
   "Initialize the current buffer with a template for a pick pattern."
@@ -332,7 +335,7 @@ COMPONENT is the component to search."
         ((eq (car expr) 'not)
          `("-lbrace" "-not" ,@(mh-pick-construct-regexp (cadr expr) component)
            "-rbrace"))
-        (t (error "Unknown operator '%s' seen" (car expr)))))
+        (t (error "Unknown operator %s seen" (car expr)))))
 
 ;; All implementations of pick have special options -cc, -date, -from and
 ;; -subject that allow to search for corresponding components. Any other

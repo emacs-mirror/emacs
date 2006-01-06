@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1985, 1986, 1987, 1988,
 ;;  1990, 1992, 1993, 1994, 1995, 1997, 1999,
-;;  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -711,21 +711,18 @@ Use the command \\[mh-show] to show the message normally again."
       (mh-recenter 0))
     (setq mh-showing-with-headers t)))
 
-(defun mh-inc-folder (&optional maildrop-name folder)
+(defun mh-inc-folder (&optional file folder)
   "Incorporate new mail into a folder.
 
 You can incorporate mail from any file into the current folder by
 specifying a prefix argument; you'll be prompted for the name of
-the file to use as well as the destination folder
+the FILE to use as well as the destination FOLDER
 
 The hook `mh-inc-folder-hook' is run after incorporating new
-mail. Do not call this function from outside MH-E; use
-\\[mh-rmail] instead.
+mail.
 
-In a program optional argument MAILDROP-NAME specifies an
-alternate maildrop from the default. The optional argument FOLDER
-specifies where to incorporate mail instead of the default named
-by `mh-inbox'."
+Do not call this function from outside MH-E; use \\[mh-rmail]
+instead."
   (interactive (list (if current-prefix-arg
                          (expand-file-name
                           (read-file-name "inc mail from file: "
@@ -745,7 +742,7 @@ by `mh-inbox'."
             ((not (eq (current-buffer) (get-buffer folder)))
              (switch-to-buffer folder)
              (setq mh-previous-window-config config))))
-    (mh-get-new-mail maildrop-name)
+    (mh-get-new-mail file)
     (when (and threading-needed-flag
                (save-excursion
                  (goto-char (point-min))
@@ -892,8 +889,10 @@ DONT-UPDATE-LAST-DESTINATION-FLAG is non-nil."
 (defun mh-refile-or-write-again (range &optional interactive-flag)
   "Repeat last output command.
 
-If you are refiling several messages into the same folder, you can use
-this command to repeat the last refile or write. You can use a range.
+If you are refiling several messages into the same folder, you
+can use this command to repeat the last
+refile (\\[mh-refile-msg]) or write (\\[mh-write-msg-to-file]).
+You can use a range.
 
 Check the documentation of `mh-interactive-range' to see how RANGE is
 read in interactive use.
@@ -905,8 +904,7 @@ called interactively."
       (error "No previous refile or write"))
   (cond ((eq (car mh-last-destination) 'refile)
          (mh-refile-msg range (cdr mh-last-destination))
-         (message "%s" (format "Destination folder: %s"
-                               (cdr mh-last-destination))))
+         (message "Destination folder: %s" (cdr mh-last-destination)))
         (t
          (mh-iterate-on-range msg range
            (apply 'mh-write-msg-to-file msg (cdr mh-last-destination)))
@@ -1006,7 +1004,7 @@ This command can be given a prefix argument COUNT to specify how
 many unread messages to skip."
   (interactive "p")
   (unless (> count 0)
-    (error "The function mh-previous-unread-msg expects positive argument"))
+    (error "The function `mh-previous-unread-msg' expects positive argument"))
   (setq count (1- count))
   (let ((unread-sequence (cdr (assoc mh-unseen-seq mh-seq-list)))
         (cur-msg (mh-get-msg-num nil)))
@@ -1255,7 +1253,14 @@ the command \\[mh-refile-or-write-again]."
       (append-to-file (point) (point-max) output-file))))
 
 (defun mh-toggle-showing ()
-  "Toggle the scanning mode/showing mode of displaying messages."
+  "Toggle between MH-Folder and MH-Folder Show modes.
+
+This command switches between MH-Folder mode and MH-Folder Show
+mode. MH-Folder mode turns off the associated show buffer so that
+you can perform operations on the messages quickly without
+reading them. This is an excellent way to prune out your junk
+mail or to refile a group of messages to another folder for later
+examination."
   (interactive)
   (if mh-showing-mode
       (mh-set-scan-mode)
@@ -1521,7 +1526,7 @@ once when he kept statistics on his mail usage."
       (beginning-of-line)
       (setq message (mh-get-msg-num t)))
     (if (looking-at mh-scan-refiled-msg-regexp)
-        (error "Message %d is refiled.  Undo refile before deleting" message))
+        (error "Message %d is refiled; undo refile before deleting" message))
     (if (looking-at mh-scan-deleted-msg-regexp)
         nil
       (mh-set-folder-modified-p t)
@@ -1541,10 +1546,10 @@ be refiled."
       (beginning-of-line)
       (setq message (mh-get-msg-num t)))
     (cond ((looking-at mh-scan-deleted-msg-regexp)
-           (error "Message %d is deleted.  Undo delete before moving" message))
+           (error "Message %d is deleted; undo delete before moving" message))
           ((looking-at mh-scan-refiled-msg-regexp)
            (if (y-or-n-p
-                (format "Message %d already refiled.  Copy to %s as well? "
+                (format "Message %d already refiled; copy to %s as well? "
                         message folder))
                (mh-exec-cmd "refile" (mh-get-msg-num t) "-link"
                             "-src" mh-current-folder
@@ -1575,7 +1580,7 @@ This command can be given a prefix argument COUNT to specify how
 many unread messages to skip."
   (interactive "p")
   (unless (> count 0)
-    (error "The function mh-next-unread-msg expects positive argument"))
+    (error "The function `mh-next-unread-msg' expects positive argument"))
   (setq count (1- count))
   (let ((unread-sequence (reverse (cdr (assoc mh-unseen-seq mh-seq-list))))
         (cur-msg (mh-get-msg-num nil)))
@@ -1983,8 +1988,8 @@ columns contain the message number, and the column for notations
 comes after that."
   (if (eq mh-scan-format-file t)
       (max (1+ width) 2)
-    (error "%s %s" "Can't call mh-msg-num-width-to-column"
-           "when mh-scan-format-file is not t")))
+    (error "%s %s" "Can't call `mh-msg-num-width-to-column' when"
+           "`mh-scan-format-file' is not set to \"Use MH-E scan Format\"")))
 
 (defun mh-set-cmd-note (column)
   "Set `mh-cmd-note' to COLUMN.

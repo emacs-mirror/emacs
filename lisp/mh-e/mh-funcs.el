@@ -1,7 +1,7 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
 ;; Copyright (C) 1993, 1995,
-;;  2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -214,9 +214,9 @@ Display RANGE after packing, or the entire folder if RANGE is nil."
   "Pipe message through shell command COMMAND.
 
 You are prompted for the Unix command through which you wish to
-run your message. If you give an argument INCLUDE-HEADER to this
-command, the message header is included in the text passed to the
-command."
+run your message. If you give a prefix argument INCLUDE-HEADER to
+this command, the message header is included in the text passed
+to the command."
   (interactive
    (list (read-string "Shell command on message: ") current-prefix-arg))
   (let ((msg-file-to-pipe (mh-msg-filename (mh-get-msg-num t)))
@@ -266,12 +266,11 @@ command."
 
 ;;;###mh-autoload
 (defun mh-sort-folder (&optional extra-args)
-  "Sort the messages in the current folder by date.
+  "Sort folder.
 
-Calls the MH program sortm to do the work.
-
-The arguments in the list `mh-sortm-args' are passed to sortm if
-the optional argument EXTRA-ARGS is given."
+By default, messages are sorted by date. The option
+`mh-sortm-args' holds extra arguments to pass on to the command
+\"sortm\" when a prefix argument EXTRA-ARGS is used."
   (interactive "P")
   (mh-process-or-undo-commands mh-current-folder)
   (setq mh-next-direction 'forward)
@@ -288,7 +287,7 @@ the optional argument EXTRA-ARGS is given."
 
 ;;;###mh-autoload
 (defun mh-undo-folder ()
-  "Undo all pending deletes and refiles in current folder."
+  "Undo all refiles and deletes in the current folder."
   (interactive)
   (cond ((or mh-do-not-confirm-flag
              (yes-or-no-p "Undo all commands in folder? "))
@@ -310,7 +309,9 @@ however, you have a chance to specify a different extraction
 directory. The next time you use this command, the default
 directory is the last directory you used. If you would like to
 change the initial default directory, customize the option
-`mh-store-default-directory'."
+`mh-store-default-directory', change the value from \"Current\"
+to \"Directory\", and then enter the name of the directory for
+storing the content of these messages."
   (interactive (list (let ((udir (or mh-store-default-directory
                                      default-directory)))
                        (read-file-name "Store message in directory: "
@@ -324,12 +325,9 @@ change the initial default directory, customize the option
 
 ;;;###mh-autoload
 (defun mh-store-buffer (directory)
-  "Store the file(s) contained in the current buffer into DIRECTORY.
+  "Unpack buffer created with \"uudecode\" or \"shar\".
 
-The buffer can contain a shar file or uuencoded file.
-
-Default directory is the last directory used, or initially the
-value of `mh-store-default-directory' or the current directory."
+See `mh-store-msg' for a description of DIRECTORY."
   (interactive (list (let ((udir (or mh-store-default-directory
                                      default-directory)))
                        (read-file-name "Store buffer in directory: "

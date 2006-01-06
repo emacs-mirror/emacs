@@ -1,7 +1,7 @@
 ;;; mh-utils.el --- MH-E code needed for both sending and reading
 
 ;; Copyright (C) 1993, 1995, 1997,
-;;  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;;  2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -1582,7 +1582,7 @@ The argument CHANGE is ignored."
       (cond
        ;; Check if we have `convert'
        ((eq mh-x-image-scaling-function 'ignore)
-        (message "The `convert' program is needed to display X-Image-URL")
+        (message "The \"convert\" program is needed to display X-Image-URL")
         (mh-x-image-set-download-state cache-filename 'try-again))
        ;; Scale fetched image
        ((and (funcall mh-x-image-scaling-function temp-file cache-filename)
@@ -1646,6 +1646,14 @@ If the message under the cursor is already displayed, this command
 scrolls to the beginning of the message. MH-E normally hides a lot of
 the superfluous header fields that mailers add to a message, but if
 you wish to see all of them, use the command \\[mh-header-display].
+
+Two hooks can be used to control how messages are displayed. The
+first hook, `mh-show-mode-hook', is called early on in the
+process of the message display. It is usually used to perform
+some action on the message's content. The second hook,
+`mh-show-hook', is the last thing called after messages are
+displayed. It's used to affect the behavior of MH-E in general or
+when `mh-show-mode-hook' is too early.
 
 From a program, optional argument MESSAGE can be used to display an
 alternative message. The optional argument REDISPLAY-FLAG forces the
@@ -1728,7 +1736,7 @@ this with this command. It displays the raw message in an
 editable buffer. When you are done editing, save and kill the
 buffer as you would any other.
 
-From a program, edit MESSAGE instead if it is non-nil."
+From a program, edit MESSAGE; nil means edit current message."
   (interactive)
   (let* ((message (or message (mh-get-msg-num t)))
          (msg-filename (mh-msg-filename message))
@@ -2471,7 +2479,7 @@ used in searching."
             (new-file-flag
              (error "Folder %s does not exist" folder-name))
             ((not (file-directory-p (mh-expand-file-name folder-name)))
-             (error "\"%s\" is not a directory"
+             (error "%s is not a directory"
                     (mh-expand-file-name folder-name)))))
     folder-name))
 
@@ -2655,7 +2663,7 @@ Set mark after inserted text."
         (set-buffer (get-buffer-create mh-log-buffer))
         (mh-truncate-log-buffer)
         (insert error-message)))
-    (error "%s failed, check %s buffer for error message"
+    (error "%s failed, check buffer %s for error message"
            command mh-log-buffer)))
 
 (defun mh-list-to-string (l)
@@ -2676,7 +2684,7 @@ Set mark after inserted text."
             ((listp (car l))
              (setq new-list (nconc (mh-list-to-string-1 (car l))
                                    new-list)))
-            (t (error "Bad element in mh-list-to-string: %s" (car l))))
+            (t (error "Bad element in `mh-list-to-string': %s" (car l))))
       (setq l (cdr l)))
     new-list))
 
