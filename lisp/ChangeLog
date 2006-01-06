@@ -1,3 +1,8 @@
+2006-01-06  Sven Joachim  <svenjoac@gmx.de>  (tiny change)
+
+	* files.el (basic-save-buffer-2): If backing-up failed, reset
+	buffer-backed-up to nil.
+
 2006-01-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gdb-script-skip-to-head)
