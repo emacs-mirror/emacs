@@ -126,6 +126,8 @@
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ld[s]?\\(\\.in\\)?$" . ld-script-mode))
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.x[bdsru]?[cn]?$" . ld-script-mode))
 
 ;;;###autoload
 (define-derived-mode ld-script-mode nil "LD-Script"
