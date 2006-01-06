@@ -3139,7 +3139,7 @@ class of the file (using s to separate nested class ids)."
 
 (defun gdb-script-skip-to-head ()
   "We're just in front of an `end' and we need to go to its head."
-  (while (and (re-search-backward "^\\s-*\\(\\(end\\)\\|define\\|document\\|if\\|while\\)\\>" nil 'move)
+  (while (and (re-search-backward "^\\s-*\\(\\(end\\)\\|define\\|document\\|if\\|while\\|commands\\)\\>" nil 'move)
 	      (match-end 2))
     (gdb-script-skip-to-head)))
 
@@ -3158,7 +3158,7 @@ class of the file (using s to separate nested class ids)."
     (forward-line 0)
     (skip-chars-forward " \t")
     (+ (current-indentation)
-       (if (looking-at "\\(if\\|while\\|define\\|else\\)\\>")
+       (if (looking-at "\\(if\\|while\\|define\\|else\\|commands\\)\\>")
 	   gdb-script-basic-indent 0)))))
 
 (defun gdb-script-indent-line ()
