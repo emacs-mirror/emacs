@@ -110,7 +110,9 @@ patterns. @xref{Configuring Flymake}.
 
 Release versions of Flymake can be downloaded from
 @* @url{https://sourceforge.net/project/showfiles.php?group_id=77501}.
-You can also try current version available via CVS at @url{https://}.
+
+You can also try the current development version available via CVS at
+@url{https://sourceforge.net/cvs/?group_id=77501}.
 
 Flymake's homepage is at @url{http://flymake.sourceforge.net}.
 
