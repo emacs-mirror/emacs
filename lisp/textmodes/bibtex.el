@@ -3539,7 +3539,7 @@ Return t if test was successful, nil otherwise."
           (dolist (key (cdr (assq buffer buffer-key-list)))
             (when (assoc-string key current-keys)
               (bibtex-find-entry key)
-              (push (format "%s:%d: Duplicat key `%s' in %s\n"
+              (push (format "%s:%d: Duplicate key `%s' in %s\n"
                             (buffer-file-name) (bibtex-current-line) key
                             (abbreviate-file-name (buffer-file-name buffer)))
                     error-list))))))
