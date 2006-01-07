@@ -1,3 +1,7 @@
+2006-01-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* startup.el (init-file-user): Doc fix.
+
 2006-01-07  Alex Schroeder  <alex@gnu.org>
 
 	* net/rcirc.el (rcirc-send-input): No longer check whether the
