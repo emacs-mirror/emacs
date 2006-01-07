@@ -1,3 +1,9 @@
+2006-01-07  Bill Wohler  <wohler@newt.com>
+
+	* mh-mime.el (mh-mml-tag-present-p): Update regexp to handle <mml>
+	tags inserted by Gnus gnus-summary-mail-forward (closes SF
+	#1399307).
+
 2006-01-03  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-e.el (mh-delete-a-msg): Fix whitespace nit.

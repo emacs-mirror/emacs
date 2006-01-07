@@ -693,7 +693,9 @@ the possible security methods (see `mh-mml-method-default')."
   (save-excursion
     (goto-char (point-min))
     (re-search-forward
-     "\\(<#part\\(.\\|\n\\)*>[ \n\t]*<#/part>\\|^<#secure.+>$\\)"
+     (concat
+      "\\(<#\\(mml\\|part\\)\\(.\\|\n\\)*>[ \n\t]*<#/\\(mml\\|part\\)>\\|"
+      "^<#secure.+>$\\)")
      nil t)))
 
 
