@@ -1423,7 +1423,7 @@ variable @code{@var{mode}-hook}.
 @end defmac
 
   The initial value must be @code{nil} except in cases where (1) the
-mode is preloaded in Emacs, or (2) it is painless to for loading to
+mode is preloaded in Emacs, or (2) it is painless for loading to
 enable the mode even though the user did not request it.  For
 instance, if the mode has no effect unless something else is enabled,
 and will always be loaded by that time, enabling it by default is
@@ -2254,7 +2254,7 @@ If this variable is non-@code{nil}, its value should be a function that
 finds the next ``definition'' to put in the buffer index, scanning
 backward in the buffer from point.  It should return @code{nil} if it
 doesn't find another ``definition'' before point.  Otherwise it should
-leave point at the place it finds a ``definition,'' and return any
+leave point at the place it finds a ``definition'' and return any
 non-@code{nil} value.
 
 Setting this variable makes it buffer-local in the current buffer.

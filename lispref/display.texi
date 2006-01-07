@@ -1099,7 +1099,7 @@ object that belongs to a particular buffer, and has a specified
 beginning and end.  It also has properties that you can examine and set;
 these affect the display of the text within the overlay.
 
-An overlays uses markers to record its beginning and end; thus,
+An overlay uses markers to record its beginning and end; thus,
 editing the text of the buffer adjusts the beginning and end of each
 overlay so that it stays with the text.  When you create the overlay,
 you can specify whether text inserted at the beginning should be
@@ -1737,7 +1737,7 @@ The purpose of @var{spec} is to specify how the face should appear on
 different kinds of terminals.  It should be an alist whose elements
 have the form @code{(@var{display} @var{atts})}.  Each element's
 @sc{car}, @var{display}, specifies a class of terminals.  (The first
-element, if it s @sc{car} is @code{default}, is special---it specifies
+element, if its @sc{car} is @code{default}, is special---it specifies
 defaults for the remaining elements).  The element's @sc{cadr},
 @var{atts}, is a list of face attributes and their values; it
 specifies what the face should look like on that kind of terminal.
@@ -4258,8 +4258,8 @@ this is a simple underline, like a typical web-page link.
 
   For convenience, there are two sorts of button-creation functions,
 those that add button properties to an existing region of a buffer,
-called @code{make-...button}, and those also insert the button text,
-called @code{insert-...button}.
+called @code{make-...button}, and those that also insert the button
+text, called @code{insert-...button}.
 
   The button-creation functions all take the @code{&rest} argument
 @var{properties}, which should be a sequence of @var{property value}
