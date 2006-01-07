@@ -4,6 +4,14 @@
 	process is open, since not all commands need an open process.
 	(rcirc-send-string): Check whether the process is open before
 	sending anything.
+	(rcirc-ignore-list): New option.
+	(rcirc-ignore-list-automatic): New variable.
+	(rcirc-print): Take rcirc-ignore-list into account.
+	(rcirc-cmd-ignore): New command.
+	(rcirc-ignore-update-automatic): New function.
+	(rcirc-handler-PART, rcirc-handler-QUIT): Use it to maintain the
+	list if ignored nicks.
+	(rcirc-handler-NICK): Ditto, and also ignore the new nick.
 
 2006-01-06  David Reitter  <david.reitter@gmail.com>
 
