@@ -434,6 +434,9 @@ Function is called with PROCESS COMMAND SENDER ARGS and LINE.")
   (let ((string (concat (encode-coding-string string
                                               buffer-file-coding-system)
                         "\n")))
+    (unless (eq (process-status rcirc-process) 'open)
+      (error "Network connection to %s is not open"
+             (process-name rcirc-process)))
     (rcirc-debug process string)
     (process-send-string process string)))
 
@@ -734,62 +737,59 @@ Create the buffer if it doesn't exist."
 (defun rcirc-send-input ()
   "Send input to target associated with the current buffer."
   (interactive)
-  (if (not (eq (process-status rcirc-process) 'open))
-      (error "Network connection to %s is not open"
-             (process-name rcirc-process))
-    (if (< (point) rcirc-prompt-end-marker)
-        ;; copy the line down to the input area
-        (progn
-          (forward-line 0)
-          (let ((start (if (eq (point) (point-min))
-                           (point)
-                         (if (get-text-property (1- (point)) 'hard)
-                             (point)
-                           (previous-single-property-change (point) 'hard))))
-                (end (next-single-property-change (1+ (point)) 'hard)))
-            (goto-char (point-max))
-            (insert (replace-regexp-in-string
-                     "\n\\s-+" " "
-                     (buffer-substring-no-properties start end)))))
-      ;; process input
-      (goto-char (point-max))
-      (let ((target (rcirc-buffer-target))
-            (start rcirc-prompt-end-marker))
-        (when (not (equal 0 (- (point) start)))
-          ;; delete a trailing newline
-          (when (eq (point) (point-at-bol))
-            (delete-backward-char 1))
-          (let ((input (buffer-substring-no-properties
-                        rcirc-prompt-end-marker (point))))
-            ;; process a /cmd
-            (if (string-match "^/\\([^ ]+\\) ?\\(.*\\)$" input)
-                (let* ((command (match-string 1 input))
-                       (fun (intern-soft (concat "rcirc-cmd-" command)))
-                       (args (match-string 2 input)))
-                  (newline)
-                  (with-current-buffer (current-buffer)
-                    (delete-region rcirc-prompt-end-marker (point))
-                    (if (string= command "me")
-                        (rcirc-print rcirc-process (rcirc-nick rcirc-process)
-                                     "ACTION" (current-buffer) args)
-                      (rcirc-print rcirc-process (rcirc-nick rcirc-process)
-                                   "COMMAND" (current-buffer) input))
-                    (set-marker rcirc-prompt-end-marker (point))
-                    (if (fboundp fun)
-                        (funcall fun args rcirc-process target)
-                      (rcirc-send-string rcirc-process
-					 (concat command " " args)))))
-              ;; send message to server
-              (if (not rcirc-target)
-                  (message "Not joined")
-                (delete-region rcirc-prompt-end-marker (point))
-                (mapc (lambda (message)
-                        (rcirc-send-message rcirc-process target message))
-                      (split-string input "\n"))))
-            ;; add to input-ring
-            (save-excursion
-              (ring-insert rcirc-input-ring input)
-              (setq rcirc-input-ring-index 0))))))))
+  (if (< (point) rcirc-prompt-end-marker)
+      ;; copy the line down to the input area
+      (progn
+	(forward-line 0)
+	(let ((start (if (eq (point) (point-min))
+			 (point)
+		       (if (get-text-property (1- (point)) 'hard)
+			   (point)
+			 (previous-single-property-change (point) 'hard))))
+	      (end (next-single-property-change (1+ (point)) 'hard)))
+	  (goto-char (point-max))
+	  (insert (replace-regexp-in-string
+		   "\n\\s-+" " "
+		   (buffer-substring-no-properties start end)))))
+    ;; process input
+    (goto-char (point-max))
+    (let ((target (rcirc-buffer-target))
+	  (start rcirc-prompt-end-marker))
+      (when (not (equal 0 (- (point) start)))
+	;; delete a trailing newline
+	(when (eq (point) (point-at-bol))
+	  (delete-backward-char 1))
+	(let ((input (buffer-substring-no-properties
+		      rcirc-prompt-end-marker (point))))
+	  ;; process a /cmd
+	  (if (string-match "^/\\([^ ]+\\) ?\\(.*\\)$" input)
+	      (let* ((command (match-string 1 input))
+		     (fun (intern-soft (concat "rcirc-cmd-" command)))
+		     (args (match-string 2 input)))
+		(newline)
+		(with-current-buffer (current-buffer)
+		  (delete-region rcirc-prompt-end-marker (point))
+		  (if (string= command "me")
+		      (rcirc-print rcirc-process (rcirc-nick rcirc-process)
+				   "ACTION" (current-buffer) args)
+		    (rcirc-print rcirc-process (rcirc-nick rcirc-process)
+				 "COMMAND" (current-buffer) input))
+		  (set-marker rcirc-prompt-end-marker (point))
+		  (if (fboundp fun)
+		      (funcall fun args rcirc-process target)
+		    (rcirc-send-string rcirc-process
+				       (concat command " " args)))))
+	    ;; send message to server
+	    (if (not rcirc-target)
+		(message "Not joined")
+	      (delete-region rcirc-prompt-end-marker (point))
+	      (mapc (lambda (message)
+		      (rcirc-send-message rcirc-process target message))
+		    (split-string input "\n"))))
+	  ;; add to input-ring
+	  (save-excursion
+	    (ring-insert rcirc-input-ring input)
+	    (setq rcirc-input-ring-index 0)))))))
 
 (defvar rcirc-parent-buffer nil)
 (defvar rcirc-window-configuration nil)
