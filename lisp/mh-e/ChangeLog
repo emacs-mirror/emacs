@@ -1,5 +1,9 @@
 2006-01-07  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el: Updated Faces documentation in header.
+	(mh-invisible-header-fields-internal): Add X-Lumos-SenderID,
+	X-Return-Path-Hint, and X-Roving-* from Roving ConstantContact.
+
 	* mh-mime.el (mh-mml-tag-present-p): Update regexp to handle <mml>
 	tags inserted by Gnus gnus-summary-mail-forward (closes SF
 	#1399307).

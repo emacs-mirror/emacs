@@ -54,10 +54,10 @@
 ;;
 ;; 4. Faces
 ;;
-;;    Create a new face group if necessary; in this case, add the group
-;;    associated with the manual node in which the faces are described to the
-;;    faces' group definition. Since the face groups appear last, the face
-;;    groups will appear at the end of these other groups.
+;;    All faces must be placed in the mh-faces group; in addition, add the
+;;    group associated with the manual node in which the face is described.
+;;    Since the mh-faces group appears near the end of this file, the faces
+;;    will appear at the end of these other groups.
 ;;
 ;;; Change Log:
 
@@ -1513,11 +1513,11 @@ of citations entirely, choose \"None\"."
     "X-Listprocessor-"                  ; ListProc(tm) by CREN
     "X-Listserver:"                     ; Unknown mailing list managers
     "X-Loop:"                           ; Unknown mailing list managers
+    "X-Lumos-SenderID:"                 ; Roving ConstantContact
     "X-MAIL-INFO:"                      ; NetZero
     "X-MHE-Checksum"                    ; Checksum added during index search
     "X-MIME-Autoconverted:"             ; sendmail
     "X-MIMETrack:"
-    "X-Mms-"                            ; T-Mobile pictures
     "X-MS-"                             ; MS Outlook
     "X-MailScanner"                     ; ListProc(tm) by CREN
     "X-Mailing-List:"                   ; Unknown mailing list managers
@@ -1526,6 +1526,7 @@ of citations entirely, choose \"None\"."
     "X-Message-Id"
     "X-MessageWall-Score:"              ; Unknown mailing list manager, AUC TeX
     "X-MimeOLE:"                        ; MS Outlook
+    "X-Mms-"                            ; T-Mobile pictures
     "X-Mozilla-Status:"                 ; Netscape/Mozilla
     "X-Msmail-"                         ; MS Outlook
     "X-NAI-Spam-"                       ; Network Associates Inc. SpamKiller
@@ -1548,6 +1549,8 @@ of citations entirely, choose \"None\"."
     "X-Received-Date:"
     "X-Received:"
     "X-Request-"
+    "X-Return-Path-Hint:"               ; Roving ConstantContact
+    "X-Roving-*"                        ; Roving ConstantContact
     "X-SBClass:"                        ; Spam
     "X-SBNote:"                         ; Spam
     "X-SBPass:"                         ; Spam
@@ -1570,8 +1573,8 @@ of citations entirely, choose \"None\"."
     "X-UNTD-"                           ; NetZero
     "X-USANET-"                         ; usa.net
     "X-UserInfo1:"
-    "X-Virus-Scanned"                   ; amavisd-new
     "X-VSMLoop:"                        ; NTMail
+    "X-Virus-Scanned"                   ; amavisd-new
     "X-Vms-To:"
     "X-WebTV-Signature:"
     "X-Wss-Id:"                         ; Worldtalk gateways
@@ -2883,7 +2886,6 @@ The background and foreground are used in the image."
        (:foreground "snow3"))
       (((class color))
        (:foreground "cyan")))))
-
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
