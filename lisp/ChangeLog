@@ -1,3 +1,10 @@
+2006-01-07  Alex Schroeder  <alex@gnu.org>
+
+	* net/rcirc.el (rcirc-send-input): No longer check whether the
+	process is open, since not all commands need an open process.
+	(rcirc-send-string): Check whether the process is open before
+	sending anything.
+
 2006-01-06  David Reitter  <david.reitter@gmail.com>
 
 	* mail/emacsbug.el (report-emacs-bug): Let explanations correctly
