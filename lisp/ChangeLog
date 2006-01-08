@@ -11,6 +11,14 @@
 
 2006-01-07  Alex Schroeder  <alex@gnu.org>
 
+	* mail/rmail.el (rmail-current-subject): New function.
+	(rmail-current-subject-regexp): New function.
+	(rmail-next-same-subject): Use it.
+
+	* mail/rmailsum.el (rmail-summary-by-topic): Use
+	rmail-current-subject and rmail-current-subject-regexp.
+	(rmail-summary-next-same-subject): Ditto.
+
 	* net/rcirc.el (rcirc-send-input): No longer check whether the
 	process is open, since not all commands need an open process.
 	(rcirc-send-string): Check whether the process is open before
