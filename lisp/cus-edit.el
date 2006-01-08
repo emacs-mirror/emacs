@@ -744,7 +744,7 @@ groups after non-groups, if nil do not order groups at all."
   "Customization widgets in the current buffer.")
 
 (defun Custom-set ()
-  "Set changes in all modified options."
+  "Set the current value of all edited settings in the buffer."
   (interactive)
   (if (y-or-n-p "Set all values according to this buffer? ")
       (let ((children custom-options))
@@ -755,7 +755,9 @@ groups after non-groups, if nil do not order groups at all."
     (message "Aborted")))
 
 (defun Custom-save ()
-  "Set all modified group members and save them."
+  "Set all edited settings, then save all settings that have been set.
+If a setting was edited and set before, this saves it.
+If a setting was merely edited before, this sets it then saves it."
   (interactive)
   (if (yes-or-no-p "Save all settings in this buffer? ")
       (let ((children custom-options))
@@ -786,9 +788,9 @@ when the action is chosen.")
 	(funcall answer))))
 
 (defun Custom-reset-current (&rest ignore)
-  "Reset all modified group members to their current value."
+  "Reset all edited settings in the buffer to show their current values."
   (interactive)
-  (if (y-or-n-p "Reset buffer to show current settings? ")
+  (if (y-or-n-p "Reset all settings' buffer text to show current values? ")
       (let ((children custom-options))
 	(mapc (lambda (widget)
 		(if (memq (widget-get widget :custom-state)
@@ -798,9 +800,10 @@ when the action is chosen.")
     (message "Aborted")))
 
 (defun Custom-reset-saved (&rest ignore)
-  "Reset all modified or set group members to their saved value."
+  "Reset all edited or set settings in the buffer to their saved value.
+This also shows the saved values in the buffer."
   (interactive)
-  (if (y-or-n-p "Reset all settings to saved values? ")
+  (if (y-or-n-p "Reset all settings (current values and buffer text) to saved values? ")
       (let ((children custom-options))
 	(mapc (lambda (widget)
 		(if (memq (widget-get widget :custom-state)
@@ -819,7 +822,7 @@ making them as if they had never been customized at all."
     (if (or (and (= 1 (length children))
 		 (memq (widget-type (car children))
 		       '(custom-variable custom-face)))
-	    (yes-or-no-p "Erase all customizations in this buffer? "))
+	    (yes-or-no-p "Erase all customizations for settings in this buffer? "))
 	(mapc (lambda (widget)
 		(and (if (widget-get widget :custom-standard-value)
 			 (widget-apply widget :custom-standard-value)
@@ -2783,6 +2786,7 @@ Optional EVENT is the location for the menu."
 
 (defun custom-variable-reset-saved (widget)
   "Restore the saved value for the variable being edited by WIDGET.
+This also updates the buffer to show that value.
 The value that was current before this operation
 becomes the backup value, so you can get it again."
   (let* ((symbol (widget-value widget))
