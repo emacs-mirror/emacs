@@ -1,3 +1,9 @@
+2006-01-09  Alex Schroeder  <alex@gnu.org>
+
+	* mail/rmail.el (rmail-reply-regexp): Also ignore mailing list
+	identifiers sometimes added in square brackets at the beginning of
+	subject lines.
+
 2006-01-07  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-edit.el (Custom-set, Custom-save): Doc fix.
