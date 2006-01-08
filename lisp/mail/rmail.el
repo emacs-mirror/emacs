@@ -3143,30 +3143,52 @@ Interactively, empty argument means use same regexp used last time."
 ;;	(rmail-show-message found))
     found))
 
-(defun rmail-next-same-subject (n)
-  "Go to the next mail message having the same subject header.
-With prefix argument N, do this N times.
-If N is negative, go backwards instead."
-  (interactive "p")
-  (let ((subject (mail-fetch-field "Subject"))
-	(forward (> n 0))
-	(i rmail-current-message)
-	(case-fold-search t)
-	search-regexp found)
+(defun rmail-current-subject ()
+  "Return the current subject.
+The subject is stripped of leading and trailing whitespace, and
+of typical reply prefixes such as Re:."
+  (let ((subject (or (mail-fetch-field "Subject") "")))
     (if (string-match "\\`[ \t]+" subject)
 	(setq subject (substring subject (match-end 0))))
-    (if (string-match "\\`\\(Re:[ \t]*\\)+" subject)
+    (if (string-match rmail-reply-regexp subject)
 	(setq subject (substring subject (match-end 0))))
     (if (string-match "[ \t]+\\'" subject)
 	(setq subject (substring subject 0 (match-beginning 0))))
+    subject))
+
+(defun rmail-current-subject-regexp ()
+  "Return a regular expression matching the current subject.
+The regular expression matches the subject header line of
+messages about the same subject.  The subject itself is stripped
+of leading and trailing whitespace, of typical reply prefixes
+such as Re: and whitespace within the subject is replaced by a
+regular expression matching whitespace in general in order to
+take into account that subject header lines may include newlines
+and more whitespace.  The returned regular expressions contains
+`rmail-reply-regexp' and ends with a newline."
+  (let ((subject (rmail-current-subject)))
     ;; If Subject is long, mailers will break it into several lines at
     ;; arbitrary places, so replace whitespace with a regexp that will
     ;; match any sequence of spaces, TABs, and newlines.
     (setq subject (regexp-quote subject))
     (setq subject
 	  (replace-regexp-in-string "[ \t\n]+" "[ \t\n]+" subject t t))
-    (setq search-regexp (concat "^Subject: *\\(Re:[ \t]*\\)*"
-				subject "[ \t]*\n"))
+    (concat "^Subject: "
+	    (if (string= "\\`" (substring rmail-reply-regexp 0 2))
+		(substring rmail-reply-regexp 2)
+	      rmail-reply-regexp)
+	    subject "[ \t]*\n")))
+
+(defun rmail-next-same-subject (n)
+  "Go to the next mail message having the same subject header.
+With prefix argument N, do this N times.
+If N is negative, go backwards instead."
+  (interactive "p")
+  (let ((search-regexp (rmail-current-subject-regexp))
+	(forward (> n 0))
+	(i rmail-current-message)
+	(case-fold-search t)
+	found)
     (save-excursion
       (save-restriction
 	(widen)
