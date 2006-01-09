@@ -1,5 +1,9 @@
 2006-01-09  Bill Wohler  <wohler@newt.com>
 
+	* mh-customize.el: Use ";; Forward definition." consistently.
+	Comment declaration to remind programmer to update forward
+	definition if default changes.
+
 	* mh-funcs.el: 
 	* mh-inc.el: 
 	* mh-init.el: 

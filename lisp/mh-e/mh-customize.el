@@ -1027,7 +1027,8 @@ message 200, then use the range \"200:200\"."
 
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
-(defvar mh-scan-format-file t) ;forward definition
+;; Forward definition.
+(defvar mh-scan-format-file t)
 
 (defun mh-adaptive-cmd-note-flag-check (symbol value)
   "Check if desired setting is legal.
@@ -1040,7 +1041,8 @@ Otherwise, set SYMBOL to VALUE."
              "is set to \"Use MH-E scan Format\"")
     (set-default symbol value)))
 
-(defvar mh-adaptive-cmd-note-flag) ;forward definition
+;; Forward definition.
+(defvar mh-adaptive-cmd-note-flag)
 
 (defun mh-scan-format-file-check (symbol value)
   "Check if desired setting is legal.
@@ -1070,6 +1072,7 @@ you would use \"(mh-set-cmd-note 4)\"."
   :group 'mh-scan-line-formats
   :set 'mh-adaptive-cmd-note-flag-check)
 
+;; Update forward definition above if default changes.
 (defcustom mh-scan-format-file t
   "Specifies the format file to pass to the scan program.
 
@@ -1644,6 +1647,7 @@ See also `mh-clean-message-header-flag'."
          (mh-invisible-headers))
   :group 'mh-show)
 
+;; Update forward definition above if default changes.
 (defcustom mh-invisible-header-fields-default nil
   "*List of hidden header fields.
 
