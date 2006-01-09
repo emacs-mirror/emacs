@@ -32,6 +32,9 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+(if (featurep 'xemacs) (require 'overlay))
+
 (defvar flymake-is-running nil
   "If t, flymake syntax check process is running for the current buffer.")
 (make-variable-buffer-local 'flymake-is-running)
@@ -59,17 +62,6 @@
 (defvar flymake-new-err-info nil
   "Same as `flymake-err-info', effective when a syntax check is in progress.")
 (make-variable-buffer-local 'flymake-new-err-info)
-
-;;;; [[ Xemacs overlay compatibility
-(if (featurep 'xemacs) (progn
-(autoload 'make-overlay            "overlay" "Overlay compatibility kit." t)
-(autoload 'overlayp                "overlay" "Overlay compatibility kit." t)
-(autoload 'overlays-in             "overlay" "Overlay compatibility kit." t)
-(autoload 'delete-overlay          "overlay" "Overlay compatibility kit." t)
-(autoload 'overlay-put             "overlay" "Overlay compatibility kit." t)
-(autoload 'overlay-get             "overlay" "Overlay compatibility kit." t)
-))
-;;;; ]]
 
 ;;;; [[ cross-emacs compatibility routines
 (defsubst flymake-makehash (&optional test)
@@ -360,43 +352,6 @@ Return its file name if found, or nil if not found."
 Return t if so, nil if not."
   (equal (flymake-fix-file-name file-name-one)
 	 (flymake-fix-file-name file-name-two)))
-
-(defun flymake-get-common-file-prefix (string-one string-two)
-  "Return common prefix for two file names STRING-ONE and STRING-TWO."
-  (setq string-one (file-name-as-directory string-one))
-  (setq string-two (file-name-as-directory string-two))
-  (let ((n (compare-strings string-one nil nil string-two nil nil)))
-    (if (eq n t) string-one
-      (setq n (abs (1+ n)))
-      (file-name-directory (substring string-one 0 n)))))
-
-(defun flymake-build-relative-filename (from-dir to-dir)
-  "Return rel: FROM-DIR/rel == TO-DIR."
-  ;; FIXME: Why not use `file-relative-name'?
-  (if (not (equal (elt from-dir 0) (elt to-dir 0)))
-      (error "First chars in file names %s, %s must be equal (same drive)"
-	     from-dir to-dir)
-    (let* ((from (file-name-as-directory (flymake-fix-file-name from-dir)))
-	   (to   (file-name-as-directory (flymake-fix-file-name to-dir)))
-	   (prefix      (flymake-get-common-file-prefix from to))
-	   (from-suffix (substring from (length prefix)))
-	   (up-count    (length (flymake-split-string from-suffix "[/]")))
-	   (to-suffix   (substring to   (length prefix)))
-	   (idx         0)
-	   (rel         nil))
-      (if (and (> (length to-suffix) 0) (equal "/" (char-to-string (elt to-suffix 0))))
-	  (setq to-suffix (substring to-suffix 1)))
-
-      (while (< idx up-count)
-	(if (> (length rel) 0)
-	    (setq rel (concat rel "/")))
-	(setq rel (concat rel ".."))
-	(setq idx (1+ idx)))
-      (if (> (length rel) 0)
-	  (setq rel (concat rel "/")))
-      (if (> (length to-suffix) 0)
-	  (setq rel (concat rel to-suffix)))
-      (or rel "./"))))
 
 (defcustom flymake-master-file-dirs '("." "./src" "./UnitTest")
   "Dirs where to look for master files."
@@ -1686,16 +1641,14 @@ Return full-name.  Names are real, not patched."
 ;;;; make-specific init-cleanup routines
 (defun flymake-get-syntax-check-program-args (source-file-name base-dir use-relative-base-dir use-relative-source get-cmd-line-f)
   "Create a command line for syntax check using GET-CMD-LINE-F."
-  (let* ((my-base-dir  base-dir)
-	 (my-source    source-file-name))
-
-    (when use-relative-base-dir
-      (setq my-base-dir (flymake-build-relative-filename (file-name-directory source-file-name) base-dir)))
-
-    (when use-relative-source
-      (setq my-source (concat (flymake-build-relative-filename base-dir (file-name-directory source-file-name))
-			      (file-name-nondirectory source-file-name))))
-    (funcall get-cmd-line-f my-source my-base-dir)))
+  (funcall get-cmd-line-f
+           (if use-relative-source
+               (file-relative-name source-file-name base-dir)
+             source-file-name)
+           (if use-relative-base-dir
+               (file-relative-name base-dir
+                                   (file-name-directory source-file-name))
+             base-dir)))
 
 (defun flymake-get-make-cmdline (source base-dir)
   (list "make"
@@ -1769,10 +1722,9 @@ Use CREATE-TEMP-F for creating temp copy."
 (defun flymake-perl-init ()
   (let* ((temp-file   (flymake-init-create-temp-buffer-copy
                        'flymake-create-temp-inplace))
-	 (local-file  (concat (flymake-build-relative-filename
-			       (file-name-directory buffer-file-name)
-			       (file-name-directory temp-file))
-			      (file-name-nondirectory temp-file))))
+	 (local-file  (file-relative-name
+                       temp-file
+                       (file-name-directory buffer-file-name))))
     (list "perl" (list "-wc " local-file))))
 
 ;;;; tex-specific init-cleanup routines
