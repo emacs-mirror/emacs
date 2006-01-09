@@ -1,3 +1,8 @@
+2006-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* flymake.texi (Obtaining Flymake): Remove chapter since Emacs's
+	version is the canonical version.
+
 2006-01-08  Alex Schroeder  <alex@gnu.org>
 
 	* pgg.texi (Caching passphrase): Rewording.
