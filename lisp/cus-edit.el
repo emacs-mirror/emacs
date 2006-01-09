@@ -1,7 +1,7 @@
 ;;; cus-edit.el --- tools for customizing Emacs and Lisp packages
 ;;
 ;; Copyright (C) 1996, 1997, 1999, 2000, 2001, 2002, 2003, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -2266,14 +2266,17 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 ;;; The `custom-comment' Widget.
 
 ;; like the editable field
-(defface custom-comment '((((class grayscale color)
+(defface custom-comment '((((type tty))
+			   :background "yellow3"
+			   :foreground "black")
+			  (((class grayscale color)
 			    (background light))
-			   (:background "gray85"))
+			   :background "gray85")
 			  (((class grayscale color)
 			    (background dark))
-			   (:background "dim gray"))
+			   :background "dim gray")
 			  (t
-			   (:slant italic)))
+			   :slant italic))
   "Face used for comments on variables or faces"
   :version "21.1"
   :group 'custom-faces)
