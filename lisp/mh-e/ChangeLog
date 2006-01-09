@@ -1,5 +1,20 @@
 2006-01-09  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el: Use ";; Shush compiler." comment consistently per
+	Mark's suggestion.
+	(mh-letter-mode): Derive from mail-mode and delete code copied
+	from mail-mode (closes SF #1385571). Mention mail-mode-hook in
+	docstring.
+	(mh-fill-paragraph-function): Delete. Handled by mail-mode.
+	(mh-to-field-choices): For consistency with mail-mode, add "a" for
+	"Mail-Reply-To:", "l" for "Mail-Followup-To:", and "r" for
+	"Reply-To:". Change "r" to "m" for "From:" (closes SF #1400139).
+	(mh-to-fcc): Move setting of folder argument to interactive
+	argument as is the norm.
+	(mh-letter-complete-function-alist): Add mail-reply-to.
+	(mh-letter-mode-map): Add keys for mh-to-field (Mail-Reply-To,
+	Mail-Followup-To, Reply-To, From).
+
 	* mh-customize.el: Use ";; Forward definition." consistently.
 	Comment declaration to remind programmer to update forward
 	definition if default changes.

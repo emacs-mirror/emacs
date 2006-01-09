@@ -158,9 +158,16 @@ user's MH directory, then in the system MH lib directory.")
   "Regexp of header lines to remove before offering a message as a new draft\\<mh-folder-mode-map>.
 Used by the \\[mh-edit-again] and \\[mh-extract-rejected-mail] commands.")
 
-(defvar mh-to-field-choices '(("t" . "To:") ("s" . "Subject:") ("c" . "Cc:")
-                              ("b" . "Bcc:") ("f" . "Fcc:") ("r" . "From:")
-                              ("d" . "Dcc:"))
+(defvar mh-to-field-choices '(("a" . "Mail-Reply-To:")
+                              ("b" . "Bcc:")
+                              ("c" . "Cc:")
+                              ("d" . "Dcc:")
+                              ("f" . "Fcc:")
+                              ("l" . "Mail-Followup-To:")
+                              ("m" . "From:")
+                              ("r" . "Reply-To:")
+                              ("s" . "Subject:")
+                              ("t" . "To:"))
   "Alist of (final-character . field-name) choices for `mh-to-field'.")
 
 (defvar mh-letter-mode-map (copy-keymap text-mode-map)
@@ -939,29 +946,15 @@ special key nil is used to display the non-prefixed commands.
 The substitutions described in `substitute-command-keys' are
 performed as well.")
 
-;;;###mh-autoload
-(defun mh-fill-paragraph-function (arg)
-  "Fill paragraph at or after point.
-Prefix ARG means justify as well. This function enables
-`fill-paragraph' to work better in MH-Letter mode (see
-`mh-letter-mode')."
-  (interactive "P")
-  (let ((fill-paragraph-function) (fill-prefix))
-    (if (mh-in-header-p)
-        (mail-mode-fill-paragraph arg)
-      (fill-paragraph arg))))
-
 ;; Shush compiler.
 (eval-when-compile
   (defvar adaptive-fill-first-line-regexp)
-  (defvar tool-bar-map)
-    (defvar font-lock-defaults)
-)
+  (defvar tool-bar-map))
 
 (defvar mh-letter-buttons-init-flag nil)
 
 ;;;###autoload
-(define-derived-mode mh-letter-mode text-mode "MH-Letter"
+(define-derived-mode mh-letter-mode mail-mode "MH-Letter"
   "Mode for composing letters in MH-E\\<mh-letter-mode-map>.
 
 When you have finished composing, type \\[mh-send-letter] to send
@@ -976,8 +969,9 @@ MH-style directives or \\[mh-mml-to-mime] for MML tags.
 Options that control this mode can be changed with
 \\[customize-group]; specify the \"mh-compose\" group.
 
-When a message is composed, the hooks `text-mode-hook' and
-`mh-letter-mode-hook' are run.
+When a message is composed, the hooks `text-mode-hook',
+`mail-mode-hook', and `mh-letter-mode-hook' are run (in that
+order).
 
 \\{mh-letter-mode-map}"
   (mh-find-path)
@@ -1003,32 +997,6 @@ When a message is composed, the hooks `text-mode-hook' and
   (setq mh-help-messages mh-letter-mode-help-messages)
   (setq buffer-invisibility-spec '((vanish . t) t))
   (set (make-local-variable 'line-move-ignore-invisible) t)
-
-  ;; From sendmail.el for proper paragraph fill
-  ;; sendmail.el also sets a normal-auto-fill-function (not done here)
-  (make-local-variable 'paragraph-separate)
-  (make-local-variable 'paragraph-start)
-  (make-local-variable 'fill-paragraph-function)
-  (setq fill-paragraph-function 'mh-fill-paragraph-function)
-  (make-local-variable 'adaptive-fill-regexp)
-  (setq adaptive-fill-regexp
-        (concat adaptive-fill-regexp
-                "\\|[ \t]*[-[:alnum:]]*>+[ \t]*"))
-  (make-local-variable 'adaptive-fill-first-line-regexp)
-  (setq adaptive-fill-first-line-regexp
-        (concat adaptive-fill-first-line-regexp
-                "\\|[ \t]*[-[:alnum:]]*>+[ \t]*"))
-  ;; `-- ' precedes the signature.  `-----' appears at the start of the
-  ;; lines that delimit forwarded messages.
-  ;; Lines containing just >= 3 dashes, perhaps after whitespace,
-  ;; are also sometimes used and should be separators.
-  (setq paragraph-start (concat (regexp-quote mail-header-separator)
-                                "\\|\t*\\([-|#;>* ]\\|(?[0-9]+[.)]\\)+$"
-                                "\\|[ \t]*[[:alnum:]]*>+[ \t]*$\\|[ \t]*$\\|"
-                                "-- $\\|---+$\\|"
-                                page-delimiter))
-  (setq paragraph-separate paragraph-start)
-  ;; --- End of code from sendmail.el ---
 
   ;; Enable undo since a show-mode buffer might have been reused.
   (buffer-enable-undo)
@@ -1146,17 +1114,15 @@ Set the mark to point before moving."
 
 This command will prompt you for the FOLDER name in which to file
 a copy of the draft."
-  (interactive)
-  (or folder
-      (setq folder (mh-prompt-for-folder
-                    "Fcc"
-                    (or (and mh-default-folder-for-message-function
-                             (save-excursion
-                               (goto-char (point-min))
-                               (funcall
-                                mh-default-folder-for-message-function)))
-                        "")
-                    t)))
+  (interactive (list (mh-prompt-for-folder
+                      "Fcc"
+                      (or (and mh-default-folder-for-message-function
+                               (save-excursion
+                                 (goto-char (point-min))
+                                 (funcall
+                                  mh-default-folder-for-message-function)))
+                          "")
+                      t)))
   (let ((last-input-char ?\C-f))
     (expand-abbrev)
     (save-excursion
@@ -1463,7 +1429,8 @@ doesn't exist there."
         unless (eq charset 'ascii) return nil
         finally return t))
 
-(eval-when-compile (defvar sendmail-coding-system)) ;shush compiler
+;; Shush compiler.
+(eval-when-compile (defvar sendmail-coding-system))
 
 ;;;###mh-autoload
 (defun mh-send-letter (&optional arg)
@@ -1853,12 +1820,13 @@ Any match found replaces the text from BEGIN to END."
     (mh-complete-word folder choices beg end)))
 
 (defvar mh-letter-complete-function-alist
-  '((cc . mh-alias-letter-expand-alias)
-    (bcc . mh-alias-letter-expand-alias)
+  '((bcc . mh-alias-letter-expand-alias)
+    (cc . mh-alias-letter-expand-alias)
     (dcc . mh-alias-letter-expand-alias)
     (fcc . mh-folder-expand-at-point)
     (from . mh-alias-letter-expand-alias)
     (mail-followup-to . mh-alias-letter-expand-alias)
+    (mail-reply-to . mh-alias-letter-expand-alias)
     (reply-to . mh-alias-letter-expand-alias)
     (to . mh-alias-letter-expand-alias))
   "Alist of header fields and completion functions to use.")
@@ -2124,17 +2092,23 @@ Otherwise return the empty string."
   "\C-c\C-c"            mh-send-letter
   "\C-c\C-d"            mh-insert-identity
   "\C-c\C-e"            mh-mh-to-mime
+  "\C-c\C-f\C-a"        mh-to-field
   "\C-c\C-f\C-b"        mh-to-field
   "\C-c\C-f\C-c"        mh-to-field
   "\C-c\C-f\C-d"        mh-to-field
   "\C-c\C-f\C-f"        mh-to-fcc
+  "\C-c\C-f\C-l"        mh-to-field
+  "\C-c\C-f\C-m"        mh-to-field
   "\C-c\C-f\C-r"        mh-to-field
   "\C-c\C-f\C-s"        mh-to-field
   "\C-c\C-f\C-t"        mh-to-field
+  "\C-c\C-fa"           mh-to-field
   "\C-c\C-fb"           mh-to-field
   "\C-c\C-fc"           mh-to-field
   "\C-c\C-fd"           mh-to-field
   "\C-c\C-ff"           mh-to-fcc
+  "\C-c\C-fl"           mh-to-field
+  "\C-c\C-fm"           mh-to-field
   "\C-c\C-fr"           mh-to-field
   "\C-c\C-fs"           mh-to-field
   "\C-c\C-ft"           mh-to-field
