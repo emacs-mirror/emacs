@@ -103,14 +103,14 @@ The option `mh-compose-insertion' controls what type of tags are inserted."
   (let
       ((range))
     (if (null messages)
-	(setq messages ""))
+        (setq messages ""))
     (setq range (mh-translate-range folder messages))
     (if (null range)
-	(error "No messages in specified range"))
+        (error "No messages in specified range"))
     (dolist (message range)
       (if (equal mh-compose-insertion 'mml)
-	  (mh-mml-forward-message description folder (format "%s" message))
-	(mh-mh-forward-message description folder (format "%s" message))))))
+          (mh-mml-forward-message description folder (format "%s" message))
+        (mh-mh-forward-message description folder (format "%s" message))))))
 
 ;; To do:
 ;; paragraph code should not fill # lines if MIME enabled.
@@ -211,10 +211,10 @@ a type (see `mailcap-mime-types' and for Emacs 20,
 Optional argument DEFAULT is returned if a type isn't entered."
   (mailcap-parse-mimetypes)
   (let* ((default (or default
-		      (mm-default-file-encoding filename)
-		      "application/octet-stream"))
+                      (mm-default-file-encoding filename)
+                      "application/octet-stream"))
          (probed-type (mh-file-mime-type filename))
-	 (type (or (and (not (equal probed-type "application/octet-stream"))
+         (type (or (and (not (equal probed-type "application/octet-stream"))
                         probed-type)
                    (completing-read
                     (format "Content type (default %s): " default)
@@ -1413,8 +1413,7 @@ Parameter EL is unused."
       (mh-mime-display-security handle)
       (goto-char point))))
 
-;; These variables should already be initialized in mm-decode.el if we have a
-;; recent enough Gnus. The defvars are here to avoid compiler warnings.
+;; Shush compiler.
 (eval-when-compile
   (defvar mm-verify-function-alist nil)
   (defvar mm-decrypt-function-alist nil))
