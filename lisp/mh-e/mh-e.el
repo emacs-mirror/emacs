@@ -1753,7 +1753,7 @@ purely for compatibility. The former symbol is used in Emacs 21.4
 onward while the latter is used in previous versions and XEmacs."
   (if (boundp 'write-file-functions)
       ''write-file-functions            ;Emacs 21.4
-    ''local-write-file-hooks))          ;<Emacs 21.4, XEmacs
+    ''local-write-file-hooks))          ;XEmacs
 
 ;; Register mh-folder-mode as supporting which-function-mode...
 (load "which-func" t t)
@@ -1761,12 +1761,10 @@ onward while the latter is used in previous versions and XEmacs."
            (not (member 'mh-folder-mode which-func-modes)))
   (push 'mh-folder-mode which-func-modes))
 
-;; Shush compiler in non-bleeding edge versions of Emacs.
+;; Shush compiler.
 (eval-when-compile
-  (defvar desktop-save-buffer)         ;Emacs 21.4
-  (defvar font-lock-auto-fontify)
-  (defvar font-lock-defaults)
-  (defvar tool-bar-map))
+  (defvar desktop-save-buffer)
+  (defvar font-lock-auto-fontify))
 
 (defvar mh-folder-buttons-init-flag nil)
 
