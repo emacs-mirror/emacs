@@ -1,5 +1,11 @@
 2006-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* reveal.el (reveal-open-new-overlays): New extracted fun.
+	(reveal-close-old-overlays): Idem.  Check overlays's liveness before
+	using them.  Simplify the code.
+	(reveal-post-command): Use them.  Fix up obsolete windows in
+	reveal-open-spots.
+
 	* progmodes/flymake.el: Use `require' rather than autoload for
 	XEmacs's overlays.
 	(flymake-get-common-file-prefix, flymake-build-relative-filename):
