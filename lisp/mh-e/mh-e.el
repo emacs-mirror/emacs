@@ -51,7 +51,9 @@
 
 ;; MH-E is an Emacs interface to the MH mail system.
 
-;; MH-E is supported in GNU Emacs 20 and 21, with MH 6.8.4 and nmh 1.0.4.
+;; MH-E is supported in GNU Emacs 21 and 22 as well as XEmacs 21
+;; (except for versions 21.5.9-21.5.16), with MH 6.8.4 on, nmh 1.0.4
+;; on, and GNU mailutils 0.4 on.
 
 ;; Mailing Lists:
 ;;   mh-e-users@lists.sourceforge.net
@@ -87,17 +89,11 @@
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-utils)
-(require 'mh-init)
-(require 'mh-inc)
-(require 'mh-seq)
-(require 'gnus-util)
-(require 'easymenu)
 
-;; Shush the byte-compiler
-(eval-when-compile
-  (defvar font-lock-auto-fontify)
-  (defvar font-lock-defaults))
+(require 'easymenu)
+(require 'gnus-util)
+(require 'mh-seq)
+(require 'mh-utils)
 
 (defconst mh-version "7.85+cvs" "Version number of MH-E.")
 
@@ -1184,8 +1180,6 @@ if it is available."
   (when (consp part-index) (setq part-index (car part-index)))
   (mh-folder-mime-action part-index #'mh-mime-save-part nil))
 
-(defvar mh-thread-scan-line-map-stack)
-
 (defun mh-reset-threads-and-narrowing ()
   "Reset all variables pertaining to threads and narrowing.
 Also removes all content from the folder buffer."
@@ -1761,17 +1755,18 @@ onward while the latter is used in previous versions and XEmacs."
       ''write-file-functions            ;Emacs 21.4
     ''local-write-file-hooks))          ;<Emacs 21.4, XEmacs
 
-;; Avoid compiler warnings in non-bleeding edge versions of Emacs.
-(eval-when-compile
-  (defvar tool-bar-mode)
-  (defvar tool-bar-map)
-  (defvar desktop-save-buffer))         ;Emacs 21.4
-
 ;; Register mh-folder-mode as supporting which-function-mode...
 (load "which-func" t t)
 (when (and (boundp 'which-func-modes)
            (not (member 'mh-folder-mode which-func-modes)))
   (push 'mh-folder-mode which-func-modes))
+
+;; Shush compiler in non-bleeding edge versions of Emacs.
+(eval-when-compile
+  (defvar desktop-save-buffer)         ;Emacs 21.4
+  (defvar font-lock-auto-fontify)
+  (defvar font-lock-defaults)
+  (defvar tool-bar-map))
 
 (defvar mh-folder-buttons-init-flag nil)
 
@@ -1913,10 +1908,7 @@ perform the operation on all messages in that region.
 (defun mh-colors-available-p ()
   "Check if colors are available in the Emacs being used."
   (or mh-xemacs-flag
-      (let ((color-cells
-             (or (ignore-errors (mh-funcall-if-exists display-color-cells))
-                 (ignore-errors (mh-funcall-if-exists
-                                 x-display-color-cells)))))
+      (let ((color-cells (display-color-cells)))
         (and (numberp color-cells) (>= color-cells 8)))))
 
 (defun mh-colors-in-use-p ()

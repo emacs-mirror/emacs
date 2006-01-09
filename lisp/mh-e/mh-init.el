@@ -43,9 +43,6 @@
 (mh-require-cl)
 (require 'mh-utils)
 
-;; Avoid compiler warnings.
-(eval-when-compile (defvar image-load-path))
-
 ;; Set for local environment:
 ;; mh-progs and mh-lib used to be set in paths.el, which tried to
 ;; figure out at build time which of several possible directories MH
@@ -300,6 +297,8 @@ This assumes that a temporary buffer is setup."
 
 
 
+(eval-when-compile (defvar image-load-path)) ;shush compiler
+
 (defvar mh-image-load-path-called-flag nil)
 
 ;;;###mh-autoload
@@ -327,6 +326,8 @@ there. Otherwise, the images directory is added to the
     (setq mh-image-load-path-called-flag t)))
 
 
+
+;;; Support routines for mh-customize.el
 
 (defvar mh-min-colors-defined-flag (and (not mh-xemacs-flag)
                                         (>= emacs-major-version 22))

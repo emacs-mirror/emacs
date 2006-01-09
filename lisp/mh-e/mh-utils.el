@@ -33,34 +33,29 @@
 
 ;;; Code:
 
-(defvar recursive-load-depth-limit)
 (eval-and-compile
+  (defvar recursive-load-depth-limit)
   (if (and (boundp 'recursive-load-depth-limit)
            (integerp recursive-load-depth-limit)
-           (> 50 recursive-load-depth-limit))
+           (< recursive-load-depth-limit 50))
       (setq recursive-load-depth-limit 50)))
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'gnus-util)
+
 (require 'font-lock)
-(require 'mouse)
-(load "tool-bar" t t)
-(require 'mh-loaddefs)
+(require 'gnus-util)
 (require 'mh-customize)
 (require 'mh-inc)
+(require 'mouse)
+(require 'sendmail)
 
-(load "mm-decode" t t)                  ; Non-fatal dependency
-(load "mm-view" t t)                    ; Non-fatal dependency
-(load "vcard" t t)                      ; Non-fatal dependency
-(load "hl-line" t t)                    ; Non-fatal dependency
-(load "executable" t t)                 ; Non-fatal dependency on
-                                        ; executable-find
-
-;; Shush the byte-compiler
-(defvar font-lock-auto-fontify)
-(defvar font-lock-defaults)
-(defvar mark-active)
+;; Non-fatal dependencies
+(load "hl-line" t t)
+(load "mm-decode" t t)
+(load "mm-view" t t)
+(load "tool-bar" t t)
+(load "vcard" t t)
 
 
 
@@ -69,7 +64,6 @@
 (autoload 'gnus-article-highlight-citation "gnus-cite")
 (autoload 'message-fetch-field "message")
 (autoload 'message-tokenize-header "message")
-(require 'sendmail)
 (unless (fboundp 'make-hash-table)
   (autoload 'make-hash-table "cl"))
 
@@ -471,11 +465,10 @@ operation."
 
 ;; Needed to help shush the byte-compiler.
 (if mh-xemacs-flag
-    (progn
-      (eval-and-compile
-        (require 'gnus)
-        (require 'gnus-art)
-        (require 'gnus-cite))))
+    (eval-and-compile
+      (require 'gnus)
+      (require 'gnus-art)
+      (require 'gnus-cite)))
 
 (defun mh-gnus-article-highlight-citation ()
   "Highlight cited text in current buffer using Gnus."
@@ -750,7 +743,6 @@ preserved."
   (clear-visited-file-modtime)
   (unlock-buffer)
   (setq buffer-file-name nil))
-
 
 (defun mh-get-msg-num (error-if-no-message)
   "Return the message number of the displayed message.
@@ -1138,9 +1130,10 @@ still visible.\n")
 ;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
 
-;; Avoid compiler warnings in XEmacs and Emacs 20
+;; Shush compiler.
 (eval-when-compile
-  (defvar tool-bar-mode)
+  (defvar font-lock-auto-fontify)
+  (defvar font-lock-defaults)
   (defvar tool-bar-map))
 
 (define-derived-mode mh-show-mode text-mode "MH-Show"
@@ -1877,9 +1870,7 @@ ignored if VISIBLE-HEADERS is non-nil."
   ;; XXX Note that MH-E no longer supports the `mh-visible-headers'
   ;; variable, so this function could be trimmed of this feature too."
   (let ((case-fold-search t)
-        (buffer-read-only nil)
-        (after-change-functions nil))   ;Work around emacs-20 font-lock bug
-                                        ;causing an endless loop.
+        (buffer-read-only nil))
     (save-restriction
       (goto-char start)
       (if (search-forward "\n\n" nil 'move)
@@ -2350,8 +2341,11 @@ otherwise completion on +foo won't tell us about the option
       (remhash nil mh-sub-folders-cache))))
 
 (defvar mh-folder-hist nil)
-(defvar mh-speed-folder-map)
-(defvar mh-speed-flists-cache)
+
+;; Shush compiler.
+(eval-when-compile
+  (defvar mh-speed-folder-map)
+  (defvar mh-speed-flists-cache))
 
 (defvar mh-allow-root-folder-flag nil
   "Non-nil means \"+\" is an acceptable folder name.
@@ -2612,6 +2606,8 @@ RAISE-ERROR is non-nil, in which case an error is signaled if
     (mh-exec-cmd-quiet nil "mhparam" "-components" component)
     (mh-get-profile-field (concat component ":"))))
 
+(eval-when-compile (defvar mark-active)) ;shush compiler
+
 (defun mh-exchange-point-and-mark-preserving-active-mark ()
   "Put the mark where point is now, and point where the mark is now.
 This command works even when the mark is not active, and
@@ -2689,30 +2685,12 @@ Set mark after inserted text."
     new-list))
 
 (defun mh-replace-string (old new)
-  "Replace all occurrences of OLD with NEW in the current buffer."
+  "Replace all occurrences of OLD with NEW in the current buffer.
+Ignores case when searching for OLD."
   (goto-char (point-min))
   (let ((case-fold-search t))
     (while (search-forward old nil t)
       (replace-match new t t))))
-
-(defun mh-replace-in-string (regexp newtext string)
-  "Replace REGEXP with NEWTEXT everywhere in STRING and return result.
-NEWTEXT is taken literally---no \\DIGIT escapes will be recognized.
-
-The function body was copied from `dired-replace-in-string' in
-dired.el.
-Emacs21 has `replace-regexp-in-string' while XEmacs has
-`replace-in-string'.
-Neither is present in Emacs20. The file gnus-util.el in Gnus 5.10.1
-and above has `gnus-replace-in-string'. We should use that when we
-decide to not support older versions of Gnus."
-  (let ((result "") (start 0) mb me)
-    (while (string-match regexp string start)
-      (setq mb (match-beginning 0)
-            me (match-end 0)
-            result (concat result (substring string start mb) newtext)
-            start me))
-    (concat result (substring string start))))
 
 (provide 'mh-utils)
 

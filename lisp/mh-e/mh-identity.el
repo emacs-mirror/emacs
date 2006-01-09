@@ -40,7 +40,7 @@
 ;;; Code:
 
 (eval-when-compile (require 'mh-acros))
-(mh-require-cl)
+
 (require 'mh-comp)
 
 (autoload 'mml-insert-tag "mml")

@@ -67,21 +67,17 @@
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-loaddefs)
 
 (eval-and-compile
   (defvar mh-xemacs-flag (featurep 'xemacs)
-    "Non-nil means the current Emacs is XEmacs."))
+    "Non-nil means the current Emacs is XEmacs.")
+  (when mh-xemacs-flag
+    (require 'mh-xemacs)))
 
-(when mh-xemacs-flag
-  (require 'mh-xemacs))
-
-;; XXX: Functions autoloaded from the following files are used to initialize
-;;  customizable variables. They are require'd here, since otherwise the
-;;  corresponding .elc would be loaded at compile time.
-(eval-when-compile
+(eval-and-compile
+  (require 'mh-identity)
   (require 'mh-init)
-  (require 'mh-identity))
+  (require 'mh-loaddefs))
 
 ;; For compiler warnings...
 (eval-when-compile
@@ -1031,8 +1027,7 @@ message 200, then use the range \"200:200\"."
 
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
-;; Forward definition to avoid compiler and runtime error.
-(defvar mh-scan-format-file t)
+(defvar mh-scan-format-file t) ;forward definition
 
 (defun mh-adaptive-cmd-note-flag-check (symbol value)
   "Check if desired setting is legal.
@@ -1044,6 +1039,8 @@ Otherwise, set SYMBOL to VALUE."
       (error "%s %s" "Can't turn on unless `mh-scan-format-file'"
              "is set to \"Use MH-E scan Format\"")
     (set-default symbol value)))
+
+(defvar mh-adaptive-cmd-note-flag) ;forward definition
 
 (defun mh-scan-format-file-check (symbol value)
   "Check if desired setting is legal.
@@ -1598,6 +1595,10 @@ Do not alter this variable directly. Instead, customize
 hidden that you wish to display, and add extra entries to hide in
 `mh-invisible-header-fields'.")
 
+;; Forward definition.
+(defvar mh-invisible-header-fields)
+(defvar mh-invisible-header-fields-default nil)
+
 (defun mh-invisible-headers ()
   "Make or remake the variable `mh-invisible-header-fields-compiled'.
 Done using `mh-invisible-header-fields-internal' as input, from
@@ -1623,23 +1624,6 @@ removed and entries from `mh-invisible-header-fields' are added."
                  (regexp-opt fields t))))
       (setq mh-invisible-header-fields-compiled nil))))
 
-(defcustom mh-invisible-header-fields-default nil
-  "*List of hidden header fields.
-
-The header fields listed in this option are hidden, although you
-can check off any field that you would like to see.
-
-Header fields that you would like to hide that aren't listed can
-be added to the option `mh-invisible-header-fields'.
-
-See also `mh-clean-message-header-flag'."
-  :type `(set ,@(mapcar (lambda (x) `(const ,x))
-                        mh-invisible-header-fields-internal))
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (mh-invisible-headers))
-  :group 'mh-show)
-
 (defcustom mh-invisible-header-fields nil
   "*Additional header fields to hide.
 
@@ -1655,6 +1639,23 @@ generally ignored, report a bug (see URL
 See also `mh-clean-message-header-flag'."
 
   :type '(repeat (string :tag "Header field"))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (mh-invisible-headers))
+  :group 'mh-show)
+
+(defcustom mh-invisible-header-fields-default nil
+  "*List of hidden header fields.
+
+The header fields listed in this option are hidden, although you
+can check off any field that you would like to see.
+
+Header fields that you would like to hide that aren't listed can
+be added to the option `mh-invisible-header-fields'.
+
+See also `mh-clean-message-header-flag'."
+  :type `(set ,@(mapcar (lambda (x) `(const ,x))
+                        mh-invisible-header-fields-internal))
   :set (lambda (symbol value)
          (set-default symbol value)
          (mh-invisible-headers))

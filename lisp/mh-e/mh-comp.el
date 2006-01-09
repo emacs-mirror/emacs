@@ -35,24 +35,17 @@
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-e)
-(require 'gnus-util)
+
 (require 'easymenu)
+(require 'gnus-util)
+(require 'mh-e)
 (require 'mh-gnus)
+
 (eval-when (compile load eval)
   (ignore-errors (require 'mailabbrev)))
 
-;; Shush the byte-compiler
-(defvar adaptive-fill-first-line-regexp)
-(defvar font-lock-defaults)
-(defvar mark-active)
-(defvar sendmail-coding-system)
-(defvar mh-identity-list)
-(defvar mh-identity-default)
-(defvar mh-mml-mode-default)
-(defvar mh-identity-menu)
-
 
+
 ;;; Autoloads
 
 (autoload 'mail-mode-fill-paragraph "sendmail")
@@ -958,10 +951,12 @@ Prefix ARG means justify as well. This function enables
         (mail-mode-fill-paragraph arg)
       (fill-paragraph arg))))
 
-;; Avoid compiler warnings in XEmacs and Emacs 20
+;; Shush compiler.
 (eval-when-compile
-  (defvar tool-bar-mode)
-  (defvar tool-bar-map))
+  (defvar adaptive-fill-first-line-regexp)
+  (defvar tool-bar-map)
+    (defvar font-lock-defaults)
+)
 
 (defvar mh-letter-buttons-init-flag nil)
 
@@ -1177,8 +1172,7 @@ a copy of the draft."
          (file-exists-p file)
          (or (and (not (mh-have-file-command))
                   (not (null (string-match "\.vcf$" file))))
-             (and (mh-have-file-command)
-                  (string-equal "text/x-vcard" (mh-file-mime-type file)))))))
+             (string-equal "text/x-vcard" (mh-file-mime-type file))))))
 
 ;;;###mh-autoload
 (defun mh-insert-signature (&optional file)
@@ -1468,6 +1462,8 @@ doesn't exist there."
                         find-charset-region (point-min) (point-max))
         unless (eq charset 'ascii) return nil
         finally return t))
+
+(eval-when-compile (defvar sendmail-coding-system)) ;shush compiler
 
 ;;;###mh-autoload
 (defun mh-send-letter (&optional arg)

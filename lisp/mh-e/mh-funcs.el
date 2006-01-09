@@ -149,8 +149,7 @@ Display the results only if something went wrong."
           (re-search-forward "^rmf: " (point-max) t))
     (display-buffer mh-temp-buffer)))
 
-;; Avoid compiler warning...
-(defvar view-exit-action)
+(eval-when-compile (defvar view-exit-action)) ;shush compile
 
 ;;;###mh-autoload
 (defun mh-list-folders ()
