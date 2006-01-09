@@ -591,7 +591,8 @@ automatically."
     (mml-insert-empty-tag 'part 'type type 'filename file
                           'disposition dispos 'description description)))
 
-(eval-when-compile (defvar mh-identity-pgg-default-user-id)) ;shush compiler
+;; Shush compiler.
+(eval-when-compile (defvar mh-identity-pgg-default-user-id))
 
 (defun mh-secure-message (method mode &optional identity)
   "Add tag to encrypt or sign message.

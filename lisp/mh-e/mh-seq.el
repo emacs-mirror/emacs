@@ -169,7 +169,8 @@ you want to delete the messages, use \"\\[universal-argument]
     (when (and (eq sequence mh-unseen-seq) (mh-speed-flists-active-p))
       (apply #'mh-speed-flists t folders-changed))))
 
-(eval-when-compile (defvar view-exit-action)) ;shush compiler
+;; Shush compiler.
+(eval-when-compile (defvar view-exit-action))
 
 ;;;###mh-autoload
 (defun mh-list-sequences ()

@@ -297,7 +297,8 @@ This assumes that a temporary buffer is setup."
 
 
 
-(eval-when-compile (defvar image-load-path)) ;shush compiler
+;; Shush compiler.
+(eval-when-compile (defvar image-load-path))
 
 (defvar mh-image-load-path-called-flag nil)
 

@@ -2606,7 +2606,8 @@ RAISE-ERROR is non-nil, in which case an error is signaled if
     (mh-exec-cmd-quiet nil "mhparam" "-components" component)
     (mh-get-profile-field (concat component ":"))))
 
-(eval-when-compile (defvar mark-active)) ;shush compiler
+;; Shush compiler.
+(eval-when-compile (defvar mark-active))
 
 (defun mh-exchange-point-and-mark-preserving-active-mark ()
   "Put the mark where point is now, and point where the mark is now.

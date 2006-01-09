@@ -1,3 +1,13 @@
+2006-01-09  Bill Wohler  <wohler@newt.com>
+
+	* mh-funcs.el: 
+	* mh-inc.el: 
+	* mh-init.el: 
+	* mh-mime.el: 
+	* mh-seq.el: 
+	* mh-utils.el: Use ";; Shush compiler." comment consistently per
+	Mark's suggestion.
+
 2006-01-08  Bill Wohler  <wohler@newt.com>
 
 	Removed code that was marked as Emacs 20 compatible that was

@@ -73,7 +73,8 @@
                                         (char-to-string key)
                                         "] inc " folder " folder\n"))))
 
-(eval-when-compile (defvar mh-inc-spool-list)) ;shush compiler
+;; Shush compiler.
+(eval-when-compile (defvar mh-inc-spool-list))
 
 (defun mh-inc-spool-make ()
   "Make all commands and defines keys for contents of `mh-inc-spool-list'."
