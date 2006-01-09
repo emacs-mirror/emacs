@@ -1,3 +1,7 @@
+2006-01-09  John Paul Wallington  <jpw@gnu.org>
+
+	* cus-edit.el (custom-comment) <defface>: Add TTY definitions.
+
 2006-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* reveal.el (reveal-open-new-overlays): New extracted fun.
