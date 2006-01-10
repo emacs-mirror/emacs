@@ -185,8 +185,8 @@ Returns nil if file command not on system."
   (cond
    ((not (mh-have-file-command))
     nil)                                ;no file command, exit now
-   ((not (and (file-exists-p filename)  
-              (file-readable-p filename))) 
+   ((not (and (file-exists-p filename)
+              (file-readable-p filename)))
     nil)                               ;no file or not readable, ditto
    (t
     (save-excursion
