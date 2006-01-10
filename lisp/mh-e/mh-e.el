@@ -1208,8 +1208,13 @@ if DONT-EXEC-PENDING is non-nil."
                                         mh-interpret-number-as-range-flag)
                        nil)))
   (setq mh-next-direction 'forward)
-  (let ((threaded-flag (memq 'unthread mh-view-ops)))
+  (let ((threaded-flag (memq 'unthread mh-view-ops))
+        (msg-num (mh-get-msg-num nil)))
     (mh-scan-folder mh-current-folder (or range "all") dont-exec-pending)
+    ;; If there isn't a cur sequence, mh-scan-folder goes to the first message.
+    ;; Try to stay where we were.
+    (if (null (car (mh-seq-to-msgs 'cur)))
+        (mh-goto-msg msg-num t t))
     (cond (threaded-flag (mh-toggle-threads))
           (mh-index-data (mh-index-insert-folder-headers)))))
 
@@ -1292,7 +1297,6 @@ RANGE is read in interactive use."
              (mh-undo-msg nil))))
   (if (not (mh-outstanding-commands-p))
       (mh-set-folder-modified-p nil)))
-
 
 (defun mh-folder-line-matches-show-buffer-p ()
   "Return t if the message under point in folder-mode is in the show buffer.
@@ -1473,7 +1477,6 @@ structures."
     (unless (eq current-buffer (current-buffer))
       (setq mh-previous-window-config config)))
   nil)
-
 
 (defun mh-update-sequences ()
   "Flush MH-E's state out to MH.
@@ -2261,7 +2264,6 @@ removed."
       (mh-notate nil ?  mh-cmd-note)
       (mh-remove-sequence-notation msg nil t))
     (clrhash mh-sequence-notation-history)))
-
 
 (defun mh-goto-cur-msg (&optional minimal-changes-flag)
   "Position the cursor at the current message.

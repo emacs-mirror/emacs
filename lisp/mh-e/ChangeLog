@@ -1,5 +1,9 @@
 2006-01-09  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (mh-rescan-folder): Try to keep cursor at current
+	message, even if cur sequence is no longer present (closes SF
+	#1207247).
+
 	* mh-comp.el: Use ";; Shush compiler." comment consistently per
 	Mark's suggestion.
 	(mh-letter-mode): Derive from mail-mode and delete code copied
