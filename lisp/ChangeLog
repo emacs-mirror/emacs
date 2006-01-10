@@ -1,3 +1,10 @@
+2006-01-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* mail/emacsbug.el (report-emacs-bug-text-prompt): Delete var.
+	(report-emacs-bug): Don't record initial prompt text.
+	Instead, add text properties to prompting text.
+	(report-emacs-bug-hook): Delete prompting text.
+
 2006-01-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/flymake.el (flymake-find-buildfile): Remove invariant arg
