@@ -239,23 +239,15 @@ This assumes that a temporary buffer is setup."
       (goto-char (point-min))
       (when (search-forward-regexp "mhparam (\\(GNU [Mm]ailutils \\S +\\))"
                                    nil t)
-        (let ((version (match-string 1)))
-          (erase-buffer)
-          (call-process mhparam nil '(t nil) nil "libdir" "etcdir")
-          (goto-char (point-min))
-          (when (search-forward-regexp "^libdir:\\s-\\(\\S-+\\)\\s-*$" nil t)
-            (let ((libdir (match-string 1)))
-              (goto-char (point-min))
-              (when (search-forward-regexp
-                     "^etcdir:\\s-\\(\\S-+\\)\\s-*$" nil t)
-                (let ((etcdir (match-string 1))
-                      (flists (file-exists-p (expand-file-name "flists" dir))))
-                  `(,version
-                    (variant        mu-mh)
-                    (mh-lib-progs   ,libdir)
-                    (mh-lib         ,etcdir)
-                    (mh-progs       ,dir)
-                    (flists         ,flists)))))))))))
+        (let ((version (match-string 1))
+              (mh-progs dir))
+          `(,version
+            (variant        mu-mh)
+            (mh-lib-progs   ,(mh-profile-component "libdir"))
+            (mh-lib         ,(mh-profile-component "etcdir"))
+            (mh-progs       ,dir)
+            (flists         ,(file-exists-p
+                              (expand-file-name "flists" dir)))))))))
 
 (defun mh-variant-nmh-info (dir)
   "Return info for nmh variant in DIR assuming a temporary buffer is setup."
@@ -267,23 +259,15 @@ This assumes that a temporary buffer is setup."
       (call-process mhparam nil '(t nil) nil "-version")
       (goto-char (point-min))
       (when (search-forward-regexp "mhparam -- nmh-\\(\\S +\\)" nil t)
-        (let ((version (format "nmh %s" (match-string 1))))
-          (erase-buffer)
-          (call-process mhparam nil '(t nil) nil "libdir" "etcdir")
-          (goto-char (point-min))
-          (when (search-forward-regexp "^libdir:\\s-\\(\\S-+\\)\\s-*$" nil t)
-            (let ((libdir (match-string 1)))
-              (goto-char (point-min))
-              (when (search-forward-regexp
-                     "^etcdir:\\s-\\(\\S-+\\)\\s-*$" nil t)
-                (let ((etcdir (match-string 1))
-                      (flists (file-exists-p (expand-file-name "flists" dir))))
-                  `(,version
-                    (variant        nmh)
-                    (mh-lib-progs   ,libdir)
-                    (mh-lib         ,etcdir)
-                    (mh-progs       ,dir)
-                    (flists         ,flists)))))))))))
+        (let ((version (format "nmh %s" (match-string 1)))
+              (mh-progs dir))
+          `(,version
+            (variant        nmh)
+            (mh-lib-progs   ,(mh-profile-component "libdir"))
+            (mh-lib         ,(mh-profile-component "etcdir"))
+            (mh-progs       ,dir)
+            (flists         ,(file-exists-p
+                              (expand-file-name "flists" dir)))))))))
 
 (defun mh-variant-info (dir)
   "Return MH variant found in DIR, or nil if none present."

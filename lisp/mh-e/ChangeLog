@@ -1,5 +1,8 @@
 2006-01-09  Bill Wohler  <wohler@newt.com>
 
+	* mh-init.el (mh-variant-mu-mh-info, mh-variant-nmh-info): Applied
+	patch from Satyaki from SF #1016027.
+
 	* mh-e.el (mh-rescan-folder): Try to keep cursor at current
 	message, even if cur sequence is no longer present (closes SF
 	#1207247).
