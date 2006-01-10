@@ -463,7 +463,7 @@ operation."
      (t
       nil))))
 
-;; Needed to help shush the byte-compiler.
+;; Shush compiler.
 (if mh-xemacs-flag
     (eval-and-compile
       (require 'gnus)
@@ -766,7 +766,6 @@ with \"+\"."
     (and (> (length name) 0)
          (eq (aref name 0) ?+))))
 
-
 (defun mh-expand-file-name (filename &optional default)
   "Expand FILENAME like `expand-file-name', but also handle MH folder names.
 Any filename that starts with '+' is treated as a folder name.
@@ -774,7 +773,6 @@ See `expand-file-name' for description of DEFAULT."
   (if (mh-folder-name-p filename)
       (expand-file-name (substring filename 1) mh-user-path)
     (expand-file-name filename default)))
-
 
 (defun mh-msg-filename (msg &optional folder)
   "Return the file name of MSG in FOLDER (default current folder)."
@@ -1126,15 +1124,11 @@ still visible.\n")
     "--"
     ["Quit MH-E"                        mh-quit t]))
 
-
 ;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
 
 ;; Shush compiler.
-(eval-when-compile
-  (defvar font-lock-auto-fontify)
-  (defvar font-lock-defaults)
-  (defvar tool-bar-map))
+(eval-when-compile (defvar font-lock-auto-fontify))
 
 (define-derived-mode mh-show-mode text-mode "MH-Show"
   "Major mode for showing messages in MH-E.\\<mh-show-mode-map>
