@@ -1,3 +1,9 @@
+2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fexpand_file_name): Remove redundant tests.
+	Fix elimination of // so that it doesn't prevent elimination of an
+	immediately following /. or /..
+
 2006-01-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* gtkutil.c (xg_toggle_notify_cb): New function.
