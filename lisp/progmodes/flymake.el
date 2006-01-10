@@ -30,6 +30,11 @@
 ;; checks using the external syntax check tool (for C/C++ this
 ;; is usually the compiler)
 
+;;; Bugs/todo:
+
+;; - Only uses "Makefile", not "makefile" or "GNUmakefile"
+;;   (from http://bugs.debian.org/337339).
+
 ;;; Code:
 
 (eval-when-compile (require 'cl))
