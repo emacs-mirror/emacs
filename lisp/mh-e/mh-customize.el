@@ -2551,7 +2551,7 @@ sequence."
       (:foreground "snow3"))
      (((class color))
       (:foreground "cyan"))))
-    
+
   "Message number face."
   :group 'mh-faces
   :group 'mh-folder)
