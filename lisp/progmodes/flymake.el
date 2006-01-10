@@ -312,30 +312,29 @@ Return nil if we cannot, non-nil if we can."
 (defun flymake-clear-buildfile-cache ()
   (clrhash flymake-find-buildfile-cache))
 
-(defun flymake-find-buildfile (buildfile-name source-dir-name dirs)
+(defun flymake-find-buildfile (buildfile-name source-dir-name)
   "Find buildfile starting from current directory.
 Buildfile includes Makefile, build.xml etc.
 Return its file name if found, or nil if not found."
-  (if (flymake-get-buildfile-from-cache source-dir-name)
-      (progn
-	(flymake-get-buildfile-from-cache source-dir-name))
-    (let* ((buildfile-dir          nil)
-	   (buildfile              nil)
-	   (found                  nil))
-      (while (and (not found) dirs)
-	(setq buildfile-dir (concat source-dir-name (car dirs)))
-	(setq buildfile (concat buildfile-dir "/" buildfile-name))
-	(when (file-exists-p buildfile)
-	  (setq found t))
-	(setq dirs (cdr dirs)))
-      (if found
-	  (progn
-	    (flymake-log 3 "found buildfile at %s/%s" buildfile-dir buildfile-name)
-	    (flymake-add-buildfile-to-cache source-dir-name buildfile-dir)
-	    buildfile-dir)
-	(progn
-	  (flymake-log 3 "buildfile for %s not found" source-dir-name)
-	  nil)))))
+  (or (flymake-get-buildfile-from-cache source-dir-name)
+      (let* ((dirs flymake-buildfile-dirs)
+             (buildfile-dir          nil)
+             (buildfile              nil)
+             (found                  nil))
+        (while (and (not found) dirs)
+          (setq buildfile-dir (concat source-dir-name (car dirs)))
+          (setq buildfile (concat buildfile-dir "/" buildfile-name))
+          (when (file-exists-p buildfile)
+            (setq found t))
+          (setq dirs (cdr dirs)))
+        (if found
+            (progn
+              (flymake-log 3 "found buildfile at %s/%s" buildfile-dir buildfile-name)
+              (flymake-add-buildfile-to-cache source-dir-name buildfile-dir)
+              buildfile-dir)
+          (progn
+            (flymake-log 3 "buildfile for %s not found" source-dir-name)
+            nil)))))
 
 (defun flymake-fix-file-name (name)
   "Replace all occurences of '\' with '/'."
@@ -1608,8 +1607,7 @@ Return full-name.  Names are real, not patched."
   "Find buildfile, store its dir in buffer data and return its dir, if found."
   (let* ((buildfile-dir
           (flymake-find-buildfile buildfile-name
-                                  (file-name-directory source-file-name)
-                                  flymake-buildfile-dirs)))
+                                  (file-name-directory source-file-name))))
     (if buildfile-dir
         (setq flymake-base-dir buildfile-dir)
       (flymake-log 1 "no buildfile (%s) for %s" buildfile-name source-file-name)
@@ -1696,7 +1694,7 @@ Use CREATE-TEMP-F for creating temp copy."
     make-args))
 
 (defun flymake-find-make-buildfile (source-dir)
-  (flymake-find-buildfile "Makefile" source-dir flymake-buildfile-dirs))
+  (flymake-find-buildfile "Makefile" source-dir))
 
 ;;;; .h/make specific
 (defun flymake-master-make-header-init ()
