@@ -1,5 +1,8 @@
 2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/tcl.el (tcl-indent-command): Use indent-for-tab-command.
+	(tcl-indent-line): Return `noindent' if inside a string.
+
 	* progmodes/flymake.el (flymake-split-string): Remove more than one
 	empty string at beg/end of the result.
 	(flymake-find-buildfile, flymake-find-possible-master-files):
