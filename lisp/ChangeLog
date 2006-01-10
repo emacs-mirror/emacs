@@ -1,3 +1,22 @@
+2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-split-string): Remove more than one
+	empty string at beg/end of the result.
+	(flymake-find-buildfile, flymake-find-possible-master-files):
+	Use expand-file-name.
+	(flymake-fix-file-name): Don't replace \ with / and don't remove ./
+	since expand-file-name does it for us.  Use directory-file-name.
+	(flymake-ler-get-full-file, flymake-ler-get-file, flymake-ler-get-line)
+	(flymake-ler-get-type, flymake-ler-get-text)
+	(flymake-ler-make-ler): Remove.  Replace by defstruct.  Update callers.
+	(flymake-current-line-no): Remove spurious interactive spec.
+	(flymake-delete-temp-directory): Remove unused var `slash-pos'.
+	(flymake-check-include): Remove arg inc-path merged into inc-name.
+	(flymake-check-patch-master-file-buffer): Fit in 80 columns.
+	Arg regexp-list replaced by a simple regexp.
+	(flymake-master-make-header-init, flymake-master-tex-init):
+	Correspondingly replace regexp-list with a regexp.  Fix regexp.
+
 2006-01-10  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Add comment
