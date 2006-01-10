@@ -1,3 +1,44 @@
+2006-01-10  Bill Wohler  <wohler@newt.com>
+
+	* mh-index.el (mh-index-search): Checking mh-find-path-run is
+	unnecessary.
+
+	* mh-init.el (mh-sys-path): Co-locate with mh-variants, which uses
+	it.
+	(mh-variants): Note variable isn't meant to be accessed directly;
+	use function mh-variants instead.
+	(mh-variant-info, mh-variant-mh-info, mh-variant-mu-mh-info)
+	(mh-variant-nmh-info): Co-locate next to mh-variants, which uses
+	them. Updated to use mh-file-command-p which is more accurrate
+	than file-executable-p which returns t for directories.
+	(mh-file-command-p): Move here from mh-utils, since
+	mh-variant-*-info are the only functions to use it.
+	(mh-variant-set, mh-variant-set-variant, mh-variant-p): Use
+	function mh-variants instead of variable. More robust.
+	(mh-find-path-run): Move here from mh-utils.el. Mention that
+	checking this variable is unnecessary.
+	(mh-find-path): Move here from mh-utils.el. With the advent of MH
+	variants and an mhparam command that doesn't work if there isn't
+	an MH profile, we can't get libdir for running install-mh. So
+	don't bother. If there's an issue with the environment, direct the
+	user to install MH and run install-mh (closes SF #835192). Don't
+	read ~/.mh_profile directly. Use mh-profile-component which uses
+	mhparam (closes SF #1016027).
+
+	* mh-utils.el (mh-get-profile-field): Rename to
+	mh-profile-component-value. Add colon to search removing
+	unnecessary addition of colon to field in mh-profile-component.
+	(mh-profile-component): Modify call to mh-profile-component-value
+	accordingly. Move next to mh-profile-component-value.
+	(mh-find-path-run, mh-find-path, mh-file-command-p): Move to
+	mh-init.el. It makes sense that code that is only run once per
+	session (more or less) is in mh-init.el rather than cluttering
+	mh-utils.el.
+	(mh-no-install, mh-install): Delete.
+
+	* mh-customize.el (mh-folder-msg-number): 
+	* mh-mime.el (mh-file-mime-type): Removed trailing whitespace.
+
 2006-01-09  Bill Wohler  <wohler@newt.com>
 
 	* mh-init.el (mh-variant-mu-mh-info, mh-variant-nmh-info): Applied

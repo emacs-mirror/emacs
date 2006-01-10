@@ -1950,111 +1950,24 @@ the message."
     (or dont-show (not return-value) (mh-maybe-show number))
     return-value))
 
-(defun mh-get-profile-field (field)
-  "Find and return the value of FIELD in the current buffer.
-Returns nil if the field is not in the buffer."
+(defun mh-profile-component (component)
+  "Return COMPONENT value from mhparam, or nil if unset."
+  (save-excursion
+    (mh-exec-cmd-quiet nil "mhparam" "-components" component)
+    (mh-profile-component-value component)))
+
+(defun mh-profile-component-value (component)
+  "Find and return the value of COMPONENT in the current buffer.
+Returns nil if the component is not in the buffer."
   (let ((case-fold-search t))
     (goto-char (point-min))
-    (cond ((not (re-search-forward (format "^%s" field) nil t)) nil)
+    (cond ((not (re-search-forward (format "^%s:" component) nil t)) nil)
           ((looking-at "[\t ]*$") nil)
           (t
            (re-search-forward "[\t ]*\\([^\t \n].*\\)$" nil t)
            (let ((start (match-beginning 1)))
              (end-of-line)
              (buffer-substring start (point)))))))
-
-(defvar mh-find-path-run nil
-  "Non-nil if `mh-find-path' has been run already.")
-
-(defun mh-find-path ()
-  "Set variables from user's MH profile.
-
-This function sets `mh-user-path' from your \"Path:\" MH profile
-component (but defaults to \"Mail\" if one isn't present),
-`mh-draft-folder' from \"Draft-Folder:\", `mh-unseen-seq' from
-\"Unseen-Sequence:\", `mh-previous-seq' from
-\"Previous-Sequence:\", and `mh-inbox' from \"Inbox:\" (defaults
-to \"+inbox\").
-
-The hook `mh-find-path-hook' is run after these variables have
-been set. This hook can be used the change the value of these
-variables if you need to run with different values between MH and
-MH-E."
-  (mh-variants)
-  (unless mh-find-path-run
-    (setq mh-find-path-run t)
-    (save-excursion
-      ;; Be sure profile is fully expanded before switching buffers
-      (let ((profile (expand-file-name (or (getenv "MH") "~/.mh_profile"))))
-        (set-buffer (get-buffer-create mh-temp-buffer))
-        (setq buffer-offer-save nil)      ;for people who set default to t
-        (erase-buffer)
-        (condition-case err
-            (insert-file-contents profile)
-          (file-error
-           (mh-install profile err)))
-        (setq mh-user-path (mh-get-profile-field "Path:"))
-        (if (not mh-user-path)
-            (setq mh-user-path "Mail"))
-        (setq mh-user-path
-              (file-name-as-directory
-               (expand-file-name mh-user-path (expand-file-name "~"))))
-        (unless mh-x-image-cache-directory
-          (setq mh-x-image-cache-directory
-                (expand-file-name ".mhe-x-image-cache" mh-user-path)))
-        (setq mh-draft-folder (mh-get-profile-field "Draft-Folder:"))
-        (if mh-draft-folder
-            (progn
-              (if (not (mh-folder-name-p mh-draft-folder))
-                  (setq mh-draft-folder (format "+%s" mh-draft-folder)))
-              (if (not (file-exists-p (mh-expand-file-name mh-draft-folder)))
-                  (error
-                   "Draft folder \"%s\" not found.  Create it and try again"
-                         (mh-expand-file-name mh-draft-folder)))))
-        (setq mh-inbox (mh-get-profile-field "Inbox:"))
-        (cond ((not mh-inbox)
-               (setq mh-inbox "+inbox"))
-              ((not (mh-folder-name-p mh-inbox))
-               (setq mh-inbox (format "+%s" mh-inbox))))
-        (setq mh-unseen-seq (mh-get-profile-field "Unseen-Sequence:"))
-        (if mh-unseen-seq
-            (setq mh-unseen-seq (intern mh-unseen-seq))
-          (setq mh-unseen-seq 'unseen))   ;old MH default?
-        (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
-        (if mh-previous-seq
-            (setq mh-previous-seq (intern mh-previous-seq)))
-        (run-hooks 'mh-find-path-hook)
-        (mh-collect-folder-names)))))
-
-(defun mh-file-command-p (file)
-  "Return t if file FILE is the name of a executable regular file."
-  (and (file-regular-p file) (file-executable-p file)))
-
-(defvar mh-no-install nil)              ;do not run install-mh
-
-(defun mh-install (profile error-val)
-  "Initialize the MH environment.
-This is called if we fail to read the PROFILE file. ERROR-VAL is
-the error that made this call necessary."
-  (if (or (getenv "MH")
-          (file-exists-p profile)
-          mh-no-install)
-      (signal (car error-val)
-              (list (format "Cannot read MH profile \"%s\"" profile)
-                    (car (cdr (cdr error-val))))))
-  ;; The "install-mh" command will output a short note which
-  ;; mh-exec-cmd will display to the user.
-  ;; The MH 5 version of install-mh might try prompt the user
-  ;; for information, which would fail here.
-  (mh-exec-cmd (expand-file-name "install-mh" mh-lib-progs) "-auto")
-  ;; now try again to read the profile file
-  (erase-buffer)
-  (condition-case err
-      (insert-file-contents profile)
-    (file-error
-     (signal (car err)                  ;re-signal with more specific msg
-             (list (format "Cannot read MH profile \"%s\"" profile)
-                   (car (cdr (cdr err))))))))
 
 (defun mh-set-folder-modified-p (flag)
   "Mark current folder as modified or unmodified according to FLAG."
@@ -2593,12 +2506,6 @@ RAISE-ERROR is non-nil, in which case an error is signaled if
     (if raise-error
         (mh-handle-process-error command value)
       value)))
-
-(defun mh-profile-component (component)
-  "Return COMPONENT value from mhparam, or nil if unset."
-  (save-excursion
-    (mh-exec-cmd-quiet nil "mhparam" "-components" component)
-    (mh-get-profile-field (concat component ":"))))
 
 ;; Shush compiler.
 (eval-when-compile (defvar mark-active))

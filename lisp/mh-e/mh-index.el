@@ -443,7 +443,7 @@ search results."
   (interactive
    (list current-prefix-arg
          (progn
-           (unless mh-find-path-run (mh-find-path))
+           (mh-find-path)
            (or (and current-prefix-arg mh-index-sequence-search-flag)
                (and current-prefix-arg (car mh-index-previous-search))
                (mh-prompt-for-folder "Search" "+" nil "all" t)))
