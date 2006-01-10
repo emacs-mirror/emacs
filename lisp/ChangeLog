@@ -1,3 +1,8 @@
+2006-01-10  Simon Josefsson  <jas@extundo.com>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Add comment
+	describing AUTH PLAIN fix.
+
 2006-01-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* mail/emacsbug.el (report-emacs-bug-text-prompt): Delete var.
