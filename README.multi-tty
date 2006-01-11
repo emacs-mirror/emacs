@@ -401,6 +401,16 @@ is probably not very interesting for anyone else.)
 THINGS TO DO
 ------------
 
+** Understand how `quit_throw_to_read_char' works, and fix any bugs
+   that come to light.
+
+** Replace wrong_kboard_jmpbuf with a special return value of
+   read_char.  It is absurd that we use setjmp/longjmp just to return
+   to the immediate caller.
+
+** See if getcjmp can be eliminated somehow.  Why does Emacs allow
+   asynchronous input processing while it's reading input anyway?
+
 ** `delete-frame' events are handled by `special-event-map'
    immediately when read by `read_char'.  This is fine but it prevents
    higher-level keymaps from binding that event to get notified of the
@@ -687,15 +697,6 @@ THINGS TO DO
    pristine, pre-multi-tty versions.
 
 ** Do a grep on XXX and ?? for more issues.
-
-** Understand Emacs's low-level input system (it's black magic) :-)
-   What exactly does interrupt_input do?  I tried to disable it for
-   raw secondary tty support, but it does not seem to do anything
-   useful.  (Update: Look again. X unconditionally enables this, maybe
-   that's why raw terminal support is broken again.  I really do need
-   to understand input.)
-   (Update: I am starting to understand the read_key_sequence->read-char
-   ->kbd_buffer_get_event->read_avail_input->read_socket_hook path.  Yay!)
 
 ** flow-ctrl.el must be updated.
 
@@ -1434,6 +1435,22 @@ DIARY OF CHANGES
    deleted while executing a command on it, for example the one that
    kills the terminal.  There was no bug here, but I rewrote the whole
    single_kboard mess anyway.) (patch-489)
+
+-- Understand Emacs's low-level input system (it's black magic) :-)
+   What exactly does interrupt_input do?  I tried to disable it for
+   raw secondary tty support, but it does not seem to do anything
+   useful.  (Update: Look again. X unconditionally enables this, maybe
+   that's why raw terminal support is broken again.  I really do need
+   to understand input.)
+   (Update: I am starting to understand the read_key_sequence->read-char
+   ->kbd_buffer_get_event->read_avail_input->read_socket_hook path.  Yay!)
+
+   (Update: OK, it all seems so easy now (NOT).  Input could be done
+   synchronously (with wait_reading_process_input), or asynchronously
+   by SIGIO or polling (SIGALRM).  C-g either sets the Vquit_flag,
+   signals a 'quit condition (when immediate_quit), or throws to
+   `getcjmp' when Emacs was waiting for input when the C-g event
+   arrived.)
 
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

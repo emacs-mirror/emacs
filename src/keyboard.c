@@ -10741,11 +10741,8 @@ See also `current-input-mode'.  */)
   int new_interrupt_input;
 #ifdef SIGIO
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
-  if (0
 #ifdef HAVE_X_WINDOWS
-      || x_display_list != NULL
-#endif
-      )
+  if (x_display_list != NULL)
     {
       /* When using X, don't give the user a real choice,
 	 because we haven't implemented the mechanisms to support it.  */
@@ -10756,6 +10753,7 @@ See also `current-input-mode'.  */)
 #endif /* NO_SOCK_SIGIO */
     }
   else
+#endif
     new_interrupt_input = !NILP (interrupt);
 #else /* not SIGIO */
   new_interrupt_input = 0;
@@ -10787,7 +10785,7 @@ See also `current-input-mode'.  */)
     }
   return Qnil;
 }
-  
+
 DEFUN ("set-output-flow-control", Fset_output_flow_control, Sset_output_flow_control, 1, 2, 0,
        doc: /* Enable or disable ^S/^Q flow control for output to TERMINAL.
 If FLOW is non-nil, flow control is enabled and you cannot use C-s or

@@ -1037,12 +1037,8 @@ reset_sigio (fd)
 void
 request_sigio ()
 {
-  /* XXX read_socket_hook is not global anymore.  Is blocking SIGIO
-     bad under X? */
-#if 0
-  if (noninteractive || read_socket_hook)
+  if (noninteractive)
     return;
-#endif
 
 #ifdef SIGWINCH
   sigunblock (sigmask (SIGWINCH));
@@ -1055,13 +1051,14 @@ request_sigio ()
 void
 unrequest_sigio (void)
 { 
-  /* XXX read_socket_hook is not global anymore.  Is blocking SIGIO
-     bad under X? */
-#if 0
-  if (noninteractive || read_socket_hook)
+  if (noninteractive)
+    return;
+
+#if 0 /* XXX What's wrong with blocking SIGIO under X?  */
+  if (x_display_list)
     return;
 #endif
-  
+
 #ifdef SIGWINCH
   sigblock (sigmask (SIGWINCH));
 #endif

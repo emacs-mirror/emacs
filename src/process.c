@@ -3086,6 +3086,10 @@ usage: (make-network-process &rest ARGS)  */)
 
  open_socket:
 
+#ifdef __ultrix__
+  /* Previously this was compiled unconditionally, but that seems
+     unnecessary on modern systems, and `unrequest_sigio' was a noop
+     under X anyway. --lorentey */
   /* Kernel bugs (on Ultrix at least) cause lossage (not just EINTR)
      when connect is interrupted.  So let's not let it get interrupted.
      Note we do not turn off polling, because polling is only used
@@ -3102,6 +3106,7 @@ usage: (make-network-process &rest ARGS)  */)
       record_unwind_protect (unwind_request_sigio, Qnil);
       unrequest_sigio ();
     }
+#endif
 
   /* Do this in case we never enter the for-loop below.  */
   count1 = SPECPDL_INDEX ();
