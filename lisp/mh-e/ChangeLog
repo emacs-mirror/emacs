@@ -2,6 +2,9 @@
 
 	* mh-index.el (mh-index-search): Checking mh-find-path-run is
 	unnecessary.
+	(mh-index-next-folder): Don't back up a line when going backwards
+	since this skips the current folder heading if point is on the
+	first message after the folder heading (closes SF #1126188).
 
 	* mh-init.el (mh-sys-path): Co-locate with mh-variants, which uses
 	it.

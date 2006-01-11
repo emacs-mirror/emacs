@@ -749,7 +749,7 @@ group of results."
   (if (null mh-index-data)
       (message "Only applicable in an MH-E index search buffer")
     (let ((point (point)))
-      (forward-line (if backward-flag -1 1))
+      (forward-line (if backward-flag 0 1))
       (cond ((if backward-flag
                  (re-search-backward "^+" (point-min) t)
                (re-search-forward "^+" (point-max) t))
