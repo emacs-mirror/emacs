@@ -1,23 +1,29 @@
+2006-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* reveal.el (reveal-post-command): window-buffer signals an error on
+	dead windows rather than returning nil.
+	(reveal-open-new-overlays): An overlay might die while we open others.
+
 2006-01-11  Bill Wohler  <wohler@newt.com>
 
 	* cus-dep.el (generated-custom-dependencies-file): Fix typo and
 	phrasing in docstring.
 
 	* Makefile.in (MH_E_SRC): Rename from MH-E-SRC since the dashes
-	can give some systems gas. Add new file mh-buffers.el.
+	can give some systems gas.  Add new file mh-buffers.el.
 
 2006-01-06  Masatake YAMATO  <jet@gyve.org>
 
 	* font-lock.el (cpp-font-lock-keywords): Font lock keywords for
 	C preprocessor forward ported from GNU Emacs 21.2.
 
-	* progmodes/asm-mode.el (asm-font-lock-keywords): Use 
-	`cpp-font-lock-keywords'.
+	* progmodes/asm-mode.el (asm-font-lock-keywords):
+	Use `cpp-font-lock-keywords'.
 
 	* progmodes/ld-script.el (ld-script-font-lock-keywords): Ditto.
 
 	* progmodes/ld-script.el (auto-mode-alist): Use \\> instead
-	of $ for "\\.ld[s]?". 
+	of $ for "\\.ld[s]?".
 
 2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
