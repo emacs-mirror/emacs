@@ -1514,23 +1514,33 @@ use `mh-send-prog' to tell MH-E the name."
 (defun mh-insert-letter (folder message verbatim)
   "Insert a message.
 
-This command prompts you for the FOLDER and MESSAGE number and inserts
+This command prompts you for the FOLDER and MESSAGE number, which
+defaults to the current message in that folder. It then inserts
 the message, indented by `mh-ins-buf-prefix' (\"> \") unless
-`mh-yank-behavior' is set to one of the supercite flavors in which
-case supercite is used to format the message. Certain undesirable
-header fields (see `mh-invisible-header-fields-compiled') are removed
-before insertion.
+`mh-yank-behavior' is set to one of the supercite flavors in
+which case supercite is used to format the message. Certain
+undesirable header fields (see
+`mh-invisible-header-fields-compiled') are removed before
+insertion.
 
 If given a prefix argument VERBATIM, the header is left intact, the
 message is not indented, and \"> \" is not inserted before each line.
 This command leaves the mark before the letter and point after it."
   (interactive
-   (list (mh-prompt-for-folder "Message from" mh-sent-from-folder nil)
-         (read-string (concat "Message number"
-                              (if (numberp mh-sent-from-msg)
-                                  (format " (default %d): " mh-sent-from-msg)
-                                ": ")))
-         current-prefix-arg))
+   (let* ((folder
+           (mh-prompt-for-folder "Message from"
+                                 mh-sent-from-folder nil))
+          (default
+            (if (and (equal folder mh-sent-from-folder)
+                     (numberp mh-sent-from-msg))
+                mh-sent-from-msg
+              (nth 0 (mh-translate-range folder "cur"))))
+          (message
+           (read-string (concat "Message number"
+                                (or (and default
+                                         (format " (default %d): " default))
+                                    ": ")))))
+     (list folder message current-prefix-arg)))
   (save-restriction
     (narrow-to-region (point) (point))
     (let ((start (point-min)))

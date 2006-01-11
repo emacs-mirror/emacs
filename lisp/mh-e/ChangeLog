@@ -1,5 +1,12 @@
 2006-01-10  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-insert-letter): If you choose a different folder,
+	the cur message is used (closes SF #1205890).
+
+	* mh-mime.el (mh-compose-forward): Use standard range argument
+	instead of messages. Use more powerful mh-read-range instead of
+	read-string. Sync docstring with manual (close SF #1205890).
+
 	* mh-index.el (mh-index-search): Checking mh-find-path-run is
 	unnecessary.
 	(mh-index-next-folder): Don't back up a line when going backwards

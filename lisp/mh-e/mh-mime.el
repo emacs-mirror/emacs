@@ -73,41 +73,36 @@ attachment."
     (call-interactively 'mh-mh-attach-file)))
 
 ;;;###mh-autoload
-(defun mh-compose-forward (&optional description folder messages)
+(defun mh-compose-forward (&optional description folder range)
   "Add tag to forward a message.
 
 You are prompted for a content DESCRIPTION, the name of the
-FOLDER in which the messages to forward are located, and the
-MESSAGES' numbers.
+FOLDER in which the messages to forward are located, and a RANGE
+of messages, which defaults to the current message in that
+folder. Check the documentation of `mh-interactive-range' to see
+how RANGE is read in interactive use.
 
 The option `mh-compose-insertion' controls what type of tags are inserted."
-  (interactive (let*
-                   ((description (mml-minibuffer-read-description))
-                    (folder (mh-prompt-for-folder "Message from"
-                                                  mh-sent-from-folder nil))
-                    (messages (let ((default-message
-                                      (if (and (equal
-                                                folder mh-sent-from-folder)
-                                               (numberp mh-sent-from-msg))
-                                          mh-sent-from-msg
-                                        (nth 0 (mh-translate-range
-                                                folder "cur")))))
-                                (if default-message
-                                    (read-string
-                                     (format "Messages (default %d): "
-                                             default-message)
-                                     nil nil
-                                     (number-to-string default-message))
-                                  (read-string (format "Messages: "))))))
-                 (list description folder messages)))
-  (let
-      ((range))
-    (if (null messages)
-        (setq messages ""))
-    (setq range (mh-translate-range folder messages))
-    (if (null range)
-        (error "No messages in specified range"))
-    (dolist (message range)
+  (interactive
+   (let* ((description
+           (mml-minibuffer-read-description))
+          (folder
+           (mh-prompt-for-folder "Message from"
+                                 mh-sent-from-folder nil))
+          (default
+            (if (and (equal folder mh-sent-from-folder)
+                     (numberp mh-sent-from-msg))
+                mh-sent-from-msg
+              (nth 0 (mh-translate-range folder "cur"))))
+          (range
+           (mh-read-range "Forward" folder
+                          (or (and default
+                                   (number-to-string default))
+                              t)
+                          t t)))
+     (list description folder range)))
+  (let ((messages (mapconcat 'identity (mh-list-to-string range) " ")))
+    (dolist (message (mh-translate-range folder messages))
       (if (equal mh-compose-insertion 'mml)
           (mh-mml-forward-message description folder (format "%s" message))
         (mh-mh-forward-message description folder (format "%s" message))))))
@@ -134,7 +129,7 @@ given a prefix argument. Normally default arguments to
   "Regexp matching valid media types used in MIME attachment compositions.")
 
 (defvar mh-have-file-command 'undefined
-  "Cached value of `mh-have-file-command'.
+  "Cached value of function `mh-have-file-command'.
 Do not reference this variable directly as it might not have been
 initialized. Always use the command `mh-have-file-command'.")
 
