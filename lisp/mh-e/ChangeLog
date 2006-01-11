@@ -1,5 +1,8 @@
 2006-01-11  Bill Wohler  <wohler@newt.com>
 
+	* mh-comp.el (mh-forward): Cosmetics on prompt when draft exists.
+	(mh-send-letter): Add -msgid to mh-send-args (closes SF #725425).
+
 	* mh-utils.el (mh-x-image-url-cache-canonicalize): Use
 	url-hexify-string to remove special characters from filenames
 	(closes SF #1396499). Note that this invalidates the existing

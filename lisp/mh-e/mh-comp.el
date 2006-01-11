@@ -378,7 +378,7 @@ See also `mh-compose-forward-as-mime-flag',
          ;; forw always leaves file in "draft" since it doesn't have -draft
          (draft-name (expand-file-name "draft" mh-user-path))
          (draft (cond ((or (not (file-exists-p draft-name))
-                           (y-or-n-p "The file 'draft' exists.  Discard it? "))
+                           (y-or-n-p "The file draft exists; discard it? "))
                        (mh-exec-cmd "forw" "-build"
                                     (if (and (mh-variant-p 'nmh)
                                              mh-compose-forward-as-mime-flag)
@@ -1475,12 +1475,16 @@ use `mh-send-prog' to tell MH-E the name."
                (and (boundp 'default-buffer-file-coding-system )
                     default-buffer-file-coding-system)
                'iso-latin-1))))
+    ;; Adding a Message-ID field looks good, makes it easier to search for
+    ;; message in your +outbox, and best of all doesn't break threading for
+    ;; the recipient if you reply to a message in your +outbox.
+    (setq mh-send-args (concat "-msgid " mh-send-args))
     ;; The default BCC encapsulation will make a MIME message unreadable.
     ;; With nmh use the -mime arg to prevent this.
     (if (and (mh-variant-p 'nmh)
              (mh-goto-header-field "Bcc:")
              (mh-goto-header-field "Content-Type:"))
-        (setq mh-send-args (format "-mime %s" mh-send-args)))
+        (setq mh-send-args (concat "-mime " mh-send-args)))
     (cond (arg
            (pop-to-buffer mh-mail-delivery-buffer)
            (erase-buffer)
