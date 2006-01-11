@@ -5491,7 +5491,7 @@ default, the message is decoded and forwarded as an rfc822 @acronym{MIME} sectio
 @cindex digests
 @cindex making digests
 Digest the current series and forward the result to a newsgroup
-(@code{gnus-uu-digest-mail-forward}).  This command uses the
+(@code{gnus-uu-digest-post-forward}).  This command uses the
 process/prefix convention.
 
 @item S u
@@ -15886,6 +15886,10 @@ the value of @code{default-file-name-coding-system}.  If you are using
 XEmacs and want to use non-@acronym{ASCII} group names, you should set
 the value for the @code{nnmail-pathname-coding-system} variable properly.
 
+The @code{nnrss} back end generates @samp{multipart/alternative}
+@acronym{MIME} articles in which each contains a @samp{text/plain} part
+and a @samp{text/html} part.
+
 @cindex OPML
 You can also use the following commands to import and export your
 subscriptions from a file in @acronym{OPML} format (Outline Processor
@@ -15923,6 +15927,15 @@ If you set @code{nnrss-use-local} to @code{t}, @code{nnrss} will read
 the feeds from local files in @code{nnrss-directory}.  You can use
 the command @code{nnrss-generate-download-script} to generate a
 download script using @command{wget}.
+
+@item nnrss-wash-html-in-text-plain-parts
+Non-@code{nil} means that @code{nnrss} renders text in @samp{text/plain}
+parts as @acronym{HTML}.  The function specified by the
+@code{mm-text-html-renderer} variable (@pxref{Display Customization,
+,Display Customization, emacs-mime, The Emacs MIME Manual}) will be used
+to render text.  If it is @code{nil}, which is the default, text will
+simply be folded.  Leave it @code{nil} if you prefer to see
+@samp{text/html} parts.
 @end table
 
 The following code may be helpful, if you want to show the description in
@@ -15940,6 +15953,7 @@ the summary buffer.
 
 The following code may be useful to open an nnrss url directly from the
 summary buffer.
+
 @lisp
 (require 'browse-url)
 
@@ -15961,6 +15975,31 @@ summary buffer.
       (kbd "<RET>") 'browse-nnrss-url))
 (add-to-list 'nnmail-extra-headers nnrss-url-field)
 @end lisp
+
+Even if you have added @code{"text/html"} to the
+@code{mm-discouraged-alternatives} variable (@pxref{Display
+Customization, ,Display Customization, emacs-mime, The Emacs MIME
+Manual}) since you don't want to see @acronym{HTML} parts, it might be
+more useful especially in @code{nnrss} groups to display
+@samp{text/html} parts.  Here's an example of setting
+@code{mm-discouraged-alternatives} as a group parameter (@pxref{Group
+Parameters}) in order to display @samp{text/html} parts only in
+@code{nnrss} groups:
+
+@lisp
+;; @r{Set the default value of @code{mm-discouraged-alternatives}.}
+(eval-after-load "gnus-sum"
+  '(add-to-list
+    'gnus-newsgroup-variables
+    '(mm-discouraged-alternatives
+      . '("text/html" "image/.*"))))
+
+;; @r{Display @samp{text/html} parts in @code{nnrss} groups.}
+(add-to-list
+ 'gnus-parameters
+ '("\\`nnrss:" (mm-discouraged-alternatives nil)))
+@end lisp
+
 
 @node Customizing W3
 @subsection Customizing W3
