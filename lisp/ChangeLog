@@ -1,5 +1,8 @@
 2006-01-11  Bill Wohler  <wohler@newt.com>
 
+	* cus-dep.el (generated-custom-dependencies-file): Fix typo and
+	phrasing in docstring.
+
 	* Makefile.in (MH_E_SRC): Rename from MH-E-SRC since the dashes
 	can give some systems gas. Add new file mh-buffers.el.
 
