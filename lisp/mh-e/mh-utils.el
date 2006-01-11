@@ -1466,6 +1466,30 @@ path is generated."
   "Scale image in INPUT file and write to OUTPUT file using ImageMagick."
   (call-process "convert" nil nil nil "-geometry" "96x48" input output))
 
+;; Copy of constant from url-util.el in Emacs 22; needed by Emacs 21.
+(if (not (boundp 'url-unreserved-chars))
+    (defconst url-unreserved-chars
+      '(
+        ?a ?b ?c ?d ?e ?f ?g ?h ?i ?j ?k ?l ?m ?n ?o ?p ?q ?r ?s ?t ?u ?v ?w ?x ?y ?z
+        ?A ?B ?C ?D ?E ?F ?G ?H ?I ?J ?K ?L ?M ?N ?O ?P ?Q ?R ?S ?T ?U ?V ?W ?X ?Y ?Z
+        ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9
+        ?- ?_ ?. ?! ?~ ?* ?' ?\( ?\))
+      "A list of characters that are _NOT_ reserved in the URL spec.
+This is taken from RFC 2396."))
+
+;; Copy of function from url-util.el in Emacs 22; needed by Emacs 21.
+(mh-defun-compat url-hexify-string (str)
+  "Escape characters in a string."
+  (mapconcat
+   (lambda (char)
+     ;; Fixme: use a char table instead.
+     (if (not (memq char url-unreserved-chars))
+	 (if (> char 255)
+	       (error "Hexifying multibyte character %s" str)
+	   (format "%%%02X" char))
+       (char-to-string char)))
+   str ""))
+
 (defun mh-x-image-url-cache-canonicalize (url)
   "Canonicalize URL.
 Replace the ?/ character with a ?! character and append .png.

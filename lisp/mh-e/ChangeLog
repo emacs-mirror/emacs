@@ -1,5 +1,19 @@
 2006-01-11  Bill Wohler  <wohler@newt.com>
 
+	* mh-acros.el (mh-defun-compat, mh-defmacro-compat): Move here
+	from mh-gnus.el.
+
+	* mh-gnus.el: Require mh-acros.
+	(mh-defmacro-compat, mh-defun-compat): Move to mh-acros.el.
+
+	* mh-utils.el (mh-x-image-url-cache-canonicalize): Use
+	url-hexify-string to remove special characters from filenames
+	(closes SF #1396499). Note that this invalidates the existing
+	names in your cache so you might as well remove
+	~/Mail/.mhe-x-image-cache/* now.
+	(url-unreserved-chars, url-hexify-string): Define if not defined.
+	Copied from url-util.el in Emacs22 for Emacs 21.
+
 	* mh-buffers.el: New file. Contains constants and code from
 	mh-index.el and mh-utils.el.
 
@@ -27,12 +41,6 @@
 	* mh-comp.el (mh-forward): Cosmetics on prompt when draft exists.
 	(mh-send-letter): Add -msgid to mh-send-args (closes SF #725425).
 
-	* mh-utils.el (mh-x-image-url-cache-canonicalize): Use
-	url-hexify-string to remove special characters from filenames
-	(closes SF #1396499). Note that this invalidates the existing
-	names in your cache so you might as well remove
-	~/Mail/.mhe-x-image-cache/* now.
-	
 2006-01-10  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-insert-letter): If you choose a different folder,
