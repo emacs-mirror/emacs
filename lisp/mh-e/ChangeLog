@@ -2,8 +2,10 @@
 
 	* mh-utils.el (mh-x-image-url-cache-canonicalize): Use
 	url-hexify-string to remove special characters from filenames
-	(closes SF #1396499).
-
+	(closes SF #1396499). Note that this invalidates the existing
+	names in your cache so you might as well remove
+	~/Mail/.mhe-x-image-cache/* now.
+	
 2006-01-10  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-insert-letter): If you choose a different folder,
