@@ -1,3 +1,16 @@
+2006-01-06  Masatake YAMATO  <jet@gyve.org>
+
+	* font-lock.el (cpp-font-lock-keywords): Font lock keywords for
+	C preprocessor forward ported from GNU Emacs 21.2.
+
+	* progmodes/asm-mode.el (asm-font-lock-keywords): Use 
+	`cpp-font-lock-keywords'.
+
+	* progmodes/ld-script.el (ld-script-font-lock-keywords): Ditto.
+
+	* progmodes/ld-script.el (auto-mode-alist): Use \\> instead
+	of $ for "\\.ld[s]?". 
+
 2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/tcl.el (tcl-indent-command): Use indent-for-tab-command.

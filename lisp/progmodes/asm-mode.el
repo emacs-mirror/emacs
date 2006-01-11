@@ -83,19 +83,21 @@
   "Keymap for Asm mode.")
 
 (defconst asm-font-lock-keywords
- '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\(\\.\\sw+\\)*\\)?"
-    (1 font-lock-function-name-face) (3 font-lock-keyword-face nil t))
-   ;; label started from ".".
-   ("^\\(\\.\\(\\sw\\|\\s_\\)+\\)\\>:"
-    1 font-lock-function-name-face)
-   ("^\\((\\sw+)\\)?\\s +\\(\\(\\.?\\sw\\|\\s_\\)+\\(\\.\\sw+\\)*\\)"
-    2 font-lock-keyword-face)
-   ;; directive started from ".".
-   ("^\\(\\.\\(\\sw\\|\\s_\\)+\\)\\>[^:]?"
-    1 font-lock-keyword-face)
-   ;; %register
-   ("%\\sw+" . font-lock-variable-name-face))
- "Additional expressions to highlight in Assembler mode.")
+  (append 
+   '(("^\\(\\(\\sw\\|\\s_\\)+\\)\\>:?[ \t]*\\(\\sw+\\(\\.\\sw+\\)*\\)?"
+      (1 font-lock-function-name-face) (3 font-lock-keyword-face nil t))
+     ;; label started from ".".
+     ("^\\(\\.\\(\\sw\\|\\s_\\)+\\)\\>:"
+      1 font-lock-function-name-face)
+     ("^\\((\\sw+)\\)?\\s +\\(\\(\\.?\\sw\\|\\s_\\)+\\(\\.\\sw+\\)*\\)"
+      2 font-lock-keyword-face)
+     ;; directive started from ".".
+     ("^\\(\\.\\(\\sw\\|\\s_\\)+\\)\\>[^:]?"
+      1 font-lock-keyword-face)
+     ;; %register
+     ("%\\sw+" . font-lock-variable-name-face))
+   cpp-font-lock-keywords)
+  "Additional expressions to highlight in Assembler mode.")
 
 ;;;###autoload
 (defun asm-mode ()

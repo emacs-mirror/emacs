@@ -114,18 +114,19 @@
   "Builtin functions of GNU ld script.")
 
 (defvar ld-script-font-lock-keywords
-  `((,(regexp-opt ld-script-keywords 'words)
-     1 font-lock-keyword-face)
-    (,(regexp-opt ld-script-builtins 'words)
-     1 font-lock-builtin-face)
-    ("/DISCARD/" . font-lock-warning-face)
-    ("##\\|#[^#\n]+$"  . font-lock-preprocessor-face)
-    ("\\W\\(\\.\\)\\W" 1 ld-script-location-counter-face)
-    )
+  (append
+   `((,(regexp-opt ld-script-keywords 'words)
+      1 font-lock-keyword-face)
+     (,(regexp-opt ld-script-builtins 'words)
+      1 font-lock-builtin-face)
+     ("/DISCARD/" . font-lock-warning-face)
+     ("\\W\\(\\.\\)\\W" 1 ld-script-location-counter-face)
+     )
+   cpp-font-lock-keywords)
   "Default font-lock-keywords for `ld-script-mode'.")
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ld[s]?\\(\\.in\\)?$" . ld-script-mode))
+(add-to-list 'auto-mode-alist '("\\.ld[s]?\\>" . ld-script-mode))
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.x[bdsru]?[cn]?$" . ld-script-mode))
 
