@@ -92,6 +92,7 @@
 
 (require 'easymenu)
 (require 'gnus-util)
+(require 'mh-buffers)
 (require 'mh-seq)
 (require 'mh-utils)
 

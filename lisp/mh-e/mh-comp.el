@@ -38,6 +38,7 @@
 
 (require 'easymenu)
 (require 'gnus-util)
+(require 'mh-buffers)
 (require 'mh-e)
 (require 'mh-gnus)
 

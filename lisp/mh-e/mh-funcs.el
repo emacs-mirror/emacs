@@ -37,6 +37,7 @@
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
+(require 'mh-buffers)
 (require 'mh-e)
 
 

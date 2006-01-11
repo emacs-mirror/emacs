@@ -46,6 +46,7 @@
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 
+(require 'mh-buffers)
 (require 'mh-e)
 (require 'mh-mime)
 (require 'mh-pick)
@@ -84,10 +85,6 @@
 ;; FIXME: This should be a defcustom...
 (defvar mh-index-folder "+mhe-index"
   "Folder that contains the folders resulting from the index searches.")
-
-;; Temporary buffers for search results
-(defvar mh-index-temp-buffer " *mh-index-temp*")
-(defvar mh-checksum-buffer " *mh-checksum-buffer*")
 
 
 
@@ -219,7 +216,7 @@ origin-index) map is updated too."
   (clrhash mh-index-msg-checksum-map)
   (save-excursion
     ;; Clear temp buffer
-    (set-buffer (get-buffer-create mh-checksum-buffer))
+    (set-buffer (get-buffer-create mh-temp-checksum-buffer))
     (erase-buffer)
     ;; Run scan to check if any messages needs MD5 annotations at all
     (with-temp-buffer
@@ -236,7 +233,7 @@ origin-index) map is updated too."
             (cond ((not (string-match "^[0-9]*$" msg)))
                   ((eolp)
                    ;; need to compute checksum
-                   (set-buffer mh-checksum-buffer)
+                   (set-buffer mh-temp-checksum-buffer)
                    (insert mh-user-path (substring folder 1) "/" msg "\n"))
                   (t
                    ;; update maps
@@ -1055,7 +1052,7 @@ any sub-folders that may be present.
 
 In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
 is used to search."
-  (set-buffer (get-buffer-create mh-index-temp-buffer))
+  (set-buffer (get-buffer-create mh-temp-index-buffer))
   (erase-buffer)
   (setq mh-index-pick-folder
         (concat "+" (substring folder-path (length mh-user-path))))
@@ -1091,7 +1088,7 @@ any sub-folders that may be present.
 
 In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
 is used to search."
-  (set-buffer (get-buffer-create mh-index-temp-buffer))
+  (set-buffer (get-buffer-create mh-temp-index-buffer))
   (erase-buffer)
   (call-process mh-grep-binary nil '(t nil) nil
                 "-i" "-r" search-regexp folder-path)
@@ -1165,7 +1162,7 @@ this daily from cron:
 
 In a program, FOLDER-PATH is the directory in which
 SEARCH-REGEXP-LIST is used to search."
-  (set-buffer (get-buffer-create mh-index-temp-buffer))
+  (set-buffer (get-buffer-create mh-temp-index-buffer))
   (erase-buffer)
   (unless mh-mairix-binary
     (error "Set `mh-mairix-binary' appropriately"))
@@ -1287,7 +1284,7 @@ Search for messages belonging to `mh-flists-sequence' in the
 folders specified by `mh-flists-search-folders'. If
 `mh-recursive-folders-flag' is t, then the folders are searched
 recursively. All parameters ARGS are ignored."
-  (set-buffer (get-buffer-create mh-index-temp-buffer))
+  (set-buffer (get-buffer-create mh-temp-index-buffer))
   (erase-buffer)
   (unless (executable-find "sh")
     (error "Didn't find sh"))
@@ -1306,7 +1303,7 @@ recursively. All parameters ARGS are ignored."
               (expand-file-name "mhpath" mh-progs) " \"+$folder\" " seq "\n"
               "done\n"))
     (call-process-region
-     (point-min) (point-max) "sh" nil (get-buffer mh-index-temp-buffer))))
+     (point-min) (point-max) "sh" nil (get-buffer mh-temp-index-buffer))))
 
 ;;;###mh-autoload
 (defun mh-index-sequenced-messages (folders sequence)
@@ -1443,7 +1440,7 @@ this daily from cron:
 
 In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
 is used to search."
-  (set-buffer (get-buffer-create mh-index-temp-buffer))
+  (set-buffer (get-buffer-create mh-temp-index-buffer))
   (erase-buffer)
   (unless mh-swish-binary
     (error "Set `mh-swish-binary' appropriately"))
@@ -1532,7 +1529,7 @@ instead of \"index\".
 
 In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is
 used to search."
-  (set-buffer (get-buffer-create mh-index-temp-buffer))
+  (set-buffer (get-buffer-create mh-temp-index-buffer))
   (erase-buffer)
   (unless mh-swish++-binary
     (error "Set `mh-swish++-binary' appropriately"))
@@ -1615,7 +1612,7 @@ is used to search."
       (error "Namazu directory %s not present" namazu-index-directory))
     (unless (executable-find mh-namazu-binary)
       (error "Set `mh-namazu-binary' appropriately"))
-    (set-buffer (get-buffer-create mh-index-temp-buffer))
+    (set-buffer (get-buffer-create mh-temp-index-buffer))
     (erase-buffer)
     (call-process mh-namazu-binary nil '(t nil) nil
                   "-alR" search-regexp namazu-index-directory)

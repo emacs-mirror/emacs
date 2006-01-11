@@ -1,3 +1,8 @@
+2006-01-11  Bill Wohler  <wohler@newt.com>
+
+	* Makefile.in (MH_E_SRC): Rename from MH-E-SRC since the dashes
+	can give some systems gas. Add new file mh-buffers.el.
+
 2006-01-06  Masatake YAMATO  <jet@gyve.org>
 
 	* font-lock.el (cpp-font-lock-keywords): Font lock keywords for

@@ -40,6 +40,7 @@
 (mh-require-cl)
 
 (require 'gnus-util)
+(require 'mh-buffers)
 (require 'mh-comp)
 (require 'mh-gnus)
 

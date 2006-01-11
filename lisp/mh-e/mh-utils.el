@@ -45,6 +45,7 @@
 
 (require 'font-lock)
 (require 'gnus-util)
+(require 'mh-buffers)
 (require 'mh-customize)
 (require 'mh-inc)
 (require 'mouse)
@@ -516,28 +517,6 @@ Name of the Previous sequence.")
   "Cached value of the \"Inbox:\" MH profile component.
 Set to \"+inbox\" if no such component.
 Name of the Inbox folder.")
-
-;; The names of ephemeral buffers have a " *mh-" prefix (so that they are
-;; hidden and can be programmatically removed in mh-quit), and the variable
-;; names have the form mh-temp-.*-buffer.
-(defconst mh-temp-buffer " *mh-temp*")  ;scratch
-(defconst mh-temp-fetch-buffer " *mh-fetch*")  ;wget/curl/fetch output
-
-;; The names of MH-E buffers that are not ephemeral and can be used by the
-;; user (and deleted by the user when no longer needed) have a "*MH-E " prefix
-;; (so they can be programmatically removed in mh-quit), and the variable
-;; names have the form mh-.*-buffer.
-(defconst mh-aliases-buffer "*MH-E Aliases*") ;alias lookups
-(defconst mh-folders-buffer "*MH-E Folders*") ;folder list
-(defconst mh-help-buffer "*MH-E Help*") ;quick help
-(defconst mh-info-buffer "*MH-E Info*") ;version information buffer
-(defconst mh-log-buffer "*MH-E Log*") ;output of MH commands and so on
-(defconst mh-mail-delivery-buffer "*MH-E Mail Delivery*") ;mail delivery log
-(defconst mh-recipients-buffer "*MH-E Recipients*") ;killed when draft sent
-(defconst mh-sequences-buffer "*MH-E Sequences*") ;sequences list
-
-(defvar mh-log-buffer-lines 100
-  "Number of lines to keep in `mh-log-buffer'.")
 
 (defvar mh-previous-window-config nil
   "Window configuration before MH-E command.")
@@ -2387,25 +2366,6 @@ used in searching."
              (error "%s is not a directory"
                     (mh-expand-file-name folder-name)))))
     folder-name))
-
-(defun mh-truncate-log-buffer ()
-  "If `mh-log-buffer' is too big then truncate it.
-If the number of lines in `mh-log-buffer' exceeds
-`mh-log-buffer-lines' then keep only the last
-`mh-log-buffer-lines'. As a side effect the point is set to the
-end of the log buffer.
-
-The function returns the size of the final size of the log buffer."
-  (with-current-buffer (get-buffer-create mh-log-buffer)
-    (goto-char (point-max))
-    (save-excursion
-      (when (equal (forward-line (- mh-log-buffer-lines)) 0)
-        (delete-region (point-min) (point))))
-    (unless (or (bobp)
-                (save-excursion
-                  (and (equal (forward-line -1) 0) (equal (char-after) ?))))
-      (insert "\n\n"))
-    (buffer-size)))
 
 
 

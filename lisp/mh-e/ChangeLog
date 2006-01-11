@@ -1,5 +1,29 @@
 2006-01-11  Bill Wohler  <wohler@newt.com>
 
+	* mh-buffers.el: New file. Contains constants and code from
+	mh-index.el and mh-utils.el.
+
+	* mh-alias.el: 
+	* mh-comp.el: 
+	* mh-e.el: 
+	* mh-funcs.el: 
+	* mh-init.el:
+	* mh-junk.el: 
+	* mh-mime.el:
+	* mh-print.el:
+	* mh-seq.el: Require new file mh-buffers.el.
+
+	* mh-index.el: Require new file mh-buffers.el.
+	(mh-index-temp-buffer, mh-checksum-buffer): Move to new file
+	mh-buffers.el.
+
+	* mh-utils.el: Require new file mh-buffers.el.
+	(mh-temp-buffer, mh-temp-fetch-buffer)
+	(mh-aliases-buffer, mh-folders-buffer, mh-help-buffer)
+	(mh-info-buffer, mh-log-buffer, mh-mail-delivery-buffer)
+	(mh-recipients-buffer, mh-sequences-buffer, mh-log-buffer-lines)
+	(mh-truncate-log-buffer): Move to new file mh-buffers.el.
+
 	* mh-comp.el (mh-forward): Cosmetics on prompt when draft exists.
 	(mh-send-letter): Add -msgid to mh-send-args (closes SF #725425).
 

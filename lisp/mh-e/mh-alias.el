@@ -33,6 +33,7 @@
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
+(require 'mh-buffers)
 (require 'mh-e)
 (load "cmr" t t)                        ; Non-fatal dependency for
 					; completing-read-multiple.
