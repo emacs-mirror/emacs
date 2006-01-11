@@ -1,7 +1,14 @@
+2006-01-11  Bill Wohler  <wohler@newt.com>
+
+	* mh-utils.el (mh-x-image-url-cache-canonicalize): Use
+	url-hexify-string to remove special characters from filenames
+	(closes SF #1396499).
+
 2006-01-10  Bill Wohler  <wohler@newt.com>
 
 	* mh-comp.el (mh-insert-letter): If you choose a different folder,
-	the cur message is used (closes SF #1205890).
+	the cur message is used. Sync docstring with manual (closes SF
+	#1205890).
 
 	* mh-mime.el (mh-compose-forward): Use standard range argument
 	instead of messages. Use more powerful mh-read-range instead of

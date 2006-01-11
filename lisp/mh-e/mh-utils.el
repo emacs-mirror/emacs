@@ -1489,12 +1489,16 @@ path is generated."
 
 (defun mh-x-image-url-cache-canonicalize (url)
   "Canonicalize URL.
-Replace the ?/ character with a ?! character and append .png."
-   (format "%s/%s.png" mh-x-image-cache-directory
+Replace the ?/ character with a ?! character and append .png.
+Also replaces special characters with `url-hexify-string' since
+not all characters, such as :, are legal within Windows
+filenames. See URL `http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/naming_a_file.asp'."
+  (format "%s/%s.png" mh-x-image-cache-directory
+          (url-hexify-string
            (with-temp-buffer
              (insert url)
              (mh-replace-string "/" "!")
-             (buffer-string))))
+             (buffer-string)))))
 
 (defun mh-x-image-set-download-state (file data)
   "Setup a symbolic link from FILE to DATA."
