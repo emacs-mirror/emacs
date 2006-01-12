@@ -554,10 +554,10 @@ it is displayed along with the global value."
 			(help-xref-button 1 'help-variable-def
 					  variable file-name)))
 		    (if valvoid
-			(princ "It is void as a variable.\n")
+			(princ "It is void as a variable.")
 		      (princ "Its ")))
 		(if valvoid
-		    (princ " is void as a variable.\n")
+		    (princ " is void as a variable.")
 		  (princ "'s "))))
 	    (if valvoid
 		nil
