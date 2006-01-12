@@ -1,3 +1,10 @@
+2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url.el (url-retrieve-synchronously): Adjust the workaround so as not
+	to stop in the middle of a redirection.
+
+	* url-vars.el (url-privacy-level): Add setter.
+
 2006-01-05  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url-history.el (url-history-hash-table): Initialize in declaration.

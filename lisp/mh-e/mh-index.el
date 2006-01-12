@@ -45,6 +45,7 @@
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
+
 (require 'mh-e)
 (require 'mh-mime)
 (require 'mh-pick)
@@ -52,7 +53,6 @@
 (autoload 'gnus-local-map-property "gnus-util")
 (autoload 'gnus-eval-format "gnus-spec")
 (autoload 'widget-convert-button "wid-edit")
-(autoload 'executable-find "executable")
 
 ;; Support different indexing programs
 (defvar mh-indexer-choices
@@ -443,7 +443,7 @@ search results."
   (interactive
    (list current-prefix-arg
          (progn
-           (unless mh-find-path-run (mh-find-path))
+           (mh-find-path)
            (or (and current-prefix-arg mh-index-sequence-search-flag)
                (and current-prefix-arg (car mh-index-previous-search))
                (mh-prompt-for-folder "Search" "+" nil "all" t)))

@@ -1,7 +1,7 @@
 ;;; url-vars.el --- Variables for Uniform Resource Locator tool
 
 ;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2004,
-;;   2005 Free Software Foundation, Inc.
+;;   2005, 2006 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes, hypermedia
 
@@ -112,9 +112,8 @@ using `dired' to view the directory."
   :type 'string
   :group 'url-file)
 
-;; Fixme: this should have a setter which calls url-setup-privacy-info.
 (defcustom url-privacy-level '(email)
-  "*How private you want your requests to be.
+  "How private you want your requests to be.
 HTTP has header fields for various information about the user, including
 operating system information, email addresses, the last page you visited, etc.
 This variable controls how much of this information is sent.
@@ -144,6 +143,8 @@ Samples:
 This variable controls several other variables and is _NOT_ automatically
 updated.  Call the function `url-setup-privacy-info' after modifying this
 variable."
+  :initialize 'custom-initialize-default
+  :set (lambda (sym val) (set-default sym val) (url-setup-privacy-info))
   :type '(radio (const :tag "None (you believe in the basic goodness of humanity)"
 		       :value none)
 		(const :tag "Low (do not reveal last location)"
@@ -278,7 +279,7 @@ get the first available language (as opposed to the default)."
 (defvar url-package-version nil
   "Version number of package using URL.")
 
-(defvar url-package-name nil "Version number of package using URL.")
+(defvar url-package-name nil "Name of package using URL.")
 
 (defvar url-system-type nil
   "What type of system we are on.")

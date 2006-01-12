@@ -33,34 +33,29 @@
 
 ;;; Code:
 
-(defvar recursive-load-depth-limit)
 (eval-and-compile
+  (defvar recursive-load-depth-limit)
   (if (and (boundp 'recursive-load-depth-limit)
            (integerp recursive-load-depth-limit)
-           (> 50 recursive-load-depth-limit))
+           (< recursive-load-depth-limit 50))
       (setq recursive-load-depth-limit 50)))
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'gnus-util)
+
 (require 'font-lock)
-(require 'mouse)
-(load "tool-bar" t t)
-(require 'mh-loaddefs)
+(require 'gnus-util)
 (require 'mh-customize)
 (require 'mh-inc)
+(require 'mouse)
+(require 'sendmail)
 
-(load "mm-decode" t t)                  ; Non-fatal dependency
-(load "mm-view" t t)                    ; Non-fatal dependency
-(load "vcard" t t)                      ; Non-fatal dependency
-(load "hl-line" t t)                    ; Non-fatal dependency
-(load "executable" t t)                 ; Non-fatal dependency on
-                                        ; executable-find
-
-;; Shush the byte-compiler
-(defvar font-lock-auto-fontify)
-(defvar font-lock-defaults)
-(defvar mark-active)
+;; Non-fatal dependencies
+(load "hl-line" t t)
+(load "mm-decode" t t)
+(load "mm-view" t t)
+(load "tool-bar" t t)
+(load "vcard" t t)
 
 
 
@@ -69,7 +64,6 @@
 (autoload 'gnus-article-highlight-citation "gnus-cite")
 (autoload 'message-fetch-field "message")
 (autoload 'message-tokenize-header "message")
-(require 'sendmail)
 (unless (fboundp 'make-hash-table)
   (autoload 'make-hash-table "cl"))
 
@@ -469,13 +463,12 @@ operation."
      (t
       nil))))
 
-;; Needed to help shush the byte-compiler.
+;; Shush compiler.
 (if mh-xemacs-flag
-    (progn
-      (eval-and-compile
-        (require 'gnus)
-        (require 'gnus-art)
-        (require 'gnus-cite))))
+    (eval-and-compile
+      (require 'gnus)
+      (require 'gnus-art)
+      (require 'gnus-cite)))
 
 (defun mh-gnus-article-highlight-citation ()
   "Highlight cited text in current buffer using Gnus."
@@ -751,7 +744,6 @@ preserved."
   (unlock-buffer)
   (setq buffer-file-name nil))
 
-
 (defun mh-get-msg-num (error-if-no-message)
   "Return the message number of the displayed message.
 If the argument ERROR-IF-NO-MESSAGE is non-nil, then complain if
@@ -774,7 +766,6 @@ with \"+\"."
     (and (> (length name) 0)
          (eq (aref name 0) ?+))))
 
-
 (defun mh-expand-file-name (filename &optional default)
   "Expand FILENAME like `expand-file-name', but also handle MH folder names.
 Any filename that starts with '+' is treated as a folder name.
@@ -782,7 +773,6 @@ See `expand-file-name' for description of DEFAULT."
   (if (mh-folder-name-p filename)
       (expand-file-name (substring filename 1) mh-user-path)
     (expand-file-name filename default)))
-
 
 (defun mh-msg-filename (msg &optional folder)
   "Return the file name of MSG in FOLDER (default current folder)."
@@ -1134,14 +1124,11 @@ still visible.\n")
     "--"
     ["Quit MH-E"                        mh-quit t]))
 
-
 ;; Ensure new buffers won't get this mode if default-major-mode is nil.
 (put 'mh-show-mode 'mode-class 'special)
 
-;; Avoid compiler warnings in XEmacs and Emacs 20
-(eval-when-compile
-  (defvar tool-bar-mode)
-  (defvar tool-bar-map))
+;; Shush compiler.
+(eval-when-compile (defvar font-lock-auto-fontify))
 
 (define-derived-mode mh-show-mode text-mode "MH-Show"
   "Major mode for showing messages in MH-E.\\<mh-show-mode-map>
@@ -1877,9 +1864,7 @@ ignored if VISIBLE-HEADERS is non-nil."
   ;; XXX Note that MH-E no longer supports the `mh-visible-headers'
   ;; variable, so this function could be trimmed of this feature too."
   (let ((case-fold-search t)
-        (buffer-read-only nil)
-        (after-change-functions nil))   ;Work around emacs-20 font-lock bug
-                                        ;causing an endless loop.
+        (buffer-read-only nil))
     (save-restriction
       (goto-char start)
       (if (search-forward "\n\n" nil 'move)
@@ -1965,111 +1950,24 @@ the message."
     (or dont-show (not return-value) (mh-maybe-show number))
     return-value))
 
-(defun mh-get-profile-field (field)
-  "Find and return the value of FIELD in the current buffer.
-Returns nil if the field is not in the buffer."
+(defun mh-profile-component (component)
+  "Return COMPONENT value from mhparam, or nil if unset."
+  (save-excursion
+    (mh-exec-cmd-quiet nil "mhparam" "-components" component)
+    (mh-profile-component-value component)))
+
+(defun mh-profile-component-value (component)
+  "Find and return the value of COMPONENT in the current buffer.
+Returns nil if the component is not in the buffer."
   (let ((case-fold-search t))
     (goto-char (point-min))
-    (cond ((not (re-search-forward (format "^%s" field) nil t)) nil)
+    (cond ((not (re-search-forward (format "^%s:" component) nil t)) nil)
           ((looking-at "[\t ]*$") nil)
           (t
            (re-search-forward "[\t ]*\\([^\t \n].*\\)$" nil t)
            (let ((start (match-beginning 1)))
              (end-of-line)
              (buffer-substring start (point)))))))
-
-(defvar mh-find-path-run nil
-  "Non-nil if `mh-find-path' has been run already.")
-
-(defun mh-find-path ()
-  "Set variables from user's MH profile.
-
-This function sets `mh-user-path' from your \"Path:\" MH profile
-component (but defaults to \"Mail\" if one isn't present),
-`mh-draft-folder' from \"Draft-Folder:\", `mh-unseen-seq' from
-\"Unseen-Sequence:\", `mh-previous-seq' from
-\"Previous-Sequence:\", and `mh-inbox' from \"Inbox:\" (defaults
-to \"+inbox\").
-
-The hook `mh-find-path-hook' is run after these variables have
-been set. This hook can be used the change the value of these
-variables if you need to run with different values between MH and
-MH-E."
-  (mh-variants)
-  (unless mh-find-path-run
-    (setq mh-find-path-run t)
-    (save-excursion
-      ;; Be sure profile is fully expanded before switching buffers
-      (let ((profile (expand-file-name (or (getenv "MH") "~/.mh_profile"))))
-        (set-buffer (get-buffer-create mh-temp-buffer))
-        (setq buffer-offer-save nil)      ;for people who set default to t
-        (erase-buffer)
-        (condition-case err
-            (insert-file-contents profile)
-          (file-error
-           (mh-install profile err)))
-        (setq mh-user-path (mh-get-profile-field "Path:"))
-        (if (not mh-user-path)
-            (setq mh-user-path "Mail"))
-        (setq mh-user-path
-              (file-name-as-directory
-               (expand-file-name mh-user-path (expand-file-name "~"))))
-        (unless mh-x-image-cache-directory
-          (setq mh-x-image-cache-directory
-                (expand-file-name ".mhe-x-image-cache" mh-user-path)))
-        (setq mh-draft-folder (mh-get-profile-field "Draft-Folder:"))
-        (if mh-draft-folder
-            (progn
-              (if (not (mh-folder-name-p mh-draft-folder))
-                  (setq mh-draft-folder (format "+%s" mh-draft-folder)))
-              (if (not (file-exists-p (mh-expand-file-name mh-draft-folder)))
-                  (error
-                   "Draft folder \"%s\" not found.  Create it and try again"
-                         (mh-expand-file-name mh-draft-folder)))))
-        (setq mh-inbox (mh-get-profile-field "Inbox:"))
-        (cond ((not mh-inbox)
-               (setq mh-inbox "+inbox"))
-              ((not (mh-folder-name-p mh-inbox))
-               (setq mh-inbox (format "+%s" mh-inbox))))
-        (setq mh-unseen-seq (mh-get-profile-field "Unseen-Sequence:"))
-        (if mh-unseen-seq
-            (setq mh-unseen-seq (intern mh-unseen-seq))
-          (setq mh-unseen-seq 'unseen))   ;old MH default?
-        (setq mh-previous-seq (mh-get-profile-field "Previous-Sequence:"))
-        (if mh-previous-seq
-            (setq mh-previous-seq (intern mh-previous-seq)))
-        (run-hooks 'mh-find-path-hook)
-        (mh-collect-folder-names)))))
-
-(defun mh-file-command-p (file)
-  "Return t if file FILE is the name of a executable regular file."
-  (and (file-regular-p file) (file-executable-p file)))
-
-(defvar mh-no-install nil)              ;do not run install-mh
-
-(defun mh-install (profile error-val)
-  "Initialize the MH environment.
-This is called if we fail to read the PROFILE file. ERROR-VAL is
-the error that made this call necessary."
-  (if (or (getenv "MH")
-          (file-exists-p profile)
-          mh-no-install)
-      (signal (car error-val)
-              (list (format "Cannot read MH profile \"%s\"" profile)
-                    (car (cdr (cdr error-val))))))
-  ;; The "install-mh" command will output a short note which
-  ;; mh-exec-cmd will display to the user.
-  ;; The MH 5 version of install-mh might try prompt the user
-  ;; for information, which would fail here.
-  (mh-exec-cmd (expand-file-name "install-mh" mh-lib-progs) "-auto")
-  ;; now try again to read the profile file
-  (erase-buffer)
-  (condition-case err
-      (insert-file-contents profile)
-    (file-error
-     (signal (car err)                  ;re-signal with more specific msg
-             (list (format "Cannot read MH profile \"%s\"" profile)
-                   (car (cdr (cdr err))))))))
 
 (defun mh-set-folder-modified-p (flag)
   "Mark current folder as modified or unmodified according to FLAG."
@@ -2350,8 +2248,11 @@ otherwise completion on +foo won't tell us about the option
       (remhash nil mh-sub-folders-cache))))
 
 (defvar mh-folder-hist nil)
-(defvar mh-speed-folder-map)
-(defvar mh-speed-flists-cache)
+
+;; Shush compiler.
+(eval-when-compile
+  (defvar mh-speed-folder-map)
+  (defvar mh-speed-flists-cache))
 
 (defvar mh-allow-root-folder-flag nil
   "Non-nil means \"+\" is an acceptable folder name.
@@ -2606,11 +2507,8 @@ RAISE-ERROR is non-nil, in which case an error is signaled if
         (mh-handle-process-error command value)
       value)))
 
-(defun mh-profile-component (component)
-  "Return COMPONENT value from mhparam, or nil if unset."
-  (save-excursion
-    (mh-exec-cmd-quiet nil "mhparam" "-components" component)
-    (mh-get-profile-field (concat component ":"))))
+;; Shush compiler.
+(eval-when-compile (defvar mark-active))
 
 (defun mh-exchange-point-and-mark-preserving-active-mark ()
   "Put the mark where point is now, and point where the mark is now.
@@ -2689,30 +2587,12 @@ Set mark after inserted text."
     new-list))
 
 (defun mh-replace-string (old new)
-  "Replace all occurrences of OLD with NEW in the current buffer."
+  "Replace all occurrences of OLD with NEW in the current buffer.
+Ignores case when searching for OLD."
   (goto-char (point-min))
   (let ((case-fold-search t))
     (while (search-forward old nil t)
       (replace-match new t t))))
-
-(defun mh-replace-in-string (regexp newtext string)
-  "Replace REGEXP with NEWTEXT everywhere in STRING and return result.
-NEWTEXT is taken literally---no \\DIGIT escapes will be recognized.
-
-The function body was copied from `dired-replace-in-string' in
-dired.el.
-Emacs21 has `replace-regexp-in-string' while XEmacs has
-`replace-in-string'.
-Neither is present in Emacs20. The file gnus-util.el in Gnus 5.10.1
-and above has `gnus-replace-in-string'. We should use that when we
-decide to not support older versions of Gnus."
-  (let ((result "") (start 0) mb me)
-    (while (string-match regexp string start)
-      (setq mb (match-beginning 0)
-            me (match-end 0)
-            result (concat result (substring string start mb) newtext)
-            start me))
-    (concat result (substring string start))))
 
 (provide 'mh-utils)
 

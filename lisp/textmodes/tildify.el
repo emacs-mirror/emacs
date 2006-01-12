@@ -29,7 +29,7 @@
 ;; This package can be typically used for adding forgotten tildes in TeX
 ;; sources or adding `&nbsp;' sequences in SGML (e.g. HTML) texts.
 ;;
-;; For example, the Czech ortography requires avoiding one letter
+;; For example, the Czech orthography requires avoiding one letter
 ;; prepositions at line endings.  So they should be connected with the
 ;; following words by a tilde.  Some users forget to do this all the
 ;; time.  The purpose of this program is to check the text and suggest
@@ -43,7 +43,7 @@
 ;; The default variable settings are suited for Czech, so do not try to
 ;; understand them if you are not familiar with Czech grammar and spelling.
 ;;
-;; The algorithm was inspired by Petr Ol¹ák's program `vlna'.  Abbilities of
+;; The algorithm was inspired by Petr Ol¹ák's program `vlna'.  Abilities of
 ;; `tildify.el' are a little limited; if you have improvement suggestions, let
 ;; me know.
 

@@ -181,6 +181,18 @@ use either M-x customize or also call `rcirc-update-prompt'."
   :initialize 'custom-initialize-default
   :group 'rcirc)
 
+(defcustom rcirc-ignore-list ()
+  "List of ignored nicks.
+Use /ignore to list them, use /ignore NICK to add or remove a nick."
+  :type '(repeat string)
+  :group 'rcirc)
+
+(defvar rcirc-ignore-list-automatic ()
+  "List of ignored nicks added to `rcirc-ignore-list' because of renaming.
+When an ignored person renames, their nick is added to both lists.
+Nicks will be removed from the automatic list on follow-up renamings or
+parts.")
+
 (defcustom rcirc-print-hooks nil
   "Hook run after text is printed.
 Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
@@ -191,6 +203,14 @@ Called with 5 arguments, PROCESS, SENDER, RESPONSE, TARGET and TEXT."
 (defvar rcirc-prompt-end-marker nil)
 
 (defvar rcirc-nick-table nil)
+
+(defvar rcirc-nick-syntax-table
+  (let ((table (make-syntax-table text-mode-syntax-table)))
+    (mapc (lambda (c) (modify-syntax-entry c "w" table))
+          "[]\\`_^{|}-")
+    (modify-syntax-entry ?' "_" table)
+    table)
+  "Syntax table which includes all nick characters as word constituents.")
 
 ;; each process has an alist of (target . buffer) pairs
 (defvar rcirc-buffer-alist nil)
@@ -434,6 +454,9 @@ Function is called with PROCESS COMMAND SENDER ARGS and LINE.")
   (let ((string (concat (encode-coding-string string
                                               buffer-file-coding-system)
                         "\n")))
+    (unless (eq (process-status rcirc-process) 'open)
+      (error "Network connection to %s is not open"
+             (process-name rcirc-process)))
     (rcirc-debug process string)
     (process-send-string process string)))
 
@@ -734,62 +757,59 @@ Create the buffer if it doesn't exist."
 (defun rcirc-send-input ()
   "Send input to target associated with the current buffer."
   (interactive)
-  (if (not (eq (process-status rcirc-process) 'open))
-      (error "Network connection to %s is not open"
-             (process-name rcirc-process))
-    (if (< (point) rcirc-prompt-end-marker)
-        ;; copy the line down to the input area
-        (progn
-          (forward-line 0)
-          (let ((start (if (eq (point) (point-min))
-                           (point)
-                         (if (get-text-property (1- (point)) 'hard)
-                             (point)
-                           (previous-single-property-change (point) 'hard))))
-                (end (next-single-property-change (1+ (point)) 'hard)))
-            (goto-char (point-max))
-            (insert (replace-regexp-in-string
-                     "\n\\s-+" " "
-                     (buffer-substring-no-properties start end)))))
-      ;; process input
-      (goto-char (point-max))
-      (let ((target (rcirc-buffer-target))
-            (start rcirc-prompt-end-marker))
-        (when (not (equal 0 (- (point) start)))
-          ;; delete a trailing newline
-          (when (eq (point) (point-at-bol))
-            (delete-backward-char 1))
-          (let ((input (buffer-substring-no-properties
-                        rcirc-prompt-end-marker (point))))
-            ;; process a /cmd
-            (if (string-match "^/\\([^ ]+\\) ?\\(.*\\)$" input)
-                (let* ((command (match-string 1 input))
-                       (fun (intern-soft (concat "rcirc-cmd-" command)))
-                       (args (match-string 2 input)))
-                  (newline)
-                  (with-current-buffer (current-buffer)
-                    (delete-region rcirc-prompt-end-marker (point))
-                    (if (string= command "me")
-                        (rcirc-print rcirc-process (rcirc-nick rcirc-process)
-                                     "ACTION" (current-buffer) args)
-                      (rcirc-print rcirc-process (rcirc-nick rcirc-process)
-                                   "COMMAND" (current-buffer) input))
-                    (set-marker rcirc-prompt-end-marker (point))
-                    (if (fboundp fun)
-                        (funcall fun args rcirc-process target)
-                      (rcirc-send-string rcirc-process
-					 (concat command " " args)))))
-              ;; send message to server
-              (if (not rcirc-target)
-                  (message "Not joined")
-                (delete-region rcirc-prompt-end-marker (point))
-                (mapc (lambda (message)
-                        (rcirc-send-message rcirc-process target message))
-                      (split-string input "\n"))))
-            ;; add to input-ring
-            (save-excursion
-              (ring-insert rcirc-input-ring input)
-              (setq rcirc-input-ring-index 0))))))))
+  (if (< (point) rcirc-prompt-end-marker)
+      ;; copy the line down to the input area
+      (progn
+	(forward-line 0)
+	(let ((start (if (eq (point) (point-min))
+			 (point)
+		       (if (get-text-property (1- (point)) 'hard)
+			   (point)
+			 (previous-single-property-change (point) 'hard))))
+	      (end (next-single-property-change (1+ (point)) 'hard)))
+	  (goto-char (point-max))
+	  (insert (replace-regexp-in-string
+		   "\n\\s-+" " "
+		   (buffer-substring-no-properties start end)))))
+    ;; process input
+    (goto-char (point-max))
+    (let ((target (rcirc-buffer-target))
+	  (start rcirc-prompt-end-marker))
+      (when (not (equal 0 (- (point) start)))
+	;; delete a trailing newline
+	(when (eq (point) (point-at-bol))
+	  (delete-backward-char 1))
+	(let ((input (buffer-substring-no-properties
+		      rcirc-prompt-end-marker (point))))
+	  ;; process a /cmd
+	  (if (string-match "^/\\([^ ]+\\) ?\\(.*\\)$" input)
+	      (let* ((command (match-string 1 input))
+		     (fun (intern-soft (concat "rcirc-cmd-" command)))
+		     (args (match-string 2 input)))
+		(newline)
+		(with-current-buffer (current-buffer)
+		  (delete-region rcirc-prompt-end-marker (point))
+		  (if (string= command "me")
+		      (rcirc-print rcirc-process (rcirc-nick rcirc-process)
+				   "ACTION" (current-buffer) args)
+		    (rcirc-print rcirc-process (rcirc-nick rcirc-process)
+				 "COMMAND" (current-buffer) input))
+		  (set-marker rcirc-prompt-end-marker (point))
+		  (if (fboundp fun)
+		      (funcall fun args rcirc-process target)
+		    (rcirc-send-string rcirc-process
+				       (concat command " " args)))))
+	    ;; send message to server
+	    (if (not rcirc-target)
+		(message "Not joined")
+	      (delete-region rcirc-prompt-end-marker (point))
+	      (mapc (lambda (message)
+		      (rcirc-send-message rcirc-process target message))
+		    (split-string input "\n"))))
+	  ;; add to input-ring
+	  (save-excursion
+	    (ring-insert rcirc-input-ring input)
+	    (setq rcirc-input-ring-index 0)))))))
 
 (defvar rcirc-parent-buffer nil)
 (defvar rcirc-window-configuration nil)
@@ -906,120 +926,124 @@ Create the buffer if it doesn't exist."
   "Print TEXT in the buffer associated with TARGET.
 Format based on SENDER and RESPONSE.  If ACTIVITY is non-nil,
 record activity."
-  (let* ((buffer (cond ((bufferp target)
-                        target)
-                       ((not target)
-			(rcirc-get-any-buffer process))
-		       ((not (rcirc-channel-p target))
-			(rcirc-get-buffer-create process
-						 (rcirc-user-nick sender)))
-                       ((or (rcirc-get-buffer process target)
-			    (rcirc-get-any-buffer process)))))
-         (inhibit-read-only t))
-    (with-current-buffer buffer
-      (let ((moving (= (point) rcirc-prompt-end-marker))
-            (old-point (point-marker))
-            (fill-start (marker-position rcirc-prompt-start-marker)))
+  (unless (or (member (rcirc-user-nick sender) rcirc-ignore-list)
+	      (member (with-syntax-table rcirc-nick-syntax-table
+			(when (string-match "^\\([^/]\\w*\\)[:,]" text)
+			  (match-string 1 text))) rcirc-ignore-list))
+    (let* ((buffer (cond ((bufferp target)
+			  target)
+			 ((not target)
+			  (rcirc-get-any-buffer process))
+			 ((not (rcirc-channel-p target))
+			  (rcirc-get-buffer-create process
+						   (rcirc-user-nick sender)))
+			 ((or (rcirc-get-buffer process target)
+			      (rcirc-get-any-buffer process)))))
+	   (inhibit-read-only t))
+      (with-current-buffer buffer
+	(let ((moving (= (point) rcirc-prompt-end-marker))
+	      (old-point (point-marker))
+	      (fill-start (marker-position rcirc-prompt-start-marker)))
 
-        (unless (string= sender (rcirc-nick process))
-	  ;; only decode text from other senders, not ours
-	  (setq text (decode-coding-string (or text "")
-					   buffer-file-coding-system))
-	  ;; mark the line with overlay arrow
-	  (unless (or (marker-position overlay-arrow-position)
-		      (get-buffer-window (current-buffer)))
-	    (set-marker overlay-arrow-position
-			(marker-position rcirc-prompt-start-marker))))
+	  (unless (string= sender (rcirc-nick process))
+	    ;; only decode text from other senders, not ours
+	    (setq text (decode-coding-string (or text "")
+					     buffer-file-coding-system))
+	    ;; mark the line with overlay arrow
+	    (unless (or (marker-position overlay-arrow-position)
+			(get-buffer-window (current-buffer)))
+	      (set-marker overlay-arrow-position
+			  (marker-position rcirc-prompt-start-marker))))
 
-        ;; temporarily set the marker insertion-type because
-        ;; insert-before-markers results in hidden text in new buffers
-        (goto-char rcirc-prompt-start-marker)
-        (set-marker-insertion-type rcirc-prompt-start-marker t)
-        (set-marker-insertion-type rcirc-prompt-end-marker t)
-        (insert
-	 (rcirc-format-response-string process sender response target text)
-	 (propertize "\n" 'hard t))
-        (set-marker-insertion-type rcirc-prompt-start-marker nil)
-        (set-marker-insertion-type rcirc-prompt-end-marker nil)
+	  ;; temporarily set the marker insertion-type because
+	  ;; insert-before-markers results in hidden text in new buffers
+	  (goto-char rcirc-prompt-start-marker)
+	  (set-marker-insertion-type rcirc-prompt-start-marker t)
+	  (set-marker-insertion-type rcirc-prompt-end-marker t)
+	  (insert
+	   (rcirc-format-response-string process sender response target text)
+	   (propertize "\n" 'hard t))
+	  (set-marker-insertion-type rcirc-prompt-start-marker nil)
+	  (set-marker-insertion-type rcirc-prompt-end-marker nil)
 
-        ;; fill the text we just inserted, maybe
-        (when (and rcirc-fill-flag
-		   (not (string= response "372"))) ;/motd
-          (let ((fill-prefix
-                 (or rcirc-fill-prefix
-                     (make-string
-                      (+ (if rcirc-time-format
-                             (length (format-time-string
-                                      rcirc-time-format))
-                           0)
-                         (cond ((or (string= response "PRIVMSG")
-				    (string= response "NOTICE"))
-				(+ (length (rcirc-user-nick sender))
-				   2))	; <>
-			       ((string= response "ACTION")
-				(+ (length (rcirc-user-nick sender))
-				   1))		; [
-			       (t 3))		; ***
-                         1)
-                      ? )))
-                (fill-column (cond ((eq rcirc-fill-column 'frame-width)
-				    (1- (frame-width)))
-				   (rcirc-fill-column
-				    rcirc-fill-column)
-				   (t fill-column))))
-            (fill-region fill-start rcirc-prompt-start-marker 'left t)))
+	  ;; fill the text we just inserted, maybe
+	  (when (and rcirc-fill-flag
+		     (not (string= response "372"))) ;/motd
+	    (let ((fill-prefix
+		   (or rcirc-fill-prefix
+		       (make-string
+			(+ (if rcirc-time-format
+			       (length (format-time-string
+					rcirc-time-format))
+			     0)
+			   (cond ((or (string= response "PRIVMSG")
+				      (string= response "NOTICE"))
+				  (+ (length (rcirc-user-nick sender))
+				     2)) ; <>
+				 ((string= response "ACTION")
+				  (+ (length (rcirc-user-nick sender))
+				     1))	; [
+				 (t 3))		; ***
+			   1)
+			? )))
+		  (fill-column (cond ((eq rcirc-fill-column 'frame-width)
+				      (1- (frame-width)))
+				     (rcirc-fill-column
+				      rcirc-fill-column)
+				     (t fill-column))))
+	      (fill-region fill-start rcirc-prompt-start-marker 'left t)))
 
-        ;; set inserted text to be read-only
-        (when rcirc-read-only-flag
-          (put-text-property rcirc-prompt-start-marker fill-start 'read-only t)
-          (let ((inhibit-read-only t))
-            (put-text-property rcirc-prompt-start-marker fill-start
-			       'front-sticky t)
-            (put-text-property (1- (point)) (point) 'rear-nonsticky t)))
+	  ;; set inserted text to be read-only
+	  (when rcirc-read-only-flag
+	    (put-text-property rcirc-prompt-start-marker fill-start 'read-only t)
+	    (let ((inhibit-read-only t))
+	      (put-text-property rcirc-prompt-start-marker fill-start
+				 'front-sticky t)
+	      (put-text-property (1- (point)) (point) 'rear-nonsticky t)))
 
-        ;; truncate buffer if it is very long
-        (save-excursion
-          (when (and rcirc-buffer-maximum-lines
-                     (> rcirc-buffer-maximum-lines 0)
-                     (= (forward-line (- rcirc-buffer-maximum-lines)) 0))
-            (delete-region (point-min) (point))))
+	  ;; truncate buffer if it is very long
+	  (save-excursion
+	    (when (and rcirc-buffer-maximum-lines
+		       (> rcirc-buffer-maximum-lines 0)
+		       (= (forward-line (- rcirc-buffer-maximum-lines)) 0))
+	      (delete-region (point-min) (point))))
 
-        ;; set the window point for buffers show in windows
-        (walk-windows (lambda (w)
-                        (unless (eq (selected-window) w)
-                          (when (and (eq (current-buffer)
-					 (window-buffer w))
-                                     (>= (window-point w)
-					 rcirc-prompt-end-marker))
-                            (set-window-point w (point-max)))))
-                      nil t)
+	  ;; set the window point for buffers show in windows
+	  (walk-windows (lambda (w)
+			  (unless (eq (selected-window) w)
+			    (when (and (eq (current-buffer)
+					   (window-buffer w))
+				       (>= (window-point w)
+					   rcirc-prompt-end-marker))
+			      (set-window-point w (point-max)))))
+			nil t)
 
-        ;; restore the point
-        (goto-char (if moving rcirc-prompt-end-marker old-point))
+	  ;; restore the point
+	  (goto-char (if moving rcirc-prompt-end-marker old-point))
 
-        ;; flush undo (can we do something smarter here?)
-	(buffer-disable-undo)
-	(buffer-enable-undo))
+	  ;; flush undo (can we do something smarter here?)
+	  (buffer-disable-undo)
+	  (buffer-enable-undo))
 
-      ;; record modeline activity
-      (when activity
-        (let ((nick-match
-	       (string-match (concat "\\b"
-				     (regexp-quote (rcirc-nick process))
-				     "\\b")
-			     text)))
-          (when (or (not rcirc-ignore-buffer-activity-flag)
-                    ;; always notice when our nick is mentioned, even
-                    ;; if ignoring channel activity
-                    nick-match)
-            (rcirc-record-activity
-	     (current-buffer)
-	     (when (or nick-match (not (rcirc-channel-p rcirc-target)))
-	       'nick)))))
+	;; record modeline activity
+	(when activity
+	  (let ((nick-match
+		 (string-match (concat "\\b"
+				       (regexp-quote (rcirc-nick process))
+				       "\\b")
+			       text)))
+	    (when (or (not rcirc-ignore-buffer-activity-flag)
+		      ;; always notice when our nick is mentioned, even
+		      ;; if ignoring channel activity
+		      nick-match)
+	      (rcirc-record-activity
+	       (current-buffer)
+	       (when (or nick-match (not (rcirc-channel-p rcirc-target)))
+		 'nick)))))
 
-      (sit-for 0)			; displayed text before hook
-      (run-hook-with-args 'rcirc-print-hooks
-                          process sender response target text))))
+	(sit-for 0)			; displayed text before hook
+	(run-hook-with-args 'rcirc-print-hooks
+			    process sender response target text)))))
 
 (defun rcirc-startup-channels (server)
   "Return the list of startup channels for server."
@@ -1101,6 +1125,15 @@ record activity."
        rcirc-nick-table)
       (mapcar (lambda (x) (car x))
               (sort nicks (lambda (x y) (time-less-p (cdr y) (cdr x))))))))
+
+(defun rcirc-ignore-update-automatic (nick)
+  "Remove NICK from  `rcirc-ignore-list'
+if NICK is also on  `rcirc-ignore-list-automatic'."
+  (when (member nick rcirc-ignore-list-automatic)
+      (setq rcirc-ignore-list-automatic
+	    (delete nick rcirc-ignore-list-automatic)
+	    rcirc-ignore-list
+	    (delete nick rcirc-ignore-list))))
 
 ;;; activity tracking
 (or (assq 'rcirc-ignore-buffer-activity-flag minor-mode-alist)
@@ -1448,6 +1481,26 @@ With a prefix arg, prompt for new topic."
 (defun rcirc-cmd-me (args &optional process target)
   (rcirc-send-string process (format "PRIVMSG %s :\C-aACTION %s\C-a"
                                      target args)))
+
+(defun-rcirc-command ignore (nick)
+  "Manage the ignore list.
+Ignore NICK, unignore NICK if already ignored, or list ignored
+nicks when no NICK is given.  When listing ignored nicks, the
+ones added to the list automatically are marked with an asterix."
+  (interactive "sToggle ignoring of nick: ")
+  (if (string= "" nick)
+      (rcirc-print process (rcirc-nick process) "NOTICE" target 
+		   (mapconcat
+		    (lambda (nick)
+		      (concat nick
+			      (if (member nick rcirc-ignore-list-automatic)
+				  "*" "")))
+		    rcirc-ignore-list " "))
+    (if (member nick rcirc-ignore-list)
+	(setq rcirc-ignore-list (delete nick rcirc-ignore-list))
+      (setq rcirc-ignore-list (cons nick rcirc-ignore-list)))))
+
+
 
 (defun rcirc-message-leader (sender face)
   "Return a string with SENDER propertized with FACE."
@@ -1501,14 +1554,6 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
       (setq start (match-end 0))
       (funcall function (match-beginning 0) (match-end 0) string)))
   string)
-
-(defvar rcirc-nick-syntax-table
-  (let ((table (make-syntax-table text-mode-syntax-table)))
-    (mapc (lambda (c) (modify-syntax-entry c "w" table))
-          "[]\\`_^{|}-")
-    (modify-syntax-entry ?' "_" table)
-    table)
-  "Syntax table which includes all nick characters as word constituents.")
 
 (defun rcirc-mangle-text (process text)
   "Return TEXT with properties added based on various patterns."
@@ -1650,6 +1695,7 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
 	  (setq rcirc-target nil))))))
 
 (defun rcirc-handler-PART (process sender args text)
+  (rcirc-ignore-update-automatic (rcirc-user-nick sender))
   (rcirc-handler-PART-or-KICK process "PART"
                               (car args) sender (rcirc-user-nick sender)
                               (cadr args)))
@@ -1659,6 +1705,7 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
                               (caddr args)))
 
 (defun rcirc-handler-QUIT (process sender args text)
+  (rcirc-ignore-update-automatic (rcirc-user-nick sender))
   (let ((nick (rcirc-user-nick sender)))
     (mapc (lambda (channel)
             (rcirc-print process sender "QUIT" channel (apply 'concat args)))
@@ -1675,6 +1722,11 @@ FUNCTION takes 3 arguments, MATCH-START, MATCH-END, and STRING."
   (let* ((old-nick (rcirc-user-nick sender))
          (new-nick (car args))
          (channels (rcirc-nick-channels process old-nick)))
+    ;; update list of ignored nicks
+    (rcirc-ignore-update-automatic old-nick)
+    (when (member old-nick rcirc-ignore-list)
+      (add-to-list 'rcirc-ignore-list new-nick)
+      (add-to-list 'rcirc-ignore-list-automatic new-nick))
     ;; print message to nick's channels
     (dolist (target channels)
       (rcirc-print process sender "NICK" target new-nick))

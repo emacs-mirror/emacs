@@ -73,10 +73,8 @@
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-e)
 
-;; Shush the byte-compiler
-(defvar tool-bar-mode)
+(require 'mh-e)
 
 
 
@@ -171,8 +169,8 @@ you want to delete the messages, use \"\\[universal-argument]
     (when (and (eq sequence mh-unseen-seq) (mh-speed-flists-active-p))
       (apply #'mh-speed-flists t folders-changed))))
 
-;; Avoid compiler warnings
-(defvar view-exit-action)
+;; Shush compiler.
+(eval-when-compile (defvar view-exit-action))
 
 ;;;###mh-autoload
 (defun mh-list-sequences ()
@@ -239,8 +237,10 @@ MESSAGE appears."
                         (mh-list-to-string (mh-seq-containing-msg message t))
                         " "))))
 
-;; Avoid compiler warning
-(defvar tool-bar-map)
+;; Shush compiler
+(eval-when-compile
+  (defvar tool-bar-map)
+  (defvar tool-bar-mode))
 
 (make-variable-buffer-local 'mh-non-seq-mode-line-annotation)
 

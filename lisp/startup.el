@@ -209,9 +209,10 @@ the user's init file.")
 The value is nil if `-q' or `--no-init-file' was specified,
 meaning do not load any init file.
 
-Otherwise, the value may be the null string, meaning use the init file
-for the user that originally logged in, or it may be a
-string containing a user's name meaning use that person's init file.
+Otherwise, the value may be an empty string, meaning
+use the init file for the user who originally logged in,
+or it may be a string containing a user's name meaning
+use that person's init file.
 
 In either of the latter cases, `(concat \"~\" init-file-user \"/\")'
 evaluates to the name of the directory where the `.emacs' file was

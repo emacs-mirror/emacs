@@ -569,7 +569,7 @@ additional active keymaps through the variable
 text or overlay property.  If that is non-@code{nil}, it is the first
 keymap to be processed, in normal circumstances.
 
-  However, there are also special ways for program can to substitute
+  However, there are also special ways for programs to substitute
 other keymaps for some of those.  The variable
 @code{overriding-local-map}, if non-@code{nil}, specifies a keymap
 that replaces all the usual active keymaps except the global keymap.

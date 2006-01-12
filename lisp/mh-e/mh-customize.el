@@ -54,10 +54,10 @@
 ;;
 ;; 4. Faces
 ;;
-;;    Create a new face group if necessary; in this case, add the group
-;;    associated with the manual node in which the faces are described to the
-;;    faces' group definition. Since the face groups appear last, the face
-;;    groups will appear at the end of these other groups.
+;;    All faces must be placed in the mh-faces group; in addition, add the
+;;    group associated with the manual node in which the face is described.
+;;    Since the mh-faces group appears near the end of this file, the faces
+;;    will appear at the end of these other groups.
 ;;
 ;;; Change Log:
 
@@ -67,21 +67,17 @@
 
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
-(require 'mh-loaddefs)
 
 (eval-and-compile
   (defvar mh-xemacs-flag (featurep 'xemacs)
-    "Non-nil means the current Emacs is XEmacs."))
+    "Non-nil means the current Emacs is XEmacs.")
+  (when mh-xemacs-flag
+    (require 'mh-xemacs)))
 
-(when mh-xemacs-flag
-  (require 'mh-xemacs))
-
-;; XXX: Functions autoloaded from the following files are used to initialize
-;;  customizable variables. They are require'd here, since otherwise the
-;;  corresponding .elc would be loaded at compile time.
-(eval-when-compile
+(eval-and-compile
+  (require 'mh-identity)
   (require 'mh-init)
-  (require 'mh-identity))
+  (require 'mh-loaddefs))
 
 ;; For compiler warnings...
 (eval-when-compile
@@ -1031,7 +1027,7 @@ message 200, then use the range \"200:200\"."
 
 ;;; Scan Line Formats (:group 'mh-scan-line-formats)
 
-;; Forward definition to avoid compiler and runtime error.
+;; Forward definition.
 (defvar mh-scan-format-file t)
 
 (defun mh-adaptive-cmd-note-flag-check (symbol value)
@@ -1044,6 +1040,9 @@ Otherwise, set SYMBOL to VALUE."
       (error "%s %s" "Can't turn on unless `mh-scan-format-file'"
              "is set to \"Use MH-E scan Format\"")
     (set-default symbol value)))
+
+;; Forward definition.
+(defvar mh-adaptive-cmd-note-flag)
 
 (defun mh-scan-format-file-check (symbol value)
   "Check if desired setting is legal.
@@ -1073,6 +1072,7 @@ you would use \"(mh-set-cmd-note 4)\"."
   :group 'mh-scan-line-formats
   :set 'mh-adaptive-cmd-note-flag-check)
 
+;; Update forward definition above if default changes.
 (defcustom mh-scan-format-file t
   "Specifies the format file to pass to the scan program.
 
@@ -1513,11 +1513,11 @@ of citations entirely, choose \"None\"."
     "X-Listprocessor-"                  ; ListProc(tm) by CREN
     "X-Listserver:"                     ; Unknown mailing list managers
     "X-Loop:"                           ; Unknown mailing list managers
+    "X-Lumos-SenderID:"                 ; Roving ConstantContact
     "X-MAIL-INFO:"                      ; NetZero
     "X-MHE-Checksum"                    ; Checksum added during index search
     "X-MIME-Autoconverted:"             ; sendmail
     "X-MIMETrack:"
-    "X-Mms-"                            ; T-Mobile pictures
     "X-MS-"                             ; MS Outlook
     "X-MailScanner"                     ; ListProc(tm) by CREN
     "X-Mailing-List:"                   ; Unknown mailing list managers
@@ -1526,6 +1526,7 @@ of citations entirely, choose \"None\"."
     "X-Message-Id"
     "X-MessageWall-Score:"              ; Unknown mailing list manager, AUC TeX
     "X-MimeOLE:"                        ; MS Outlook
+    "X-Mms-"                            ; T-Mobile pictures
     "X-Mozilla-Status:"                 ; Netscape/Mozilla
     "X-Msmail-"                         ; MS Outlook
     "X-NAI-Spam-"                       ; Network Associates Inc. SpamKiller
@@ -1548,6 +1549,8 @@ of citations entirely, choose \"None\"."
     "X-Received-Date:"
     "X-Received:"
     "X-Request-"
+    "X-Return-Path-Hint:"               ; Roving ConstantContact
+    "X-Roving-*"                        ; Roving ConstantContact
     "X-SBClass:"                        ; Spam
     "X-SBNote:"                         ; Spam
     "X-SBPass:"                         ; Spam
@@ -1570,8 +1573,8 @@ of citations entirely, choose \"None\"."
     "X-UNTD-"                           ; NetZero
     "X-USANET-"                         ; usa.net
     "X-UserInfo1:"
-    "X-Virus-Scanned"                   ; amavisd-new
     "X-VSMLoop:"                        ; NTMail
+    "X-Virus-Scanned"                   ; amavisd-new
     "X-Vms-To:"
     "X-WebTV-Signature:"
     "X-Wss-Id:"                         ; Worldtalk gateways
@@ -1594,6 +1597,10 @@ Do not alter this variable directly. Instead, customize
 `mh-invisible-header-fields-default' checking for fields normally
 hidden that you wish to display, and add extra entries to hide in
 `mh-invisible-header-fields'.")
+
+;; Forward definition.
+(defvar mh-invisible-header-fields)
+(defvar mh-invisible-header-fields-default nil)
 
 (defun mh-invisible-headers ()
   "Make or remake the variable `mh-invisible-header-fields-compiled'.
@@ -1620,23 +1627,6 @@ removed and entries from `mh-invisible-header-fields' are added."
                  (regexp-opt fields t))))
       (setq mh-invisible-header-fields-compiled nil))))
 
-(defcustom mh-invisible-header-fields-default nil
-  "*List of hidden header fields.
-
-The header fields listed in this option are hidden, although you
-can check off any field that you would like to see.
-
-Header fields that you would like to hide that aren't listed can
-be added to the option `mh-invisible-header-fields'.
-
-See also `mh-clean-message-header-flag'."
-  :type `(set ,@(mapcar (lambda (x) `(const ,x))
-                        mh-invisible-header-fields-internal))
-  :set (lambda (symbol value)
-         (set-default symbol value)
-         (mh-invisible-headers))
-  :group 'mh-show)
-
 (defcustom mh-invisible-header-fields nil
   "*Additional header fields to hide.
 
@@ -1652,6 +1642,24 @@ generally ignored, report a bug (see URL
 See also `mh-clean-message-header-flag'."
 
   :type '(repeat (string :tag "Header field"))
+  :set (lambda (symbol value)
+         (set-default symbol value)
+         (mh-invisible-headers))
+  :group 'mh-show)
+
+;; Update forward definition above if default changes.
+(defcustom mh-invisible-header-fields-default nil
+  "*List of hidden header fields.
+
+The header fields listed in this option are hidden, although you
+can check off any field that you would like to see.
+
+Header fields that you would like to hide that aren't listed can
+be added to the option `mh-invisible-header-fields'.
+
+See also `mh-clean-message-header-flag'."
+  :type `(set ,@(mapcar (lambda (x) `(const ,x))
+                        mh-invisible-header-fields-internal))
   :set (lambda (symbol value)
          (set-default symbol value)
          (mh-invisible-headers))
@@ -2543,7 +2551,7 @@ sequence."
       (:foreground "snow3"))
      (((class color))
       (:foreground "cyan"))))
-    
+
   "Message number face."
   :group 'mh-faces
   :group 'mh-folder)
@@ -2883,7 +2891,6 @@ The background and foreground are used in the image."
        (:foreground "snow3"))
       (((class color))
        (:foreground "cyan")))))
-
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil

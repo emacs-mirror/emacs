@@ -1,3 +1,17 @@
+2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Fexpand_file_name): Remove redundant tests.
+	Fix elimination of // so that it doesn't prevent elimination of an
+	immediately following /. or /..
+
+2006-01-09  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* gtkutil.c (xg_toggle_notify_cb): New function.
+	(xg_toggle_visibility_cb): Move setting of x_gtk_show_hidden_files to
+	xg_toggle_notify_cb.
+	(xg_get_file_with_chooser): Add callback to xg_toggle_notify_cb when
+	parameter value changes so the toggle button gets updated.
+
 2006-01-06  Nick Roberts  <nickrob@snap.net.nz>
 
 	* .gdbinit: Fix typo.

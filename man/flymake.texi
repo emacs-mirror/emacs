@@ -11,7 +11,7 @@
 This manual is for GNU Flymake (version @value{VERSION}, @value{UPDATED}),
 which is a universal on-the-fly syntax checker for GNU Emacs.
 
-Copyright @copyright{} 2004, 2005 Free Software Foundation, Inc.
+Copyright @copyright{} 2004, 2005, 2006 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -55,7 +55,6 @@ license to the document, as described in section 6 of the license.
 
 @menu
 * Overview of Flymake::
-* Obtaining Flymake::
 * Installing Flymake::
 * Using Flymake::
 * Configuring Flymake::
@@ -103,16 +102,6 @@ delay is configurable).
 Flymake is a universal syntax checker in the sense that it's easily
 extended to support new syntax check tools and error message
 patterns. @xref{Configuring Flymake}.
-
-@node Obtaining Flymake
-@chapter Obtaining Flymake
-@cindex Getting Flymake
-
-Release versions of Flymake can be downloaded from
-@* @url{https://sourceforge.net/project/showfiles.php?group_id=77501}.
-You can also try current version available via CVS at @url{https://}.
-
-Flymake's homepage is at @url{http://flymake.sourceforge.net}.
 
 @node Installing Flymake
 @chapter Installing
