@@ -1,3 +1,15 @@
+2006-01-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (custom-reset-menu, custom-buffer-create-internal)
+	(custom-variable-menu, custom-face-menu, custom-group-menu)
+	(Custom-mode-menu): Change names of menu items.  (As discussed on
+	emacs-devel.)
+	(custom-face-menu): Add "Undo Edits" item.
+
+	* startup.el (init-file-user): defcustom -> defvar.
+
+	* tooltip.el (tooltip-mode): Doc fix.
+
 2006-01-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* reveal.el (reveal-post-command): window-buffer signals an error on
