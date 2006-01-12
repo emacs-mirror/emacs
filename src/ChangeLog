@@ -1,3 +1,9 @@
+2006-01-13  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in: Define new macro WINDOW_SUPPORT.
+	(lisp): Use it.
+	(SOME_MACHINE_LISP): Add conditionally loaded files.
+
 2006-01-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c [USE_ATSUI] (atsu_get_text_layout_with_text_ptr)
