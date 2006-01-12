@@ -197,7 +197,7 @@ the user's init file.")
   :type 'function
   :group 'initialization)
 
-(defcustom init-file-user nil
+(defvar init-file-user nil
   "Identity of user whose `.emacs' file is or was read.
 The value is nil if `-q' or `--no-init-file' was specified,
 meaning do not load any init file.
@@ -212,9 +212,7 @@ evaluates to the name of the directory where the `.emacs' file was
 looked for.
 
 Setting `init-file-user' does not prevent Emacs from loading
-`site-start.el'.  The only way to do that is to use `--no-site-file'."
-  :type '(choice (const :tag "none" nil) string)
-  :group 'initialization)
+`site-start.el'.  The only way to do that is to use `--no-site-file'.")
 
 (defcustom site-run-file "site-start"
   "File containing site-wide run-time initializations.
