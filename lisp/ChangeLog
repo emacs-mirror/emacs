@@ -1,3 +1,8 @@
+2006-01-12  John Paul Wallington  <jpw@pobox.com>
+
+	* help-fns.el (describe-variable): Remove newlines from void
+	variable output.
+
 2006-01-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* wdired.el (wdired-mode-map): Add help echo for
