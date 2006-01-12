@@ -1,3 +1,15 @@
+2006-01-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c [USE_ATSUI] (atsu_get_text_layout_with_text_ptr)
+	[MAC_OS_X_VERSION_MAX_ALLOWED >= 1020]: Specify	kATSLineUseQDRendering.
+	(XLoadQueryFont) [USE_ATSUI]: Display diacritical marks in
+	decomposed form.
+
+	* process.c [HAVE_INTTYPES_H]: Include inttypes.h.
+	(ifflag_table): Fix typo (IFF_OACTIV -> IFF_OACTIVE).
+	(Fnetwork_interface_info): Use HAVE_STRUCT_IFREQ_IFR_NETMASK
+	macro.  Also try member ifr_addr when getting netmask.
+
 2006-01-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Fexpand_file_name): Remove redundant tests.
