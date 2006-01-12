@@ -1,3 +1,8 @@
+2006-01-12  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/ld-script.el (auto-mode-alist): Support
+	suffix conventions used in netbsd and eCos.
+
 2006-01-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (custom-reset-menu, custom-buffer-create-internal)

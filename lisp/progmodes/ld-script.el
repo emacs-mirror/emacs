@@ -125,8 +125,14 @@
    cpp-font-lock-keywords)
   "Default font-lock-keywords for `ld-script-mode'.")
 
+;; Linux-2.6.9 uses some different suffix for linker scripts:
+;; "ld", "lds", "lds.S", "lds.in", "ld.script", and "ld.script.balo".
+;; eCos uses "ld" and "ldi".
+;; Netbsd uses "ldscript.*".
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.ld[s]?\\>" . ld-script-mode))
+(add-to-list 'auto-mode-alist '("\\.ld[si]?\\>" . ld-script-mode))
+(add-to-list 'auto-mode-alist '("ld[.]?script\\>" . ld-script-mode))
+
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.x[bdsru]?[cn]?$" . ld-script-mode))
 
