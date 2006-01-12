@@ -40,6 +40,9 @@ Boston, MA 02110-1301, USA.  */
 #include <sys/types.h>		/* some typedefs are used in sys/file.h */
 #include <sys/file.h>
 #include <sys/stat.h>
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#endif
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
@@ -3596,8 +3599,8 @@ static struct ifflag_def ifflag_table[] = {
 #ifdef IFF_DYNAMIC
   { IFF_DYNAMIC,	"dynamic" },
 #endif
-#ifdef IFF_OACTIV
-  { IFF_OACTIV,		"oactiv" },	/* OpenBSD: transmission in progress */
+#ifdef IFF_OACTIVE
+  { IFF_OACTIVE,	"oactive" },	/* OpenBSD: transmission in progress */
 #endif
 #ifdef IFF_SIMPLEX
   { IFF_SIMPLEX,	"simplex" },	/* OpenBSD: can't hear own transmissions */
@@ -3683,11 +3686,15 @@ FLAGS is the current flags of the interface.  */)
   res = Fcons (elt, res);
 
   elt = Qnil;
-#if defined(SIOCGIFNETMASK) && defined(ifr_netmask)
+#if defined(SIOCGIFNETMASK) && (defined(HAVE_STRUCT_IFREQ_IFR_NETMASK) || defined(HAVE_STRUCT_IFREQ_IFR_ADDR))
   if (ioctl (s, SIOCGIFNETMASK, &rq) == 0)
     {
       any++;
+#ifdef HAVE_STRUCT_IFREQ_IFR_NETMASK
       elt = conv_sockaddr_to_lisp (&rq.ifr_netmask, sizeof (rq.ifr_netmask));
+#else
+      elt = conv_sockaddr_to_lisp (&rq.ifr_addr, sizeof (rq.ifr_addr));
+#endif
     }
 #endif
   res = Fcons (elt, res);
