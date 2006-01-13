@@ -1,3 +1,7 @@
+2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: (Agenda commands): Document tags command.
+
 2006-01-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.texi (Changing a Variable, Face Customization): Update
