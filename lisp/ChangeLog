@@ -1,3 +1,8 @@
+2006-01-13  Romain Francoise  <romain@orebokech.com>
+
+	* add-log.el (add-change-log-entry, change-log-merge):
+	Conditionally use `hard-newline'.
+
 2006-01-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
 	* wid-edit.el (widget-field-end): If the overlay is no longer
