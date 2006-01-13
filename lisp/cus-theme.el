@@ -160,6 +160,8 @@ the directory " custom-theme-directory "\n\n")
 	   (message "%s is already in the theme" (symbol-name symbol)))
 	  ((not (boundp symbol))
 	   (message "%s is not defined as a variable" (symbol-name symbol)))
+	  ((eq symbol 'custom-enabled-themes)
+	   (message "Custom theme cannot contain `custom-enabled-themes'"))
 	  (t
 	   (widget-insert "\n")
 	   (let ((widget (widget-create 'custom-variable
