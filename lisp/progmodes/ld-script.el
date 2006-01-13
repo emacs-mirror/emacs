@@ -36,7 +36,7 @@
 
 (defvar ld-script-location-counter-face 'ld-script-location-counter)
 (defface ld-script-location-counter
-  '((t (:weight bold :inherit font-lock-builtin-face)))
+  '((t :weight bold :inherit font-lock-builtin-face))
   "Face for location counter in GNU ld script."
   :group 'ld-script)
 
@@ -131,18 +131,18 @@
 ;; Netbsd uses "ldscript.*".
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.ld[si]?\\>" . ld-script-mode))
-(add-to-list 'auto-mode-alist '("ld[.]?script\\>" . ld-script-mode))
+(add-to-list 'auto-mode-alist '("ld\\.?script\\>" . ld-script-mode))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.x[bdsru]?[cn]?$" . ld-script-mode))
+(add-to-list 'auto-mode-alist '("\\.x[bdsru]?[cn]?\\'" . ld-script-mode))
 
 ;;;###autoload
 (define-derived-mode ld-script-mode nil "LD-Script"
    "A major mode to edit GNU ld script files"
   (set (make-local-variable 'comment-start) "/* ")
   (set (make-local-variable 'comment-end)   " */")
-  (set (make-local-variable 'indent-line-function) #'indent-relative)
-  (set (make-local-variable 'font-lock-defaults) '(ld-script-font-lock-keywords nil)))
+  (set (make-local-variable 'font-lock-defaults)
+       '(ld-script-font-lock-keywords nil)))
 
 (provide 'ld-script)
 

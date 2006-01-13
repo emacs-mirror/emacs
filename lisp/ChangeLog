@@ -1,3 +1,9 @@
+2006-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/ld-script.el (auto-mode-alist): Use \' rather than $.
+	(ld-script-mode): Don't set indent-line-function since we don't
+	have one.
+
 2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-open-file): Use mailcap for selecting an
@@ -5,17 +11,16 @@
 	(org-file-apps-defaults-gnu): Use mailcap as the default for
 	selecting an application on a UNIX system.
 	(org-agenda-show-tags): New command.
-	(org-table-insert-hline): Keep cursor in current table
-	line.
+	(org-table-insert-hline): Keep cursor in current table line.
 	(org-table-convert): Offset effect of modifying
 	`org-table-insert-hline'.
 	(org-format-agenda-item): New optional argument TAG.
 	(org-compile-prefix-format): Handle %T format for the tag.
 	(org-expand-wide-chars): New function.
-	(org-table-insert-row, org-table-insert-hline): Use
-	`org-expand-wide-chars'.
-	(org-open-file): Fixed bug in program launch.
-	(org-get-time-of-day): Fixed bug with times before 1am.
+	(org-table-insert-row, org-table-insert-hline):
+	Use `org-expand-wide-chars'.
+	(org-open-file): Fix bug in program launch.
+	(org-get-time-of-day): Fix bug with times before 1am.
 	(org-agenda-menu): Addes tags commands.
 
 2006-01-13  Agustin Martin  <agustin.martin@hispalinux.es>
@@ -27,8 +32,8 @@
 	and flyspell word cache cleared out for the current buffer.
 	(ispell-change-dictionary): Make sure flyspell word cache is
 	cleared out in all buffers with active flyspell mode when
-	dictionary is globally changed.  Call
-	ispell-internal-change-dictionary after dictionary change.
+	dictionary is globally changed.
+	Call ispell-internal-change-dictionary after dictionary change.
 
 2006-01-13  Eli Zaretskii  <eliz@gnu.org>
 
