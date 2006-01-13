@@ -289,20 +289,21 @@ compile-after-backup: backup-compiled-files compile-always
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
 # .elc is present.
-
-recompile: mh-autoloads doit
-	$(emacs) -f batch-byte-recompile-directory $(lisp)
+# WARNING: Do NOT split the part inside $(ARGQUOTE)s into multiple lines as
+#          this can break with GNU Make 3.81 and later if sh.exe is used.
+recompile: mh-autoloads doit $(lisp)/progmodes/cc-mode.elc
+	$(emacs) --eval $(ARGQUOTE)(batch-byte-recompile-directory 0)$(ARGQUOTE) $(lisp)
 
 # Update MH-E internal autoloads. These are not to be confused with
 # the autoloads for the MH-E entry points, which are already in
 # loaddefs.el.
 MH_E_SRC = $(lisp)/mh-e/mh-acros.el $(lisp)/mh-e/mh-alias.el	\
-	$(lisp)/mh-e/mh-comp.el $(lisp)/mh-e/mh-customize.el	\
-	$(lisp)/mh-e/mh-e.el $(lisp)/mh-e/mh-funcs.el		\
-	$(lisp)/mh-e/mh-mime.el $(lisp)/mh-e/mh-pick.el		\
-	$(lisp)/mh-e/mh-print.el $(lisp)/mh-e/mh-inc.el		\
-	$(lisp)/mh-e/mh-init.el $(lisp)/mh-e/mh-index.el	\
-	$(lisp)/mh-e/mh-identity.el $(lisp)/mh-e/mh-junk.el	\
+	$(lisp)/mh-e/mh-buffers.el $(lisp)/mh-e/mh-comp.el	\
+	$(lisp)/mh-e/mh-customize.el $(lisp)/mh-e/mh-e.el	\
+	$(lisp)/mh-e/mh-funcs.el $(lisp)/mh-e/mh-identity.el	\
+	$(lisp)/mh-e/mh-inc.el $(lisp)/mh-e/mh-init.el		\
+	$(lisp)/mh-e/mh-junk.el $(lisp)/mh-e/mh-mime.el		\
+	$(lisp)/mh-e/mh-print.el $(lisp)/mh-e/mh-search.el	\
 	$(lisp)/mh-e/mh-seq.el $(lisp)/mh-e/mh-speed.el		\
 	$(lisp)/mh-e/mh-utils.el
 
@@ -322,37 +323,37 @@ $(lisp)/mh-e/mh-loaddefs.el: $(MH_E_SRC)
 pre-mh-loaddefs.el-SH:
 	echo ";;; mh-loaddefs.el --- automatically extracted autoloads" > $@
 	echo ";;" >> $@
-	echo ";;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc." >> $@
-	echo ";;; Author: Bill Wohler <wohler@newt.com>" >> $@
-	echo ";;; Keywords: mail" >> $@
+	echo ";; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc." >> $@
+	echo ";; Author: Bill Wohler <wohler@newt.com>" >> $@
+	echo ";; Keywords: mail" >> $@
 	echo ";;; Commentary:" >> $@
 	echo ";;; Change Log:" >> $@
 	echo ";;; Code:" >> $@
 	echo "" >> $@
 	echo "(provide 'mh-loaddefs)" >> $@
-	echo ";;; Local Variables:" >> $@
-	echo ";;; version-control: never" >> $@
-	echo ";;; no-byte-compile: t" >> $@
-	echo ";;; no-update-autoloads: t" >> $@
-	echo ";;; End:" >> $@
+	echo ";; Local Variables:" >> $@
+	echo ";; version-control: never" >> $@
+	echo ";; no-byte-compile: t" >> $@
+	echo ";; no-update-autoloads: t" >> $@
+	echo ";; End:" >> $@
 	echo ";;; mh-loaddefs.el ends here" >> $@
 
 pre-mh-loaddefs.el-CMD:
 	echo ;;; mh-loaddefs.el --- automatically extracted autoloads> $@
 	echo ;;>> $@
-	echo ;;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.>> $@
-	echo ;;; Author: Bill Wohler (wohler@newt.com)>> $@
-	echo ;;; Keywords: mail>> $@
+	echo ;; Copyright (C) 2003, 2004, 2005, 2006 Free Software Foundation, Inc.>> $@
+	echo ;; Author: Bill Wohler (wohler@newt.com)>> $@
+	echo ;; Keywords: mail>> $@
 	echo ;;; Commentary:>> $@
 	echo ;;; Change Log:>> $@
 	echo ;;; Code:>> $@
 	echo.>> $@
 	echo (provide 'mh-loaddefs)>> $@
-	echo ;;; Local Variables:>> $@
-	echo ;;; version-control: never>> $@
-	echo ;;; no-byte-compile: t>> $@
-	echo ;;; no-update-autoloads: t>> $@
-	echo ;;; End:>> $@
+	echo ;; Local Variables:>> $@
+	echo ;; version-control: never>> $@
+	echo ;; no-byte-compile: t>> $@
+	echo ;; no-update-autoloads: t>> $@
+	echo ;; End:>> $@
 	echo ;;; mh-loaddefs.el ends here>> $@
 
 # Prepare a bootstrap in the lisp subdirectory.
