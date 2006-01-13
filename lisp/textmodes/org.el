@@ -5786,7 +5786,7 @@ HH:MM."
 		       (string-to-number (match-string 3 s))
 		     0)))
 	    (t1 (concat " "
-			(if (< t0 100) "0" "")
+			(if (< t0 100) "0" "") (if (< t0 10) "0" "")
 			(int-to-string t0))))
        (if string (concat (substring t1 -4 -2) ":" (substring t1 -2)) t0)))))
 
