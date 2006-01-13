@@ -1,3 +1,15 @@
+2006-01-13  Agustin Martin  <agustin.martin@hispalinux.es>
+
+	* textmodes/ispell.el (ispell-init-process): Include the used
+	dictionary in ispell process start message.
+	(ispell-internal-change-dictionary): When flyspell-mode is active
+	and dictionary is changed, make sure ispell process is restarted
+	and flyspell word cache cleared out for the current buffer.
+	(ispell-change-dictionary): Make sure flyspell word cache is
+	cleared out in all buffers with active flyspell mode when
+	dictionary is globally changed.  Call
+	ispell-internal-change-dictionary after dictionary change.
+
 2006-01-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/bytecomp.el (batch-byte-recompile-directory): Doc fix.
