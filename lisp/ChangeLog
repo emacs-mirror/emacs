@@ -1,5 +1,7 @@
 2006-01-13  Eli Zaretskii  <eliz@gnu.org>
 
+	* emacs-lisp/bytecomp.el (batch-byte-recompile-directory): Doc fix.
+
 	* makefile.w32-in (MH_E_SRC): Synchronize with Makefile.in.
 	(pre-mh-loaddefs.el-SH, pre-mh-loaddefs.el-CMD): Update Copyright
 	years.  Fix small differences wrt Makefile.in.
