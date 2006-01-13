@@ -45,7 +45,7 @@
 	* Makefile.in (MH_E_SRC): Replace mh-index.el and mh-pick.el with
 	mh-search.el.
 
-2006-01-13  Masatake YAMATO  <jet@gyve.org>
+2006-01-12  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/ld-script.el: Update copyright year.
 
