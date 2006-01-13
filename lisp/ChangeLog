@@ -1,3 +1,11 @@
+2006-01-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MH_E_SRC): Synchronize with Makefile.in.
+	(pre-mh-loaddefs.el-SH, pre-mh-loaddefs.el-CMD): Update Copyright
+	years.  Fix small differences wrt Makefile.in.
+	(recompile): Use --eval '(batch-byte-recompile-directory 0)', like
+	Makefile.in does.
+
 2006-01-12  Bill Wohler  <wohler@newt.com>
 
 	* Makefile.in (MH_E_SRC): Replace mh-index.el and mh-pick.el with
