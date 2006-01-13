@@ -2201,7 +2201,10 @@ Insert PREFIX first if non-nil."
 	(insert prefix))
       (insert "See also ")
       (while links
-	(push (widget-create-child-and-convert widget (car links))
+	(push (widget-create-child-and-convert
+	       widget (car links)
+	       :button-face 'custom-link
+	       :mouse-face 'highlight)
 	      buttons)
 	(setq links (cdr links))
 	(cond ((null links)
@@ -2246,7 +2249,10 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
            (when links
              (insert "\nParent documentation: ")
              (while links
-               (push (widget-create-child-and-convert widget (car links))
+               (push (widget-create-child-and-convert
+		      widget (car links)
+		      :button-face 'custom-link
+		      :mouse-face 'highlight)
                      buttons)
                (setq links (cdr links))
                (cond ((null links)
