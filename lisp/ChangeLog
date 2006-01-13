@@ -1,5 +1,8 @@
 2006-01-13  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
+	* wid-edit.el (widget-field-end): If the overlay is no longer
+	associated with a buffer, behave as if the overlay didn't exist.
+
 	* cus-edit.el (custom-add-see-also, custom-add-parent-links): Make
 	sure the links use the `custom-link' face.
 
