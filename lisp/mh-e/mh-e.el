@@ -1735,8 +1735,7 @@ Make it the current folder."
     ["List Folders"                     mh-list-folders t]
     ["Visit a Folder..."                mh-visit-folder t]
     ["View New Messages"                mh-index-new-messages t]
-    ["Search a Folder..."               mh-search-folder t]
-    ["Indexed Search..."                mh-index-search t]
+    ["Search..."                        mh-search t]
     "--"
     ["Quit MH-E"                        mh-quit t]))
 
@@ -1862,9 +1861,9 @@ perform the operation on all messages in that region.
    'mh-folder-view-stack ()             ; Stack of previous views of the
                                         ; folder.
    'mh-index-data nil                   ; If the folder was created by a call
-                                        ; to mh-index-search this contains info
+                                        ; to mh-search, this contains info
                                         ; about the search results.
-   'mh-index-previous-search nil        ; Previous folder and search-regexp
+   'mh-index-previous-search nil        ; folder, indexer, search-regexp
    'mh-index-msg-checksum-map nil       ; msg -> checksum map
    'mh-index-checksum-origin-map nil    ; checksum -> ( orig-folder, orig-msg )
    'mh-index-sequence-search-flag nil   ; folder resulted from sequence search
@@ -2705,7 +2704,6 @@ in list."
   "S"           mh-sort-folder
   "c"           mh-catchup
   "f"           mh-alt-visit-folder
-  "i"           mh-index-search
   "k"           mh-kill-folder
   "l"           mh-list-folders
   "n"           mh-index-new-messages
@@ -2713,7 +2711,7 @@ in list."
   "p"           mh-pack-folder
   "q"           mh-index-sequenced-messages
   "r"           mh-rescan-folder
-  "s"           mh-search-folder
+  "s"           mh-search
   "u"           mh-undo-folder
   "v"           mh-visit-folder)
 

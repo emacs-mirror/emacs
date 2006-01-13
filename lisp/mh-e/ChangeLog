@@ -1,3 +1,52 @@
+2006-01-12  Bill Wohler  <wohler@newt.com>
+
+	* mh-search.el: New file containing contents of mh-index.el and
+	mh-pick.el. C-c C-c launches your mh-index-program; C-c C-p runs
+	pick. Pick no longer sets the "search" sequence. Instead, it
+	brings up a folder view that we're accustomed to. (closes SF
+	#829207).
+	(mh-index-search): Rename to mh-search.
+	(mh-pick-menu): Rename menu from Pick to Search. Rename Execute
+	the Search to Perform Search and call mh-do-search. Add Search
+	with Pick menu item.
+	(mh-do-search): Delete.
+	(mh-search-mode): Rename from mh-pick-mode.
+	(MH-Search): Rename mode from MH-Pick.
+	(mh-search-mode-map): Rename from mh-pick-mode-map.
+	(mh-search-mode-help-messages): Rename from
+	mh-pick-mode-help-messages.
+	(mh-index-choose): Don't reuse the last value of mh-indexer; when
+	mh-pick-do-search sets it to 'pick, we don't necessarily want to
+	stay with that choice!
+
+	* mh-index.el:
+	* mh-pick.el: Merge into mh-search.el and delete.
+
+	* mh-customize.el (mh-index-program): Change mh-index-search to
+	mh-search in docstring.
+	(mh-tool-bar-search-function): Change default from
+	mh-search-folder to mh-search. Remove mh-search-folder as choice
+	and rename mh-index-search choice to mh-search. Fix docstring.
+	(mh-pick-mode-hook): Rename to mh-search-mode-hook and change
+	mh-search-folder to mh-search in docstring.
+
+	* mh-e.el (mh-folder-folder-menu): Delete Search a Folder. Change
+	Indexed Search to Search. Use mh-search instead of
+	mh-index-search.
+	(mh-folder-map): Delete i (mh-index-search) keybinding. Change s
+	from mh-show-search-folder to mh-search.
+
+	* mh-seq.el (mh-put-msg-in-seq): Fix docstring now that
+	mh-search-folder no longer creates the search sequence.
+
+	* mh-utils.el (mh-show-search-folder): Delete.
+	(mh-show-folder-map): Delete i (mh-index-search) keybinding.
+	Change s from mh-show-search-folder to mh-search.
+	(mh-show-folder-menu): Delete Search a Folder. Change Indexed
+	Search to Search. Use mh-search instead of mh-index-search.
+	(mh-index-max-cmdline-args, mh-xargs, mh-quote-for-shell): Move
+	here from deleted mh-index.el.
+
 2006-01-11  Bill Wohler  <wohler@newt.com>
 
 	* mh-acros.el (mh-defun-compat, mh-defmacro-compat): Move here

@@ -725,7 +725,7 @@ have both swish++ and mairix installed and you want to use
 mairix, then you can set this option to \"mairix\".
 
 More information about setting up an indexing program to use with
-MH-E can be found in the documentation of `mh-index-search'."
+MH-E can be found in the documentation of `mh-search'."
   :type '(choice (const :tag "Auto-detect" nil)
                  (const :tag "swish++" swish++)
                  (const :tag "swish-e" swish)
@@ -1879,14 +1879,13 @@ threaded is less than `mh-large-folder'."
 
 ;;; The Tool Bar (:group 'mh-tool-bar)
 
-(defcustom mh-tool-bar-search-function 'mh-search-folder
+(defcustom mh-tool-bar-search-function 'mh-search
   "*Function called by the tool bar search button.
 
-Available functions include `mh-search-folder', the default, and
-`mh-index-search'. You can also choose \"Other Function\" from
-the \"Value Menu\" and enter a function of your own choosing."
-  :type '(choice (const mh-search-folder)
-                 (const mh-index-search)
+By default, this is set to `mh-search'. You can also choose
+\"Other Function\" from the \"Value Menu\" and enter a function
+of your own choosing."
+  :type '(choice (const mh-search)
                  (function :tag "Other Function"))
   :group 'mh-tool-bar)
 
@@ -2436,13 +2435,13 @@ go."
   :group 'mh-hooks
   :group 'mh-letter)
 
-(defcustom mh-pick-mode-hook nil
-  "Hook run upon entry to `mh-pick-mode'\\<mh-folder-mode-map>.
+(defcustom mh-search-mode-hook nil
+  "Hook run upon entry to `mh-search-mode'\\<mh-folder-mode-map>.
 
 If you find that you do the same thing over and over when editing
 the search template, you may wish to bind some shortcuts to keys.
 This can be done with this hook which is called when
-\\[mh-search-folder] is run on a new pattern."
+\\[mh-search] is run on a new pattern."
   :type 'hook
   :group 'mh-hooks
   :group 'mh-index)

@@ -847,7 +847,6 @@ still visible.\n")
 (mh-defun-show-buffer mh-show-pack-folder mh-pack-folder)
 (mh-defun-show-buffer mh-show-kill-folder mh-kill-folder t)
 (mh-defun-show-buffer mh-show-list-folders mh-list-folders t)
-(mh-defun-show-buffer mh-show-search-folder mh-search-folder t)
 (mh-defun-show-buffer mh-show-undo-folder mh-undo-folder)
 (mh-defun-show-buffer mh-show-delete-msg-from-seq
                       mh-delete-msg-from-seq)
@@ -952,14 +951,13 @@ still visible.\n")
   "S"    mh-show-sort-folder
   "c"    mh-show-catchup
   "f"    mh-show-visit-folder
-  "i"    mh-index-search
   "k"    mh-show-kill-folder
   "l"    mh-show-list-folders
   "n"    mh-index-new-messages
   "o"    mh-show-visit-folder
   "q"    mh-show-index-sequenced-messages
   "r"    mh-show-rescan-folder
-  "s"    mh-show-search-folder
+  "s"    mh-search
   "t"    mh-show-toggle-threads
   "u"    mh-show-undo-folder
   "v"    mh-show-visit-folder)
@@ -1098,8 +1096,7 @@ still visible.\n")
     ["List Folders"                     mh-show-list-folders t]
     ["Visit a Folder..."                mh-show-visit-folder t]
     ["View New Messages"                mh-show-index-new-messages t]
-    ["Search a Folder..."               mh-show-search-folder t]
-    ["Indexed Search..."                mh-index-search t]
+    ["Search..."                        mh-search t]
     "--"
     ["Quit MH-E"                        mh-quit t]))
 
@@ -2393,7 +2390,44 @@ used in searching."
 
 
 
-;;; Issue commands to MH.
+;;; Issue shell and MH commands.
+
+(defvar mh-index-max-cmdline-args 500
+  "Maximum number of command line args.")
+
+(defun mh-xargs (cmd &rest args)
+  "Partial imitation of xargs.
+The current buffer contains a list of strings, one on each line.
+The function will execute CMD with ARGS and pass the first
+`mh-index-max-cmdline-args' strings to it. This is repeated till
+all the strings have been used."
+  (goto-char (point-min))
+  (let ((current-buffer (current-buffer)))
+    (with-temp-buffer
+      (let ((out (current-buffer)))
+        (set-buffer current-buffer)
+        (while (not (eobp))
+          (let ((arg-list (reverse args))
+                (count 0))
+            (while (and (not (eobp)) (< count mh-index-max-cmdline-args))
+              (push (buffer-substring-no-properties (point) (line-end-position))
+                    arg-list)
+              (incf count)
+              (forward-line))
+            (apply #'call-process cmd nil (list out nil) nil
+                   (nreverse arg-list))))
+        (erase-buffer)
+        (insert-buffer-substring out)))))
+
+;; XXX This should be applied anywhere MH-E calls out to /bin/sh.
+(defun mh-quote-for-shell (string)
+  "Quote STRING for /bin/sh.
+Adds double-quotes around entire string and quotes the characters
+\\, `, and $ with a backslash."
+  (concat "\""
+          (loop for x across string
+                concat (format (if (memq x '(?\\ ?` ?$)) "\\%c" "%c") x))
+          "\""))
 
 (defun mh-exec-cmd (command &rest args)
   "Execute mh-command COMMAND with ARGS.
@@ -2498,21 +2532,6 @@ RAISE-ERROR is non-nil, in which case an error is signaled if
 ;; Shush compiler.
 (eval-when-compile (defvar mark-active))
 
-(defun mh-exchange-point-and-mark-preserving-active-mark ()
-  "Put the mark where point is now, and point where the mark is now.
-This command works even when the mark is not active, and
-preserves whether the mark is active or not."
-  (interactive nil)
-  (let ((is-active (and (boundp 'mark-active) mark-active)))
-    (let ((omark (mark t)))
-      (if (null omark)
-          (error "No mark set in this buffer"))
-      (set-mark (point))
-      (goto-char omark)
-      (if (boundp 'mark-active)
-          (setq mark-active is-active))
-      nil)))
-
 (defun mh-exec-cmd-output (command display &rest args)
   "Execute MH command COMMAND with DISPLAY flag and ARGS.
 Put the output into buffer after point.
@@ -2529,6 +2548,21 @@ Output is expected to be shown to user, not parsed by MH-E."
   ;; highlight a region containing the new messages, which is undesirable.
   ;; The bug wasn't seen in emacs21 but still occurred in XEmacs21.4.
   (mh-exchange-point-and-mark-preserving-active-mark))
+
+(defun mh-exchange-point-and-mark-preserving-active-mark ()
+  "Put the mark where point is now, and point where the mark is now.
+This command works even when the mark is not active, and
+preserves whether the mark is active or not."
+  (interactive nil)
+  (let ((is-active (and (boundp 'mark-active) mark-active)))
+    (let ((omark (mark t)))
+      (if (null omark)
+          (error "No mark set in this buffer"))
+      (set-mark (point))
+      (goto-char omark)
+      (if (boundp 'mark-active)
+          (setq mark-active is-active))
+      nil)))
 
 (defun mh-exec-lib-cmd-output (command &rest args)
   "Execute MH library command COMMAND with ARGS.
@@ -2551,6 +2585,10 @@ Set mark after inserted text."
         (insert error-message)))
     (error "%s failed, check buffer %s for error message"
            command mh-log-buffer)))
+
+
+
+;;; List and string manipulation
 
 (defun mh-list-to-string (l)
   "Flatten the list L and make every element of the new list into a string."
