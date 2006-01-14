@@ -1,3 +1,16 @@
+2006-01-13  Bill Wohler  <wohler@newt.com>
+
+	* mh-search.el (mh-index-next-result-function): Add format to
+	docstring.
+	(mh-mairix-next-result): Use nil instead of () which doesn't stand
+	out as well.
+	(mh-pick-execute-search): Operate across all folders if no folder
+	given and recurse folder(s).
+	(mh-pick-next-result): Handle new output.
+
+	* mh-utils.el: (mh-collect-folder-names): Fix docstring.
+	(mh-children-p, mh-folder-list): New functions.	
+
 2006-01-12  Bill Wohler  <wohler@newt.com>
 
 	* mh-search.el: New file containing contents of mh-index.el and

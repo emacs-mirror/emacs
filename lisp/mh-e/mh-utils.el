@@ -2059,7 +2059,7 @@ folder buffer are not updated."
 
 ;; Initialize mh-sub-folders-cache...
 (defun mh-collect-folder-names ()
-  "Collect folder names by running \"flists\"."
+  "Collect folder names by running \"folders\"."
   (unless mh-flists-process
     (setq mh-flists-process
           (mh-exec-cmd-daemon "folders" 'mh-collect-folder-names-filter
@@ -2157,6 +2157,44 @@ removed."
           ((equal folder "") (setq folder "+"))
           ((not (equal (aref folder 0) ?+)) (setq folder (concat "+" folder)))))
   folder)
+
+(defmacro mh-children-p (folder)
+  "Return t if FOLDER from sub-folders cache has children.
+The car of folder is the name, and the cdr is either t or some
+sort of count that I do not understand. It's too small to be the
+number of messages in the sub-folders and too large to be the
+number of sub-folders. XXX"
+  `(if (cdr ,folder)
+       t
+     nil))
+
+(defun mh-folder-list (folder)
+  "Return FOLDER and its descendents.
+Returns a list of strings. For example,
+
+  '(\"inbox\" \"lists\" \"lists/mh-e\").
+
+If folder is nil, then all folders are considered. Respects the
+value of `mh-recursive-folders-flag'. If this flag is nil, and
+the sub-folders have not been explicitly viewed, then they will
+not be returned."
+  (let ((folder-list))
+    ;; Normalize folder. Strip leading +. Add trailing slash. If no
+    ;; folder is specified, ensure it is nil to ensure we get the
+    ;; top-level folders; otherwise mh-sub-folders returns all the
+    ;; files in / if given an empty string or +.
+    (when folder
+      (setq folder (replace-regexp-in-string "^\+" "" folder))
+      (setq folder (replace-regexp-in-string "/*$" "/" folder))
+      (if (equal folder "")
+        (setq folder nil)))
+    (loop for f in (mh-sub-folders folder) do
+          (setq folder-list (append folder-list (list (concat folder (car f)))))
+          (if (mh-children-p f)
+              (setq folder-list
+                    (append folder-list
+                            (mh-folder-list (concat folder (car f)))))))
+    folder-list))
 
 (defun mh-sub-folders (folder &optional add-trailing-slash-flag)
   "Find the subfolders of FOLDER.

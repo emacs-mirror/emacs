@@ -58,7 +58,9 @@
   "Function which executes the search program.")
 
 (defvar mh-index-next-result-function nil
-  "Function to parse the next line of output.")
+  "Function to parse the next line of output.
+Expected to return a list of three strings: name of the folder,
+message number, and optionally the match.")
 
 (defvar mh-index-regexp-builder nil
   "Function used to construct search regexp.")
@@ -1180,7 +1182,7 @@ SEARCH-REGEXP-LIST is used to search."
                                (point) (1- msg-start)))
                 (car (read-from-string
                       (buffer-substring-no-properties msg-start end)))
-                ())))
+                nil)))
     (forward-line)))
 
 (defun mh-mairix-regexp-builder (regexp-list)
@@ -1330,31 +1332,36 @@ There are no semantics associated with the search criteria--they
 are simply treated as strings. Case is ignored when all lowercase
 is used, and regular expressions (a la \"ed\") are available.
 
-Unlike the other index search programs, you must specify a
-folder. In addition, this command does not descend into any
-sub-folders that may be present.
-
 In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
 is used to search."
   (set-buffer (get-buffer-create mh-temp-index-buffer))
   (erase-buffer)
-  (setq mh-index-pick-folder
-        (concat "+" (substring folder-path (length mh-user-path))))
-  (apply #'call-process (expand-file-name "pick" mh-progs) nil '(t nil) nil
-         mh-index-pick-folder "-list" search-regexp)
+  (let ((folders
+         (mh-folder-list (substring folder-path (length mh-user-path)))))
+    (loop for folder in folders do
+          (setq folder (concat "+" folder))
+          (insert folder "\n")
+          (apply #'call-process (expand-file-name "pick" mh-progs)
+                 nil '(t nil) nil folder "-list" search-regexp)))
   (goto-char (point-min)))
 
 (defun mh-pick-next-result ()
   "Return the next pick search result."
-  (prog1 (block nil
-           (when (eobp) (return nil))
-           (unless (re-search-forward "^[1-9][0-9]*$" (line-end-position) t)
-             (return 'error))
-           (list mh-index-pick-folder
-                 (car (read-from-string (buffer-substring-no-properties
-                                         (line-beginning-position)
-                                         (line-end-position))))
-                 nil))
+  (prog1
+      (block nil
+        (when (eobp) (return nil))
+        (when (search-forward-regexp "^\+" (line-end-position) t)
+          (setq mh-index-pick-folder
+                (buffer-substring-no-properties (line-beginning-position)
+                                                (line-end-position)))
+          (return 'error))
+        (unless (search-forward-regexp "^[1-9][0-9]*$" (line-end-position) t)
+          (return 'error))
+        (list mh-index-pick-folder
+              (string-to-number
+               (buffer-substring-no-properties (line-beginning-position)
+                                               (line-end-position)))
+              nil))
     (forward-line)))
 
 ;; All implementations of pick have special options -cc, -date, -from and
