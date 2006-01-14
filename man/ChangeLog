@@ -1,3 +1,7 @@
+2006-01-14  Richard M. Stallman  <rms@gnu.org>
+
+	* basic.texi (Inserting Text): Minor cleanup.
+
 2006-01-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: (Agenda commands): Document tags command.
