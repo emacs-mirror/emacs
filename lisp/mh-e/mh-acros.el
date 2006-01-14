@@ -150,6 +150,9 @@ more details."
                           (list 'nth ,x z)))
        (quote ,struct-name))))
 
+;; A better solution would be to use Stefan's change in bytecomp.el.
+;; If it were checked in, we can drop the advice to require and it
+;; will make things nicer elsewhere too.
 (defadvice require (around mh-prefer-el activate)
   "Modify `require' to load uncompiled MH-E files."
   (or (featurep (ad-get-arg 0))

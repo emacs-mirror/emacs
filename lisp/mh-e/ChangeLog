@@ -1,5 +1,10 @@
 2006-01-13  Bill Wohler  <wohler@newt.com>
 
+	* mh-acros.el (require): Added Satyaki's comment regarding what
+	needs to happen to remove this defadvice which caused a little
+	discussion on emacs-devel today (see Subject: mh-e/mh-acros.el
+	advices `require' incorrectly).
+
 	* mh-search.el (mh-index-next-result-function): Add format to
 	docstring.
 	(mh-mairix-next-result): Use nil instead of () which doesn't stand
