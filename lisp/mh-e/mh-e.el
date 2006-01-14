@@ -331,7 +331,7 @@ highlighted with the face `mh-folder-sent-to-me-sender'.")
   (list
    ;; Folders when displaying index buffer
    (list "^\\+.*"
-         '(0 'mh-index-folder))
+         '(0 'mh-search-folder))
    ;; Marked for deletion
    (list (concat mh-scan-deleted-msg-regexp ".*")
          '(0 'mh-folder-deleted))

@@ -1,4 +1,4 @@
-;;; mh-search  --  MH-E search
+;;; mh-search  ---  MH-E search
 
 ;; Copyright (C) 1993, 1995,
 ;;  2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation, Inc.
@@ -38,7 +38,7 @@
 ;;  (2) To use this package, you first have to build an index. Please
 ;;      read the documentation for `mh-search' to get started. That
 ;;      documentation will direct you to the specific instructions for
-;;      your particular indexer.
+;;      your particular searcher.
 
 ;;; Change Log:
 
@@ -51,18 +51,18 @@
 (require 'mh-buffers)
 (require 'mh-e)
 
-(defvar mh-indexer nil
-  "Cached value of chosen index program.")
+(defvar mh-searcher nil
+  "Cached value of chosen search program.")
 
-(defvar mh-index-execute-search-function nil
+(defvar mh-search-function nil
   "Function which executes the search program.")
 
-(defvar mh-index-next-result-function nil
+(defvar mh-search-next-result-function nil
   "Function to parse the next line of output.
 Expected to return a list of three strings: name of the folder,
 message number, and optionally the match.")
 
-(defvar mh-index-regexp-builder nil
+(defvar mh-search-regexp-builder nil
   "Function used to construct search regexp.")
 
 (defvar mh-index-folder "+mhe-index"
@@ -80,23 +80,28 @@ message number, and optionally the match.")
 ;;; MH-Search mode
 
 ;;;###mh-autoload
-(defun* mh-search (redo-search-flag folder search-regexp
-                                    &optional window-config)
+(defun* mh-search (folder search-regexp
+                          &optional redo-search-flag window-config)
   "Search your MH mail.
 
-With this command, you can search for messages to or from a
-particular person or about a particular subject. In fact, you can
-also search for messages containing selected strings in any
-arbitrary header field or any string found within the messages.
+This command helps you find messages in your entire corpus of
+mail. You can search for messages to or from a particular person
+or about a particular subject. In fact, you can also search for
+messages containing selected strings in any arbitrary header
+field or any string found within the messages.
 
-Use a prefix argument REDO-SEARCH-FLAG to repeat the last search.
+Out of the box, MH-E uses \"pick\" to find messages. With a
+little extra effort, you can set an indexing program which
+rewards you with extremely quick results. The drawback is that
+sometimes the index does not contain the words you're looking
+for. You can still use \"pick\" in these situations.
 
 You are prompted for the FOLDER to search. This can be \"all\" to
-search all folders. For most search methods, the search works
-recursively on the listed folder.
+search all folders. Note that the search works recursively on the
+listed folder.
 
 Next, an MH-Search buffer appears where you can enter search
-criteria.
+criteria SEARCH-REGEXP.
 
      From:
      To:
@@ -111,17 +116,12 @@ field yourself. If the string you're looking for could be
 anywhere in a message, then place the string underneath the row
 of dashes.
 
-It is all right to specify several search criteria. What happens
-then is that a logical _and_ of the various fields is performed.
-If you prefer a logical _or_ operation, run \\[mh-search]
-multiple times.
-
 As an example, let's say that we want to find messages from
 Ginnean about horseback riding in the Kosciusko National
 Park (Australia) during January, 1994. Normally we would start
 with a broad search and narrow it down if necessary to produce a
 manageable amount of data, but we'll cut to the chase and create
-a fairly restrictive set of criteria as follows:
+a fairly restrictive set of criteria as follows:\\<mh-search-mode-map>
 
      From: ginnean
      To:
@@ -133,13 +133,12 @@ a fairly restrictive set of criteria as follows:
      kosciusko
 
 As with MH-Letter mode, MH-Search provides commands like
-\\<mh-search-mode-map>\\[mh-to-field] to help you fill in the
-blanks.
+\\[mh-to-field] to help you fill in the blanks.\\<mh-folder-mode-map>
 
 If you find that you do the same thing over and over when editing
 the search template, you may wish to bind some shortcuts to keys.
 This can be done with the variable `mh-search-mode-hook', which is
-called when \\[mh-search] is run on a new pattern.
+called when \\[mh-search] is run on a new pattern.\\<mh-search-mode-map>
 
 To perform the search, type \\[mh-index-do-search].
 
@@ -155,7 +154,7 @@ folders; each set of messages from a given folder has a heading
 with the folder name.\\<mh-folder-mode-map>
 
 The appearance of the heading can be modified by customizing the
-face `mh-index-folder'. You can jump back and forth between the
+face `mh-search-folder'. You can jump back and forth between the
 headings using the commands \\[mh-index-next-folder] and
 \\[mh-index-previous-folder].
 
@@ -169,37 +168,33 @@ find the actual message number of an interesting message, or to
 view surrounding messages with the command \\[mh-rescan-folder].
 
 Because this folder is temporary, you'll probably get in the
-habit of killing it when you're done with
-\\[mh-kill-folder].
+habit of killing it when you're done with \\[mh-kill-folder].
 
-SEARCH METHODS
+You can regenerate the results by running this command with a
+prefix argument REDO-SEARCH-FLAG.
 
-The command \\[mh-search] runs the command defined by the option
-`mh-index-program'. The default value is \"Auto-detect\" which
-means that MH-E will automatically choose one of \"swish++\",
-\"swish-e\", \"mairix\", \"namazu\", \"pick\" and \"grep\" in
-that order. If, for example, you have both \"swish++\" and
-\"mairix\" installed and you want to use \"mairix\", then you can
-set this option to \"mairix\".
-
-                                *NOTE*
-
-     The \"pick\" and \"grep\" commands do not perform a
-     recursive search on the given folder.
-
-This command uses an \"X-MHE-Checksum:\" header field to cache
-the MD5 checksum of a message. This means that if an incoming
-message already contains an \"X-MHE-Checksum:\" field, that
-message might not be found by this command. The following
+Note: This command uses an \"X-MHE-Checksum:\" header field to
+cache the MD5 checksum of a message. This means that if an
+incoming message already contains an \"X-MHE-Checksum:\" field,
+that message might not be found by this command. The following
 \"procmail\" recipe avoids this problem by renaming the existing
 header field:
 
      :0 wf
      | formail -R \"X-MHE-Checksum\" \"X-Old-MHE-Checksum\"
 
+Configuring Indexed Searches
+
+The command \\[mh-search] runs the command defined by the option
+`mh-search-program'. The default value is \"Auto-detect\" which
+means that MH-E will automatically choose one of \"swish++\",
+\"swish-e\", \"mairix\", \"namazu\", \"pick\" and \"grep\" in
+that order. If, for example, you have both \"swish++\" and
+\"mairix\" installed and you want to use \"mairix\", then you can
+set this option to \"mairix\".
+
 The documentation for the following commands describe how to set
-up the various indexing programs to use with MH-E. The \"pick\"
-and \"grep\" commands do not require additional configuration.
+up the various indexing programs to use with MH-E.
 
     - `mh-swish++-execute-search'
     - `mh-swish-execute-search'
@@ -208,31 +203,30 @@ and \"grep\" commands do not require additional configuration.
     - `mh-pick-execute-search'
     - `mh-grep-execute-search'
 
-In a program, the folder is searched with SEARCH-REGEXP. If
-FOLDER is \"+\" then mail in all folders are searched. Optional
-argument WINDOW-CONFIG stores the window configuration that will
-be restored after the user quits the folder containing the index
-search results."
+In a program, if FOLDER is \"+\" or nil, then mail in all folders
+are searched. Optional argument WINDOW-CONFIG stores the window
+configuration that will be restored after the user quits the
+folder containing the index search results."
   (interactive
-   (list current-prefix-arg
-         (progn
+   (list (progn
            (mh-find-path)
-           ;; Yes, we do want to call mh-index-choose every time in case the
-           ;; user has switched the indexer manually.
-           (unless (mh-index-choose (and current-prefix-arg
-                                         mh-index-previous-search
-                                         (cadr mh-index-previous-search)))
-             (error "No indexing program found"))
+           ;; Yes, we do want to call mh-search-choose every time in case the
+           ;; user has switched the searcher manually.
+           (unless (mh-search-choose (and current-prefix-arg
+                                          mh-index-previous-search
+                                          (cadr mh-index-previous-search)))
+             (error "No search program found"))
            (or (and current-prefix-arg mh-index-sequence-search-flag)
                (and current-prefix-arg (car mh-index-previous-search))
                (mh-prompt-for-folder "Search" "+" nil "all" t)))
          (or (and current-prefix-arg (caddr mh-index-previous-search))
-             mh-index-regexp-builder
+             mh-search-regexp-builder
              (read-string (format "%s regexp: "
-                                  (upcase-initials (symbol-name mh-indexer)))))
+                                  (upcase-initials (symbol-name mh-searcher)))))
+         current-prefix-arg
          (if (and (not (and current-prefix-arg
                             (caddr mh-index-previous-search)))
-                  mh-index-regexp-builder)
+                  mh-search-regexp-builder)
              (current-window-configuration)
            nil)))
   ;; Redoing a sequence search?
@@ -265,13 +259,13 @@ search results."
           (folder-results-map (make-hash-table :test #'equal))
           (origin-map (make-hash-table :test #'equal)))
       ;; Run search program...
-      (message "Executing %s... " mh-indexer)
-      (funcall mh-index-execute-search-function folder-path search-regexp)
+      (message "Executing %s... " mh-searcher)
+      (funcall mh-search-function folder-path search-regexp)
 
-      ;; Parse indexer output.
-      (message "Processing %s output... " mh-indexer)
+      ;; Parse searcher output.
+      (message "Processing %s output... " mh-searcher)
       (goto-char (point-min))
-      (loop for next-result = (funcall mh-index-next-result-function)
+      (loop for next-result = (funcall mh-search-next-result-function)
             while next-result
             do (unless (eq next-result 'error)
                  (unless (gethash (car next-result) folder-results-map)
@@ -314,13 +308,13 @@ search results."
       ;; Maintain history.
       (when (or (and redo-search-flag previous-search) window-config)
         (setq mh-previous-window-config old-window-config))
-      (setq mh-index-previous-search (list folder mh-indexer search-regexp))
+      (setq mh-index-previous-search (list folder mh-searcher search-regexp))
 
       ;; Write out data to disk.
       (unless mh-flists-called-flag (mh-index-write-data))
 
       (message "%s found %s matches in %s folders"
-               (upcase-initials (symbol-name mh-indexer))
+               (upcase-initials (symbol-name mh-searcher))
                (loop for msg-hash being hash-values of mh-index-data
                      sum (hash-table-count msg-hash))
                (loop for msg-hash being hash-values of mh-index-data
@@ -367,9 +361,11 @@ configuration and is used when the search folder is dismissed."
   (add-text-properties (point) (1- (line-end-position)) '(read-only t))
   (goto-char (point-max)))
 
+;;;###mh-autoload
 (defvar mh-search-mode-map (make-sparse-keymap)
   "Keymap for searching folder.")
 
+;;;###mh-autoload
 ;; If this changes, modify mh-search-mode-help-messages accordingly, below.
 (gnus-define-keys  mh-search-mode-map
   "\C-c?"               mh-help
@@ -420,12 +416,18 @@ as well.")
 (define-derived-mode mh-search-mode fundamental-mode "MH-Search"
   "Mode for creating search templates in MH-E.\\<mh-search-mode-map>
 
-After each field name, enter the pattern to search for. If a field's
-value does not matter for the search, leave it empty. To search the
-entire message, supply the pattern in the \"body\" of the template.
-Each non-empty field must be matched for a message to be selected. To
-effect a logical \"or\", use \\[mh-search-folder] multiple times. When
-you have finished, type \\[mh-pick-do-search] to do the search.
+Edit this template by entering your search criteria in an
+appropriate header field that is already there, or create a new
+field yourself. If the string you're looking for could be
+anywhere in a message, then place the string underneath the row
+of dashes.
+
+To perform the search, type \\[mh-index-do-search].
+
+Sometimes you're searching for text that is either not indexed,
+or hasn't been indexed yet. In this case you can override the
+default method with the pick method by running the command
+\\[mh-pick-do-search].
 
 The hook `mh-search-mode-hook' is called upon entry to this mode.
 
@@ -436,21 +438,21 @@ The hook `mh-search-mode-hook' is called upon entry to this mode.
   (setq mh-help-messages mh-search-mode-help-messages))
 
 ;;;###mh-autoload
-(defun mh-index-do-search (&optional indexer)
-  "Find messages that match the qualifications in the current pattern buffer.
-If optional argument INDEXER is present, use it instead of
-`mh-index-program'."
+(defun mh-index-do-search (&optional searcher)
+  "Find messages using `mh-search-program'.
+If optional argument SEARCHER is present, use it instead of
+`mh-search-program'."
   (interactive)
-  (unless (mh-index-choose indexer) (error "No indexing program found"))
+  (unless (mh-search-choose searcher) (error "No search program found"))
   (let* ((regexp-list (mh-pick-parse-search-buffer))
-         (pattern (funcall mh-index-regexp-builder regexp-list)))
+         (pattern (funcall mh-search-regexp-builder regexp-list)))
     (if pattern
-        (mh-search nil mh-current-folder pattern mh-previous-window-config)
+        (mh-search mh-current-folder pattern nil mh-previous-window-config)
       (error "No search terms"))))
 
 ;;;###mh-autoload
 (defun mh-pick-do-search ()
-  "Find messages that match the qualifications in the current pattern buffer.
+  "Find messages using \"pick\".
 
 Uses the pick method described in `mh-pick-execute-search'."
   (interactive)
@@ -642,11 +644,11 @@ search all folders."
   (let* ((mh-flists-search-folders folders)
          (mh-flists-sequence sequence)
          (mh-flists-called-flag t)
-         (mh-indexer 'flists)
-         (mh-index-execute-search-function 'mh-flists-execute)
-         (mh-index-next-result-function 'mh-mairix-next-result)
+         (mh-searcher 'flists)
+         (mh-search-function 'mh-flists-execute)
+         (mh-search-next-result-function 'mh-mairix-next-result)
          (mh-mairix-folder mh-user-path)
-         (mh-index-regexp-builder nil)
+         (mh-search-regexp-builder nil)
          (new-folder (format "%s/%s/%s" mh-index-folder
                              mh-flists-results-folder sequence))
          (window-config (if (equal new-folder mh-current-folder)
@@ -658,16 +660,16 @@ search all folders."
            ;; The destination folder is being visited. Trick `mh-search'
            ;; into thinking that the folder resulted from a previous search.
            (set-buffer new-folder)
-           (setq mh-index-previous-search (list folders mh-indexer sequence))
+           (setq mh-index-previous-search (list folders mh-searcher sequence))
            (setq redo-flag t))
           ((mh-folder-exists-p new-folder)
            ;; Folder exists but we don't have it open. That means they are
            ;; stale results from a old flists search. Clear it out.
            (mh-exec-cmd-quiet nil "rmf" new-folder)))
-    (setq message (mh-search redo-flag "+" mh-flists-results-folder
-                             window-config)
+    (setq message (mh-search "+" mh-flists-results-folder
+                             redo-flag window-config)
           mh-index-sequence-search-flag t
-          mh-index-previous-search (list folders mh-indexer sequence))
+          mh-index-previous-search (list folders mh-searcher sequence))
     (mh-index-write-data)
     (when (stringp message) (message "%s" message))))
 
@@ -831,8 +833,8 @@ group of results."
                     when (mh-msg-exists-p x folder) collect x)))))
 
 ;;;###mh-autoload
-(defun mh-index-p ()
-  "Non-nil means that this folder was generated by an index search."
+(defun mh-search-p ()
+  "Non-nil means that this folder was generated by searching."
   mh-index-data)
 
 ;;;###mh-autoload
@@ -881,8 +883,8 @@ user has marked in the index buffer."
 
 ;;; Indexing functions
 
-;; Support different indexing programs
-(defvar mh-indexer-choices
+;; Support different search programs
+(defvar mh-search-choices
   '((swish++
      mh-swish++-binary mh-swish++-execute-search mh-swish++-next-result
      mh-swish++-regexp-builder)
@@ -898,32 +900,32 @@ user has marked in the index buffer."
      mh-pick-regexp-builder)
     (grep
      mh-grep-binary mh-grep-execute-search mh-grep-next-result nil))
-  "List of possible indexer choices.")
+  "List of possible searcher choices.")
 
-(defun mh-index-choose (&optional indexer)
-  "Choose an indexing function.
+(defun mh-search-choose (&optional searcher)
+  "Choose a searching function.
 The side-effects of this function are that the variables
-`mh-indexer', `mh-index-execute-search-function', and
-`mh-index-next-result-function' are set according to the first
-indexer in `mh-indexer-choices' present on the system.
-If optional argument INDEXER is present, use it instead of
-`mh-index-program'."
+`mh-searcher', `mh-search-function', and
+`mh-search-next-result-function' are set according to the first
+searcher in `mh-search-choices' present on the system. If
+optional argument SEARCHER is present, use it instead of
+`mh-search-program'."
   (block nil
-    (let ((program-alist (cond (indexer
-                                (list (assoc indexer mh-indexer-choices)))
-                               (mh-index-program
+    (let ((program-alist (cond (searcher
+                                (list (assoc searcher mh-search-choices)))
+                               (mh-search-program
                                 (list
-                                 (assoc mh-index-program mh-indexer-choices)))
-                               (t mh-indexer-choices))))
+                                 (assoc mh-search-program mh-search-choices)))
+                               (t mh-search-choices))))
       (while program-alist
         (let* ((current (pop program-alist))
                (executable (symbol-value (cadr current))))
           (when executable
-            (setq mh-indexer (car current))
-            (setq mh-index-execute-search-function (nth 2 current))
-            (setq mh-index-next-result-function (nth 3 current))
-            (setq mh-index-regexp-builder (nth 4 current))
-            (return mh-indexer))))
+            (setq mh-searcher (car current))
+            (setq mh-search-function (nth 2 current))
+            (setq mh-search-next-result-function (nth 3 current))
+            (setq mh-search-regexp-builder (nth 4 current))
+            (return mh-searcher))))
       nil)))
 
 ;;; Swish++ interface
@@ -935,7 +937,7 @@ If optional argument INDEXER is present, use it instead of
 
 ;;;###mh-autoload
 (defun mh-swish++-execute-search (folder-path search-regexp)
-  "Execute swish++ and read the results.
+  "Execute swish++.
 
 In the examples below, replace \"/home/user/Mail\" with the path to
 your MH directory.
@@ -1015,7 +1017,7 @@ REGEXP-LIST is an alist of fields and values."
 
 ;;;###mh-autoload
 (defun mh-swish-execute-search (folder-path search-regexp)
-  "Execute swish-e and read the results.
+  "Execute swish-e.
 
 In the examples below, replace \"/home/user/Mail\" with the path
 to your MH directory.
@@ -1116,7 +1118,7 @@ is used to search."
 
 ;;;###mh-autoload
 (defun mh-mairix-execute-search (folder-path search-regexp-list)
-  "Execute mairix and read the results.
+  "Execute mairix.
 
 In the examples below, replace \"/home/user/Mail\" with the path
 to your MH directory.
@@ -1250,7 +1252,7 @@ REGEXP-LIST is an alist of fields and values."
 
 ;;;###mh-autoload
 (defun mh-namazu-execute-search (folder-path search-regexp)
-  "Execute namazu and read the results.
+  "Execute namazu.
 
 In the examples below, replace \"/home/user/Mail\" with the path to
 your MH directory.
@@ -1328,9 +1330,9 @@ is used to search."
 (defun mh-pick-execute-search (folder-path search-regexp)
   "Execute pick.
 
-There are no semantics associated with the search criteria--they
-are simply treated as strings. Case is ignored when all lowercase
-is used, and regular expressions (a la \"ed\") are available.
+Read \"pick(1)\" or the section Finding Messages with pick in the
+MH book to find out more about how to enter the criteria (see URL
+`http://www.ics.uci.edu/~mh/book/mh/finpic.htm').
 
 In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
 is used to search."
@@ -1414,7 +1416,12 @@ COMPONENT is the component to search."
 
 ;;;###mh-autoload
 (defun mh-grep-execute-search (folder-path search-regexp)
-  "Execute grep and read the results.
+  "Execute grep.
+
+Unlike the other search methods, this method does not use the
+MH-Search buffer. Instead, you simply enter a regular expression
+in the minibuffer. For help in constructing regular expressions,
+see your man page for \"grep\".
 
 In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP
 is used to search."
@@ -1477,6 +1484,7 @@ construct the base name."
         (insert "_" s)))
     (setq string (mh-replace-string "-lbrace" " "))
     (setq string (mh-replace-string "-rbrace" " "))
+    (setq string (mh-replace-string "-search" " "))
     (subst-char-in-region (point-min) (point-max) ?( ?  t)
     (subst-char-in-region (point-min) (point-max) ?) ?  t)
     (subst-char-in-region (point-min) (point-max) ?- ?  t)
@@ -1492,7 +1500,7 @@ construct the base name."
     (subst-char-in-region (point-min) (point-max) ?\r ?_ t)
     (subst-char-in-region (point-min) (point-max) ?/ ?$ t)
     (let ((out (truncate-string-to-width (buffer-string) 20)))
-      (cond ((eq mh-indexer 'flists)
+      (cond ((eq mh-searcher 'flists)
              (format "%s/%s" mh-flists-results-folder mh-flists-sequence))
             ((equal out mh-flists-results-folder) (concat out "1"))
             (t out)))))
