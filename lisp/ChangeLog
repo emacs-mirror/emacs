@@ -1,5 +1,8 @@
 2006-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/flyspell.el (flyspell-kill-ispell-hook): New fun.
+	(flyspell-mode-on): Use it.
+
 	* textmodes/ispell.el (ispell-kill-ispell): Run new hook
 	ispell-kill-ispell-hook.
 
