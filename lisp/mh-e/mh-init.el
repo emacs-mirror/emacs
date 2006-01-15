@@ -68,26 +68,8 @@ directories to the customizable variable `mh-path'.")
 ;; was installed into.  But if you installed MH after building Emacs,
 ;; this would almost certainly be wrong, so now we do it at run time.
 
-(defvar mh-progs nil
-  "Directory containing MH commands, such as inc, repl, and rmm.")
-
-(defvar mh-lib nil
-  "Directory containing the MH library.
-This directory contains, among other things, the components file.")
-
-(defvar mh-lib-progs nil
-  "Directory containing MH helper programs.
-This directory contains, among other things, the mhl program.")
-
 (defvar mh-flists-present-flag nil
   "Non-nil means that we have \"flists\".")
-
-;;;###autoload
-(put 'mh-progs 'risky-local-variable t)
-;;;###autoload
-(put 'mh-lib 'risky-local-variable t)
-;;;###autoload
-(put 'mh-lib-progs 'risky-local-variable t)
 
 (defvar mh-variants nil
   "List describing known MH variants.

@@ -1,5 +1,12 @@
 2006-01-15  Bill Wohler  <wohler@newt.com>
 
+	* mh-exec.el: Require mh-acros, mh-buffers, and mh-utils for
+	standalone compile.
+	(mh-progs, mh-lib, mh-lib-progs): Move here from mh-init.el.
+
+	* mh-init.el (mh-progs, mh-lib, mh-lib-progs): Move to mh-exec.el,
+	where they are used.
+
 	* mh-comp.el (mh-pgp-support-flag): Move here from mh-utils.el;
 	needed to help remove dependency on mh-utils.
 
