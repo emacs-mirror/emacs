@@ -35,10 +35,12 @@
 
 ;;; Code:
 
+;;(message "> mh-funcs")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'mh-buffers)
 (require 'mh-e)
+;;(message "< mh-funcs")
 
 
 

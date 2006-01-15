@@ -31,10 +31,12 @@
 
 ;;; Code:
 
+;;(message "> mh-alias")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'mh-buffers)
 (require 'mh-e)
+;;(message "< mh-alias")
 (load "cmr" t t)                        ; Non-fatal dependency for
 					; completing-read-multiple.
 (eval-when-compile (defvar mail-abbrev-syntax-table))

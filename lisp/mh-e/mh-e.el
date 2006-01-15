@@ -85,6 +85,7 @@
 
 ;;; Code:
 
+;;(message "> mh-e")
 (provide 'mh-e)
 
 (eval-when-compile (require 'mh-acros))
@@ -95,6 +96,7 @@
 (require 'mh-buffers)
 (require 'mh-seq)
 (require 'mh-utils)
+;;(message "< mh-e")
 
 (defconst mh-version "7.85+cvs" "Version number of MH-E.")
 

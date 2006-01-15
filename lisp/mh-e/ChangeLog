@@ -1,3 +1,47 @@
+2006-01-15  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-pgp-support-flag): Move here from mh-utils.el;
+	needed to help remove dependency on mh-utils.
+
+	* mh-exec.el: New file. Move process support routines here from
+	mh-utils.el.
+
+	* mh-init.el (mh-utils): Remove require.
+	(mh-exec): Add require.
+	(mh-profile-component, mh-profile-component-value): Move here from
+	mh-utils.el.
+
+	* mh-utils.el (mh-pgp-support-flag): Move to mh-comp.el to reduce
+	dependencies on mh-utils.el.
+	(mh-profile-component, mh-profile-component-value): Move to
+	mh-init.el since that's the only place that uses them. (Other than
+	mh-alias.el; I'm thinking that mh-find-path can set variable from
+	the Aliasfile component like it does the other components).
+	(mh-index-max-cmdline-args, mh-xargs, mh-quote-for-shell)
+	(mh-exec-cmd, mh-exec-cmd-error, mh-exec-cmd-daemon)
+	(mh-exec-cmd-env-daemon, mh-process-daemon, mh-exec-cmd-quiet)
+	(defvar, mh-exec-cmd-output)
+	(mh-exchange-point-and-mark-preserving-active-mark)
+	(mh-exec-lib-cmd-output, mh-handle-process-error): Move to new
+	file mh-exec.el so that mh-init.el doesn't have to depend on
+	mh-utils.el, breaking circular dependency.
+
+	* mh-alias.el: 
+	* mh-customize.el: 
+	* mh-e.el: 
+	* mh-funcs.el: 
+	* mh-gnus.el: 
+	* mh-identity.el: 
+	* mh-inc.el: 
+	* mh-junk.el: 
+	* mh-mime.el: 
+	* mh-print.el: 
+	* mh-search.el: 
+	* mh-seq.el: 
+	* mh-speed.el: Added debugging statements (commented out) around
+	requires to help find dependency loops. Will remove them when
+	issues are resolved.
+
 2006-01-14  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-index): Rename group to mh-search and sort

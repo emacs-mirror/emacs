@@ -33,6 +33,7 @@
 
 ;;; Code:
 
+;;(message "> mh-comp")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 
@@ -44,6 +45,7 @@
 
 (eval-when (compile load eval)
   (ignore-errors (require 'mailabbrev)))
+;;(message "< mh-comp")
 
 
 
@@ -861,6 +863,9 @@ Returns t if found, nil if not."
 
 
 ;;; Mode for composing and sending a draft message.
+
+(defvar mh-pgp-support-flag (not (not (locate-library "mml2015")))
+  "Non-nil means PGP support is available.")
 
 (put 'mh-letter-mode 'mode-class 'special)
 

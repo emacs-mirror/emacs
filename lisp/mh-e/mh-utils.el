@@ -33,6 +33,7 @@
 
 ;;; Code:
 
+;;(message "> mh-utils")
 (eval-and-compile
   (defvar recursive-load-depth-limit)
   (if (and (boundp 'recursive-load-depth-limit)
@@ -50,6 +51,7 @@
 (require 'mh-inc)
 (require 'mouse)
 (require 'sendmail)
+;;(message "< mh-utils")
 
 ;; Non-fatal dependencies
 (load "hl-line" t t)
@@ -196,9 +198,6 @@ when searching for a separator.")
 
 (defvar mh-globals-hash (make-hash-table)
   "Keeps track of MIME data on a per buffer basis.")
-
-(defvar mh-pgp-support-flag (not (not (locate-library "mml2015")))
-  "Non-nil means PGP support is available.")
 
 (defvar mh-mm-inline-media-tests
   `(("image/jpeg"
@@ -1954,25 +1953,6 @@ the message."
     (or dont-show (not return-value) (mh-maybe-show number))
     return-value))
 
-(defun mh-profile-component (component)
-  "Return COMPONENT value from mhparam, or nil if unset."
-  (save-excursion
-    (mh-exec-cmd-quiet nil "mhparam" "-components" component)
-    (mh-profile-component-value component)))
-
-(defun mh-profile-component-value (component)
-  "Find and return the value of COMPONENT in the current buffer.
-Returns nil if the component is not in the buffer."
-  (let ((case-fold-search t))
-    (goto-char (point-min))
-    (cond ((not (re-search-forward (format "^%s:" component) nil t)) nil)
-          ((looking-at "[\t ]*$") nil)
-          (t
-           (re-search-forward "[\t ]*\\([^\t \n].*\\)$" nil t)
-           (let ((start (match-beginning 1)))
-             (end-of-line)
-             (buffer-substring start (point)))))))
-
 (defun mh-set-folder-modified-p (flag)
   "Mark current folder as modified or unmodified according to FLAG."
   (set-buffer-modified-p flag))
@@ -2425,204 +2405,6 @@ used in searching."
              (error "%s is not a directory"
                     (mh-expand-file-name folder-name)))))
     folder-name))
-
-
-
-;;; Issue shell and MH commands.
-
-(defvar mh-index-max-cmdline-args 500
-  "Maximum number of command line args.")
-
-(defun mh-xargs (cmd &rest args)
-  "Partial imitation of xargs.
-The current buffer contains a list of strings, one on each line.
-The function will execute CMD with ARGS and pass the first
-`mh-index-max-cmdline-args' strings to it. This is repeated till
-all the strings have been used."
-  (goto-char (point-min))
-  (let ((current-buffer (current-buffer)))
-    (with-temp-buffer
-      (let ((out (current-buffer)))
-        (set-buffer current-buffer)
-        (while (not (eobp))
-          (let ((arg-list (reverse args))
-                (count 0))
-            (while (and (not (eobp)) (< count mh-index-max-cmdline-args))
-              (push (buffer-substring-no-properties (point) (line-end-position))
-                    arg-list)
-              (incf count)
-              (forward-line))
-            (apply #'call-process cmd nil (list out nil) nil
-                   (nreverse arg-list))))
-        (erase-buffer)
-        (insert-buffer-substring out)))))
-
-;; XXX This should be applied anywhere MH-E calls out to /bin/sh.
-(defun mh-quote-for-shell (string)
-  "Quote STRING for /bin/sh.
-Adds double-quotes around entire string and quotes the characters
-\\, `, and $ with a backslash."
-  (concat "\""
-          (loop for x across string
-                concat (format (if (memq x '(?\\ ?` ?$)) "\\%c" "%c") x))
-          "\""))
-
-(defun mh-exec-cmd (command &rest args)
-  "Execute mh-command COMMAND with ARGS.
-The side effects are what is desired. Any output is assumed to be
-an error and is shown to the user. The output is not read or
-parsed by MH-E."
-  (save-excursion
-    (set-buffer (get-buffer-create mh-log-buffer))
-    (let* ((initial-size (mh-truncate-log-buffer))
-           (start (point))
-           (args (mh-list-to-string args)))
-      (apply 'call-process (expand-file-name command mh-progs) nil t nil args)
-      (when (> (buffer-size) initial-size)
-        (save-excursion
-          (goto-char start)
-          (insert "Errors when executing: " command)
-          (loop for arg in args do (insert " " arg))
-          (insert "\n"))
-        (save-window-excursion
-          (switch-to-buffer-other-window mh-log-buffer)
-          (sit-for 5))))))
-
-(defun mh-exec-cmd-error (env command &rest args)
-  "In environment ENV, execute mh-command COMMAND with ARGS.
-ENV is nil or a string of space-separated \"var=value\" elements.
-Signals an error if process does not complete successfully."
-  (save-excursion
-    (set-buffer (get-buffer-create mh-temp-buffer))
-    (erase-buffer)
-    (let ((process-environment process-environment))
-      ;; XXX: We should purge the list that split-string returns of empty
-      ;;  strings. This can happen in XEmacs if leading or trailing spaces
-      ;;  are present.
-      (dolist (elem (if (stringp env) (split-string env " ") ()))
-        (push elem process-environment))
-      (mh-handle-process-error
-       command (apply #'call-process (expand-file-name command mh-progs)
-                      nil t nil (mh-list-to-string args))))))
-
-(defun mh-exec-cmd-daemon (command filter &rest args)
-  "Execute MH command COMMAND in the background.
-
-If FILTER is non-nil then it is used to process the output
-otherwise the default filter `mh-process-daemon' is used. See
-`set-process-filter' for more details of FILTER.
-
-ARGS are passed to COMMAND as command line arguments."
-  (save-excursion
-    (set-buffer (get-buffer-create mh-log-buffer))
-    (mh-truncate-log-buffer))
-  (let* ((process-connection-type nil)
-         (process (apply 'start-process
-                         command nil
-                         (expand-file-name command mh-progs)
-                         (mh-list-to-string args))))
-    (set-process-filter process (or filter 'mh-process-daemon))
-    process))
-
-(defun mh-exec-cmd-env-daemon (env command filter &rest args)
-  "In ennvironment ENV, execute mh-command COMMAND in the background.
-
-ENV is nil or a string of space-separated \"var=value\" elements.
-Signals an error if process does not complete successfully.
-
-If FILTER is non-nil then it is used to process the output
-otherwise the default filter `mh-process-daemon' is used. See
-`set-process-filter' for more details of FILTER.
-
-ARGS are passed to COMMAND as command line arguments."
-  (let ((process-environment process-environment))
-    (dolist (elem (if (stringp env) (split-string env " ") ()))
-      (push elem process-environment))
-    (apply #'mh-exec-cmd-daemon command filter args)))
-
-(defun mh-process-daemon (process output)
-  "PROCESS daemon that puts OUTPUT into a temporary buffer.
-Any output from the process is displayed in an asynchronous
-pop-up window."
-  (with-current-buffer (get-buffer-create mh-log-buffer)
-    (insert-before-markers output)
-    (display-buffer mh-log-buffer)))
-
-(defun mh-exec-cmd-quiet (raise-error command &rest args)
-  "Signal RAISE-ERROR if COMMAND with ARGS fails.
-Execute MH command COMMAND with ARGS. ARGS is a list of strings.
-Return at start of mh-temp buffer, where output can be parsed and
-used.
-Returns value of `call-process', which is 0 for success, unless
-RAISE-ERROR is non-nil, in which case an error is signaled if
-`call-process' returns non-0."
-  (set-buffer (get-buffer-create mh-temp-buffer))
-  (erase-buffer)
-  (let ((value
-         (apply 'call-process
-                (expand-file-name command mh-progs) nil t nil
-                args)))
-    (goto-char (point-min))
-    (if raise-error
-        (mh-handle-process-error command value)
-      value)))
-
-;; Shush compiler.
-(eval-when-compile (defvar mark-active))
-
-(defun mh-exec-cmd-output (command display &rest args)
-  "Execute MH command COMMAND with DISPLAY flag and ARGS.
-Put the output into buffer after point.
-Set mark after inserted text.
-Output is expected to be shown to user, not parsed by MH-E."
-  (push-mark (point) t)
-  (apply 'call-process
-         (expand-file-name command mh-progs) nil t display
-         (mh-list-to-string args))
-
-  ;; The following is used instead of 'exchange-point-and-mark because the
-  ;; latter activates the current region (between point and mark), which
-  ;; turns on highlighting.  So prior to this bug fix, doing "inc" would
-  ;; highlight a region containing the new messages, which is undesirable.
-  ;; The bug wasn't seen in emacs21 but still occurred in XEmacs21.4.
-  (mh-exchange-point-and-mark-preserving-active-mark))
-
-(defun mh-exchange-point-and-mark-preserving-active-mark ()
-  "Put the mark where point is now, and point where the mark is now.
-This command works even when the mark is not active, and
-preserves whether the mark is active or not."
-  (interactive nil)
-  (let ((is-active (and (boundp 'mark-active) mark-active)))
-    (let ((omark (mark t)))
-      (if (null omark)
-          (error "No mark set in this buffer"))
-      (set-mark (point))
-      (goto-char omark)
-      (if (boundp 'mark-active)
-          (setq mark-active is-active))
-      nil)))
-
-(defun mh-exec-lib-cmd-output (command &rest args)
-  "Execute MH library command COMMAND with ARGS.
-Put the output into buffer after point.
-Set mark after inserted text."
-  (apply 'mh-exec-cmd-output (expand-file-name command mh-lib-progs) nil args))
-
-(defun mh-handle-process-error (command status)
-  "Raise error if COMMAND returned non-zero STATUS, otherwise return STATUS."
-  (if (equal status 0)
-      status
-    (goto-char (point-min))
-    (insert (if (integerp status)
-                (format "%s: exit code %d\n" command status)
-              (format "%s: %s\n" command status)))
-    (save-excursion
-      (let ((error-message (buffer-substring (point-min) (point-max))))
-        (set-buffer (get-buffer-create mh-log-buffer))
-        (mh-truncate-log-buffer)
-        (insert error-message)))
-    (error "%s failed, check buffer %s for error message"
-           command mh-log-buffer)))
 
 
 

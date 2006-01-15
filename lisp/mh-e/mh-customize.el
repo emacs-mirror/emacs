@@ -63,6 +63,7 @@
 
 ;;; Code:
 
+;;(message "> mh-customize")
 (provide 'mh-customize)
 
 (eval-when-compile (require 'mh-acros))
@@ -78,6 +79,7 @@
   (require 'mh-identity)
   (require 'mh-init)
   (require 'mh-loaddefs))
+;;(message "< mh-customize")
 
 ;; For compiler warnings...
 (eval-when-compile

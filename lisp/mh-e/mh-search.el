@@ -44,12 +44,14 @@
 
 ;;; Code:
 
+;;(message "> mh-search")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 
 (require 'gnus-util)
 (require 'mh-buffers)
 (require 'mh-e)
+;;(message "< mh-search")
 
 (defvar mh-searcher nil
   "Cached value of chosen search program.")

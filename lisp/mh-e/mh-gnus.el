@@ -30,7 +30,9 @@
 
 ;;; Code:
 
+;;(message "> mh-gnus")
 (eval-when-compile (require 'mh-acros))
+;;(message "< mh-gnus")
 
 ;; Load libraries in a non-fatal way in order to see if certain functions are
 ;; pre-defined.

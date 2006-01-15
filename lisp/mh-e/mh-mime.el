@@ -36,6 +36,7 @@
 
 ;;; Code:
 
+;;(message "> mh-mime")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 
@@ -43,6 +44,7 @@
 (require 'mh-buffers)
 (require 'mh-comp)
 (require 'mh-gnus)
+;;(message "< mh-mime")
 
 (autoload 'article-emphasize "gnus-art")
 (autoload 'gnus-article-goto-header "gnus-art")

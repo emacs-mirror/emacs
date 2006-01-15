@@ -71,11 +71,13 @@
 
 ;;; Code:
 
+;;(message "> mh-seq")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 
 (require 'mh-buffers)
 (require 'mh-e)
+;;(message "< mh-seq")
 
 
 

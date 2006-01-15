@@ -30,6 +30,7 @@
 
 ;;; Code:
 
+;;(message "> mh-print")
 (eval-when-compile (require 'mh-acros))
 (mh-require-cl)
 (require 'ps-print)
@@ -37,6 +38,7 @@
 (require 'mh-utils)
 (require 'mh-funcs)
 (eval-when-compile (require 'mh-seq))
+;;(message "< mh-print")
 
 (defvar mh-ps-print-color-option ps-print-color-p
   "Specify how buffer's text color is printed.
