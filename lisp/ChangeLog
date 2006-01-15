@@ -1,3 +1,9 @@
+2006-01-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (Custom-set, Custom-save, Custom-reset-current)
+	(Custom-reset-saved): Do not ask for confirmation in single option
+	buffers.
+
 2006-01-13  Romain Francoise  <romain@orebokech.com>
 
 	* add-log.el (add-change-log-entry, change-log-merge):
