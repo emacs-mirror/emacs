@@ -1,3 +1,7 @@
+2006-01-15  Andreas Schwab  <schwab@suse.de>
+
+	* search.c (Freplace_match): Use UPPERCASEP instead of !NOCASEP.
+
 2006-01-13  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in: Define new macro WINDOW_SUPPORT.
