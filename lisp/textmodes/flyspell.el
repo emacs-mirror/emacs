@@ -528,7 +528,8 @@ in your .emacs file.
 (defun flyspell-kill-ispell-hook ()
   (setq flyspell-last-buffer nil)
   (dolist (buf (buffer-list))
-    (kill-local-variable 'flyspell-word-cache-word)))
+    (with-current-buffer buf
+      (kill-local-variable 'flyspell-word-cache-word))))
 
 ;;*---------------------------------------------------------------------*/
 ;;*    flyspell-mode-on ...                                             */
