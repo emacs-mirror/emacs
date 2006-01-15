@@ -1,3 +1,8 @@
+2006-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/ispell.el (ispell-kill-ispell): Run new hook
+	ispell-kill-ispell-hook.
+
 2006-01-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (Custom-set, Custom-save, Custom-reset-current)
@@ -14,8 +19,8 @@
 	* wid-edit.el (widget-field-end): If the overlay is no longer
 	associated with a buffer, behave as if the overlay didn't exist.
 
-	* cus-edit.el (custom-add-see-also, custom-add-parent-links): Make
-	sure the links use the `custom-link' face.
+	* cus-edit.el (custom-add-see-also, custom-add-parent-links):
+	Make sure the links use the `custom-link' face.
 
 2006-01-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 

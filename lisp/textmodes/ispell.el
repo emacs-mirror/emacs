@@ -1,7 +1,7 @@
 ;;; ispell.el --- interface to International Ispell Versions 3.1 and 3.2
 
 ;; Copyright (C) 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
-;;   2004, 2005 Free Software Foundation, Inc.
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author:           Ken Stevens <k.stevens@ieee.org>
 ;; Maintainer:       Ken Stevens <k.stevens@ieee.org>
@@ -2558,6 +2558,9 @@ Keeps argument list for future ispell invocations for no async support."
   "Kill current Ispell process (so that you may start a fresh one).
 With NO-ERROR, just return non-nil if there was no Ispell running."
   (interactive)
+  ;; This hook is typically used by flyspell to flush some variables used
+  ;; to optimize the common cases.
+  (run-hooks 'ispell-kill-ispell-hook)
   (if (not (and ispell-process
 		(eq (ispell-process-status) 'run)))
       (or no-error
