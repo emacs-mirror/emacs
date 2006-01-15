@@ -1,5 +1,9 @@
 2006-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/ispell.el (ispell-internal-change-dictionary)
+	(ispell-change-dictionary): Undo most of last change of 2006-01-13.
+	(start, end): Move declaration outside of eval-when-compile.
+
 	* textmodes/flyspell.el (flyspell-kill-ispell-hook): New fun.
 	(flyspell-mode-on): Use it.
 

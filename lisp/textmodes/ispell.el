@@ -202,7 +202,6 @@
 ;;; Code:
 
 (defvar mail-yank-prefix)
-(eval-when-compile (defvar flyspell-word-cache-word))
 
 ;;; Custom.el macros require recompiling this when they are not present.
 ;;; Add in backward compatible custom support.
@@ -2624,13 +2623,6 @@ By just answering RET you can find out what the current dictionary is."
 	       (setq ispell-local-dictionary dict)
 	       (setq ispell-local-dictionary-overridden t))
 	   (error "Undefined dictionary: %s" dict))
-	 ;; For global setting clear out flyspell word cache when needed
-         (when (and arg
-		    (featurep 'flyspell))
-	   (dolist (buf (buffer-list))
-	     (with-current-buffer buf
-	       (when flyspell-mode
-		 (setq flyspell-word-cache-word nil)))))
 	 (ispell-internal-change-dictionary)
 	 (message "%s Ispell dictionary set to %s"
 		  (if arg "Global" "Local")
@@ -2643,12 +2635,7 @@ a new one will be started when needed."
   (let ((dict (or ispell-local-dictionary ispell-dictionary)))
     (unless (equal ispell-current-dictionary dict)
       (ispell-kill-ispell t)
-      (setq ispell-current-dictionary dict)
-      ;; If needed, start ispell process and clear out flyspell word cache
-      (when (and (featurep 'flyspell)
-                 flyspell-mode)
-        (ispell-init-process)
-        (setq flyspell-word-cache-word nil)))))
+      (setq ispell-current-dictionary dict))))
 
 ;;; Spelling of comments are checked when ispell-check-comments is non-nil.
 
@@ -2981,9 +2968,8 @@ Point is placed at end of skipped region."
 				      coding)))))
 
 ;;; Avoid error messages when compiling for these dynamic variables.
-(eval-when-compile
-  (defvar start)
-  (defvar end))
+(defvar start)
+(defvar end)
 
 (defun ispell-process-line (string shift)
   "Sends a LINE of text to ispell and processes the result.
