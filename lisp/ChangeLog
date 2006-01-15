@@ -1,3 +1,23 @@
+2006-01-15  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-raw-map): Add mapping for insert.
+	(term-send-insert): New.
+	(term-mode): Make variables local here instead of doing it in
+	`term-emulate-terminal'.
+	(term-emulate-terminal): Delete incorrect optimization for cr+lf.
+	Scroll reverse needs to take into account the scroll
+	region.  Saving and restoring the cursor should save the color
+	attributes too.
+	(term-reset-terminal): Reset the scroll region.
+	(term-handle-ansi-escape): Cursor up and down should take into
+	account the scroll region.
+	(term-set-scroll-region): Renamed from `term-scroll-region'.  Move
+	to 0,0 after setting the region.
+	(term-handle-scroll): Handle scroll up.
+	(term-down): Fix off by one error.
+	(term-delete-lines): Do not delete outside the scroll region.
+	(term-insert-lines): Take into account the scroll region.
+
 2006-01-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/ispell.el (ispell-internal-change-dictionary)

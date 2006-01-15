@@ -1,7 +1,7 @@
 ;;; term.el --- general command interpreter in a window stuff
 
 ;; Copyright (C) 1988, 1990, 1992, 1994, 1995, 2002, 2003,
-;;   2004, 2005 Free Software Foundation, Inc.
+;;   2004, 2005, 2006 Free Software Foundation, Inc.
 
 ;; Author: Per Bothner <per@bothner.com>
 ;; Maintainer: Dan Nicolaescu <dann@ics.uci.edu>, Per Bothner <per@bothner.com>
@@ -917,6 +917,7 @@ is buffer-local.")
     (define-key term-raw-map [backspace] 'term-send-backspace)
     (define-key term-raw-map [home] 'term-send-home)
     (define-key term-raw-map [end] 'term-send-end)
+    (define-key term-raw-map [insert] 'term-send-insert)
     (define-key term-raw-map [S-prior] 'scroll-down)
     (define-key term-raw-map [S-next] 'scroll-up)
     (define-key term-raw-map [S-insert] 'term-paste)
@@ -1068,6 +1069,13 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-ansi-current-reverse)
   (make-local-variable 'term-ansi-current-invisible)
 
+  (make-local-variable 'term-terminal-parameter)
+  (make-local-variable 'term-terminal-previous-parameter)
+  (make-local-variable 'term-terminal-previous-parameter-2)
+  (make-local-variable 'term-terminal-previous-parameter-3)
+  (make-local-variable 'term-terminal-previous-parameter-4)
+  (make-local-variable 'term-terminal-more-parameters)
+
   (make-local-variable 'term-terminal-state)
   (make-local-variable 'term-kill-echo-list)
   (make-local-variable 'term-start-line-column)
@@ -1119,7 +1127,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (setq term-start-line-column nil)
   (setq term-current-row nil)
   (setq term-current-column nil)
-  (term-scroll-region 0 height))
+  (term-set-scroll-region 0 height))
 
 ;; Recursive routine used to check if any string in term-kill-echo-list
 ;; matches part of the buffer before point.
@@ -1227,6 +1235,7 @@ without any interpretation."
 (defun term-send-right () (interactive) (term-send-raw-string "\eOC"))
 (defun term-send-left  () (interactive) (term-send-raw-string "\eOD"))
 (defun term-send-home  () (interactive) (term-send-raw-string "\e[1~"))
+(defun term-send-insert() (interactive) (term-send-raw-string "\e[2~"))
 (defun term-send-end   () (interactive) (term-send-raw-string "\e[4~"))
 (defun term-send-prior () (interactive) (term-send-raw-string "\e[5~"))
 (defun term-send-next  () (interactive) (term-send-raw-string "\e[6~"))
@@ -2748,7 +2757,7 @@ See `term-prompt-regexp'."
 				 ;; around.  Go to the beginning of
 				 ;; the next line and switch to state
 				 ;; 0.
-				 (term-down 1)
+				 (term-down 1 t)
 				 (term-move-columns (- (term-current-column)))
 				 (setq term-terminal-state 0)))
 			  (setq count (- funny i))
@@ -2786,7 +2795,7 @@ See `term-prompt-regexp'."
 			      (setq pos (point))
 			      (term-move-columns columns)
 			      (delete-region pos (point)))
-			    ;; In insert if the if the current line
+			    ;; In insert mode if the current line
 			    ;; has become too long it needs to be
 			    ;; chopped off.
 			    (when term-insert-mode
@@ -2825,25 +2834,12 @@ See `term-prompt-regexp'."
 			    (when (= term-width (term-current-column))
 			      (term-move-columns -1))))
 			 ((eq char ?\r)  ;; (terminfo: cr)
-			  ;; Optimize CRLF at end of buffer:
-			  (cond ((and (< (setq temp (1+ i)) str-length)
-				      (eq (aref str temp) ?\n)
-				      (= (point) (point-max))
-				      (not (or term-pager-count
-					       term-kill-echo-list
-					       term-scroll-with-delete)))
-				 (insert ?\n)
-				 (term-adjust-current-row-cache 1)
-				 (setq term-start-line-column 0)
-				 (setq term-current-column 0)
-				 (setq i temp))
-				(t ;; Not followed by LF or can't optimize:
-				 (term-vertical-motion 0)
-				 (setq term-current-column term-start-line-column))))
+			  (term-vertical-motion 0)
+			  (setq term-current-column term-start-line-column))
 			 ((eq char ?\n)  ;; (terminfo: cud1, ind)
-			  (if (not (and term-kill-echo-list
-					(term-check-kill-echo-list)))
-			      (term-down 1 t)))
+			  (unless (and term-kill-echo-list
+				       (term-check-kill-echo-list))
+			    (term-down 1 t)))
 			 ((eq char ?\b)  ;; (terminfo: cub1)
 			  (term-move-columns -1))
 			 ((eq char ?\033) ; Escape
@@ -2874,12 +2870,6 @@ See `term-prompt-regexp'."
 ;;; Note that now the init value of term-terminal-previous-parameter has
 ;;; been changed to -1
 
-			  (make-local-variable 'term-terminal-parameter)
-			  (make-local-variable 'term-terminal-previous-parameter)
-			  (make-local-variable 'term-terminal-previous-parameter-2)
-			  (make-local-variable 'term-terminal-previous-parameter-3)
-			  (make-local-variable 'term-terminal-previous-parameter-4)
-			  (make-local-variable 'term-terminal-more-parameters)
 			  (setq term-terminal-parameter 0)
 			  (setq term-terminal-previous-parameter -1)
 			  (setq term-terminal-previous-parameter-2 -1)
@@ -2898,18 +2888,47 @@ See `term-prompt-regexp'."
 			 ;;  (term-goto term-current-row 0)
 			 ;;  (setq term-terminal-state 0))
 			 ((eq char ?M) ;; scroll reversed (terminfo: ri)
-			  (term-down -1)
+			  (if (or (< (term-current-row) term-scroll-start)
+				  (>= (1- (term-current-row)) 
+				      term-scroll-start))
+			      ;; Scrolling up will not move outside
+			      ;; the scroll region.
+			      (term-down -1)
+			    ;; Scrolling the scroll region is needed.
+			    (term-down -1 t))
 			  (setq term-terminal-state 0))
 			 ((eq char ?7) ;; Save cursor (terminfo: sc)
 			  (term-handle-deferred-scroll)
 			  (setq term-saved-cursor
-				(cons (term-current-row)
-				      (term-horizontal-column)))
+				(list (term-current-row)
+				      (term-horizontal-column)
+				      term-ansi-current-bg-color
+				      term-ansi-current-bold
+				      term-ansi-current-color
+				      term-ansi-current-invisible
+				      term-ansi-current-reverse
+				      term-ansi-current-underline
+				      term-current-face)
+				)
 			  (setq term-terminal-state 0))
 			 ((eq char ?8) ;; Restore cursor (terminfo: rc)
-			  (if term-saved-cursor
-			      (term-goto (car term-saved-cursor)
-					 (cdr term-saved-cursor)))
+			  (when term-saved-cursor
+			    (term-goto (nth 0 term-saved-cursor)
+				       (nth 1 term-saved-cursor))
+			    (setq term-ansi-current-bg-color 
+				  (nth 2 term-saved-cursor)
+				  term-ansi-current-bold
+				  (nth 3 term-saved-cursor)
+				  term-ansi-current-color
+				  (nth 4 term-saved-cursor)
+				  term-ansi-current-invisible
+				  (nth 5 term-saved-cursor)
+				  term-ansi-current-reverse
+				  (nth 6 term-saved-cursor)
+				  term-ansi-current-underline
+				  (nth 7 term-saved-cursor)
+				  term-current-face
+				  (nth 8 term-saved-cursor)))
 			  (setq term-terminal-state 0))
 			 ((eq char ?c) ;; \Ec - Reset (terminfo: rs1)
 			  ;; This is used by the "clear" program.
@@ -2921,6 +2940,8 @@ See `term-prompt-regexp'."
 			 ;; ((eq char ?#)
 			 ;;  (when (eq (aref str (1+ i)) ?8)
 			 ;;    (setq i (1+ i))
+			 ;;    (setq term-scroll-start 0)
+			 ;;    (setq term-scroll-end term-height)
 			 ;;    (setq term-terminal-state 0)))
 			 ((setq term-terminal-state 0))))
 		  ((eq term-terminal-state 3) ; Seen Esc [
@@ -3048,6 +3069,8 @@ See `term-prompt-regexp'."
   (erase-buffer)
   (setq term-current-row 0)
   (setq term-current-column 1)
+  (setq term-scroll-start 0)
+  (setq term-scroll-end term-height)
   (setq term-insert-mode nil)
   (setq term-current-face nil)
   (setq term-ansi-current-underline nil)
@@ -3194,8 +3217,8 @@ See `term-prompt-regexp'."
 
 (defun term-handle-ansi-escape (proc char)
   (cond
-   ((or (eq char ?H)  ; cursor motion (terminfo: cup,home)
-	;; (eq char ?f) ; xterm seems to handle this sequence too, not
+   ((or (eq char ?H)  ;; cursor motion (terminfo: cup,home)
+	;; (eq char ?f) ;; xterm seems to handle this sequence too, not
 	;; needed for now
 	)
     (if (<= term-terminal-parameter 0)
@@ -3212,10 +3235,23 @@ See `term-prompt-regexp'."
    ;; \E[A - cursor up (terminfo: cuu, cuu1)
    ((eq char ?A)
     (term-handle-deferred-scroll)
-    (term-down (- (max 1 term-terminal-parameter)) t))
+    (let ((tcr (term-current-row)))
+      (term-down 
+       (if (< (- tcr term-terminal-parameter) term-scroll-start)
+	   ;; If the amount to move is before scroll start, move
+	   ;; to scroll start.
+	   (- term-scroll-start tcr)
+	 (if (>= term-terminal-parameter tcr)
+	     (- tcr)
+	   (- (max 1 term-terminal-parameter)))) t)))
    ;; \E[B - cursor down (terminfo: cud)
    ((eq char ?B)
-    (term-down (max 1 term-terminal-parameter) t))
+    (let ((tcr (term-current-row)))
+      (unless (= tcr (1- term-scroll-end))
+	(term-down 
+	 (if (> (+ tcr term-terminal-parameter) term-scroll-end)
+	     (- term-scroll-end 1 tcr)
+	   (max 1 term-terminal-parameter)) t))))
    ;; \E[C - cursor right (terminfo: cuf, cuf1)
    ((eq char ?C)
     (term-move-columns
@@ -3264,12 +3300,12 @@ See `term-prompt-regexp'."
    ;;(terminfo: smso,rmso,smul,rmul,rev,bold,sgr0,invis,op,setab,setaf)
    ((eq char ?m)
     (when (= term-terminal-more-parameters 1)
-      (if (>= term-terminal-previous-parameter-4 0)
-	  (term-handle-colors-array term-terminal-previous-parameter-4))
-      (if (>= term-terminal-previous-parameter-3 0)
-	  (term-handle-colors-array term-terminal-previous-parameter-3))
-      (if (>= term-terminal-previous-parameter-2 0)
-	  (term-handle-colors-array term-terminal-previous-parameter-2))
+      (when (>= term-terminal-previous-parameter-4 0)
+	(term-handle-colors-array term-terminal-previous-parameter-4))
+      (when (>= term-terminal-previous-parameter-3 0)
+	(term-handle-colors-array term-terminal-previous-parameter-3))
+      (when (>= term-terminal-previous-parameter-2 0)
+	(term-handle-colors-array term-terminal-previous-parameter-2))
       (term-handle-colors-array term-terminal-previous-parameter))
     (term-handle-colors-array term-terminal-parameter))
 
@@ -3280,14 +3316,14 @@ See `term-prompt-regexp'."
 			 (format "\e[%s;%sR"
 				 (1+ (term-current-row))
 				 (1+ (term-horizontal-column)))))
-   ;; \E[r - Set scrolling region
-   ((eq char ?r) ;; (terminfo: csr)
-    (term-scroll-region
+   ;; \E[r - Set scrolling region (terminfo: csr)
+   ((eq char ?r)
+    (term-set-scroll-region
      (1- term-terminal-previous-parameter)
      term-terminal-parameter))
    (t)))
 
-(defun term-scroll-region (top bottom)
+(defun term-set-scroll-region (top bottom)
   "Set scrolling region.
 TOP is the top-most line (inclusive) of the new scrolling region,
 while BOTTOM is the line following the new scrolling region (e.g. exclusive).
@@ -3305,8 +3341,7 @@ The top-most line is line 0."
 	    (not (and (= term-scroll-start 0)
 		      (= term-scroll-end term-height)))))
   (term-move-columns (- (term-current-column)))
-  (term-goto
-   term-scroll-start (term-current-column)))
+  (term-goto 0 0))
 
 ;; (defun term-switch-to-alternate-sub-buffer (set)
 ;;   ;; If asked to switch to (from) the alternate sub-buffer, and already (not)
@@ -3589,21 +3624,36 @@ all pending output has been dealt with."))
 
 (defun term-handle-scroll (down)
   (let ((scroll-needed
-	 (- (+ (term-current-row) down 1) term-scroll-end)))
-    (if (> scroll-needed 0)
+	 (- (+ (term-current-row) down) 
+	    (if (< down 0) term-scroll-start term-scroll-end))))
+    (if (or (and (< down 0) (< scroll-needed 0)) 
+	    (and (> down 0) (> scroll-needed 0)))
 	(let ((save-point (copy-marker (point))) (save-top))
 	  (goto-char term-home-marker)
 	  (cond (term-scroll-with-delete
-		 ;; delete scroll-needed lines at term-scroll-start
-		 (term-vertical-motion term-scroll-start)
-		 (setq save-top (point))
-		 (term-vertical-motion scroll-needed)
-		 (delete-region save-top (point))
-		 (goto-char save-point)
-		 (term-vertical-motion down)
-		 (term-adjust-current-row-cache (- scroll-needed))
+		 (if (< down 0)
+		     (progn
+		       ;; Delete scroll-needed lines at term-scroll-end,
+		       ;; then insert scroll-needed lines.
+		       (term-vertical-motion (1- term-scroll-end))
+		       (end-of-line)
+		       (setq save-top (point))
+		       (term-vertical-motion scroll-needed)
+		       (end-of-line)
+		       (delete-region save-top (point))
+		       (goto-char save-point)
+		       (setq down (- scroll-needed down))
+		       (term-vertical-motion down))
+		   ;; Delete scroll-needed lines at term-scroll-start.
+		   (term-vertical-motion term-scroll-start)
+		   (setq save-top (point))
+		   (term-vertical-motion scroll-needed)
+		   (delete-region save-top (point))
+		   (goto-char save-point)
+		   (term-vertical-motion down)
+		   (term-adjust-current-row-cache (- scroll-needed)))
 		 (setq term-current-column nil)
-		 (term-insert-char ?\n scroll-needed))
+		 (term-insert-char ?\n (abs scroll-needed)))
 		((and (numberp term-pager-count)
 		      (< (setq term-pager-count (- term-pager-count down))
 			 0))
@@ -3626,7 +3676,7 @@ all pending output has been dealt with."))
       (term-adjust-current-row-cache down)
       (when (or (/= (point) (point-max)) (< down 0))
 	(setq down (- down (term-vertical-motion down)))))
-    (cond ((> down 0)
+    (cond ((>= down 0)
 	   ;; Extend buffer with extra blank lines if needed.
 	   (term-insert-char ?\n down)
 	   (setq term-current-column 0)
@@ -3714,22 +3764,22 @@ Should only be called when point is at the start of a screen line."
 ;;; at the end of this screen line to make room.
 
 (defun term-insert-spaces (count)
-  (let ((save-point (point)) (save-eol) (point-at-eol))
+  (let ((save-point (point)) (save-eol) (pnt-at-eol))
     (term-vertical-motion 1)
-    (if (bolp)
-	(backward-char))
+    (when (bolp)
+      (backward-char))
     (setq save-eol (point))
     (save-excursion
       (end-of-line)
-      (setq point-at-eol (point)))
+      (setq pnt-at-eol (point)))
     (move-to-column (+ (term-start-line-column) (- term-width count)) t)
     ;; If move-to-column extends the current line it will use the face
     ;; from the last character on the line, set the face for the chars
     ;; to default.
-    (when (> (point) (point-at-eol))
-      (put-text-property point-at-eol (point) 'face 'default))
-    (if (> save-eol (point))
-	(delete-region (point) save-eol))
+    (when (>= (point) pnt-at-eol)
+      (put-text-property pnt-at-eol (point) 'face 'default))
+    (when (> save-eol (point))
+      (delete-region (point) save-eol))
     (goto-char save-point)
     (term-insert-char ?  count)
     (goto-char save-point)))
@@ -3739,6 +3789,8 @@ Should only be called when point is at the start of a screen line."
 	(save-current-column term-current-column)
 	(save-start-line-column term-start-line-column)
 	(save-current-row (term-current-row)))
+    (when (>= (+ save-current-row lines) term-scroll-end)
+	(setq lines (- lines (- (+ save-current-row lines) term-scroll-end))))
     (term-down lines)
     (delete-region start (point))
     (term-down (- term-scroll-end save-current-row lines))
@@ -3754,7 +3806,17 @@ Should only be called when point is at the start of a screen line."
 	(save-current-column term-current-column)
 	(save-start-line-column term-start-line-column)
 	(save-current-row (term-current-row)))
-    (term-down (- term-scroll-end save-current-row lines))
+    ;; Inserting lines should take into account the scroll region.
+    (if (< save-current-row term-scroll-start)
+	;; If point is before scroll start, 
+	(progn 
+	  (setq lines (- lines (- term-scroll-start save-current-row)))
+	  (term-down (- term-scroll-start save-current-row))
+	  (setq start (point)))
+      ;; The number of inserted lines shouldn't exceed the scroll region end.
+      (when (>= (+ save-current-row lines) term-scroll-end)
+	(setq lines (- lines (- (+ save-current-row lines) term-scroll-end))))
+      (term-down (- term-scroll-end save-current-row lines)))
     (setq start-deleted (point))
     (term-down lines)
     (delete-region start-deleted (point))
