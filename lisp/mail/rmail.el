@@ -47,7 +47,6 @@
   (require 'rmailsum))
 
 (eval-and-compile
-  (require 'browse-url)
   (require 'rmaildesc)
   (require 'rmailhdr))
 
@@ -898,14 +897,12 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	  (or coding-system 'undecided))))
 
 (defvar rmail-mode-map nil)
-(defvar rmail-url-map nil)
 (if rmail-mode-map
     nil
   (setq rmail-mode-map (make-keymap))
   (suppress-keymap rmail-mode-map)
   (define-key rmail-mode-map "a"      'rmail-add-label)
   (define-key rmail-mode-map "b"      'rmail-bury)
-  (define-key rmail-mode-map "B"      'rmail-browse-body)
   (define-key rmail-mode-map "c"      'rmail-continue)
   (define-key rmail-mode-map "d"      'rmail-delete-forward)
   (define-key rmail-mode-map "\C-d"   'rmail-delete-backward)
@@ -957,14 +954,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (define-key rmail-mode-map "\C-c\C-s\C-l" 'rmail-sort-by-lines)
   (define-key rmail-mode-map "\C-c\C-s\C-k" 'rmail-sort-by-labels)
   (define-key rmail-mode-map "\C-c\C-n" 'rmail-next-same-subject)
-  (define-key rmail-mode-map "\C-c\C-p" 'rmail-previous-same-subject)
-
-  ;; Set up a keymap derived from the standard Rmail mode keymap to
-  ;; send activated URLs to a browser.
-  (setq rmail-url-map (make-sparse-keymap))
-  (set-keymap-parent rmail-url-map rmail-mode-map)
-  (define-key rmail-url-map [mouse-2] 'rmail-visit-url-at-mouse)
-  (define-key rmail-url-map "\r" 'rmail-visit-url-at-point))
+  (define-key rmail-mode-map "\C-c\C-p" 'rmail-previous-same-subject))
 
 (define-key rmail-mode-map [menu-bar] (make-sparse-keymap))
 
@@ -2358,7 +2348,6 @@ If NO-SUMMARY is non-nil, then do not update the summary buffer."
 	;; Deal with the message headers and URLs..
 	(rmail-header-hide-headers)
 	(rmail-highlight-headers)
-	(rmail-activate-urls)
 
 	;; ?
 	(if transient-mark-mode (deactivate-mark))
@@ -3676,64 +3665,6 @@ encoded string (and the same mask) will decode the string."
      (aset string-vector i (logxor charmask (aref string-vector i)))
      (setq i (1+ i)))
    (concat string-vector)))
-
-;;;; Browser related functions
-
-(defun rmail-activate-urls ()
-  "Highlight URLs embedded in the message body."
-  (save-excursion
-    (goto-char (point-min))
-    (search-forward "\n\n" nil t)
-    (browse-url-activate-urls (point) (point-max)
-                              'bold 'bold-italic 'highlight rmail-url-map)))
-
-;;; mbox: not ready, there is a bug here which I don't
-;;; understand. When invoked with the summary buffer as the current
-;;; buffer, the save-excursion does not seem to work.  -pmr
-(defun rmail-visit-url-at-mouse (event)
-  "Visit the URL underneath the mouse."
-  (interactive "e")
-  (save-window-excursion
-
-    ;; Determine if the function has been invoked from a summary
-    ;; buffer.
-    (if (eq major-mode 'rmail-summary-mode)
-
-        ;; It has.  DTRT.
-        (progn
-          (set-buffer rmail-buffer)
-          (save-excursion
-            (browse-url-at-mouse event)
-            (rmail-show-message rmail-current-message))
-          (switch-to-buffer rmail-summary-buffer))
-
-      ;; The function has been invoked from an Rmail buffer.  Visit the
-      ;; URL and then repaint the current message to reflect a visited
-      ;; URL.
-      (browse-url-at-mouse event)
-      (rmail-show-message rmail-current-message))))
-
-(defun rmail-visit-url-at-point ()
-  "Visit the URL at point."
-  (interactive)
-  (save-excursion
-
-    ;; Visit the URL and then repaint the current message to reflect a
-    ;; visited URL.
-    (browse-url-at-point)
-    (rmail-show-message rmail-current-message)))
-
-(defun rmail-browse-body ()
-  "Send the message body to a browser to be rendered."
-  (interactive)
-  (if (= rmail-total-messages 0)
-      (error "No messages in this file"))
-  (save-excursion
-    (save-restriction
-      (goto-char (point-min))
-      (search-forward "\n\n" (point-max) t)
-      (narrow-to-region (point) (point-max))
-      (browse-url-of-buffer))))
 
 ;;; New functions that need better placement.
 (defun rmail-get-sender ()
