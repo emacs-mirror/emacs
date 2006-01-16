@@ -58,10 +58,10 @@
   :group 'rmail-summary)
 
 (defvar rmail-summary-font-lock-keywords
-  '(("^....D.*" . font-lock-string-face)			; Deleted.
+  '(("^.....D.*" . font-lock-string-face)			; Deleted.
     ("^....-.*" . font-lock-type-face)				; Unread.
     ;; Neither of the below will be highlighted if either of the above are:
-    ("^....[^D-]....\\(......\\)" 1 font-lock-keyword-face)	; Date.
+    ("^.....[^D-]....\\(......\\)" 1 font-lock-keyword-face)	; Date.
     ("{ \\([^\n}]+\\),}" 1 font-lock-comment-face))		; Labels.
   "Additional expressions to highlight in Rmail Summary mode.")
 
@@ -1694,7 +1694,7 @@ KEYWORDS is a comma-separated list of labels."
 (defun rmail-summary-get-summary (n)
   "Return a summary line for message N."
   (funcall rmail-summary-line-decoder
-	   (format "%5s%s%6s %25s %s %s\n"
+	   (format "%5s%s%6s %25s%s %s\n"
 		   n
 		   (rmail-summary-get-summary-attributes n)
 		   (concat (rmail-desc-get-day-number n) "-"
