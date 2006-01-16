@@ -794,7 +794,8 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	    (insert-file-contents-literally file-name)
 	    ;; We need to re-initialize rmail-mode later.
 	    (setq major-mode 'fundamental-mode))
-	(switch-to-buffer (get-buffer-create file-name))
+	(switch-to-buffer
+	 (get-buffer-create (file-name-nondirectory file-name)))
 	(insert-file-contents-literally file-name)
 	(setq buffer-file-name file-name))
       ;; As we have read a file as raw-text, the buffer is set to
@@ -882,7 +883,7 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (define-key rmail-mode-map "g"      'rmail-get-new-mail)
   (define-key rmail-mode-map "h"      'rmail-summary)
   (define-key rmail-mode-map "i"      'rmail-input)
-  (define-key rmail-mode-map "j"      'rmail-message)
+  (define-key rmail-mode-map "j"      'rmail-show-message)
   (define-key rmail-mode-map "k"      'rmail-kill-label)
   (define-key rmail-mode-map "l"      'rmail-summary-by-labels)
   (define-key rmail-mode-map "\e\C-h" 'rmail-summary)
