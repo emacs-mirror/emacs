@@ -108,11 +108,12 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	  (from-buffer (current-buffer)))
 
       ;; Process the messages one by one.
-      (while (search-forward "\^_\^l" nil t)
+      (while (re-search-forward "^\^_\^l" nil t)
 	(let ((beg (point))
 	      (end (save-excursion
-		     (if (search-forward "\^_" nil t)
-			 (1- (point)) (point-max))))
+		     (if (re-search-forward "^\^_\\(\^l\\|\\'\\)" nil t)
+			 (match-beginning 0)
+		       (point-max))))
 	      (coding 'raw-text)
 	      label-line attrs keywords
 	      mail-from reformatted)
@@ -172,6 +173,12 @@ For example, invoke `emacs -batch -f batch-unrmail RMAIL'."
 	      ;; lines before the real header.
 	      (re-search-forward "^[*][*][*] EOOH [*][*][*]\n")
 	      (delete-region (point-min) (point)))
+
+	    ;; Handle rmime formatting.
+	    (when (require 'rmime nil t)
+	      (let ((start (point)))
+		(while (search-forward rmime-magic-string nil t))
+		(delete-region start (point))))
 
 	    ;; Some operations on the message header itself.
 	    (goto-char (point-min))
