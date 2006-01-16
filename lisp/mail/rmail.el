@@ -263,23 +263,20 @@ It is useful to set this variable in the site customization file.")
 ;;;###autoload
 (defcustom rmail-ignored-headers
   (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
-	  "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:"
-	  "\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:"
-	  "\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:"
-	  "\\|^nntp-posting-host:\\|^path:\\|^x-char.*:\\|^x-face:\\|^face:"
-	  "\\|^x-mailer:\\|^delivered-to:\\|^lines:"
-	  "\\|^content-transfer-encoding:\\|^x-coding-system:"
+	  "\\|^status:\\|^received:\\|^content-transfer-encoding:"
+	  "\\|^x400-\\(received\\|mts-identifier\\|content-type\\|originator\\|recipients\\):"
+	  "\\|^list-\\(help\\|post\\|subscribe\\|id\\|unsubscribe\\|archive\\):"
+	  "\\|^resent-\\(face\\|x.*\\|organization\\|openpgp\\|date\\|message-id\\):"
+	  "\\|^thread-\\(topic\\|index\\)"
+	  "\\|^summary-line:\\|^precedence:"
+	  "\\|^path:\\|^face:\\|^delivered-to:\\|^lines:"
 	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
-	  "\\|^precedence:\\|^list-help:\\|^list-post:\\|^list-subscribe:"
-	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
-	  "\\|^content-type:\\|^content-length:"
-	  "\\|^x-attribution:\\|^x-disclaimer:\\|^x-trace:"
-	  "\\|^x-complaints-to:\\|^nntp-posting-date:\\|^user-agent:"
-	  "\\|^x-importance:\\|^envelope-to:\\|^delivery-date:"
-	  "\\|^x-importance:\\|^envelope-to:\\|^delivery-date:"
-          "\\|^x-*-priority:\\|x-mimeole:"
-	  "\\|^x-babyl-v6-attributes:\\|x-babyl-v6-keywords:"
-	  "\\|^x-.*:")
+	  "\\|^content-\\(length\\|type\\|class\\|disposition\\):"
+	  "\\|^nntp-posting-\\(host\\|date\\):\\|^user-agent"
+	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
+	  "\\|^mbox-line:\\|^cancel-lock:\\|^in-reply-to:\\|^comment:"
+	  "\\|^x-.*:\\|^domainkey-signature:\\|^mime-version:"
+	  "\\|^from ")
   "*Regexp to match header fields that Rmail should normally hide.
 \(See also `rmail-nonignored-headers', which overrides this regexp.)
 This variable is used for reformatting the message header,
@@ -771,66 +768,79 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
 	 ;; Since the file may contain messages of different encodings
 	 ;; at the tail (non-BYBYL part), we can't decode them at once
 	 ;; on reading.  So, at first, we read the file without text
-	 ;; code conversion, then decode the messages one by one by
-	 ;; rmail-decode-babyl-format or
-	 ;; rmail-convert-to-babyl-format.
+	 ;; code conversion, then decode the messages one by one.
 	 (coding-system-for-read (and rmail-enable-multibyte 'raw-text))
 	 run-mail-hook msg-shown)
-    ;; Like find-file, but in the case where a buffer existed
-    ;; and the file was reverted, recompute the message-data.
-    ;; We used to bind enable-local-variables to nil here,
-    ;; but that should not be needed now that rmail-mode
-    ;; sets it locally to nil.
-    ;; (Binding a variable locally with let is not safe if it has
-    ;; buffer-local bindings.)
-    (if (and existed (not (verify-visited-file-modtime existed)))
-	(progn
-	  (find-file file-name)
-	  (if (and (verify-visited-file-modtime existed)
-		   (eq major-mode 'rmail-mode))
-	      nil))
-      (switch-to-buffer
-       (let ((enable-local-variables nil))
-	 (find-file-noselect file-name))))
-    (if (eq major-mode 'rmail-edit-mode)
-	(error "Exit Rmail Edit mode before getting new mail"))
-    (if (and existed (> (buffer-size) 0))
-	;; Buffer not new and not empty; ensure in proper mode, but that's all.
-	(or (eq major-mode 'rmail-mode)
-	    (progn (rmail-mode-2)
-		   (setq run-mail-hook t)))
-      (setq run-mail-hook t)
-      (rmail-mode-2)
+    (when existed
+      (switch-to-buffer existed)
+      (when (eq major-mode 'rmail-edit-mode)
+	(error "Exit Rmail Edit mode before getting new mail")))
+    ;; If no buffer existed, or the file was changed behind our back,
+    ;; get the raw data again.  If we just read in a BABYL file, the
+    ;; conversion will have changed the buffer, thus a user issuing
+    ;; another M-x rmail will reconvert the BABYL file since we're not
+    ;; saving after a conversion.
+    (unless (and existed (verify-visited-file-modtime existed))
+      ;; There used to be mucking with enable-local-variables here,
+      ;; and that was tricky because it was made buffer-local, and
+      ;; binding a variable locally with let is not safe if it has
+      ;; buffer-local bindings.  We also don't want to run any
+      ;; find-file-hooks, as these might tamper with the restrictions,
+      ;; eg. session management.
+      (if existed
+	  ;; quietly revert file if it changed under us
+	  (let ((inhibit-read-only t))
+	    (erase-buffer)
+	    (insert-file-contents-literally file-name)
+	    ;; We need to re-initialize rmail-mode later.
+	    (setq major-mode 'fundamental-mode))
+	(switch-to-buffer (get-buffer-create file-name))
+	(insert-file-contents-literally file-name)
+	(setq buffer-file-name file-name))
+      ;; As we have read a file as raw-text, the buffer is set to
+      ;; unibyte.  We must make it multibyte if necessary.
+      (if (and rmail-enable-multibyte
+	       (not enable-multibyte-characters))
+	  (set-buffer-multibyte t)))
+    ;; Make sure we're in rmail-mode, even if the buffer did exist and
+    ;; the file was not changed.
+    (unless (eq major-mode 'rmail-mode)
+      ;; If file looks like a Babyl file, save it to a temp file,
+      ;; convert it, and replace the current content with the
+      ;; converted content.  Don't save -- let the user do it.
       (goto-char (point-min))
-      ;; If file starts like a Babyl file, convert it.
       (when (looking-at "BABYL OPTIONS:")
-	(erase-buffer)
-	(decode-babyl-file file-name))
-      (goto-char (point-max)))
-    ;; As we have read a file by raw-text, the buffer is set to
-    ;; unibyte.  We must make it multibyte if necessary.
-    (if (and rmail-enable-multibyte
-	     (not enable-multibyte-characters))
-	(set-buffer-multibyte t))
-
-    ;; Initialize the Rmail state and process any messages in the buffer.
-    (rmail-initialize-messages)
-
-    ;; Get new mail only if there is no explicit file argument.
-    (and (not file-name-arg) (rmail-get-new-mail))
-
-    ;; Deal with the summary display.
-    (if rmail-display-summary (rmail-summary))
-
-    ;; Show the first unseen message or, if all messages have been
-    ;; seen, the last message.
+	(let ((old-file (make-temp-file "rmail"))
+	      (new-file (make-temp-file "rmail")))
+	  (unwind-protect
+	      (progn
+		(write-region (point-min) (point-max) old-file)
+		(unrmail old-file new-file)
+		(message "Replacing BABYL format with mbox format...")
+		(let ((inhibit-read-only t))
+		  (erase-buffer)
+		  (insert-file-contents-literally new-file))
+		(message "Replacing BABYL format with mbox format...done"))
+	    (delete-file old-file)
+	    (delete-file new-file))))
+      (goto-char (point-max))
+      (rmail-mode-2)
+      ;;  We use `run-mail-hook' to remember whether we should run
+      ;; `rmail-mode-hook' at the end.
+      (setq run-mail-hook t)
+      ;; Initialize the Rmail state and process any messages in the
+      ;; buffer.
+      (rmail-initialize-messages))
+    ;; Now we're back in business.  The happens even if we had a
+    ;; perfectly fine file.
+    (unless file-name-arg
+      (rmail-get-new-mail))
+    (when rmail-display-summary
+      (rmail-summary))
     (rmail-show-message (or (rmail-first-unseen-message)
                             rmail-total-messages))
-
-    ;; Not sure what this is all about.
     (rmail-construct-io-menu)
-
-    ;; Run any User callbacks.
+    ;; Run any callbacks if the buffer was not in rmail-mode
     (if run-mail-hook
         (run-hooks 'rmail-mode-hook))))
 
@@ -856,43 +866,6 @@ If `rmail-display-summary' is non-nil, make a summary for this RMAIL file."
   (widen)
   (rmail-header-show-headers)
   (setq rmail-total-messages (rmail-process-new-messages)))
-
-;; Decode Babyl formatted part at the head of current buffer by
-;; rmail-file-coding-system, or if it is nil, do auto conversion.
-
-(defun rmail-decode-babyl-format ()
-  (let ((modifiedp (buffer-modified-p))
-	(buffer-read-only nil)
-	(coding-system rmail-file-coding-system)
-	from to)
-    (goto-char (point-min))
-    (search-forward "\n\^_" nil t)	; Skip BABYL header.
-    (setq from (point))
-    (goto-char (point-max))
-    (search-backward "\n\^_" from 'mv)
-    (setq to (point))
-    (unless (and coding-system
-		 (coding-system-p coding-system))
-      (setq coding-system
-	    ;; Emacs 21.1 and later writes RMAIL files in emacs-mule, but
-	    ;; earlier versions did that with the current buffer's encoding.
-	    ;; So we want to favor detection of emacs-mule (whose normal
-	    ;; priority is quite low), but still allow detection of other
-	    ;; encodings if emacs-mule won't fit.  The call to
-	    ;; detect-coding-with-priority below achieves that.
-	    (car (detect-coding-with-priority
-		  from to
-		  '((coding-category-emacs-mule . emacs-mule))))))
-    (unless (memq coding-system
-		  '(undecided undecided-unix))
-      (set-buffer-modified-p t)		; avoid locking when decoding
-      (let ((buffer-undo-list t))
-	(decode-coding-region from to coding-system))
-      (setq coding-system last-coding-system-used))
-    (set-buffer-modified-p modifiedp)
-    (setq buffer-file-coding-system nil)
-    (setq save-buffer-coding-system
-	  (or coding-system 'undecided))))
 
 (defvar rmail-mode-map nil)
 (if rmail-mode-map
