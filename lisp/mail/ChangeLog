@@ -1,5 +1,15 @@
 2006-01-16  Alex Schroeder  <alex@gnu.org>
 
+	* rmail.el (rmail-nuke-pinhead-header, rmail-reformat-message)
+	(rmail-msg-restore-non-pruned-header, rmail-msg-prune-header):
+	Deleted.
+	(rmail-narrow-to-header): Fix typo, error if we cannot find the
+	end of the headers.
+
+	* rmailsum.el (rmail-message-subject-p, rmail-message-senders-p):
+	Use mail-fetch-field instead of mail-header-get-header.
+	(rmail-summary-next-same-subject): Simplify.
+
 	* rmail.el (rmail): Create the buffer using
 	file-name-nondirectory.
 	(rmail-mode-map): Bind j to rmail-show-message instead of
