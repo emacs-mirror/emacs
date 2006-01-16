@@ -1,8 +1,25 @@
+2006-01-16  Bill Wohler  <wohler@newt.com>
+
+	* mh-comp.el (mh-show-buffer-message-number): Replace (car
+	(read-from-string string) with (string-to-number string).
+
+	* mh-e.el (mh-parse-flist-output-line, mh-folder-size-folder):
+	Ditto.
+
+	* mh-mime.el (mh-mml-forward-message): Ditto.
+
+	* mh-search.el (mh-swish-next-result, mh-mairix-next-result)
+	(mh-namazu-next-result, mh-grep-next-result, mh-md5sum-parser)
+	(mh-openssl-parser, mh-index-update-maps): Ditto.
+
+	* mh-seq.el (mh-translate-range, mh-narrow-to-header-field)
+	(mh-thread-generate): Ditto.
+
 2006-01-16  Mark D. Baushke  <mdb@gnu.org>
 
 	* mh-mime.el (mh-mime-display, mh-mm-inline-message): Fix use of
-	mm- functions for proper text=flowed handling. (SF #1273521)
-	(Patch contributed by Katsumi Yamaoka <yamaoka@jpl.org>.)
+	mm- functions for proper text=flowed handling (closes SF
+	#1273521). Patch contributed by Katsumi Yamaoka <yamaoka@jpl.org>.
 
 2006-01-15  Bill Wohler  <wohler@newt.com>
 

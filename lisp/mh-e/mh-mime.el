@@ -543,7 +543,7 @@ The function will prompt the user for a DESCRIPTION, a FOLDER and
 MESSAGE number."
   (let ((msg (if (and (equal message "") (numberp mh-sent-from-msg))
                  mh-sent-from-msg
-               (car (read-from-string message)))))
+               (string-to-number message))))
     (cond ((integerp msg)
            (if (string= "" description)
                ;; Rationale: mml-attach-file constructs a malformed composition
