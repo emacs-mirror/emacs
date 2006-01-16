@@ -260,4 +260,5 @@ Set mark after inserted text."
 ;; sentence-end-double-space: nil
 ;; End:
 
+;; arch-tag: 2857996c-e624-46b2-a58d-979cd279d288
 ;;; mh-utils.el ends here
