@@ -1857,20 +1857,16 @@ otherwise, show it in full."
 ;; appear in the mode line.
 (defun rmail-display-labels ()
   (let (keyword-list result)
-
     ;; Update the keyword list for the current message.
     (if (> rmail-current-message 0)
         (setq keyword-list (rmail-desc-get-keywords rmail-current-message)))
-
     ;; Generate the result string.
-    (setq result (mapconcat '(lambda (arg) arg) keyword-list " "))
-
+    (setq result (mapconcat 'identity keyword-list " "))
     ;; Update the mode line to display the keywords, the current
     ;; message index and the total number of messages.
     (setq mode-line-process
 	  (format " %d/%d %s"
 		  rmail-current-message rmail-total-messages result))
-
     ;; If rmail-enable-mime is non-nil, we may have to update
     ;; `mode-line-process' of rmail-view-buffer too.
     (if (and rmail-enable-mime

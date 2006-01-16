@@ -1,5 +1,7 @@
 2006-01-17  Alex Schroeder  <alex@gnu.org>
 
+	* rmail.el (rmail-display-labels): Use identity instead of lambda.
+
 	* rmailsum.el (rmail-summary-font-lock-keywords): Fix typo for
 	labels.
 	(rmail-summary-get-summary): Add labels again.
