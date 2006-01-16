@@ -133,9 +133,6 @@ Emacs will list the header line in the RMAIL-summary."
 		     'rmail-message-regexp-p
                      regexp))
 
-;; rmail-summary-by-topic
-;; 1989 R.A. Schnitzler
-
 ;;;###autoload
 (defun rmail-summary-by-topic (subject &optional whole-message)
   "Display a summary of all messages with the given SUBJECT.
@@ -158,12 +155,12 @@ SUBJECT is a string of regexps separated by commas."
    'rmail-message-subject-p
    (mail-comma-list-regexp subject) whole-message))
 
-;; mbox: ready to define and execute test
 (defun rmail-message-subject-p (msg subject &optional whole-message)
-  "Return an indication if SUBJECT is found in MSG.  If WHOLE-MESSAGE
-is nil only the subject header will be searched, otherwise the whole
-message will be searched for text matching SUBJECT.  Return nil to
-indicate that SUBJECT is not found, non-nil otherwise."
+  "Return non-nil if SUBJECT is found in MSG.
+If WHOLE-MESSAGE is nil only the subject header will be searched,
+otherwise the whole message will be searched for text matching
+SUBJECT.  Return nil to indicate that SUBJECT is not found,
+non-nil otherwise."
   (save-restriction
     (narrow-to-region
      (rmail-desc-get-start msg)
@@ -171,10 +168,11 @@ indicate that SUBJECT is not found, non-nil otherwise."
     (goto-char (point-min))
     (if whole-message
         (re-search-forward subject nil t)
-      (string-match subject (let ((subj (mail-header-get-header "Subject")))
-			      (if subj
-				  (funcall rmail-summary-line-decoder subj)
-				""))))))
+      (string-match subject
+		    (let ((subj (mail-fetch-field "subject")))
+		      (if subj
+			  (funcall rmail-summary-line-decoder subj)
+			""))))))
 
 ;;;###autoload
 (defun rmail-summary-by-senders (senders)
@@ -187,15 +185,15 @@ SENDERS is a string of names separated by commas."
    'rmail-message-senders-p
    (mail-comma-list-regexp senders)))
 
-;; mbox: ready to define and execute test
-(defun rmail-message-senders-p (msg senders)
-  "Return an indication of ..."
+(defun rmail-message-senders-p (msg sender)
+  "Return non-nil if SENDER is found in MSG.
+The From header is tested."
   (save-restriction
     (narrow-to-region
      (rmail-desc-get-start msg)
      (rmail-desc-get-end msg))
-    (goto-char (point-mix))
-    (string-match senders (or (mail-header-get-header "From") ""))))
+    (goto-char (point-min))
+    (string-match senders (or (mail-fetch-field "From") ""))))
 
 ;;;; General making of a summary buffer.
 
@@ -561,28 +559,21 @@ With prefix argument N moves backward N messages with these labels."
       (setq msg rmail-current-message))
     (setq rmail-current-message msg)))
 
-;;; mbox: ready
 (defun rmail-summary-next-same-subject (n)
   "Go to the next message in the summary having the same subject.
 With prefix argument N, do this N times.
 If N is negative, go backwards."
   (interactive "p")
-  (let (found)
-    (with-current-buffer rmail-buffer
-      (rmail-next-same-subject n)
-      (setq found rmail-current-message))
+  (with-current-buffer rmail-buffer
+    (rmail-next-same-subject n)))
 
-    (if found
-        (setq rmail-current-message found
-              rmail-summary-skip-rmail t))))
-
-;;; mbox: ready
 (defun rmail-summary-previous-same-subject (n)
   "Go to the previous message in the summary having the same subject.
 With prefix argument N, do this N times.
 If N is negative, go forwards instead."
   (interactive "p")
   (rmail-summary-next-same-subject (- n)))
+
 
 ;; Delete and undelete summary commands.
 
