@@ -1,5 +1,16 @@
 2006-01-16  Bill Wohler  <wohler@newt.com>
 
+	* mh-acros.el (require): Remove defadvice of require as defadvice
+	is verboten within Emacs and our implementation was returning the
+	wrong value from require. Upcoming restructuring should make this
+	unnecessary.
+	(mh-assoc-ignore-case): Replace with defsubst assoc-string.
+
+	* mh-alias.el (mh-alias-local-users, mh-alias-reload,
+	mh-alias-expand, mh-alias-minibuffer-confirm-address): Use it.
+
+	* mh-identity.el (mh-identity-field-handler): Use it.
+
 	* mh-comp.el (mh-show-buffer-message-number): Replace (car
 	(read-from-string string) with (string-to-number string).
 
