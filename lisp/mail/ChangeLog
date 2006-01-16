@@ -1,5 +1,12 @@
 2006-01-16  Alex Schroeder  <alex@gnu.org>
 
+	* rmail.el (rmail-ignored-headers): Merged several terms using
+	grouping, added simple "from " (without a colon), and several
+	other headers.
+	(rmail): Automatically convert BABYL files to mbox files.
+	(rmail-decode-babyl-format): Deleted, since conversion is handled
+	by unrmail.
+
 	* unrmail.el (unrmail): Use regular expression search to find
 	message separators such that the fake separators inserted by
 	rmime.el are not matched.  The sections added by rmime.el are
