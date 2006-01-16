@@ -1,5 +1,11 @@
 2006-01-15  Bill Wohler  <wohler@newt.com>
 
+	* mh-e.el (mh-limit-map, mh-help-messages): Change keybinding of
+	mh-narrow-to-from from / f to / m; mh-narrow-to-range from / r to
+	/ g.
+
+	* mh-utils.el (mh-show-limit-map): Ditto.
+
 	* mh-exec.el: Require mh-acros, mh-buffers, and mh-utils for
 	standalone compile.
 	(mh-progs, mh-lib, mh-lib-progs): Move here from mh-init.el.
