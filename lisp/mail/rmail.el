@@ -275,8 +275,8 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^nntp-posting-\\(host\\|date\\):\\|^user-agent"
 	  "\\|^importance:\\|^envelope-to:\\|^delivery-date\\|^openpgp:"
 	  "\\|^mbox-line:\\|^cancel-lock:\\|^in-reply-to:\\|^comment:"
-	  "\\|^x-.*:\\|^domainkey-signature:\\|^mime-version:"
-	  "\\|^from ")
+	  "\\|^domainkey-signature:\\|^mime-version:"
+	  "\\|^from \\|^x-.*:")
   "*Regexp to match header fields that Rmail should normally hide.
 \(See also `rmail-nonignored-headers', which overrides this regexp.)
 This variable is used for reformatting the message header,
