@@ -1652,7 +1652,7 @@ Repeating the command scrolls the completion window."
 		(t
 		 (message "Making completion list...")
 		 (with-output-to-temp-buffer "*Completions*"
-		   (display-completion-list completions))
+		   (display-completion-list completions symbol))
 		 (message "Making completion list...%s" "done"))))))))
 
 (eval-when-compile (require 'hippie-exp))

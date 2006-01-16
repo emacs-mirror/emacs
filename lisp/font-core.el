@@ -118,17 +118,14 @@ of `font-lock-global-modes'.  For example, put in your ~/.emacs:
 
  (global-font-lock-mode t)
 
-There are a number of support modes that may be used to speed up Font Lock mode
-in various ways, specified via the variable `font-lock-support-mode'.  Where
-major modes support different levels of fontification, you can use the variable
-`font-lock-maximum-decoration' to specify which level you generally prefer.
-When you turn Font Lock mode on/off the buffer is fontified/defontified, though
-fontification occurs only if the buffer is less than `font-lock-maximum-size'.
+Where major modes support different levels of fontification, you can use
+the variable `font-lock-maximum-decoration' to specify which level you
+generally prefer.  When you turn Font Lock mode on/off the buffer is
+fontified/defontified, though fontification occurs only if the buffer is
+less than `font-lock-maximum-size'.
 
-For example, to specify that Font Lock mode uses Lazy Lock mode as a support
-mode and use maximum levels of fontification, put in your ~/.emacs:
+For example, to use maximum levels of fontification, put in your ~/.emacs:
 
- (setq font-lock-support-mode 'lazy-lock-mode)
  (setq font-lock-maximum-decoration t)
 
 To add your own highlighting for some major mode, and modify the highlighting

@@ -71,7 +71,7 @@
                                       (if (not (cdr var)) "")
                                       (if (not (cdr var)) 1))))
                (message (concat "Stored to variable \"%s\"" msg)
-                        (calc-var-name var)))
+                        (calc-var-name (car (car var)))))
 	     (setq var (cdr var))))))))
 
 (defun calc-store-plus (&optional var)

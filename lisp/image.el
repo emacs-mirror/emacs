@@ -33,7 +33,7 @@
   :group 'multimedia)
 
 
-(defconst image-type-regexps
+(defconst image-type-header-regexps
   '(("\\`/[\t\n\r ]*\\*.*XPM.\\*/" . xpm)
     ("\\`P[1-6]" . pbm)
     ("\\`GIF8" . gif)
@@ -48,6 +48,21 @@ be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
 IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
 with one argument, a string containing the image data.  If PREDICATE returns
 a non-nil value, TYPE is the image's type.")
+
+(defconst image-type-file-name-regexps
+  '(("\\.png\\'" . png)
+    ("\\.gif\\'" . gif)
+    ("\\.jpe?g\\'" . jpeg)
+    ("\\.bmp\\'" . bmp)
+    ("\\.xpm\\'" . xpm)
+    ("\\.pbm\\'" . pbm)
+    ("\\.xbm\\'" . xbm)
+    ("\\.ps\\'" . postscript)
+    ("\\.tiff?\\'" . tiff))
+  "Alist of (REGEXP . IMAGE-TYPE) pairs used to identify image files.
+When the name of an image file match REGEXP, it is assumed to
+be of image type IMAGE-TYPE.")
+
 
 (defvar image-load-path
   (list (file-name-as-directory (expand-file-name "images" data-directory))
@@ -87,18 +102,50 @@ We accept the tag Exif because that is the same format."
   "Determine the image type from image data DATA.
 Value is a symbol specifying the image type or nil if type cannot
 be determined."
-  (let ((types image-type-regexps)
+  (let ((types image-type-header-regexps)
 	type)
-    (while (and types (null type))
+    (while types
       (let ((regexp (car (car types)))
 	    (image-type (cdr (car types))))
-	(when (or (and (symbolp image-type)
-		       (string-match regexp data))
-		  (and (consp image-type)
-		       (funcall (car image-type) data)
-		       (setq image-type (cdr image-type))))
-	  (setq type image-type))
-	(setq types (cdr types))))
+	(if (or (and (symbolp image-type)
+		     (string-match regexp data))
+		(and (consp image-type)
+		     (funcall (car image-type) data)
+		     (setq image-type (cdr image-type))))
+	    (setq type image-type
+		  types nil)
+	  (setq types (cdr types)))))
+    type))
+
+
+;;;###autoload
+(defun image-type-from-buffer ()
+  "Determine the image type from data in the current buffer.
+Value is a symbol specifying the image type or nil if type cannot
+be determined."
+  (let ((types image-type-header-regexps)
+	type
+	(opoint (point)))
+    (goto-char (point-min))
+    (while types
+      (let ((regexp (car (car types)))
+	    (image-type (cdr (car types)))
+	    data)
+	(if (or (and (symbolp image-type)
+		     (looking-at regexp))
+		(and (consp image-type)
+		     (funcall (car image-type)
+			      (or data
+				  (setq data
+					(buffer-substring
+					 (point-min)
+					 (min (point-max)
+					      (+ (point-min) 256))))))
+		     (setq image-type (cdr image-type))))
+	    (setq type image-type
+		  types nil)
+	  (setq types (cdr types)))))
+    (goto-char opoint)
     type))
 
 
@@ -107,14 +154,30 @@ be determined."
   "Determine the type of image file FILE from its first few bytes.
 Value is a symbol specifying the image type, or nil if type cannot
 be determined."
-  (unless (file-name-directory file)
-    (setq file (expand-file-name file data-directory)))
-  (setq file (expand-file-name file))
-  (let ((header (with-temp-buffer
-		  (set-buffer-multibyte nil)
-		  (insert-file-contents-literally file nil 0 256)
-		  (buffer-string))))
-    (image-type-from-data header)))
+  (unless (or (file-readable-p file)
+	      (file-name-absolute-p file))
+    (setq file (image-search-load-path file)))
+  (and file
+       (file-readable-p file)
+       (with-temp-buffer
+	 (set-buffer-multibyte nil)
+	 (insert-file-contents-literally file nil 0 256)
+	 (image-type-from-buffer))))
+
+
+;;;###autoload
+(defun image-type-from-file-name (file)
+  "Determine the type of image file FILE from its name.
+Value is a symbol specifying the image type, or nil if type cannot
+be determined."
+  (let ((types image-type-file-name-regexps)
+	type)
+    (while types
+      (if (string-match (car (car types)) file)
+	  (setq type (cdr (car types))
+		types nil)
+	(setq types (cdr types))))
+    type))
 
 
 ;;;###autoload
@@ -123,6 +186,7 @@ be determined."
 Image types are symbols like `xbm' or `jpeg'."
   (and (fboundp 'init-image-library)
        (init-image-library type image-library-alist)))
+
 
 ;;;###autoload
 (defun create-image (file-or-data &optional type data-p &rest props)
@@ -135,7 +199,9 @@ use its file extension as image type.
 Optional DATA-P non-nil means FILE-OR-DATA is a string containing image data.
 Optional PROPS are additional image attributes to assign to the image,
 like, e.g. `:mask MASK'.
-Value is the image created, or nil if images of type TYPE are not supported."
+Value is the image created, or nil if images of type TYPE are not supported.
+
+Images should not be larger than specified by `max-image-size'."
   (when (and (not data-p) (not (stringp file-or-data)))
     (error "Invalid image file name `%s'" file-or-data))
   (cond ((null data-p)
@@ -279,27 +345,29 @@ BUFFER nil or omitted means use the current buffer."
 	  (delete-overlay overlay)))
       (setq overlays (cdr overlays)))))
 
-(defun image-search-load-path (file path)
-  (let (element found pathname)
+(defun image-search-load-path (file &optional path)
+  (unless path
+    (setq path image-load-path))
+  (let (element found filename)
     (while (and (not found) (consp path))
       (setq element (car path))
       (cond
        ((stringp element)
 	(setq found
 	      (file-readable-p
-	       (setq pathname (expand-file-name file element)))))
+	       (setq filename (expand-file-name file element)))))
        ((and (symbolp element) (boundp element))
 	(setq element (symbol-value element))
 	(cond
 	 ((stringp element)
 	  (setq found
 		(file-readable-p
-		 (setq pathname (expand-file-name file element)))))
+		 (setq filename (expand-file-name file element)))))
 	 ((consp element)
-	  (if (setq pathname (image-search-load-path file element))
+	  (if (setq filename (image-search-load-path file element))
 	      (setq found t))))))
       (setq path (cdr path)))
-    (if found pathname)))
+    (if found filename)))
 
 ;;;###autoload
 (defun find-image (specs)
@@ -317,7 +385,9 @@ is supported, and FILE exists, is used to construct the image
 specification to be returned.  Return nil if no specification is
 satisfied.
 
-The image is looked for in `image-load-path'."
+The image is looked for in `image-load-path'.
+
+Image files should not be larger than specified by `max-image-size'."
   (let (image)
     (while (and specs (null image))
       (let* ((spec (car specs))
@@ -327,8 +397,7 @@ The image is looked for in `image-load-path'."
 	     found)
 	(when (image-type-available-p type)
 	  (cond ((stringp file)
-		 (if (setq found (image-search-load-path
-				  file image-load-path))
+		 (if (setq found (image-search-load-path file))
 		     (setq image
 			   (cons 'image (plist-put (copy-sequence spec)
 						   :file found)))))

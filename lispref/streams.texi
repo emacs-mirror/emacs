@@ -663,7 +663,7 @@ See @code{format}, in @ref{Formatting Strings}, for other ways to obtain
 the printed representation of a Lisp object as a string.
 @end defun
 
-@defmac with-output-to-string body...
+@defmac with-output-to-string body@dots{}
 This macro executes the @var{body} forms with @code{standard-output} set
 up to feed output into a string.  Then it returns that string.
 

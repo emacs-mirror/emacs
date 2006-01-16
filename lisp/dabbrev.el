@@ -461,7 +461,8 @@ if there is a suitable one already."
       ;; * String is a common substring completion already.  Make list.
       (message "Making completion list...")
       (with-output-to-temp-buffer "*Completions*"
-	(display-completion-list (all-completions init my-obarray)))
+	(display-completion-list (all-completions init my-obarray)
+				 init))
       (message "Making completion list...done")))
     (and (window-minibuffer-p (selected-window))
 	 (message nil))))

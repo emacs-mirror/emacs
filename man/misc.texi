@@ -2022,6 +2022,9 @@ preserve certain buffers, customize the variable
 @code{desktop-clear-preserve-buffers-regexp}, whose value is a regular
 expression matching the names of buffers not to kill.
 
+  If you want to save minibuffer history from one session to
+another, use the @code{savehist} library.
+
 @node Recursive Edit, Emulation, Saving Emacs Sessions, Top
 @section Recursive Editing Levels
 @cindex recursive editing level

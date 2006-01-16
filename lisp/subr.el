@@ -1017,9 +1017,7 @@ The return value is the new value of LIST-VAR."
 
 (defun symbol-file (symbol &optional type)
   "Return the input source in which SYMBOL was defined.
-The value is normally a string that was passed to `load':
-either an absolute file name, or a library name
-\(with no directory name and no `.el' or `.elc' at the end).
+The value is an absolute file name.
 It can also be nil, if the definition is not associated with any file.
 
 If TYPE is nil, then any kind of definition is acceptable.

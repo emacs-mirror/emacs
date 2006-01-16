@@ -1940,7 +1940,6 @@ int
 check_ccl_update (ccl)
      struct ccl_program *ccl;
 {
-  struct Lisp_Vector *vp;
   Lisp_Object slot, ccl_prog;
 
   if (ccl->idx < 0)

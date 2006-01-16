@@ -106,6 +106,7 @@ Telex, VIQR is the default setting.")))
   :charset-list '(tcvn-5712)
   :suitable-for-file-name t)
 (define-coding-system-alias 'tcvn 'vietnamese-tcvn)
+(define-coding-system-alias 'tcvn-5712 'vietnamese-tcvn)
 
 (provide 'vietnamese)
 

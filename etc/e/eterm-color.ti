@@ -1,4 +1,4 @@
-eterm|Emacs term.el terminal emulator term-protocol-version 0.96,
+eterm-color|Emacs term.el terminal emulator term-protocol-version 0.96,
 	colors#8,
 	cols#80,
 	lines#24,

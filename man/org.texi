@@ -4,7 +4,7 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.17
+@set VERSION 3.18
 @set DATE October 2005
 
 @dircategory Emacs
@@ -158,7 +158,12 @@ Calendar/Diary integration
 
 Exporting
 
-* Export commands::             Commands which export and display
+* ASCII export::                Export as a structured ASCII file
+* HTML export::                 Export as an HTML file
+* iCalendar export::            Create calendar entries.
+
+HTML export
+
 * HTML formatting::             Interpretation of the buffer content
 * Export options::              How to influence exports
 * Comment lines::               Lines which will not be exported
@@ -204,7 +209,8 @@ utilizes and smoothly integrates much of the Emacs calendar and diary.
 Plain text URL-like links connect to websites, emails, Usenet
 messages, BBDB entries, and any files related to the projects.  For
 printing and sharing of notes, an Org-mode file can be exported as a
-structured ASCII file, or as HTML.
+structured ASCII file, as HTML, or (todo and agenda items only) as an
+iCalendar file.
 
 Org-mode keeps simple things simple.  Not every outline branch needs
 to be an action item, not every action item needs to have priority or
@@ -2048,6 +2054,11 @@ calendars.
 @item H
 Show holidays for three month around the cursor date.
 
+@kindex C-c C-x C-c
+@item C-c C-x C-c
+Export a single iCalendar file containing entries from all agenda files.
+Not available in timelines.
+
 @tsubheading{Quit and Exit}
 @kindex q
 @item q
@@ -2146,32 +2157,21 @@ also the documentation of the @command{org-diary} function.
 @node Exporting, Miscellaneous, Timeline and Agenda, Top
 @chapter Exporting
 @cindex exporting
-@cindex ASCII export
-@cindex HTML export
 
-@cindex headline levels, for exporting
-For printing and sharing of notes, an Org-mode document can be
-exported as an ASCII file, or as HTML.  In the exported version, the
-first 3 outline levels will become headlines, defining a general
-document structure.  Additional levels will be exported as itemize
-lists.  If you want that transition to occur at a different level,
-specify it with a prefix argument.  For example,
-
-@example
-@kbd{M-1 M-x org-export-as-html}
-@end example
-@noindent
-creates only top level headlines and does the rest as items.
+For printing and sharing of notes, Org-mode documents can be exported
+as ASCII or HTML files.  To incorporate entries with associated times
+like deadlines or appointments into a desktop calendar program like
+iCal, Org-mode can also produce extracts in the iCalendar format.
 
 @menu
-* Export commands::             Commands which export and display
-* HTML formatting::             Interpretation of the buffer content
-* Export options::              How to influence exports
-* Comment lines::               Lines which will not be exported
+* ASCII export::                Export as a structured ASCII file
+* HTML export::                 Export as an HTML file
+* iCalendar export::            Create calendar entries.
 @end menu
 
-@node Export commands, HTML formatting, Exporting, Exporting
-@section Export commands
+@node ASCII export, HTML export, Exporting, Exporting
+@section ASCII export
+@cindex ASCII export
 
 @cindex region, active
 @cindex active region
@@ -2183,6 +2183,31 @@ Export as ASCII file.  If there is an active region, only the region
 will be exported.  For an org file @file{myfile.org}, the ASCII file
 will be @file{myfile.txt}.  The file will be overwritten without
 warning.
+@end table
+
+@cindex headline levels, for exporting
+In the exported version, the first 3 outline levels will become
+headlines, defining a general document structure.  Additional levels
+will be exported as itemize lists.  If you want that transition to occur
+at a different level, specify it with a prefix argument.  For example,
+@example
+@kbd{C-1 C-c C-x a org-export-as-ascii}
+@end example
+@noindent
+creates only top level headlines and does the rest as items.  Lines
+starting with @samp{#} and subtree starting with the word @samp{COMMENT}
+will not be exported.
+
+@node HTML export, iCalendar export, ASCII export, Exporting
+@section HTML export
+@cindex HTML export
+
+Org-mode contains an HTML exporter with extensive HTML formatting.
+
+@cindex region, active
+@cindex active region
+@cindex transient-mark-mode
+@table @kbd
 @kindex C-c C-x h
 @item C-c C-x h
 Export as HTML file @file{myfile.html}.
@@ -2197,8 +2222,25 @@ Insert template with export options, see below.
 Toggle fixed-width for entry (QUOTE) or region, see below.
 @end table
 
-@node HTML formatting, Export options, Export commands, Exporting
-@section HTML formatting
+@cindex headline levels, for exporting
+In the exported version, the first 3 outline levels will become
+headlines, defining a general document structure.  Additional levels
+will be exported as itemize lists.  If you want that transition to occur
+at a different level, specify it with a prefix argument.  For example,
+@example
+@kbd{C-2 C-c C-x b}
+@end example
+@noindent
+creates two levels of headings and does the rest as items.
+
+@menu
+* HTML formatting::             Interpretation of the buffer content
+* Export options::              How to influence exports
+* Comment lines::               Lines which will not be exported
+@end menu
+
+@node HTML formatting, Export options, HTML export, HTML export
+@subsection HTML formatting
 
 Not all text is transferred literally to the exported HTML file.  The
 exporter implements the following interpretation:
@@ -2248,8 +2290,8 @@ Plain @samp{<} and @samp{>} are always transformed to @samp{&lt;} and
 If these conversions conflict with your habits of typing ASCII text,
 they can all be turned off with corresponding variables.
 
-@node Export options, Comment lines, HTML formatting, Exporting
-@section Export options
+@node Export options, Comment lines, HTML formatting, HTML export
+@subsection Export options
 @cindex options, for export
 
 @cindex completion, of option keywords
@@ -2295,21 +2337,69 @@ toc:    @r{turn on/off table of contents}
 TeX:    @r{turn on/off @TeX{} macros}
 @end example
 
-@node Comment lines,  , Export options, Exporting
-@section Comment lines
+@node Comment lines,  , Export options, HTML export
+@subsection Comment lines
 @cindex comment lines
 @cindex exporting, not
 
 Lines starting with @samp{#} in column zero are treated as comments
 and will never be exported.  Also entire subtrees starting with the
 word @samp{COMMENT} will never be exported.  Finally, any text before
-the first headline will not be exported either.
+the first headline will not be exported either.  This applies also for
+ASCII export.
 
 @table @kbd
 @kindex C-c ;
 @item C-c ;
 Toggle the COMMENT keyword at the beginning of an entry.
 @end table
+
+@node iCalendar export,  , HTML export, Exporting
+@section iCalendar export
+
+Some people like to use Org-mode for keeping track of projects, but
+still prefer a standard calendar application for anniversaries and
+appointments.  In this case it can be useful to have deadlines and
+other time-stamped items in Org-mode files show up in the calendar
+application.  Org-mode can export calendar information in the standard
+iCalendar format.
+
+@table @kbd
+@kindex C-c C-x i
+@item C-c C-x i
+Create iCalendar entries for the current file and store them in the same
+directory, using a file extension @file{.ics}.
+@kindex C-c C-x C-i
+@item C-c C-x C-i
+Like @kbd{C-c C-x i}, but do this for all files in
+@code{org-agenda-files}.  For each of these files, a separate iCalendar
+file will be written.
+@kindex C-c C-x c
+@item C-c C-x c
+Create a single large iCalendar file from all files in
+@code{org-agenda-files} and write it to the file given by
+@code{org-combined-agenda-icalendar-file}.
+@end table
+
+How this calendar is best read and updated, depends on the on the
+application you are using.  For example, when using iCal under Apple
+MacOS X, you could create a new calendar @samp{OrgMode} (the default
+name for the calendar created by @kbd{C-c C-x c}, see the variables
+@code{org-icalendar-combined-name} and
+@code{org-combined-agenda-icalendar-file}).  Then set Org-mode to
+overwrite the corresponding file
+@file{~/Library/Calendars/OrgMode.ics}.  You may even use AppleScript
+to make iCal re-read the calendar files each time a new version of
+@file{OrgMode.ics} is produced.  Here is the setup needed for this:
+
+@lisp
+(setq org-combined-agenda-icalendar-file
+    "~/Library/Calendars/OrgMode.ics")
+(add-hook 'org-after-save-iCalendar-file-hook
+ (lambda ()
+  (shell-command
+   "osascript -e 'tell application \"iCal\" to reload calendars'")))
+@end lisp
 
 @node Miscellaneous, Index, Exporting, Top
 @chapter Miscellaneous

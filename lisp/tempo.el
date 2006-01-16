@@ -717,11 +717,13 @@ non-nil, a buffer containing possible completions is displayed."
   (if tempo-leave-completion-buffer
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list
-	 (all-completions string tag-list)))
+	 (all-completions string tag-list)
+	 string))
     (save-window-excursion
       (with-output-to-temp-buffer "*Completions*"
 	(display-completion-list
-	 (all-completions string tag-list)))
+	 (all-completions string tag-list)
+	 string))
       (sit-for 32767))))
 
 ;;;

@@ -124,7 +124,7 @@ The field name is downcased. If the FIELD begins with the character
 `:', then it must have a special handler defined in
 `mh-identity-handlers', else return an error since it is not a valid
 header field."
-  (or (cdr (assoc (downcase field) mh-identity-handlers))
+  (or (cdr (assoc-ignore-case field mh-identity-handlers))
       (and (eq (aref field 0) ?:)
            (error "Field %s - unknown mh-identity-handler" field))
       (cdr (assoc ":default" mh-identity-handlers))

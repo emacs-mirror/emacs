@@ -869,7 +869,15 @@ See `sh-feature'.")
 (defconst sh-st-symbol (string-to-syntax "_"))
 (defconst sh-here-doc-syntax (string-to-syntax "|")) ;; generic string
 
-(defconst sh-here-doc-open-re "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\)+\\).*\\(\n\\)")
+(defconst sh-escaped-line-re
+  ;; Should match until the real end-of-continued line, but if that is not
+  ;; possible (because we bump into EOB or the search bound), then we should
+  ;; match until the search bound.
+  "\\(?:\\(?:.*[^\\\n]\\)?\\(?:\\\\\\\\\\)*\\\\\n\\)*.*")
+
+(defconst sh-here-doc-open-re
+  (concat "<<-?\\s-*\\\\?\\(\\(?:['\"][^'\"]+['\"]\\|\\sw\\)+\\)"
+          sh-escaped-line-re "\\(\n\\)"))
 
 (defvar sh-here-doc-markers nil)
 (make-variable-buffer-local 'sh-here-doc-markers)
@@ -883,7 +891,9 @@ If non-nil INDENTED indicates that the EOF was indented."
          ;; A rough regexp that should find the opening <<EOF back.
 	 (sre (concat "<<\\(-?\\)\\s-*['\"\\]?"
 		      ;; Use \s| to cheaply check it's an open-heredoc.
-		      eof-re "['\"]?\\([ \t|;&)<>].*\\)?\\s|"))
+		      eof-re "['\"]?\\([ \t|;&)<>]"
+                      sh-escaped-line-re
+                      "\\)?\\s|"))
 	 ;; A regexp that will find other EOFs.
 	 (ere (concat "^" (if indented "[ \t]*") eof-re "\n"))
 	 (start (save-excursion
@@ -922,7 +932,8 @@ If non-nil INDENTED indicates that the EOF was indented."
 START is the position of <<.
 STRING is the actual word used as delimiter (f.ex. \"EOF\").
 INDENTED is non-nil if the here document's content (and the EOF mark) can
-be indented (i.e. a <<- was used rather than just <<)."
+be indented (i.e. a <<- was used rather than just <<).
+Point is at the beginning of the next line."
   (unless (or (memq (char-before start) '(?< ?>))
 	      (sh-in-comment-or-string start))
     ;; We're looking at <<STRING, so we add "^STRING$" to the syntactic
@@ -933,6 +944,20 @@ be indented (i.e. a <<- was used rather than just <<)."
 	(setq sh-here-doc-re
 	      (concat sh-here-doc-open-re "\\|^\\([ \t]*\\)"
 		      (regexp-opt sh-here-doc-markers t) "\\(\n\\)"))))
+    (let ((ppss (save-excursion (syntax-ppss (1- (point))))))
+      (if (nth 4 ppss)
+          ;; The \n not only starts the heredoc but also closes a comment.
+          ;; Let's close the comment just before the \n.
+          (put-text-property (1- (point)) (point) 'syntax-table '(12))) ;">"
+      (if (or (nth 5 ppss) (> (count-lines start (point)) 1))
+          ;; If the sh-escaped-line-re part of sh-here-doc-re has matched
+          ;; several lines, make sure we refontify them together.
+          ;; Furthermore, if (nth 5 ppss) is non-nil (i.e. the \n is
+          ;; escaped), it means the right \n is actually further down.
+          ;; Don't bother fixing it now, but place a multiline property so
+          ;; that when jit-lock-context-* refontifies the rest of the
+          ;; buffer, it also refontifies the current line with it.
+          (put-text-property start (point) 'font-lock-multiline t)))
     sh-here-doc-syntax))
 
 (defun sh-font-lock-here-doc (limit)
@@ -972,6 +997,8 @@ be indented (i.e. a <<- was used rather than just <<)."
   ;; The list of special chars is taken from the single-unix spec
   ;; of the shell command language (under `quoting') but with `$' removed.
   `(("[^|&;<>()`\\\"' \t\n]\\(#+\\)" 1 ,sh-st-symbol)
+    ;; Make sure $@ and @? are correctly recognized as sexps.
+    ("\\$\\([?@]\\)" 1 ,sh-st-symbol)
     ;; Find HEREDOC starters and add a corresponding rule for the ender.
     (sh-font-lock-here-doc
      (2 (sh-font-lock-open-heredoc

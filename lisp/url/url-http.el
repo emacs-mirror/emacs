@@ -840,9 +840,7 @@ the end of the document."
 				 (list 'start-open t
 				       'end-open t
 				       'chunked-encoding t
-				       'face (if (featurep 'xemacs)
-						 'text-cursor
-					       'cursor)
+				       'face 'cursor
 				       'invisible t))
 	    (setq url-http-chunked-length (string-to-number (buffer-substring
                                                              (match-beginning 1)

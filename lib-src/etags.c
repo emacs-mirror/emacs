@@ -477,6 +477,11 @@ static bool cplusplus;		/* .[hc] means C++, not C */
 static bool ignoreindent;	/* -I: ignore indentation in C */
 static bool packages_only;	/* --packages-only: in Ada, only tag packages*/
 
+/* STDIN is defined in LynxOS system headers */
+#ifdef STDIN
+#undef STDIN
+#endif
+
 #define STDIN 0x1001		/* returned by getopt_long on --parse-stdin */
 static bool parsing_stdin;	/* --parse-stdin used */
 

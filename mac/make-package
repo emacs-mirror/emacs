@@ -55,6 +55,7 @@ comp_diskimage=no
 self_contained=no
 app_symlink=no
 full_dist=yes
+compressed_dist=no
 build_in_place=no
 keep_directory=no
 
@@ -94,6 +95,8 @@ do
        with_app=no ;;
     --without-full-dist | -without-full-dist | -no-full-dist | -no-full)
        full_dist=no ;;
+    --compressed-dist)
+       compressed_dist=yes ;;
     --self-contained | -self-contained | --with-self-contained-app | -sc)
        self_contained=yes ;;
     -app-symlink | --app-symlink | -symlink | --symlink | --asl)
@@ -138,6 +141,7 @@ Options:
                           --without-app.
       --without-full-dist Do not include all the .el files in the distribution.
                           This is discouraged except if disk space is critical.
+      --compressed-dist   Compress .el and info files in the distribution.
       --app-symlink       Have the Emacs.app executable be a symlink
                           to the install in [prefix]/bin/emacs and have
                           the emacs executable link to emacs-${version}
@@ -296,6 +300,14 @@ if test "$full_dist" == "no"; then
     echo "Removing unneeded .el files"
     sharedir=$installprefix/share/emacs/$version
     find $sharedir/lisp $sharedir/leim -name "*.elc" -print | sed 's|\(.*\)\.elc$|/bin/rm -f \1.el|' | /bin/sh -s
+fi
+
+if test "$compressed_dist" == "yes" -a "$full_dist" == "yes"; then
+    echo "Compressing .el files"
+    sharedir=$installprefix/share/emacs/$version
+    find $sharedir/lisp $sharedir/leim -name "*.elc" -print | sed 's|\(.*\)\.elc$|/usr/bin/gzip -9 \1.el|' | /bin/sh -s
+    echo "Compressing info files"
+    find $installprefix/info -type f ! -name dir -print | sed 's|\(.*\)$|/usr/bin/gzip -9 \1|' | /bin/sh -s
 fi
 
 if test "$with_app" == "yes"; then

@@ -507,7 +507,7 @@ See also `eshell-read-history'."
 	;; Change "completion" to "history reference"
 	;; to make the display accurate.
 	(with-output-to-temp-buffer history-buffer
-	  (display-completion-list history)
+	  (display-completion-list history prefix)
 	  (set-buffer history-buffer)
 	  (forward-line 3)
 	  (while (search-backward "completion" nil 'move)

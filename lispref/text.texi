@@ -4265,7 +4265,7 @@ arguments.
   Output of messages into the @samp{*Messages*} buffer does not
 call these functions.
 
-@defmac combine-after-change-calls body...
+@defmac combine-after-change-calls body@dots{}
 The macro executes @var{body} normally, but arranges to call the
 after-change functions just once for a series of several changes---if
 that seems safe.

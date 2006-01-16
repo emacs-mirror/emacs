@@ -225,8 +225,7 @@ Archive and member name will be added."
     '("unzip" "-qq" "-c"))
   "*Program and its options to run in order to extract a zip file member.
 Extraction should happen to standard output.  Archive and member name will
-be added.  If `archive-zip-use-pkzip' is non-nil then this program is
-expected to extract to a file junking the directory part of the name."
+be added."
   :type '(list (string :tag "Program")
 		(repeat :tag "Options"
 			:inline t

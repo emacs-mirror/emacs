@@ -202,7 +202,7 @@ An error is signaled if @var{buffer-or-name} does not identify an
 existing buffer.
 @end defun
 
-@defspec save-current-buffer body...
+@defspec save-current-buffer body@dots{}
 The @code{save-current-buffer} special form saves the identity of the
 current buffer, evaluates the @var{body} forms, and finally restores
 that buffer as current.  The return value is the value of the last
@@ -215,7 +215,7 @@ of course.  Instead, whichever buffer was current just before exit
 remains current.
 @end defspec
 
-@defmac with-current-buffer buffer-or-name body...
+@defmac with-current-buffer buffer-or-name body@dots{}
 The @code{with-current-buffer} macro saves the identity of the current
 buffer, makes @var{buffer-or-name} current, evaluates the @var{body}
 forms, and finally restores the buffer.  The return value is the value
@@ -227,7 +227,7 @@ An error is signaled if @var{buffer-or-name} does not identify an
 existing buffer.
 @end defmac
 
-@defmac with-temp-buffer body...
+@defmac with-temp-buffer body@dots{}
 @anchor{Definition of with-temp-buffer}
 The @code{with-temp-buffer} macro evaluates the @var{body} forms
 with a temporary buffer as the current buffer.  It saves the identity of

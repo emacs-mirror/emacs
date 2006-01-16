@@ -1678,37 +1678,20 @@ displays at the top of the window; there is no arrow."
   "Jump to an error corresponding to MSG at MK.
 All arguments are markers.  If END-MK is non-nil, mark is set there
 and overlay is highlighted between MK and END-MK."
-  (if (eq (window-buffer (selected-window))
-	  (marker-buffer msg))
-      ;; If the compilation buffer window is selected,
-      ;; keep the compilation buffer in this window;
-      ;; display the source in another window.
-      (let ((pop-up-windows t))
-	(pop-to-buffer (marker-buffer mk)))
-    (if (window-dedicated-p (selected-window))
-	(pop-to-buffer (marker-buffer mk))
-      (switch-to-buffer (marker-buffer mk))))
-  ;; If narrowing gets in the way of going to the right place, widen.
-  (unless (eq (goto-char mk) (point))
-    (widen)
-    (goto-char mk))
-  (if end-mk
-      (push-mark end-mk t)
-    (if mark-active (setq mark-active)))
-  ;; If hideshow got in the way of
-  ;; seeing the right place, open permanently.
-  (dolist (ov (overlays-at (point)))
-    (when (eq 'hs (overlay-get ov 'invisible))
-      (delete-overlay ov)
-      (goto-char mk)))
-
   ;; Show compilation buffer in other window, scrolled to this error.
-  (let* ((pop-up-windows t)
-	 ;; Use an existing window if it is in a visible frame.
+  (let* ((from-compilation-buffer (eq (window-buffer (selected-window))
+                                      (marker-buffer msg)))
+         ;; Use an existing window if it is in a visible frame.
          (pre-existing (get-buffer-window (marker-buffer msg) 0))
-         (w (let ((display-buffer-reuse-frames t))
-              ;; Pop up a window.
-              (display-buffer (marker-buffer msg))))
+         (w (if (and from-compilation-buffer pre-existing)
+                ;; Calling display-buffer here may end up (partly) hiding
+                ;; the error location if the two buffers are in two
+                ;; different frames.  So don't do it if it's not necessary.
+                pre-existing
+              (let ((display-buffer-reuse-frames t)
+                    (pop-up-windows t))
+	        ;; Pop up a window.
+                (display-buffer (marker-buffer msg)))))
 	 (highlight-regexp (with-current-buffer (marker-buffer msg)
 			     ;; also do this while we change buffer
 			     (compilation-set-window w msg)
@@ -1717,6 +1700,29 @@ and overlay is highlighted between MK and END-MK."
     ;; something like special-display-buffer) so it's only used when
     ;; creating a new window.
     (unless pre-existing (compilation-set-window-height w))
+
+    (if from-compilation-buffer
+        ;; If the compilation buffer window was selected,
+        ;; keep the compilation buffer in this window;
+        ;; display the source in another window.
+        (let ((pop-up-windows t))
+          (pop-to-buffer (marker-buffer mk) 'other-window))
+      (if (window-dedicated-p (selected-window))
+          (pop-to-buffer (marker-buffer mk))
+        (switch-to-buffer (marker-buffer mk))))
+    ;; If narrowing gets in the way of going to the right place, widen.
+    (unless (eq (goto-char mk) (point))
+      (widen)
+      (goto-char mk))
+    (if end-mk
+        (push-mark end-mk t)
+      (if mark-active (setq mark-active)))
+    ;; If hideshow got in the way of
+    ;; seeing the right place, open permanently.
+    (dolist (ov (overlays-at (point)))
+      (when (eq 'hs (overlay-get ov 'invisible))
+        (delete-overlay ov)
+        (goto-char mk)))
 
     (when highlight-regexp
       (if (timerp next-error-highlight-timer)

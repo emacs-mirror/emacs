@@ -6293,7 +6293,6 @@ selected frame.  */)
      (frame)
      Lisp_Object frame;
 {
-  Lisp_Object alist;
   FRAME_PTR f;
 
   if (NILP (frame))

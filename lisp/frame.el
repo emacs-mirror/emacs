@@ -1053,9 +1053,9 @@ frame's display)."
   "Return the number of screens associated with DISPLAY."
   (let ((frame-type (framep-on-display display)))
     (cond
-     ((memq frame-type '(x w32))
+     ((memq frame-type '(x w32 mac))
       (x-display-screens display))
-     (t	;; FIXME: is this correct for the Mac?
+     (t
       1))))
 
 (defun display-pixel-height (&optional display)
@@ -1263,7 +1263,7 @@ cursor display.  On a text-only terminal, this is not implemented."
   :init-value (not (or noninteractive
 		       no-blinking-cursor
 		       (eq system-type 'ms-dos)
-		       (not (memq window-system '(x w32)))))
+		       (not (memq window-system '(x w32 mac)))))
   :initialize 'custom-initialize-safe-default
   :group 'cursor
   :global t

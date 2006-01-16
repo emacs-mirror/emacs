@@ -3411,7 +3411,7 @@ terminate_applescript()
 }
 
 /* Convert a lisp string to the 4 byte character code.  */
- 
+
 OSType
 mac_get_code_from_arg(Lisp_Object arg, OSType defCode)
 {
@@ -3419,7 +3419,7 @@ mac_get_code_from_arg(Lisp_Object arg, OSType defCode)
   if (NILP(arg))
     {
       result = defCode;
-    } 
+    }
   else
     {
       /* check type string */
@@ -3483,7 +3483,7 @@ DEFUN ("mac-get-file-creator", Fmac_get_file_creator, Smac_get_file_creator, 1, 
 
       status = FSpGetFInfo (&fss, &finder_info);
 #endif
-      if (status == noErr) 
+      if (status == noErr)
 	{
 #ifdef MAC_OSX
 	  result = mac_get_object_from_code(((FileInfo*)&catalogInfo.finderInfo)->fileCreator);
@@ -3538,7 +3538,7 @@ DEFUN ("mac-get-file-type", Fmac_get_file_type, Smac_get_file_type, 1, 1, 0,
 
       status = FSpGetFInfo (&fss, &finder_info);
 #endif
-      if (status == noErr) 
+      if (status == noErr)
 	{
 #ifdef MAC_OSX
 	  result = mac_get_object_from_code(((FileInfo*)&catalogInfo.finderInfo)->fileType);
@@ -3596,7 +3596,7 @@ assumed. Return non-nil if successful.  */)
 
       status = FSpGetFInfo (&fss, &finder_info);
 #endif
-      if (status == noErr) 
+      if (status == noErr)
 	{
 #ifdef MAC_OSX
 	((FileInfo*)&catalogInfo.finderInfo)->fileCreator = cCode;
@@ -3656,7 +3656,7 @@ CODE must be a 4-character string.  Return non-nil if successful.  */)
 
       status = FSpGetFInfo (&fss, &finder_info);
 #endif
-      if (status == noErr) 
+      if (status == noErr)
 	{
 #ifdef MAC_OSX
 	((FileInfo*)&catalogInfo.finderInfo)->fileType = cCode;
@@ -3968,10 +3968,13 @@ get_cfstring_encoding_from_lisp (obj)
   CFStringRef iana_name;
   CFStringEncoding encoding = kCFStringEncodingInvalidId;
 
+  if (NILP (obj))
+    return kCFStringEncodingUnicode;
+
   if (INTEGERP (obj))
     return XINT (obj);
 
-  if (SYMBOLP (obj) && !NILP (obj) && !NILP (Fcoding_system_p (obj)))
+  if (SYMBOLP (obj) && !NILP (Fcoding_system_p (obj)))
     {
       Lisp_Object coding_spec, plist;
 
@@ -4115,7 +4118,8 @@ DEFUN ("mac-code-convert-string", Fmac_code_convert_string, Smac_code_convert_st
        doc: /* Convert STRING from SOURCE encoding to TARGET encoding.
 The conversion is performed using the converter provided by the system.
 Each encoding is specified by either a coding system symbol, a mime
-charset string, or an integer as a CFStringEncoding value.
+charset string, or an integer as a CFStringEncoding value.  Nil for
+encoding means UTF-16 in native byte order, no byte order marker.
 On Mac OS X 10.2 and later, you can do Unicode Normalization by
 specifying the optional argument NORMALIZATION-FORM with a symbol NFD,
 NFKD, NFC, NFKC, HFS+D, or HFS+C.
@@ -4126,7 +4130,6 @@ On successful conversion, return the result string, else return nil.  */)
   Lisp_Object result = Qnil;
   CFStringEncoding src_encoding, tgt_encoding;
   CFStringRef str = NULL;
-  CFDataRef data = NULL;
 
   CHECK_STRING (string);
   if (!INTEGERP (source) && !STRINGP (source))
@@ -4148,7 +4151,7 @@ On successful conversion, return the result string, else return nil.  */)
   if (src_encoding != kCFStringEncodingInvalidId
       && tgt_encoding != kCFStringEncodingInvalidId)
     str = CFStringCreateWithBytes (NULL, SDATA (string), SBYTES (string),
-				   src_encoding, true);
+				   src_encoding, !NILP (source));
 #if MAC_OS_X_VERSION_MAX_ALLOWED >= 1020
   if (str)
     {
@@ -4160,14 +4163,17 @@ On successful conversion, return the result string, else return nil.  */)
 #endif
   if (str)
     {
-      data = CFStringCreateExternalRepresentation (NULL, str,
-						   tgt_encoding, '\0');
+      CFIndex str_len, buf_len;
+
+      str_len = CFStringGetLength (str);
+      if (CFStringGetBytes (str, CFRangeMake (0, str_len), tgt_encoding, 0,
+			    !NILP (target), NULL, 0, &buf_len) == str_len)
+	{
+	  result = make_uninit_string (buf_len);
+	  CFStringGetBytes (str, CFRangeMake (0, str_len), tgt_encoding, 0,
+			    !NILP (target), SDATA (result), buf_len, NULL);
+	}
       CFRelease (str);
-    }
-  if (data)
-    {
-      result = cfdata_to_lisp (data);
-      CFRelease (data);
     }
 
   UNBLOCK_INPUT;

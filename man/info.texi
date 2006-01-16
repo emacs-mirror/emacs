@@ -92,8 +92,8 @@ Started' chapter.
 This first part of this Info manual describes how to get around inside
 of Info.  The second part of the manual describes various advanced
 Info commands.  The third part briefly explains how to generate Info
-files from Texinfo files, and describes how to write an Info as
-distinct from a Texinfo file.
+files from Texinfo files, and describes how to write an Info file
+by hand.
 
 @ifnotinfo
 This manual is primarily designed for browsing with an Info reader
@@ -954,7 +954,7 @@ by @key{RET} will do.  The file's nodes are scanned in the order
 they are in the file, which has no necessary relationship to the
 order that they may be in the tree structure of menus and @samp{next}
 pointers.  But normally the two orders are not very different.  In any
-case, you can always look at the echo area to find out what node you have
+case, you can always look at the mode line to find out what node you have
 reached, if the header is not visible (this can happen, because @kbd{s}
 puts your cursor at the occurrence of the string, not at the beginning
 of the node).
@@ -982,8 +982,8 @@ if the variable @code{Info-isearch-search} is non-@code{nil}
 @cindex searching Info indices
 @kindex i @r{(Info mode)}
 @findex Info-index
-  Since most subjects related to what the manual describes should be
-indexed, you should try the index search first.  The @kbd{i} command
+  Since most topics in the manual should be indexed, you should try
+the index search first before the text search.  The @kbd{i} command
 prompts you for a subject and then looks up that subject in the
 indices.  If it finds an index entry with the subject you typed, it
 goes to the node to which that index entry points.  You should browse
@@ -991,13 +991,13 @@ through that node to see whether the issue you are looking for is
 described there.  If it isn't, type @kbd{,} one or more times to go
 through additional index entries which match your subject.
 
-  The @kbd{i} command finds all index entries which include the string
-you typed @emph{as a substring}.  For each match, Info shows in the
-echo area the full index entry it found.  Often, the text of the full
-index entry already gives you enough information to decide whether it
-is relevant to what you are looking for, so we recommend that you read
-what Info shows in the echo area before looking at the node it
-displays.
+  The @kbd{i} command and subsequent @kbd{,} commands find all index
+entries which include the string you typed @emph{as a substring}.
+For each match, Info shows in the echo area the full index entry it
+found.  Often, the text of the full index entry already gives you
+enough information to decide whether it is relevant to what you are
+looking for, so we recommend that you read what Info shows in the echo
+area before looking at the node it displays.
 
   Since @kbd{i} looks for a substring, you can search for subjects even
 if you are not sure how they are spelled in the index.  For example,
@@ -1010,20 +1010,18 @@ to catch index entries that refer to ``complete'', ``completion'', and
 options, and key sequences that the program provides.  If you are
 looking for a description of a command, an option, or a key, just type
 their names when @kbd{i} prompts you for a topic.  For example, if you
-want to read the description of what the @kbd{C-f} key does, type
-@kbd{i C - f @key{RET}}.  Here @kbd{C-f} are 3 literal characters
-@samp{C}, @samp{-}, and @samp{f}, not the ``Control-f'' command key
-you type inside Emacs to run the command bound to @kbd{C-f}.
+want to read the description of what the @kbd{C-l} key does, type
+@kbd{iC-l@key{RET}} literally.
 
   In Emacs, @kbd{i} runs the command @code{Info-index}.
 
 @findex info-apropos
 @findex index-apropos
-If you don't know what manual documents something, try the @kbd{M-x
-info-apropos} command in Emacs, or the @kbd{M-x index-apropos} command
-in the stand-alone reader.  It prompts for a string and then looks up
-that string in all the indices of all the Info documents installed on
-your system.
+If you aren't sure which manual documents the topic you are looking
+for, try the @kbd{M-x info-apropos} command in Emacs, or the @kbd{M-x
+index-apropos} command in the stand-alone reader.  It prompts for
+a string and then looks up that string in all the indices of all the
+Info documents installed on your system.
 
 @node Go to node, Choose menu subtopic, Search Index, Advanced
 @comment  node-name,  next,  previous,  up
@@ -1193,24 +1191,23 @@ this:
 @node Expert Info
 @chapter Info for Experts
 
-  This chapter explains how to write an Info as distinct from a
-Texinfo file.  However, in most cases, writing a Texinfo file is
-better, since you can use it to make a printed manual or produce other
-formats, such as HTML and DocBook, as well as for generating Info
-files.
+  This chapter explains how to write an Info file by hand.  However,
+in most cases, writing a Texinfo file is better, since you can use it
+to make a printed manual or produce other formats, such as HTML and
+DocBook, as well as for generating Info files.
 
-@code{makeinfo} is a utility that converts a Texinfo file into an Info
-file; @code{texinfo-format-region} and @code{texinfo-format-buffer} are
-GNU Emacs functions that do the same.
+The @code{makeinfo} command converts a Texinfo file into an Info file;
+@code{texinfo-format-region} and @code{texinfo-format-buffer} are GNU
+Emacs functions that do the same.
 
 @xref{Top,, Overview of Texinfo, texinfo, Texinfo: The GNU
-Documentation Format}, to learn how to write a Texinfo file.
+Documentation Format}, for how to write a Texinfo file.
 
 @xref{Creating an Info File,,, texinfo, Texinfo: The GNU Documentation
-Format}, to learn how to create an Info file from a Texinfo file.
+Format}, for how to create an Info file from a Texinfo file.
 
 @xref{Installing an Info File,,, texinfo, Texinfo: The GNU
-Documentation Format}, to learn how to install an Info file after you
+Documentation Format}, for how to install an Info file after you
 have created one.
 
 However, if you want to edit an Info file manually and install it manually,

@@ -437,6 +437,9 @@ Also display the main routine in the disassembly buffer if present."
 			 nil nil)))
 	  (push var gdb-var-list)
 	  (speedbar 1)
+	  (unless (string-equal
+		   speedbar-initial-expansion-list-name "GUD")
+	    (speedbar-change-initial-expansion-list "GUD"))
 	  (if (equal (nth 2 var) "0")
 	      (gdb-enqueue-input
 	       (list
@@ -600,7 +603,9 @@ INDENT is the current indentation depth."
 	 (dolist (var gdb-var-list)
 	   (if (string-match (concat token "\\.") (nth 1 var))
 	       (setq gdb-var-list (delq var gdb-var-list))))
-	 (setq gdb-var-changed t))))
+	 (setq gdb-var-changed t)
+	 (with-current-buffer gud-comint-buffer
+	   (speedbar-timer-fn)))))
 
 (defun gdb-get-target-string ()
   (with-current-buffer gud-comint-buffer

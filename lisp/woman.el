@@ -424,6 +424,11 @@
 (defvar woman-version "0.551 (beta)" "WoMan version information.")
 
 (require 'man)
+(require 'button)
+(define-button-type 'WoMan-xref-man-page 
+  :supertype 'Man-abstract-xref-man-page
+  'func 'woman)
+
 (eval-when-compile			; to avoid compiler warnings
   (require 'dired)
   (require 'apropos))
@@ -1864,7 +1869,7 @@ See `Man-mode' for additional details."
   (setq woman-imenu-done nil)
   (if woman-imenu (woman-imenu))
   (let (buffer-read-only)
-    (Man-highlight-references))
+    (Man-highlight-references 'WoMan-xref-man-page))
   (set-buffer-modified-p nil)
   (run-mode-hooks 'woman-mode-hook))
 

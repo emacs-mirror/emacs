@@ -1378,7 +1378,7 @@ indent of the current line in parameterlist."
 	    ((and (not (null (cdr allcomp))) (= (length pascal-str)
 						(length match)))
 	     (with-output-to-temp-buffer "*Completions*"
-	       (display-completion-list allcomp))
+	       (display-completion-list allcomp pascal-str))
 	     ;; Wait for a keypress. Then delete *Completion*  window
 	     (momentary-string-display "" (point))
 	     (delete-window (get-buffer-window (get-buffer "*Completions*")))
@@ -1398,7 +1398,7 @@ indent of the current line in parameterlist."
 		    (all-completions pascal-str 'pascal-completion))))
     ;; Show possible completions in a temporary buffer.
     (with-output-to-temp-buffer "*Completions*"
-      (display-completion-list allcomp))
+      (display-completion-list allcomp pascal-str))
     ;; Wait for a keypress. Then delete *Completion*  window
     (momentary-string-display "" (point))
     (delete-window (get-buffer-window (get-buffer "*Completions*")))))

@@ -2686,7 +2686,12 @@ away in the internal cache."
 	 ;; Require the previous column to end in a digit.
 	 ;; This avoids recognizing `1 may 1997' as a date in the line:
 	 ;; -r--r--r--   1 may      1997        1168 Oct 19 16:49 README
-    (concat "[0-9]" s "\\(" western "\\|" japanese "\\)" s))
+	 ;; albinus:
+         ;; Require also the following column to start in a digit.
+	 ;; This avoids recognizing `kfs 10' as a date in the line:
+	 ;; -rw-------   1 kfs                    10 May 27  2003 .autorun.lck
+;;  (concat "[0-9]" s "\\(" western "\\|" japanese "\\)" s))
+    (concat "[0-9]" s "\\(" western "\\|" japanese "\\)" s "+[0-9]"))
   "Regular expression to match up to the column before the file name in a
 directory listing.  This regular expression is designed to recognize dates
 regardless of the language.")

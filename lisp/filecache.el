@@ -607,7 +607,7 @@ the name is considered already unique; only the second substitution
 			    completion-setup-hook)))
 		    )
 		(with-output-to-temp-buffer file-cache-completions-buffer
-		  (display-completion-list completion-list))
+		  (display-completion-list completion-list string))
 		)
 	      )
 	  (setq file-cache-string (file-cache-file-name completion-string))
@@ -700,7 +700,7 @@ the name is considered already unique; only the second substitution
 	   )
 	  (t
 	   (with-output-to-temp-buffer "*Completions*"
-	     (display-completion-list all))
+	     (display-completion-list all pattern))
 	   ))
     ))
 

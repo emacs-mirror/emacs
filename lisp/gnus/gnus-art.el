@@ -1181,7 +1181,10 @@ See Info node `(gnus)Customizing Articles' for details."
 (defcustom gnus-treat-strip-trailing-blank-lines nil
   "Strip trailing blank lines.
 Valid values are nil, t, `head', `last', an integer or a predicate.
-See Info node `(gnus)Customizing Articles' for details."
+See Info node `(gnus)Customizing Articles' for details.
+
+When set to t, it also strips trailing blanks in all MIME parts.
+Consider to use `last' instead."
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)
@@ -1189,7 +1192,9 @@ See Info node `(gnus)Customizing Articles' for details."
 (defcustom gnus-treat-strip-leading-blank-lines nil
   "Strip leading blank lines.
 Valid values are nil, t, `head', `last', an integer or a predicate.
-See Info node `(gnus)Customizing Articles' for details."
+See Info node `(gnus)Customizing Articles' for details.
+
+When set to t, it also strips trailing blanks in all MIME parts."
   :group 'gnus-article-treat
   :link '(custom-manual "(gnus)Customizing Articles")
   :type gnus-article-treat-custom)

@@ -790,7 +790,8 @@ options; it allows any variable name.
   The most convenient way to set a specific user option variable is
 with @kbd{M-x set-variable}.  This reads the variable name with the
 minibuffer (with completion), and then reads a Lisp expression for the
-new value using the minibuffer a second time.  For example,
+new value using the minibuffer a second time (you can insert the old
+value into the minibuffer for editing via @kbd{M-n}).  For example,
 
 @example
 M-x set-variable @key{RET} fill-column @key{RET} 75 @key{RET}

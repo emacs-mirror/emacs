@@ -625,7 +625,7 @@ feature is useful for programs that use files for internal purposes,
 files that the user does not need to know about.
 @end deffn
 
-@defmac with-temp-file file body...
+@defmac with-temp-file file body@dots{}
 @anchor{Definition of with-temp-file}
 The @code{with-temp-file} macro evaluates the @var{body} forms with a
 temporary buffer as the current buffer; then, at the end, it writes the

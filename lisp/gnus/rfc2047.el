@@ -812,6 +812,85 @@ it, put the following line in your ~/.gnus.el file:
 (defvar rfc2047-quote-decoded-words-containing-tspecials nil
   "If non-nil, quote decoded words containing special characters.")
 
+(defvar rfc2047-allow-incomplete-encoded-text t
+  "*Non-nil means allow incomplete encoded-text in successive encoded-words.
+Dividing of encoded-text in the place other than character boundaries
+violates RFC2047 section 5, while we have a capability to decode it.
+If it is non-nil, the decoder will decode B- or Q-encoding in each
+encoded-word, concatenate them, and decode it by charset.  Otherwise,
+the decoder will fully decode each encoded-word before concatenating
+them.")
+
+(defun rfc2047-charset-to-coding-system (charset)
+  "Return coding-system corresponding to MIME CHARSET.
+If your Emacs implementation can't decode CHARSET, return nil."
+  (when (stringp charset)
+    (setq charset (intern (downcase charset))))
+  (when (or (not charset)
+	    (eq 'gnus-all mail-parse-ignored-charsets)
+	    (memq 'gnus-all mail-parse-ignored-charsets)
+	    (memq charset mail-parse-ignored-charsets))
+    (setq charset mail-parse-charset))
+  (let ((cs (mm-coding-system-p (mm-charset-to-coding-system charset))))
+    (cond ((eq cs 'ascii)
+	   (setq cs (or (mm-charset-to-coding-system mail-parse-charset)
+			'raw-text)))
+	  (cs)
+	  ((and charset
+		(listp mail-parse-ignored-charsets)
+		(memq 'gnus-unknown mail-parse-ignored-charsets))
+	   (setq cs (mm-charset-to-coding-system mail-parse-charset))))
+    (if (eq cs 'ascii)
+	'raw-text
+      cs)))
+
+(defun rfc2047-decode-encoded-words (words)
+  "Decode successive encoded-words in WORDS and return a decoded string.
+Each element of WORDS looks like (CHARSET ENCODING ENCODED-TEXT
+ENCODED-WORD)."
+  (let (word charset cs encoding text rest)
+    (while words
+      (setq word (pop words))
+      (if (and (or (setq cs (rfc2047-charset-to-coding-system
+			     (setq charset (car word))))
+		   (progn
+		     (message "Unknown charset: %s" charset)
+		     nil))
+	       (condition-case code
+		   (cond ((char-equal ?B (nth 1 word))
+			  (setq text (base64-decode-string
+				      (rfc2047-pad-base64 (nth 2 word)))))
+			 ((char-equal ?Q (nth 1 word))
+			  (setq text (quoted-printable-decode-string
+				      (mm-subst-char-in-string
+				       ?_ ?  (nth 2 word) t)))))
+		 (error
+		  (message "%s" (error-message-string code))
+		  nil)))
+	  (if (and rfc2047-allow-incomplete-encoded-text
+		   (eq cs (caar rest)))
+	      ;; Concatenate text of which the charset is the same.
+	      (setcdr (car rest) (concat (cdar rest) text))
+	    (push (cons cs text) rest))
+	;; Don't decode encoded-word.
+	(push (cons nil (nth 3 word)) rest)))
+    (while rest
+      (setq words (concat
+		   (or (and (setq cs (caar rest))
+			    (condition-case code
+				(mm-decode-coding-string (cdar rest) cs)
+			      (error
+			       (message "%s" (error-message-string code))
+			       nil)))
+		       (concat (when (cdr rest) " ")
+			       (cdar rest)
+			       (when (and words
+					  (not (eq (string-to-char words) ? )))
+				 " ")))
+		   words)
+	    rest (cdr rest)))
+    words))
+
 ;; Fixme: This should decode in place, not cons intermediate strings.
 ;; Also check whether it needs to worry about delimiting fields like
 ;; encoding.
@@ -826,32 +905,32 @@ it, put the following line in your ~/.gnus.el file:
   "Decode MIME-encoded words in region between START and END."
   (interactive "r")
   (let ((case-fold-search t)
-	b e)
+	(eword-regexp (eval-when-compile
+			;; Ignore whitespace between encoded-words.
+			(concat "[\n\t ]*\\(" rfc2047-encoded-word-regexp
+				"\\)")))
+	b e match words)
     (save-excursion
       (save-restriction
 	(narrow-to-region start end)
-	(goto-char (point-min))
-	;; Remove whitespace between encoded words.
-	(while (re-search-forward
-		(eval-when-compile
-		  (concat "\\(" rfc2047-encoded-word-regexp "\\)"
-			  "\\(\n?[ \t]\\)+"
-			  "\\(" rfc2047-encoded-word-regexp "\\)"))
-		nil t)
-	  (delete-region (goto-char (match-end 1)) (match-beginning 7)))
-	;; Decode the encoded words.
-	(setq b (goto-char (point-min)))
-	(while (re-search-forward rfc2047-encoded-word-regexp nil t)
-	  (setq e (match-beginning 0))
-	  (insert (rfc2047-parse-and-decode
-		   (prog1
-		       (match-string 0)
-		     (delete-region e (match-end 0)))))
-	  (while (looking-at rfc2047-encoded-word-regexp)
-	    (insert (rfc2047-parse-and-decode
-		     (prog1
-			 (match-string 0)
-		       (delete-region (point) (match-end 0))))))
+	(goto-char (setq b start))
+	;; Look for the encoded-words.
+	(while (setq match (re-search-forward eword-regexp nil t))
+	  (setq e (match-beginning 1)
+		end (match-end 0)
+		words nil)
+	  (while match
+	    (push (list (match-string 2) ;; charset
+			(char-after (match-beginning 4)) ;; encoding
+			(match-string 5) ;; encoded-text
+			(match-string 1)) ;; encoded-word
+		  words)
+	    ;; Look for the subsequent encoded-words.
+	    (when (setq match (looking-at eword-regexp))
+	      (goto-char (setq end (match-end 0)))))
+	  ;; Replace the encoded-words with the decoded one.
+	  (delete-region e end)
+	  (insert (rfc2047-decode-encoded-words (nreverse words)))
 	  (save-restriction
 	    (narrow-to-region e (point))
 	    (goto-char e)
@@ -957,21 +1036,6 @@ it, put the following line in your ~/.gnus.el file:
 	    (mm-decode-coding-string string mail-parse-charset))
 	(mm-string-as-multibyte string)))))
 
-(defun rfc2047-parse-and-decode (word)
-  "Decode WORD and return it if it is an encoded word.
-Return WORD if it is not not an encoded word or if the charset isn't
-decodable."
-  (if (not (string-match rfc2047-encoded-word-regexp word))
-      word
-    (or
-     (condition-case nil
-	 (rfc2047-decode
-	  (match-string 1 word)
-	  (string-to-char (match-string 3 word))
-	  (match-string 4 word))
-       (error word))
-     word)))				; un-decodable
-
 (defun rfc2047-pad-base64 (string)
   "Pad STRING to quartets."
   ;; Be more liberal to accept buggy base64 strings. If
@@ -986,36 +1050,6 @@ decodable."
       (1 string) ;; Error, don't pad it.
       (2 (concat string "=="))
       (3 (concat string "=")))))
-
-(defun rfc2047-decode (charset encoding string)
-  "Decode STRING from the given MIME CHARSET in the given ENCODING.
-Valid ENCODINGs are the characters \"B\" and \"Q\".
-If your Emacs implementation can't decode CHARSET, return nil."
-  (if (stringp charset)
-      (setq charset (intern (downcase charset))))
-  (if (or (not charset)
-	  (eq 'gnus-all mail-parse-ignored-charsets)
-	  (memq 'gnus-all mail-parse-ignored-charsets)
-	  (memq charset mail-parse-ignored-charsets))
-      (setq charset mail-parse-charset))
-  (let ((cs (mm-charset-to-coding-system charset)))
-    (if (and (not cs) charset
-	     (listp mail-parse-ignored-charsets)
-	     (memq 'gnus-unknown mail-parse-ignored-charsets))
-	(setq cs (mm-charset-to-coding-system mail-parse-charset)))
-    (when cs
-      (when (eq cs 'ascii)
-	(setq cs (or mail-parse-charset 'raw-text)))
-      (mm-decode-coding-string
-       (cond
-	((char-equal ?B encoding)
-	 (base64-decode-string
-	  (rfc2047-pad-base64 string)))
-	((char-equal ?Q encoding)
-	 (quoted-printable-decode-string
-	  (mm-subst-char-in-string ?_ ? string t)))
-	(t (error "Invalid encoding: %c" encoding)))
-       cs))))
 
 (provide 'rfc2047)
 

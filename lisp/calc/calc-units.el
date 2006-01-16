@@ -43,200 +43,208 @@
 ;;; for CODATA 1998 see one of
 ;;; - Journal of Physical and Chemical Reference Data, 28(6), 1713-1852, 1999.
 ;;; - Reviews of Modern Physics, 72(2), 351-495, 2000.
+;;; for CODATA 2005 see
 ;;; - http://physics.nist.gov/cuu/Constants/index.html
 
 (defvar math-standard-units
   '( ;; Length
-    ( m       nil		     "*Meter" )
-    ( in      "2.54 cm"             "Inch" )
-    ( ft      "12 in"		     "Foot" )
-    ( yd      "3 ft"		     "Yard" )
-    ( mi      "5280 ft"	     "Mile" )
-    ( au      "149597870691 m"      "Astronomical Unit" ) ;; NASA JPL (http://neo.jpl.nasa.gov/glossary/au.html)
-    ( lyr     "9460536207068016 m"  "Light Year" )
-    ( pc      "206264.80625 au"     "Parsec" )
-    ( nmi     "1852 m"		     "Nautical Mile" )
-    ( fath    "6 ft"		     "Fathom" )
-    ( u       "1 um"		     "Micron" )
-    ( mil     "in/1000"	     "Mil" )
-    ( point   "in/72"		     "Point (1/72 inch)" )
-    ( tpt     "in/72.27"	     "Point (TeX conventions)" )
-    ( Ang     "1e-10 m"	     "Angstrom" )
-    ( mfi     "mi+ft+in"	     "Miles + feet + inches" )
+    ( m       nil                    "*Meter" )
+    ( in      "2.54 cm"           "Inch" )
+    ( ft      "12 in"                "Foot" )
+    ( yd      "3 ft"                 "Yard" )
+    ( mi      "5280 ft"              "Mile" )
+    ( au      "149597870691 m"       "Astronomical Unit" ) ;; NASA JPL (http://neo.jpl.nasa.gov/glossary/au.html)
+    ( lyr     "9460536207068016 m"   "Light Year" )
+    ( pc      "206264.80625 au"      "Parsec" )
+    ( nmi     "1852 m"               "Nautical Mile" )
+    ( fath    "6 ft"                 "Fathom" )
+    ( mu      "1 um"                 "Micron" )
+    ( mil     "in/1000"              "Mil" )
+    ( point   "in/72"                "Point (1/72 inch)" )
+    ( Ang     "1e-10 m"              "Angstrom" )
+    ( mfi     "mi+ft+in"             "Miles + feet + inches" )
+    ;; TeX lengths
+    ( texpt   "in/72.27"             "Point (TeX conventions)" )
+    ( texpc   "12 texpt"             "Pica" )
+    ( texbp   "point"                "Big point (TeX conventions)" )
+    ( texdd   "1238/1157 texpt"      "Didot point" )
+    ( texcc   "12 texdd"             "Cicero" )
+    ( texsp   "1/66536 texpt"        "Scaled TeX point" )
 
     ;; Area
-    ( hect    "10000 m^2"	     "*Hectare" )
-    ( acre    "mi^2 / 640"	     "Acre" )
-    ( b       "1e-28 m^2"	     "Barn" )
+    ( hect    "10000 m^2"            "*Hectare" )
+    ( a       "100 m^2"              "Are")
+    ( acre    "mi^2 / 640"           "Acre" )
+    ( b       "1e-28 m^2"            "Barn" )
 
     ;; Volume
-    ( l       "1e-3 m^3"	     "*Liter" )
-    ( L       "1e-3 m^3"	     "Liter" )
-    ( gal     "4 qt"		     "US Gallon" )
-    ( qt      "2 pt"		     "Quart" )
-    ( pt      "2 cup"		     "Pint" )
-    ( cup     "8 ozfl"		     "Cup" )
-    ( ozfl    "2 tbsp"		     "Fluid Ounce" )
-    ( floz    "2 tbsp"		     "Fluid Ounce" )
-    ( tbsp    "3 tsp"		     "Tablespoon" )
-    ( tsp     "4.92892159375 ml"    "Teaspoon" )
+    ( L       "1e-3 m^3"             "*Liter" )
+    ( l       "L"                    "Liter" )
+    ( gal     "4 qt"                 "US Gallon" )
+    ( qt      "2 pt"                 "Quart" )
+    ( pt      "2 cup"                "Pint" )
+    ( cup     "8 ozfl"               "Cup" )
+    ( ozfl    "2 tbsp"               "Fluid Ounce" )
+    ( floz    "2 tbsp"               "Fluid Ounce" )
+    ( tbsp    "3 tsp"                "Tablespoon" )
+    ( tsp     "4.92892159375 ml"     "Teaspoon" )
     ( vol     "tsp+tbsp+ozfl+cup+pt+qt+gal" "Gallons + ... + teaspoons" )
-    ( galC    "4.54609 l"	     "Canadian Gallon" )
-    ( galUK   "4.546092 l"	     "UK Gallon" )
+    ( galC    "4.54609 L"            "Canadian Gallon" )
+    ( galUK   "4.546092 L"           "UK Gallon" )
 
     ;; Time
-    ( s       nil		     "*Second" )
-    ( sec     "s"		     "Second" )
-    ( min     "60 s"		     "Minute" )
-    ( hr      "60 min"		     "Hour" )
-    ( day     "24 hr"		     "Day" )
-    ( wk      "7 day"		     "Week" )
-    ( hms     "wk+day+hr+min+s"     "Hours, minutes, seconds" )
-    ( yr      "365.25 day"	     "Year" )
-    ( Hz      "1/s"		     "Hertz" )
+    ( s       nil                    "*Second" )
+    ( sec     "s"                    "Second" )
+    ( min     "60 s"                 "Minute" )
+    ( hr      "60 min"               "Hour" )
+    ( day     "24 hr"                "Day" )
+    ( wk      "7 day"                "Week" )
+    ( hms     "wk+day+hr+min+s"      "Hours, minutes, seconds" )
+    ( yr      "365.25 day"           "Year" )
+    ( Hz      "1/s"                  "Hertz" )
 
     ;; Speed
-    ( mph     "mi/hr"		     "*Miles per hour" )
-    ( kph     "km/hr"		     "Kilometers per hour" )
-    ( knot    "nmi/hr"		     "Knot" )
-    ( c       "2.99792458e8 m/s"    "Speed of light" )
+    ( mph     "mi/hr"                "*Miles per hour" )
+    ( kph     "km/hr"                "Kilometers per hour" )
+    ( knot    "nmi/hr"               "Knot" )
+    ( c       "299792458 m/s"        "Speed of light" ) ;;; CODATA 2005
 
     ;; Acceleration
-    ( ga      "9.80665 m/s^2"	     "*\"g\" acceleration" )
+    ( ga      "9.80665 m/s^2"        "*\"g\" acceleration" ) ;; CODATA 2005
 
     ;; Mass
-    ( g       nil                   "*Gram" )
-    ( lb      "16 oz"		     "Pound (mass)" )
-    ( oz      "28.349523125 g"	     "Ounce (mass)" )
-    ( ton     "2000 lb"	     "Ton" )
-    ( tpo     "ton+lb+oz"	     "Tons + pounds + ounces (mass)" )
-    ( t       "1000 kg"	     "Metric ton" )
-    ( tonUK   "1016.0469088 kg"     "UK ton" )
-    ( lbt     "12 ozt"		     "Troy pound" )
-    ( ozt     "31.103475 g"	     "Troy ounce" )
-    ( ct      ".2 g"		     "Carat" )
-    ( amu     "1.66053873e-27 kg"   "Unified atomic mass" ) ;; CODATA 1998
+    ( g       nil                    "*Gram" )
+    ( lb      "16 oz"                "Pound (mass)" )
+    ( oz      "28.349523125 g"       "Ounce (mass)" )
+    ( ton     "2000 lb"              "Ton" )
+    ( tpo     "ton+lb+oz"            "Tons + pounds + ounces (mass)" )
+    ( t       "1000 kg"              "Metric ton" )
+    ( tonUK   "1016.0469088 kg"      "UK ton" )
+    ( lbt     "12 ozt"               "Troy pound" )
+    ( ozt     "31.103475 g"          "Troy ounce" )
+    ( ct      ".2 g"                 "Carat" )
+    ( u       "1.66053886e-27 kg"    "Unified atomic mass" ) ;; CODATA 2005
 
     ;; Force
-    ( N       "m kg/s^2"	     "*Newton" )
-    ( dyn     "1e-5 N"		     "Dyne" )
-    ( gf      "ga g"		     "Gram (force)" )
-    ( lbf     "4.44822161526 N"     "Pound (force)" )
-    ( kip     "1000 lbf"	     "Kilopound (force)" )
-    ( pdl     "0.138255 N"	     "Poundal" )
+    ( N       "m kg/s^2"             "*Newton" )
+    ( dyn     "1e-5 N"               "Dyne" )
+    ( gf      "ga g"                 "Gram (force)" )
+    ( lbf     "4.44822161526 N"      "Pound (force)" )
+    ( kip     "1000 lbf"             "Kilopound (force)" )
+    ( pdl     "0.138255 N"           "Poundal" )
 
     ;; Energy
-    ( J       "N m"		     "*Joule" )
-    ( erg     "1e-7 J"		     "Erg" )
-    ( cal     "4.1868 J"	     "International Table Calorie" )
-    ( Btu     "1055.05585262 J"     "International Table Btu" )
-    ( eV      "ech V"               "Electron volt" )
-    ( ev      "eV"                  "Electron volt" )
-    ( therm   "105506000 J"	     "EEC therm" )
-    ( invcm   "h c/cm"	  	     "Energy in inverse centimeters" )
-    ( Kayser  "invcm"		     "Kayser (inverse centimeter energy)" )
-    ( men     "100/invcm"	     "Inverse energy in meters" )
-    ( Hzen    "h Hz"		     "Energy in Hertz")
-    ( Ken     "k K"		     "Energy in Kelvins")
+    ( J       "N m"                  "*Joule" )
+    ( erg     "1e-7 J"               "Erg" )
+    ( cal     "4.1868 J"             "International Table Calorie" )
+    ( Btu     "1055.05585262 J"      "International Table Btu" )
+    ( eV      "ech V"                "Electron volt" )
+    ( ev      "eV"                   "Electron volt" )
+    ( therm   "105506000 J"          "EEC therm" )
+    ( invcm   "h c/cm"               "Energy in inverse centimeters" )
+    ( Kayser  "invcm"                "Kayser (inverse centimeter energy)" )
+    ( men     "100/invcm"            "Inverse energy in meters" )
+    ( Hzen    "h Hz"                 "Energy in Hertz")
+    ( Ken     "k K"                  "Energy in Kelvins")
     ( Wh      "W hr"                 "Watt hour")
-    ( Ws      "W s"                 "Watt second")
+    ( Ws      "W s"                  "Watt second")
 
     ;; Power
-    ( W       "J/s"		     "*Watt" )
-    ( hp      "745.7 W"	     "Horsepower" )
+    ( W       "J/s"                  "*Watt" )
+    ( hp      "745.7 W"              "Horsepower" )
 
     ;; Temperature
-    ( K       nil                   "*Degree Kelvin"     K )
-    ( dK      "K"		     "Degree Kelvin"	  K )
-    ( degK    "K"		     "Degree Kelvin"	  K )
-    ( dC      "K"		     "Degree Celsius"	  C )
-    ( degC    "K"      	     "Degree Celsius"	  C )
-    ( dF      "(5/9) K"	     "Degree Fahrenheit"  F )
-    ( degF    "(5/9) K"	     "Degree Fahrenheit"  F )
+    ( K       nil                    "*Degree Kelvin"     K )
+    ( dK      "K"                    "Degree Kelvin"      K )
+    ( degK    "K"                    "Degree Kelvin"      K )
+    ( dC      "K"                    "Degree Celsius"     C )
+    ( degC    "K"                    "Degree Celsius"     C )
+    ( dF      "(5/9) K"              "Degree Fahrenheit"  F )
+    ( degF    "(5/9) K"              "Degree Fahrenheit"  F )
 
     ;; Pressure
-    ( Pa      "N/m^2"		     "*Pascal" )
-    ( bar     "1e5 Pa"		     "Bar" )
-    ( atm     "101325 Pa"	     "Standard atmosphere" )
-    ( torr    " 1.333224e2 Pa"	     "Torr" ) ;; NIST (http://physics.nist.gov/Pubs/SP811/appenB9.html)
-    ( mHg     "1000 torr"	     "Meter of mercury" )
-    ( inHg    "25.4 mmHg"	     "Inch of mercury" )
-    ( inH2O   "2.490889e2 Pa"	     "Inch of water" ) ;; NIST (http://physics.nist.gov/Pubs/SP811/appenB9.html)
-    ( psi     "6894.75729317 Pa"    "Pound per square inch" )
+    ( Pa      "N/m^2"                "*Pascal" )
+    ( bar     "1e5 Pa"               "Bar" )
+    ( atm     "101325 Pa"            "Standard atmosphere" ) ;; CODATA 2005
+    ( Torr    " 1.333224e2 Pa"       "Torr" ) ;; NIST (http://physics.nist.gov/Pubs/SP811/appenB9.html)
+    ( mHg     "1000 Torr"            "Meter of mercury" )
+    ( inHg    "25.4 mmHg"            "Inch of mercury" )
+    ( inH2O   "2.490889e2 Pa"        "Inch of water" ) ;; NIST (http://physics.nist.gov/Pubs/SP811/appenB9.html)
+    ( psi     "6894.75729317 Pa"     "Pound per square inch" )
 
     ;; Viscosity
-    ( P       "0.1 Pa s"	     "*Poise" )
-    ( St      "1e-4 m^2/s"	     "Stokes" )
+    ( P       "0.1 Pa s"              "*Poise" )
+    ( St      "1e-4 m^2/s"            "Stokes" )
 
     ;; Electromagnetism
-    ( A       nil                   "*Ampere" )
-    ( C       "A s"		     "Coulomb" )
-    ( Fdy     "ech Nav"  	     "Faraday" )
-    ( e       "1.602176462e-19 C"   "Elementary charge" ) ;; CODATA 1998
-    ( ech     "1.602176462e-19 C"   "Elementary charge" ) ;; CODATA 1998
-    ( V       "W/A"		     "Volt" )
-    ( ohm     "V/A"		     "Ohm" )
-    ( mho     "A/V"		     "Mho" )
-    ( S       "A/V"		     "Siemens" )
-    ( F       "C/V"		     "Farad" )
-    ( H       "Wb/A"		     "Henry" )
-    ( T       "Wb/m^2"		     "Tesla" )
-    ( G       "1e-4 T"		     "Gauss" )
-    ( Wb      "V s"		     "Weber" )
+    ( A       nil                     "*Ampere" )
+    ( C       "A s"                   "Coulomb" )
+    ( Fdy     "ech Nav"               "Faraday" )
+    ( e       "1.60217653e-19 C"      "Elementary charge" ) ;; CODATA 2005
+    ( ech     "1.60217653e-19 C"      "Elementary charge" ) ;; CODATA 2005
+    ( V       "W/A"                   "Volt" )
+    ( ohm     "V/A"                   "Ohm" )
+    ( mho     "A/V"                   "Mho" )
+    ( S       "A/V"                   "Siemens" )
+    ( F       "C/V"                   "Farad" )
+    ( H       "Wb/A"                  "Henry" )
+    ( T       "Wb/m^2"                "Tesla" )
+    ( Gs      "1e-4 T"                "Gauss" )
+    ( Wb      "V s"                   "Weber" )
 
     ;; Luminous intensity
-    ( cd      nil                   "*Candela" )
-    ( sb      "1e4 cd/m^2"	     "Stilb" )
-    ( lm      "cd sr"		     "Lumen" )
-    ( lx      "lm/m^2"		     "Lux" )
-    ( ph      "1e4 lx"		     "Phot" )
-    ( fc      "10.76391 lx"	     "Footcandle" ) ;; NIST (http://physics.nist.gov/Pubs/SP811/appenB9.html)
-    ( lam     "1e4 lm/m^2"	     "Lambert" )
-    ( flam    "3.426259 cd/m^2"     "Footlambert" ) ;; NIST (http://physics.nist.gov/Pubs/SP811/appenB9.html)
+    ( cd      nil                     "*Candela" )
+    ( sb      "1e4 cd/m^2"            "Stilb" )
+    ( lm      "cd sr"                 "Lumen" )
+    ( lx      "lm/m^2"                "Lux" )
+    ( ph      "1e4 lx"                "Phot" )
+    ( fc      "10.76391 lx"           "Footcandle" ) ;; NIST (http://physics.nist.gov/Pubs/SP811/appenB9.html)
+    ( lam     "1e4 lm/m^2"            "Lambert" )
+    ( flam    "3.426259 cd/m^2"       "Footlambert" ) ;; NIST (http://physics.nist.gov/Pubs/SP811/appenB9.html)
 
     ;; Radioactivity
-    ( Bq      "1/s"  		     "*Becquerel" )
-    ( Ci      "3.7e10 Bq"	     "Curie" )
-    ( Gy      "J/kg"		     "Gray" )
-    ( Sv      "Gy"		     "Sievert" )
-    ( R       "2.58e-4 C/kg"	     "Roentgen" )
-    ( rd      ".01 Gy"		     "Rad" )
-    ( rem     "rd"		     "Rem" )
+    ( Bq      "1/s"                    "*Becquerel" )
+    ( Ci      "3.7e10 Bq"              "Curie" )
+    ( Gy      "J/kg"                   "Gray" )
+    ( Sv      "Gy"                     "Sievert" )
+    ( R       "2.58e-4 C/kg"           "Roentgen" )
+    ( rd      ".01 Gy"                 "Rad" )
+    ( rem     "rd"                     "Rem" )
 
     ;; Amount of substance
-    ( mol     nil                   "*Mole" )
+    ( mol     nil                      "*Mole" )
 
     ;; Plane angle
-    ( rad     nil                   "*Radian" )
-    ( circ    "2 pi rad"	     "Full circle" )
-    ( rev     "circ"		     "Full revolution" )
-    ( deg     "circ/360"            "Degree" )
-    ( arcmin  "deg/60"		     "Arc minute" )
-    ( arcsec  "arcmin/60"	     "Arc second" )
-    ( grad    "circ/400"            "Grade" )
-    ( rpm     "rev/min"	     "Revolutions per minute" )
+    ( rad     nil                      "*Radian" )
+    ( circ    "2 pi rad"               "Full circle" )
+    ( rev     "circ"                   "Full revolution" )
+    ( deg     "circ/360"               "Degree" )
+    ( arcmin  "deg/60"                 "Arc minute" )
+    ( arcsec  "arcmin/60"              "Arc second" )
+    ( grad    "circ/400"               "Grade" )
+    ( rpm     "rev/min"                "Revolutions per minute" )
 
     ;; Solid angle
-    ( sr      nil		     "*Steradian" )
+    ( sr      nil                      "*Steradian" )
 
-    ;; Other physical quantities (CODATA 1998)
-    ( h       "6.62606876e-34 J s"     "*Planck's constant" )
+    ;; Other physical quantities
+    ( h       "6.6260693e-34 J s"     "*Planck's constant" ) ;; CODATA 2005
     ( hbar    "h / 2 pi"               "Planck's constant" )
     ( mu0     "4 pi 1e-7 H/m"          "Permeability of vacuum" )
-    ( Grav    "6.673e-11 m^3/kg^1/s^2" "Gravitational constant" )
-    ( Nav     "6.02214199e23 / mol"    "Avagadro's constant" )
-    ( me      "9.10938188e-31 kg"      "Electron rest mass" )
-    ( mp      "1.67262158e-27 kg"      "Proton rest mass" )
-    ( mn      "1.67492716e-27 kg"      "Neutron rest mass" )
-    ( mu      "1.88353109e-28 kg"      "Muon rest mass" )
-    ( Ryd     "10973731.568549 /m"     "Rydberg's constant" )
-    ( k       "1.3806503e-23 J/K"      "Boltzmann's constant" )
-    ( fsc     "7.297352533e-3"         "Fine structure constant" )
-    ( muB     "927.400899e-26 J/T"     "Bohr magneton" )
-    ( muN     "5.05078317e-27 J/T"     "Nuclear magneton" )
-    ( mue     "-928.476362e-26 J/T"    "Electron magnetic moment" )
-    ( mup     "1.410606633e-26 J/T"    "Proton magnetic moment" )
-    ( R0      "8.314472 J/mol/K"       "Molar gas constant" )
+    ( G       "6.6742e-11 m^3/kg^1/s^2" "Gravitational constant" ) ;; CODATA 2005
+    ( Nav     "6.02214115e23 / mol"    "Avagadro's constant" ) ;; CODATA 2005
+    ( me      "9.1093826e-31 kg"       "Electron rest mass" ) ;; CODATA 2005
+    ( mp      "1.67262171e-27 kg"      "Proton rest mass" ) ;; CODATA 2005
+    ( mn      "1.67492728e-27 kg"      "Neutron rest mass" ) ;; CODATA 2005
+    ( mmu     "1.88353140e-28 kg"      "Muon rest mass" ) ;; CODATA 2005
+    ( Ryd     "10973731.568525 /m"     "Rydberg's constant" ) ;; CODATA 2005
+    ( k       "1.3806505e-23 J/K"      "Boltzmann's constant" ) ;; CODATA 2005
+    ( alpha   "7.297352568e-3"         "Fine structure constant" ) ;; CODATA 2005
+    ( muB     "927.400949e-26 J/T"     "Bohr magneton" ) ;; CODATA 2005
+    ( muN     "5.05078343e-27 J/T"     "Nuclear magneton" ) ;; CODATA 2005
+    ( mue     "-928.476412e-26 J/T"    "Electron magnetic moment" ) ;; CODATA 2005
+    ( mup     "1.41060671e-26 J/T"     "Proton magnetic moment" ) ;; CODATA 2005
+    ( R0      "8.314472 J/mol/K"       "Molar gas constant" ) ;; CODATA 2005
     ( V0      "22.710981e-3 m^3/mol"   "Standard volume of ideal gas" )))
 
 
@@ -247,7 +255,9 @@ If this is changed, be sure to set math-units-table to nil to ensure
 that the combined units table will be rebuilt.")
 
 (defvar math-unit-prefixes
-  '( ( ?E  (float 1 18)  "Exa"    )
+  '( ( ?Y  (float 1 24)  "Yotta"  )
+     ( ?Z  (float 1 21)  "Zetta"  )
+     ( ?E  (float 1 18)  "Exa"    )
      ( ?P  (float 1 15)  "Peta"   )
      ( ?T  (float 1 12)  "Tera"	  )
      ( ?G  (float 1 9)   "Giga"	  )
@@ -265,7 +275,9 @@ that the combined units table will be rebuilt.")
      ( ?n  (float 1 -9)  "Nano"	  )
      ( ?p  (float 1 -12) "Pico"	  )
      ( ?f  (float 1 -15) "Femto"  )
-     ( ?a  (float 1 -18) "Atto"   )))
+     ( ?a  (float 1 -18) "Atto"   )
+     ( ?z  (float 1 -21) "zepto"  )
+     ( ?y  (float 1 -24) "yocto"  )))
 
 (defvar math-standard-units-systems
   '( ( base  nil )

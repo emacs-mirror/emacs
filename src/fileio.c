@@ -5711,6 +5711,7 @@ auto_save_error (error)
       Fsleep_for (make_number (1), Qnil);
     }
 
+  SAFE_FREE ();
   UNGCPRO;
   return Qnil;
 }

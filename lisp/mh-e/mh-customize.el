@@ -1897,7 +1897,6 @@ where,
                             for y in letter-docs
                             collect `(const :tag ,y ,x)))))))
 
-(mh-image-load-path)
 (mh-tool-bar-define
     ((:folder mh-inc-folder mh-mime-save-parts mh-previous-undeleted-msg
               mh-page-msg  mh-next-undeleted-msg mh-delete-msg mh-refile-msg
@@ -1917,12 +1916,12 @@ new mail into your Inbox folder.")
     "Save MIME parts from this message
 This button runs `mh-mime-save-parts' which saves a message's
 different parts into separate files.")
-  (mh-previous-undeleted-msg (folder) "left_arrow"
+  (mh-previous-undeleted-msg (folder) "left-arrow"
     "Go to the previous undeleted message
 This button runs `mh-previous-undeleted-msg'")
   (mh-page-msg (folder) "page-down"
     "Page the current message forwards\nThis button runs `mh-page-msg'")
-  (mh-next-undeleted-msg (folder) "right_arrow"
+  (mh-next-undeleted-msg (folder) "right-arrow"
     "Go to the next undeleted message\nThe button runs `mh-next-undeleted-msg'")
   (mh-delete-msg (folder) "close"
     "Mark this message for deletion\nThis button runs `mh-delete-msg'")
@@ -1945,7 +1944,7 @@ This button runs `mh-previous-undeleted-msg'")
   (mh-alias-grab-from-field (folder) "mail/alias"
     "Grab From alias\nThis button runs `mh-alias-grab-from-field'"
     (and (mh-extract-from-header-value) (not (mh-alias-for-from-p))))
-  (mh-send (folder) "mail_compose"
+  (mh-send (folder) "mail/compose"
     "Compose new message\nThis button runs `mh-send'")
   (mh-rescan-folder (folder) "refresh"
     "Rescan this folder\nThis button runs `mh-rescan-folder'")
@@ -1953,10 +1952,10 @@ This button runs `mh-previous-undeleted-msg'")
     "Repack this folder\nThis button runs `mh-pack-folder'")
   (mh-tool-bar-search (folder) "search"
     "Search\nThis button runs `mh-tool-bar-search-function'")
-  (mh-visit-folder (folder) "fld_open"
+  (mh-visit-folder (folder) "fld-open"
     "Visit other folder\nThis button runs `mh-visit-folder'")
   ;; Letter buffer buttons
-  (mh-send-letter (letter) "mail_send" "Send this letter")
+  (mh-send-letter (letter) "mail/send" "Send this letter")
   (mh-compose-insertion (letter) "attach" "Insert attachment")
   (ispell-message (letter) "spell" "Check spelling")
   (save-buffer (letter) "save" "Save current buffer to its file"

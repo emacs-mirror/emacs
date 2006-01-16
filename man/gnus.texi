@@ -16753,12 +16753,11 @@ as a newsgroup.  Several files types are supported:
 @table @code
 @cindex Babyl
 @cindex Rmail mbox
-
 @item babyl
 The Babyl (Rmail) mail box.
+
 @cindex mbox
 @cindex Unix mbox
-
 @item mbox
 The standard Unix mbox file.
 
@@ -16769,13 +16768,9 @@ The MMDF mail box format.
 @item news
 Several news articles appended into a file.
 
-@item rnews
 @cindex rnews batch files
+@item rnews
 The rnews batch transport format.
-@cindex forwarded messages
-
-@item forward
-Forwarded articles.
 
 @item nsmail
 Netscape mail boxes.
@@ -16792,6 +16787,7 @@ A @acronym{MIME} digest of messages.
 @item lanl-gov-announce
 Announcement messages from LANL Gov Announce.
 
+@cindex forwarded messages
 @item rfc822-forward
 A message forwarded according to RFC822.
 

@@ -512,7 +512,7 @@ This function returns the current syntax table, which is the table for
 the current buffer.
 @end defun
 
-@defmac with-syntax-table @var{table} @var{body}...
+@defmac with-syntax-table @var{table} @var{body}@dots{}
 @tindex with-syntax-table
 This macro executes @var{body} using @var{table} as the current syntax
 table.  It returns the value of the last form in @var{body}, after

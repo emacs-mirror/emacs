@@ -1,3 +1,11 @@
+2005-10-17  Bill Wohler  <wohler@newt.com>
+
+	* make-dist: Create and populate etc/images/low-color.
+
+2005-10-15  Bill Wohler  <wohler@newt.com>
+
+	* make-dist: Create and populate etc/images/gud.
+
 2005-10-08  Richard M. Stallman  <rms@gnu.org>
 
 	* make-dist (tempparent): Don't check for 14-char file name limit.
@@ -30,7 +38,7 @@
 	* configure.in (AC_CHECK_FUNCS): Check for get_current_dir_name.
 	* configure: Regenerated.
 
-2005-09-09  Eli Zaretskii  <eliz@fencepost.gnu.org>
+2005-09-09  Eli Zaretskii  <eliz@gnu.org>
 
 	* configure.in <lynxsos*>: Support for LynxOS on PPC.
 	* configure: Regenerated.
