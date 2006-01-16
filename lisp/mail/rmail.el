@@ -280,7 +280,7 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^x-importance:\\|^envelope-to:\\|^delivery-date:"
 	  "\\|^x-importance:\\|^envelope-to:\\|^delivery-date:"
           "\\|^x-*-priority:\\|x-mimeole:"
-	  "\\|^x-babyl-v6-attributes:\\|x-babyl-v6-keywords:")
+	  "\\|^x-babyl-v6-attributes:\\|x-babyl-v6-keywords:"
 	  "\\|^x-.*:")
   "*Regexp to match header fields that Rmail should normally hide.
 \(See also `rmail-nonignored-headers', which overrides this regexp.)
