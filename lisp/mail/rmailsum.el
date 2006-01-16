@@ -1082,7 +1082,7 @@ If SKIP-RMAIL, don't do anything to the Rmail buffer."
 	       (goto-char (point-max))
 	       (rmail-summary-goto-msg nil nowarn skip-rmail)))
     (goto-char (point-min))
-    (if (not (re-search-forward (format "^%4d[^0-9]" n) nil t))
+    (if (not (re-search-forward (format "^%5d[^0-9]" n) nil t))
 	(progn (or nowarn (message "Message %d not found" n))
 	       (setq n curmsg)
 	       (setq message-not-found t)
@@ -1670,7 +1670,12 @@ KEYWORDS is a comma-separated list of labels."
   summary buffer if the User has enabled line counts, otherwise return
   an empty string."
   (if rmail-summary-line-count-flag
-      (format "[%s]" (rmail-desc-get-line-count n))
+      (let ((lines (rmail-desc-get-line-count n)))
+	(format (cond ((<= lines     9) "   [%d]")
+		      ((<= lines    99) "  [%d]")
+		      ((<= lines   999) " [%3d]")
+		      (t "[%d]"))
+		lines))
     ""))
 
 (defun rmail-summary-get-summary-attributes (n)
@@ -1689,7 +1694,7 @@ KEYWORDS is a comma-separated list of labels."
 (defun rmail-summary-get-summary (n)
   "Return a summary line for message N."
   (funcall rmail-summary-line-decoder
-	   (format "%4s%s%6s %25s %s %s\n"
+	   (format "%5s%s%6s %25s %s %s\n"
 		   n
 		   (rmail-summary-get-summary-attributes n)
 		   (concat (rmail-desc-get-day-number n) "-"
